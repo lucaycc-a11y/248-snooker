@@ -7,6 +7,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import Pricing from "@/components/landing/Pricing";
 import Member from "@/components/landing/Member";
 import FAQ from "@/components/landing/FAQ";
+import Footer from "@/components/layout/Footer";
 
 export default function Home() {
   return (
@@ -25,6 +26,8 @@ export default function Home() {
 
       {/* FAQ — above the footer */}
       <FAQ />
+
+      <Footer />
     </main>
   );
 }
