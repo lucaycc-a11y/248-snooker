@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
+import { MapPin } from "lucide-react";
 
 // Apple Mac footer palette
 const BG = "#F5F5F7";
@@ -122,19 +123,6 @@ export default function Footer() {
         color: TEXT,
       }}
     >
-      {/* Google Map — full width. AIRSIDE, 啟德協調道 2 號 B1-31, 九龍城. */}
-      <iframe
-        title="248 Snooker Club — AIRSIDE 啟德協調道 2 號"
-        data-cms-key="footer.map"
-        src="https://maps.google.com/maps?q=AIRSIDE%20%E5%95%9F%E5%BE%B7%E5%8D%94%E8%AA%BF%E9%81%93%202%E8%99%9F&t=m&z=16&output=embed&hl=zh-HK"
-        width="100%"
-        height="280"
-        style={{ border: 0, display: "block", filter: "grayscale(0.6) contrast(0.95)" }}
-        allowFullScreen
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-      />
-
       <div
         style={{
           maxWidth: "1024px",
@@ -172,6 +160,63 @@ export default function Footer() {
         >
           {TAGLINE[lang]}
         </p>
+
+        {/* Location card header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            maxWidth: "600px",
+            margin: "0 auto 12px",
+          }}
+        >
+          <MapPin size={16} color="#22C55E" />
+          <span
+            data-cms-key="footer.map.name"
+            style={{ fontSize: "14px", color: TEXT_DARK, fontWeight: 600 }}
+          >
+            248 桌球會
+          </span>
+          <span data-cms-key="footer.map.area" style={{ fontSize: "14px", color: TEXT }}>
+            · 啟德
+          </span>
+          <a
+            href="https://maps.app.goo.gl/vyTWerhVjByieGDQ8"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cms-key="footer.map.link"
+            style={{ marginLeft: "auto", fontSize: "13px", color: "#0071E3" }}
+          >
+            在地圖中開啟 ›
+          </a>
+        </div>
+
+        {/* Google Map — Apple-style card. AIRSIDE, 啟德協調道 2 號 B1-31, 九龍城. */}
+        <div
+          style={{
+            maxWidth: "600px",
+            height: "240px",
+            margin: "0 auto",
+            borderRadius: "16px",
+            overflow: "hidden",
+            border: `1px solid ${BORDER}`,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+            marginBottom: "48px",
+          }}
+        >
+          <iframe
+            title="248 Snooker Club — AIRSIDE 啟德協調道 2 號"
+            data-cms-key="footer.map"
+            src="https://maps.google.com/maps?q=AIRSIDE%20%E5%95%9F%E5%BE%B7%E5%8D%94%E8%AA%BF%E9%81%93%202%E8%99%9F&t=m&z=16&output=embed&hl=zh-HK"
+            width="100%"
+            height="240"
+            style={{ border: 0, display: "block", filter: "grayscale(20%)" }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
 
         {/* ===== Desktop: multi-column ===== */}
         <div
