@@ -110,7 +110,7 @@ export default function Hero() {
         </motion.h1>
 
         {/* CTA buttons — directly below headline, static */}
-        <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+        <div className="mt-10 md:mt-14 flex flex-col items-center justify-center gap-6 sm:flex-row">
           <button
             type="button"
             onClick={handleLearnMore}

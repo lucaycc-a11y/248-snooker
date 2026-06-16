@@ -127,13 +127,13 @@ export default function Footer() {
         style={{
           maxWidth: "1024px",
           margin: "0 auto",
-          padding: "40px 22px 24px",
+          padding: "clamp(88px, 12vw, 140px) 22px",
         }}
       >
         {/* ===== Two-column layout: links (left) + map (right) ===== */}
         <div
           className="grid grid-cols-1 md:grid-cols-[60%_40%]"
-          style={{ gap: "48px", alignItems: "start", paddingBottom: "24px" }}
+          style={{ gap: "64px", alignItems: "start", paddingBottom: "32px" }}
         >
           {/* LEFT — logo, tagline, links */}
           <div>
@@ -142,7 +142,7 @@ export default function Footer() {
               href="/"
               aria-label="248 Snooker Club"
               className="inline-flex"
-              style={{ marginBottom: "20px" }}
+              style={{ marginBottom: "28px" }}
             >
               <Image
                 src="/1.svg"
@@ -162,7 +162,7 @@ export default function Footer() {
                 color: TEXT_DARK,
                 fontSize: "14px",
                 margin: 0,
-                marginBottom: "28px",
+                marginBottom: "clamp(40px, 6vw, 56px)",
               }}
             >
               {TAGLINE[lang]}
@@ -173,7 +173,7 @@ export default function Footer() {
               className="hidden md:grid"
               style={{
                 gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: "32px",
+                gap: "44px",
               }}
             >
               {COLUMNS.map((col) => (
@@ -185,7 +185,7 @@ export default function Footer() {
                       fontSize: "12px",
                       fontWeight: 600,
                       margin: 0,
-                      marginBottom: "10px",
+                      marginBottom: "14px",
                     }}
                   >
                     {col.title[lang]}
@@ -249,11 +249,11 @@ export default function Footer() {
                             style={{
                               listStyle: "none",
                               margin: 0,
-                              padding: "0 0 14px",
+                              padding: "0 0 20px",
                             }}
                           >
                             {col.links.map((link) => (
-                              <li key={link.cmsKey} style={{ padding: "4px 0" }}>
+                              <li key={link.cmsKey} style={{ padding: "6px 0" }}>
                                 <FooterLinkItem link={link} lang={lang} />
                               </li>
                             ))}
@@ -275,7 +275,7 @@ export default function Footer() {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                marginBottom: "12px",
+                marginBottom: "16px",
               }}
             >
               <MapPin size={16} color="#22C55E" />
@@ -329,12 +329,12 @@ export default function Footer() {
         <div
           style={{
             borderTop: `1px solid ${BORDER}`,
-            marginTop: "24px",
-            paddingTop: "18px",
+            marginTop: "32px",
+            paddingTop: "24px",
           }}
         >
           {/* Bottom bar — row on desktop, stacked on mobile */}
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <span
               data-cms-key="footer.copyright"
               style={{ fontSize: "12px", color: TEXT }}

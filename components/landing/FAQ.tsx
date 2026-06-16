@@ -23,7 +23,7 @@ export default function FAQ() {
       style={{
         background: "#F5F5F7",
         color: DARK,
-        padding: "120px 24px",
+        padding: "clamp(88px, 12vw, 140px) 24px",
         fontFamily: FONT_FAMILY,
       }}
       data-cms-key="faq_section"
@@ -42,7 +42,7 @@ export default function FAQ() {
             fontSize: "clamp(44px, 7vw, 64px)",
             fontWeight: 700,
             letterSpacing: "-0.03em",
-            margin: "0 0 48px",
+            margin: "0 0 clamp(40px, 6vw, 56px)",
           }}
           data-cms-key="faq_title"
         >
@@ -72,8 +72,8 @@ export default function FAQ() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    gap: "24px",
-                    padding: "24px 4px",
+                    gap: "32px",
+                    padding: "32px 4px",
                     userSelect: "none",
                   }}
                 >
@@ -121,7 +121,7 @@ export default function FAQ() {
                           lineHeight: 1.6,
                           color: "#494951",
                           margin: 0,
-                          padding: "0 4px 28px",
+                          padding: "0 4px 40px",
                           maxWidth: "680px",
                         }}
                       >

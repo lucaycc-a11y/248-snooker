@@ -348,7 +348,7 @@ export default function HowItWorks() {
       style={{
         background: "#F5F5F7",
         color: DARK,
-        padding: "80px 0",
+        padding: isMobile ? "88px 0" : "140px 0",
         fontFamily: FONT_FAMILY,
       }}
       data-cms-key="how_it_works_section"
@@ -364,7 +364,7 @@ export default function HowItWorks() {
           justifyContent: "space-between",
           gap: "16px",
           flexWrap: "wrap",
-          marginBottom: "48px",
+          marginBottom: isMobile ? "40px" : "56px",
         }}
       >
         <div>
@@ -419,7 +419,7 @@ export default function HowItWorks() {
           margin: "0 auto",
           padding: "0 24px",
           display: "flex",
-          gap: "16px",
+          gap: "24px",
           overflowX: isMobile ? "auto" : "visible",
           scrollSnapType: isMobile ? "x mandatory" : undefined,
           WebkitOverflowScrolling: "touch",
@@ -444,7 +444,7 @@ export default function HowItWorks() {
               background: "white",
               border: "1px solid #E5E5E5",
               borderRadius: "18px",
-              padding: "28px",
+              padding: isMobile ? "28px" : "32px",
               minHeight: "240px",
               display: "flex",
               flexDirection: "column",
@@ -516,7 +516,7 @@ export default function HowItWorks() {
           justifyContent: "center",
           alignItems: "center",
           gap: "16px",
-          marginTop: "32px",
+          marginTop: "44px",
         }}
       >
         <ArrowButton dir={-1} onClick={() => nudge(-1)} className="flex" />

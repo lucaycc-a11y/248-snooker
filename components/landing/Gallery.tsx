@@ -44,7 +44,7 @@ const slides: Slide[] = [
   },
 ];
 
-const GAP = 20; // px between slides
+const GAP = 28; // px between slides
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
@@ -102,7 +102,7 @@ export default function Gallery() {
     <section
       style={{
         background: "#1C1C1E",
-        padding: "80px 0 60px",
+        padding: isMobile ? "88px 0" : "140px 0",
       }}
     >
       {/* Section title */}
@@ -112,7 +112,7 @@ export default function Gallery() {
           fontWeight: 600,
           letterSpacing: "-0.025em",
           color: "white",
-          padding: isMobile ? "0 24px 40px" : "0 0 48px 60px",
+          padding: isMobile ? "0 24px 40px" : "0 0 56px 60px",
           margin: 0,
           fontFamily: FONT_FAMILY,
         }}

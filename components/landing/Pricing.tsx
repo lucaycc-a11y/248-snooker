@@ -179,7 +179,7 @@ const eyebrow = (
       fontWeight: 500,
       color: GREEN_LIGHT,
       letterSpacing: "0.04em",
-      margin: "0 0 20px",
+      margin: "0 0 28px",
     }}
     data-cms-key="pricing_eyebrow"
   >
@@ -215,10 +215,10 @@ function StageContent({ stage, hours, onSelect, priceSize }: StageContentProps) 
       >
         {stage.label}
       </h3>
-      <p style={{ fontSize: "14px", color: SUBTLE, margin: "0 0 28px" }}>{stage.range}</p>
+      <p style={{ fontSize: "14px", color: SUBTLE, margin: "0 0 32px" }}>{stage.range}</p>
 
       {/* Price — flips with pill selection */}
-      <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", marginBottom: "28px" }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", marginBottom: "40px" }}>
         <div style={{ height: priceSize, overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
@@ -243,11 +243,11 @@ function StageContent({ stage, hours, onSelect, priceSize }: StageContentProps) 
         <span style={{ fontSize: "14px", color: SUBTLE, paddingBottom: "8px" }}>/小時</span>
       </div>
 
-      <div style={{ marginBottom: "32px" }}>
+      <div style={{ marginBottom: "44px" }}>
         <DurationPills hours={hours} onSelect={onSelect} />
       </div>
 
-      <div style={{ display: "flex", gap: "24px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "32px", flexWrap: "wrap" }}>
         <LearnMore href="/about" cmsKey="pricing_link_choose_time">
           選擇時段
         </LearnMore>
@@ -348,7 +348,7 @@ export default function Pricing() {
                 justifyContent: "center",
                 alignItems: "center",
                 textAlign: "center",
-                padding: "80px 24px",
+                padding: "88px 24px",
                 scrollSnapAlign: "start",
               }}
               data-cms-key={stage.cmsKey}

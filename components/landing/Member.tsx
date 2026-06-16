@@ -384,7 +384,7 @@ export default function Member() {
 
   return (
     <section
-      style={{ background: "#1D1D1F", color: DARK, padding: "120px 0", fontFamily: FONT_FAMILY }}
+      style={{ background: "#1D1D1F", color: DARK, padding: "clamp(88px, 12vw, 140px) 0", fontFamily: FONT_FAMILY }}
       data-cms-key="membership_section"
     >
       {/* Header row */}
@@ -393,7 +393,7 @@ export default function Member() {
           maxWidth: "1000px",
           margin: "0 auto",
           padding: "0 24px",
-          marginBottom: "48px",
+          marginBottom: isMobile ? "40px" : "56px",
         }}
       >
         <motion.h2
@@ -426,7 +426,7 @@ export default function Member() {
             className="no-scrollbar"
             style={{
               display: "flex",
-              gap: "20px",
+              gap: "28px",
               overflowX: "auto",
               scrollSnapType: "x mandatory",
               padding: "8px 24px",
@@ -531,7 +531,7 @@ export default function Member() {
             padding: "0 24px",
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "16px",
+            gap: "24px",
             alignItems: "stretch",
           }}
         >
