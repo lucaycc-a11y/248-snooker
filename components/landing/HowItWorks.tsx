@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const GREEN = "#22C55E";
 const DARK = "#1D1D1F";
+const GREEN = "#22C55E";
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
@@ -14,7 +14,7 @@ const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
 
 const ICON_PROPS = {
-  viewBox: "0 0 48 48",
+  viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
   strokeWidth: 1.5,
@@ -22,30 +22,35 @@ const ICON_PROPS = {
   strokeLinejoin: "round" as const,
 };
 
-const CalendarIcon = (
+// lucide CalendarClock
+const CalendarClockIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <rect x="8" y="10" width="32" height="30" rx="5" />
-    <path d="M8 18h32" />
-    <path d="M17 6v8M31 6v8" />
-    <circle cx="24" cy="29" r="6" />
-    <path d="M24 26v3l2 2" />
+    <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5" />
+    <path d="M16 2v4M8 2v4M3 10h18" />
+    <circle cx="16" cy="16" r="6" />
+    <path d="M16 14v2l1.5 1" />
   </svg>
 );
 
-const QrIcon = (
+// lucide QrCode
+const QrCodeIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <rect x="7" y="7" width="13" height="13" rx="2" />
-    <rect x="28" y="7" width="13" height="13" rx="2" />
-    <rect x="7" y="28" width="13" height="13" rx="2" />
-    <path d="M28 28h6v6h-6zM41 28v6M34 41h7M28 36v5" />
+    <rect x="3" y="3" width="5" height="5" rx="1" />
+    <rect x="16" y="3" width="5" height="5" rx="1" />
+    <rect x="3" y="16" width="5" height="5" rx="1" />
+    <path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1" />
   </svg>
 );
 
+// lucide Trophy
 const TrophyIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <path d="M14 8h20v9a10 10 0 0 1-20 0z" />
-    <path d="M14 11H8v3a6 6 0 0 0 6 6M34 11h6v3a6 6 0 0 1-6 6" />
-    <path d="M24 27v7M17 40h14M20 40v-3a4 4 0 0 1 8 0v3" />
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+    <path d="M4 22h16" />
+    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
   </svg>
 );
 
@@ -80,7 +85,7 @@ interface Step {
 const steps: Step[] = [
   {
     key: "step_book",
-    icon: CalendarIcon,
+    icon: CalendarClockIcon,
     accent: "#0071E3",
     title: "選擇時段",
     body: "選擇日期、時間及時長。即時確認，毋需等候。",
@@ -92,7 +97,7 @@ const steps: Step[] = [
   },
   {
     key: "step_qr",
-    icon: QrIcon,
+    icon: QrCodeIcon,
     accent: "#22C55E",
     title: "掃碼入場",
     body: "預訂確認後即獲 QR 碼。到場掃描，自動開門。",
@@ -248,13 +253,59 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
   );
 }
 
+// ── Arrow button (shared by header desktop + mobile-below) ──
+function ArrowButton({
+  dir,
+  onClick,
+  className,
+}: {
+  dir: -1 | 1;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <motion.button
+      type="button"
+      onClick={onClick}
+      aria-label={dir === -1 ? "上一張" : "下一張"}
+      whileHover={{ backgroundColor: "#D5D5D5" }}
+      transition={SPRING}
+      className={className}
+      style={{
+        width: "40px",
+        height: "40px",
+        borderRadius: "50%",
+        border: "none",
+        background: "#E5E5E5",
+        color: DARK,
+        fontSize: "18px",
+        cursor: "pointer",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 0,
+        flexShrink: 0,
+      }}
+    >
+      {dir === -1 ? "‹" : "›"}
+    </motion.button>
+  );
+}
+
 export default function HowItWorks() {
   const [modal, setModal] = useState<ModalData | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const [activeDot, setActiveDot] = useState(0);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Track which card is centered for dot indicators
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Track which card is centered for dot indicators (mobile scroll)
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -289,6 +340,9 @@ export default function HowItWorks() {
     scrollToCard(next);
   };
 
+  const titleSize = isMobile ? "20px" : "22px";
+  const bodySize = isMobile ? "15px" : "16px";
+
   return (
     <section
       style={{
@@ -302,7 +356,7 @@ export default function HowItWorks() {
       {/* Header row */}
       <div
         style={{
-          maxWidth: "1040px",
+          maxWidth: "1100px",
           margin: "0 auto",
           padding: "0 24px",
           display: "flex",
@@ -314,7 +368,6 @@ export default function HowItWorks() {
         }}
       >
         <div>
-          {/* Heading */}
           <motion.h2
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -324,6 +377,7 @@ export default function HowItWorks() {
               fontSize: "clamp(36px, 5vw, 48px)",
               fontWeight: 700,
               letterSpacing: "-0.03em",
+              color: DARK,
               margin: "0 0 12px",
             }}
             data-cms-key="how_it_works_title"
@@ -351,49 +405,25 @@ export default function HowItWorks() {
 
         {/* Desktop arrows */}
         <div className="hidden md:flex" style={{ gap: "8px" }}>
-          {([-1, 1] as const).map((dir) => (
-            <motion.button
-              key={dir}
-              type="button"
-              onClick={() => nudge(dir)}
-              aria-label={dir === -1 ? "上一張" : "下一張"}
-              whileHover={{ backgroundColor: "#D5D5D5" }}
-              transition={SPRING}
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                border: "none",
-                background: "#E5E5E5",
-                color: DARK,
-                fontSize: "18px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 0,
-              }}
-            >
-              {dir === -1 ? "‹" : "›"}
-            </motion.button>
-          ))}
+          <ArrowButton dir={-1} onClick={() => nudge(-1)} className="flex" />
+          <ArrowButton dir={1} onClick={() => nudge(1)} className="flex" />
         </div>
       </div>
 
-      {/* Carousel track */}
+      {/* Cards — desktop: equal-width row; mobile: snap scroll */}
       <div
         ref={trackRef}
         className="no-scrollbar"
         style={{
-          display: "flex",
-          gap: "20px",
-          overflowX: "auto",
-          scrollSnapType: "x mandatory",
-          padding: "8px 24px",
-          scrollPaddingLeft: "24px",
-          WebkitOverflowScrolling: "touch",
-          maxWidth: "1088px",
+          maxWidth: "1100px",
           margin: "0 auto",
+          padding: "0 24px",
+          display: "flex",
+          gap: "16px",
+          overflowX: isMobile ? "auto" : "visible",
+          scrollSnapType: isMobile ? "x mandatory" : undefined,
+          WebkitOverflowScrolling: "touch",
+          alignItems: "stretch",
         }}
       >
         {steps.map((step, i) => (
@@ -406,31 +436,32 @@ export default function HowItWorks() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={VIEWPORT}
             transition={{ duration: 0.5, ease: EASE, delay: 0.08 * i }}
-            className="snap-start shrink-0"
             style={{
               position: "relative",
-              width: "min(85vw, 320px)",
-              background: DARK,
-              border: "1px solid #2D2D2D",
-              borderRadius: "20px",
-              padding: "32px",
-              minHeight: "260px",
+              flex: isMobile ? "0 0 auto" : "1 1 0",
+              minWidth: isMobile ? "80vw" : 0,
+              scrollSnapAlign: isMobile ? "start" : undefined,
+              background: "white",
+              border: "1px solid #E5E5E5",
+              borderRadius: "18px",
+              padding: "28px",
+              minHeight: "240px",
               display: "flex",
               flexDirection: "column",
             }}
             data-cms-key={step.key}
           >
-            <div style={{ width: "44px", height: "44px", color: "white", marginBottom: "24px" }}>
+            <div style={{ width: "28px", height: "28px", color: step.accent, marginBottom: "24px" }}>
               {step.icon}
             </div>
-            <h3 style={{ fontSize: "20px", fontWeight: 600, letterSpacing: "-0.01em", margin: "0 0 8px", color: "white" }}>
+            <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: "0 0 8px" }}>
               {step.title}
             </h3>
-            <p style={{ fontSize: "15px", lineHeight: 1.6, color: "#86868B", margin: 0 }}>
+            <p style={{ fontSize: bodySize, lineHeight: 1.6, color: DARK, margin: 0 }}>
               {highlight(step.body, step.highlights, step.accent)}
             </p>
 
-            {/* + button — Apple proportion: 16px glyph in 44px circle (≈36%) */}
+            {/* + button — solid black, white glyph */}
             <motion.button
               type="button"
               onClick={() =>
@@ -442,18 +473,18 @@ export default function HowItWorks() {
                 })
               }
               aria-label={`展開「${step.title}」詳細說明`}
-              whileHover={{ scale: 1.08, backgroundColor: "#F5F5F7" }}
+              whileHover={{ scale: 1.05 }}
               transition={SPRING}
               style={{
                 position: "absolute",
-                bottom: "24px",
-                right: "24px",
+                bottom: "16px",
+                right: "16px",
                 width: "44px",
                 height: "44px",
                 borderRadius: "50%",
-                border: "1.5px solid rgba(0,0,0,0.12)",
-                background: "white",
-                color: DARK,
+                border: "none",
+                background: DARK,
+                color: "white",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -478,44 +509,18 @@ export default function HowItWorks() {
         ))}
       </div>
 
-      {/* Controls below cards — mobile arrows flank the dots; desktop shows dots only */}
+      {/* Mobile controls — arrows flank dots, centred below cards */}
       <div
+        className="flex md:hidden"
         style={{
-          display: "flex",
           justifyContent: "center",
           alignItems: "center",
           gap: "16px",
           marginTop: "32px",
         }}
       >
-        {/* Mobile-only left arrow */}
-        <motion.button
-          type="button"
-          onClick={() => nudge(-1)}
-          aria-label="上一張"
-          whileHover={{ backgroundColor: "#D5D5D5" }}
-          transition={SPRING}
-          className="flex md:hidden"
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            border: "none",
-            background: "#E5E5E5",
-            color: DARK,
-            fontSize: "18px",
-            cursor: "pointer",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 0,
-            flexShrink: 0,
-          }}
-        >
-          ‹
-        </motion.button>
-
-        {/* Dot indicators */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+        <ArrowButton dir={-1} onClick={() => nudge(-1)} className="flex" />
+        <div style={{ display: "flex", gap: "8px" }}>
           {steps.map((step, i) => (
             <button
               key={step.key}
@@ -535,32 +540,7 @@ export default function HowItWorks() {
             />
           ))}
         </div>
-
-        {/* Mobile-only right arrow */}
-        <motion.button
-          type="button"
-          onClick={() => nudge(1)}
-          aria-label="下一張"
-          whileHover={{ backgroundColor: "#D5D5D5" }}
-          transition={SPRING}
-          className="flex md:hidden"
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            border: "none",
-            background: "#E5E5E5",
-            color: DARK,
-            fontSize: "18px",
-            cursor: "pointer",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 0,
-            flexShrink: 0,
-          }}
-        >
-          ›
-        </motion.button>
+        <ArrowButton dir={1} onClick={() => nudge(1)} className="flex" />
       </div>
 
       <Modal data={modal} onClose={() => setModal(null)} />
