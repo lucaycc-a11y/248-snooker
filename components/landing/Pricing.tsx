@@ -361,9 +361,10 @@ export default function Pricing() {
               alignItems: "center",
             }}
           >
-            {/* LEFT — large icon, swaps with scroll */}
+            {/* LEFT — large icon, crossfades with scroll (always one visible) */}
             <div
               style={{
+                position: "relative",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -372,29 +373,30 @@ export default function Pricing() {
               }}
               aria-hidden="true"
             >
-              <AnimatePresence mode="wait">
+              <AnimatePresence initial={false}>
                 <motion.div
                   key={active.id}
                   initial={{ scale: 0.6, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.6, opacity: 0 }}
                   transition={SPRING}
-                  style={{ display: "inline-flex" }}
+                  style={{ position: "absolute", display: "inline-flex" }}
                 >
                   <active.Glyph size={120} />
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* RIGHT — content, swaps with scroll */}
-            <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "360px" }}>
-              <AnimatePresence mode="wait">
+            {/* RIGHT — content, crossfades with scroll (always one visible) */}
+            <div style={{ position: "relative", minHeight: "380px" }}>
+              <AnimatePresence initial={false}>
                 <motion.div
                   key={active.id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -30 }}
                   transition={{ duration: 0.4, ease: EASE }}
+                  style={{ position: "absolute", top: 0, left: 0, right: 0 }}
                   data-cms-key={active.cmsKey}
                 >
                   <StageContent

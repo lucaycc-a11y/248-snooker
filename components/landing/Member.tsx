@@ -269,13 +269,13 @@ export default function Member() {
 
   return (
     <section
-      style={{ background: "#F5F5F7", color: DARK, padding: "120px 0", fontFamily: FONT_FAMILY }}
+      style={{ background: "#111111", color: DARK, padding: "120px 0", fontFamily: FONT_FAMILY }}
       data-cms-key="membership_section"
     >
       {/* Header row */}
       <div
         style={{
-          maxWidth: "1200px",
+          maxWidth: "1000px",
           margin: "0 auto",
           padding: "0 24px",
           display: "flex",
@@ -345,6 +345,8 @@ export default function Member() {
         ref={trackRef}
         className="no-scrollbar"
         style={{
+          maxWidth: "1000px",
+          margin: "0 auto",
           display: "flex",
           gap: "20px",
           overflowX: "auto",
@@ -514,7 +516,7 @@ export default function Member() {
                 height: "8px",
                 borderRadius: "100px",
                 border: "none",
-                background: activeDot === i ? card.accent : "rgba(0,0,0,0.18)",
+                background: activeDot === i ? card.accent : "rgba(255,255,255,0.25)",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
                 padding: 0,
