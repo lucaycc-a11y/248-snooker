@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const GREEN = "#1A6B35";
 const GREEN_LIGHT = "#22C55E";
@@ -170,10 +170,10 @@ function DurationPills({ hours, onSelect }: DurationPillsProps) {
 
 export default function Pricing() {
   const [isMobile, setIsMobile] = useState(false);
-  const [stageIndex, setStageIndex] = useState(0);
-  const [hours, setHours] = useState(2);
-
-  const sectionRef = useRef<HTMLDivElement | null>(null);
+  // Each period tracks its own selected duration (defaults to 1 小時)
+  const [hoursByStage, setHoursByStage] = useState<Record<string, number>>(
+    () => Object.fromEntries(stages.map((s) => [s.id, 1]))
+  );
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -181,19 +181,6 @@ export default function Pricing() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
-
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const idx = v < 0.34 ? 0 : v < 0.67 ? 1 : 2;
-    setStageIndex((prev) => (prev === idx ? prev : idx));
-  });
-
-  const active = stages[stageIndex];
-  const total = active.rate * hours;
 
   // ===== Shared header =====
   const header = (
@@ -280,80 +267,6 @@ export default function Pricing() {
     </>
   );
 
-  // ===== Right-side text + price (shared by layouts) =====
-  const infoPanel = (
-    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-      <div style={{ minHeight: isMobile ? "150px" : "210px" }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active.id}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -24 }}
-            transition={{ duration: 0.45, ease: EASE }}
-            data-cms-key={active.cmsKey}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px", flexWrap: "wrap" }}>
-              <span style={{ color: GREEN_LIGHT, display: "inline-flex" }} aria-hidden="true">
-                {active.icon}
-              </span>
-              <h3
-                style={{
-                  fontSize: "clamp(28px, 3vw, 38px)",
-                  fontWeight: 500,
-                  letterSpacing: "-0.02em",
-                  color: "white",
-                  margin: 0,
-                }}
-              >
-                {active.label}
-              </h3>
-              <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.45)" }}>{active.range}</span>
-            </div>
-            <p style={{ fontSize: "17px", color: "rgba(255,255,255,0.6)", margin: "0 0 8px", lineHeight: 1.5 }}>
-              {active.copy}
-            </p>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Spring-animated price */}
-        <div style={{ height: "112px", overflow: "hidden" }}>
-          <AnimatePresence mode="popLayout">
-            <motion.div
-              key={`${active.id}-${hours}`}
-              initial={{ y: 60, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -60, opacity: 0 }}
-              transition={SPRING}
-              style={{
-                fontSize: "clamp(64px, 8vw, 96px)",
-                fontWeight: 600,
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-                color: "white",
-              }}
-            >
-              {formatPrice(total)}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-        <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.4)", margin: "12px 0 0" }}>
-          {hours} 小時 · 每小時 {formatPrice(active.rate)}
-        </p>
-      </div>
-
-      {/* Learn more links (green) */}
-      <div style={{ display: "flex", gap: "28px", flexWrap: "wrap", marginTop: "32px" }}>
-        <LearnMore href="/about" cmsKey="pricing_link_choose_time">
-          選擇時段
-        </LearnMore>
-        <LearnMore href="/pricing" cmsKey="pricing_link_details">
-          了解定價詳情
-        </LearnMore>
-      </div>
-    </div>
-  );
-
   return (
     <section
       id="pricing"
@@ -361,184 +274,121 @@ export default function Pricing() {
         background: "#000000",
         color: "white",
         fontFamily: FONT_FAMILY,
+        padding: isMobile ? "120px 0 100px" : "140px 0 120px",
       }}
     >
       {/* Header */}
-      <div style={{ padding: isMobile ? "120px 24px 0" : "140px 0 0" }}>{header}</div>
+      <div style={{ padding: "0 24px" }}>{header}</div>
 
-      {isMobile ? (
-        /* ===== Mobile: horizontal snap-scroll, each card self-contained ===== */
-        <>
-          <div
-            className="no-scrollbar"
-            style={{
-              display: "flex",
-              gap: "16px",
-              overflowX: "auto",
-              scrollSnapType: "x mandatory",
-              padding: "8px 24px",
-              scrollPaddingLeft: "24px",
-              WebkitOverflowScrolling: "touch",
-              marginTop: "48px",
-            }}
-          >
-            {stages.map((stage) => {
-              const stageTotal = stage.rate * hours;
-              return (
-                <div
-                  key={stage.id}
-                  className="snap-start shrink-0"
-                  style={{
-                    minWidth: "85vw",
-                    scrollSnapAlign: "start",
-                    borderRadius: "24px",
-                    border: "1px solid rgba(34,197,94,0.35)",
-                    background: "rgba(34,197,94,0.06)",
-                    padding: "28px",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                  data-cms-key={stage.cmsKey}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "8px" }}>
-                    <span style={{ color: GREEN_LIGHT, display: "inline-flex", flexShrink: 0 }} aria-hidden="true">
-                      {stage.icon}
-                    </span>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "24px", fontWeight: 500, color: "white", letterSpacing: "-0.01em" }}>
-                        {stage.label}
-                      </span>
-                      <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)" }}>{stage.range}</span>
-                    </div>
-                  </div>
-
-                  <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", margin: "0 0 20px", lineHeight: 1.5 }}>
-                    {stage.copy}
-                  </p>
-
-                  <DurationPills hours={hours} onSelect={setHours} />
-
-                  {/* Inline price for this period */}
-                  <div style={{ marginTop: "24px" }}>
-                    <div style={{ height: "76px", overflow: "hidden" }}>
-                      <AnimatePresence mode="popLayout">
-                        <motion.div
-                          key={`${stage.id}-${hours}`}
-                          initial={{ y: 50, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: -50, opacity: 0 }}
-                          transition={SPRING}
-                          style={{
-                            fontSize: "64px",
-                            fontWeight: 600,
-                            letterSpacing: "-0.04em",
-                            lineHeight: 1,
-                            color: "white",
-                          }}
-                        >
-                          {formatPrice(stageTotal)}
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-                    <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.4)", margin: "10px 0 0" }}>
-                      {hours} 小時 · 每小時 {formatPrice(stage.rate)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Learn more links */}
-          <div style={{ display: "flex", gap: "28px", flexWrap: "wrap", padding: "32px 24px 0" }}>
-            <LearnMore href="/about" cmsKey="pricing_link_choose_time">
-              選擇時段
-            </LearnMore>
-            <LearnMore href="/pricing" cmsKey="pricing_link_details">
-              了解定價詳情
-            </LearnMore>
-          </div>
-        </>
-      ) : (
-        /* ===== Desktop: scroll-driven sticky stage ===== */
-        <div ref={sectionRef} style={{ position: "relative", height: "300vh", marginTop: "64px" }}>
-          <div
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 1,
-              height: "100vh",
-              display: "flex",
-              alignItems: "center",
-              overflow: "hidden",
-            }}
-          >
-            <div
+      {/* Vertical period list */}
+      <div
+        style={{
+          maxWidth: "760px",
+          width: "100%",
+          margin: "64px auto 0",
+          padding: isMobile ? "0 24px" : "0 40px",
+        }}
+      >
+        {stages.map((stage, i) => {
+          const hours = hoursByStage[stage.id] ?? 1;
+          const total = stage.rate * hours;
+          return (
+            <motion.div
+              key={stage.id}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={VIEWPORT}
+              transition={{ duration: 0.5, ease: EASE, delay: 0.08 * i }}
               style={{
-                maxWidth: "1100px",
-                width: "100%",
-                margin: "0 auto",
-                padding: "0 40px",
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "64px",
-                alignItems: "center",
+                padding: "24px 0",
+                borderBottom: "1px solid #2D2D2D",
               }}
+              data-cms-key={stage.cmsKey}
             >
-              {/* Left — static spec-sheet rows */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {stages.map((stage, i) => {
-                  const isActive = i === stageIndex;
-                  return (
-                    <div
-                      key={stage.id}
-                      style={{
-                        borderRadius: "20px",
-                        border: `1px solid ${isActive ? "rgba(34,197,94,0.5)" : "rgba(255,255,255,0.1)"}`,
-                        background: isActive ? "rgba(34,197,94,0.06)" : "rgba(255,255,255,0.02)",
-                        padding: "24px",
-                        transition: "border-color 0.3s ease, background 0.3s ease",
-                      }}
-                      data-cms-key={stage.cmsKey}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                        <span style={{ color: GREEN_LIGHT, display: "inline-flex", flexShrink: 0 }} aria-hidden="true">
-                          {stage.icon}
-                        </span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
-                            <span style={{ fontSize: "20px", fontWeight: 500, color: "white", letterSpacing: "-0.01em" }}>
-                              {stage.label}
-                            </span>
-                            <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)" }}>{stage.range}</span>
-                          </div>
-                          <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)" }}>
-                            每小時 {formatPrice(stage.rate)}
-                          </span>
-                        </div>
-                      </div>
+              {/* Row 1 — icon + label pill + hours · price */}
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <span style={{ color: GREEN_LIGHT, display: "inline-flex", flexShrink: 0 }} aria-hidden="true">
+                  {stage.icon}
+                </span>
 
-                      {/* Duration pills — selecting sets this period active + the hours */}
-                      <div style={{ marginTop: "16px" }}>
-                        <DurationPills
-                          hours={isActive ? hours : 0}
-                          onSelect={(h) => {
-                            setStageIndex(i);
-                            setHours(h);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: 500,
+                      color: "white",
+                      background: "rgba(255,255,255,0.08)",
+                      borderRadius: "100px",
+                      padding: "6px 14px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {stage.label}
+                  </span>
+                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap" }}>
+                    {stage.range}
+                  </span>
+                </div>
+
+                {/* Price — updates with selected duration */}
+                <div style={{ textAlign: "right", flexShrink: 0, minWidth: "84px" }}>
+                  <div style={{ height: "28px", overflow: "hidden" }}>
+                    <AnimatePresence mode="popLayout">
+                      <motion.span
+                        key={`${stage.id}-${hours}`}
+                        initial={{ y: 24, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -24, opacity: 0 }}
+                        transition={SPRING}
+                        style={{
+                          display: "block",
+                          fontSize: "22px",
+                          fontWeight: 700,
+                          letterSpacing: "-0.02em",
+                          color: "white",
+                          lineHeight: "28px",
+                        }}
+                      >
+                        {formatPrice(total)}
+                      </motion.span>
+                    </AnimatePresence>
+                  </div>
+                  <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                    {hours} 小時 · 每小時 {formatPrice(stage.rate)}
+                  </span>
+                </div>
               </div>
 
-              {/* Right — sticky price card */}
-              <div>{infoPanel}</div>
-            </div>
-          </div>
+              {/* Row 2 — duration pills */}
+              <div style={{ marginTop: "16px", paddingLeft: "44px" }}>
+                <DurationPills
+                  hours={hours}
+                  onSelect={(h) => setHoursByStage((prev) => ({ ...prev, [stage.id]: h }))}
+                />
+              </div>
+            </motion.div>
+          );
+        })}
+
+        {/* Learn more links */}
+        <div style={{ display: "flex", gap: "28px", flexWrap: "wrap", marginTop: "40px" }}>
+          <LearnMore href="/about" cmsKey="pricing_link_choose_time">
+            選擇時段
+          </LearnMore>
+          <LearnMore href="/pricing" cmsKey="pricing_link_details">
+            了解定價詳情
+          </LearnMore>
         </div>
-      )}
+      </div>
     </section>
   );
 }

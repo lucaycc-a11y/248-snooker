@@ -17,7 +17,7 @@ const ICON_PROPS = {
   viewBox: "0 0 48 48",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 2,
+  strokeWidth: 1.5,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
@@ -410,8 +410,8 @@ export default function HowItWorks() {
             style={{
               position: "relative",
               width: "min(85vw, 320px)",
-              background: "white",
-              border: "1px solid #E5E5E5",
+              background: DARK,
+              border: "1px solid #2D2D2D",
               borderRadius: "20px",
               padding: "32px",
               minHeight: "260px",
@@ -420,13 +420,13 @@ export default function HowItWorks() {
             }}
             data-cms-key={step.key}
           >
-            <div style={{ width: "48px", height: "48px", color: step.accent, marginBottom: "24px" }}>
+            <div style={{ width: "44px", height: "44px", color: "white", marginBottom: "24px" }}>
               {step.icon}
             </div>
-            <h3 style={{ fontSize: "22px", fontWeight: 600, letterSpacing: "-0.01em", margin: "0 0 8px" }}>
+            <h3 style={{ fontSize: "20px", fontWeight: 600, letterSpacing: "-0.01em", margin: "0 0 8px", color: "white" }}>
               {step.title}
             </h3>
-            <p style={{ fontSize: "15px", lineHeight: 1.6, color: "#6E6E73", margin: 0 }}>
+            <p style={{ fontSize: "15px", lineHeight: 1.6, color: "#86868B", margin: 0 }}>
               {highlight(step.body, step.highlights, step.accent)}
             </p>
 
