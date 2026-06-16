@@ -320,11 +320,15 @@ export default function Pricing() {
     return (
       <section
         id="pricing"
+        className="no-scrollbar"
         style={{
           background: "#000000",
           color: "white",
           fontFamily: FONT_FAMILY,
+          height: "100vh",
+          overflowY: "scroll",
           scrollSnapType: "y mandatory",
+          WebkitOverflowScrolling: "touch",
         }}
       >
         {stages.map((stage, i) => {
@@ -338,7 +342,7 @@ export default function Pricing() {
               viewport={VIEWPORT}
               transition={{ duration: 0.6, ease: EASE }}
               style={{
-                minHeight: "100vh",
+                height: "100vh",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",

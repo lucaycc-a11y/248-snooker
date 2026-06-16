@@ -348,7 +348,7 @@ export default function HowItWorks() {
       style={{
         background: "#F5F5F7",
         color: DARK,
-        padding: "120px 0",
+        padding: "80px 0",
         fontFamily: FONT_FAMILY,
       }}
       data-cms-key="how_it_works_section"
@@ -451,10 +451,10 @@ export default function HowItWorks() {
             }}
             data-cms-key={step.key}
           >
-            <div style={{ width: "28px", height: "28px", color: step.accent, marginBottom: "24px" }}>
+            <div style={{ width: "28px", height: "28px", color: step.accent, marginBottom: "20px" }}>
               {step.icon}
             </div>
-            <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: "0 0 8px" }}>
+            <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: "0 0 12px" }}>
               {step.title}
             </h3>
             <p style={{ fontSize: bodySize, lineHeight: 1.6, color: DARK, margin: 0 }}>
