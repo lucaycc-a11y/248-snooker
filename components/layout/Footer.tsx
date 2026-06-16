@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -29,10 +30,10 @@ const COLUMNS: FooterColumn[] = [
     cmsKey: "footer.col.nav",
     title: { zh: "導覽", en: "Navigation" },
     links: [
-      { cmsKey: "footer.link.book", href: "/book", label: { zh: "Book", en: "Book" } },
-      { cmsKey: "footer.link.pricing", href: "/pricing", label: { zh: "Pricing", en: "Pricing" } },
-      { cmsKey: "footer.link.about", href: "/about", label: { zh: "About", en: "About" } },
-      { cmsKey: "footer.link.blog", href: "/blog", label: { zh: "Blog", en: "Blog" } },
+      { cmsKey: "footer.link.book", href: "/book", label: { zh: "預訂", en: "Book" } },
+      { cmsKey: "footer.link.pricing", href: "/pricing", label: { zh: "定價", en: "Pricing" } },
+      { cmsKey: "footer.link.about", href: "/about", label: { zh: "關於", en: "About" } },
+      { cmsKey: "footer.link.blog", href: "/blog", label: { zh: "網誌", en: "Blog" } },
     ],
   },
   {
@@ -121,6 +122,19 @@ export default function Footer() {
         color: TEXT,
       }}
     >
+      {/* Google Map — full width. TODO: replace pb=... with the real venue embed URL. */}
+      <iframe
+        title="248 Snooker Club location"
+        data-cms-key="footer.map"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3690.0!2d114.169!3d22.319!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjQ4!5e0!3m2!1szh-HK!2shk!4v0"
+        width="100%"
+        height="280"
+        style={{ border: 0, display: "block", filter: "grayscale(0.6) contrast(0.95)" }}
+        allowFullScreen
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
+
       <div
         style={{
           maxWidth: "1024px",
@@ -128,6 +142,24 @@ export default function Footer() {
           padding: "40px 22px 24px",
         }}
       >
+        {/* Logo */}
+        <Link
+          href="/"
+          aria-label="248 Snooker Club"
+          className="inline-flex"
+          style={{ marginBottom: "20px" }}
+        >
+          <Image
+            src="/2.svg"
+            alt="248 Snooker Club"
+            width={96}
+            height={32}
+            data-cms-key="footer.logo"
+            className="h-8 w-auto"
+            style={{ filter: "invert(1)" }}
+          />
+        </Link>
+
         {/* Tagline */}
         <p
           data-cms-key="footer.tagline"
