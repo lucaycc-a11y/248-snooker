@@ -366,83 +366,179 @@ export default function Pricing() {
       {/* Header */}
       <div style={{ padding: isMobile ? "120px 24px 0" : "140px 0 0" }}>{header}</div>
 
-      {/* Scroll-driven stage: 300vh of scroll room, sticky inner viewport */}
-      <div ref={sectionRef} style={{ position: "relative", height: "300vh", marginTop: "64px" }}>
-        <div
-          style={{
-            position: "sticky",
-            top: 0,
-            height: "100vh",
-            display: "flex",
-            alignItems: "center",
-            overflow: "hidden",
-          }}
-        >
+      {isMobile ? (
+        /* ===== Mobile: horizontal snap-scroll, each card self-contained ===== */
+        <>
           <div
+            className="no-scrollbar"
             style={{
-              maxWidth: "1100px",
-              width: "100%",
-              margin: "0 auto",
-              padding: isMobile ? "0 24px" : "0 40px",
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-              gap: isMobile ? "32px" : "64px",
-              alignItems: "center",
+              display: "flex",
+              gap: "16px",
+              overflowX: "auto",
+              scrollSnapType: "x mandatory",
+              padding: "8px 24px",
+              scrollPaddingLeft: "24px",
+              WebkitOverflowScrolling: "touch",
+              marginTop: "48px",
             }}
           >
-            {/* Left — static spec-sheet rows */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", order: isMobile ? 1 : 0 }}>
-              {stages.map((stage, i) => {
-                const isActive = i === stageIndex;
-                return (
-                  <div
-                    key={stage.id}
-                    style={{
-                      borderRadius: "20px",
-                      border: `1px solid ${isActive ? "rgba(34,197,94,0.5)" : "rgba(255,255,255,0.1)"}`,
-                      background: isActive ? "rgba(34,197,94,0.06)" : "rgba(255,255,255,0.02)",
-                      padding: isMobile ? "20px" : "24px",
-                      transition: "border-color 0.3s ease, background 0.3s ease",
-                    }}
-                    data-cms-key={stage.cmsKey}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                      <span style={{ color: GREEN_LIGHT, display: "inline-flex", flexShrink: 0 }} aria-hidden="true">
-                        {stage.icon}
+            {stages.map((stage) => {
+              const stageTotal = stage.rate * hours;
+              return (
+                <div
+                  key={stage.id}
+                  className="snap-start shrink-0"
+                  style={{
+                    minWidth: "85vw",
+                    scrollSnapAlign: "start",
+                    borderRadius: "24px",
+                    border: "1px solid rgba(34,197,94,0.35)",
+                    background: "rgba(34,197,94,0.06)",
+                    padding: "28px",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                  data-cms-key={stage.cmsKey}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "8px" }}>
+                    <span style={{ color: GREEN_LIGHT, display: "inline-flex", flexShrink: 0 }} aria-hidden="true">
+                      {stage.icon}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "24px", fontWeight: 500, color: "white", letterSpacing: "-0.01em" }}>
+                        {stage.label}
                       </span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
-                          <span style={{ fontSize: "20px", fontWeight: 500, color: "white", letterSpacing: "-0.01em" }}>
-                            {stage.label}
-                          </span>
-                          <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)" }}>{stage.range}</span>
-                        </div>
-                        <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)" }}>
-                          每小時 {formatPrice(stage.rate)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Duration pills — selecting sets this period active + the hours */}
-                    <div style={{ marginTop: "16px" }}>
-                      <DurationPills
-                        hours={isActive ? hours : 0}
-                        onSelect={(h) => {
-                          setStageIndex(i);
-                          setHours(h);
-                        }}
-                      />
+                      <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)" }}>{stage.range}</span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
 
-            {/* Right — sticky price card */}
-            <div style={{ order: isMobile ? 2 : 1 }}>{infoPanel}</div>
+                  <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", margin: "0 0 20px", lineHeight: 1.5 }}>
+                    {stage.copy}
+                  </p>
+
+                  <DurationPills hours={hours} onSelect={setHours} />
+
+                  {/* Inline price for this period */}
+                  <div style={{ marginTop: "24px" }}>
+                    <div style={{ height: "76px", overflow: "hidden" }}>
+                      <AnimatePresence mode="popLayout">
+                        <motion.div
+                          key={`${stage.id}-${hours}`}
+                          initial={{ y: 50, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: -50, opacity: 0 }}
+                          transition={SPRING}
+                          style={{
+                            fontSize: "64px",
+                            fontWeight: 600,
+                            letterSpacing: "-0.04em",
+                            lineHeight: 1,
+                            color: "white",
+                          }}
+                        >
+                          {formatPrice(stageTotal)}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                    <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.4)", margin: "10px 0 0" }}>
+                      {hours} 小時 · 每小時 {formatPrice(stage.rate)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Learn more links */}
+          <div style={{ display: "flex", gap: "28px", flexWrap: "wrap", padding: "32px 24px 0" }}>
+            <LearnMore href="/about" cmsKey="pricing_link_choose_time">
+              選擇時段
+            </LearnMore>
+            <LearnMore href="/pricing" cmsKey="pricing_link_details">
+              了解定價詳情
+            </LearnMore>
+          </div>
+        </>
+      ) : (
+        /* ===== Desktop: scroll-driven sticky stage ===== */
+        <div ref={sectionRef} style={{ position: "relative", height: "300vh", marginTop: "64px" }}>
+          <div
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
+              height: "100vh",
+              display: "flex",
+              alignItems: "center",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                maxWidth: "1100px",
+                width: "100%",
+                margin: "0 auto",
+                padding: "0 40px",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "64px",
+                alignItems: "center",
+              }}
+            >
+              {/* Left — static spec-sheet rows */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {stages.map((stage, i) => {
+                  const isActive = i === stageIndex;
+                  return (
+                    <div
+                      key={stage.id}
+                      style={{
+                        borderRadius: "20px",
+                        border: `1px solid ${isActive ? "rgba(34,197,94,0.5)" : "rgba(255,255,255,0.1)"}`,
+                        background: isActive ? "rgba(34,197,94,0.06)" : "rgba(255,255,255,0.02)",
+                        padding: "24px",
+                        transition: "border-color 0.3s ease, background 0.3s ease",
+                      }}
+                      data-cms-key={stage.cmsKey}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                        <span style={{ color: GREEN_LIGHT, display: "inline-flex", flexShrink: 0 }} aria-hidden="true">
+                          {stage.icon}
+                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap" }}>
+                            <span style={{ fontSize: "20px", fontWeight: 500, color: "white", letterSpacing: "-0.01em" }}>
+                              {stage.label}
+                            </span>
+                            <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.45)" }}>{stage.range}</span>
+                          </div>
+                          <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.55)" }}>
+                            每小時 {formatPrice(stage.rate)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Duration pills — selecting sets this period active + the hours */}
+                      <div style={{ marginTop: "16px" }}>
+                        <DurationPills
+                          hours={isActive ? hours : 0}
+                          onSelect={(h) => {
+                            setStageIndex(i);
+                            setHours(h);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Right — sticky price card */}
+              <div>{infoPanel}</div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

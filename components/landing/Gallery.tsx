@@ -209,7 +209,7 @@ export default function Gallery() {
           alignItems: "center",
           gap: "12px",
           padding: "16px 0",
-          zIndex: 50,
+          zIndex: 40,
           pointerEvents: "auto",
         }}
       >

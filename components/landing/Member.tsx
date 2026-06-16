@@ -367,11 +367,12 @@ export default function Member() {
             className="group/card snap-start shrink-0"
             style={{
               width: "min(85vw, 360px)",
-              minHeight: "380px",
+              height: "auto",
               background: DARK,
               border: `1px solid ${BORDER}`,
               borderRadius: "24px",
               padding: "32px",
+              paddingBottom: "88px",
               position: "relative",
               display: "flex",
               flexDirection: "column",
@@ -404,7 +405,7 @@ export default function Member() {
               {card.icon}
             </div>
 
-            <h3 style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 4px" }}>
+            <h3 style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 4px", color: "white" }}>
               {card.title}
             </h3>
             {card.subtitle && (
