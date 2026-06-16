@@ -122,11 +122,11 @@ export default function Footer() {
         color: TEXT,
       }}
     >
-      {/* Google Map — full width. TODO: replace pb=... with the real venue embed URL. */}
+      {/* Google Map — full width. AIRSIDE, 啟德協調道 2 號 B1-31, 九龍城. */}
       <iframe
-        title="248 Snooker Club location"
+        title="248 Snooker Club — AIRSIDE 啟德協調道 2 號"
         data-cms-key="footer.map"
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3690.0!2d114.169!3d22.319!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjQ4!5e0!3m2!1szh-HK!2shk!4v0"
+        src="https://maps.google.com/maps?q=AIRSIDE%20%E5%95%9F%E5%BE%B7%E5%8D%94%E8%AA%BF%E9%81%93%202%E8%99%9F&t=m&z=16&output=embed&hl=zh-HK"
         width="100%"
         height="280"
         style={{ border: 0, display: "block", filter: "grayscale(0.6) contrast(0.95)" }}
