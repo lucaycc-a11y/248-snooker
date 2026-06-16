@@ -289,15 +289,21 @@ export default function Pricing() {
   const setHoursFor = (id: string, h: number) =>
     setHoursByStage((prev) => ({ ...prev, [id]: h }));
 
-  // ===== Mobile: three stacked sections, no sticky =====
+  // ===== Mobile: three full-screen centred sections, vertical scroll-snap =====
   if (isMobile) {
     return (
       <section
         id="pricing"
-        style={{ background: "#000000", color: "white", fontFamily: FONT_FAMILY, padding: "120px 24px 100px" }}
+        style={{
+          background: "#000000",
+          color: "white",
+          fontFamily: FONT_FAMILY,
+          scrollSnapType: "y mandatory",
+        }}
       >
         {stages.map((stage, i) => {
           const hours = hoursByStage[stage.id] ?? 1;
+          const total = stage.rate * hours;
           return (
             <motion.div
               key={stage.id}
@@ -306,24 +312,77 @@ export default function Pricing() {
               viewport={VIEWPORT}
               transition={{ duration: 0.6, ease: EASE }}
               style={{
+                minHeight: "100vh",
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "flex-start",
-                paddingBottom: i < stages.length - 1 ? "72px" : 0,
-                marginBottom: i < stages.length - 1 ? "72px" : 0,
-                borderBottom: i < stages.length - 1 ? "1px solid #2D2D2D" : "none",
+                justifyContent: "center",
+                alignItems: "center",
+                textAlign: "center",
+                padding: "80px 24px",
+                scrollSnapAlign: "start",
               }}
               data-cms-key={stage.cmsKey}
             >
-              <div style={{ color: GREEN_LIGHT, marginBottom: "28px" }} aria-hidden="true">
-                <stage.Glyph size={64} />
+              {/* Section label — first section only */}
+              {i === 0 && eyebrow}
+
+              {/* Period name + range */}
+              <h3
+                style={{
+                  fontSize: "40px",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  color: "white",
+                  margin: "0 0 4px",
+                }}
+              >
+                {stage.label}
+              </h3>
+              <p style={{ fontSize: "16px", color: SUBTLE, margin: 0 }}>{stage.range}</p>
+
+              {/* Large icon — between text and price */}
+              <div style={{ color: GREEN_LIGHT, margin: "40px 0" }} aria-hidden="true">
+                <stage.Glyph size={80} />
               </div>
-              <StageContent
-                stage={stage}
-                hours={hours}
-                onSelect={(h) => setHoursFor(stage.id, h)}
-                priceSize="56px"
-              />
+
+              {/* Price — flips with pill selection */}
+              <div style={{ height: "72px", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={`${stage.id}-${hours}`}
+                    initial={{ y: 56, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -56, opacity: 0 }}
+                    transition={SPRING}
+                    style={{
+                      display: "block",
+                      fontSize: "72px",
+                      fontWeight: 700,
+                      letterSpacing: "-0.04em",
+                      lineHeight: 1,
+                      color: "white",
+                    }}
+                  >
+                    {formatPrice(total)}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+              <p style={{ fontSize: "16px", color: SUBTLE, margin: "10px 0 0" }}>/小時</p>
+
+              {/* Duration pills */}
+              <div style={{ display: "flex", justifyContent: "center", margin: "40px 0 0" }}>
+                <DurationPills hours={hours} onSelect={(h) => setHoursFor(stage.id, h)} />
+              </div>
+
+              {/* Links */}
+              <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", marginTop: "40px" }}>
+                <LearnMore href="/about" cmsKey="pricing_link_choose_time">
+                  選擇時段
+                </LearnMore>
+                <LearnMore href="/pricing" cmsKey="pricing_link_details">
+                  了解定價詳情
+                </LearnMore>
+              </div>
             </motion.div>
           );
         })}
