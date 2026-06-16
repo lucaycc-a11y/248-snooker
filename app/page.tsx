@@ -6,6 +6,7 @@ import Gallery from "@/components/landing/Gallery";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Pricing from "@/components/landing/Pricing";
 import Member from "@/components/landing/Member";
+import FAQ from "@/components/landing/FAQ";
 
 export default function Home() {
   return (
@@ -21,6 +22,9 @@ export default function Home() {
 
       {/* Membership — last section before footer */}
       <Member />
+
+      {/* FAQ — above the footer */}
+      <FAQ />
     </main>
   );
 }
