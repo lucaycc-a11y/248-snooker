@@ -269,7 +269,7 @@ export default function Member() {
 
   return (
     <section
-      style={{ background: "#111111", color: DARK, padding: "120px 0", fontFamily: FONT_FAMILY }}
+      style={{ background: "#1D1D1F", color: DARK, padding: "120px 0", fontFamily: FONT_FAMILY }}
       data-cms-key="membership_section"
     >
       {/* Header row */}
@@ -307,36 +307,6 @@ export default function Member() {
             <span className="group-hover:underline">了解會員計劃</span>
             <span aria-hidden="true">›</span>
           </a>
-
-          {/* Desktop arrows */}
-          <div className="hidden md:flex" style={{ gap: "8px" }}>
-            {([-1, 1] as const).map((dir) => (
-              <motion.button
-                key={dir}
-                type="button"
-                onClick={() => nudge(dir)}
-                aria-label={dir === -1 ? "上一張" : "下一張"}
-                whileHover={{ backgroundColor: "#3A3A3A" }}
-                transition={SPRING}
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  border: "none",
-                  background: "#2D2D2D",
-                  color: "white",
-                  fontSize: "18px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 0,
-                }}
-              >
-                {dir === -1 ? "‹" : "›"}
-              </motion.button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -345,7 +315,8 @@ export default function Member() {
         ref={trackRef}
         className="no-scrollbar"
         style={{
-          maxWidth: "1000px",
+          width: "fit-content",
+          maxWidth: "100%",
           margin: "0 auto",
           display: "flex",
           gap: "20px",
@@ -370,21 +341,17 @@ export default function Member() {
             style={{
               width: "min(85vw, 360px)",
               height: "auto",
-              background: DARK,
-              border: `1px solid ${BORDER}`,
+              background: "#2D2D2D",
+              border: "1px solid #3D3D3D",
               borderRadius: "24px",
               padding: "32px",
-              paddingBottom: "88px",
+              paddingBottom: "80px",
               position: "relative",
               display: "flex",
               flexDirection: "column",
-              transition: "border-color 0.3s ease",
             }}
             data-cms-key={card.key}
           >
-            {/* hover border uses the card's accent */}
-            <style>{`[data-cms-key="${card.key}"]:hover{border-color:${card.accent} !important;}`}</style>
-
             {card.badge && (
               <span
                 style={{
@@ -477,14 +444,13 @@ export default function Member() {
           marginTop: "32px",
         }}
       >
-        {/* Mobile-only left arrow */}
+        {/* Left arrow */}
         <motion.button
           type="button"
           onClick={() => nudge(-1)}
           aria-label="上一張"
           whileHover={{ backgroundColor: "#3A3A3A" }}
           transition={SPRING}
-          className="flex md:hidden"
           style={{
             width: "40px",
             height: "40px",
@@ -494,6 +460,7 @@ export default function Member() {
             color: "white",
             fontSize: "18px",
             cursor: "pointer",
+            display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: 0,
@@ -525,14 +492,13 @@ export default function Member() {
           ))}
         </div>
 
-        {/* Mobile-only right arrow */}
+        {/* Right arrow */}
         <motion.button
           type="button"
           onClick={() => nudge(1)}
           aria-label="下一張"
           whileHover={{ backgroundColor: "#3A3A3A" }}
           transition={SPRING}
-          className="flex md:hidden"
           style={{
             width: "40px",
             height: "40px",
@@ -542,6 +508,7 @@ export default function Member() {
             color: "white",
             fontSize: "18px",
             cursor: "pointer",
+            display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: 0,
