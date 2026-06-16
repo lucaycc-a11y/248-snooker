@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const GREEN_LIGHT = "#22C55E";
 const SUBTLE = "#86868B";
@@ -276,15 +276,41 @@ export default function Pricing() {
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
+  // Deterministic scroll tracking: measure how far the sticky section has been
+  // scrolled through its own travel (300vh tall, 100vh sticky child => 200vh of
+  // travel). progress 0→1 maps to the three periods. Computed from the element's
+  // own rect so it never depends on framer's internal measurement timing.
+  useEffect(() => {
+    if (isMobile) return;
+    const el = sectionRef.current;
+    if (!el) return;
 
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const idx = v < 0.33 ? 0 : v < 0.66 ? 1 : 2;
-    setStageIndex((prev) => (prev === idx ? prev : idx));
-  });
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const rect = el.getBoundingClientRect();
+      const travel = rect.height - window.innerHeight; // 200vh worth of scroll
+      if (travel <= 0) return;
+      // -rect.top is how far we've scrolled into the section.
+      const progress = Math.min(1, Math.max(0, -rect.top / travel));
+      const idx = progress < 0.33 ? 0 : progress < 0.66 ? 1 : 2;
+      setStageIndex((prev) => (prev === idx ? prev : idx));
+    };
+
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [isMobile]);
 
   const setHoursFor = (id: string, h: number) =>
     setHoursByStage((prev) => ({ ...prev, [id]: h }));
@@ -413,7 +439,7 @@ export default function Pricing() {
               maxWidth: "1100px",
               width: "100%",
               margin: "0 auto",
-              padding: "0 48px",
+              padding: "32px 48px",
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: "64px",
@@ -441,13 +467,22 @@ export default function Pricing() {
                   transition={SPRING}
                   style={{ position: "absolute", display: "inline-flex" }}
                 >
-                  <active.Glyph size={120} />
+                  <active.Glyph size={160} />
                 </motion.div>
               </AnimatePresence>
             </div>
 
             {/* RIGHT — content, crossfades with scroll (always one visible) */}
-            <div style={{ position: "relative", minHeight: "380px" }}>
+            <div
+              style={{
+                position: "relative",
+                minHeight: "380px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                paddingLeft: "48px",
+              }}
+            >
               <AnimatePresence initial={false}>
                 <motion.div
                   key={active.id}
