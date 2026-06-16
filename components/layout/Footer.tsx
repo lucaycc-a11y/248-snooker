@@ -150,7 +150,7 @@ export default function Footer() {
           style={{ marginBottom: "20px" }}
         >
           <Image
-            src="/2.svg"
+            src="/1.svg"
             alt="248 Snooker Club"
             width={96}
             height={32}
