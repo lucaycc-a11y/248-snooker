@@ -2,97 +2,219 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Sun, Moon, MoonStar } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const GREEN = "#22C55E";
+const BLUE = "#0071E3";
 const BORDER = "#2D2D2D";
+const CARD = "#111111";
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
-type PeriodId = "afternoon" | "evening" | "latenight";
-
-interface Period {
-  id: PeriodId;
-  label: string;
-  range: string;
-  rate: number;
-  Icon: typeof Sun;
-}
-
-const PERIODS: Period[] = [
-  { id: "afternoon", label: "下午", range: "12pm – 6pm", rate: 60, Icon: Sun },
-  { id: "evening", label: "晚上", range: "6pm – 12am", rate: 80, Icon: Moon },
-  { id: "latenight", label: "深夜", range: "12am – 6am", rate: 60, Icon: MoonStar },
-];
-
-const DURATIONS = [1, 2, 3] as const;
-
 const STEPS = ["選擇時間", "確認", "付款"] as const;
 
+// Monday-first weekday headers.
+const WEEK_HEADER = ["一", "二", "三", "四", "五", "六", "日"] as const;
+// getDay() index (0=Sun) -> Chinese label.
 const WEEKDAY_ZH = ["日", "一", "二", "三", "四", "五", "六"] as const;
 
-interface DayOption {
-  iso: string; // YYYY-MM-DD, stable key + storage value
-  dayLabel: string;
-  dateLabel: string; // d/M
+// Operating hours: 09:00 through 02:00 next day. Hours use a 9..26 scale,
+// where 24 = 00:00, 25 = 01:00, 26 = 02:00. Closing time is hour 26 (02:00).
+const OPEN_HOUR = 9;
+const CLOSE_HOUR = 26;
+const START_HOURS = Array.from(
+  { length: CLOSE_HOUR - OPEN_HOUR },
+  (_, i) => OPEN_HOUR + i
+); // 9 .. 25 -> 17 start slots (last bookable start is 01:00)
+const MAX_DURATION = 4;
+
+function formatHour(h: number): string {
+  const hh = ((h % 24) + 24) % 24;
+  return `${String(hh).padStart(2, "0")}:00`;
+}
+
+function isWeekendDay(d: Date): boolean {
+  const wd = d.getDay();
+  return wd === 0 || wd === 6;
+}
+
+// Hourly rate for a slot starting at `hour` (9..26 scale) on a given day.
+//   Late night 23:00–02:00 : HK$60  (any day)
+//   Peak 18:00–23:00 weekdays + all day Sat/Sun : HK$120
+//   Off-peak 09:00–18:00 weekdays : HK$80
+function rateForHour(hour: number, weekend: boolean): number {
+  if (hour >= 23) return 60; // 23:00, 00:00, 01:00 (start)
+  if (weekend) return 120;
+  return hour < 18 ? 80 : 120;
+}
+
+// Longest duration (hours) bookable from a start hour without passing 02:00.
+function maxDurationFrom(startHour: number): number {
+  return Math.min(MAX_DURATION, CLOSE_HOUR - startHour);
+}
+
+// Placeholder for backend-provided bookings. Return the start hours (9..26
+// scale) already taken on the given ISO date. Wire to the API when ready.
+function bookedHoursFor(_iso: string): number[] {
+  return [];
+}
+
+interface MonthCell {
+  iso: string;
+  day: number;
+  date: Date;
+  past: boolean;
   isToday: boolean;
 }
 
-// Pick the period containing the given hour. 6am–12pm falls back to afternoon.
-function periodForHour(hour: number): PeriodId {
-  if (hour >= 18) return "evening";
-  if (hour < 6) return "latenight";
-  return "afternoon";
-}
+// Build a Monday-first grid of cells for the given month. Leading slots before
+// the 1st are null so the first day lands under its weekday column.
+function buildMonth(year: number, month: number, today: Date): (MonthCell | null)[] {
+  const first = new Date(year, month, 1);
+  const lead = (first.getDay() + 6) % 7; // Mon-first offset
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayMidnight = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  ).getTime();
 
-function buildDays(now: Date): DayOption[] {
-  const days: DayOption[] = [];
-  for (let i = 0; i < 14; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
-    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-      d.getDate()
-    ).padStart(2, "0")}`;
-    days.push({
+  const cells: (MonthCell | null)[] = [];
+  for (let i = 0; i < lead; i++) cells.push(null);
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    cells.push({
       iso,
-      dayLabel: i === 0 ? "今日" : WEEKDAY_ZH[d.getDay()],
-      dateLabel: `${d.getDate()}/${d.getMonth() + 1}`,
-      isToday: i === 0,
+      day,
+      date,
+      past: date.getTime() < todayMidnight,
+      isToday: date.getTime() === todayMidnight,
     });
   }
-  return days;
+  return cells;
+}
+
+interface Segment {
+  fromHour: number;
+  toHour: number;
+  rate: number;
+  hours: number;
+}
+
+// Group the booked hours into consecutive same-rate runs for the breakdown.
+function priceSegments(startHour: number, duration: number, weekend: boolean): Segment[] {
+  const segments: Segment[] = [];
+  for (let i = 0; i < duration; i++) {
+    const h = startHour + i;
+    const rate = rateForHour(h, weekend);
+    const last = segments[segments.length - 1];
+    if (last && last.rate === rate) {
+      last.toHour = h + 1;
+      last.hours += 1;
+    } else {
+      segments.push({ fromHour: h, toHour: h + 1, rate, hours: 1 });
+    }
+  }
+  return segments;
 }
 
 export default function BookPage() {
   const router = useRouter();
 
-  // Compute date/time-derived state after mount to avoid SSR/client mismatch.
-  const [days, setDays] = useState<DayOption[]>([]);
+  // Date/time-derived state is computed after mount to avoid SSR mismatch.
+  const [today, setToday] = useState<Date | null>(null);
+  const [viewYear, setViewYear] = useState(0);
+  const [viewMonth, setViewMonth] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [period, setPeriod] = useState<PeriodId>("afternoon");
-  const [duration, setDuration] = useState<number>(2);
+  const [selectedHour, setSelectedHour] = useState<number | null>(null);
+  const [duration, setDuration] = useState<number>(1);
 
   useEffect(() => {
     const now = new Date();
-    const built = buildDays(now);
-    setDays(built);
-    setSelectedDate(built[0]?.iso ?? "");
-    setPeriod(periodForHour(now.getHours()));
+    setToday(now);
+    setViewYear(now.getFullYear());
+    setViewMonth(now.getMonth());
   }, []);
 
-  const activePeriod = useMemo(
-    () => PERIODS.find((p) => p.id === period) ?? PERIODS[0],
-    [period]
+  const monthCells = useMemo(
+    () => (today ? buildMonth(viewYear, viewMonth, today) : []),
+    [today, viewYear, viewMonth]
   );
-  const totalPrice = activePeriod.rate * duration;
 
-  const handleContinue = () => {
+  const selectedDateObj = useMemo(
+    () => (selectedDate ? new Date(`${selectedDate}T00:00:00`) : null),
+    [selectedDate]
+  );
+  const weekend = selectedDateObj ? isWeekendDay(selectedDateObj) : false;
+  const booked = useMemo(
+    () => new Set(selectedDate ? bookedHoursFor(selectedDate) : []),
+    [selectedDate]
+  );
+
+  const maxDuration = selectedHour !== null ? maxDurationFrom(selectedHour) : MAX_DURATION;
+  const durationCapped = duration > maxDuration;
+  const effectiveDuration = Math.min(duration, maxDuration);
+
+  const segments = useMemo(
+    () =>
+      selectedHour !== null && effectiveDuration > 0
+        ? priceSegments(selectedHour, effectiveDuration, weekend)
+        : [],
+    [selectedHour, effectiveDuration, weekend]
+  );
+  const totalPrice = segments.reduce((sum, s) => sum + s.rate * s.hours, 0);
+  const multiTier = segments.length > 1;
+
+  const canConfirm =
+    !!selectedDate && selectedHour !== null && effectiveDuration > 0;
+
+  // Don't let a prev-month arrow walk before the current month.
+  const atCurrentMonth =
+    !!today && viewYear === today.getFullYear() && viewMonth === today.getMonth();
+
+  const goMonth = (delta: number) => {
+    const next = new Date(viewYear, viewMonth + delta, 1);
+    setViewYear(next.getFullYear());
+    setViewMonth(next.getMonth());
+  };
+
+  const selectDate = (iso: string) => {
+    setSelectedDate(iso);
+    setSelectedHour(null);
+    setDuration(1);
+  };
+
+  const selectHour = (hour: number) => {
+    setSelectedHour(hour);
+    setDuration((d) => Math.min(d, maxDurationFrom(hour)));
+  };
+
+  const summaryLabel = useMemo(() => {
+    if (!canConfirm || !selectedDateObj || selectedHour === null) return "";
+    const y = selectedDateObj.getFullYear();
+    const m = selectedDateObj.getMonth() + 1;
+    const day = selectedDateObj.getDate();
+    const wd = WEEKDAY_ZH[selectedDateObj.getDay()];
+    const start = formatHour(selectedHour);
+    const end = formatHour(selectedHour + effectiveDuration);
+    return `${y}年${m}月${day}日（${wd}）· ${start} – ${end} · ${effectiveDuration}小時 · HK$${totalPrice}`;
+  }, [canConfirm, selectedDateObj, selectedHour, effectiveDuration, totalPrice]);
+
+  const handleConfirm = () => {
+    if (!canConfirm || selectedHour === null) return;
     const selection = {
       date: selectedDate,
-      period,
-      periodLabel: activePeriod.label,
-      range: activePeriod.range,
-      rate: activePeriod.rate,
-      duration,
+      startHour: selectedHour,
+      startTime: formatHour(selectedHour),
+      endTime: formatHour(selectedHour + effectiveDuration),
+      duration: effectiveDuration,
+      weekend,
+      breakdown: segments.map((s) => ({
+        from: formatHour(s.fromHour),
+        to: formatHour(s.toHour),
+        rate: s.rate,
+        hours: s.hours,
+      })),
       totalPrice,
     };
     sessionStorage.setItem("bookingSelection", JSON.stringify(selection));
@@ -148,8 +270,8 @@ export default function BookPage() {
                     fontSize: "12px",
                     fontWeight: 600,
                     flexShrink: 0,
-                    background: isCurrent ? GREEN : "rgba(255,255,255,0.08)",
-                    color: isCurrent ? "#000" : "rgba(255,255,255,0.5)",
+                    background: isCurrent ? BLUE : "rgba(255,255,255,0.08)",
+                    color: isCurrent ? "#fff" : "rgba(255,255,255,0.5)",
                   }}
                 >
                   {i + 1}
@@ -180,137 +302,270 @@ export default function BookPage() {
         style={{
           maxWidth: "480px",
           margin: "0 auto",
-          padding: "28px 20px 180px",
+          padding: "28px 20px 200px",
         }}
       >
-        {/* SECTION 1 — 選擇日期 */}
-        <h2 style={sectionTitle}>選擇日期</h2>
-        <div
-          className="no-scrollbar"
-          style={{
-            display: "flex",
-            gap: "10px",
-            overflowX: "auto",
-            scrollSnapType: "x mandatory",
-            paddingBottom: "4px",
-            marginBottom: "36px",
-          }}
-        >
-          {days.map((d) => {
-            const selected = d.iso === selectedDate;
-            return (
-              <button
-                key={d.iso}
-                type="button"
-                onClick={() => setSelectedDate(d.iso)}
-                aria-pressed={selected}
-                style={{
-                  flexShrink: 0,
-                  width: "64px",
-                  height: "72px",
-                  borderRadius: "14px",
-                  border: "none",
-                  cursor: "pointer",
-                  scrollSnapAlign: "start",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "4px",
-                  background: selected ? "white" : "rgba(255,255,255,0.08)",
-                  color: selected ? "#000" : "white",
-                  transition: "background 0.2s ease, color 0.2s ease",
-                  fontFamily: FONT_FAMILY,
-                }}
-              >
-                <span style={{ fontSize: "13px", fontWeight: 500, opacity: 0.7 }}>
-                  {d.dayLabel}
-                </span>
-                <span style={{ fontSize: "16px", fontWeight: 600 }}>{d.dateLabel}</span>
-              </button>
-            );
-          })}
-        </div>
+        {/* SECTION 1 — 選擇日期及時段 */}
+        <h2 style={sectionTitle}>日期及時段</h2>
+        <p style={sectionSubtitle}>選擇開始時間，以小時計費</p>
 
-        {/* SECTION 2 — 選擇時段 */}
-        <h2 style={sectionTitle}>選擇時段</h2>
-        <div style={{ marginBottom: "36px" }}>
-          {PERIODS.map((p) => {
-            const selected = p.id === period;
-            const Icon = p.Icon;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setPeriod(p.id)}
-                aria-pressed={selected}
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  padding: "20px 16px",
-                  minHeight: "44px",
-                  textAlign: "left",
-                  cursor: "pointer",
-                  borderBottom: `1px solid ${BORDER}`,
-                  borderLeft: `4px solid ${selected ? GREEN : "transparent"}`,
-                  borderTop: "none",
-                  borderRight: "none",
-                  background: selected ? "rgba(34,197,94,0.08)" : "transparent",
-                  color: "white",
-                  transition: "background 0.2s ease, border-color 0.2s ease",
-                  fontFamily: FONT_FAMILY,
-                }}
-              >
-                <Icon size={20} color={GREEN} aria-hidden="true" style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: "16px", fontWeight: 600, width: "44px" }}>
-                  {p.label}
-                </span>
-                <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", flex: 1 }}>
-                  {p.range}
-                </span>
-                <span style={{ fontSize: "14px", fontWeight: 500, whiteSpace: "nowrap" }}>
-                  HK${p.rate}/小時
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        {/* Calendar */}
+        <div style={{ marginBottom: "32px" }}>
+          {/* Month nav */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "16px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => goMonth(-1)}
+              disabled={atCurrentMonth}
+              aria-label="上個月"
+              style={navBtn(atCurrentMonth)}
+            >
+              <ChevronLeft size={20} aria-hidden="true" />
+            </button>
+            <span style={{ fontSize: "16px", fontWeight: 600 }}>
+              {today ? `${viewYear}年${viewMonth + 1}月` : ""}
+            </span>
+            <button
+              type="button"
+              onClick={() => goMonth(1)}
+              aria-label="下個月"
+              style={navBtn(false)}
+            >
+              <ChevronRight size={20} aria-hidden="true" />
+            </button>
+          </div>
 
-        {/* SECTION 3 — 選擇時長 */}
-        <h2 style={sectionTitle}>選擇時長</h2>
-        <div style={{ display: "flex", gap: "12px" }}>
-          {DURATIONS.map((h) => {
-            const selected = h === duration;
-            return (
-              <button
-                key={h}
-                type="button"
-                onClick={() => setDuration(h)}
-                aria-pressed={selected}
+          {/* Weekday header */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              marginBottom: "6px",
+            }}
+          >
+            {WEEK_HEADER.map((w) => (
+              <span
+                key={w}
                 style={{
-                  padding: "12px 24px",
-                  minHeight: "44px",
-                  borderRadius: "100px",
-                  border: `1px solid ${selected ? "white" : "#3D3D3D"}`,
-                  cursor: "pointer",
-                  fontSize: "15px",
+                  textAlign: "center",
+                  fontSize: "12px",
                   fontWeight: 500,
-                  background: selected ? "white" : "transparent",
-                  color: selected ? "#000" : "white",
-                  transition: "all 0.2s ease",
-                  fontFamily: FONT_FAMILY,
+                  color: "rgba(255,255,255,0.4)",
+                  padding: "6px 0",
                 }}
               >
-                {h} 小時
-              </button>
-            );
-          })}
+                {w}
+              </span>
+            ))}
+          </div>
+
+          {/* Day grid */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, 1fr)",
+              gap: "4px",
+            }}
+          >
+            {monthCells.map((cell, i) => {
+              if (!cell) return <span key={`pad-${i}`} aria-hidden="true" />;
+              const selected = cell.iso === selectedDate;
+              return (
+                <button
+                  key={cell.iso}
+                  type="button"
+                  disabled={cell.past}
+                  onClick={() => selectDate(cell.iso)}
+                  aria-pressed={selected}
+                  aria-label={cell.iso}
+                  style={{
+                    aspectRatio: "1 / 1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto",
+                    width: "40px",
+                    borderRadius: "50%",
+                    fontSize: "15px",
+                    fontWeight: selected ? 600 : 500,
+                    cursor: cell.past ? "default" : "pointer",
+                    background: selected ? BLUE : "transparent",
+                    color: selected ? "#fff" : "white",
+                    opacity: cell.past ? 0.3 : 1,
+                    border:
+                      cell.isToday && !selected
+                        ? "1px solid rgba(255,255,255,0.9)"
+                        : "1px solid transparent",
+                    transition: "background 0.15s ease",
+                    fontFamily: FONT_FAMILY,
+                  }}
+                >
+                  {cell.day}
+                </button>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Start time picker */}
+        {selectedDate && (
+          <div style={{ marginBottom: "32px" }}>
+            <h3 style={subLabel}>選擇開始時間</h3>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: "10px",
+              }}
+            >
+              {START_HOURS.map((hour) => {
+                const unavailable = booked.has(hour);
+                const selected = hour === selectedHour;
+                const rate = rateForHour(hour, weekend);
+                return (
+                  <button
+                    key={hour}
+                    type="button"
+                    disabled={unavailable}
+                    onClick={() => selectHour(hour)}
+                    aria-pressed={selected}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "2px",
+                      padding: "10px 4px",
+                      minHeight: "44px",
+                      borderRadius: "12px",
+                      cursor: unavailable ? "not-allowed" : "pointer",
+                      background: selected ? BLUE : "transparent",
+                      border: `1px solid ${
+                        selected ? BLUE : "rgba(255,255,255,0.25)"
+                      }`,
+                      color: "white",
+                      opacity: unavailable ? 0.3 : 1,
+                      textDecoration: unavailable ? "line-through" : "none",
+                      transition: "background 0.15s ease, border-color 0.15s ease",
+                      fontFamily: FONT_FAMILY,
+                    }}
+                  >
+                    <span style={{ fontSize: "14px", fontWeight: 600 }}>
+                      {formatHour(hour)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "10px",
+                        color: selected
+                          ? "rgba(255,255,255,0.85)"
+                          : "rgba(255,255,255,0.45)",
+                      }}
+                    >
+                      HK${rate}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Duration selector */}
+        {selectedDate && selectedHour !== null && (
+          <div style={{ marginBottom: "8px" }}>
+            <h3 style={subLabel}>打幾耐？</h3>
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              {[1, 2, 3, 4].map((h) => {
+                const disabled = h > maxDuration;
+                const selected = h === effectiveDuration;
+                return (
+                  <button
+                    key={h}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setDuration(h)}
+                    aria-pressed={selected}
+                    style={{
+                      padding: "12px 22px",
+                      minHeight: "44px",
+                      borderRadius: "100px",
+                      border: `1px solid ${selected ? BLUE : "#3D3D3D"}`,
+                      cursor: disabled ? "not-allowed" : "pointer",
+                      fontSize: "15px",
+                      fontWeight: 500,
+                      background: selected ? BLUE : "transparent",
+                      color: "white",
+                      opacity: disabled ? 0.3 : 1,
+                      transition: "all 0.15s ease",
+                      fontFamily: FONT_FAMILY,
+                    }}
+                  >
+                    {h}小時
+                  </button>
+                );
+              })}
+            </div>
+
+            {durationCapped && (
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#FF9F0A",
+                  marginTop: "12px",
+                }}
+              >
+                最長可預訂至 02:00
+              </p>
+            )}
+
+            {multiTier && (
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "rgba(255,255,255,0.5)",
+                  marginTop: "12px",
+                  lineHeight: 1.6,
+                }}
+              >
+                {segments.map((s, i) => (
+                  <span key={s.fromHour}>
+                    {i > 0 && " + "}
+                    {formatHour(s.fromHour)}–{formatHour(s.toHour)} HK$
+                    {s.rate * s.hours}
+                  </span>
+                ))}
+                {" = "}HK${totalPrice}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Summary card */}
+        {canConfirm && (
+          <div
+            style={{
+              marginTop: "28px",
+              padding: "18px 20px",
+              borderRadius: "16px",
+              background: CARD,
+              border: "1px solid rgba(255,255,255,0.1)",
+              fontSize: "15px",
+              fontWeight: 500,
+              lineHeight: 1.5,
+            }}
+          >
+            {summaryLabel}
+          </div>
+        )}
       </div>
 
-      {/* SECTION 4 — 價格小結 (sticky bottom) */}
+      {/* Sticky CTA */}
       <div
         style={{
           position: "fixed",
@@ -329,41 +584,26 @@ export default function BookPage() {
             padding: "16px 20px calc(16px + env(safe-area-inset-bottom))",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-              marginBottom: "14px",
-            }}
-          >
-            <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)" }}>
-              {activePeriod.label} · {duration} 小時
-            </span>
-            <span style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "-0.02em" }}>
-              HK${totalPrice}
-            </span>
-          </div>
           <button
             type="button"
-            onClick={handleContinue}
-            disabled={!selectedDate}
+            onClick={handleConfirm}
+            disabled={!canConfirm}
             style={{
               width: "100%",
               padding: "16px",
               minHeight: "44px",
               borderRadius: "999px",
               border: "none",
-              cursor: selectedDate ? "pointer" : "not-allowed",
-              background: GREEN,
+              cursor: canConfirm ? "pointer" : "not-allowed",
+              background: BLUE,
               color: "white",
               fontSize: "17px",
               fontWeight: 600,
-              opacity: selectedDate ? 1 : 0.5,
+              opacity: canConfirm ? 1 : 0.4,
               fontFamily: FONT_FAMILY,
             }}
           >
-            繼續
+            確認時段
           </button>
         </div>
       </div>
@@ -372,8 +612,37 @@ export default function BookPage() {
 }
 
 const sectionTitle: React.CSSProperties = {
-  fontSize: "20px",
+  fontSize: "22px",
   fontWeight: 600,
   letterSpacing: "-0.01em",
-  margin: "0 0 16px",
+  margin: "0 0 4px",
 };
+
+const sectionSubtitle: React.CSSProperties = {
+  fontSize: "14px",
+  color: "rgba(255,255,255,0.5)",
+  margin: "0 0 24px",
+};
+
+const subLabel: React.CSSProperties = {
+  fontSize: "15px",
+  fontWeight: 600,
+  margin: "0 0 14px",
+};
+
+function navBtn(disabled: boolean): React.CSSProperties {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "36px",
+    height: "36px",
+    borderRadius: "50%",
+    border: "none",
+    background: "rgba(255,255,255,0.08)",
+    color: "white",
+    cursor: disabled ? "default" : "pointer",
+    opacity: disabled ? 0.3 : 1,
+    flexShrink: 0,
+  };
+}
