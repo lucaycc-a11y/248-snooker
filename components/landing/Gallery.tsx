@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { Pause, Play, RotateCcw } from "lucide-react";
 
 interface Slide {
   title: string;
@@ -270,15 +271,14 @@ export default function Gallery() {
               }}
               aria-label={ended ? "重播" : paused ? "播放" : "暫停"}
               style={{
-                width: "44px",
-                height: "44px",
+                width: "40px",
+                height: "40px",
                 borderRadius: "50%",
-                background: "rgba(50,50,55,0.9)",
+                background: "rgba(255,255,255,0.15)",
                 backdropFilter: "blur(20px)",
                 WebkitBackdropFilter: "blur(20px)",
                 marginLeft: "8px",
                 color: "white",
-                fontSize: "15px",
                 border: "none",
                 cursor: "pointer",
                 display: "flex",
@@ -287,7 +287,13 @@ export default function Gallery() {
                 flexShrink: 0,
               }}
             >
-              {ended ? "↺" : paused ? "▶" : "⏸"}
+              {ended ? (
+                <RotateCcw size={16} strokeWidth={2} color="white" />
+              ) : paused ? (
+                <Play size={16} strokeWidth={2} color="white" />
+              ) : (
+                <Pause size={16} strokeWidth={2} color="white" />
+              )}
             </button>
       </div>
     </section>
