@@ -7,6 +7,9 @@
 4. booking-flow      — anything booking-related
 5. git-workflow      — committing/pushing when done
 
+## Official skills installed
+- webapp-testing (anthropics/skills) — Playwright browser testing, in .agents/skills/
+
 ## Project
 - Site: 248.formhk.com
 - Stack: Next.js 14 App Router, TypeScript strict, Tailwind, Framer Motion, Supabase, Stripe

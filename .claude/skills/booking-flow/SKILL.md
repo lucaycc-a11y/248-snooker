@@ -65,6 +65,16 @@ const token = jwt.sign(qrPayload, process.env.QR_SECRET)
 // Human-readable: 248-XXXXXXXX-XXXX-XX
 ```
 
+## Member Tiers
+```ts
+const TIERS = {
+  amateur: { pts: 0,    discount: 1.0, multiplier: 1 },
+  century: { pts: 500,  discount: 0.9, multiplier: 1.5 },
+  maximum: { pts: 1500, discount: 0.8, multiplier: 2 },
+}
+// New users start with 50 points (Endowed Progress effect)
+```
+
 ## UX Rules
 - Session preserved across Google/Apple auth redirect
 - No countdown timers (causes anxiety)

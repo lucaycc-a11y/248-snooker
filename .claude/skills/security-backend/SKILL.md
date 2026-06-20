@@ -11,6 +11,45 @@ description: Use when writing API routes, database queries, auth logic, Stripe w
 - Never use service_role key on client side
 - Use anon key only in NEXT_PUBLIC_ variables
 - All DB changes via SQL Editor — MCP connects to wrong org
+- Use createServerClient for Server Components, createBrowserClient for Client Components
+
+```sql
+-- Every new table starts with:
+ALTER TABLE public.new_table ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "select_own" ON public.new_table
+  FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "insert_own" ON public.new_table
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+```
+
+## API Route Template
+```ts
+export async function POST(req: Request) {
+  try {
+    // 1. Auth check
+    const supabase = createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // 2. Input validation
+    const body = await req.json()
+    if (!body.period || !body.duration) {
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+    }
+
+    // 3. Server-side price calculation (never trust client)
+    const price = PRICES[body.period] * body.duration
+
+    // 4. Business logic ...
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error(err) // never expose internals to client
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
+}
+```
 
 ## API Security
 - Price ALWAYS calculated server-side only — never trust client
