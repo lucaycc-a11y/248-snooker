@@ -1,648 +1,1305 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
-const BLUE = "#0071E3";
-const BORDER = "#2D2D2D";
-const CARD = "#111111";
-const FONT_FAMILY =
-  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+/* ─────────────────────────  Design tokens  ───────────────────────── */
+const ACCENT = "#0071E3";
+const SPRING = [0.16, 1, 0.3, 1] as const;
+const HAIRLINE = "1px solid rgba(255,255,255,0.1)";
+const BEBAS =
+  "'Bebas Neue', 'Oswald', 'Haas Grot Disp', 'Helvetica Neue Condensed', 'Arial Narrow', sans-serif";
 
-const STEPS = ["選擇時間", "確認", "付款"] as const;
+const RATE_PER_HOUR = 80; // HK$ — dummy demo rate (1.5h → HK$120)
 
-// Monday-first weekday headers.
-const WEEK_HEADER = ["一", "二", "三", "四", "五", "六", "日"] as const;
-// getDay() index (0=Sun) -> Chinese label.
-const WEEKDAY_ZH = ["日", "一", "二", "三", "四", "五", "六"] as const;
+/* ─────────────────────────  Static data  ───────────────────────── */
+const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"]; // Mon–Sun
 
-// Operating hours: 09:00 through 02:00 next day. Hours use a 9..26 scale,
-// where 24 = 00:00, 25 = 01:00, 26 = 02:00. Closing time is hour 26 (02:00).
-const OPEN_HOUR = 9;
-const CLOSE_HOUR = 26;
-const START_HOURS = Array.from(
-  { length: CLOSE_HOUR - OPEN_HOUR },
-  (_, i) => OPEN_HOUR + i
-); // 9 .. 25 -> 17 start slots (last bookable start is 01:00)
-const MAX_DURATION = 4;
-
-function formatHour(h: number): string {
-  const hh = ((h % 24) + 24) % 24;
-  return `${String(hh).padStart(2, "0")}:00`;
-}
-
-function isWeekendDay(d: Date): boolean {
-  const wd = d.getDay();
-  return wd === 0 || wd === 6;
-}
-
-// Hourly rate for a slot starting at `hour` (9..26 scale) on a given day.
-//   Late night 23:00–02:00 : HK$60  (any day)
-//   Peak 18:00–23:00 weekdays + all day Sat/Sun : HK$120
-//   Off-peak 09:00–18:00 weekdays : HK$80
-function rateForHour(hour: number, weekend: boolean): number {
-  if (hour >= 23) return 60; // 23:00, 00:00, 01:00 (start)
-  if (weekend) return 120;
-  return hour < 18 ? 80 : 120;
-}
-
-// Longest duration (hours) bookable from a start hour without passing 02:00.
-function maxDurationFrom(startHour: number): number {
-  return Math.min(MAX_DURATION, CLOSE_HOUR - startHour);
-}
-
-// Placeholder for backend-provided bookings. Return the start hours (9..26
-// scale) already taken on the given ISO date. Wire to the API when ready.
-function bookedHoursFor(_iso: string): number[] {
-  return [];
-}
-
-interface MonthCell {
-  iso: string;
-  day: number;
-  date: Date;
-  past: boolean;
-  isToday: boolean;
-}
-
-// Build a Monday-first grid of cells for the given month. Leading slots before
-// the 1st are null so the first day lands under its weekday column.
-function buildMonth(year: number, month: number, today: Date): (MonthCell | null)[] {
-  const first = new Date(year, month, 1);
-  const lead = (first.getDay() + 6) % 7; // Mon-first offset
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const todayMidnight = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate()
-  ).getTime();
-
-  const cells: (MonthCell | null)[] = [];
-  for (let i = 0; i < lead; i++) cells.push(null);
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    cells.push({
-      iso,
-      day,
-      date,
-      past: date.getTime() < todayMidnight,
-      isToday: date.getTime() === todayMidnight,
-    });
+const START_TIMES: string[] = (() => {
+  const out: string[] = [];
+  for (let m = 8 * 60; m <= 23 * 60 + 30; m += 30) {
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    out.push(`${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
   }
+  return out;
+})();
+
+const DURATIONS = [
+  { label: "1 小時", hours: 1 },
+  { label: "1.5 小時", hours: 1.5 },
+  { label: "2 小時", hours: 2 },
+  { label: "2.5 小時", hours: 2.5 },
+  { label: "3 小時", hours: 3 },
+];
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+/* ─────────────────────────  Helpers  ───────────────────────── */
+function addMinutesToTime(time: string, minutes: number): string {
+  const [h, m] = time.split(":").map(Number);
+  const total = (h * 60 + m + minutes) % (24 * 60);
+  const hh = Math.floor(total / 60);
+  const mm = total % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+function sameDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function buildCalendar(year: number, month: number): (Date | null)[] {
+  const first = new Date(year, month, 1);
+  const lead = (first.getDay() + 6) % 7; // Monday-first offset
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells: (Date | null)[] = [];
+  for (let i = 0; i < lead; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
+  while (cells.length % 7 !== 0) cells.push(null);
   return cells;
 }
 
-interface Segment {
-  fromHour: number;
-  toHour: number;
-  rate: number;
-  hours: number;
-}
-
-// Group the booked hours into consecutive same-rate runs for the breakdown.
-function priceSegments(startHour: number, duration: number, weekend: boolean): Segment[] {
-  const segments: Segment[] = [];
-  for (let i = 0; i < duration; i++) {
-    const h = startHour + i;
-    const rate = rateForHour(h, weekend);
-    const last = segments[segments.length - 1];
-    if (last && last.rate === rate) {
-      last.toHour = h + 1;
-      last.hours += 1;
-    } else {
-      segments.push({ fromHour: h, toHour: h + 1, rate, hours: 1 });
-    }
-  }
-  return segments;
-}
-
-export default function BookPage() {
-  const router = useRouter();
-
-  // Date/time-derived state is computed after mount to avoid SSR mismatch.
-  const [today, setToday] = useState<Date | null>(null);
-  const [viewYear, setViewYear] = useState(0);
-  const [viewMonth, setViewMonth] = useState(0);
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedHour, setSelectedHour] = useState<number | null>(null);
-  const [duration, setDuration] = useState<number>(1);
+/* ─────────────────────────  Count-up price  ───────────────────────── */
+function useCountUp(value: number, duration = 450) {
+  const [display, setDisplay] = useState(value);
+  const fromRef = useRef(value);
+  const rafRef = useRef<number | null>(null);
+  const startRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const now = new Date();
-    setToday(now);
-    setViewYear(now.getFullYear());
-    setViewMonth(now.getMonth());
+    const from = fromRef.current;
+    const to = value;
+    if (from === to) return;
+    startRef.current = null;
+
+    const tick = (ts: number) => {
+      if (startRef.current === null) startRef.current = ts;
+      const t = Math.min((ts - startRef.current) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      setDisplay(Math.round(from + (to - from) * eased));
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        fromRef.current = to;
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      fromRef.current = value;
+    };
+  }, [value, duration]);
+
+  return display;
+}
+
+/* ─────────────────────────  Drum-roll wheel  ───────────────────────── */
+const WHEEL_HEIGHT = 200;
+const ITEM_HEIGHT = 44;
+const PAD = (WHEEL_HEIGHT - ITEM_HEIGHT) / 2; // 78px top/bottom spacer
+
+function Wheel({
+  items,
+  selectedIndex,
+  onChange,
+  ariaLabel,
+}: {
+  items: string[];
+  selectedIndex: number;
+  onChange: (i: number) => void;
+  ariaLabel: string;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const settleRef = useRef<number | null>(null);
+
+  // Detect the centred item via IntersectionObserver (thin centre band).
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (!root) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const idx = Number(
+              (entry.target as HTMLElement).dataset.index ?? -1
+            );
+            if (idx >= 0) onChange(idx);
+          }
+        }
+      },
+      {
+        root,
+        rootMargin: `-${PAD}px 0px -${PAD}px 0px`,
+        threshold: 0.5,
+      }
+    );
+    itemRefs.current.forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, [items, onChange]);
+
+  // Centre the initial selection without smooth scroll (run once).
+  useEffect(() => {
+    const root = scrollRef.current;
+    if (root) root.scrollTop = selectedIndex * ITEM_HEIGHT;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const monthCells = useMemo(
-    () => (today ? buildMonth(viewYear, viewMonth, today) : []),
-    [today, viewYear, viewMonth]
-  );
+  const handleItemClick = (i: number) => {
+    scrollRef.current?.scrollTo({ top: i * ITEM_HEIGHT, behavior: "smooth" });
+  };
 
-  const selectedDateObj = useMemo(
-    () => (selectedDate ? new Date(`${selectedDate}T00:00:00`) : null),
-    [selectedDate]
-  );
-  const weekend = selectedDateObj ? isWeekendDay(selectedDateObj) : false;
-  const booked = useMemo(
-    () => new Set(selectedDate ? bookedHoursFor(selectedDate) : []),
-    [selectedDate]
-  );
+  // Snap-correct after manual scroll ends (covers imperfect native snap).
+  const handleScroll = () => {
+    if (settleRef.current) window.clearTimeout(settleRef.current);
+    settleRef.current = window.setTimeout(() => {
+      const root = scrollRef.current;
+      if (!root) return;
+      const idx = Math.round(root.scrollTop / ITEM_HEIGHT);
+      const clamped = Math.max(0, Math.min(items.length - 1, idx));
+      const target = clamped * ITEM_HEIGHT;
+      if (Math.abs(root.scrollTop - target) > 1) {
+        root.scrollTo({ top: target, behavior: "smooth" });
+      }
+    }, 90);
+  };
 
-  const maxDuration = selectedHour !== null ? maxDurationFrom(selectedHour) : MAX_DURATION;
-  const durationCapped = duration > maxDuration;
-  const effectiveDuration = Math.min(duration, maxDuration);
+  return (
+    <div
+      ref={scrollRef}
+      onScroll={handleScroll}
+      role="listbox"
+      aria-label={ariaLabel}
+      className="wheel-scroll"
+      style={{
+        height: WHEEL_HEIGHT,
+        overflowY: "scroll",
+        scrollSnapType: "y mandatory",
+        flex: 1,
+        position: "relative",
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
+      <div style={{ height: PAD }} aria-hidden />
+      {items.map((label, i) => {
+        const active = i === selectedIndex;
+        return (
+          <div
+            key={label}
+            data-index={i}
+            ref={(el) => {
+              itemRefs.current[i] = el;
+            }}
+            role="option"
+            aria-selected={active}
+            onClick={() => handleItemClick(i)}
+            style={{
+              height: ITEM_HEIGHT,
+              scrollSnapAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              opacity: active ? 1 : 0.3,
+              fontSize: active ? 18 : 15,
+              fontWeight: active ? 600 : 400,
+              color: "#FFFFFF",
+              transition:
+                "opacity 0.2s ease, font-size 0.2s ease, font-weight 0.2s ease",
+              userSelect: "none",
+            }}
+          >
+            {label}
+          </div>
+        );
+      })}
+      <div style={{ height: PAD }} aria-hidden />
+    </div>
+  );
+}
 
-  const segments = useMemo(
+/* ─────────────────────────  Brand logos (inline SVG)  ───────────────────────── */
+function AppleLogo() {
+  return (
+    <svg width="18" height="22" viewBox="0 0 18 22" fill="none" aria-hidden>
+      <path
+        d="M14.94 11.6c-.02-2.05 1.67-3.03 1.75-3.08-.95-1.4-2.44-1.59-2.97-1.61-1.26-.13-2.46.74-3.1.74-.64 0-1.63-.72-2.68-.7-1.38.02-2.65.8-3.36 2.04-1.43 2.49-.37 6.17 1.03 8.19.68.99 1.49 2.1 2.55 2.06 1.02-.04 1.41-.66 2.65-.66 1.23 0 1.58.66 2.66.64 1.1-.02 1.79-1 2.46-2 .77-1.15 1.09-2.26 1.11-2.32-.02-.01-2.13-.82-2.15-3.24zM12.9 5.36c.56-.68.94-1.62.84-2.56-.81.03-1.79.54-2.37 1.22-.52.6-.98 1.56-.86 2.48.9.07 1.83-.46 2.39-1.14z"
+        fill="#000000"
+      />
+    </svg>
+  );
+}
+
+function GoogleLogo() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
+      <path
+        fill="#4285F4"
+        d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M11.69 28.18c-.44-1.32-.69-2.73-.69-4.18s.25-2.86.69-4.18v-5.7H4.34A21.99 21.99 0 0 0 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z"
+      />
+      <path
+        fill="#EA4335"
+        d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"
+      />
+    </svg>
+  );
+}
+
+/* ─────────────────────────  Progress dots  ───────────────────────── */
+function ProgressDots({ step }: { step: number }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px 0 8px",
+      }}
+    >
+      {[0, 1, 2].map((i) => (
+        <div key={i} style={{ display: "flex", alignItems: "center" }}>
+          <motion.div
+            animate={{
+              backgroundColor:
+                i <= step ? "#FFFFFF" : "rgba(255,255,255,0.18)",
+              scale: i === step ? 1.15 : 1,
+            }}
+            transition={{ duration: 0.4, ease: SPRING }}
+            style={{ width: 9, height: 9, borderRadius: "50%" }}
+          />
+          {i < 2 && (
+            <div
+              style={{
+                width: 44,
+                height: 1,
+                background: i < step ? "#FFFFFF" : "rgba(255,255,255,0.18)",
+                transition: "background 0.4s ease",
+              }}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────  Confetti  ───────────────────────── */
+const CONFETTI_COLORS = ["#0071E3", "#FFFFFF", "#1A6B35", "#FFD700"];
+
+function Confetti() {
+  const particles = useMemo(
     () =>
-      selectedHour !== null && effectiveDuration > 0
-        ? priceSegments(selectedHour, effectiveDuration, weekend)
-        : [],
-    [selectedHour, effectiveDuration, weekend]
+      Array.from({ length: 60 }, (_, i) => {
+        // Deterministic pseudo-spread from index (no Math.random at render).
+        const angle = (i / 60) * Math.PI * 2 + (i % 7) * 0.31;
+        const velocity = 90 + (i % 11) * 16;
+        return {
+          id: i,
+          color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+          size: 6 + (i % 5),
+          x: Math.cos(angle) * velocity,
+          y: Math.sin(angle) * velocity - 40,
+          rotate: (i % 2 ? 1 : -1) * (180 + (i % 9) * 40),
+        };
+      }),
+    []
   );
-  const totalPrice = segments.reduce((sum, s) => sum + s.rate * s.hours, 0);
-  const multiTier = segments.length > 1;
 
-  const canConfirm =
-    !!selectedDate && selectedHour !== null && effectiveDuration > 0;
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        top: "38%",
+        left: "50%",
+        width: 0,
+        height: 0,
+        pointerEvents: "none",
+        zIndex: 5,
+      }}
+    >
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          initial={{ x: 0, y: 0, opacity: 1, rotate: 0, scale: 1 }}
+          animate={{ x: p.x, y: p.y, opacity: 0, rotate: p.rotate, scale: 0.6 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          style={{
+            position: "absolute",
+            width: p.size,
+            height: p.size,
+            borderRadius: 2,
+            background: p.color,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
-  // Don't let a prev-month arrow walk before the current month.
-  const atCurrentMonth =
-    !!today && viewYear === today.getFullYear() && viewMonth === today.getMonth();
+/* ─────────────────────────  Screen 1: Select  ───────────────────────── */
+function SelectScreen({
+  selectedDay,
+  setSelectedDay,
+  startIndex,
+  setStartIndex,
+  durationIndex,
+  setDurationIndex,
+  viewYear,
+  viewMonth,
+  setView,
+  onContinue,
+}: {
+  selectedDay: Date | null;
+  setSelectedDay: (d: Date) => void;
+  startIndex: number;
+  setStartIndex: (i: number) => void;
+  durationIndex: number;
+  setDurationIndex: (i: number) => void;
+  viewYear: number;
+  viewMonth: number;
+  setView: (y: number, m: number) => void;
+  onContinue: () => void;
+}) {
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const cells = useMemo(
+    () => buildCalendar(viewYear, viewMonth),
+    [viewYear, viewMonth]
+  );
+
+  const hours = DURATIONS[durationIndex].hours;
+  const startTime = START_TIMES[startIndex];
+  const endTime = addMinutesToTime(startTime, hours * 60);
+  const price = Math.round(RATE_PER_HOUR * hours);
+  const animatedPrice = useCountUp(price);
+
+  const canGoPrev =
+    viewYear > today.getFullYear() ||
+    (viewYear === today.getFullYear() && viewMonth > today.getMonth());
 
   const goMonth = (delta: number) => {
-    const next = new Date(viewYear, viewMonth + delta, 1);
-    setViewYear(next.getFullYear());
-    setViewMonth(next.getMonth());
+    let m = viewMonth + delta;
+    let y = viewYear;
+    if (m < 0) {
+      m = 11;
+      y -= 1;
+    } else if (m > 11) {
+      m = 0;
+      y += 1;
+    }
+    setView(y, m);
   };
 
-  const selectDate = (iso: string) => {
-    setSelectedDate(iso);
-    setSelectedHour(null);
-    setDuration(1);
+  const canContinue = selectedDay !== null;
+
+  return (
+    <div style={{ padding: "0 20px 32px" }}>
+      {/* Calendar header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginTop: 8,
+          marginBottom: 18,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => canGoPrev && goMonth(-1)}
+          disabled={!canGoPrev}
+          aria-label="上個月"
+          style={{
+            width: 36,
+            height: 36,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: canGoPrev ? 1 : 0.25,
+            color: "#fff",
+          }}
+        >
+          <svg width="9" height="16" viewBox="0 0 9 16" fill="none">
+            <path
+              d="M8 1L1 8l7 7"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+        <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "-0.01em" }}>
+          {MONTH_NAMES[viewMonth]} {viewYear}
+        </div>
+        <button
+          type="button"
+          onClick={() => goMonth(1)}
+          aria-label="下個月"
+          style={{
+            width: 36,
+            height: 36,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#fff",
+          }}
+        >
+          <svg width="9" height="16" viewBox="0 0 9 16" fill="none">
+            <path
+              d="M1 1l7 7-7 7"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Weekday headers */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          marginBottom: 8,
+        }}
+      >
+        {WEEKDAYS.map((w) => (
+          <div
+            key={w}
+            style={{
+              textAlign: "center",
+              fontSize: 11,
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.4)",
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+            }}
+          >
+            {w}
+          </div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          rowGap: 4,
+        }}
+      >
+        {cells.map((date, i) => {
+          if (!date) return <div key={`e-${i}`} />;
+          const isPast = date < today;
+          const isToday = sameDay(date, today);
+          const isSelected = selectedDay && sameDay(date, selectedDay);
+          return (
+            <div
+              key={date.toISOString()}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "2px 0",
+              }}
+            >
+              <button
+                type="button"
+                disabled={isPast}
+                onClick={() => setSelectedDay(date)}
+                aria-pressed={!!isSelected}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 15,
+                  fontWeight: isSelected ? 700 : 400,
+                  cursor: isPast ? "default" : "pointer",
+                  opacity: isPast ? 0.25 : 1,
+                  background: isSelected ? "#FFFFFF" : "transparent",
+                  color: isSelected ? "#000000" : "#FFFFFF",
+                  border:
+                    isToday && !isSelected
+                      ? "1px solid rgba(255,255,255,0.7)"
+                      : "1px solid transparent",
+                  transition: "background 0.2s ease, color 0.2s ease",
+                }}
+              >
+                {date.getDate()}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Wheel picker — revealed after a day is chosen */}
+      <AnimatePresence>
+        {selectedDay && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ duration: 0.5, ease: SPRING }}
+            style={{ marginTop: 26 }}
+          >
+            <div
+              style={{
+                fontSize: 13,
+                color: "rgba(255,255,255,0.4)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                marginBottom: 10,
+                display: "flex",
+                justifyContent: "space-between",
+                padding: "0 8px",
+              }}
+            >
+              <span>開始時間</span>
+              <span>時長</span>
+            </div>
+
+            <div style={{ position: "relative", display: "flex" }}>
+              {/* Frosted highlight band across both wheels */}
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  top: PAD,
+                  left: 0,
+                  right: 0,
+                  height: ITEM_HEIGHT,
+                  background: "rgba(255,255,255,0.08)",
+                  borderTop: "1px solid rgba(255,255,255,0.15)",
+                  borderBottom: "1px solid rgba(255,255,255,0.15)",
+                  borderRadius: 10,
+                  pointerEvents: "none",
+                  zIndex: 2,
+                }}
+              />
+              <Wheel
+                items={START_TIMES}
+                selectedIndex={startIndex}
+                onChange={setStartIndex}
+                ariaLabel="開始時間"
+              />
+              <div
+                aria-hidden
+                style={{
+                  width: 1,
+                  alignSelf: "stretch",
+                  background: "rgba(255,255,255,0.08)",
+                }}
+              />
+              <Wheel
+                items={DURATIONS.map((d) => d.label)}
+                selectedIndex={durationIndex}
+                onChange={setDurationIndex}
+                ariaLabel="時長"
+              />
+            </div>
+
+            {/* Summary + animated price */}
+            <div style={{ textAlign: "center", marginTop: 18 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "rgba(255,255,255,0.45)",
+                  marginBottom: 6,
+                }}
+              >
+                由 {startTime} 至 {endTime}
+              </div>
+              <div
+                style={{
+                  fontFamily: BEBAS,
+                  fontSize: 52,
+                  lineHeight: 1,
+                  letterSpacing: "0.01em",
+                  color: "#FFFFFF",
+                }}
+              >
+                HK${animatedPrice}
+              </div>
+            </div>
+
+            <div
+              style={{
+                height: 1,
+                background: "rgba(255,255,255,0.1)",
+                margin: "22px 0",
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Continue */}
+      <motion.button
+        type="button"
+        whileTap={canContinue ? { scale: 0.97 } : undefined}
+        transition={{ duration: 0.25, ease: SPRING }}
+        onClick={() => canContinue && onContinue()}
+        disabled={!canContinue}
+        style={{
+          width: "100%",
+          height: 52,
+          background: ACCENT,
+          borderRadius: 14,
+          color: "#fff",
+          fontSize: 16,
+          fontWeight: 600,
+          opacity: canContinue ? 1 : 0.4,
+          cursor: canContinue ? "pointer" : "default",
+          marginTop: selectedDay ? 0 : 26,
+        }}
+      >
+        繼續
+      </motion.button>
+    </div>
+  );
+}
+
+/* ─────────────────────────  Screen 2: Auth sheet  ───────────────────────── */
+function formatPhone(digits: string) {
+  const d = digits.slice(0, 8);
+  if (d.length <= 4) return d;
+  return `${d.slice(0, 4)} ${d.slice(4)}`;
+}
+
+function AuthSheet({
+  onClose,
+  onSuccess,
+}: {
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [lockSeconds, setLockSeconds] = useState(300); // 5:00
+  const [phone, setPhone] = useState(""); // raw digits
+  const [stage, setStage] = useState<"phone" | "otp">("phone");
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [resend, setResend] = useState(59);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Lock countdown.
+  useEffect(() => {
+    const id = setInterval(
+      () => setLockSeconds((s) => (s > 0 ? s - 1 : 0)),
+      1000
+    );
+    return () => clearInterval(id);
+  }, []);
+
+  // Resend countdown (OTP stage only).
+  useEffect(() => {
+    if (stage !== "otp") return;
+    setResend(59);
+    const id = setInterval(() => setResend((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage === "otp") {
+      const t = setTimeout(() => otpRefs.current[0]?.focus(), 350);
+      return () => clearTimeout(t);
+    }
+  }, [stage]);
+
+  const lockLabel = `${Math.floor(lockSeconds / 60)}:${String(
+    lockSeconds % 60
+  ).padStart(2, "0")}`;
+
+  const phoneComplete = phone.length === 8;
+
+  const handleOtpChange = (i: number, raw: string) => {
+    const v = raw.replace(/\D/g, "").slice(-1);
+    const next = [...otp];
+    next[i] = v;
+    setOtp(next);
+    if (v && i < 5) otpRefs.current[i + 1]?.focus();
+    if (v && i === 5 && next.every(Boolean)) {
+      setTimeout(onSuccess, 250); // demo: any 6 digits succeed
+    }
   };
 
-  const selectHour = (hour: number) => {
-    setSelectedHour(hour);
-    setDuration((d) => Math.min(d, maxDurationFrom(hour)));
+  const handleOtpKey = (
+    i: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace" && !otp[i] && i > 0) {
+      otpRefs.current[i - 1]?.focus();
+    }
   };
 
-  const summaryLabel = useMemo(() => {
-    if (!canConfirm || !selectedDateObj || selectedHour === null) return "";
-    const y = selectedDateObj.getFullYear();
-    const m = selectedDateObj.getMonth() + 1;
-    const day = selectedDateObj.getDate();
-    const wd = WEEKDAY_ZH[selectedDateObj.getDay()];
-    const start = formatHour(selectedHour);
-    const end = formatHour(selectedHour + effectiveDuration);
-    return `${y}年${m}月${day}日（${wd}）· ${start} – ${end} · ${effectiveDuration}小時 · HK$${totalPrice}`;
-  }, [canConfirm, selectedDateObj, selectedHour, effectiveDuration, totalPrice]);
+  return (
+    <>
+      {/* scrim */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          zIndex: 40,
+        }}
+      />
+      {/* sheet */}
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", stiffness: 360, damping: 34 }}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "#111111",
+          borderRadius: "20px 20px 0 0",
+          padding: "28px 24px max(28px, env(safe-area-inset-bottom))",
+          zIndex: 50,
+        }}
+      >
+        {/* drag handle */}
+        <div
+          style={{
+            width: 40,
+            height: 4,
+            borderRadius: 2,
+            background: "rgba(255,255,255,0.2)",
+            margin: "-12px auto 18px",
+          }}
+        />
 
-  const handleConfirm = () => {
-    if (!canConfirm || selectedHour === null) return;
-    const selection = {
-      date: selectedDate,
-      startHour: selectedHour,
-      startTime: formatHour(selectedHour),
-      endTime: formatHour(selectedHour + effectiveDuration),
-      duration: effectiveDuration,
-      weekend,
-      breakdown: segments.map((s) => ({
-        from: formatHour(s.fromHour),
-        to: formatHour(s.toHour),
-        rate: s.rate,
-        hours: s.hours,
-      })),
-      totalPrice,
-    };
-    sessionStorage.setItem("bookingSelection", JSON.stringify(selection));
-    router.push("/book/confirm");
-  };
+        <AnimatePresence mode="wait" initial={false}>
+          {stage === "phone" ? (
+            <motion.div
+              key="phone"
+              initial={{ opacity: 0, x: 0 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -24 }}
+              transition={{ duration: 0.3, ease: SPRING }}
+            >
+              <h2 style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>
+                繼續以完成預約
+              </h2>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "rgba(255,255,255,0.5)",
+                  marginBottom: 22,
+                }}
+              >
+                你的預約時段已鎖定 {lockLabel}
+              </p>
+
+              {/* Apple */}
+              <button
+                type="button"
+                onClick={onSuccess}
+                style={{
+                  width: "100%",
+                  height: 52,
+                  background: "#FFFFFF",
+                  borderRadius: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  marginBottom: 12,
+                }}
+              >
+                <AppleLogo />
+                <span style={{ color: "#000", fontWeight: 600, fontSize: 16 }}>
+                  以 Apple 登入
+                </span>
+              </button>
+
+              {/* Google */}
+              <button
+                type="button"
+                onClick={onSuccess}
+                style={{
+                  width: "100%",
+                  height: 52,
+                  background: "#FFFFFF",
+                  borderRadius: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  marginBottom: 18,
+                }}
+              >
+                <GoogleLogo />
+                <span
+                  style={{ color: "#1F1F1F", fontWeight: 500, fontSize: 16 }}
+                >
+                  以 Google 帳號登入
+                </span>
+              </button>
+
+              {/* divider */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  margin: "4px 0 18px",
+                }}
+              >
+                <div
+                  style={{
+                    flex: 1,
+                    height: 1,
+                    background: "rgba(255,255,255,0.12)",
+                  }}
+                />
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+                  或
+                </span>
+                <div
+                  style={{
+                    flex: 1,
+                    height: 1,
+                    background: "rgba(255,255,255,0.12)",
+                  }}
+                />
+              </div>
+
+              {/* WhatsApp phone input */}
+              <div
+                style={{
+                  height: 52,
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  borderRadius: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "0 14px",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    fontSize: 15,
+                    color: "rgba(255,255,255,0.85)",
+                    background: "rgba(255,255,255,0.1)",
+                    borderRight: "1px solid rgba(255,255,255,0.15)",
+                  }}
+                >
+                  +852
+                </div>
+                <input
+                  value={formatPhone(phone)}
+                  onChange={(e) =>
+                    setPhone(e.target.value.replace(/\D/g, "").slice(0, 8))
+                  }
+                  inputMode="numeric"
+                  placeholder="WhatsApp 號碼"
+                  style={{
+                    flex: 1,
+                    height: "100%",
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    color: "#fff",
+                    fontSize: 16,
+                    padding: "0 14px",
+                    letterSpacing: "0.04em",
+                  }}
+                />
+              </div>
+
+              <AnimatePresence>
+                {phoneComplete && (
+                  <motion.button
+                    key="send"
+                    type="button"
+                    initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 12, scale: 0.96 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setStage("otp")}
+                    style={{
+                      width: "100%",
+                      height: 52,
+                      background: ACCENT,
+                      borderRadius: 14,
+                      color: "#fff",
+                      fontSize: 16,
+                      fontWeight: 600,
+                      marginTop: 14,
+                    }}
+                  >
+                    傳送驗證碼
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="otp"
+              initial={{ opacity: 0, x: 24 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 24 }}
+              transition={{ duration: 0.3, ease: SPRING }}
+            >
+              <h2 style={{ fontSize: 17, fontWeight: 600, marginBottom: 6 }}>
+                輸入驗證碼
+              </h2>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "rgba(255,255,255,0.5)",
+                  marginBottom: 24,
+                }}
+              >
+                已傳送至 +852 {formatPhone(phone)}
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  justifyContent: "center",
+                  marginBottom: 22,
+                }}
+              >
+                {otp.map((d, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => {
+                      otpRefs.current[i] = el;
+                    }}
+                    value={d}
+                    onChange={(e) => handleOtpChange(i, e.target.value)}
+                    onKeyDown={(e) => handleOtpKey(i, e)}
+                    inputMode="numeric"
+                    maxLength={1}
+                    style={{
+                      width: 40,
+                      height: 52,
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      borderRadius: 10,
+                      background: "transparent",
+                      color: "#fff",
+                      fontSize: 24,
+                      textAlign: "center",
+                      outline: "none",
+                    }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = ACCENT)}
+                    onBlur={(e) =>
+                      (e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.2)")
+                    }
+                  />
+                ))}
+              </div>
+
+              <div style={{ textAlign: "center" }}>
+                <span
+                  style={{
+                    fontSize: 14,
+                    color: resend > 0 ? "rgba(255,255,255,0.35)" : ACCENT,
+                    cursor: resend > 0 ? "default" : "pointer",
+                  }}
+                  onClick={() => resend === 0 && setResend(59)}
+                >
+                  {resend > 0 ? `重新傳送 (${resend}s)` : "重新傳送"}
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </>
+  );
+}
+
+/* ─────────────────────────  Screen 3: Confirmation  ───────────────────────── */
+function ConfirmScreen({ summary }: { summary: string }) {
+  const [showContent, setShowContent] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShowContent(true), 300);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div
+      style={{
+        minHeight: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 24px",
+        position: "relative",
+      }}
+    >
+      <Confetti />
+
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 16 }}
+        transition={{ duration: 0.6, ease: SPRING }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          width: "100%",
+        }}
+      >
+        <h1
+          style={{
+            fontFamily: BEBAS,
+            fontSize: 48,
+            letterSpacing: "0.02em",
+            marginBottom: 12,
+          }}
+        >
+          預約確認
+        </h1>
+        <p
+          style={{
+            fontSize: 15,
+            color: "rgba(255,255,255,0.6)",
+            marginBottom: 30,
+          }}
+        >
+          {summary}
+        </p>
+
+        {/* QR placeholder */}
+        <div
+          style={{
+            width: 160,
+            height: 160,
+            background: "#FFFFFF",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 22,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateRows: "repeat(3, 1fr)",
+              gap: 8,
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            {[1, 1, 0, 0, 1, 1, 1, 0, 1].map((on, i) => (
+              <div
+                key={i}
+                style={{
+                  background: on ? "#000" : "transparent",
+                  borderRadius: 3,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div
+          style={{
+            fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, monospace",
+            fontSize: 14,
+            color: "rgba(255,255,255,0.4)",
+            letterSpacing: "0.1em",
+            marginBottom: 34,
+          }}
+        >
+          248-A3K7-F2M1
+        </div>
+
+        {/* buttons */}
+        <div style={{ display: "flex", gap: 12, width: "100%" }}>
+          {["加入日曆", "分享"].map((label) => (
+            <button
+              key={label}
+              type="button"
+              style={{
+                flex: 1,
+                height: 48,
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                borderRadius: 14,
+                color: "#fff",
+                fontSize: 15,
+                fontWeight: 500,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ─────────────────────────  Root  ───────────────────────── */
+export default function BookPage() {
+  const now = useMemo(() => new Date(), []);
+  const [viewYear, setViewYear] = useState(now.getFullYear());
+  const [viewMonth, setViewMonth] = useState(now.getMonth());
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [startIndex, setStartIndex] = useState(12); // 14:00
+  const [durationIndex, setDurationIndex] = useState(1); // 1.5h
+
+  const [authOpen, setAuthOpen] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+
+  const step = confirmed ? 2 : authOpen ? 1 : 0;
+
+  const summary = useMemo(() => {
+    const day = selectedDay ?? now;
+    const startTime = START_TIMES[startIndex];
+    const hours = DURATIONS[durationIndex].hours;
+    const endTime = addMinutesToTime(startTime, hours * 60);
+    return `${day.getFullYear()}年${day.getMonth() + 1}月${day.getDate()}日 · ${startTime}–${endTime} · ${DURATIONS[durationIndex].label}`;
+  }, [selectedDay, startIndex, durationIndex, now]);
 
   return (
     <main
       style={{
-        minHeight: "100vh",
-        background: "#000000",
-        color: "white",
-        fontFamily: FONT_FAMILY,
+        background: "#000",
+        minHeight: "100dvh",
+        color: "#fff",
+        display: "flex",
+        justifyContent: "center",
       }}
     >
-      {/* Sticky progress bar */}
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 20,
-          background: "rgba(0,0,0,0.85)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          borderBottom: `1px solid ${BORDER}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "480px",
-            margin: "0 auto",
-            padding: "16px 20px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-          }}
-        >
-          {STEPS.map((step, i) => {
-            const isCurrent = i === 0;
-            return (
-              <div
-                key={step}
-                style={{ display: "flex", alignItems: "center", flex: 1, gap: "8px" }}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "22px",
-                    height: "22px",
-                    borderRadius: "50%",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    flexShrink: 0,
-                    background: isCurrent ? BLUE : "rgba(255,255,255,0.08)",
-                    color: isCurrent ? "#fff" : "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  {i + 1}
-                </span>
-                <span
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: isCurrent ? 600 : 400,
-                    color: isCurrent ? "white" : "rgba(255,255,255,0.5)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {step}
-                </span>
-                {i < STEPS.length - 1 && (
-                  <span
-                    aria-hidden="true"
-                    style={{ flex: 1, height: "1px", background: BORDER, minWidth: "8px" }}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </header>
-
       <div
         style={{
-          maxWidth: "480px",
-          margin: "0 auto",
-          padding: "28px 20px 200px",
+          width: "100%",
+          maxWidth: 430,
+          minHeight: "100dvh",
+          position: "relative",
+          overflow: "hidden",
+          borderLeft: HAIRLINE,
+          borderRight: HAIRLINE,
         }}
       >
-        {/* SECTION 1 — 選擇日期及時段 */}
-        <h2 style={sectionTitle}>日期及時段</h2>
-        <p style={sectionSubtitle}>選擇開始時間，以小時計費</p>
+        <ProgressDots step={step} />
 
-        {/* Calendar */}
-        <div style={{ marginBottom: "32px" }}>
-          {/* Month nav */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: "16px",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => goMonth(-1)}
-              disabled={atCurrentMonth}
-              aria-label="上個月"
-              style={navBtn(atCurrentMonth)}
-            >
-              <ChevronLeft size={20} aria-hidden="true" />
-            </button>
-            <span style={{ fontSize: "16px", fontWeight: 600 }}>
-              {today ? `${viewYear}年${viewMonth + 1}月` : ""}
-            </span>
-            <button
-              type="button"
-              onClick={() => goMonth(1)}
-              aria-label="下個月"
-              style={navBtn(false)}
-            >
-              <ChevronRight size={20} aria-hidden="true" />
-            </button>
-          </div>
-
-          {/* Weekday header */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(7, 1fr)",
-              marginBottom: "6px",
-            }}
-          >
-            {WEEK_HEADER.map((w) => (
-              <span
-                key={w}
-                style={{
-                  textAlign: "center",
-                  fontSize: "12px",
-                  fontWeight: 500,
-                  color: "rgba(255,255,255,0.4)",
-                  padding: "6px 0",
-                }}
+        {/* Screen 1 / 3 slide */}
+        <div style={{ position: "relative" }}>
+          <AnimatePresence initial={false}>
+            {!confirmed ? (
+              <motion.div
+                key="select"
+                initial={{ x: 0 }}
+                animate={{ x: 0 }}
+                exit={{ x: "-100%", opacity: 0 }}
+                transition={{ duration: 0.45, ease: SPRING }}
               >
-                {w}
-              </span>
-            ))}
-          </div>
-
-          {/* Day grid */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(7, 1fr)",
-              gap: "4px",
-            }}
-          >
-            {monthCells.map((cell, i) => {
-              if (!cell) return <span key={`pad-${i}`} aria-hidden="true" />;
-              const selected = cell.iso === selectedDate;
-              return (
-                <button
-                  key={cell.iso}
-                  type="button"
-                  disabled={cell.past}
-                  onClick={() => selectDate(cell.iso)}
-                  aria-pressed={selected}
-                  aria-label={cell.iso}
-                  style={{
-                    aspectRatio: "1 / 1",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    margin: "0 auto",
-                    width: "40px",
-                    borderRadius: "50%",
-                    fontSize: "15px",
-                    fontWeight: selected ? 600 : 500,
-                    cursor: cell.past ? "default" : "pointer",
-                    background: selected ? BLUE : "transparent",
-                    color: selected ? "#fff" : "white",
-                    opacity: cell.past ? 0.3 : 1,
-                    border:
-                      cell.isToday && !selected
-                        ? "1px solid rgba(255,255,255,0.9)"
-                        : "1px solid transparent",
-                    transition: "background 0.15s ease",
-                    fontFamily: FONT_FAMILY,
+                <SelectScreen
+                  selectedDay={selectedDay}
+                  setSelectedDay={setSelectedDay}
+                  startIndex={startIndex}
+                  setStartIndex={setStartIndex}
+                  durationIndex={durationIndex}
+                  setDurationIndex={setDurationIndex}
+                  viewYear={viewYear}
+                  viewMonth={viewMonth}
+                  setView={(y, m) => {
+                    setViewYear(y);
+                    setViewMonth(m);
                   }}
-                >
-                  {cell.day}
-                </button>
-              );
-            })}
-          </div>
+                  onContinue={() => setAuthOpen(true)}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="confirm"
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.45, ease: SPRING }}
+                style={{ minHeight: "calc(100dvh - 56px)" }}
+              >
+                <ConfirmScreen summary={summary} />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Start time picker */}
-        {selectedDate && (
-          <div style={{ marginBottom: "32px" }}>
-            <h3 style={subLabel}>選擇開始時間</h3>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: "10px",
+        {/* Auth sheet */}
+        <AnimatePresence>
+          {authOpen && !confirmed && (
+            <AuthSheet
+              onClose={() => setAuthOpen(false)}
+              onSuccess={() => {
+                setAuthOpen(false);
+                setConfirmed(true);
               }}
-            >
-              {START_HOURS.map((hour) => {
-                const unavailable = booked.has(hour);
-                const selected = hour === selectedHour;
-                const rate = rateForHour(hour, weekend);
-                return (
-                  <button
-                    key={hour}
-                    type="button"
-                    disabled={unavailable}
-                    onClick={() => selectHour(hour)}
-                    aria-pressed={selected}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "2px",
-                      padding: "10px 4px",
-                      minHeight: "44px",
-                      borderRadius: "12px",
-                      cursor: unavailable ? "not-allowed" : "pointer",
-                      background: selected ? BLUE : "transparent",
-                      border: `1px solid ${
-                        selected ? BLUE : "rgba(255,255,255,0.25)"
-                      }`,
-                      color: "white",
-                      opacity: unavailable ? 0.3 : 1,
-                      textDecoration: unavailable ? "line-through" : "none",
-                      transition: "background 0.15s ease, border-color 0.15s ease",
-                      fontFamily: FONT_FAMILY,
-                    }}
-                  >
-                    <span style={{ fontSize: "14px", fontWeight: 600 }}>
-                      {formatHour(hour)}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "10px",
-                        color: selected
-                          ? "rgba(255,255,255,0.85)"
-                          : "rgba(255,255,255,0.45)",
-                      }}
-                    >
-                      HK${rate}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Duration selector */}
-        {selectedDate && selectedHour !== null && (
-          <div style={{ marginBottom: "8px" }}>
-            <h3 style={subLabel}>打幾耐？</h3>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              {[1, 2, 3, 4].map((h) => {
-                const disabled = h > maxDuration;
-                const selected = h === effectiveDuration;
-                return (
-                  <button
-                    key={h}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => setDuration(h)}
-                    aria-pressed={selected}
-                    style={{
-                      padding: "12px 22px",
-                      minHeight: "44px",
-                      borderRadius: "100px",
-                      border: `1px solid ${selected ? BLUE : "#3D3D3D"}`,
-                      cursor: disabled ? "not-allowed" : "pointer",
-                      fontSize: "15px",
-                      fontWeight: 500,
-                      background: selected ? BLUE : "transparent",
-                      color: "white",
-                      opacity: disabled ? 0.3 : 1,
-                      transition: "all 0.15s ease",
-                      fontFamily: FONT_FAMILY,
-                    }}
-                  >
-                    {h}小時
-                  </button>
-                );
-              })}
-            </div>
-
-            {durationCapped && (
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "#FF9F0A",
-                  marginTop: "12px",
-                }}
-              >
-                最長可預訂至 02:00
-              </p>
-            )}
-
-            {multiTier && (
-              <p
-                style={{
-                  fontSize: "13px",
-                  color: "rgba(255,255,255,0.5)",
-                  marginTop: "12px",
-                  lineHeight: 1.6,
-                }}
-              >
-                {segments.map((s, i) => (
-                  <span key={s.fromHour}>
-                    {i > 0 && " + "}
-                    {formatHour(s.fromHour)}–{formatHour(s.toHour)} HK$
-                    {s.rate * s.hours}
-                  </span>
-                ))}
-                {" = "}HK${totalPrice}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Summary card */}
-        {canConfirm && (
-          <div
-            style={{
-              marginTop: "28px",
-              padding: "18px 20px",
-              borderRadius: "16px",
-              background: CARD,
-              border: "1px solid rgba(255,255,255,0.1)",
-              fontSize: "15px",
-              fontWeight: 500,
-              lineHeight: 1.5,
-            }}
-          >
-            {summaryLabel}
-          </div>
-        )}
+            />
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Sticky CTA */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 20,
-          background: "#000000",
-          borderTop: `1px solid ${BORDER}`,
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "480px",
-            margin: "0 auto",
-            padding: "16px 20px calc(16px + env(safe-area-inset-bottom))",
-          }}
-        >
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={!canConfirm}
-            style={{
-              width: "100%",
-              padding: "16px",
-              minHeight: "44px",
-              borderRadius: "999px",
-              border: "none",
-              cursor: canConfirm ? "pointer" : "not-allowed",
-              background: BLUE,
-              color: "white",
-              fontSize: "17px",
-              fontWeight: 600,
-              opacity: canConfirm ? 1 : 0.4,
-              fontFamily: FONT_FAMILY,
-            }}
-          >
-            確認時段
-          </button>
-        </div>
-      </div>
+      {/* CSS that Tailwind can't express */}
+      <style jsx global>{`
+        .wheel-scroll {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .wheel-scroll::-webkit-scrollbar {
+          display: none;
+          width: 0;
+          height: 0;
+        }
+        @font-face {
+          font-family: "Bebas Neue";
+          src: local("Bebas Neue"), local("BebasNeue");
+          font-display: swap;
+        }
+      `}</style>
     </main>
   );
-}
-
-const sectionTitle: React.CSSProperties = {
-  fontSize: "22px",
-  fontWeight: 600,
-  letterSpacing: "-0.01em",
-  margin: "0 0 4px",
-};
-
-const sectionSubtitle: React.CSSProperties = {
-  fontSize: "14px",
-  color: "rgba(255,255,255,0.5)",
-  margin: "0 0 24px",
-};
-
-const subLabel: React.CSSProperties = {
-  fontSize: "15px",
-  fontWeight: 600,
-  margin: "0 0 14px",
-};
-
-function navBtn(disabled: boolean): React.CSSProperties {
-  return {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "36px",
-    height: "36px",
-    borderRadius: "50%",
-    border: "none",
-    background: "rgba(255,255,255,0.08)",
-    color: "white",
-    cursor: disabled ? "default" : "pointer",
-    opacity: disabled ? 0.3 : 1,
-    flexShrink: 0,
-  };
 }
