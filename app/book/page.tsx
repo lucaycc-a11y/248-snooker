@@ -22,7 +22,7 @@ const WEEKDAYS = ["一", "二", "三", "四", "五", "六", "日"]; // Mon–Sun
 
 const START_TIMES: string[] = (() => {
   const out: string[] = [];
-  for (let m = 8 * 60; m <= 23 * 60 + 30; m += 30) {
+  for (let m = 0; m <= 23 * 60 + 30; m += 30) {
     const h = Math.floor(m / 60);
     const mm = m % 60;
     out.push(`${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
@@ -31,11 +31,18 @@ const START_TIMES: string[] = (() => {
 })();
 
 const DURATIONS = [
-  { label: "1 小時", hours: 1 },
-  { label: "1.5 小時", hours: 1.5 },
-  { label: "2 小時", hours: 2 },
-  { label: "2.5 小時", hours: 2.5 },
-  { label: "3 小時", hours: 3 },
+  { label: "30分", hours: 0.5 },
+  { label: "1小時", hours: 1 },
+  { label: "1.5小時", hours: 1.5 },
+  { label: "2小時", hours: 2 },
+  { label: "2.5小時", hours: 2.5 },
+  { label: "3小時", hours: 3 },
+  { label: "3.5小時", hours: 3.5 },
+  { label: "4小時", hours: 4 },
+  { label: "4.5小時", hours: 4.5 },
+  { label: "5小時", hours: 5 },
+  { label: "5.5小時", hours: 5.5 },
+  { label: "6小時", hours: 6 },
 ];
 
 const MONTH_NAMES = [
@@ -124,8 +131,9 @@ function Wheel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const settleRef = useRef<number | null>(null);
+  const prevIndexRef = useRef<number>(selectedIndex);
 
-  // Detect the centred item via IntersectionObserver (thin centre band).
+  // Detect the centred item via IntersectionObserver (threshold 0.9).
   useEffect(() => {
     const root = scrollRef.current;
     if (!root) return;
@@ -136,14 +144,25 @@ function Wheel({
             const idx = Number(
               (entry.target as HTMLElement).dataset.index ?? -1
             );
-            if (idx >= 0) onChange(idx);
+            if (idx >= 0 && idx !== prevIndexRef.current) {
+              prevIndexRef.current = idx;
+              onChange(idx);
+              if (typeof navigator !== "undefined" && navigator.vibrate) {
+                navigator.vibrate(8);
+              }
+              const el = entry.target as HTMLElement;
+              el.style.animation = "none";
+              void el.offsetHeight;
+              el.style.animation =
+                "wheel-bounce 180ms cubic-bezier(0.16,1,0.3,1)";
+            }
           }
         }
       },
       {
         root,
         rootMargin: `-${PAD}px 0px -${PAD}px 0px`,
-        threshold: 0.5,
+        threshold: 0.9,
       }
     );
     itemRefs.current.forEach((el) => el && observer.observe(el));
@@ -217,7 +236,7 @@ function Wheel({
               fontWeight: active ? 600 : 400,
               color: "#FFFFFF",
               transition:
-                "opacity 0.2s ease, font-size 0.2s ease, font-weight 0.2s ease",
+                "opacity 0.2s ease, font-size 150ms cubic-bezier(0.16,1,0.3,1), font-weight 0.2s ease",
               userSelect: "none",
             }}
           >
@@ -357,6 +376,113 @@ function Confetti() {
   );
 }
 
+/* ─────────────────────────  Desktop summary card  ───────────────────────── */
+function DesktopSummaryCard({
+  selectedDay,
+  startTime,
+  endTime,
+  durationLabel,
+  price,
+  canContinue,
+  onContinue,
+}: {
+  selectedDay: Date | null;
+  startTime: string;
+  endTime: string;
+  durationLabel: string;
+  price: number;
+  canContinue: boolean;
+  onContinue: () => void;
+}) {
+  const animatedPrice = useCountUp(price);
+
+  return (
+    <div className="select-right">
+      <div
+        style={{
+          background: "#111111",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 20,
+          padding: 24,
+        }}
+      >
+        <div
+          data-cms-key="book.summary.title"
+          style={{
+            fontSize: 13,
+            color: "rgba(255,255,255,0.4)",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            marginBottom: 16,
+          }}
+        >
+          預約摘要
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span data-cms-key="book.summary.date" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)" }}>日期</span>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>
+              {selectedDay
+                ? `${selectedDay.getMonth() + 1}月${selectedDay.getDate()}日`
+                : "—"}
+            </span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span data-cms-key="book.summary.start" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)" }}>開始</span>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>{startTime}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span data-cms-key="book.summary.end" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)" }}>結束</span>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>{endTime}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span data-cms-key="book.summary.duration" style={{ fontSize: 14, color: "rgba(255,255,255,0.5)" }}>時長</span>
+            <span style={{ fontSize: 15, fontWeight: 500 }}>{durationLabel}</span>
+          </div>
+        </div>
+
+        <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "0 0 20px" }} />
+
+        <div
+          style={{
+            fontFamily: BEBAS,
+            fontSize: 48,
+            lineHeight: 1,
+            letterSpacing: "0.01em",
+            color: "#FFFFFF",
+            textAlign: "center",
+            marginBottom: 24,
+          }}
+        >
+          HK${animatedPrice}
+        </div>
+
+        <motion.button
+          type="button"
+          whileTap={canContinue ? { scale: 0.97 } : undefined}
+          transition={{ duration: 0.25, ease: SPRING }}
+          onClick={() => canContinue && onContinue()}
+          disabled={!canContinue}
+          style={{
+            width: "100%",
+            height: 52,
+            background: ACCENT,
+            borderRadius: 14,
+            color: "#fff",
+            fontSize: 16,
+            fontWeight: 600,
+            opacity: canContinue ? 1 : 0.4,
+            cursor: canContinue ? "pointer" : "default",
+          }}
+        >
+          <span data-cms-key="book.summary.continue">繼續</span>
+        </motion.button>
+      </div>
+    </div>
+  );
+}
+
 /* ─────────────────────────  Screen 1: Select  ───────────────────────── */
 function SelectScreen({
   selectedDay,
@@ -418,7 +544,10 @@ function SelectScreen({
   const canContinue = selectedDay !== null;
 
   return (
-    <div style={{ padding: "0 20px 32px" }}>
+    <div className="select-screen">
+      <div className="select-layout">
+        {/* Left column: calendar + wheel picker */}
+        <div className="select-left">
       {/* Calendar header */}
       <div
         style={{
@@ -663,9 +792,10 @@ function SelectScreen({
         )}
       </AnimatePresence>
 
-      {/* Continue */}
+      {/* Continue (mobile only) */}
       <motion.button
         type="button"
+        className="select-continue-mobile"
         whileTap={canContinue ? { scale: 0.97 } : undefined}
         transition={{ duration: 0.25, ease: SPRING }}
         onClick={() => canContinue && onContinue()}
@@ -685,6 +815,19 @@ function SelectScreen({
       >
         繼續
       </motion.button>
+    </div>
+
+        {/* Right column: desktop summary (sticky) */}
+        <DesktopSummaryCard
+          selectedDay={selectedDay}
+          startTime={startTime}
+          endTime={endTime}
+          durationLabel={DURATIONS[durationIndex].label}
+          price={price}
+          canContinue={canContinue}
+          onContinue={onContinue}
+        />
+      </div>
     </div>
   );
 }
@@ -920,9 +1063,9 @@ function AuthSheet({
                     display: "flex",
                     alignItems: "center",
                     fontSize: 15,
-                    color: "rgba(255,255,255,0.85)",
-                    background: "rgba(255,255,255,0.1)",
-                    borderRight: "1px solid rgba(255,255,255,0.15)",
+                    color: "#25D366",
+                    background: "rgba(37,211,102,0.15)",
+                    borderRight: "1px solid rgba(37,211,102,0.3)",
                   }}
                 >
                   +852
@@ -962,9 +1105,9 @@ function AuthSheet({
                     style={{
                       width: "100%",
                       height: 52,
-                      background: ACCENT,
+                      background: "#25D366",
                       borderRadius: 14,
-                      color: "#fff",
+                      color: "#000000",
                       fontSize: 16,
                       fontWeight: 600,
                       marginTop: 14,
@@ -1026,7 +1169,7 @@ function AuthSheet({
                       textAlign: "center",
                       outline: "none",
                     }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = ACCENT)}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = "#25D366")}
                     onBlur={(e) =>
                       (e.currentTarget.style.borderColor =
                         "rgba(255,255,255,0.2)")
@@ -1039,7 +1182,7 @@ function AuthSheet({
                 <span
                   style={{
                     fontSize: 14,
-                    color: resend > 0 ? "rgba(255,255,255,0.35)" : ACCENT,
+                    color: resend > 0 ? "rgba(255,255,255,0.35)" : "#25D366",
                     cursor: resend > 0 ? "default" : "pointer",
                   }}
                   onClick={() => resend === 0 && setResend(59)}
@@ -1189,8 +1332,8 @@ export default function BookPage() {
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [startIndex, setStartIndex] = useState(12); // 14:00
-  const [durationIndex, setDurationIndex] = useState(1); // 1.5h
+  const [startIndex, setStartIndex] = useState(28); // 14:00
+  const [durationIndex, setDurationIndex] = useState(2); // 1.5小時
 
   const [authOpen, setAuthOpen] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -1216,14 +1359,12 @@ export default function BookPage() {
       }}
     >
       <div
+        className="book-container"
         style={{
           width: "100%",
-          maxWidth: 430,
           minHeight: "100dvh",
           position: "relative",
           overflow: "hidden",
-          borderLeft: HAIRLINE,
-          borderRight: HAIRLINE,
         }}
       >
         <ProgressDots step={step} />
@@ -1298,6 +1439,64 @@ export default function BookPage() {
           font-family: "Bebas Neue";
           src: local("Bebas Neue"), local("BebasNeue");
           font-display: swap;
+        }
+        @keyframes wheel-bounce {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.04); }
+          100% { transform: scale(1); }
+        }
+
+        /* Mobile (default) */
+        .book-container {
+          max-width: 430px;
+          border-left: ${HAIRLINE};
+          border-right: ${HAIRLINE};
+        }
+        .select-screen {
+          padding: 0 20px 32px;
+        }
+        .select-layout {
+          display: flex;
+          flex-direction: column;
+        }
+        .select-left {
+          flex: 1;
+        }
+        .select-right {
+          display: none;
+        }
+        .select-continue-mobile {
+          display: block;
+        }
+
+        /* Desktop */
+        @media (min-width: 768px) {
+          .book-container {
+            max-width: 1080px;
+            padding: 0 48px;
+            border-left: none;
+            border-right: none;
+          }
+          .select-screen {
+            padding: 0 0 32px;
+          }
+          .select-layout {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 40px;
+            align-items: start;
+          }
+          .select-left {
+            min-width: 0;
+          }
+          .select-right {
+            display: block;
+            position: sticky;
+            top: 24px;
+          }
+          .select-continue-mobile {
+            display: none !important;
+          }
         }
       `}</style>
     </main>
