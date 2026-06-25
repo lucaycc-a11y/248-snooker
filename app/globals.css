@@ -2,33 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --bg: #000000;
+  --surface: #111111;
+  --surface-elevated: #1A1A1A;
+  --border: rgba(255,255,255,0.1);
+  --border-strong: rgba(255,255,255,0.18);
+  --text: #FFFFFF;
+  --text-muted: rgba(255,255,255,0.45);
+  --text-faint: rgba(255,255,255,0.25);
+  --brand: #25D366;
+  --brand-hover: #1FB855;
+  --brand-dim: rgba(37,211,102,0.12);
+  --brand-text: #000000;
+  --link: #0071E3;
+  --danger: #FF453A;
+
+  --radius-input: 12px;
+  --radius-button: 14px;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+
+  --font-sans: system-ui, -apple-system, "SF Pro Text", sans-serif;
+  --font-display: "Bebas Neue", sans-serif;
+
+  --ease-spring: cubic-bezier(0.16,1,0.3,1);
+  --ease-standard: cubic-bezier(0.4,0,0.2,1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 380ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-html,
-body {
-  background-color: #000000;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
-    "Helvetica Neue", sans-serif;
-}
-
-@keyframes shimmerOnce {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-.shimmer-once {
-  background-size: 200% auto;
-  animation: shimmerOnce 1.8s ease-out 1.2s 1 forwards;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .no-scrollbar {
@@ -36,7 +60,11 @@ body {
   scrollbar-width: none;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+@keyframes shimmer-once {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
+.shimmer-once {
+  animation: shimmer-once 1.5s ease-in-out forwards;
+}
