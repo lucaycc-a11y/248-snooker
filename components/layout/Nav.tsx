@@ -33,161 +33,250 @@ export default function Nav() {
 
   return (
     <>
-      {/* Floating pill nav */}
       <nav
         style={{
-          position: 'fixed',
-          top: 16,
-          left: 16,
-          right: 16,
+          position: 'sticky',
+          top: 0,
+          width: '100%',
           zIndex: 50,
+          height: 64,
+          background: tokens.colors.bg,
+          borderBottom: `1px solid ${tokens.colors.border}`,
           display: 'flex',
-          justifyContent: 'center',
-          pointerEvents: 'none',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 16px',
         }}
+        className="nav-bar"
       >
+        {/* Left: Logo */}
+        <Link
+          href="/"
+          style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+        >
+          <Logo variant="full" size={28} />
+        </Link>
+
+        {/* Center: Desktop links in pill group */}
         <div
+          className="nav-center"
           style={{
-            width: '100%',
-            maxWidth: 1000,
-            height: 56,
-            borderRadius: tokens.radius.pill,
-            background: 'rgba(20,20,20,0.6)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            display: 'flex',
+            display: 'none',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 8px 0 20px',
-            pointerEvents: 'auto',
+            background: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: tokens.radius.pill,
+            padding: '6px 8px',
+            gap: 0,
           }}
         >
-          {/* Left: Logo */}
-          <Link
-            href="/"
-            style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
-          >
-            <Logo variant="full" size={22} />
-          </Link>
-
-          {/* Center: Desktop links */}
-          <div
-            className="hidden md:flex"
-            style={{
-              display: 'none',
-              alignItems: 'center',
-              gap: 28,
-            }}
-          >
-            {navLinks.map((link) => (
+          {navLinks.map((link, i) => (
+            <div key={link.href} style={{ display: 'flex', alignItems: 'center' }}>
+              {i === navLinks.length - 1 && (
+                <div
+                  style={{
+                    width: 1,
+                    height: 16,
+                    background: 'rgba(255,255,255,0.1)',
+                  }}
+                />
+              )}
               <Link
-                key={link.href}
                 href={link.href}
                 style={{
+                  padding: '6px 16px',
                   fontSize: 14,
                   fontWeight: 500,
-                  color:
-                    pathname === link.href
-                      ? tokens.colors.brand
-                      : tokens.colors.text,
+                  color: pathname === link.href ? '#000' : tokens.colors.text,
+                  background: pathname === link.href ? '#fff' : 'transparent',
+                  borderRadius: tokens.radius.pill,
                   textDecoration: 'none',
                   whiteSpace: 'nowrap',
-                  opacity: pathname === link.href ? 1 : 0.7,
-                  transition: `opacity ${tokens.duration.fast}, color ${tokens.duration.fast}`,
+                  transition: `background ${tokens.duration.fast}, color ${tokens.duration.fast}`,
                 }}
                 onMouseEnter={(e) => {
                   if (pathname !== link.href) {
-                    e.currentTarget.style.opacity = '1'
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (pathname !== link.href) {
-                    e.currentTarget.style.opacity = '0.7'
+                    e.currentTarget.style.background = 'transparent'
                   }
                 }}
               >
                 {link.label}
               </Link>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
 
-          {/* Right: CTA + hamburger (mobile) / CTA only (desktop) */}
-          <div
+        {/* Right: Mobile — CTA pill + hamburger pill */}
+        <div
+          className="nav-right-mobile"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            flexShrink: 0,
+          }}
+        >
+          <Link href="/book" style={{ textDecoration: 'none' }}>
+            <span
+              data-cms-key="nav.cta"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: tokens.colors.brand,
+                color: '#000',
+                borderRadius: tokens.radius.pill,
+                padding: '10px 20px',
+                fontWeight: 700,
+                fontSize: 15,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              立即預訂
+            </span>
+          </Link>
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="nav-hamburger"
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 8,
-              flexShrink: 0,
+              justifyContent: 'center',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: tokens.radius.pill,
+              width: 48,
+              height: 40,
+              cursor: 'pointer',
+              color: tokens.colors.text,
+              padding: 0,
+              WebkitTapHighlightColor: 'transparent',
+              position: 'relative',
             }}
+            aria-label={menuOpen ? '關閉選單' : '開啟選單'}
           >
-            <Link href="/book">
-              <Button variant="primary" size="sm">
-                立即預訂
-              </Button>
-            </Link>
-            {/* Hamburger - mobile only */}
-            <button
-              onClick={() => setMenuOpen(true)}
-              className="flex md:hidden"
+            <motion.span
+              animate={{ rotate: menuOpen ? 90 : 0, opacity: menuOpen ? 0 : 1 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{ position: 'absolute', display: 'flex' }}
+            >
+              <Menu size={20} />
+            </motion.span>
+            <motion.span
+              animate={{ rotate: menuOpen ? 0 : -90, opacity: menuOpen ? 1 : 0 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              style={{ position: 'absolute', display: 'flex' }}
+            >
+              <X size={20} />
+            </motion.span>
+          </button>
+        </div>
+
+        {/* Right: Desktop — Login ghost + Book Now green */}
+        <div
+          className="nav-right-desktop"
+          style={{
+            display: 'none',
+            alignItems: 'center',
+            gap: 8,
+            flexShrink: 0,
+          }}
+        >
+          <Link href="/login" style={{ textDecoration: 'none' }}>
+            <span
+              data-cms-key="nav.login"
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'none',
-                border: 'none',
                 color: tokens.colors.text,
+                fontSize: 14,
+                fontWeight: 500,
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: tokens.radius.pill,
+                padding: '8px 16px',
+                whiteSpace: 'nowrap',
                 cursor: 'pointer',
-                padding: 8,
-                borderRadius: '50%',
-                WebkitTapHighlightColor: 'transparent',
+                background: 'transparent',
+                transition: `background ${tokens.duration.fast}`,
               }}
-              aria-label="開啟選單"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+              }}
             >
-              <Menu size={22} />
-            </button>
-          </div>
+              Login
+            </span>
+          </Link>
+          <Link href="/book" style={{ textDecoration: 'none' }}>
+            <span
+              data-cms-key="nav.book-desktop"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: tokens.colors.brand,
+                color: '#000',
+                borderRadius: tokens.radius.pill,
+                padding: '8px 20px',
+                fontWeight: 700,
+                fontSize: 14,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              立即預訂
+            </span>
+          </Link>
         </div>
       </nav>
+
+      {/* Responsive breakpoint styles */}
+      <style jsx global>{`
+        @media (min-width: 768px) {
+          .nav-bar {
+            padding: 0 32px !important;
+          }
+          .nav-center {
+            display: flex !important;
+          }
+          .nav-right-mobile {
+            display: none !important;
+          }
+          .nav-right-desktop {
+            display: flex !important;
+          }
+        }
+      `}</style>
 
       {/* Mobile fullscreen menu overlay */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 28, stiffness: 280 }}
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 100,
-              background: 'rgba(0,0,0,0.85)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
+              zIndex: 40,
+              background: 'rgba(0,0,0,0.92)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
               display: 'flex',
               flexDirection: 'column',
-              padding: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '48px 32px',
             }}
           >
-            {/* Close button */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: tokens.colors.text,
-                  cursor: 'pointer',
-                  padding: 8,
-                }}
-                aria-label="關閉選單"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Links */}
             <div
               style={{
                 flex: 1,
@@ -203,13 +292,11 @@ export default function Nav() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
+                  data-cms-key={`nav.link.${link.href.slice(1)}`}
                   style={{
-                    fontSize: 28,
+                    fontSize: 32,
                     fontWeight: 600,
-                    color:
-                      pathname === link.href
-                        ? tokens.colors.brand
-                        : tokens.colors.text,
+                    color: tokens.colors.text,
                     textDecoration: 'none',
                     whiteSpace: 'nowrap',
                   }}
@@ -219,9 +306,8 @@ export default function Nav() {
               ))}
             </div>
 
-            {/* Bottom CTA */}
-            <div style={{ paddingBottom: 40 }}>
-              <Link href="/book" onClick={() => setMenuOpen(false)}>
+            <div style={{ width: '100%', paddingTop: 32 }}>
+              <Link href="/book" onClick={() => setMenuOpen(false)} style={{ textDecoration: 'none' }}>
                 <Button variant="primary" size="lg" fullWidth>
                   立即預訂
                 </Button>
