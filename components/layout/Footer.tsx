@@ -3,22 +3,24 @@
 import { Link } from '@/i18n/navigation'
 import { Instagram, MessageCircle } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
+import { useTranslations } from 'next-intl'
 
 const WHATSAPP_URL = 'https://wa.me/85264274620'
 const INSTAGRAM_URL = 'https://instagram.com/248snooker'
 
 const BEBAS = "'Bebas Neue', system-ui, sans-serif"
 
-const navLinks: { label: string; href: string }[] = [
-  { label: '預訂', href: '/book' },
-  { label: '定價', href: '/pricing' },
-  { label: '關於', href: '/about' },
-  { label: 'Blog', href: '/blog' },
-  { label: '條款及細則', href: '/terms' },
-  { label: '私隱政策', href: '/privacy' },
-]
-
 export default function Footer() {
+  const t = useTranslations()
+
+  const navLinks: { label: string; href: string }[] = [
+    { label: t('nav.book'), href: '/book' },
+    { label: t('nav.pricing'), href: '/pricing' },
+    { label: t('nav.about'), href: '/about' },
+    { label: t('nav.blog'), href: '/blog' },
+    { label: t('footer.terms'), href: '/terms' },
+    { label: t('footer.privacy'), href: '/privacy' },
+  ]
   return (
     <footer
       data-nav-theme="dark"
@@ -130,7 +132,7 @@ export default function Footer() {
             color: tokens.colors.textFaint,
           }}
         >
-          &copy; 2026 248 Snooker · 香港24小時自助桌球會所
+          &copy; 2026 248 Snooker · {t('footer.tagline')}
         </p>
       </div>
     </footer>

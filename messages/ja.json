@@ -14,10 +14,15 @@
   "book": {
     "title": "セッション予約",
     "select_table": "テーブル選択",
-    "table_available": "予約可能",
-    "table_unavailable": "予約不可",
+    "table_label": "テーブル",
+    "snooker": "スヌーカー",
+    "available": "予約可能",
+    "unavailable": "予約不可",
+    "selected": "選択済み",
+    "select_this_table": "このテーブルを選択",
+    "hint": "ご希望のテーブルが満席の場合、いつでも切り替えできます",
     "select_date": "日付を選択",
-    "select_time": "開始時間",
+    "start_time": "開始時間",
     "duration": "プレイ時間",
     "continue": "次へ",
     "instant_confirm": "即時確認・待ち時間なし",
@@ -26,20 +31,49 @@
     "login_apple": "Appleでサインイン",
     "login_google": "Googleアカウントでサインイン",
     "login_whatsapp": "WhatsApp番号",
+    "or": "または",
     "payment_title": "お支払い",
     "subtotal": "小計",
     "service_fee": "サービス料",
     "total": "合計",
     "pay_now": "今すぐ支払う",
+    "card_number": "カード番号",
+    "cardholder": "カード名義人",
+    "stripe_secure": "Stripeで安全に処理・香港",
     "confirm_title": "予約確定",
     "add_calendar": "カレンダーに追加",
     "share": "シェア",
     "back_home": "ホームに戻る",
-    "qr_hint": "入場時にこのQRコードをご提示ください・24時間サポート"
+    "qr_hint": "入場時にこのQRコードをご提示ください・24時間サポート",
+    "your_booking": "ご予約内容",
+    "date": "日付",
+    "time_slot": "時間帯",
+    "hours": "時間",
+    "or_card": "またはカードでお支払い",
+    "processing": "処理中…",
+    "table_available": "予約可能",
+    "table_unavailable": "予約不可"
   },
   "ticket": {
     "duration": "プレイ時間",
     "paid": "お支払い済み",
-    "payment": "支払方法"
+    "payment": "支払方法",
+    "confirmed": "予約確定 ✓",
+    "footer": "入場時にこのQRコードをご提示ください・24時間サポート"
+  },
+  "footer": {
+    "tagline": "香港24時間セルフサービス・スヌーカークラブ",
+    "copyright": "© 2026 248 Snooker",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー"
+  },
+  "profile": {
+    "add_phone_title": "電話番号を追加",
+    "add_phone_subtitle": "予約リマインダーをお送りします（任意）",
+    "add_email_title": "メールアドレスを追加",
+    "add_email_subtitle": "予約確認をお送りします（任意）",
+    "phone_placeholder": "9XXX XXXX",
+    "save": "保存",
+    "skip": "スキップ"
   }
 }

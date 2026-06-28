@@ -27,6 +27,7 @@ import {
   MastercardLogo,
 } from "@/components/brand"
 import { useHaptic } from "@/lib/useHaptic"
+import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
 
 /* ─────────────────────────  Config  ───────────────────────── */
@@ -150,10 +151,13 @@ function QRCode({ data }: { data: string }) {
 /* ─────────────────────────  Table Select  ───────────────────────── */
 type TableInfo = { id: number; name: string; type: string }
 
-const TABLES: TableInfo[] = [
-  { id: 1, name: "枱號 #1", type: "英式桌球" },
-  { id: 2, name: "枱號 #2", type: "英式桌球" },
-]
+function useTables() {
+  const t = useTranslations("book")
+  return [
+    { id: 1, name: `${t("table_label")} #1`, type: t("snooker") },
+    { id: 2, name: `${t("table_label")} #2`, type: t("snooker") },
+  ]
+}
 
 // TODO: swap to Supabase query — availability keyed by table id for the chosen slot
 const tableAvailability: Record<number, boolean> = {
@@ -168,6 +172,8 @@ function TableSelect({
   selected: number | null
   onSelect: (id: number) => void
 }) {
+  const t = useTranslations("book")
+  const tables = useTables()
   return (
     <div>
       <div
@@ -177,7 +183,7 @@ function TableSelect({
         }}
         className="table-grid"
       >
-        {TABLES.map((table) => {
+        {tables.map((table) => {
           const available = tableAvailability[table.id]
           const isSelected = selected === table.id
           const dotColor = available
@@ -246,7 +252,7 @@ function TableSelect({
                       : tokens.colors.danger,
                   }}
                 >
-                  {available ? "現時可預訂" : "此時段已被預訂"}
+                  {available ? t("available") : t("unavailable")}
                 </span>
               </div>
               <div
@@ -266,10 +272,10 @@ function TableSelect({
                 }}
               >
                 {!available
-                  ? "此時段已被預訂"
+                  ? t("unavailable")
                   : isSelected
-                    ? "已選擇"
-                    : "選擇此枱"}
+                    ? t("selected")
+                    : t("select_this_table")}
               </div>
             </button>
           )
@@ -283,7 +289,7 @@ function TableSelect({
           marginTop: 12,
         }}
       >
-        如所選時段該枱已被預訂，可隨時切換至另一枱
+        {t("hint")}
       </div>
     </div>
   )
@@ -730,6 +736,7 @@ function SummaryCard({
   const endHour = startHour + duration
   const crossDay = endHour >= 24
   const dash = "—"
+  const t = useTranslations("book")
 
   return (
     <div className="desktop-card">
@@ -744,7 +751,7 @@ function SummaryCard({
             marginBottom: 20,
           }}
         >
-          你的預約
+          {t("your_booking")}
         </div>
         <div
           style={{
@@ -756,7 +763,7 @@ function SummaryCard({
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
-              日期
+              {t("date")}
             </span>
             <span style={{ fontSize: 15, fontWeight: 500 }}>
               {ready
@@ -766,7 +773,7 @@ function SummaryCard({
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
-              時段
+              {t("time_slot")}
             </span>
             <span style={{ fontSize: 15, fontWeight: 500 }}>
               {ready
@@ -776,10 +783,10 @@ function SummaryCard({
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
-              時長
+              {t("duration")}
             </span>
             <span style={{ fontSize: 15, fontWeight: 500 }}>
-              {ready ? `${duration}小時` : dash}
+              {ready ? `${duration}${t("hours")}` : dash}
             </span>
           </div>
         </div>
@@ -884,6 +891,7 @@ function Screen1({
   const [dateChosen, setDateChosen] = useState(false)
   const dateRef = useRef<HTMLDivElement>(null)
   const timeRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations("book")
 
   useEffect(() => {
     const target = CONFIG.pricePerHour * duration
@@ -911,7 +919,8 @@ function Screen1({
     []
   )
 
-  const selectedTableInfo = TABLES.find((t) => t.id === selectedTable)
+  const tables = useTables()
+  const selectedTableInfo = tables.find((t) => t.id === selectedTable)
   const ready = selectedTable !== null && dateChosen
   const canContinue = ready
 
@@ -959,7 +968,7 @@ function Screen1({
 
           {/* Step 1 — Table */}
           <div style={{ marginBottom: 28 }}>
-            {sectionLabel("選擇球枱", "book.table.title")}
+            {sectionLabel(t("select_table"), "book.table.title")}
             <TableSelect
               selected={selectedTable}
               onSelect={(id) => {
@@ -980,7 +989,7 @@ function Screen1({
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div style={{ marginBottom: 28 }}>
-                  {sectionLabel("選擇日期", "book.date.title")}
+                  {sectionLabel(t("select_date"), "book.date.title")}
                   <Calendar
                     selected={selectedDate}
                     onSelect={(d) => {
@@ -1016,7 +1025,7 @@ function Screen1({
                           marginBottom: 8,
                         }}
                       >
-                        開始時間
+                        {t("start_time")}
                       </div>
                       <div
                         style={{
@@ -1030,7 +1039,7 @@ function Screen1({
                           selected={startHour}
                           onChange={setStartHour}
                           labelFn={(h) => padTime(h)}
-                          ariaLabel="開始時間"
+                          ariaLabel={t("start_time")}
                         />
                       </div>
                     </div>
@@ -1044,7 +1053,7 @@ function Screen1({
                           marginBottom: 8,
                         }}
                       >
-                        時長
+                        {t("duration")}
                       </div>
                       <div
                         style={{
@@ -1057,8 +1066,8 @@ function Screen1({
                           items={durationItems}
                           selected={duration}
                           onChange={setDuration}
-                          labelFn={(h) => `${h}小時`}
-                          ariaLabel="時長"
+                          labelFn={(h) => `${h}${t("hours")}`}
+                          ariaLabel={t("duration")}
                         />
                       </div>
                     </div>
@@ -1086,7 +1095,7 @@ function Screen1({
                     <Clock size={14} style={{ color: tokens.colors.textMuted }} />
                     <span style={{ fontSize: 15 }}>
                       {padTime(startHour)} – {padTime(endHour)}
-                      {crossDay ? " (+1日)" : ""} · {duration}小時
+                      {crossDay ? " (+1日)" : ""} · {duration}{t("hours")}
                     </span>
                   </div>
                   <span
@@ -1113,7 +1122,7 @@ function Screen1({
               marginBottom: 16,
             }}
           >
-            即時確認 · 毋需等候
+            {t("instant_confirm")}
           </div>
         </div>
 
@@ -1125,14 +1134,14 @@ function Screen1({
           total={total}
           canContinue={canContinue}
           onContinue={onContinue}
-          ctaLabel="繼續預訂"
+          ctaLabel={t("continue")}
           ready={ready}
         />
       </div>
 
       {/* Mobile sticky price bar */}
       <MobilePriceBar
-        ctaLabel="繼續預訂"
+        ctaLabel={t("continue")}
         onContinue={onContinue}
         canContinue={canContinue}
       />
@@ -1142,6 +1151,7 @@ function Screen1({
 
 /* ─────────────────────────  Screen 2: Auth  ───────────────────────── */
 function Screen2({ onSuccess }: { onSuccess: () => void }) {
+  const t = useTranslations("book")
   const [lockSec, setLockSec] = useState(300)
   const [phone, setPhone] = useState("")
   const [otpSent, setOtpSent] = useState(false)
@@ -1221,10 +1231,10 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
               data-cms-key="book.auth.title"
               style={{ fontSize: 20, fontWeight: 600, marginBottom: 6 }}
             >
-              完成預約
+              {t("login_title")}
             </h2>
             <p style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 4 }}>
-              <span data-cms-key="book.auth.lock">你的時段已暫時鎖定</span>{" "}
+              <span data-cms-key="book.auth.lock">{t("login_subtitle")}</span>{" "}
               <span
                 style={{
                   fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
@@ -1258,7 +1268,7 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
             >
               <AppleLogo size={20} color="#000" />
               <span style={{ color: "#000", fontWeight: 500, fontSize: 16 }}>
-                以 Apple 登入
+                {t("login_apple")}
               </span>
             </button>
 
@@ -1301,7 +1311,7 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
                 />
               </svg>
               <span style={{ color: "#1F1F1F", fontWeight: 500, fontSize: 16 }}>
-                以 Google 帳戶登入
+                {t("login_google")}
               </span>
             </button>
 
@@ -1320,7 +1330,7 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
               <span
                 style={{ fontSize: 13, color: tokens.colors.textMuted }}
               >
-                或
+                {t("or")}
               </span>
               <div
                 style={{ flex: 1, height: 1, background: tokens.colors.border }}
@@ -1371,7 +1381,7 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
                         )
                       }
                       inputMode="numeric"
-                      placeholder="WhatsApp 號碼"
+                      placeholder={t("login_whatsapp")}
                       style={{
                         flex: 1,
                         background: "transparent",
@@ -1510,6 +1520,7 @@ function Screen3({
   const [cardName, setCardName] = useState("")
   const [showCvc, setShowCvc] = useState(false)
   const [loading, setLoading] = useState(false)
+  const t = useTranslations("book")
 
   const total = CONFIG.pricePerHour * duration
   const endHour = startHour + duration
@@ -1562,16 +1573,16 @@ function Screen3({
             </div>
             <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
-              <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>小計</span>
+              <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>{t("subtotal")}</span>
               <span>HK${total}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 12 }}>
-              <span data-cms-key="book.pay.fee" style={{ color: tokens.colors.textMuted }}>服務費</span>
+              <span data-cms-key="book.pay.fee" style={{ color: tokens.colors.textMuted }}>{t("service_fee")}</span>
               <span>HK$0</span>
             </div>
             <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span data-cms-key="book.pay.total" style={{ fontSize: 15, fontWeight: 600 }}>總計</span>
+              <span data-cms-key="book.pay.total" style={{ fontSize: 15, fontWeight: 600 }}>{t("total")}</span>
               <span style={{ fontFamily: BEBAS, fontSize: 28, color: tokens.colors.brand }}>HK${total}</span>
             </div>
           </Card>
@@ -1581,7 +1592,7 @@ function Screen3({
             data-cms-key="book.pay.method"
             style={{ fontSize: 13, color: tokens.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}
           >
-            付款方式
+            {t("payment_title")}
           </div>
 
           {/* Express payments */}
@@ -1651,7 +1662,7 @@ function Screen3({
           {/* Credit card divider */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "0 0 20px" }}>
             <div style={{ flex: 1, height: 1, background: tokens.colors.border }} />
-            <span data-cms-key="book.pay.or-card" style={{ fontSize: 13, color: tokens.colors.textMuted }}>或用信用卡</span>
+            <span data-cms-key="book.pay.or-card" style={{ fontSize: 13, color: tokens.colors.textMuted }}>{t("or_card")}</span>
             <div style={{ flex: 1, height: 1, background: tokens.colors.border }} />
           </div>
 
@@ -1670,7 +1681,7 @@ function Screen3({
                 value={formatCard(cardNum)}
                 onChange={(e) => setCardNum(e.target.value.replace(/\D/g, "").slice(0, 16))}
                 inputMode="numeric"
-                placeholder="卡號"
+                placeholder={t("card_number")}
                 style={{
                   flex: 1, height: "100%", background: "transparent",
                   border: "none", outline: "none", color: tokens.colors.text,
@@ -1731,7 +1742,7 @@ function Screen3({
             <input
               value={cardName}
               onChange={(e) => setCardName(e.target.value)}
-              placeholder="持卡人姓名"
+              placeholder={t("cardholder")}
               autoComplete="cc-name"
               className="pay-input"
               style={{
@@ -1747,7 +1758,7 @@ function Screen3({
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
             <Lock size={12} style={{ color: tokens.colors.textMuted }} />
             <span data-cms-key="book.pay.secure" style={{ fontSize: 12, color: tokens.colors.textMuted }}>
-              以 Stripe 安全加密處理 · 香港
+              {t("stripe_secure")}
             </span>
           </div>
         </div>
@@ -1760,14 +1771,14 @@ function Screen3({
           total={total}
           canContinue={canPay}
           onContinue={handlePay}
-          ctaLabel={`立即付款 · HK$${total}`}
+          ctaLabel={`${t("pay_now")} · HK$${total}`}
           loading={loading}
         />
       </div>
 
       {/* Mobile sticky CTA bar */}
       <MobilePriceBar
-        ctaLabel={`立即付款 · HK$${total}`}
+        ctaLabel={`${t("pay_now")} · HK$${total}`}
         onContinue={handlePay}
         canContinue={canPay}
         loading={loading}
@@ -1793,6 +1804,8 @@ function Screen4({
   const [showContent, setShowContent] = useState(false)
   const [isPrinting, setIsPrinting] = useState(true)
   const confettiRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations("book")
+  const t_ticket = useTranslations("ticket")
 
   const PRINT_MS = 1800
 
@@ -2002,7 +2015,7 @@ function Screen4({
                 borderRadius: 999,
               }}
             >
-              <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>已確認 ✓</span>
+              <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>{t_ticket("confirmed")}</span>
             </motion.div>
           </div>
 
@@ -2083,15 +2096,15 @@ function Screen4({
           {/* Info row — 3 columns */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>時長</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{duration}小時</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("duration")}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{duration}{t("hours")}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>已付</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("paid")}</div>
               <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand }}>HK${total}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>付款</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("payment")}</div>
               <VisaLogo className="h-4" />
             </div>
           </div>
@@ -2134,7 +2147,7 @@ function Screen4({
               textAlign: "center",
             }}
           >
-            請於入場時出示此二維碼 · 24小時客服
+            {t("qr_hint")}
           </div>
         </div>
         </motion.div>
@@ -2169,7 +2182,7 @@ function Screen4({
             }}
           >
             <CalendarPlus size={16} />
-            加入日曆
+            {t("add_calendar")}
           </button>
           <button
             type="button"
@@ -2192,7 +2205,7 @@ function Screen4({
             }}
           >
             <Share2 size={16} />
-            分享
+            {t("share")}
           </button>
         </motion.div>
         <motion.div
@@ -2213,7 +2226,7 @@ function Screen4({
               cursor: "pointer",
             }}
           >
-            返回主頁
+            {t("back_home")}
           </button>
         </motion.div>
       </div>
@@ -2237,9 +2250,14 @@ export default function BookPage() {
   const [duration, setDuration] = useState(1)
   const [selectedTable, setSelectedTable] = useState<number | null>(null)
   const [bookingRef] = useState(() => genRef())
+  const paymentRef = useRef<HTMLDivElement>(null)
+  const [showProfileModal, setShowProfileModal] = useState<"phone" | "email" | null>(null)
+  const [profileInput, setProfileInput] = useState("")
+  const [profileSaving, setProfileSaving] = useState(false)
 
+  const tables = useTables()
   const tableName =
-    TABLES.find((t) => t.id === selectedTable)?.name ?? "枱號 #1"
+    tables.find((t) => t.id === selectedTable)?.name ?? `枱號 #1`
 
   const direction = useRef(1)
 
@@ -2254,6 +2272,58 @@ export default function BookPage() {
     if (typeof window === "undefined") return
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [screen])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const supabase = createClient()
+
+    // On mount: check if already signed in (post-OAuth redirect)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return
+      const saved = sessionStorage.getItem("pendingBooking")
+      if (saved) {
+        try {
+          const state = JSON.parse(saved)
+          if (state.tableNumber) setSelectedTable(state.tableNumber)
+          if (state.date) setSelectedDate(new Date(state.date))
+          sessionStorage.removeItem("pendingBooking")
+        } catch {}
+      }
+      // If on the auth/login screen, advance to payment
+      setScreen((s) => (s === 1 ? 2 : s))
+      setTimeout(() => {
+        if (paymentRef.current) {
+          const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
+          window.scrollTo({ top: y, behavior: "smooth" })
+        }
+      }, 400)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          const saved = sessionStorage.getItem("pendingBooking")
+          if (saved) {
+            try {
+              const state = JSON.parse(saved)
+              if (state.tableNumber) setSelectedTable(state.tableNumber)
+              if (state.date) setSelectedDate(new Date(state.date))
+              sessionStorage.removeItem("pendingBooking")
+            } catch {}
+          }
+          setScreen((s) => (s <= 1 ? 2 : s))
+          setTimeout(() => {
+            if (paymentRef.current) {
+              const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
+              window.scrollTo({ top: y, behavior: "smooth" })
+            }
+          }, 500)
+        }
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   const variants = {
     enter: (d: number) => ({
@@ -2325,6 +2395,7 @@ export default function BookPage() {
             )}
             {screen === 2 && (
               <motion.div
+                ref={paymentRef}
                 key="s2"
                 custom={direction.current}
                 variants={variants}
@@ -2364,6 +2435,85 @@ export default function BookPage() {
           </AnimatePresence>
         </div>
       </div>
+
+      {showProfileModal && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 100,
+            background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <div
+            style={{
+              background: tokens.colors.surface,
+              border: `1px solid ${tokens.colors.border}`,
+              borderRadius: tokens.radius.card,
+              padding: "28px",
+              width: "100%",
+              maxWidth: 400,
+            }}
+          >
+            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
+              {showProfileModal === "phone" ? "加入電話號碼" : "加入電郵地址"}
+            </h3>
+            <p style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 24 }}>
+              {showProfileModal === "phone" ? "方便我們發送預訂提醒（可選）" : "方便我們發送預訂確認（可選）"}
+            </p>
+            {showProfileModal === "phone" ? (
+              <div style={{ display: "flex", height: 52, background: "rgba(255,255,255,0.06)", border: `1px solid ${tokens.colors.borderStrong}`, borderRadius: tokens.radius.button, overflow: "hidden" }}>
+                <div style={{ padding: "0 16px", display: "flex", alignItems: "center", background: tokens.colors.brandDim, borderRight: "1px solid rgba(37,211,102,0.3)", color: tokens.colors.brand, fontWeight: 600, fontSize: 15, flexShrink: 0 }}>+852</div>
+                <input
+                  value={profileInput}
+                  onChange={(e) => setProfileInput(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                  inputMode="numeric"
+                  placeholder="9XXX XXXX"
+                  style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: tokens.colors.text, fontSize: 16, padding: "0 16px" }}
+                />
+              </div>
+            ) : (
+              <input
+                value={profileInput}
+                onChange={(e) => setProfileInput(e.target.value)}
+                type="email"
+                placeholder="you@example.com"
+                style={{ width: "100%", height: 52, background: "rgba(255,255,255,0.06)", border: `1px solid ${tokens.colors.borderStrong}`, borderRadius: tokens.radius.button, outline: "none", color: tokens.colors.text, fontSize: 16, padding: "0 16px" }}
+              />
+            )}
+            <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+              <button
+                type="button"
+                disabled={profileSaving}
+                onClick={async () => {
+                  if (!profileInput) { setShowProfileModal(null); return }
+                  setProfileSaving(true)
+                  const supabase = createClient()
+                  const { data: { user } } = await supabase.auth.getUser()
+                  if (user) {
+                    await supabase.from("users").update({
+                      [showProfileModal === "phone" ? "phone" : "email"]: profileInput,
+                      profile_complete: true,
+                    }).eq("id", user.id)
+                  }
+                  setProfileSaving(false)
+                  setShowProfileModal(null)
+                }}
+                style={{ flex: 1, height: 48, background: tokens.colors.brand, color: "#000", border: "none", borderRadius: tokens.radius.button, fontWeight: 600, fontSize: 16, cursor: "pointer" }}
+              >
+                {profileSaving ? "…" : "儲存"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowProfileModal(null)}
+                style={{ flex: 1, height: 48, background: "transparent", color: tokens.colors.text, border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.button, fontWeight: 500, fontSize: 16, cursor: "pointer" }}
+              >
+                略過
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx global>{`
         @font-face {

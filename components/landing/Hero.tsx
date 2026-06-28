@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 const GREEN = "#1A6B35";
 
@@ -16,6 +17,7 @@ const HEADLINE_GRADIENT: React.CSSProperties = {
 
 export default function Hero() {
   const [showHeadline, setShowHeadline] = useState(false);
+  const t = useTranslations("hero");
 
   useEffect(() => {
     const timer = setTimeout(() => setShowHeadline(true), 1500);
@@ -107,7 +109,7 @@ export default function Hero() {
               "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
           }}
         >
-          屬於你的主場
+          {t("tagline")}
         </motion.h1>
 
         {/* CTA buttons — directly below headline, centred on all screens */}
@@ -124,7 +126,7 @@ export default function Hero() {
               letterSpacing: "-0.01em",
             }}
           >
-            立即預訂
+            {t("cta_book")}
           </button>
 
           <button
@@ -139,7 +141,7 @@ export default function Hero() {
               fontWeight: 400,
             }}
           >
-            了解更多
+            {t("cta_learn")}
             <motion.span
               aria-hidden="true"
               animate={{ y: [0, 4, 0] }}

@@ -14,10 +14,15 @@
   "book": {
     "title": "預訂時段",
     "select_table": "選擇球枱",
-    "table_available": "現時可預訂",
-    "table_unavailable": "此時段已被預訂",
+    "table_label": "枱號",
+    "snooker": "英式桌球",
+    "available": "現時可預訂",
+    "unavailable": "此時段已被預訂",
+    "selected": "已選擇",
+    "select_this_table": "選擇此枱",
+    "hint": "如所選時段該枱已被預訂，可隨時切換至另一枱",
     "select_date": "選擇日期",
-    "select_time": "開始時間",
+    "start_time": "開始時間",
     "duration": "時長",
     "continue": "繼續預訂",
     "instant_confirm": "即時確認・毋需等候",
@@ -26,20 +31,49 @@
     "login_apple": "以 Apple 登入",
     "login_google": "以 Google 帳戶登入",
     "login_whatsapp": "WhatsApp 號碼",
+    "or": "或",
     "payment_title": "付款",
     "subtotal": "小計",
     "service_fee": "服務費",
     "total": "總計",
     "pay_now": "立即付款",
+    "card_number": "卡號",
+    "cardholder": "持卡人姓名",
+    "stripe_secure": "以 Stripe 安全加密處理・香港",
     "confirm_title": "已確認",
     "add_calendar": "加入日曆",
     "share": "分享",
     "back_home": "返回主頁",
-    "qr_hint": "請於入場時出示此二維碼・24小時客服"
+    "qr_hint": "請於入場時出示此二維碼・24小時客服",
+    "your_booking": "你的預約",
+    "date": "日期",
+    "time_slot": "時段",
+    "hours": "小時",
+    "or_card": "或用信用卡",
+    "processing": "處理中…",
+    "table_available": "現時可預訂",
+    "table_unavailable": "此時段已被預訂"
   },
   "ticket": {
     "duration": "時長",
     "paid": "已付",
-    "payment": "付款"
+    "payment": "付款",
+    "confirmed": "已確認 ✓",
+    "footer": "請於入場時出示此二維碼・24小時客服"
+  },
+  "footer": {
+    "tagline": "香港24小時自助桌球會所",
+    "copyright": "© 2026 248 Snooker",
+    "terms": "條款及細則",
+    "privacy": "私隱政策"
+  },
+  "profile": {
+    "add_phone_title": "加入電話號碼",
+    "add_phone_subtitle": "方便我們發送預訂提醒（可選）",
+    "add_email_title": "加入電郵地址",
+    "add_email_subtitle": "方便我們發送預訂確認（可選）",
+    "phone_placeholder": "9XXX XXXX",
+    "save": "儲存",
+    "skip": "略過"
   }
 }

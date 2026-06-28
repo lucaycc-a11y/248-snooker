@@ -14,10 +14,15 @@
   "book": {
     "title": "Book a Session",
     "select_table": "Select Table",
-    "table_available": "Available Now",
-    "table_unavailable": "Not Available",
+    "table_label": "Table",
+    "snooker": "English Snooker",
+    "available": "Available Now",
+    "unavailable": "Not Available",
+    "selected": "Selected",
+    "select_this_table": "Select This Table",
+    "hint": "If your preferred table is taken, switch to another anytime",
     "select_date": "Select Date",
-    "select_time": "Start Time",
+    "start_time": "Start Time",
     "duration": "Duration",
     "continue": "Continue",
     "instant_confirm": "Instant Confirmation · No Waiting",
@@ -26,20 +31,49 @@
     "login_apple": "Sign in with Apple",
     "login_google": "Sign in with Google",
     "login_whatsapp": "WhatsApp Number",
+    "or": "or",
     "payment_title": "Payment",
     "subtotal": "Subtotal",
     "service_fee": "Service Fee",
     "total": "Total",
     "pay_now": "Pay Now",
+    "card_number": "Card Number",
+    "cardholder": "Cardholder Name",
+    "stripe_secure": "Secured by Stripe · Hong Kong",
     "confirm_title": "Confirmed",
     "add_calendar": "Add to Calendar",
     "share": "Share",
     "back_home": "Back to Home",
-    "qr_hint": "Show this QR code at entry · 24hr support"
+    "qr_hint": "Show this QR code at entry · 24hr support",
+    "your_booking": "Your Booking",
+    "date": "Date",
+    "time_slot": "Time",
+    "hours": "hr",
+    "or_card": "or pay by card",
+    "processing": "Processing…",
+    "table_available": "Available Now",
+    "table_unavailable": "Not Available"
   },
   "ticket": {
     "duration": "Duration",
     "paid": "Paid",
-    "payment": "Payment"
+    "payment": "Payment",
+    "confirmed": "Confirmed ✓",
+    "footer": "Show this QR code at entry · 24hr support"
+  },
+  "footer": {
+    "tagline": "Hong Kong's 24-Hour Self-Service Snooker Club",
+    "copyright": "© 2026 248 Snooker",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy"
+  },
+  "profile": {
+    "add_phone_title": "Add Phone Number",
+    "add_phone_subtitle": "So we can send you booking reminders (optional)",
+    "add_email_title": "Add Email Address",
+    "add_email_subtitle": "So we can send you booking confirmations (optional)",
+    "phone_placeholder": "9XXX XXXX",
+    "save": "Save",
+    "skip": "Skip"
   }
 }

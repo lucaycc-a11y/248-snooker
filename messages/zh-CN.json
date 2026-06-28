@@ -1,6 +1,6 @@
 {
   "nav": {
-    "book": "简体中文",
+    "book": "预订",
     "pricing": "定价",
     "about": "关于",
     "blog": "Blog"
@@ -14,10 +14,15 @@
   "book": {
     "title": "预订时段",
     "select_table": "选择球台",
-    "table_available": "现时可预订",
-    "table_unavailable": "此时段已被预订",
+    "table_label": "台号",
+    "snooker": "英式台球",
+    "available": "现时可预订",
+    "unavailable": "此时段已被预订",
+    "selected": "已选择",
+    "select_this_table": "选择此台",
+    "hint": "如所选时段该台已被预订，可随时切换至另一台",
     "select_date": "选择日期",
-    "select_time": "开始时间",
+    "start_time": "开始时间",
     "duration": "时长",
     "continue": "继续预订",
     "instant_confirm": "即时确认・无需等候",
@@ -26,20 +31,49 @@
     "login_apple": "以 Apple 登录",
     "login_google": "以 Google 账户登录",
     "login_whatsapp": "WhatsApp 号码",
+    "or": "或",
     "payment_title": "付款",
     "subtotal": "小计",
     "service_fee": "服务费",
     "total": "总计",
     "pay_now": "立即付款",
+    "card_number": "卡号",
+    "cardholder": "持卡人姓名",
+    "stripe_secure": "以 Stripe 安全加密处理・香港",
     "confirm_title": "已确认",
     "add_calendar": "加入日历",
     "share": "分享",
     "back_home": "返回主页",
-    "qr_hint": "请于入场时出示此二维码・24小时客服"
+    "qr_hint": "请于入场时出示此二维码・24小时客服",
+    "your_booking": "你的预约",
+    "date": "日期",
+    "time_slot": "时段",
+    "hours": "小时",
+    "or_card": "或用信用卡",
+    "processing": "处理中…",
+    "table_available": "现时可预订",
+    "table_unavailable": "此时段已被预订"
   },
   "ticket": {
     "duration": "时长",
     "paid": "已付",
-    "payment": "付款"
+    "payment": "付款",
+    "confirmed": "已确认 ✓",
+    "footer": "请于入场时出示此二维码・24小时客服"
+  },
+  "footer": {
+    "tagline": "香港24小时自助台球会所",
+    "copyright": "© 2026 248 Snooker",
+    "terms": "条款及细则",
+    "privacy": "隐私政策"
+  },
+  "profile": {
+    "add_phone_title": "加入电话号码",
+    "add_phone_subtitle": "方便我们发送预订提醒（可选）",
+    "add_email_title": "加入邮箱地址",
+    "add_email_subtitle": "方便我们发送预订确认（可选）",
+    "phone_placeholder": "9XXX XXXX",
+    "save": "保存",
+    "skip": "跳过"
   }
 }
