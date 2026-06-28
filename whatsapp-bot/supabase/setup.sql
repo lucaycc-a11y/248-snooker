@@ -62,5 +62,6 @@ CREATE POLICY "service_role_all_bot_config"
 INSERT INTO public.bot_config (key, value) VALUES
   ('personality', '"你係248 Snooker嘅專業客服助手，用繁體廣東話書面語回覆，簡短友善，每次唔超過3句。唔確定嘅嘢唔好亂講。"'::jsonb),
   ('auto_reply', 'true'::jsonb),
-  ('greeting', '"你好！我係248 Snooker客服，有咩可以幫到你？😊"'::jsonb)
+  ('greeting', '"你好！我係248 Snooker客服，有咩可以幫到你？😊"'::jsonb),
+  ('admin_phones', '["85264274620"]'::jsonb)
 ON CONFLICT (key) DO NOTHING;

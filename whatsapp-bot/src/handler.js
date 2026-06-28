@@ -1,14 +1,9 @@
-import { isProcessed, saveMessage, getHistory, getUserBookings, getBotConfig } from './database.js'
+import { isProcessed, saveMessage, getHistory, getUserBookings, getBotConfig, getAdminPhones } from './database.js'
 import { generateReply } from './ai.js'
 import { handleAdminMessage } from './admin.js'
 import { verifyOTP } from './otp.js'
 import { acquireProcessingLock, clearUserState, userStates } from './state.js'
 import 'dotenv/config'
-
-const ADMIN_PHONES = (process.env.ADMIN_PHONES || '')
-  .split(',')
-  .map((phone) => phone.trim())
-  .filter(Boolean)
 
 export async function handleMessage(client, msg) {
   if (!msg.body || msg.isStatus || msg.broadcast) return
@@ -20,12 +15,15 @@ export async function handleMessage(client, msg) {
   if (await isProcessed(messageId)) return
   if (!acquireProcessingLock(phone)) return
 
+  // Admin phones loaded from DB on every message so changes take effect immediately
+  const adminPhones = await getAdminPhones()
+
   const autoReply = await getBotConfig('auto_reply')
-  if ((autoReply === false || autoReply === 'false') && !ADMIN_PHONES.includes(phone)) {
+  if ((autoReply === false || autoReply === 'false') && !adminPhones.includes(phone)) {
     return
   }
 
-  if (ADMIN_PHONES.includes(phone)) {
+  if (adminPhones.includes(phone)) {
     await handleAdminMessage(client, msg)
     return
   }

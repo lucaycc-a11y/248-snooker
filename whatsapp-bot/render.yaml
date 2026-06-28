@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: 248-whatsapp-bot
+    runtime: node
+    rootDir: whatsapp-bot
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: VECTORENGINE_API_KEY
+        sync: false
+      - key: VECTORENGINE_BASE_URL
+        sync: false
+      - key: WEBHOOK_SECRET
+        sync: false
+      - key: PORT
+        value: 10000
+    disk:
+      name: whatsapp-session
+      mountPath: /opt/render/project/src/.wwebjs_auth
+      sizeGB: 1

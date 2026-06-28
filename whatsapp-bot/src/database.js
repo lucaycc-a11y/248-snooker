@@ -159,4 +159,33 @@ export async function updatePricing(rules) {
   if (error) throw error
 }
 
+// Admin phones stored in bot_config so they can be managed via WhatsApp commands
+export async function getAdminPhones() {
+  const { data } = await supabase
+    .from('bot_config')
+    .select('value')
+    .eq('key', 'admin_phones')
+    .maybeSingle()
+  return Array.isArray(data?.value) ? data.value : []
+}
+
+export async function addAdminPhone(phone) {
+  const current = await getAdminPhones()
+  if (current.includes(phone)) return
+  const updated = [...current, phone]
+  await supabase.from('bot_config').upsert(
+    { key: 'admin_phones', value: updated, updated_at: new Date().toISOString() },
+    { onConflict: 'key' }
+  )
+}
+
+export async function removeAdminPhone(phone) {
+  const current = await getAdminPhones()
+  const updated = current.filter((p) => p !== phone)
+  await supabase.from('bot_config').upsert(
+    { key: 'admin_phones', value: updated, updated_at: new Date().toISOString() },
+    { onConflict: 'key' }
+  )
+}
+
 export { supabase }

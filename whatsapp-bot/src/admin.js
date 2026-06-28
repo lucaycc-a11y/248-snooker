@@ -4,6 +4,8 @@ import {
   updatePricing,
   getHistory,
   saveMessage,
+  addAdminPhone,
+  removeAdminPhone,
   supabase,
 } from './database.js'
 
@@ -12,6 +14,22 @@ const pendingConfirmations = new Map()
 export async function handleAdminMessage(client, msg) {
   const phone = msg.from.replace('@c.us', '')
   const text = msg.body.trim()
+
+  // Direct admin management commands — handled before AI to avoid ambiguity
+  const addMatch = text.match(/^加管理員[：:]\s*(\d{8,12})$/)
+  const removeMatch = text.match(/^移除管理員[：:]\s*(\d{8,12})$/)
+
+  if (addMatch) {
+    await addAdminPhone(addMatch[1])
+    await msg.reply(`✅ 已加入管理員：${addMatch[1]}`)
+    return
+  }
+
+  if (removeMatch) {
+    await removeAdminPhone(removeMatch[1])
+    await msg.reply(`✅ 已移除管理員：${removeMatch[1]}`)
+    return
+  }
 
   if (pendingConfirmations.has(phone)) {
     const pending = pendingConfirmations.get(phone)
