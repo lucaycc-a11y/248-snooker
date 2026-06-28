@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
-  Calendar,
+  Calendar as CalendarIcon,
   ChevronRight,
+  ChevronLeft,
   Clock,
   MessageCircle,
   Lock,
@@ -132,224 +133,403 @@ function QRCode({ data }: { data: string }) {
   )
 }
 
-/* ─────────────────────────  Date Strip  ───────────────────────── */
-function DateStrip({
+/* ─────────────────────────  Table Select  ───────────────────────── */
+type TableInfo = { id: number; name: string; type: string }
+
+const TABLES: TableInfo[] = [
+  { id: 1, name: "枱號 #1", type: "英式桌球" },
+  { id: 2, name: "枱號 #2", type: "英式桌球" },
+]
+
+// TODO: swap to Supabase query — availability keyed by table id for the chosen slot
+const tableAvailability: Record<number, boolean> = {
+  1: true,
+  2: true,
+}
+
+function TableSelect({
+  selected,
+  onSelect,
+}: {
+  selected: number | null
+  onSelect: (id: number) => void
+}) {
+  return (
+    <div>
+      <div
+        style={{
+          display: "grid",
+          gap: 12,
+        }}
+        className="table-grid"
+      >
+        {TABLES.map((table) => {
+          const available = tableAvailability[table.id]
+          const isSelected = selected === table.id
+          const dotColor = available
+            ? tokens.colors.brand
+            : tokens.colors.danger
+          return (
+            <button
+              key={table.id}
+              type="button"
+              disabled={!available}
+              onClick={() => available && onSelect(table.id)}
+              data-cms-key={`book.table.${table.id}`}
+              style={{
+                textAlign: "left",
+                padding: "20px",
+                borderRadius: tokens.radius.card,
+                background: tokens.colors.surface,
+                border: isSelected
+                  ? `1px solid ${tokens.colors.link}`
+                  : available
+                    ? "1px solid rgba(255,255,255,0.15)"
+                    : "1px solid rgba(255,255,255,0.05)",
+                boxShadow: isSelected
+                  ? `0 0 0 3px rgba(0,113,227,0.25)`
+                  : "none",
+                opacity: available ? 1 : 0.6,
+                cursor: available ? "pointer" : "not-allowed",
+                transition: `border-color ${tokens.duration.fast}, box-shadow ${tokens.duration.fast}`,
+                minHeight: 44,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 600 }}>
+                  {table.name}
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: tokens.colors.textMuted,
+                    marginTop: 2,
+                  }}
+                >
+                  {table.type}
+                </div>
+              </div>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: dotColor,
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: available
+                      ? tokens.colors.text
+                      : tokens.colors.danger,
+                  }}
+                >
+                  {available ? "現時可預訂" : "此時段已被預訂"}
+                </span>
+              </div>
+              <div
+                style={{
+                  marginTop: "auto",
+                  height: 40,
+                  borderRadius: tokens.radius.button,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  background: isSelected
+                    ? tokens.colors.link
+                    : "rgba(255,255,255,0.08)",
+                  color: isSelected ? "#fff" : tokens.colors.text,
+                }}
+              >
+                {!available
+                  ? "此時段已被預訂"
+                  : isSelected
+                    ? "已選擇"
+                    : "選擇此枱"}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+      <div
+        data-cms-key="book.table.hint"
+        style={{
+          fontSize: 13,
+          color: tokens.colors.textMuted,
+          marginTop: 12,
+        }}
+      >
+        如所選時段該枱已被預訂，可隨時切換至另一枱
+      </div>
+    </div>
+  )
+}
+
+/* ─────────────────────────  Calendar  ───────────────────────── */
+const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
+
+// Mock — dates fully booked (red dot). TODO: swap to Supabase availability.
+function isFullyBooked(_d: Date): boolean {
+  return false
+}
+
+function Calendar({
   selected,
   onSelect,
 }: {
   selected: Date
   onSelect: (d: Date) => void
 }) {
-  const dates = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return Array.from({ length: 14 }, (_, i) => {
-      const d = new Date(today)
-      d.setDate(d.getDate() + i)
-      return d
-    })
+  const today = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
   }, [])
 
-  const dayNames = ["日", "一", "二", "三", "四", "五", "六"]
+  const [view, setView] = useState(() => ({
+    year: selected.getFullYear(),
+    month: selected.getMonth(),
+  }))
+
+  const { year, month } = view
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  // 42 cells = 6 rows × 7 cols, leading blanks then dates
+  const cells: (Date | null)[] = useMemo(() => {
+    const arr: (Date | null)[] = Array(firstDay).fill(null)
+    for (let d = 1; d <= daysInMonth; d++) arr.push(new Date(year, month, d))
+    while (arr.length < 42) arr.push(null)
+    return arr
+  }, [firstDay, daysInMonth, year, month])
+
+  const canGoPrev =
+    year > today.getFullYear() ||
+    (year === today.getFullYear() && month > today.getMonth())
+
+  const shiftMonth = (delta: number) =>
+    setView((v) => {
+      const m = v.month + delta
+      return {
+        year: v.year + Math.floor(m / 12),
+        month: ((m % 12) + 12) % 12,
+      }
+    })
 
   return (
-    <div
-      className="no-scrollbar"
-      style={{
-        display: "flex",
-        gap: "8px",
-        overflowX: "auto",
-        padding: "4px 0",
-        WebkitOverflowScrolling: "touch",
-      }}
-    >
-      {dates.map((date, i) => {
-        const isToday = i === 0
-        const isSelected = date.toDateString() === selected.toDateString()
-        return (
-          <button
-            key={date.toISOString()}
-            type="button"
-            onClick={() => onSelect(date)}
+    <div>
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 14,
+        }}
+      >
+        <button
+          type="button"
+          aria-label="上一個月"
+          disabled={!canGoPrev}
+          onClick={() => shiftMonth(-1)}
+          style={{
+            width: 44,
+            height: 44,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "none",
+            border: "none",
+            color: canGoPrev ? tokens.colors.text : tokens.colors.textFaint,
+            cursor: canGoPrev ? "pointer" : "not-allowed",
+          }}
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <span style={{ fontSize: 16, fontWeight: 600 }}>
+          {year}年{month + 1}月
+        </span>
+        <button
+          type="button"
+          aria-label="下一個月"
+          onClick={() => shiftMonth(1)}
+          style={{
+            width: 44,
+            height: 44,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "none",
+            border: "none",
+            color: tokens.colors.text,
+            cursor: "pointer",
+          }}
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {/* Weekday row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          marginBottom: 4,
+        }}
+      >
+        {DAY_NAMES.map((d) => (
+          <div
+            key={d}
             style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "4px",
-              padding: "10px 14px",
-              borderRadius: tokens.radius.button,
-              border: isSelected
-                ? "none"
-                : isToday
-                  ? `1px solid ${tokens.colors.text}`
-                  : "1px solid transparent",
-              background: isSelected ? tokens.colors.brand : "transparent",
-              color: isSelected ? tokens.colors.brandText : tokens.colors.text,
-              cursor: "pointer",
-              flexShrink: 0,
-              transition: `all ${tokens.duration.fast}`,
-              minWidth: "52px",
+              textAlign: "center",
+              fontSize: 12,
+              color: tokens.colors.textMuted,
+              padding: "4px 0",
             }}
           >
-            <span
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Date grid */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(7, 1fr)",
+          gap: 2,
+        }}
+      >
+        {cells.map((date, i) => {
+          if (!date) return <div key={`b${i}`} />
+          const isPast = date.getTime() < today.getTime()
+          const isToday = date.getTime() === today.getTime()
+          const isSelected = date.toDateString() === selected.toDateString()
+          const booked = !isPast && isFullyBooked(date)
+          return (
+            <div
+              key={date.toISOString()}
               style={{
-                fontSize: "11px",
-                opacity: isSelected ? 1 : 0.5,
-                fontWeight: 500,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                aspectRatio: "1 / 1",
               }}
             >
-              {dayNames[date.getDay()]}
-            </span>
-            <span style={{ fontSize: "18px", fontWeight: 600 }}>
-              {date.getDate()}
-            </span>
-            <span style={{ fontSize: "11px", opacity: isSelected ? 1 : 0.5 }}>
-              {date.getMonth() + 1}月
-            </span>
-          </button>
-        )
-      })}
+              <button
+                type="button"
+                disabled={isPast}
+                aria-label={`${date.getMonth() + 1}月${date.getDate()}日`}
+                aria-current={isSelected ? "date" : undefined}
+                onClick={() => !isPast && onSelect(date)}
+                style={{
+                  position: "relative",
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 15,
+                  fontWeight: isSelected ? 600 : 400,
+                  background: isSelected ? tokens.colors.link : "transparent",
+                  color: isSelected ? "#fff" : tokens.colors.text,
+                  border:
+                    isToday && !isSelected
+                      ? `1px solid ${tokens.colors.text}`
+                      : "1px solid transparent",
+                  opacity: isPast ? 0.3 : 1,
+                  cursor: isPast ? "default" : "pointer",
+                  transition: `background ${tokens.duration.fast}`,
+                }}
+              >
+                {date.getDate()}
+                {booked && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      bottom: 4,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      width: 4,
+                      height: 4,
+                      borderRadius: "50%",
+                      background: tokens.colors.danger,
+                    }}
+                  />
+                )}
+              </button>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
-/* ─────────────────────────  Drum Roll Wheel  ───────────────────────── */
-function DrumWheel({
+/* ─────────────────────────  Time List  ───────────────────────── */
+function TimeList({
   items,
   selected,
   onChange,
-  loop = false,
   labelFn,
 }: {
   items: number[]
   selected: number
   onChange: (val: number) => void
-  loop?: boolean
-  labelFn?: (val: number) => string
+  labelFn: (val: number) => string
 }) {
-  const containerRef = useRef<HTMLDivElement>(null)
   const haptic = useHaptic()
-  const ITEM_H = 44
-  const VISIBLE_ITEMS = 5
-  const CONTAINER_H = ITEM_H * VISIBLE_ITEMS
-  const lastIndexRef = useRef<number>(-1)
-  const isResettingRef = useRef(false)
-
-  const displayItems = useMemo(() => {
-    if (loop) {
-      return [...items, ...items, ...items]
-    }
-    const pad = Math.floor(VISIBLE_ITEMS / 2)
-    const padArr: (number | null)[] = Array(pad).fill(null)
-    return [...padArr, ...items.map((i) => i as number | null), ...padArr]
-  }, [items, loop])
-
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const idx = loop
-      ? items.length + items.indexOf(selected)
-      : Math.floor(VISIBLE_ITEMS / 2) + items.indexOf(selected)
-    el.scrollTop = idx * ITEM_H
-    lastIndexRef.current = items.indexOf(selected)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleScroll = useCallback(() => {
-    const el = containerRef.current
-    if (!el || isResettingRef.current) return
-
-    const scrollTop = el.scrollTop
-    const centerIdx = Math.round(scrollTop / ITEM_H)
-
-    if (loop) {
-      const totalLen = items.length
-      if (centerIdx < Math.floor(totalLen * 0.5)) {
-        isResettingRef.current = true
-        el.scrollTop = scrollTop + totalLen * ITEM_H
-        requestAnimationFrame(() => {
-          isResettingRef.current = false
-        })
-        return
-      }
-      if (centerIdx >= Math.floor(totalLen * 2.5)) {
-        isResettingRef.current = true
-        el.scrollTop = scrollTop - totalLen * ITEM_H
-        requestAnimationFrame(() => {
-          isResettingRef.current = false
-        })
-        return
-      }
-    }
-
-    let itemIdx: number
-    if (loop) {
-      itemIdx = ((centerIdx % items.length) + items.length) % items.length
-    } else {
-      itemIdx = centerIdx - Math.floor(VISIBLE_ITEMS / 2)
-      if (itemIdx < 0 || itemIdx >= items.length) return
-    }
-
-    if (itemIdx !== lastIndexRef.current) {
-      lastIndexRef.current = itemIdx
-      haptic.vibrate(8)
-      onChange(items[itemIdx])
-    }
-  }, [items, loop, onChange, haptic])
-
   return (
-    <div style={{ position: "relative", height: CONTAINER_H, flex: 1 }}>
-      <div
-        style={{
-          position: "absolute",
-          top: "50%",
-          transform: "translateY(-50%)",
-          left: 0,
-          right: 0,
-          height: ITEM_H,
-          background: tokens.colors.brandDim,
-          borderTop: "1px solid rgba(37,211,102,0.3)",
-          borderBottom: "1px solid rgba(37,211,102,0.3)",
-          borderRadius: "8px",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
-      <div
-        ref={containerRef}
-        onScroll={handleScroll}
-        className="no-scrollbar"
-        style={{
-          height: CONTAINER_H,
-          overflowY: "scroll",
-          scrollSnapType: "y mandatory",
-          WebkitOverflowScrolling: "touch",
-          position: "relative",
-          zIndex: 2,
-        }}
-      >
-        {displayItems.map((val, idx) => {
-          const isCenter = val !== null && val === selected
-          return (
-            <div
-              key={`${val}-${idx}`}
-              style={{
-                height: ITEM_H,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                scrollSnapAlign: "center",
-                fontSize: isCenter ? "20px" : "16px",
-                fontWeight: isCenter ? 600 : 400,
-                color: tokens.colors.text,
-                opacity: isCenter ? 1 : 0.3,
-                transition: "all 120ms ease-out",
-              }}
-            >
-              {val !== null ? (labelFn ? labelFn(val) : String(val)) : ""}
-            </div>
-          )
-        })}
-      </div>
+    <div
+      className="no-scrollbar"
+      style={{
+        maxHeight: 220,
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+      }}
+    >
+      {items.map((val) => {
+        const isSelected = val === selected
+        return (
+          <button
+            key={val}
+            type="button"
+            onClick={() => {
+              haptic.vibrate(8)
+              onChange(val)
+            }}
+            style={{
+              minHeight: 44,
+              borderRadius: tokens.radius.button,
+              border: "none",
+              background: isSelected ? tokens.colors.link : "transparent",
+              color: tokens.colors.text,
+              opacity: isSelected ? 1 : 0.6,
+              fontSize: 16,
+              fontWeight: isSelected ? 600 : 400,
+              cursor: "pointer",
+              textAlign: "center",
+              transition: `background ${tokens.duration.fast}, opacity ${tokens.duration.fast}`,
+            }}
+          >
+            {labelFn(val)}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -463,6 +643,8 @@ function SummaryCard({
 
 /* ─────────────────────────  Screen 1: Select  ───────────────────────── */
 function Screen1({
+  selectedTable,
+  setSelectedTable,
   selectedDate,
   setSelectedDate,
   startHour,
@@ -471,6 +653,8 @@ function Screen1({
   setDuration,
   onContinue,
 }: {
+  selectedTable: number | null
+  setSelectedTable: (id: number) => void
   selectedDate: Date
   setSelectedDate: (d: Date) => void
   startHour: number
@@ -483,6 +667,7 @@ function Screen1({
   const endHour = startHour + duration
   const crossDay = endHour >= 24
   const [displayTotal, setDisplayTotal] = useState(total)
+  const [dateChosen, setDateChosen] = useState(false)
 
   useEffect(() => {
     const target = CONFIG.pricePerHour * duration
@@ -510,118 +695,156 @@ function Screen1({
     []
   )
 
+  const selectedTableInfo = TABLES.find((t) => t.id === selectedTable)
+  const canContinue = selectedTable !== null
+
+  const sectionLabel = (text: string, cmsKey: string) => (
+    <div
+      data-cms-key={cmsKey}
+      style={{
+        fontSize: 13,
+        color: tokens.colors.textMuted,
+        textTransform: "uppercase",
+        letterSpacing: "0.08em",
+        marginBottom: 14,
+      }}
+    >
+      {text}
+    </div>
+  )
+
   return (
     <div className="screen-content">
       <div className="two-col">
         <div className="col-left">
-          {/* Date strip */}
+          {/* Selected table badge */}
+          {selectedTableInfo && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: tokens.colors.brandDim,
+                border: `1px solid rgba(37,211,102,0.3)`,
+                borderRadius: tokens.radius.pill,
+                padding: "6px 14px",
+                marginBottom: 24,
+                fontSize: 13,
+                fontWeight: 500,
+              }}
+            >
+              <CheckCircle size={14} color={tokens.colors.brand} />
+              {selectedTableInfo.name} · {selectedTableInfo.type}
+            </motion.div>
+          )}
+
+          {/* Step 1 — Table */}
           <div style={{ marginBottom: 28 }}>
-            <div
-              data-cms-key="book.date.title"
-              style={{
-                fontSize: 13,
-                color: tokens.colors.textMuted,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                marginBottom: 14,
+            {sectionLabel("選擇球枱", "book.table.title")}
+            <TableSelect
+              selected={selectedTable}
+              onSelect={(id) => {
+                setSelectedTable(id)
               }}
-            >
-              選擇日期
-            </div>
-            <DateStrip selected={selectedDate} onSelect={setSelectedDate} />
+            />
           </div>
 
-          {/* Drum wheels */}
-          <div style={{ marginBottom: 24 }}>
-            <div
-              data-cms-key="book.time.title"
-              style={{
-                fontSize: 13,
-                color: tokens.colors.textMuted,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                marginBottom: 14,
-              }}
-            >
-              選擇時間
-            </div>
-            <div style={{ display: "flex", gap: 12 }}>
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: tokens.colors.textFaint,
-                    textAlign: "center",
-                    marginBottom: 8,
-                  }}
-                >
-                  開始時間
+          {/* Step 2 — Calendar (revealed after table chosen) */}
+          <AnimatePresence>
+            {selectedTable !== null && (
+              <motion.div
+                key="calendar"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                style={{ overflow: "hidden" }}
+              >
+                <div style={{ marginBottom: 28 }}>
+                  {sectionLabel("選擇日期", "book.date.title")}
+                  <Calendar
+                    selected={selectedDate}
+                    onSelect={(d) => {
+                      setSelectedDate(d)
+                      setDateChosen(true)
+                    }}
+                  />
                 </div>
-                <DrumWheel
-                  items={startItems}
-                  selected={startHour}
-                  onChange={setStartHour}
-                  loop
-                  labelFn={(h) => padTime(h)}
-                />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: tokens.colors.textFaint,
-                    textAlign: "center",
-                    marginBottom: 8,
-                  }}
-                >
-                  時長
-                </div>
-                <DrumWheel
-                  items={durationItems}
-                  selected={duration}
-                  onChange={setDuration}
-                  labelFn={(h) => `${h}小時`}
-                />
-              </div>
-            </div>
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Time summary */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              background: tokens.colors.surface,
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: tokens.radius.input,
-              padding: "16px 20px",
-              marginBottom: 20,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 8,
-            }}
-          >
-            <div
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
-              <Clock size={14} style={{ color: tokens.colors.textMuted }} />
-              <span style={{ fontSize: 15 }}>
-                {padTime(startHour)} – {padTime(endHour)}
-                {crossDay ? " (+1日)" : ""}
-              </span>
-            </div>
-            <span
-              style={{
-                fontFamily: BEBAS,
-                fontSize: 24,
-                color: tokens.colors.brand,
-              }}
-            >
-              HK${displayTotal}
-            </span>
-          </motion.div>
+          {/* Step 3 — Time + duration (revealed after date chosen) */}
+          <AnimatePresence>
+            {selectedTable !== null && dateChosen && (
+              <motion.div
+                key="time"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                style={{ overflow: "hidden" }}
+              >
+                <div style={{ marginBottom: 24 }}>
+                  <div style={{ display: "flex", gap: 16 }}>
+                    <div style={{ flex: 1 }}>
+                      {sectionLabel("開始時間", "book.time.title")}
+                      <TimeList
+                        items={startItems}
+                        selected={startHour}
+                        onChange={setStartHour}
+                        labelFn={(h) => padTime(h)}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      {sectionLabel("時長", "book.duration.title")}
+                      <TimeList
+                        items={durationItems}
+                        selected={duration}
+                        onChange={setDuration}
+                        labelFn={(h) => `${h}小時`}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live price preview */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  style={{
+                    background: tokens.colors.surface,
+                    border: `1px solid ${tokens.colors.border}`,
+                    borderRadius: tokens.radius.input,
+                    padding: "16px 20px",
+                    marginBottom: 20,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Clock size={14} style={{ color: tokens.colors.textMuted }} />
+                    <span style={{ fontSize: 15 }}>
+                      {padTime(startHour)} – {padTime(endHour)}
+                      {crossDay ? " (+1日)" : ""} · {duration}小時
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: BEBAS,
+                      fontSize: 24,
+                      color: tokens.colors.brand,
+                    }}
+                  >
+                    HK${displayTotal}
+                  </span>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Hint */}
           <div
@@ -643,7 +866,7 @@ function Screen1({
           startHour={startHour}
           duration={duration}
           total={total}
-          canContinue={true}
+          canContinue={canContinue}
           onContinue={onContinue}
           ctaLabel="繼續預約"
         />
@@ -655,6 +878,7 @@ function Screen1({
           variant="primary"
           size="lg"
           fullWidth
+          disabled={!canContinue}
           onClick={onContinue}
         >
           繼續預約
@@ -734,9 +958,10 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
               <span data-cms-key="book.auth.lock">你的時段已暫時鎖定</span>{" "}
               <span
                 style={{
-                  fontFamily: BEBAS,
-                  fontSize: 18,
-                  color: tokens.colors.brand,
+                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                  fontSize: 16,
+                  fontWeight: 600,
+                  color: tokens.colors.text,
                 }}
               >
                 {lockLabel}
@@ -750,20 +975,20 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
               onClick={onSuccess}
               style={{
                 width: "100%",
-                height: 52,
-                background: "#fff",
-                borderRadius: tokens.radius.button,
+                height: 56,
+                background: "#000",
+                borderRadius: 14,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 10,
                 marginBottom: 12,
-                border: "none",
+                border: "1px solid rgba(255,255,255,0.3)",
                 cursor: "pointer",
               }}
             >
-              <AppleLogo size={18} color="#000" />
-              <span style={{ color: "#000", fontWeight: 600, fontSize: 16 }}>
+              <AppleLogo size={20} color="#fff" />
+              <span style={{ color: "#fff", fontWeight: 600, fontSize: 16 }}>
                 以 Apple 登入
               </span>
             </button>
@@ -774,9 +999,9 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
               onClick={onSuccess}
               style={{
                 width: "100%",
-                height: 52,
+                height: 56,
                 background: "#fff",
-                borderRadius: tokens.radius.button,
+                borderRadius: 14,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -786,26 +1011,15 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
                 cursor: "pointer",
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
-                <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  fill="#34A853"
-                />
-                <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  fill="#EA4335"
-                />
-              </svg>
+              <img
+                src="https://developers.google.com/identity/images/g-logo.png"
+                alt="Google"
+                width={20}
+                height={20}
+                style={{ display: "block" }}
+              />
               <span style={{ color: "#1F1F1F", fontWeight: 500, fontSize: 16 }}>
-                以 Google 帳號登入
+                以 Google 帳戶登入
               </span>
             </button>
 
@@ -999,11 +1213,13 @@ function Screen3({
   selectedDate,
   startHour,
   duration,
+  tableName,
   onSuccess,
 }: {
   selectedDate: Date
   startHour: number
   duration: number
+  tableName: string
   onSuccess: () => void
 }) {
   const [cardNum, setCardNum] = useState("")
@@ -1043,7 +1259,7 @@ function Screen3({
           <Card style={{ marginBottom: 24 }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Calendar size={14} style={{ color: tokens.colors.textMuted }} />
+                <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
                 <span style={{ fontSize: 14 }}>
                   {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
                 </span>
@@ -1060,7 +1276,7 @@ function Screen3({
               data-cms-key="book.pay.venue"
               style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16 }}
             >
-              香港桌球會 · 枱號 #1
+              248 Snooker · {tableName}
             </div>
             <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
@@ -1286,11 +1502,13 @@ function Screen4({
   selectedDate,
   startHour,
   duration,
+  tableName,
   bookingRef,
 }: {
   selectedDate: Date
   startHour: number
   duration: number
+  tableName: string
   bookingRef: string
 }) {
   const [showContent, setShowContent] = useState(false)
@@ -1340,6 +1558,52 @@ function Screen4({
     }
   }, [])
 
+  // Add-to-calendar — generate a downloadable .ics file
+  const handleAddCalendar = () => {
+    const start = new Date(selectedDate)
+    start.setHours(startHour, 0, 0, 0)
+    const end = new Date(start)
+    end.setHours(start.getHours() + duration)
+    const fmt = (d: Date) =>
+      d
+        .toISOString()
+        .replace(/[-:]/g, "")
+        .replace(/\.\d{3}/, "")
+    const ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "BEGIN:VEVENT",
+      `DTSTART:${fmt(start)}`,
+      `DTEND:${fmt(end)}`,
+      `SUMMARY:248 Snooker · ${tableName}`,
+      `DESCRIPTION:預訂編號 ${bookingRef}`,
+      "LOCATION:248 Snooker",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].join("\r\n")
+    const url = URL.createObjectURL(
+      new Blob([ics], { type: "text/calendar" })
+    )
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `248-${bookingRef}.ics`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleShare = async () => {
+    const text = `我的 248 Snooker 預訂 · ${tableName} · 編號 ${bookingRef}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "248 Snooker", text })
+      } catch {
+        /* user cancelled */
+      }
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(text)
+    }
+  }
+
   return (
     <div
       className="screen-content"
@@ -1374,9 +1638,9 @@ function Screen4({
         style={{
           width: "100%",
           maxWidth: 380,
-          background: tokens.colors.surface,
-          borderRadius: tokens.radius.card,
-          border: `1px solid ${tokens.colors.border}`,
+          background: "linear-gradient(145deg, #111111, #1a1a1a)",
+          borderRadius: 20,
+          border: "1px solid rgba(255,255,255,0.12)",
           overflow: "hidden",
           position: "relative",
         }}
@@ -1384,8 +1648,8 @@ function Screen4({
         {/* Top section */}
         <div style={{ padding: "24px 24px 20px" }}>
           {/* Header row */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-            <img src="/1.svg" alt="248" style={{ height: 24, width: "auto" }} />
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
+            <img src="/1.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: showContent ? 1 : 0 }}
@@ -1394,40 +1658,42 @@ function Screen4({
                 display: "flex",
                 alignItems: "center",
                 gap: 4,
-                background: tokens.colors.brandDim,
+                background: tokens.colors.brand,
                 padding: "4px 10px",
                 borderRadius: tokens.radius.pill,
               }}
             >
-              <CheckCircle size={14} color={tokens.colors.brand} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: tokens.colors.brand }}>已確認</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>已確認</span>
             </motion.div>
           </div>
 
-          {/* Time display */}
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
-            <span style={{ fontFamily: BEBAS, fontSize: 56, color: tokens.colors.text, lineHeight: 1 }}>
+          {/* Time display — large Bebas */}
+          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: BEBAS, fontSize: 48, color: tokens.colors.text, lineHeight: 1, letterSpacing: "0.02em" }}>
               {padTime(startHour)}
             </span>
-            <span style={{ fontSize: 16, color: tokens.colors.textMuted }}>
-              → {padTime(endHour)}
+            <span style={{ fontFamily: BEBAS, fontSize: 32, color: tokens.colors.textMuted, lineHeight: 1 }}>
+              →
+            </span>
+            <span style={{ fontFamily: BEBAS, fontSize: 48, color: tokens.colors.text, lineHeight: 1, letterSpacing: "0.02em" }}>
+              {padTime(endHour)}
             </span>
           </div>
 
           {/* Date */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <Calendar size={14} style={{ color: tokens.colors.textMuted }} />
-            <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>{dateStr}</span>
+            <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
+            <span style={{ fontSize: 14, color: tokens.colors.text }}>{dateStr}</span>
           </div>
 
           {/* Venue */}
-          <div style={{ fontSize: 13, color: tokens.colors.textFaint }}>
-            香港桌球會 · 枱號 #1
+          <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
+            248 Snooker · {tableName}
           </div>
         </div>
 
         {/* Perforation line */}
-        <div style={{ position: "relative", height: 20 }}>
+        <div style={{ position: "relative", height: 20, margin: "16px 0" }}>
           {/* Left notch */}
           <div
             style={{
@@ -1462,7 +1728,7 @@ function Screen4({
               left: 20,
               right: 20,
               height: 0,
-              borderTop: `1px dashed ${tokens.colors.textFaint}`,
+              borderTop: "2px dashed rgba(255,255,255,0.15)",
             }}
           />
         </div>
@@ -1470,7 +1736,7 @@ function Screen4({
         {/* Bottom stub */}
         <div style={{ padding: "16px 24px 24px" }}>
           {/* Info row */}
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}>
             <div>
               <div style={{ fontSize: 11, color: tokens.colors.textFaint, marginBottom: 2 }}>時長</div>
               <div style={{ fontSize: 14, fontWeight: 500 }}>{duration}小時</div>
@@ -1481,9 +1747,11 @@ function Screen4({
             </div>
             <div>
               <div style={{ fontSize: 11, color: tokens.colors.textFaint, marginBottom: 2 }}>付款</div>
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <VisaLogo className="h-4" />
-              </div>
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png"
+                alt="Visa"
+                style={{ height: 16, width: "auto", display: "block" }}
+              />
             </div>
           </div>
 
@@ -1505,9 +1773,9 @@ function Screen4({
           <div
             style={{
               fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-              fontSize: 13,
-              color: tokens.colors.textMuted,
-              letterSpacing: "0.12em",
+              fontSize: 14,
+              color: tokens.colors.text,
+              letterSpacing: "0.2em",
               textAlign: "center",
               marginBottom: 12,
             }}
@@ -1536,17 +1804,65 @@ function Screen4({
         style={{ marginTop: 24, width: "100%", maxWidth: 380 }}
       >
         <div style={{ display: "flex", gap: 12 }}>
-          <Button variant="primary" leftIcon={<CalendarPlus size={16} />} style={{ flex: 1 }}>
+          <button
+            type="button"
+            onClick={handleAddCalendar}
+            style={{
+              flex: 1,
+              height: 48,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 12,
+              color: tokens.colors.text,
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            <CalendarPlus size={16} />
             加入日曆
-          </Button>
-          <Button variant="secondary" leftIcon={<Share2 size={16} />} style={{ flex: 1 }}>
+          </button>
+          <button
+            type="button"
+            onClick={handleShare}
+            style={{
+              flex: 1,
+              height: 48,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              background: "transparent",
+              border: "1px solid rgba(255,255,255,0.15)",
+              borderRadius: 12,
+              color: tokens.colors.text,
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            <Share2 size={16} />
             分享
-          </Button>
+          </button>
         </div>
         <div style={{ textAlign: "center", marginTop: 16 }}>
-          <Button variant="ghost" onClick={() => window.location.href = "/"}>
+          <button
+            type="button"
+            onClick={() => (window.location.href = "/")}
+            style={{
+              background: "none",
+              border: "none",
+              color: tokens.colors.textMuted,
+              fontSize: 14,
+              cursor: "pointer",
+            }}
+          >
             返回主頁
-          </Button>
+          </button>
         </div>
       </motion.div>
     </div>
@@ -1567,7 +1883,11 @@ export default function BookPage() {
     return (now.getHours() + 1) % 24
   })
   const [duration, setDuration] = useState(1)
+  const [selectedTable, setSelectedTable] = useState<number | null>(null)
   const [bookingRef] = useState(() => genRef())
+
+  const tableName =
+    TABLES.find((t) => t.id === selectedTable)?.name ?? "枱號 #1"
 
   const direction = useRef(1)
 
@@ -1618,6 +1938,8 @@ export default function BookPage() {
                 transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
               >
                 <Screen1
+                  selectedTable={selectedTable}
+                  setSelectedTable={setSelectedTable}
                   selectedDate={selectedDate}
                   setSelectedDate={setSelectedDate}
                   startHour={startHour}
@@ -1655,6 +1977,7 @@ export default function BookPage() {
                   selectedDate={selectedDate}
                   startHour={startHour}
                   duration={duration}
+                  tableName={tableName}
                   onSuccess={advance}
                 />
               </motion.div>
@@ -1673,6 +1996,7 @@ export default function BookPage() {
                   selectedDate={selectedDate}
                   startHour={startHour}
                   duration={duration}
+                  tableName={tableName}
                   bookingRef={bookingRef}
                 />
               </motion.div>
@@ -1690,7 +2014,7 @@ export default function BookPage() {
 
         .book-container {
           width: 100%;
-          max-width: 430px;
+          max-width: 480px;
           min-height: 100dvh;
           display: flex;
           flex-direction: column;
@@ -1707,7 +2031,15 @@ export default function BookPage() {
           z-index: 50;
         }
         .screen-content {
-          padding: 76px 20px 100px;
+          padding: 76px 16px 100px;
+        }
+        .table-grid {
+          grid-template-columns: 1fr;
+        }
+        @media (min-width: 480px) {
+          .table-grid {
+            grid-template-columns: 1fr 1fr;
+          }
         }
         .two-col {
           display: flex;
