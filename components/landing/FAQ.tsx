@@ -20,6 +20,7 @@ export default function FAQ() {
   return (
     <section
       id="faq"
+      data-nav-theme="light"
       style={{
         background: "#F5F5F7",
         color: DARK,

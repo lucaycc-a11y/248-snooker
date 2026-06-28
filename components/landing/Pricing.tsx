@@ -425,7 +425,7 @@ export default function Pricing() {
   const activeHours = hoursByStage[active.id] ?? 1;
 
   return (
-    <section id="pricing" style={{ background: "#000000", color: "white", fontFamily: FONT_FAMILY }}>
+    <section id="pricing" data-nav-theme="dark" style={{ background: "#000000", color: "white", fontFamily: FONT_FAMILY }}>
       <div ref={sectionRef} style={{ position: "relative", height: "300vh" }}>
         <div
           style={{

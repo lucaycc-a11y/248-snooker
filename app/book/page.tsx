@@ -70,16 +70,17 @@ function padTime(h: number): string {
   return String(((h % 24) + 24) % 24).padStart(2, "0") + ":00"
 }
 
-// Smoothly scroll a revealed section into view (mobile only — desktop is a
-// two-column layout where sections are already visible). The short delay lets
-// the section mount/expand before we measure its position.
+// Smoothly scroll a revealed section into view (desktop and mobile alike).
+// The booking page scrolls the window (the left column is overflow:visible),
+// so window.scrollTo works on every breakpoint. The short delay lets the
+// section mount/expand before we measure.
 function scrollToRef(ref: React.RefObject<HTMLElement>) {
-  if (typeof window === "undefined" || window.innerWidth >= 768) return
+  if (typeof window === "undefined") return
   setTimeout(() => {
     if (!ref.current) return
-    const y = ref.current.getBoundingClientRect().top + window.scrollY - 72
+    const y = ref.current.getBoundingClientRect().top + window.scrollY - 80
     window.scrollTo({ top: y, behavior: "smooth" })
-  }, 120)
+  }, 150)
 }
 
 /* ─────────────────────────  QR Code  ───────────────────────── */
@@ -525,43 +526,70 @@ function DrumWheel({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const haptic = useHaptic()
-  const lastIdxRef = useRef(Math.max(0, items.indexOf(selected)))
+  const n = items.length
+  const baseIdx = Math.max(0, items.indexOf(selected))
+  const lastRealRef = useRef(baseIdx)
   const initedRef = useRef(false)
-  const [centerIdx, setCenterIdx] = useState(() =>
-    Math.max(0, items.indexOf(selected))
-  )
   const rafRef = useRef<number | null>(null)
+  const touchingRef = useRef(false)
+  const pendingRecenterRef = useRef(false)
+  // Triplicate for a seamless infinite loop; start on the middle copy.
+  const loop = useMemo(() => [...items, ...items, ...items], [items])
+  const [centerLoopIdx, setCenterLoopIdx] = useState(n + baseIdx)
 
-  // Position the wheel on the selected item at mount — WITHOUT smooth animation,
-  // so it appears pre-centred (assigning scrollTop under scroll-behavior:smooth
-  // would otherwise animate from 0 and fire spurious onChange/haptics en route).
+  // Position on the selected item in the MIDDLE copy at mount (no animation).
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const idx = Math.max(0, items.indexOf(selected))
+    const startLoop = n + Math.max(0, items.indexOf(selected))
     const prev = el.style.scrollBehavior
     el.style.scrollBehavior = "auto"
-    el.scrollTop = idx * WHEEL_ITEM_H
-    lastIdxRef.current = idx
-    setCenterIdx(idx)
+    el.scrollTop = startLoop * WHEEL_ITEM_H
+    lastRealRef.current = startLoop % n
+    setCenterLoopIdx(startLoop)
     requestAnimationFrame(() => {
       el.style.scrollBehavior = prev || "smooth"
       initedRef.current = true
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Silently jump by one copy-length toward the middle whenever the scroll
+  // position drifts into an outer copy, so the user can never reach the real
+  // top/bottom — even mid-fling. Skipped while a finger is down (we'd teleport
+  // under it); the pending jump then runs on touchend.
+  const recenter = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const copyH = n * WHEEL_ITEM_H
+    const loopIdx = Math.round(el.scrollTop / WHEEL_ITEM_H)
+    if (loopIdx >= n && loopIdx < 2 * n) return // already in the middle copy
+    if (touchingRef.current) {
+      pendingRecenterRef.current = true
+      return
+    }
+    const prev = el.style.scrollBehavior
+    el.style.scrollBehavior = "auto"
+    el.scrollTop += loopIdx < n ? copyH : -copyH
+    pendingRecenterRef.current = false
+    requestAnimationFrame(() => {
+      el.style.scrollBehavior = prev || "smooth"
+    })
+  }, [n])
+
   const settle = useCallback(() => {
     const el = ref.current
     if (!el) return
-    const idx = Math.round(el.scrollTop / WHEEL_ITEM_H)
-    const clamped = Math.max(0, Math.min(items.length - 1, idx))
-    setCenterIdx(clamped)
-    if (clamped !== lastIdxRef.current) {
-      lastIdxRef.current = clamped
+    const loopIdx = Math.round(el.scrollTop / WHEEL_ITEM_H)
+    setCenterLoopIdx(loopIdx)
+    const realIdx = ((loopIdx % n) + n) % n
+    if (realIdx !== lastRealRef.current) {
+      lastRealRef.current = realIdx
       haptic.vibrate(8)
-      onChange(items[clamped])
+      onChange(items[realIdx])
     }
-  }, [items, onChange, haptic])
+    // Recenter continuously (not just on idle) so fast flings never hit a wall.
+    recenter()
+  }, [items, n, onChange, haptic, recenter])
 
   const handleScroll = useCallback(() => {
     if (!initedRef.current) return // ignore the mount-time scroll assignment
@@ -569,33 +597,32 @@ function DrumWheel({
     rafRef.current = requestAnimationFrame(settle)
   }, [settle])
 
-  const stepTo = useCallback(
-    (idx: number) => {
-      const el = ref.current
-      if (!el) return
-      const clamped = Math.max(0, Math.min(items.length - 1, idx))
-      el.scrollTop = clamped * WHEEL_ITEM_H // smooth (behavior restored post-mount)
-    },
-    [items.length]
-  )
+  const handleTouchStart = useCallback(() => {
+    touchingRef.current = true
+  }, [])
+
+  const handleTouchEnd = useCallback(() => {
+    touchingRef.current = false
+    if (pendingRecenterRef.current) recenter()
+  }, [recenter])
+
+  const stepTo = useCallback((loopIdx: number) => {
+    const el = ref.current
+    if (!el) return
+    el.scrollTop = loopIdx * WHEEL_ITEM_H // smooth (behavior restored post-mount)
+  }, [])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "ArrowDown") {
         e.preventDefault()
-        stepTo(centerIdx + 1)
+        stepTo(centerLoopIdx + 1)
       } else if (e.key === "ArrowUp") {
         e.preventDefault()
-        stepTo(centerIdx - 1)
-      } else if (e.key === "Home") {
-        e.preventDefault()
-        stepTo(0)
-      } else if (e.key === "End") {
-        e.preventDefault()
-        stepTo(items.length - 1)
+        stepTo(centerLoopIdx - 1)
       }
     },
-    [centerIdx, stepTo, items.length]
+    [centerLoopIdx, stepTo]
   )
 
   return (
@@ -619,10 +646,13 @@ function DrumWheel({
         ref={ref}
         onScroll={handleScroll}
         onKeyDown={handleKeyDown}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         tabIndex={0}
         role="listbox"
         aria-label={ariaLabel}
-        aria-activedescendant={`wheel-${ariaLabel}-${items[centerIdx]}`}
+        aria-activedescendant={`wheel-${ariaLabel}-${items[((centerLoopIdx % n) + n) % n]}`}
         className="no-scrollbar drum-wheel"
         style={{
           height: "100%",
@@ -639,16 +669,17 @@ function DrumWheel({
       >
         {/* Top spacer */}
         <div style={{ height: WHEEL_PAD }} aria-hidden="true" />
-        {items.map((val, i) => {
-          const dist = Math.abs(i - centerIdx)
+        {loop.map((val, i) => {
+          const dist = Math.abs(i - centerLoopIdx)
           const fontSize = dist === 0 ? 28 : dist === 1 ? 22 : 18
           const opacity = dist === 0 ? 1 : dist === 1 ? 0.7 : 0.35
+          const realIdx = ((i % n) + n) % n
           return (
             <div
-              key={val}
-              id={`wheel-${ariaLabel}-${val}`}
+              key={i}
+              id={i === n ? `wheel-${ariaLabel}-${val}` : undefined}
               role="option"
-              aria-selected={val === selected}
+              aria-selected={dist === 0}
               style={{
                 height: WHEEL_ITEM_H,
                 display: "flex",
@@ -662,7 +693,7 @@ function DrumWheel({
                 transition: "font-size 120ms ease-out, opacity 120ms ease-out",
               }}
             >
-              {labelFn(val)}
+              {labelFn(items[realIdx])}
             </div>
           )
         })}
@@ -1231,22 +1262,22 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
                 cursor: "pointer",
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
+                  d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.566 2.684-3.874 2.684-6.615z"
                 />
                 <path
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
                   fill="#34A853"
+                  d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
                 />
                 <path
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
                   fill="#FBBC05"
+                  d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
                 />
                 <path
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   fill="#EA4335"
+                  d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
                 />
               </svg>
               <span style={{ color: "#1F1F1F", fontWeight: 500, fontSize: 16 }}>
@@ -1865,16 +1896,17 @@ function Screen4({
         transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.1 }}
         style={{
           width: "100%",
-          maxWidth: 380,
-          background: "linear-gradient(145deg, #111111, #1a1a1a)",
-          borderRadius: 20,
-          border: "1px solid rgba(255,255,255,0.12)",
+          maxWidth: 400,
+          margin: "0 auto",
+          background: "linear-gradient(160deg, #111111 0%, #1a1a1a 100%)",
+          borderRadius: 24,
+          border: "1px solid rgba(255,255,255,0.1)",
           overflow: "hidden",
           position: "relative",
         }}
       >
         {/* Top section */}
-        <div style={{ padding: "24px 24px 20px" }}>
+        <div style={{ padding: 24 }}>
           {/* Header row */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
             <img src="/1.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
@@ -1883,53 +1915,48 @@ function Screen4({
               animate={{ scale: showContent ? 1 : 0 }}
               transition={{ type: "spring", stiffness: 500, damping: 20, delay: 0.4 }}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
                 background: tokens.colors.brand,
-                padding: "4px 10px",
-                borderRadius: tokens.radius.pill,
+                padding: "4px 12px",
+                borderRadius: 999,
               }}
             >
-              <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>已確認</span>
+              <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>已確認 ✓</span>
             </motion.div>
           </div>
 
-          {/* Time display — single line, responsive */}
+          {/* Time display — single line */}
           <p
             style={{
-              fontFamily: BEBAS,
-              fontSize: "clamp(28px, 7vw, 48px)",
-              fontWeight: 700,
-              letterSpacing: "-0.02em",
+              fontSize: "clamp(32px, 8vw, 52px)",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
               whiteSpace: "nowrap",
-              lineHeight: 1.1,
+              lineHeight: 1.05,
               color: tokens.colors.text,
-              margin: "0 0 4px",
+              margin: 0,
             }}
           >
             {padTime(startHour)} → {padTime(endHour)}
+            {crossDay && (
+              <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.4)", marginLeft: 8 }}>
+                +1日
+              </span>
+            )}
           </p>
-          {crossDay && (
-            <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginBottom: 8 }}>
-              +1日
-            </div>
-          )}
 
           {/* Date */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-            <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
-            <span style={{ fontSize: 14, color: tokens.colors.text }}>{dateStr}</span>
+          <div style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
+            {dateStr}
           </div>
 
           {/* Venue */}
-          <div style={{ fontSize: 12, color: tokens.colors.text, opacity: 0.5 }}>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
             248 Snooker · {tableName}
           </div>
         </div>
 
         {/* Perforation line */}
-        <div style={{ position: "relative", height: 20, margin: "16px 0" }}>
+        <div style={{ position: "relative", height: 20, margin: "20px 0" }}>
           {/* Left notch */}
           <div
             style={{
@@ -1970,19 +1997,19 @@ function Screen4({
         </div>
 
         {/* Bottom stub */}
-        <div style={{ padding: "16px 24px 24px" }}>
-          {/* Info row */}
+        <div style={{ padding: "0 24px 24px" }}>
+          {/* Info row — 3 columns */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}>
             <div>
-              <div style={{ fontSize: 11, color: tokens.colors.textFaint, marginBottom: 2 }}>時長</div>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>{duration}小時</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>時長</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{duration}小時</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: tokens.colors.textFaint, marginBottom: 2 }}>已付</div>
-              <div style={{ fontSize: 14, fontWeight: 500 }}>HK${total}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>已付</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand }}>HK${total}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, color: tokens.colors.textFaint, marginBottom: 2 }}>付款</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>付款</div>
               <VisaLogo className="h-4" />
             </div>
           </div>
@@ -1991,10 +2018,11 @@ function Screen4({
           <div
             style={{
               background: "#fff",
-              borderRadius: 12,
+              borderRadius: 16,
               padding: 16,
               display: "flex",
               justifyContent: "center",
+              marginTop: 16,
               marginBottom: 12,
             }}
           >
@@ -2004,27 +2032,27 @@ function Screen4({
           {/* Booking ref */}
           <div
             style={{
-              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-              fontSize: 14,
-              color: tokens.colors.text,
-              letterSpacing: "0.2em",
+              fontFamily: "'SF Mono', 'Courier New', monospace",
+              fontSize: 13,
+              color: "rgba(255,255,255,0.6)",
+              letterSpacing: "0.15em",
               textAlign: "center",
-              marginBottom: 12,
+              marginBottom: 6,
             }}
           >
             {bookingRef}
           </div>
 
-          {/* Footer text */}
+          {/* Helper text */}
           <div
             data-cms-key="book.ticket.footer"
             style={{
               fontSize: 11,
-              color: tokens.colors.textFaint,
+              color: "rgba(255,255,255,0.3)",
               textAlign: "center",
             }}
           >
-            請於入場時出示此二維碼 · 24 小時客服
+            請於入場時出示此二維碼 · 24小時客服
           </div>
         </div>
       </motion.div>
@@ -2034,7 +2062,7 @@ function Screen4({
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 16 }}
         transition={{ delay: 0.5, duration: 0.4 }}
-        style={{ marginTop: 24, width: "100%", maxWidth: 380 }}
+        style={{ marginTop: 24, width: "100%", maxWidth: 400 }}
       >
         <div style={{ display: "flex", gap: 12 }}>
           <button
@@ -2052,7 +2080,7 @@ function Screen4({
               border: "1px solid rgba(255,255,255,0.15)",
               borderRadius: 12,
               color: tokens.colors.text,
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: 500,
               cursor: "pointer",
             }}
@@ -2075,7 +2103,7 @@ function Screen4({
               border: "1px solid rgba(255,255,255,0.15)",
               borderRadius: 12,
               color: tokens.colors.text,
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: 500,
               cursor: "pointer",
             }}
@@ -2092,7 +2120,7 @@ function Screen4({
             style={{
               background: "none",
               border: "none",
-              color: tokens.colors.textMuted,
+              color: "rgba(255,255,255,0.4)",
               fontSize: 14,
               cursor: "pointer",
             }}
@@ -2290,6 +2318,7 @@ export default function BookPage() {
         }
         .col-left {
           flex: 1;
+          overflow: visible;
         }
         .desktop-card {
           display: none;

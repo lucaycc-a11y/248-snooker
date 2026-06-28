@@ -16,18 +16,27 @@ const navLinks = [
   { href: '/blog', label: 'Blog' },
 ]
 
-// Frosted-glass pill — the only element in the nav with a background.
-const PILL_STYLE: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.12)',
-  backdropFilter: 'blur(20px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-  border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: 999,
-  pointerEvents: 'auto',
+type NavTheme = 'dark' | 'light'
+
+const PILL_TRANSITION = 'color 0.3s, background 0.3s, border-color 0.3s'
+
+// Pill chrome resolves from the background behind the navbar.
+function pillStyle(theme: NavTheme): React.CSSProperties {
+  const dark = theme === 'dark'
+  return {
+    background: dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+    border: `1px solid ${dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'}`,
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    borderRadius: 999,
+    pointerEvents: 'auto',
+    transition: PILL_TRANSITION,
+  }
 }
 
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [theme, setTheme] = useState<NavTheme>('dark')
   const pathname = usePathname()
 
   useEffect(() => {
@@ -41,9 +50,36 @@ export default function Nav() {
     }
   }, [menuOpen])
 
+  // Auto light/dark: observe which [data-nav-theme] section sits behind the
+  // navbar. The rootMargin shrinks the root to a thin band just under the pill
+  // (top inset ≈ nav top 20px + pill height ~44px; bottom inset leaves the band
+  // positive-height) so only the section under the pill counts as intersecting.
+  useEffect(() => {
+    const sections = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-nav-theme]')
+    )
+    if (sections.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const hit = entries.find((e) => e.isIntersecting)
+        if (hit) {
+          const next = hit.target.getAttribute('data-nav-theme')
+          if (next === 'dark' || next === 'light') setTheme(next)
+        }
+      },
+      { rootMargin: '-64px 0px -35% 0px', threshold: 0 }
+    )
+
+    sections.forEach((s) => observer.observe(s))
+    return () => observer.disconnect()
+  }, [pathname])
+
+  const linkColor = theme === 'dark' ? '#ffffff' : '#000000'
+
   return (
     <>
-      {/* Wrapper — fully transparent, clicks pass through empty areas */}
+      {/* Wrapper — transparent, centred, clicks pass through empty areas */}
       <nav
         style={{
           position: 'fixed',
@@ -53,35 +89,36 @@ export default function Nav() {
           zIndex: 50,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           padding: '0 16px',
           background: 'transparent',
-          backdropFilter: 'none',
-          WebkitBackdropFilter: 'none',
           border: 'none',
-          boxShadow: 'none',
           pointerEvents: 'none',
         }}
         className="nav-bar"
       >
-        {/* Left: Logo — floats freely */}
+        {/* Logo — floats top-left, absolute so the pill stays centred */}
         <Link
           href="/"
           style={{
+            position: 'absolute',
+            left: 16,
+            top: '50%',
+            transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            flexShrink: 0,
             pointerEvents: 'auto',
           }}
+          className="nav-logo"
         >
           <Logo variant="full" size={28} />
         </Link>
 
-        {/* Center: Desktop links inside frosted pill */}
+        {/* Desktop links — centred frosted pill */}
         <div
           className="nav-center"
           style={{
-            ...PILL_STYLE,
+            ...pillStyle(theme),
             display: 'none',
             alignItems: 'center',
             gap: 28,
@@ -97,10 +134,10 @@ export default function Nav() {
                 style={{
                   fontSize: 14,
                   fontWeight: 500,
-                  color: active ? tokens.colors.brand : tokens.colors.text,
+                  color: active ? tokens.colors.brand : linkColor,
                   textDecoration: 'none',
                   whiteSpace: 'nowrap',
-                  transition: `color ${tokens.duration.fast}`,
+                  transition: PILL_TRANSITION,
                 }}
               >
                 {link.label}
@@ -109,121 +146,76 @@ export default function Nav() {
           })}
         </div>
 
-        {/* Right: Mobile — CTA floats + hamburger pill */}
-        <div
-          className="nav-right-mobile"
+        {/* Mobile — hamburger pill, floats top-right */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="nav-hamburger"
           style={{
+            ...pillStyle(theme),
+            position: 'absolute',
+            right: 16,
+            top: '50%',
+            transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
-            flexShrink: 0,
-            pointerEvents: 'none',
+            justifyContent: 'center',
+            width: 48,
+            height: 44,
+            cursor: 'pointer',
+            color: linkColor,
+            padding: 0,
+            WebkitTapHighlightColor: 'transparent',
+          }}
+          aria-label={menuOpen ? '關閉選單' : '開啟選單'}
+        >
+          <motion.span
+            animate={{ rotate: menuOpen ? 90 : 0, opacity: menuOpen ? 0 : 1 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            style={{ position: 'absolute', display: 'flex' }}
+          >
+            <Menu size={20} />
+          </motion.span>
+          <motion.span
+            animate={{ rotate: menuOpen ? 0 : -90, opacity: menuOpen ? 1 : 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            style={{ position: 'absolute', display: 'flex' }}
+          >
+            <X size={20} />
+          </motion.span>
+        </button>
+
+        {/* Desktop — Book CTA, floats top-right */}
+        <Link
+          href="/book"
+          className="nav-cta-desktop"
+          style={{
+            position: 'absolute',
+            right: 32,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            textDecoration: 'none',
+            pointerEvents: 'auto',
+            display: 'none',
           }}
         >
-          <Link href="/book" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
-            <span
-              data-cms-key="nav.cta"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: tokens.colors.brand,
-                color: '#000',
-                borderRadius: tokens.radius.pill,
-                padding: '10px 20px',
-                fontWeight: 700,
-                fontSize: 15,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              立即預訂
-            </span>
-          </Link>
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="nav-hamburger"
+          <span
+            data-cms-key="nav.book-desktop"
             style={{
-              ...PILL_STYLE,
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 48,
-              height: 44,
-              cursor: 'pointer',
-              color: tokens.colors.text,
-              padding: 0,
-              WebkitTapHighlightColor: 'transparent',
-              position: 'relative',
+              background: tokens.colors.brand,
+              color: '#000',
+              borderRadius: tokens.radius.pill,
+              padding: '10px 20px',
+              fontWeight: 700,
+              fontSize: 14,
+              whiteSpace: 'nowrap',
             }}
-            aria-label={menuOpen ? '關閉選單' : '開啟選單'}
           >
-            <motion.span
-              animate={{ rotate: menuOpen ? 90 : 0, opacity: menuOpen ? 0 : 1 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ position: 'absolute', display: 'flex' }}
-            >
-              <Menu size={20} />
-            </motion.span>
-            <motion.span
-              animate={{ rotate: menuOpen ? 0 : -90, opacity: menuOpen ? 1 : 0 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              style={{ position: 'absolute', display: 'flex' }}
-            >
-              <X size={20} />
-            </motion.span>
-          </button>
-        </div>
-
-        {/* Right: Desktop — Login + Book Now, floating */}
-        <div
-          className="nav-right-desktop"
-          style={{
-            display: 'none',
-            alignItems: 'center',
-            gap: 8,
-            flexShrink: 0,
-            pointerEvents: 'none',
-          }}
-        >
-          <Link href="/login" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
-            <span
-              data-cms-key="nav.login"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: tokens.colors.text,
-                fontSize: 14,
-                fontWeight: 500,
-                ...PILL_STYLE,
-                padding: '10px 18px',
-                whiteSpace: 'nowrap',
-                cursor: 'pointer',
-              }}
-            >
-              Login
-            </span>
-          </Link>
-          <Link href="/book" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
-            <span
-              data-cms-key="nav.book-desktop"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: tokens.colors.brand,
-                color: '#000',
-                borderRadius: tokens.radius.pill,
-                padding: '10px 20px',
-                fontWeight: 700,
-                fontSize: 14,
-                whiteSpace: 'nowrap',
-              }}
-            >
-              立即預訂
-            </span>
-          </Link>
-        </div>
+            立即預訂
+          </span>
+        </Link>
       </nav>
 
       {/* Responsive breakpoint styles */}
@@ -235,11 +227,11 @@ export default function Nav() {
           .nav-center {
             display: flex !important;
           }
-          .nav-right-mobile {
+          .nav-hamburger {
             display: none !important;
           }
-          .nav-right-desktop {
-            display: flex !important;
+          .nav-cta-desktop {
+            display: block !important;
           }
         }
       `}</style>

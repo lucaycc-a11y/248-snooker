@@ -384,6 +384,7 @@ export default function Member() {
 
   return (
     <section
+      data-nav-theme="dark"
       style={{ background: "#1D1D1F", color: DARK, padding: "clamp(88px, 12vw, 140px) 0", fontFamily: FONT_FAMILY }}
       data-cms-key="membership_section"
     >

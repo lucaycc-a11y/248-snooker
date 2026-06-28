@@ -30,6 +30,7 @@ export default function Hero() {
 
   return (
     <section
+      data-nav-theme="dark"
       className="relative overflow-hidden bg-black"
       style={{ width: "100%", height: "100dvh" }}
     >

@@ -101,6 +101,7 @@ export default function Gallery() {
 
   return (
     <section
+      data-nav-theme="dark"
       style={{
         background: "#1C1C1E",
         padding: isMobile ? "88px 0" : "140px 0",

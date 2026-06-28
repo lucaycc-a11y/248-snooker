@@ -345,6 +345,7 @@ export default function HowItWorks() {
 
   return (
     <section
+      data-nav-theme="light"
       style={{
         background: "#F5F5F7",
         color: DARK,
