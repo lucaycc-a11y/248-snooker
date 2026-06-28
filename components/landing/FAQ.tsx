@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { faqItems, faqJsonLd } from "./faqData";
+import { useTranslations } from "next-intl";
+import { getFaqItems, getFaqJsonLd } from "./faqData";
 
 const DARK = "#1D1D1F";
 const DIVIDER = "#D2D2D7";
@@ -14,6 +15,9 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
 
 export default function FAQ() {
+  const t = useTranslations('faq');
+  const faqItems = getFaqItems(t);
+  const faqJsonLd = getFaqJsonLd(t);
   // Only one item open at a time. null = all closed.
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -47,7 +51,7 @@ export default function FAQ() {
           }}
           data-cms-key="faq_title"
         >
-          常見問題。
+          {t('title')}。
         </motion.h2>
 
         <div>

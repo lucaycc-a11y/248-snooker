@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 const GREEN_LIGHT = "#22C55E";
 const SUBTLE = "#86868B";
@@ -57,39 +58,6 @@ interface Stage {
   cmsKey: string;
 }
 
-const stages: Stage[] = [
-  {
-    id: "afternoon",
-    label: "下午",
-    range: "12pm – 6pm",
-    rate: 60,
-    Glyph: SunGlyph,
-    cmsKey: "pricing_stage_afternoon",
-  },
-  {
-    id: "evening",
-    label: "晚上",
-    range: "6pm – 12am",
-    rate: 80,
-    Glyph: MoonGlyph,
-    cmsKey: "pricing_stage_evening",
-  },
-  {
-    id: "latenight",
-    label: "深夜",
-    range: "12am – 6am",
-    rate: 60,
-    Glyph: MoonStarGlyph,
-    cmsKey: "pricing_stage_latenight",
-  },
-];
-
-const durations = [
-  { label: "1 小時", hours: 1 },
-  { label: "2 小時", hours: 2 },
-  { label: "3 小時", hours: 3 },
-] as const;
-
 function formatPrice(value: number): string {
   return `HK$${Math.round(value)}`;
 }
@@ -132,12 +100,18 @@ function LearnMore({ href, children, cmsKey }: LearnMoreProps) {
   );
 }
 
+interface DurationOption {
+  label: string;
+  hours: number;
+}
+
 interface DurationPillsProps {
   hours: number;
   onSelect: (hours: number) => void;
+  durations: readonly DurationOption[];
 }
 
-function DurationPills({ hours, onSelect }: DurationPillsProps) {
+function DurationPills({ hours, onSelect, durations }: DurationPillsProps) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
       {durations.map((d) => {
@@ -169,40 +143,46 @@ function DurationPills({ hours, onSelect }: DurationPillsProps) {
 }
 
 // ── Eyebrow + reusable content block ──
-const eyebrow = (
-  <p
-    style={{
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      fontSize: "14px",
-      fontWeight: 500,
-      color: GREEN_LIGHT,
-      letterSpacing: "0.04em",
-      margin: "0 0 28px",
-    }}
-    data-cms-key="pricing_eyebrow"
-  >
-    <span
-      aria-hidden="true"
-      style={{ width: "6px", height: "6px", borderRadius: "50%", background: GREEN_LIGHT, flexShrink: 0 }}
-    />
-    定價
-  </p>
-);
+function Eyebrow({ label }: { label: string }) {
+  return (
+    <p
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        fontSize: "14px",
+        fontWeight: 500,
+        color: GREEN_LIGHT,
+        letterSpacing: "0.04em",
+        margin: "0 0 28px",
+      }}
+      data-cms-key="pricing_eyebrow"
+    >
+      <span
+        aria-hidden="true"
+        style={{ width: "6px", height: "6px", borderRadius: "50%", background: GREEN_LIGHT, flexShrink: 0 }}
+      />
+      {label}
+    </p>
+  );
+}
 
 interface StageContentProps {
   stage: Stage;
   hours: number;
   onSelect: (hours: number) => void;
   priceSize: string;
+  perHour: string;
+  ctaBook: string;
+  ctaLearn: string;
+  durations: readonly DurationOption[];
 }
 
-function StageContent({ stage, hours, onSelect, priceSize }: StageContentProps) {
+function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, ctaLearn, durations }: StageContentProps) {
   const total = stage.rate * hours;
   return (
     <>
-      {eyebrow}
+      <Eyebrow label={stage.label} />
 
       <h3
         style={{
@@ -240,19 +220,19 @@ function StageContent({ stage, hours, onSelect, priceSize }: StageContentProps) 
             </motion.span>
           </AnimatePresence>
         </div>
-        <span style={{ fontSize: "14px", color: SUBTLE, paddingBottom: "8px" }}>/小時</span>
+        <span style={{ fontSize: "14px", color: SUBTLE, paddingBottom: "8px" }}>{perHour}</span>
       </div>
 
       <div style={{ marginBottom: "44px" }}>
-        <DurationPills hours={hours} onSelect={onSelect} />
+        <DurationPills hours={hours} onSelect={onSelect} durations={durations} />
       </div>
 
       <div style={{ display: "flex", gap: "32px", flexWrap: "wrap" }}>
         <LearnMore href="/about" cmsKey="pricing_link_choose_time">
-          選擇時段
+          {ctaBook}
         </LearnMore>
         <LearnMore href="/pricing" cmsKey="pricing_link_details">
-          了解定價詳情
+          {ctaLearn}
         </LearnMore>
       </div>
     </>
@@ -260,9 +240,48 @@ function StageContent({ stage, hours, onSelect, priceSize }: StageContentProps) 
 }
 
 export default function Pricing() {
+  const t = useTranslations('pricing');
   const [isMobile, setIsMobile] = useState(false);
   const [stageIndex, setStageIndex] = useState(0);
-  // Each period remembers its own selected duration (defaults to 1 小時).
+
+  const stages: Stage[] = [
+    {
+      id: "afternoon",
+      label: t('afternoon_label'),
+      range: t('afternoon_range'),
+      rate: 60,
+      Glyph: SunGlyph,
+      cmsKey: "pricing_stage_afternoon",
+    },
+    {
+      id: "evening",
+      label: t('evening_label'),
+      range: t('evening_range'),
+      rate: 80,
+      Glyph: MoonGlyph,
+      cmsKey: "pricing_stage_evening",
+    },
+    {
+      id: "latenight",
+      label: t('night_label'),
+      range: t('night_range'),
+      rate: 60,
+      Glyph: MoonStarGlyph,
+      cmsKey: "pricing_stage_latenight",
+    },
+  ];
+
+  const durations: DurationOption[] = [
+    { label: t('duration_1h'), hours: 1 },
+    { label: t('duration_2h'), hours: 2 },
+    { label: t('duration_3h'), hours: 3 },
+  ];
+
+  const perHour = t('per_hour');
+  const ctaBook = t('cta_book');
+  const ctaLearn = t('cta_learn');
+
+  // Each period remembers its own selected duration (defaults to 1h).
   const [hoursByStage, setHoursByStage] = useState<Record<string, number>>(
     () => Object.fromEntries(stages.map((s) => [s.id, 1]))
   );
@@ -354,7 +373,7 @@ export default function Pricing() {
               data-cms-key={stage.cmsKey}
             >
               {/* Section label — first section only */}
-              {i === 0 && eyebrow}
+              {i === 0 && <Eyebrow label={t('title')} />}
 
               {/* Period name + range */}
               <h3
@@ -397,20 +416,20 @@ export default function Pricing() {
                   </motion.span>
                 </AnimatePresence>
               </div>
-              <p style={{ fontSize: "16px", color: SUBTLE, margin: "10px 0 0" }}>/小時</p>
+              <p style={{ fontSize: "16px", color: SUBTLE, margin: "10px 0 0" }}>{perHour}</p>
 
               {/* Duration pills */}
               <div style={{ display: "flex", justifyContent: "center", margin: "40px 0 0" }}>
-                <DurationPills hours={hours} onSelect={(h) => setHoursFor(stage.id, h)} />
+                <DurationPills hours={hours} onSelect={(h) => setHoursFor(stage.id, h)} durations={durations} />
               </div>
 
               {/* Links */}
               <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", marginTop: "40px" }}>
                 <LearnMore href="/about" cmsKey="pricing_link_choose_time">
-                  選擇時段
+                  {ctaBook}
                 </LearnMore>
                 <LearnMore href="/pricing" cmsKey="pricing_link_details">
-                  了解定價詳情
+                  {ctaLearn}
                 </LearnMore>
               </div>
             </motion.div>
@@ -502,6 +521,10 @@ export default function Pricing() {
                     hours={activeHours}
                     onSelect={(h) => setHoursFor(active.id, h)}
                     priceSize="64px"
+                    perHour={perHour}
+                    ctaBook={ctaBook}
+                    ctaLearn={ctaLearn}
+                    durations={durations}
                   />
                 </motion.div>
               </AnimatePresence>

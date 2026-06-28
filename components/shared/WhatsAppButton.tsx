@@ -2,15 +2,17 @@
 
 import { useState } from 'react'
 import { MessageCircle } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 const WHATSAPP_URL = 'https://wa.me/85264274620'
 
 /**
  * Floating WhatsApp contact button — mobile only (md:hidden).
  * Fixed bottom-right, 56px circle, WhatsApp brand green (#25D366).
- * Tooltip on hover/long-press: "WhatsApp 我哋".
+ * Tooltip on hover/long-press.
  */
 export default function WhatsAppButton() {
+  const t = useTranslations('whatsapp')
   const [showTip, setShowTip] = useState(false)
 
   return (
@@ -18,7 +20,7 @@ export default function WhatsAppButton() {
       href={WHATSAPP_URL}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="WhatsApp 我哋"
+      aria-label={t('aria_label')}
       className="md:hidden"
       onTouchStart={() => setShowTip(true)}
       onTouchEnd={() => setShowTip(false)}
@@ -64,7 +66,7 @@ export default function WhatsAppButton() {
           transition: 'opacity 150ms ease',
         }}
       >
-        WhatsApp 我哋
+        {t('tooltip')}
       </span>
     </a>
   )

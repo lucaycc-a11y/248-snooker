@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 const DARK = "#1D1D1F";
 const GREEN = "#22C55E";
@@ -82,44 +83,6 @@ interface Step {
   modalBody: string;
 }
 
-const steps: Step[] = [
-  {
-    key: "step_book",
-    icon: CalendarClockIcon,
-    accent: "#0071E3",
-    title: "選擇時段",
-    body: "選擇日期、時間及時長。即時確認，毋需等候。",
-    highlights: ["即時確認"],
-    modalLabel: "預訂",
-    modalTitle: "選擇時段",
-    modalBody:
-      "全程線上預訂，三步完成。選擇日期、時間及時長後即時確認，毋需等候人手回覆。付款支援 Apple Pay、Visa、Mastercard 及 UnionPay，安全快捷。",
-  },
-  {
-    key: "step_qr",
-    icon: QrCodeIcon,
-    accent: "#22C55E",
-    title: "掃碼入場",
-    body: "預訂確認後即獲 QR 碼。到場掃描，自動開門。",
-    highlights: ["自動開門"],
-    modalLabel: "入場",
-    modalTitle: "掃碼入場",
-    modalBody:
-      "預訂確認後即時獲發專屬 QR 碼，於預訂時段內有效。到場時於門鎖掃描即自動開門，全程無需職員協助。QR 碼僅限預訂時段使用，安全可靠。",
-  },
-  {
-    key: "step_points",
-    icon: TrophyIcon,
-    accent: "#F59E0B",
-    title: "累積積分",
-    body: "每 HK$1 累積 1 積分。愈打愈著數。",
-    highlights: ["愈打愈著數"],
-    modalLabel: "獎賞",
-    modalTitle: "累積積分",
-    modalBody:
-      "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 Amateur、Century、Maximum，分別享有折扣、優先預訂及免費教練時段等專屬福利。",
-  },
-];
 
 interface ModalData {
   label: string;
@@ -129,6 +92,7 @@ interface ModalData {
 }
 
 function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void }) {
+  const t = useTranslations('how');
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     if (data) {
@@ -185,7 +149,7 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
             <button
               type="button"
               onClick={onClose}
-              aria-label="關閉"
+              aria-label={t('close')}
               style={{
                 position: "absolute",
                 top: "20px",
@@ -292,11 +256,48 @@ function ArrowButton({
 }
 
 export default function HowItWorks() {
+  const t = useTranslations('how');
   const [modal, setModal] = useState<ModalData | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [activeDot, setActiveDot] = useState(0);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const steps: Step[] = [
+    {
+      key: "step_book",
+      icon: CalendarClockIcon,
+      accent: "#0071E3",
+      title: t('step1_title'),
+      body: t('step1_body'),
+      highlights: [t('step1_highlight')],
+      modalLabel: t('step1_modal_label'),
+      modalTitle: t('step1_modal_title'),
+      modalBody: t('step1_modal_body'),
+    },
+    {
+      key: "step_qr",
+      icon: QrCodeIcon,
+      accent: "#22C55E",
+      title: t('step2_title'),
+      body: t('step2_body'),
+      highlights: [t('step2_highlight')],
+      modalLabel: t('step2_modal_label'),
+      modalTitle: t('step2_modal_title'),
+      modalBody: t('step2_modal_body'),
+    },
+    {
+      key: "step_points",
+      icon: TrophyIcon,
+      accent: "#F59E0B",
+      title: t('step3_title'),
+      body: t('step3_body'),
+      highlights: [t('step3_highlight')],
+      modalLabel: t('step3_modal_label'),
+      modalTitle: t('step3_modal_title'),
+      modalBody: t('step3_modal_body'),
+    },
+  ];
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -383,7 +384,7 @@ export default function HowItWorks() {
             }}
             data-cms-key="how_it_works_title"
           >
-            預訂流程。
+            {t('title')}。
           </motion.h2>
           <motion.a
             initial={{ opacity: 0, y: 20 }}

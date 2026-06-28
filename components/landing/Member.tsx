@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 const GREEN_LIGHT = "#22C55E";
 const DARK = "#1D1D1F";
@@ -72,41 +73,6 @@ interface TierCard {
   modalBody: string;
 }
 
-const cards: TierCard[] = [
-  {
-    key: "tier_amateur",
-    icon: UserIcon,
-    accent: "#22C55E",
-    title: "Amateur",
-    body: "HK$1 = 1 積分。每月免費一局。",
-    highlights: ["每月免費一局"],
-    modalBody:
-      "新用戶自動加入 Amateur 等級，即時獲贈 50 積分。每消費 HK$1 累積 1 積分，每月享一局免費時段。開始你的旅程，輕鬆累積。",
-  },
-  {
-    key: "tier_century",
-    icon: TrophyIcon,
-    accent: "#F59E0B",
-    title: "Century",
-    subtitle: "500 積分起",
-    body: "全場時段 9 折。優先預訂熱門時段。積分 1.5 倍加速。",
-    highlights: ["9 折", "1.5 倍"],
-    modalBody:
-      "累積 500 積分晉升 Century 等級。全場所有時段享 9 折優惠，可優先預訂晚上熱門時段，積分以 1.5 倍速度累積，升級更快。",
-  },
-  {
-    key: "tier_maximum",
-    icon: StarIcon,
-    accent: "#A78BFA",
-    title: "Maximum",
-    subtitle: "1,500 積分起",
-    badge: "最高等級",
-    body: "全場時段 8 折。專屬球桌保留權。積分雙倍，免費教練時段。",
-    highlights: ["8 折", "積分雙倍", "免費教練時段"],
-    modalBody:
-      "累積 1,500 積分達到 Maximum 最高等級。全場時段 8 折，享專屬球桌保留權，積分雙倍累積，並可預約免費教練時段。為最投入的玩家而設。",
-  },
-];
 
 interface ModalData {
   label: string;
@@ -115,6 +81,7 @@ interface ModalData {
 }
 
 function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void }) {
+  const t = useTranslations('member');
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     if (data) {
@@ -172,7 +139,7 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
             <button
               type="button"
               onClick={onClose}
-              aria-label="關閉"
+              aria-label={t('close_modal')}
               style={{
                 position: "absolute",
                 top: "20px",
@@ -216,7 +183,7 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
               className="group inline-flex items-center"
               style={{ color: GREEN_LIGHT, fontSize: "17px", textDecoration: "none", gap: "2px" }}
             >
-              <span className="group-hover:underline">了解更多</span>
+              <span className="group-hover:underline">{t('cta_learn')}</span>
               <span aria-hidden="true">›</span>
             </a>
           </motion.div>
@@ -227,11 +194,45 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
 }
 
 export default function Member() {
+  const t = useTranslations('member');
   const [modal, setModal] = useState<ModalData | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [activeDot, setActiveDot] = useState(0);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const cards: TierCard[] = [
+    {
+      key: "tier_amateur",
+      icon: UserIcon,
+      accent: "#22C55E",
+      title: t('amateur_title'),
+      body: t('amateur_body'),
+      highlights: [t('amateur_highlight')],
+      modalBody: t('amateur_modal_body'),
+    },
+    {
+      key: "tier_century",
+      icon: TrophyIcon,
+      accent: "#F59E0B",
+      title: t('century_title'),
+      subtitle: t('century_subtitle'),
+      body: t('century_body'),
+      highlights: [t('century_highlight1'), t('century_highlight2')],
+      modalBody: t('century_modal_body'),
+    },
+    {
+      key: "tier_maximum",
+      icon: StarIcon,
+      accent: "#A78BFA",
+      title: t('maximum_title'),
+      subtitle: t('maximum_subtitle'),
+      badge: t('maximum_badge'),
+      body: t('maximum_body'),
+      highlights: [t('maximum_highlight1'), t('maximum_highlight2'), t('maximum_highlight3')],
+      modalBody: t('maximum_modal_body'),
+    },
+  ];
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 1024);
@@ -345,7 +346,7 @@ export default function Member() {
       {/* + button — Apple proportion: 16px glyph in 44px circle (≈36%) */}
       <motion.button
         type="button"
-        onClick={() => setModal({ label: "會員等級", title: card.title, body: card.modalBody })}
+        onClick={() => setModal({ label: t('modal_label'), title: card.title, body: card.modalBody })}
         aria-label={`展開「${card.title}」詳細說明`}
         whileHover={{ scale: 1.08, backgroundColor: "rgba(255,255,255,0.22)" }}
         transition={SPRING}
@@ -405,7 +406,7 @@ export default function Member() {
           style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.03em", margin: "0 0 12px", color: "#86868B" }}
           data-cms-key="membership_title"
         >
-          愈打愈著數。
+          {t('title')}。
         </motion.h2>
 
         <a
@@ -414,7 +415,7 @@ export default function Member() {
           style={{ color: GREEN_LIGHT, fontSize: "19px", textDecoration: "none", gap: "2px", whiteSpace: "nowrap" }}
           data-cms-key="membership_link"
         >
-          <span className="group-hover:underline">了解會員計劃</span>
+          <span className="group-hover:underline">{t('cta_join')}</span>
           <span aria-hidden="true">›</span>
         </a>
       </div>

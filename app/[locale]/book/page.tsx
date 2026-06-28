@@ -29,6 +29,8 @@ import {
 import { useHaptic } from "@/lib/useHaptic"
 import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
+// @ts-ignore
+import confetti from "canvas-confetti"
 
 /* ─────────────────────────  Config  ───────────────────────── */
 // TODO: connect Supabase — use getConfig() server-side and pass as prop
@@ -130,6 +132,7 @@ function QRCode({ data }: { data: string }) {
       height={totalSize}
       viewBox={`0 0 ${totalSize} ${totalSize}`}
     >
+      <rect width={totalSize} height={totalSize} fill="#0a0a0a" />
       {grid.map((row, r) =>
         row.map((on, c) =>
           on ? (
@@ -139,7 +142,7 @@ function QRCode({ data }: { data: string }) {
               y={r * cellSize}
               width={cellSize}
               height={cellSize}
-              fill="#000"
+              fill="#ffffff"
             />
           ) : null
         )
@@ -678,7 +681,7 @@ function DrumWheel({
         <div style={{ height: WHEEL_PAD }} aria-hidden="true" />
         {loop.map((val, i) => {
           const dist = Math.abs(i - centerLoopIdx)
-          const fontSize = dist === 0 ? 28 : dist === 1 ? 22 : 18
+          const fontSize = dist === 0 ? 36 : dist === 1 ? 22 : 18
           const opacity = dist === 0 ? 1 : dist === 1 ? 0.7 : 0.35
           const realIdx = ((i % n) + n) % n
           return (
@@ -800,7 +803,7 @@ function SummaryCard({
         <div
           style={{
             fontFamily: BEBAS,
-            fontSize: 36,
+            fontSize: 40,
             textAlign: "center",
             marginBottom: 28,
             color: tokens.colors.brand,
@@ -1801,64 +1804,26 @@ function Screen4({
   tableName: string
   bookingRef: string
 }) {
-  const [showContent, setShowContent] = useState(false)
-  const [isPrinting, setIsPrinting] = useState(true)
-  const confettiRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
-
-  const PRINT_MS = 1800
 
   const total = CONFIG.pricePerHour * duration
   const endHour = startHour + duration
   const crossDay = endHour >= 24
   const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 星期${DAY_NAMES[selectedDate.getDay()]}`
 
+  // canvas-confetti burst after ticket springs in
   useEffect(() => {
-    const t = setTimeout(() => setShowContent(true), 300)
-    // Printing runs for PRINT_MS, then the LED stops pulsing and the
-    // actions stagger in.
-    const p = setTimeout(() => setIsPrinting(false), 300 + PRINT_MS)
-    return () => {
-      clearTimeout(t)
-      clearTimeout(p)
-    }
+    const timer = setTimeout(() => {
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: ["#22c55e", "#ffffff", "#16a34a"],
+      })
+    }, 2000)
+    return () => clearTimeout(timer)
   }, [])
-
-  // Confetti — fire once the receipt has finished printing (peak-end moment).
-  useEffect(() => {
-    if (isPrinting) return
-    const container = confettiRef.current
-    if (!container) return
-    const colors = [tokens.colors.brand, "#FFFFFF", tokens.colors.link, "#FFD700", "#FF6B6B"]
-    const particles: HTMLDivElement[] = []
-
-    requestAnimationFrame(() => {
-      for (let i = 0; i < 80; i++) {
-        const el = document.createElement("div")
-        const size = 5 + Math.random() * 5
-        const color = colors[i % colors.length]
-        const dur = 1.2 + Math.random() * 0.8
-        const tx = (Math.random() - 0.5) * 400
-        const ty = Math.random() * 600
-        const rot = Math.random() * 720
-        el.style.cssText = `
-          position:absolute; width:${size}px; height:${size}px;
-          background:${color}; border-radius:2px; left:50%; top:0;
-          animation: confetti-fall ${dur}s cubic-bezier(0.16,1,0.3,1) forwards;
-          --tx:${tx}px; --ty:${ty}px; --rot:${rot}deg;
-        `
-        container.appendChild(el)
-        particles.push(el)
-      }
-    })
-
-    const cleanup = setTimeout(() => particles.forEach((p) => p.remove()), 3000)
-    return () => {
-      clearTimeout(cleanup)
-      particles.forEach((p) => p.remove())
-    }
-  }, [isPrinting])
 
   // Add-to-calendar — generate a downloadable .ics file
   const handleAddCalendar = () => {
@@ -1919,87 +1884,20 @@ function Screen4({
         padding: "24px 20px",
       }}
     >
-      <div
-        ref={confettiRef}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          pointerEvents: "none",
-          overflow: "hidden",
-        }}
-      />
-
-      {/* Printer + receipt assembly */}
+      {/* Ticket spring slide-up */}
       <div style={{ width: "100%", maxWidth: 400, margin: "0 auto", position: "relative" }}>
-        {/* Printer slot — the "mouth" the receipt feeds out of */}
         <motion.div
-          aria-hidden="true"
-          animate={isPrinting ? { x: [0, -1, 1, -1, 0] } : { x: 0, opacity: 0.6 }}
-          transition={
-            isPrinting
-              ? { x: { repeat: Infinity, duration: 0.1, ease: "linear" } }
-              : { duration: 0.3 }
-          }
-          style={{
-            height: 16,
-            background: "linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%)",
-            borderRadius: "8px 8px 0 0",
-            display: "flex",
-            alignItems: "center",
-            paddingLeft: 12,
-            gap: 6,
-            boxShadow:
-              "0 4px 12px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05)",
-            position: "relative",
-            zIndex: 2,
-          }}
-        >
-          {/* Green LED — pulses while printing, solid after */}
-          <motion.div
-            style={{ width: 6, height: 6, borderRadius: "50%", background: tokens.colors.brand }}
-            animate={isPrinting ? { opacity: [1, 0.3, 1] } : { opacity: 1 }}
-            transition={isPrinting ? { repeat: Infinity, duration: 0.8, ease: "easeInOut" } : { duration: 0.2 }}
-          />
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
-        </motion.div>
-
-        {/* Ticket Card — prints out top→bottom via clipPath */}
-        <motion.div
-          variants={{
-            hidden: { clipPath: "inset(0 0 100% 0)" },
-            visible: { clipPath: "inset(0 0 0% 0)", transition: { duration: 1.8, ease: "linear" } },
-          }}
-          initial="hidden"
-          animate={showContent ? "visible" : "hidden"}
+          initial={{ y: "80%", opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.5 }}
           style={{
             background: "linear-gradient(160deg, #111111 0%, #1a1a1a 100%)",
-            borderRadius: "0 0 24px 24px",
+            borderRadius: 24,
             border: "1px solid rgba(255,255,255,0.1)",
-            borderTop: "none",
             overflow: "hidden",
             position: "relative",
           }}
         >
-          {/* Scan line — bright bar tracking the print edge downward */}
-          <motion.div
-            aria-hidden="true"
-            initial={{ top: "0%", opacity: 1 }}
-            animate={showContent ? { top: "100%", opacity: [1, 1, 0] } : { top: "0%", opacity: 1 }}
-            transition={{ duration: 1.8, ease: "linear" }}
-            style={{
-              position: "absolute",
-              left: 0,
-              width: "100%",
-              height: 2,
-              background:
-                "linear-gradient(to right, transparent, rgba(255,255,255,0.6), transparent)",
-              pointerEvents: "none",
-              zIndex: 3,
-            }}
-          />
         {/* Top section */}
         <div style={{ padding: 24 }}>
           {/* Header row */}
@@ -2007,8 +1905,8 @@ function Screen4({
             <img src="/logos/248_logo_white_bg.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
             <motion.div
               initial={{ scale: 0 }}
-              animate={{ scale: showContent && !isPrinting ? 1 : 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20, delay: 1.2 }}
               style={{
                 background: tokens.colors.brand,
                 padding: "4px 12px",
@@ -2022,7 +1920,7 @@ function Screen4({
           {/* Time display — single line */}
           <p
             style={{
-              fontSize: "clamp(32px, 8vw, 52px)",
+              fontSize: "clamp(40px, 10vw, 64px)",
               fontWeight: 800,
               letterSpacing: "-0.03em",
               whiteSpace: "nowrap",
@@ -2078,9 +1976,13 @@ function Screen4({
               background: tokens.colors.bg,
             }}
           />
-          {/* Dashed line */}
-          <div
+          {/* Dashed line — animated width */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 1.0, duration: 0.6, ease: "linear" }}
             style={{
+              transformOrigin: "left center",
               position: "absolute",
               top: "50%",
               left: 20,
@@ -2093,27 +1995,40 @@ function Screen4({
 
         {/* Bottom stub */}
         <div style={{ padding: "0 24px 24px" }}>
-          {/* Info row — 3 columns */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}>
-            <div>
+          {/* Info row — 3 columns, stagger in */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.08, delayChildren: 1.4 } }
+            }}
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}
+          >
+            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("duration")}</div>
               <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{duration}{t("hours")}</div>
-            </div>
-            <div>
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("paid")}</div>
               <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand }}>HK${total}</div>
-            </div>
-            <div>
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("payment")}</div>
               <VisaLogo className="h-4" />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          {/* QR Code */}
-          <div
+          {/* QR Code — reveal with clip-path wipe + scan line */}
+          <motion.div
+            initial={{ clipPath: "inset(0 0 100% 0)" }}
+            animate={{ clipPath: "inset(0 0 0% 0)" }}
+            transition={{ delay: 1.6, duration: 0.8, ease: "linear" }}
             style={{
-              background: "#fff",
+              position: "relative",
+              background: "#0a0a0a",
               borderRadius: 16,
+              border: "1px solid rgba(255,255,255,0.15)",
               padding: 16,
               display: "flex",
               justifyContent: "center",
@@ -2122,7 +2037,22 @@ function Screen4({
             }}
           >
             <QRCode data={bookingRef} />
-          </div>
+            {/* Scan line */}
+            <motion.div
+              initial={{ top: "0%" }}
+              animate={{ top: "100%" }}
+              transition={{ delay: 1.6, duration: 0.8, ease: "linear" }}
+              style={{
+                position: "absolute",
+                left: 0,
+                width: "100%",
+                height: 2,
+                background: "linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent)",
+                pointerEvents: "none",
+                zIndex: 3,
+              }}
+            />
+          </motion.div>
 
           {/* Booking ref */}
           <div
@@ -2153,12 +2083,12 @@ function Screen4({
         </motion.div>
       </div>
 
-      {/* Actions below ticket — stagger in after the receipt finishes printing */}
+      {/* Actions below ticket — stagger in after ticket lands */}
       <div style={{ marginTop: 24, width: "100%", maxWidth: 400 }}>
         <motion.div
           initial={{ opacity: 0, y: 16 }}
-          animate={isPrinting ? { opacity: 0, y: 16 } : { opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 2.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           style={{ display: "flex", gap: 12 }}
         >
           <button
@@ -2210,8 +2140,8 @@ function Screen4({
         </motion.div>
         <motion.div
           initial={{ opacity: 0 }}
-          animate={isPrinting ? { opacity: 0 } : { opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.4 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.4, duration: 0.4 }}
           style={{ textAlign: "center", marginTop: 16 }}
         >
           <button
@@ -2254,6 +2184,7 @@ export default function BookPage() {
   const [showProfileModal, setShowProfileModal] = useState<"phone" | "email" | null>(null)
   const [profileInput, setProfileInput] = useState("")
   const [profileSaving, setProfileSaving] = useState(false)
+  const [profileUser, setProfileUser] = useState<{ name: string; avatar: string } | null>(null)
 
   const tables = useTables()
   const tableName =
@@ -2291,6 +2222,10 @@ export default function BookPage() {
       }
       // If on the auth/login screen, advance to payment
       setScreen((s) => (s === 1 ? 2 : s))
+      setProfileUser({
+        name: session.user.user_metadata?.full_name ?? '',
+        avatar: session.user.user_metadata?.avatar_url ?? '',
+      })
       setTimeout(() => {
         if (paymentRef.current) {
           const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
@@ -2312,6 +2247,10 @@ export default function BookPage() {
             } catch {}
           }
           setScreen((s) => (s <= 1 ? 2 : s))
+          setProfileUser({
+            name: session.user.user_metadata?.full_name ?? '',
+            avatar: session.user.user_metadata?.avatar_url ?? '',
+          })
           setTimeout(() => {
             if (paymentRef.current) {
               const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
@@ -2440,29 +2379,52 @@ export default function BookPage() {
         <div
           style={{
             position: "fixed", inset: 0, zIndex: 100,
-            background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)",
+            background: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)",
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "24px",
           }}
         >
-          <div
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: "spring", damping: 22, stiffness: 300 }}
             style={{
-              background: tokens.colors.surface,
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: tokens.radius.card,
-              padding: "28px",
+              background: "#111",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 20,
+              padding: "32px 24px",
               width: "100%",
-              maxWidth: 400,
+              maxWidth: 360,
+              textAlign: "center",
             }}
           >
-            <h3 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>
+            {/* Avatar */}
+            {profileUser?.avatar && (
+              <img
+                src={profileUser.avatar}
+                alt=""
+                style={{ width: 56, height: 56, borderRadius: "50%", margin: "0 auto 16px", display: "block" }}
+              />
+            )}
+
+            {/* Greeting */}
+            {profileUser?.name && (
+              <p style={{ fontSize: 18, fontWeight: 600, color: tokens.colors.text, marginBottom: 8 }}>
+                你好，{profileUser.name}
+              </p>
+            )}
+
+            {/* Title + subtitle */}
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: tokens.colors.text, marginBottom: 6 }}>
               {showProfileModal === "phone" ? "加入電話號碼" : "加入電郵地址"}
             </h3>
             <p style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 24 }}>
               {showProfileModal === "phone" ? "方便我們發送預訂提醒（可選）" : "方便我們發送預訂確認（可選）"}
             </p>
+
+            {/* Input */}
             {showProfileModal === "phone" ? (
-              <div style={{ display: "flex", height: 52, background: "rgba(255,255,255,0.06)", border: `1px solid ${tokens.colors.borderStrong}`, borderRadius: tokens.radius.button, overflow: "hidden" }}>
+              <div style={{ display: "flex", height: 52, background: "rgba(255,255,255,0.06)", border: `1px solid ${tokens.colors.borderStrong}`, borderRadius: tokens.radius.button, overflow: "hidden", marginBottom: 16 }}>
                 <div style={{ padding: "0 16px", display: "flex", alignItems: "center", background: tokens.colors.brandDim, borderRight: "1px solid rgba(37,211,102,0.3)", color: tokens.colors.brand, fontWeight: 600, fontSize: 15, flexShrink: 0 }}>+852</div>
                 <input
                   value={profileInput}
@@ -2470,6 +2432,7 @@ export default function BookPage() {
                   inputMode="numeric"
                   placeholder="9XXX XXXX"
                   style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: tokens.colors.text, fontSize: 16, padding: "0 16px" }}
+                  autoFocus
                 />
               </div>
             ) : (
@@ -2477,41 +2440,59 @@ export default function BookPage() {
                 value={profileInput}
                 onChange={(e) => setProfileInput(e.target.value)}
                 type="email"
+                autoComplete="email"
                 placeholder="you@example.com"
-                style={{ width: "100%", height: 52, background: "rgba(255,255,255,0.06)", border: `1px solid ${tokens.colors.borderStrong}`, borderRadius: tokens.radius.button, outline: "none", color: tokens.colors.text, fontSize: 16, padding: "0 16px" }}
+                style={{ width: "100%", height: 52, background: "rgba(255,255,255,0.06)", border: `1px solid ${tokens.colors.borderStrong}`, borderRadius: tokens.radius.button, outline: "none", color: tokens.colors.text, fontSize: 16, padding: "0 16px", marginBottom: 16 }}
+                autoFocus
               />
             )}
-            <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+
+            {/* Buttons */}
+            <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
               <button
                 type="button"
                 disabled={profileSaving}
                 onClick={async () => {
-                  if (!profileInput) { setShowProfileModal(null); return }
+                  if (!profileInput.trim()) { setShowProfileModal(null); return }
                   setProfileSaving(true)
                   const supabase = createClient()
                   const { data: { user } } = await supabase.auth.getUser()
                   if (user) {
                     await supabase.from("users").update({
-                      [showProfileModal === "phone" ? "phone" : "email"]: profileInput,
+                      [showProfileModal === "phone" ? "phone" : "email"]: profileInput.trim(),
                       profile_complete: true,
                     }).eq("id", user.id)
                   }
                   setProfileSaving(false)
                   setShowProfileModal(null)
+                  setTimeout(() => {
+                    if (paymentRef.current) {
+                      const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
+                      window.scrollTo({ top: y, behavior: "smooth" })
+                    }
+                  }, 300)
                 }}
-                style={{ flex: 1, height: 48, background: tokens.colors.brand, color: "#000", border: "none", borderRadius: tokens.radius.button, fontWeight: 600, fontSize: 16, cursor: "pointer" }}
+                style={{ flex: 1, height: 48, background: tokens.colors.brand, color: "#000", border: "none", borderRadius: tokens.radius.button, fontWeight: 600, fontSize: 16, cursor: profileSaving ? "not-allowed" : "pointer" }}
               >
                 {profileSaving ? "…" : "儲存"}
               </button>
               <button
                 type="button"
-                onClick={() => setShowProfileModal(null)}
+                onClick={() => {
+                  setShowProfileModal(null)
+                  setTimeout(() => {
+                    if (paymentRef.current) {
+                      const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
+                      window.scrollTo({ top: y, behavior: "smooth" })
+                    }
+                  }, 300)
+                }}
                 style={{ flex: 1, height: 48, background: "transparent", color: tokens.colors.text, border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.button, fontWeight: 500, fontSize: 16, cursor: "pointer" }}
               >
                 略過
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
