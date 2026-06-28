@@ -1,56 +1,9 @@
-import { existsSync, readdirSync, statSync } from 'fs'
-import { spawnSync } from 'child_process'
 import pkg from 'whatsapp-web.js'
 import qrcode from 'qrcode-terminal'
 
 const { Client, LocalAuth } = pkg
 
-const CHROME_INSTALL_DIR = '/opt/render/project/src/whatsapp-bot/.chrome'
-
-// Recursively find a file by name under a directory
-const findFile = (dir, name) => {
-  try {
-    for (const entry of readdirSync(dir)) {
-      const full = `${dir}/${entry}`
-      try {
-        if (entry === name && statSync(full).isFile()) return full
-        if (statSync(full).isDirectory()) {
-          const found = findFile(full, name)
-          if (found) return found
-        }
-      } catch {}
-    }
-  } catch {}
-  return null
-}
-
-const ensureChrome = () => {
-  const existing = findFile(CHROME_INSTALL_DIR, 'chrome')
-  if (existing) {
-    console.log('✅ Chrome already exists at:', existing)
-    return existing
-  }
-
-  console.log('📥 Downloading Chrome to', CHROME_INSTALL_DIR, '...')
-  spawnSync(
-    'npx',
-    ['puppeteer', 'browsers', 'install', 'chrome', '--path', CHROME_INSTALL_DIR],
-    { stdio: 'inherit' }
-  )
-
-  const downloaded = findFile(CHROME_INSTALL_DIR, 'chrome')
-  if (downloaded) {
-    console.log('✅ Chrome downloaded to:', downloaded)
-    return downloaded
-  }
-
-  console.warn('⚠️  Chrome download failed — puppeteer will use its own detection')
-  return undefined
-}
-
-export function createWhatsAppClient() {
-  const chromePath = ensureChrome()
-
+export function createWhatsAppClient(chromePath) {
   const client = new Client({
     authStrategy: new LocalAuth({
       clientId: '248-snooker',

@@ -1,5 +1,7 @@
 import express from 'express'
 import 'dotenv/config'
+import { existsSync, readdirSync, statSync } from 'fs'
+import { spawnSync } from 'child_process'
 import { createWhatsAppClient } from './src/client.js'
 import { handleMessage } from './src/handler.js'
 import {
@@ -11,27 +13,60 @@ import {
 import { createOTP, formatOTPMessage } from './src/otp.js'
 import { markAwaitingOTP } from './src/state.js'
 
-const client = createWhatsAppClient()
+const CHROME_DIR = '/opt/render/project/src/whatsapp-bot/.chrome'
 
-client.on('message', async (msg) => {
+const findFile = (dir, name) => {
   try {
-    await handleMessage(client, msg)
-  } catch (error) {
-    console.error('Message handling error:', error.message)
-  }
-})
+    for (const entry of readdirSync(dir)) {
+      const full = `${dir}/${entry}`
+      try {
+        if (entry === name && statSync(full).isFile()) return full
+        if (statSync(full).isDirectory()) {
+          const found = findFile(full, name)
+          if (found) return found
+        }
+      } catch {}
+    }
+  } catch {}
+  return null
+}
 
-client.initialize()
+const ensureChrome = () => {
+  const existing = findFile(CHROME_DIR, 'chrome')
+  if (existing) {
+    console.log('✅ Chrome already exists at:', existing)
+    return existing
+  }
+
+  console.log('📥 Downloading Chrome to', CHROME_DIR, '...')
+  spawnSync(
+    'npx',
+    ['puppeteer', 'browsers', 'install', 'chrome', '--path', CHROME_DIR],
+    { stdio: 'inherit' }
+  )
+
+  const downloaded = findFile(CHROME_DIR, 'chrome')
+  if (downloaded) {
+    console.log('✅ Chrome downloaded to:', downloaded)
+    return downloaded
+  }
+
+  console.warn('⚠️  Chrome download failed — puppeteer will attempt its own detection')
+  return undefined
+}
+
+// ── Express setup ──────────────────────────────────────────────────────────
 
 const app = express()
 app.use(express.json())
+
+let client = null
 
 function verifySecret(req, res, next) {
   const secret = req.headers['x-webhook-secret']
   if (!process.env.WEBHOOK_SECRET || secret !== process.env.WEBHOOK_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
-
   next()
 }
 
@@ -39,6 +74,13 @@ function cleanHongKongPhone(phone) {
   const digits = String(phone || '').replace(/\D/g, '')
   return digits.replace(/^852/, '')
 }
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    whatsapp: client?.info ? 'connected' : 'disconnected',
+  })
+})
 
 app.post('/api/send-otp', verifySecret, async (req, res) => {
   try {
@@ -106,14 +148,28 @@ app.post('/api/notify/session-ending', verifySecret, async (req, res) => {
   }
 })
 
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    whatsapp: client.info ? 'connected' : 'disconnected',
-  })
-})
+// ── Start ──────────────────────────────────────────────────────────────────
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 10000
+
 app.listen(PORT, () => {
   console.log(`🚀 API server running on port ${PORT}`)
+  initWhatsApp()
 })
+
+function initWhatsApp() {
+  console.log('📥 Setting up Chrome...')
+  const chromePath = ensureChrome()
+
+  client = createWhatsAppClient(chromePath)
+
+  client.on('message', async (msg) => {
+    try {
+      await handleMessage(client, msg)
+    } catch (error) {
+      console.error('Message handling error:', error.message)
+    }
+  })
+
+  client.initialize()
+}
