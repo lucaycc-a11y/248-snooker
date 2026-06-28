@@ -1,17 +1,7 @@
 import pkg from 'whatsapp-web.js'
 import qrcode from 'qrcode-terminal'
-import { execSync } from 'child_process'
 
 const { Client, LocalAuth } = pkg
-
-function getChromePath() {
-  try {
-    return execSync('which chromium-browser || which chromium || which google-chrome')
-      .toString().trim()
-  } catch {
-    return undefined
-  }
-}
 
 export function createWhatsAppClient() {
   const client = new Client({
@@ -21,16 +11,13 @@ export function createWhatsAppClient() {
     }),
     puppeteer: {
       headless: true,
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || getChromePath(),
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-accelerated-2d-canvas',
-        '--no-first-run',
+        '--disable-gpu',
         '--no-zygote',
         '--single-process',
-        '--disable-gpu',
       ],
     },
   })
