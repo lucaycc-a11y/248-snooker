@@ -1971,7 +1971,7 @@ function Screen4({
         <div style={{ padding: 24 }}>
           {/* Header row */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-            <img src="/1.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
+            <img src="/logos/248_logo_white_bg.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: showContent && !isPrinting ? 1 : 0 }}

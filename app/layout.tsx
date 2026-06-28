@@ -37,10 +37,15 @@ export const metadata: Metadata = {
     images: ["/og-image.png"],
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/web-app-manifest-192x192.png", sizes: "192x192" },
+    ],
     apple: "/apple-touch-icon.png",
+    shortcut: "/favicon.ico",
   },
-  manifest: "/manifest.json",
+  manifest: "/site.webmanifest",
 };
 
 export const viewport: Viewport = {

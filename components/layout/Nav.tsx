@@ -121,7 +121,7 @@ export default function Nav() {
           }}
           className="nav-logo"
         >
-          <Logo variant="full" size={28} />
+          <Logo variant="full" theme={theme} size={28} />
         </Link>
 
         {/* Desktop links — centred frosted pill */}
