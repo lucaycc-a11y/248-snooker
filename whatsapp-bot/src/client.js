@@ -11,13 +11,17 @@ export function createWhatsAppClient() {
     }),
     puppeteer: {
       headless: true,
+      // Pin to Chrome 121 path — matches puppeteer 21.6.1 which downloads this exact build
+      executablePath: '/opt/render/.cache/puppeteer/chrome/linux-121.0.6167.85/chrome-linux64/chrome',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
         '--no-zygote',
         '--single-process',
+        '--disable-gpu',
       ],
     },
   })
