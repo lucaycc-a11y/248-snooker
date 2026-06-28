@@ -1,34 +1,61 @@
+import pkg from 'whatsapp-web.js'
+import qrcode from 'qrcode-terminal'
 import express from 'express'
-import 'dotenv/config'
-import { existsSync, readdirSync } from 'fs'
 import { spawn } from 'child_process'
-import { createWhatsAppClient } from './src/client.js'
-import { handleMessage } from './src/handler.js'
+import { existsSync, readdirSync } from 'fs'
+import 'dotenv/config'
+import { createOTP, formatOTPMessage } from './src/otp.js'
+import { markAwaitingOTP } from './src/state.js'
 import {
   sendBookingConfirmation,
   sendReminder,
   sendSessionEnding,
   sendAdminNewBooking,
 } from './src/notifications.js'
-import { createOTP, formatOTPMessage } from './src/otp.js'
-import { markAwaitingOTP } from './src/state.js'
 
-const CHROME_DIR = '/opt/render/project/src/whatsapp-bot/.chrome/chrome'
-
-const downloadChrome = () => new Promise((resolve) => {
-  const proc = spawn(
-    'npx',
-    ['puppeteer', 'browsers', 'install', 'chrome', '--path', '/opt/render/project/src/whatsapp-bot/.chrome'],
-    { stdio: 'inherit', shell: true }
-  )
-  proc.on('close', resolve)
-})
-
+const { Client, LocalAuth } = pkg
 
 const app = express()
 app.use(express.json())
 
-let client = null
+const CHROME_DIR = '/opt/render/project/src/whatsapp-bot/.chrome/chrome'
+
+function findChrome() {
+  try {
+    if (existsSync(CHROME_DIR)) {
+      const versions = readdirSync(CHROME_DIR)
+      for (const v of versions) {
+        const p = `${CHROME_DIR}/${v}/chrome-linux64/chrome`
+        if (existsSync(p)) return p
+      }
+    }
+  } catch {}
+  return null
+}
+
+function downloadChrome() {
+  return new Promise((resolve, reject) => {
+    console.log('📥 Downloading Chrome...')
+    const proc = spawn(
+      'npx',
+      ['puppeteer', 'browsers', 'install', 'chrome', '--path', '/opt/render/project/src/whatsapp-bot/.chrome'],
+      { stdio: 'inherit', shell: true }
+    )
+    proc.on('close', (code) => {
+      console.log('Chrome download finished, code:', code)
+      resolve()
+    })
+    proc.on('error', reject)
+  })
+}
+
+// ── Health check (always available) ───────────────────────────────────────
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// ── Auth helpers ───────────────────────────────────────────────────────────
 
 function verifySecret(req, res, next) {
   const secret = req.headers['x-webhook-secret']
@@ -43,12 +70,9 @@ function cleanHongKongPhone(phone) {
   return digits.replace(/^852/, '')
 }
 
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    whatsapp: client?.info ? 'connected' : 'disconnected',
-  })
-})
+// ── API routes ─────────────────────────────────────────────────────────────
+
+let client = null
 
 app.post('/api/send-otp', verifySecret, async (req, res) => {
   try {
@@ -76,9 +100,7 @@ app.post('/api/notify/booking-confirmed', verifySecret, async (req, res) => {
     const { phone, booking, adminPhones } = req.body
     if (!booking) return res.status(400).json({ error: 'Booking required' })
 
-    if (phone) {
-      await sendBookingConfirmation(client, phone, booking)
-    }
+    if (phone) await sendBookingConfirmation(client, phone, booking)
 
     const admins = adminPhones || (process.env.ADMIN_PHONES || '').split(',').filter(Boolean)
     await sendAdminNewBooking(client, admins, booking)
@@ -116,6 +138,8 @@ app.post('/api/notify/session-ending', verifySecret, async (req, res) => {
   }
 })
 
+// ── Start ──────────────────────────────────────────────────────────────────
+
 const PORT = process.env.PORT || 10000
 
 app.listen(PORT, '0.0.0.0', () => {
@@ -124,45 +148,64 @@ app.listen(PORT, '0.0.0.0', () => {
 })
 
 async function initWhatsApp() {
-  console.log('📥 Setting up Chrome...')
-
-  let chromePath
-  if (existsSync(CHROME_DIR)) {
-    const versions = readdirSync(CHROME_DIR)
-    for (const v of versions) {
-      const p = `${CHROME_DIR}/${v}/chrome-linux64/chrome`
-      if (existsSync(p)) { chromePath = p; break }
-    }
-  }
+  let chromePath = findChrome()
 
   if (!chromePath) {
-    console.log('📥 Downloading Chrome (async)...')
     await downloadChrome()
-
-    if (existsSync(CHROME_DIR)) {
-      const versions = readdirSync(CHROME_DIR)
-      for (const v of versions) {
-        const p = `${CHROME_DIR}/${v}/chrome-linux64/chrome`
-        if (existsSync(p)) { chromePath = p; break }
-      }
-    }
+    chromePath = findChrome()
   }
 
   console.log('✅ Chrome path:', chromePath)
 
-  client = createWhatsAppClient(chromePath)
+  // Create client only after chromePath is known
+  client = new Client({
+    authStrategy: new LocalAuth({
+      clientId: '248-snooker',
+      dataPath: '/opt/render/project/src/whatsapp-bot/.wwebjs_auth',
+    }),
+    puppeteer: {
+      headless: true,
+      executablePath: chromePath,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+      ],
+    },
+  })
 
-  if (chromePath) {
-    client.options.puppeteer.executablePath = chromePath
-  }
+  client.on('qr', (qr) => {
+    console.log('\n📱 Scan this QR code in WhatsApp:\n')
+    qrcode.generate(qr, { small: true })
+  })
+
+  client.on('ready', () => {
+    console.log('✅ WhatsApp bot is ready!')
+  })
+
+  client.on('auth_failure', (message) => {
+    console.error('WhatsApp auth failure:', message)
+  })
 
   client.on('message', async (msg) => {
     try {
+      const { handleMessage } = await import('./src/handler.js')
       await handleMessage(client, msg)
-    } catch (error) {
-      console.error('Message handling error:', error.message)
+    } catch (err) {
+      console.error('Message handling error:', err.message)
     }
   })
 
+  client.on('disconnected', (reason) => {
+    console.warn('WhatsApp disconnected:', reason)
+    setTimeout(() => initWhatsApp(), 30000)
+  })
+
+  console.log('🔄 Initializing WhatsApp client...')
   client.initialize()
 }
