@@ -1,183 +1,136 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronDown } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Instagram, MessageCircle } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
-import { Logo } from '@/components/brand'
 
-type FooterSection = {
-  title: string
-  links: { label: string; href: string }[]
-}
+const WHATSAPP_URL = 'https://wa.me/85264274620'
+const INSTAGRAM_URL = 'https://instagram.com/248snooker'
 
-const sections: FooterSection[] = [
-  {
-    title: '產品',
-    links: [
-      { label: 'FORM Flow', href: '/flow' },
-      { label: 'Clarté', href: '/clarte' },
-      { label: 'Pay', href: '/pay' },
-    ],
-  },
-  {
-    title: '公司',
-    links: [
-      { label: '關於', href: '/about' },
-      { label: 'Blog', href: '/blog' },
-      { label: '聯絡', href: '/contact' },
-    ],
-  },
-  {
-    title: '法律',
-    links: [
-      { label: '私隱政策', href: '/privacy' },
-      { label: '條款', href: '/terms' },
-    ],
-  },
-  {
-    title: '社交',
-    links: [
-      { label: 'Instagram', href: 'https://instagram.com/248snooker' },
-      { label: 'WhatsApp', href: 'https://wa.me/85200000000' },
-    ],
-  },
+const BEBAS = "'Bebas Neue', system-ui, sans-serif"
+
+const navLinks: { label: string; href: string }[] = [
+  { label: '預訂', href: '/book' },
+  { label: '定價', href: '/pricing' },
+  { label: '關於', href: '/about' },
+  { label: 'Blog', href: '/blog' },
+  { label: '條款及細則', href: '/terms' },
+  { label: '私隱政策', href: '/privacy' },
 ]
-
-function FooterAccordion({ section }: { section: FooterSection }) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
-      <button
-        onClick={() => setOpen(!open)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          padding: '16px 0',
-          background: 'none',
-          border: 'none',
-          color: tokens.colors.textMuted,
-          fontSize: '13px',
-          fontWeight: 600,
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase',
-          cursor: 'pointer',
-        }}
-      >
-        {section.title}
-        <ChevronDown
-          size={16}
-          style={{
-            transform: open ? 'rotate(180deg)' : 'rotate(0)',
-            transition: `transform ${tokens.duration.fast}`,
-          }}
-        />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            style={{ overflow: 'hidden' }}
-          >
-            <div style={{ paddingBottom: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {section.links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  style={{
-                    fontSize: '14px',
-                    color: tokens.colors.textMuted,
-                    textDecoration: 'none',
-                  }}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
-}
 
 export default function Footer() {
   return (
     <footer
+      className="px-6 py-12 md:px-8"
       style={{
         backgroundColor: tokens.colors.bg,
         borderTop: `1px solid ${tokens.colors.border}`,
-        padding: '48px 20px 32px',
       }}
     >
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        {/* Desktop grid */}
-        <div className="hidden md:grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', gap: '48px' }}>
-          {sections.map((section) => (
-            <div key={section.title}>
-              <h4
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: tokens.colors.textMuted,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  marginBottom: '16px',
-                }}
-              >
-                {section.title}
-              </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {section.links.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    style={{
-                      fontSize: '14px',
-                      color: tokens.colors.textMuted,
-                      textDecoration: 'none',
-                    }}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile accordion */}
-        <div className="block md:hidden">
-          {sections.map((section) => (
-            <FooterAccordion key={section.title} section={section} />
-          ))}
-        </div>
-
-        {/* Bottom bar */}
+        {/* Top — wordmark + social icons */}
         <div
           style={{
-            marginTop: '48px',
-            paddingTop: '24px',
-            borderTop: `1px solid ${tokens.colors.border}`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            gap: '16px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Logo variant="mark" size={24} />
-            <span style={{ fontSize: '13px', color: tokens.colors.textFaint }}>
-              &copy; 2026 FORM
-            </span>
+          <span
+            style={{
+              fontFamily: BEBAS,
+              color: tokens.colors.text,
+              fontSize: '28px',
+              letterSpacing: '0.04em',
+              lineHeight: 1,
+            }}
+          >
+            248 Snooker
+          </span>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                color: tokens.colors.textMuted,
+              }}
+            >
+              <MessageCircle size={22} strokeWidth={1.75} />
+            </a>
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                color: tokens.colors.textMuted,
+              }}
+            >
+              <Instagram size={22} strokeWidth={1.75} />
+            </a>
           </div>
         </div>
+
+        {/* Middle — nav links, single centred row */}
+        <nav
+          style={{
+            marginTop: '32px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px 16px',
+          }}
+        >
+          {navLinks.map((link, i) => (
+            <span
+              key={link.href}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '16px' }}
+            >
+              <Link
+                href={link.href}
+                style={{
+                  fontSize: '14px',
+                  color: tokens.colors.textMuted,
+                  textDecoration: 'none',
+                }}
+              >
+                {link.label}
+              </Link>
+              {i < navLinks.length - 1 && (
+                <span style={{ color: tokens.colors.textFaint, fontSize: '13px' }}>·</span>
+              )}
+            </span>
+          ))}
+        </nav>
+
+        {/* Bottom — single centred line */}
+        <p
+          style={{
+            marginTop: '32px',
+            textAlign: 'center',
+            fontSize: '13px',
+            color: tokens.colors.textFaint,
+          }}
+        >
+          &copy; 2026 248 Snooker · 香港24小時自助桌球會所
+        </p>
       </div>
     </footer>
   )

@@ -214,14 +214,15 @@ export default function Gallery() {
           pointerEvents: "auto",
         }}
       >
-            {/* Element A — Dots pill */}
+            {/* Element A — Dots pill (frosted glass) */}
             <div
               style={{
                 height: "44px",
-                background: "rgba(50,50,55,0.9)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                borderRadius: "100px",
+                background: "rgba(255,255,255,0.15)",
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                borderRadius: "999px",
                 padding: "0 16px",
                 display: "flex",
                 alignItems: "center",
@@ -257,7 +258,7 @@ export default function Gallery() {
               })}
             </div>
 
-            {/* Element B — Action button pill */}
+            {/* Element B — Action button (frosted glass) */}
             <button
               type="button"
               onClick={() => {
@@ -271,15 +272,15 @@ export default function Gallery() {
               }}
               aria-label={ended ? "重播" : paused ? "播放" : "暫停"}
               style={{
-                width: "40px",
-                height: "40px",
+                width: "44px",
+                height: "44px",
                 borderRadius: "50%",
                 background: "rgba(255,255,255,0.15)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                border: "1px solid rgba(255,255,255,0.2)",
                 marginLeft: "8px",
                 color: "white",
-                border: "none",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",

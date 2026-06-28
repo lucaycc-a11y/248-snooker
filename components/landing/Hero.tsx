@@ -109,8 +109,8 @@ export default function Hero() {
           屬於你的主場
         </motion.h1>
 
-        {/* CTA buttons — directly below headline, static */}
-        <div className="mt-10 md:mt-14 flex flex-col items-center justify-center gap-6 sm:flex-row">
+        {/* CTA buttons — directly below headline, centred on all screens */}
+        <div className="mt-10 md:mt-14 flex w-full flex-col items-center justify-center gap-3 sm:flex-row">
           <button
             type="button"
             onClick={handleLearnMore}
