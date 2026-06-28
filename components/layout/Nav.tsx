@@ -42,10 +42,17 @@ export default function Nav() {
   const locale = useLocale()
   const t = useTranslations('nav')
 
+  const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja'] as const
+  const LOCALE_LABELS: Record<string, string> = {
+    'zh-HK': '繁',
+    'zh-CN': '简',
+    en: 'EN',
+    ja: 'JP',
+  }
+
   const toggleLocale = () => {
-    const next = locale === 'zh' ? 'en' : 'zh'
-    // usePathname() from next-intl is locale-agnostic; the router re-adds the
-    // prefix based on the target locale.
+    const idx = LOCALES.indexOf(locale as (typeof LOCALES)[number])
+    const next = LOCALES[(idx + 1) % LOCALES.length]
     router.replace(pathname, { locale: next })
   }
 
@@ -176,7 +183,7 @@ export default function Nav() {
           />
           <button
             onClick={toggleLocale}
-            aria-label={locale === 'zh' ? 'Switch to English' : '切換至中文'}
+            aria-label="Switch language"
             style={{
               color: linkColor,
               fontSize: 13,
@@ -190,7 +197,7 @@ export default function Nav() {
               transition: PILL_TRANSITION,
             }}
           >
-            {locale === 'zh' ? 'EN' : '中'}
+            {LOCALE_LABELS[locale] ?? '中'}
           </button>
         </div>
 
@@ -261,7 +268,7 @@ export default function Nav() {
               whiteSpace: 'nowrap',
             }}
           >
-            立即預訂
+            {t('book')}
           </span>
         </Link>
       </nav>
@@ -340,7 +347,7 @@ export default function Nav() {
                   setMenuOpen(false)
                   toggleLocale()
                 }}
-                aria-label={locale === 'zh' ? 'Switch to English' : '切換至中文'}
+                aria-label="Switch language"
                 style={{
                   fontSize: 20,
                   fontWeight: 500,
@@ -351,14 +358,14 @@ export default function Nav() {
                   padding: 8,
                 }}
               >
-                {locale === 'zh' ? 'English' : '中文'}
+                {locale === 'zh-HK' ? '繁中' : locale === 'zh-CN' ? '简中' : locale === 'en' ? 'English' : '日本語'}
               </button>
             </div>
 
             <div style={{ width: '100%', paddingTop: 32 }}>
               <Link href="/book" onClick={() => setMenuOpen(false)} style={{ textDecoration: 'none' }}>
                 <Button variant="primary" size="lg" fullWidth>
-                  立即預訂
+                  {t('book')}
                 </Button>
               </Link>
             </div>

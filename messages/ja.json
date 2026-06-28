@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "book": "予約",
+    "pricing": "料金",
+    "about": "概要",
+    "blog": "ブログ"
+  },
+  "hero": {
+    "title": "248 Snooker",
+    "tagline": "あなたのホームコート",
+    "cta_book": "今すぐ予約",
+    "cta_learn": "詳しく見る"
+  },
+  "book": {
+    "title": "セッション予約",
+    "select_table": "テーブル選択",
+    "table_available": "予約可能",
+    "table_unavailable": "予約不可",
+    "select_date": "日付を選択",
+    "select_time": "開始時間",
+    "duration": "プレイ時間",
+    "continue": "次へ",
+    "instant_confirm": "即時確認・待ち時間なし",
+    "login_title": "予約を完了する",
+    "login_subtitle": "スロットを一時確保しています",
+    "login_apple": "Appleでサインイン",
+    "login_google": "Googleアカウントでサインイン",
+    "login_whatsapp": "WhatsApp番号",
+    "payment_title": "お支払い",
+    "subtotal": "小計",
+    "service_fee": "サービス料",
+    "total": "合計",
+    "pay_now": "今すぐ支払う",
+    "confirm_title": "予約確定",
+    "add_calendar": "カレンダーに追加",
+    "share": "シェア",
+    "back_home": "ホームに戻る",
+    "qr_hint": "入場時にこのQRコードをご提示ください・24時間サポート"
+  },
+  "ticket": {
+    "duration": "プレイ時間",
+    "paid": "お支払い済み",
+    "payment": "支払方法"
+  }
+}

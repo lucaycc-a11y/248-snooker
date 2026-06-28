@@ -27,6 +27,7 @@ import {
   MastercardLogo,
 } from "@/components/brand"
 import { useHaptic } from "@/lib/useHaptic"
+import { createClient } from "@/lib/supabase/client"
 
 /* ─────────────────────────  Config  ───────────────────────── */
 // TODO: connect Supabase — use getConfig() server-side and pass as prop
@@ -1146,6 +1147,7 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
   const [otpSent, setOtpSent] = useState(false)
   const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
   const [resend, setResend] = useState(0)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const otpRefs = useRef<(HTMLInputElement | null)[]>([])
 
   useEffect(() => {
@@ -1172,6 +1174,23 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
 
   const lockLabel = `${Math.floor(lockSec / 60)}:${String(lockSec % 60).padStart(2, "0")}`
   const phoneComplete = phone.length === 8
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/book`,
+        queryParams: { access_type: "offline", prompt: "consent" },
+      },
+    })
+    if (error) {
+      console.error(error)
+      setGoogleLoading(false)
+    }
+    // On success, browser redirects to Google — no further action needed here.
+  }
 
   const handleOtp = (i: number, raw: string) => {
     const v = raw.replace(/\D/g, "").slice(-1)
@@ -1247,7 +1266,8 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
             {/* Google login */}
             <button
               type="button"
-              onClick={onSuccess}
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
               style={{
                 width: "100%",
                 height: 56,
@@ -1259,7 +1279,8 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
                 gap: 10,
                 marginBottom: 20,
                 border: "none",
-                cursor: "pointer",
+                cursor: googleLoading ? "not-allowed" : "pointer",
+                opacity: googleLoading ? 0.7 : 1,
               }}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden>
