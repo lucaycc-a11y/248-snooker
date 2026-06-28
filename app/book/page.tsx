@@ -16,7 +16,7 @@ import {
   Share2,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
-import { Button, Card, ProgressSteps, Spinner } from "@/components/ui"
+import { Button, Card, ProgressSteps } from "@/components/ui"
 import {
   AppleLogo,
   ApplePayLogo,
@@ -187,7 +187,7 @@ function TableSelect({
                     ? "1px solid rgba(255,255,255,0.15)"
                     : "1px solid rgba(255,255,255,0.05)",
                 boxShadow: isSelected
-                  ? `0 0 0 3px rgba(0,113,227,0.25)`
+                  ? `0 0 0 3px rgba(34,197,94,0.25)`
                   : "none",
                 opacity: available ? 1 : 0.6,
                 cursor: available ? "pointer" : "not-allowed",
@@ -433,41 +433,57 @@ function Calendar({
                 aria-current={isSelected ? "date" : undefined}
                 onClick={() => !isPast && onSelect(date)}
                 style={{
-                  position: "relative",
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
+                  // Tap target fills the whole grid cell (maximised to ~44px+);
+                  // the visual circle inside stays 40px.
+                  width: "100%",
+                  height: "100%",
+                  minHeight: 40,
+                  padding: 0,
+                  border: "none",
+                  background: "transparent",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 15,
-                  fontWeight: isSelected ? 600 : 400,
-                  background: isSelected ? tokens.colors.link : "transparent",
-                  color: isSelected ? "#fff" : tokens.colors.text,
-                  border:
-                    isToday && !isSelected
-                      ? `1px solid ${tokens.colors.text}`
-                      : "1px solid transparent",
-                  opacity: isPast ? 0.3 : 1,
                   cursor: isPast ? "default" : "pointer",
-                  transition: `background ${tokens.duration.fast}`,
+                  opacity: isPast ? 0.3 : 1,
                 }}
               >
-                {date.getDate()}
-                {booked && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      bottom: 4,
-                      left: "50%",
-                      transform: "translateX(-50%)",
-                      width: 4,
-                      height: 4,
-                      borderRadius: "50%",
-                      background: tokens.colors.danger,
-                    }}
-                  />
-                )}
+                <span
+                  style={{
+                    position: "relative",
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 15,
+                    fontWeight: isSelected ? 600 : 400,
+                    background: isSelected ? tokens.colors.link : "transparent",
+                    color: isSelected ? "#fff" : tokens.colors.text,
+                    border:
+                      isToday && !isSelected
+                        ? `1px solid ${tokens.colors.text}`
+                        : "1px solid transparent",
+                    transition: `background ${tokens.duration.fast}`,
+                  }}
+                >
+                  {date.getDate()}
+                  {booked && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: 4,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        width: 4,
+                        height: 4,
+                        borderRadius: "50%",
+                        background: tokens.colors.danger,
+                      }}
+                    />
+                  )}
+                </span>
               </button>
             </div>
           )
@@ -477,59 +493,170 @@ function Calendar({
   )
 }
 
-/* ─────────────────────────  Time List  ───────────────────────── */
-function TimeList({
+/* ─────────────────────────  Drum Roll Wheel (iOS)  ───────────────────────── */
+const WHEEL_ITEM_H = 48
+const WHEEL_VISIBLE = 5
+const WHEEL_PAD = Math.floor(WHEEL_VISIBLE / 2) * WHEEL_ITEM_H // 2 items
+
+function DrumWheel({
   items,
   selected,
   onChange,
   labelFn,
+  ariaLabel,
 }: {
   items: number[]
   selected: number
   onChange: (val: number) => void
   labelFn: (val: number) => string
+  ariaLabel: string
 }) {
+  const ref = useRef<HTMLDivElement>(null)
   const haptic = useHaptic()
+  const lastIdxRef = useRef(Math.max(0, items.indexOf(selected)))
+  const initedRef = useRef(false)
+  const [centerIdx, setCenterIdx] = useState(() =>
+    Math.max(0, items.indexOf(selected))
+  )
+  const rafRef = useRef<number | null>(null)
+
+  // Position the wheel on the selected item at mount — WITHOUT smooth animation,
+  // so it appears pre-centred (assigning scrollTop under scroll-behavior:smooth
+  // would otherwise animate from 0 and fire spurious onChange/haptics en route).
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const idx = Math.max(0, items.indexOf(selected))
+    const prev = el.style.scrollBehavior
+    el.style.scrollBehavior = "auto"
+    el.scrollTop = idx * WHEEL_ITEM_H
+    lastIdxRef.current = idx
+    setCenterIdx(idx)
+    requestAnimationFrame(() => {
+      el.style.scrollBehavior = prev || "smooth"
+      initedRef.current = true
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const settle = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    const idx = Math.round(el.scrollTop / WHEEL_ITEM_H)
+    const clamped = Math.max(0, Math.min(items.length - 1, idx))
+    setCenterIdx(clamped)
+    if (clamped !== lastIdxRef.current) {
+      lastIdxRef.current = clamped
+      haptic.vibrate(8)
+      onChange(items[clamped])
+    }
+  }, [items, onChange, haptic])
+
+  const handleScroll = useCallback(() => {
+    if (!initedRef.current) return // ignore the mount-time scroll assignment
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    rafRef.current = requestAnimationFrame(settle)
+  }, [settle])
+
+  const stepTo = useCallback(
+    (idx: number) => {
+      const el = ref.current
+      if (!el) return
+      const clamped = Math.max(0, Math.min(items.length - 1, idx))
+      el.scrollTop = clamped * WHEEL_ITEM_H // smooth (behavior restored post-mount)
+    },
+    [items.length]
+  )
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault()
+        stepTo(centerIdx + 1)
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault()
+        stepTo(centerIdx - 1)
+      } else if (e.key === "Home") {
+        e.preventDefault()
+        stepTo(0)
+      } else if (e.key === "End") {
+        e.preventDefault()
+        stepTo(items.length - 1)
+      }
+    },
+    [centerIdx, stepTo, items.length]
+  )
+
   return (
-    <div
-      className="no-scrollbar"
-      style={{
-        maxHeight: 220,
-        overflowY: "auto",
-        WebkitOverflowScrolling: "touch",
-        display: "flex",
-        flexDirection: "column",
-        gap: 4,
-      }}
-    >
-      {items.map((val) => {
-        const isSelected = val === selected
-        return (
-          <button
-            key={val}
-            type="button"
-            onClick={() => {
-              haptic.vibrate(8)
-              onChange(val)
-            }}
-            style={{
-              minHeight: 44,
-              borderRadius: tokens.radius.button,
-              border: "none",
-              background: isSelected ? tokens.colors.link : "transparent",
-              color: tokens.colors.text,
-              opacity: isSelected ? 1 : 0.6,
-              fontSize: 16,
-              fontWeight: isSelected ? 600 : 400,
-              cursor: "pointer",
-              textAlign: "center",
-              transition: `background ${tokens.duration.fast}, opacity ${tokens.duration.fast}`,
-            }}
-          >
-            {labelFn(val)}
-          </button>
-        )
-      })}
+    <div style={{ position: "relative", height: WHEEL_VISIBLE * WHEEL_ITEM_H }}>
+      {/* Selection indicator lines */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: 0,
+          right: 0,
+          height: WHEEL_ITEM_H,
+          transform: "translateY(-50%)",
+          borderTop: "1px solid rgba(255,255,255,0.2)",
+          borderBottom: "1px solid rgba(255,255,255,0.2)",
+          pointerEvents: "none",
+          zIndex: 1,
+        }}
+      />
+      <div
+        ref={ref}
+        onScroll={handleScroll}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        role="listbox"
+        aria-label={ariaLabel}
+        aria-activedescendant={`wheel-${ariaLabel}-${items[centerIdx]}`}
+        className="no-scrollbar drum-wheel"
+        style={{
+          height: "100%",
+          overflowY: "scroll",
+          scrollSnapType: "y mandatory",
+          scrollBehavior: "smooth",
+          WebkitOverflowScrolling: "touch",
+          outline: "none",
+          maskImage:
+            "linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)",
+        }}
+      >
+        {/* Top spacer */}
+        <div style={{ height: WHEEL_PAD }} aria-hidden="true" />
+        {items.map((val, i) => {
+          const dist = Math.abs(i - centerIdx)
+          const fontSize = dist === 0 ? 28 : dist === 1 ? 22 : 18
+          const opacity = dist === 0 ? 1 : dist === 1 ? 0.7 : 0.35
+          return (
+            <div
+              key={val}
+              id={`wheel-${ariaLabel}-${val}`}
+              role="option"
+              aria-selected={val === selected}
+              style={{
+                height: WHEEL_ITEM_H,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                scrollSnapAlign: "center",
+                fontSize,
+                fontWeight: dist === 0 ? 600 : 400,
+                color: tokens.colors.text,
+                opacity,
+                transition: "font-size 120ms ease-out, opacity 120ms ease-out",
+              }}
+            >
+              {labelFn(val)}
+            </div>
+          )
+        })}
+        {/* Bottom spacer */}
+        <div style={{ height: WHEEL_PAD }} aria-hidden="true" />
+      </div>
     </div>
   )
 }
@@ -544,6 +671,7 @@ function SummaryCard({
   onContinue,
   ctaLabel,
   loading,
+  ready = true,
 }: {
   selectedDate: Date
   startHour: number
@@ -553,17 +681,19 @@ function SummaryCard({
   onContinue: () => void
   ctaLabel: string
   loading?: boolean
+  ready?: boolean
 }) {
   const endHour = startHour + duration
   const crossDay = endHour >= 24
+  const dash = "—"
 
   return (
     <div className="desktop-card">
-      <Card variant="elevated" style={{ position: "sticky", top: 24 }}>
+      <Card variant="elevated" style={{ position: "sticky", top: 80 }}>
         <div
           data-cms-key="book.card.title"
           style={{
-            fontSize: 14,
+            fontSize: 12,
             color: tokens.colors.textMuted,
             textTransform: "uppercase",
             letterSpacing: "0.06em",
@@ -585,8 +715,9 @@ function SummaryCard({
               日期
             </span>
             <span style={{ fontSize: 15, fontWeight: 500 }}>
-              {selectedDate.getFullYear()}年{selectedDate.getMonth() + 1}月
-              {selectedDate.getDate()}日
+              {ready
+                ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`
+                : dash}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -594,8 +725,9 @@ function SummaryCard({
               時段
             </span>
             <span style={{ fontSize: 15, fontWeight: 500 }}>
-              {padTime(startHour)} – {padTime(endHour)}
-              {crossDay ? " +1日" : ""}
+              {ready
+                ? `${padTime(startHour)} – ${padTime(endHour)}${crossDay ? " +1日" : ""}`
+                : dash}
             </span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -603,7 +735,7 @@ function SummaryCard({
               時長
             </span>
             <span style={{ fontSize: 15, fontWeight: 500 }}>
-              {duration}小時
+              {ready ? `${duration}小時` : dash}
             </span>
           </div>
         </div>
@@ -617,13 +749,13 @@ function SummaryCard({
         <div
           style={{
             fontFamily: BEBAS,
-            fontSize: 48,
+            fontSize: 36,
             textAlign: "center",
             marginBottom: 28,
             color: tokens.colors.brand,
           }}
         >
-          HK${total}
+          {ready ? `HK$${total}` : "HK$—"}
         </div>
         <Button
           variant="primary"
@@ -637,6 +769,68 @@ function SummaryCard({
           {ctaLabel}
         </Button>
       </Card>
+    </div>
+  )
+}
+
+/* ─────────────────────────  Mobile Price Bar  ───────────────────────── */
+function MobilePriceBar({
+  startHour,
+  duration,
+  total,
+  ctaLabel,
+  onContinue,
+  canContinue,
+  loading,
+  ready = true,
+}: {
+  startHour: number
+  duration: number
+  total: number
+  ctaLabel: string
+  onContinue: () => void
+  canContinue: boolean
+  loading?: boolean
+  ready?: boolean
+}) {
+  const endHour = startHour + duration
+  return (
+    <div className="mobile-cta">
+      {ready && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 10,
+            gap: 12,
+          }}
+        >
+          <span style={{ fontSize: 13, color: tokens.colors.text }}>
+            {padTime(startHour)} – {padTime(endHour)} · {duration}小時
+          </span>
+          <span
+            style={{
+              fontFamily: BEBAS,
+              fontSize: 22,
+              fontWeight: 700,
+              color: tokens.colors.brand,
+            }}
+          >
+            HK${total}
+          </span>
+        </div>
+      )}
+      <Button
+        variant="primary"
+        size="lg"
+        fullWidth
+        disabled={!canContinue}
+        loading={loading}
+        onClick={onContinue}
+      >
+        {ctaLabel}
+      </Button>
     </div>
   )
 }
@@ -696,7 +890,8 @@ function Screen1({
   )
 
   const selectedTableInfo = TABLES.find((t) => t.id === selectedTable)
-  const canContinue = selectedTable !== null
+  const ready = selectedTable !== null && dateChosen
+  const canContinue = ready
 
   const sectionLabel = (text: string, cmsKey: string) => (
     <div
@@ -786,24 +981,62 @@ function Screen1({
                 style={{ overflow: "hidden" }}
               >
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ display: "flex", gap: 16 }}>
+                  <div style={{ display: "flex", gap: 24 }}>
                     <div style={{ flex: 1 }}>
-                      {sectionLabel("開始時間", "book.time.title")}
-                      <TimeList
-                        items={startItems}
-                        selected={startHour}
-                        onChange={setStartHour}
-                        labelFn={(h) => padTime(h)}
-                      />
+                      <div
+                        data-cms-key="book.time.title"
+                        style={{
+                          fontSize: 12,
+                          color: tokens.colors.textMuted,
+                          textAlign: "center",
+                          marginBottom: 8,
+                        }}
+                      >
+                        開始時間
+                      </div>
+                      <div
+                        style={{
+                          background: "rgba(255,255,255,0.03)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: 16,
+                        }}
+                      >
+                        <DrumWheel
+                          items={startItems}
+                          selected={startHour}
+                          onChange={setStartHour}
+                          labelFn={(h) => padTime(h)}
+                          ariaLabel="開始時間"
+                        />
+                      </div>
                     </div>
                     <div style={{ flex: 1 }}>
-                      {sectionLabel("時長", "book.duration.title")}
-                      <TimeList
-                        items={durationItems}
-                        selected={duration}
-                        onChange={setDuration}
-                        labelFn={(h) => `${h}小時`}
-                      />
+                      <div
+                        data-cms-key="book.duration.title"
+                        style={{
+                          fontSize: 12,
+                          color: tokens.colors.textMuted,
+                          textAlign: "center",
+                          marginBottom: 8,
+                        }}
+                      >
+                        時長
+                      </div>
+                      <div
+                        style={{
+                          background: "rgba(255,255,255,0.03)",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          borderRadius: 16,
+                        }}
+                      >
+                        <DrumWheel
+                          items={durationItems}
+                          selected={duration}
+                          onChange={setDuration}
+                          labelFn={(h) => `${h}小時`}
+                          ariaLabel="時長"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -868,22 +1101,21 @@ function Screen1({
           total={total}
           canContinue={canContinue}
           onContinue={onContinue}
-          ctaLabel="繼續預約"
+          ctaLabel="繼續預訂"
+          ready={ready}
         />
       </div>
 
-      {/* Mobile sticky CTA */}
-      <div className="mobile-cta">
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          disabled={!canContinue}
-          onClick={onContinue}
-        >
-          繼續預約
-        </Button>
-      </div>
+      {/* Mobile sticky price bar */}
+      <MobilePriceBar
+        startHour={startHour}
+        duration={duration}
+        total={total}
+        ctaLabel="繼續預訂"
+        onContinue={onContinue}
+        canContinue={canContinue}
+        ready={ready}
+      />
     </div>
   )
 }
@@ -969,26 +1201,26 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
             </p>
             <div style={{ height: 24 }} />
 
-            {/* Apple login */}
+            {/* Apple login — white style per Apple HIG (dark bg) */}
             <button
               type="button"
               onClick={onSuccess}
               style={{
                 width: "100%",
                 height: 56,
-                background: "#000",
-                borderRadius: 14,
+                background: "#fff",
+                borderRadius: 12,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 gap: 10,
                 marginBottom: 12,
-                border: "1px solid rgba(255,255,255,0.3)",
+                border: "none",
                 cursor: "pointer",
               }}
             >
-              <AppleLogo size={20} color="#fff" />
-              <span style={{ color: "#fff", fontWeight: 600, fontSize: 16 }}>
+              <AppleLogo size={20} color="#000" />
+              <span style={{ color: "#000", fontWeight: 500, fontSize: 16 }}>
                 以 Apple 登入
               </span>
             </button>
@@ -1001,7 +1233,7 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
                 width: "100%",
                 height: 56,
                 background: "#fff",
-                borderRadius: 14,
+                borderRadius: 12,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -1011,13 +1243,24 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
                 cursor: "pointer",
               }}
             >
-              <img
-                src="https://developers.google.com/identity/images/g-logo.png"
-                alt="Google"
-                width={20}
-                height={20}
-                style={{ display: "block" }}
-              />
+              <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
               <span style={{ color: "#1F1F1F", fontWeight: 500, fontSize: 16 }}>
                 以 Google 帳戶登入
               </span>
@@ -1307,6 +1550,7 @@ function Screen3({
             <button
               type="button"
               onClick={handlePay}
+              aria-label="以 Apple Pay 付款"
               style={{
                 flex: 1, height: 52, background: "#000",
                 border: `1px solid ${tokens.colors.borderStrong}`,
@@ -1320,6 +1564,7 @@ function Screen3({
             <button
               type="button"
               onClick={handlePay}
+              aria-label="以 Google Pay 付款"
               style={{
                 flex: 1, height: 52, background: "#fff",
                 border: `1px solid ${tokens.colors.borderStrong}`,
@@ -1337,6 +1582,7 @@ function Screen3({
             <button
               type="button"
               onClick={handlePay}
+              aria-label="以支付寶付款"
               style={{
                 flex: 1, height: 52,
                 border: `1px solid ${tokens.colors.borderStrong}`,
@@ -1350,6 +1596,7 @@ function Screen3({
             <button
               type="button"
               onClick={handlePay}
+              aria-label="以微信支付付款"
               style={{
                 flex: 1, height: 52,
                 border: `1px solid ${tokens.colors.borderStrong}`,
@@ -1431,6 +1678,7 @@ function Screen3({
                 <button
                   type="button"
                   onClick={() => setShowCvc(!showCvc)}
+                  aria-label={showCvc ? "隱藏 CVC" : "顯示 CVC"}
                   style={{
                     position: "absolute", right: 12, top: "50%",
                     transform: "translateY(-50%)", color: tokens.colors.textMuted,
@@ -1478,21 +1726,16 @@ function Screen3({
         />
       </div>
 
-      {/* Mobile sticky CTA */}
-      <div className="mobile-cta">
-        <div className="mobile-cta-fade" />
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          disabled={!canPay}
-          loading={loading}
-          onClick={handlePay}
-          rightIcon={<ChevronRight size={18} />}
-        >
-          {`立即付款 · HK$${total}`}
-        </Button>
-      </div>
+      {/* Mobile sticky price bar */}
+      <MobilePriceBar
+        startHour={startHour}
+        duration={duration}
+        total={total}
+        ctaLabel={`立即付款 · HK$${total}`}
+        onContinue={handlePay}
+        canContinue={canPay}
+        loading={loading}
+      />
     </div>
   )
 }
@@ -1516,8 +1759,8 @@ function Screen4({
 
   const total = CONFIG.pricePerHour * duration
   const endHour = startHour + duration
-  const dayNames = ["日", "一", "二", "三", "四", "五", "六"]
-  const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 星期${dayNames[selectedDate.getDay()]}`
+  const crossDay = endHour >= 24
+  const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 星期${DAY_NAMES[selectedDate.getDay()]}`
 
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 300)
@@ -1663,7 +1906,7 @@ function Screen4({
                 borderRadius: tokens.radius.pill,
               }}
             >
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>已確認</span>
+              <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>已確認</span>
             </motion.div>
           </div>
 
@@ -1678,6 +1921,11 @@ function Screen4({
             <span style={{ fontFamily: BEBAS, fontSize: 48, color: tokens.colors.text, lineHeight: 1, letterSpacing: "0.02em" }}>
               {padTime(endHour)}
             </span>
+            {crossDay && (
+              <span style={{ fontSize: 13, color: tokens.colors.textMuted, alignSelf: "center" }}>
+                +1日
+              </span>
+            )}
           </div>
 
           {/* Date */}
@@ -1747,11 +1995,7 @@ function Screen4({
             </div>
             <div>
               <div style={{ fontSize: 11, color: tokens.colors.textFaint, marginBottom: 2 }}>付款</div>
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png"
-                alt="Visa"
-                style={{ height: 16, width: "auto", display: "block" }}
-              />
+              <VisaLogo className="h-4" />
             </div>
           </div>
 
@@ -1785,6 +2029,7 @@ function Screen4({
 
           {/* Footer text */}
           <div
+            data-cms-key="book.ticket.footer"
             style={{
               fontSize: 11,
               color: tokens.colors.textFaint,
@@ -1807,6 +2052,7 @@ function Screen4({
           <button
             type="button"
             onClick={handleAddCalendar}
+            data-cms-key="book.ticket.add-calendar"
             style={{
               flex: 1,
               height: 48,
@@ -1829,6 +2075,7 @@ function Screen4({
           <button
             type="button"
             onClick={handleShare}
+            data-cms-key="book.ticket.share"
             style={{
               flex: 1,
               height: 48,
@@ -1853,6 +2100,7 @@ function Screen4({
           <button
             type="button"
             onClick={() => (window.location.href = "/")}
+            data-cms-key="book.ticket.home"
             style={{
               background: "none",
               border: "none",
@@ -2031,7 +2279,7 @@ export default function BookPage() {
           z-index: 50;
         }
         .screen-content {
-          padding: 76px 16px 100px;
+          padding: 76px 16px calc(140px + env(safe-area-inset-bottom, 0px));
         }
         .table-grid {
           grid-template-columns: 1fr;
@@ -2056,22 +2304,20 @@ export default function BookPage() {
           bottom: 0;
           left: 0;
           right: 0;
-          padding: 16px 24px calc(16px + env(safe-area-inset-bottom, 0px));
-          background: linear-gradient(to top, ${tokens.colors.bg} 60%, transparent);
+          padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+          background: rgba(0,0,0,0.85);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-top: 1px solid rgba(255,255,255,0.1);
           z-index: 40;
-        }
-        .mobile-cta-fade {
-          position: absolute;
-          top: -80px;
-          left: 0;
-          right: 0;
-          height: 80px;
-          background: linear-gradient(to top, ${tokens.colors.bg}, transparent);
-          pointer-events: none;
         }
 
         .otp-input:focus {
           border-color: ${tokens.colors.brand} !important;
+        }
+        .drum-wheel:focus-visible {
+          box-shadow: inset 0 0 0 2px ${tokens.colors.brand};
+          border-radius: 16px;
         }
         .pay-input:focus,
         .pay-input-wrap:focus-within {
@@ -2089,7 +2335,7 @@ export default function BookPage() {
 
         @media (min-width: 768px) {
           .book-container {
-            max-width: 1100px;
+            max-width: 1024px;
             padding: 0 48px;
           }
           .progress-bar-wrap {
@@ -2105,8 +2351,8 @@ export default function BookPage() {
           }
           .two-col {
             display: grid;
-            grid-template-columns: 1fr 360px;
-            gap: 48px;
+            grid-template-columns: 1fr 300px;
+            gap: 32px;
             align-items: start;
           }
           .col-left {

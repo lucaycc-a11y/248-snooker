@@ -12,7 +12,7 @@ export const tokens = {
     brandHover: '#1FB855',
     brandDim: 'rgba(37,211,102,0.12)',
     brandText: '#000000',
-    link: '#0071E3',
+    link: '#22c55e',
     danger: '#FF453A',
   },
   radius: {

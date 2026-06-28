@@ -35,13 +35,16 @@ export default function Nav() {
     <>
       <nav
         style={{
-          position: 'sticky',
+          position: 'fixed',
           top: 0,
+          left: 0,
           width: '100%',
           zIndex: 50,
           height: 64,
-          background: tokens.colors.bg,
-          borderBottom: `1px solid ${tokens.colors.border}`,
+          background: 'rgba(0,0,0,0.4)',
+          backdropFilter: 'blur(24px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
