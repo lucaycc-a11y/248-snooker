@@ -1771,7 +1771,10 @@ function Screen4({
   bookingRef: string
 }) {
   const [showContent, setShowContent] = useState(false)
+  const [isPrinting, setIsPrinting] = useState(true)
   const confettiRef = useRef<HTMLDivElement>(null)
+
+  const PRINT_MS = 1800
 
   const total = CONFIG.pricePerHour * duration
   const endHour = startHour + duration
@@ -1780,11 +1783,18 @@ function Screen4({
 
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 300)
-    return () => clearTimeout(t)
+    // Printing runs for PRINT_MS, then the LED stops pulsing and the
+    // actions stagger in.
+    const p = setTimeout(() => setIsPrinting(false), 300 + PRINT_MS)
+    return () => {
+      clearTimeout(t)
+      clearTimeout(p)
+    }
   }, [])
 
-  // Confetti
+  // Confetti — fire once the receipt has finished printing (peak-end moment).
   useEffect(() => {
+    if (isPrinting) return
     const container = confettiRef.current
     if (!container) return
     const colors = [tokens.colors.brand, "#FFFFFF", tokens.colors.link, "#FFD700", "#FF6B6B"]
@@ -1815,7 +1825,7 @@ function Screen4({
       clearTimeout(cleanup)
       particles.forEach((p) => p.remove())
     }
-  }, [])
+  }, [isPrinting])
 
   // Add-to-calendar — generate a downloadable .ics file
   const handleAddCalendar = () => {
@@ -1889,22 +1899,74 @@ function Screen4({
         }}
       />
 
-      {/* Ticket Card */}
-      <motion.div
-        initial={{ scale: 0.96, opacity: 0 }}
-        animate={{ scale: showContent ? 1 : 0.96, opacity: showContent ? 1 : 0 }}
-        transition={{ type: "spring", stiffness: 300, damping: 25, delay: 0.1 }}
-        style={{
-          width: "100%",
-          maxWidth: 400,
-          margin: "0 auto",
-          background: "linear-gradient(160deg, #111111 0%, #1a1a1a 100%)",
-          borderRadius: 24,
-          border: "1px solid rgba(255,255,255,0.1)",
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
+      {/* Printer + receipt assembly */}
+      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto", position: "relative" }}>
+        {/* Printer slot — the "mouth" the receipt feeds out of */}
+        <motion.div
+          aria-hidden="true"
+          animate={isPrinting ? { x: [0, -1, 1, -1, 0] } : { x: 0, opacity: 0.6 }}
+          transition={
+            isPrinting
+              ? { x: { repeat: Infinity, duration: 0.1, ease: "linear" } }
+              : { duration: 0.3 }
+          }
+          style={{
+            height: 16,
+            background: "linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%)",
+            borderRadius: "8px 8px 0 0",
+            display: "flex",
+            alignItems: "center",
+            paddingLeft: 12,
+            gap: 6,
+            boxShadow:
+              "0 4px 12px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.05)",
+            position: "relative",
+            zIndex: 2,
+          }}
+        >
+          {/* Green LED — pulses while printing, solid after */}
+          <motion.div
+            style={{ width: 6, height: 6, borderRadius: "50%", background: tokens.colors.brand }}
+            animate={isPrinting ? { opacity: [1, 0.3, 1] } : { opacity: 1 }}
+            transition={isPrinting ? { repeat: Infinity, duration: 0.8, ease: "easeInOut" } : { duration: 0.2 }}
+          />
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
+        </motion.div>
+
+        {/* Ticket Card — prints out top→bottom via clipPath */}
+        <motion.div
+          variants={{
+            hidden: { clipPath: "inset(0 0 100% 0)" },
+            visible: { clipPath: "inset(0 0 0% 0)", transition: { duration: 1.8, ease: "linear" } },
+          }}
+          initial="hidden"
+          animate={showContent ? "visible" : "hidden"}
+          style={{
+            background: "linear-gradient(160deg, #111111 0%, #1a1a1a 100%)",
+            borderRadius: "0 0 24px 24px",
+            border: "1px solid rgba(255,255,255,0.1)",
+            borderTop: "none",
+            overflow: "hidden",
+            position: "relative",
+          }}
+        >
+          {/* Scan line — bright bar tracking the print edge downward */}
+          <motion.div
+            aria-hidden="true"
+            initial={{ top: "0%", opacity: 1 }}
+            animate={showContent ? { top: "100%", opacity: [1, 1, 0] } : { top: "0%", opacity: 1 }}
+            transition={{ duration: 1.8, ease: "linear" }}
+            style={{
+              position: "absolute",
+              left: 0,
+              width: "100%",
+              height: 2,
+              background:
+                "linear-gradient(to right, transparent, rgba(255,255,255,0.6), transparent)",
+              pointerEvents: "none",
+              zIndex: 3,
+            }}
+          />
         {/* Top section */}
         <div style={{ padding: 24 }}>
           {/* Header row */}
@@ -1912,8 +1974,8 @@ function Screen4({
             <img src="/1.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
             <motion.div
               initial={{ scale: 0 }}
-              animate={{ scale: showContent ? 1 : 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20, delay: 0.4 }}
+              animate={{ scale: showContent && !isPrinting ? 1 : 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
               style={{
                 background: tokens.colors.brand,
                 padding: "4px 12px",
@@ -2055,16 +2117,17 @@ function Screen4({
             請於入場時出示此二維碼 · 24小時客服
           </div>
         </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
-      {/* Actions below ticket */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 16 }}
-        transition={{ delay: 0.5, duration: 0.4 }}
-        style={{ marginTop: 24, width: "100%", maxWidth: 400 }}
-      >
-        <div style={{ display: "flex", gap: 12 }}>
+      {/* Actions below ticket — stagger in after the receipt finishes printing */}
+      <div style={{ marginTop: 24, width: "100%", maxWidth: 400 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={isPrinting ? { opacity: 0, y: 16 } : { opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          style={{ display: "flex", gap: 12 }}
+        >
           <button
             type="button"
             onClick={handleAddCalendar}
@@ -2111,8 +2174,13 @@ function Screen4({
             <Share2 size={16} />
             分享
           </button>
-        </div>
-        <div style={{ textAlign: "center", marginTop: 16 }}>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isPrinting ? { opacity: 0 } : { opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
+          style={{ textAlign: "center", marginTop: 16 }}
+        >
           <button
             type="button"
             onClick={() => (window.location.href = "/")}
@@ -2127,8 +2195,8 @@ function Screen4({
           >
             返回主頁
           </button>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   )
 }
