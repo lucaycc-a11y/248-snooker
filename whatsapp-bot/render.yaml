@@ -18,7 +18,9 @@ services:
         sync: false
       - key: PORT
         value: 10000
+      - key: PUPPETEER_EXECUTABLE_PATH
+        sync: false
     disk:
       name: whatsapp-session
-      mountPath: /opt/render/project/src/.wwebjs_auth
+      mountPath: /opt/render/project/src/whatsapp-bot/.wwebjs_auth
       sizeGB: 1
