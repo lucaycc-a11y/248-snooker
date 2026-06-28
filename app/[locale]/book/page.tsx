@@ -1182,7 +1182,6 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=/book`,
-        queryParams: { access_type: "offline", prompt: "consent" },
       },
     })
     if (error) {

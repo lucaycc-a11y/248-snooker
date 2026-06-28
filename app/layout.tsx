@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { getLocale } from "next-intl/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -56,16 +55,12 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Locale resolved by next-intl middleware (defaults to zh for non-localized
-  // routes). Maps to the BCP-47 tag for the <html lang> attribute.
-  const locale = await getLocale();
-  const htmlLang = locale === "en" ? "en-HK" : "zh-HK";
-  // Static, hardcoded structured data — no user input, safe to inline.
+  // Static JSON-LD — no user input, safe to inline.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SportsClub",
@@ -101,7 +96,7 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang={htmlLang}>
+    <html lang="zh-HK">
       <body className="min-h-screen bg-black text-white antialiased">
         <script
           type="application/ld+json"
