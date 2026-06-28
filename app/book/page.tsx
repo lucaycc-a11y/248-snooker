@@ -732,7 +732,7 @@ function SummaryCard({
 
   return (
     <div className="desktop-card">
-      <Card variant="elevated" style={{ position: "sticky", top: 80 }}>
+      <Card variant="elevated">
         <div
           data-cms-key="book.card.title"
           style={{
@@ -2195,8 +2195,9 @@ export default function BookPage() {
           <ProgressSteps steps={STEPS} current={screen} />
         </div>
 
-        {/* Screen content */}
-        <div style={{ position: "relative", overflow: "hidden", flex: 1 }}>
+        {/* Screen content — overflow-x:clip hides the horizontal wizard slide
+            without creating a scroll container (which would trap position:sticky). */}
+        <div style={{ position: "relative", overflowX: "clip", flex: 1 }}>
           <AnimatePresence mode="wait" custom={direction.current} initial={false}>
             {screen === 0 && (
               <motion.div
@@ -2384,6 +2385,10 @@ export default function BookPage() {
           }
           .desktop-card {
             display: block;
+            position: sticky;
+            top: 88px;
+            align-self: start;
+            height: fit-content;
           }
           .mobile-cta {
             display: none;

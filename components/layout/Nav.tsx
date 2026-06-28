@@ -18,14 +18,14 @@ const navLinks = [
 
 type NavTheme = 'dark' | 'light'
 
-const PILL_TRANSITION = 'color 0.3s, background 0.3s, border-color 0.3s'
+const PILL_TRANSITION = 'all 0.25s ease'
 
 // Pill chrome resolves from the background behind the navbar.
 function pillStyle(theme: NavTheme): React.CSSProperties {
   const dark = theme === 'dark'
   return {
     background: dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
-    border: `1px solid ${dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)'}`,
+    border: `1px solid ${dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)'}`,
     backdropFilter: 'blur(20px) saturate(180%)',
     WebkitBackdropFilter: 'blur(20px) saturate(180%)',
     borderRadius: 999,
@@ -50,32 +50,42 @@ export default function Nav() {
     }
   }, [menuOpen])
 
-  // Auto light/dark: observe which [data-nav-theme] section sits behind the
-  // navbar. The rootMargin shrinks the root to a thin band just under the pill
-  // (top inset ≈ nav top 20px + pill height ~44px; bottom inset leaves the band
-  // positive-height) so only the section under the pill counts as intersecting.
+  // Auto light/dark: on scroll, read whatever element sits directly behind the
+  // navbar and walk up to its [data-nav-theme]; fall back to bg luminance.
+  // Sample below the pill (y=72) so the pill itself isn't what's hit-tested.
   useEffect(() => {
-    const sections = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-nav-theme]')
-    )
-    if (sections.length === 0) return
+    const updateNavTheme = () => {
+      const probeX = window.innerWidth / 2
+      const el = document.elementFromPoint(probeX, 72)
+      if (!el) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const hit = entries.find((e) => e.isIntersecting)
-        if (hit) {
-          const next = hit.target.getAttribute('data-nav-theme')
-          if (next === 'dark' || next === 'light') setTheme(next)
+      let target: Element | null = el
+      while (target && target !== document.body) {
+        const t = target.getAttribute('data-nav-theme')
+        if (t === 'dark' || t === 'light') {
+          setTheme(t)
+          return
         }
-      },
-      { rootMargin: '-64px 0px -35% 0px', threshold: 0 }
-    )
+        target = target.parentElement
+      }
 
-    sections.forEach((s) => observer.observe(s))
-    return () => observer.disconnect()
+      // No tagged ancestor — infer from the element's background luminance.
+      const bg = window.getComputedStyle(el).backgroundColor
+      const rgb = bg.match(/\d+/g)?.map(Number) ?? [0, 0, 0]
+      const luminance = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000
+      setTheme(luminance < 128 ? 'dark' : 'light')
+    }
+
+    updateNavTheme()
+    window.addEventListener('scroll', updateNavTheme, { passive: true })
+    window.addEventListener('resize', updateNavTheme, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', updateNavTheme)
+      window.removeEventListener('resize', updateNavTheme)
+    }
   }, [pathname])
 
-  const linkColor = theme === 'dark' ? '#ffffff' : '#000000'
+  const linkColor = theme === 'dark' ? '#ffffff' : '#1a1a1a'
 
   return (
     <>

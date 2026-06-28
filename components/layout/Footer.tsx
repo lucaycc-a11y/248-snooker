@@ -21,6 +21,7 @@ const navLinks: { label: string; href: string }[] = [
 export default function Footer() {
   return (
     <footer
+      data-nav-theme="dark"
       className="px-6 py-12 md:px-8"
       style={{
         backgroundColor: tokens.colors.bg,
