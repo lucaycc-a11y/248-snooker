@@ -70,6 +70,18 @@ function padTime(h: number): string {
   return String(((h % 24) + 24) % 24).padStart(2, "0") + ":00"
 }
 
+// Smoothly scroll a revealed section into view (mobile only — desktop is a
+// two-column layout where sections are already visible). The short delay lets
+// the section mount/expand before we measure its position.
+function scrollToRef(ref: React.RefObject<HTMLElement>) {
+  if (typeof window === "undefined" || window.innerWidth >= 768) return
+  setTimeout(() => {
+    if (!ref.current) return
+    const y = ref.current.getBoundingClientRect().top + window.scrollY - 72
+    window.scrollTo({ top: y, behavior: "smooth" })
+  }, 120)
+}
+
 /* ─────────────────────────  QR Code  ───────────────────────── */
 function QRCode({ data }: { data: string }) {
   const size = 21
@@ -773,64 +785,40 @@ function SummaryCard({
   )
 }
 
-/* ─────────────────────────  Mobile Price Bar  ───────────────────────── */
+/* ─────────────────────────  Mobile CTA Bar  ───────────────────────── */
 function MobilePriceBar({
-  startHour,
-  duration,
-  total,
   ctaLabel,
   onContinue,
   canContinue,
   loading,
-  ready = true,
 }: {
-  startHour: number
-  duration: number
-  total: number
   ctaLabel: string
   onContinue: () => void
   canContinue: boolean
   loading?: boolean
-  ready?: boolean
 }) {
-  const endHour = startHour + duration
+  const disabled = !canContinue || !!loading
   return (
     <div className="mobile-cta">
-      {ready && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 10,
-            gap: 12,
-          }}
-        >
-          <span style={{ fontSize: 13, color: tokens.colors.text }}>
-            {padTime(startHour)} – {padTime(endHour)} · {duration}小時
-          </span>
-          <span
-            style={{
-              fontFamily: BEBAS,
-              fontSize: 22,
-              fontWeight: 700,
-              color: tokens.colors.brand,
-            }}
-          >
-            HK${total}
-          </span>
-        </div>
-      )}
-      <Button
-        variant="primary"
-        size="lg"
-        fullWidth
-        disabled={!canContinue}
-        loading={loading}
+      <button
+        type="button"
         onClick={onContinue}
+        disabled={disabled}
+        style={{
+          width: "100%",
+          height: 54,
+          border: "none",
+          borderRadius: 14,
+          background: disabled ? "rgba(255,255,255,0.15)" : tokens.colors.brand,
+          color: disabled ? tokens.colors.textMuted : "#000",
+          fontWeight: 700,
+          fontSize: 17,
+          cursor: disabled ? "not-allowed" : "pointer",
+          transition: `background ${tokens.duration.fast}`,
+        }}
       >
-        {ctaLabel}
-      </Button>
+        {loading ? "處理中…" : ctaLabel}
+      </button>
     </div>
   )
 }
@@ -862,6 +850,8 @@ function Screen1({
   const crossDay = endHour >= 24
   const [displayTotal, setDisplayTotal] = useState(total)
   const [dateChosen, setDateChosen] = useState(false)
+  const dateRef = useRef<HTMLDivElement>(null)
+  const timeRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const target = CONFIG.pricePerHour * duration
@@ -942,6 +932,7 @@ function Screen1({
               selected={selectedTable}
               onSelect={(id) => {
                 setSelectedTable(id)
+                scrollToRef(dateRef)
               }}
             />
           </div>
@@ -950,11 +941,11 @@ function Screen1({
           <AnimatePresence>
             {selectedTable !== null && (
               <motion.div
+                ref={dateRef}
                 key="calendar"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                style={{ overflow: "hidden" }}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div style={{ marginBottom: 28 }}>
                   {sectionLabel("選擇日期", "book.date.title")}
@@ -963,6 +954,7 @@ function Screen1({
                     onSelect={(d) => {
                       setSelectedDate(d)
                       setDateChosen(true)
+                      scrollToRef(timeRef)
                     }}
                   />
                 </div>
@@ -974,11 +966,11 @@ function Screen1({
           <AnimatePresence>
             {selectedTable !== null && dateChosen && (
               <motion.div
+                ref={timeRef}
                 key="time"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                style={{ overflow: "hidden" }}
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div style={{ marginBottom: 24 }}>
                   <div style={{ display: "flex", gap: 24 }}>
@@ -1108,13 +1100,9 @@ function Screen1({
 
       {/* Mobile sticky price bar */}
       <MobilePriceBar
-        startHour={startHour}
-        duration={duration}
-        total={total}
         ctaLabel="繼續預訂"
         onContinue={onContinue}
         canContinue={canContinue}
-        ready={ready}
       />
     </div>
   )
@@ -1726,11 +1714,8 @@ function Screen3({
         />
       </div>
 
-      {/* Mobile sticky price bar */}
+      {/* Mobile sticky CTA bar */}
       <MobilePriceBar
-        startHour={startHour}
-        duration={duration}
-        total={total}
         ctaLabel={`立即付款 · HK$${total}`}
         onContinue={handlePay}
         canContinue={canPay}
@@ -1910,23 +1895,26 @@ function Screen4({
             </motion.div>
           </div>
 
-          {/* Time display — large Bebas */}
-          <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-            <span style={{ fontFamily: BEBAS, fontSize: 48, color: tokens.colors.text, lineHeight: 1, letterSpacing: "0.02em" }}>
-              {padTime(startHour)}
-            </span>
-            <span style={{ fontFamily: BEBAS, fontSize: 32, color: tokens.colors.textMuted, lineHeight: 1 }}>
-              →
-            </span>
-            <span style={{ fontFamily: BEBAS, fontSize: 48, color: tokens.colors.text, lineHeight: 1, letterSpacing: "0.02em" }}>
-              {padTime(endHour)}
-            </span>
-            {crossDay && (
-              <span style={{ fontSize: 13, color: tokens.colors.textMuted, alignSelf: "center" }}>
-                +1日
-              </span>
-            )}
-          </div>
+          {/* Time display — single line, responsive */}
+          <p
+            style={{
+              fontFamily: BEBAS,
+              fontSize: "clamp(28px, 7vw, 48px)",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              whiteSpace: "nowrap",
+              lineHeight: 1.1,
+              color: tokens.colors.text,
+              margin: "0 0 4px",
+            }}
+          >
+            {padTime(startHour)} → {padTime(endHour)}
+          </p>
+          {crossDay && (
+            <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginBottom: 8 }}>
+              +1日
+            </div>
+          )}
 
           {/* Date */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -1935,7 +1923,7 @@ function Screen4({
           </div>
 
           {/* Venue */}
-          <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
+          <div style={{ fontSize: 12, color: tokens.colors.text, opacity: 0.5 }}>
             248 Snooker · {tableName}
           </div>
         </div>
@@ -2144,6 +2132,13 @@ export default function BookPage() {
     setScreen((s) => Math.min(s + 1, 3))
   }, [])
 
+  // When the wizard advances to a new screen (login → payment → confirm),
+  // bring the new screen's top into view rather than keeping the prior scroll.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [screen])
+
   const variants = {
     enter: (d: number) => ({
       x: d > 0 ? "100%" : "-100%",
@@ -2279,7 +2274,7 @@ export default function BookPage() {
           z-index: 50;
         }
         .screen-content {
-          padding: 76px 16px calc(140px + env(safe-area-inset-bottom, 0px));
+          padding: 76px 16px calc(110px + env(safe-area-inset-bottom, 0px));
         }
         .table-grid {
           grid-template-columns: 1fr;
@@ -2304,11 +2299,11 @@ export default function BookPage() {
           bottom: 0;
           left: 0;
           right: 0;
-          padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
-          background: rgba(0,0,0,0.85);
+          padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+          background: rgba(0,0,0,0.92);
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
-          border-top: 1px solid rgba(255,255,255,0.1);
+          border-top: 1px solid rgba(255,255,255,0.08);
           z-index: 40;
         }
 

@@ -16,6 +16,16 @@ const navLinks = [
   { href: '/blog', label: 'Blog' },
 ]
 
+// Frosted-glass pill — the only element in the nav with a background.
+const PILL_STYLE: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.12)',
+  backdropFilter: 'blur(20px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+  border: '1px solid rgba(255,255,255,0.15)',
+  borderRadius: 999,
+  pointerEvents: 'auto',
+}
+
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
@@ -33,88 +43,73 @@ export default function Nav() {
 
   return (
     <>
+      {/* Wrapper — fully transparent, clicks pass through empty areas */}
       <nav
         style={{
           position: 'fixed',
-          top: 0,
+          top: 20,
           left: 0,
-          width: '100%',
+          right: 0,
           zIndex: 50,
-          height: 64,
-          background: 'rgba(0,0,0,0.4)',
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 16px',
+          background: 'transparent',
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none',
+          border: 'none',
+          boxShadow: 'none',
+          pointerEvents: 'none',
         }}
         className="nav-bar"
       >
-        {/* Left: Logo */}
+        {/* Left: Logo — floats freely */}
         <Link
           href="/"
-          style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            flexShrink: 0,
+            pointerEvents: 'auto',
+          }}
         >
           <Logo variant="full" size={28} />
         </Link>
 
-        {/* Center: Desktop links in pill group */}
+        {/* Center: Desktop links inside frosted pill */}
         <div
           className="nav-center"
           style={{
+            ...PILL_STYLE,
             display: 'none',
             alignItems: 'center',
-            background: 'rgba(255,255,255,0.08)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: tokens.radius.pill,
-            padding: '6px 8px',
-            gap: 0,
+            gap: 28,
+            padding: '10px 24px',
           }}
         >
-          {navLinks.map((link, i) => (
-            <div key={link.href} style={{ display: 'flex', alignItems: 'center' }}>
-              {i === navLinks.length - 1 && (
-                <div
-                  style={{
-                    width: 1,
-                    height: 16,
-                    background: 'rgba(255,255,255,0.1)',
-                  }}
-                />
-              )}
+          {navLinks.map((link) => {
+            const active = pathname === link.href
+            return (
               <Link
+                key={link.href}
                 href={link.href}
                 style={{
-                  padding: '6px 16px',
                   fontSize: 14,
                   fontWeight: 500,
-                  color: pathname === link.href ? '#000' : tokens.colors.text,
-                  background: pathname === link.href ? '#fff' : 'transparent',
-                  borderRadius: tokens.radius.pill,
+                  color: active ? tokens.colors.brand : tokens.colors.text,
                   textDecoration: 'none',
                   whiteSpace: 'nowrap',
-                  transition: `background ${tokens.duration.fast}, color ${tokens.duration.fast}`,
-                }}
-                onMouseEnter={(e) => {
-                  if (pathname !== link.href) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (pathname !== link.href) {
-                    e.currentTarget.style.background = 'transparent'
-                  }
+                  transition: `color ${tokens.duration.fast}`,
                 }}
               >
                 {link.label}
               </Link>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
-        {/* Right: Mobile — CTA pill + hamburger pill */}
+        {/* Right: Mobile — CTA floats + hamburger pill */}
         <div
           className="nav-right-mobile"
           style={{
@@ -122,9 +117,10 @@ export default function Nav() {
             alignItems: 'center',
             gap: 8,
             flexShrink: 0,
+            pointerEvents: 'none',
           }}
         >
-          <Link href="/book" style={{ textDecoration: 'none' }}>
+          <Link href="/book" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
             <span
               data-cms-key="nav.cta"
               style={{
@@ -147,14 +143,12 @@ export default function Nav() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="nav-hamburger"
             style={{
+              ...PILL_STYLE,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: tokens.radius.pill,
               width: 48,
-              height: 40,
+              height: 44,
               cursor: 'pointer',
               color: tokens.colors.text,
               padding: 0,
@@ -180,7 +174,7 @@ export default function Nav() {
           </button>
         </div>
 
-        {/* Right: Desktop — Login ghost + Book Now green */}
+        {/* Right: Desktop — Login + Book Now, floating */}
         <div
           className="nav-right-desktop"
           style={{
@@ -188,9 +182,10 @@ export default function Nav() {
             alignItems: 'center',
             gap: 8,
             flexShrink: 0,
+            pointerEvents: 'none',
           }}
         >
-          <Link href="/login" style={{ textDecoration: 'none' }}>
+          <Link href="/login" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
             <span
               data-cms-key="nav.login"
               style={{
@@ -200,25 +195,16 @@ export default function Nav() {
                 color: tokens.colors.text,
                 fontSize: 14,
                 fontWeight: 500,
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: tokens.radius.pill,
-                padding: '8px 16px',
+                ...PILL_STYLE,
+                padding: '10px 18px',
                 whiteSpace: 'nowrap',
                 cursor: 'pointer',
-                background: 'transparent',
-                transition: `background ${tokens.duration.fast}`,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
               }}
             >
               Login
             </span>
           </Link>
-          <Link href="/book" style={{ textDecoration: 'none' }}>
+          <Link href="/book" style={{ textDecoration: 'none', pointerEvents: 'auto' }}>
             <span
               data-cms-key="nav.book-desktop"
               style={{
@@ -228,7 +214,7 @@ export default function Nav() {
                 background: tokens.colors.brand,
                 color: '#000',
                 borderRadius: tokens.radius.pill,
-                padding: '8px 20px',
+                padding: '10px 20px',
                 fontWeight: 700,
                 fontSize: 14,
                 whiteSpace: 'nowrap',
