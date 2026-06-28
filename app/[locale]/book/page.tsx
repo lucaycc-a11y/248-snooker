@@ -2208,9 +2208,14 @@ export default function BookPage() {
     if (typeof window === "undefined") return
     const supabase = createClient()
 
-    // On mount: check if already signed in (post-OAuth redirect)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const checkAndShowProfile = async (user: any) => {
+      setProfileUser({
+        name: user.user_metadata?.full_name ?? '',
+        avatar: user.user_metadata?.avatar_url ?? '',
+      })
+
+      // Restore pending booking from sessionStorage
       const saved = sessionStorage.getItem("pendingBooking")
       if (saved) {
         try {
@@ -2220,43 +2225,48 @@ export default function BookPage() {
           sessionStorage.removeItem("pendingBooking")
         } catch {}
       }
-      // If on the auth/login screen, advance to payment
-      setScreen((s) => (s === 1 ? 2 : s))
-      setProfileUser({
-        name: session.user.user_metadata?.full_name ?? '',
-        avatar: session.user.user_metadata?.avatar_url ?? '',
-      })
-      setTimeout(() => {
-        if (paymentRef.current) {
-          const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
-          window.scrollTo({ top: y, behavior: "smooth" })
-        }
-      }, 400)
+
+      setScreen((s) => (s <= 1 ? 2 : s))
+
+      // Query DB to decide if we need phone or email
+      const { data: profile } = await supabase
+        .from("users")
+        .select("phone, email, profile_complete")
+        .eq("id", user.id)
+        .single()
+
+      const provider: string = user.app_metadata?.provider ?? ""
+      const needsPhone = provider === "google" && !profile?.phone
+      const needsEmail =
+        (provider === "whatsapp" || provider === "phone") && !profile?.email
+
+      if (needsPhone) {
+        setShowProfileModal("phone")
+      } else if (needsEmail) {
+        setShowProfileModal("email")
+      } else {
+        setTimeout(() => {
+          if (paymentRef.current) {
+            const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
+            window.scrollTo({ top: y, behavior: "smooth" })
+          }
+        }, 400)
+      }
+    }
+
+    // Check existing session on mount (post-OAuth redirect)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return
+      // Only trigger profile check when pendingBooking is present
+      // (indicates the user just came back from an OAuth redirect)
+      const fromAuth = sessionStorage.getItem("pendingBooking") !== null
+      if (fromAuth) checkAndShowProfile(session.user)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === "SIGNED_IN" && session) {
-          const saved = sessionStorage.getItem("pendingBooking")
-          if (saved) {
-            try {
-              const state = JSON.parse(saved)
-              if (state.tableNumber) setSelectedTable(state.tableNumber)
-              if (state.date) setSelectedDate(new Date(state.date))
-              sessionStorage.removeItem("pendingBooking")
-            } catch {}
-          }
-          setScreen((s) => (s <= 1 ? 2 : s))
-          setProfileUser({
-            name: session.user.user_metadata?.full_name ?? '',
-            avatar: session.user.user_metadata?.avatar_url ?? '',
-          })
-          setTimeout(() => {
-            if (paymentRef.current) {
-              const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
-              window.scrollTo({ top: y, behavior: "smooth" })
-            }
-          }, 500)
+      async (event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+          await checkAndShowProfile(session.user)
         }
       }
     )
