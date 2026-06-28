@@ -1,7 +1,7 @@
 import express from 'express'
 import 'dotenv/config'
-import { existsSync, readdirSync, statSync } from 'fs'
-import { spawnSync } from 'child_process'
+import { existsSync, readdirSync } from 'fs'
+import { spawn } from 'child_process'
 import { createWhatsAppClient } from './src/client.js'
 import { handleMessage } from './src/handler.js'
 import {
@@ -13,49 +13,17 @@ import {
 import { createOTP, formatOTPMessage } from './src/otp.js'
 import { markAwaitingOTP } from './src/state.js'
 
-const CHROME_DIR = '/opt/render/project/src/whatsapp-bot/.chrome'
+const CHROME_DIR = '/opt/render/project/src/whatsapp-bot/.chrome/chrome'
 
-const findFile = (dir, name) => {
-  try {
-    for (const entry of readdirSync(dir)) {
-      const full = `${dir}/${entry}`
-      try {
-        if (entry === name && statSync(full).isFile()) return full
-        if (statSync(full).isDirectory()) {
-          const found = findFile(full, name)
-          if (found) return found
-        }
-      } catch {}
-    }
-  } catch {}
-  return null
-}
-
-const ensureChrome = () => {
-  const existing = findFile(CHROME_DIR, 'chrome')
-  if (existing) {
-    console.log('✅ Chrome already exists at:', existing)
-    return existing
-  }
-
-  console.log('📥 Downloading Chrome to', CHROME_DIR, '...')
-  spawnSync(
+const downloadChrome = () => new Promise((resolve) => {
+  const proc = spawn(
     'npx',
-    ['puppeteer', 'browsers', 'install', 'chrome', '--path', CHROME_DIR],
-    { stdio: 'inherit' }
+    ['puppeteer', 'browsers', 'install', 'chrome', '--path', '/opt/render/project/src/whatsapp-bot/.chrome'],
+    { stdio: 'inherit', shell: true }
   )
+  proc.on('close', resolve)
+})
 
-  const downloaded = findFile(CHROME_DIR, 'chrome')
-  if (downloaded) {
-    console.log('✅ Chrome downloaded to:', downloaded)
-    return downloaded
-  }
-
-  console.warn('⚠️  Chrome download failed — puppeteer will attempt its own detection')
-  return undefined
-}
-
-// ── Express setup ──────────────────────────────────────────────────────────
 
 const app = express()
 app.use(express.json())
@@ -148,20 +116,45 @@ app.post('/api/notify/session-ending', verifySecret, async (req, res) => {
   }
 })
 
-// ── Start ──────────────────────────────────────────────────────────────────
-
 const PORT = process.env.PORT || 10000
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 API server running on port ${PORT}`)
   initWhatsApp()
 })
 
-function initWhatsApp() {
+async function initWhatsApp() {
   console.log('📥 Setting up Chrome...')
-  const chromePath = ensureChrome()
+
+  let chromePath
+  if (existsSync(CHROME_DIR)) {
+    const versions = readdirSync(CHROME_DIR)
+    for (const v of versions) {
+      const p = `${CHROME_DIR}/${v}/chrome-linux64/chrome`
+      if (existsSync(p)) { chromePath = p; break }
+    }
+  }
+
+  if (!chromePath) {
+    console.log('📥 Downloading Chrome (async)...')
+    await downloadChrome()
+
+    if (existsSync(CHROME_DIR)) {
+      const versions = readdirSync(CHROME_DIR)
+      for (const v of versions) {
+        const p = `${CHROME_DIR}/${v}/chrome-linux64/chrome`
+        if (existsSync(p)) { chromePath = p; break }
+      }
+    }
+  }
+
+  console.log('✅ Chrome path:', chromePath)
 
   client = createWhatsAppClient(chromePath)
+
+  if (chromePath) {
+    client.options.puppeteer.executablePath = chromePath
+  }
 
   client.on('message', async (msg) => {
     try {
