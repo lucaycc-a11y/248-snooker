@@ -1,44 +1,56 @@
-import { existsSync, readdirSync } from 'fs'
-import { execFileSync } from 'child_process'
+import { existsSync, readdirSync, statSync } from 'fs'
+import { spawnSync } from 'child_process'
 import pkg from 'whatsapp-web.js'
 import qrcode from 'qrcode-terminal'
 
 const { Client, LocalAuth } = pkg
 
-const getChromePath = () => {
-  const cacheDir = '/opt/render/.cache/puppeteer/chrome'
+const CHROME_INSTALL_DIR = '/opt/render/project/src/whatsapp-bot/.chrome'
 
+// Recursively find a file by name under a directory
+const findFile = (dir, name) => {
   try {
-    if (existsSync(cacheDir)) {
-      const versions = readdirSync(cacheDir)
-      for (const version of versions) {
-        const p = `${cacheDir}/${version}/chrome-linux64/chrome`
-        if (existsSync(p)) {
-          console.log('✅ Chrome found at:', p)
-          return p
+    for (const entry of readdirSync(dir)) {
+      const full = `${dir}/${entry}`
+      try {
+        if (entry === name && statSync(full).isFile()) return full
+        if (statSync(full).isDirectory()) {
+          const found = findFile(full, name)
+          if (found) return found
         }
-      }
+      } catch {}
     }
-  } catch (e) {
-    console.log('Cache search failed:', e.message)
+  } catch {}
+  return null
+}
+
+const ensureChrome = () => {
+  const existing = findFile(CHROME_INSTALL_DIR, 'chrome')
+  if (existing) {
+    console.log('✅ Chrome already exists at:', existing)
+    return existing
   }
 
-  // Fallback: try known system chrome binaries one by one
-  for (const bin of ['google-chrome-stable', 'google-chrome', 'chromium']) {
-    try {
-      const p = execFileSync('which', [bin]).toString().trim()
-      if (p) {
-        console.log('✅ Chrome fallback at:', p)
-        return p
-      }
-    } catch {}
+  console.log('📥 Downloading Chrome to', CHROME_INSTALL_DIR, '...')
+  spawnSync(
+    'npx',
+    ['puppeteer', 'browsers', 'install', 'chrome', '--path', CHROME_INSTALL_DIR],
+    { stdio: 'inherit' }
+  )
+
+  const downloaded = findFile(CHROME_INSTALL_DIR, 'chrome')
+  if (downloaded) {
+    console.log('✅ Chrome downloaded to:', downloaded)
+    return downloaded
   }
 
-  console.warn('⚠️  No Chrome found — puppeteer will use its own detection')
+  console.warn('⚠️  Chrome download failed — puppeteer will use its own detection')
   return undefined
 }
 
 export function createWhatsAppClient() {
+  const chromePath = ensureChrome()
+
   const client = new Client({
     authStrategy: new LocalAuth({
       clientId: '248-snooker',
@@ -46,7 +58,7 @@ export function createWhatsAppClient() {
     }),
     puppeteer: {
       headless: true,
-      executablePath: getChromePath(),
+      executablePath: chromePath,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
