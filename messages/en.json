@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "book": "Book",
+    "pricing": "Pricing",
+    "about": "About",
+    "blog": "Blog"
+  },
+  "hero": {
+    "title": "248 Snooker",
+    "tagline": "Your Home Court",
+    "cta_book": "Book Now",
+    "cta_learn": "Learn More"
+  },
+  "book": {
+    "title": "Book a Session",
+    "select_table": "Select Table",
+    "table_available": "Available Now",
+    "table_unavailable": "Not Available",
+    "select_date": "Select Date",
+    "select_time": "Start Time",
+    "duration": "Duration",
+    "continue": "Continue",
+    "instant_confirm": "Instant Confirmation · No Waiting",
+    "login_title": "Complete Booking",
+    "login_subtitle": "Your slot is temporarily held",
+    "login_apple": "Sign in with Apple",
+    "login_google": "Sign in with Google",
+    "login_whatsapp": "WhatsApp Number",
+    "payment_title": "Payment",
+    "subtotal": "Subtotal",
+    "service_fee": "Service Fee",
+    "total": "Total",
+    "pay_now": "Pay Now",
+    "confirm_title": "Confirmed",
+    "add_calendar": "Add to Calendar",
+    "share": "Share",
+    "back_home": "Back to Home",
+    "qr_hint": "Show this QR code at entry · 24hr support"
+  },
+  "ticket": {
+    "duration": "Duration",
+    "paid": "Paid",
+    "payment": "Payment"
+  }
+}

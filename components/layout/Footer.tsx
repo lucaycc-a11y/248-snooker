@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { Instagram, MessageCircle } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
 

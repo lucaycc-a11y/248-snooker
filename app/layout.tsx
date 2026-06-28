@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -55,14 +56,57 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Locale resolved by next-intl middleware (defaults to zh for non-localized
+  // routes). Maps to the BCP-47 tag for the <html lang> attribute.
+  const locale = await getLocale();
+  const htmlLang = locale === "en" ? "en-HK" : "zh-HK";
+  // Static, hardcoded structured data — no user input, safe to inline.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SportsClub",
+    name: "248 Snooker",
+    description: "香港首間24小時自助英式桌球預訂平台",
+    url: "https://248.formhk.com",
+    telephone: "+85264274620",
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "HK",
+      addressRegion: "Hong Kong",
+    },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
+      opens: "09:00",
+      closes: "02:00",
+    },
+    priceRange: "HK$60-120/hr",
+    amenityFeature: [
+      { "@type": "LocationFeatureSpecification", name: "Self-service booking", value: true },
+      { "@type": "LocationFeatureSpecification", name: "24-hour access", value: true },
+      { "@type": "LocationFeatureSpecification", name: "Apple Pay", value: true },
+    ],
+  };
+
   return (
-    <html lang="zh-HK">
+    <html lang={htmlLang}>
       <body className="min-h-screen bg-black text-white antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
       </body>
     </html>

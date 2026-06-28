@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "book": "預訂",
+    "pricing": "定價",
+    "about": "關於",
+    "blog": "Blog"
+  },
+  "hero": {
+    "title": "248 Snooker",
+    "tagline": "屬於你的主場",
+    "cta_book": "立即預訂",
+    "cta_learn": "了解更多"
+  },
+  "book": {
+    "title": "預訂時段",
+    "select_table": "選擇球枱",
+    "table_available": "現時可預訂",
+    "table_unavailable": "此時段已被預訂",
+    "select_date": "選擇日期",
+    "select_time": "開始時間",
+    "duration": "時長",
+    "continue": "繼續預訂",
+    "instant_confirm": "即時確認・毋需等候",
+    "login_title": "完成預訂",
+    "login_subtitle": "你的時段已暫時鎖定",
+    "login_apple": "以 Apple 登入",
+    "login_google": "以 Google 帳戶登入",
+    "login_whatsapp": "WhatsApp 號碼",
+    "payment_title": "付款",
+    "subtotal": "小計",
+    "service_fee": "服務費",
+    "total": "總計",
+    "pay_now": "立即付款",
+    "confirm_title": "已確認",
+    "add_calendar": "加入日曆",
+    "share": "分享",
+    "back_home": "返回主頁",
+    "qr_hint": "請於入場時出示此二維碼・24小時客服"
+  },
+  "ticket": {
+    "duration": "時長",
+    "paid": "已付",
+    "payment": "付款"
+  }
+}

@@ -1,20 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useLocale, useTranslations } from 'next-intl'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui'
 
-const navLinks = [
-  { href: '/book', label: '預訂' },
-  { href: '/pricing', label: '定價' },
-  { href: '/about', label: '關於' },
-  { href: '/blog', label: 'Blog' },
-]
+const navItems = [
+  { href: '/book', key: 'book' },
+  { href: '/pricing', key: 'pricing' },
+  { href: '/about', key: 'about' },
+  { href: '/blog', key: 'blog' },
+] as const
 
 type NavTheme = 'dark' | 'light'
 
@@ -38,6 +38,16 @@ export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [theme, setTheme] = useState<NavTheme>('dark')
   const pathname = usePathname()
+  const router = useRouter()
+  const locale = useLocale()
+  const t = useTranslations('nav')
+
+  const toggleLocale = () => {
+    const next = locale === 'zh' ? 'en' : 'zh'
+    // usePathname() from next-intl is locale-agnostic; the router re-adds the
+    // prefix based on the target locale.
+    router.replace(pathname, { locale: next })
+  }
 
   useEffect(() => {
     if (menuOpen) {
@@ -135,12 +145,12 @@ export default function Nav() {
             padding: '10px 24px',
           }}
         >
-          {navLinks.map((link) => {
-            const active = pathname === link.href
+          {navItems.map((item) => {
+            const active = pathname === item.href
             return (
               <Link
-                key={link.href}
-                href={link.href}
+                key={item.href}
+                href={item.href}
                 style={{
                   fontSize: 14,
                   fontWeight: 500,
@@ -150,10 +160,38 @@ export default function Nav() {
                   transition: PILL_TRANSITION,
                 }}
               >
-                {link.label}
+                {t(item.key)}
               </Link>
             )
           })}
+
+          {/* Divider + language switcher */}
+          <span
+            style={{
+              width: 1,
+              height: 14,
+              background: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+              margin: '0 4px',
+            }}
+          />
+          <button
+            onClick={toggleLocale}
+            aria-label={locale === 'zh' ? 'Switch to English' : '切換至中文'}
+            style={{
+              color: linkColor,
+              fontSize: 13,
+              fontWeight: 500,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: 6,
+              opacity: 0.7,
+              transition: PILL_TRANSITION,
+            }}
+          >
+            {locale === 'zh' ? 'EN' : '中'}
+          </button>
         </div>
 
         {/* Mobile — hamburger pill, floats top-right */}
@@ -278,12 +316,12 @@ export default function Nav() {
                 gap: 32,
               }}
             >
-              {navLinks.map((link) => (
+              {navItems.map((item) => (
                 <Link
-                  key={link.href}
-                  href={link.href}
+                  key={item.href}
+                  href={item.href}
                   onClick={() => setMenuOpen(false)}
-                  data-cms-key={`nav.link.${link.href.slice(1)}`}
+                  data-cms-key={`nav.link.${item.key}`}
                   style={{
                     fontSize: 32,
                     fontWeight: 600,
@@ -292,9 +330,29 @@ export default function Nav() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {link.label}
+                  {t(item.key)}
                 </Link>
               ))}
+
+              {/* Language switcher — mobile */}
+              <button
+                onClick={() => {
+                  setMenuOpen(false)
+                  toggleLocale()
+                }}
+                aria-label={locale === 'zh' ? 'Switch to English' : '切換至中文'}
+                style={{
+                  fontSize: 20,
+                  fontWeight: 500,
+                  color: tokens.colors.brand,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 8,
+                }}
+              >
+                {locale === 'zh' ? 'English' : '中文'}
+              </button>
             </div>
 
             <div style={{ width: '100%', paddingTop: 32 }}>
