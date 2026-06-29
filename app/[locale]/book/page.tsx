@@ -1219,7 +1219,7 @@ function Screen2({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="screen-content">
+    <div className="screen-content auth-screen">
       <div className="two-col">
         <div className="col-left">
           <div
@@ -1917,25 +1917,53 @@ function Screen4({
             </motion.div>
           </div>
 
-          {/* Time display — single line */}
-          <p
+          {/* Time display — flex row, shrink-safe so it never clips */}
+          <div
             style={{
-              fontSize: "clamp(40px, 10vw, 64px)",
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              whiteSpace: "nowrap",
-              lineHeight: 1.05,
-              color: tokens.colors.text,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "nowrap",
               margin: 0,
             }}
           >
-            {padTime(startHour)} → {padTime(endHour)}
+            <span
+              style={{
+                fontSize: "clamp(28px, 7vw, 48px)",
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.05,
+                color: tokens.colors.text,
+              }}
+            >
+              {padTime(startHour)}
+            </span>
+            <span
+              style={{
+                fontSize: "clamp(20px, 4vw, 32px)",
+                opacity: 0.6,
+                color: tokens.colors.text,
+              }}
+            >
+              →
+            </span>
+            <span
+              style={{
+                fontSize: "clamp(28px, 7vw, 48px)",
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                lineHeight: 1.05,
+                color: tokens.colors.text,
+              }}
+            >
+              {padTime(endHour)}
+            </span>
             {crossDay && (
-              <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.4)", marginLeft: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.4)", marginLeft: 4 }}>
                 +1日
               </span>
             )}
-          </p>
+          </div>
 
           {/* Date */}
           <div style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
@@ -2534,6 +2562,12 @@ export default function BookPage() {
         .screen-content {
           padding: 76px 16px calc(110px + env(safe-area-inset-bottom, 0px));
         }
+        .auth-screen {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-height: calc(100dvh - 76px);
+        }
         .table-grid {
           grid-template-columns: 1fr;
         }
@@ -2602,6 +2636,10 @@ export default function BookPage() {
           }
           .screen-content {
             padding: 0 0 48px;
+          }
+          .auth-screen {
+            min-height: calc(100dvh - 200px);
+            justify-content: center;
           }
           .two-col {
             display: grid;

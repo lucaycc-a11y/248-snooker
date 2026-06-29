@@ -4,45 +4,22 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { Pause, Play, RotateCcw } from "lucide-react";
+import { useTranslations } from "next-intl";
 
-interface Slide {
+interface SlideText {
   title: string;
   subtitle: string;
-  image: string;
   alt: string;
 }
 
-const slides: Slide[] = [
-  {
-    title: "專業中式桌球枱",
-    subtitle: "精選頂級桌球枱，枱布每月更換，確保最佳手感。",
-    image: "/gallery/IMG_1511.jpg",
-    alt: "248桌球會 - 專業中式桌球枱",
-  },
-  {
-    title: "24小時全天候",
-    subtitle: "凌晨三點，依然燈火通明，永遠為你而開。",
-    image: "/gallery/IMG_1512.jpg",
-    alt: "248桌球會 - 24小時營業環境",
-  },
-  {
-    title: "掃碼即入場",
-    subtitle: "預訂後即獲QR Code，到場掃碼，門自動打開。",
-    image: "/gallery/IMG_1513.jpg",
-    alt: "248桌球會 - 智能掃碼入場系統",
-  },
-  {
-    title: "私人獨立空間",
-    subtitle: "整個場地屬於你，無需等位，無需共用。",
-    image: "/gallery/IMG_1514.jpg",
-    alt: "248桌球會 - 私人獨立桌球室",
-  },
-  {
-    title: "頂級燈光設備",
-    subtitle: "台球專用燈具，照亮每個細節，清晰看見每一顆球。",
-    image: "/gallery/IMG_1515.jpg",
-    alt: "248桌球會 - 專業桌球燈光設備",
-  },
+// Image paths are not translatable — text comes from the `gallery` namespace,
+// merged with these by index.
+const slideImages = [
+  "/gallery/IMG_1511.jpg",
+  "/gallery/IMG_1512.jpg",
+  "/gallery/IMG_1513.jpg",
+  "/gallery/IMG_1514.jpg",
+  "/gallery/IMG_1515.jpg",
 ];
 
 const GAP = 28; // px between slides
@@ -54,6 +31,15 @@ const SLIDE_SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
 const DOT_SPRING = { type: "spring", stiffness: 500, damping: 35 } as const;
 
 export default function Gallery() {
+  const t = useTranslations("gallery");
+  const slideTexts = t.raw("slides") as SlideText[];
+  const slides = slideImages.map((image, i) => ({
+    image,
+    title: slideTexts[i]?.title ?? "",
+    subtitle: slideTexts[i]?.subtitle ?? "",
+    alt: slideTexts[i]?.alt ?? "",
+  }));
+
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
   const [ended, setEnded] = useState(false);
@@ -119,7 +105,7 @@ export default function Gallery() {
           fontFamily: FONT_FAMILY,
         }}
       >
-        場地。逐一看。
+        {t("title")}
       </h2>
 
       {/* Carousel */}
@@ -241,7 +227,7 @@ export default function Gallery() {
                       setEnded(false);
                       setPaused(false);
                     }}
-                    aria-label={`前往第 ${i + 1} 張`}
+                    aria-label={t("goto", { n: i + 1 })}
                     aria-current={active}
                     layout
                     transition={DOT_SPRING}
@@ -271,7 +257,7 @@ export default function Gallery() {
                   setPaused((p) => !p);
                 }
               }}
-              aria-label={ended ? "重播" : paused ? "播放" : "暫停"}
+              aria-label={ended ? t("control_replay") : paused ? t("control_play") : t("control_pause")}
               style={{
                 width: "44px",
                 height: "44px",

@@ -155,6 +155,40 @@
     "confirmed": "Confirmed ✓",
     "footer": "Show this QR code at entry · 24hr support"
   },
+  "gallery": {
+    "title": "The Venue, Up Close.",
+    "control_replay": "Replay",
+    "control_play": "Play",
+    "control_pause": "Pause",
+    "goto": "Go to slide {n}",
+    "slides": [
+      {
+        "title": "Professional Tables",
+        "subtitle": "Premium snooker tables with cloth replaced monthly for the best feel.",
+        "alt": "248 Snooker - professional tables"
+      },
+      {
+        "title": "Open 24 Hours",
+        "subtitle": "3am and still lit up. Always open for you.",
+        "alt": "248 Snooker - 24-hour venue"
+      },
+      {
+        "title": "Scan to Enter",
+        "subtitle": "Get a QR code after booking. Scan on arrival and the door opens automatically.",
+        "alt": "248 Snooker - smart QR entry system"
+      },
+      {
+        "title": "Private Space",
+        "subtitle": "The whole venue is yours. No queues, no sharing.",
+        "alt": "248 Snooker - private snooker room"
+      },
+      {
+        "title": "Premium Lighting",
+        "subtitle": "Table-specific lighting that brings out every detail and every ball.",
+        "alt": "248 Snooker - professional table lighting"
+      }
+    ]
+  },
   "footer": {
     "tagline": "Hong Kong's 24-Hour Self-Service Snooker Club",
     "copyright": "© 2026 248 Snooker",
