@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function MemberPage() {
   // Protected route: fetch member data (returns null when not signed in).
   const data = await getMemberData();
-  if (!data) redirect("/book");
+  if (!data) redirect("/login?returnUrl=/member");
 
   // /member lives outside the [locale] segment (bypassed by middleware), so we
   // resolve the locale from the NEXT_LOCALE cookie and provide messages here.

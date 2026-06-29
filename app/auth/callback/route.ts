@@ -1,64 +1,46 @@
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
+import { createServerClient } from '@/lib/supabase/server'
 
-// Never cache the OAuth callback — the PKCE code is one-time use.
-export const dynamic = 'force-dynamic'
+function safeNextPath(value: string | null): string {
+  if (!value) return '/member'
+  if (!value.startsWith('/')) return '/member'
+  if (value.startsWith('//')) return '/member'
+  return value
+}
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/book'
+  const next = safeNextPath(searchParams.get('next') ?? searchParams.get('returnUrl'))
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/book?error=no_code`)
+    return NextResponse.redirect(`${origin}/login?error=missing_code&returnUrl=${encodeURIComponent(next)}`)
   }
 
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            )
-          } catch {
-            // Swallow set errors in middleware context where cookies are read-only.
-          }
-        },
-      },
-    },
-  )
+  try {
+    const supabase = await createServerClient()
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) {
+      return NextResponse.redirect(`${origin}/login?error=oauth&returnUrl=${encodeURIComponent(next)}`)
+    }
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
-
-  if (error) {
-    console.error('Auth callback error:', error.message)
-    return NextResponse.redirect(`${origin}/book?error=${encodeURIComponent(error.message)}`)
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (user) {
-    await supabase.from('users').upsert(
-      {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const profile = {
         id: user.id,
-        email: user.email,
-        display_name: user.user_metadata?.full_name ?? '',
-        avatar_url: user.user_metadata?.avatar_url ?? '',
-        points: 50,
-      },
-      { onConflict: 'id', ignoreDuplicates: true },
-    )
-  }
+        email: user.email ?? null,
+        display_name:
+          (user.user_metadata?.full_name as string | undefined) ??
+          (user.user_metadata?.name as string | undefined) ??
+          (user.email ? user.email.split('@')[0] : null),
+        avatar_url: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+      }
 
-  return NextResponse.redirect(`${origin}${next}`)
+      await supabase.from('users').upsert(profile, { onConflict: 'id' })
+    }
+
+    return NextResponse.redirect(`${origin}${next}`)
+  } catch {
+    return NextResponse.redirect(`${origin}/login?error=oauth&returnUrl=${encodeURIComponent(next)}`)
+  }
 }

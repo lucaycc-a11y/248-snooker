@@ -48,7 +48,10 @@ export default function Nav() {
   const locale = useLocale()
   const t = useTranslations('nav')
 
-  const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja'] as const
+  const navText = (key: string, fallback: string) => {
+    const value = t.has(key) ? t(key) : fallback
+    return value
+  }
   const LOCALE_LABELS: Record<string, string> = {
     'zh-HK': '繁',
     'zh-CN': '简',
@@ -284,7 +287,7 @@ export default function Nav() {
                   transition: PILL_TRANSITION,
                 }}
               >
-                {t(item.key)}
+                {navText(item.key, item.key === 'home' ? 'Home' : item.key === 'member' ? 'Member' : item.key)}
               </Link>
             )
           })}
@@ -315,7 +318,7 @@ export default function Nav() {
             }}
           >
             <User size={14} strokeWidth={1.8} />
-            {t('member')}
+            {navText('member', 'Member')}
           </Link>
 
           <span
@@ -402,7 +405,7 @@ export default function Nav() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {t('login')}
+                {navText('login', 'Login')}
               </span>
             )}
           </Link>
@@ -511,7 +514,7 @@ export default function Nav() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {t(item.key)}
+                {navText(item.key, item.key === 'home' ? 'Home' : item.key === 'member' ? 'Member' : item.key)}
                 </Link>
               ))}
 
@@ -535,7 +538,7 @@ export default function Nav() {
                 ) : (
                   <User size={28} strokeWidth={1.5} />
                 )}
-                {memberLabel}
+                {navText('login', 'Login')}
               </Link>
 
               <button
