@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "cms:audit": "node scripts/cms-audit.mjs",
+    "cms:sync": "node scripts/cms-sync.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

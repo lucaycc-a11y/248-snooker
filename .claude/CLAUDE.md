@@ -18,10 +18,5 @@
 - Repo: github.com/lucaycc-a11y/248-snooker
 - Vercel team: lucaycc-3022s-projects
 
-## Non-negotiables
-- Apple design quality standard
-- Mobile-first always
-- All text has data-cms-key
-- RLS on every Supabase table
-- Never hardcode/trust prices client-side
-- Commit and push only when the user approves
+- All new visible text should go through `CMSText` or `next-intl`, keyed for CMS sync.
+- Run `npm run cms:sync` after adding or changing user-visible text.
