@@ -1,15 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import type { CSSProperties } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui'
+import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
+  { href: '/', key: 'home' },
   { href: '/book', key: 'book' },
   { href: '/pricing', key: 'pricing' },
   { href: '/about', key: 'about' },
@@ -19,9 +22,9 @@ const navItems = [
 type NavTheme = 'dark' | 'light'
 
 const PILL_TRANSITION = 'all 0.25s ease'
+const EASE = [0.16, 1, 0.3, 1] as const
 
-// Pill chrome resolves from the background behind the navbar.
-function pillStyle(theme: NavTheme): React.CSSProperties {
+function pillStyle(theme: NavTheme): CSSProperties {
   const dark = theme === 'dark'
   return {
     background: dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
@@ -37,6 +40,8 @@ function pillStyle(theme: NavTheme): React.CSSProperties {
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [theme, setTheme] = useState<NavTheme>('dark')
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const pathname = usePathname()
   const router = useRouter()
   const locale = useLocale()
@@ -57,40 +62,48 @@ export default function Nav() {
   }
 
   useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data }) => {
+      setLoggedIn(!!data.session)
+      setAvatarUrl(data.session?.user?.user_metadata?.avatar_url ?? null)
+    })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setLoggedIn(!!session)
+      setAvatarUrl(session?.user?.user_metadata?.avatar_url ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
     }
   }, [menuOpen])
 
-  // Auto light/dark: on scroll, read whatever element sits directly behind the
-  // navbar and walk up to its [data-nav-theme]; fall back to bg luminance.
-  // Sample below the pill (y=72) so the pill itself isn't what's hit-tested.
   useEffect(() => {
     const updateNavTheme = () => {
       const probeX = window.innerWidth / 2
-      const el = document.elementFromPoint(probeX, 72)
+      const probeY = window.innerWidth >= 768 ? 92 : 118
+      const el = document.elementFromPoint(probeX, probeY)
       if (!el) return
 
       let target: Element | null = el
       while (target && target !== document.body) {
-        const t = target.getAttribute('data-nav-theme')
-        if (t === 'dark' || t === 'light') {
-          setTheme(t)
+        const navTheme = target.getAttribute('data-nav-theme')
+        if (navTheme === 'dark' || navTheme === 'light') {
+          setTheme(navTheme)
           return
         }
         target = target.parentElement
       }
 
-      // No tagged ancestor — infer from the element's background luminance.
       const bg = window.getComputedStyle(el).backgroundColor
       const rgb = bg.match(/\d+/g)?.map(Number) ?? [0, 0, 0]
-      const luminance = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000
-      setTheme(luminance < 128 ? 'dark' : 'light')
+      const lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000
+      setTheme(lum < 128 ? 'dark' : 'light')
     }
 
     updateNavTheme()
@@ -102,15 +115,108 @@ export default function Nav() {
     }
   }, [pathname])
 
-  const linkColor = theme === 'dark' ? '#ffffff' : '#1a1a1a'
+  const linkColor = theme === 'dark' ? '#FFFFFF' : '#1A1A1A'
+  const memberHref = loggedIn ? '/member' : '/login'
+  const memberLabel = loggedIn ? t('member') : t('login')
+
+  function MemberIcon({ size = 20 }: { size?: number }) {
+    if (avatarUrl) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={avatarUrl}
+          alt={t('member')}
+          style={{
+            width: size + 16,
+            height: size + 16,
+            borderRadius: '50%',
+            objectFit: 'cover',
+          }}
+        />
+      )
+    }
+
+    return <User size={size} strokeWidth={1.7} />
+  }
+
+  function DesktopMemberCta() {
+    if (loggedIn) {
+      return (
+        <Link
+          href="/member"
+          className="nav-cta-desktop"
+          aria-label={t('member')}
+          data-cms-key="nav.member-cta"
+          style={{
+            position: 'absolute',
+            right: 32,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            pointerEvents: 'auto',
+            display: 'none',
+            textDecoration: 'none',
+          }}
+        >
+          <span
+            style={{
+              ...pillStyle(theme),
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 52,
+              height: 52,
+              color: linkColor,
+              overflow: 'hidden',
+            }}
+          >
+            <MemberIcon />
+          </span>
+        </Link>
+      )
+    }
+
+    return (
+      <Link
+        href="/login"
+        className="nav-cta-desktop"
+        style={{
+          position: 'absolute',
+          right: 32,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          textDecoration: 'none',
+          pointerEvents: 'auto',
+          display: 'none',
+        }}
+      >
+        <span
+          data-cms-key="nav.login-desktop"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: tokens.colors.brand,
+            color: '#000',
+            borderRadius: tokens.radius.pill,
+            padding: '0 24px',
+            fontWeight: 700,
+            fontSize: 15,
+            minHeight: 48,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {t('login')}
+        </span>
+      </Link>
+    )
+  }
 
   return (
     <>
-      {/* Wrapper — transparent, centred, clicks pass through empty areas */}
       <nav
         style={{
           position: 'fixed',
-          top: 20,
+          top: 28,
           left: 0,
           right: 0,
           zIndex: 50,
@@ -124,7 +230,6 @@ export default function Nav() {
         }}
         className="nav-bar"
       >
-        {/* Logo — floats top-left, absolute so the pill stays centred */}
         <Link
           href="/"
           style={{
@@ -137,19 +242,19 @@ export default function Nav() {
             pointerEvents: 'auto',
           }}
           className="nav-logo"
+          aria-label={t('home')}
         >
-          <Logo variant="full" theme={theme} size={28} />
+          <Logo variant="full" theme={theme} size={52} />
         </Link>
 
-        {/* Desktop links — centred frosted pill */}
         <div
           className="nav-center"
           style={{
             ...pillStyle(theme),
             display: 'none',
             alignItems: 'center',
-            gap: 28,
-            padding: '10px 24px',
+            gap: 24,
+            padding: '11px 26px',
           }}
         >
           {navItems.map((item) => {
@@ -158,6 +263,7 @@ export default function Nav() {
               <Link
                 key={item.href}
                 href={item.href}
+                data-cms-key={`nav.link.${item.key}`}
                 style={{
                   fontSize: 14,
                   fontWeight: 500,
@@ -172,15 +278,45 @@ export default function Nav() {
             )
           })}
 
-          {/* Divider + language switcher */}
           <span
             style={{
               width: 1,
               height: 14,
               background: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-              margin: '0 4px',
+              margin: '0 2px',
+              flexShrink: 0,
             }}
           />
+
+          <Link
+            href="/member"
+            data-cms-key="nav.link.member"
+            style={{
+              fontSize: 14,
+              fontWeight: 500,
+              color: pathname === '/member' ? tokens.colors.brand : linkColor,
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+              transition: PILL_TRANSITION,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+            }}
+          >
+            <User size={14} strokeWidth={1.8} />
+            {t('member')}
+          </Link>
+
+          <span
+            style={{
+              width: 1,
+              height: 14,
+              background: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+              margin: '0 2px',
+              flexShrink: 0,
+            }}
+          />
+
           <button
             onClick={toggleLocale}
             aria-label="Switch language"
@@ -201,97 +337,123 @@ export default function Nav() {
           </button>
         </div>
 
-        {/* Mobile — hamburger pill, floats top-right */}
-        <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="nav-hamburger"
+        <div
+          className="nav-mobile-actions"
           style={{
-            ...pillStyle(theme),
             position: 'absolute',
             right: 16,
             top: '50%',
             transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            width: 48,
-            height: 44,
-            cursor: 'pointer',
-            color: linkColor,
-            padding: 0,
-            WebkitTapHighlightColor: 'transparent',
-          }}
-          aria-label={menuOpen ? '關閉選單' : '開啟選單'}
-        >
-          <motion.span
-            animate={{ rotate: menuOpen ? 90 : 0, opacity: menuOpen ? 0 : 1 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            style={{ position: 'absolute', display: 'flex' }}
-          >
-            <Menu size={20} />
-          </motion.span>
-          <motion.span
-            animate={{ rotate: menuOpen ? 0 : -90, opacity: menuOpen ? 1 : 0 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            style={{ position: 'absolute', display: 'flex' }}
-          >
-            <X size={20} />
-          </motion.span>
-        </button>
-
-        {/* Desktop — Book CTA, floats top-right */}
-        <Link
-          href="/book"
-          className="nav-cta-desktop"
-          style={{
-            position: 'absolute',
-            right: 32,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            textDecoration: 'none',
+            gap: 10,
             pointerEvents: 'auto',
-            display: 'none',
           }}
         >
-          <span
-            data-cms-key="nav.book-desktop"
+          <Link
+            href={memberHref}
+            aria-label={memberLabel}
+            data-cms-key={loggedIn ? 'nav.member-cta' : 'nav.login-mobile'}
             style={{
-              display: 'inline-flex',
+              textDecoration: 'none',
+              display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              background: tokens.colors.brand,
-              color: '#000',
-              borderRadius: tokens.radius.pill,
-              padding: '10px 20px',
-              fontWeight: 700,
-              fontSize: 14,
-              whiteSpace: 'nowrap',
             }}
           >
-            {t('book')}
-          </span>
-        </Link>
+            {loggedIn ? (
+              <span
+                style={{
+                  ...pillStyle(theme),
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 46,
+                  height: 46,
+                  color: linkColor,
+                  overflow: 'hidden',
+                }}
+              >
+                <MemberIcon size={18} />
+              </span>
+            ) : (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: 46,
+                  padding: '0 18px',
+                  borderRadius: 999,
+                  background: tokens.colors.brand,
+                  color: '#000',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t('login')}
+              </span>
+            )}
+          </Link>
+
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="nav-hamburger"
+            style={{
+              ...pillStyle(theme),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 50,
+              height: 46,
+              cursor: 'pointer',
+              color: linkColor,
+              padding: 0,
+              WebkitTapHighlightColor: 'transparent',
+            }}
+            aria-label={menuOpen ? '關閉選單' : '開啟選單'}
+          >
+            <motion.span
+              animate={{ rotate: menuOpen ? 90 : 0, opacity: menuOpen ? 0 : 1 }}
+              transition={{ duration: 0.2, ease: EASE }}
+              style={{ position: 'absolute', display: 'flex' }}
+            >
+              <Menu size={20} />
+            </motion.span>
+            <motion.span
+              animate={{ rotate: menuOpen ? 0 : -90, opacity: menuOpen ? 1 : 0 }}
+              transition={{ duration: 0.2, ease: EASE }}
+              style={{ position: 'absolute', display: 'flex' }}
+            >
+              <X size={20} />
+            </motion.span>
+          </button>
+        </div>
+
+        <DesktopMemberCta />
       </nav>
 
-      {/* Responsive breakpoint styles */}
       <style jsx global>{`
         @media (min-width: 768px) {
           .nav-bar {
+            top: 20px !important;
             padding: 0 32px !important;
           }
           .nav-center {
             display: flex !important;
           }
-          .nav-hamburger {
+          .nav-mobile-actions {
             display: none !important;
           }
           .nav-cta-desktop {
             display: block !important;
           }
+          .nav-logo {
+            left: 32px !important;
+          }
         }
       `}</style>
 
-      {/* Mobile fullscreen menu overlay */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -310,7 +472,7 @@ export default function Nav() {
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              padding: '48px 32px',
+              padding: '112px 24px 40px',
             }}
           >
             <div
@@ -320,7 +482,8 @@ export default function Nav() {
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                gap: 32,
+                gap: 24,
+                width: '100%',
               }}
             >
               {navItems.map((item) => (
@@ -330,9 +493,9 @@ export default function Nav() {
                   onClick={() => setMenuOpen(false)}
                   data-cms-key={`nav.link.${item.key}`}
                   style={{
-                    fontSize: 32,
+                    fontSize: 30,
                     fontWeight: 600,
-                    color: tokens.colors.text,
+                    color: pathname === item.href ? tokens.colors.brand : tokens.colors.text,
                     textDecoration: 'none',
                     whiteSpace: 'nowrap',
                   }}
@@ -341,7 +504,29 @@ export default function Nav() {
                 </Link>
               ))}
 
-              {/* Language switcher — mobile */}
+              <Link
+                href={memberHref}
+                onClick={() => setMenuOpen(false)}
+                data-cms-key={loggedIn ? 'nav.link.member' : 'nav.login'}
+                style={{
+                  fontSize: 30,
+                  fontWeight: 600,
+                  color: pathname === '/member' ? tokens.colors.brand : tokens.colors.text,
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                {loggedIn ? (
+                  <MemberIcon size={12} />
+                ) : (
+                  <User size={28} strokeWidth={1.5} />
+                )}
+                {memberLabel}
+              </Link>
+
               <button
                 onClick={() => {
                   setMenuOpen(false)
@@ -349,7 +534,9 @@ export default function Nav() {
                 }}
                 aria-label="Switch language"
                 style={{
-                  fontSize: 20,
+                  marginTop: 8,
+                  minHeight: 44,
+                  fontSize: 18,
                   fontWeight: 500,
                   color: tokens.colors.brand,
                   background: 'none',
@@ -362,7 +549,7 @@ export default function Nav() {
               </button>
             </div>
 
-            <div style={{ width: '100%', paddingTop: 32 }}>
+            <div style={{ width: '100%', paddingTop: 24 }}>
               <Link href="/book" onClick={() => setMenuOpen(false)} style={{ textDecoration: 'none' }}>
                 <Button variant="primary" size="lg" fullWidth>
                   {t('book')}
