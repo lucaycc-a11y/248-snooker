@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Menu, X, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
+import { routing } from '@/i18n/routing'
 import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui'
@@ -60,8 +61,9 @@ export default function Nav() {
   }
 
   const toggleLocale = () => {
-    const idx = LOCALES.indexOf(locale as (typeof LOCALES)[number])
-    const next = LOCALES[(idx + 1) % LOCALES.length]
+    const locales = routing.locales
+    const idx = locales.indexOf(locale as (typeof locales)[number])
+    const next = locales[(idx + 1) % locales.length]
     router.replace(pathname, { locale: next })
   }
 
@@ -287,7 +289,7 @@ export default function Nav() {
                   transition: PILL_TRANSITION,
                 }}
               >
-                {navText(item.key, item.key === 'home' ? 'Home' : item.key === 'member' ? 'Member' : item.key)}
+                {navText(item.key, item.key === 'home' ? 'Home' : item.key)}
               </Link>
             )
           })}
@@ -514,7 +516,7 @@ export default function Nav() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                {navText(item.key, item.key === 'home' ? 'Home' : item.key === 'member' ? 'Member' : item.key)}
+                {navText(item.key, item.key === 'home' ? 'Home' : item.key)}
                 </Link>
               ))}
 
