@@ -1,4 +1,369 @@
 {
+  "404": {
+    "code": "404",
+    "title": "呢頁唔存在",
+    "subtitle": "呢頁唔存在，但你的桌球時間不應該白費",
+    "hint": "撥動個球玩下先",
+    "completed": "全部入袋！",
+    "canvas_label": "互動桌球物理遊戲",
+    "cta_book": "立即預訂",
+    "cta_home": "返回主頁"
+  },
+  "legal": {
+    "title": "法律資訊",
+    "subtitle": "使用 248 Snooker 服務前，請細閱以下條款。",
+    "last_updated": "最後更新",
+    "tab_terms": "使用條款",
+    "tab_privacy": "私隱政策",
+    "tab_refund": "退款政策",
+    "tab_rules": "場地規則",
+    "terms_sections": [
+      {
+        "title": "服務說明",
+        "body": "248 Snooker 由 FORM 營運，提供香港首間 24 小時自助英式桌球預訂服務。"
+      },
+      {
+        "title": "預訂條款",
+        "body": "每位用戶最多可持有 2 個有效預訂，每張枱最多 2 人，名額先到先得。"
+      },
+      {
+        "title": "入場規則",
+        "body": "入場須出示專屬 QR 碼。遲到逾 15 分鐘視為自動放棄，QR 碼不得轉讓他人。"
+      },
+      {
+        "title": "場地規則",
+        "body": "場內禁止吸煙、賭博及攜帶外來食物。請愛護設備，違規者預訂將被取消且不獲退款。"
+      },
+      {
+        "title": "付款條款",
+        "body": "所有費用以港幣 (HKD) 計算，接受信用卡、Apple Pay、Google Pay、Alipay 及 WeChat Pay。"
+      },
+      {
+        "title": "逾時條款",
+        "body": "逾時每 15 分鐘收費 HK$50，將從已登記的信用卡自動扣除。"
+      },
+      {
+        "title": "積分計劃",
+        "body": "每消費 HK$10 可獲 1 積分。積分不可兌換現金，有效期為 24 個月。"
+      },
+      {
+        "title": "免責聲明",
+        "body": "248 Snooker 不對任何財物損失或人身傷害承擔責任。"
+      },
+      {
+        "title": "適用法律",
+        "body": "本條款受香港特別行政區法律管轄並據此詮釋。"
+      }
+    ],
+    "privacy_sections": [
+      {
+        "title": "收集資料",
+        "body": "我們收集姓名、電郵、電話、付款資料、預訂記錄及 CCTV 影像。"
+      },
+      {
+        "title": "使用目的",
+        "body": "用於處理預訂、發送通知、管理積分及改善服務質素。"
+      },
+      {
+        "title": "第三方服務",
+        "body": "我們使用 Stripe、Google、Supabase、Resend 及 WhatsApp 等第三方服務。"
+      },
+      {
+        "title": "資料保留",
+        "body": "CCTV 影像最多保留 31 日；付款資料由 Stripe 處理及保存。"
+      },
+      {
+        "title": "您的權利",
+        "body": "您有權查閱、更正或刪除個人資料，請電郵 info.formhk@gmail.com 聯絡我們。"
+      },
+      {
+        "title": "Cookie",
+        "body": "繼續使用本網站即表示您同意我們使用 Cookie。"
+      },
+      {
+        "title": "聯絡我們",
+        "body": "info.formhk@gmail.com／+852 6427 4620"
+      }
+    ],
+    "refund_table_case": "情況",
+    "refund_table_result": "退款",
+    "refund_rows": [
+      {
+        "case": "預訂後 1 小時內",
+        "result": "100% 退款"
+      },
+      {
+        "case": "開始前 2 小時或以上",
+        "result": "50% 退款"
+      },
+      {
+        "case": "開始前 2 小時內",
+        "result": "不退款"
+      },
+      {
+        "case": "No-show 逾 15 分鐘",
+        "result": "不退款"
+      },
+      {
+        "case": "場地故障",
+        "result": "100% 退款"
+      },
+      {
+        "case": "颱風 8 號或以上",
+        "result": "100% 退款"
+      }
+    ],
+    "refund_times_title": "退款時間",
+    "refund_times": [
+      {
+        "method": "信用卡",
+        "time": "5–10 個工作天"
+      },
+      {
+        "method": "Apple Pay／Google Pay",
+        "time": "3–5 個工作天"
+      },
+      {
+        "method": "Alipay／WeChat Pay",
+        "time": "即時"
+      }
+    ],
+    "rules_allowed_title": "允許",
+    "rules_allowed": [
+      "自攜球桿",
+      "拍照（個人用途）",
+      "有蓋外帶飲品"
+    ],
+    "rules_prohibited_title": "禁止",
+    "rules_prohibited": [
+      "吸煙（包括電子煙）",
+      "賭博",
+      "大聲喧嘩",
+      "背心及拖鞋",
+      "酒精飲品",
+      "攜帶食物",
+      "損壞設備"
+    ],
+    "rules_notes_title": "注意事項",
+    "rules_notes": [
+      "場內設有 CCTV 全程監察",
+      "違規者預訂即時終止且不獲退款",
+      "嚴重違規者將被永久封鎖帳戶"
+    ]
+  },
+  "pricingPage": {
+    "hero_title": "透明定價",
+    "hero_subtitle": "按需預訂，無隱藏費用。",
+    "per_hour": "／小時",
+    "period_afternoon_title": "非繁忙時段",
+    "period_afternoon_time": "平日 09:00–18:00",
+    "period_evening_title": "繁忙時段",
+    "period_evening_time": "平日 18:00–23:00／週末全日",
+    "period_latenight_title": "深夜時段",
+    "period_latenight_time": "每日 23:00–02:00",
+    "duration_1h": "1 小時",
+    "duration_2h": "2 小時",
+    "duration_3h": "3 小時",
+    "cta_book": "立即預訂",
+    "cta_details": "定價詳情",
+    "breakdown_title": "完整收費表",
+    "breakdown_period": "時段",
+    "breakdown_time": "時間",
+    "breakdown_rate": "每小時",
+    "benefits_title": "會員權益",
+    "benefits": [
+      {
+        "tier": "Amateur",
+        "desc": "基本積分累積"
+      },
+      {
+        "tier": "Century",
+        "desc": "1.5 倍積分 + 優先預訂"
+      },
+      {
+        "tier": "Maximum",
+        "desc": "2 倍積分 + 每月一次免費延時"
+      }
+    ],
+    "services_title": "附加服務",
+    "services": [
+      {
+        "name": "儲物櫃",
+        "price": "按次 HK$20／月租 HK$600"
+      },
+      {
+        "name": "球桿租借",
+        "price": "基本免費／專業 HK$30/hr"
+      },
+      {
+        "name": "飲品",
+        "price": "自動販賣機 HK$8–18"
+      },
+      {
+        "name": "WiFi／冷氣／充電",
+        "price": "免費"
+      }
+    ],
+    "faq_title": "常見問題",
+    "faqs": [
+      {
+        "q": "有冇隱藏費用？",
+        "a": "沒有。所有收費均按時計算並於預訂時清楚顯示，絕無隱藏費用。"
+      },
+      {
+        "q": "可以中途延長嗎？",
+        "a": "可以，視乎場地空檔。逾時將按每 15 分鐘 HK$50 計算。"
+      },
+      {
+        "q": "逾時點計算？",
+        "a": "逾時每 15 分鐘收費 HK$50，從已登記信用卡自動扣除。"
+      },
+      {
+        "q": "有幾種付款方式？",
+        "a": "接受信用卡、Apple Pay、Google Pay、Alipay 及 WeChat Pay。"
+      }
+    ],
+    "cta_section_title": "準備好開枱？",
+    "cta_section_button": "立即預訂"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "桌球技巧、場地資訊與最新活動。",
+    "filter_all": "全部",
+    "filter_tutorial": "教學",
+    "filter_venue": "場地資訊",
+    "filter_event": "活動",
+    "filter_culture": "桌球文化",
+    "read_time": "{min} 分鐘閱讀",
+    "by_author": "作者",
+    "coming_soon_title": "即將推出",
+    "coming_soon_body": "我們正在準備精彩內容，敬請期待。",
+    "newsletter_placeholder": "輸入電郵訂閱更新",
+    "newsletter_button": "訂閱",
+    "back_to_blog": "返回 Blog",
+    "related_title": "相關文章",
+    "share": "分享",
+    "share_whatsapp": "分享至 WhatsApp",
+    "copy_link": "複製連結",
+    "copied": "已複製",
+    "not_found": "找不到文章"
+  },
+  "aboutPage": {
+    "hero_title": "248 Snooker",
+    "hero_subtitle": "香港首間 24 小時自助英式桌球。",
+    "scroll": "向下滑動",
+    "mission_eyebrow": "我們的理念",
+    "mission_statement": "讓每一個桌球愛好者，都有屬於自己的主場。",
+    "mission_items": [
+      {
+        "title": "專業設備",
+        "body": "英式標準桌球枱，月月更換枱布。"
+      },
+      {
+        "title": "全天候",
+        "body": "24 小時開放，365 天全年無休。"
+      },
+      {
+        "title": "科技體驗",
+        "body": "3 秒完成預訂，掃描 QR 碼即可入場。"
+      }
+    ],
+    "story_title": "關於 248",
+    "story_body": "248 Snooker 源於一個簡單信念：好的桌球場地不應受營業時間限制。我們以科技重新定義桌球體驗，讓你隨時隨地，一鍵預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。這裡是屬於你的主場。",
+    "venue_title": "場地設施",
+    "venue_features": [
+      "英式標準桌球枱",
+      "專業級照明",
+      "恆溫冷氣",
+      "免費高速 WiFi",
+      "自助飲品區",
+      "智能 QR 門禁"
+    ],
+    "numbers": [
+      {
+        "value": "2",
+        "label": "張專業桌球枱"
+      },
+      {
+        "value": "24",
+        "label": "小時開放"
+      },
+      {
+        "value": "3",
+        "label": "秒完成預訂"
+      },
+      {
+        "value": "0",
+        "label": "等候時間"
+      }
+    ],
+    "contact_title": "聯絡我們",
+    "contact_address_label": "地址",
+    "contact_address": "香港（地址確認中）",
+    "contact_whatsapp_label": "WhatsApp",
+    "contact_email_label": "電郵",
+    "contact_hours_label": "營業時間",
+    "contact_hours": "24 小時全年無休",
+    "contact_cta": "WhatsApp 聯絡"
+  },
+  "memberPage": {
+    "card_label": "MEMBER CARD",
+    "card_passenger": "持卡會員",
+    "card_member_since": "加入日期",
+    "card_tier": "等級",
+    "card_points": "積分",
+    "card_member_no": "會員編號",
+    "add_apple_wallet": "加入 Apple Wallet",
+    "add_google_wallet": "加入 Google Wallet",
+    "stat_bookings": "總預訂",
+    "stat_bookings_unit": "次",
+    "stat_hours": "遊玩時間",
+    "stat_hours_unit": "小時",
+    "stat_spent": "消費總額",
+    "tier_progress_title": "等級進度",
+    "tier_current": "目前等級",
+    "tier_next": "下一等級",
+    "points_to_next": "距離下一等級尚餘 {pts} 積分",
+    "max_tier_reached": "已達最高等級",
+    "tab_bookings": "預訂記錄",
+    "tab_points": "積分記錄",
+    "tab_settings": "設定",
+    "booking_table": "枱號",
+    "booking_duration": "時長",
+    "booking_view_qr": "查看 QR",
+    "booking_add_calendar": "加入日曆",
+    "status_confirmed": "已確認",
+    "status_cancelled": "已取消",
+    "status_completed": "已完成",
+    "no_bookings": "尚無預訂記錄",
+    "points_running_total": "結餘",
+    "points_earn_title": "賺取積分方式",
+    "points_earn": [
+      "每消費 HK$10 = 1 積分",
+      "首次登入 = 50 積分",
+      "生日月份 = 雙倍積分"
+    ],
+    "no_points": "尚無積分記錄",
+    "settings_display_name": "顯示名稱",
+    "settings_email": "電郵",
+    "settings_phone": "電話",
+    "settings_language": "語言偏好",
+    "settings_notifications": "通知設定",
+    "notif_booking": "預訂提醒",
+    "notif_points": "積分更新",
+    "notif_promo": "優惠資訊",
+    "danger_zone": "危險操作",
+    "delete_account": "刪除帳戶",
+    "delete_confirm": "確定要刪除帳戶嗎？此操作無法復原。",
+    "sign_out": "登出",
+    "save": "儲存",
+    "saved": "已儲存",
+    "qr_modal_title": "預訂 QR 碼",
+    "qr_reference": "預訂編號",
+    "close": "關閉",
+    "loading": "載入中…",
+    "greeting": "你好"
+  },
   "nav": {
     "book": "預訂",
     "pricing": "定價",

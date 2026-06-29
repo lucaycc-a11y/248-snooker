@@ -68,3 +68,84 @@ body {
 .shimmer-once {
   animation: shimmer-once 1.5s ease-in-out forwards;
 }
+
+/* Blog article body — styles the allowlisted React tree from
+   lib/blog/renderRichText. Dark theme, max readability at 720px. */
+.blog-prose {
+  font-size: 18px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.82);
+}
+.blog-prose > :first-child {
+  margin-top: 0;
+}
+.blog-prose p {
+  margin: 0 0 1.5em;
+}
+.blog-prose h2 {
+  font-size: clamp(26px, 4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 2em 0 0.6em;
+  line-height: 1.2;
+}
+.blog-prose h3 {
+  font-size: clamp(21px, 3vw, 26px);
+  font-weight: 600;
+  color: #fff;
+  margin: 1.6em 0 0.5em;
+  line-height: 1.25;
+}
+.blog-prose a {
+  color: #22c55e;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.blog-prose ul,
+.blog-prose ol {
+  margin: 0 0 1.5em;
+  padding-left: 1.4em;
+}
+.blog-prose li {
+  margin: 0 0 0.5em;
+}
+.blog-prose blockquote {
+  margin: 1.5em 0;
+  padding: 0.4em 0 0.4em 1.2em;
+  border-left: 3px solid #22c55e;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
+.blog-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 16px;
+  margin: 1.5em 0;
+  border: 1px solid #2d2d2d;
+}
+.blog-prose pre {
+  background: #0a0a0a;
+  border: 1px solid #2d2d2d;
+  border-radius: 12px;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 1.5em 0;
+  font-size: 14px;
+}
+.blog-prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.9em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+}
+.blog-prose pre code {
+  background: none;
+  padding: 0;
+}
+.blog-prose hr {
+  border: none;
+  border-top: 1px solid #2d2d2d;
+  margin: 2.5em 0;
+}

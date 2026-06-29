@@ -65,5 +65,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
       },
     },
+    {
+      url: `${BASE}/blog`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+      alternates: {
+        languages: {
+          'zh-HK': `${BASE}/blog`,
+          'en-HK': `${BASE}/en/blog`,
+        },
+      },
+    },
+    {
+      url: `${BASE}/legal`,
+      lastModified: now,
+      changeFrequency: 'yearly',
+      priority: 0.3,
+      alternates: {
+        languages: {
+          'zh-HK': `${BASE}/legal`,
+          'en-HK': `${BASE}/en/legal`,
+        },
+      },
+    },
   ]
 }

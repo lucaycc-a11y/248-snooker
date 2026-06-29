@@ -7,7 +7,7 @@ const intlMiddleware = createMiddleware(routing)
 // Public routes that have localized ([locale]) variants. Everything else
 // (admin, auth, member, login, maintenance, api, static) is single-language
 // and must bypass the intl rewrite so it keeps resolving at the root.
-const LOCALIZED_ROOTS = ['book', 'pricing', 'about', 'faq']
+const LOCALIZED_ROOTS = ['book', 'pricing', 'about', 'faq', 'legal', 'terms', 'privacy', 'blog']
 
 // Routes that must never be rewritten by intl middleware.
 const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/maintenance']
@@ -15,6 +15,11 @@ const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/maint
 function isLocalized(pathname: string): boolean {
   // Never rewrite auth/api routes — the OAuth callback must resolve as-is.
   if (BYPASS_PREFIXES.some((p) => pathname.startsWith(p))) return false
+
+  const segments = pathname.split('/').filter(Boolean)
+  if (segments[0] && routing.locales.includes(segments[0] as (typeof routing.locales)[number])) {
+    return true
+  }
 
   // strip a leading locale prefix
   const stripped = pathname.replace(

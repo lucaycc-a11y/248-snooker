@@ -1,4 +1,369 @@
 {
+  "404": {
+    "code": "404",
+    "title": "Page Not Found",
+    "subtitle": "This page doesn't exist, but your snooker time shouldn't go to waste",
+    "hint": "Flick the balls around",
+    "completed": "All potted!",
+    "canvas_label": "Interactive snooker physics game",
+    "cta_book": "Book Now",
+    "cta_home": "Back to Home"
+  },
+  "legal": {
+    "title": "Legal",
+    "subtitle": "Please read these terms carefully before using 248 Snooker.",
+    "last_updated": "Last updated",
+    "tab_terms": "Terms of Service",
+    "tab_privacy": "Privacy Policy",
+    "tab_refund": "Refund Policy",
+    "tab_rules": "House Rules",
+    "terms_sections": [
+      {
+        "title": "Service Description",
+        "body": "248 Snooker is operated by FORM, offering Hong Kong’s first 24-hour self-service English snooker booking platform."
+      },
+      {
+        "title": "Booking Terms",
+        "body": "Each user may hold up to 2 active bookings. Each table seats up to 2 players, allocated first-come, first-served."
+      },
+      {
+        "title": "Entry Rules",
+        "body": "A valid QR code is required for entry. Arriving more than 15 minutes late forfeits the booking. QR codes are non-transferable."
+      },
+      {
+        "title": "House Rules",
+        "body": "No smoking, gambling, or outside food. Please respect the equipment — violations result in cancellation without refund."
+      },
+      {
+        "title": "Payment Terms",
+        "body": "All fees are in HKD. We accept credit cards, Apple Pay, Google Pay, Alipay, and WeChat Pay."
+      },
+      {
+        "title": "Overtime",
+        "body": "Overtime is charged at HK$50 per 15 minutes, deducted automatically from your registered card."
+      },
+      {
+        "title": "Points Programme",
+        "body": "Earn 1 point per HK$10 spent. Points hold no cash value and expire after 24 months."
+      },
+      {
+        "title": "Disclaimer",
+        "body": "248 Snooker is not liable for any loss of property or personal injury."
+      },
+      {
+        "title": "Governing Law",
+        "body": "These terms are governed by and construed under the laws of the Hong Kong SAR."
+      }
+    ],
+    "privacy_sections": [
+      {
+        "title": "Data We Collect",
+        "body": "We collect your name, email, phone, payment details, booking history, and CCTV footage."
+      },
+      {
+        "title": "How We Use It",
+        "body": "To process bookings, send notifications, manage points, and improve our service."
+      },
+      {
+        "title": "Third-Party Services",
+        "body": "We use Stripe, Google, Supabase, Resend, and WhatsApp."
+      },
+      {
+        "title": "Data Retention",
+        "body": "CCTV footage is kept for up to 31 days. Payment data is handled and stored by Stripe."
+      },
+      {
+        "title": "Your Rights",
+        "body": "You may access, correct, or delete your data by contacting info.formhk@gmail.com."
+      },
+      {
+        "title": "Cookies",
+        "body": "By continuing to use this site, you consent to our use of cookies."
+      },
+      {
+        "title": "Contact",
+        "body": "info.formhk@gmail.com / +852 6427 4620"
+      }
+    ],
+    "refund_table_case": "Situation",
+    "refund_table_result": "Refund",
+    "refund_rows": [
+      {
+        "case": "Within 1 hour of booking",
+        "result": "100% refund"
+      },
+      {
+        "case": "2+ hours before start",
+        "result": "50% refund"
+      },
+      {
+        "case": "Within 2 hours of start",
+        "result": "No refund"
+      },
+      {
+        "case": "No-show (15 min)",
+        "result": "No refund"
+      },
+      {
+        "case": "Venue fault",
+        "result": "100% refund"
+      },
+      {
+        "case": "Typhoon Signal 8+",
+        "result": "100% refund"
+      }
+    ],
+    "refund_times_title": "Refund Processing Time",
+    "refund_times": [
+      {
+        "method": "Credit card",
+        "time": "5–10 business days"
+      },
+      {
+        "method": "Apple Pay / Google Pay",
+        "time": "3–5 business days"
+      },
+      {
+        "method": "Alipay / WeChat Pay",
+        "time": "Instant"
+      }
+    ],
+    "rules_allowed_title": "Allowed",
+    "rules_allowed": [
+      "Bring your own cue",
+      "Photos (personal use)",
+      "Covered takeaway drinks"
+    ],
+    "rules_prohibited_title": "Prohibited",
+    "rules_prohibited": [
+      "Smoking (incl. vaping)",
+      "Gambling",
+      "Excessive noise",
+      "Singlets & flip-flops",
+      "Alcohol",
+      "Outside food",
+      "Damaging equipment"
+    ],
+    "rules_notes_title": "Please Note",
+    "rules_notes": [
+      "CCTV monitors the venue at all times",
+      "Violations end your booking with no refund",
+      "Serious violations result in a permanent ban"
+    ]
+  },
+  "pricingPage": {
+    "hero_title": "Transparent Pricing",
+    "hero_subtitle": "Book on demand. No hidden fees.",
+    "per_hour": "/hr",
+    "period_afternoon_title": "Off-Peak",
+    "period_afternoon_time": "Weekdays 09:00–18:00",
+    "period_evening_title": "Peak",
+    "period_evening_time": "Weekdays 18:00–23:00 / Weekends all day",
+    "period_latenight_title": "Late Night",
+    "period_latenight_time": "Daily 23:00–02:00",
+    "duration_1h": "1 hour",
+    "duration_2h": "2 hours",
+    "duration_3h": "3 hours",
+    "cta_book": "Book Now",
+    "cta_details": "Pricing Details",
+    "breakdown_title": "Full Price List",
+    "breakdown_period": "Period",
+    "breakdown_time": "Time",
+    "breakdown_rate": "Per Hour",
+    "benefits_title": "Member Benefits",
+    "benefits": [
+      {
+        "tier": "Amateur",
+        "desc": "Base points earning"
+      },
+      {
+        "tier": "Century",
+        "desc": "1.5× points + priority booking"
+      },
+      {
+        "tier": "Maximum",
+        "desc": "2× points + one free extension/month"
+      }
+    ],
+    "services_title": "Additional Services",
+    "services": [
+      {
+        "name": "Locker",
+        "price": "HK$20/use or HK$600/month"
+      },
+      {
+        "name": "Cue rental",
+        "price": "Basic free / Pro HK$30/hr"
+      },
+      {
+        "name": "Drinks",
+        "price": "Vending HK$8–18"
+      },
+      {
+        "name": "WiFi / AC / Charging",
+        "price": "Free"
+      }
+    ],
+    "faq_title": "FAQ",
+    "faqs": [
+      {
+        "q": "Are there any hidden fees?",
+        "a": "No. All charges are hourly and shown clearly at booking — nothing hidden."
+      },
+      {
+        "q": "Can I extend mid-session?",
+        "a": "Yes, subject to availability. Overtime is charged at HK$50 per 15 minutes."
+      },
+      {
+        "q": "How is overtime calculated?",
+        "a": "HK$50 per 15 minutes, deducted automatically from your registered card."
+      },
+      {
+        "q": "What payment methods do you accept?",
+        "a": "Credit cards, Apple Pay, Google Pay, Alipay, and WeChat Pay."
+      }
+    ],
+    "cta_section_title": "Ready to play?",
+    "cta_section_button": "Book Now"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Snooker tips, venue news, and the latest events.",
+    "filter_all": "All",
+    "filter_tutorial": "Tutorials",
+    "filter_venue": "Venue",
+    "filter_event": "Events",
+    "filter_culture": "Culture",
+    "read_time": "{min} min read",
+    "by_author": "By",
+    "coming_soon_title": "Coming Soon",
+    "coming_soon_body": "We’re preparing great content. Stay tuned.",
+    "newsletter_placeholder": "Enter your email",
+    "newsletter_button": "Subscribe",
+    "back_to_blog": "Back to Blog",
+    "related_title": "Related Posts",
+    "share": "Share",
+    "share_whatsapp": "Share on WhatsApp",
+    "copy_link": "Copy link",
+    "copied": "Copied",
+    "not_found": "Post not found"
+  },
+  "aboutPage": {
+    "hero_title": "248 Snooker",
+    "hero_subtitle": "Hong Kong’s first 24-hour self-service snooker.",
+    "scroll": "Scroll",
+    "mission_eyebrow": "Our Mission",
+    "mission_statement": "Give every snooker lover a home court to call their own.",
+    "mission_items": [
+      {
+        "title": "Pro Equipment",
+        "body": "Standard English snooker tables, re-clothed monthly."
+      },
+      {
+        "title": "Always Open",
+        "body": "24 hours a day, 365 days a year."
+      },
+      {
+        "title": "Tech Experience",
+        "body": "Book in 3 seconds, enter with a QR code."
+      }
+    ],
+    "story_title": "About 248",
+    "story_body": "248 Snooker began with a simple belief: a great snooker venue shouldn’t be bound by opening hours. We reimagined the experience with technology so you can book your own table anytime, anywhere, in one tap. From booking to payment to entry, it’s fully self-service — no waiting. This is your home court.",
+    "venue_title": "Facilities",
+    "venue_features": [
+      "Standard English tables",
+      "Pro-grade lighting",
+      "Climate control",
+      "Free high-speed WiFi",
+      "Self-serve drinks",
+      "Smart QR entry"
+    ],
+    "numbers": [
+      {
+        "value": "2",
+        "label": "Pro snooker tables"
+      },
+      {
+        "value": "24",
+        "label": "Hours open"
+      },
+      {
+        "value": "3",
+        "label": "Seconds to book"
+      },
+      {
+        "value": "0",
+        "label": "Wait time"
+      }
+    ],
+    "contact_title": "Contact",
+    "contact_address_label": "Address",
+    "contact_address": "Hong Kong (to be confirmed)",
+    "contact_whatsapp_label": "WhatsApp",
+    "contact_email_label": "Email",
+    "contact_hours_label": "Hours",
+    "contact_hours": "Open 24/7, year-round",
+    "contact_cta": "Message on WhatsApp"
+  },
+  "memberPage": {
+    "card_label": "MEMBER CARD",
+    "card_passenger": "PASSENGER",
+    "card_member_since": "MEMBER SINCE",
+    "card_tier": "TIER",
+    "card_points": "POINTS",
+    "card_member_no": "MEMBER NO.",
+    "add_apple_wallet": "Add to Apple Wallet",
+    "add_google_wallet": "Add to Google Wallet",
+    "stat_bookings": "Bookings",
+    "stat_bookings_unit": "",
+    "stat_hours": "Play Time",
+    "stat_hours_unit": "hrs",
+    "stat_spent": "Total Spent",
+    "tier_progress_title": "Tier Progress",
+    "tier_current": "Current tier",
+    "tier_next": "Next tier",
+    "points_to_next": "{pts} points to next tier",
+    "max_tier_reached": "Top tier reached",
+    "tab_bookings": "Bookings",
+    "tab_points": "Points",
+    "tab_settings": "Settings",
+    "booking_table": "Table",
+    "booking_duration": "Duration",
+    "booking_view_qr": "View QR",
+    "booking_add_calendar": "Add to Calendar",
+    "status_confirmed": "Confirmed",
+    "status_cancelled": "Cancelled",
+    "status_completed": "Completed",
+    "no_bookings": "No bookings yet",
+    "points_running_total": "Balance",
+    "points_earn_title": "Ways to Earn",
+    "points_earn": [
+      "HK$10 spent = 1 point",
+      "First login = 50 points",
+      "Birthday month = 2× points"
+    ],
+    "no_points": "No points history yet",
+    "settings_display_name": "Display name",
+    "settings_email": "Email",
+    "settings_phone": "Phone",
+    "settings_language": "Language",
+    "settings_notifications": "Notifications",
+    "notif_booking": "Booking reminders",
+    "notif_points": "Points updates",
+    "notif_promo": "Promotions",
+    "danger_zone": "Danger Zone",
+    "delete_account": "Delete account",
+    "delete_confirm": "Delete your account? This cannot be undone.",
+    "sign_out": "Sign out",
+    "save": "Save",
+    "saved": "Saved",
+    "qr_modal_title": "Booking QR Code",
+    "qr_reference": "Booking reference",
+    "close": "Close",
+    "loading": "Loading…",
+    "greeting": "Hello"
+  },
   "nav": {
     "book": "Book",
     "pricing": "Pricing",
