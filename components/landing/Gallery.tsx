@@ -87,6 +87,7 @@ export default function Gallery() {
 
   return (
     <section
+      id="gallery"
       data-nav-theme="dark"
       style={{
         background: "#1C1C1E",

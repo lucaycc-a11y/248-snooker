@@ -115,12 +115,12 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
   const signOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/book");
+    router.push("/");
     router.refresh();
   };
 
   return (
-    <div style={{ fontFamily: FONT_FAMILY, background: "#000", minHeight: "100vh", color: "white" }}>
+    <div style={{ fontFamily: FONT_FAMILY, background: "linear-gradient(180deg, #0A1A0F 0%, #18181B 46%, #0A1A0F 100%)", minHeight: "100vh", color: "white" }}>
       {/* Lightweight dashboard header (NOT the marketing Nav — its locale switch
           would route to a non-existent /[locale]/member). */}
       <DashboardHeader displayName={user.display_name} />
@@ -379,7 +379,7 @@ function WalletButton({ icon, label, cmsKey }: { icon: React.ReactNode; label: s
         padding: "0 18px",
         borderRadius: "12px",
         border: "1px solid rgba(255,255,255,0.18)",
-        background: "#000",
+        background: "#0A0A0A",
         color: "white",
         fontSize: "14px",
         fontWeight: 600,

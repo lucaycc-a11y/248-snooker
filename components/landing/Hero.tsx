@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
-const GREEN = "#1A6B35";
+const GREEN = "#22C55E";
 
 // "屬於你的主場" — iPad-Pro style left-to-right gradient across the whole string
 const HEADLINE_GRADIENT: React.CSSProperties = {
@@ -26,8 +27,8 @@ export default function Hero() {
 
   const handleLearnMore = () => {
     document
-      .getElementById("social-proof")
-      ?.scrollIntoView({ behavior: "smooth" });
+      .getElementById("gallery")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -114,20 +115,21 @@ export default function Hero() {
 
         {/* CTA buttons — directly below headline, centred on all screens */}
         <div className="mt-10 md:mt-14 flex w-full flex-col items-center justify-center gap-3 sm:flex-row">
-          <button
-            type="button"
-            onClick={handleLearnMore}
-            className="w-full px-[25px] py-[14px] text-[13px] transition-[transform,filter] duration-200 hover:scale-[1.03] hover:brightness-[1.08] active:scale-[0.97] sm:w-auto md:px-[28px] md:py-[12px] md:text-[15px]"
+          <Link
+            href="/book"
+            prefetch
+            className="flex min-h-11 w-full items-center justify-center px-[25px] py-[14px] text-[13px] transition-[transform,filter] duration-200 hover:scale-[1.03] hover:brightness-[1.08] active:scale-95 sm:w-auto md:px-[28px] md:py-[12px] md:text-[15px]"
             style={{
               background: GREEN,
-              color: "white",
+              color: "#000",
               borderRadius: "100px",
-              fontWeight: 600,
+              fontWeight: 700,
               letterSpacing: "-0.01em",
+              textDecoration: "none",
             }}
           >
             {t("cta_book")}
-          </button>
+          </Link>
 
           <button
             type="button"

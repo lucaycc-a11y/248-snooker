@@ -124,7 +124,7 @@ function QRCode({ data }: { data: string }) {
     return g
   }, [data])
 
-  const cellSize = 7
+  const cellSize = 6
   const totalSize = size * cellSize
   return (
     <svg
@@ -179,110 +179,78 @@ function TableSelect({
   const tables = useTables()
   return (
     <div>
-      <div
-        style={{
-          display: "grid",
-          gap: 12,
-        }}
-        className="table-grid"
-      >
+      <div className="grid grid-cols-2 gap-3">
         {tables.map((table) => {
           const available = tableAvailability[table.id]
           const isSelected = selected === table.id
-          const dotColor = available
-            ? tokens.colors.brand
-            : tokens.colors.danger
           return (
-            <button
+            <motion.button
               key={table.id}
               type="button"
               disabled={!available}
               onClick={() => available && onSelect(table.id)}
+              whileTap={available ? { scale: 0.96 } : undefined}
+              aria-label={`${table.name} ${available ? t("available") : t("unavailable")}`}
               data-cms-key={`book.table.${table.id}`}
+              className="group relative min-h-11 overflow-hidden rounded-2xl border text-left transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
-                textAlign: "left",
-                padding: "20px",
-                borderRadius: tokens.radius.card,
-                background: tokens.colors.surface,
-                border: isSelected
-                  ? `1px solid ${tokens.colors.link}`
+                aspectRatio: "3 / 4",
+                borderColor: isSelected
+                  ? "#22C55E"
                   : available
-                    ? "1px solid rgba(255,255,255,0.15)"
-                    : "1px solid rgba(255,255,255,0.05)",
-                boxShadow: isSelected
-                  ? `0 0 0 3px rgba(34,197,94,0.25)`
-                  : "none",
-                opacity: available ? 1 : 0.6,
+                    ? "rgba(255,255,255,0.12)"
+                    : "rgba(255,255,255,0.06)",
+                backgroundImage: `linear-gradient(180deg, rgba(10,26,15,0.12), rgba(0,0,0,0.76)), url(/images/table-${table.id}.jpg)`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                opacity: available ? (isSelected ? 1 : 0.72) : 0.45,
+                transform: isSelected ? "scale(1)" : "scale(0.96)",
                 cursor: available ? "pointer" : "not-allowed",
-                transition: `border-color ${tokens.duration.fast}, box-shadow ${tokens.duration.fast}`,
-                minHeight: 44,
-                display: "flex",
-                flexDirection: "column",
-                gap: 12,
+                outline: isSelected ? "2px solid #22C55E" : "none",
+                outlineOffset: isSelected ? "3px" : "0",
               }}
             >
-              <div>
-                <div style={{ fontSize: 18, fontWeight: 600 }}>
-                  {table.name}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(34,197,94,0.22),transparent_38%)]" />
+              <div className="absolute inset-x-0 bottom-0 p-3">
+                <div className="rounded-full border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-xl">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[13px] font-semibold text-white">
+                      {table.name}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="flex h-5 w-5 items-center justify-center rounded-full border"
+                      style={{
+                        borderColor: isSelected ? "#22C55E" : "rgba(255,255,255,0.36)",
+                        background: isSelected ? "#22C55E" : "rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      {isSelected && <CheckCircle size={12} color="#000" strokeWidth={2.5} />}
+                    </span>
+                  </div>
+                  <div
+                    className="mt-1 text-[11px] text-white/55"
+                    data-cms-key={`book.table.${table.id}.status`}
+                  >
+                    {available ? t("available") : t("unavailable")}
+                  </div>
                 </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: tokens.colors.textMuted,
-                    marginTop: 2,
-                  }}
-                >
-                  {table.type}
-                </div>
               </div>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: 6 }}
-              >
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: dotColor,
-                    flexShrink: 0,
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: 13,
-                    color: available
-                      ? tokens.colors.text
-                      : tokens.colors.danger,
-                  }}
-                >
-                  {available ? t("available") : t("unavailable")}
-                </span>
-              </div>
-              <div
-                style={{
-                  marginTop: "auto",
-                  height: 40,
-                  borderRadius: tokens.radius.button,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  background: isSelected
-                    ? tokens.colors.link
-                    : "rgba(255,255,255,0.08)",
-                  color: isSelected ? "#fff" : tokens.colors.text,
-                }}
-              >
-                {!available
-                  ? t("unavailable")
-                  : isSelected
-                    ? t("selected")
-                    : t("select_this_table")}
-              </div>
-            </button>
+            </motion.button>
           )
         })}
+      </div>
+      <div className="mt-3 flex justify-center gap-2" aria-hidden="true">
+        {tables.map((table) => (
+          <span
+            key={table.id}
+            className="h-2.5 rounded-full transition-all duration-300"
+            style={{
+              width: selected === table.id ? 28 : 10,
+              background: selected === table.id ? "#22C55E" : "rgba(255,255,255,0.22)",
+            }}
+          />
+        ))}
       </div>
       <div
         data-cms-key="book.table.hint"
@@ -1885,7 +1853,7 @@ function Screen4({
       }}
     >
       {/* Ticket spring slide-up */}
-      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto", position: "relative" }}>
+      <div style={{ width: "100%", maxWidth: 384, margin: "0 auto", position: "relative" }}>
         <motion.div
           initial={{ y: "80%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -1894,12 +1862,14 @@ function Screen4({
             background: "linear-gradient(160deg, #111111 0%, #1a1a1a 100%)",
             borderRadius: 24,
             border: "1px solid rgba(255,255,255,0.1)",
-            overflow: "hidden",
+            overflowY: "auto",
+            maxHeight: "85vh",
+            WebkitOverflowScrolling: "touch",
             position: "relative",
           }}
         >
         {/* Top section */}
-        <div style={{ padding: 24 }}>
+        <div style={{ padding: 20 }}>
           {/* Header row */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
             <img src="/logos/248_logo_white_bg.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
@@ -2022,7 +1992,7 @@ function Screen4({
         </div>
 
         {/* Bottom stub */}
-        <div style={{ padding: "0 24px 24px" }}>
+        <div style={{ padding: "0 20px 20px" }}>
           {/* Info row — 3 columns, stagger in */}
           <motion.div
             initial="hidden"
@@ -2060,8 +2030,8 @@ function Screen4({
               padding: 16,
               display: "flex",
               justifyContent: "center",
-              marginTop: 16,
-              marginBottom: 12,
+              marginTop: 12,
+              marginBottom: 10,
             }}
           >
             <QRCode data={bookingRef} />

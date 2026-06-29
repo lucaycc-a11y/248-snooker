@@ -27,10 +27,10 @@ const EASE = [0.16, 1, 0.3, 1] as const
 function pillStyle(theme: NavTheme): CSSProperties {
   const dark = theme === 'dark'
   return {
-    background: dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
-    border: `1px solid ${dark ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.15)'}`,
-    backdropFilter: 'blur(20px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.76)',
+    border: `1px solid ${dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
+    backdropFilter: 'blur(24px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
     borderRadius: 999,
     pointerEvents: 'auto',
     transition: PILL_TRANSITION,
@@ -42,6 +42,7 @@ export default function Nav() {
   const [theme, setTheme] = useState<NavTheme>('dark')
   const [loggedIn, setLoggedIn] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const locale = useLocale()
@@ -74,6 +75,13 @@ export default function Nav() {
       setAvatarUrl(session?.user?.user_metadata?.avatar_url ?? null)
     })
     return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    const updateScrolled = () => setScrolled(window.scrollY > 12)
+    updateScrolled()
+    window.addEventListener('scroll', updateScrolled, { passive: true })
+    return () => window.removeEventListener('scroll', updateScrolled)
   }, [])
 
   useEffect(() => {
@@ -216,17 +224,20 @@ export default function Nav() {
       <nav
         style={{
           position: 'fixed',
-          top: 28,
+          top: 34,
           left: 0,
           right: 0,
           zIndex: 50,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '0 16px',
+          padding: '0 14px',
           background: 'transparent',
           border: 'none',
           pointerEvents: 'none',
+          transform: scrolled ? 'scale(0.96)' : 'scale(1)',
+          transformOrigin: 'top center',
+          transition: 'transform 0.28s cubic-bezier(0.16,1,0.3,1)',
         }}
         className="nav-bar"
       >

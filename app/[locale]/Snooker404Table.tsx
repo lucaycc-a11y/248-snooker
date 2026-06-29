@@ -70,7 +70,7 @@ export function Snooker404Table({ hint, completedText, canvasLabel }: Snooker404
       options: {
         width: W,
         height: H,
-        background: '#1A5C2A',
+        background: '#1A4A2A',
         wireframes: false,
         pixelRatio: Math.min(window.devicePixelRatio, 2),
       },
@@ -178,8 +178,12 @@ export function Snooker404Table({ hint, completedText, canvasLabel }: Snooker404
 
     const breakShotTimeout = setTimeout(() => {
       const cueBall = ballsRef.current.find((ball) => ball.label === 'ball:cue')
-      if (cueBall) Matter.Body.setVelocity(cueBall, { x: 8.4, y: 0.2 })
-    }, 500)
+      if (cueBall) {
+        const angle = (Math.sin(W + H) * 0.22) + 0.04
+        Matter.Body.setVelocity(cueBall, { x: 10.2, y: angle * 10.2 })
+        Matter.Body.setAngularVelocity(cueBall, 0.18)
+      }
+    }, 420)
     timeoutsRef.current.push(breakShotTimeout)
 
     const dragState: {
@@ -348,9 +352,9 @@ function createBallSpecs(width: number, height: number): BallSpec[] {
 function createBall({ label, color, x, y }: BallSpec) {
   return Matter.Bodies.circle(x, y, BALL_RADIUS, {
     label,
-    restitution: 0.78,
-    friction: 0.01,
-    frictionAir: 0.015,
+    restitution: 0.85,
+    friction: 0.05,
+    frictionAir: 0.005,
     render: { fillStyle: color, strokeStyle: 'rgba(255,255,255,0.2)', lineWidth: 1 },
   })
 }
@@ -362,7 +366,7 @@ function homePositionFor(label: string, width: number, height: number): Matter.V
 
 function drawFeltTexture(context: CanvasRenderingContext2D, width: number, height: number) {
   context.save()
-  context.globalAlpha = 0.09
+  context.globalAlpha = 0.12
   context.strokeStyle = '#FFFFFF'
   context.lineWidth = 1
 
