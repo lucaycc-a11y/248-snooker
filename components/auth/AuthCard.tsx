@@ -295,7 +295,7 @@ export function AuthCard({
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {/* Sign in with Apple — official Apple JS SDK popup (in-place via
             signInWithIdToken), with automatic redirect-OAuth fallback. */}
-        <AppleSignInButton returnUrl={returnUrl} onSignedIn={afterSignIn} label={t("apple")} errorLabel={t("err_generic")} />
+        <AppleSignInButton returnUrl={returnUrl} label={t("apple")} errorLabel={t("err_generic")} />
 
         <GoogleSignInButton
           returnUrl={returnUrl}

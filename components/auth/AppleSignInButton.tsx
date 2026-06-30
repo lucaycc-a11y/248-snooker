@@ -29,7 +29,6 @@ export function AppleSignInButton({
   errorLabel,
 }: {
   returnUrl: string
-  onSignedIn?: () => void
   label: string
   errorLabel: string
 }) {
