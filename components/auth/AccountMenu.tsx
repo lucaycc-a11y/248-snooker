@@ -8,13 +8,17 @@ import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/client"
 
-const DEEP = "#0a1a0f"
-const BRASS = "#c9a876"
-// Tier accents echo the member dashboard: pewter / brass / gold.
+const GREEN = "#22c55e"
+// Dark-glass surface for floating menus (readable over arbitrary content),
+// matching the landing nav's blur+saturate treatment.
+const GLASS_BG = "rgba(12,12,14,0.82)"
+const GLASS_BLUR = "blur(20px) saturate(180%)"
+const GLASS_BORDER = "1px solid rgba(255,255,255,0.12)"
+// Tier accents match the landing membership section: green / amber / purple.
 const TIER_ACCENT: Record<string, string> = {
-  amateur: "#b8b8c0",
-  century: "#c9a876",
-  maximum: "#e3c878",
+  amateur: "#22C55E",
+  century: "#F59E0B",
+  maximum: "#A78BFA",
 }
 
 const menuItemStyle: CSSProperties = {
@@ -120,7 +124,7 @@ export function AccountMenu({
     }
   }, [router, t])
 
-  const tierAccent = profile.tier ? TIER_ACCENT[profile.tier] ?? BRASS : BRASS
+  const tierAccent = profile.tier ? TIER_ACCENT[profile.tier] ?? GREEN : GREEN
 
   const avatar = (size = 18) =>
     avatarUrl ? (
@@ -280,10 +284,12 @@ export function AccountMenu({
                   right: 0,
                   bottom: 0,
                   zIndex: 201,
-                  background: DEEP,
-                  borderTop: `1px solid ${BRASS}`,
-                  borderTopLeftRadius: 20,
-                  borderTopRightRadius: 20,
+                  background: GLASS_BG,
+                  backdropFilter: GLASS_BLUR,
+                  WebkitBackdropFilter: GLASS_BLUR,
+                  borderTop: GLASS_BORDER,
+                  borderTopLeftRadius: 24,
+                  borderTopRightRadius: 24,
                   paddingBottom: 24,
                 }}
               >
@@ -303,8 +309,10 @@ export function AccountMenu({
                   right: anchor?.right ?? 16,
                   zIndex: 201,
                   width: 240,
-                  background: DEEP,
-                  border: `1px solid ${BRASS}`,
+                  background: GLASS_BG,
+                  backdropFilter: GLASS_BLUR,
+                  WebkitBackdropFilter: GLASS_BLUR,
+                  border: GLASS_BORDER,
                   borderRadius: 16,
                   overflow: "hidden",
                 }}

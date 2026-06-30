@@ -3,8 +3,7 @@
 import { useRouter } from "next/navigation";
 import { AuthCard } from "@/components/auth/AuthCard";
 
-const DEEP = "#0a1a0f";
-const BRASS = "#c9a876";
+const GREEN = "#22c55e";
 
 function safeReturnUrl(value: string): string {
   if (!value.startsWith("/")) return "/member";
@@ -13,9 +12,9 @@ function safeReturnUrl(value: string): string {
 }
 
 // The /login page client island. Renders the shared AuthCard (single source of
-// truth) inside the elevated "members' club" surface: deep green + a single brass
-// hairline, no shadow. AuthCard self-resolves an existing session on mount and
-// redirects via onAuthComplete, so an already-logged-in user never sees the form.
+// truth) inside a liquid-glass surface matching the landing page (black bg +
+// translucent-white blur card). AuthCard self-resolves an existing session on
+// mount and redirects via onAuthComplete, so a logged-in user never sees the form.
 export default function LoginForm({
   returnUrl,
 }: {
@@ -30,16 +29,18 @@ export default function LoginForm({
       style={{
         width: "100%",
         maxWidth: 400,
-        background: DEEP,
-        border: `1px solid ${BRASS}`,
-        borderRadius: 20,
+        background: "rgba(255,255,255,0.05)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: 24,
         padding: 40,
       }}
     >
       <div style={{ textAlign: "center", marginBottom: 28 }}>
         <div
           data-cms-key="login.brand"
-          style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.32em", color: BRASS, marginBottom: 12 }}
+          style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.32em", color: GREEN, marginBottom: 12 }}
         >
           248 SNOOKER
         </div>

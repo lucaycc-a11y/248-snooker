@@ -6,8 +6,7 @@ import { X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { AuthCard } from "./AuthCard"
 
-const DEEP = "#0a1a0f"
-const BRASS = "#c9a876"
+const GREEN = "#22c55e"
 
 // Modal wrapper around the shared AuthCard, used by in-app entry points (e.g. the
 // booking flow). The /login PAGE renders AuthCard directly inside its own layout.
@@ -70,9 +69,11 @@ export function AuthModal({
               position: "relative",
               width: "100%",
               maxWidth: 400,
-              background: DEEP,
-              border: `1px solid ${BRASS}`,
-              borderRadius: 20,
+              background: "rgba(255,255,255,0.05)",
+              backdropFilter: "blur(20px) saturate(180%)",
+              WebkitBackdropFilter: "blur(20px) saturate(180%)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 24,
               padding: 40,
             }}
           >
@@ -88,7 +89,7 @@ export function AuthModal({
             )}
 
             <div style={{ textAlign: "center", marginBottom: 28 }}>
-              <div data-cms-key="auth.brand" style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.32em", color: BRASS, marginBottom: 12 }}>
+              <div data-cms-key="auth.brand" style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.32em", color: GREEN, marginBottom: 12 }}>
                 248 SNOOKER
               </div>
               <h1 data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 34, letterSpacing: "0.02em", color: "#fff" }}>

@@ -11,8 +11,10 @@ import { AppleSignInButton } from "./AppleSignInButton"
 import { OtpInput } from "./OtpInput"
 import { ProfileCompletion } from "./ProfileCompletion"
 
-const BRASS = "#c9a876"
-const DEEP = "#0a1a0f"
+// Landing-page language: the site green is the single primary accent/CTA; black
+// text on the green button; surfaces are translucent-white glass (provided by the
+// parent modal/login card).
+const GREEN = "#22c55e"
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 30
 const MAX_OTP_ATTEMPTS = 3
@@ -217,7 +219,7 @@ export function AuthCard({
             height: 32,
             borderRadius: "50%",
             border: "3px solid rgba(255,255,255,0.15)",
-            borderTopColor: BRASS,
+            borderTopColor: GREEN,
           }}
         />
       </div>
@@ -277,7 +279,7 @@ export function AuthCard({
           onClick={sendOtp}
           disabled={cooldown > 0 || busy}
           data-cms-key="auth.otp.resend"
-          style={{ marginTop: 20, width: "100%", background: "none", border: "none", color: cooldown > 0 ? "rgba(255,255,255,0.35)" : BRASS, fontSize: 14, cursor: cooldown > 0 ? "default" : "pointer" }}
+          style={{ marginTop: 20, width: "100%", background: "none", border: "none", color: cooldown > 0 ? "rgba(255,255,255,0.35)" : GREEN, fontSize: 14, cursor: cooldown > 0 ? "default" : "pointer" }}
         >
           {cooldown > 0 ? t("resend_in", { seconds: cooldown }) : t("resend")}
         </button>
@@ -324,7 +326,7 @@ export function AuthCard({
           onClick={sendOtp}
           disabled={busy}
           data-cms-key="auth.sms.continue"
-          style={{ width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(201,168,118,0.5)" : BRASS, color: DEEP, fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}
+          style={{ width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}
         >
           {busy ? t("sending") : t("sms_continue")}
         </button>

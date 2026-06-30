@@ -7,8 +7,10 @@ import { X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useAuthSession } from "@/lib/auth/useAuthSession"
 
-const DEEP = "#0a1a0f"
-const BRASS = "#c9a876"
+const GREEN = "#22c55e"
+// Dark-glass pill matching the landing nav's blur+saturate treatment.
+const GLASS_BG = "rgba(12,12,14,0.82)"
+const GLASS_BLUR = "blur(20px) saturate(180%)"
 const DISMISS_KEY = "signin_prompt_dismissed"
 const SHOW_DELAY_MS = 2500
 
@@ -78,8 +80,10 @@ export function SignInPrompt() {
             gap: 14,
             maxWidth: "calc(100vw - 32px)",
             padding: "12px 14px 12px 18px",
-            background: DEEP,
-            border: `1px solid ${BRASS}`,
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+            border: "1px solid rgba(255,255,255,0.12)",
             borderRadius: 9999,
             boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
           }}
@@ -97,8 +101,8 @@ export function SignInPrompt() {
               flexShrink: 0,
               padding: "7px 16px",
               borderRadius: 9999,
-              background: BRASS,
-              color: DEEP,
+              background: GREEN,
+              color: "#000",
               fontWeight: 700,
               fontSize: 14,
               textDecoration: "none",

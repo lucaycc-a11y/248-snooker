@@ -41,8 +41,7 @@ export default async function LoginPage({
 
   return (
     <main
-      className="flex min-h-screen items-center justify-center px-4 py-24 text-white"
-      style={{ background: "#0a1a0f" }}
+      className="flex min-h-screen items-center justify-center bg-black px-4 py-24 text-white"
     >
       <LoginForm returnUrl={returnUrl} error={error} />
     </main>
