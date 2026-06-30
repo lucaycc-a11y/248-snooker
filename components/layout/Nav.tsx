@@ -6,6 +6,10 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Menu, X, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
+// Plain (non-localized) link for the root-level /login and /member routes. The
+// next-intl Link prefixes the active locale (/en/member), which 404s since those
+// routes live at the root, outside [locale].
+import PlainLink from 'next/link'
 import { routing } from '@/i18n/routing'
 import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
@@ -155,7 +159,7 @@ export default function Nav() {
   function DesktopMemberCta() {
     if (loggedIn) {
       return (
-        <Link
+        <PlainLink
           href="/member"
           className="nav-cta-desktop"
           aria-label={t('member')}
@@ -184,12 +188,12 @@ export default function Nav() {
           >
             <MemberIcon />
           </span>
-        </Link>
+        </PlainLink>
       )
     }
 
     return (
-      <Link
+      <PlainLink
         href="/login"
         className="nav-cta-desktop"
         style={{
@@ -220,7 +224,7 @@ export default function Nav() {
         >
           {t('login')}
         </span>
-      </Link>
+      </PlainLink>
     )
   }
 
@@ -304,7 +308,7 @@ export default function Nav() {
             }}
           />
 
-          <Link
+          <PlainLink
             href="/member"
             data-cms-key="nav.link.member"
             style={{
@@ -321,7 +325,7 @@ export default function Nav() {
           >
             <User size={14} strokeWidth={1.8} />
             {navText('member', 'Member')}
-          </Link>
+          </PlainLink>
 
           <span
             style={{
@@ -366,7 +370,7 @@ export default function Nav() {
             pointerEvents: 'auto',
           }}
         >
-          <Link
+          <PlainLink
             href={memberHref}
             aria-label={memberLabel}
             data-cms-key={loggedIn ? 'nav.member-cta' : 'nav.login-mobile'}
@@ -410,7 +414,7 @@ export default function Nav() {
                 {navText('login', 'Login')}
               </span>
             )}
-          </Link>
+          </PlainLink>
 
           <button
             onClick={() => setMenuOpen(!menuOpen)}
@@ -520,7 +524,7 @@ export default function Nav() {
                 </Link>
               ))}
 
-              <Link
+              <PlainLink
                 href={memberHref}
                 onClick={() => setMenuOpen(false)}
                 data-cms-key={loggedIn ? 'nav.link.member' : 'nav.login'}
@@ -541,7 +545,7 @@ export default function Nav() {
                   <User size={28} strokeWidth={1.5} />
                 )}
                 {navText('login', 'Login')}
-              </Link>
+              </PlainLink>
 
               <button
                 onClick={() => {

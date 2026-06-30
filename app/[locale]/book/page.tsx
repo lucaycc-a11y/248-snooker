@@ -975,6 +975,17 @@ function Screen1({
     }
   }, [availableTables, selectedTable, setSelectedTable])
 
+  // Once tables resolve for a date, bring the table-selection section into view
+  // (it sits below the fold under the time wheels). Once per date — not on every
+  // wheel tick — so we don't fight the user while they adjust the time.
+  const scrolledForDate = useRef<string | null>(null)
+  useEffect(() => {
+    if (!dateChosen || dayLoading || availableTables === null) return
+    if (scrolledForDate.current === dateStr) return
+    scrolledForDate.current = dateStr
+    scrollToRef(tableRef)
+  }, [dateChosen, dayLoading, availableTables, dateStr])
+
   const startItems = useMemo(() => Array.from({ length: 24 }, (_, i) => i), [])
   const durationItems = useMemo(
     () => Array.from({ length: CONFIG.maxHours }, (_, i) => i + 1),
