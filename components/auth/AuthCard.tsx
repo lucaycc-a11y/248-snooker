@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
 import { normalizeHkPhone } from "@/lib/auth/profile"
 import { GoogleSignInButton } from "./GoogleSignInButton"
+import { AppleSignInButton } from "./AppleSignInButton"
 import { OtpInput } from "./OtpInput"
 import { ProfileCompletion } from "./ProfileCompletion"
 
@@ -280,18 +281,9 @@ export function AuthCard({
   return (
     <div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {/* Apple — placeholder until the Services ID is configured. Disabled so it
-            never fakes a sign-in (the bug we removed elsewhere). */}
-        <button
-          type="button"
-          disabled
-          aria-disabled="true"
-          title={t("apple_soon")}
-          data-cms-key="auth.apple"
-          style={{ width: "100%", minHeight: 52, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9999, fontWeight: 600, fontSize: 16, cursor: "not-allowed" }}
-        >
-          {t("apple_soon")}
-        </button>
+        {/* Sign in with Apple — real redirect OAuth (Supabase holds the Services
+            ID + client-secret JWT, so no client env var needed). */}
+        <AppleSignInButton returnUrl={returnUrl} label={t("apple")} errorLabel={t("err_generic")} />
 
         <GoogleSignInButton
           returnUrl={returnUrl}

@@ -2,7 +2,7 @@
   "auth": {
     "title": "登入",
     "close": "關閉",
-    "apple_soon": "以 Apple 登入（即將推出）",
+    "apple": "以 Apple 繼續",
     "google": "以 Google 繼續",
     "or": "或",
     "phone_placeholder": "電話號碼",

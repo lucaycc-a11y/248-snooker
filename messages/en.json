@@ -2,7 +2,7 @@
   "auth": {
     "title": "Sign In",
     "close": "Close",
-    "apple_soon": "Sign in with Apple (coming soon)",
+    "apple": "Continue with Apple",
     "google": "Continue with Google",
     "or": "or",
     "phone_placeholder": "Phone number",

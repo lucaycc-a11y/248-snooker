@@ -2,7 +2,7 @@
   "auth": {
     "title": "サインイン",
     "close": "閉じる",
-    "apple_soon": "Appleでサインイン（近日公開）",
+    "apple": "Appleで続ける",
     "google": "Googleで続ける",
     "or": "または",
     "phone_placeholder": "電話番号",

@@ -2,7 +2,7 @@
   "auth": {
     "title": "登录",
     "close": "关闭",
-    "apple_soon": "使用 Apple 登录（即将推出）",
+    "apple": "使用 Apple 继续",
     "google": "使用 Google 继续",
     "or": "或",
     "phone_placeholder": "电话号码",
