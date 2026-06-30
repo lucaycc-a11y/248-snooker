@@ -289,9 +289,9 @@ export function AuthCard({
   return (
     <div>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {/* Sign in with Apple — real redirect OAuth (Supabase holds the Services
-            ID + client-secret JWT, so no client env var needed). */}
-        <AppleSignInButton returnUrl={returnUrl} label={t("apple")} errorLabel={t("err_generic")} />
+        {/* Sign in with Apple — official Apple JS SDK popup (in-place via
+            signInWithIdToken), with automatic redirect-OAuth fallback. */}
+        <AppleSignInButton returnUrl={returnUrl} onSignedIn={afterSignIn} label={t("apple")} errorLabel={t("err_generic")} />
 
         <GoogleSignInButton
           returnUrl={returnUrl}
