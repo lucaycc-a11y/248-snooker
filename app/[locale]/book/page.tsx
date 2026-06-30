@@ -23,6 +23,7 @@ import { useRouter } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/client"
 // @ts-ignore
 import confetti from "canvas-confetti"
+import QRCodeLib from "qrcode"
 
 /* ─────────────────────────  Config  ───────────────────────── */
 // TODO: connect Supabase — use getConfig() server-side and pass as prop
@@ -110,66 +111,48 @@ function scrollToRef(ref: React.RefObject<HTMLElement>) {
 }
 
 /* ─────────────────────────  QR Code  ───────────────────────── */
+// Real, scannable QR rendered from `data` (the signed booking JWT) via the
+// `qrcode` library. Dark modules on a white tile for reliable scanning — the
+// ESP32 door reader validates the JWT signature offline. Generated client-side
+// to a data URL (the JWT is long, so this is a denser QR than a short code).
+const QR_PX = 126
 function QRCode({ data }: { data: string }) {
-  const size = 21
-  const grid = useMemo(() => {
-    const g: boolean[][] = Array.from({ length: size }, () =>
-      Array(size).fill(false)
-    )
-    const drawFinder = (r: number, c: number) => {
-      for (let dr = 0; dr < 7; dr++)
-        for (let dc = 0; dc < 7; dc++) {
-          const border = dr === 0 || dr === 6 || dc === 0 || dc === 6
-          const inner = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4
-          g[r + dr][c + dc] = border || inner
-        }
+  const [url, setUrl] = useState<string | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    QRCodeLib.toDataURL(data, {
+      margin: 2,
+      width: 240,
+      errorCorrectionLevel: "M",
+      color: { dark: "#0a0a0a", light: "#ffffff" },
+    })
+      .then((u) => {
+        if (!cancelled) setUrl(u)
+      })
+      .catch(() => {
+        /* leave placeholder on failure */
+      })
+    return () => {
+      cancelled = true
     }
-    drawFinder(0, 0)
-    drawFinder(0, 14)
-    drawFinder(14, 0)
-    for (let i = 7; i < 14; i++) {
-      g[6][i] = i % 2 === 0
-      g[i][6] = i % 2 === 0
-    }
-    let seed = 0
-    for (let i = 0; i < data.length; i++)
-      seed = (seed * 31 + data.charCodeAt(i)) & 0xffff
-    for (let r = 0; r < size; r++)
-      for (let c = 0; c < size; c++) {
-        if (g[r][c]) continue
-        if (r < 7 && c < 7) continue
-        if (r < 7 && c >= 14) continue
-        if (r >= 14 && c < 7) continue
-        seed = (seed * 1103515245 + 12345) & 0x7fffffff
-        g[r][c] = (seed >> 16) % 3 === 0
-      }
-    return g
   }, [data])
 
-  const cellSize = 6
-  const totalSize = size * cellSize
+  if (!url) {
+    return (
+      <div
+        aria-hidden
+        style={{ width: QR_PX, height: QR_PX, background: "#ffffff", borderRadius: 8 }}
+      />
+    )
+  }
   return (
-    <svg
-      width={totalSize}
-      height={totalSize}
-      viewBox={`0 0 ${totalSize} ${totalSize}`}
-    >
-      <rect width={totalSize} height={totalSize} fill="#0a0a0a" />
-      {grid.map((row, r) =>
-        row.map((on, c) =>
-          on ? (
-            <rect
-              key={`${r}-${c}`}
-              x={c * cellSize}
-              y={r * cellSize}
-              width={cellSize}
-              height={cellSize}
-              fill="#ffffff"
-            />
-          ) : null
-        )
-      )}
-    </svg>
+    <img
+      src={url}
+      width={QR_PX}
+      height={QR_PX}
+      alt="Booking QR code"
+      style={{ borderRadius: 8, display: "block" }}
+    />
   )
 }
 
