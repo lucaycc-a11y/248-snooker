@@ -31,7 +31,10 @@ export function OtpInput({
     const joined = next.join("").slice(0, length)
     onChange(joined)
     if (d && i < length - 1) refs.current[i + 1]?.focus()
-    if (joined.length === length && !joined.includes("") && joined.replace(/\s/g, "").length === length) {
+    // join("") collapses empty slots, so a full code is exactly `length` chars;
+    // any gap makes it shorter. (Note: String.includes("") is always true — the
+    // old "!joined.includes('')" guard meant onComplete could never fire on type.)
+    if (joined.length === length) {
       onComplete?.(joined)
     }
   }
