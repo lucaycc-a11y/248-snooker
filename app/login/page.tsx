@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
-import { getTranslations } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
+import { resolveLocaleFromCookie, loadMessages } from "@/lib/i18n/serverLocale";
 import LoginForm from "./LoginForm";
 
 const BASE = "https://248.formhk.com";
@@ -18,6 +17,9 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
+
+// Reads auth state on mount (client) — never prerender.
+export const dynamic = "force-dynamic";
 
 function safeReturnUrl(value: string | null): string {
   if (!value) return "/member";
@@ -36,14 +38,20 @@ export default async function LoginPage({
   const errorParam = params.error;
   const returnUrl = safeReturnUrl(Array.isArray(returnUrlParam) ? returnUrlParam[0] : returnUrlParam ?? null);
   const error = Array.isArray(errorParam) ? errorParam[0] ?? null : errorParam ?? null;
-  const localeCookie = (await cookies()).get("NEXT_LOCALE")?.value;
-  await getTranslations({ locale: localeCookie ?? "zh-HK", namespace: "login" }).catch(() => null);
+
+  // /login lives OUTSIDE the [locale] segment (bypassed by middleware), so the
+  // intl request locale is never set. Resolve it from the NEXT_LOCALE cookie and
+  // provide messages here — WITHOUT this provider, AuthCard's useTranslations
+  // throws on render, which is what produced the React #425/#422 + "TRY AGAIN"
+  // crash on /login (and on the OAuth-failure redirect to /login?error=...).
+  const locale = await resolveLocaleFromCookie();
+  const messages = await loadMessages(locale);
 
   return (
-    <main
-      className="flex min-h-screen items-center justify-center bg-black px-4 py-24 text-white"
-    >
-      <LoginForm returnUrl={returnUrl} error={error} />
-    </main>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <main className="flex min-h-screen items-center justify-center bg-black px-4 py-24 text-white">
+        <LoginForm returnUrl={returnUrl} error={error} />
+      </main>
+    </NextIntlClientProvider>
   );
 }

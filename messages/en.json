@@ -42,6 +42,14 @@
     "cta_book": "Book Now",
     "cta_home": "Back to Home"
   },
+  "login": {
+    "brand": "248 SNOOKER",
+    "title": "Sign In",
+    "subtitle": "Continue to your booking and member access.",
+    "error_missing_code": "Sign-in didn't complete. Please try again.",
+    "error_oauth": "We couldn't sign you in. Please try again.",
+    "error_generic": "Something went wrong. Please try again."
+  },
   "legal": {
     "title": "Legal",
     "subtitle": "Please read these terms carefully before using 248 Snooker.",

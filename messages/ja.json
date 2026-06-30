@@ -42,6 +42,14 @@
     "cta_book": "今すぐ予約",
     "cta_home": "ホームに戻る"
   },
+  "login": {
+    "brand": "248 SNOOKER",
+    "title": "サインイン",
+    "subtitle": "予約と会員サービスを続けます。",
+    "error_missing_code": "サインインが完了しませんでした。もう一度お試しください。",
+    "error_oauth": "サインインできませんでした。もう一度お試しください。",
+    "error_generic": "問題が発生しました。もう一度お試しください。"
+  },
   "legal": {
     "title": "法的情報",
     "subtitle": "248 Snooker をご利用の前に、以下の規約をよくお読みください。",

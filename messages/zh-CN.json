@@ -42,6 +42,14 @@
     "cta_book": "立即预订",
     "cta_home": "返回主页"
   },
+  "login": {
+    "brand": "248 SNOOKER",
+    "title": "登录",
+    "subtitle": "继续你的预订和会员服务。",
+    "error_missing_code": "登录未完成，请重试。",
+    "error_oauth": "无法登录，请重试。",
+    "error_generic": "出错了，请重试。"
+  },
   "legal": {
     "title": "法律信息",
     "subtitle": "使用 248 Snooker 服务前，请仔细阅读以下条款。",
