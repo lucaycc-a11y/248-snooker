@@ -40,6 +40,10 @@ export function AuthCard({
   const [attemptsLeft, setAttemptsLeft] = useState(MAX_OTP_ATTEMPTS)
   const [cooldown, setCooldown] = useState(0)
   const [prefill, setPrefill] = useState<Prefill>({ name: "", email: "", phone: "" })
+  // True until the mount-time session check resolves — avoids flashing the method
+  // picker to a user who's already signed in (e.g. returning from an OAuth redirect).
+  const [initializing, setInitializing] = useState(true)
+  const didInit = useRef(false)
 
   // Resend cooldown ticker.
   useEffect(() => {
@@ -47,6 +51,51 @@ export function AuthCard({
     const id = setInterval(() => setCooldown((c) => Math.max(0, c - 1)), 1000)
     return () => clearInterval(id)
   }, [cooldown])
+
+  // On mount: if a session already exists (returning from a Google redirect, or a
+  // logged-in user reaching the login step), resolve straight to the profile gate
+  // or completion — never show the method picker again. Runs once.
+  useEffect(() => {
+    if (didInit.current) return
+    didInit.current = true
+    let cancelled = false
+    ;(async () => {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (cancelled) return
+      if (!user) {
+        setInitializing(false)
+        return
+      }
+      const { data } = await supabase
+        .from("users")
+        .select("display_name, email, phone, profile_complete")
+        .eq("id", user.id)
+        .maybeSingle()
+      if (cancelled) return
+      if (data?.profile_complete === true) {
+        onAuthComplete()
+        return
+      }
+      setPrefill({
+        name:
+          data?.display_name ??
+          (user.user_metadata?.full_name as string | undefined) ??
+          (user.user_metadata?.name as string | undefined) ??
+          "",
+        email: data?.email ?? user.email ?? "",
+        phone: data?.phone ?? user.phone ?? "",
+      })
+      setPhase("profile")
+      setInitializing(false)
+    })()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // After any successful sign-in, decide: profile complete → done; else → gate.
   // Pre-fills the profile form from the provider identity (Apple/Google name,
@@ -143,6 +192,27 @@ export function AuthCard({
       return
     }
     await afterSignIn()
+  }
+
+  // ── Initializing (mount-time session check in flight) ───────────────────────
+  // Avoids flashing the method picker to a user who's already signed in.
+  if (initializing && phase === "methods") {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
+        <motion.div
+          aria-hidden
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            border: "3px solid rgba(255,255,255,0.15)",
+            borderTopColor: BRASS,
+          }}
+        />
+      </div>
+    )
   }
 
   // ── Profile gate ───────────────────────────────────────────────────────────

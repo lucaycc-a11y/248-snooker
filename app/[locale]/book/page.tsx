@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ChevronLeft,
   Clock,
-  MessageCircle,
   Lock,
   CheckCircle,
   CalendarPlus,
@@ -15,12 +14,12 @@ import {
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { Button, Card, ProgressSteps } from "@/components/ui"
-import { AppleLogo, VisaLogo } from "@/components/brand"
+import { VisaLogo } from "@/components/brand"
+import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import { useHaptic } from "@/lib/useHaptic"
 import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
-import { createClient } from "@/lib/supabase/client"
 // @ts-ignore
 import confetti from "canvas-confetti"
 import QRCodeLib from "qrcode"
@@ -39,11 +38,6 @@ const BEBAS = "'Bebas Neue', system-ui, sans-serif"
 const STEPS = ["選擇時段", "登入", "付款", "確認"]
 
 /* ─────────────────────────  Helpers  ───────────────────────── */
-function formatPhone(d: string) {
-  if (d.length <= 4) return d
-  return d.slice(0, 4) + " " + d.slice(4)
-}
-
 function genRef(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
   const block = (n: number) =>
@@ -1227,351 +1221,76 @@ function Screen1({
 }
 
 /* ─────────────────────────  Screen 2: Auth  ───────────────────────── */
-function Screen2({ onSuccess }: { onSuccess: () => void }) {
+function Screen2({
+  onSuccess,
+  selectedDate,
+  startHour,
+  duration,
+  selectedTable,
+}: {
+  onSuccess: () => void
+  selectedDate: Date
+  startHour: number
+  duration: number
+  selectedTable: number | null
+}) {
   const t = useTranslations("book")
-  const [lockSec, setLockSec] = useState(300)
-  const [phone, setPhone] = useState("")
-  const [otpSent, setOtpSent] = useState(false)
-  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""])
-  const [resend, setResend] = useState(0)
-  const [googleLoading, setGoogleLoading] = useState(false)
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([])
 
+  // Persist the in-progress booking before any auth redirect (the Google fallback
+  // flow leaves the page). On return, BookPage restores this and re-lands on the
+  // login step so AuthCard resolves the now-active session. Refreshed on every
+  // selection change so a redirect at any moment is covered.
   useEffect(() => {
-    const id = setInterval(
-      () => setLockSec((s) => (s > 0 ? s - 1 : 0)),
-      1000
-    )
-    return () => clearInterval(id)
-  }, [])
+    if (typeof window === "undefined") return
+    try {
+      sessionStorage.setItem(
+        "pendingBooking",
+        JSON.stringify({
+          tableNumber: selectedTable,
+          date: selectedDate.toISOString(),
+          startHour,
+          duration,
+        }),
+      )
+    } catch {}
+  }, [selectedDate, startHour, duration, selectedTable])
 
-  useEffect(() => {
-    if (!otpSent) return
-    setResend(59)
-    const id = setInterval(
-      () => setResend((s) => (s > 0 ? s - 1 : 0)),
-      1000
-    )
-    return () => clearInterval(id)
-  }, [otpSent])
-
-  useEffect(() => {
-    if (otpSent) setTimeout(() => otpRefs.current[0]?.focus(), 300)
-  }, [otpSent])
-
-  const lockLabel = `${Math.floor(lockSec / 60)}:${String(lockSec % 60).padStart(2, "0")}`
-  const phoneComplete = phone.length === 8
-
-  const handleGoogleLogin = async () => {
-    setGoogleLoading(true)
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/book`,
-      },
-    })
-    if (error) {
-      console.error(error)
-      setGoogleLoading(false)
-    }
-    // On success, browser redirects to Google — no further action needed here.
-  }
-
-  const handleOtp = (i: number, raw: string) => {
-    const v = raw.replace(/\D/g, "").slice(-1)
-    const next = [...otp]
-    next[i] = v
-    setOtp(next)
-    if (v && i < 5) otpRefs.current[i + 1]?.focus()
-    if (v && i === 5 && next.every(Boolean)) setTimeout(onSuccess, 250)
-  }
-
-  const handleOtpKey = (i: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[i] && i > 0)
-      otpRefs.current[i - 1]?.focus()
-  }
-
+  // Single source of truth for sign-in: the shared AuthCard (Apple placeholder,
+  // official Google, real Supabase SMS OTP) + the mandatory profile gate. No more
+  // fake onClick={onSuccess} advances — onSuccess fires only on a real session.
   return (
     <div className="screen-content auth-screen">
-      <div className="two-col">
-        <div className="col-left">
-          <div
-            style={{
-              background: tokens.colors.surface,
-              borderRadius: tokens.radius.card,
-              border: `1px solid ${tokens.colors.border}`,
-              padding: 28,
-            }}
-          >
+      <div style={{ maxWidth: 400, margin: "0 auto" }}>
+        <div
+          style={{
+            background: "#0a1a0f",
+            borderRadius: 20,
+            border: "1px solid #c9a876",
+            padding: 32,
+          }}
+        >
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
             <h2
               data-cms-key="book.auth.title"
-              style={{ fontSize: 20, fontWeight: 600, marginBottom: 6 }}
+              style={{
+                fontFamily: '"Bebas Neue", sans-serif',
+                fontSize: 30,
+                letterSpacing: "0.02em",
+                color: "#fff",
+                marginBottom: 6,
+              }}
             >
               {t("login_title")}
             </h2>
-            <p style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 4 }}>
-              <span data-cms-key="book.auth.lock">{t("login_subtitle")}</span>{" "}
-              <span
-                style={{
-                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
-                  fontSize: 16,
-                  fontWeight: 600,
-                  color: tokens.colors.text,
-                }}
-              >
-                {lockLabel}
-              </span>
+            <p
+              data-cms-key="book.auth.subtitle"
+              style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}
+            >
+              {t("login_subtitle")}
             </p>
-            <div style={{ height: 24 }} />
-
-            {/* Apple login — white style per Apple HIG (dark bg) */}
-            <button
-              type="button"
-              onClick={onSuccess}
-              style={{
-                width: "100%",
-                height: 56,
-                background: "#fff",
-                borderRadius: 12,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                marginBottom: 12,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              <AppleLogo size={20} color="#000" />
-              <span style={{ color: "#000", fontWeight: 500, fontSize: 16 }}>
-                {t("login_apple")}
-              </span>
-            </button>
-
-            {/* Google login */}
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={googleLoading}
-              style={{
-                width: "100%",
-                height: 56,
-                background: "#fff",
-                borderRadius: 12,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                marginBottom: 20,
-                border: "none",
-                cursor: googleLoading ? "not-allowed" : "pointer",
-                opacity: googleLoading ? 0.7 : 1,
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path
-                  fill="#4285F4"
-                  d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.566 2.684-3.874 2.684-6.615z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
-                />
-              </svg>
-              <span style={{ color: "#1F1F1F", fontWeight: 500, fontSize: 16 }}>
-                {t("login_google")}
-              </span>
-            </button>
-
-            {/* Divider */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                margin: "0 0 20px",
-              }}
-            >
-              <div
-                style={{ flex: 1, height: 1, background: tokens.colors.border }}
-              />
-              <span
-                style={{ fontSize: 13, color: tokens.colors.textMuted }}
-              >
-                {t("or")}
-              </span>
-              <div
-                style={{ flex: 1, height: 1, background: tokens.colors.border }}
-              />
-            </div>
-
-            {/* WhatsApp OTP */}
-            <AnimatePresence mode="wait">
-              {!otpSent ? (
-                <motion.div
-                  key="phone"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0, x: -16 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <div
-                    className="phone-input-row"
-                    style={{
-                      height: 52,
-                      background: "rgba(255,255,255,0.06)",
-                      border: `1px solid ${tokens.colors.borderStrong}`,
-                      borderRadius: tokens.radius.button,
-                      display: "flex",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        padding: "0 16px",
-                        display: "flex",
-                        alignItems: "center",
-                        background: tokens.colors.brandDim,
-                        borderRight: "1px solid rgba(37,211,102,0.3)",
-                        color: tokens.colors.brand,
-                        fontWeight: 600,
-                        fontSize: 15,
-                        flexShrink: 0,
-                      }}
-                    >
-                      +852
-                    </div>
-                    <input
-                      value={formatPhone(phone)}
-                      onChange={(e) =>
-                        setPhone(
-                          e.target.value.replace(/\D/g, "").slice(0, 8)
-                        )
-                      }
-                      inputMode="numeric"
-                      placeholder={t("login_whatsapp")}
-                      style={{
-                        flex: 1,
-                        background: "transparent",
-                        border: "none",
-                        outline: "none",
-                        color: tokens.colors.text,
-                        fontSize: 16,
-                        padding: "0 16px",
-                        letterSpacing: "0.04em",
-                      }}
-                    />
-                  </div>
-                  <AnimatePresence>
-                    {phoneComplete && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 28,
-                        }}
-                        style={{ marginTop: 14 }}
-                      >
-                        <Button
-                          variant="primary"
-                          size="md"
-                          fullWidth
-                          leftIcon={<MessageCircle size={18} />}
-                          onClick={() => setOtpSent(true)}
-                        >
-                          傳送驗證碼
-                        </Button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="otp"
-                  initial={{ opacity: 0, x: 16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: tokens.colors.textMuted,
-                      marginBottom: 20,
-                    }}
-                  >
-                    驗證碼已傳送至 +852 {formatPhone(phone)}
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 8,
-                      justifyContent: "center",
-                      marginBottom: 20,
-                    }}
-                  >
-                    {otp.map((d, i) => (
-                      <input
-                        key={i}
-                        ref={(el) => {
-                          otpRefs.current[i] = el
-                        }}
-                        value={d}
-                        onChange={(e) => handleOtp(i, e.target.value)}
-                        onKeyDown={(e) => handleOtpKey(i, e)}
-                        inputMode="numeric"
-                        maxLength={1}
-                        className="otp-input"
-                        style={{
-                          width: 44,
-                          height: 56,
-                          border: `1px solid ${tokens.colors.borderStrong}`,
-                          borderRadius: 10,
-                          background: "rgba(255,255,255,0.04)",
-                          color: tokens.colors.text,
-                          fontSize: 24,
-                          fontWeight: 600,
-                          textAlign: "center",
-                          outline: "none",
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <span
-                      data-cms-key="book.auth.resend"
-                      style={{
-                        fontSize: 14,
-                        color:
-                          resend > 0
-                            ? tokens.colors.textMuted
-                            : tokens.colors.brand,
-                        cursor: resend > 0 ? "default" : "pointer",
-                      }}
-                      onClick={() => resend === 0 && setResend(59)}
-                    >
-                      {resend > 0 ? `重新傳送 (${resend}s)` : "重新傳送"}
-                    </span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
+          <AuthCard returnUrl="/book" onAuthComplete={onSuccess} />
         </div>
-
-        {/* Desktop right: same auth content in card */}
-        <div className="desktop-card" />
       </div>
     </div>
   )
@@ -2184,10 +1903,6 @@ export default function BookPage() {
   const [selectedTable, setSelectedTable] = useState<number | null>(null)
   const [bookingRef] = useState(() => genRef())
   const paymentRef = useRef<HTMLDivElement>(null)
-  const [showProfileModal, setShowProfileModal] = useState<"phone" | "email" | null>(null)
-  const [profileInput, setProfileInput] = useState("")
-  const [profileSaving, setProfileSaving] = useState(false)
-  const [profileUser, setProfileUser] = useState<{ name: string; avatar: string } | null>(null)
   // Stripe redirect-return confirmation state.
   const [confirmBookingId, setConfirmBookingId] = useState<string | null>(null)
   const [confirmedBooking, setConfirmedBooking] = useState<ConfirmedBooking | null>(null)
@@ -2267,74 +1982,26 @@ export default function BookPage() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }, [screen])
 
+  // Restore an in-progress booking after returning from an auth redirect (the
+  // Google fallback leaves the page). We re-land on the login step (screen 1);
+  // AuthCard there detects the now-active session and resolves the mandatory
+  // profile gate → onAuthComplete=advance. The profile gate lives entirely in
+  // AuthCard now — no page-level optional modal, no page-level auth listener
+  // (in-page sign-ins drive onAuthComplete directly).
   useEffect(() => {
     if (typeof window === "undefined") return
-    const supabase = createClient()
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const checkAndShowProfile = async (user: any) => {
-      setProfileUser({
-        name: user.user_metadata?.full_name ?? '',
-        avatar: user.user_metadata?.avatar_url ?? '',
-      })
-
-      // Restore pending booking from sessionStorage
-      const saved = sessionStorage.getItem("pendingBooking")
-      if (saved) {
-        try {
-          const state = JSON.parse(saved)
-          if (state.tableNumber) setSelectedTable(state.tableNumber)
-          if (state.date) setSelectedDate(new Date(state.date))
-          sessionStorage.removeItem("pendingBooking")
-        } catch {}
-      }
-
-      setScreen((s) => (s <= 1 ? 2 : s))
-
-      // Query DB to decide if we need phone or email
-      const { data: profile } = await supabase
-        .from("users")
-        .select("phone, email, profile_complete")
-        .eq("id", user.id)
-        .single()
-
-      const provider: string = user.app_metadata?.provider ?? ""
-      const needsPhone = provider === "google" && !profile?.phone
-      const needsEmail =
-        (provider === "whatsapp" || provider === "phone") && !profile?.email
-
-      if (needsPhone) {
-        setShowProfileModal("phone")
-      } else if (needsEmail) {
-        setShowProfileModal("email")
-      } else {
-        setTimeout(() => {
-          if (paymentRef.current) {
-            const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
-            window.scrollTo({ top: y, behavior: "smooth" })
-          }
-        }, 400)
-      }
-    }
-
-    // Check existing session on mount (post-OAuth redirect)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) return
-      // Only trigger profile check when pendingBooking is present
-      // (indicates the user just came back from an OAuth redirect)
-      const fromAuth = sessionStorage.getItem("pendingBooking") !== null
-      if (fromAuth) checkAndShowProfile(session.user)
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN" && session?.user) {
-          await checkAndShowProfile(session.user)
-        }
-      }
-    )
-
-    return () => subscription.unsubscribe()
+    const saved = sessionStorage.getItem("pendingBooking")
+    if (!saved) return
+    try {
+      const state = JSON.parse(saved)
+      if (state.tableNumber) setSelectedTable(state.tableNumber)
+      if (state.date) setSelectedDate(new Date(state.date))
+      if (typeof state.startHour === "number") setStartHour(state.startHour)
+      if (typeof state.duration === "number") setDuration(state.duration)
+    } catch {}
+    sessionStorage.removeItem("pendingBooking")
+    // Jump to the login step so AuthCard can resolve the returning session.
+    setScreen((s) => (s < 1 ? 1 : s))
   }, [])
 
   const variants = {
@@ -2435,7 +2102,13 @@ export default function BookPage() {
                 exit="exit"
                 transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Screen2 onSuccess={advance} />
+                <Screen2
+                  onSuccess={advance}
+                  selectedDate={selectedDate}
+                  startHour={startHour}
+                  duration={duration}
+                  selectedTable={selectedTable}
+                />
               </motion.div>
             )}
             {screen === 2 && (
@@ -2494,126 +2167,6 @@ export default function BookPage() {
         </div>
       </div>
 
-      {showProfileModal && (
-        <div
-          style={{
-            position: "fixed", inset: 0, zIndex: 100,
-            background: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: "24px",
-          }}
-        >
-          <motion.div
-            initial={{ scale: 0.92, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            transition={{ type: "spring", damping: 22, stiffness: 300 }}
-            style={{
-              background: "#111",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 20,
-              padding: "32px 24px",
-              width: "100%",
-              maxWidth: 360,
-              textAlign: "center",
-            }}
-          >
-            {/* Avatar */}
-            {profileUser?.avatar && (
-              <img
-                src={profileUser.avatar}
-                alt=""
-                style={{ width: 56, height: 56, borderRadius: "50%", margin: "0 auto 16px", display: "block" }}
-              />
-            )}
-
-            {/* Greeting */}
-            {profileUser?.name && (
-              <p style={{ fontSize: 18, fontWeight: 600, color: tokens.colors.text, marginBottom: 8 }}>
-                你好，{profileUser.name}
-              </p>
-            )}
-
-            {/* Title + subtitle */}
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: tokens.colors.text, marginBottom: 6 }}>
-              {showProfileModal === "phone" ? "加入電話號碼" : "加入電郵地址"}
-            </h3>
-            <p style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 24 }}>
-              {showProfileModal === "phone" ? "方便我們發送預訂提醒（可選）" : "方便我們發送預訂確認（可選）"}
-            </p>
-
-            {/* Input */}
-            {showProfileModal === "phone" ? (
-              <div style={{ display: "flex", height: 52, background: "rgba(255,255,255,0.06)", border: `1px solid ${tokens.colors.borderStrong}`, borderRadius: tokens.radius.button, overflow: "hidden", marginBottom: 16 }}>
-                <div style={{ padding: "0 16px", display: "flex", alignItems: "center", background: tokens.colors.brandDim, borderRight: "1px solid rgba(37,211,102,0.3)", color: tokens.colors.brand, fontWeight: 600, fontSize: 15, flexShrink: 0 }}>+852</div>
-                <input
-                  value={profileInput}
-                  onChange={(e) => setProfileInput(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                  inputMode="numeric"
-                  placeholder="9XXX XXXX"
-                  style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: tokens.colors.text, fontSize: 16, padding: "0 16px" }}
-                  autoFocus
-                />
-              </div>
-            ) : (
-              <input
-                value={profileInput}
-                onChange={(e) => setProfileInput(e.target.value)}
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                style={{ width: "100%", height: 52, background: "rgba(255,255,255,0.06)", border: `1px solid ${tokens.colors.borderStrong}`, borderRadius: tokens.radius.button, outline: "none", color: tokens.colors.text, fontSize: 16, padding: "0 16px", marginBottom: 16 }}
-                autoFocus
-              />
-            )}
-
-            {/* Buttons */}
-            <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
-              <button
-                type="button"
-                disabled={profileSaving}
-                onClick={async () => {
-                  if (!profileInput.trim()) { setShowProfileModal(null); return }
-                  setProfileSaving(true)
-                  const supabase = createClient()
-                  const { data: { user } } = await supabase.auth.getUser()
-                  if (user) {
-                    await supabase.from("users").update({
-                      [showProfileModal === "phone" ? "phone" : "email"]: profileInput.trim(),
-                      profile_complete: true,
-                    }).eq("id", user.id)
-                  }
-                  setProfileSaving(false)
-                  setShowProfileModal(null)
-                  setTimeout(() => {
-                    if (paymentRef.current) {
-                      const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
-                      window.scrollTo({ top: y, behavior: "smooth" })
-                    }
-                  }, 300)
-                }}
-                style={{ flex: 1, height: 48, background: tokens.colors.brand, color: "#000", border: "none", borderRadius: tokens.radius.button, fontWeight: 600, fontSize: 16, cursor: profileSaving ? "not-allowed" : "pointer" }}
-              >
-                {profileSaving ? "…" : "儲存"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowProfileModal(null)
-                  setTimeout(() => {
-                    if (paymentRef.current) {
-                      const y = paymentRef.current.getBoundingClientRect().top + window.scrollY - 80
-                      window.scrollTo({ top: y, behavior: "smooth" })
-                    }
-                  }, 300)
-                }}
-                style={{ flex: 1, height: 48, background: "transparent", color: tokens.colors.text, border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.button, fontWeight: 500, fontSize: 16, cursor: "pointer" }}
-              >
-                略過
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
 
       {/* Leave-booking confirm — shown when the back arrow is tapped on step 1+.
           "Stay" is the emphasised (green) default so an accidental tap keeps the
