@@ -115,20 +115,40 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Could not resolve booking' }, { status: 500 })
     }
 
-    const stripe = getStripe()
-    const intent = await stripe.paymentIntents.create(
-      {
-        amount: quote.amountInCents,
-        currency: 'hkd',
-        automatic_payment_methods: { enabled: true },
-        metadata: {
-          booking_id: bookingId,
-          slot_id: slot.id,
-          user_id: user.id,
+    let intent
+    try {
+      const stripe = getStripe() // throws if STRIPE_SECRET_KEY is unset
+      intent = await stripe.paymentIntents.create(
+        {
+          amount: quote.amountInCents,
+          currency: 'hkd',
+          automatic_payment_methods: { enabled: true },
+          metadata: {
+            booking_id: bookingId,
+            slot_id: slot.id,
+            user_id: user.id,
+          },
         },
-      },
-      { idempotencyKey: bookingId },
-    )
+        { idempotencyKey: bookingId },
+      )
+    } catch (stripeErr) {
+      // Surface the REAL Stripe failure (bad/again-missing key, account not
+      // activated, currency not enabled, etc.) instead of the generic catch-all.
+      // If this logs but the Stripe Dashboard shows no request, the key itself is
+      // wrong/empty; if it logs WITH a Stripe error type/code, that's the cause.
+      const e = stripeErr as { message?: string; type?: string; code?: string; statusCode?: number }
+      console.error('stripe_create_intent_error', {
+        message: e.message,
+        type: e.type,
+        code: e.code,
+        statusCode: e.statusCode,
+        amount: quote.amountInCents,
+      })
+      return NextResponse.json(
+        { error: 'stripe_error', detail: e.message ?? 'Stripe request failed', code: e.code ?? e.type ?? null },
+        { status: 502 },
+      )
+    }
 
     return NextResponse.json({
       clientSecret: intent.client_secret,

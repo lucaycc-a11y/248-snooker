@@ -150,7 +150,15 @@ export function AuthCard({
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
-        setError(j.error === "rate_limited" ? t("err_rate_limited") : t("err_send"))
+        if (j.error === "rate_limited") {
+          setError(t("err_rate_limited"))
+        } else {
+          // Show the REAL underlying cause when the provider returns one (e.g.
+          // "Unsupported phone provider", Twilio trial "unverified number"), so a
+          // misconfig is diagnosable in the UI instead of a dead-end retry. Falls
+          // back to the friendly string when no detail is present.
+          setError(j.detail ? `${t("err_send")} (${j.detail})` : t("err_send"))
+        }
         setBusy(false)
         return
       }

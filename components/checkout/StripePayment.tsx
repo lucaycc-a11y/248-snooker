@@ -157,9 +157,13 @@ export default function StripePayment(props: Props) {
 
   if (error) {
     return (
-      <p style={{ fontSize: 14, color: "#f87171", textAlign: "center", padding: "16px 0" }}>
-        {props.errorLabel}
-      </p>
+      <div style={{ textAlign: "center", padding: "16px 0" }}>
+        <p style={{ fontSize: 14, color: "#f87171" }}>{props.errorLabel}</p>
+        {/* Show the REAL captured cause (lock expired / not authenticated / Stripe
+            error / pricing misconfig) beneath the friendly label, so a failure is
+            diagnosable instead of a dead-end "couldn't start payment". */}
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 6 }}>{error}</p>
+      </div>
     )
   }
   if (!clientSecret || !bookingId) {

@@ -1,11 +1,7 @@
 import Stripe from 'stripe'
 
-// Server-only Stripe singleton.
-//
-// DEPENDENCY: the `stripe` package is NOT yet in package.json. Run `npm i stripe`
-// (and for the client Payment Element: `npm i @stripe/stripe-js @stripe/react-stripe-js`)
-// once disk space is freed. Until then this import will not resolve and tsc/build
-// will fail — expected, per the "write files only, don't build" instruction.
+// Server-only Stripe singleton. Throws if STRIPE_SECRET_KEY is unset so callers
+// can surface a specific config error (create-intent wraps this).
 let cached: Stripe | null = null
 
 export function getStripe(): Stripe {

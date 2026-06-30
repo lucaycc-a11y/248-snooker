@@ -30,10 +30,25 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.signInWithOtp({ phone })
     if (error) {
-      console.error('send_otp_error', error.message)
-      // Surface Supabase's own provider rate limit distinctly.
-      const status = /rate|limit|too many/i.test(error.message) ? 429 : 502
-      return NextResponse.json({ error: 'send_failed' }, { status })
+      // Surface the REAL underlying cause. Supabase wraps Twilio errors, so the
+      // message/status/code here is the actual diagnostic (e.g. "phone provider
+      // not enabled", Twilio 21608 "unverified number on trial", bad credentials).
+      // We log the full object server-side AND return the detail to the client so
+      // a broken provider config is visible in the UI rather than a generic retry.
+      console.error('send_otp_error', {
+        message: error.message,
+        status: (error as { status?: number }).status,
+        code: (error as { code?: string }).code,
+      })
+      const isRate = /rate|limit|too many/i.test(error.message)
+      return NextResponse.json(
+        {
+          error: isRate ? 'rate_limited' : 'send_failed',
+          detail: error.message,
+          code: (error as { code?: string }).code ?? null,
+        },
+        { status: isRate ? 429 : 502 },
+      )
     }
 
     return NextResponse.json({ ok: true })
