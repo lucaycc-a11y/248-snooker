@@ -138,6 +138,13 @@ $$;
 --    users.points; that UPDATE fires update_tier_trigger (BEFORE UPDATE ON users)
 --    which recomputes the tier. Never call update_member_tier directly.
 -- ════════════════════════════════════════════════════════════════════
+-- Drop the existing jsonb overload FIRST. CREATE OR REPLACE cannot remove a
+-- parameter default, and the live version had `p_is_free boolean DEFAULT false`;
+-- our version has no default, so REPLACE errors with "cannot remove parameter
+-- defaults from existing function". Dropping then recreating side-steps that.
+-- NOTE: callers must now pass p_is_free explicitly (the webhook does).
+drop function if exists public.confirm_booking(uuid, text, text, integer, boolean);
+
 create or replace function public.confirm_booking(
   p_booking_id         uuid,
   p_payment_intent_id  text,
