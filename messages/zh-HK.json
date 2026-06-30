@@ -405,7 +405,12 @@
     "blog": "網誌",
     "member": "會員",
     "login": "登入",
-    "logout": "登出"
+    "logout": "登出",
+    "my_account": "我的帳戶",
+    "settings": "設定",
+    "sign_out": "登出",
+    "signing_out": "登出中…",
+    "sign_out_error": "登出失敗，請再試一次。"
   },
   "hero": {
     "title": "248 Snooker",

@@ -14,6 +14,7 @@ import { routing } from '@/i18n/routing'
 import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui'
+import { AccountMenu } from '@/components/auth/AccountMenu'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
@@ -159,11 +160,8 @@ export default function Nav() {
   function DesktopMemberCta() {
     if (loggedIn) {
       return (
-        <PlainLink
-          href="/member"
+        <div
           className="nav-cta-desktop"
-          aria-label={t('member')}
-          data-cms-key="nav.member-cta"
           style={{
             position: 'absolute',
             right: 32,
@@ -171,24 +169,10 @@ export default function Nav() {
             transform: 'translateY(-50%)',
             pointerEvents: 'auto',
             display: 'none',
-            textDecoration: 'none',
           }}
         >
-          <span
-            style={{
-              ...pillStyle(theme),
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 52,
-              height: 52,
-              color: linkColor,
-              overflow: 'hidden',
-            }}
-          >
-            <MemberIcon />
-          </span>
-        </PlainLink>
+          <AccountMenu avatarUrl={avatarUrl} variant="desktop" linkColor={linkColor} />
+        </div>
       )
     }
 
@@ -370,32 +354,19 @@ export default function Nav() {
             pointerEvents: 'auto',
           }}
         >
-          <PlainLink
-            href={memberHref}
-            aria-label={memberLabel}
-            data-cms-key={loggedIn ? 'nav.member-cta' : 'nav.login-mobile'}
-            style={{
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            {loggedIn ? (
-              <span
-                style={{
-                  ...pillStyle(theme),
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 46,
-                  height: 46,
-                  color: linkColor,
-                  overflow: 'hidden',
-                }}
-              >
-                <MemberIcon size={18} />
-              </span>
-            ) : (
+          {loggedIn ? (
+            <AccountMenu avatarUrl={avatarUrl} variant="mobile" linkColor={linkColor} />
+          ) : (
+            <PlainLink
+              href="/login"
+              aria-label={memberLabel}
+              data-cms-key="nav.login-mobile"
+              style={{
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
               <span
                 style={{
                   display: 'inline-flex',
@@ -413,8 +384,8 @@ export default function Nav() {
               >
                 {navText('login', 'Login')}
               </span>
-            )}
-          </PlainLink>
+            </PlainLink>
+          )}
 
           <button
             onClick={() => setMenuOpen(!menuOpen)}

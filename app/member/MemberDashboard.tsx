@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Apple,
   Wallet,
@@ -103,9 +103,15 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
   const t = useTranslations("memberPage");
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, bookings, points, stats } = data;
 
-  const [tab, setTab] = useState<TabId>("bookings");
+  // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
+  const initialTab: TabId = ((): TabId => {
+    const q = searchParams.get("tab");
+    return q === "points" || q === "settings" || q === "bookings" ? q : "bookings";
+  })();
+  const [tab, setTab] = useState<TabId>(initialTab);
   const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
 
   const { current, next, progress, pointsToNext } = resolveTier(user.points, tiers);

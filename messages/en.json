@@ -405,7 +405,12 @@
     "blog": "Blog",
     "member": "Member",
     "login": "Login",
-    "logout": "Sign Out"
+    "logout": "Sign Out",
+    "my_account": "My Account",
+    "settings": "Settings",
+    "sign_out": "Sign Out",
+    "signing_out": "Signing out…",
+    "sign_out_error": "Couldn't sign out. Please try again."
   },
   "hero": {
     "title": "248 Snooker",

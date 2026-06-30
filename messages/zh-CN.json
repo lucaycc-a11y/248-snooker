@@ -405,7 +405,12 @@
     "blog": "博客",
     "member": "会员",
     "login": "登录",
-    "logout": "退出"
+    "logout": "退出",
+    "my_account": "我的账户",
+    "settings": "设置",
+    "sign_out": "退出",
+    "signing_out": "退出中…",
+    "sign_out_error": "退出失败，请重试。"
   },
   "hero": {
     "title": "248 Snooker",
