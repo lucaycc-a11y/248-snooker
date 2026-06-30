@@ -178,6 +178,105 @@ Extracted the real landing tokens from `app/[locale]/page.tsx` + components:
 
 ---
 
+# ROUND 3 — root causes from production auth logs
+
+These three came from real Supabase auth-log lines (not guesses). I have **no
+Supabase MCP / production DB access and no dashboard access** in this
+environment, so for BUG 1 and BUG 2 the code/migration is done but the final
+apply + verify is yours. BUG 3 is fully fixed in code.
+
+## BUG 1 (P0) — new-user 500: `generate_member_code() does not exist` (42883)
+
+**Confirmed in repo:** there is **no** `generate_member_code` / `assign_member_code`
+/ auth-trigger definition anywhere in `supabase/` — `getMember.ts` even *derives*
+the code client-side "when the users row has no explicit member_code column". So
+the function was created in the dashboard and never committed; production lost it.
+
+**Done:** `supabase/migrations/0005_create_generate_member_code.sql` restores it —
+`248-XXXX-XXXX-C`, 8 payload chars + Luhn-mod-32 check over a 32-symbol alphabet
+(2-9 + A-Z minus I/O; excludes ambiguous 0/1/I/O). Luhn logic verified in JS
+(100k/100k single-char errors caught). The migration is **additive** (one
+`CREATE OR REPLACE` of a pure function — drops nothing).
+
+**You must (no DB access here):**
+1. Run the 3 diagnostic queries embedded at the top of 0005 to confirm topology.
+   Likely result: `assign_member_code()` (the SECURITY DEFINER fn you already
+   fixed) calls `generate_member_code()` internally — which is why Google sign-in
+   works through the same trigger yet new SMS/Apple users 500 on this helper.
+2. Apply 0005 (`supabase db push`, or paste into the SQL Editor).
+3. Re-run a full SMS OTP sign-up → confirm a `users` row is created with a
+   well-formed `member_code`.
+4. While there, confirm `validate_member_code` / `update_member_tier` /
+   `find_or_lock_slot` / `confirm_booking` all exist (query #1) — if any are
+   missing they were lost the same way and need committing too.
+
+## BUG 2 — Apple `oauth2: "invalid_client"` at token exchange
+
+**Verified, claim-by-claim:** the client-secret JWT generator
+(`supabase/functions/rotate-apple-secret/index.ts`) is **correct** vs Apple's
+spec — header `alg ES256` + `kid WC6N6LR58J`; `iss`=Team `X7DHH2944M`;
+`aud`=`https://appleid.apple.com`; `sub`=Services ID `com.formhk.248snooker.web`;
+`exp` ≤ 6 months. So `invalid_client` is **NOT a code/JWT-shape bug** — the secret
+*currently stored in Supabase* is operationally wrong. The authorize step works
+(you saw the first-time consent screen), only the code→token exchange is rejected.
+
+**You must (Supabase + Apple dashboards — I can't reach either):** in order of
+likelihood —
+1. **Key ID mismatch / revoked key:** confirm the `.p8` used to mint the stored
+   secret has Key ID **`WC6N6LR58J`**, and that this key still exists in Apple
+   Developer → Keys (not revoked). If unsure, generate a NEW key (enable "Sign in
+   with Apple", App ID `com.formhk.248snooker`), download the `.p8`, and re-mint.
+2. **Re-mint the secret** with the verified generator (run the
+   `rotate-apple-secret` function with `APPLE_PRIVATE_KEY` = the `.p8` contents),
+   or paste a freshly generated JWT into Supabase → Auth → Providers → Apple →
+   "Secret Key (for OAuth)".
+3. **Provider field exactness (case-sensitive):** Services ID
+   `com.formhk.248snooker.web`, Team ID `X7DHH2944M`, and the secret pasted whole
+   incl. `-----BEGIN/END PRIVATE KEY-----`, no stray whitespace.
+4. **Apple Services ID config:** "Sign In with Apple" enabled; Return URL =
+   `https://wqmciwieiqvnswvspdyz.supabase.co/auth/v1/callback` (the **Supabase**
+   URL, not 248.formhk.com); Domain = `248.formhk.com`.
+5. Re-test; auth logs should no longer show `invalid_client`.
+
+Note on the app side: Apple now uses the **same redirect OAuth as the working
+Google flow** (Round 2). So once the stored secret is valid, no app change is
+needed — it travels the identical proven path through `/auth/callback`.
+
+## BUG 3 — missing `/login` → React #425/#422 + "TRY AGAIN" (FIXED in code)
+
+**Real root cause (not a missing route):** `/login` *exists* and is correctly
+non-localized (middleware `BYPASS_PREFIXES`; your acceptance URL is
+`248.formhk.com/login`, no locale prefix). But the page never wrapped its tree in
+`NextIntlClientProvider`, and `AuthCard` (client) calls `useTranslations` — which
+**throws without that provider**, producing the #425/#422 crash both on `/login`
+directly and on the OAuth-failure redirect `/login?error=...`. `/member` works
+only because it has the provider.
+
+**Done (committed, build-green):**
+- `app/login/page.tsx` now wraps `NextIntlClientProvider` (mirrors the working
+  `/member` pattern: `resolveLocaleFromCookie` + `loadMessages`). This is THE fix.
+- Building `app/[locale]/login` would have been **wrong** — a second locale-prefixed
+  login fighting the non-localized one the callback targets. Avoided.
+- Wired the previously-ignored `?error` param: `/auth/callback` emits
+  `missing_code` | `oauth` → mapped to CMS messages, shown in a styled alert.
+- Added the `login` namespace (brand/title/subtitle + 3 error messages) to all 4
+  locales. `LoginForm` reads brand/title from CMS (were hardcoded).
+- Verified `/book` `Screen2` already reuses the same shared `AuthCard` — no
+  duplicated login code (acceptance item satisfied).
+
+**You verify:** hit `https://248.formhk.com/login` (no crash), and force an OAuth
+failure → `/login?error=oauth` shows the localized message instead of #425/#422.
+
+## Round-3 acceptance checklist
+- [ ] (BUG1, needs you) Apply migration 0005; new SMS user creates a `users` row
+      with a valid `member_code`; no more 42883 / "Database error saving new user".
+- [ ] (BUG2, needs you) Re-mint/fix the Apple secret in Supabase; auth logs clear
+      of `invalid_client`; Apple sign-in completes through `/auth/callback`.
+- [x] (BUG3, done) `/login` renders without #425/#422; `?error=` shows a localized
+      message; `/book` reuses the shared login component.
+
+---
+
 ## The one item legitimately blocked on a human
 **Apple/Google Wallet badge art** must be downloaded from
 `developer.apple.com/wallet/` and Google's Wallet brand page — binary assets I
