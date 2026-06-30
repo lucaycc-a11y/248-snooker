@@ -2247,6 +2247,19 @@ export default function BookPage() {
     setScreen((s) => Math.min(s + 1, 3))
   }, [])
 
+  // Backward-only step navigation from the progress bar. Forward jumps are never
+  // allowed (can't skip to payment from time-select). Not available once the
+  // booking is confirmed (screen 3) — that flow is terminal. Going back from
+  // payment does NOT release the slot lock here; the lock simply expires on its
+  // own cron if the user abandons, and create-intent re-validates it on return.
+  const goToStep = useCallback((target: number) => {
+    setScreen((s) => {
+      if (target >= s || s >= 3) return s // backward only, and never from confirmation
+      direction.current = -1
+      return target
+    })
+  }, [])
+
   // When the wizard advances to a new screen (login → payment → confirm),
   // bring the new screen's top into view rather than keeping the prior scroll.
   useEffect(() => {
@@ -2382,7 +2395,7 @@ export default function BookPage() {
       <div className="book-container">
         {/* Progress */}
         <div className="progress-bar-wrap">
-          <ProgressSteps steps={STEPS} current={screen} />
+          <ProgressSteps steps={STEPS} current={screen} onStepClick={goToStep} />
         </div>
 
         {/* Screen content — overflow-x:clip hides the horizontal wizard slide
