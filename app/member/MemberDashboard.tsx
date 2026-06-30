@@ -17,14 +17,13 @@ import { createClient } from "@/lib/supabase/client";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 
-// ── Heritage palette: deep green + muted brass, restraint over decoration. ──
-const DEEP = "#0a1a0f";
-const INK = "#f4f1ea"; // warm off-white
-const SUBTLE = "#8a9087"; // muted green-grey
-const BRASS = "#c9a876";
-const BORDER = "rgba(201,168,118,0.18)"; // brass hairline (cards)
-const HAIRLINE = "rgba(201,168,118,0.38)"; // brass hairline (emphasis)
-const GREEN = "#22C55E"; // semantic only (confirmed status)
+// ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
+const DEEP = "#0a0a0a"; // near-black base (QR modal)
+const INK = "#f5f5f7"; // near-white text
+const SUBTLE = "#86868b"; // neutral grey
+const BORDER = "rgba(255,255,255,0.1)"; // glass hairline (cards)
+const HAIRLINE = "rgba(255,255,255,0.18)"; // glass hairline (emphasis)
+const GREEN = "#22C55E"; // primary accent + semantic confirmed
 const DANGER = "#FF453A";
 
 const FONT_FAMILY =
@@ -34,17 +33,21 @@ const DISPLAY = '"Bebas Neue", sans-serif';
 const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-// Tier accent: muted pewter → brass → deeper gold (subtle, not garish).
+// Liquid-glass surface recipe (matches the landing page).
+const GLASS_BG = "rgba(255,255,255,0.05)";
+const GLASS_BLUR = "blur(20px) saturate(180%)";
+
+// Tier accent matches the landing membership section: green / amber / purple.
 const TIER_ACCENT: Record<string, string> = {
-  amateur: "#b8b8c0",
-  century: "#c9a876",
-  maximum: "#e3c878",
+  amateur: "#22C55E",
+  century: "#F59E0B",
+  maximum: "#A78BFA",
 };
-// Tier-tinted deep-green card gradient.
-const TIER_GRADIENT: Record<string, string> = {
-  amateur: "linear-gradient(150deg, #15271b 0%, #0a1a0f 72%)",
-  century: "linear-gradient(150deg, #1d1a11 0%, #0a1a0f 72%)",
-  maximum: "linear-gradient(150deg, #20190b 0%, #0a1a0f 72%)",
+// Subtle tier-coloured corner glow layered over the glass member card.
+const TIER_GLOW: Record<string, string> = {
+  amateur: "radial-gradient(120% 120% at 100% 0%, rgba(34,197,94,0.14), transparent 55%)",
+  century: "radial-gradient(120% 120% at 100% 0%, rgba(245,158,11,0.14), transparent 55%)",
+  maximum: "radial-gradient(120% 120% at 100% 0%, rgba(167,139,250,0.16), transparent 55%)",
 };
 
 type TabId = "bookings" | "points" | "settings";
@@ -80,7 +83,7 @@ function QRGlyph({ data, size = 200, dark = false }: { data: string; size?: numb
   }, [data]);
 
   const cell = size / cells;
-  const fg = dark ? "#0a0a0a" : BRASS;
+  const fg = dark ? "#0a0a0a" : GREEN;
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="QR code" role="img">
       <rect width={size} height={size} fill={dark ? "#FFFFFF" : "transparent"} />
@@ -124,7 +127,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
 
   const { current, next, progress, pointsToNext } = resolveTier(user.points, tiers);
   const tierId = current.id;
-  const accent = TIER_ACCENT[tierId] ?? BRASS;
+  const accent = TIER_ACCENT[tierId] ?? GREEN;
 
   const signOut = async () => {
     const supabase = createClient();
@@ -137,7 +140,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
     <div
       style={{
         fontFamily: FONT_FAMILY,
-        background: "linear-gradient(180deg, #0a1a0f 0%, #0c2114 50%, #0a1a0f 100%)",
+        background: "#000",
         minHeight: "100vh",
         color: INK,
       }}
@@ -154,9 +157,11 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
           transition={{ duration: 0.6, ease: EASE }}
           style={{
             position: "relative",
-            borderRadius: "22px",
+            borderRadius: "24px",
             border: `1px solid ${HAIRLINE}`,
-            background: TIER_GRADIENT[tierId] ?? TIER_GRADIENT.amateur,
+            background: `${TIER_GLOW[tierId] ?? TIER_GLOW.amateur}, ${GLASS_BG}`,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
             padding: "26px 28px",
             overflow: "hidden",
             minHeight: 210,
@@ -199,7 +204,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
                     fontSize: "16px",
                     fontWeight: 600,
                     letterSpacing: "0.14em",
-                    color: BRASS,
+                    color: GREEN,
                     textShadow: "0 1px 1px rgba(0,0,0,0.55)",
                     marginTop: "2px",
                   }}
@@ -236,7 +241,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
         </div>
 
         {/* ── Points + tier progress ── */}
-        <div style={{ marginTop: "24px", border: `1px solid ${BORDER}`, borderRadius: "20px", padding: "24px", background: "rgba(201,168,118,0.03)" }}>
+        <div style={{ marginTop: "24px", border: `1px solid ${BORDER}`, borderRadius: "20px", padding: "24px", background: "rgba(255,255,255,0.03)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <span data-cms-key="member.card_points" style={{ fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: SUBTLE }}>
               {t("card_points")}
@@ -259,7 +264,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
               initial={{ width: 0 }}
               animate={{ width: `${Math.round(progress * 100)}%` }}
               transition={{ duration: 0.9, ease: EASE }}
-              style={{ height: "100%", background: BRASS, borderRadius: "100px" }}
+              style={{ height: "100%", background: GREEN, borderRadius: "100px" }}
             />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -307,7 +312,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
                 {active && (
                   <motion.span
                     layoutId="member-tab-underline"
-                    style={{ position: "absolute", left: "12px", right: "12px", bottom: "-1px", height: "2px", background: BRASS }}
+                    style={{ position: "absolute", left: "12px", right: "12px", bottom: "-1px", height: "2px", background: GREEN }}
                   />
                 )}
               </button>
@@ -370,7 +375,7 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "16px 20px",
-        background: "rgba(10,26,15,0.72)",
+        background: "rgba(0,0,0,0.72)",
         backdropFilter: "blur(20px) saturate(160%)",
         WebkitBackdropFilter: "blur(20px) saturate(160%)",
         borderBottom: `1px solid ${BORDER}`,
@@ -388,7 +393,7 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
           type="button"
           onClick={cycleLocale}
           aria-label="Switch language"
-          style={{ color: INK, fontSize: "13px", fontWeight: 500, background: "rgba(201,168,118,0.12)", border: `1px solid ${BORDER}`, borderRadius: "8px", padding: "6px 10px", cursor: "pointer", minHeight: 36 }}
+          style={{ color: INK, fontSize: "13px", fontWeight: 500, background: "rgba(255,255,255,0.08)", border: `1px solid ${BORDER}`, borderRadius: "8px", padding: "6px 10px", cursor: "pointer", minHeight: 36 }}
         >
           {LABELS[locale] ?? "中"}
         </button>
@@ -412,7 +417,7 @@ function WalletButton({ icon, label, cmsKey }: { icon: React.ReactNode; label: s
         padding: "0 18px",
         borderRadius: "12px",
         border: `1px solid ${HAIRLINE}`,
-        background: "rgba(201,168,118,0.06)",
+        background: "rgba(255,255,255,0.05)",
         color: INK,
         fontSize: "14px",
         fontWeight: 600,
@@ -527,7 +532,7 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
                 <div style={{ fontSize: "15px", color: INK }}>{p.description || "—"}</div>
                 <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "2px" }}>{formatDate(p.date, locale)}</div>
               </div>
-              <span style={{ fontSize: "16px", fontWeight: 700, color: p.delta >= 0 ? BRASS : DANGER }}>
+              <span style={{ fontSize: "16px", fontWeight: 700, color: p.delta >= 0 ? GREEN : DANGER }}>
                 {p.delta >= 0 ? "+" : ""}
                 {p.delta}
               </span>
@@ -544,7 +549,7 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
         <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
           {earn.map((e, i) => (
             <li key={e} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: "rgba(244,241,234,0.75)" }} data-cms-key={`member.points_earn.${i}`}>
-              <span aria-hidden="true" style={{ width: "5px", height: "5px", borderRadius: "50%", background: BRASS }} />
+              <span aria-hidden="true" style={{ width: "5px", height: "5px", borderRadius: "50%", background: GREEN }} />
               {e}
             </li>
           ))}
@@ -648,7 +653,7 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
           minHeight: 52,
           borderRadius: "14px",
           border: "none",
-          background: BRASS,
+          background: GREEN,
           color: DEEP,
           fontSize: "16px",
           fontWeight: 700,
@@ -710,7 +715,7 @@ function Toggle({ label, on, onChange, last }: { label: string; on: boolean; onC
           height: "30px",
           borderRadius: "100px",
           border: "none",
-          background: on ? BRASS : "rgba(255,255,255,0.18)",
+          background: on ? GREEN : "rgba(255,255,255,0.18)",
           position: "relative",
           cursor: "pointer",
           transition: "background 0.2s ease",
