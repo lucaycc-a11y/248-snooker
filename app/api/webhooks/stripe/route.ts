@@ -145,8 +145,15 @@ async function handleSucceeded(
   })
 
   // bookings.qr_code holds the signed JWT directly (verified: there is no separate
-  // qr_token column).
-  await supabase.from('bookings').update({ qr_code: qrToken }).eq('id', result.booking_id)
+  // qr_token column). This write is the user's ENTRY credential — if it fails the
+  // booking is confirmed + paid but unenterable, so throw to mark the event
+  // 'failed' and let Stripe retry (confirm_booking is idempotent, so the retry
+  // re-runs cleanly and just re-writes the QR).
+  const { error: qrErr } = await supabase
+    .from('bookings')
+    .update({ qr_code: qrToken })
+    .eq('id', result.booking_id)
+  if (qrErr) throw new Error(`qr_code write failed: ${qrErr.message}`)
 
   // Notifications: send DIRECTLY then record in notification_log (it's a post-send
   // log, not a queue). The actual Resend/WhatsApp dispatch is the remaining
