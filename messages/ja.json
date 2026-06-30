@@ -365,10 +365,14 @@
     "greeting": "こんにちは"
   },
   "nav": {
+    "home": "ホーム",
     "book": "予約",
     "pricing": "料金",
     "about": "概要",
-    "blog": "ブログ"
+    "blog": "ブログ",
+    "member": "メンバー",
+    "login": "ログイン",
+    "logout": "ログアウト"
   },
   "hero": {
     "title": "248 Snooker",
@@ -503,6 +507,13 @@
     "add_calendar": "カレンダーに追加",
     "share": "シェア",
     "back_home": "ホームに戻る",
+    "back": "戻る",
+    "leave_title": "予約を中断しますか？",
+    "leave_body": "現在の選択内容は保存されません。",
+    "leave_confirm": "中断する",
+    "leave_stay": "予約を続ける",
+    "checking": "空き状況を確認中…",
+    "fully_booked": "この時間帯は満席です。別の時間または日付をお選びください。",
     "qr_hint": "入場時にこのQRコードをご提示ください・24時間サポート",
     "your_booking": "ご予約内容",
     "date": "日付",

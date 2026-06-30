@@ -365,10 +365,14 @@
     "greeting": "你好"
   },
   "nav": {
+    "home": "主页",
     "book": "预订",
     "pricing": "定价",
     "about": "关于",
-    "blog": "博客"
+    "blog": "博客",
+    "member": "会员",
+    "login": "登录",
+    "logout": "退出"
   },
   "hero": {
     "title": "248 Snooker",
@@ -503,6 +507,13 @@
     "add_calendar": "加入日历",
     "share": "分享",
     "back_home": "返回主页",
+    "back": "返回",
+    "leave_title": "离开预订？",
+    "leave_body": "你当前的选择将不会保留。",
+    "leave_confirm": "离开",
+    "leave_stay": "继续预订",
+    "checking": "正在检查可用球台…",
+    "fully_booked": "此时段已满，请选择其他时间或日期。",
     "qr_hint": "请于入场时出示此二维码・24小时客服",
     "your_booking": "你的预约",
     "date": "日期",

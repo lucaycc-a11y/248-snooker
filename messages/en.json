@@ -365,10 +365,14 @@
     "greeting": "Hello"
   },
   "nav": {
+    "home": "Home",
     "book": "Book",
     "pricing": "Pricing",
     "about": "About",
-    "blog": "Blog"
+    "blog": "Blog",
+    "member": "Member",
+    "login": "Login",
+    "logout": "Sign Out"
   },
   "hero": {
     "title": "248 Snooker",
@@ -503,6 +507,13 @@
     "add_calendar": "Add to Calendar",
     "share": "Share",
     "back_home": "Back to Home",
+    "back": "Back",
+    "leave_title": "Leave booking?",
+    "leave_body": "Your current selection won't be saved.",
+    "leave_confirm": "Leave",
+    "leave_stay": "Stay",
+    "checking": "Checking availability…",
+    "fully_booked": "This time is fully booked — try another time or date.",
     "qr_hint": "Show this QR code at entry · 24hr support",
     "your_booking": "Your Booking",
     "date": "Date",

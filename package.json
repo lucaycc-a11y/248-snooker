@@ -21,7 +21,8 @@
     "next": "^14.2.33",
     "next-intl": "^4.13.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "stripe": "^22.3.0"
   },
   "devDependencies": {
     "@types/matter-js": "^0.20.2",

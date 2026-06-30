@@ -28,6 +28,7 @@ import {
 } from "@/components/brand"
 import { useHaptic } from "@/lib/useHaptic"
 import { useTranslations } from "next-intl"
+import { useRouter } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/client"
 // @ts-ignore
 import confetti from "canvas-confetti"
@@ -72,6 +73,45 @@ function genRef(): string {
 
 function padTime(h: number): string {
   return String(((h % 24) + 24) % 24).padStart(2, "0") + ":00"
+}
+
+type DaySlot = {
+  table_number: number
+  date: string
+  start_time: string
+  duration_hours: number
+  status: string
+  locked_until: string | null
+}
+
+const ALL_TABLES = [1, 2]
+
+// Which tables are free for [startHour, startHour+duration) on `dateStr`, given the
+// day's booked/active-locked slots. Pure + client-side so it drives both the wheel
+// greying (Step 2) and the table list (Step 3) without extra API calls.
+function freeTablesFor(
+  daySlots: DaySlot[],
+  dateStr: string,
+  startHour: number,
+  duration: number
+): number[] {
+  const reqStart = new Date(`${dateStr}T00:00:00`)
+  reqStart.setHours(startHour, 0, 0, 0)
+  const reqEnd = new Date(reqStart)
+  reqEnd.setHours(reqEnd.getHours() + duration)
+  const now = new Date()
+  const taken = new Set<number>()
+  for (const s of daySlots) {
+    // Expired locks don't count as taken.
+    if (s.status === "locked" && (!s.locked_until || new Date(s.locked_until) <= now)) {
+      continue
+    }
+    const eStart = new Date(`${s.date}T${s.start_time}`)
+    const eEnd = new Date(eStart)
+    eEnd.setHours(eEnd.getHours() + Number(s.duration_hours))
+    if (eStart < reqEnd && reqStart < eEnd) taken.add(s.table_number)
+  }
+  return ALL_TABLES.filter((tn) => !taken.has(tn))
 }
 
 // Smoothly scroll a revealed section into view (desktop and mobile alike).
@@ -162,50 +202,43 @@ function useTables() {
   ]
 }
 
-// TODO: swap to Supabase query — availability keyed by table id for the chosen slot
-const tableAvailability: Record<number, boolean> = {
-  1: true,
-  2: true,
-}
-
+// Availability is resolved server-side via /api/booking/availability and passed
+// in as `availableTables`. Unavailable tables are removed entirely (not greyed),
+// so every table rendered here is selectable.
 function TableSelect({
+  availableTables,
   selected,
   onSelect,
 }: {
+  availableTables: number[]
   selected: number | null
   onSelect: (id: number) => void
 }) {
   const t = useTranslations("book")
-  const tables = useTables()
+  const tables = useTables().filter((tb) => availableTables.includes(tb.id))
   return (
     <div>
       <div className="grid grid-cols-2 gap-3">
         {tables.map((table) => {
-          const available = tableAvailability[table.id]
           const isSelected = selected === table.id
           return (
             <motion.button
               key={table.id}
               type="button"
-              disabled={!available}
-              onClick={() => available && onSelect(table.id)}
-              whileTap={available ? { scale: 0.96 } : undefined}
-              aria-label={`${table.name} ${available ? t("available") : t("unavailable")}`}
+              onClick={() => onSelect(table.id)}
+              whileTap={{ scale: 0.96 }}
+              aria-label={`${table.name} ${t("available")}`}
               data-cms-key={`book.table.${table.id}`}
               className="group relative min-h-11 overflow-hidden rounded-2xl border text-left transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
                 aspectRatio: "3 / 4",
-                borderColor: isSelected
-                  ? "#22C55E"
-                  : available
-                    ? "rgba(255,255,255,0.12)"
-                    : "rgba(255,255,255,0.06)",
+                borderColor: isSelected ? "#22C55E" : "rgba(255,255,255,0.12)",
                 backgroundImage: `linear-gradient(180deg, rgba(10,26,15,0.12), rgba(0,0,0,0.76)), url(/images/table-${table.id}.jpg)`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                opacity: available ? (isSelected ? 1 : 0.72) : 0.45,
+                opacity: isSelected ? 1 : 0.72,
                 transform: isSelected ? "scale(1)" : "scale(0.96)",
-                cursor: available ? "pointer" : "not-allowed",
+                cursor: "pointer",
                 outline: isSelected ? "2px solid #22C55E" : "none",
                 outlineOffset: isSelected ? "3px" : "0",
               }}
@@ -232,25 +265,13 @@ function TableSelect({
                     className="mt-1 text-[11px] text-white/55"
                     data-cms-key={`book.table.${table.id}.status`}
                   >
-                    {available ? t("available") : t("unavailable")}
+                    {t("available")}
                   </div>
                 </div>
               </div>
             </motion.button>
           )
         })}
-      </div>
-      <div className="mt-3 flex justify-center gap-2" aria-hidden="true">
-        {tables.map((table) => (
-          <span
-            key={table.id}
-            className="h-2.5 rounded-full transition-all duration-300"
-            style={{
-              width: selected === table.id ? 28 : 10,
-              background: selected === table.id ? "#22C55E" : "rgba(255,255,255,0.22)",
-            }}
-          />
-        ))}
       </div>
       <div
         data-cms-key="book.table.hint"
@@ -495,12 +516,16 @@ function DrumWheel({
   onChange,
   labelFn,
   ariaLabel,
+  isDisabled,
 }: {
   items: number[]
   selected: number
   onChange: (val: number) => void
   labelFn: (val: number) => string
   ariaLabel: string
+  // Optional predicate — disabled values render greyed/struck-through, are never
+  // emitted via onChange, and the wheel snaps away from them when scrolling stops.
+  isDisabled?: (val: number) => boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const haptic = useHaptic()
@@ -511,6 +536,7 @@ function DrumWheel({
   const rafRef = useRef<number | null>(null)
   const touchingRef = useRef(false)
   const pendingRecenterRef = useRef(false)
+  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Triplicate for a seamless infinite loop; start on the middle copy.
   const loop = useMemo(() => [...items, ...items, ...items], [items])
   const [centerLoopIdx, setCenterLoopIdx] = useState(n + baseIdx)
@@ -563,17 +589,45 @@ function DrumWheel({
     if (realIdx !== lastRealRef.current) {
       lastRealRef.current = realIdx
       haptic.vibrate(8)
-      onChange(items[realIdx])
+      // Don't emit a disabled value; the scroll-end redirect snaps away from it.
+      if (!isDisabled?.(items[realIdx])) onChange(items[realIdx])
     }
     // Recenter continuously (not just on idle) so fast flings never hit a wall.
     recenter()
-  }, [items, n, onChange, haptic, recenter])
+  }, [items, n, onChange, haptic, recenter, isDisabled])
+
+  const stepTo = useCallback((loopIdx: number) => {
+    const el = ref.current
+    if (!el) return
+    el.scrollTop = loopIdx * WHEEL_ITEM_H // smooth (behavior restored post-mount)
+  }, [])
+
+  // When scrolling stops on a DISABLED item, snap to the nearest enabled one
+  // (searched outward in scroll space so the wheel moves minimally). No-op when
+  // there is no predicate or every item is disabled.
+  const redirectIfDisabled = useCallback(() => {
+    const el = ref.current
+    if (!el || !isDisabled) return
+    const loopIdx = Math.round(el.scrollTop / WHEEL_ITEM_H)
+    if (!isDisabled(items[((loopIdx % n) + n) % n])) return
+    for (let off = 1; off < n; off++) {
+      for (const cand of [loopIdx - off, loopIdx + off]) {
+        if (!isDisabled(items[((cand % n) + n) % n])) {
+          stepTo(cand)
+          return
+        }
+      }
+    }
+  }, [isDisabled, items, n, stepTo])
 
   const handleScroll = useCallback(() => {
     if (!initedRef.current) return // ignore the mount-time scroll assignment
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     rafRef.current = requestAnimationFrame(settle)
-  }, [settle])
+    // Debounced scroll-end check: snap off a disabled item once the fling stops.
+    if (endTimerRef.current) clearTimeout(endTimerRef.current)
+    endTimerRef.current = setTimeout(redirectIfDisabled, 160)
+  }, [settle, redirectIfDisabled])
 
   const handleTouchStart = useCallback(() => {
     touchingRef.current = true
@@ -583,12 +637,6 @@ function DrumWheel({
     touchingRef.current = false
     if (pendingRecenterRef.current) recenter()
   }, [recenter])
-
-  const stepTo = useCallback((loopIdx: number) => {
-    const el = ref.current
-    if (!el) return
-    el.scrollTop = loopIdx * WHEEL_ITEM_H // smooth (behavior restored post-mount)
-  }, [])
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -650,14 +698,22 @@ function DrumWheel({
         {loop.map((val, i) => {
           const dist = Math.abs(i - centerLoopIdx)
           const fontSize = dist === 0 ? 36 : dist === 1 ? 22 : 18
-          const opacity = dist === 0 ? 1 : dist === 1 ? 0.7 : 0.35
           const realIdx = ((i % n) + n) % n
+          const disabled = isDisabled?.(items[realIdx]) ?? false
+          const opacity = disabled
+            ? 0.25
+            : dist === 0
+              ? 1
+              : dist === 1
+                ? 0.7
+                : 0.35
           return (
             <div
               key={i}
               id={i === n ? `wheel-${ariaLabel}-${val}` : undefined}
               role="option"
               aria-selected={dist === 0}
+              aria-disabled={disabled || undefined}
               style={{
                 height: WHEEL_ITEM_H,
                 display: "flex",
@@ -666,8 +722,9 @@ function DrumWheel({
                 scrollSnapAlign: "center",
                 fontSize,
                 fontWeight: dist === 0 ? 600 : 400,
-                color: tokens.colors.text,
+                color: disabled ? tokens.colors.textFaint : tokens.colors.text,
                 opacity,
+                textDecoration: disabled ? "line-through" : "none",
                 transition: "font-size 120ms ease-out, opacity 120ms ease-out",
               }}
             >
@@ -846,7 +903,7 @@ function Screen1({
   onContinue,
 }: {
   selectedTable: number | null
-  setSelectedTable: (id: number) => void
+  setSelectedTable: (id: number | null) => void
   selectedDate: Date
   setSelectedDate: (d: Date) => void
   startHour: number
@@ -860,10 +917,20 @@ function Screen1({
   const crossDay = endHour >= 24
   const [displayTotal, setDisplayTotal] = useState(total)
   const [dateChosen, setDateChosen] = useState(false)
-  const dateRef = useRef<HTMLDivElement>(null)
+  const [daySlots, setDaySlots] = useState<DaySlot[] | null>(null)
+  const [dayLoading, setDayLoading] = useState(false)
   const timeRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
 
+  const dateStr = useMemo(() => {
+    const y = selectedDate.getFullYear()
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0")
+    const d = String(selectedDate.getDate()).padStart(2, "0")
+    return `${y}-${m}-${d}`
+  }, [selectedDate])
+
+  // Animate the live price total.
   useEffect(() => {
     const target = CONFIG.pricePerHour * duration
     if (target === displayTotal) return
@@ -881,18 +948,80 @@ function Screen1({
     return () => clearInterval(id)
   }, [duration, displayTotal])
 
-  const startItems = useMemo(
-    () => Array.from({ length: 24 }, (_, i) => i),
-    []
+  // Fetch the day's booked/locked slots once per date; per-hour and per-duration
+  // greying (Step 2) + the table list (Step 3) are then computed locally, so wheel
+  // scrolling triggers no extra requests. Fails OPEN (empty = everything free) —
+  // the slot lock at payment is the authoritative guard against double-booking.
+  useEffect(() => {
+    if (!dateChosen) {
+      setDaySlots(null)
+      return
+    }
+    let cancelled = false
+    setDayLoading(true)
+    ;(async () => {
+      try {
+        const res = await fetch("/api/booking/availability", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ date: dateStr }),
+        })
+        if (!res.ok) throw new Error("availability")
+        const json = await res.json()
+        if (!cancelled) setDaySlots(Array.isArray(json.slots) ? json.slots : [])
+      } catch {
+        if (!cancelled) setDaySlots([]) // fail open
+      } finally {
+        if (!cancelled) setDayLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [dateChosen, dateStr])
+
+  // Tables free for the CURRENT start+duration (drives Step 3 + the live summary).
+  const availableTables = useMemo(
+    () => (daySlots ? freeTablesFor(daySlots, dateStr, startHour, duration) : null),
+    [daySlots, dateStr, startHour, duration]
   )
+
+  // Wheel greying: a start hour is full if no table fits the current duration; a
+  // duration is full if no table fits it at the current start hour.
+  const isStartDisabled = useCallback(
+    (h: number) =>
+      daySlots ? freeTablesFor(daySlots, dateStr, h, duration).length === 0 : false,
+    [daySlots, dateStr, duration]
+  )
+  const isDurationDisabled = useCallback(
+    (d: number) =>
+      daySlots ? freeTablesFor(daySlots, dateStr, startHour, d).length === 0 : false,
+    [daySlots, dateStr, startHour]
+  )
+
+  // Drop a selected table if a time change made it unavailable.
+  useEffect(() => {
+    if (
+      availableTables &&
+      selectedTable !== null &&
+      !availableTables.includes(selectedTable)
+    ) {
+      setSelectedTable(null)
+    }
+  }, [availableTables, selectedTable, setSelectedTable])
+
+  const startItems = useMemo(() => Array.from({ length: 24 }, (_, i) => i), [])
   const durationItems = useMemo(
     () => Array.from({ length: CONFIG.maxHours }, (_, i) => i + 1),
     []
   )
 
-  const tables = useTables()
-  const selectedTableInfo = tables.find((t) => t.id === selectedTable)
-  const ready = selectedTable !== null && dateChosen
+  const fullyBooked =
+    dateChosen && availableTables !== null && availableTables.length === 0
+  const ready =
+    dateChosen &&
+    selectedTable !== null &&
+    (availableTables?.includes(selectedTable) ?? false)
   const canContinue = ready
 
   const sectionLabel = (text: string, cmsKey: string) => (
@@ -914,69 +1043,22 @@ function Screen1({
     <div className="screen-content">
       <div className="two-col">
         <div className="col-left">
-          {/* Selected table badge */}
-          {selectedTableInfo && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: tokens.colors.brandDim,
-                border: `1px solid rgba(37,211,102,0.3)`,
-                borderRadius: tokens.radius.pill,
-                padding: "6px 14px",
-                marginBottom: 24,
-                fontSize: 13,
-                fontWeight: 500,
-              }}
-            >
-              <CheckCircle size={14} color={tokens.colors.brand} />
-              {selectedTableInfo.name} · {selectedTableInfo.type}
-            </motion.div>
-          )}
-
-          {/* Step 1 — Table */}
+          {/* Step 1 — Date */}
           <div style={{ marginBottom: 28 }}>
-            {sectionLabel(t("select_table"), "book.table.title")}
-            <TableSelect
-              selected={selectedTable}
-              onSelect={(id) => {
-                setSelectedTable(id)
-                scrollToRef(dateRef)
+            {sectionLabel(t("select_date"), "book.date.title")}
+            <Calendar
+              selected={selectedDate}
+              onSelect={(d) => {
+                setSelectedDate(d)
+                setDateChosen(true)
+                scrollToRef(timeRef)
               }}
             />
           </div>
 
-          {/* Step 2 — Calendar (revealed after table chosen) */}
+          {/* Step 2 — Time + duration (revealed after date chosen) */}
           <AnimatePresence>
-            {selectedTable !== null && (
-              <motion.div
-                ref={dateRef}
-                key="calendar"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <div style={{ marginBottom: 28 }}>
-                  {sectionLabel(t("select_date"), "book.date.title")}
-                  <Calendar
-                    selected={selectedDate}
-                    onSelect={(d) => {
-                      setSelectedDate(d)
-                      setDateChosen(true)
-                      scrollToRef(timeRef)
-                    }}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Step 3 — Time + duration (revealed after date chosen) */}
-          <AnimatePresence>
-            {selectedTable !== null && dateChosen && (
+            {dateChosen && (
               <motion.div
                 ref={timeRef}
                 key="time"
@@ -1011,6 +1093,7 @@ function Screen1({
                           onChange={setStartHour}
                           labelFn={(h) => padTime(h)}
                           ariaLabel={t("start_time")}
+                          isDisabled={isStartDisabled}
                         />
                       </div>
                     </div>
@@ -1039,6 +1122,7 @@ function Screen1({
                           onChange={setDuration}
                           labelFn={(h) => `${h}${t("hours")}`}
                           ariaLabel={t("duration")}
+                          isDisabled={isDurationDisabled}
                         />
                       </div>
                     </div>
@@ -1079,6 +1163,52 @@ function Screen1({
                     HK${displayTotal}
                   </span>
                 </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Step 3 — Table (revealed after date; shows only AVAILABLE tables,
+              fully-booked times are removed entirely rather than greyed out). */}
+          <AnimatePresence>
+            {dateChosen && (
+              <motion.div
+                ref={tableRef}
+                key="tables"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <div style={{ marginBottom: 28 }}>
+                  {sectionLabel(t("select_table"), "book.table.title")}
+                  {dayLoading || availableTables === null ? (
+                    <div
+                      data-cms-key="book.checking"
+                      style={{ fontSize: 13, color: tokens.colors.textMuted }}
+                    >
+                      {t("checking")}
+                    </div>
+                  ) : fullyBooked ? (
+                    <div
+                      data-cms-key="book.fullybooked"
+                      style={{
+                        fontSize: 14,
+                        color: tokens.colors.textMuted,
+                        padding: "16px 20px",
+                        border: `1px solid ${tokens.colors.border}`,
+                        borderRadius: tokens.radius.input,
+                        textAlign: "center",
+                      }}
+                    >
+                      {t("fully_booked")}
+                    </div>
+                  ) : (
+                    <TableSelect
+                      availableTables={availableTables}
+                      selected={selectedTable}
+                      onSelect={(id) => setSelectedTable(id)}
+                    />
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -2164,7 +2294,21 @@ function Screen4({
 
 /* ─────────────────────────  Root  ───────────────────────── */
 export default function BookPage() {
+  const t = useTranslations("book")
+  const router = useRouter()
   const [screen, setScreen] = useState(0)
+  // Leave-booking confirm. On step 0 the back arrow exits straight home; on any
+  // later step we ask first, since the user has invested effort (and, once the
+  // slot-lock RPC ships, a hold may be active).
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+
+  const handleBack = useCallback(() => {
+    if (screen === 0) {
+      router.push("/")
+    } else {
+      setShowLeaveConfirm(true)
+    }
+  }, [screen, router])
   const today = useMemo(() => {
     const d = new Date()
     d.setHours(0, 0, 0, 0)
@@ -2294,6 +2438,39 @@ export default function BookPage() {
         justifyContent: "center",
       }}
     >
+      {/* Back arrow — fixed top-left across selection/login/payment. Hidden on
+          the confirmation screen (booking is done; Screen4 offers a deliberate
+          "Back to Home" instead, so users can't navigate back into a finished flow). */}
+      {screen < 3 && (
+        <button
+          type="button"
+          onClick={handleBack}
+          aria-label={t("back")}
+          data-cms-key="book.back"
+          className="book-back-arrow"
+          style={{
+            position: "fixed",
+            top: "max(1rem, env(safe-area-inset-top, 0px))",
+            left: "max(1rem, env(safe-area-inset-left, 0px))",
+            width: 44,
+            height: 44,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 9999,
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            color: tokens.colors.text,
+            cursor: "pointer",
+            zIndex: 60,
+          }}
+        >
+          <ChevronLeft size={22} />
+        </button>
+      )}
+
       <div className="book-container">
         {/* Progress */}
         <div className="progress-bar-wrap">
@@ -2498,6 +2675,76 @@ export default function BookPage() {
                 style={{ flex: 1, height: 48, background: "transparent", color: tokens.colors.text, border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.button, fontWeight: 500, fontSize: 16, cursor: "pointer" }}
               >
                 略過
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Leave-booking confirm — shown when the back arrow is tapped on step 1+.
+          "Stay" is the emphasised (green) default so an accidental tap keeps the
+          user in the flow; "Leave" is the quieter outline action. */}
+      {showLeaveConfirm && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 110,
+            background: "rgba(0,0,0,0.85)", backdropFilter: "blur(10px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px",
+          }}
+          onClick={() => setShowLeaveConfirm(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ type: "spring", damping: 22, stiffness: 300 }}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#111",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 20,
+              padding: "32px 24px",
+              width: "100%",
+              maxWidth: 360,
+              textAlign: "center",
+            }}
+          >
+            <h3
+              data-cms-key="book.leave.title"
+              style={{ fontSize: 18, fontWeight: 600, color: tokens.colors.text, marginBottom: 8 }}
+            >
+              {t("leave_title")}
+            </h3>
+            <p
+              data-cms-key="book.leave.body"
+              style={{ fontSize: 14, color: tokens.colors.textMuted, marginBottom: 24 }}
+            >
+              {t("leave_body")}
+            </p>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => router.push("/")}
+                data-cms-key="book.leave.confirm"
+                style={{
+                  flex: 1, height: 48, background: "transparent",
+                  color: tokens.colors.text, border: `1px solid ${tokens.colors.border}`,
+                  borderRadius: tokens.radius.button, fontWeight: 500, fontSize: 16, cursor: "pointer",
+                }}
+              >
+                {t("leave_confirm")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowLeaveConfirm(false)}
+                data-cms-key="book.leave.stay"
+                style={{
+                  flex: 1, height: 48, background: tokens.colors.brand, color: "#000",
+                  border: "none", borderRadius: tokens.radius.button,
+                  fontWeight: 600, fontSize: 16, cursor: "pointer",
+                }}
+              >
+                {t("leave_stay")}
               </button>
             </div>
           </motion.div>
