@@ -37,3 +37,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated reports (cms:sync)
+cms-sync-report.json
+cms-sync-migration-snapshot.sql

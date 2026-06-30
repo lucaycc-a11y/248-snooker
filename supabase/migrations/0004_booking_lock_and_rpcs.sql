@@ -7,8 +7,10 @@
 --   * The "lock" lives ON the slots row (status='locked', locked_by, locked_until).
 --     There is no separate slot_locks table.
 --   * Overlap/availability is computed from real timestamps (date + start_time +
---     duration) so cross-midnight bookings are handled correctly. Concurrency is
---     serialized with a transaction advisory lock keyed on (table_number, date).
+--     duration) so cross-midnight bookings are handled correctly, and the overlap
+--     query scans ±1 day so a late booking (e.g. 22:00 + 3h) is checked against
+--     next-day rows. Concurrency is serialized with a transaction advisory lock
+--     keyed on table_number alone, so two lockers on adjacent dates still serialize.
 --
 -- ⚠️ BACKUP BEFORE RUNNING: this migration REPLACES confirm_booking's jsonb
 -- overload and DROPS its dead void overload. Dump the current definitions first:
@@ -58,9 +60,10 @@ declare
   v_slot_id    uuid;
   v_locked_until timestamptz;
 begin
-  -- Serialize concurrent attempts on the same table+date so the overlap check
-  -- below is race-free (transaction-scoped; released at commit).
-  perform pg_advisory_xact_lock(hashtextextended(p_table_number::text || '|' || p_date::text, 0));
+  -- Serialize concurrent attempts on the same TABLE (not table+date) so two
+  -- lockers whose windows cross midnight onto adjacent dates still serialize
+  -- against each other (transaction-scoped; released at commit).
+  perform pg_advisory_xact_lock(hashtextextended(p_table_number::text, 0));
 
   v_req_start := p_date + p_start_time;
   v_req_end   := v_req_start + (p_duration_hours || ' hours')::interval;
@@ -71,7 +74,9 @@ begin
   if exists (
     select 1 from public.slots s
     where s.table_number = p_table_number
-      and s.date = p_date
+      -- ±1 day so a booking crossing midnight (e.g. 22:00 + 3h) is checked
+      -- against neighbouring-day rows; the timestamp comparison below is exact.
+      and s.date between (p_date - 1) and (p_date + 1)
       and (
         s.status = 'booked'
         or (s.status = 'locked' and s.locked_until > now() and s.locked_by is distinct from p_user_id)
