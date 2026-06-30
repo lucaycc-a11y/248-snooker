@@ -36,7 +36,17 @@ export async function GET(request: Request) {
         avatar_url: (user.user_metadata?.avatar_url as string | undefined) ?? null,
       }
 
-      await supabase.from('users').upsert(profile, { onConflict: 'id' })
+      const { error: upsertErr } = await supabase.from('users').upsert(profile, { onConflict: 'id' })
+      if (upsertErr) {
+        // Don't block sign-in (the assign_member_code trigger / RLS path already
+        // works for Google), but log so an Apple-specific post-exchange failure is
+        // diagnosable instead of a silent redirect. The session is valid either way.
+        console.error('callback_profile_upsert_error', {
+          message: upsertErr.message,
+          code: (upsertErr as { code?: string }).code,
+          provider: user.app_metadata?.provider ?? null,
+        })
+      }
     }
 
     return NextResponse.redirect(`${origin}${next}`)
