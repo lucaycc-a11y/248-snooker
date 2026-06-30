@@ -9,23 +9,14 @@ import {
   Clock,
   MessageCircle,
   Lock,
-  Eye,
-  EyeOff,
   CheckCircle,
   CalendarPlus,
   Share2,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { Button, Card, ProgressSteps } from "@/components/ui"
-import {
-  AppleLogo,
-  ApplePayLogo,
-  GooglePayLogo,
-  AlipayLogo,
-  WeChatPayLogo,
-  VisaLogo,
-  MastercardLogo,
-} from "@/components/brand"
+import { AppleLogo, VisaLogo } from "@/components/brand"
+import StripePayment from "@/components/checkout/StripePayment"
 import { useHaptic } from "@/lib/useHaptic"
 import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
@@ -50,15 +41,6 @@ const STEPS = ["選擇時段", "登入", "付款", "確認"]
 function formatPhone(d: string) {
   if (d.length <= 4) return d
   return d.slice(0, 4) + " " + d.slice(4)
-}
-
-function formatCard(d: string) {
-  return d.replace(/(.{4})/g, "$1 ").trim()
-}
-
-function formatExpiry(d: string) {
-  if (d.length <= 2) return d
-  return d.slice(0, 2) + "/" + d.slice(2)
 }
 
 function genRef(): string {
@@ -1607,283 +1589,95 @@ function Screen3({
   startHour,
   duration,
   tableName,
-  onSuccess,
+  tableNumber,
 }: {
   selectedDate: Date
   startHour: number
   duration: number
   tableName: string
-  onSuccess: () => void
+  tableNumber: number
 }) {
-  const [cardNum, setCardNum] = useState("")
-  const [expiry, setExpiry] = useState("")
-  const [cvc, setCvc] = useState("")
-  const [cardName, setCardName] = useState("")
-  const [showCvc, setShowCvc] = useState(false)
-  const [loading, setLoading] = useState(false)
   const t = useTranslations("book")
 
   const total = CONFIG.pricePerHour * duration
   const endHour = startHour + duration
   const crossDay = endHour >= 24
 
-  // TODO: Stripe Payment Intent — connect real payment
-  const handlePay = () => {
-    setLoading(true)
-    setTimeout(onSuccess, 1500)
-  }
-
-  const canPay =
-    cardNum.length >= 16 &&
-    expiry.length >= 4 &&
-    cvc.length >= 3 &&
-    cardName.length > 0
-
-  const cardBrand = cardNum.startsWith("4")
-    ? "visa"
-    : cardNum.startsWith("5")
-      ? "mastercard"
-      : null
+  const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
 
   return (
     <div className="screen-content">
-      <div className="two-col">
-        <div className="col-left">
-          {/* Order summary */}
-          <Card style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
-                <span style={{ fontSize: 14 }}>
-                  {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Clock size={14} style={{ color: tokens.colors.textMuted }} />
-                <span style={{ fontSize: 14 }}>
-                  {padTime(startHour)} – {padTime(endHour)}
-                  {crossDay ? " +1日" : ""}
-                </span>
-              </div>
+      <div style={{ maxWidth: 480, margin: "0 auto" }}>
+        {/* Order summary */}
+        <Card style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
+              <span style={{ fontSize: 14 }}>
+                {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
+              </span>
             </div>
-            <div
-              data-cms-key="book.pay.venue"
-              style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16 }}
-            >
-              248 Snooker · {tableName}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Clock size={14} style={{ color: tokens.colors.textMuted }} />
+              <span style={{ fontSize: 14 }}>
+                {padTime(startHour)} – {padTime(endHour)}
+                {crossDay ? " +1日" : ""}
+              </span>
             </div>
-            <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
-              <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>{t("subtotal")}</span>
-              <span>HK${total}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 12 }}>
-              <span data-cms-key="book.pay.fee" style={{ color: tokens.colors.textMuted }}>{t("service_fee")}</span>
-              <span>HK$0</span>
-            </div>
-            <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span data-cms-key="book.pay.total" style={{ fontSize: 15, fontWeight: 600 }}>{t("total")}</span>
-              <span style={{ fontFamily: BEBAS, fontSize: 28, color: tokens.colors.brand }}>HK${total}</span>
-            </div>
-          </Card>
-
-          {/* Payment methods */}
+          </div>
           <div
-            data-cms-key="book.pay.method"
-            style={{ fontSize: 13, color: tokens.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}
+            data-cms-key="book.pay.venue"
+            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16 }}
           >
-            {t("payment_title")}
+            248 Snooker · {tableName}
           </div>
+          <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
+            <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>{t("subtotal")}</span>
+            <span>HK${total}</span>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 12 }}>
+            <span data-cms-key="book.pay.fee" style={{ color: tokens.colors.textMuted }}>{t("service_fee")}</span>
+            <span>HK$0</span>
+          </div>
+          <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span data-cms-key="book.pay.total" style={{ fontSize: 15, fontWeight: 600 }}>{t("total")}</span>
+            <span style={{ fontFamily: BEBAS, fontSize: 28, color: tokens.colors.brand }}>HK${total}</span>
+          </div>
+        </Card>
 
-          {/* Express payments */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-            <button
-              type="button"
-              onClick={handlePay}
-              aria-label="以 Apple Pay 付款"
-              style={{
-                flex: 1, height: 52, background: "#000",
-                border: `1px solid ${tokens.colors.borderStrong}`,
-                borderRadius: tokens.radius.button,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer",
-              }}
-            >
-              <ApplePayLogo />
-            </button>
-            <button
-              type="button"
-              onClick={handlePay}
-              aria-label="以 Google Pay 付款"
-              style={{
-                flex: 1, height: 52, background: "#fff",
-                border: `1px solid ${tokens.colors.borderStrong}`,
-                borderRadius: tokens.radius.button,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer",
-              }}
-            >
-              <GooglePayLogo />
-            </button>
-          </div>
-
-          {/* Wallet payments */}
-          <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-            <button
-              type="button"
-              onClick={handlePay}
-              aria-label="以支付寶付款"
-              style={{
-                flex: 1, height: 52,
-                border: `1px solid ${tokens.colors.borderStrong}`,
-                borderRadius: tokens.radius.button,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", background: "transparent",
-              }}
-            >
-              <AlipayLogo />
-            </button>
-            <button
-              type="button"
-              onClick={handlePay}
-              aria-label="以微信支付付款"
-              style={{
-                flex: 1, height: 52,
-                border: `1px solid ${tokens.colors.borderStrong}`,
-                borderRadius: tokens.radius.button,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", background: "transparent",
-              }}
-            >
-              <WeChatPayLogo />
-            </button>
-          </div>
-
-          {/* Credit card divider */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "0 0 20px" }}>
-            <div style={{ flex: 1, height: 1, background: tokens.colors.border }} />
-            <span data-cms-key="book.pay.or-card" style={{ fontSize: 13, color: tokens.colors.textMuted }}>{t("or_card")}</span>
-            <div style={{ flex: 1, height: 1, background: tokens.colors.border }} />
-          </div>
-
-          {/* Card form */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div
-              style={{
-                height: 52, background: "rgba(255,255,255,0.06)",
-                border: `1px solid ${tokens.colors.border}`,
-                borderRadius: tokens.radius.input,
-                display: "flex", alignItems: "center", overflow: "hidden",
-              }}
-              className="pay-input-wrap"
-            >
-              <input
-                value={formatCard(cardNum)}
-                onChange={(e) => setCardNum(e.target.value.replace(/\D/g, "").slice(0, 16))}
-                inputMode="numeric"
-                placeholder={t("card_number")}
-                style={{
-                  flex: 1, height: "100%", background: "transparent",
-                  border: "none", outline: "none", color: tokens.colors.text,
-                  fontSize: 16, padding: "0 16px",
-                }}
-              />
-              {cardBrand === "visa" && (
-                <div style={{ paddingRight: 12 }}><VisaLogo className="h-5" /></div>
-              )}
-              {cardBrand === "mastercard" && (
-                <div style={{ paddingRight: 12 }}><MastercardLogo className="h-5" /></div>
-              )}
-            </div>
-            <div style={{ display: "flex", gap: 12 }}>
-              <input
-                value={formatExpiry(expiry)}
-                onChange={(e) => setExpiry(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                inputMode="numeric"
-                placeholder="MM/YY"
-                className="pay-input"
-                style={{
-                  flex: 1, height: 52, background: "rgba(255,255,255,0.06)",
-                  border: `1px solid ${tokens.colors.border}`,
-                  borderRadius: tokens.radius.input,
-                  padding: "0 16px", color: tokens.colors.text, fontSize: 16, outline: "none",
-                }}
-              />
-              <div style={{ position: "relative", width: 100 }}>
-                <input
-                  value={cvc}
-                  onChange={(e) => setCvc(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  inputMode="numeric"
-                  placeholder="CVC"
-                  type={showCvc ? "text" : "password"}
-                  className="pay-input"
-                  style={{
-                    width: "100%", height: 52, background: "rgba(255,255,255,0.06)",
-                    border: `1px solid ${tokens.colors.border}`,
-                    borderRadius: tokens.radius.input,
-                    padding: "0 16px", paddingRight: 40,
-                    color: tokens.colors.text, fontSize: 16, outline: "none",
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowCvc(!showCvc)}
-                  aria-label={showCvc ? "隱藏 CVC" : "顯示 CVC"}
-                  style={{
-                    position: "absolute", right: 12, top: "50%",
-                    transform: "translateY(-50%)", color: tokens.colors.textMuted,
-                    background: "none", border: "none", cursor: "pointer",
-                  }}
-                >
-                  {showCvc ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-            <input
-              value={cardName}
-              onChange={(e) => setCardName(e.target.value)}
-              placeholder={t("cardholder")}
-              autoComplete="cc-name"
-              className="pay-input"
-              style={{
-                height: 52, background: "rgba(255,255,255,0.06)",
-                border: `1px solid ${tokens.colors.border}`,
-                borderRadius: tokens.radius.input,
-                padding: "0 16px", color: tokens.colors.text, fontSize: 16, outline: "none", width: "100%",
-              }}
-            />
-          </div>
-
-          {/* Stripe secure */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
-            <Lock size={12} style={{ color: tokens.colors.textMuted }} />
-            <span data-cms-key="book.pay.secure" style={{ fontSize: 12, color: tokens.colors.textMuted }}>
-              {t("stripe_secure")}
-            </span>
-          </div>
+        {/* Payment — Stripe Payment Element rendered under our own chrome. It
+            shows cards + Apple/Google Pay + Alipay/WeChat with officially-licensed
+            icons, and confirms via redirect (return to /book). */}
+        <div
+          data-cms-key="book.pay.method"
+          style={{ fontSize: 13, color: tokens.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}
+        >
+          {t("payment_title")}
         </div>
 
-        {/* Desktop summary card */}
-        <SummaryCard
-          selectedDate={selectedDate}
+        <StripePayment
+          date={dateStr}
           startHour={startHour}
           duration={duration}
+          tableNumber={tableNumber}
           total={total}
-          canContinue={canPay}
-          onContinue={handlePay}
-          ctaLabel={`${t("pay_now")} · HK$${total}`}
-          loading={loading}
+          returnPath="/book"
+          payLabel={`${t("pay_now")} · HK$${total}`}
+          processingLabel={t("processing")}
+          errorLabel={t("pay_error")}
+          loadingLabel={t("pay_loading")}
         />
-      </div>
 
-      {/* Mobile sticky CTA bar */}
-      <MobilePriceBar
-        ctaLabel={`${t("pay_now")} · HK$${total}`}
-        onContinue={handlePay}
-        canContinue={canPay}
-        loading={loading}
-      />
+        {/* Stripe secure */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
+          <Lock size={12} style={{ color: tokens.colors.textMuted }} />
+          <span data-cms-key="book.pay.secure" style={{ fontSize: 12, color: tokens.colors.textMuted }}>
+            {t("stripe_secure")}
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1895,12 +1689,16 @@ function Screen4({
   duration,
   tableName,
   bookingRef,
+  qrData,
 }: {
   selectedDate: Date
   startHour: number
   duration: number
   tableName: string
   bookingRef: string
+  // The signed QR JWT from the confirmed booking; falls back to the ref for the
+  // (decorative) code rendering when absent.
+  qrData?: string
 }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
@@ -2164,7 +1962,7 @@ function Screen4({
               marginBottom: 10,
             }}
           >
-            <QRCode data={bookingRef} />
+            <QRCode data={qrData ?? bookingRef} />
             {/* Scan line */}
             <motion.div
               initial={{ top: "0%" }}
@@ -2292,6 +2090,75 @@ function Screen4({
   )
 }
 
+/* ─────────────────────────  Confirming (Stripe redirect return)  ───────────────────────── */
+type ConfirmedBooking = {
+  status: string
+  booking_reference: string | null
+  qr_code: string | null
+  date: string
+  start_time: string
+  end_time: string
+  duration_hours: number
+  table_number: number
+  total_price: number
+}
+
+// Shown after the Stripe redirect returns to /book while we poll the booking
+// status until the webhook flips it to 'confirmed'. `failed` covers a declined
+// redirect or a poll that timed out.
+function ConfirmingPayment({ failed }: { failed: boolean }) {
+  const t = useTranslations("book")
+  return (
+    <div
+      className="screen-content"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "calc(100dvh - 80px)",
+        textAlign: "center",
+        gap: 16,
+        padding: "24px 20px",
+      }}
+    >
+      {failed ? (
+        <>
+          <p data-cms-key="book.pay.confirm_failed" style={{ fontSize: 16, color: tokens.colors.text, maxWidth: 320 }}>
+            {t("confirm_failed")}
+          </p>
+          <button
+            type="button"
+            onClick={() => (window.location.href = "/")}
+            data-cms-key="book.pay.confirm_failed_home"
+            style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}
+          >
+            {t("back_home")}
+          </button>
+        </>
+      ) : (
+        <>
+          <motion.div
+            aria-hidden
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              border: "3px solid rgba(255,255,255,0.15)",
+              borderTopColor: tokens.colors.brand,
+            }}
+          />
+          <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
+            {t("confirming")}
+          </p>
+        </>
+      )}
+    </div>
+  )
+}
+
 /* ─────────────────────────  Root  ───────────────────────── */
 export default function BookPage() {
   const t = useTranslations("book")
@@ -2327,6 +2194,53 @@ export default function BookPage() {
   const [profileInput, setProfileInput] = useState("")
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileUser, setProfileUser] = useState<{ name: string; avatar: string } | null>(null)
+  // Stripe redirect-return confirmation state.
+  const [confirmBookingId, setConfirmBookingId] = useState<string | null>(null)
+  const [confirmedBooking, setConfirmedBooking] = useState<ConfirmedBooking | null>(null)
+  const [confirmError, setConfirmError] = useState(false)
+
+  // Detect a Stripe redirect return (?bookingId&payment_intent&redirect_status).
+  // The page reloaded fresh, so we jump to the confirmation screen and poll the
+  // booking status until the webhook marks it 'confirmed' (then Screen4 renders
+  // from the real booking row). Capped retries → failure state on timeout.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    const bId = params.get("bookingId")
+    if (!bId || !(params.get("redirect_status") || params.get("payment_intent"))) return
+
+    setConfirmBookingId(bId)
+    setScreen(3)
+    if (params.get("redirect_status") === "failed") {
+      setConfirmError(true)
+      return
+    }
+
+    let cancelled = false
+    let tries = 0
+    const poll = async () => {
+      tries++
+      try {
+        const res = await fetch(`/api/booking/status?bookingId=${bId}`)
+        if (res.ok) {
+          const { booking } = await res.json()
+          if (booking?.status === "confirmed") {
+            if (!cancelled) setConfirmedBooking(booking)
+            return
+          }
+        }
+      } catch {
+        /* transient — keep polling */
+      }
+      if (cancelled) return
+      if (tries < 25) setTimeout(poll, 1500)
+      else setConfirmError(true)
+    }
+    poll()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const tables = useTables()
   const tableName =
@@ -2533,7 +2447,7 @@ export default function BookPage() {
                   startHour={startHour}
                   duration={duration}
                   tableName={tableName}
-                  onSuccess={advance}
+                  tableNumber={selectedTable ?? 0}
                 />
               </motion.div>
             )}
@@ -2547,13 +2461,26 @@ export default function BookPage() {
                 exit="exit"
                 transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
               >
-                <Screen4
-                  selectedDate={selectedDate}
-                  startHour={startHour}
-                  duration={duration}
-                  tableName={tableName}
-                  bookingRef={bookingRef}
-                />
+                {confirmBookingId && !confirmedBooking ? (
+                  <ConfirmingPayment failed={confirmError} />
+                ) : confirmedBooking ? (
+                  <Screen4
+                    selectedDate={new Date(`${confirmedBooking.date}T00:00:00`)}
+                    startHour={parseInt(confirmedBooking.start_time.slice(0, 2), 10)}
+                    duration={Number(confirmedBooking.duration_hours)}
+                    tableName={`${t("table_label")} #${confirmedBooking.table_number}`}
+                    bookingRef={confirmedBooking.booking_reference ?? bookingRef}
+                    qrData={confirmedBooking.qr_code ?? undefined}
+                  />
+                ) : (
+                  <Screen4
+                    selectedDate={selectedDate}
+                    startHour={startHour}
+                    duration={duration}
+                    tableName={tableName}
+                    bookingRef={bookingRef}
+                  />
+                )}
               </motion.div>
             )}
           </AnimatePresence>
