@@ -533,17 +533,36 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
   const [phone, setPhone] = useState(user.phone ?? "");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [notif, setNotif] = useState({ booking: true, points: true, promo: false });
 
   const save = async () => {
     setSaving(true);
+    setSaveError(null);
     try {
-      const supabase = createClient();
-      await supabase.from("users").update({ display_name: name, phone }).eq("id", user.id);
+      // Validated server save (service-role) — mirrors the mandatory profile gate
+      // so a clean +852 number can't be overwritten with junk, and a failure is
+      // surfaced rather than swallowed (the old client .update() failed silently).
+      const res = await fetch("/api/profile/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setSaveError(
+          j.field === "name"
+            ? t("settings_err_name")
+            : j.field === "phone"
+              ? t("settings_err_phone")
+              : t("settings_err_generic"),
+        );
+        return;
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch {
-      /* surfaced via lack of "saved" confirmation */
+      setSaveError(t("settings_err_generic"));
     } finally {
       setSaving(false);
     }
@@ -587,6 +606,12 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
         <Toggle label={t("notif_points")} on={notif.points} onChange={(v) => setNotif((s) => ({ ...s, points: v }))} />
         <Toggle label={t("notif_promo")} on={notif.promo} onChange={(v) => setNotif((s) => ({ ...s, promo: v }))} last />
       </div>
+
+      {saveError && (
+        <p data-cms-key="member.settings_error" style={{ fontSize: "13px", color: DANGER, margin: 0 }}>
+          {saveError}
+        </p>
+      )}
 
       <button
         type="button"

@@ -54,3 +54,22 @@ export function validateProfile(input: Partial<ProfileInput>): ProfileValidation
 
   return { ok: true, value: { display_name: name, email, phone } }
 }
+
+export type NamePhoneValidation =
+  | { ok: true; value: { display_name: string; phone: string } }
+  | { ok: false; field: 'name' | 'phone'; error: string }
+
+// Lighter validator for the Settings tab, where email is read-only and only name
+// + phone are editable. Same name/phone rules as validateProfile (shared so the
+// gate and Settings can't drift), but doesn't require/return email.
+export function validateNamePhone(input: { name?: string; phone?: string }): NamePhoneValidation {
+  const name = (input.name ?? '').trim()
+  if (name.length < 1 || name.length > 100) {
+    return { ok: false, field: 'name', error: 'name_required' }
+  }
+  const phone = normalizeHkPhone(input.phone ?? '')
+  if (!phone) {
+    return { ok: false, field: 'phone', error: 'phone_invalid' }
+  }
+  return { ok: true, value: { display_name: name, phone } }
+}
