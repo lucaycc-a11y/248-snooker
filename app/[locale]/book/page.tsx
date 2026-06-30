@@ -13,7 +13,7 @@ import {
   Share2,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
-import { Button, Card, ProgressSteps } from "@/components/ui"
+import { Button, Card, ProgressSteps, BackButton } from "@/components/ui"
 import { VisaLogo } from "@/components/brand"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
@@ -2032,33 +2032,7 @@ export default function BookPage() {
           the confirmation screen (booking is done; Screen4 offers a deliberate
           "Back to Home" instead, so users can't navigate back into a finished flow). */}
       {screen < 3 && (
-        <button
-          type="button"
-          onClick={handleBack}
-          aria-label={t("back")}
-          data-cms-key="book.back"
-          className="book-back-arrow"
-          style={{
-            position: "fixed",
-            top: "max(1rem, env(safe-area-inset-top, 0px))",
-            left: "max(1rem, env(safe-area-inset-left, 0px))",
-            width: 44,
-            height: 44,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 9999,
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-            color: tokens.colors.text,
-            cursor: "pointer",
-            zIndex: 60,
-          }}
-        >
-          <ChevronLeft size={22} />
-        </button>
+        <BackButton onClick={handleBack} ariaLabel={t("back")} cmsKey="book.back" color={tokens.colors.text} />
       )}
 
       <div className="book-container">

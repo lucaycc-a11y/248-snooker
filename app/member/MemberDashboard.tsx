@@ -11,9 +11,9 @@ import {
   QrCode as QrCodeIcon,
   X,
   LogOut,
-  ChevronLeft,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { BackButton } from "@/components/ui";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 
@@ -145,6 +145,9 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
         color: INK,
       }}
     >
+      {/* Fixed back arrow — shared component, identical to the booking flow. */}
+      <BackButton href="/" ariaLabel={t("back")} cmsKey="member.back" color={INK} />
+
       {/* Lightweight dashboard header (NOT the marketing Nav — its locale switch
           would route to a non-existent /[locale]/member). */}
       <DashboardHeader displayName={user.display_name} />
@@ -374,17 +377,15 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "16px 20px",
+        padding: "16px 20px 16px 72px",
         background: "rgba(0,0,0,0.72)",
         backdropFilter: "blur(20px) saturate(160%)",
         WebkitBackdropFilter: "blur(20px) saturate(160%)",
         borderBottom: `1px solid ${BORDER}`,
       }}
     >
-      <a href="/" style={{ display: "flex", alignItems: "center", gap: "8px", color: INK, textDecoration: "none" }} aria-label="248 Snooker">
-        <ChevronLeft size={20} strokeWidth={2} color={SUBTLE} />
-        <span style={{ fontFamily: DISPLAY, fontSize: "20px", letterSpacing: "0.08em" }}>248</span>
-      </a>
+      {/* Brand wordmark only — back navigation is the shared fixed BackButton. */}
+      <span style={{ fontFamily: DISPLAY, fontSize: "20px", letterSpacing: "0.08em", color: INK }}>248</span>
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <span style={{ fontSize: "14px", color: SUBTLE }}>
           {t("greeting")}{displayName ? `, ${displayName}` : ""}

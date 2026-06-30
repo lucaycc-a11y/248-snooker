@@ -132,7 +132,7 @@ export default function StripePayment(props: Props) {
           }),
         })
         const lockJson = await lockRes.json()
-        if (!lockRes.ok) throw new Error(lockJson.error || "lock failed")
+        if (!lockRes.ok) throw new Error(lockJson.detail || lockJson.error || "lock failed")
 
         const intentRes = await fetch("/api/payment/create-intent", {
           method: "POST",
@@ -140,7 +140,7 @@ export default function StripePayment(props: Props) {
           body: JSON.stringify({ slotId: lockJson.slotId }),
         })
         const intentJson = await intentRes.json()
-        if (!intentRes.ok) throw new Error(intentJson.error || "intent failed")
+        if (!intentRes.ok) throw new Error(intentJson.detail || intentJson.error || "intent failed")
 
         if (!cancelled) {
           setClientSecret(intentJson.clientSecret)

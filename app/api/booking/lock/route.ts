@@ -59,8 +59,24 @@ export async function POST(req: Request) {
       p_lock_minutes: 15,
     })
     if (error) {
-      console.error('find_or_lock_slot_error', error.message)
-      return NextResponse.json({ error: 'Could not lock slot' }, { status: 500 })
+      // Full PostgREST error — code/hint/details pinpoint the cause:
+      //   PGRST202 = function find_or_lock_slot(...) not found (migration 0004
+      //   not applied / signature drift); 42703 = column missing on `slots`;
+      //   42883 = arg type mismatch. Returned to the client so it's visible.
+      console.error('find_or_lock_slot_error', {
+        message: error.message,
+        code: (error as { code?: string }).code,
+        details: (error as { details?: string }).details,
+        hint: (error as { hint?: string }).hint,
+      })
+      return NextResponse.json(
+        {
+          error: 'Could not lock slot',
+          detail: error.message,
+          code: (error as { code?: string }).code ?? null,
+        },
+        { status: 500 },
+      )
     }
     if (!data?.success) {
       return NextResponse.json(
@@ -71,11 +87,17 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ slotId: data.slot_id, lockedUntil: data.locked_until })
   } catch (err) {
-    const msg = (err as Error).message
+    const e = err as Error
+    const msg = e.message
     if (msg.includes('duration') || msg.includes('slotEnd')) {
       return NextResponse.json({ error: msg }, { status: 400 })
     }
-    console.error('lock_error', msg)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    // Full exception incl. stack — this catch-all fires when something throws
+    // BEFORE/around the RPC. Prime suspects: getServiceSupabase() throwing
+    // (SUPABASE_SERVICE_ROLE_KEY missing → "Service Supabase client requires …"),
+    // loadPeriods/resolveTierForUser, or a JSON parse. Detail is returned so the
+    // real cause is visible instead of a blank "Internal error".
+    console.error('lock_error', { message: msg, stack: e.stack })
+    return NextResponse.json({ error: 'Internal error', detail: msg }, { status: 500 })
   }
 }

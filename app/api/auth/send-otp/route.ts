@@ -30,30 +30,37 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.signInWithOtp({ phone })
     if (error) {
-      // Surface the REAL underlying cause. Supabase wraps Twilio errors, so the
-      // message/status/code here is the actual diagnostic (e.g. "phone provider
-      // not enabled", Twilio 21608 "unverified number on trial", bad credentials).
-      // We log the full object server-side AND return the detail to the client so
-      // a broken provider config is visible in the UI rather than a generic retry.
+      // Supabase wraps Twilio errors; this message/code IS the real diagnostic
+      // (e.g. "Unsupported phone provider" / provider disabled, Twilio 21608
+      // "unverified number on trial", bad credentials).
       console.error('send_otp_error', {
         message: error.message,
         status: (error as { status?: number }).status,
         code: (error as { code?: string }).code,
       })
       const isRate = /rate|limit|too many/i.test(error.message)
+      // Deliberately NOT a 5xx: a 502 from this route gets misdiagnosed as a
+      // function crash, and its JSON body can be hidden behind an edge "Bad
+      // Gateway" page so the real cause never reaches the UI. Return the
+      // Supabase/Twilio detail in a 200 body with ok:false (rate limit keeps
+      // 429); the client branches on `ok`.
       return NextResponse.json(
         {
+          ok: false,
           error: isRate ? 'rate_limited' : 'send_failed',
           detail: error.message,
           code: (error as { code?: string }).code ?? null,
         },
-        { status: isRate ? 429 : 502 },
+        { status: isRate ? 429 : 200 },
       )
     }
 
     return NextResponse.json({ ok: true })
   } catch (err) {
-    console.error('send_otp_error', (err as Error).message)
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 })
+    // Genuine unhandled crash (signInWithOtp threw rather than returned error).
+    // Log the stack and return the detail so it's never a blank 500.
+    const e = err as Error
+    console.error('send_otp_error', { message: e.message, stack: e.stack })
+    return NextResponse.json({ ok: false, error: 'internal_error', detail: e.message }, { status: 500 })
   }
 }
