@@ -15,6 +15,7 @@ import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui'
 import { AccountMenu } from '@/components/auth/AccountMenu'
+import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
@@ -214,6 +215,7 @@ export default function Nav() {
 
   return (
     <>
+      <SignInPrompt />
       <nav
         style={{
           position: 'fixed',

@@ -410,7 +410,10 @@
     "settings": "Settings",
     "sign_out": "Sign Out",
     "signing_out": "Signing out…",
-    "sign_out_error": "Couldn't sign out. Please try again."
+    "sign_out_error": "Couldn't sign out. Please try again.",
+    "prompt_text": "Sign in for faster booking",
+    "prompt_cta": "Sign In",
+    "prompt_dismiss": "Dismiss"
   },
   "hero": {
     "title": "248 Snooker",

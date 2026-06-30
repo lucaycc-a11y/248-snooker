@@ -410,7 +410,10 @@
     "settings": "設定",
     "sign_out": "登出",
     "signing_out": "登出中…",
-    "sign_out_error": "登出失敗，請再試一次。"
+    "sign_out_error": "登出失敗，請再試一次。",
+    "prompt_text": "登入享更快預訂",
+    "prompt_cta": "登入",
+    "prompt_dismiss": "關閉"
   },
   "hero": {
     "title": "248 Snooker",

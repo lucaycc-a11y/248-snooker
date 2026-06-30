@@ -410,7 +410,10 @@
     "settings": "设置",
     "sign_out": "退出",
     "signing_out": "退出中…",
-    "sign_out_error": "退出失败，请重试。"
+    "sign_out_error": "退出失败，请重试。",
+    "prompt_text": "登录享更快预订",
+    "prompt_cta": "登录",
+    "prompt_dismiss": "关闭"
   },
   "hero": {
     "title": "248 Snooker",

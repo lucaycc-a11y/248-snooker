@@ -410,7 +410,10 @@
     "settings": "設定",
     "sign_out": "ログアウト",
     "signing_out": "ログアウト中…",
-    "sign_out_error": "ログアウトできませんでした。もう一度お試しください。"
+    "sign_out_error": "ログアウトできませんでした。もう一度お試しください。",
+    "prompt_text": "サインインで予約がもっと早く",
+    "prompt_cta": "サインイン",
+    "prompt_dismiss": "閉じる"
   },
   "hero": {
     "title": "248 Snooker",
