@@ -405,9 +405,9 @@
   "member": {
     "title": "会员制度",
     "amateur_title": "Amateur",
-    "amateur_body": "HK$1 = 1 积分。每月免费一局。",
-    "amateur_highlight": "每月免费一局",
-    "amateur_modal_body": "新用户自动加入 Amateur 等级，即时获赠 50 积分。每消费 HK$1 累积 1 积分，每月享一局免费时段。开始你的旅程，轻松累积。",
+    "amateur_body": "HK$1 = 1 积分。注册即送 50 积分。",
+    "amateur_highlight": "50 积分",
+    "amateur_modal_body": "新用户自动加入 Amateur 等级，即时获赠 50 积分。每消费 HK$1 累积 1 积分。开始你的旅程，轻松累积。",
     "century_title": "Century",
     "century_subtitle": "500 积分起",
     "century_body": "全场时段 9 折。优先预订热门时段。积分 1.5 倍加速。",

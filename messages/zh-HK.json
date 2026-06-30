@@ -405,9 +405,9 @@
   "member": {
     "title": "會員制度",
     "amateur_title": "Amateur",
-    "amateur_body": "HK$1 = 1 積分。每月免費一局。",
-    "amateur_highlight": "每月免費一局",
-    "amateur_modal_body": "新用戶自動加入 Amateur 等級，即時獲贈 50 積分。每消費 HK$1 累積 1 積分，每月享一局免費時段。開始你的旅程，輕鬆累積。",
+    "amateur_body": "HK$1 = 1 積分。註冊即送 50 積分。",
+    "amateur_highlight": "50 積分",
+    "amateur_modal_body": "新用戶自動加入 Amateur 等級，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。開始你的旅程，輕鬆累積。",
     "century_title": "Century",
     "century_subtitle": "500 積分起",
     "century_body": "全場時段 9 折。優先預訂熱門時段。積分 1.5 倍加速。",

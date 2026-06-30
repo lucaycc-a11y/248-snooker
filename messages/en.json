@@ -405,9 +405,9 @@
   "member": {
     "title": "Membership",
     "amateur_title": "Amateur",
-    "amateur_body": "HK$1 = 1 point. One free game per month.",
-    "amateur_highlight": "One free game per month",
-    "amateur_modal_body": "New users join Amateur automatically and receive 50 bonus points. Earn 1 point per HK$1 spent and enjoy one free session each month. A great starting point.",
+    "amateur_body": "HK$1 = 1 point. Start with 50 bonus points.",
+    "amateur_highlight": "50 bonus points",
+    "amateur_modal_body": "New users join Amateur automatically and receive 50 bonus points. Earn 1 point per HK$1 spent — a great starting point.",
     "century_title": "Century",
     "century_subtitle": "From 500 pts",
     "century_body": "10% off all sessions. Priority booking. 1.5× point multiplier.",

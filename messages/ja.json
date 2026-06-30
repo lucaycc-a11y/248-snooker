@@ -405,9 +405,9 @@
   "member": {
     "title": "メンバーシップ",
     "amateur_title": "Amateur",
-    "amateur_body": "HK$1 = 1ポイント。月1回無料セッション。",
-    "amateur_highlight": "月1回無料セッション",
-    "amateur_modal_body": "新規ユーザーは自動的にAmateurにランクイン。50ボーナスポイントを即時付与。HK$1ごとに1ポイント獲得、月1回の無料セッションをお楽しみください。",
+    "amateur_body": "HK$1 = 1ポイント。登録で50ボーナスポイント進呈。",
+    "amateur_highlight": "50ボーナスポイント",
+    "amateur_modal_body": "新規ユーザーは自動的にAmateurにランクイン。50ボーナスポイントを即時付与。HK$1ごとに1ポイント獲得。気軽に始められます。",
     "century_title": "Century",
     "century_subtitle": "500ポイントから",
     "century_body": "全セッション10%オフ。優先予約。1.5倍ポイント。",

@@ -54,6 +54,18 @@ export async function POST(req: Request) {
     const periods = await loadPeriods()
     const tier = await resolveTierForUser(user.id)
     const quote = calculatePrice(slotStart, slotEnd, tier, periods)
+
+    // No self-serve free/zero-amount path: the free-game perk was intentionally
+    // dropped, and Stripe rejects 0-amount PaymentIntents. A 0 here means a
+    // pricing misconfig (comp bookings are admin-flagged, not self-serve) — fail
+    // clean rather than hand Stripe an intent it will reject.
+    if (quote.amountInCents <= 0) {
+      return NextResponse.json(
+        { error: 'Zero-amount bookings are not supported' },
+        { status: 400 },
+      )
+    }
+
     const period = periodForStart(
       startHour,
       slotStart.getDay() === 0 || slotStart.getDay() === 6,
@@ -86,7 +98,7 @@ export async function POST(req: Request) {
           total_price: quote.total,
           status: 'pending',
           table_number: slot.table_number,
-          is_free_booking: quote.total === 0,
+          is_free_booking: false, // self-serve bookings are always paid; comps are admin-flagged
           // payment_method intentionally left unset here — confirm_booking sets it
           // from the actual Stripe method. ASSUMED nullable; if NOT NULL, add a
           // DB default of 'card' or set a placeholder here.
