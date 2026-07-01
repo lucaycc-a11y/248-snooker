@@ -1,6 +1,7 @@
 import createMiddleware from 'next-intl/middleware'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { routing } from './i18n/routing'
+import { updateSession } from './lib/supabase/middleware'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -32,8 +33,14 @@ function isLocalized(pathname: string): boolean {
 }
 
 export function middleware(request: NextRequest) {
+  // Non-localized routes (/api, /auth, /admin, /member, /login, /maintenance) are
+  // exactly the auth-sensitive ones — refresh the Supabase session here so a
+  // single token rotation happens before any handler/RSC calls getUser(). This
+  // is what kills the intermittent 401 (concurrent getUser() calls racing on the
+  // one-time refresh token). Localized public pages don't touch auth, so they go
+  // straight to the intl rewrite and never pay the refresh cost.
   if (!isLocalized(request.nextUrl.pathname)) {
-    return NextResponse.next()
+    return updateSession(request)
   }
   return intlMiddleware(request)
 }

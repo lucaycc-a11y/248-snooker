@@ -16,8 +16,23 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser()
-    if (!user) {
+    if (authError || !user) {
+      // Never swallow the auth error again — swallowing it is exactly what forced
+      // us to guess last time. Log the real GoTrue message/status so Vercel shows
+      // WHY this was unauthenticated, not just a bare 401.
+      const status = (authError as { status?: number } | null)?.status
+      console.error('[profile/complete] auth.getUser failed:', {
+        message: authError?.message ?? 'no user, no error (missing/partial session cookie)',
+        status,
+      })
+      // Split a retryable backend failure from a genuine missing/expired session:
+      // a 5xx or network-class error (no status) means GoTrue was unreachable →
+      // 503 so the client can retry; anything else is truly unauthenticated → 401.
+      if (authError && (status === undefined || status >= 500)) {
+        return NextResponse.json({ error: 'auth_unavailable' }, { status: 503 })
+      }
       return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
     }
 
@@ -37,9 +52,11 @@ export async function POST(req: Request) {
 
     // Service-role UPSERT (not update): a brand-new SMS user verifies OTP
     // client-side without passing through /auth/callback, so they may have no
-    // users row yet — an update would silently affect 0 rows. Upsert with a
-    // partial column set is proven safe here (the OAuth callback does the same),
-    // so other columns fall back to their DB defaults (tier, points, …).
+    // users row yet — an update would silently affect 0 rows. Service-role also
+    // bypasses RLS, so the UPSERT never needs a matching INSERT *and* UPDATE
+    // policy to line up (a subtle way a cookie-bound client fails on new rows).
+    // NOTE: this write can only 500 — auth is fully settled above, so a 401 can
+    // never originate from here regardless of which client performs the write.
     const service = getServiceSupabase()
     const { error } = await service
       .from('users')
@@ -55,7 +72,10 @@ export async function POST(req: Request) {
         { onConflict: 'id' },
       )
     if (error) {
-      console.error('profile_complete_update_error', error.message)
+      // Rich server-side log (message + Postgres code) so the next failure is
+      // diagnosable from Vercel logs, but return a generic body — never leak DB
+      // internals to the browser (security-backend skill).
+      console.error('[profile/complete] upsert failed:', error.message, error.code)
       return NextResponse.json({ error: 'update_failed' }, { status: 500 })
     }
 
