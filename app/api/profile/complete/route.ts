@@ -37,6 +37,8 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => null)
+    console.log('[profile/complete] attempt', { userId: user.id })
+
     if (!normalizeHkPhone(body?.phone ?? '')) {
       return NextResponse.json({ error: '請提供有效嘅電話號碼' }, { status: 400 })
     }
@@ -79,13 +81,19 @@ export async function POST(req: Request) {
       // Rich server-side log (message + Postgres code) so the next failure is
       // diagnosable from Vercel logs, but return a generic body — never leak DB
       // internals to the browser (security-backend skill).
-      console.error('[profile/complete] upsert failed:', error.message, error.code)
+      console.error('[profile/complete] upsert failed', {
+        message: error.message,
+        code: error.code,
+        userId: user.id,
+      })
       return NextResponse.json({ error: 'update_failed' }, { status: 500 })
     }
 
+    console.log('[profile/complete] success', { userId: user.id })
     return NextResponse.json({ ok: true, profile: result.value })
   } catch (err) {
-    console.error('profile_complete_error', (err as Error).message)
+    const e = err as Error
+    console.error('[profile/complete] error', { message: e.message, stack: e.stack })
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 }

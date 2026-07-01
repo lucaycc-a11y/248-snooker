@@ -41,6 +41,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
 
+    console.log('[booking/lock] attempt', { userId: user.id, tableNumber, date, startHour, duration })
+
     // Authoritative price from the requested window + the member's tier.
     const periods = await loadPeriods()
     const tier = await resolveTierForUser(user.id)
@@ -63,11 +65,12 @@ export async function POST(req: Request) {
       //   PGRST202 = function find_or_lock_slot(...) not found (migration 0004
       //   not applied / signature drift); 42703 = column missing on `slots`;
       //   42883 = arg type mismatch. Returned to the client so it's visible.
-      console.error('find_or_lock_slot_error', {
+      console.error('[booking/lock] find_or_lock_slot_error', {
         message: error.message,
         code: (error as { code?: string }).code,
         details: (error as { details?: string }).details,
         hint: (error as { hint?: string }).hint,
+        userId: user.id,
       })
       return NextResponse.json(
         {
@@ -79,12 +82,18 @@ export async function POST(req: Request) {
       )
     }
     if (!data?.success) {
+      console.log('[booking/lock] rejected', { userId: user.id, reason: data?.reason ?? 'unavailable' })
       return NextResponse.json(
         { error: 'Slot unavailable', reason: data?.reason ?? 'unavailable' },
         { status: 409 },
       )
     }
 
+    console.log('[booking/lock] success', {
+      userId: user.id,
+      slotId: data.slot_id,
+      lockedUntil: data.locked_until,
+    })
     return NextResponse.json({ slotId: data.slot_id, lockedUntil: data.locked_until })
   } catch (err) {
     const e = err as Error
@@ -97,7 +106,7 @@ export async function POST(req: Request) {
     // (SUPABASE_SERVICE_ROLE_KEY missing → "Service Supabase client requires …"),
     // loadPeriods/resolveTierForUser, or a JSON parse. Detail is returned so the
     // real cause is visible instead of a blank "Internal error".
-    console.error('lock_error', { message: msg, stack: e.stack })
+    console.error('[booking/lock] error', { message: msg, stack: e.stack })
     return NextResponse.json({ error: 'Internal error', detail: msg }, { status: 500 })
   }
 }

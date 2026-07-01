@@ -40,8 +40,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing slotId' }, { status: 400 })
     }
 
+    console.log('[payment/create-intent] attempt', { userId: user.id, slotId })
+
     const slot = await validateSlotLock(slotId, user.id)
     if (!slot) {
+      console.log('[payment/create-intent] rejected', { userId: user.id, slotId, reason: 'lock_invalid_or_expired' })
       return NextResponse.json(
         { error: 'Slot lock invalid or expired' },
         { status: 409 },
@@ -106,7 +109,12 @@ export async function POST(req: Request) {
         .select('id')
         .single()
       if (insErr || !inserted) {
-        console.error('pending_booking_insert_error', insErr?.message)
+        console.error('[payment/create-intent] pending_booking_insert_error', {
+          message: insErr?.message,
+          code: insErr?.code,
+          userId: user.id,
+          slotId: slot.id,
+        })
         return NextResponse.json({ error: 'Could not create booking' }, { status: 500 })
       }
       bookingId = inserted.id
@@ -137,12 +145,14 @@ export async function POST(req: Request) {
       // If this logs but the Stripe Dashboard shows no request, the key itself is
       // wrong/empty; if it logs WITH a Stripe error type/code, that's the cause.
       const e = stripeErr as { message?: string; type?: string; code?: string; statusCode?: number }
-      console.error('stripe_create_intent_error', {
+      console.error('[payment/create-intent] stripe error', {
         message: e.message,
         type: e.type,
         code: e.code,
         statusCode: e.statusCode,
         amount: quote.amountInCents,
+        userId: user.id,
+        bookingId,
       })
       return NextResponse.json(
         { error: 'stripe_error', detail: e.message ?? 'Stripe request failed', code: e.code ?? e.type ?? null },
@@ -150,6 +160,12 @@ export async function POST(req: Request) {
       )
     }
 
+    console.log('[payment/create-intent] success', {
+      userId: user.id,
+      bookingId,
+      paymentIntentId: intent.id,
+      amount: quote.amountInCents,
+    })
     return NextResponse.json({
       clientSecret: intent.client_secret,
       bookingId,
@@ -157,7 +173,8 @@ export async function POST(req: Request) {
       currency: quote.currency,
     })
   } catch (err) {
-    console.error('create_intent_error', (err as Error).message)
+    const e = err as Error
+    console.error('[payment/create-intent] error', { message: e.message, stack: e.stack })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
