@@ -129,9 +129,26 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: 'Could not create booking' }, { status: 500 })
         }
         bookingId = inserted.id
-      } else if (orderGroupId) {
-        // Reused a pending row from an earlier attempt — ensure it carries the group id.
-        await service.from('bookings').update({ order_group_id: orderGroupId }).eq('id', bookingId)
+      } else {
+        // Reused a pending row from an earlier attempt on the same slot. That
+        // earlier attempt may have had a DIFFERENT window/price (e.g. the user
+        // re-picked a longer duration on the same start), so re-sync every
+        // server-derived field to the CURRENT quote. Otherwise the webhook's
+        // amount check (paymentIntent.amount === total_price*100) would reject
+        // confirmation against a stale price. Also (re)attach the group id.
+        await service
+          .from('bookings')
+          .update({
+            date: slot.date,
+            start_time: slot.start_time,
+            end_time: slot.end_time,
+            duration_hours: slot.duration_hours,
+            period,
+            total_price: quote.total,
+            table_number: slot.table_number,
+            order_group_id: orderGroupId,
+          })
+          .eq('id', bookingId)
       }
       if (!bookingId) {
         return NextResponse.json({ error: 'Could not resolve booking' }, { status: 500 })
@@ -146,9 +163,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Could not resolve booking' }, { status: 500 })
     }
 
-    // Idempotency key: group id when grouped (so a double-tap reuses one intent
-    // across all rows), else the single booking id.
-    const idempotencyKey = orderGroupId ?? primaryBookingId
+    // Idempotency key: bind to the booking/group AND the amount. A retry with the
+    // SAME amount reuses one Stripe intent (protects against double-taps and 3DS
+    // retries), but if the same pending booking is reused for a DIFFERENT amount
+    // (e.g. the user abandoned an earlier attempt, then re-picked a longer/shorter
+    // window on the same slot), the key changes so Stripe opens a fresh intent
+    // instead of rejecting with "keys ... can only be used with the same
+    // parameters they were first used with".
+    const idempotencyKey = `${orderGroupId ?? primaryBookingId}:${amountInCents}`
 
     let intent
     try {
