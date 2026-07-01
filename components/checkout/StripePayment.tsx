@@ -160,19 +160,26 @@ function PayForm({
     setErr(null)
     const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}`
 
-    // We opt the Payment Element OUT of collecting any billing field we already
-    // have (name/email/phone -> `fields.billingDetails.* = 'never'` below). Stripe's
-    // contract: whatever you set to 'never' on the Element, you MUST supply back
-    // here in confirmParams.payment_method_data.billing_details — otherwise
-    // confirmPayment() throws a synchronous IntegrationError, the promise never
-    // resolves, and the button hangs on "處理中" forever. Build this object to mirror
-    // the `fields` config EXACTLY: include a field here iff we set it to 'never'
-    // there (i.e. iff we have a non-empty value for it).
+    // We opt the Payment Element OUT of collecting billing fields (fields.
+    // billingDetails.* = 'never' below). Stripe's contract: EVERY field set to
+    // 'never' on the Element MUST be supplied back here in confirmParams.
+    // payment_method_data.billing_details — otherwise confirmPayment() throws a
+    // synchronous IntegrationError, the promise never resolves, and the button
+    // hangs on "處理中" forever. This object must mirror the `fields` config EXACTLY.
+    //
+    // address.postalCode + address.country are UNCONDITIONALLY 'never', so we
+    // ALWAYS supply the address. country is required for card billing (HK venue);
+    // postal_code is 'never' but optional for HK cards, so no value is needed —
+    // supplying `country` satisfies the contract. name/email/phone are 'never'
+    // only when we already have the value, so include each iff present.
     const prefilledBilling: {
       name?: string
       email?: string
       phone?: string
-    } = {}
+      address: { country: string; postal_code?: string }
+    } = {
+      address: { country: "HK" },
+    }
     if (billingDetails?.name) prefilledBilling.name = billingDetails.name
     if (billingDetails?.email) prefilledBilling.email = billingDetails.email
     if (billingDetails?.phone) prefilledBilling.phone = billingDetails.phone
@@ -188,9 +195,9 @@ function PayForm({
       elements,
       confirmParams: {
         return_url: returnUrl,
-        ...(Object.keys(prefilledBilling).length > 0
-          ? { payment_method_data: { billing_details: prefilledBilling } }
-          : {}),
+        // Always sent: prefilledBilling always carries at least address.country
+        // (unconditionally 'never' on the Element), plus name/email/phone when known.
+        payment_method_data: { billing_details: prefilledBilling },
       },
       redirect: "if_required",
     })
