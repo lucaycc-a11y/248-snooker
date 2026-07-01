@@ -11,9 +11,6 @@ import { createClient } from "@/lib/supabase/client"
 const GREEN = "#22c55e"
 // Dark-glass surface for floating menus (readable over arbitrary content),
 // matching the landing nav's blur+saturate treatment.
-const GLASS_BG = "rgba(12,12,14,0.82)"
-const GLASS_BLUR = "blur(20px) saturate(180%)"
-const GLASS_BORDER = "1px solid rgba(255,255,255,0.12)"
 // Tier accents match the landing membership section: green / amber / purple.
 const TIER_ACCENT: Record<string, string> = {
   amateur: "#22C55E",
@@ -278,16 +275,13 @@ export function AccountMenu({
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 320 }}
                 role="menu"
+                className="glass-panel-dark"
                 style={{
                   position: "fixed",
                   left: 0,
                   right: 0,
                   bottom: 0,
                   zIndex: 201,
-                  background: GLASS_BG,
-                  backdropFilter: GLASS_BLUR,
-                  WebkitBackdropFilter: GLASS_BLUR,
-                  borderTop: GLASS_BORDER,
                   borderTopLeftRadius: 24,
                   borderTopRightRadius: 24,
                   paddingBottom: 24,
@@ -303,16 +297,13 @@ export function AccountMenu({
                 exit={{ opacity: 0, y: -8, scale: 0.98 }}
                 transition={{ duration: 0.18 }}
                 role="menu"
+                className="glass-panel-dark"
                 style={{
                   position: "fixed",
                   top: anchor?.top ?? 64,
                   right: anchor?.right ?? 16,
                   zIndex: 201,
                   width: 240,
-                  background: GLASS_BG,
-                  backdropFilter: GLASS_BLUR,
-                  WebkitBackdropFilter: GLASS_BLUR,
-                  border: GLASS_BORDER,
                   borderRadius: 16,
                   overflow: "hidden",
                 }}

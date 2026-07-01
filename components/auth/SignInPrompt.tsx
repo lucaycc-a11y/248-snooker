@@ -9,8 +9,6 @@ import { useAuthSession } from "@/lib/auth/useAuthSession"
 
 const GREEN = "#22c55e"
 // Dark-glass pill matching the landing nav's blur+saturate treatment.
-const GLASS_BG = "rgba(12,12,14,0.82)"
-const GLASS_BLUR = "blur(20px) saturate(180%)"
 const DISMISS_KEY = "signin_prompt_dismissed"
 const SHOW_DELAY_MS = 2500
 
@@ -70,6 +68,7 @@ export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () 
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
           transition={{ type: "spring", damping: 26, stiffness: 320 }}
+          className="glass-panel-dark"
           style={{
             position: "fixed",
             left: "50%",
@@ -81,12 +80,7 @@ export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () 
             gap: 14,
             maxWidth: "calc(100vw - 32px)",
             padding: "12px 14px 12px 18px",
-            background: GLASS_BG,
-            backdropFilter: GLASS_BLUR,
-            WebkitBackdropFilter: GLASS_BLUR,
-            border: "1px solid rgba(255,255,255,0.12)",
             borderRadius: 9999,
-            boxShadow: "0 8px 30px rgba(0,0,0,0.4)",
           }}
           role="status"
         >

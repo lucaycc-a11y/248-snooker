@@ -149,3 +149,30 @@ body {
   border-top: 1px solid #2d2d2d;
   margin: 2.5em 0;
 }
+
+/* ─────────────────────────  Liquid Glass  ─────────────────────────
+   Shared frosted-glass surfaces. One definition site so every floating /
+   card / popover surface stays visually consistent. Per the Apple-UI skill
+   we use borders (not shadows) for elevation. */
+.glass-panel {
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+}
+/* Darker variant for floating dropdowns / prompts / tooltips over content. */
+.glass-panel-dark {
+  background: rgba(12, 12, 14, 0.82);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+/* Small controls (chips, back button, slot cells) — lighter blur. */
+.glass-control {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+

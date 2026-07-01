@@ -52,6 +52,30 @@ function padTime(h: number): string {
   return String(((h % 24) + 24) % 24).padStart(2, "0") + ":00"
 }
 
+// Venue time is Hong Kong (UTC+8) regardless of the user's device timezone.
+// Deriving "today" and "current hour" from the browser's local clock caused a
+// P0 bug where a device in another timezone (or the memoized snapshot) greyed
+// out valid slots. Read the parts through Intl in the fixed venue zone instead.
+const HK_TIME_ZONE = "Asia/Hong_Kong"
+
+function getHongKongNow(date = new Date()): { date: string; hour: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: HK_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(date)
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ""
+  // Intl can emit "24" for midnight in some engines; normalise to 0.
+  const rawHour = Number(get("hour"))
+  return {
+    date: `${get("year")}-${get("month")}-${get("day")}`,
+    hour: rawHour % 24,
+  }
+}
+
 type DaySlot = {
   table_number: number
   date: string
@@ -62,6 +86,15 @@ type DaySlot = {
 }
 
 const ALL_TABLES = [1, 2]
+
+// Time-slot grid is grouped into labelled periods so a full 24h day reads as
+// clear sections instead of one long strip. Hours are inclusive-start.
+const SLOT_GROUPS: { key: string; hours: number[] }[] = [
+  { key: "late_night", hours: [0, 1, 2, 3, 4, 5] },
+  { key: "morning", hours: [6, 7, 8, 9, 10, 11] },
+  { key: "afternoon", hours: [12, 13, 14, 15, 16, 17] },
+  { key: "evening", hours: [18, 19, 20, 21, 22, 23] },
+]
 
 type TableState = "available" | "locked" | "booked"
 
@@ -146,46 +179,56 @@ function TimeSlotGrid({
     return `${y}-${m}-${d}`
   }, [selectedDate])
 
-  const today = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
+  // All time comparisons use Hong Kong venue time, not the browser's clock.
+  // `nowTick` re-reads it every minute so the grid doesn't stale across the
+  // hour boundary while the page is open.
+  const [nowTick, setNowTick] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 60_000)
+    return () => clearInterval(id)
   }, [])
+  const nowHK = useMemo(() => getHongKongNow(), [nowTick])
+  const isTodayHK = dateStr === nowHK.date
 
-  const isToday = useMemo(() => {
-    const sel = new Date(selectedDate)
-    sel.setHours(0, 0, 0, 0)
-    return sel.getTime() === today.getTime()
-  }, [selectedDate, today])
-
-  const currentHour = useMemo(() => new Date().getHours(), [])
-
-  // Compute per-cell state: is this hour disabled? (both tables taken OR past hour)
+  // Per-cell state:
+  //  - hidden:   this hour is fully BOOKED on every table → don't render at all
+  //  - disabled: past hour (venue time) OR all tables taken by locks/past
+  //  - isLocked: at least one table is held by someone else's active 15-min lock
   const cellStates = useMemo(() => {
-    const states = new Map<number, { disabled: boolean; isLocked: boolean }>()
+    const states = new Map<
+      number,
+      { hidden: boolean; disabled: boolean; isLocked: boolean }
+    >()
     for (let h = 0; h < 24; h++) {
-      const isPast = isToday && h <= currentHour
-      const freeTables = daySlots ? freeTablesFor(daySlots, dateStr, h, 1) : []
-      const bothTaken = daySlots !== null && freeTables.length === 0
-      const disabled = isPast || bothTaken
+      const isPast = isTodayHK && h < nowHK.hour
+      const tableState = daySlots ? tableStatesFor(daySlots, dateStr, h, 1) : null
+      const bookedCount = tableState
+        ? Array.from(tableState.values()).filter((s) => s === "booked").length
+        : 0
+      const availableCount = tableState
+        ? Array.from(tableState.values()).filter((s) => s === "available").length
+        : ALL_TABLES.length
+      const isLocked = tableState
+        ? Array.from(tableState.values()).some((s) => s === "locked")
+        : false
 
-      // Check if this hour is "locked" (one table locked, not necessarily both taken)
-      let isLocked = false
-      if (daySlots && !isPast) {
-        const states = tableStatesFor(daySlots, dateStr, h, 1)
-        isLocked = Array.from(states.values()).some((s) => s === "locked")
-      }
+      // Fully booked hours are removed from the grid entirely (Task 3).
+      const hidden = bookedCount === ALL_TABLES.length
+      // Disabled = in the past, or no free table left (remaining tables are
+      // locked/booked). Hidden cells are also treated as disabled defensively.
+      const disabled = hidden || isPast || (daySlots !== null && availableCount === 0)
 
-      states.set(h, { disabled, isLocked })
+      states.set(h, { hidden, disabled, isLocked })
     }
     return states
-  }, [daySlots, dateStr, isToday, currentHour])
+  }, [daySlots, dateStr, isTodayHK, nowHK.hour])
 
-  // Is the entire day fully booked? (all 24 cells disabled)
+  // Is the entire day unusable? (every hour hidden or disabled)
   const fullyBooked = useMemo(() => {
     if (daySlots === null) return false
     for (let h = 0; h < 24; h++) {
-      if (!cellStates.get(h)?.disabled) return false
+      const s = cellStates.get(h)
+      if (s && !s.hidden && !s.disabled) return false
     }
     return true
   }, [cellStates, daySlots])
@@ -326,78 +369,96 @@ function TimeSlotGrid({
     )
   }
 
+  const renderCell = (h: number) => {
+    const state = cellStates.get(h)
+    if (state?.hidden) return null
+    const selected = isSelected(h)
+    const disabled = state?.disabled ?? false
+    const locked = state?.isLocked ?? false
+    const showBadge = showNextDayBadge(h)
+
+    return (
+      <button
+        key={h}
+        type="button"
+        disabled={disabled}
+        onClick={() => handleCellTap(h)}
+        style={{
+          position: "relative",
+          minHeight: 56,
+          padding: "12px 8px",
+          borderRadius: tokens.radius.input,
+          border: `1px solid ${selected ? tokens.colors.brand : tokens.colors.border}`,
+          background: selected
+            ? tokens.colors.brand
+            : disabled
+              ? "rgba(255,255,255,0.02)"
+              : "rgba(255,255,255,0.04)",
+          color: disabled
+            ? tokens.colors.textFaint
+            : selected
+              ? "#000"
+              : tokens.colors.text,
+          fontSize: 13,
+          fontWeight: selected ? 600 : 400,
+          opacity: disabled ? 0.4 : 1,
+          cursor: disabled ? "not-allowed" : "pointer",
+          transition: `all ${tokens.duration.fast}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4,
+        }}
+        title={locked && disabled ? t("table_locked") : undefined}
+      >
+        {locked && disabled && <Lock size={12} style={{ flexShrink: 0 }} />}
+        <span style={{ whiteSpace: "nowrap" }}>{padTime(h)}</span>
+        {showBadge && (
+          <span
+            style={{
+              position: "absolute",
+              top: 4,
+              right: 6,
+              fontSize: 10,
+              fontWeight: 600,
+              color: selected ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.5)",
+              padding: "2px 4px",
+              borderRadius: 4,
+              background: selected ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)",
+            }}
+          >
+            +1日
+          </span>
+        )}
+      </button>
+    )
+  }
+
   return (
     <>
-      <div className="table-grid" style={{ gap: 8 }}>
-        {Array.from({ length: 24 }, (_, h) => {
-          const state = cellStates.get(h)
-          const selected = isSelected(h)
-          const disabled = state?.disabled ?? false
-          const locked = state?.isLocked ?? false
-          const showBadge = showNextDayBadge(h)
-
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {SLOT_GROUPS.map((group) => {
+          // Skip a whole period if every hour in it is hidden (all booked/na).
+          const visibleHours = group.hours.filter((h) => !cellStates.get(h)?.hidden)
+          if (visibleHours.length === 0) return null
           return (
-            <button
-              key={h}
-              type="button"
-              disabled={disabled}
-              onClick={() => handleCellTap(h)}
-              style={{
-                position: "relative",
-                minHeight: 56,
-                padding: "12px 16px",
-                borderRadius: tokens.radius.input,
-                border: `1px solid ${selected ? tokens.colors.brand : tokens.colors.border}`,
-                background: selected
-                  ? tokens.colors.brand
-                  : disabled
-                    ? "rgba(255,255,255,0.02)"
-                    : "rgba(255,255,255,0.04)",
-                color: disabled
-                  ? tokens.colors.textFaint
-                  : selected
-                    ? "#000"
-                    : tokens.colors.text,
-                fontSize: 14,
-                fontWeight: selected ? 600 : 400,
-                opacity: disabled ? 0.4 : 1,
-                cursor: disabled ? "not-allowed" : "pointer",
-                transition: `all ${tokens.duration.fast}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-              }}
-              title={
-                locked && disabled ? t("table_locked") : undefined
-              }
-            >
-              {locked && disabled && (
-                <Lock size={12} style={{ flexShrink: 0 }} />
-              )}
-              <span style={{ whiteSpace: "nowrap" }}>
-                {padTime(h)}–{padTime(h + 1)}
-              </span>
-              {showBadge && (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 4,
-                    right: 6,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: selected ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.5)",
-                    padding: "2px 4px",
-                    borderRadius: 4,
-                    background: selected
-                      ? "rgba(0,0,0,0.08)"
-                      : "rgba(255,255,255,0.08)",
-                  }}
-                >
-                  +1日
-                </span>
-              )}
-            </button>
+            <div key={group.key}>
+              <div
+                data-cms-key={`book.slot_group_${group.key}`}
+                style={{
+                  fontSize: 12,
+                  color: tokens.colors.textMuted,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  marginBottom: 10,
+                }}
+              >
+                {t(`slot_group_${group.key}`)}
+              </div>
+              <div className="slot-grid">
+                {visibleHours.map((h) => renderCell(h))}
+              </div>
+            </div>
           )
         })}
       </div>
@@ -888,7 +949,9 @@ function Screen1({
   const endHour = startHour + duration
   const crossDay = endHour >= 24
   const [displayTotal, setDisplayTotal] = useState(total)
-  const [dateChosen, setDateChosen] = useState(false)
+  // If a persisted/restored selection already exists (duration > 0), reveal the
+  // grid immediately instead of forcing the user to re-tap the calendar.
+  const [dateChosen, setDateChosen] = useState(duration > 0)
   const [daySlots, setDaySlots] = useState<DaySlot[] | null>(null)
   const [dayLoading, setDayLoading] = useState(false)
   const timeRef = useRef<HTMLDivElement>(null)
@@ -1139,12 +1202,8 @@ function Screen2({
     <div className="screen-content auth-screen">
       <div style={{ maxWidth: 400, margin: "0 auto" }}>
         <div
+          className="glass-panel"
           style={{
-            background: "rgba(255,255,255,0.05)",
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
-            borderRadius: 24,
-            border: "1px solid rgba(255,255,255,0.1)",
             padding: 32,
           }}
         >
@@ -1855,6 +1914,63 @@ export default function BookPage() {
   const [confirmedBooking, setConfirmedBooking] = useState<ConfirmedBooking | null>(null)
   const [confirmError, setConfirmError] = useState(false)
 
+  // Durable in-session selection persistence. Unlike `pendingBooking` (written
+  // only on the auth step and consumed once), this survives back/return/reload:
+  // it's written on every Screen1 selection change and only cleared when the
+  // booking is confirmed. Restored on mount BEFORE the pendingBooking fallback.
+  const bookingRestored = useRef(false)
+  useEffect(() => {
+    if (typeof window === "undefined" || bookingRestored.current) return
+    bookingRestored.current = true
+    try {
+      const saved = sessionStorage.getItem("bookingSelection")
+      if (!saved) return
+      const s = JSON.parse(saved)
+      if (typeof s.date === "string") {
+        const d = new Date(`${s.date}T00:00:00`)
+        if (!Number.isNaN(d.getTime())) {
+          setSelectedDate(d)
+        }
+      }
+      if (typeof s.startHour === "number") setStartHour(s.startHour)
+      if (typeof s.duration === "number") setDuration(s.duration)
+      if (typeof s.tableNumber === "number") setSelectedTable(s.tableNumber)
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Persist selection whenever it's a real (duration > 0) Screen1 selection.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (duration <= 0) return
+    const y = selectedDate.getFullYear()
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0")
+    const d = String(selectedDate.getDate()).padStart(2, "0")
+    try {
+      sessionStorage.setItem(
+        "bookingSelection",
+        JSON.stringify({
+          date: `${y}-${m}-${d}`,
+          startHour,
+          duration,
+          tableNumber: selectedTable,
+          updatedAt: Date.now(),
+        }),
+      )
+    } catch {}
+  }, [selectedDate, startHour, duration, selectedTable])
+
+  // Clear the persisted selection once a booking is confirmed, so a stale
+  // future selection doesn't resurface on the next visit.
+  useEffect(() => {
+    if (confirmedBooking && typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("bookingSelection")
+        sessionStorage.removeItem("pendingBooking")
+      } catch {}
+    }
+  }, [confirmedBooking])
+
   // Detect a Stripe redirect return (?bookingId&payment_intent&redirect_status).
   // The page reloaded fresh, so we jump to the confirmation screen and poll the
   // booking status until the webhook marks it 'confirmed' (then Screen4 renders
@@ -2199,6 +2315,21 @@ export default function BookPage() {
         @media (min-width: 480px) {
           .table-grid {
             grid-template-columns: 1fr 1fr;
+          }
+        }
+        .slot-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+        @media (min-width: 480px) {
+          .slot-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+        @media (min-width: 768px) {
+          .slot-grid {
+            grid-template-columns: repeat(6, 1fr);
           }
         }
         .two-col {

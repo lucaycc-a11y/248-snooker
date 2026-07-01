@@ -598,7 +598,11 @@
     "contiguous_slots_required": "請選擇連續時段",
     "payment_reminder": "15 分鐘內必須完成付款交易，否則預約時間自動取消",
     "whatsapp_support": "如果你懷疑已經被扣款，請透過 WhatsApp 聯絡我們核實：",
-    "retry_payment": "重新選擇付款方式"
+    "retry_payment": "重新選擇付款方式",
+    "slot_group_late_night": "深夜",
+    "slot_group_morning": "上午",
+    "slot_group_afternoon": "下午",
+    "slot_group_evening": "晚上"
   },
   "ticket": {
     "duration": "時長",

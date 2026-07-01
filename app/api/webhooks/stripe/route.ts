@@ -350,7 +350,7 @@ async function handleSucceeded(
         to: paymentIntent.receipt_email || '',
         booking: {
           id: result.booking_id,
-          user_id: result.user_id,
+          user_id: result.user_id || '',
           date: result.date,
           start_time: result.start_time,
           end_time: result.end_time,

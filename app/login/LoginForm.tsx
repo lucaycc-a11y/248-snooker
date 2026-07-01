@@ -39,14 +39,10 @@ export default function LoginForm({
 
   return (
     <section
+      className="glass-panel"
       style={{
         width: "100%",
         maxWidth: 400,
-        background: "rgba(255,255,255,0.05)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        borderRadius: 24,
         padding: 40,
       }}
     >

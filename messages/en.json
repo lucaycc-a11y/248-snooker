@@ -598,7 +598,11 @@
     "contiguous_slots_required": "Please select contiguous time slots",
     "payment_reminder": "Complete payment within 15 minutes or your reservation will be automatically cancelled",
     "whatsapp_support": "If you suspect you have been charged, please contact us via WhatsApp to verify:",
-    "retry_payment": "Choose another payment method"
+    "retry_payment": "Choose another payment method",
+    "slot_group_late_night": "Late Night",
+    "slot_group_morning": "Morning",
+    "slot_group_afternoon": "Afternoon",
+    "slot_group_evening": "Evening"
   },
   "ticket": {
     "duration": "Duration",
