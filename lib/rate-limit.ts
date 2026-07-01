@@ -23,7 +23,7 @@ export async function rateLimit(
     const { data, error } = await supabase.rpc('check_rate_limit', {
       p_bucket: bucket,
       p_identifier: identifier,
-      p_max: max,
+      p_limit: max,
       p_window_seconds: windowSeconds,
     })
     if (error) {

@@ -10,7 +10,8 @@ export const runtime = 'nodejs'
 // POST /api/webhooks/stripe
 // 1. Verify the Stripe signature against STRIPE_WEBHOOK_SECRET BEFORE any DB write.
 // 2. Claim event.id in webhook_events for idempotency.
-// 3. Dispatch; mark processed/failed.
+// 3. Business RPCs stamp processed status inside the same DB transaction as the
+//    booking/slot mutation; unsupported events are marked processed here.
 export async function POST(req: Request) {
   const stripe = getStripe()
 
@@ -60,24 +61,27 @@ export async function POST(req: Request) {
   }
 
   try {
+    let statusStampedInTransaction = false
     switch (event.type) {
       case 'payment_intent.succeeded':
-        await handleSucceeded(stripe, supabase, event.data.object as Stripe.PaymentIntent)
+        await handleSucceeded(stripe, supabase, event.data.object as Stripe.PaymentIntent, event.id)
+        statusStampedInTransaction = true
         break
       case 'payment_intent.payment_failed':
-        await handleFailed(supabase, event.data.object as Stripe.PaymentIntent)
+        await handleFailed(supabase, event.data.object as Stripe.PaymentIntent, event.id)
+        statusStampedInTransaction = true
         break
       case 'charge.refunded':
-        await handleRefunded(supabase, event.data.object as Stripe.Charge)
+        await handleRefunded(supabase, event.data.object as Stripe.Charge, event.id)
+        statusStampedInTransaction = true
         break
       default:
         break
     }
 
-    await supabase
-      .from('webhook_events')
-      .update({ status: 'processed', processed_at: new Date().toISOString() })
-      .eq('id', event.id)
+    if (!statusStampedInTransaction) {
+      await markWebhookProcessed(supabase, event.id)
+    }
 
     console.log('[webhook/stripe] success', { eventId: event.id, type: event.type })
     return NextResponse.json({ received: true })
@@ -115,66 +119,212 @@ function mapPaymentMethod(charge: Stripe.Charge | null, isFree: boolean): string
   return 'card'
 }
 
+type ConfirmBookingResult =
+  | {
+      success: true
+      booking_id: string
+      booking_reference?: string
+      table_number: number
+      date: string
+      start_time: string
+      end_time: string
+      user_id: string | null
+    }
+  | { success: false; reason: string }
+
+function parseConfirmBookingResult(value: unknown): ConfirmBookingResult {
+  if (!value || typeof value !== 'object') {
+    throw new Error('confirm_booking returned invalid payload')
+  }
+
+  const result = value as Record<string, unknown>
+  if (result.success === false) {
+    return {
+      success: false,
+      reason: typeof result.reason === 'string' ? result.reason : 'unknown',
+    }
+  }
+
+  const bookingId = result.booking_id
+  const date = result.date
+  const startTime = result.start_time
+  const endTime = result.end_time
+  const tableNumber = result.table_number
+  const userId = result.user_id
+  if (typeof bookingId !== 'string') {
+    throw new Error('confirm_booking returned invalid booking_id')
+  }
+  if (typeof date !== 'string') {
+    throw new Error('confirm_booking returned invalid date')
+  }
+  if (typeof startTime !== 'string') {
+    throw new Error('confirm_booking returned invalid start_time')
+  }
+  if (typeof endTime !== 'string') {
+    throw new Error('confirm_booking returned invalid end_time')
+  }
+  if (typeof tableNumber !== 'number') {
+    throw new Error('confirm_booking returned invalid table_number')
+  }
+  if (userId !== null && typeof userId !== 'string') {
+    throw new Error('confirm_booking returned invalid user_id')
+  }
+
+  return {
+    success: true,
+    booking_id: bookingId,
+    booking_reference:
+      typeof result.booking_reference === 'string' ? result.booking_reference : undefined,
+    table_number: tableNumber,
+    date,
+    start_time: startTime,
+    end_time: endTime,
+    user_id: userId,
+  }
+}
+
+async function markWebhookProcessed(supabase: SupabaseClient, eventId: string) {
+  const { error } = await supabase
+    .from('webhook_events')
+    .update({ status: 'processed', processed_at: new Date().toISOString() })
+    .eq('id', eventId)
+  if (error) throw new Error(`webhook_events processed update failed: ${error.message}`)
+}
+
+function assertRpcSucceeded(value: unknown, rpcName: string) {
+  if (!value || typeof value !== 'object') return
+  const result = value as Record<string, unknown>
+  if (result.success === false) {
+    const reason = typeof result.reason === 'string' ? result.reason : 'unknown'
+    throw new Error(`${rpcName} rejected: ${reason}`)
+  }
+}
+
+type BookingPaymentContext = {
+  total_price: number
+  date: string
+  start_time: string
+  end_time: string
+  table_number: number
+  user_id: string | null
+}
+
+function parseBookingPaymentContext(value: unknown): BookingPaymentContext {
+  if (!value || typeof value !== 'object') {
+    throw new Error('booking amount lookup returned invalid payload')
+  }
+  const row = value as Record<string, unknown>
+  const totalPrice = row.total_price
+  const date = row.date
+  const startTime = row.start_time
+  const endTime = row.end_time
+  const tableNumber = row.table_number
+  const userId = row.user_id
+
+  if (typeof totalPrice !== 'number') throw new Error('booking returned invalid total_price')
+  if (typeof date !== 'string') throw new Error('booking returned invalid date')
+  if (typeof startTime !== 'string') throw new Error('booking returned invalid start_time')
+  if (typeof endTime !== 'string') throw new Error('booking returned invalid end_time')
+  if (typeof tableNumber !== 'number') throw new Error('booking returned invalid table_number')
+  if (userId !== null && typeof userId !== 'string') {
+    throw new Error('booking returned invalid user_id')
+  }
+
+  return {
+    total_price: totalPrice,
+    date,
+    start_time: startTime,
+    end_time: endTime,
+    table_number: tableNumber,
+    user_id: userId,
+  }
+}
+
+function addOneIsoDate(date: string): string {
+  const value = new Date(`${date}T00:00:00.000Z`)
+  value.setUTCDate(value.getUTCDate() + 1)
+  return value.toISOString().slice(0, 10)
+}
+
+function composeSlotEndIso(date: string, startTime: string, endTime: string): string {
+  const endDate = endTime <= startTime ? addOneIsoDate(date) : date
+  return `${endDate}T${endTime}`
+}
+
 async function handleSucceeded(
   stripe: Stripe,
   supabase: SupabaseClient,
   pi: Stripe.PaymentIntent,
+  eventId: string,
 ) {
-  const bookingId = pi.metadata?.booking_id
-  const userId = pi.metadata?.user_id
+  const paymentIntent = await stripe.paymentIntents.retrieve(pi.id)
+  if (paymentIntent.status !== 'succeeded') {
+    throw new Error('Payment intent not succeeded, refusing to confirm booking')
+  }
+
+  const bookingId = paymentIntent.metadata?.booking_id
+  const userId = paymentIntent.metadata?.user_id
   if (!bookingId) throw new Error('payment_intent missing booking_id metadata')
 
-  const isFree = pi.amount === 0
+  const { data: bookingRow, error: expectedErr } = await supabase
+    .from('bookings')
+    .select('total_price, date, start_time, end_time, table_number, user_id')
+    .eq('id', bookingId)
+    .single()
+  if (expectedErr) throw new Error(`booking amount lookup failed: ${expectedErr.message}`)
+  const bookingContext = parseBookingPaymentContext(bookingRow)
+
+  const expectedAmount = bookingContext.total_price * 100
+  if (paymentIntent.amount !== expectedAmount) {
+    throw new Error(
+      `Payment amount mismatch: expected ${expectedAmount}, got ${paymentIntent.amount}`,
+    )
+  }
+
+  const isFree = paymentIntent.amount === 0
   let charge: Stripe.Charge | null = null
-  if (typeof pi.latest_charge === 'string' && pi.latest_charge) {
-    charge = await stripe.charges.retrieve(pi.latest_charge)
+  if (typeof paymentIntent.latest_charge === 'string' && paymentIntent.latest_charge) {
+    charge = await stripe.charges.retrieve(paymentIntent.latest_charge)
   }
   const paymentMethod = mapPaymentMethod(charge, isFree)
 
   console.log('[webhook/stripe] confirming booking', {
     bookingId,
     userId,
-    paymentIntentId: pi.id,
+    paymentIntentId: paymentIntent.id,
     paymentMethod,
-    amount: pi.amount,
+    amount: paymentIntent.amount,
   })
 
-  // Atomic confirm: marks slot booked, releases lock, confirms booking, awards
-  // points (ledger insert + users.points update → fires update_tier_trigger).
-  const { data: result, error } = await supabase.rpc('confirm_booking', {
-    p_booking_id: bookingId,
-    p_payment_intent_id: pi.id,
-    p_payment_method: paymentMethod,
-    p_total_price: Math.round(pi.amount / 100), // cents → HK$
-    p_is_free: isFree,
-  })
-  if (error) throw new Error(`confirm_booking failed: ${error.message}`)
-  if (result && result.success === false) {
-    throw new Error(`confirm_booking rejected: ${result.reason}`)
-  }
-
-  // Build the QR access token. start_time/end_time are `time`, date is `date` —
-  // compose full ISO timestamps. signQrToken sets exp = start + 5 min.
-  const startIso = `${result.date}T${result.start_time}`
-  const endIso = `${result.date}T${result.end_time}`
+  const startIso = `${bookingContext.date}T${bookingContext.start_time}`
+  const endIso = composeSlotEndIso(
+    bookingContext.date,
+    bookingContext.start_time,
+    bookingContext.end_time,
+  )
   const qrToken = signQrToken({
-    booking_id: String(result.booking_id),
-    user_id: String(userId ?? result.user_id ?? ''),
-    table_number: Number(result.table_number ?? 0),
+    booking_id: bookingId,
+    user_id: String(userId ?? bookingContext.user_id ?? ''),
+    table_number: bookingContext.table_number,
     start_time: startIso,
     end_time: endIso,
   })
 
-  // bookings.qr_code holds the signed JWT directly (verified: there is no separate
-  // qr_token column). This write is the user's ENTRY credential — if it fails the
-  // booking is confirmed + paid but unenterable, so throw to mark the event
-  // 'failed' and let Stripe retry (confirm_booking is idempotent, so the retry
-  // re-runs cleanly and just re-writes the QR).
-  const { error: qrErr } = await supabase
-    .from('bookings')
-    .update({ qr_code: qrToken })
-    .eq('id', result.booking_id)
-  if (qrErr) throw new Error(`qr_code write failed: ${qrErr.message}`)
+  // Atomic confirm: stores the QR credential, marks slot booked, releases lock,
+  // confirms booking, awards points, and stamps webhook_events.status='processed'
+  // in the same DB transaction.
+  const { data: rawResult, error } = await supabase.rpc('confirm_booking', {
+    p_booking_id: bookingId,
+    p_payment_intent_id: paymentIntent.id,
+    p_payment_method: paymentMethod,
+    p_qr_code: qrToken,
+    p_event_id: eventId,
+  })
+  if (error) throw new Error(`confirm_booking failed: ${error.message}`)
+  const result = parseConfirmBookingResult(rawResult)
+  if (result.success === false) {
+    throw new Error(`confirm_booking rejected: ${result.reason}`)
+  }
 
   console.log('[webhook/stripe] booking confirmed', {
     bookingId: result.booking_id,
@@ -197,7 +347,7 @@ async function handleSucceeded(
       // Send receipt email via Resend
       const { sendBookingReceipt } = await import('@/lib/resend/send')
       await sendBookingReceipt({
-        to: pi.receipt_email || '',
+        to: paymentIntent.receipt_email || '',
         booking: {
           id: result.booking_id,
           user_id: result.user_id,
@@ -205,10 +355,10 @@ async function handleSucceeded(
           start_time: result.start_time,
           end_time: result.end_time,
           table_number: result.table_number,
-          total_price: Math.round(pi.amount / 100),
+          total_price: Math.round(paymentIntent.amount / 100),
           payment_method: paymentMethod,
         },
-        paymentIntentId: pi.id,
+        paymentIntentId: paymentIntent.id,
         customerName: profile.name,
         customerPhone: profile.phone || '',
         locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en' | 'ja') || 'zh-HK',
@@ -229,25 +379,38 @@ async function handleSucceeded(
   }
 }
 
-async function handleFailed(supabase: SupabaseClient, pi: Stripe.PaymentIntent) {
+async function handleFailed(supabase: SupabaseClient, pi: Stripe.PaymentIntent, eventId: string) {
   const slotId = pi.metadata?.slot_id
-  if (!slotId) return
-  console.log('[webhook/stripe] payment failed, releasing lock', { slotId, paymentIntentId: pi.id })
-  // Free the held slot immediately so it's bookable again.
-  const { error } = await supabase.rpc('release_slot_lock', { p_slot_id: slotId })
-  if (error) {
-    console.error('[webhook/stripe] release_slot_lock_failed', { message: error.message, slotId })
+  if (!slotId) {
+    throw new Error('payment_intent.payment_failed missing slot_id metadata')
   }
+  console.log('[webhook/stripe] payment failed, releasing lock', { slotId, paymentIntentId: pi.id })
+  // Free the held slot immediately so it's bookable again; the RPC stamps the
+  // webhook event processed in the same DB transaction.
+  const { data, error } = await supabase.rpc('release_slot_lock', {
+    p_slot_id: slotId,
+    p_event_id: eventId,
+  })
+  if (error) {
+    throw new Error(`release_slot_lock failed: ${error.message}`)
+  }
+  assertRpcSucceeded(data, 'release_slot_lock')
 }
 
-async function handleRefunded(supabase: SupabaseClient, charge: Stripe.Charge) {
+async function handleRefunded(supabase: SupabaseClient, charge: Stripe.Charge, eventId: string) {
   const pi =
     typeof charge.payment_intent === 'string'
       ? charge.payment_intent
       : charge.payment_intent?.id
-  if (!pi) return
+  if (!pi) {
+    throw new Error('charge.refunded missing payment_intent')
+  }
   console.log('[webhook/stripe] refunding booking', { paymentIntentId: pi, chargeId: charge.id })
-  // Atomic: booking → refunded, reverse points, free the slot.
-  const { error } = await supabase.rpc('refund_booking', { p_payment_intent_id: pi })
+  // Atomic: booking → refunded, reverse points, free the slot, mark event processed.
+  const { data, error } = await supabase.rpc('refund_booking', {
+    p_payment_intent_id: pi,
+    p_event_id: eventId,
+  })
   if (error) throw new Error(`refund_booking failed: ${error.message}`)
+  assertRpcSucceeded(data, 'refund_booking')
 }
