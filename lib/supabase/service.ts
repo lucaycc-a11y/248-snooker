@@ -20,6 +20,24 @@ export function getServiceSupabase(): SupabaseClient {
     )
   }
 
+  // One-time sanity check: SUPABASE_SERVICE_ROLE_KEY is a JWT whose payload
+  // carries `role`. Decoding the payload is safe (it's not the signature —
+  // Supabase's own client-side libraries read this same field), and this log
+  // line is the fastest way to prove whether Vercel actually has the
+  // service-role key set, vs. the anon key pasted into the wrong env var, vs.
+  // a since-rotated key — all three produce the exact same 42501 "permission
+  // denied" symptom from Postgres with no other distinguishing signal.
+  try {
+    const payload = JSON.parse(Buffer.from(key.split('.')[1], 'base64').toString('utf8'))
+    if (payload.role !== 'service_role') {
+      console.error('[supabase/service] SUPABASE_SERVICE_ROLE_KEY has wrong role claim', {
+        actualRole: payload.role,
+      })
+    }
+  } catch {
+    console.error('[supabase/service] SUPABASE_SERVICE_ROLE_KEY is not a valid JWT')
+  }
+
   cached = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   })

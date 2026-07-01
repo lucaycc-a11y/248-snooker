@@ -27,12 +27,17 @@ export async function rateLimit(
       p_window_seconds: windowSeconds,
     })
     if (error) {
-      console.error('rate_limit_rpc_error', error.message)
+      console.error('[rate-limit] check_rate_limit_error', {
+        message: error.message,
+        code: (error as { code?: string }).code,
+        bucket,
+        identifier,
+      })
       return true // fail open
     }
     return data === true
   } catch (err) {
-    console.error('rate_limit_error', (err as Error).message)
+    console.error('[rate-limit] error', { message: (err as Error).message, bucket, identifier })
     return true // fail open
   }
 }
