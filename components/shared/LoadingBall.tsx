@@ -47,7 +47,6 @@ export default function LoadingBall() {
             alt="Loading"
             width={56}
             height={56}
-            priority
           />
         </div>
 

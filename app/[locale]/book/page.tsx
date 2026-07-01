@@ -17,6 +17,7 @@ import { VisaLogo } from "@/components/brand"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import { createClient } from "@/lib/supabase/client"
+import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
@@ -335,18 +336,39 @@ function TimeSlotGrid({
     ]
   )
 
+  // Skeleton: grey placeholder cells laid out as the real period groups, so an
+  // out-of-window date reads as "loading this grid" rather than a blank/spinner.
   if (dayLoading || daySlots === null) {
     return (
-      <div
-        style={{
-          padding: "40px 20px",
-          textAlign: "center",
-          fontSize: 14,
-          color: tokens.colors.textMuted,
-        }}
-        data-cms-key="book.checking"
-      >
-        {t("checking")}
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }} aria-busy="true">
+        {SLOT_GROUPS.map((group) => (
+          <div key={group.key}>
+            <div
+              style={{
+                width: 72,
+                height: 12,
+                marginBottom: 10,
+                borderRadius: 4,
+                background: "rgba(255,255,255,0.06)",
+              }}
+              className="skeleton-pulse"
+            />
+            <div className="slot-grid">
+              {group.hours.map((h) => (
+                <div
+                  key={h}
+                  className="skeleton-pulse"
+                  style={{
+                    minHeight: 56,
+                    borderRadius: tokens.radius.input,
+                    border: `1px solid ${tokens.colors.border}`,
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     )
   }
@@ -493,6 +515,99 @@ function TimeSlotGrid({
         )}
       </AnimatePresence>
     </>
+  )
+}
+
+/* ─────────────────────────  Table Chips (Tasks 2 & 5)  ───────────────────────── */
+// Explicit per-table selection for the chosen slot window. Each chip reflects that
+// table's REAL availability (tableStatesFor): a booked/locked table is disabled and
+// greyed — never blanket-enabled just because the period is generally free.
+function TableChips({
+  daySlots,
+  dateStr,
+  startHour,
+  duration,
+  selectedTable,
+  onSelect,
+}: {
+  daySlots: DaySlot[]
+  dateStr: string
+  startHour: number
+  duration: number
+  selectedTable: number | null
+  onSelect: (table: number) => void
+}) {
+  const t = useTranslations("book")
+  const haptic = useHaptic()
+  const states = useMemo(
+    () => tableStatesFor(daySlots, dateStr, startHour, duration),
+    [daySlots, dateStr, startHour, duration],
+  )
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div
+        data-cms-key="book.table.title"
+        style={{
+          fontSize: 13,
+          color: tokens.colors.textMuted,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          marginBottom: 14,
+        }}
+      >
+        {t("select_table")}
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        {ALL_TABLES.map((tn) => {
+          const state = states.get(tn) ?? "available"
+          const disabled = state !== "available"
+          const selected = selectedTable === tn
+          return (
+            <button
+              key={tn}
+              type="button"
+              disabled={disabled}
+              onClick={() => {
+                if (disabled) return
+                haptic.vibrate(8)
+                onSelect(tn)
+              }}
+              data-cms-key={`book.table.chip_${tn}`}
+              style={{
+                minHeight: 44,
+                minWidth: 96,
+                padding: "10px 18px",
+                borderRadius: tokens.radius.button,
+                border: `1px solid ${selected ? tokens.colors.brand : tokens.colors.border}`,
+                background: selected
+                  ? tokens.colors.brand
+                  : disabled
+                    ? "rgba(255,255,255,0.02)"
+                    : "rgba(255,255,255,0.04)",
+                color: disabled
+                  ? tokens.colors.textFaint
+                  : selected
+                    ? "#000"
+                    : tokens.colors.text,
+                fontSize: 14,
+                fontWeight: selected ? 600 : 400,
+                opacity: disabled ? 0.4 : 1,
+                cursor: disabled ? "not-allowed" : "pointer",
+                transition: `all ${tokens.duration.fast}`,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+              title={disabled ? t("table_locked") : undefined}
+            >
+              {disabled && <Lock size={12} style={{ flexShrink: 0 }} />}
+              {t("table_label")} #{tn}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -953,6 +1068,7 @@ function Screen1({
   duration: number
   setDuration: (d: number) => void
   onContinue: () => void
+  availability: ReturnType<typeof useAvailabilityCache>
 }) {
   const total = CONFIG.pricePerHour * duration
   const endHour = startHour + duration
@@ -961,8 +1077,6 @@ function Screen1({
   // If a persisted/restored selection already exists (duration > 0), reveal the
   // grid immediately instead of forcing the user to re-tap the calendar.
   const [dateChosen, setDateChosen] = useState(duration > 0)
-  const [daySlots, setDaySlots] = useState<DaySlot[] | null>(null)
-  const [dayLoading, setDayLoading] = useState(false)
   const timeRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
 
@@ -973,37 +1087,22 @@ function Screen1({
     return `${y}-${m}-${d}`
   }, [selectedDate])
 
-  // Fetch the day's booked/locked slots once per date; the time-slot grid then
-  // computes per-hour availability and auto table assignment locally, so tapping
-  // cells triggers no extra requests. Fails OPEN (empty = everything free) — the
-  // slot lock at payment is the authoritative guard against double-booking.
+  // Read the day's slots from the shared prefetch cache. If the date is cached
+  // (in the prefetched week, or fetched earlier) this is synchronous — no spinner.
+  // Out-of-window dates trigger an on-demand fetch; the grid shows a skeleton
+  // while availability.loadingDate matches. Fails OPEN (empty = everything free).
+  const daySlots = dateChosen ? availability.getSlots(dateStr) : null
+
   useEffect(() => {
-    if (!dateChosen) {
-      setDaySlots(null)
-      return
+    if (!dateChosen) return
+    // Not in cache yet and not already loading → fetch this single date on demand.
+    if (availability.getSlots(dateStr) === null && availability.loadingDate !== dateStr) {
+      availability.fetchDate(dateStr)
     }
-    let cancelled = false
-    setDayLoading(true)
-    ;(async () => {
-      try {
-        const res = await fetch("/api/booking/availability", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ date: dateStr }),
-        })
-        if (!res.ok) throw new Error("availability")
-        const json = await res.json()
-        if (!cancelled) setDaySlots(Array.isArray(json.slots) ? json.slots : [])
-      } catch {
-        if (!cancelled) setDaySlots([]) // fail open
-      } finally {
-        if (!cancelled) setDayLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [dateChosen, dateStr])
+    // getSlots identity changes with cache version, re-running this after prefetch.
+  }, [dateChosen, dateStr, availability])
+
+  const dayLoading = daySlots === null && availability.loadingDate === dateStr
 
   // Animate the live price total.
   useEffect(() => {
@@ -1127,6 +1226,18 @@ function Screen1({
                       HK${displayTotal}
                     </span>
                   </motion.div>
+                )}
+
+                {/* Table chips — explicit per-table selection (Tasks 2 & 5) */}
+                {duration > 0 && daySlots && (
+                  <TableChips
+                    daySlots={daySlots}
+                    dateStr={dateStr}
+                    startHour={startHour}
+                    duration={duration}
+                    selectedTable={selectedTable}
+                    onSelect={setSelectedTable}
+                  />
                 )}
               </motion.div>
             )}
@@ -2036,6 +2147,10 @@ export default function BookPage() {
     }
   }, [])
 
+  // Shared availability cache: prefetches today + 7 days so date-switching in
+  // Screen1 is instant, and exposes invalidate() for post-payment refresh (Task 4).
+  const availability = useAvailabilityCache()
+
   const tables = useTables()
   const tableName =
     tables.find((t) => t.id === selectedTable)?.name ?? `枱號 #1`
@@ -2148,6 +2263,7 @@ export default function BookPage() {
                   duration={duration}
                   setDuration={setDuration}
                   onContinue={advance}
+                  availability={availability}
                 />
               </motion.div>
             )}
@@ -2343,6 +2459,13 @@ export default function BookPage() {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 8px;
+        }
+        .skeleton-pulse {
+          animation: skeleton-pulse 1.4s ease-in-out infinite;
+        }
+        @keyframes skeleton-pulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
         }
         @media (min-width: 480px) {
           .slot-grid {

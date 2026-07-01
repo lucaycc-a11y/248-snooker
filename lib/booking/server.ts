@@ -150,6 +150,40 @@ export async function getDaySlots(date: string): Promise<DaySlotRow[]> {
   return (data ?? []) as DaySlotRow[]
 }
 
+/**
+ * Raw booked/active-locked slot rows spanning [startDate, startDate + days),
+ * padded by one day on each side so cross-midnight bookings at the range edges
+ * are accounted for. Powers the client's day-switch prefetch cache (Task 1): one
+ * query covers a week so switching dates needs no further network round-trip.
+ * Same fail-open contract as getDaySlots.
+ */
+export async function getRangeSlots(
+  startDate: string,
+  days: number,
+): Promise<DaySlotRow[]> {
+  const base = new Date(`${startDate}T00:00:00`)
+  if (Number.isNaN(base.getTime()) || days < 1) return []
+  const fmt = (x: Date) =>
+    `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
+  const from = new Date(base)
+  from.setDate(from.getDate() - 1) // pad for cross-midnight at the low edge
+  const to = new Date(base)
+  to.setDate(to.getDate() + days) // exclusive end already pads the high edge
+
+  const supabase = getServiceSupabase()
+  const { data, error } = await supabase
+    .from('slots')
+    .select('table_number, date, start_time, duration_hours, status, locked_until')
+    .gte('date', fmt(from))
+    .lte('date', fmt(to))
+    .in('status', ['locked', 'booked'])
+  if (error) {
+    console.error('range_slots_query_error', error.message)
+    return []
+  }
+  return (data ?? []) as DaySlotRow[]
+}
+
 export type LockedSlot = {
   id: string
   date: string

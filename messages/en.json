@@ -543,6 +543,7 @@
     "snooker": "English Snooker",
     "available": "Available Now",
     "unavailable": "Not Available",
+    "slot_taken": "This slot was just taken by someone else. Please go back and pick another time.",
     "selected": "Selected",
     "select_this_table": "Select This Table",
     "hint": "If your preferred table is taken, switch to another anytime",

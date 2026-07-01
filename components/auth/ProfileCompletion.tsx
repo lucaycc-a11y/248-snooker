@@ -3,8 +3,17 @@
 import { useState } from "react"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 
-const BRASS = "#c9a876"
-const DEEP = "#0a1a0f"
+// Matches the GREEN constant duplicated across every other auth-flow file
+// (AuthCard.tsx, AuthModal.tsx, AccountMenu.tsx, OtpInput.tsx,
+// SignInPrompt.tsx) — this file previously used its own unrelated "BRASS"
+// (#c9a876) gold constant instead, which is why this submit button kept
+// reverting to gold after earlier fixes: those fixes touched the other
+// auth buttons, never this file's hardcoded constant.
+// NOTE: this is intentionally NOT tokens.colors.brand (#25D366, WhatsApp
+// green) — every hand-rolled auth button in this flow uses #22c55e, so
+// matching that (not the shared Button component's token) is what keeps
+// this button visually consistent with its siblings.
+const GREEN = "#22c55e"
 
 function localHkPhoneValue(value: string): string {
   const normalized = normalizeHkPhone(value)
@@ -199,8 +208,8 @@ export function ProfileCompletion({
           height: 52,
           border: "none",
           borderRadius: 12,
-          background: canSubmit ? BRASS : "rgba(201,168,118,0.5)",
-          color: DEEP,
+          background: canSubmit ? GREEN : "rgba(34,197,94,0.5)",
+          color: "#000",
           fontWeight: 700,
           fontSize: 16,
           cursor: canSubmit ? "pointer" : "not-allowed",

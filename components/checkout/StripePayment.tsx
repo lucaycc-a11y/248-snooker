@@ -13,6 +13,12 @@ import { getDeclineMessage, getWhatsAppSupportUrl } from "@/lib/stripe/decline-c
 
 const stripePromise = getStripeClient()
 
+// Internal sentinel: the lock effect throws this exact string when the slot was
+// lost to a concurrent booker (409 + reason 'unavailable'), so the render can
+// swap in the clear "someone just took this" copy instead of the generic
+// lock-failure detail. Not user-facing text — matched by reference, never shown.
+const SLOT_TAKEN = "__slot_taken__"
+
 // Match the booking page's black + brand-green + pill design language.
 // PaymentElement renders official, licensed method icons + native Apple/Google
 // Pay buttons, so no brand assets to source ourselves. `rules` targets the
@@ -66,6 +72,10 @@ type Labels = {
   errorLabel: string
   loadingLabel: string
   lockHoldLabel: string
+  /** Shown when the slot lock is lost to a concurrent booker (409/unavailable
+   * from find_or_lock_slot) — a clear "someone just took this, pick another"
+   * message, distinct from the generic "couldn't start payment" errorLabel. */
+  slotTakenLabel: string
   /** Generic fallback shown under the Payment Element when Stripe returns no
    * message of its own (declines/validation almost always include one, but
    * some edge cases don't) — must be CMS/i18n text, never a bare English string. */
@@ -139,6 +149,23 @@ function PayForm({
     setErr(null)
     const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}`
 
+    // We opt the Payment Element OUT of collecting any billing field we already
+    // have (name/email/phone -> `fields.billingDetails.* = 'never'` below). Stripe's
+    // contract: whatever you set to 'never' on the Element, you MUST supply back
+    // here in confirmParams.payment_method_data.billing_details — otherwise
+    // confirmPayment() throws a synchronous IntegrationError, the promise never
+    // resolves, and the button hangs on "處理中" forever. Build this object to mirror
+    // the `fields` config EXACTLY: include a field here iff we set it to 'never'
+    // there (i.e. iff we have a non-empty value for it).
+    const prefilledBilling: {
+      name?: string
+      email?: string
+      phone?: string
+    } = {}
+    if (billingDetails?.name) prefilledBilling.name = billingDetails.name
+    if (billingDetails?.email) prefilledBilling.email = billingDetails.email
+    if (billingDetails?.phone) prefilledBilling.phone = billingDetails.phone
+
     // redirect: 'if_required' means Stripe only navigates away when the method
     // actually needs it (Alipay/WeChat/wallets). For 3DS on card, Stripe.js opens
     // the challenge modal in-page and confirmPayment() stays pending until the
@@ -148,7 +175,12 @@ function PayForm({
     // its own (network/card errors surface via `error` below).
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: { return_url: returnUrl },
+      confirmParams: {
+        return_url: returnUrl,
+        ...(Object.keys(prefilledBilling).length > 0
+          ? { payment_method_data: { billing_details: prefilledBilling } }
+          : {}),
+      },
       redirect: "if_required",
     })
 
@@ -339,7 +371,16 @@ export default function StripePayment(props: Props) {
           }),
         })
         const lockJson = await lockRes.json()
-        if (!lockRes.ok) throw new Error(lockJson.detail || lockJson.error || "lock failed")
+        if (!lockRes.ok) {
+          // A 409 with reason 'unavailable' means we lost the slot to a
+          // concurrent booker (find_or_lock_slot's advisory-lock path). Surface
+          // the clear "someone just took this" copy rather than the generic
+          // lock-failure detail, so the losing user knows to pick another time.
+          if (lockRes.status === 409 && lockJson?.reason === "unavailable") {
+            throw new Error(SLOT_TAKEN)
+          }
+          throw new Error(lockJson.detail || lockJson.error || "lock failed")
+        }
         if (!cancelled) setLockedUntil(lockJson.lockedUntil ?? null)
 
         const intentRes = await fetch("/api/payment/create-intent", {
@@ -364,6 +405,16 @@ export default function StripePayment(props: Props) {
   }, [props.date, props.startHour, props.duration, props.tableNumber])
 
   if (error) {
+    // Slot lost to a concurrent booker: show ONLY the clear "pick another time"
+    // message — no generic errorLabel, no raw detail (there's nothing to
+    // diagnose, the slot is simply gone).
+    if (error === SLOT_TAKEN) {
+      return (
+        <div style={{ textAlign: "center", padding: "16px 0" }}>
+          <p style={{ fontSize: 14, color: "#f87171" }}>{props.slotTakenLabel}</p>
+        </div>
+      )
+    }
     return (
       <div style={{ textAlign: "center", padding: "16px 0" }}>
         <p style={{ fontSize: 14, color: "#f87171" }}>{props.errorLabel}</p>

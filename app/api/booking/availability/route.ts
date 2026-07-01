@@ -1,15 +1,19 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getDaySlots } from '@/lib/booking/server'
+import { getDaySlots, getRangeSlots } from '@/lib/booking/server'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
-// POST /api/booking/availability  { date }
-// Returns the day's booked/active-locked slot rows (plus neighbouring days, for
+// Prefetch cap: a single range request covers at most this many days so a caller
+// can't ask for an unbounded scan. The client prefetches today + 7 (8 total).
+const MAX_RANGE_DAYS = 14
+
+// POST /api/booking/availability  { date }  OR  { startDate, days }
+// Returns booked/active-locked slot rows (plus neighbouring days, for
 // cross-midnight bookings). The client computes per-hour / per-duration greying
-// and the available-table list locally from these — one request per date, no
-// extra round-trips while the user spins the time wheels.
+// and the available-table list locally from these. The { startDate, days } form
+// prefetches a week in one round-trip so switching dates needs no further calls.
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
@@ -23,6 +27,15 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => null)
+
+    // Range form (prefetch): { startDate, days }
+    if (typeof body?.startDate === 'string' && typeof body?.days === 'number') {
+      const days = Math.min(Math.max(1, Math.floor(body.days)), MAX_RANGE_DAYS)
+      const slots = await getRangeSlots(body.startDate, days)
+      return NextResponse.json({ slots })
+    }
+
+    // Single-date form (back-compat / out-of-range on-demand fetch)
     const date = body?.date
     if (typeof date !== 'string') {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })

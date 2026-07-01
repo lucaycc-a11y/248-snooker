@@ -262,8 +262,16 @@ async function handleSucceeded(
     throw new Error('Payment intent not succeeded, refusing to confirm booking')
   }
 
-  const bookingId = paymentIntent.metadata?.booking_id
+  const orderGroupId = paymentIntent.metadata?.order_group_id
   const userId = paymentIntent.metadata?.user_id
+
+  // Grouped (non-contiguous) booking: confirm every row in the group atomically.
+  if (orderGroupId) {
+    await handleGroupSucceeded(stripe, supabase, paymentIntent, orderGroupId, eventId)
+    return
+  }
+
+  const bookingId = paymentIntent.metadata?.booking_id
   if (!bookingId) throw new Error('payment_intent missing booking_id metadata')
 
   const { data: bookingRow, error: expectedErr } = await supabase
@@ -379,7 +387,138 @@ async function handleSucceeded(
   }
 }
 
+// Grouped confirm: confirm every booking in an order group in one DB transaction.
+// Verifies the paid amount against the SUM of the group's server-set prices, signs
+// a QR per booking, then calls confirm_booking_group.
+async function handleGroupSucceeded(
+  stripe: Stripe,
+  supabase: SupabaseClient,
+  paymentIntent: Stripe.PaymentIntent,
+  orderGroupId: string,
+  eventId: string,
+) {
+  const { data: rows, error: rowsErr } = await supabase
+    .from('bookings')
+    .select('id, total_price, date, start_time, end_time, table_number, user_id')
+    .eq('order_group_id', orderGroupId)
+  if (rowsErr) throw new Error(`group lookup failed: ${rowsErr.message}`)
+  if (!rows || rows.length === 0) throw new Error(`no bookings for order_group_id ${orderGroupId}`)
+
+  const expectedAmount =
+    rows.reduce((sum, r) => sum + parseBookingPaymentContext(r).total_price, 0) * 100
+  if (paymentIntent.amount !== expectedAmount) {
+    throw new Error(`Payment amount mismatch: expected ${expectedAmount}, got ${paymentIntent.amount}`)
+  }
+
+  let charge: Stripe.Charge | null = null
+  if (typeof paymentIntent.latest_charge === 'string' && paymentIntent.latest_charge) {
+    charge = await stripe.charges.retrieve(paymentIntent.latest_charge)
+  }
+  const paymentMethod = mapPaymentMethod(charge, false)
+
+  // Sign a QR token per booking, keyed by booking id for confirm_booking_group.
+  const qrCodes: Record<string, string> = {}
+  for (const r of rows) {
+    const ctx = parseBookingPaymentContext(r)
+    const startIso = `${ctx.date}T${ctx.start_time}`
+    const endIso = composeSlotEndIso(ctx.date, ctx.start_time, ctx.end_time)
+    qrCodes[r.id] = signQrToken({
+      booking_id: r.id,
+      user_id: String(paymentIntent.metadata?.user_id ?? ctx.user_id ?? ''),
+      table_number: ctx.table_number,
+      start_time: startIso,
+      end_time: endIso,
+    })
+  }
+
+  console.log('[webhook/stripe] confirming booking group', {
+    orderGroupId,
+    bookings: rows.length,
+    paymentIntentId: paymentIntent.id,
+    paymentMethod,
+    amount: paymentIntent.amount,
+  })
+
+  const { data: rawResult, error } = await supabase.rpc('confirm_booking_group', {
+    p_order_group_id: orderGroupId,
+    p_payment_intent_id: paymentIntent.id,
+    p_payment_method: paymentMethod,
+    p_qr_codes: qrCodes,
+    p_event_id: eventId,
+  })
+  if (error) throw new Error(`confirm_booking_group failed: ${error.message}`)
+  const result = rawResult as { success?: boolean; reason?: string; user_id?: string; booking_ids?: string[] }
+  if (result?.success === false) {
+    throw new Error(`confirm_booking_group rejected: ${result.reason}`)
+  }
+
+  console.log('[webhook/stripe] booking group confirmed', {
+    orderGroupId,
+    userId: result?.user_id,
+    bookings: result?.booking_ids?.length,
+  })
+
+  // Receipt email: one combined receipt for the group (sent for the first booking;
+  // non-fatal so a hiccup never fails an already-confirmed group).
+  try {
+    const userId = result?.user_id
+    const primaryId = result?.booking_ids?.[0]
+    if (userId && primaryId) {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('name, phone, preferred_locale')
+        .eq('id', userId)
+        .single()
+      if (profile?.name) {
+        const first = parseBookingPaymentContext(rows[0])
+        const { sendBookingReceipt } = await import('@/lib/resend/send')
+        await sendBookingReceipt({
+          to: paymentIntent.receipt_email || '',
+          booking: {
+            id: primaryId,
+            user_id: userId,
+            date: first.date,
+            start_time: first.start_time,
+            end_time: first.end_time,
+            table_number: first.table_number,
+            total_price: Math.round(paymentIntent.amount / 100),
+            payment_method: paymentMethod,
+          },
+          paymentIntentId: paymentIntent.id,
+          customerName: profile.name,
+          customerPhone: profile.phone || '',
+          locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en' | 'ja') || 'zh-HK',
+        })
+      }
+      await supabase.from('notification_log').insert(
+        (result?.booking_ids ?? []).flatMap((bid) => [
+          { user_id: userId, booking_id: bid, channel: 'email', type: 'booking_confirmed', status: 'sent' },
+          { user_id: userId, booking_id: bid, channel: 'whatsapp', type: 'booking_confirmed', status: 'pending' },
+        ]),
+      )
+    }
+  } catch (e) {
+    console.error('[webhook/stripe] group_notification_failed', {
+      message: (e as Error).message,
+      orderGroupId,
+    })
+  }
+}
+
 async function handleFailed(supabase: SupabaseClient, pi: Stripe.PaymentIntent, eventId: string) {
+  const orderGroupId = pi.metadata?.order_group_id
+  // Grouped: release every held slot in the group.
+  if (orderGroupId) {
+    console.log('[webhook/stripe] group payment failed, releasing locks', { orderGroupId, paymentIntentId: pi.id })
+    const { data, error } = await supabase.rpc('release_group_locks', {
+      p_order_group_id: orderGroupId,
+      p_event_id: eventId,
+    })
+    if (error) throw new Error(`release_group_locks failed: ${error.message}`)
+    assertRpcSucceeded(data, 'release_group_locks')
+    return
+  }
+
   const slotId = pi.metadata?.slot_id
   if (!slotId) {
     throw new Error('payment_intent.payment_failed missing slot_id metadata')
@@ -405,6 +544,28 @@ async function handleRefunded(supabase: SupabaseClient, charge: Stripe.Charge, e
   if (!pi) {
     throw new Error('charge.refunded missing payment_intent')
   }
+
+  // If this payment intent backs a grouped booking, refund the whole group. The
+  // charge event carries no metadata, so resolve the group from the booking rows.
+  const { data: grouped } = await supabase
+    .from('bookings')
+    .select('order_group_id')
+    .eq('stripe_payment_intent', pi)
+    .not('order_group_id', 'is', null)
+    .limit(1)
+    .maybeSingle()
+
+  if (grouped?.order_group_id) {
+    console.log('[webhook/stripe] refunding booking group', { orderGroupId: grouped.order_group_id, chargeId: charge.id })
+    const { data, error } = await supabase.rpc('refund_group', {
+      p_order_group_id: grouped.order_group_id,
+      p_event_id: eventId,
+    })
+    if (error) throw new Error(`refund_group failed: ${error.message}`)
+    assertRpcSucceeded(data, 'refund_group')
+    return
+  }
+
   console.log('[webhook/stripe] refunding booking', { paymentIntentId: pi, chargeId: charge.id })
   // Atomic: booking → refunded, reverse points, free the slot, mark event processed.
   const { data, error } = await supabase.rpc('refund_booking', {

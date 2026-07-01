@@ -543,6 +543,7 @@
     "snooker": "英式台球",
     "available": "现时可预订",
     "unavailable": "此时段已被预订",
+    "slot_taken": "此时段刚刚被其他人预订了，请返回选择其他时段。",
     "selected": "已选择",
     "select_this_table": "选择此台",
     "hint": "如所选时段该台已被预订，可随时切换至另一台",
