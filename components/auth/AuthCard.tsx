@@ -292,15 +292,7 @@ export function AuthCard({
           err_email: t("err_email"),
           err_phone: t("err_phone"),
           err_generic: t("err_generic"),
-          phone_send_code: t("profile_phone_send_code"),
           phone_verified_badge: t("profile_phone_verified_badge"),
-          phone_otp_subtitle: t("otp_subtitle", { phone: "{phone}" }),
-          phone_resend: t("resend"),
-          phone_resend_in: t("resend_in", { seconds: "{seconds}" }),
-          phone_change_number: t("profile_phone_change_number"),
-          err_otp_wrong: t("err_otp_wrong", { count: "{count}" }),
-          err_otp_expired: t("err_otp_expired"),
-          err_otp_locked: t("err_otp_locked"),
         }}
       />
     )

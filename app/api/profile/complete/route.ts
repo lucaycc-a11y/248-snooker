@@ -56,34 +56,15 @@ export async function POST(req: Request) {
       )
     }
 
-    // Authoritative phone-possession check: the client-side flow (SMS sign-in,
-    // OR ProfileCompletion's supabase.auth.updateUser + verifyOtp(type:
-    // 'phone_change') for Apple/Google/Email users) is the ONLY way
-    // auth.users.phone gets set to a Supabase-verified number. Never trust a
-    // phone string arriving in the request body on its own — require it to
-    // match the verified auth.users.phone, so a client can't just POST an
-    // arbitrary unverified number and skip the OTP round-trip entirely.
-    // NOTE: Supabase stores auth.users.phone in bare E.164 (no leading '+',
-    // e.g. "85291234567"), while normalizeHkPhone() returns "+852XXXXXXXX" —
-    // strip the '+' before comparing, or this rejects every legitimately
-    // verified user.
-    const verifiedPhone = (user.phone ?? '').replace(/^\+/, '')
-    if (result.value.phone.replace(/^\+/, '') !== verifiedPhone) {
-      console.error('[profile/complete] phone_not_verified', {
-        userId: user.id,
-        authPhoneSet: Boolean(user.phone),
-      })
-      return NextResponse.json(
-        { error: 'phone_not_verified', field: 'phone' },
-        { status: 422 },
-      )
-    }
-
     // Service-role UPSERT (not update): a brand-new SMS user verifies OTP
     // client-side without passing through /auth/callback, so they may have no
     // users row yet — an update would silently affect 0 rows. Service-role also
     // bypasses RLS, so the UPSERT never needs a matching INSERT *and* UPDATE
     // policy to line up (a subtle way a cookie-bound client fails on new rows).
+    // Phone is written as-submitted (format-validated above only) — it is NOT
+    // cross-checked against auth.users.phone. Only SMS-login users have a
+    // Supabase-verified phone there; Apple/Google/Email users never do, so this
+    // column intentionally holds an unverified, format-checked number for them.
     // NOTE: this write can only 500 — auth is fully settled above, so a 401 can
     // never originate from here regardless of which client performs the write.
     const service = getServiceSupabase()
