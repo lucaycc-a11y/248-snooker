@@ -131,6 +131,10 @@ export async function POST(req: Request) {
           amount: quote.amountInCents,
           currency: 'hkd',
           automatic_payment_methods: { enabled: true },
+          // Stripe emails the receipt itself on success — one less thing for the
+          // frontend/webhook to send. user.email is the authoritative auth email,
+          // never client input.
+          receipt_email: user.email ?? undefined,
           metadata: {
             booking_id: bookingId,
             slot_id: slot.id,

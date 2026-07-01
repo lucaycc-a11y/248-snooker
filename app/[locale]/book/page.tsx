@@ -17,6 +17,7 @@ import { Button, Card, ProgressSteps, BackButton } from "@/components/ui"
 import { VisaLogo } from "@/components/brand"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
+import { createClient } from "@/lib/supabase/client"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
@@ -1409,6 +1410,37 @@ function Screen3({
 
   const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
 
+  // The user is already authenticated + profile_complete by the time they reach
+  // this step (Screen2 gates on it), so `users` already has display_name/email/
+  // phone — read it once here rather than asking the Payment Element to collect
+  // it again. RLS lets a user select their own row via the cookie-bound browser
+  // client (same pattern as AuthCard/AccountMenu).
+  const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+      if (!user || cancelled) return
+      const { data } = await supabase
+        .from("users")
+        .select("display_name, email, phone")
+        .eq("id", user.id)
+        .maybeSingle()
+      if (cancelled) return
+      setProfile({
+        name: (data?.display_name as string) ?? "",
+        email: (data?.email as string) ?? user.email ?? "",
+        phone: (data?.phone as string) ?? "",
+      })
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <div className="screen-content">
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
@@ -1431,10 +1463,25 @@ function Screen3({
           </div>
           <div
             data-cms-key="book.pay.venue"
-            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16 }}
+            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: profile ? 12 : 16 }}
           >
             248 Snooker · {tableName}
           </div>
+          {profile && (profile.name || profile.email || profile.phone) && (
+            <>
+              <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
+              <div style={{ marginBottom: 16 }}>
+                {profile.name && (
+                  <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 2 }}>{profile.name}</div>
+                )}
+                {(profile.email || profile.phone) && (
+                  <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
+                    {[profile.email, profile.phone].filter(Boolean).join(" · ")}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
           <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
             <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>{t("subtotal")}</span>
@@ -1475,6 +1522,8 @@ function Screen3({
           loadingLabel={t("pay_loading")}
           lockHoldLabel={t("lock_hold")}
           paymentFailedLabel={t("pay_declined")}
+          timeoutLabel={t("pay_timeout")}
+          billingDetails={profile ?? undefined}
         />
 
         {/* Stripe secure */}

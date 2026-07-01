@@ -14,15 +14,39 @@ const stripePromise = getStripeClient()
 
 // Match the booking page's black + brand-green + pill design language.
 // PaymentElement renders official, licensed method icons + native Apple/Google
-// Pay buttons, so no brand assets to source ourselves.
+// Pay buttons, so no brand assets to source ourselves. `rules` targets the
+// sub-elements (method tabs, card/phone inputs) that the top-level `variables`
+// don't reach on their own.
 const appearance: Appearance = {
   theme: "night",
   variables: {
     colorPrimary: "#22c55e",
     colorBackground: "#000000",
     colorText: "#ffffff",
+    colorTextSecondary: "#a3a3a3",
     borderRadius: "9999px",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif",
+    spacingUnit: "4px",
+  },
+  rules: {
+    ".Tab": {
+      border: "1px solid #333333",
+      borderRadius: "9999px",
+      backgroundColor: "#111111",
+    },
+    ".Tab--selected": {
+      backgroundColor: "#22c55e",
+      borderColor: "#22c55e",
+      color: "#000000",
+    },
+    ".Input": {
+      borderRadius: "9999px",
+      backgroundColor: "#111111",
+      border: "1px solid #333333",
+    },
+    ".Input:focus": {
+      borderColor: "#22c55e",
+    },
   },
 }
 
@@ -45,6 +69,19 @@ type Labels = {
    * message of its own (declines/validation almost always include one, but
    * some edge cases don't) — must be CMS/i18n text, never a bare English string. */
   paymentFailedLabel: string
+  /** Shown if confirmPayment() hasn't resolved after 15s, instead of an
+   * infinite spinner (e.g. a hung network request). */
+  timeoutLabel: string
+}
+
+/** Pre-fill for the Payment Element's billing-details fields — already known
+ * from the user's profile (Screen2 gates on profile_complete), so we never
+ * ask for it again. Passed through to `defaultValues` + used to disable the
+ * corresponding `fields`. */
+type BillingDetails = {
+  name: string
+  email: string
+  phone: string
 }
 
 type Props = Labels & {
@@ -58,7 +95,10 @@ type Props = Labels & {
   locale: string
   /** Path Stripe returns to after a redirect method (Alipay/WeChat/3DS). */
   returnPath?: string
+  billingDetails?: BillingDetails
 }
+
+const CONFIRM_TIMEOUT_MS = 15_000
 
 function PayForm({
   bookingId,
@@ -66,12 +106,16 @@ function PayForm({
   payLabel,
   processingLabel,
   paymentFailedLabel,
+  timeoutLabel,
+  billingDetails,
 }: {
   bookingId: string
   returnPath: string
   payLabel: string
   processingLabel: string
   paymentFailedLabel: string
+  timeoutLabel: string
+  billingDetails?: BillingDetails
 }) {
   const stripe = useStripe()
   const elements = useElements()
@@ -84,24 +128,87 @@ function PayForm({
     setSubmitting(true)
     setErr(null)
     const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}`
-    const { error } = await stripe.confirmPayment({
+
+    // redirect: 'if_required' means Stripe only navigates away when the
+    // method actually needs it (Alipay/WeChat/wallets/3DS) — a plain card
+    // with no extra verification resolves right here instead of a full-page
+    // redirect round-trip. A 15s watchdog guards against confirmPayment()
+    // hanging (e.g. a stalled network request) so the button never spins
+    // forever with no feedback.
+    let timedOut = false
+    const timeout = new Promise<"timeout">((resolve) =>
+      setTimeout(() => {
+        timedOut = true
+        resolve("timeout")
+      }, CONFIRM_TIMEOUT_MS),
+    )
+    const confirm = stripe.confirmPayment({
       elements,
       confirmParams: { return_url: returnUrl },
+      redirect: "if_required",
     })
-    // Reaching here means confirmation failed BEFORE any redirect (e.g. card
-    // declined, validation). On success Stripe redirects to return_url and the
-    // page reloads, so this line never runs. error.message is already localized
-    // by Stripe (Elements' `locale` option, set below) — the fallback only fires
-    // on the rare error with no message, so it must be CMS text too.
+    const result = await Promise.race([confirm, timeout])
+
+    if (result === "timeout") {
+      setErr(timeoutLabel)
+      setSubmitting(false)
+      return
+    }
+    // confirmPayment() resolved after the watchdog already fired — the
+    // timeout message is already showing; let it be rather than overwrite
+    // with a stale success/error from the slow call.
+    if (timedOut) return
+
+    const { error, paymentIntent } = result
     if (error) {
+      // error.message is already localized by Stripe (Elements' `locale`
+      // option, set below) — the fallback only fires on the rare error with
+      // no message, so it must be CMS text too.
       setErr(error.message ?? paymentFailedLabel)
       setSubmitting(false)
+      return
     }
+    if (paymentIntent && paymentIntent.status !== "succeeded" && paymentIntent.status !== "processing") {
+      // Resolved without redirecting and without erroring, but not in a
+      // terminal-success state either (e.g. requires_action edge case) —
+      // treat as failed rather than silently navigating on to a
+      // confirmation screen for a booking that isn't actually paid.
+      setErr(paymentFailedLabel)
+      setSubmitting(false)
+      return
+    }
+    // Succeeded (or processing, e.g. some redirect-less async methods)
+    // without a browser-navigating redirect — drive the same return_url the
+    // redirect methods use, so the parent page's existing poll-for-
+    // 'confirmed' logic (keyed off ?bookingId&redirect_status) is the single
+    // code path for every payment method.
+    window.location.href = returnUrl
   }
 
   return (
     <form onSubmit={onSubmit}>
-      <PaymentElement options={{ layout: "tabs" }} />
+      <PaymentElement
+        options={{
+          layout: "tabs",
+          fields: {
+            billingDetails: {
+              address: { postalCode: "never", country: "never" },
+              name: billingDetails?.name ? "never" : "auto",
+              email: billingDetails?.email ? "never" : "auto",
+              phone: billingDetails?.phone ? "never" : "auto",
+            },
+          },
+          defaultValues: billingDetails
+            ? {
+                billingDetails: {
+                  name: billingDetails.name || undefined,
+                  email: billingDetails.email || undefined,
+                  phone: billingDetails.phone || undefined,
+                },
+              }
+            : undefined,
+        }}
+      />
       {err && (
         <p style={{ marginTop: 12, fontSize: 13, color: "#f87171" }}>{err}</p>
       )}
@@ -244,6 +351,8 @@ export default function StripePayment(props: Props) {
         payLabel={props.payLabel}
         processingLabel={props.processingLabel}
         paymentFailedLabel={props.paymentFailedLabel}
+        timeoutLabel={props.timeoutLabel}
+        billingDetails={props.billingDetails}
       />
     </Elements>
   )

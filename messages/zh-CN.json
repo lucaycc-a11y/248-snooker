@@ -584,7 +584,8 @@
     "table_locked_tooltip": "有人正在预订中，请稍候或选择其他球台",
     "tables_remaining": "此时段尚余 {count} 张台",
     "lock_hold": "时段已为你保留 {time}",
-    "pay_declined": "付款未能完成，请检查付款方式或再试一次。"
+    "pay_declined": "付款未能完成，请检查付款方式或再试一次。",
+    "pay_timeout": "付款处理需时比预期耐，请检查网络连接再试一次。"
   },
   "ticket": {
     "duration": "时长",
