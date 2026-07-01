@@ -168,17 +168,16 @@ function PayForm({
     // hangs on "處理中" forever. This object must mirror the `fields` config EXACTLY.
     //
     // address.postalCode + address.country are UNCONDITIONALLY 'never', so we
-    // ALWAYS supply the address. country is required for card billing (HK venue);
-    // postal_code is 'never' but optional for HK cards, so no value is needed —
-    // supplying `country` satisfies the contract. name/email/phone are 'never'
-    // only when we already have the value, so include each iff present.
+    // ALWAYS supply the address. Stripe requires BOTH keys be present in
+    // confirmParams when set to 'never', even if the field value is optional for
+    // this region — an empty string satisfies the contract when we don't collect it.
     const prefilledBilling: {
       name?: string
       email?: string
       phone?: string
-      address: { country: string; postal_code?: string }
+      address: { country: string; postal_code: string }
     } = {
-      address: { country: "HK" },
+      address: { country: "HK", postal_code: "" },
     }
     if (billingDetails?.name) prefilledBilling.name = billingDetails.name
     if (billingDetails?.email) prefilledBilling.email = billingDetails.email
