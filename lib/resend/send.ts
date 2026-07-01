@@ -48,7 +48,7 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
     paymentIntentId: params.paymentIntentId,
   }
 
-  const html = render(BookingConfirmedEmail(emailProps))
+  const html = await render(BookingConfirmedEmail(emailProps))
 
   const subjectLines = {
     'zh-HK': '你嘅預訂已確認 — 248 Snooker',

@@ -596,7 +596,9 @@
     "pay_declined": "Payment could not be completed. Please check your payment method and try again.",
     "pay_timeout": "Payment is taking longer than expected. Please check your connection and try again.",
     "contiguous_slots_required": "Please select contiguous time slots",
-    "payment_reminder": "Complete payment within 15 minutes or your reservation will be automatically cancelled"
+    "payment_reminder": "Complete payment within 15 minutes or your reservation will be automatically cancelled",
+    "whatsapp_support": "If you suspect you have been charged, please contact us via WhatsApp to verify:",
+    "retry_payment": "Choose another payment method"
   },
   "ticket": {
     "duration": "Duration",

@@ -1226,7 +1226,6 @@ function Screen1({
   const [daySlots, setDaySlots] = useState<DaySlot[] | null>(null)
   const [dayLoading, setDayLoading] = useState(false)
   const timeRef = useRef<HTMLDivElement>(null)
-  const tableRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
 
   const dateStr = useMemo(() => {
@@ -1286,66 +1285,25 @@ function Screen1({
     }
   }, [dateChosen, dateStr])
 
-  // Tables free for the CURRENT start+duration (drives Step 3 + the live summary).
-  const tableStates = useMemo(
-    () => (daySlots ? tableStatesFor(daySlots, dateStr, startHour, duration) : null),
-    [daySlots, dateStr, startHour, duration]
-  )
-  const availableTables = useMemo(
-    () =>
-      tableStates
-        ? ALL_TABLES.filter((tn) => tableStates.get(tn) === "available")
-        : null,
-    [tableStates]
-  )
-
-  // Wheel greying: a start hour is full if no table fits the current duration; a
-  // duration is full if no table fits it at the current start hour.
-  const isStartDisabled = useCallback(
-    (h: number) =>
-      daySlots ? freeTablesFor(daySlots, dateStr, h, duration).length === 0 : false,
-    [daySlots, dateStr, duration]
-  )
-  const isDurationDisabled = useCallback(
-    (d: number) =>
-      daySlots ? freeTablesFor(daySlots, dateStr, startHour, d).length === 0 : false,
-    [daySlots, dateStr, startHour]
-  )
-
-  // Drop a selected table if a time change made it unavailable.
+  // Animate the live price total.
   useEffect(() => {
-    if (
-      availableTables &&
-      selectedTable !== null &&
-      !availableTables.includes(selectedTable)
-    ) {
-      setSelectedTable(null)
-    }
-  }, [availableTables, selectedTable, setSelectedTable])
+    const target = CONFIG.pricePerHour * duration
+    if (target === displayTotal) return
+    const step = target > displayTotal ? 10 : -10
+    const id = setInterval(() => {
+      setDisplayTotal((prev) => {
+        const next = prev + step
+        if ((step > 0 && next >= target) || (step < 0 && next <= target)) {
+          clearInterval(id)
+          return target
+        }
+        return next
+      })
+    }, 20)
+    return () => clearInterval(id)
+  }, [duration, displayTotal])
 
-  // Once tables resolve for a date, bring the table-selection section into view
-  // (it sits below the fold under the time wheels). Once per date — not on every
-  // wheel tick — so we don't fight the user while they adjust the time.
-  const scrolledForDate = useRef<string | null>(null)
-  useEffect(() => {
-    if (!dateChosen || dayLoading || availableTables === null) return
-    if (scrolledForDate.current === dateStr) return
-    scrolledForDate.current = dateStr
-    scrollToRef(tableRef)
-  }, [dateChosen, dayLoading, availableTables, dateStr])
-
-  const startItems = useMemo(() => Array.from({ length: 24 }, (_, i) => i), [])
-  const durationItems = useMemo(
-    () => Array.from({ length: CONFIG.maxHours }, (_, i) => i + 1),
-    []
-  )
-
-  const fullyBooked =
-    dateChosen && availableTables !== null && availableTables.length === 0
-  const ready =
-    dateChosen &&
-    selectedTable !== null &&
-    (availableTables?.includes(selectedTable) ?? false)
+  const ready = dateChosen && duration > 0 && selectedTable !== null
   const canContinue = ready
 
   const sectionLabel = (text: string, cmsKey: string) => (
@@ -1380,210 +1338,74 @@ function Screen1({
             />
           </div>
 
-          {/* Step 2 — Time + duration (revealed after date chosen) */}
+          {/* Step 2 — Time Slot Grid (revealed after date chosen) */}
           <AnimatePresence>
             {dateChosen && (
               <motion.div
                 ref={timeRef}
-                key="time"
+                key="time-grid"
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ display: "flex", gap: 24 }}>
-                    <div style={{ flex: 1 }}>
-                      <div
-                        data-cms-key="book.time.title"
-                        style={{
-                          fontSize: 12,
-                          color: tokens.colors.textMuted,
-                          textAlign: "center",
-                          marginBottom: 8,
-                        }}
-                      >
-                        {t("start_time")}
-                      </div>
-                      <div
-                        style={{
-                          background: "rgba(255,255,255,0.03)",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          borderRadius: 16,
-                        }}
-                      >
-                        <DrumWheel
-                          items={startItems}
-                          selected={startHour}
-                          onChange={setStartHour}
-                          labelFn={(h) => padTime(h)}
-                          ariaLabel={t("start_time")}
-                          isDisabled={isStartDisabled}
-                        />
-                      </div>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div
-                        data-cms-key="book.duration.title"
-                        style={{
-                          fontSize: 12,
-                          color: tokens.colors.textMuted,
-                          textAlign: "center",
-                          marginBottom: 8,
-                        }}
-                      >
-                        {t("duration")}
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: 8,
-                          alignContent: "center",
-                          justifyContent: "center",
-                          minHeight: WHEEL_VISIBLE * WHEEL_ITEM_H,
-                          background: "rgba(255,255,255,0.03)",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          borderRadius: 16,
-                          padding: 12,
-                        }}
-                      >
-                        {durationItems.map((d) => {
-                          const isSelected = d === duration
-                          const disabled = isDurationDisabled(d)
-                          return (
-                            <button
-                              key={d}
-                              type="button"
-                              disabled={disabled}
-                              onClick={() => setDuration(d)}
-                              aria-pressed={isSelected}
-                              className="transition-all duration-150"
-                              style={{
-                                minWidth: 56,
-                                height: 40,
-                                padding: "0 14px",
-                                borderRadius: tokens.radius.pill,
-                                border: `1px solid ${isSelected ? tokens.colors.brand : tokens.colors.border}`,
-                                background: isSelected
-                                  ? tokens.colors.brand
-                                  : "rgba(255,255,255,0.04)",
-                                color: disabled
-                                  ? tokens.colors.textFaint
-                                  : isSelected
-                                    ? "#000"
-                                    : tokens.colors.text,
-                                fontSize: 14,
-                                fontWeight: isSelected ? 700 : 500,
-                                textDecoration: disabled ? "line-through" : "none",
-                                opacity: disabled ? 0.4 : 1,
-                                cursor: disabled ? "not-allowed" : "pointer",
-                              }}
-                            >
-                              {d}
-                              {t("hours")}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  </div>
+                  {sectionLabel(t("start_time"), "book.time.title")}
+                  <TimeSlotGrid
+                    selectedDate={selectedDate}
+                    daySlots={daySlots}
+                    dayLoading={dayLoading}
+                    startHour={startHour}
+                    duration={duration}
+                    onSelect={(start, dur) => {
+                      setStartHour(start)
+                      setDuration(dur)
+                      // Auto-assign table whenever selection changes
+                      if (dur > 0 && daySlots) {
+                        const free = freeTablesFor(daySlots, dateStr, start, dur)
+                        setSelectedTable(free.length > 0 ? free[0] : null)
+                      } else {
+                        setSelectedTable(null)
+                      }
+                    }}
+                  />
                 </div>
 
-                {/* Live price preview */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  style={{
-                    background: tokens.colors.surface,
-                    border: `1px solid ${tokens.colors.border}`,
-                    borderRadius: tokens.radius.input,
-                    padding: "16px 20px",
-                    marginBottom: 20,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 8,
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Clock size={14} style={{ color: tokens.colors.textMuted }} />
-                    <span style={{ fontSize: 15 }}>
-                      {padTime(startHour)} – {padTime(endHour)}
-                      {crossDay ? " (+1日)" : ""} · {duration}{t("hours")}
-                    </span>
-                  </div>
-                  <span
+                {/* Live price summary (relocated below grid) */}
+                {duration > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     style={{
-                      fontFamily: BEBAS,
-                      fontSize: 24,
-                      color: tokens.colors.brand,
+                      background: tokens.colors.surface,
+                      border: `1px solid ${tokens.colors.border}`,
+                      borderRadius: tokens.radius.input,
+                      padding: "16px 20px",
+                      marginBottom: 20,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
+                      gap: 8,
                     }}
                   >
-                    HK${displayTotal}
-                  </span>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Step 3 — Table (revealed after date; a fully BOOKED table is removed
-              entirely, a LOCKED (someone else mid-checkout) table stays visible but
-              disabled with a tooltip — see TableSelect). */}
-          <AnimatePresence>
-            {dateChosen && (
-              <motion.div
-                ref={tableRef}
-                key="tables"
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <div style={{ marginBottom: 28 }}>
-                  {sectionLabel(t("select_table"), "book.table.title")}
-                  {dayLoading || tableStates === null ? (
-                    <div
-                      data-cms-key="book.checking"
-                      style={{ fontSize: 13, color: tokens.colors.textMuted }}
-                    >
-                      {t("checking")}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Clock size={14} style={{ color: tokens.colors.textMuted }} />
+                      <span style={{ fontSize: 15 }}>
+                        {padTime(startHour)} – {padTime(endHour)}
+                        {crossDay ? " (+1日)" : ""} · {duration}{t("hours")}
+                      </span>
                     </div>
-                  ) : fullyBooked ? (
-                    <div
-                      data-cms-key="book.fullybooked"
+                    <span
                       style={{
-                        fontSize: 14,
-                        color: tokens.colors.textMuted,
-                        padding: "16px 20px",
-                        border: `1px solid ${tokens.colors.border}`,
-                        borderRadius: tokens.radius.input,
-                        textAlign: "center",
+                        fontFamily: BEBAS,
+                        fontSize: 24,
+                        color: tokens.colors.brand,
                       }}
                     >
-                      {t("fully_booked")}
-                    </div>
-                  ) : (
-                    <>
-                      {availableTables !== null && availableTables.length > 0 && (
-                        <div
-                          data-cms-key="book.table.remaining"
-                          style={{
-                            fontSize: 12,
-                            color: tokens.colors.brand,
-                            marginBottom: 10,
-                          }}
-                        >
-                          {t("tables_remaining", { count: availableTables.length })}
-                        </div>
-                      )}
-                      <TableSelect
-                        tableStates={tableStates}
-                        selected={selectedTable}
-                        onSelect={(id) => setSelectedTable(id)}
-                      />
-                    </>
-                  )}
-                </div>
+                      HK${displayTotal}
+                    </span>
+                  </motion.div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1839,6 +1661,8 @@ function Screen3({
           lockHoldLabel={t("lock_hold")}
           paymentFailedLabel={t("pay_declined")}
           timeoutLabel={t("pay_timeout")}
+          whatsappSupportLabel={t("whatsapp_support")}
+          retryPaymentLabel={t("retry_payment")}
           billingDetails={profile ?? undefined}
         />
 
