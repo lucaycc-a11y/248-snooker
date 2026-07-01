@@ -16,6 +16,7 @@ import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui'
 import { AccountMenu } from '@/components/auth/AccountMenu'
 import { SignInPrompt } from '@/components/auth/SignInPrompt'
+import { AuthModal } from '@/components/auth/AuthModal'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
@@ -46,6 +47,7 @@ function pillStyle(theme: NavTheme): CSSProperties {
 
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [theme, setTheme] = useState<NavTheme>('dark')
   const [loggedIn, setLoggedIn] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -54,6 +56,9 @@ export default function Nav() {
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('nav')
+
+  // Locale-aware returnUrl for OAuth redirects (re-attaches locale prefix for non-default locales)
+  const returnUrl = locale === routing.defaultLocale ? pathname : `/${locale}${pathname}`
 
   const navText = (key: string, fallback: string) => {
     const value = t.has(key) ? t(key) : fallback
@@ -178,8 +183,9 @@ export default function Nav() {
     }
 
     return (
-      <PlainLink
-        href="/login"
+      <button
+        type="button"
+        onClick={() => setLoginModalOpen(true)}
         className="nav-cta-desktop"
         style={{
           position: 'absolute',
@@ -189,6 +195,10 @@ export default function Nav() {
           textDecoration: 'none',
           pointerEvents: 'auto',
           display: 'none',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          cursor: 'pointer',
         }}
       >
         <span
@@ -209,13 +219,13 @@ export default function Nav() {
         >
           {t('login')}
         </span>
-      </PlainLink>
+      </button>
     )
   }
 
   return (
     <>
-      <SignInPrompt />
+      <SignInPrompt onOpenLogin={() => setLoginModalOpen(true)} />
       <nav
         style={{
           position: 'fixed',
@@ -359,14 +369,19 @@ export default function Nav() {
           {loggedIn ? (
             <AccountMenu avatarUrl={avatarUrl} variant="mobile" linkColor={linkColor} />
           ) : (
-            <PlainLink
-              href="/login"
+            <button
+              type="button"
+              onClick={() => setLoginModalOpen(true)}
               aria-label={memberLabel}
               data-cms-key="nav.login-mobile"
               style={{
                 textDecoration: 'none',
                 display: 'flex',
                 alignItems: 'center',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
               }}
             >
               <span
@@ -386,7 +401,7 @@ export default function Nav() {
               >
                 {navText('login', 'Login')}
               </span>
-            </PlainLink>
+            </button>
           )}
 
           <button
@@ -497,28 +512,26 @@ export default function Nav() {
                 </Link>
               ))}
 
-              <PlainLink
-                href={memberHref}
-                onClick={() => setMenuOpen(false)}
-                data-cms-key={loggedIn ? 'nav.link.member' : 'nav.login'}
-                style={{
-                  fontSize: 30,
-                  fontWeight: 600,
-                  color: pathname === '/member' ? tokens.colors.brand : tokens.colors.text,
-                  textDecoration: 'none',
-                  whiteSpace: 'nowrap',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                }}
-              >
-                {loggedIn ? (
+              {loggedIn && (
+                <PlainLink
+                  href="/member"
+                  onClick={() => setMenuOpen(false)}
+                  data-cms-key="nav.link.member"
+                  style={{
+                    fontSize: 30,
+                    fontWeight: 600,
+                    color: pathname === '/member' ? tokens.colors.brand : tokens.colors.text,
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                  }}
+                >
                   <MemberIcon size={12} />
-                ) : (
-                  <User size={28} strokeWidth={1.5} />
-                )}
-                {navText('login', 'Login')}
-              </PlainLink>
+                  {navText('member', 'Member')}
+                </PlainLink>
+              )}
 
               <button
                 onClick={() => {
@@ -552,6 +565,14 @@ export default function Nav() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthModal
+        open={loginModalOpen}
+        returnUrl={returnUrl}
+        onClose={() => setLoginModalOpen(false)}
+        onAuthComplete={() => setLoginModalOpen(false)}
+        dismissible
+      />
     </>
   )
 }

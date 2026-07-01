@@ -21,7 +21,7 @@ const SHOW_DELAY_MS = 2500
 // Uses useAuthSession so it never flashes for a logged-in user (waits for the
 // session check to resolve). Portaled to <body> so the nav's scroll-time
 // transform: scale() doesn't trap the fixed element.
-export function SignInPrompt() {
+export function SignInPrompt({ onOpenLogin }: { onOpenLogin: () => void }) {
   const t = useTranslations("nav")
   const { loading, user } = useAuthSession()
   const [mounted, setMounted] = useState(false)
@@ -92,11 +92,13 @@ export function SignInPrompt() {
           <span data-cms-key="nav.prompt_text" style={{ fontSize: 14, color: "#fff", whiteSpace: "nowrap" }}>
             {t("prompt_text")}
           </span>
-          {/* Plain <a>: /login is non-localized (locale-aware Link would 404). */}
-          <a
-            href="/login"
+          <button
+            type="button"
+            onClick={() => {
+              close()
+              onOpenLogin()
+            }}
             data-cms-key="nav.prompt_cta"
-            onClick={close}
             style={{
               flexShrink: 0,
               padding: "7px 16px",
@@ -106,10 +108,12 @@ export function SignInPrompt() {
               fontWeight: 700,
               fontSize: 14,
               textDecoration: "none",
+              border: "none",
+              cursor: "pointer",
             }}
           >
             {t("prompt_cta")}
-          </a>
+          </button>
           <button
             type="button"
             onClick={close}

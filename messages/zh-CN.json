@@ -594,7 +594,9 @@
     "tables_remaining": "此时段尚余 {count} 张台",
     "lock_hold": "时段已为你保留 {time}",
     "pay_declined": "付款未能完成，请检查付款方式或再试一次。",
-    "pay_timeout": "付款处理需时比预期耐，请检查网络连接再试一次。"
+    "pay_timeout": "付款处理需时比预期耐，请检查网络连接再试一次。",
+    "contiguous_slots_required": "请选择连续时段",
+    "payment_reminder": "15 分钟内必须完成付款交易，否则预约时间自动取消"
   },
   "ticket": {
     "duration": "时长",

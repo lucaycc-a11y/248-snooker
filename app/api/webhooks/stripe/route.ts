@@ -183,17 +183,46 @@ async function handleSucceeded(
   })
 
   // Notifications: send DIRECTLY then record in notification_log (it's a post-send
-  // log, not a queue). The actual Resend/WhatsApp dispatch is the remaining
-  // integration — wire lib/resend + lib/twilio here. Recorded non-fatally so a
-  // notification hiccup never fails an already-confirmed booking.
-  // TODO(notify): call Resend (email) + WhatsApp (Twilio) before logging.
+  // log, not a queue). Recorded non-fatally so a notification hiccup never fails
+  // an already-confirmed booking.
   try {
+    // Fetch user profile for email receipt
+    const { data: profile } = await supabase
+      .from('users')
+      .select('name, phone, preferred_locale')
+      .eq('id', result.user_id)
+      .single()
+
+    if (profile?.name) {
+      // Send receipt email via Resend
+      const { sendBookingReceipt } = await import('@/lib/resend/send')
+      await sendBookingReceipt({
+        to: pi.receipt_email || '',
+        booking: {
+          id: result.booking_id,
+          user_id: result.user_id,
+          date: result.date,
+          start_time: result.start_time,
+          end_time: result.end_time,
+          table_number: result.table_number,
+          total_price: Math.round(pi.amount / 100),
+          payment_method: paymentMethod,
+        },
+        paymentIntentId: pi.id,
+        customerName: profile.name,
+        customerPhone: profile.phone || '',
+        locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en' | 'ja') || 'zh-HK',
+      })
+      console.log('[webhook/stripe] receipt_email_sent', { bookingId: result.booking_id })
+    }
+
+    // Log to notification_log (non-fatal)
     await supabase.from('notification_log').insert([
-      { user_id: result.user_id, booking_id: result.booking_id, channel: 'email', type: 'booking_confirmed', status: 'pending' },
+      { user_id: result.user_id, booking_id: result.booking_id, channel: 'email', type: 'booking_confirmed', status: 'sent' },
       { user_id: result.user_id, booking_id: result.booking_id, channel: 'whatsapp', type: 'booking_confirmed', status: 'pending' },
     ])
   } catch (e) {
-    console.error('[webhook/stripe] notification_log_insert_failed', {
+    console.error('[webhook/stripe] notification_failed', {
       message: (e as Error).message,
       bookingId: result.booking_id,
     })

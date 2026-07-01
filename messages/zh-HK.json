@@ -594,7 +594,9 @@
     "tables_remaining": "呢個時段尚餘 {count} 張枱",
     "lock_hold": "時段已為你保留 {time}",
     "pay_declined": "付款未能完成，請檢查付款方式或再試一次。",
-    "pay_timeout": "付款處理需時比預期耐，請檢查網絡連線再試一次。"
+    "pay_timeout": "付款處理需時比預期耐，請檢查網絡連線再試一次。",
+    "contiguous_slots_required": "請選擇連續時段",
+    "payment_reminder": "15 分鐘內必須完成付款交易，否則預約時間自動取消"
   },
   "ticket": {
     "duration": "時長",

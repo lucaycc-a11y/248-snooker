@@ -4,8 +4,7 @@ import { useRef, useState, type KeyboardEvent, type ClipboardEvent } from "react
 
 // Accessible OTP entry: N digit boxes with auto-advance, backspace-to-previous,
 // and paste-the-whole-code support. Calls onComplete when all digits are filled.
-// Brass-on-deep-green styling to match the auth surface.
-const BRASS = "#c9a876"
+const GREEN = "#22c55e"
 
 export function OtpInput({
   length = 6,
@@ -99,7 +98,7 @@ export function OtpInput({
               invalid
                 ? "#f87171"
                 : focused === i
-                  ? BRASS
+                  ? GREEN
                   : "rgba(255,255,255,0.14)"
             }`,
             borderRadius: 12,

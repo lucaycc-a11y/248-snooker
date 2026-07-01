@@ -9,6 +9,7 @@ import {
 } from "@stripe/react-stripe-js"
 import type { Appearance, StripeElementLocale } from "@stripe/stripe-js"
 import { getStripeClient } from "@/lib/stripe/client"
+import { getDeclineMessage, getWhatsAppSupportUrl } from "@/lib/stripe/decline-codes"
 
 const stripePromise = getStripeClient()
 
@@ -72,6 +73,9 @@ type Labels = {
   /** Shown if confirmPayment() hasn't resolved after 15s, instead of an
    * infinite spinner (e.g. a hung network request). */
   timeoutLabel: string
+  /** WhatsApp support call-to-action for suspected double-charge scenarios */
+  whatsappSupportLabel: string
+  retryPaymentLabel: string
 }
 
 /** Pre-fill for the Payment Element's billing-details fields — already known
@@ -92,7 +96,7 @@ type Props = Labels & {
   total: number
   /** Active next-intl locale — drives the Payment Element's own copy (Stripe's
    * "Pay", card-field labels, decline messages, etc.), not just our labels. */
-  locale: string
+  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
   /** Path Stripe returns to after a redirect method (Alipay/WeChat/3DS). */
   returnPath?: string
   billingDetails?: BillingDetails
@@ -107,7 +111,13 @@ function PayForm({
   processingLabel,
   paymentFailedLabel,
   timeoutLabel,
+  whatsappSupportLabel,
+  retryPaymentLabel,
   billingDetails,
+  locale,
+  date,
+  startHour,
+  total,
 }: {
   bookingId: string
   returnPath: string
@@ -115,12 +125,19 @@ function PayForm({
   processingLabel: string
   paymentFailedLabel: string
   timeoutLabel: string
+  whatsappSupportLabel: string
+  retryPaymentLabel: string
   billingDetails?: BillingDetails
+  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  date: string
+  startHour: number
+  total: number
 }) {
   const stripe = useStripe()
   const elements = useElements()
   const [submitting, setSubmitting] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+  const [showWhatsApp, setShowWhatsApp] = useState(false)
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -150,6 +167,11 @@ function PayForm({
     const result = await Promise.race([confirm, timeout])
 
     if (result === "timeout") {
+      console.error("[payment] confirmPayment_timeout", {
+        bookingId,
+        timeoutMs: CONFIRM_TIMEOUT_MS,
+        timestamp: new Date().toISOString(),
+      })
       setErr(timeoutLabel)
       setSubmitting(false)
       return
@@ -157,14 +179,36 @@ function PayForm({
     // confirmPayment() resolved after the watchdog already fired — the
     // timeout message is already showing; let it be rather than overwrite
     // with a stale success/error from the slow call.
-    if (timedOut) return
+    if (timedOut) {
+      console.warn("[payment] confirmPayment_resolved_after_timeout", {
+        bookingId,
+        status: result.paymentIntent?.status,
+      })
+      return
+    }
 
     const { error, paymentIntent } = result
     if (error) {
       // error.message is already localized by Stripe (Elements' `locale`
       // option, set below) — the fallback only fires on the rare error with
       // no message, so it must be CMS text too.
-      setErr(error.message ?? paymentFailedLabel)
+      console.error("[payment] confirm_error", {
+        bookingId,
+        message: error.message,
+        type: error.type,
+        code: error.code,
+        decline_code: (error as { decline_code?: string }).decline_code,
+      })
+
+      // Map decline_code to user-friendly message
+      const declineInfo = getDeclineMessage(
+        (error as { decline_code?: string }).decline_code,
+        locale,
+        error.message ?? paymentFailedLabel
+      )
+
+      setErr(declineInfo.message)
+      setShowWhatsApp(declineInfo.showWhatsApp)
       setSubmitting(false)
       return
     }
@@ -173,6 +217,11 @@ function PayForm({
       // terminal-success state either (e.g. requires_action edge case) —
       // treat as failed rather than silently navigating on to a
       // confirmation screen for a booking that isn't actually paid.
+      console.error("[payment] unexpected_status", {
+        bookingId,
+        status: paymentIntent.status,
+        id: paymentIntent.id,
+      })
       setErr(paymentFailedLabel)
       setSubmitting(false)
       return
@@ -182,6 +231,11 @@ function PayForm({
     // redirect methods use, so the parent page's existing poll-for-
     // 'confirmed' logic (keyed off ?bookingId&redirect_status) is the single
     // code path for every payment method.
+    console.log("[payment] confirm_success", {
+      bookingId,
+      status: paymentIntent?.status,
+      id: paymentIntent?.id,
+    })
     window.location.href = returnUrl
   }
 
@@ -210,7 +264,43 @@ function PayForm({
         }}
       />
       {err && (
-        <p style={{ marginTop: 12, fontSize: 13, color: "#f87171" }}>{err}</p>
+        <div style={{ marginTop: 12 }}>
+          <p style={{ fontSize: 13, color: "#f87171", margin: 0 }}>{err}</p>
+          {showWhatsApp && (
+            <div style={{ marginTop: 16, padding: "12px 16px", backgroundColor: "#0a0a0a", borderRadius: 12, border: "1px solid #262626" }}>
+              <p style={{ fontSize: 13, color: "#a3a3a3", margin: "0 0 10px" }}>
+                {whatsappSupportLabel}
+              </p>
+              <a
+                href={getWhatsAppSupportUrl({
+                  locale,
+                  date,
+                  time: `${String(startHour).padStart(2, '0')}:00`,
+                  amount: total,
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 16px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#000",
+                  backgroundColor: "#22c55e",
+                  borderRadius: 8,
+                  textDecoration: "none",
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                </svg>
+                WhatsApp
+              </a>
+            </div>
+          )}
+        </div>
       )}
       <button
         type="submit"
@@ -352,7 +442,13 @@ export default function StripePayment(props: Props) {
         processingLabel={props.processingLabel}
         paymentFailedLabel={props.paymentFailedLabel}
         timeoutLabel={props.timeoutLabel}
+        whatsappSupportLabel={props.whatsappSupportLabel}
+        retryPaymentLabel={props.retryPaymentLabel}
         billingDetails={props.billingDetails}
+        locale={props.locale}
+        date={props.date}
+        startHour={props.startHour}
+        total={props.total}
       />
     </Elements>
   )

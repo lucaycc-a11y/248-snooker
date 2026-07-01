@@ -120,6 +120,322 @@ function scrollToRef(ref: React.RefObject<HTMLElement>) {
   }, 150)
 }
 
+/* ─────────────────────────  Time Slot Grid  ───────────────────────── */
+function TimeSlotGrid({
+  selectedDate,
+  daySlots,
+  dayLoading,
+  startHour,
+  duration,
+  onSelect,
+}: {
+  selectedDate: Date
+  daySlots: DaySlot[] | null
+  dayLoading: boolean
+  startHour: number
+  duration: number
+  onSelect: (start: number, dur: number) => void
+}) {
+  const t = useTranslations("book")
+  const haptic = useHaptic()
+  const [showToast, setShowToast] = useState(false)
+
+  const dateStr = useMemo(() => {
+    const y = selectedDate.getFullYear()
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0")
+    const d = String(selectedDate.getDate()).padStart(2, "0")
+    return `${y}-${m}-${d}`
+  }, [selectedDate])
+
+  const today = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
+  const isToday = useMemo(() => {
+    const sel = new Date(selectedDate)
+    sel.setHours(0, 0, 0, 0)
+    return sel.getTime() === today.getTime()
+  }, [selectedDate, today])
+
+  const currentHour = useMemo(() => new Date().getHours(), [])
+
+  // Compute per-cell state: is this hour disabled? (both tables taken OR past hour)
+  const cellStates = useMemo(() => {
+    const states = new Map<number, { disabled: boolean; isLocked: boolean }>()
+    for (let h = 0; h < 24; h++) {
+      const isPast = isToday && h <= currentHour
+      const freeTables = daySlots ? freeTablesFor(daySlots, dateStr, h, 1) : []
+      const bothTaken = daySlots !== null && freeTables.length === 0
+      const disabled = isPast || bothTaken
+
+      // Check if this hour is "locked" (one table locked, not necessarily both taken)
+      let isLocked = false
+      if (daySlots && !isPast) {
+        const states = tableStatesFor(daySlots, dateStr, h, 1)
+        isLocked = Array.from(states.values()).some((s) => s === "locked")
+      }
+
+      states.set(h, { disabled, isLocked })
+    }
+    return states
+  }, [daySlots, dateStr, isToday, currentHour])
+
+  // Is the entire day fully booked? (all 24 cells disabled)
+  const fullyBooked = useMemo(() => {
+    if (daySlots === null) return false
+    for (let h = 0; h < 24; h++) {
+      if (!cellStates.get(h)?.disabled) return false
+    }
+    return true
+  }, [cellStates, daySlots])
+
+  // Which cells are currently selected? (startHour, startHour+1, ..., startHour+duration-1)
+  const isSelected = useCallback(
+    (h: number) => {
+      if (duration === 0) return false
+      const runEnd = startHour + duration
+      // Handle cross-midnight: if runEnd >= 24, the run wraps into the next day
+      if (runEnd <= 24) {
+        return h >= startHour && h < runEnd
+      } else {
+        // Wrapped case: selected if h >= startHour OR h < (runEnd % 24)
+        return h >= startHour || h < (runEnd % 24)
+      }
+    },
+    [startHour, duration]
+  )
+
+  // Does this cell show a "+1日" badge? (it's hour 0 and part of a cross-midnight run)
+  const showNextDayBadge = useCallback(
+    (h: number) => {
+      if (h !== 0) return false
+      if (duration === 0) return false
+      const runEnd = startHour + duration
+      // Badge shows when hour 0 is selected AND the run started late (>= 18) so it's clearly "tomorrow"
+      return runEnd > 24 && startHour >= 18
+    },
+    [startHour, duration]
+  )
+
+  const handleCellTap = useCallback(
+    (tappedHour: number) => {
+      const cellState = cellStates.get(tappedHour)
+      if (!cellState || cellState.disabled) return // disabled cell, do nothing
+
+      haptic.vibrate(8)
+
+      // No current selection: start a new 1-hour selection
+      if (duration === 0) {
+        onSelect(tappedHour, 1)
+        return
+      }
+
+      const runEnd = startHour + duration
+      const lastCellHour = ((startHour + duration - 1) % 24 + 24) % 24
+
+      // Case 1: Re-tapping the run's last cell → shrink by 1
+      if (tappedHour === lastCellHour) {
+        if (duration === 1) {
+          onSelect(tappedHour, 0) // deselect entirely
+        } else {
+          onSelect(startHour, duration - 1)
+        }
+        return
+      }
+
+      // Case 2: Tapping the cell immediately after the run's end → extend by 1
+      const nextHour = runEnd % 24
+      if (tappedHour === nextHour) {
+        // Check constraints: max duration + availability
+        if (duration + 1 > CONFIG.maxHours) {
+          // Max duration reached, show toast and don't extend
+          setShowToast(true)
+          setTimeout(() => setShowToast(false), 2000)
+          return
+        }
+        // Check if the extension is available (both tables free for the full new range)
+        const freeForExtended = daySlots
+          ? freeTablesFor(daySlots, dateStr, startHour, duration + 1)
+          : []
+        if (freeForExtended.length === 0) {
+          // Can't extend, restart from tapped cell instead
+          onSelect(tappedHour, 1)
+          setShowToast(true)
+          setTimeout(() => setShowToast(false), 2000)
+          return
+        }
+        onSelect(startHour, duration + 1)
+        return
+      }
+
+      // Case 3: Tapping a cell already inside the current run (not the last) → restart from tapped cell
+      if (isSelected(tappedHour)) {
+        onSelect(tappedHour, 1)
+        return
+      }
+
+      // Case 4: Non-adjacent cell → show "contiguous slots required" toast and restart
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 2000)
+      onSelect(tappedHour, 1)
+    },
+    [
+      cellStates,
+      duration,
+      startHour,
+      daySlots,
+      dateStr,
+      haptic,
+      onSelect,
+      isSelected,
+    ]
+  )
+
+  if (dayLoading) {
+    return (
+      <div
+        style={{
+          padding: "40px 20px",
+          textAlign: "center",
+          fontSize: 14,
+          color: tokens.colors.textMuted,
+        }}
+        data-cms-key="book.checking"
+      >
+        {t("checking")}
+      </div>
+    )
+  }
+
+  if (fullyBooked) {
+    return (
+      <div
+        data-cms-key="book.fully_booked"
+        style={{
+          fontSize: 14,
+          color: tokens.colors.textMuted,
+          padding: "16px 20px",
+          border: `1px solid ${tokens.colors.border}`,
+          borderRadius: tokens.radius.input,
+          textAlign: "center",
+        }}
+      >
+        {t("fully_booked")}
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="table-grid" style={{ gap: 8 }}>
+        {Array.from({ length: 24 }, (_, h) => {
+          const state = cellStates.get(h)
+          const selected = isSelected(h)
+          const disabled = state?.disabled ?? false
+          const locked = state?.isLocked ?? false
+          const showBadge = showNextDayBadge(h)
+
+          return (
+            <button
+              key={h}
+              type="button"
+              disabled={disabled}
+              onClick={() => handleCellTap(h)}
+              style={{
+                position: "relative",
+                minHeight: 56,
+                padding: "12px 16px",
+                borderRadius: tokens.radius.input,
+                border: `1px solid ${selected ? tokens.colors.brand : tokens.colors.border}`,
+                background: selected
+                  ? tokens.colors.brand
+                  : disabled
+                    ? "rgba(255,255,255,0.02)"
+                    : "rgba(255,255,255,0.04)",
+                color: disabled
+                  ? tokens.colors.textFaint
+                  : selected
+                    ? "#000"
+                    : tokens.colors.text,
+                fontSize: 14,
+                fontWeight: selected ? 600 : 400,
+                opacity: disabled ? 0.4 : 1,
+                cursor: disabled ? "not-allowed" : "pointer",
+                transition: `all ${tokens.duration.fast}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+              }}
+              title={
+                locked && disabled ? t("table_locked") : undefined
+              }
+            >
+              {locked && disabled && (
+                <Lock size={12} style={{ flexShrink: 0 }} />
+              )}
+              <span style={{ whiteSpace: "nowrap" }}>
+                {padTime(h)}–{padTime(h + 1)}
+              </span>
+              {showBadge && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 4,
+                    right: 6,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: selected ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.5)",
+                    padding: "2px 4px",
+                    borderRadius: 4,
+                    background: selected
+                      ? "rgba(0,0,0,0.08)"
+                      : "rgba(255,255,255,0.08)",
+                  }}
+                >
+                  +1日
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Toast for "contiguous slots required" */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            data-cms-key="book.contiguous_slots_required"
+            style={{
+              position: "fixed",
+              top: 100,
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: tokens.colors.surfaceElevated,
+              border: `1px solid ${tokens.colors.borderStrong}`,
+              borderRadius: tokens.radius.button,
+              padding: "12px 20px",
+              fontSize: 14,
+              color: tokens.colors.text,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              zIndex: 100,
+              pointerEvents: "none",
+            }}
+          >
+            {t("contiguous_slots_required")}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  )
+}
+
 /* ─────────────────────────  QR Code  ───────────────────────── */
 // Real, scannable QR rendered from `data` (the signed booking JWT) via the
 // `qrcode` library. Dark modules on a white tile for reliable scanning — the
@@ -1514,7 +1830,7 @@ function Screen3({
           duration={duration}
           tableNumber={tableNumber}
           total={total}
-          locale={locale}
+          locale={locale as "en" | "zh-HK" | "zh-CN" | "ja"}
           returnPath="/book"
           payLabel={`${t("pay_now")} · HK$${total}`}
           processingLabel={t("processing")}
