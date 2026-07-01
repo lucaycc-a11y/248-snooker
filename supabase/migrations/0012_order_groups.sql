@@ -168,6 +168,7 @@ declare
   v_refs     text[] := '{}';
   v_ids      uuid[] := '{}';
   v_qr       text;
+  v_ref_out  text;
 begin
   -- Lock all group rows up front (stable order) to serialize duplicate deliveries.
   for v_b in
@@ -234,9 +235,9 @@ begin
       ),
       updated_at = now()
     where id = v_b.id
-    returning booking_reference into v_qr; -- reuse v_qr to grab the ref back
+    returning booking_reference into v_ref_out;
 
-    v_refs  := array_append(v_refs, v_qr);
+    v_refs  := array_append(v_refs, v_ref_out);
     v_ids   := array_append(v_ids, v_b.id);
     v_total := v_total + coalesce(v_b.total_price, 0);
 

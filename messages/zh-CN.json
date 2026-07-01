@@ -603,7 +603,15 @@
     "slot_group_late_night": "深夜",
     "slot_group_morning": "上午",
     "slot_group_afternoon": "下午",
-    "slot_group_evening": "晚上"
+    "slot_group_evening": "晚上",
+    "add_slot": "添加另一个时段",
+    "remove_slot": "移除",
+    "multi_slot_hint": "可选择多个时段，中间不一定要连续。",
+    "slots_selected": "已选 {count} 个时段",
+    "gap_warning_title": "时段不连续",
+    "gap_warning_body": "你选择的时段不连续，中间有 {gap} 分钟空档。确定要这样预订吗？",
+    "gap_warning_confirm": "确定，继续预订",
+    "gap_warning_cancel": "取消"
   },
   "ticket": {
     "duration": "时长",

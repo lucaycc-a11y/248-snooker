@@ -88,6 +88,36 @@ type DaySlot = {
 
 const ALL_TABLES = [1, 2]
 
+// One selected slot block. The active selection (startHour/duration/selectedTable)
+// plus any committed extra blocks form the order. A single-block order keeps
+// `extraBlocks` empty and behaves exactly as before (Task 3).
+type SelectedBlock = {
+  date: string // 'YYYY-MM-DD'
+  startHour: number
+  duration: number
+  tableNumber: number
+}
+
+// Minutes of gap between two blocks on the same date (0 if contiguous/overlapping).
+// Used to drive the non-contiguous warning (Task 3). Blocks are sorted by start.
+function gapMinutesBetween(blocks: SelectedBlock[]): number {
+  if (blocks.length < 2) return 0
+  const sorted = [...blocks].sort(
+    (a, b) => new Date(`${a.date}T${padTime(a.startHour)}`).getTime() -
+      new Date(`${b.date}T${padTime(b.startHour)}`).getTime(),
+  )
+  let maxGap = 0
+  for (let i = 1; i < sorted.length; i++) {
+    const prevEnd = new Date(`${sorted[i - 1].date}T00:00:00`)
+    prevEnd.setHours(sorted[i - 1].startHour + sorted[i - 1].duration, 0, 0, 0)
+    const curStart = new Date(`${sorted[i].date}T00:00:00`)
+    curStart.setHours(sorted[i].startHour, 0, 0, 0)
+    const gap = (curStart.getTime() - prevEnd.getTime()) / 60000
+    if (gap > maxGap) maxGap = gap
+  }
+  return maxGap
+}
+
 // Time-slot grid is grouped into labelled periods so a full 24h day reads as
 // clear sections instead of one long strip. Hours are inclusive-start.
 const SLOT_GROUPS: { key: string; hours: number[] }[] = [
@@ -1058,6 +1088,10 @@ function Screen1({
   duration,
   setDuration,
   onContinue,
+  availability,
+  extraBlocks,
+  setExtraBlocks,
+  allBlocks,
 }: {
   selectedTable: number | null
   setSelectedTable: (id: number | null) => void
@@ -1069,6 +1103,9 @@ function Screen1({
   setDuration: (d: number) => void
   onContinue: () => void
   availability: ReturnType<typeof useAvailabilityCache>
+  extraBlocks: SelectedBlock[]
+  setExtraBlocks: (b: SelectedBlock[]) => void
+  allBlocks: SelectedBlock[]
 }) {
   const total = CONFIG.pricePerHour * duration
   const endHour = startHour + duration
@@ -1122,8 +1159,46 @@ function Screen1({
     return () => clearInterval(id)
   }, [duration, displayTotal])
 
-  const ready = dateChosen && duration > 0 && selectedTable !== null
+  const haptic = useHaptic()
+  // "Ready" = at least one complete block in the order (committed extras or a
+  // finished active selection).
+  const ready = allBlocks.length > 0
   const canContinue = ready
+  // Order total across every block (display only; server re-derives authoritatively).
+  const orderTotal = allBlocks.reduce((sum, b) => sum + CONFIG.pricePerHour * b.duration, 0)
+
+  // Active block is complete enough to commit as an extra slot.
+  const activeComplete = duration > 0 && selectedTable !== null
+
+  // Gap-warning modal state (Task 3): non-contiguous orders confirm before paying.
+  const [showGapWarning, setShowGapWarning] = useState(false)
+  const gapMinutes = useMemo(() => gapMinutesBetween(allBlocks), [allBlocks])
+
+  // Commit the active selection as an extra block and reset for another pick.
+  const addSlot = useCallback(() => {
+    if (!activeComplete || selectedTable === null) return
+    haptic.vibrate(10)
+    setExtraBlocks([...extraBlocks, { date: dateStr, startHour, duration, tableNumber: selectedTable }])
+    setDuration(0)
+    setSelectedTable(null)
+  }, [activeComplete, selectedTable, extraBlocks, dateStr, startHour, duration, haptic, setExtraBlocks, setDuration, setSelectedTable])
+
+  const removeExtra = useCallback(
+    (i: number) => {
+      haptic.vibrate(8)
+      setExtraBlocks(extraBlocks.filter((_, idx) => idx !== i))
+    },
+    [extraBlocks, haptic, setExtraBlocks],
+  )
+
+  // Continue: if the order is non-contiguous, confirm the gap first.
+  const handleContinue = useCallback(() => {
+    if (gapMinutes > 0) {
+      setShowGapWarning(true)
+      return
+    }
+    onContinue()
+  }, [gapMinutes, onContinue])
 
   const sectionLabel = (text: string, cmsKey: string) => (
     <div
@@ -1239,6 +1314,93 @@ function Screen1({
                     onSelect={setSelectedTable}
                   />
                 )}
+
+                {/* Committed extra blocks (non-contiguous order — Task 3) */}
+                {extraBlocks.length > 0 && (
+                  <div style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div
+                      data-cms-key="book.slots_selected"
+                      style={{
+                        fontSize: 12,
+                        color: tokens.colors.textMuted,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                      }}
+                    >
+                      {t("slots_selected", { count: allBlocks.length })}
+                    </div>
+                    {extraBlocks.map((b, i) => (
+                      <div
+                        key={`${b.date}-${b.startHour}-${b.tableNumber}`}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "10px 14px",
+                          borderRadius: tokens.radius.input,
+                          border: `1px solid ${tokens.colors.brand}`,
+                          background: "rgba(34,197,94,0.08)",
+                          fontSize: 14,
+                        }}
+                      >
+                        <span>
+                          {padTime(b.startHour)} – {padTime(b.startHour + b.duration)} · {t("table_label")} #{b.tableNumber}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeExtra(i)}
+                          data-cms-key="book.remove_slot"
+                          style={{
+                            fontSize: 13,
+                            color: tokens.colors.textMuted,
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            minHeight: 44,
+                            padding: "0 8px",
+                          }}
+                        >
+                          {t("remove_slot")}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add another (non-contiguous) slot */}
+                {activeComplete && (
+                  <button
+                    type="button"
+                    onClick={addSlot}
+                    data-cms-key="book.add_slot"
+                    style={{
+                      width: "100%",
+                      minHeight: 48,
+                      marginBottom: 8,
+                      borderRadius: tokens.radius.button,
+                      border: `1px dashed ${tokens.colors.borderStrong}`,
+                      background: "rgba(255,255,255,0.03)",
+                      color: tokens.colors.text,
+                      fontSize: 15,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <CalendarPlus size={16} />
+                    {t("add_slot")}
+                  </button>
+                )}
+                {(extraBlocks.length > 0 || activeComplete) && (
+                  <div
+                    data-cms-key="book.multi_slot_hint"
+                    style={{ fontSize: 12, color: tokens.colors.textMuted, marginBottom: 16 }}
+                  >
+                    {t("multi_slot_hint")}
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -1262,9 +1424,9 @@ function Screen1({
           selectedDate={selectedDate}
           startHour={startHour}
           duration={duration}
-          total={total}
+          total={orderTotal}
           canContinue={canContinue}
-          onContinue={onContinue}
+          onContinue={handleContinue}
           ctaLabel={t("continue")}
           ready={ready}
         />
@@ -1273,9 +1435,92 @@ function Screen1({
       {/* Mobile sticky price bar */}
       <MobilePriceBar
         ctaLabel={t("continue")}
-        onContinue={onContinue}
+        onContinue={handleContinue}
         canContinue={canContinue}
       />
+
+      {/* Non-contiguous gap warning (Task 3) */}
+      <AnimatePresence>
+        {showGapWarning && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowGapWarning(false)}
+          >
+            <motion.div
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              style={{
+                background: tokens.colors.surfaceElevated,
+                border: `1px solid ${tokens.colors.borderStrong}`,
+                borderRadius: 24,
+                padding: 28,
+                maxWidth: 400,
+                width: "100%",
+              }}
+            >
+              <h3
+                data-cms-key="book.gap_warning_title"
+                style={{ fontSize: 20, fontWeight: 700, color: tokens.colors.text, marginBottom: 12 }}
+              >
+                {t("gap_warning_title")}
+              </h3>
+              <p
+                data-cms-key="book.gap_warning_body"
+                style={{ fontSize: 15, lineHeight: 1.5, color: tokens.colors.textMuted, marginBottom: 24 }}
+              >
+                {t("gap_warning_body", { gap: gapMinutes })}
+              </p>
+              <div style={{ display: "flex", gap: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowGapWarning(false)}
+                  data-cms-key="book.gap_warning_cancel"
+                  style={{
+                    flex: 1,
+                    minHeight: 48,
+                    borderRadius: tokens.radius.button,
+                    border: `1px solid ${tokens.colors.border}`,
+                    background: "transparent",
+                    color: tokens.colors.text,
+                    fontSize: 15,
+                    cursor: "pointer",
+                  }}
+                >
+                  {t("gap_warning_cancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowGapWarning(false)
+                    onContinue()
+                  }}
+                  data-cms-key="book.gap_warning_confirm"
+                  style={{
+                    flex: 1,
+                    minHeight: 48,
+                    borderRadius: tokens.radius.button,
+                    border: "none",
+                    background: tokens.colors.brand,
+                    color: "#000",
+                    fontSize: 15,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  {t("gap_warning_confirm")}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -1361,17 +1606,22 @@ function Screen3({
   duration,
   tableName,
   tableNumber,
+  blocks,
 }: {
   selectedDate: Date
   startHour: number
   duration: number
   tableName: string
   tableNumber: number
+  blocks: SelectedBlock[]
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
 
-  const total = CONFIG.pricePerHour * duration
+  // Order total across every block (grouped, non-contiguous orders sum them).
+  const total = blocks.length > 0
+    ? blocks.reduce((sum, b) => sum + CONFIG.pricePerHour * b.duration, 0)
+    : CONFIG.pricePerHour * duration
   const endHour = startHour + duration
   const crossDay = endHour >= 24
 
@@ -1492,6 +1742,12 @@ function Screen3({
             startHour={startHour}
             duration={duration}
             tableNumber={tableNumber}
+            blocks={blocks.map((b) => ({
+              date: b.date,
+              startHour: b.startHour,
+              duration: b.duration,
+              tableNumber: b.tableNumber,
+            }))}
             total={total}
             locale={locale as "en" | "zh-HK" | "zh-CN" | "ja"}
             returnPath="/book"
@@ -2040,6 +2296,10 @@ export default function BookPage() {
   })
   const [duration, setDuration] = useState(0)
   const [selectedTable, setSelectedTable] = useState<number | null>(null)
+  // Committed extra blocks for a non-contiguous order (Task 3). The active
+  // selection above is the block currently being edited; these are the ones the
+  // user already locked in via "add another slot". Empty for a normal single order.
+  const [extraBlocks, setExtraBlocks] = useState<SelectedBlock[]>([])
   const [bookingRef] = useState(() => genRef())
   const paymentRef = useRef<HTMLDivElement>(null)
   // Stripe redirect-return confirmation state.
@@ -2150,6 +2410,28 @@ export default function BookPage() {
   // Shared availability cache: prefetches today + 7 days so date-switching in
   // Screen1 is instant, and exposes invalidate() for post-payment refresh (Task 4).
   const availability = useAvailabilityCache()
+
+  // Task 4: once a booking confirms, drop the cached availability for its date(s)
+  // and clear any committed extra blocks, so returning to /book in the same session
+  // shows the just-booked slot/table as taken — no hard refresh.
+  useEffect(() => {
+    if (!confirmedBooking) return
+    if (confirmedBooking.date) availability.invalidate(confirmedBooking.date)
+    for (const b of extraBlocks) availability.invalidate(b.date)
+    setExtraBlocks([])
+    // Only react to a new confirmation; availability/extraBlocks are stable enough here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmedBooking])
+
+  // Full ordered block list = committed extras + the active selection (if valid).
+  const activeDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
+  const allBlocks: SelectedBlock[] = useMemo(() => {
+    const list = [...extraBlocks]
+    if (duration > 0 && selectedTable !== null) {
+      list.push({ date: activeDateStr, startHour, duration, tableNumber: selectedTable })
+    }
+    return list
+  }, [extraBlocks, duration, selectedTable, activeDateStr, startHour])
 
   const tables = useTables()
   const tableName =
@@ -2264,6 +2546,9 @@ export default function BookPage() {
                   setDuration={setDuration}
                   onContinue={advance}
                   availability={availability}
+                  extraBlocks={extraBlocks}
+                  setExtraBlocks={setExtraBlocks}
+                  allBlocks={allBlocks}
                 />
               </motion.div>
             )}
@@ -2303,6 +2588,7 @@ export default function BookPage() {
                   duration={duration}
                   tableName={tableName}
                   tableNumber={selectedTable ?? 0}
+                  blocks={allBlocks}
                 />
               </motion.div>
             )}

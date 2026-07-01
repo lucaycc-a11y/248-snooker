@@ -603,7 +603,15 @@
     "slot_group_late_night": "深夜",
     "slot_group_morning": "午前",
     "slot_group_afternoon": "午後",
-    "slot_group_evening": "夜"
+    "slot_group_evening": "夜",
+    "add_slot": "時間帯を追加",
+    "remove_slot": "削除",
+    "multi_slot_hint": "複数の時間帯を選択できます。連続していなくても構いません。",
+    "slots_selected": "{count} 件の時間帯を選択中",
+    "gap_warning_title": "時間帯が連続していません",
+    "gap_warning_body": "選択した時間帯は連続しておらず、間に {gap} 分の空きがあります。このまま予約しますか？",
+    "gap_warning_confirm": "はい、予約を続ける",
+    "gap_warning_cancel": "キャンセル"
   },
   "ticket": {
     "duration": "プレイ時間",

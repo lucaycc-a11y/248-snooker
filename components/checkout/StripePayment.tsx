@@ -95,11 +95,22 @@ type BillingDetails = {
   phone: string
 }
 
+export type BookingBlock = {
+  date: string // 'YYYY-MM-DD'
+  startHour: number
+  duration: number
+  tableNumber: number
+}
+
 type Props = Labels & {
   date: string // 'YYYY-MM-DD'
   startHour: number
   duration: number
   tableNumber: number
+  /** Non-contiguous multi-slot order (Task 3). When set with >1 entry, the whole
+   * group is locked atomically and paid with one PaymentIntent. Omitted/1-entry
+   * orders use the single-slot path unchanged. Includes the primary block. */
+  blocks?: BookingBlock[]
   total: number
   /** Active next-intl locale — drives the Payment Element's own copy (Stripe's
    * "Pay", card-field labels, decline messages, etc.), not just our labels. */
@@ -356,26 +367,36 @@ export default function StripePayment(props: Props) {
   const [lockedUntil, setLockedUntil] = useState<string | null>(null)
   const countdown = useCountdown(lockedUntil)
 
+  // Grouped when more than one block was selected (Task 3).
+  const blocks = props.blocks && props.blocks.length > 1 ? props.blocks : null
+  const blocksKey = blocks
+    ? blocks.map((b) => `${b.date}|${b.startHour}|${b.duration}|${b.tableNumber}`).join(",")
+    : `${props.date}|${props.startHour}|${props.duration}|${props.tableNumber}`
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
+        // Lock: multi-block sends { blocks[] } (atomic all-or-nothing), single
+        // sends the flat form. Response gives slotId(s) [+ orderGroupId].
+        const lockBody = blocks
+          ? { blocks }
+          : {
+              date: props.date,
+              startHour: props.startHour,
+              duration: props.duration,
+              tableNumber: props.tableNumber,
+            }
         const lockRes = await fetch("/api/booking/lock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            date: props.date,
-            startHour: props.startHour,
-            duration: props.duration,
-            tableNumber: props.tableNumber,
-          }),
+          body: JSON.stringify(lockBody),
         })
         const lockJson = await lockRes.json()
         if (!lockRes.ok) {
-          // A 409 with reason 'unavailable' means we lost the slot to a
-          // concurrent booker (find_or_lock_slot's advisory-lock path). Surface
-          // the clear "someone just took this" copy rather than the generic
-          // lock-failure detail, so the losing user knows to pick another time.
+          // A 409 with reason 'unavailable' means we lost a slot to a concurrent
+          // booker (advisory-lock path; for groups, ANY block being taken rolls
+          // the whole lock back). Surface the clear "someone just took this" copy.
           if (lockRes.status === 409 && lockJson?.reason === "unavailable") {
             throw new Error(SLOT_TAKEN)
           }
@@ -383,10 +404,14 @@ export default function StripePayment(props: Props) {
         }
         if (!cancelled) setLockedUntil(lockJson.lockedUntil ?? null)
 
+        // Create intent: multi sends { slotIds, orderGroupId }, single sends { slotId }.
+        const intentBody = blocks
+          ? { slotIds: lockJson.slotIds, orderGroupId: lockJson.orderGroupId }
+          : { slotId: lockJson.slotId }
         const intentRes = await fetch("/api/payment/create-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ slotId: lockJson.slotId }),
+          body: JSON.stringify(intentBody),
         })
         const intentJson = await intentRes.json()
         if (!intentRes.ok) throw new Error(intentJson.detail || intentJson.error || "intent failed")
@@ -402,7 +427,8 @@ export default function StripePayment(props: Props) {
     return () => {
       cancelled = true
     }
-  }, [props.date, props.startHour, props.duration, props.tableNumber])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocksKey])
 
   if (error) {
     // Slot lost to a concurrent booker: show ONLY the clear "pick another time"
