@@ -583,7 +583,8 @@
     "table_locked": "Someone's booking this",
     "table_locked_tooltip": "Someone is currently booking this table — please wait or pick another",
     "tables_remaining": "{count} table(s) left for this time",
-    "lock_hold": "Your slot is held for {time}"
+    "lock_hold": "Your slot is held for {time}",
+    "pay_declined": "Payment could not be completed. Please check your payment method and try again."
   },
   "ticket": {
     "duration": "Duration",

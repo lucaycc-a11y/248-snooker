@@ -7,23 +7,32 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js"
-import type { Appearance } from "@stripe/stripe-js"
+import type { Appearance, StripeElementLocale } from "@stripe/stripe-js"
 import { getStripeClient } from "@/lib/stripe/client"
 
 const stripePromise = getStripeClient()
 
-// Match the booking page's night/green brand. PaymentElement renders official,
-// licensed method icons + native Apple/Google Pay buttons, so no brand assets to
-// source ourselves.
+// Match the booking page's black + brand-green + pill design language.
+// PaymentElement renders official, licensed method icons + native Apple/Google
+// Pay buttons, so no brand assets to source ourselves.
 const appearance: Appearance = {
   theme: "night",
   variables: {
     colorPrimary: "#22c55e",
-    colorBackground: "#0a1a0f",
+    colorBackground: "#000000",
     colorText: "#ffffff",
-    borderRadius: "12px",
+    borderRadius: "9999px",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif",
   },
+}
+
+// next-intl locale -> closest Stripe Elements locale ('zh-CN' isn't a distinct
+// Stripe locale; 'zh' covers simplified Chinese).
+const STRIPE_LOCALES: Record<string, StripeElementLocale> = {
+  "zh-HK": "zh-HK",
+  "zh-CN": "zh",
+  en: "en",
+  ja: "ja",
 }
 
 type Labels = {
@@ -32,6 +41,10 @@ type Labels = {
   errorLabel: string
   loadingLabel: string
   lockHoldLabel: string
+  /** Generic fallback shown under the Payment Element when Stripe returns no
+   * message of its own (declines/validation almost always include one, but
+   * some edge cases don't) — must be CMS/i18n text, never a bare English string. */
+  paymentFailedLabel: string
 }
 
 type Props = Labels & {
@@ -40,6 +53,9 @@ type Props = Labels & {
   duration: number
   tableNumber: number
   total: number
+  /** Active next-intl locale — drives the Payment Element's own copy (Stripe's
+   * "Pay", card-field labels, decline messages, etc.), not just our labels. */
+  locale: string
   /** Path Stripe returns to after a redirect method (Alipay/WeChat/3DS). */
   returnPath?: string
 }
@@ -49,11 +65,13 @@ function PayForm({
   returnPath,
   payLabel,
   processingLabel,
+  paymentFailedLabel,
 }: {
   bookingId: string
   returnPath: string
   payLabel: string
   processingLabel: string
+  paymentFailedLabel: string
 }) {
   const stripe = useStripe()
   const elements = useElements()
@@ -72,16 +90,18 @@ function PayForm({
     })
     // Reaching here means confirmation failed BEFORE any redirect (e.g. card
     // declined, validation). On success Stripe redirects to return_url and the
-    // page reloads, so this line never runs.
+    // page reloads, so this line never runs. error.message is already localized
+    // by Stripe (Elements' `locale` option, set below) — the fallback only fires
+    // on the rare error with no message, so it must be CMS text too.
     if (error) {
-      setErr(error.message ?? "Payment failed")
+      setErr(error.message ?? paymentFailedLabel)
       setSubmitting(false)
     }
   }
 
   return (
     <form onSubmit={onSubmit}>
-      <PaymentElement />
+      <PaymentElement options={{ layout: "tabs" }} />
       {err && (
         <p style={{ marginTop: 12, fontSize: 13, color: "#f87171" }}>{err}</p>
       )}
@@ -202,7 +222,10 @@ export default function StripePayment(props: Props) {
   }
 
   return (
-    <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
+    <Elements
+      stripe={stripePromise}
+      options={{ clientSecret, appearance, locale: STRIPE_LOCALES[props.locale] ?? "auto" }}
+    >
       {countdown && (
         <p
           style={{
@@ -220,6 +243,7 @@ export default function StripePayment(props: Props) {
         returnPath={props.returnPath ?? "/book"}
         payLabel={props.payLabel}
         processingLabel={props.processingLabel}
+        paymentFailedLabel={props.paymentFailedLabel}
       />
     </Elements>
   )

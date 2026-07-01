@@ -583,7 +583,8 @@
     "table_locked": "有人正在預訂緊",
     "table_locked_tooltip": "有人正在預訂緊，請稍候或選擇另一張枱",
     "tables_remaining": "呢個時段尚餘 {count} 張枱",
-    "lock_hold": "時段已為你保留 {time}"
+    "lock_hold": "時段已為你保留 {time}",
+    "pay_declined": "付款未能完成，請檢查付款方式或再試一次。"
   },
   "ticket": {
     "duration": "時長",

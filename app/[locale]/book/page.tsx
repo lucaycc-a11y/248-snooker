@@ -18,7 +18,7 @@ import { VisaLogo } from "@/components/brand"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import { useHaptic } from "@/lib/useHaptic"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 // @ts-ignore
 import confetti from "canvas-confetti"
@@ -1401,6 +1401,7 @@ function Screen3({
   tableNumber: number
 }) {
   const t = useTranslations("book")
+  const locale = useLocale()
 
   const total = CONFIG.pricePerHour * duration
   const endHour = startHour + duration
@@ -1466,12 +1467,14 @@ function Screen3({
           duration={duration}
           tableNumber={tableNumber}
           total={total}
+          locale={locale}
           returnPath="/book"
           payLabel={`${t("pay_now")} · HK$${total}`}
           processingLabel={t("processing")}
           errorLabel={t("pay_error")}
           loadingLabel={t("pay_loading")}
           lockHoldLabel={t("lock_hold")}
+          paymentFailedLabel={t("pay_declined")}
         />
 
         {/* Stripe secure */}
