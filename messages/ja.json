@@ -579,7 +579,11 @@
     "or_card": "またはカードでお支払い",
     "processing": "処理中…",
     "table_available": "予約可能",
-    "table_unavailable": "予約不可"
+    "table_unavailable": "予約不可",
+    "table_locked": "予約手続き中",
+    "table_locked_tooltip": "他のお客様がこのテーブルを予約手続き中です。しばらくお待ちいただくか、別のテーブルをお選びください",
+    "tables_remaining": "この時間帯は残り{count}台",
+    "lock_hold": "予約枠を{time}保持しています"
   },
   "ticket": {
     "duration": "プレイ時間",

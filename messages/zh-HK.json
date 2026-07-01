@@ -579,7 +579,11 @@
     "or_card": "或用信用卡",
     "processing": "處理中…",
     "table_available": "現時可預訂",
-    "table_unavailable": "此時段已被預訂"
+    "table_unavailable": "此時段已被預訂",
+    "table_locked": "有人正在預訂緊",
+    "table_locked_tooltip": "有人正在預訂緊，請稍候或選擇另一張枱",
+    "tables_remaining": "呢個時段尚餘 {count} 張枱",
+    "lock_hold": "時段已為你保留 {time}"
   },
   "ticket": {
     "duration": "時長",

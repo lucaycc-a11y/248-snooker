@@ -63,21 +63,24 @@ type DaySlot = {
 
 const ALL_TABLES = [1, 2]
 
-// Which tables are free for [startHour, startHour+duration) on `dateStr`, given the
+type TableState = "available" | "locked" | "booked"
+
+// Per-table state for [startHour, startHour+duration) on `dateStr`, given the
 // day's booked/active-locked slots. Pure + client-side so it drives both the wheel
 // greying (Step 2) and the table list (Step 3) without extra API calls.
-function freeTablesFor(
+// "locked" = someone else has an active 15-min hold; "booked" = confirmed.
+function tableStatesFor(
   daySlots: DaySlot[],
   dateStr: string,
   startHour: number,
   duration: number
-): number[] {
+): Map<number, TableState> {
   const reqStart = new Date(`${dateStr}T00:00:00`)
   reqStart.setHours(startHour, 0, 0, 0)
   const reqEnd = new Date(reqStart)
   reqEnd.setHours(reqEnd.getHours() + duration)
   const now = new Date()
-  const taken = new Set<number>()
+  const states = new Map<number, TableState>(ALL_TABLES.map((tn) => [tn, "available"]))
   for (const s of daySlots) {
     // Expired locks don't count as taken.
     if (s.status === "locked" && (!s.locked_until || new Date(s.locked_until) <= now)) {
@@ -86,9 +89,21 @@ function freeTablesFor(
     const eStart = new Date(`${s.date}T${s.start_time}`)
     const eEnd = new Date(eStart)
     eEnd.setHours(eEnd.getHours() + Number(s.duration_hours))
-    if (eStart < reqEnd && reqStart < eEnd) taken.add(s.table_number)
+    if (eStart < reqEnd && reqStart < eEnd) {
+      states.set(s.table_number, s.status === "booked" ? "booked" : "locked")
+    }
   }
-  return ALL_TABLES.filter((tn) => !taken.has(tn))
+  return states
+}
+
+function freeTablesFor(
+  daySlots: DaySlot[],
+  dateStr: string,
+  startHour: number,
+  duration: number
+): number[] {
+  const states = tableStatesFor(daySlots, dateStr, startHour, duration)
+  return ALL_TABLES.filter((tn) => states.get(tn) === "available")
 }
 
 // Smoothly scroll a revealed section into view (desktop and mobile alike).
@@ -162,31 +177,38 @@ function useTables() {
 }
 
 // Availability is resolved server-side via /api/booking/availability and passed
-// in as `availableTables`. Unavailable tables are removed entirely (not greyed),
-// so every table rendered here is selectable.
+// in as `tableStates`. A `booked` table is removed entirely (nothing left to do
+// with it); a `locked` table stays visible but disabled with a lock icon + tooltip,
+// so the user learns "someone else is mid-checkout" at selection time instead of
+// only discovering it after tapping Continue.
 function TableSelect({
-  availableTables,
+  tableStates,
   selected,
   onSelect,
 }: {
-  availableTables: number[]
+  tableStates: Map<number, TableState>
   selected: number | null
   onSelect: (id: number) => void
 }) {
   const t = useTranslations("book")
-  const tables = useTables().filter((tb) => availableTables.includes(tb.id))
+  const tables = useTables().filter((tb) => tableStates.get(tb.id) !== "booked")
   return (
     <div>
       <div className="grid grid-cols-2 gap-3">
         {tables.map((table) => {
-          const isSelected = selected === table.id
+          const state = tableStates.get(table.id) ?? "available"
+          const isLocked = state === "locked"
+          const isSelected = !isLocked && selected === table.id
           return (
             <motion.button
               key={table.id}
               type="button"
-              onClick={() => onSelect(table.id)}
-              whileTap={{ scale: 0.96 }}
-              aria-label={`${table.name} ${t("available")}`}
+              disabled={isLocked}
+              onClick={() => !isLocked && onSelect(table.id)}
+              whileTap={isLocked ? undefined : { scale: 0.96 }}
+              title={isLocked ? t("table_locked_tooltip") : undefined}
+              aria-label={`${table.name} ${isLocked ? t("table_locked_tooltip") : t("available")}`}
+              aria-disabled={isLocked || undefined}
               data-cms-key={`book.table.${table.id}`}
               className="group relative min-h-11 overflow-hidden rounded-2xl border text-left transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
@@ -195,36 +217,44 @@ function TableSelect({
                 backgroundImage: `linear-gradient(180deg, rgba(10,26,15,0.12), rgba(0,0,0,0.76)), url(/images/table-${table.id}.jpg)`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
-                opacity: isSelected ? 1 : 0.72,
+                filter: isLocked ? "grayscale(1)" : "none",
+                opacity: isLocked ? 0.5 : isSelected ? 1 : 0.72,
                 transform: isSelected ? "scale(1)" : "scale(0.96)",
-                cursor: "pointer",
+                cursor: isLocked ? "not-allowed" : "pointer",
                 outline: isSelected ? "2px solid #22C55E" : "none",
                 outlineOffset: isSelected ? "3px" : "0",
               }}
             >
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(34,197,94,0.22),transparent_38%)]" />
+              {isLocked && (
+                <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/65">
+                  <Lock size={12} color="rgba(255,255,255,0.7)" />
+                </div>
+              )}
               <div className="absolute inset-x-0 bottom-0 p-3">
                 <div className="rounded-full border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-xl">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[13px] font-semibold text-white">
                       {table.name}
                     </span>
-                    <span
-                      aria-hidden="true"
-                      className="flex h-5 w-5 items-center justify-center rounded-full border"
-                      style={{
-                        borderColor: isSelected ? "#22C55E" : "rgba(255,255,255,0.36)",
-                        background: isSelected ? "#22C55E" : "rgba(255,255,255,0.08)",
-                      }}
-                    >
-                      {isSelected && <CheckCircle size={12} color="#000" strokeWidth={2.5} />}
-                    </span>
+                    {!isLocked && (
+                      <span
+                        aria-hidden="true"
+                        className="flex h-5 w-5 items-center justify-center rounded-full border"
+                        style={{
+                          borderColor: isSelected ? "#22C55E" : "rgba(255,255,255,0.36)",
+                          background: isSelected ? "#22C55E" : "rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        {isSelected && <CheckCircle size={12} color="#000" strokeWidth={2.5} />}
+                      </span>
+                    )}
                   </div>
                   <div
                     className="mt-1 text-[11px] text-white/55"
                     data-cms-key={`book.table.${table.id}.status`}
                   >
-                    {t("available")}
+                    {isLocked ? t("table_locked") : t("available")}
                   </div>
                 </div>
               </div>
@@ -940,9 +970,16 @@ function Screen1({
   }, [dateChosen, dateStr])
 
   // Tables free for the CURRENT start+duration (drives Step 3 + the live summary).
-  const availableTables = useMemo(
-    () => (daySlots ? freeTablesFor(daySlots, dateStr, startHour, duration) : null),
+  const tableStates = useMemo(
+    () => (daySlots ? tableStatesFor(daySlots, dateStr, startHour, duration) : null),
     [daySlots, dateStr, startHour, duration]
+  )
+  const availableTables = useMemo(
+    () =>
+      tableStates
+        ? ALL_TABLES.filter((tn) => tableStates.get(tn) === "available")
+        : null,
+    [tableStates]
   )
 
   // Wheel greying: a start hour is full if no table fits the current duration; a
@@ -1081,19 +1118,55 @@ function Screen1({
                       </div>
                       <div
                         style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 8,
+                          alignContent: "center",
+                          justifyContent: "center",
+                          minHeight: WHEEL_VISIBLE * WHEEL_ITEM_H,
                           background: "rgba(255,255,255,0.03)",
                           border: "1px solid rgba(255,255,255,0.08)",
                           borderRadius: 16,
+                          padding: 12,
                         }}
                       >
-                        <DrumWheel
-                          items={durationItems}
-                          selected={duration}
-                          onChange={setDuration}
-                          labelFn={(h) => `${h}${t("hours")}`}
-                          ariaLabel={t("duration")}
-                          isDisabled={isDurationDisabled}
-                        />
+                        {durationItems.map((d) => {
+                          const isSelected = d === duration
+                          const disabled = isDurationDisabled(d)
+                          return (
+                            <button
+                              key={d}
+                              type="button"
+                              disabled={disabled}
+                              onClick={() => setDuration(d)}
+                              aria-pressed={isSelected}
+                              className="transition-all duration-150"
+                              style={{
+                                minWidth: 56,
+                                height: 40,
+                                padding: "0 14px",
+                                borderRadius: tokens.radius.pill,
+                                border: `1px solid ${isSelected ? tokens.colors.brand : tokens.colors.border}`,
+                                background: isSelected
+                                  ? tokens.colors.brand
+                                  : "rgba(255,255,255,0.04)",
+                                color: disabled
+                                  ? tokens.colors.textFaint
+                                  : isSelected
+                                    ? "#000"
+                                    : tokens.colors.text,
+                                fontSize: 14,
+                                fontWeight: isSelected ? 700 : 500,
+                                textDecoration: disabled ? "line-through" : "none",
+                                opacity: disabled ? 0.4 : 1,
+                                cursor: disabled ? "not-allowed" : "pointer",
+                              }}
+                            >
+                              {d}
+                              {t("hours")}
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
@@ -1137,8 +1210,9 @@ function Screen1({
             )}
           </AnimatePresence>
 
-          {/* Step 3 — Table (revealed after date; shows only AVAILABLE tables,
-              fully-booked times are removed entirely rather than greyed out). */}
+          {/* Step 3 — Table (revealed after date; a fully BOOKED table is removed
+              entirely, a LOCKED (someone else mid-checkout) table stays visible but
+              disabled with a tooltip — see TableSelect). */}
           <AnimatePresence>
             {dateChosen && (
               <motion.div
@@ -1150,7 +1224,7 @@ function Screen1({
               >
                 <div style={{ marginBottom: 28 }}>
                   {sectionLabel(t("select_table"), "book.table.title")}
-                  {dayLoading || availableTables === null ? (
+                  {dayLoading || tableStates === null ? (
                     <div
                       data-cms-key="book.checking"
                       style={{ fontSize: 13, color: tokens.colors.textMuted }}
@@ -1172,11 +1246,25 @@ function Screen1({
                       {t("fully_booked")}
                     </div>
                   ) : (
-                    <TableSelect
-                      availableTables={availableTables}
-                      selected={selectedTable}
-                      onSelect={(id) => setSelectedTable(id)}
-                    />
+                    <>
+                      {availableTables !== null && availableTables.length > 0 && (
+                        <div
+                          data-cms-key="book.table.remaining"
+                          style={{
+                            fontSize: 12,
+                            color: tokens.colors.brand,
+                            marginBottom: 10,
+                          }}
+                        >
+                          {t("tables_remaining", { count: availableTables.length })}
+                        </div>
+                      )}
+                      <TableSelect
+                        tableStates={tableStates}
+                        selected={selectedTable}
+                        onSelect={(id) => setSelectedTable(id)}
+                      />
+                    </>
                   )}
                 </div>
               </motion.div>
@@ -1383,6 +1471,7 @@ function Screen3({
           processingLabel={t("processing")}
           errorLabel={t("pay_error")}
           loadingLabel={t("pay_loading")}
+          lockHoldLabel={t("lock_hold")}
         />
 
         {/* Stripe secure */}

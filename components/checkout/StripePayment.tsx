@@ -31,6 +31,7 @@ type Labels = {
   processingLabel: string
   errorLabel: string
   loadingLabel: string
+  lockHoldLabel: string
 }
 
 type Props = Labels & {
@@ -106,6 +107,29 @@ function PayForm({
   )
 }
 
+/** mm:ss countdown to `until`. Ticks every second; clamps at 0. */
+function useCountdown(until: string | null): string | null {
+  const [remainingMs, setRemainingMs] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (!until) {
+      setRemainingMs(null)
+      return
+    }
+    const target = new Date(until).getTime()
+    const tick = () => setRemainingMs(Math.max(0, target - Date.now()))
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [until])
+
+  if (remainingMs === null) return null
+  const totalSeconds = Math.floor(remainingMs / 1000)
+  const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0")
+  const ss = String(totalSeconds % 60).padStart(2, "0")
+  return `${mm}:${ss}`
+}
+
 /**
  * Embedded Stripe payment: locks the slot (now that the user is logged in),
  * creates the PaymentIntent, and renders the themed Payment Element under the
@@ -116,6 +140,8 @@ export default function StripePayment(props: Props) {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [bookingId, setBookingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [lockedUntil, setLockedUntil] = useState<string | null>(null)
+  const countdown = useCountdown(lockedUntil)
 
   useEffect(() => {
     let cancelled = false
@@ -133,6 +159,7 @@ export default function StripePayment(props: Props) {
         })
         const lockJson = await lockRes.json()
         if (!lockRes.ok) throw new Error(lockJson.detail || lockJson.error || "lock failed")
+        if (!cancelled) setLockedUntil(lockJson.lockedUntil ?? null)
 
         const intentRes = await fetch("/api/payment/create-intent", {
           method: "POST",
@@ -176,6 +203,18 @@ export default function StripePayment(props: Props) {
 
   return (
     <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
+      {countdown && (
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: 13,
+            color: "rgba(255,255,255,0.55)",
+            marginBottom: 12,
+          }}
+        >
+          {props.lockHoldLabel.replace("{time}", countdown)}
+        </p>
+      )}
       <PayForm
         bookingId={bookingId}
         returnPath={props.returnPath ?? "/book"}
