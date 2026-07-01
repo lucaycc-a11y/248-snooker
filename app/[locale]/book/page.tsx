@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   Clock,
   Lock,
-  CheckCircle,
   CalendarPlus,
   Share2,
 } from "lucide-react"
@@ -293,7 +292,7 @@ function TimeSlotGrid({
     ]
   )
 
-  if (dayLoading) {
+  if (dayLoading || daySlots === null) {
     return (
       <div
         style={{
@@ -491,106 +490,6 @@ function useTables() {
     { id: 1, name: `${t("table_label")} #1`, type: t("snooker") },
     { id: 2, name: `${t("table_label")} #2`, type: t("snooker") },
   ]
-}
-
-// Availability is resolved server-side via /api/booking/availability and passed
-// in as `tableStates`. A `booked` table is removed entirely (nothing left to do
-// with it); a `locked` table stays visible but disabled with a lock icon + tooltip,
-// so the user learns "someone else is mid-checkout" at selection time instead of
-// only discovering it after tapping Continue.
-function TableSelect({
-  tableStates,
-  selected,
-  onSelect,
-}: {
-  tableStates: Map<number, TableState>
-  selected: number | null
-  onSelect: (id: number) => void
-}) {
-  const t = useTranslations("book")
-  const tables = useTables().filter((tb) => tableStates.get(tb.id) !== "booked")
-  return (
-    <div>
-      <div className="grid grid-cols-2 gap-3">
-        {tables.map((table) => {
-          const state = tableStates.get(table.id) ?? "available"
-          const isLocked = state === "locked"
-          const isSelected = !isLocked && selected === table.id
-          return (
-            <motion.button
-              key={table.id}
-              type="button"
-              disabled={isLocked}
-              onClick={() => !isLocked && onSelect(table.id)}
-              whileTap={isLocked ? undefined : { scale: 0.96 }}
-              title={isLocked ? t("table_locked_tooltip") : undefined}
-              aria-label={`${table.name} ${isLocked ? t("table_locked_tooltip") : t("available")}`}
-              aria-disabled={isLocked || undefined}
-              data-cms-key={`book.table.${table.id}`}
-              className="group relative min-h-11 overflow-hidden rounded-2xl border text-left transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
-              style={{
-                aspectRatio: "3 / 4",
-                borderColor: isSelected ? "#22C55E" : "rgba(255,255,255,0.12)",
-                backgroundImage: `linear-gradient(180deg, rgba(10,26,15,0.12), rgba(0,0,0,0.76)), url(/images/table-${table.id}.jpg)`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                filter: isLocked ? "grayscale(1)" : "none",
-                opacity: isLocked ? 0.5 : isSelected ? 1 : 0.72,
-                transform: isSelected ? "scale(1)" : "scale(0.96)",
-                cursor: isLocked ? "not-allowed" : "pointer",
-                outline: isSelected ? "2px solid #22C55E" : "none",
-                outlineOffset: isSelected ? "3px" : "0",
-              }}
-            >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(34,197,94,0.22),transparent_38%)]" />
-              {isLocked && (
-                <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/65">
-                  <Lock size={12} color="rgba(255,255,255,0.7)" />
-                </div>
-              )}
-              <div className="absolute inset-x-0 bottom-0 p-3">
-                <div className="rounded-full border border-white/10 bg-black/55 px-3 py-2 backdrop-blur-xl">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[13px] font-semibold text-white">
-                      {table.name}
-                    </span>
-                    {!isLocked && (
-                      <span
-                        aria-hidden="true"
-                        className="flex h-5 w-5 items-center justify-center rounded-full border"
-                        style={{
-                          borderColor: isSelected ? "#22C55E" : "rgba(255,255,255,0.36)",
-                          background: isSelected ? "#22C55E" : "rgba(255,255,255,0.08)",
-                        }}
-                      >
-                        {isSelected && <CheckCircle size={12} color="#000" strokeWidth={2.5} />}
-                      </span>
-                    )}
-                  </div>
-                  <div
-                    className="mt-1 text-[11px] text-white/55"
-                    data-cms-key={`book.table.${table.id}.status`}
-                  >
-                    {isLocked ? t("table_locked") : t("available")}
-                  </div>
-                </div>
-              </div>
-            </motion.button>
-          )
-        })}
-      </div>
-      <div
-        data-cms-key="book.table.hint"
-        style={{
-          fontSize: 13,
-          color: tokens.colors.textMuted,
-          marginTop: 12,
-        }}
-      >
-        {t("hint")}
-      </div>
-    </div>
-  )
 }
 
 /* ─────────────────────────  Calendar  ───────────────────────── */
@@ -812,239 +711,6 @@ function Calendar({
 }
 
 /* ─────────────────────────  Drum Roll Wheel (iOS)  ───────────────────────── */
-const WHEEL_ITEM_H = 48
-const WHEEL_VISIBLE = 5
-const WHEEL_PAD = Math.floor(WHEEL_VISIBLE / 2) * WHEEL_ITEM_H // 2 items
-
-function DrumWheel({
-  items,
-  selected,
-  onChange,
-  labelFn,
-  ariaLabel,
-  isDisabled,
-}: {
-  items: number[]
-  selected: number
-  onChange: (val: number) => void
-  labelFn: (val: number) => string
-  ariaLabel: string
-  // Optional predicate — disabled values render greyed/struck-through, are never
-  // emitted via onChange, and the wheel snaps away from them when scrolling stops.
-  isDisabled?: (val: number) => boolean
-}) {
-  const ref = useRef<HTMLDivElement>(null)
-  const haptic = useHaptic()
-  const n = items.length
-  const baseIdx = Math.max(0, items.indexOf(selected))
-  const lastRealRef = useRef(baseIdx)
-  const initedRef = useRef(false)
-  const rafRef = useRef<number | null>(null)
-  const touchingRef = useRef(false)
-  const pendingRecenterRef = useRef(false)
-  const endTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // Triplicate for a seamless infinite loop; start on the middle copy.
-  const loop = useMemo(() => [...items, ...items, ...items], [items])
-  const [centerLoopIdx, setCenterLoopIdx] = useState(n + baseIdx)
-
-  // Position on the selected item in the MIDDLE copy at mount (no animation).
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const startLoop = n + Math.max(0, items.indexOf(selected))
-    const prev = el.style.scrollBehavior
-    el.style.scrollBehavior = "auto"
-    el.scrollTop = startLoop * WHEEL_ITEM_H
-    lastRealRef.current = startLoop % n
-    setCenterLoopIdx(startLoop)
-    requestAnimationFrame(() => {
-      el.style.scrollBehavior = prev || "smooth"
-      initedRef.current = true
-    })
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Silently jump by one copy-length toward the middle whenever the scroll
-  // position drifts into an outer copy, so the user can never reach the real
-  // top/bottom — even mid-fling. Skipped while a finger is down (we'd teleport
-  // under it); the pending jump then runs on touchend.
-  const recenter = useCallback(() => {
-    const el = ref.current
-    if (!el) return
-    const copyH = n * WHEEL_ITEM_H
-    const loopIdx = Math.round(el.scrollTop / WHEEL_ITEM_H)
-    if (loopIdx >= n && loopIdx < 2 * n) return // already in the middle copy
-    if (touchingRef.current) {
-      pendingRecenterRef.current = true
-      return
-    }
-    const prev = el.style.scrollBehavior
-    el.style.scrollBehavior = "auto"
-    el.scrollTop += loopIdx < n ? copyH : -copyH
-    pendingRecenterRef.current = false
-    requestAnimationFrame(() => {
-      el.style.scrollBehavior = prev || "smooth"
-    })
-  }, [n])
-
-  const settle = useCallback(() => {
-    const el = ref.current
-    if (!el) return
-    const loopIdx = Math.round(el.scrollTop / WHEEL_ITEM_H)
-    setCenterLoopIdx(loopIdx)
-    const realIdx = ((loopIdx % n) + n) % n
-    if (realIdx !== lastRealRef.current) {
-      lastRealRef.current = realIdx
-      haptic.vibrate(8)
-      // Don't emit a disabled value; the scroll-end redirect snaps away from it.
-      if (!isDisabled?.(items[realIdx])) onChange(items[realIdx])
-    }
-    // Recenter continuously (not just on idle) so fast flings never hit a wall.
-    recenter()
-  }, [items, n, onChange, haptic, recenter, isDisabled])
-
-  const stepTo = useCallback((loopIdx: number) => {
-    const el = ref.current
-    if (!el) return
-    el.scrollTop = loopIdx * WHEEL_ITEM_H // smooth (behavior restored post-mount)
-  }, [])
-
-  // When scrolling stops on a DISABLED item, snap to the nearest enabled one
-  // (searched outward in scroll space so the wheel moves minimally). No-op when
-  // there is no predicate or every item is disabled.
-  const redirectIfDisabled = useCallback(() => {
-    const el = ref.current
-    if (!el || !isDisabled) return
-    const loopIdx = Math.round(el.scrollTop / WHEEL_ITEM_H)
-    if (!isDisabled(items[((loopIdx % n) + n) % n])) return
-    for (let off = 1; off < n; off++) {
-      for (const cand of [loopIdx - off, loopIdx + off]) {
-        if (!isDisabled(items[((cand % n) + n) % n])) {
-          stepTo(cand)
-          return
-        }
-      }
-    }
-  }, [isDisabled, items, n, stepTo])
-
-  const handleScroll = useCallback(() => {
-    if (!initedRef.current) return // ignore the mount-time scroll assignment
-    if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    rafRef.current = requestAnimationFrame(settle)
-    // Debounced scroll-end check: snap off a disabled item once the fling stops.
-    if (endTimerRef.current) clearTimeout(endTimerRef.current)
-    endTimerRef.current = setTimeout(redirectIfDisabled, 160)
-  }, [settle, redirectIfDisabled])
-
-  const handleTouchStart = useCallback(() => {
-    touchingRef.current = true
-  }, [])
-
-  const handleTouchEnd = useCallback(() => {
-    touchingRef.current = false
-    if (pendingRecenterRef.current) recenter()
-  }, [recenter])
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault()
-        stepTo(centerLoopIdx + 1)
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault()
-        stepTo(centerLoopIdx - 1)
-      }
-    },
-    [centerLoopIdx, stepTo]
-  )
-
-  return (
-    <div style={{ position: "relative", height: WHEEL_VISIBLE * WHEEL_ITEM_H }}>
-      {/* Selection indicator lines */}
-      <div
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: 0,
-          right: 0,
-          height: WHEEL_ITEM_H,
-          transform: "translateY(-50%)",
-          borderTop: "1px solid rgba(255,255,255,0.2)",
-          borderBottom: "1px solid rgba(255,255,255,0.2)",
-          pointerEvents: "none",
-          zIndex: 1,
-        }}
-      />
-      <div
-        ref={ref}
-        onScroll={handleScroll}
-        onKeyDown={handleKeyDown}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
-        tabIndex={0}
-        role="listbox"
-        aria-label={ariaLabel}
-        aria-activedescendant={`wheel-${ariaLabel}-${items[((centerLoopIdx % n) + n) % n]}`}
-        className="no-scrollbar drum-wheel"
-        style={{
-          height: "100%",
-          overflowY: "scroll",
-          scrollSnapType: "y mandatory",
-          scrollBehavior: "smooth",
-          WebkitOverflowScrolling: "touch",
-          outline: "none",
-          maskImage:
-            "linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)",
-          WebkitMaskImage:
-            "linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)",
-        }}
-      >
-        {/* Top spacer */}
-        <div style={{ height: WHEEL_PAD }} aria-hidden="true" />
-        {loop.map((val, i) => {
-          const dist = Math.abs(i - centerLoopIdx)
-          const fontSize = dist === 0 ? 36 : dist === 1 ? 22 : 18
-          const realIdx = ((i % n) + n) % n
-          const disabled = isDisabled?.(items[realIdx]) ?? false
-          const opacity = disabled
-            ? 0.25
-            : dist === 0
-              ? 1
-              : dist === 1
-                ? 0.7
-                : 0.35
-          return (
-            <div
-              key={i}
-              id={i === n ? `wheel-${ariaLabel}-${val}` : undefined}
-              role="option"
-              aria-selected={dist === 0}
-              aria-disabled={disabled || undefined}
-              style={{
-                height: WHEEL_ITEM_H,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                scrollSnapAlign: "center",
-                fontSize,
-                fontWeight: dist === 0 ? 600 : 400,
-                color: disabled ? tokens.colors.textFaint : tokens.colors.text,
-                opacity,
-                textDecoration: disabled ? "line-through" : "none",
-                transition: "font-size 120ms ease-out, opacity 120ms ease-out",
-              }}
-            >
-              {labelFn(items[realIdx])}
-            </div>
-          )
-        })}
-        {/* Bottom spacer */}
-        <div style={{ height: WHEEL_PAD }} aria-hidden="true" />
-      </div>
-    </div>
-  )
-}
-
 /* ─────────────────────────  Summary Card (Desktop)  ───────────────────────── */
 function SummaryCard({
   selectedDate,
@@ -1235,28 +901,10 @@ function Screen1({
     return `${y}-${m}-${d}`
   }, [selectedDate])
 
-  // Animate the live price total.
-  useEffect(() => {
-    const target = CONFIG.pricePerHour * duration
-    if (target === displayTotal) return
-    const step = target > displayTotal ? 10 : -10
-    const id = setInterval(() => {
-      setDisplayTotal((prev) => {
-        const next = prev + step
-        if ((step > 0 && next >= target) || (step < 0 && next <= target)) {
-          clearInterval(id)
-          return target
-        }
-        return next
-      })
-    }, 20)
-    return () => clearInterval(id)
-  }, [duration, displayTotal])
-
-  // Fetch the day's booked/locked slots once per date; per-hour and per-duration
-  // greying (Step 2) + the table list (Step 3) are then computed locally, so wheel
-  // scrolling triggers no extra requests. Fails OPEN (empty = everything free) —
-  // the slot lock at payment is the authoritative guard against double-booking.
+  // Fetch the day's booked/locked slots once per date; the time-slot grid then
+  // computes per-hour availability and auto table assignment locally, so tapping
+  // cells triggers no extra requests. Fails OPEN (empty = everything free) — the
+  // slot lock at payment is the authoritative guard against double-booking.
   useEffect(() => {
     if (!dateChosen) {
       setDaySlots(null)
@@ -1333,6 +981,8 @@ function Screen1({
               onSelect={(d) => {
                 setSelectedDate(d)
                 setDateChosen(true)
+                setDuration(0)
+                setSelectedTable(null)
                 scrollToRef(timeRef)
               }}
             />
@@ -1665,6 +1315,20 @@ function Screen3({
           retryPaymentLabel={t("retry_payment")}
           billingDetails={profile ?? undefined}
         />
+
+        <div
+          data-cms-key="book.payment_reminder"
+          style={{
+            fontSize: 13,
+            color: tokens.colors.textMuted,
+            textAlign: "center",
+            marginTop: 20,
+            padding: "0 16px",
+            lineHeight: 1.5,
+          }}
+        >
+          {t("payment_reminder")}
+        </div>
 
         {/* Stripe secure */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
@@ -2182,7 +1846,7 @@ export default function BookPage() {
     const now = new Date()
     return (now.getHours() + 1) % 24
   })
-  const [duration, setDuration] = useState(1)
+  const [duration, setDuration] = useState(0)
   const [selectedTable, setSelectedTable] = useState<number | null>(null)
   const [bookingRef] = useState(() => genRef())
   const paymentRef = useRef<HTMLDivElement>(null)
