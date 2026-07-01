@@ -169,6 +169,7 @@ declare
   v_ids      uuid[] := '{}';
   v_qr       text;
   v_ref_out  text;
+  v_primary  uuid;   -- first booking id in the group; points ledger reference
 begin
   -- Lock all group rows up front (stable order) to serialize duplicate deliveries.
   for v_b in
@@ -240,6 +241,7 @@ begin
     v_refs  := array_append(v_refs, v_ref_out);
     v_ids   := array_append(v_ids, v_b.id);
     v_total := v_total + coalesce(v_b.total_price, 0);
+    if v_primary is null then v_primary := v_b.id; end if;
 
     update public.slots set status = 'booked', locked_by = null, locked_until = null
      where id = v_b.slot_id;
@@ -253,8 +255,13 @@ begin
       from public.users u where u.id = v_user_id;
     v_pts := round(v_total * coalesce(v_mult, 1));
     if v_pts > 0 then
+      -- reference_id = the PRIMARY booking id (not the group id). Existing
+      -- single-booking RPCs only ever store booking ids here, so if
+      -- points_ledger.reference_id carries an FK to bookings.id, a group-id value
+      -- would violate it and roll back the whole confirmation. refund_group
+      -- reverses by the same primary id.
       insert into public.points_ledger (user_id, points, type, reference_id, note)
-      values (v_user_id, v_pts, 'booking', p_order_group_id, 'Booking group ' || p_order_group_id::text);
+      values (v_user_id, v_pts, 'booking', v_primary, 'Booking group ' || p_order_group_id::text);
       update public.users set points = points + v_pts where id = v_user_id;
     end if;
   end if;
@@ -318,7 +325,9 @@ declare
   v_user_id uuid;
   v_pts     integer;
   v_already boolean;
+  v_primary uuid;   -- primary booking id the group's points were awarded against
 begin
+  -- Primary = first booking by the same (date, start_time) order confirm used.
   select bool_and(status = 'refunded'), max(user_id::text)::uuid
     into v_already, v_user_id
     from public.bookings where order_group_id = p_order_group_id;
@@ -335,16 +344,22 @@ begin
     return jsonb_build_object('success', true, 'idempotent', true, 'order_group_id', p_order_group_id);
   end if;
 
+  select id into v_primary
+    from public.bookings
+   where order_group_id = p_order_group_id
+   order by date, start_time
+   limit 1;
+
   update public.bookings set status = 'refunded', updated_at = now()
    where order_group_id = p_order_group_id and status <> 'refunded';
 
-  -- Reverse the group's points (awarded once against reference_id = group id).
+  -- Reverse the group's points (awarded once against the PRIMARY booking id).
   select coalesce(sum(points), 0) into v_pts
     from public.points_ledger
-   where reference_id = p_order_group_id and type = 'booking';
+   where reference_id = v_primary and type = 'booking';
   if v_pts <> 0 and v_user_id is not null then
     insert into public.points_ledger (user_id, points, type, reference_id, note)
-    values (v_user_id, -v_pts, 'manual', p_order_group_id, 'Refund reversal (group)');
+    values (v_user_id, -v_pts, 'manual', v_primary, 'Refund reversal (group)');
     update public.users set points = greatest(0, points - v_pts) where id = v_user_id;
   end if;
 
