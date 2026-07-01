@@ -738,16 +738,25 @@ function Calendar({
                     fontSize: 15,
                     fontWeight: isSelected ? 600 : 400,
                     background: isSelected ? tokens.colors.link : "transparent",
-                    color: isSelected ? "#fff" : tokens.colors.text,
-                    border:
-                      isToday && !isSelected
-                        ? `1px solid ${tokens.colors.text}`
-                        : "1px solid transparent",
+                    // Fully-booked days read as unavailable via a red-tinted,
+                    // dimmed number (the small dot below is now reserved for
+                    // "today", so booked can't use a dot without colliding).
+                    color: isSelected
+                      ? "#fff"
+                      : booked
+                        ? tokens.colors.danger
+                        : tokens.colors.text,
+                    opacity: booked && !isSelected ? 0.55 : 1,
+                    textDecoration: booked && !isSelected ? "line-through" : "none",
+                    border: "1px solid transparent",
                     transition: `background ${tokens.duration.fast}`,
                   }}
                 >
                   {date.getDate()}
-                  {booked && (
+                  {/* Today marker — small dot under the number (calendar-1
+                      demo's data-today treatment). Hidden when this cell is
+                      selected (the solid fill already conveys state). */}
+                  {isToday && !isSelected && (
                     <span
                       style={{
                         position: "absolute",
@@ -757,7 +766,7 @@ function Calendar({
                         width: 4,
                         height: 4,
                         borderRadius: "50%",
-                        background: tokens.colors.danger,
+                        background: tokens.colors.brand,
                       }}
                     />
                   )}
@@ -1292,7 +1301,10 @@ function Screen3({
     <div className="screen-content">
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
         {/* Order summary */}
-        <Card style={{ marginBottom: 24 }}>
+        <Card
+          className="glass-panel"
+          style={{ marginBottom: 24, borderRadius: 20 }}
+        >
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
@@ -1347,54 +1359,65 @@ function Screen3({
 
         {/* Payment — Stripe Payment Element rendered under our own chrome. It
             shows cards + Apple/Google Pay + Alipay/WeChat with officially-licensed
-            icons, and confirms via redirect (return to /book). */}
-        <div
-          data-cms-key="book.pay.method"
-          style={{ fontSize: 13, color: tokens.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}
+            icons, and confirms via redirect (return to /book). The glass surface
+            + entrance animation are purely visual; the <StripePayment> element and
+            all Stripe logic inside it are untouched. */}
+        <motion.div
+          className="glass-panel"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          style={{ borderRadius: 20, padding: 20 }}
         >
-          {t("payment_title")}
-        </div>
+          <div
+            data-cms-key="book.pay.method"
+            style={{ fontSize: 13, color: tokens.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}
+          >
+            {t("payment_title")}
+          </div>
 
-        <StripePayment
-          date={dateStr}
-          startHour={startHour}
-          duration={duration}
-          tableNumber={tableNumber}
-          total={total}
-          locale={locale as "en" | "zh-HK" | "zh-CN" | "ja"}
-          returnPath="/book"
-          payLabel={`${t("pay_now")} · HK$${total}`}
-          processingLabel={t("processing")}
-          errorLabel={t("pay_error")}
-          loadingLabel={t("pay_loading")}
-          lockHoldLabel={t("lock_hold")}
-          paymentFailedLabel={t("pay_declined")}
-          whatsappSupportLabel={t("whatsapp_support")}
-          retryPaymentLabel={t("retry_payment")}
-          billingDetails={profile ?? undefined}
-        />
+          <StripePayment
+            date={dateStr}
+            startHour={startHour}
+            duration={duration}
+            tableNumber={tableNumber}
+            total={total}
+            locale={locale as "en" | "zh-HK" | "zh-CN" | "ja"}
+            returnPath="/book"
+            payLabel={`${t("pay_now")} · HK$${total}`}
+            processingLabel={t("processing")}
+            errorLabel={t("pay_error")}
+            slotTakenLabel={t("slot_taken")}
+            loadingLabel={t("pay_loading")}
+            lockHoldLabel={t("lock_hold")}
+            paymentFailedLabel={t("pay_declined")}
+            whatsappSupportLabel={t("whatsapp_support")}
+            retryPaymentLabel={t("retry_payment")}
+            billingDetails={profile ?? undefined}
+          />
 
-        <div
-          data-cms-key="book.payment_reminder"
-          style={{
-            fontSize: 13,
-            color: tokens.colors.textMuted,
-            textAlign: "center",
-            marginTop: 20,
-            padding: "0 16px",
-            lineHeight: 1.5,
-          }}
-        >
-          {t("payment_reminder")}
-        </div>
+          <div
+            data-cms-key="book.payment_reminder"
+            style={{
+              fontSize: 13,
+              color: tokens.colors.textMuted,
+              textAlign: "center",
+              marginTop: 20,
+              padding: "0 16px",
+              lineHeight: 1.5,
+            }}
+          >
+            {t("payment_reminder")}
+          </div>
 
-        {/* Stripe secure */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
-          <Lock size={12} style={{ color: tokens.colors.textMuted }} />
-          <span data-cms-key="book.pay.secure" style={{ fontSize: 12, color: tokens.colors.textMuted }}>
-            {t("stripe_secure")}
-          </span>
-        </div>
+          {/* Stripe secure */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
+            <Lock size={12} style={{ color: tokens.colors.textMuted }} />
+            <span data-cms-key="book.pay.secure" style={{ fontSize: 12, color: tokens.colors.textMuted }}>
+              {t("stripe_secure")}
+            </span>
+          </div>
+        </motion.div>
       </div>
     </div>
   )
