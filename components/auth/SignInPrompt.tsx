@@ -21,7 +21,7 @@ const SHOW_DELAY_MS = 2500
 // Uses useAuthSession so it never flashes for a logged-in user (waits for the
 // session check to resolve). Portaled to <body> so the nav's scroll-time
 // transform: scale() doesn't trap the fixed element.
-export function SignInPrompt({ onOpenLogin }: { onOpenLogin: () => void }) {
+export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () => void; hidden?: boolean }) {
   const t = useTranslations("nav")
   const { loading, user } = useAuthSession()
   const [mounted, setMounted] = useState(false)
@@ -40,15 +40,16 @@ export function SignInPrompt({ onOpenLogin }: { onOpenLogin: () => void }) {
     }
   }, [])
 
-  // Reveal only when: session resolved + anonymous + not previously dismissed.
+  // Reveal only when: session resolved + anonymous + not previously dismissed
+  // + not explicitly hidden (e.g. mobile menu open covers the same bottom area).
   useEffect(() => {
-    if (loading || user || dismissed) {
+    if (loading || user || dismissed || hidden) {
       setVisible(false)
       return
     }
     const id = setTimeout(() => setVisible(true), SHOW_DELAY_MS)
     return () => clearTimeout(id)
-  }, [loading, user, dismissed])
+  }, [loading, user, dismissed, hidden])
 
   const close = () => {
     setVisible(false)

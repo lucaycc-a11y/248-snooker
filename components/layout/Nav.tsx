@@ -140,7 +140,6 @@ export default function Nav() {
   }, [pathname])
 
   const linkColor = theme === 'dark' ? '#FFFFFF' : '#1A1A1A'
-  const memberHref = loggedIn ? '/member' : '/login'
   const memberLabel = loggedIn ? t('member') : t('login')
 
   function MemberIcon({ size = 20 }: { size?: number }) {
@@ -225,7 +224,7 @@ export default function Nav() {
 
   return (
     <>
-      <SignInPrompt onOpenLogin={() => setLoginModalOpen(true)} />
+      <SignInPrompt onOpenLogin={() => setLoginModalOpen(true)} hidden={menuOpen} />
       <nav
         style={{
           position: 'fixed',
