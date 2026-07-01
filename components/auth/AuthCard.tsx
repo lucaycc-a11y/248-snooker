@@ -20,13 +20,16 @@ const RESEND_COOLDOWN = 30
 const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type Phase = "methods" | "otp" | "profile"
+type Phase = "methods" | "phone" | "otp" | "profile"
+type OtpChannel = "sms" | "email"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
 
 // Reusable auth content — the single source of truth used by BOTH the /login page
-// and the in-booking modal. Methods: Apple (placeholder, blocked on Services ID),
-// Google (official GIS / branded fallback), SMS OTP (Supabase native phone). After
-// any first sign-in it gates on profile completion before calling onAuthComplete.
+// and the in-booking modal. Primary methods: Apple, Google, Email OTP. SMS is kept
+// as a de-emphasized fallback link (existing phone-only members still need a way
+// in) rather than a primary button. After any first sign-in it gates on profile
+// completion — which itself requires a verified phone (see ProfileCompletion) —
+// before calling onAuthComplete.
 export function AuthCard({
   returnUrl,
   onAuthComplete,
@@ -37,6 +40,8 @@ export function AuthCard({
   const t = useTranslations("auth")
   const [phase, setPhase] = useState<Phase>("methods")
   const [phone, setPhone] = useState("")
+  const [email, setEmail] = useState("")
+  const [otpChannel, setOtpChannel] = useState<OtpChannel>("sms")
   const [otp, setOtp] = useState("")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -171,6 +176,43 @@ export function AuthCard({
         return
       }
       setOtp("")
+      setOtpChannel("sms")
+      setAttemptsLeft(MAX_OTP_ATTEMPTS)
+      setCooldown(RESEND_COOLDOWN)
+      setBusy(false)
+      setPhase("otp")
+    } catch {
+      setError(t("err_network"))
+      setBusy(false)
+    }
+  }
+
+  const sendEmailOtp = async () => {
+    const trimmed = email.trim()
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError(t("err_email"))
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/auth/send-email-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (j?.ok !== true) {
+        if (j?.error === "rate_limited") {
+          setError(t("err_rate_limited"))
+        } else {
+          setError(j?.detail ? `${t("err_send")} (${j.detail})` : t("err_send"))
+        }
+        setBusy(false)
+        return
+      }
+      setOtp("")
+      setOtpChannel("email")
       setAttemptsLeft(MAX_OTP_ATTEMPTS)
       setCooldown(RESEND_COOLDOWN)
       setBusy(false)
@@ -182,16 +224,13 @@ export function AuthCard({
   }
 
   const verifyOtp = async (code: string) => {
-    const normalized = normalizeHkPhone(phone)
-    if (!normalized) return
     setBusy(true)
     setError(null)
     const supabase = createClient()
-    const { error: vErr } = await supabase.auth.verifyOtp({
-      phone: normalized,
-      token: code,
-      type: "sms",
-    })
+    const { error: vErr } =
+      otpChannel === "email"
+        ? await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "email" })
+        : await supabase.auth.verifyOtp({ phone: normalizeHkPhone(phone) ?? "", token: code, type: "sms" })
     if (vErr) {
       const expired = /expired/i.test(vErr.message)
       const remaining = attemptsLeft - 1
@@ -253,6 +292,15 @@ export function AuthCard({
           err_email: t("err_email"),
           err_phone: t("err_phone"),
           err_generic: t("err_generic"),
+          phone_send_code: t("profile_phone_send_code"),
+          phone_verified_badge: t("profile_phone_verified_badge"),
+          phone_otp_subtitle: t("otp_subtitle", { phone: "{phone}" }),
+          phone_resend: t("resend"),
+          phone_resend_in: t("resend_in", { seconds: "{seconds}" }),
+          phone_change_number: t("profile_phone_change_number"),
+          err_otp_wrong: t("err_otp_wrong", { count: "{count}" }),
+          err_otp_expired: t("err_otp_expired"),
+          err_otp_locked: t("err_otp_locked"),
         }}
       />
     )
@@ -274,7 +322,7 @@ export function AuthCard({
           {t("otp_title")}
         </h2>
         <p data-cms-key="auth.otp.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
-          {t("otp_subtitle", { phone })}
+          {otpChannel === "email" ? t("otp_subtitle_email", { email }) : t("otp_subtitle", { phone })}
         </p>
 
         <OtpInput length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={verifyOtp} disabled={busy} invalid={!!error} />
@@ -283,13 +331,57 @@ export function AuthCard({
 
         <button
           type="button"
-          onClick={sendOtp}
+          onClick={otpChannel === "email" ? sendEmailOtp : sendOtp}
           disabled={cooldown > 0 || busy}
           data-cms-key="auth.otp.resend"
           style={{ marginTop: 20, width: "100%", background: "none", border: "none", color: cooldown > 0 ? "rgba(255,255,255,0.35)" : GREEN, fontSize: 14, cursor: cooldown > 0 ? "default" : "pointer" }}
         >
           {cooldown > 0 ? t("resend_in", { seconds: cooldown }) : t("resend")}
         </button>
+      </motion.div>
+    )
+  }
+
+  // ── Phone entry (de-emphasized fallback for existing SMS-only members) ──────
+  if (phase === "phone") {
+    return (
+      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
+        <button
+          type="button"
+          onClick={() => { setPhase("methods"); setError(null) }}
+          aria-label={t("back")}
+          style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}
+        >
+          <ChevronLeft size={16} /> {t("back")}
+        </button>
+        <h2 data-cms-key="auth.sms.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>
+          {t("sms_title")}
+        </h2>
+        <p data-cms-key="auth.sms.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
+          {t("sms_subtitle")}
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, color: "#fff", fontSize: 16 }}>+852</span>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder={t("phone_placeholder")}
+            inputMode="tel"
+            autoComplete="tel"
+            aria-label={t("phone_placeholder")}
+            style={{ flex: 1, height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={sendOtp}
+          disabled={busy}
+          data-cms-key="auth.sms.continue"
+          style={{ marginTop: 12, width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}
+        >
+          {busy ? t("sending") : t("sms_continue")}
+        </button>
+        {error && <p data-cms-key="auth.error" style={{ marginTop: 12, fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
       </motion.div>
     )
   }
@@ -315,32 +407,41 @@ export function AuthCard({
           <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.12)" }} />
         </div>
 
-        {/* SMS phone entry */}
-        <div style={{ display: "flex", gap: 8 }}>
-          <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, color: "#fff", fontSize: 16 }}>+852</span>
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder={t("phone_placeholder")}
-            inputMode="tel"
-            autoComplete="tel"
-            aria-label={t("phone_placeholder")}
-            style={{ flex: 1, height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
-          />
-        </div>
+        {/* Email OTP entry — third primary method, replaces SMS as the default
+            non-social path (task: Apple/Google/Email OTP). */}
+        <input
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder={t("email_placeholder")}
+          inputMode="email"
+          autoComplete="email"
+          aria-label={t("email_placeholder")}
+          style={{ height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
+        />
         <button
           type="button"
-          onClick={sendOtp}
+          onClick={sendEmailOtp}
           disabled={busy}
-          data-cms-key="auth.sms.continue"
+          data-cms-key="auth.email.continue"
           style={{ width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}
         >
-          {busy ? t("sending") : t("sms_continue")}
+          {busy ? t("sending") : t("email_continue")}
         </button>
 
         {error && phase === "methods" && (
           <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>
         )}
+
+        {/* De-emphasized fallback — existing phone-only members still need a way
+            in; not shown as a primary CTA per the Apple/Google/Email redesign. */}
+        <button
+          type="button"
+          onClick={() => { setPhase("phone"); setError(null) }}
+          data-cms-key="auth.sms.fallback_link"
+          style={{ marginTop: 4, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 13, cursor: "pointer", textAlign: "center" }}
+        >
+          {t("sms_fallback_link")}
+        </button>
       </div>
 
       <p data-cms-key="auth.terms" style={{ marginTop: 20, textAlign: "center", fontSize: 12, lineHeight: 1.6, color: "rgba(255,255,255,0.4)" }}>

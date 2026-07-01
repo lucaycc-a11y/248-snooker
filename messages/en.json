@@ -30,7 +30,16 @@
     "err_rate_limited": "Too many attempts. Please wait a few minutes.",
     "err_otp_expired": "Code expired. Request a new one.",
     "err_otp_wrong": "Incorrect code, {count} attempts remaining.",
-    "err_otp_locked": "Too many incorrect attempts. Start again."
+    "err_otp_locked": "Too many incorrect attempts. Start again.",
+    "email_placeholder": "Email address",
+    "email_continue": "Continue with Email",
+    "otp_subtitle_email": "We sent a 6-digit code to {email}",
+    "sms_title": "Sign in with SMS",
+    "sms_subtitle": "For members who previously signed up with a phone number.",
+    "sms_fallback_link": "Signed up with a phone number? Use SMS instead",
+    "profile_phone_send_code": "Send code",
+    "profile_phone_verified_badge": "Phone verified",
+    "profile_phone_change_number": "Change number"
   },
   "404": {
     "code": "404",

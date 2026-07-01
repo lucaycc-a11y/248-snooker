@@ -30,7 +30,16 @@
     "err_rate_limited": "試行回数が多すぎます。数分お待ちください。",
     "err_otp_expired": "コードの有効期限が切れました。新しいコードを取得してください。",
     "err_otp_wrong": "コードが正しくありません。残り{count}回。",
-    "err_otp_locked": "誤入力が多すぎます。最初からやり直してください。"
+    "err_otp_locked": "誤入力が多すぎます。最初からやり直してください。",
+    "email_placeholder": "メールアドレス",
+    "email_continue": "メールで続ける",
+    "otp_subtitle_email": "6桁の確認コードを {email} に送信しました",
+    "sms_title": "SMSでサインイン",
+    "sms_subtitle": "電話番号で登録済みの会員向けです。",
+    "sms_fallback_link": "電話番号で登録済みですか？SMSでサインイン",
+    "profile_phone_send_code": "確認コードを送信",
+    "profile_phone_verified_badge": "電話番号確認済み",
+    "profile_phone_change_number": "番号を変更"
   },
   "404": {
     "code": "404",

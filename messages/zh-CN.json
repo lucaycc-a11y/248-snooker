@@ -30,7 +30,16 @@
     "err_rate_limited": "尝试次数过多，请稍候几分钟。",
     "err_otp_expired": "验证码已过期，请重新获取。",
     "err_otp_wrong": "验证码不正确，还剩 {count} 次机会。",
-    "err_otp_locked": "错误次数过多，请重新开始。"
+    "err_otp_locked": "错误次数过多，请重新开始。",
+    "email_placeholder": "电邮地址",
+    "email_continue": "以电邮继续",
+    "otp_subtitle_email": "我们已传送 6 位数验证码至 {email}",
+    "sms_title": "以短信登录",
+    "sms_subtitle": "适用于曾以电话号码注册嘅会员。",
+    "sms_fallback_link": "曾以电话号码注册？改用短信登录",
+    "profile_phone_send_code": "传送验证码",
+    "profile_phone_verified_badge": "电话已验证",
+    "profile_phone_change_number": "更改号码"
   },
   "404": {
     "code": "404",

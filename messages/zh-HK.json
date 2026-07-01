@@ -30,7 +30,16 @@
     "err_rate_limited": "嘗試次數過多，請稍候數分鐘。",
     "err_otp_expired": "驗證碼已過期，請重新索取。",
     "err_otp_wrong": "驗證碼不正確，尚餘 {count} 次機會。",
-    "err_otp_locked": "錯誤次數過多，請重新開始。"
+    "err_otp_locked": "錯誤次數過多，請重新開始。",
+    "email_placeholder": "電郵地址",
+    "email_continue": "以電郵繼續",
+    "otp_subtitle_email": "我們已傳送 6 位數驗證碼至 {email}",
+    "sms_title": "以短訊登入",
+    "sms_subtitle": "適用於曾以電話號碼註冊嘅會員。",
+    "sms_fallback_link": "曾以電話號碼註冊？改用短訊登入",
+    "profile_phone_send_code": "傳送驗證碼",
+    "profile_phone_verified_badge": "電話已驗證",
+    "profile_phone_change_number": "更改號碼"
   },
   "404": {
     "code": "404",
