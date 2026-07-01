@@ -70,9 +70,6 @@ type Labels = {
    * message of its own (declines/validation almost always include one, but
    * some edge cases don't) — must be CMS/i18n text, never a bare English string. */
   paymentFailedLabel: string
-  /** Shown if confirmPayment() hasn't resolved after 15s, instead of an
-   * infinite spinner (e.g. a hung network request). */
-  timeoutLabel: string
   /** WhatsApp support call-to-action for suspected double-charge scenarios */
   whatsappSupportLabel: string
   retryPaymentLabel: string
@@ -102,15 +99,12 @@ type Props = Labels & {
   billingDetails?: BillingDetails
 }
 
-const CONFIRM_TIMEOUT_MS = 15_000
-
 function PayForm({
   bookingId,
   returnPath,
   payLabel,
   processingLabel,
   paymentFailedLabel,
-  timeoutLabel,
   whatsappSupportLabel,
   retryPaymentLabel,
   billingDetails,
@@ -124,7 +118,6 @@ function PayForm({
   payLabel: string
   processingLabel: string
   paymentFailedLabel: string
-  timeoutLabel: string
   whatsappSupportLabel: string
   retryPaymentLabel: string
   billingDetails?: BillingDetails
@@ -146,48 +139,19 @@ function PayForm({
     setErr(null)
     const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}`
 
-    // redirect: 'if_required' means Stripe only navigates away when the
-    // method actually needs it (Alipay/WeChat/wallets/3DS) — a plain card
-    // with no extra verification resolves right here instead of a full-page
-    // redirect round-trip. A 15s watchdog guards against confirmPayment()
-    // hanging (e.g. a stalled network request) so the button never spins
-    // forever with no feedback.
-    let timedOut = false
-    const timeout = new Promise<"timeout">((resolve) =>
-      setTimeout(() => {
-        timedOut = true
-        resolve("timeout")
-      }, CONFIRM_TIMEOUT_MS),
-    )
-    const confirm = stripe.confirmPayment({
+    // redirect: 'if_required' means Stripe only navigates away when the method
+    // actually needs it (Alipay/WeChat/wallets). For 3DS on card, Stripe.js opens
+    // the challenge modal in-page and confirmPayment() stays pending until the
+    // user completes it — we must NOT race it against a fixed timer, or a
+    // legitimately in-progress 3DS challenge gets killed and the payment hangs at
+    // 'requires_action'. Stripe.js manages the challenge lifecycle and rejects on
+    // its own (network/card errors surface via `error` below).
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: { return_url: returnUrl },
       redirect: "if_required",
     })
-    const result = await Promise.race([confirm, timeout])
 
-    if (result === "timeout") {
-      console.error("[payment] confirmPayment_timeout", {
-        bookingId,
-        timeoutMs: CONFIRM_TIMEOUT_MS,
-        timestamp: new Date().toISOString(),
-      })
-      setErr(timeoutLabel)
-      setSubmitting(false)
-      return
-    }
-    // confirmPayment() resolved after the watchdog already fired — the
-    // timeout message is already showing; let it be rather than overwrite
-    // with a stale success/error from the slow call.
-    if (timedOut) {
-      console.warn("[payment] confirmPayment_resolved_after_timeout", {
-        bookingId,
-        status: result.paymentIntent?.status,
-      })
-      return
-    }
-
-    const { error, paymentIntent } = result
     if (error) {
       // error.message is already localized by Stripe (Elements' `locale`
       // option, set below) — the fallback only fires on the rare error with
@@ -441,7 +405,6 @@ export default function StripePayment(props: Props) {
         payLabel={props.payLabel}
         processingLabel={props.processingLabel}
         paymentFailedLabel={props.paymentFailedLabel}
-        timeoutLabel={props.timeoutLabel}
         whatsappSupportLabel={props.whatsappSupportLabel}
         retryPaymentLabel={props.retryPaymentLabel}
         billingDetails={props.billingDetails}

@@ -1369,7 +1369,6 @@ function Screen3({
           loadingLabel={t("pay_loading")}
           lockHoldLabel={t("lock_hold")}
           paymentFailedLabel={t("pay_declined")}
-          timeoutLabel={t("pay_timeout")}
           whatsappSupportLabel={t("whatsapp_support")}
           retryPaymentLabel={t("retry_payment")}
           billingDetails={profile ?? undefined}
