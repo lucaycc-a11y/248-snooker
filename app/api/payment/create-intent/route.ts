@@ -184,9 +184,9 @@ export async function POST(req: Request) {
         type: e.type,
         code: e.code,
         statusCode: e.statusCode,
-        amount: quote.amountInCents,
+        amount: amountInCents,
         userId: user.id,
-        bookingId,
+        bookingIds,
       })
       return NextResponse.json(
         { error: 'stripe_error', detail: e.message ?? 'Stripe request failed', code: e.code ?? e.type ?? null },
