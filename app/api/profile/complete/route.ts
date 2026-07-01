@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { validateProfile } from '@/lib/auth/profile'
+import { validateProfile, normalizeHkPhone } from '@/lib/auth/profile'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
@@ -37,6 +37,10 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => null)
+    if (!normalizeHkPhone(body?.phone ?? '')) {
+      return NextResponse.json({ error: '請提供有效嘅電話號碼' }, { status: 400 })
+    }
+
     const result = validateProfile({
       name: body?.name,
       email: body?.email,

@@ -1,10 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { validateProfile, type ProfileValidation } from "@/lib/auth/profile"
+import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 
 const BRASS = "#c9a876"
 const DEEP = "#0a1a0f"
+
+function localHkPhoneValue(value: string): string {
+  const normalized = normalizeHkPhone(value)
+  return normalized ? normalized.slice(4) : value
+}
 
 // Mandatory first-sign-in profile step. Name + email + phone are ALL required for
 // every method (SMS users lack email; Apple/Google users lack a verified phone).
@@ -15,12 +20,14 @@ export function ProfileCompletion({
   initialName = "",
   initialEmail = "",
   initialPhone = "",
+  isPhoneVerified = false,
   onComplete,
   labels,
 }: {
   initialName?: string
   initialEmail?: string
   initialPhone?: string
+  isPhoneVerified?: boolean
   onComplete: () => void
   labels: {
     title: string
@@ -38,10 +45,13 @@ export function ProfileCompletion({
 }) {
   const [name, setName] = useState(initialName)
   const [email, setEmail] = useState(initialEmail)
-  const [phone, setPhone] = useState(initialPhone)
+  const [phone, setPhone] = useState(() => localHkPhoneValue(initialPhone))
   const [saving, setSaving] = useState(false)
   const [errField, setErrField] = useState<"name" | "email" | "phone" | null>(null)
   const [errMsg, setErrMsg] = useState<string | null>(null)
+  const validation = validateProfile({ name, email, phone })
+  const canSubmit = validation.ok && !saving
+  const phoneMessage = !isPhoneVerified && !normalizeHkPhone(phone) ? labels.err_phone : null
 
   const errorFor = (v: ProfileValidation): string => {
     if (v.ok) return ""
@@ -62,7 +72,7 @@ export function ProfileCompletion({
       const res = await fetch("/api/profile/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone }),
+        body: JSON.stringify({ name, email, phone: v.value.phone }),
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
@@ -124,16 +134,37 @@ export function ProfileCompletion({
           aria-label={labels.email}
           style={fieldStyle("email")}
         />
-        <input
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder={labels.phone}
-          autoComplete="tel"
-          inputMode="tel"
-          aria-label={labels.phone}
-          style={fieldStyle("phone")}
-        />
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, color: "#fff", fontSize: 16 }}>
+            +852
+          </span>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 8))}
+            placeholder={labels.phone}
+            autoComplete="tel-national"
+            inputMode="numeric"
+            pattern="[0-9]{8}"
+            maxLength={8}
+            required
+            disabled={isPhoneVerified}
+            aria-label={labels.phone}
+            aria-invalid={errField === "phone" || (!validation.ok && validation.field === "phone")}
+            style={{
+              ...fieldStyle("phone"),
+              flex: 1,
+              opacity: isPhoneVerified ? 0.65 : 1,
+              cursor: isPhoneVerified ? "not-allowed" : "text",
+            }}
+          />
+        </div>
       </div>
+
+      {phoneMessage && !errMsg && (
+        <p data-cms-key="auth.profile.phone_hint" style={{ marginTop: 12, fontSize: 13, color: "#f87171" }}>
+          {phoneMessage}
+        </p>
+      )}
 
       {errMsg && (
         <p data-cms-key="auth.profile.error" style={{ marginTop: 12, fontSize: 13, color: "#f87171" }}>
@@ -144,7 +175,7 @@ export function ProfileCompletion({
       <button
         type="button"
         onClick={submit}
-        disabled={saving}
+        disabled={!canSubmit}
         data-cms-key="auth.profile.submit"
         style={{
           marginTop: 24,
@@ -152,11 +183,11 @@ export function ProfileCompletion({
           height: 52,
           border: "none",
           borderRadius: 12,
-          background: saving ? "rgba(201,168,118,0.5)" : BRASS,
+          background: canSubmit ? BRASS : "rgba(201,168,118,0.5)",
           color: DEEP,
           fontWeight: 700,
           fontSize: 16,
-          cursor: saving ? "not-allowed" : "pointer",
+          cursor: canSubmit ? "pointer" : "not-allowed",
         }}
       >
         {saving ? labels.saving : labels.submit}

@@ -21,7 +21,7 @@ const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
 type Phase = "methods" | "otp" | "profile"
-type Prefill = { name: string; email: string; phone: string }
+type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
 
 // Reusable auth content — the single source of truth used by BOTH the /login page
 // and the in-booking modal. Methods: Apple (placeholder, blocked on Services ID),
@@ -42,7 +42,7 @@ export function AuthCard({
   const [error, setError] = useState<string | null>(null)
   const [attemptsLeft, setAttemptsLeft] = useState(MAX_OTP_ATTEMPTS)
   const [cooldown, setCooldown] = useState(0)
-  const [prefill, setPrefill] = useState<Prefill>({ name: "", email: "", phone: "" })
+  const [prefill, setPrefill] = useState<Prefill>({ name: "", email: "", phone: "", phoneVerified: false })
   // True until the mount-time session check resolves — avoids flashing the method
   // picker to a user who's already signed in (e.g. returning from an OAuth redirect).
   const [initializing, setInitializing] = useState(true)
@@ -82,6 +82,7 @@ export function AuthCard({
         onAuthComplete()
         return
       }
+      const verifiedPhone = user.phone ?? ""
       setPrefill({
         name:
           data?.display_name ??
@@ -89,7 +90,8 @@ export function AuthCard({
           (user.user_metadata?.name as string | undefined) ??
           "",
         email: data?.email ?? user.email ?? "",
-        phone: data?.phone ?? user.phone ?? "",
+        phone: data?.phone ?? verifiedPhone,
+        phoneVerified: verifiedPhone.length > 0,
       })
       setPhase("profile")
       setInitializing(false)
@@ -123,6 +125,7 @@ export function AuthCard({
       onAuthComplete()
       return
     }
+    const verifiedPhone = user.phone ?? ""
     setPrefill({
       name:
         data?.display_name ??
@@ -130,7 +133,8 @@ export function AuthCard({
         (user.user_metadata?.name as string | undefined) ??
         "",
       email: data?.email ?? user.email ?? "",
-      phone: data?.phone ?? user.phone ?? (phone ? normalizeHkPhone(phone) ?? "" : ""),
+      phone: data?.phone ?? (verifiedPhone || (phone ? normalizeHkPhone(phone) ?? "" : "")),
+      phoneVerified: verifiedPhone.length > 0,
     })
     setBusy(false)
     setPhase("profile")
@@ -235,6 +239,7 @@ export function AuthCard({
         initialName={prefill.name}
         initialEmail={prefill.email}
         initialPhone={prefill.phone}
+        isPhoneVerified={prefill.phoneVerified}
         onComplete={onAuthComplete}
         labels={{
           title: t("profile_title"),
