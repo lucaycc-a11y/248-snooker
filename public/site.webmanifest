@@ -1,7 +1,7 @@
 {
-  "name": "248 Snooker",
-  "short_name": "248",
-  "description": "香港24小時自助桌球會所",
+  "name": "Space8",
+  "short_name": "Space8",
+  "description": "香港自助桌球會所・06:00-24:00 營業",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

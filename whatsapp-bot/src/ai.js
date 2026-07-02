@@ -36,11 +36,11 @@ export async function generateReply(phone, userMessage, context) {
     getVenueConfig(),
   ])
 
-  const systemPrompt = `${personality || '你係248 Snooker嘅專業客服助手，用繁體廣東話書面語回覆，簡短友善，每次唔超過3句。'}
+  const systemPrompt = `${personality || '你係Space8嘅專業客服助手，用繁體廣東話書面語回覆，簡短友善，每次唔超過3句。'}
 
 場地資料（從資料庫讀取，唔可以亂改）：
-- 名稱：${venue?.name || '248 Snooker'}
-- 開放時間：${venue?.opening_hours || '24小時'}
+- 名稱：${venue?.name || 'Space8'}
+- 開放時間：${venue?.opening_hours || '每日 06:00-24:00'}
 - 球枱：${venue?.tables || 2}張（枱號#1、枱號#2）
 - WhatsApp：+${venue?.whatsapp || '85264274620'}
 

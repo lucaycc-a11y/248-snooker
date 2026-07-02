@@ -17,7 +17,7 @@ export async function generateMetadata({
   const path = locale === "zh-HK" ? "/legal" : `/${locale}/legal`;
 
   return {
-    title: `${t("title")} | 248 Snooker`,
+    title: `${t("title")} | Space8`,
     description: t("subtitle"),
     alternates: {
       canonical: `${BASE}${path}`,
@@ -29,10 +29,10 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: `${t("title")} | 248 Snooker`,
+      title: `${t("title")} | Space8`,
       description: t("subtitle"),
       url: `${BASE}${path}`,
-      siteName: "248 Snooker",
+      siteName: "Space8",
       type: "website",
     },
     robots: { index: true, follow: true },

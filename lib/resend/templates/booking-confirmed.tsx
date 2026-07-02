@@ -21,7 +21,7 @@ const LOCALE_TEXT = {
   'zh-HK': {
     title: '預訂已確認',
     receiptNumber: '收據編號',
-    tableLabel: '248 Snooker · 枱號',
+    tableLabel: 'Space8 · 枱號',
     subtotal: '小計',
     serviceFee: '服務費',
     total: '總計',
@@ -29,12 +29,12 @@ const LOCALE_TEXT = {
     transactionId: '交易編號',
     legalNotice: '此電郵為交易確認及收據，請妥善保存。退款政策請參閱',
     refundPolicyLink: '退款條款',
-    footer: '248 Snooker Club · Hong Kong',
+    footer: 'Space8 · Hong Kong',
   },
   'zh-CN': {
     title: '预订已确认',
     receiptNumber: '收据编号',
-    tableLabel: '248 Snooker · 台号',
+    tableLabel: 'Space8 · 台号',
     subtotal: '小计',
     serviceFee: '服务费',
     total: '总计',
@@ -42,12 +42,12 @@ const LOCALE_TEXT = {
     transactionId: '交易编号',
     legalNotice: '此邮件为交易确认及收据，请妥善保存。退款政策请参阅',
     refundPolicyLink: '退款条款',
-    footer: '248 Snooker Club · Hong Kong',
+    footer: 'Space8 · Hong Kong',
   },
   en: {
     title: 'Booking Confirmed',
     receiptNumber: 'Receipt No.',
-    tableLabel: '248 Snooker · Table',
+    tableLabel: 'Space8 · Table',
     subtotal: 'Subtotal',
     serviceFee: 'Service Fee',
     total: 'Total',
@@ -55,12 +55,12 @@ const LOCALE_TEXT = {
     transactionId: 'Transaction ID',
     legalNotice: 'This email serves as transaction confirmation and receipt. Please keep it for your records. For refund policy, please see',
     refundPolicyLink: 'Refund Policy',
-    footer: '248 Snooker Club · Hong Kong',
+    footer: 'Space8 · Hong Kong',
   },
   ja: {
     title: '予約確認',
     receiptNumber: '領収書番号',
-    tableLabel: '248 Snooker · テーブル',
+    tableLabel: 'Space8 · テーブル',
     subtotal: '小計',
     serviceFee: 'サービス料',
     total: '合計',
@@ -68,7 +68,7 @@ const LOCALE_TEXT = {
     transactionId: '取引ID',
     legalNotice: 'このメールは取引確認と領収書です。記録として保管してください。返金ポリシーについては',
     refundPolicyLink: '返金規約',
-    footer: '248 Snooker Club · Hong Kong',
+    footer: 'Space8 · Hong Kong',
   },
 }
 
@@ -106,7 +106,7 @@ export function BookingConfirmedEmail({
           <tr>
             <td style={{ textAlign: 'center', paddingBottom: '32px' }}>
               <span style={{ color: '#22c55e', fontFamily: "'Bebas Neue', sans-serif", fontSize: '24px', letterSpacing: '2px' }}>
-                248 SNOOKER
+                SPACE8
               </span>
             </td>
           </tr>

@@ -22,7 +22,7 @@ export default function Error({
             data-cms-key="error.brand"
             className="mb-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"
           >
-            248 Snooker
+            Space8
           </p>
           <h1
             data-cms-key="error.code"

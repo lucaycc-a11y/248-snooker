@@ -31,8 +31,8 @@ const CONFIG = {
   pricePerHour: 120,
   currency: "HKD",
   maxHours: 6,
-  openHour: 0,
-  closeHour: 24,
+  openHour: 6,  // Venue opens 06:00
+  closeHour: 24, // Last slot starts 23:00, ends 00:00
 }
 
 const BEBAS = "'Bebas Neue', system-ui, sans-serif"
@@ -118,10 +118,9 @@ function gapMinutesBetween(blocks: SelectedBlock[]): number {
   return maxGap
 }
 
-// Time-slot grid is grouped into labelled periods so a full 24h day reads as
-// clear sections instead of one long strip. Hours are inclusive-start.
+// Time-slot grid is grouped into labelled periods. Venue hours: 06:00–24:00
+// (last bookable slot starts at 23:00). Hours are inclusive-start.
 const SLOT_GROUPS: { key: string; hours: number[] }[] = [
-  { key: "late_night", hours: [0, 1, 2, 3, 4, 5] },
   { key: "morning", hours: [6, 7, 8, 9, 10, 11] },
   { key: "afternoon", hours: [12, 13, 14, 15, 16, 17] },
   { key: "evening", hours: [18, 19, 20, 21, 22, 23] },
@@ -575,7 +574,7 @@ function TableChips({
   )
 
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div style={{ marginBottom: 32 }}>
       <div
         data-cms-key="book.table.title"
         style={{
@@ -583,12 +582,19 @@ function TableChips({
           color: tokens.colors.textMuted,
           textTransform: "uppercase",
           letterSpacing: "0.08em",
-          marginBottom: 14,
+          marginBottom: 20,
         }}
       >
         {t("select_table")}
       </div>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      {/* Apple-style card grid: 2 large cards side-by-side (stack on mobile) */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 20,
+        }}
+      >
         {ALL_TABLES.map((tn) => {
           const state = states.get(tn) ?? "available"
           const disabled = state !== "available"
@@ -603,36 +609,169 @@ function TableChips({
                 haptic.vibrate(8)
                 onSelect(tn)
               }}
-              data-cms-key={`book.table.chip_${tn}`}
+              data-cms-key={`book.table.card_${tn}`}
               style={{
-                minHeight: 44,
-                minWidth: 96,
-                padding: "10px 18px",
-                borderRadius: tokens.radius.button,
-                border: `1px solid ${selected ? tokens.colors.brand : tokens.colors.border}`,
-                background: selected
-                  ? tokens.colors.brand
-                  : disabled
-                    ? "rgba(255,255,255,0.02)"
-                    : "rgba(255,255,255,0.04)",
-                color: disabled
-                  ? tokens.colors.textFaint
-                  : selected
-                    ? "#000"
-                    : tokens.colors.text,
-                fontSize: 14,
-                fontWeight: selected ? 600 : 400,
-                opacity: disabled ? 0.4 : 1,
-                cursor: disabled ? "not-allowed" : "pointer",
-                transition: `all ${tokens.duration.fast}`,
+                position: "relative",
                 display: "flex",
-                alignItems: "center",
-                gap: 6,
+                flexDirection: "column",
+                alignItems: "stretch",
+                padding: 0,
+                border: selected
+                  ? `2px solid ${tokens.colors.brand}`
+                  : `1px solid ${tokens.colors.border}`,
+                borderRadius: tokens.radius.card,
+                background: disabled
+                  ? "rgba(255,255,255,0.02)"
+                  : "rgba(255,255,255,0.04)",
+                backdropFilter: "blur(12px)",
+                overflow: "hidden",
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.5 : 1,
+                transition: `all ${tokens.duration.base}`,
+                textAlign: "center",
+                boxShadow: selected
+                  ? "0 0 0 4px rgba(37, 211, 102, 0.15)"
+                  : "none",
               }}
-              title={disabled ? t("table_locked") : undefined}
+              onMouseEnter={(e) => {
+                if (!disabled && !selected) {
+                  e.currentTarget.style.transform = "translateY(-2px)"
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 24px rgba(0,0,0,0.3)"
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!disabled && !selected) {
+                  e.currentTarget.style.transform = "translateY(0)"
+                  e.currentTarget.style.boxShadow = "none"
+                }
+              }}
             >
-              {disabled && <Lock size={12} style={{ flexShrink: 0 }} />}
-              {t("table_label")} #{tn}
+              {/* Image placeholder (replace with real venue photo when available) */}
+              <div
+                style={{
+                  width: "100%",
+                  aspectRatio: "16/9",
+                  background: disabled
+                    ? "linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%)"
+                    : "linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: tokens.colors.textFaint,
+                  fontSize: 48,
+                  fontWeight: 700,
+                  fontFamily: BEBAS,
+                }}
+              >
+                {tn}
+              </div>
+
+              {/* Label + selector dot (Apple-style) */}
+              <div
+                style={{
+                  padding: "16px 20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div style={{ textAlign: "left" }}>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 600,
+                      color: disabled
+                        ? tokens.colors.textFaint
+                        : tokens.colors.text,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {t("table_label")} {tn}
+                  </div>
+                  {disabled && (
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: tokens.colors.textFaint,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
+                    >
+                      <Lock size={12} />
+                      {t("table_unavailable")}
+                    </div>
+                  )}
+                </div>
+
+                {/* Selector dot (Apple style: empty circle → filled on select) */}
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    border: `2px solid ${
+                      selected
+                        ? tokens.colors.brand
+                        : disabled
+                          ? tokens.colors.textFaint
+                          : tokens.colors.border
+                    }`,
+                    background: selected ? tokens.colors.brand : "transparent",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: `all ${tokens.duration.fast}`,
+                  }}
+                >
+                  {selected && (
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: "#000",
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Selected overlay checkmark (subtle) */}
+              {selected && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 12,
+                    right: 12,
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: tokens.colors.brand,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M13.5 4L6 11.5L2.5 8"
+                      stroke="#000"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              )}
             </button>
           )
         })}
@@ -1317,17 +1456,38 @@ function Screen1({
 
                 {/* Committed extra blocks (non-contiguous order — Task 3) */}
                 {extraBlocks.length > 0 && (
-                  <div style={{ marginBottom: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div
+                    className="glass-panel"
+                    style={{
+                      marginBottom: 16,
+                      padding: 16,
+                      borderRadius: tokens.radius.card,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
                     <div
-                      data-cms-key="book.slots_selected"
                       style={{
-                        fontSize: 12,
-                        color: tokens.colors.textMuted,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.08em",
+                        display: "flex",
+                        alignItems: "baseline",
+                        justifyContent: "space-between",
                       }}
                     >
-                      {t("slots_selected", { count: allBlocks.length })}
+                      <div
+                        data-cms-key="book.slots_selected"
+                        style={{
+                          fontSize: 12,
+                          color: tokens.colors.textMuted,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.08em",
+                        }}
+                      >
+                        {t("slots_selected", { count: allBlocks.length })}
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: tokens.colors.brand }}>
+                        HK${orderTotal}
+                      </div>
                     </div>
                     {extraBlocks.map((b, i) => (
                       <div
@@ -1373,23 +1533,38 @@ function Screen1({
                     type="button"
                     onClick={addSlot}
                     data-cms-key="book.add_slot"
+                    className="glass-panel"
                     style={{
                       width: "100%",
-                      minHeight: 48,
+                      minHeight: 52,
                       marginBottom: 8,
                       borderRadius: tokens.radius.button,
-                      border: `1px dashed ${tokens.colors.borderStrong}`,
-                      background: "rgba(255,255,255,0.03)",
+                      border: `1px solid ${tokens.colors.border}`,
                       color: tokens.colors.text,
                       fontSize: 15,
+                      fontWeight: 500,
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 8,
+                      gap: 10,
                     }}
                   >
-                    <CalendarPlus size={16} />
+                    <span
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: "50%",
+                        background: tokens.colors.brand,
+                        color: "#000",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <CalendarPlus size={13} />
+                    </span>
                     {t("add_slot")}
                   </button>
                 )}
@@ -1443,7 +1618,7 @@ function Screen1({
       <AnimatePresence>
         {showGapWarning && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            className="fixed inset-0 z-[70] flex items-center justify-center p-6"
             style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1607,6 +1782,7 @@ function Screen3({
   tableName,
   tableNumber,
   blocks,
+  onBackToSlots,
 }: {
   selectedDate: Date
   startHour: number
@@ -1614,6 +1790,7 @@ function Screen3({
   tableName: string
   tableNumber: number
   blocks: SelectedBlock[]
+  onBackToSlots?: () => void
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
@@ -1666,26 +1843,58 @@ function Screen3({
           className="glass-panel"
           style={{ marginBottom: 24, borderRadius: 20 }}
         >
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
-              <span style={{ fontSize: 14 }}>
-                {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
-              </span>
+          {blocks.length > 1 ? (
+            /* Multi-block order (non-contiguous or cross-day) — itemize every
+               block so the displayed total is visibly traceable to its parts,
+               matching the sum Stripe's PaymentIntent.amount actually charges
+               (Task 8). */
+            <div style={{ marginBottom: 12 }}>
+              {blocks.map((b) => {
+                const [, m, d] = b.date.split("-")
+                const blockTotal = CONFIG.pricePerHour * b.duration
+                return (
+                  <div
+                    key={`${b.date}-${b.startHour}-${b.tableNumber}`}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      fontSize: 13,
+                      padding: "6px 0",
+                    }}
+                  >
+                    <span style={{ color: tokens.colors.textMuted }}>
+                      {Number(m)}月{Number(d)}日 {padTime(b.startHour)}–{padTime(b.startHour + b.duration)}
+                      {" · "}
+                      {t("table_label")} #{b.tableNumber}
+                    </span>
+                    <span>HK${blockTotal}</span>
+                  </div>
+                )
+              })}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <Clock size={14} style={{ color: tokens.colors.textMuted }} />
-              <span style={{ fontSize: 14 }}>
-                {padTime(startHour)} – {padTime(endHour)}
-                {crossDay ? " +1日" : ""}
-              </span>
+          ) : (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
+                <span style={{ fontSize: 14 }}>
+                  {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Clock size={14} style={{ color: tokens.colors.textMuted }} />
+                <span style={{ fontSize: 14 }}>
+                  {padTime(startHour)} – {padTime(endHour)}
+                  {crossDay ? " +1日" : ""}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
           <div
             data-cms-key="book.pay.venue"
             style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: profile ? 12 : 16 }}
           >
-            248 Snooker · {tableName}
+            Space8 · {tableName}
           </div>
           {profile && (profile.name || profile.email || profile.phone) && (
             <>
@@ -1761,6 +1970,8 @@ function Screen3({
             whatsappSupportLabel={t("whatsapp_support")}
             retryPaymentLabel={t("retry_payment")}
             billingDetails={profile ?? undefined}
+            onBackToSlots={onBackToSlots}
+            backToSlotsLabel={t("back_to_slots")}
           />
 
           <div
@@ -1846,9 +2057,9 @@ function Screen4({
       "BEGIN:VEVENT",
       `DTSTART:${fmt(start)}`,
       `DTEND:${fmt(end)}`,
-      `SUMMARY:248 Snooker · ${tableName}`,
+      `SUMMARY:Space8 · ${tableName}`,
       `DESCRIPTION:預訂編號 ${bookingRef}`,
-      "LOCATION:248 Snooker",
+      "LOCATION:Space8",
       "END:VEVENT",
       "END:VCALENDAR",
     ].join("\r\n")
@@ -1863,10 +2074,10 @@ function Screen4({
   }
 
   const handleShare = async () => {
-    const text = `我的 248 Snooker 預訂 · ${tableName} · 編號 ${bookingRef}`
+    const text = `我的 Space8 預訂 · ${tableName} · 編號 ${bookingRef}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: "248 Snooker", text })
+        await navigator.share({ title: "Space8", text })
       } catch {
         /* user cancelled */
       }
@@ -1908,7 +2119,7 @@ function Screen4({
         <div style={{ padding: 20 }}>
           {/* Header row */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-            <img src="/logos/248_logo_white_bg.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
+            <img src="/logos/248_logo_white_bg.svg" alt="Space8" style={{ height: 24, width: "auto" }} />
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -1978,7 +2189,7 @@ function Screen4({
 
           {/* Venue */}
           <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
-            248 Snooker · {tableName}
+            Space8 · {tableName}
           </div>
         </div>
 
@@ -2589,6 +2800,14 @@ export default function BookPage() {
                   tableName={tableName}
                   tableNumber={selectedTable ?? 0}
                   blocks={allBlocks}
+                  onBackToSlots={() => {
+                    availability.invalidate(activeDateStr)
+                    for (const b of extraBlocks) availability.invalidate(b.date)
+                    setExtraBlocks([])
+                    setSelectedTable(null)
+                    setDuration(0)
+                    setScreen(0)
+                  }}
                 />
               </motion.div>
             )}

@@ -49,7 +49,7 @@ export default function AboutContent() {
       >
         <Image
           src="/video/hero-poster.jpg"
-          alt="248 Snooker"
+          alt="Space8"
           fill
           priority
           sizes="100vw"

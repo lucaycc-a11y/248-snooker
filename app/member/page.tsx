@@ -8,7 +8,7 @@ import MemberDashboard from "./MemberDashboard";
 
 // Member dashboard is private — never index it.
 export const metadata: Metadata = {
-  title: "會員中心 | 248 Snooker",
+  title: "會員中心 | Space8",
   robots: { index: false, follow: false },
 };
 

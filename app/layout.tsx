@@ -2,29 +2,28 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "248 桌球會 · 香港24小時中式桌球",
+  title: "Space8 · 香港自助中式桌球 06:00-24:00",
   description:
-    "香港首間24小時自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，全年無休。",
+    "香港首間自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
   keywords: [
     "中式桌球",
     "桌球會",
     "香港桌球",
-    "24小時桌球",
     "自助桌球",
     "snooker hong kong",
-    "248桌球",
+    "Space8",
   ],
   openGraph: {
-    title: "248 桌球會 · 屬於你的主場",
-    description: "香港首間24小時中式桌球會所。即時預訂，全年無休。",
+    title: "Space8 · 屬於你的主場",
+    description: "香港首間自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
     url: "https://248.formhk.com",
-    siteName: "248 桌球會",
+    siteName: "Space8",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "248 桌球會",
+        alt: "Space8",
       },
     ],
     locale: "zh_HK",
@@ -32,8 +31,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "248 桌球會",
-    description: "香港首間24小時中式桌球會所",
+    title: "Space8",
+    description: "香港首間自助中式桌球會所",
     images: ["/og-image.png"],
   },
   icons: {
@@ -64,8 +63,8 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SportsClub",
-    name: "248 Snooker",
-    description: "香港首間24小時自助英式桌球預訂平台",
+    name: "Space8",
+    description: "香港首間自助英式桌球預訂平台，每日 06:00 至 24:00 營業",
     url: "https://248.formhk.com",
     telephone: "+85264274620",
     address: {
@@ -84,13 +83,12 @@ export default function RootLayout({
         "Saturday",
         "Sunday",
       ],
-      opens: "09:00",
-      closes: "02:00",
+      opens: "06:00",
+      closes: "24:00",
     },
     priceRange: "HK$60-120/hr",
     amenityFeature: [
       { "@type": "LocationFeatureSpecification", name: "Self-service booking", value: true },
-      { "@type": "LocationFeatureSpecification", name: "24-hour access", value: true },
       { "@type": "LocationFeatureSpecification", name: "Apple Pay", value: true },
     ],
   };

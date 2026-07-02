@@ -51,14 +51,14 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
   const html = await render(BookingConfirmedEmail(emailProps))
 
   const subjectLines = {
-    'zh-HK': '你嘅預訂已確認 — 248 Snooker',
-    'zh-CN': '你的预订已确认 — 248 Snooker',
-    en: 'Your booking is confirmed — 248 Snooker',
-    ja: 'ご予約が確認されました — 248 Snooker',
+    'zh-HK': '你嘅預訂已確認 — Space8',
+    'zh-CN': '你的预订已确认 — Space8',
+    en: 'Your booking is confirmed — Space8',
+    ja: 'ご予約が確認されました — Space8',
   }
 
   await resend.emails.send({
-    from: '248 Snooker <bookings@248.formhk.com>',
+    from: 'Space8 <bookings@248.formhk.com>',
     to: params.to,
     subject: subjectLines[params.locale],
     html,

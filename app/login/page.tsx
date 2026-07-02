@@ -6,14 +6,14 @@ import LoginForm from "./LoginForm";
 const BASE = "https://248.formhk.com";
 
 export const metadata: Metadata = {
-  title: "Login | 248 Snooker",
+  title: "Login | Space8",
   description: "Sign in to continue your booking and member access.",
   alternates: { canonical: `${BASE}/login` },
   openGraph: {
-    title: "Login | 248 Snooker",
+    title: "Login | Space8",
     description: "Sign in to continue your booking and member access.",
     url: `${BASE}/login`,
-    siteName: "248 Snooker",
+    siteName: "Space8",
     type: "website",
   },
 };

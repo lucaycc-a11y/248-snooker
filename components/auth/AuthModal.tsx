@@ -86,7 +86,7 @@ export function AuthModal({
 
             <div style={{ textAlign: "center", marginBottom: 28 }}>
               <div data-cms-key="auth.brand" style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.32em", color: GREEN, marginBottom: 12 }}>
-                248 SNOOKER
+                SPACE8
               </div>
               <h1 data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 34, letterSpacing: "0.02em", color: "#fff" }}>
                 {t("title")}

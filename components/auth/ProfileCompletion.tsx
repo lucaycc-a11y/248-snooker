@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 
 // Matches the GREEN constant duplicated across every other auth-flow file
@@ -64,6 +65,8 @@ export function ProfileCompletion({
   const [name, setName] = useState(initialName)
   const [email, setEmail] = useState(initialEmail)
   const [phone, setPhone] = useState(() => localHkPhoneValue(initialPhone))
+  const [password, setPassword] = useState("")
+  const [showPasswordField, setShowPasswordField] = useState(false)
   const [saving, setSaving] = useState(false)
   const [errField, setErrField] = useState<"name" | "email" | "phone" | null>(null)
   const [errMsg, setErrMsg] = useState<string | null>(null)
@@ -107,6 +110,17 @@ export function ProfileCompletion({
         setSaving(false)
         return
       }
+
+      // Optional: set password if user provided one (Supabase updateUser)
+      if (password.trim().length >= 6) {
+        const supabase = createClient()
+        const { error: pwErr } = await supabase.auth.updateUser({ password: password.trim() })
+        if (pwErr) {
+          console.error('[ProfileCompletion] password set failed:', pwErr)
+          // Non-blocking: profile is already saved, password is optional
+        }
+      }
+
       onComplete()
     } catch {
       setErrMsg(labels.err_generic)
@@ -189,6 +203,53 @@ export function ProfileCompletion({
             ✓ {labels.phone_verified_badge}
           </div>
         )}
+
+        {/* Optional password setup (collapsible) */}
+        <div style={{ marginTop: 8, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <button
+            type="button"
+            onClick={() => setShowPasswordField(!showPasswordField)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#22c55e",
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: "underline",
+              marginBottom: showPasswordField ? 12 : 0,
+            }}
+          >
+            {showPasswordField ? "跳過設定密碼" : "設定密碼（可選）"}
+          </button>
+          {showPasswordField && (
+            <>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="密碼（至少 6 個字元）"
+                autoComplete="new-password"
+                aria-label="設定密碼"
+                style={{
+                  width: "100%",
+                  height: 52,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderRadius: 12,
+                  padding: "0 16px",
+                  color: "#fff",
+                  fontSize: 16,
+                  outline: "none",
+                }}
+              />
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>
+                設定密碼後，下次可以用密碼或驗證碼登入。
+              </p>
+            </>
+          )}
+        </div>
       </div>
 
       {errMsg && (

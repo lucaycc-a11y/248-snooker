@@ -78,7 +78,7 @@ export default function Hero() {
 
       {/* Content — centred on mobile, top-anchored on desktop */}
       <div className="absolute left-1/2 top-[28%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[22%]">
-        {/* "248 Snooker" — thin, static */}
+        {/* "Space8" — thin, static */}
         <p
           className="text-[clamp(28px,6vw,38px)] md:text-[42px]"
           style={{
@@ -91,7 +91,7 @@ export default function Hero() {
             marginBottom: "4px",
           }}
         >
-          248 Snooker
+          Space8
         </p>
 
         {/* Headline — single element, gradient, fades in after 3s */}

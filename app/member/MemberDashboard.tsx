@@ -178,7 +178,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <div style={{ fontFamily: DISPLAY, fontSize: "24px", letterSpacing: "0.12em", color: INK, lineHeight: 1 }}>
-                248 SNOOKER
+                SPACE8
               </div>
               <div data-cms-key="member.card_label" style={{ fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase", color: SUBTLE, marginTop: "6px" }}>
                 {t("card_label")}
@@ -834,7 +834,7 @@ function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; 
 
 // Build a Google Calendar "add event" link from a booking.
 function calendarLink(b: MemberBooking): string {
-  const title = encodeURIComponent("248 Snooker");
+  const title = encodeURIComponent("Space8");
   const toCal = (iso: string | null) => (iso ? iso.replace(/[-:]/g, "").replace(/\.\d+/, "") : "");
   const start = toCal(b.startTime);
   const end = toCal(b.endTime);

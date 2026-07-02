@@ -23,7 +23,7 @@ export function Logo({ variant = 'full', theme = 'dark', size = 48 }: LogoProps)
   return (
     <Image
       src={src}
-      alt="248 Snooker Club"
+      alt="Space8"
       width={width}
       height={size}
       style={{ height: size, width: 'auto' }}

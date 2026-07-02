@@ -39,7 +39,13 @@
     "sms_fallback_link": "曾以電話號碼註冊？改用短訊登入",
     "profile_phone_send_code": "傳送驗證碼",
     "profile_phone_verified_badge": "電話已驗證",
-    "profile_phone_change_number": "更改號碼"
+    "profile_phone_change_number": "更改號碼",
+    "password_placeholder": "密碼",
+    "sign_in_password": "用密碼登入",
+    "sign_in_otp": "用驗證碼登入",
+    "switch_to_otp": "改用驗證碼",
+    "switch_to_password": "曾經設定過密碼？用密碼登入",
+    "err_password": "電郵或密碼不正確"
   },
   "404": {
     "code": "404",
@@ -52,7 +58,7 @@
     "cta_home": "返回主頁"
   },
   "login": {
-    "brand": "248 SNOOKER",
+    "brand": "SPACE8",
     "title": "登入",
     "subtitle": "繼續你的預訂同會員服務。",
     "error_missing_code": "登入未完成，請再試一次。",
@@ -61,7 +67,7 @@
   },
   "legal": {
     "title": "法律資訊",
-    "subtitle": "使用 248 Snooker 服務前，請細閱以下條款。",
+    "subtitle": "使用 Space8 服務前，請細閱以下條款。",
     "last_updated": "最後更新",
     "tab_terms": "使用條款",
     "tab_privacy": "私隱政策",
@@ -70,7 +76,7 @@
     "terms_sections": [
       {
         "title": "服務說明",
-        "body": "248 Snooker 由 FORM 營運，提供香港首間 24 小時自助英式桌球預訂服務。"
+        "body": "Space8 由 FORM 營運，提供香港首間自助英式桌球預訂服務，營業時間為每日 06:00 至 24:00。"
       },
       {
         "title": "預訂條款",
@@ -98,7 +104,7 @@
       },
       {
         "title": "免責聲明",
-        "body": "248 Snooker 不對任何財物損失或人身傷害承擔責任。"
+        "body": "Space8 不對任何財物損失或人身傷害承擔責任。"
       },
       {
         "title": "適用法律",
@@ -299,8 +305,8 @@
     "not_found": "找不到文章"
   },
   "aboutPage": {
-    "hero_title": "248 Snooker",
-    "hero_subtitle": "香港首間 24 小時自助英式桌球。",
+    "hero_title": "Space8",
+    "hero_subtitle": "香港首間自助英式桌球，每日 06:00 至 24:00 營業。",
     "scroll": "向下滑動",
     "mission_eyebrow": "我們的理念",
     "mission_statement": "讓每一個桌球愛好者，都有屬於自己的主場。",
@@ -311,15 +317,15 @@
       },
       {
         "title": "全天候",
-        "body": "24 小時開放，365 天全年無休。"
+        "body": "每日 06:00 至 24:00 開放，365 天全年無休。"
       },
       {
         "title": "科技體驗",
         "body": "3 秒完成預訂，掃描 QR 碼即可入場。"
       }
     ],
-    "story_title": "關於 248",
-    "story_body": "248 Snooker 源於一個簡單信念：好的桌球場地不應受營業時間限制。我們以科技重新定義桌球體驗，讓你隨時隨地，一鍵預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。這裡是屬於你的主場。",
+    "story_title": "關於 Space8",
+    "story_body": "Space8 源於一個簡單信念：好的桌球場地不應受營業時間限制。我們以科技重新定義桌球體驗，讓你隨時隨地，一鍵預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。這裡是屬於你的主場。",
     "venue_title": "場地設施",
     "venue_features": [
       "英式標準桌球枱",
@@ -335,8 +341,8 @@
         "label": "張專業桌球枱"
       },
       {
-        "value": "24",
-        "label": "小時開放"
+        "value": "18",
+        "label": "小時營業"
       },
       {
         "value": "3",
@@ -353,7 +359,7 @@
     "contact_whatsapp_label": "WhatsApp",
     "contact_email_label": "電郵",
     "contact_hours_label": "營業時間",
-    "contact_hours": "24 小時全年無休",
+    "contact_hours": "每日 06:00 至 24:00",
     "contact_cta": "WhatsApp 聯絡"
   },
   "memberPage": {
@@ -437,7 +443,7 @@
     "prompt_dismiss": "關閉"
   },
   "hero": {
-    "title": "248 Snooker",
+    "title": "Space8",
     "tagline": "屬於你的主場",
     "cta_book": "立即預訂",
     "cta_learn": "了解更多"
@@ -513,7 +519,7 @@
     "faq_cancel_q": "可以即場取消嗎？",
     "faq_cancel_a": "開始前 2 小時內可免費取消，全額退款。逾時取消將不獲退款。",
     "faq_hours_q": "營業時間是什麼？",
-    "faq_hours_a": "248 桌球會全年 24 小時營業，包括公眾假期。",
+    "faq_hours_a": "每日 06:00 至 24:00 營業，全年無休，包括公眾假期。",
     "faq_minimum_q": "每次最少預訂多少時間？",
     "faq_minimum_a": "最少 1 小時，可選 1、2 或 3 小時。",
     "faq_pricing_q": "收費如何計算？",
@@ -544,6 +550,7 @@
     "available": "現時可預訂",
     "unavailable": "此時段已被預訂",
     "slot_taken": "此時段啱啱被其他人預訂咗，請返回揀第二個時段。",
+    "back_to_slots": "返回選擇時段",
     "selected": "已選擇",
     "select_this_table": "選擇此枱",
     "hint": "如所選時段該枱已被預訂，可隨時切換至另一枱",
@@ -581,7 +588,7 @@
     "leave_stay": "繼續預訂",
     "checking": "正在檢查可用球枱…",
     "fully_booked": "此時段已滿，請選擇其他時間或日期。",
-    "qr_hint": "請於入場時出示此二維碼・24小時客服",
+    "qr_hint": "請於入場時出示此二維碼・客服熱線",
     "your_booking": "你的預約",
     "date": "日期",
     "time_slot": "時段",
@@ -600,7 +607,6 @@
     "payment_reminder": "15 分鐘內必須完成付款交易，否則預約時間自動取消",
     "whatsapp_support": "如果你懷疑已經被扣款，請透過 WhatsApp 聯絡我們核實：",
     "retry_payment": "重新選擇付款方式",
-    "slot_group_late_night": "深夜",
     "slot_group_morning": "上午",
     "slot_group_afternoon": "下午",
     "slot_group_evening": "晚上",
@@ -618,7 +624,7 @@
     "paid": "已付",
     "payment": "付款",
     "confirmed": "已確認 ✓",
-    "footer": "請於入場時出示此二維碼・24小時客服"
+    "footer": "請於入場時出示此二維碼・客服熱線"
   },
   "gallery": {
     "title": "場地。逐一看。",
@@ -630,33 +636,33 @@
       {
         "title": "專業中式桌球枱",
         "subtitle": "精選頂級桌球枱，枱布每月更換，確保最佳手感。",
-        "alt": "248桌球會 - 專業中式桌球枱"
+        "alt": "Space8 - 專業中式桌球枱"
       },
       {
-        "title": "24小時全天候",
-        "subtitle": "凌晨三點，依然燈火通明，永遠為你而開。",
-        "alt": "248桌球會 - 24小時營業環境"
+        "title": "全天候營業",
+        "subtitle": "每日 06:00 至 24:00，全年無休，永遠為你而開。",
+        "alt": "Space8 - 全天候營業環境"
       },
       {
         "title": "掃碼即入場",
         "subtitle": "預訂後即獲QR Code，到場掃碼，門自動打開。",
-        "alt": "248桌球會 - 智能掃碼入場系統"
+        "alt": "Space8 - 智能掃碼入場系統"
       },
       {
         "title": "私人獨立空間",
         "subtitle": "整個場地屬於你，無需等位，無需共用。",
-        "alt": "248桌球會 - 私人獨立桌球室"
+        "alt": "Space8 - 私人獨立桌球室"
       },
       {
         "title": "頂級燈光設備",
         "subtitle": "台球專用燈具，照亮每個細節，清晰看見每一顆球。",
-        "alt": "248桌球會 - 專業桌球燈光設備"
+        "alt": "Space8 - 專業桌球燈光設備"
       }
     ]
   },
   "footer": {
-    "tagline": "香港24小時自助桌球會所",
-    "copyright": "© 2026 248 Snooker",
+    "tagline": "香港自助桌球會所・06:00-24:00 營業",
+    "copyright": "© 2026 Space8",
     "terms": "條款及細則",
     "privacy": "私隱政策"
   },

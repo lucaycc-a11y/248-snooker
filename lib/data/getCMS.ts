@@ -5,8 +5,8 @@ import { getPublicSupabase } from '@/lib/supabase/public'
 // (edited by admins) keyed by data-cms-key. When no DB row exists we return the
 // bundled default, and if there's none, the key itself.
 const mockCMS: Record<string, string> = {
-  'hero.title': '248 Snooker Club',
-  'hero.subtitle': '24小時私人桌球會所',
+  'hero.title': 'Space8',
+  'hero.subtitle': '每日06:00至24:00 · 私人桌球會所',
   'booking.title': '預訂桌枱',
   'pricing.title': '價格',
   'nav.book': '預訂',

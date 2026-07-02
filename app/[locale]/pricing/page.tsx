@@ -18,10 +18,10 @@ export async function generateMetadata({
   const path = locale === "zh-HK" ? "/pricing" : `/${locale}/pricing`;
 
   const titles: Record<string, string> = {
-    "zh-HK": "定價 | 248 Snooker — 香港24小時桌球",
-    "zh-CN": "定价 | 248 Snooker — 香港24小时台球",
-    en: "Pricing | 248 Snooker — 24-Hour Snooker Hong Kong",
-    ja: "料金 | 248 Snooker — 香港24時間スヌーカー",
+    "zh-HK": "定價 | Space8 — 香港桌球 06:00-24:00營業",
+    "zh-CN": "定价 | Space8 — 香港台球 06:00-24:00营业",
+    en: "Pricing | Space8 — Snooker Hong Kong, Open Daily 06:00–24:00",
+    ja: "料金 | Space8 — 香港スヌーカー 毎日06:00〜24:00営業",
   };
 
   return {
@@ -40,7 +40,7 @@ export async function generateMetadata({
       title: titles[locale] ?? titles["zh-HK"],
       description: t("hero_subtitle"),
       url: `${BASE}${path}`,
-      siteName: "248 Snooker",
+      siteName: "Space8",
       type: "website",
     },
     robots: { index: true, follow: true },

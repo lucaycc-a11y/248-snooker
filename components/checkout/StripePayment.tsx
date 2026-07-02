@@ -118,6 +118,12 @@ type Props = Labels & {
   /** Path Stripe returns to after a redirect method (Alipay/WeChat/3DS). */
   returnPath?: string
   billingDetails?: BillingDetails
+  /** Called when the slot lock is lost to a concurrent booker, or on any other
+   * unrecoverable lock/intent failure — sends the user back to slot selection
+   * with stale availability invalidated, instead of leaving them on a dead-end
+   * error screen with no way forward except the browser back button. */
+  onBackToSlots?: () => void
+  backToSlotsLabel: string
 }
 
 function PayForm({
@@ -158,7 +164,13 @@ function PayForm({
     if (!stripe || !elements) return
     setSubmitting(true)
     setErr(null)
-    const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}`
+    // Keyed off ?bookingId&redirect_status so the parent page's poll-for-
+    // 'confirmed' effect (app/[locale]/book/page.tsx) recognizes this as a
+    // completed payment return — omitting redirect_status here silently
+    // skipped that effect and left a stale sessionStorage `pendingBooking`
+    // entry to force the screen back to the login step (Screen2) instead of
+    // confirmation, even though the booking was already paid and confirmed.
+    const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}&redirect_status=succeeded`
 
     // We opt the Payment Element OUT of collecting billing fields (fields.
     // billingDetails.* = 'never' below). Stripe's contract: EVERY field set to
@@ -442,18 +454,60 @@ export default function StripePayment(props: Props) {
     // diagnose, the slot is simply gone).
     if (error === SLOT_TAKEN) {
       return (
-        <div style={{ textAlign: "center", padding: "16px 0" }}>
-          <p style={{ fontSize: 14, color: "#f87171" }}>{props.slotTakenLabel}</p>
+        <div className="glass-panel" style={{ textAlign: "center", padding: "24px 20px", borderRadius: 16 }}>
+          <p style={{ fontSize: 14, color: "#f87171", marginBottom: props.onBackToSlots ? 16 : 0 }}>
+            {props.slotTakenLabel}
+          </p>
+          {props.onBackToSlots && (
+            <button
+              type="button"
+              onClick={props.onBackToSlots}
+              style={{
+                minHeight: 44,
+                padding: "0 24px",
+                borderRadius: 9999,
+                border: "none",
+                background: "#22c55e",
+                color: "#000",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              {props.backToSlotsLabel}
+            </button>
+          )}
         </div>
       )
     }
     return (
-      <div style={{ textAlign: "center", padding: "16px 0" }}>
+      <div className="glass-panel" style={{ textAlign: "center", padding: "24px 20px", borderRadius: 16 }}>
         <p style={{ fontSize: 14, color: "#f87171" }}>{props.errorLabel}</p>
         {/* Show the REAL captured cause (lock expired / not authenticated / Stripe
             error / pricing misconfig) beneath the friendly label, so a failure is
             diagnosable instead of a dead-end "couldn't start payment". */}
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 6 }}>{error}</p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 6, marginBottom: props.onBackToSlots ? 16 : 0 }}>
+          {error}
+        </p>
+        {props.onBackToSlots && (
+          <button
+            type="button"
+            onClick={props.onBackToSlots}
+            style={{
+              minHeight: 44,
+              padding: "0 24px",
+              borderRadius: 9999,
+              border: "none",
+              background: "#22c55e",
+              color: "#000",
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer",
+            }}
+          >
+            {props.backToSlotsLabel}
+          </button>
+        )}
       </div>
     )
   }

@@ -204,9 +204,10 @@ export function AccountMenu({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#7f1d1d",
-            color: "#fff",
-            border: "none",
+            background: "rgba(248,113,113,0.15)", // glass-style red tint (not solid #7f1d1d)
+            backdropFilter: "blur(12px) saturate(150%)",
+            color: "#f87171",
+            border: "1px solid rgba(248,113,113,0.3)",
             borderRadius: 999,
           }}
         >
