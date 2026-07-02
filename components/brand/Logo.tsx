@@ -11,11 +11,11 @@ export function Logo({ variant = 'full', theme = 'dark', size = 48 }: LogoProps)
   const src =
     variant === 'mark'
       ? theme === 'dark'
-        ? '/logos/248_ball_white.svg'
-        : '/logos/248_ball_black.svg'
+        ? '/logos/Space8_ball_icon_white_black_bkg.svg'
+        : '/logos/Space8_ball_icon_black_white_bkg.svg'
       : theme === 'dark'
-      ? '/logos/248_logo_dark_bg.svg'
-      : '/logos/248_logo_white_bg.svg'
+      ? '/logos/Space8_full_icon_white_black_bkg.svg'
+      : '/logos/Space8_full_icon_black_white_bkg.svg'
 
   // Marks are square; the full lockup is wider than tall.
   const width = variant === 'mark' ? size : Math.round(size * 2.8)

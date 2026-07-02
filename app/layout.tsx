@@ -37,14 +37,14 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "48x48" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/web-app-manifest-192x192.png", sizes: "192x192" },
+      { url: "/favicon/favicon.ico", sizes: "48x48" },
+      { url: "/favicon/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon/web-app-manifest-192x192.png", sizes: "192x192" },
     ],
-    apple: "/apple-touch-icon.png",
-    shortcut: "/favicon.ico",
+    apple: "/favicon/apple-touch-icon.png",
+    shortcut: "/favicon/favicon.ico",
   },
-  manifest: "/site.webmanifest",
+  manifest: "/favicon/site.webmanifest",
 };
 
 export const viewport: Viewport = {

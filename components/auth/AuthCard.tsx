@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
 import { normalizeHkPhone } from "@/lib/auth/profile"
+import { Space8Loader } from "@/components/ui"
 import { GoogleSignInButton } from "./GoogleSignInButton"
 import { AppleSignInButton } from "./AppleSignInButton"
 import { OtpInput } from "./OtpInput"
@@ -281,18 +282,7 @@ export function AuthCard({
   if (initializing && phase === "methods") {
     return (
       <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
-        <motion.div
-          aria-hidden
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: "50%",
-            border: "3px solid rgba(255,255,255,0.15)",
-            borderTopColor: GREEN,
-          }}
-        />
+        <Space8Loader size={32} theme="dark" />
       </div>
     )
   }

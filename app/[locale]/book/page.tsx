@@ -12,7 +12,7 @@ import {
   Share2,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
-import { Button, Card, ProgressSteps, BackButton } from "@/components/ui"
+import { Button, Card, ProgressSteps, BackButton, Space8Loader } from "@/components/ui"
 import { VisaLogo } from "@/components/brand"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
@@ -2119,7 +2119,7 @@ function Screen4({
         <div style={{ padding: 20 }}>
           {/* Header row */}
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-            <img src="/logos/248_logo_white_bg.svg" alt="Space8" style={{ height: 24, width: "auto" }} />
+            <img src="/logos/Space8_full_icon_white_black_bkg.svg" alt="Space8" style={{ height: 24, width: "auto" }} />
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -2457,18 +2457,7 @@ function ConfirmingPayment({ failed }: { failed: boolean }) {
         </>
       ) : (
         <>
-          <motion.div
-            aria-hidden
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              border: "3px solid rgba(255,255,255,0.15)",
-              borderTopColor: tokens.colors.brand,
-            }}
-          />
+          <Space8Loader size={40} theme="dark" />
           <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
             {t("confirming")}
           </p>

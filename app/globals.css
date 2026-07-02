@@ -186,3 +186,15 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+
+/* Space8 loading indicator — the branded ball icon rotating in place,
+   pure CSS (no video/GIF/Lottie). Used by <Space8Loader /> wherever the
+   site needs a loading spinner, replacing the old raster roll-animation
+   (components/shared/LoadingBall.tsx) and ad-hoc border-spinner divs. */
+@keyframes space8-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-space8-spin {
+  animation: space8-spin 1.4s linear infinite;
+}
