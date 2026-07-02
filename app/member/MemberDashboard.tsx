@@ -470,13 +470,23 @@ function BookingsTab({
   onViewQr: (b: MemberBooking) => void;
 }) {
   const t = useTranslations("memberPage");
+  const router = useRouter();
   if (bookings.length === 0) {
     return <EmptyState text={t("no_bookings")} />;
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {bookings.map((b) => (
-        <div key={b.id} style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px" }}>
+        <div
+          key={b.id}
+          onClick={() => router.push(`/member/bookings/${b.id}`)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") router.push(`/member/bookings/${b.id}`);
+          }}
+          style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px", cursor: "pointer" }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
             <div>
               <div style={{ fontSize: "16px", fontWeight: 600, color: INK }}>{formatDate(b.date, locale)}</div>
@@ -491,7 +501,10 @@ function BookingsTab({
             </div>
             <StatusBadge status={b.status} />
           </div>
-          <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
+          <div
+            style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <SmallButton onClick={() => onViewQr(b)} icon={<QrCodeIcon size={15} strokeWidth={2} />} label={t("booking_view_qr")} cmsKey="member.booking_view_qr" />
             <SmallButton
               href={calendarLink(b)}
