@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMemberData } from "@/lib/data/getMember";
-import { getConfig } from "@/lib/data/getConfig";
+import { getConfig, getConfigValue } from "@/lib/data/getConfig";
 import { resolveLocaleFromCookie, loadMessages } from "@/lib/i18n/serverLocale";
 import MemberDashboard from "./MemberDashboard";
 
@@ -28,9 +28,14 @@ export default async function MemberPage() {
   // Tier thresholds come from config (with bundled fallback).
   const config = await getConfig();
 
+  // Refund cutoff window (hours before start_time inside which self-serve
+  // refund is blocked) — soft client-side gate only; request_booking_refund()
+  // is the authority.
+  const bookingRules = await getConfigValue("booking_rules", { refundCutoffHours: 1 });
+
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <MemberDashboard data={data} tiers={config.tiers} />
+      <MemberDashboard data={data} tiers={config.tiers} refundCutoffHours={bookingRules.refundCutoffHours} />
     </NextIntlClientProvider>
   );
 }

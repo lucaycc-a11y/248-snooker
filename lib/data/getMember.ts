@@ -26,6 +26,12 @@ export type MemberBooking = {
   price: number
   status: string
   reference: string | null
+  refundAmount: number | null
+  refundFee: number | null
+  refundedAt: string | null
+  rescheduledAt: string | null
+  rescheduleCount: number
+  cancellationReason: string | null
 }
 
 export type PointsEntry = {
@@ -94,16 +100,28 @@ function genId(prefix: string): string {
 function normalizeBooking(row: Row): MemberBooking {
   const start = str(row, ['start_time', 'startTime', 'starts_at', 'start'])
   const date = str(row, ['date', 'booking_date', 'day']) ?? (start ? start.slice(0, 10) : null)
+  const refundAmount = row.refund_amount
+  const refundFee = row.refund_fee
   return {
     id: String(row.id ?? genId('booking')),
     date,
     startTime: start,
     endTime: str(row, ['end_time', 'endTime', 'ends_at', 'end']),
-    tableId: (row.table_id as string | number) ?? (row.table as string | number) ?? null,
+    tableId:
+      (row.table_number as string | number) ??
+      (row.table_id as string | number) ??
+      (row.table as string | number) ??
+      null,
     durationHours: num(row, ['duration', 'duration_hours', 'hours'], 0),
     price: num(row, ['total_price', 'price', 'amount', 'total'], 0),
     status: str(row, ['status', 'state']) ?? 'confirmed',
     reference: str(row, ['reference', 'ref', 'booking_ref', 'code']),
+    refundAmount: typeof refundAmount === 'number' ? refundAmount : null,
+    refundFee: typeof refundFee === 'number' ? refundFee : null,
+    refundedAt: str(row, ['refunded_at']),
+    rescheduledAt: str(row, ['rescheduled_at']),
+    rescheduleCount: num(row, ['reschedule_count'], 0),
+    cancellationReason: str(row, ['cancellation_reason']),
   }
 }
 

@@ -9,6 +9,8 @@ import {
   Wallet,
   CalendarPlus,
   QrCode as QrCodeIcon,
+  Undo2,
+  CalendarClock,
   X,
   LogOut,
 } from "lucide-react";
@@ -16,6 +18,8 @@ import { createClient } from "@/lib/supabase/client";
 import { BackButton } from "@/components/ui";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
+import RefundConfirmModal from "@/components/member/RefundConfirmModal";
+import ReschedulePicker from "@/components/member/ReschedulePicker";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -110,12 +114,21 @@ function formatDate(iso: string | null, locale: string, withTime = false): strin
   }
 }
 
-export default function MemberDashboard({ data, tiers }: { data: MemberData; tiers: Tier[] }) {
+export default function MemberDashboard({
+  data,
+  tiers,
+  refundCutoffHours,
+}: {
+  data: MemberData;
+  tiers: Tier[];
+  refundCutoffHours: number;
+}) {
   const t = useTranslations("memberPage");
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, bookings, points, stats } = data;
+  const { user, points, stats } = data;
+  const [bookings, setBookings] = useState<MemberBooking[]>(data.bookings);
 
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
@@ -124,6 +137,8 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
   const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
+  const [refundBooking, setRefundBooking] = useState<MemberBooking | null>(null);
+  const [rescheduleBooking, setRescheduleBooking] = useState<MemberBooking | null>(null);
 
   const { current, next, progress, pointsToNext } = resolveTier(user.points, tiers);
   const tierId = current.id;
@@ -333,7 +348,16 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
             >
-              {tab === "bookings" && <BookingsTab bookings={bookings} locale={locale} onViewQr={setQrBooking} />}
+              {tab === "bookings" && (
+                <BookingsTab
+                  bookings={bookings}
+                  locale={locale}
+                  refundCutoffHours={refundCutoffHours}
+                  onViewQr={setQrBooking}
+                  onRefund={setRefundBooking}
+                  onReschedule={setRescheduleBooking}
+                />
+              )}
               {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} />}
               {tab === "settings" && <SettingsTab user={user} onSignOut={signOut} />}
             </motion.div>
@@ -343,6 +367,45 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
 
       {/* QR modal */}
       <QrModal booking={qrBooking} onClose={() => setQrBooking(null)} locale={locale} />
+
+      {/* Refund confirmation modal */}
+      <RefundConfirmModal
+        booking={refundBooking}
+        onClose={() => setRefundBooking(null)}
+        onRefunded={(booking, result) => {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.id === booking.id
+                ? { ...b, status: "refunded", refundAmount: result.refundAmount, refundFee: result.refundFee }
+                : b,
+            ),
+          );
+          setRefundBooking(null);
+        }}
+      />
+
+      {/* Reschedule picker */}
+      <ReschedulePicker
+        booking={rescheduleBooking}
+        onClose={() => setRescheduleBooking(null)}
+        onRescheduled={(booking, result) => {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.id === booking.id
+                ? {
+                    ...b,
+                    date: result.date,
+                    startTime: result.startTime,
+                    endTime: result.endTime,
+                    tableId: result.tableNumber,
+                    rescheduleCount: result.rescheduleCount,
+                  }
+                : b,
+            ),
+          );
+          setRescheduleBooking(null);
+        }}
+      />
     </div>
   );
 }
@@ -451,6 +514,7 @@ function StatusBadge({ status }: { status: string }) {
     confirmed: { label: t("status_confirmed"), color: GREEN },
     cancelled: { label: t("status_cancelled"), color: DANGER },
     completed: { label: t("status_completed"), color: SUBTLE },
+    refunded: { label: t("status_refunded"), color: DANGER },
   };
   const s = map[status] ?? map.confirmed;
   return (
@@ -460,14 +524,44 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// bookings.start_time is a bare Postgres `time` ("HH:MM:SS"), not a full
+// timestamp — anchor it to the booking's date for real "now vs start" math.
+// (Confirmed by getMemberTicket's parseInt(startTime.slice(0,2)) usage.)
+function bookingStart(b: MemberBooking): Date | null {
+  if (!b.date || !b.startTime) return null;
+  const time = b.startTime.length > 8 ? b.startTime.slice(11, 19) : b.startTime;
+  const d = new Date(`${b.date}T${time}`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function canRefund(b: MemberBooking, refundCutoffHours: number): boolean {
+  if (b.status !== "confirmed") return false;
+  const start = bookingStart(b);
+  if (!start) return false;
+  return Date.now() < start.getTime() - refundCutoffHours * 3600_000;
+}
+
+function canReschedule(b: MemberBooking): boolean {
+  if (b.status !== "confirmed") return false;
+  const start = bookingStart(b);
+  if (!start) return false;
+  return Date.now() < start.getTime();
+}
+
 function BookingsTab({
   bookings,
   locale,
+  refundCutoffHours,
   onViewQr,
+  onRefund,
+  onReschedule,
 }: {
   bookings: MemberBooking[];
   locale: string;
+  refundCutoffHours: number;
   onViewQr: (b: MemberBooking) => void;
+  onRefund: (b: MemberBooking) => void;
+  onReschedule: (b: MemberBooking) => void;
 }) {
   const t = useTranslations("memberPage");
   const router = useRouter();
@@ -498,6 +592,11 @@ function BookingsTab({
               <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
                 {b.durationHours ? `${b.durationHours}h · ` : ""}HK${b.price}
               </div>
+              {b.status === "refunded" && b.refundAmount != null ? (
+                <div style={{ fontSize: "13px", color: SUBTLE, marginTop: "2px" }}>
+                  {t("refund_success_toast")} HK${b.refundAmount}
+                </div>
+              ) : null}
             </div>
             <StatusBadge status={b.status} />
           </div>
@@ -512,6 +611,22 @@ function BookingsTab({
               label={t("booking_add_calendar")}
               cmsKey="member.booking_add_calendar"
             />
+            {canReschedule(b) && (
+              <SmallButton
+                onClick={() => onReschedule(b)}
+                icon={<CalendarClock size={15} strokeWidth={2} />}
+                label={t("booking_reschedule")}
+                cmsKey="member.booking_reschedule"
+              />
+            )}
+            {canRefund(b, refundCutoffHours) && (
+              <SmallButton
+                onClick={() => onRefund(b)}
+                icon={<Undo2 size={15} strokeWidth={2} />}
+                label={t("booking_refund")}
+                cmsKey="member.booking_refund"
+              />
+            )}
           </div>
         </div>
       ))}
