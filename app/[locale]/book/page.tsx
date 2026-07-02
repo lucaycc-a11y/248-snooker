@@ -17,6 +17,9 @@ import StripePayment from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
+import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
+import { quoteBlockTotal } from "@/lib/pricing"
+import { DEFAULT_PERIODS, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
@@ -24,9 +27,7 @@ import { useRouter } from "@/i18n/navigation"
 import confetti from "canvas-confetti"
 
 /* ─────────────────────────  Config  ───────────────────────── */
-// TODO: connect Supabase — use getConfig() server-side and pass as prop
 const CONFIG = {
-  pricePerHour: 120,
   currency: "HKD",
   maxHours: 6,
   openHour: 6,  // Venue opens 06:00
@@ -674,17 +675,18 @@ function useTables() {
 /* ─────────────────────────  Calendar  ───────────────────────── */
 const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
 
-// Mock — dates fully booked (red dot). TODO: swap to Supabase availability.
-function isFullyBooked(_d: Date): boolean {
-  return false
+function fmtYMD(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
 
 function Calendar({
   selected,
   onSelect,
+  monthAvailability,
 }: {
   selected: Date
   onSelect: (d: Date) => void
+  monthAvailability: ReturnType<typeof useMonthAvailability>
 }) {
   const today = useMemo(() => {
     const d = new Date()
@@ -700,6 +702,15 @@ function Calendar({
   const { year, month } = view
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  // Fetch this month's fully-booked dates on mount and whenever the viewed
+  // month changes (prev/next navigation).
+  useEffect(() => {
+    monthAvailability.fetchMonth(year, month)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year, month])
+
+  const fullyBookedDates = monthAvailability.getFullyBookedDates(year, month)
 
   // 42 cells = 6 rows × 7 cols, leading blanks then dates
   const cells: (Date | null)[] = useMemo(() => {
@@ -811,7 +822,7 @@ function Calendar({
           const isPast = date.getTime() < today.getTime()
           const isToday = date.getTime() === today.getTime()
           const isSelected = date.toDateString() === selected.toDateString()
-          const booked = !isPast && isFullyBooked(date)
+          const booked = !isPast && (fullyBookedDates?.has(fmtYMD(date)) ?? false)
           return (
             <div
               key={date.toISOString()}
@@ -824,10 +835,10 @@ function Calendar({
             >
               <button
                 type="button"
-                disabled={isPast}
+                disabled={isPast || booked}
                 aria-label={`${date.getMonth() + 1}月${date.getDate()}日`}
                 aria-current={isSelected ? "date" : undefined}
-                onClick={() => !isPast && onSelect(date)}
+                onClick={() => !isPast && !booked && onSelect(date)}
                 style={{
                   // Tap target fills the whole grid cell (maximised to ~44px+);
                   // the visual circle inside stays 40px.
@@ -840,8 +851,8 @@ function Calendar({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  cursor: isPast ? "default" : "pointer",
-                  opacity: isPast ? 0.3 : 1,
+                  cursor: isPast || booked ? "default" : "pointer",
+                  opacity: isPast || booked ? 0.3 : 1,
                 }}
               >
                 <span
@@ -1062,9 +1073,11 @@ function Screen1({
   setDuration,
   onContinue,
   availability,
+  monthAvailability,
   extraBlocks,
   setExtraBlocks,
   allBlocks,
+  periods,
 }: {
   selectedTable: number | null
   setSelectedTable: (id: number | null) => void
@@ -1076,11 +1089,20 @@ function Screen1({
   setDuration: (d: number) => void
   onContinue: () => void
   availability: ReturnType<typeof useAvailabilityCache>
+  monthAvailability: ReturnType<typeof useMonthAvailability>
   extraBlocks: SelectedBlock[]
   setExtraBlocks: (b: SelectedBlock[]) => void
   allBlocks: SelectedBlock[]
+  periods: PricingPeriod[]
 }) {
-  const total = CONFIG.pricePerHour * duration
+  const dateStr = useMemo(() => {
+    const y = selectedDate.getFullYear()
+    const m = String(selectedDate.getMonth() + 1).padStart(2, "0")
+    const d = String(selectedDate.getDate()).padStart(2, "0")
+    return `${y}-${m}-${d}`
+  }, [selectedDate])
+
+  const total = quoteBlockTotal(dateStr, startHour, duration, periods)
   const endHour = startHour + duration
   const crossDay = endHour >= 24
   const [displayTotal, setDisplayTotal] = useState(total)
@@ -1090,13 +1112,6 @@ function Screen1({
   const timeRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
-
-  const dateStr = useMemo(() => {
-    const y = selectedDate.getFullYear()
-    const m = String(selectedDate.getMonth() + 1).padStart(2, "0")
-    const d = String(selectedDate.getDate()).padStart(2, "0")
-    return `${y}-${m}-${d}`
-  }, [selectedDate])
 
   // Read the day's slots from the shared prefetch cache. If the date is cached
   // (in the prefetched week, or fetched earlier) this is synchronous — no spinner.
@@ -1117,7 +1132,7 @@ function Screen1({
 
   // Animate the live price total.
   useEffect(() => {
-    const target = CONFIG.pricePerHour * duration
+    const target = quoteBlockTotal(dateStr, startHour, duration, periods)
     if (target === displayTotal) return
     const step = target > displayTotal ? 10 : -10
     const id = setInterval(() => {
@@ -1131,7 +1146,7 @@ function Screen1({
       })
     }, 20)
     return () => clearInterval(id)
-  }, [duration, displayTotal])
+  }, [dateStr, startHour, duration, periods, displayTotal])
 
   const haptic = useHaptic()
   // "Ready" = at least one complete block in the order (committed extras or a
@@ -1139,7 +1154,7 @@ function Screen1({
   const ready = allBlocks.length > 0
   const canContinue = ready
   // Order total across every block (display only; server re-derives authoritatively).
-  const orderTotal = allBlocks.reduce((sum, b) => sum + CONFIG.pricePerHour * b.duration, 0)
+  const orderTotal = allBlocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
 
   // Active block is complete enough to commit as an extra slot.
   const activeComplete = duration > 0 && selectedTable !== null
@@ -1205,6 +1220,7 @@ function Screen1({
                 setSelectedTable(null)
                 scrollToRef(timeRef)
               }}
+              monthAvailability={monthAvailability}
             />
           </div>
 
@@ -1636,6 +1652,7 @@ function Screen3({
   tableNumber,
   blocks,
   onBackToSlots,
+  periods,
 }: {
   selectedDate: Date
   startHour: number
@@ -1644,18 +1661,19 @@ function Screen3({
   tableNumber: number
   blocks: SelectedBlock[]
   onBackToSlots?: () => void
+  periods: PricingPeriod[]
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
 
+  const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
+
   // Order total across every block (grouped, non-contiguous orders sum them).
   const total = blocks.length > 0
-    ? blocks.reduce((sum, b) => sum + CONFIG.pricePerHour * b.duration, 0)
-    : CONFIG.pricePerHour * duration
+    ? blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
+    : quoteBlockTotal(dateStr, startHour, duration, periods)
   const endHour = startHour + duration
   const crossDay = endHour >= 24
-
-  const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
 
   // The user is already authenticated + profile_complete by the time they reach
   // this step (Screen2 gates on it), so `users` already has display_name/email/
@@ -1706,7 +1724,7 @@ function Screen3({
             <div style={{ marginBottom: 16, display: "flex", flexDirection: "column" }}>
               {blocks.map((b, i) => {
                 const [, m, d] = b.date.split("-")
-                const blockTotal = CONFIG.pricePerHour * b.duration
+                const blockTotal = quoteBlockTotal(b.date, b.startHour, b.duration, periods)
                 return (
                   <div
                     key={`${b.date}-${b.startHour}-${b.tableNumber}`}
@@ -2208,6 +2226,7 @@ export default function BookPage() {
   // Shared availability cache: prefetches today + 7 days so date-switching in
   // Screen1 is instant, and exposes invalidate() for post-payment refresh (Task 4).
   const availability = useAvailabilityCache()
+  const monthAvailability = useMonthAvailability()
 
   // Task 4: once a booking confirms, drop the cached availability for its date(s)
   // and clear any committed extra blocks, so returning to /book in the same session
@@ -2230,6 +2249,27 @@ export default function BookPage() {
     }
     return list
   }, [extraBlocks, duration, selectedTable, activeDateStr, startHour])
+
+  // Live pricing periods (afternoon/evening/latenight) — read straight from the
+  // public `config` table (RLS allows anon SELECT). Falls back to DEFAULT_PERIODS
+  // until this resolves or if it fails, same fallback contract as getConfig().
+  const [periods, setPeriods] = useState<PricingPeriod[]>(DEFAULT_PERIODS)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("config")
+        .select("value")
+        .eq("key", "pricing")
+        .single()
+      const fetched = (data?.value as { periods?: PricingPeriod[] } | null)?.periods
+      if (!cancelled && !error && fetched?.length) setPeriods(fetched)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const tables = useTables()
   const tableName =
@@ -2306,17 +2346,23 @@ export default function BookPage() {
         justifyContent: "center",
       }}
     >
-      {/* Back arrow — fixed top-left across selection/login/payment. Hidden on
-          the confirmation screen (booking is done; Screen4 offers a deliberate
-          "Back to Home" instead, so users can't navigate back into a finished flow). */}
-      {screen < 3 && (
-        <BackButton onClick={handleBack} ariaLabel={t("back")} cmsKey="book.back" color={tokens.colors.text} />
-      )}
-
       <div className="book-container">
-        {/* Progress */}
+        {/* Progress — back arrow (hidden on the confirmation screen; booking is
+            done, Screen4 offers a deliberate "Back to Home" instead) shares the
+            same row as the stepper so it never overlaps it. */}
         <div className="progress-bar-wrap">
-          <ProgressSteps steps={STEPS} current={screen} onStepClick={goToStep} />
+          {screen < 3 && (
+            <BackButton
+              variant="inline"
+              onClick={handleBack}
+              ariaLabel={t("back")}
+              cmsKey="book.back"
+              color={tokens.colors.text}
+            />
+          )}
+          <div style={{ flex: 1 }}>
+            <ProgressSteps steps={STEPS} current={screen} onStepClick={goToStep} />
+          </div>
         </div>
 
         {/* Screen content — overflow-x:clip hides the horizontal wizard slide
@@ -2344,9 +2390,11 @@ export default function BookPage() {
                   setDuration={setDuration}
                   onContinue={advance}
                   availability={availability}
+                  monthAvailability={monthAvailability}
                   extraBlocks={extraBlocks}
                   setExtraBlocks={setExtraBlocks}
                   allBlocks={allBlocks}
+                  periods={periods}
                 />
               </motion.div>
             )}
@@ -2387,6 +2435,7 @@ export default function BookPage() {
                   tableName={tableName}
                   tableNumber={selectedTable ?? 0}
                   blocks={allBlocks}
+                  periods={periods}
                   onBackToSlots={() => {
                     availability.invalidate(activeDateStr)
                     for (const b of extraBlocks) availability.invalidate(b.date)
@@ -2435,7 +2484,7 @@ export default function BookPage() {
                         duration,
                         tableNumber: selectedTable ?? 0,
                         bookingRef,
-                        totalPrice: CONFIG.pricePerHour * duration,
+                        totalPrice: quoteBlockTotal(activeDateStr, startHour, duration, periods),
                       },
                     ]}
                   />
@@ -2541,6 +2590,9 @@ export default function BookPage() {
           border-bottom: 1px solid ${tokens.colors.border};
           padding: 16px 24px;
           z-index: 50;
+          display: flex;
+          align-items: center;
+          gap: 16px;
         }
         .screen-content {
           padding: 76px 16px calc(110px + env(safe-area-inset-bottom, 0px));
