@@ -1878,7 +1878,6 @@ type ConfirmationTicket = {
 function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
-  const router = useRouter()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1943,13 +1942,15 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
           ))}
         </div>
 
-        {/* Go to member center (Task 10) */}
-        <motion.button
-          type="button"
+        {/* Go to member center (Task 10). Plain <a>, not the locale-aware
+            router — /member lives outside app/[locale]/ (non-localized route,
+            same convention as AccountMenu.tsx), so router.push("/member")
+            would prefix the active locale (e.g. /en/member) and 404. */}
+        <motion.a
+          href="/member"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          onClick={() => router.push("/member")}
           data-cms-key="book.ticket.member_cta"
           style={{
             width: "100%",
@@ -1965,10 +1966,11 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
             fontWeight: 700,
             cursor: "pointer",
             marginBottom: 16,
+            textDecoration: "none",
           }}
         >
           {t("go_to_member")}
-        </motion.button>
+        </motion.a>
 
         <motion.div
           initial={{ opacity: 0 }}
