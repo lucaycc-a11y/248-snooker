@@ -9,13 +9,12 @@ import {
   Clock,
   Lock,
   CalendarPlus,
-  Share2,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { Button, Card, ProgressSteps, BackButton, Space8Loader } from "@/components/ui"
-import { VisaLogo } from "@/components/brand"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
+import { TicketCard } from "@/components/booking/TicketCard"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useHaptic } from "@/lib/useHaptic"
@@ -23,7 +22,6 @@ import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 // @ts-ignore
 import confetti from "canvas-confetti"
-import QRCodeLib from "qrcode"
 
 /* ─────────────────────────  Config  ───────────────────────── */
 // TODO: connect Supabase — use getConfig() server-side and pass as prop
@@ -587,14 +585,30 @@ function TableChips({
       >
         {t("select_table")}
       </div>
-      {/* Apple-style card grid: 2 large cards side-by-side (stack on mobile) */}
+
+      {/* One shared venue photo — both tables live in the same room, so a
+          single hero image (Apple iPad-picker style) replaces the old
+          two-large-cards layout. Selection happens via the pill row below. */}
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 20,
+          width: "100%",
+          aspectRatio: "16/9",
+          borderRadius: tokens.radius.card,
+          overflow: "hidden",
+          border: `1px solid ${tokens.colors.border}`,
+          marginBottom: 16,
         }}
       >
+        <img
+          src="/gallery/IMG_1511.jpg"
+          alt={t("select_table")}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      </div>
+
+      {/* Small pill buttons — outline → solid green fill on select, per the
+          Apple color-picker reference. Availability/lock logic unchanged. */}
+      <div style={{ display: "flex", gap: 12 }}>
         {ALL_TABLES.map((tn) => {
           const state = states.get(tn) ?? "available"
           const disabled = state !== "available"
@@ -611,167 +625,32 @@ function TableChips({
               }}
               data-cms-key={`book.table.card_${tn}`}
               style={{
-                position: "relative",
+                flex: 1,
+                minHeight: 44,
                 display: "flex",
-                flexDirection: "column",
-                alignItems: "stretch",
-                padding: 0,
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "10px 16px",
+                borderRadius: 9999,
                 border: selected
                   ? `2px solid ${tokens.colors.brand}`
                   : `1px solid ${tokens.colors.border}`,
-                borderRadius: tokens.radius.card,
-                background: disabled
-                  ? "rgba(255,255,255,0.02)"
-                  : "rgba(255,255,255,0.04)",
-                backdropFilter: "blur(12px)",
-                overflow: "hidden",
+                background: selected ? tokens.colors.brand : "transparent",
+                color: selected
+                  ? "#000"
+                  : disabled
+                    ? tokens.colors.textFaint
+                    : tokens.colors.text,
+                fontSize: 15,
+                fontWeight: selected ? 700 : 500,
                 cursor: disabled ? "not-allowed" : "pointer",
                 opacity: disabled ? 0.5 : 1,
-                transition: `all ${tokens.duration.base}`,
-                textAlign: "center",
-                boxShadow: selected
-                  ? "0 0 0 4px rgba(37, 211, 102, 0.15)"
-                  : "none",
-              }}
-              onMouseEnter={(e) => {
-                if (!disabled && !selected) {
-                  e.currentTarget.style.transform = "translateY(-2px)"
-                  e.currentTarget.style.boxShadow =
-                    "0 8px 24px rgba(0,0,0,0.3)"
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!disabled && !selected) {
-                  e.currentTarget.style.transform = "translateY(0)"
-                  e.currentTarget.style.boxShadow = "none"
-                }
+                transition: `all ${tokens.duration.fast}`,
               }}
             >
-              {/* Image placeholder (replace with real venue photo when available) */}
-              <div
-                style={{
-                  width: "100%",
-                  aspectRatio: "16/9",
-                  background: disabled
-                    ? "linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%)"
-                    : "linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: tokens.colors.textFaint,
-                  fontSize: 48,
-                  fontWeight: 700,
-                  fontFamily: BEBAS,
-                }}
-              >
-                {tn}
-              </div>
-
-              {/* Label + selector dot (Apple-style) */}
-              <div
-                style={{
-                  padding: "16px 20px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <div style={{ textAlign: "left" }}>
-                  <div
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 600,
-                      color: disabled
-                        ? tokens.colors.textFaint
-                        : tokens.colors.text,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {t("table_label")} {tn}
-                  </div>
-                  {disabled && (
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: tokens.colors.textFaint,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}
-                    >
-                      <Lock size={12} />
-                      {t("table_unavailable")}
-                    </div>
-                  )}
-                </div>
-
-                {/* Selector dot (Apple style: empty circle → filled on select) */}
-                <div
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: "50%",
-                    border: `2px solid ${
-                      selected
-                        ? tokens.colors.brand
-                        : disabled
-                          ? tokens.colors.textFaint
-                          : tokens.colors.border
-                    }`,
-                    background: selected ? tokens.colors.brand : "transparent",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    transition: `all ${tokens.duration.fast}`,
-                  }}
-                >
-                  {selected && (
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        background: "#000",
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* Selected overlay checkmark (subtle) */}
-              {selected && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 12,
-                    right: 12,
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: tokens.colors.brand,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                  }}
-                >
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M13.5 4L6 11.5L2.5 8"
-                      stroke="#000"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </div>
-              )}
+              {disabled && <Lock size={13} />}
+              {t("table_label")} {tn}
             </button>
           )
         })}
@@ -781,51 +660,6 @@ function TableChips({
 }
 
 /* ─────────────────────────  QR Code  ───────────────────────── */
-// Real, scannable QR rendered from `data` (the signed booking JWT) via the
-// `qrcode` library. Dark modules on a white tile for reliable scanning — the
-// ESP32 door reader validates the JWT signature offline. Generated client-side
-// to a data URL (the JWT is long, so this is a denser QR than a short code).
-const QR_PX = 126
-function QRCode({ data }: { data: string }) {
-  const [url, setUrl] = useState<string | null>(null)
-  useEffect(() => {
-    let cancelled = false
-    QRCodeLib.toDataURL(data, {
-      margin: 2,
-      width: 240,
-      errorCorrectionLevel: "M",
-      color: { dark: "#0a0a0a", light: "#ffffff" },
-    })
-      .then((u) => {
-        if (!cancelled) setUrl(u)
-      })
-      .catch(() => {
-        /* leave placeholder on failure */
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [data])
-
-  if (!url) {
-    return (
-      <div
-        aria-hidden
-        style={{ width: QR_PX, height: QR_PX, background: "#ffffff", borderRadius: 8 }}
-      />
-    )
-  }
-  return (
-    <img
-      src={url}
-      width={QR_PX}
-      height={QR_PX}
-      alt="Booking QR code"
-      style={{ borderRadius: 8, display: "block" }}
-    />
-  )
-}
-
 /* ─────────────────────────  Table Select  ───────────────────────── */
 type TableInfo = { id: number; name: string; type: string }
 
@@ -1394,10 +1228,18 @@ function Screen1({
                     onSelect={(start, dur) => {
                       setStartHour(start)
                       setDuration(dur)
-                      // Auto-assign table whenever selection changes
+                      // Keep the current table if it's still free for the new
+                      // time window — only auto-assign a default when there's
+                      // no selection yet or the prior pick just became
+                      // unavailable. Previously this always overwrote the
+                      // selection with the first free table, so a manually
+                      // chosen Table 2 would silently flip back to Table 1 the
+                      // moment the user adjusted the time/duration.
                       if (dur > 0 && daySlots) {
                         const free = freeTablesFor(daySlots, dateStr, start, dur)
-                        setSelectedTable(free.length > 0 ? free[0] : null)
+                        if (selectedTable === null || !free.includes(selectedTable)) {
+                          setSelectedTable(free.length > 0 ? free[0] : null)
+                        }
                       } else {
                         setSelectedTable(null)
                       }
@@ -1847,9 +1689,11 @@ function Screen3({
             /* Multi-block order (non-contiguous or cross-day) — itemize every
                block so the displayed total is visibly traceable to its parts,
                matching the sum Stripe's PaymentIntent.amount actually charges
-               (Task 8). */
-            <div style={{ marginBottom: 12 }}>
-              {blocks.map((b) => {
+               (Task 8). Each block gets its own row with breathing room and a
+               hairline divider so a 3+ slot order doesn't read as one jammed
+               paragraph (Task 1). */
+            <div style={{ marginBottom: 16, display: "flex", flexDirection: "column" }}>
+              {blocks.map((b, i) => {
                 const [, m, d] = b.date.split("-")
                 const blockTotal = CONFIG.pricePerHour * b.duration
                 return (
@@ -1860,7 +1704,8 @@ function Screen3({
                       justifyContent: "space-between",
                       alignItems: "center",
                       fontSize: 13,
-                      padding: "6px 0",
+                      padding: "10px 0",
+                      borderBottom: i < blocks.length - 1 ? `1px solid ${tokens.colors.border}` : "none",
                     }}
                   >
                     <span style={{ color: tokens.colors.textMuted }}>
@@ -1892,7 +1737,7 @@ function Screen3({
           )}
           <div
             data-cms-key="book.pay.venue"
-            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: profile ? 12 : 16 }}
+            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: profile ? 12 : 16, paddingTop: blocks.length > 1 ? 4 : 0 }}
           >
             Space8 · {tableName}
           </div>
@@ -2001,33 +1846,29 @@ function Screen3({
   )
 }
 
-/* ─────────────────────────  Screen 4: Confirmation Ticket  ───────────────────────── */
-function Screen4({
-  selectedDate,
-  startHour,
-  duration,
-  tableName,
-  bookingRef,
-  qrData,
-}: {
-  selectedDate: Date
+/* ─────────────────────────  Screen 4: Confirmation Tickets  ───────────────────────── */
+type ConfirmationTicket = {
+  date: string
   startHour: number
   duration: number
-  tableName: string
+  tableNumber: number
   bookingRef: string
-  // The signed QR JWT from the confirmed booking; falls back to the ref for the
-  // (decorative) code rendering when absent.
   qrData?: string
-}) {
+  totalPrice: number
+  paymentMethod?: string | null
+}
+
+// Renders one TicketCard per booking from the checkout (Task 8 — a
+// non-contiguous multi-slot order produces N booking rows sharing an
+// order_group_id, so it must produce N independent, individually-scannable
+// tickets, not one screen that only shows the first). The first ticket opens
+// expanded so the confetti/QR reveal reads as "your booking is confirmed";
+// any additional tickets start collapsed to avoid a wall of QR codes.
+function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
+  const router = useRouter()
 
-  const total = CONFIG.pricePerHour * duration
-  const endHour = startHour + duration
-  const crossDay = endHour >= 24
-  const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 星期${DAY_NAMES[selectedDate.getDay()]}`
-
-  // canvas-confetti burst after ticket springs in
   useEffect(() => {
     const timer = setTimeout(() => {
       confetti({
@@ -2040,52 +1881,6 @@ function Screen4({
     return () => clearTimeout(timer)
   }, [])
 
-  // Add-to-calendar — generate a downloadable .ics file
-  const handleAddCalendar = () => {
-    const start = new Date(selectedDate)
-    start.setHours(startHour, 0, 0, 0)
-    const end = new Date(start)
-    end.setHours(start.getHours() + duration)
-    const fmt = (d: Date) =>
-      d
-        .toISOString()
-        .replace(/[-:]/g, "")
-        .replace(/\.\d{3}/, "")
-    const ics = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "BEGIN:VEVENT",
-      `DTSTART:${fmt(start)}`,
-      `DTEND:${fmt(end)}`,
-      `SUMMARY:Space8 · ${tableName}`,
-      `DESCRIPTION:預訂編號 ${bookingRef}`,
-      "LOCATION:Space8",
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n")
-    const url = URL.createObjectURL(
-      new Blob([ics], { type: "text/calendar" })
-    )
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `248-${bookingRef}.ics`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const handleShare = async () => {
-    const text = `我的 Space8 預訂 · ${tableName} · 編號 ${bookingRef}`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Space8", text })
-      } catch {
-        /* user cancelled */
-      }
-    } else if (navigator.clipboard) {
-      await navigator.clipboard.writeText(text)
-    }
-  }
-
   return (
     <div
       className="screen-content"
@@ -2093,301 +1888,82 @@ function Screen4({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
         minHeight: "calc(100dvh - 80px)",
         position: "relative",
         padding: "24px 20px",
       }}
     >
-      {/* Ticket spring slide-up */}
-      <div style={{ width: "100%", maxWidth: 384, margin: "0 auto", position: "relative" }}>
+      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
+        {/* Header — logo + confirmed pill, shared across all tickets */}
         <motion.div
-          initial={{ y: "80%", opacity: 0 }}
+          initial={{ y: "40%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.5 }}
-          style={{
-            background: "linear-gradient(160deg, #111111 0%, #1a1a1a 100%)",
-            borderRadius: 24,
-            border: "1px solid rgba(255,255,255,0.1)",
-            overflowY: "auto",
-            maxHeight: "85vh",
-            WebkitOverflowScrolling: "touch",
-            position: "relative",
-          }}
+          transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.2 }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}
         >
-        {/* Top section */}
-        <div style={{ padding: 20 }}>
-          {/* Header row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-            <img src="/logos/Space8_full_icon_white_black_bkg.svg" alt="Space8" style={{ height: 24, width: "auto" }} />
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20, delay: 1.2 }}
-              style={{
-                background: tokens.colors.brand,
-                padding: "4px 12px",
-                borderRadius: 999,
-              }}
-            >
-              <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>{t_ticket("confirmed")}</span>
-            </motion.div>
-          </div>
-
-          {/* Time display — flex row, shrink-safe so it never clips */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexWrap: "nowrap",
-              margin: 0,
-            }}
-          >
-            <span
-              style={{
-                fontSize: "clamp(28px, 7vw, 48px)",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.05,
-                color: tokens.colors.text,
-              }}
-            >
-              {padTime(startHour)}
-            </span>
-            <span
-              style={{
-                fontSize: "clamp(20px, 4vw, 32px)",
-                opacity: 0.6,
-                color: tokens.colors.text,
-              }}
-            >
-              →
-            </span>
-            <span
-              style={{
-                fontSize: "clamp(28px, 7vw, 48px)",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.05,
-                color: tokens.colors.text,
-              }}
-            >
-              {padTime(endHour)}
-            </span>
-            {crossDay && (
-              <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.4)", marginLeft: 4 }}>
-                +1日
-              </span>
-            )}
-          </div>
-
-          {/* Date */}
-          <div style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
-            {dateStr}
-          </div>
-
-          {/* Venue */}
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
-            Space8 · {tableName}
-          </div>
-        </div>
-
-        {/* Perforation line */}
-        <div style={{ position: "relative", height: 20, margin: "20px 0" }}>
-          {/* Left notch */}
-          <div
-            style={{
-              position: "absolute",
-              left: -10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              background: tokens.colors.bg,
-            }}
-          />
-          {/* Right notch */}
-          <div
-            style={{
-              position: "absolute",
-              right: -10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              background: tokens.colors.bg,
-            }}
-          />
-          {/* Dashed line — animated width */}
+          <img src="/logos/Space8_full_icon_white_black_bkg.svg" alt="Space8" style={{ height: 24, width: "auto" }} />
           <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: 1.0, duration: 0.6, ease: "linear" }}
-            style={{
-              transformOrigin: "left center",
-              position: "absolute",
-              top: "50%",
-              left: 20,
-              right: 20,
-              height: 0,
-              borderTop: "2px dashed rgba(255,255,255,0.15)",
-            }}
-          />
-        </div>
-
-        {/* Bottom stub */}
-        <div style={{ padding: "0 20px 20px" }}>
-          {/* Info row — 3 columns, stagger in */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.08, delayChildren: 1.4 } }
-            }}
-            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 20, delay: 1.2 }}
+            style={{ background: tokens.colors.brand, padding: "4px 12px", borderRadius: 999 }}
           >
-            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("duration")}</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{duration}{t("hours")}</div>
-            </motion.div>
-            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("paid")}</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand }}>HK${total}</div>
-            </motion.div>
-            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("payment")}</div>
-              <VisaLogo className="h-4" />
-            </motion.div>
+            <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>
+              {t_ticket("confirmed")}
+            </span>
           </motion.div>
-
-          {/* QR Code — reveal with clip-path wipe + scan line */}
-          <motion.div
-            initial={{ clipPath: "inset(0 0 100% 0)" }}
-            animate={{ clipPath: "inset(0 0 0% 0)" }}
-            transition={{ delay: 1.6, duration: 0.8, ease: "linear" }}
-            style={{
-              position: "relative",
-              background: "#0a0a0a",
-              borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.15)",
-              padding: 16,
-              display: "flex",
-              justifyContent: "center",
-              marginTop: 12,
-              marginBottom: 10,
-            }}
-          >
-            <QRCode data={qrData ?? bookingRef} />
-            {/* Scan line */}
-            <motion.div
-              initial={{ top: "0%" }}
-              animate={{ top: "100%" }}
-              transition={{ delay: 1.6, duration: 0.8, ease: "linear" }}
-              style={{
-                position: "absolute",
-                left: 0,
-                width: "100%",
-                height: 2,
-                background: "linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent)",
-                pointerEvents: "none",
-                zIndex: 3,
-              }}
-            />
-          </motion.div>
-
-          {/* Booking ref */}
-          <div
-            style={{
-              fontFamily: "'SF Mono', 'Courier New', monospace",
-              fontSize: 13,
-              color: "rgba(255,255,255,0.6)",
-              letterSpacing: "0.15em",
-              textAlign: "center",
-              marginBottom: 6,
-            }}
-          >
-            {bookingRef}
-          </div>
-
-          {/* Helper text */}
-          <div
-            data-cms-key="book.ticket.footer"
-            style={{
-              fontSize: 11,
-              color: "rgba(255,255,255,0.3)",
-              textAlign: "center",
-            }}
-          >
-            {t("qr_hint")}
-          </div>
-        </div>
         </motion.div>
-      </div>
 
-      {/* Actions below ticket — stagger in after ticket lands */}
-      <div style={{ marginTop: 24, width: "100%", maxWidth: 400 }}>
-        <motion.div
+        {/* One collapsible card per booking */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
+          {tickets.map((ticket, i) => (
+            <TicketCard
+              key={ticket.bookingRef + i}
+              date={ticket.date}
+              startHour={ticket.startHour}
+              duration={ticket.duration}
+              tableNumber={ticket.tableNumber}
+              bookingRef={ticket.bookingRef}
+              qrData={ticket.qrData}
+              totalPrice={ticket.totalPrice}
+              paymentMethod={ticket.paymentMethod}
+              defaultExpanded={i === 0}
+            />
+          ))}
+        </div>
+
+        {/* Go to member center (Task 10) */}
+        <motion.button
+          type="button"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          style={{ display: "flex", gap: 12 }}
+          onClick={() => router.push("/member")}
+          data-cms-key="book.ticket.member_cta"
+          style={{
+            width: "100%",
+            height: 52,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: tokens.colors.brand,
+            color: "#000",
+            border: "none",
+            borderRadius: 14,
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: "pointer",
+            marginBottom: 16,
+          }}
         >
-          <button
-            type="button"
-            onClick={handleAddCalendar}
-            data-cms-key="book.ticket.add-calendar"
-            style={{
-              flex: 1,
-              height: 48,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: 12,
-              color: tokens.colors.text,
-              fontSize: 15,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            <CalendarPlus size={16} />
-            {t("add_calendar")}
-          </button>
-          <button
-            type="button"
-            onClick={handleShare}
-            data-cms-key="book.ticket.share"
-            style={{
-              flex: 1,
-              height: 48,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: 12,
-              color: tokens.colors.text,
-              fontSize: 15,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            <Share2 size={16} />
-            {t("share")}
-          </button>
-        </motion.div>
+          {t("go_to_member")}
+        </motion.button>
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.4, duration: 0.4 }}
-          style={{ textAlign: "center", marginTop: 16 }}
+          style={{ textAlign: "center" }}
         >
           <button
             type="button"
@@ -2411,6 +1987,7 @@ function Screen4({
 
 /* ─────────────────────────  Confirming (Stripe redirect return)  ───────────────────────── */
 type ConfirmedBooking = {
+  id?: string
   status: string
   booking_reference: string | null
   qr_code: string | null
@@ -2420,6 +1997,8 @@ type ConfirmedBooking = {
   duration_hours: number
   table_number: number
   total_price: number
+  payment_method: string | null
+  order_group_id: string | null
 }
 
 // Shown after the Stripe redirect returns to /book while we poll the booking
@@ -2505,6 +2084,9 @@ export default function BookPage() {
   // Stripe redirect-return confirmation state.
   const [confirmBookingId, setConfirmBookingId] = useState<string | null>(null)
   const [confirmedBooking, setConfirmedBooking] = useState<ConfirmedBooking | null>(null)
+  // Every ticket from the same checkout (order_group_id), primary first — a
+  // single-booking order is just a 1-element array (Task 8).
+  const [confirmedBookings, setConfirmedBookings] = useState<ConfirmedBooking[]>([])
   const [confirmError, setConfirmError] = useState(false)
 
   // Durable in-session selection persistence. Unlike `pendingBooking` (written
@@ -2588,9 +2170,12 @@ export default function BookPage() {
       try {
         const res = await fetch(`/api/booking/status?bookingId=${bId}`)
         if (res.ok) {
-          const { booking } = await res.json()
+          const { booking, bookings } = await res.json()
           if (booking?.status === "confirmed") {
-            if (!cancelled) setConfirmedBooking(booking)
+            if (!cancelled) {
+              setConfirmedBooking(booking)
+              setConfirmedBookings(Array.isArray(bookings) && bookings.length > 0 ? bookings : [booking])
+            }
             return
           }
         }
@@ -2814,20 +2399,32 @@ export default function BookPage() {
                   <ConfirmingPayment failed={confirmError} />
                 ) : confirmedBooking ? (
                   <Screen4
-                    selectedDate={new Date(`${confirmedBooking.date}T00:00:00`)}
-                    startHour={parseInt(confirmedBooking.start_time.slice(0, 2), 10)}
-                    duration={Number(confirmedBooking.duration_hours)}
-                    tableName={`${t("table_label")} #${confirmedBooking.table_number}`}
-                    bookingRef={confirmedBooking.booking_reference ?? bookingRef}
-                    qrData={confirmedBooking.qr_code ?? undefined}
+                    tickets={confirmedBookings.map((b) => ({
+                      date: b.date,
+                      startHour: parseInt(b.start_time.slice(0, 2), 10),
+                      duration: Number(b.duration_hours),
+                      tableNumber: b.table_number,
+                      bookingRef: b.booking_reference ?? bookingRef,
+                      qrData: b.qr_code ?? undefined,
+                      totalPrice: b.total_price,
+                      paymentMethod: b.payment_method,
+                    }))}
                   />
                 ) : (
+                  // Defensive fallback — the normal flow always sets confirmBookingId
+                  // via the Stripe redirect-return effect before screen reaches 3, so
+                  // this branch shouldn't render in practice.
                   <Screen4
-                    selectedDate={selectedDate}
-                    startHour={startHour}
-                    duration={duration}
-                    tableName={tableName}
-                    bookingRef={bookingRef}
+                    tickets={[
+                      {
+                        date: activeDateStr,
+                        startHour,
+                        duration,
+                        tableNumber: selectedTable ?? 0,
+                        bookingRef,
+                        totalPrice: CONFIG.pricePerHour * duration,
+                      },
+                    ]}
                   />
                 )}
               </motion.div>

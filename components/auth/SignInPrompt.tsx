@@ -73,18 +73,18 @@ export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () 
             position: "fixed",
             left: "50%",
             transform: "translateX(-50%)",
-            bottom: 20,
+            bottom: 24,
             zIndex: 90,
             display: "flex",
             alignItems: "center",
             gap: 14,
             maxWidth: "calc(100vw - 32px)",
-            padding: "12px 14px 12px 18px",
+            padding: "14px 16px 14px 20px",
             borderRadius: 9999,
           }}
           role="status"
         >
-          <span data-cms-key="nav.prompt_text" style={{ fontSize: 14, color: "#fff", whiteSpace: "nowrap" }}>
+          <span data-cms-key="nav.prompt_text" style={{ fontSize: 16, color: "#fff", whiteSpace: "nowrap" }}>
             {t("prompt_text")}
           </span>
           <button
@@ -96,12 +96,12 @@ export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () 
             data-cms-key="nav.prompt_cta"
             style={{
               flexShrink: 0,
-              padding: "7px 16px",
+              padding: "8px 18px",
               borderRadius: 9999,
               background: GREEN,
               color: "#000",
               fontWeight: 700,
-              fontSize: 14,
+              fontSize: 16,
               textDecoration: "none",
               border: "none",
               cursor: "pointer",
