@@ -1088,6 +1088,7 @@ function Screen1({
   // grid immediately instead of forcing the user to re-tap the calendar.
   const [dateChosen, setDateChosen] = useState(duration > 0)
   const timeRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
 
   const dateStr = useMemo(() => {
@@ -1226,6 +1227,14 @@ function Screen1({
                     startHour={startHour}
                     duration={duration}
                     onSelect={(start, dur) => {
+                      // Auto-scroll to the table picker the moment a slot is
+                      // first picked (duration 0 → >0) — Task 4. Only fires on
+                      // that initial pick, not on every subsequent
+                      // extend/shrink tap, so the view doesn't keep jumping
+                      // while the user is still adjusting duration.
+                      if (duration === 0 && dur > 0) {
+                        scrollToRef(tableRef)
+                      }
                       setStartHour(start)
                       setDuration(dur)
                       // Keep the current table if it's still free for the new
@@ -1286,14 +1295,16 @@ function Screen1({
 
                 {/* Table chips — explicit per-table selection (Tasks 2 & 5) */}
                 {duration > 0 && daySlots && (
-                  <TableChips
-                    daySlots={daySlots}
-                    dateStr={dateStr}
-                    startHour={startHour}
-                    duration={duration}
-                    selectedTable={selectedTable}
-                    onSelect={setSelectedTable}
-                  />
+                  <div ref={tableRef}>
+                    <TableChips
+                      daySlots={daySlots}
+                      dateStr={dateStr}
+                      startHour={startHour}
+                      duration={duration}
+                      selectedTable={selectedTable}
+                      onSelect={setSelectedTable}
+                    />
+                  </div>
                 )}
 
                 {/* Committed extra blocks (non-contiguous order — Task 3) */}
