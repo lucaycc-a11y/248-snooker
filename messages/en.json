@@ -628,21 +628,16 @@
     "lock_hold": "Your slot is held for {time}",
     "pay_declined": "Payment could not be completed. Please check your payment method and try again.",
     "pay_timeout": "Payment is taking longer than expected. Please check your connection and try again.",
-    "contiguous_slots_required": "Please select contiguous time slots",
+    "max_hours_reached": "You can select up to 6 hours",
     "payment_reminder": "Complete payment within 15 minutes or your reservation will be automatically cancelled",
     "whatsapp_support": "If you suspect you have been charged, please contact us via WhatsApp to verify:",
     "retry_payment": "Choose another payment method",
     "slot_group_morning": "Morning",
     "slot_group_afternoon": "Afternoon",
     "slot_group_evening": "Evening",
-    "add_slot": "Add another slot",
     "remove_slot": "Remove",
     "multi_slot_hint": "You can pick several slots — they don't have to be consecutive.",
-    "slots_selected": "{count} slots selected",
-    "gap_warning_title": "Non-consecutive slots",
-    "gap_warning_body": "Your selected slots aren't consecutive — there's a {gap}-minute gap between them. Book anyway?",
-    "gap_warning_confirm": "Yes, continue booking",
-    "gap_warning_cancel": "Cancel"
+    "slots_selected": "{count} slots selected"
   },
   "ticket": {
     "duration": "Duration",

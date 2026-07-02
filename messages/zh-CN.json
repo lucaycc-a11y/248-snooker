@@ -628,21 +628,16 @@
     "lock_hold": "时段已为你保留 {time}",
     "pay_declined": "付款未能完成，请检查付款方式或再试一次。",
     "pay_timeout": "付款处理需时比预期耐，请检查网络连接再试一次。",
-    "contiguous_slots_required": "请选择连续时段",
+    "max_hours_reached": "最多可选 6 小时",
     "payment_reminder": "15 分钟内必须完成付款交易，否则预约时间自动取消",
     "whatsapp_support": "如果你怀疑已经被扣款，请通过 WhatsApp 联络我们核实：",
     "retry_payment": "重新选择付款方式",
     "slot_group_morning": "上午",
     "slot_group_afternoon": "下午",
     "slot_group_evening": "晚上",
-    "add_slot": "添加另一个时段",
     "remove_slot": "移除",
     "multi_slot_hint": "可选择多个时段，中间不一定要连续。",
-    "slots_selected": "已选 {count} 个时段",
-    "gap_warning_title": "时段不连续",
-    "gap_warning_body": "你选择的时段不连续，中间有 {gap} 分钟空档。确定要这样预订吗？",
-    "gap_warning_confirm": "确定，继续预订",
-    "gap_warning_cancel": "取消"
+    "slots_selected": "已选 {count} 个时段"
   },
   "ticket": {
     "duration": "时长",
