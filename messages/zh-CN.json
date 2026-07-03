@@ -562,6 +562,13 @@
     "aria_label": "WhatsApp 联系我们",
     "tooltip": "WhatsApp 我们"
   },
+  "ai_chat": {
+    "aria_label": "在线聊天",
+    "tooltip": "在线聊天",
+    "placeholder": "有什么想问的...",
+    "send": "发送",
+    "close": "关闭"
+  },
   "common": {
     "error": "出了点问题",
     "retry": "重试",

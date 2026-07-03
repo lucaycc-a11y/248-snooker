@@ -562,6 +562,13 @@
     "aria_label": "WhatsApp 我哋",
     "tooltip": "WhatsApp 我哋"
   },
+  "ai_chat": {
+    "aria_label": "同AI傾偈",
+    "tooltip": "同AI傾偈",
+    "placeholder": "有咩想問...",
+    "send": "傳送",
+    "close": "關閉"
+  },
   "common": {
     "error": "出咗少少問題",
     "retry": "重試",

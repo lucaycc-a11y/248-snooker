@@ -562,6 +562,13 @@
     "aria_label": "WhatsAppでお問い合わせ",
     "tooltip": "WhatsAppでお問い合わせ"
   },
+  "ai_chat": {
+    "aria_label": "チャットでお問い合わせ",
+    "tooltip": "チャットでお問い合わせ",
+    "placeholder": "何でも聞いてください...",
+    "send": "送信",
+    "close": "閉じる"
+  },
   "common": {
     "error": "問題が発生しました",
     "retry": "再試行",

@@ -562,6 +562,13 @@
     "aria_label": "WhatsApp us",
     "tooltip": "WhatsApp us"
   },
+  "ai_chat": {
+    "aria_label": "Chat with us",
+    "tooltip": "Chat with us",
+    "placeholder": "Ask us anything...",
+    "send": "Send",
+    "close": "Close"
+  },
   "common": {
     "error": "Something went wrong",
     "retry": "Try Again",
