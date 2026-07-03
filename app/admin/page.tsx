@@ -1,3 +1,4 @@
+import { DollarSign, Calendar, Gauge, UserPlus } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { tokens } from '@/app/styles/tokens'
 import { getAdminStats, getRevenueSeries, getLiveOccupancy } from '@/lib/data/getAdminStats'
@@ -5,15 +6,7 @@ import QuickActions from '@/components/admin/QuickActions'
 import LiveOccupancy from '@/components/admin/LiveOccupancy'
 import RevenueChart from '@/components/admin/RevenueChart'
 import DashboardSummary from '@/components/admin/DashboardSummary'
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <div style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.text }}>{value}</div>
-      <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginTop: 4 }}>{label}</div>
-    </Card>
-  )
-}
+import StatCard from '@/components/admin/StatCard'
 
 function money(n: number): string {
   return `HK$${n.toLocaleString()}`
@@ -40,12 +33,12 @@ export default async function AdminDashboardPage() {
           marginBottom: tokens.spacing.lg,
         }}
       >
-        <StatCard label="Revenue today" value={money(stats.revenue.today)} />
-        <StatCard label="Revenue this week" value={money(stats.revenue.week)} />
-        <StatCard label="Revenue this month" value={money(stats.revenue.month)} />
-        <StatCard label="Bookings today" value={String(stats.bookingsCount.today)} />
-        <StatCard label="Table utilization" value={`${Math.round(stats.tableUtilization * 100)}%`} />
-        <StatCard label="New members this week" value={String(stats.newMembers.week)} />
+        <StatCard label="Revenue today" value={money(stats.revenue.today)} icon={DollarSign} trend={stats.revenueTrend.today} />
+        <StatCard label="Revenue this week" value={money(stats.revenue.week)} icon={DollarSign} trend={stats.revenueTrend.week} />
+        <StatCard label="Revenue this month" value={money(stats.revenue.month)} icon={DollarSign} trend={stats.revenueTrend.month} />
+        <StatCard label="Bookings today" value={String(stats.bookingsCount.today)} icon={Calendar} />
+        <StatCard label="Table utilization" value={`${Math.round(stats.tableUtilization * 100)}%`} icon={Gauge} />
+        <StatCard label="New members this week" value={String(stats.newMembers.week)} icon={UserPlus} />
         <Card>
           <LiveOccupancy initial={occupancy} />
         </Card>

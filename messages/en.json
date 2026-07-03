@@ -460,6 +460,7 @@
     "logout": "Sign Out",
     "my_account": "My Account",
     "settings": "Settings",
+    "admin": "Admin",
     "sign_out": "Sign Out",
     "signing_out": "Signing out…",
     "sign_out_error": "Couldn't sign out. Please try again.",

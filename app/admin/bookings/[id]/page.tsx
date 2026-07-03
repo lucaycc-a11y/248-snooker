@@ -3,10 +3,11 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { Card } from '@/components/ui/Card'
 import { tokens } from '@/app/styles/tokens'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
+import BookingCancelAction from '@/components/admin/BookingCancelAction'
 
-// Read-only for this phase. Spec 3.1's manual-refund button is a write action
-// with its own audit-log requirement — deferred as a fast follow so this
-// phase's diff stays read-only, matching its own stated risk level.
+// Manual refund is handled by the existing member self-serve flow / a
+// separate refund route — this admin action is a distinct soft-cancel
+// (status='admin_cancelled') for no-payment-to-reverse cases, per spec 3.1.
 
 async function getBookingDetail(id: string) {
   const service = getServiceSupabase()
@@ -66,6 +67,10 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
       <h1 style={{ fontSize: 24, fontWeight: 700, color: tokens.colors.text, marginBottom: 24 }}>
         {str(booking, ['booking_reference']) ?? id.slice(0, 8)}
       </h1>
+
+      {str(booking, ['status']) !== 'refunded' && str(booking, ['status']) !== 'admin_cancelled' && (
+        <BookingCancelAction bookingId={id} />
+      )}
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <Row_ label="Customer" value={user?.display_name ?? user?.email ?? 'Guest'} />

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getConfig } from '@/lib/data/getConfig'
-import { getVectorEngine, classifyComplexity, modelFor } from '@/lib/ai/vectorengine'
+import { getAiWidgetSettings, type AiTone } from '@/lib/data/getAiWidgetSettings'
+import { getVectorEngine, classifyComplexity, modelFor, VectorEngineConfigError } from '@/lib/ai/vectorengine'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 
 // Public-facing AI chat widget backend. No admin auth — this is the site's
@@ -16,6 +17,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string }
 
+const HANDOFF_PREFIX = 'HANDOFF:'
+
+const TONE_INSTRUCTIONS: Record<AiTone, string> = {
+  friendly: 'Use a warm, friendly tone.',
+  professional: 'Use a clear, professional tone.',
+  playful: 'Use a warm, playful tone with occasional light humor.',
+}
+
+const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+
 export async function POST(req: Request) {
   try {
     const allowed = await rateLimit('public_ai_chat', `ip:${clientIp(req)}`, 10, 600)
@@ -26,6 +37,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
     const userMessage = body.message.trim().slice(0, 1000)
+    const locale = typeof body.locale === 'string' && LOCALES.includes(body.locale) ? body.locale : 'zh-HK'
 
     const history: ChatMessage[] = Array.isArray(body.history)
       ? (body.history as unknown[])
@@ -38,9 +50,9 @@ export async function POST(req: Request) {
           .slice(-10)
       : []
 
-    const config = await getConfig()
+    const [config, widgetSettings] = await Promise.all([getConfig(), getAiWidgetSettings(locale)])
 
-    const systemPrompt = `You are Space8's helpful assistant, replying in plain, friendly English. Keep replies under 3 sentences.
+    let systemPrompt = `You are Space8's helpful assistant, replying in plain, friendly English. Keep replies under 3 sentences.
 
 Venue facts (from the database, do not alter):
 - Name: Space8
@@ -51,7 +63,15 @@ Venue facts (from the database, do not alter):
 Rules:
 - Never make up information you're unsure about.
 - Booking questions should be answered using the venue facts above; if unsure, suggest the visitor use the booking page on this site.
-- You cannot modify a booking directly — direct the user to their member dashboard or to contact staff.`
+- You cannot modify a booking directly — direct the user to their member dashboard or to contact staff.
+- If you cannot help with the request (it's a complaint, an injury/safety issue, a legal matter, or something requiring human judgment), respond with exactly the sentinel prefix "${HANDOFF_PREFIX}" followed by one short sentence explaining why, and nothing else.
+
+${TONE_INSTRUCTIONS[widgetSettings.tone]}`
+
+    // Additive layer, never a replacement — per the admin settings spec.
+    if (widgetSettings.systemPromptOverride) {
+      systemPrompt += `\n\n${widgetSettings.systemPromptOverride}`
+    }
 
     const complexity = classifyComplexity(userMessage)
     const vectorEngine = getVectorEngine()
@@ -67,10 +87,19 @@ Rules:
     }
 
     const textBlock = response.content.find((b) => b.type === 'text')
-    const reply = textBlock?.text ?? "Sorry, I couldn't generate a reply — please try again."
+    const rawReply = textBlock?.text ?? "Sorry, I couldn't generate a reply — please try again."
 
-    return NextResponse.json({ reply })
+    if (rawReply.startsWith(HANDOFF_PREFIX)) {
+      const explanation = rawReply.slice(HANDOFF_PREFIX.length).trim()
+      return NextResponse.json({ reply: explanation, handoff: true })
+    }
+
+    return NextResponse.json({ reply: rawReply })
   } catch (err) {
+    if (err instanceof VectorEngineConfigError) {
+      console.error('[ai/chat] VectorEngine not configured')
+      return NextResponse.json({ error: 'vectorengine_not_configured' }, { status: 503 })
+    }
     console.error('[ai/chat] unexpected error', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }

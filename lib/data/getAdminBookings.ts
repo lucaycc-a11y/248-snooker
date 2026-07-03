@@ -23,6 +23,7 @@ export type AdminBookingRow = {
   price: number
   status: string
   paymentMethod: string | null
+  isTest: boolean
 }
 
 export type AdminBookingsQuery = {
@@ -32,6 +33,7 @@ export type AdminBookingsQuery = {
   dateTo?: string | null
   tableNumber?: string | null
   search?: string | null
+  isTest?: boolean | null // unset = real only (default), true = test only, false = real only (explicit)
 }
 
 export type AdminBookingsResult = { bookings: AdminBookingRow[]; total: number; page: number; pageSize: number }
@@ -49,12 +51,16 @@ function normalize(row: Row, userInfo: { email: string | null; display_name: str
     price: num(row, ['total_price'], 0),
     status: str(row, ['status']) ?? 'unknown',
     paymentMethod: str(row, ['payment_method']),
+    isTest: row.is_test === true,
   }
 }
 
 export async function getAdminBookings(query: AdminBookingsQuery): Promise<AdminBookingsResult> {
   const page = Math.max(1, query.page ?? 1)
   const { status, dateFrom, dateTo, tableNumber, search } = query
+  // Default (isTest undefined/null): show real bookings only, matching the
+  // spec's "show test bookings" toggle defaulting to off.
+  const isTest = query.isTest ?? false
 
   const service = getServiceSupabase()
   const from = (page - 1) * PAGE_SIZE
@@ -67,6 +73,7 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
       lte: (col: string, val: unknown) => typeof query
       or: (expr: string) => typeof query
     }
+    query = query.eq('is_test', isTest)
     if (status) query = query.eq('status', status)
     if (dateFrom) query = query.gte('date', dateFrom)
     if (dateTo) query = query.lte('date', dateTo)

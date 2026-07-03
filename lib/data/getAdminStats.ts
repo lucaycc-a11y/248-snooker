@@ -12,6 +12,7 @@ export type AdminStats = {
   bookingsCount: { today: number; week: number; month: number }
   newMembers: { week: number; month: number }
   tableUtilization: number // 0-1
+  revenueTrend: { today: number | null; week: number | null; month: number | null } // signed % delta vs prior equal period, null if prior period is 0
 }
 
 export type RevenuePoint = { day: string; revenue: number; bookings: number }
@@ -35,31 +36,54 @@ export async function getAdminStats(): Promise<AdminStats> {
   const today = startOfDayISO(new Date())
   const weekStart = startOfDayISO(daysAgo(7))
   const monthStart = startOfDayISO(daysAgo(30))
+  const prevWeekStart = startOfDayISO(daysAgo(14))
+  const prevMonthStart = startOfDayISO(daysAgo(60))
+  const yesterday = startOfDayISO(daysAgo(1))
 
   const revenue = { today: 0, week: 0, month: 0 }
   const bookingsCount = { today: 0, week: 0, month: 0 }
+  const prevRevenue = { today: 0, week: 0, month: 0 }
   try {
     const { data } = await service
       .from('admin_revenue_daily')
       .select('day, revenue, bookings')
-      .gte('day', monthStart)
+      .gte('day', prevMonthStart)
     const rows = (data ?? []) as { day: string; revenue: number | null; bookings: number | null }[]
     for (const row of rows) {
       const rev = row.revenue ?? 0
       const cnt = row.bookings ?? 0
-      revenue.month += rev
-      bookingsCount.month += cnt
+      if (row.day >= monthStart) {
+        revenue.month += rev
+        bookingsCount.month += cnt
+      } else if (row.day >= prevMonthStart) {
+        prevRevenue.month += rev
+      }
       if (row.day >= weekStart) {
         revenue.week += rev
         bookingsCount.week += cnt
+      } else if (row.day >= prevWeekStart) {
+        prevRevenue.week += rev
       }
       if (row.day >= today) {
         revenue.today += rev
         bookingsCount.today += cnt
+      } else if (row.day >= yesterday) {
+        prevRevenue.today += rev
       }
     }
   } catch {
     /* view may not exist yet — stays zero */
+  }
+
+  function pctDelta(current: number, prior: number): number | null {
+    if (prior === 0) return null
+    return Math.round(((current - prior) / prior) * 100)
+  }
+
+  const revenueTrend = {
+    today: pctDelta(revenue.today, prevRevenue.today),
+    week: pctDelta(revenue.week, prevRevenue.week),
+    month: pctDelta(revenue.month, prevRevenue.month),
   }
 
   const newMembers = { week: 0, month: 0 }
@@ -85,6 +109,7 @@ export async function getAdminStats(): Promise<AdminStats> {
       .from('bookings')
       .select('duration_hours')
       .eq('status', 'confirmed')
+      .eq('is_test', false)
       .gte('date', weekStart.slice(0, 10))
     const rows = (data ?? []) as Row[]
     const bookedHours = rows.reduce((sum, r) => sum + num(r, ['duration_hours'], 0), 0)
@@ -95,7 +120,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     /* stays zero */
   }
 
-  return { revenue, bookingsCount, newMembers, tableUtilization }
+  return { revenue, bookingsCount, newMembers, tableUtilization, revenueTrend }
 }
 
 export async function getRevenueSeries(days = 30): Promise<RevenuePoint[]> {
@@ -122,6 +147,7 @@ export async function getLiveOccupancy(): Promise<LiveOccupancy> {
       .from('bookings')
       .select('start_time, end_time, table_number')
       .eq('status', 'confirmed')
+      .eq('is_test', false)
       .eq('date', today)
     const rows = (data ?? []) as Row[]
     const now = new Date()

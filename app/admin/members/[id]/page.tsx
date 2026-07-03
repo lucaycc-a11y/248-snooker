@@ -3,16 +3,17 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { Card } from '@/components/ui/Card'
 import { tokens } from '@/app/styles/tokens'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
+import MemberActions from '@/components/admin/MemberActions'
 
-// Read-only for this phase. Spec 3.2's manual points-adjustment is a write
-// action with its own audit-log/reason-field requirement — deferred as a
-// fast follow, matching the booking detail page's refund-button deferral.
+// Points/tier/blacklist writes (spec 3.2) live in MemberActions, calling
+// app/api/admin/members/[id]/route.ts — every action requires a reason and
+// is audit-logged.
 
 async function getMemberDetail(id: string) {
   const service = getServiceSupabase()
   const { data } = await service
     .from('users')
-    .select('id, member_code, email, display_name, phone, tier, points, created_at')
+    .select('id, member_code, email, display_name, phone, tier, points, is_blacklisted, created_at')
     .eq('id', id)
     .maybeSingle()
   if (!data) return null
@@ -66,7 +67,25 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
     <main style={{ maxWidth: 640, margin: '0 auto', padding: '32px 16px' }}>
       <h1 style={{ fontSize: 24, fontWeight: 700, color: tokens.colors.text, marginBottom: 24 }}>
         {str(user, ['display_name']) ?? str(user, ['email']) ?? id.slice(0, 8)}
+        {user.is_blacklisted === true && (
+          <span
+            style={{
+              marginLeft: 10,
+              fontSize: 12,
+              fontWeight: 700,
+              color: tokens.colors.danger,
+              border: `1px solid ${tokens.colors.danger}`,
+              borderRadius: 4,
+              padding: '2px 8px',
+              verticalAlign: 'middle',
+            }}
+          >
+            BLACKLISTED
+          </span>
+        )}
       </h1>
+
+      <MemberActions userId={id} currentTier={str(user, ['tier']) ?? 'amateur'} isBlacklisted={user.is_blacklisted === true} />
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <Row_ label="Member code" value={str(user, ['member_code']) ?? '—'} />

@@ -460,6 +460,7 @@
     "logout": "退出",
     "my_account": "我的账户",
     "settings": "设置",
+    "admin": "管理后台",
     "sign_out": "退出",
     "signing_out": "退出中…",
     "sign_out_error": "退出失败，请重试。",

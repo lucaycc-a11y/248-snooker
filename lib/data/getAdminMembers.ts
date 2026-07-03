@@ -53,6 +53,7 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
           .select('user_id, total_price, status')
           .in('user_id', userIds)
           .eq('status', 'confirmed')
+          .eq('is_test', false)
         for (const b of (bookingRows ?? []) as Row[]) {
           const uid = String(b.user_id)
           const price = num(b, ['total_price'], 0)

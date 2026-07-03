@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { User, LogOut, UserCircle, Settings } from "lucide-react"
+import { User, LogOut, UserCircle, Settings, ShieldCheck } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -61,6 +61,7 @@ export function AccountMenu({
     name: null,
     tier: null,
   })
+  const [isAdmin, setIsAdmin] = useState(false)
   const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null)
   const [swipeRevealed, setSwipeRevealed] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -95,6 +96,21 @@ export function AccountMenu({
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [open])
+
+  // Admin-entry-point discoverability (Part 6) — thin check against the
+  // existing public whoami route (already used by the CMS edit-mode gate).
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/admin/whoami")
+      .then((res) => res.json())
+      .then((json: { isAdmin?: boolean }) => {
+        if (!cancelled && json.isAdmin) setIsAdmin(true)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const openMenu = () => {
     if (triggerRef.current) {
@@ -161,6 +177,11 @@ export function AccountMenu({
       <a href="/member?tab=settings" style={menuItemStyle} role="menuitem" data-cms-key="nav.settings">
         <Settings size={17} /> {t("settings")}
       </a>
+      {isAdmin && (
+        <a href="/admin" style={menuItemStyle} role="menuitem" data-cms-key="nav.admin">
+          <ShieldCheck size={17} /> {t("admin")}
+        </a>
+      )}
       <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "6px 0" }} />
       <button
         type="button"

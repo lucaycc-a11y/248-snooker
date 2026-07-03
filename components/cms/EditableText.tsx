@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useEditMode } from './EditModeContext'
+import { HoverToolbar } from './HoverToolbar'
 import { tokens } from '@/app/styles/tokens'
 
 // Wraps a CMSText-rendered element with click-to-edit behavior when
@@ -79,56 +80,69 @@ export function EditableText({
   }
 
   return (
-    <span style={{ position: 'relative', display: 'inline-block' }}>
-      <Component
-        ref={ref}
-        data-cms-key={cmsKey}
-        className={className}
-        style={{ ...style, outline: editing ? `2px solid ${tokens.colors.brand}` : undefined }}
-        suppressContentEditableWarning
-        contentEditable={editing}
-        onClick={(e: React.MouseEvent) => {
-          if (!editing) {
-            // Prevent the click from also firing a parent Link/button's
-            // navigation/action — a CMSText nested inside a nav link or CTA
-            // button must not trigger that link while an admin is editing it.
-            e.preventDefault()
-            e.stopPropagation()
-            setEditing(true)
-            requestAnimationFrame(() => ref.current?.focus())
-          }
-        }}
-        onBlur={() => {
-          if (!editing) return
-          setEditing(false)
-          save(ref.current?.textContent ?? value)
-        }}
-        onKeyDown={(e: React.KeyboardEvent) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            ref.current?.blur()
-          }
-          if (e.key === 'Escape') {
-            if (ref.current) ref.current.textContent = originalRef.current
+    <HoverToolbar
+      kind="scalar"
+      cmsKey={cmsKey}
+      locale={locale}
+      currentValue={originalRef.current}
+      onEdit={() => {
+        if (!editing) {
+          setEditing(true)
+          requestAnimationFrame(() => ref.current?.focus())
+        }
+      }}
+    >
+      <span style={{ position: 'relative', display: 'inline-block' }}>
+        <Component
+          ref={ref}
+          data-cms-key={cmsKey}
+          className={className}
+          style={{ ...style, outline: editing ? `2px solid ${tokens.colors.brand}` : undefined }}
+          suppressContentEditableWarning
+          contentEditable={editing}
+          onClick={(e: React.MouseEvent) => {
+            if (!editing) {
+              // Prevent the click from also firing a parent Link/button's
+              // navigation/action — a CMSText nested inside a nav link or CTA
+              // button must not trigger that link while an admin is editing it.
+              e.preventDefault()
+              e.stopPropagation()
+              setEditing(true)
+              requestAnimationFrame(() => ref.current?.focus())
+            }
+          }}
+          onBlur={() => {
+            if (!editing) return
             setEditing(false)
-            ref.current?.blur()
-          }
-        }}
-      />
-      {saved && (
-        <span
-          style={{
-            position: 'absolute',
-            top: -6,
-            right: -6,
-            width: 14,
-            height: 14,
-            borderRadius: '50%',
-            backgroundColor: tokens.colors.brand,
-            pointerEvents: 'none',
+            save(ref.current?.textContent ?? value)
+          }}
+          onKeyDown={(e: React.KeyboardEvent) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              ref.current?.blur()
+            }
+            if (e.key === 'Escape') {
+              if (ref.current) ref.current.textContent = originalRef.current
+              setEditing(false)
+              ref.current?.blur()
+            }
           }}
         />
-      )}
-    </span>
+        {saved && (
+          <span
+            style={{
+              position: 'absolute',
+              top: -6,
+              right: -6,
+              width: 14,
+              height: 14,
+              borderRadius: '50%',
+              backgroundColor: tokens.colors.brand,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+      </span>
+    </HoverToolbar>
   )
 }

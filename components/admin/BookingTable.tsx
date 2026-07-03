@@ -10,12 +10,13 @@ import type { AdminBookingRow } from '@/lib/data/getAdminBookings'
 
 type ApiResponse = { bookings: AdminBookingRow[]; total: number; page: number; pageSize: number }
 
-const STATUS_OPTIONS = ['', 'pending', 'confirmed', 'refunded']
+const STATUS_OPTIONS = ['', 'pending', 'confirmed', 'refunded', 'admin_cancelled']
 
 function statusColor(status: string): string {
   if (status === 'confirmed') return tokens.colors.brand
   if (status === 'pending') return '#eab308'
   if (status === 'refunded') return tokens.colors.danger
+  if (status === 'admin_cancelled') return '#a855f7'
   return tokens.colors.textMuted
 }
 
@@ -24,11 +25,13 @@ export default function BookingTable({ initial }: { initial: ApiResponse }) {
   const [page, setPage] = useState(initial.page)
   const [status, setStatus] = useState('')
   const [search, setSearch] = useState('')
+  const [showTest, setShowTest] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
-  const fetchPage = useCallback((p: number, s: string, q: string) => {
+  const fetchPage = useCallback((p: number, s: string, q: string, testOnly: boolean) => {
     setLoading(true)
-    const params = new URLSearchParams({ page: String(p) })
+    const params = new URLSearchParams({ page: String(p), isTest: testOnly ? 'true' : 'false' })
     if (s) params.set('status', s)
     if (q) params.set('search', q)
     fetch(`/api/admin/bookings?${params.toString()}`)
@@ -41,22 +44,36 @@ export default function BookingTable({ initial }: { initial: ApiResponse }) {
   }, [])
 
   useEffect(() => {
-    fetchPage(1, status, search)
+    fetchPage(1, status, search, showTest)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status])
+  }, [status, showTest])
+
+  const toggleTest = useCallback(
+    (id: string, next: boolean) => {
+      setTogglingId(id)
+      fetch('/api/admin/bookings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, is_test: next }),
+      })
+        .then(() => fetchPage(page, status, search, showTest))
+        .finally(() => setTogglingId(null))
+    },
+    [fetchPage, page, status, search, showTest]
+  )
 
   const totalPages = Math.max(1, Math.ceil(data.total / data.pageSize))
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: tokens.spacing.sm, marginBottom: tokens.spacing.md, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: tokens.spacing.sm, marginBottom: tokens.spacing.md, flexWrap: 'wrap', alignItems: 'center' }}>
         <div style={{ minWidth: 200 }}>
           <Input
             placeholder="Search booking reference"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') fetchPage(1, status, search)
+              if (e.key === 'Enter') fetchPage(1, status, search, showTest)
             }}
           />
         </div>
@@ -79,9 +96,13 @@ export default function BookingTable({ initial }: { initial: ApiResponse }) {
             </option>
           ))}
         </select>
-        <Button variant="secondary" size="md" onClick={() => fetchPage(1, status, search)} loading={loading}>
+        <Button variant="secondary" size="md" onClick={() => fetchPage(1, status, search, showTest)} loading={loading}>
           Search
         </Button>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, color: tokens.colors.textMuted, fontSize: 13, marginLeft: 'auto' }}>
+          <input type="checkbox" checked={showTest} onChange={(e) => setShowTest(e.target.checked)} />
+          Show test bookings
+        </label>
       </div>
 
       <Card padding="0">
@@ -101,16 +122,52 @@ export default function BookingTable({ initial }: { initial: ApiResponse }) {
             }}
           >
             <div>
-              <div style={{ color: tokens.colors.text, fontSize: 15, fontWeight: 600 }}>
+              <div style={{ color: tokens.colors.text, fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
                 {b.bookingReference ?? b.id.slice(0, 8)}
+                {b.isTest && (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: '#eab308',
+                      border: '1px solid #eab308',
+                      borderRadius: 4,
+                      padding: '1px 6px',
+                    }}
+                  >
+                    TEST
+                  </span>
+                )}
               </div>
               <div style={{ color: tokens.colors.textMuted, fontSize: 13 }}>
                 {b.userName ?? b.userEmail ?? 'Guest'} · Table {b.tableNumber} · {b.date} {b.startTime}-{b.endTime}
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ color: tokens.colors.text, fontSize: 15, fontWeight: 600 }}>HK${b.price}</div>
-              <div style={{ color: statusColor(b.status), fontSize: 13 }}>{b.status}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.md }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ color: tokens.colors.text, fontSize: 15, fontWeight: 600 }}>HK${b.price}</div>
+                <div style={{ color: statusColor(b.status), fontSize: 13 }}>{b.status}</div>
+              </div>
+              <button
+                type="button"
+                disabled={togglingId === b.id}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  toggleTest(b.id, !b.isTest)
+                }}
+                style={{
+                  background: 'none',
+                  border: `1px solid ${tokens.colors.border}`,
+                  borderRadius: tokens.radius.button,
+                  color: tokens.colors.textMuted,
+                  fontSize: 12,
+                  padding: '4px 10px',
+                  cursor: 'pointer',
+                }}
+              >
+                {b.isTest ? 'Unmark' : 'Mark as test'}
+              </button>
             </div>
           </Link>
         ))}
@@ -126,14 +183,14 @@ export default function BookingTable({ initial }: { initial: ApiResponse }) {
           Page {page} of {totalPages} · {data.total} total
         </span>
         <div style={{ display: 'flex', gap: tokens.spacing.sm }}>
-          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => fetchPage(page - 1, status, search)}>
+          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => fetchPage(page - 1, status, search, showTest)}>
             Previous
           </Button>
           <Button
             variant="secondary"
             size="sm"
             disabled={page >= totalPages}
-            onClick={() => fetchPage(page + 1, status, search)}
+            onClick={() => fetchPage(page + 1, status, search, showTest)}
           >
             Next
           </Button>

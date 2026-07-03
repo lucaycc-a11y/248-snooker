@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getCMSMap } from '@/lib/data/getCMS'
-import { getVectorEngine } from '@/lib/ai/vectorengine'
+import { getVectorEngine, VectorEngineConfigError } from '@/lib/ai/vectorengine'
 import { rateLimit } from '@/lib/rate-limit'
 
 // Admin-only. Proposes CMS edits via Claude Opus 4.8 and writes them as DRAFT
@@ -64,18 +64,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
     const prompt = body.prompt.trim().slice(0, 2000)
+    const scopedKey = typeof body.scopedKey === 'string' ? body.scopedKey : null
+    const scopedLocale = typeof body.scopedLocale === 'string' ? body.scopedLocale : null
+    const scopedCurrentValue = typeof body.scopedCurrentValue === 'string' ? body.scopedCurrentValue : null
 
     const currentContent: Record<string, Record<string, string>> = {}
     for (const locale of LOCALES) {
       currentContent[locale] = await getCMSMap(locale)
     }
 
+    const systemPrompt =
+      scopedKey && scopedLocale
+        ? `${SYSTEM_PROMPT}\n\nThe admin is asking about this specific field: "${scopedKey}" (locale: ${scopedLocale}, current value: "${scopedCurrentValue ?? ''}") — prefer proposing an edit to this exact key unless the request clearly means something else.`
+        : SYSTEM_PROMPT
+
     const vectorEngine = getVectorEngine()
     const response = await vectorEngine.messages.create({
       model: 'claude-opus-4-8',
       max_tokens: 4096,
       thinking: { type: 'adaptive' },
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       output_config: { format: { type: 'json_schema', schema: EDIT_SCHEMA } },
       messages: [
         {
@@ -154,6 +162,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ edits: created })
   } catch (err) {
+    if (err instanceof VectorEngineConfigError) {
+      console.error('[admin/cms/ai-edit] VectorEngine not configured')
+      return NextResponse.json({ error: 'vectorengine_not_configured' }, { status: 503 })
+    }
     console.error('[admin/cms/ai-edit] unexpected error', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }

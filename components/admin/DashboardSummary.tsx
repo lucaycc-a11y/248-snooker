@@ -14,6 +14,18 @@ export default function DashboardSummary() {
     try {
       const res = await fetch('/api/admin/ai/summary')
       const json: unknown = await res.json().catch(() => null)
+      if (!res.ok) {
+        const errorCode =
+          json && typeof json === 'object' && 'error' in json && typeof (json as { error: unknown }).error === 'string'
+            ? (json as { error: string }).error
+            : null
+        setSummary(
+          errorCode === 'vectorengine_not_configured'
+            ? "AI isn't set up yet — contact the site admin."
+            : 'Unable to generate a summary right now.'
+        )
+        return
+      }
       const text =
         json && typeof json === 'object' && 'summary' in json && typeof (json as { summary: unknown }).summary === 'string'
           ? (json as { summary: string }).summary

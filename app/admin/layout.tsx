@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { AdminProvider } from '@/lib/admin/AdminContext'
+import AdminSidebar from '@/components/admin/AdminSidebar'
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const admin = await getAdminData()
@@ -17,5 +18,12 @@ export default async function Layout({ children }: { children: React.ReactNode }
     redirect(user ? '/' : '/login?returnUrl=/admin')
   }
 
-  return <AdminProvider value={admin}>{children}</AdminProvider>
+  return (
+    <AdminProvider value={admin}>
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <AdminSidebar />
+        <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+      </div>
+    </AdminProvider>
+  )
 }

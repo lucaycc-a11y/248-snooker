@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useEditMode } from './EditModeContext'
+import { HoverToolbar } from './HoverToolbar'
 import { Sheet } from '@/components/ui/Sheet'
 import { Button } from '@/components/ui/Button'
 import { tokens } from '@/app/styles/tokens'
@@ -66,6 +67,23 @@ export function CMSList<T extends Record<string, string>>({
     await fetch(`/api/admin/cms-list?id=${id}`, { method: 'DELETE' }).catch(() => {})
   }
 
+  async function duplicateItem(id: string, index: number) {
+    const res = await fetch('/api/admin/cms-list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ duplicate_id: id }),
+    }).catch(() => null)
+    const json: unknown = await res?.json().catch(() => null)
+    const newId = json && typeof json === 'object' && 'id' in json ? String((json as { id: unknown }).id) : null
+    if (res?.ok && newId) {
+      setItems((prev) => {
+        const next = [...prev]
+        next.splice(index + 1, 0, { id: newId, orderIndex: index + 1, fields: prev[index].fields })
+        return next.map((item, i) => ({ ...item, orderIndex: i }))
+      })
+    }
+  }
+
   function onDrop(targetIndex: number) {
     if (dragIndex === null || dragIndex === targetIndex) return
     setItems((prev) => {
@@ -98,27 +116,25 @@ export function CMSList<T extends Record<string, string>>({
           onDrop={() => onDrop(i)}
           style={{ position: 'relative' }}
         >
-          {renderItem(item.fields, item.id, i)}
-          {editMode && (
-            <button
-              onClick={() => deleteItem(item.id)}
-              aria-label="Delete"
-              style={{
-                position: 'absolute',
-                top: 4,
-                right: 4,
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                border: `1px solid ${tokens.colors.danger}`,
-                backgroundColor: 'transparent',
-                color: tokens.colors.danger,
-                fontSize: 14,
-                cursor: 'pointer',
+          {editMode ? (
+            <HoverToolbar
+              kind="listItem"
+              cmsKey={`${page}.${collectionKey}.${i}`}
+              locale={locale}
+              currentValue={JSON.stringify(item.fields)}
+              onEdit={() => {
+                /* Field-level inline edit is opted into per-caller via
+                   renderItem's contentEditable wiring (FAQ.tsx/LegalContent.tsx) —
+                   this button is a no-op signal that edit affordances exist;
+                   the actual click-to-edit happens on the fields themselves. */
               }}
+              onCopy={() => duplicateItem(item.id, i)}
+              onDelete={() => deleteItem(item.id)}
             >
-              &times;
-            </button>
+              {renderItem(item.fields, item.id, i)}
+            </HoverToolbar>
+          ) : (
+            renderItem(item.fields, item.id, i)
           )}
         </div>
       ))}

@@ -1,29 +1,59 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { MessageCircle, X } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Sheet } from '@/components/ui/Sheet'
+import { Space8Loader } from '@/components/ui/Space8Loader'
+import { tokens } from '@/app/styles/tokens'
 
-type ChatMessage = { role: 'user' | 'assistant'; content: string }
+const WHATSAPP_URL = 'https://wa.me/85264274620'
+const EMAIL = 'info.formhk@gmail.com'
+
+type ChatMessage = { role: 'user' | 'assistant'; content: string; handoff?: boolean; technicalError?: boolean }
+type WidgetSettings = { greetingMessage: string; suggestedPrompts: string[] }
 
 /**
  * Floating AI chat button — same position/sizing as WhatsAppButton, but opens
  * an in-page chat panel instead of navigating away. Rendered by ContactButton
- * when contact_button_type = 'ai_chat'.
+ * as the permanent visitor default (Phase C).
+ *
+ * Rebuilt (Part 9) Intercom-Fin-style: a pre-chat "Home" screen with a
+ * greeting + quick-reply chips (admin-configurable via /admin/ai-settings),
+ * switching to the chat view on first send. Two-tier error handling:
+ * vectorengine_not_configured -> generic technical message; a genuine
+ * AI-can't-help response (server-signaled via {handoff:true}, see
+ * app/api/ai/chat/route.ts's HANDOFF: sentinel) -> WhatsApp/email links.
  */
 export default function AIChatWidget() {
   const t = useTranslations('ai_chat')
+  const locale = useLocale()
   const [showTip, setShowTip] = useState(false)
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [sending, setSending] = useState(false)
+  const [settings, setSettings] = useState<WidgetSettings | null>(null)
 
-  async function send() {
-    const text = input.trim()
-    if (!text || sending) return
-    const nextHistory = [...messages, { role: 'user' as const, content: text }]
+  const view: 'home' | 'chat' = messages.length === 0 ? 'home' : 'chat'
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/ai/widget-settings?locale=' + locale)
+      .then((res) => res.json())
+      .then((json: WidgetSettings) => {
+        if (!cancelled) setSettings(json)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [locale])
+
+  async function send(text: string) {
+    const trimmed = text.trim()
+    if (!trimmed || sending) return
+    const nextHistory = [...messages, { role: 'user' as const, content: trimmed }]
     setMessages(nextHistory)
     setInput('')
     setSending(true)
@@ -31,16 +61,29 @@ export default function AIChatWidget() {
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: messages }),
+        body: JSON.stringify({ message: trimmed, history: messages, locale }),
       })
       const json: unknown = await res.json().catch(() => null)
+      if (!res.ok) {
+        const errorCode =
+          json && typeof json === 'object' && 'error' in json && typeof (json as { error: unknown }).error === 'string'
+            ? (json as { error: string }).error
+            : null
+        const message =
+          errorCode === 'vectorengine_not_configured'
+            ? "I'm having a technical issue — please try again in a moment."
+            : "Sorry, I couldn't reply — please try again."
+        setMessages([...nextHistory, { role: 'assistant', content: message, technicalError: true }])
+        return
+      }
       const reply =
         json && typeof json === 'object' && 'reply' in json && typeof (json as { reply: unknown }).reply === 'string'
           ? (json as { reply: string }).reply
           : "Sorry, I couldn't reply — please try again."
-      setMessages([...nextHistory, { role: 'assistant', content: reply }])
+      const handoff = Boolean(json && typeof json === 'object' && 'handoff' in json && (json as { handoff: unknown }).handoff === true)
+      setMessages([...nextHistory, { role: 'assistant', content: reply, handoff }])
     } catch {
-      setMessages([...nextHistory, { role: 'assistant', content: "Sorry, I couldn't reply — please try again." }])
+      setMessages([...nextHistory, { role: 'assistant', content: "Sorry, I couldn't reply — please try again.", technicalError: true }])
     } finally {
       setSending(false)
     }
@@ -108,37 +151,98 @@ export default function AIChatWidget() {
               <X size={20} />
             </button>
           </div>
-          <div style={{ flex: 1, overflowY: 'auto', marginBottom: 12 }}>
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                style={{
-                  marginBottom: 10,
-                  textAlign: m.role === 'user' ? 'right' : 'left',
-                }}
-              >
-                <span
+
+          {view === 'home' ? (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+              <Space8Loader size={48} theme="light" />
+              <div style={{ fontSize: 15, color: '#FFFFFF', textAlign: 'center', fontWeight: 600 }}>
+                {settings?.greetingMessage ?? '...'}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+                {(settings?.suggestedPrompts ?? []).map((prompt, i) => (
+                  <button
+                    key={i}
+                    onClick={() => send(prompt)}
+                    style={{
+                      textAlign: 'left',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: `1px solid ${tokens.colors.border}`,
+                      background: 'rgba(37,211,102,0.08)',
+                      color: '#FFFFFF',
+                      fontSize: 13,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ flex: 1, overflowY: 'auto', marginBottom: 12 }}>
+              {messages.map((m, i) => (
+                <div
+                  key={i}
                   style={{
-                    display: 'inline-block',
-                    maxWidth: '85%',
-                    padding: '8px 12px',
-                    borderRadius: 12,
-                    fontSize: 14,
-                    backgroundColor: m.role === 'user' ? '#25D366' : 'rgba(255,255,255,0.08)',
-                    color: m.role === 'user' ? '#000000' : '#FFFFFF',
+                    marginBottom: 10,
+                    textAlign: m.role === 'user' ? 'right' : 'left',
                   }}
                 >
-                  {m.content}
-                </span>
-              </div>
-            ))}
-          </div>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      maxWidth: '85%',
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      fontSize: 14,
+                      backgroundColor: m.role === 'user' ? '#25D366' : '#1A1A1A',
+                      color: m.role === 'user' ? '#000000' : '#FFFFFF',
+                    }}
+                  >
+                    {m.content}
+                    {m.handoff && (
+                      <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <a
+                          href={WHATSAPP_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: tokens.colors.brand, fontSize: 12, textDecoration: 'underline' }}
+                        >
+                          WhatsApp us
+                        </a>
+                        <a href={`mailto:${EMAIL}`} style={{ color: tokens.colors.brand, fontSize: 12, textDecoration: 'underline' }}>
+                          Email us
+                        </a>
+                      </div>
+                    )}
+                  </span>
+                </div>
+              ))}
+              {sending && (
+                <div style={{ marginBottom: 10, textAlign: 'left' }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      backgroundColor: '#1A1A1A',
+                    }}
+                  >
+                    <Space8Loader size={18} theme="light" />
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 8 }}>
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') send()
+                if (e.key === 'Enter') send(input)
               }}
               placeholder={t('placeholder')}
               style={{
@@ -153,7 +257,7 @@ export default function AIChatWidget() {
               }}
             />
             <button
-              onClick={send}
+              onClick={() => send(input)}
               disabled={sending || !input.trim()}
               style={{
                 height: 44,

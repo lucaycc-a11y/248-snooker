@@ -44,14 +44,14 @@ function QRCode({ data }: { data: string }) {
   const [url, setUrl] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
-    QRCodeLib.toDataURL(data, {
+    QRCodeLib.toString(data, {
+      type: "svg",
       margin: 2,
-      width: 240,
       errorCorrectionLevel: "M",
       color: { dark: "#0a0a0a", light: "#ffffff" },
     })
-      .then((u: string) => {
-        if (!cancelled) setUrl(u)
+      .then((svg: string) => {
+        if (!cancelled) setUrl(`data:image/svg+xml;base64,${btoa(svg)}`)
       })
       .catch(() => {
         /* leave placeholder on failure */

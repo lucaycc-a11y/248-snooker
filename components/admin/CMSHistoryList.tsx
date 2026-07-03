@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { tokens } from '@/app/styles/tokens'
+import { statusColor } from '@/lib/cms/statusColor'
 
 export type HistoryRow = {
   id: string
@@ -15,12 +16,6 @@ export type HistoryRow = {
   status: string
   changed_by_email: string | null
   created_at: string | null
-}
-
-function statusColor(status: string): string {
-  if (status === 'published') return tokens.colors.brand
-  if (status === 'reverted') return tokens.colors.textFaint
-  return '#eab308'
 }
 
 function Row({ row }: { row: HistoryRow }) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { getCMSGrouped } from '@/lib/data/getAdminCMS'
 
 // Admin-only manual CMS edit — writes a DRAFT cms_versions row. Same shape as
 // the per-edit write in ai-edit/route.ts. Never touches cms_content directly;
@@ -14,6 +15,17 @@ function isConfigKey(fieldKey: string): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+export async function GET(req: Request) {
+  const admin = await getAdminData()
+  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const url = new URL(req.url)
+  const locale = url.searchParams.get('locale')
+  const search = url.searchParams.get('search') ?? ''
+  const groups = await getCMSGrouped(locale && LOCALES.includes(locale) ? locale : 'zh-HK', search)
+  return NextResponse.json({ groups })
 }
 
 export async function POST(req: Request) {

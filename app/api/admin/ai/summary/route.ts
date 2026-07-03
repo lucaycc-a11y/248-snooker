@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getAdminStats, getRevenueSeries } from '@/lib/data/getAdminStats'
-import { getVectorEngine } from '@/lib/ai/vectorengine'
+import { getVectorEngine, VectorEngineConfigError } from '@/lib/ai/vectorengine'
 
 // Admin-only "Today's summary" button. Auth-gated + low call volume (a human
 // clicking a button a few times a day) — no separate rate limit needed on top
@@ -35,6 +35,10 @@ export async function GET() {
     const textBlock = response.content.find((b) => b.type === 'text')
     return NextResponse.json({ summary: textBlock?.text ?? 'Unable to generate a summary right now.' })
   } catch (err) {
+    if (err instanceof VectorEngineConfigError) {
+      console.error('[admin/ai/summary] VectorEngine not configured')
+      return NextResponse.json({ error: 'vectorengine_not_configured' }, { status: 503 })
+    }
     console.error('[admin/ai/summary] unexpected error', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }

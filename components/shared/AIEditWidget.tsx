@@ -30,11 +30,11 @@ export default function AIEditWidget() {
       })
       const json: unknown = await res.json().catch(() => null)
       if (!res.ok) {
-        const message =
+        const errorCode =
           json && typeof json === 'object' && 'error' in json && typeof (json as { error: unknown }).error === 'string'
             ? (json as { error: string }).error
             : 'Request failed'
-        setError(message)
+        setError(errorCode === 'vectorengine_not_configured' ? "AI isn't set up yet — contact the site admin." : errorCode)
         return
       }
       const payload = json as { edits?: ProposedEdit[] }
