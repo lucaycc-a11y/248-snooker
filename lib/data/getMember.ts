@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { type Row, num, str, genId } from './adminReadHelpers'
 
 // The member dashboard reads from `users` (known shape from the auth callback)
 // plus `bookings` and `points_ledger` (schema unverified). Every related query
@@ -39,6 +40,7 @@ export type PointsEntry = {
   date: string | null
   description: string
   delta: number
+  category: 'booking' | 'refund' | 'manual'
 }
 
 export type MemberData = {
@@ -62,39 +64,12 @@ export type MemberTicket = {
   paymentMethod: string | null
 }
 
-type Row = Record<string, unknown>
-
-function num(row: Row, keys: string[], fallback = 0): number {
-  for (const k of keys) {
-    const v = row[k]
-    if (typeof v === 'number') return v
-    if (typeof v === 'string' && v.trim() !== '' && !Number.isNaN(Number(v))) return Number(v)
-  }
-  return fallback
-}
-
-function str(row: Row, keys: string[]): string | null {
-  for (const k of keys) {
-    const v = row[k]
-    if (typeof v === 'string' && v.trim() !== '') return v
-  }
-  return null
-}
-
 // 248-XXXXXXXX from a user id — stable, human-readable member number when the
 // users row has no explicit member_code column.
 function deriveMemberCode(id: string, explicit: string | null): string {
   if (explicit) return explicit
   const clean = id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
   return `248-${clean.slice(0, 8).padEnd(8, '0')}`
-}
-
-// Stable-enough fallback id for rows missing one. Avoids relying on
-// crypto.randomUUID being present in every runtime.
-let idCounter = 0
-function genId(prefix: string): string {
-  idCounter += 1
-  return `${prefix}-${Date.now().toString(36)}-${idCounter}`
 }
 
 function normalizeBooking(row: Row): MemberBooking {
@@ -126,11 +101,20 @@ function normalizeBooking(row: Row): MemberBooking {
 }
 
 function normalizePoints(row: Row): PointsEntry {
+  const delta = num(row, ['delta', 'points', 'amount', 'change'], 0)
+  const rawType = str(row, ['type'])
+  // A negative 'manual' entry is always a refund reversal (request_booking_refund
+  // / refund_booking RPCs insert exactly that shape) — inferable without a new
+  // column. Everything else with type='booking' is points earned on a booking;
+  // any other positive manual entry (e.g. an admin bonus) is 'manual'.
+  const category: PointsEntry['category'] =
+    rawType === 'booking' ? 'booking' : delta < 0 ? 'refund' : 'manual'
   return {
     id: String(row.id ?? genId('points')),
     date: str(row, ['created_at', 'date', 'earned_at']),
     description: str(row, ['description', 'reason', 'note', 'type']) ?? '',
-    delta: num(row, ['delta', 'points', 'amount', 'change'], 0),
+    delta,
+    category,
   }
 }
 

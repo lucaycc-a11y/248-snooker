@@ -11,6 +11,7 @@ import {
   QrCode as QrCodeIcon,
   Undo2,
   CalendarClock,
+  Sparkles,
   X,
   LogOut,
 } from "lucide-react";
@@ -292,11 +293,21 @@ export default function MemberDashboard({
           </div>
         </div>
 
-        {/* Stats row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "16px" }}>
+        {/* Stats row — Apple-Card style: no border box per stat, just a
+            hairline divider between them, so the number itself is the hero. */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            marginTop: "16px",
+            border: `1px solid ${BORDER}`,
+            borderRadius: "16px",
+            padding: "18px 0",
+          }}
+        >
           <StatCard label={t("stat_bookings")} value={`${stats.bookings}`} unit={t("stat_bookings_unit")} />
-          <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} />
-          <StatCard label={t("stat_spent")} value={`HK$${stats.spent.toLocaleString()}`} />
+          <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} last={false} />
+          <StatCard label={t("stat_spent")} value={`HK$${stats.spent.toLocaleString()}`} last />
         </div>
 
         {/* Tabs */}
@@ -495,9 +506,15 @@ function WalletButton({ icon, label, cmsKey }: { icon: React.ReactNode; label: s
   );
 }
 
-function StatCard({ label, value, unit }: { label: string; value: string; unit?: string }) {
+function StatCard({ label, value, unit, last }: { label: string; value: string; unit?: string; last?: boolean }) {
   return (
-    <div style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "18px 16px", textAlign: "center" }}>
+    <div
+      style={{
+        borderRight: last ? "none" : `1px solid ${BORDER}`,
+        padding: "0 16px",
+        textAlign: "center",
+      }}
+    >
       <div style={{ fontFamily: DISPLAY, fontSize: "30px", letterSpacing: "0.02em", color: INK, lineHeight: 1 }}>
         {value}
         {unit ? <span style={{ fontSize: "12px", color: SUBTLE, marginLeft: "3px", fontFamily: FONT_FAMILY, fontWeight: 400 }}>{unit}</span> : null}
@@ -601,38 +618,58 @@ function BookingsTab({
             <StatusBadge status={b.status} />
           </div>
           <div
-            style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}
+            style={{ display: "flex", gap: "10px", marginTop: "16px", alignItems: "center" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <SmallButton onClick={() => onViewQr(b)} icon={<QrCodeIcon size={15} strokeWidth={2} />} label={t("booking_view_qr")} cmsKey="member.booking_view_qr" />
+            {/* Primary action — visually the only filled/tinted pill. */}
             <SmallButton
-              href={calendarLink(b)}
-              icon={<CalendarPlus size={15} strokeWidth={2} />}
-              label={t("booking_add_calendar")}
-              cmsKey="member.booking_add_calendar"
+              onClick={() => onViewQr(b)}
+              icon={<QrCodeIcon size={15} strokeWidth={2} />}
+              label={t("booking_view_qr")}
+              cmsKey="member.booking_view_qr"
+              primary
             />
-            {canReschedule(b) && (
-              <SmallButton
-                onClick={() => onReschedule(b)}
-                icon={<CalendarClock size={15} strokeWidth={2} />}
-                label={t("booking_reschedule")}
-                cmsKey="member.booking_reschedule"
-              />
-            )}
+            {/* Refund stays visible (higher-consequence, narrow time window)
+                but de-emphasized — outline only, danger-tinted text. */}
             {canRefund(b, refundCutoffHours) && (
               <SmallButton
                 onClick={() => onRefund(b)}
                 icon={<Undo2 size={15} strokeWidth={2} />}
                 label={t("booking_refund")}
                 cmsKey="member.booking_refund"
+                tone="danger"
               />
             )}
+            {/* Low-frequency actions collapse into an overflow menu so the
+                card doesn't read as a row of equal-weight buttons. */}
+            <div style={{ marginLeft: "auto" }}>
+              <OverflowMenu
+                items={[
+                  { label: t("booking_add_calendar"), icon: <CalendarPlus size={15} strokeWidth={2} />, href: calendarLink(b) },
+                  ...(canReschedule(b)
+                    ? [{ label: t("booking_reschedule"), icon: <CalendarClock size={15} strokeWidth={2} />, onClick: () => onReschedule(b) }]
+                    : []),
+                ]}
+                ariaLabel={t("booking_more_actions")}
+              />
+            </div>
           </div>
         </div>
       ))}
     </div>
   );
 }
+
+// Icon + tint per points_ledger category — mirrors StatusBadge's
+// ${color}1f-tinted-circle convention.
+const POINTS_CATEGORY_STYLE: Record<
+  import("@/lib/data/getMember").PointsEntry["category"],
+  { icon: React.ReactNode; color: string }
+> = {
+  booking: { icon: <CalendarPlus size={14} strokeWidth={2} />, color: GREEN },
+  refund: { icon: <Undo2 size={14} strokeWidth={2} />, color: DANGER },
+  manual: { icon: <Sparkles size={14} strokeWidth={2} />, color: SUBTLE },
+};
 
 function PointsTab({ points, balance, locale }: { points: import("@/lib/data/getMember").PointsEntry[]; balance: number; locale: string }) {
   const t = useTranslations("memberPage");
@@ -646,27 +683,55 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
 
       {points.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {points.map((p, i) => (
-            <div
-              key={p.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "16px 0",
-                borderBottom: i < points.length - 1 ? `1px solid ${BORDER}` : "none",
-              }}
-            >
-              <div>
-                <div style={{ fontSize: "15px", color: INK }}>{p.description || "—"}</div>
-                <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "2px" }}>{formatDate(p.date, locale)}</div>
+          {points.map((p, i) => {
+            const iconStyle = POINTS_CATEGORY_STYLE[p.category];
+            return (
+              <div
+                key={p.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "16px 0",
+                  borderBottom: i < points.length - 1 ? `1px solid ${BORDER}` : "none",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    flexShrink: 0,
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: `${iconStyle.color}1f`,
+                    color: iconStyle.color,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {iconStyle.icon}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "15px", color: INK }}>{p.description || "—"}</div>
+                  <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "2px" }}>{formatDate(p.date, locale)}</div>
+                </div>
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    color: p.delta >= 0 ? GREEN : DANGER,
+                    minWidth: "64px",
+                    textAlign: "right",
+                    flexShrink: 0,
+                  }}
+                >
+                  {p.delta >= 0 ? "+" : ""}
+                  {p.delta}
+                </span>
               </div>
-              <span style={{ fontSize: "16px", fontWeight: 700, color: p.delta >= 0 ? GREEN : DANGER }}>
-                {p.delta >= 0 ? "+" : ""}
-                {p.delta}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <EmptyState text={t("no_points")} />
@@ -867,13 +932,20 @@ function SmallButton({
   onClick,
   href,
   cmsKey,
+  primary,
+  tone,
 }: {
   label: string;
   icon: React.ReactNode;
   onClick?: () => void;
   href?: string;
   cmsKey: string;
+  /** Visually the hero action on the card (filled/tinted pill). */
+  primary?: boolean;
+  /** Outline-only, tinted text — for a visible-but-de-emphasized action. */
+  tone?: "danger";
 }) {
+  const toneColor = tone === "danger" ? DANGER : INK;
   const style: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
@@ -881,11 +953,11 @@ function SmallButton({
     minHeight: 40,
     padding: "0 14px",
     borderRadius: "100px",
-    border: `1px solid ${BORDER}`,
-    background: "transparent",
-    color: INK,
+    border: `1px solid ${primary ? GREEN : tone === "danger" ? `${DANGER}55` : BORDER}`,
+    background: primary ? `${GREEN}1f` : "transparent",
+    color: primary ? GREEN : toneColor,
     fontSize: "13px",
-    fontWeight: 500,
+    fontWeight: primary ? 600 : 500,
     cursor: "pointer",
     textDecoration: "none",
     fontFamily: FONT_FAMILY,
@@ -900,6 +972,117 @@ function SmallButton({
       {icon}
       {label}
     </button>
+  );
+}
+
+type OverflowMenuItem = {
+  label: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  href?: string;
+};
+
+// Small anchored popover for low-frequency secondary actions — same
+// AnimatePresence + SPRING recipe as QrModal, but a compact dropdown instead
+// of a full-screen overlay.
+function OverflowMenu({ items, ariaLabel }: { items: OverflowMenuItem[]; ariaLabel: string }) {
+  const [open, setOpen] = useState(false);
+  if (items.length === 0) return null;
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={ariaLabel}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          border: `1px solid ${BORDER}`,
+          background: "transparent",
+          color: SUBTLE,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "18px",
+          lineHeight: 1,
+        }}
+      >
+        ⋯
+      </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Click-outside catcher */}
+            <div
+              onClick={() => setOpen(false)}
+              style={{ position: "fixed", inset: 0, zIndex: 90 }}
+            />
+            <motion.div
+              role="menu"
+              initial={{ opacity: 0, scale: 0.95, y: -6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -6 }}
+              transition={SPRING}
+              style={{
+                position: "absolute",
+                top: "calc(100% + 6px)",
+                right: 0,
+                zIndex: 91,
+                minWidth: 180,
+                background: DEEP,
+                border: `1px solid ${HAIRLINE}`,
+                borderRadius: "14px",
+                padding: "6px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {items.map((item, i) => {
+                const itemStyle: React.CSSProperties = {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px 12px",
+                  borderRadius: "9px",
+                  border: "none",
+                  background: "transparent",
+                  color: INK,
+                  fontSize: "14px",
+                  fontFamily: FONT_FAMILY,
+                  cursor: "pointer",
+                  textAlign: "left",
+                  textDecoration: "none",
+                };
+                return item.href ? (
+                  <a key={i} href={item.href} download role="menuitem" style={itemStyle} onClick={() => setOpen(false)}>
+                    {item.icon}
+                    {item.label}
+                  </a>
+                ) : (
+                  <button
+                    key={i}
+                    type="button"
+                    role="menuitem"
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false);
+                      item.onClick?.();
+                    }}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

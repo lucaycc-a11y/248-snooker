@@ -27,11 +27,12 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => null)
+    const userId = user?.id ?? null
 
     // Range form (prefetch): { startDate, days }
     if (typeof body?.startDate === 'string' && typeof body?.days === 'number') {
       const days = Math.min(Math.max(1, Math.floor(body.days)), MAX_RANGE_DAYS)
-      const slots = await getRangeSlots(body.startDate, days)
+      const slots = await getRangeSlots(body.startDate, days, userId)
       return NextResponse.json({ slots })
     }
 
@@ -41,7 +42,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
 
-    const slots = await getDaySlots(date)
+    const slots = await getDaySlots(date, userId)
     return NextResponse.json({ slots })
   } catch (err) {
     console.error('availability_error', (err as Error).message)

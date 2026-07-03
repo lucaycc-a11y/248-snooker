@@ -9,6 +9,7 @@ export type DaySlot = {
   duration_hours: number
   status: string
   locked_until: string | null
+  locked_by_you: boolean
 }
 
 // How many days to prefetch on /book mount (today + next 7).

@@ -505,15 +505,21 @@ function TimeSlotGrid({
 // table's REAL availability (tableStatesFor): a booked/locked table is disabled and
 // greyed — never blanket-enabled just because the period is generally free.
 function TableChips({
+  dateStr,
   selectedHoursByDate,
   getDaySlots,
   selectedTable,
   onSelect,
+  onResumeLocked,
+  onReleaseLocks,
 }: {
+  dateStr: string
   selectedHoursByDate: Map<string, Set<number>>
   getDaySlots: (date: string) => DaySlot[] | null
   selectedTable: number | null
   onSelect: (table: number) => void
+  onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
+  onReleaseLocks: () => void
 }) {
   const t = useTranslations("book")
   const haptic = useHaptic()
@@ -521,6 +527,16 @@ function TableChips({
     () => tableStatesForOrder(selectedHoursByDate, getDaySlots),
     [selectedHoursByDate, getDaySlots],
   )
+  const [releasing, setReleasing] = useState(false)
+  const hasOwnLock = Array.from(states.values()).some((s) => s === "locked_by_you")
+
+  // Resolve the caller's own locked row for a table on the active date, so
+  // the resume jump uses the LOCK's real window (not necessarily whatever
+  // hours happen to be toggled in the grid right now).
+  const findOwnLock = (tn: number): DaySlot | null => {
+    const daySlots = getDaySlots(dateStr) ?? []
+    return daySlots.find((s) => s.table_number === tn && s.locked_by_you) ?? null
+  }
 
   return (
     <div style={{ marginBottom: 32 }}>
@@ -562,7 +578,11 @@ function TableChips({
       <div style={{ display: "flex", gap: 12 }}>
         {ALL_TABLES.map((tn) => {
           const state = states.get(tn) ?? "available"
-          const disabled = state !== "available"
+          const lockedByYou = state === "locked_by_you"
+          // Only a genuine third-party hold or a confirmed booking disables
+          // the chip — the caller's own lock stays clickable (resumes to
+          // payment instead of re-locking).
+          const disabled = state === "locked" || state === "booked"
           const selected = selectedTable === tn
           return (
             <button
@@ -572,9 +592,17 @@ function TableChips({
               onClick={() => {
                 if (disabled) return
                 haptic.vibrate(8)
+                if (lockedByYou) {
+                  const own = findOwnLock(tn)
+                  if (own) {
+                    onResumeLocked(own.date, parseInt(own.start_time.slice(0, 2), 10), Number(own.duration_hours), tn)
+                    return
+                  }
+                }
                 onSelect(tn)
               }}
               data-cms-key={`book.table.card_${tn}`}
+              title={lockedByYou ? t("table_locked_by_you") : undefined}
               style={{
                 flex: 1,
                 minHeight: 44,
@@ -584,28 +612,67 @@ function TableChips({
                 gap: 6,
                 padding: "10px 16px",
                 borderRadius: 9999,
-                border: selected
-                  ? `2px solid ${tokens.colors.brand}`
-                  : `1px solid ${tokens.colors.border}`,
+                border:
+                  selected || lockedByYou
+                    ? `2px solid ${tokens.colors.brand}`
+                    : `1px solid ${tokens.colors.border}`,
                 background: selected ? tokens.colors.brand : "transparent",
                 color: selected
                   ? "#000"
                   : disabled
                     ? tokens.colors.textFaint
-                    : tokens.colors.text,
+                    : lockedByYou
+                      ? tokens.colors.brand
+                      : tokens.colors.text,
                 fontSize: 15,
-                fontWeight: selected ? 700 : 500,
+                fontWeight: selected || lockedByYou ? 700 : 500,
                 cursor: disabled ? "not-allowed" : "pointer",
                 opacity: disabled ? 0.5 : 1,
                 transition: `all ${tokens.duration.fast}`,
               }}
             >
               {disabled && <Lock size={13} />}
+              {lockedByYou && <Lock size={13} color={tokens.colors.brand} />}
               {t("table_label")} {tn}
+              {lockedByYou ? ` · ${t("table_resume")}` : ""}
             </button>
           )
         })}
       </div>
+
+      {/* Low-ceremony escape hatch: abandon the caller's own hold instead of
+          waiting out the ~15-min TTL, so they can pick a different time now. */}
+      {hasOwnLock && (
+        <button
+          type="button"
+          onClick={async () => {
+            if (releasing) return
+            setReleasing(true)
+            try {
+              await fetch("/api/booking/lock/release", { method: "POST" })
+              onReleaseLocks()
+            } finally {
+              setReleasing(false)
+            }
+          }}
+          disabled={releasing}
+          data-cms-key="book.table.release_lock"
+          style={{
+            display: "block",
+            marginTop: 12,
+            background: "none",
+            border: "none",
+            padding: 0,
+            fontSize: 13,
+            color: tokens.colors.textMuted,
+            textDecoration: "underline",
+            cursor: releasing ? "default" : "pointer",
+            opacity: releasing ? 0.6 : 1,
+          }}
+        >
+          {t("table_release_and_pick_again")}
+        </button>
+      )}
     </div>
   )
 }
@@ -1060,6 +1127,7 @@ function Screen1({
   orderTotal,
   removeRun,
   onContinue,
+  onResumeLocked,
   availability,
   monthAvailability,
   periods,
@@ -1077,6 +1145,7 @@ function Screen1({
   orderTotal: number
   removeRun: (run: SelectedBlock) => void
   onContinue: () => void
+  onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
   availability: ReturnType<typeof useAvailabilityCache>
   monthAvailability: ReturnType<typeof useMonthAvailability>
   periods: PricingPeriod[]
@@ -1241,10 +1310,15 @@ function Screen1({
                 {hoursForDate.size > 0 && daySlots && (
                   <div ref={tableRef}>
                     <TableChips
+                      dateStr={dateStr}
                       selectedHoursByDate={selectedHoursByDate}
                       getDaySlots={availability.getSlots}
                       selectedTable={selectedTable}
                       onSelect={setSelectedTable}
+                      onResumeLocked={onResumeLocked}
+                      onReleaseLocks={() => {
+                        availability.invalidate(dateStr)
+                      }}
                     />
                   </div>
                 )}
@@ -1701,9 +1775,11 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
     const timer = setTimeout(() => {
       confetti({
         particleCount: 80,
-        spread: 60,
+        spread: 70,
+        scalar: 0.7,
+        shapes: ["star", "circle"],
         origin: { y: 0.6 },
-        colors: ["#22c55e", "#ffffff", "#16a34a"],
+        colors: ["#22c55e", "#ffffff", "#A78BFA"],
       })
     }, 2000)
     return () => clearTimeout(timer)
@@ -2137,6 +2213,27 @@ export default function BookPage() {
     setScreen((s) => Math.min(s + 1, 3))
   }, [])
 
+  // Resume a slot the caller already has locked (e.g. an abandoned checkout)
+  // instead of re-picking: adopt its date/hour/table into the order state and
+  // jump straight to the payment screen. StripePayment's lock-on-mount effect
+  // re-locks as the same user, which the RPC treats as a no-op refresh of
+  // locked_until — never re-validates as "taken."
+  const resumeLockedSlot = useCallback(
+    (date: string, startHour: number, duration: number, tableNumber: number) => {
+      setSelectedHoursByDate(() => {
+        const hours = new Set<number>()
+        for (let h = startHour; h < startHour + duration; h++) hours.add(h)
+        return new Map([[date, hours]])
+      })
+      const d = new Date(`${date}T00:00:00`)
+      if (!Number.isNaN(d.getTime())) setSelectedDate(d)
+      setSelectedTable(tableNumber)
+      direction.current = 1
+      setScreen(2)
+    },
+    [],
+  )
+
   // Backward-only step navigation from the progress bar. Forward jumps are never
   // allowed (can't skip to payment from time-select). Not available once the
   // booking is confirmed (screen 3) — that flow is terminal. Going back from
@@ -2252,6 +2349,7 @@ export default function BookPage() {
                   orderTotal={orderTotal}
                   removeRun={removeRun}
                   onContinue={advance}
+                  onResumeLocked={resumeLockedSlot}
                   availability={availability}
                   monthAvailability={monthAvailability}
                   periods={periods}
