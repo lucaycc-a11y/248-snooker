@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BackButton } from "@/components/ui";
+import { Logo } from "@/components/brand/Logo";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";
@@ -459,7 +460,7 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
       }}
     >
       {/* Brand wordmark only — back navigation is the shared fixed BackButton. */}
-      <span style={{ fontFamily: DISPLAY, fontSize: "20px", letterSpacing: "0.08em", color: INK }}>248</span>
+      <Logo variant="mark" theme="dark" size={22} />
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <span style={{ fontSize: "14px", color: SUBTLE }}>
           {t("greeting")}{displayName ? `, ${displayName}` : ""}

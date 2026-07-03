@@ -39,12 +39,12 @@ export default async function AdminDashboardPage() {
         <StatCard label="Bookings today" value={String(stats.bookingsCount.today)} icon={Calendar} />
         <StatCard label="Table utilization" value={`${Math.round(stats.tableUtilization * 100)}%`} icon={Gauge} />
         <StatCard label="New members this week" value={String(stats.newMembers.week)} icon={UserPlus} />
-        <Card>
+        <Card variant="gradient">
           <LiveOccupancy initial={occupancy} />
         </Card>
       </div>
 
-      <Card style={{ marginBottom: tokens.spacing.lg }}>
+      <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text, marginBottom: tokens.spacing.md }}>
           Revenue (last 30 days)
         </div>

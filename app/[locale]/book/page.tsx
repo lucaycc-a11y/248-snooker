@@ -22,6 +22,7 @@ import { DEFAULT_PERIODS, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
+import { useSearchParams } from "next/navigation"
 // @ts-ignore
 import confetti from "canvas-confetti"
 
@@ -1989,6 +1990,37 @@ export default function BookPage() {
   const [confirmError, setConfirmError] = useState(false)
 
   const haptic = useHaptic()
+
+  // One-time prefill from ?date=YYYY-MM-DD&start=HH&duration=N&table=1|2 —
+  // used by the AI chat widget's booking handoff link (it can't lock a slot
+  // or take payment for an anonymous chat session, so it hands the visitor
+  // here with their requested slot pre-selected instead). Availability isn't
+  // re-checked here; Screen1's own pruning effect and the lock-on-checkout
+  // flow already handle a prefilled slot having been taken in the meantime,
+  // same as any manually-selected one.
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const dateParam = searchParams.get("date")
+    const startParam = searchParams.get("start")
+    const durationParam = searchParams.get("duration")
+    const tableParam = searchParams.get("table")
+    if (!dateParam || !/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) return
+
+    const start = Number(startParam)
+    const duration = Number(durationParam ?? "1")
+    const table = Number(tableParam)
+    if (!Number.isInteger(start) || start < CONFIG.openHour || start >= CONFIG.closeHour) return
+    if (!Number.isInteger(duration) || duration < 1 || duration > CONFIG.maxHours) return
+    if (start + duration > CONFIG.closeHour) return
+
+    const hours = new Set<number>()
+    for (let h = start; h < start + duration; h++) hours.add(h)
+    setSelectedHoursByDate(new Map([[dateParam, hours]]))
+    setSelectedDate(new Date(`${dateParam}T00:00:00`))
+    if (table === 1 || table === 2) setSelectedTable(table)
+    // Mount-only: this is a one-shot initial prefill, not a live sync with the URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Toggle one hour on/off for a given date. Deletes the date's map entry
   // entirely when its Set becomes empty, so the map never accumulates empty

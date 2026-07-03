@@ -47,3 +47,36 @@ export function classifyComplexity(input: string): Complexity {
 export function modelFor(complexity: Complexity): string {
   return complexity === 'complex' ? 'claude-opus-4-8' : 'claude-sonnet-4-6'
 }
+
+// Image generation is a separate REST surface on the same VectorEngine proxy
+// (confirmed by the user: same VECTORENGINE_BASE_URL/VECTORENGINE_API_KEY,
+// not a second OpenAI key) — /v1/images/generations, OpenAI Images API request/
+// response shape. Not part of the Anthropic Messages SDK, so called directly
+// via fetch rather than through the Anthropic client used for chat.
+export type GeneratedImage = { b64Json: string } | { url: string }
+
+export async function generateImage(prompt: string, opts: { size?: string } = {}): Promise<GeneratedImage> {
+  const baseURL = process.env.VECTORENGINE_BASE_URL
+  const apiKey = process.env.VECTORENGINE_API_KEY
+  if (!baseURL || !apiKey) throw new VectorEngineConfigError()
+
+  const res = await fetch(`${baseURL.replace(/\/$/, '')}/v1/images/generations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: 'gpt-image-1',
+      prompt,
+      size: opts.size ?? '1024x1024',
+      n: 1,
+    }),
+  })
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '')
+    throw new Error(`VectorEngine image generation failed (${res.status}): ${detail.slice(0, 300)}`)
+  }
+  const json = (await res.json()) as { data?: Array<{ b64_json?: string; url?: string }> }
+  const first = json.data?.[0]
+  if (first?.b64_json) return { b64Json: first.b64_json }
+  if (first?.url) return { url: first.url }
+  throw new Error('VectorEngine image generation returned no image data')
+}

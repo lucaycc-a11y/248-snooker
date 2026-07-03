@@ -17,7 +17,7 @@ export default function StatCard({
   const TrendIcon = trend != null && trend < 0 ? TrendingDown : TrendingUp
 
   return (
-    <Card>
+    <Card variant="gradient">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Icon size={18} color={tokens.colors.textMuted} />
         {trend != null && (

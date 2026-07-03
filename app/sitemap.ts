@@ -1,9 +1,26 @@
 import { MetadataRoute } from 'next'
+import { getBlogPosts } from '@/lib/data/getBlog'
 
 const BASE = 'https://248.formhk.com'
+const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
 
-export default function sitemap(): MetadataRoute.Sitemap {
+function localePath(locale: string, slug: string): string {
+  return locale === 'zh-HK' ? `/blog/${slug}` : `/${locale}/blog/${slug}`
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
+
+  const postsByLocale = await Promise.all(LOCALES.map((locale) => getBlogPosts(locale)))
+  const postEntries: MetadataRoute.Sitemap = postsByLocale.flatMap((posts, i) =>
+    posts.map((post) => ({
+      url: `${BASE}${localePath(LOCALES[i], post.slug)}`,
+      lastModified: post.published_at ? new Date(post.published_at) : now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
+  )
+
   return [
     {
       url: BASE,
@@ -89,5 +106,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
       },
     },
+    ...postEntries,
   ]
 }

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Sheet } from '@/components/ui/Sheet'
 import { tokens } from '@/app/styles/tokens'
 
-export default function BookingCancelAction({ bookingId }: { bookingId: string }) {
+export default function BookingCancelAction({ bookingId, compact = false }: { bookingId: string; compact?: boolean }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
@@ -38,7 +38,7 @@ export default function BookingCancelAction({ bookingId }: { bookingId: string }
 
   return (
     <>
-      <Button variant="secondary" size="sm" onClick={() => setOpen(true)} style={{ marginBottom: tokens.spacing.lg }}>
+      <Button variant="secondary" size="sm" onClick={() => setOpen(true)} style={compact ? undefined : { marginBottom: tokens.spacing.lg }}>
         Cancel booking (admin)
       </Button>
       <Sheet open={open} onClose={() => setOpen(false)}>

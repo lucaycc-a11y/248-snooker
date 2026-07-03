@@ -1,5 +1,6 @@
 import { Snooker404Table } from './[locale]/Snooker404Table'
 import { Starfield } from './[locale]/Starfield'
+import { Logo } from '@/components/brand/Logo'
 
 export default function NotFound() {
   return (
@@ -13,9 +14,10 @@ export default function NotFound() {
 
       <section className="relative z-10 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
         <div>
+          <Logo variant="mark" theme="dark" size={28} />
           <p
             data-cms-key="404.brand"
-            className="mb-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"
+            className="mb-3 mt-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"
           >
             Space8
           </p>

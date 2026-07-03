@@ -4,6 +4,8 @@ import { Card } from '@/components/ui/Card'
 import { tokens } from '@/app/styles/tokens'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 import MemberActions from '@/components/admin/MemberActions'
+import MemberBookingCalendar from '@/components/admin/MemberBookingCalendar'
+import BookingCancelAction from '@/components/admin/BookingCancelAction'
 
 // Points/tier/blacklist writes (spec 3.2) live in MemberActions, calling
 // app/api/admin/members/[id]/route.ts — every action requires a reason and
@@ -98,18 +100,49 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text, marginBottom: tokens.spacing.md }}>
+          Booking calendar
+        </div>
+        <MemberBookingCalendar
+          bookings={bookings
+            .filter((b) => str(b, ['date']) !== null)
+            .map((b) => ({ date: str(b, ['date'])!, status: str(b, ['status']) ?? 'pending' }))}
+        />
+      </Card>
+
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text, marginBottom: tokens.spacing.md }}>
           Booking history
         </div>
         {bookings.length === 0 && (
           <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>No bookings yet.</div>
         )}
-        {bookings.map((b) => (
-          <Row_
-            key={String(b.id)}
-            label={str(b, ['booking_reference']) ?? String(b.id).slice(0, 8)}
-            value={`${str(b, ['date']) ?? ''} · ${str(b, ['status']) ?? ''} · HK$${num(b, ['total_price'], 0)}`}
-          />
-        ))}
+        {bookings.map((b) => {
+          const status = str(b, ['status'])
+          const canCancel = status !== 'refunded' && status !== 'admin_cancelled'
+          return (
+            <div
+              key={String(b.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: tokens.spacing.sm,
+                padding: '8px 0',
+                borderBottom: `1px solid ${tokens.colors.border}`,
+              }}
+            >
+              <div>
+                <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>
+                  {str(b, ['booking_reference']) ?? String(b.id).slice(0, 8)}
+                </div>
+                <div style={{ color: tokens.colors.text, fontSize: 14 }}>
+                  {str(b, ['date']) ?? ''} · {status ?? ''} · HK${num(b, ['total_price'], 0)}
+                </div>
+              </div>
+              {canCancel && <BookingCancelAction bookingId={String(b.id)} compact />}
+            </div>
+          )
+        })}
       </Card>
 
       <Card>

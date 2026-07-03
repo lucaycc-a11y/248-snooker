@@ -10,8 +10,54 @@ import { tokens } from '@/app/styles/tokens'
 const WHATSAPP_URL = 'https://wa.me/85264274620'
 const EMAIL = 'info.formhk@gmail.com'
 
-type ChatMessage = { role: 'user' | 'assistant'; content: string; handoff?: boolean; technicalError?: boolean }
+type ChatMessage = { role: 'user' | 'assistant'; content: string; handoff?: boolean; technicalError?: boolean; choice?: { question: string; options: string[] } }
 type WidgetSettings = { greetingMessage: string; suggestedPrompts: string[] }
+
+// Recognizes the AI's own /book?date=...&start=...&duration=...&table=... handoff
+// link (see the system prompt in app/api/ai/chat/route.ts) inside otherwise plain
+// reply text, and renders just that token as a real link.
+const BOOK_LINK_RE = /(\/book\?[^\s)]+)/g
+// **bold** spans — the system prompt asks the model for structured answers
+// (bold + bullets), so this is a small, deliberately narrow markdown subset,
+// not a general markdown renderer.
+const BOLD_RE = /(\*\*[^*]+\*\*)/g
+
+function renderInline(text: string, locale: string, keyPrefix: string) {
+  return text.split(BOLD_RE).map((chunk, i) => {
+    const key = `${keyPrefix}-${i}`
+    if (chunk.startsWith('**') && chunk.endsWith('**')) {
+      return <strong key={key}>{chunk.slice(2, -2)}</strong>
+    }
+    return chunk.split(BOOK_LINK_RE).map((part, j) =>
+      part.startsWith('/book?') ? (
+        <a
+          key={`${key}-${j}`}
+          href={locale === 'zh-HK' ? part : `/${locale}${part}`}
+          style={{ color: tokens.colors.brand, textDecoration: 'underline', fontWeight: 600 }}
+        >
+          Book this slot
+        </a>
+      ) : (
+        <span key={`${key}-${j}`}>{part}</span>
+      )
+    )
+  })
+}
+
+function renderReplyContent(text: string, locale: string) {
+  const lines = text.split('\n')
+  return lines.map((line, i) => {
+    const trimmed = line.trim()
+    const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('• ')
+    const content = isBullet ? trimmed.slice(2) : line
+    return (
+      <div key={i} style={{ display: 'flex', gap: isBullet ? 6 : 0 }}>
+        {isBullet && <span aria-hidden="true">•</span>}
+        <span>{renderInline(content, locale, String(i))}</span>
+      </div>
+    )
+  })
+}
 
 /**
  * Floating AI chat button — same position/sizing as WhatsAppButton, but opens
@@ -74,6 +120,13 @@ export default function AIChatWidget() {
             ? "I'm having a technical issue — please try again in a moment."
             : "Sorry, I couldn't reply — please try again."
         setMessages([...nextHistory, { role: 'assistant', content: message, technicalError: true }])
+        return
+      }
+      if (json && typeof json === 'object' && (json as { type?: unknown }).type === 'choice') {
+        const choiceJson = json as { question?: unknown; options?: unknown }
+        const question = typeof choiceJson.question === 'string' ? choiceJson.question : ''
+        const options = Array.isArray(choiceJson.options) ? choiceJson.options.filter((o): o is string => typeof o === 'string') : []
+        setMessages([...nextHistory, { role: 'assistant', content: question, choice: { question, options } }])
         return
       }
       const reply =
@@ -197,10 +250,37 @@ export default function AIChatWidget() {
                       borderRadius: 12,
                       fontSize: 14,
                       backgroundColor: m.role === 'user' ? '#25D366' : '#1A1A1A',
+                      backgroundImage:
+                        m.role === 'assistant'
+                          ? 'linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(34,197,94,0.07) 100%)'
+                          : undefined,
                       color: m.role === 'user' ? '#000000' : '#FFFFFF',
                     }}
                   >
-                    {m.content}
+                    {renderReplyContent(m.content, locale)}
+                    {m.choice && m.choice.options.length > 0 && (
+                      <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {m.choice.options.map((opt, oi) => (
+                          <button
+                            key={oi}
+                            onClick={() => send(opt)}
+                            disabled={sending}
+                            style={{
+                              textAlign: 'left',
+                              padding: '8px 12px',
+                              borderRadius: 10,
+                              border: `1px solid ${tokens.colors.border}`,
+                              background: 'rgba(37,211,102,0.12)',
+                              color: '#FFFFFF',
+                              fontSize: 13,
+                              cursor: sending ? 'not-allowed' : 'pointer',
+                            }}
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     {m.handoff && (
                       <div style={{ marginTop: 8, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                         <a
