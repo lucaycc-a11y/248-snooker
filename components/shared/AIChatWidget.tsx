@@ -1,14 +1,28 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MessageCircle, X } from 'lucide-react'
+import { MessageCircle, X, Clock, Star, MapPin, HelpCircle } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 import { Sheet } from '@/components/ui/Sheet'
 import { Space8Loader } from '@/components/ui/Space8Loader'
+import { Logo } from '@/components/brand/Logo'
 import { tokens } from '@/app/styles/tokens'
 
 const WHATSAPP_URL = 'https://wa.me/85264274620'
 const EMAIL = 'info.formhk@gmail.com'
+
+// Same glass-card recipe as the member card (app/member/MemberDashboard.tsx:
+// HAIRLINE border + GLASS_BG + GLASS_BLUR) — reused here so the panel reads
+// as part of the same design family, not a separate flat-black UI.
+const GLASS_BORDER = 'rgba(255,255,255,0.18)'
+const GLASS_BG = 'rgba(255,255,255,0.05)'
+const GLASS_BLUR = 'blur(20px) saturate(180%)'
+
+// One small icon per quick-reply chip, cycling through a fixed set rather
+// than requiring per-prompt icon config in /admin/ai-settings — the prompts
+// there are freeform strings, so there's no reliable per-prompt category to
+// map from.
+const CHIP_ICONS = [Clock, Star, MapPin, HelpCircle]
 
 type ChatMessage = { role: 'user' | 'assistant'; content: string; handoff?: boolean; technicalError?: boolean; choice?: { question: string; options: string[] } }
 type WidgetSettings = { greetingMessage: string; suggestedPrompts: string[] }
@@ -194,7 +208,21 @@ export default function AIChatWidget() {
       </button>
 
       <Sheet open={open} onClose={() => setOpen(false)}>
-        <div style={{ display: 'flex', flexDirection: 'column', height: '60vh', maxHeight: 480 }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '60vh',
+            maxHeight: 480,
+            padding: tokens.spacing.md,
+            borderRadius: tokens.radius.card,
+            border: `1px solid ${GLASS_BORDER}`,
+            background: `linear-gradient(160deg, rgba(10,10,20,0.6) 0%, rgba(6,20,14,0.6) 100%), ${GLASS_BG}`,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+            boxShadow: '0 0 40px rgba(34,197,94,0.08)',
+          }}
+        >
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
             <button
               onClick={() => setOpen(false)}
@@ -206,30 +234,47 @@ export default function AIChatWidget() {
           </div>
 
           {view === 'home' ? (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-              <Space8Loader size={48} theme="light" />
-              <div style={{ fontSize: 15, color: '#FFFFFF', textAlign: 'center', fontWeight: 600 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
+              <Logo variant="mark" theme="dark" size={64} />
+              <div style={{ fontSize: 18, color: '#FFFFFF', textAlign: 'center', fontWeight: 700, lineHeight: 1.3, padding: '0 12px' }}>
                 {settings?.greetingMessage ?? '...'}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
-                {(settings?.suggestedPrompts ?? []).map((prompt, i) => (
-                  <button
-                    key={i}
-                    onClick={() => send(prompt)}
-                    style={{
-                      textAlign: 'left',
-                      padding: '10px 14px',
-                      borderRadius: 12,
-                      border: `1px solid ${tokens.colors.border}`,
-                      background: 'rgba(37,211,102,0.08)',
-                      color: '#FFFFFF',
-                      fontSize: 13,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {prompt}
-                  </button>
-                ))}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%' }}>
+                {(settings?.suggestedPrompts ?? []).map((prompt, i) => {
+                  const Icon = CHIP_ICONS[i % CHIP_ICONS.length]
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => send(prompt)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        textAlign: 'left',
+                        padding: '12px 18px',
+                        borderRadius: 100,
+                        border: `1px solid ${tokens.colors.borderStrong}`,
+                        background: 'transparent',
+                        color: '#FFFFFF',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        cursor: 'pointer',
+                        transition: `background ${tokens.duration.fast} ${tokens.easing.standard}, border-color ${tokens.duration.fast} ${tokens.easing.standard}`,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = tokens.colors.brandDim
+                        e.currentTarget.style.borderColor = tokens.colors.brand
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent'
+                        e.currentTarget.style.borderColor = tokens.colors.borderStrong
+                      }}
+                    >
+                      <Icon size={15} style={{ flexShrink: 0, color: tokens.colors.brand }} />
+                      {prompt}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           ) : (
@@ -249,7 +294,7 @@ export default function AIChatWidget() {
                       padding: '8px 12px',
                       borderRadius: 12,
                       fontSize: 14,
-                      backgroundColor: m.role === 'user' ? '#25D366' : '#1A1A1A',
+                      backgroundColor: m.role === 'user' ? tokens.colors.link : '#1A1A1A',
                       backgroundImage:
                         m.role === 'assistant'
                           ? 'linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(34,197,94,0.07) 100%)'
@@ -267,12 +312,13 @@ export default function AIChatWidget() {
                             disabled={sending}
                             style={{
                               textAlign: 'left',
-                              padding: '8px 12px',
-                              borderRadius: 10,
-                              border: `1px solid ${tokens.colors.border}`,
-                              background: 'rgba(37,211,102,0.12)',
+                              padding: '8px 14px',
+                              borderRadius: tokens.radius.pill,
+                              border: `1px solid ${tokens.colors.borderStrong}`,
+                              background: 'transparent',
                               color: '#FFFFFF',
                               fontSize: 13,
+                              fontWeight: 500,
                               cursor: sending ? 'not-allowed' : 'pointer',
                             }}
                           >
@@ -324,28 +370,36 @@ export default function AIChatWidget() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') send(input)
               }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = tokens.colors.brand
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = tokens.colors.border
+              }}
               placeholder={t('placeholder')}
               style={{
                 flex: 1,
-                height: 44,
-                padding: '0 14px',
+                height: 48,
+                padding: '0 16px',
                 backgroundColor: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 12,
+                border: `1px solid ${tokens.colors.border}`,
+                borderRadius: tokens.radius.pill,
                 color: '#FFFFFF',
                 fontSize: 14,
+                outline: 'none',
+                transition: `border-color ${tokens.duration.base} ${tokens.easing.standard}`,
               }}
             />
             <button
               onClick={() => send(input)}
               disabled={sending || !input.trim()}
               style={{
-                height: 44,
-                padding: '0 18px',
-                backgroundColor: '#25D366',
+                height: 48,
+                padding: '0 20px',
+                backgroundColor: tokens.colors.link,
                 color: '#000000',
                 border: 'none',
-                borderRadius: 12,
+                borderRadius: tokens.radius.pill,
                 fontWeight: 700,
                 cursor: sending ? 'not-allowed' : 'pointer',
                 opacity: sending ? 0.6 : 1,
@@ -354,7 +408,7 @@ export default function AIChatWidget() {
               {t('send')}
             </button>
           </div>
-          <div style={{ marginTop: 10, fontSize: 11, color: 'rgba(255,255,255,0.35)', textAlign: 'center' }}>
+          <div style={{ marginTop: 8, fontSize: 10, color: 'rgba(255,255,255,0.28)', textAlign: 'center' }}>
             AI Provided by FORM
           </div>
         </div>

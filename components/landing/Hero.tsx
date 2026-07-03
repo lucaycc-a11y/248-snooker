@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { CMSText } from "@/components/cms/CMSText";
-import { Logo } from "@/components/brand/Logo";
 
 const GREEN = "#22C55E";
 
@@ -80,8 +79,6 @@ export default function Hero() {
 
       {/* Content — centred on mobile, top-anchored on desktop */}
       <div className="absolute left-1/2 top-[28%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[22%]">
-        <Logo variant="mark" theme="dark" size={32} />
-
         {/* "Space8" — thin, static */}
         <p
           className="text-[clamp(28px,6vw,38px)] md:text-[42px]"
