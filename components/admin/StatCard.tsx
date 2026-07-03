@@ -1,5 +1,3 @@
-'use client'
-
 import { TrendingUp, TrendingDown, type LucideIcon } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { tokens } from '@/app/styles/tokens'
