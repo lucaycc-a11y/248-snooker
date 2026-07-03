@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Hero from "@/components/landing/Hero";
 import Gallery from "@/components/landing/Gallery";
@@ -8,7 +8,8 @@ import Pricing from "@/components/landing/Pricing";
 import Member from "@/components/landing/Member";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/layout/Footer";
-import WhatsAppButton from "@/components/shared/WhatsAppButton";
+import ContactButton from "@/components/shared/ContactButton";
+import { getFaqListData, getFaqJsonLdFromItems } from "@/lib/data/getFaqData";
 
 export async function generateMetadata({
   params,
@@ -105,6 +106,10 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations({ locale, namespace: 'faq' });
+  const faqItems = await getFaqListData(locale, t);
+  const faqJsonLd = getFaqJsonLdFromItems(faqItems);
+
   return (
     <main className="relative bg-black">
       <Nav />
@@ -120,12 +125,13 @@ export default async function Home({
       <Member />
 
       {/* FAQ — above the footer */}
-      <FAQ />
+      <FAQ initialItems={faqItems} jsonLd={faqJsonLd} />
 
       <Footer />
 
-      {/* Floating WhatsApp CTA — mobile only */}
-      <WhatsAppButton />
+      {/* Floating contact CTA — mobile only. AI chat by default; becomes an
+          AI-edit entry point when an admin has edit-mode on. */}
+      <ContactButton />
     </main>
   );
 }

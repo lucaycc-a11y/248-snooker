@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { CMSText } from "@/components/cms/CMSText";
 
 const GREEN_LIGHT = "#22C55E";
 const SUBTLE = "#86868B";
@@ -134,7 +135,7 @@ function DurationPills({ hours, onSelect, durations }: DurationPillsProps) {
               fontFamily: FONT_FAMILY,
             }}
           >
-            {d.label}
+            <CMSText k={`pricing.duration_${d.hours}h`}>{d.label}</CMSText>
           </button>
         );
       })}
@@ -143,7 +144,7 @@ function DurationPills({ hours, onSelect, durations }: DurationPillsProps) {
 }
 
 // ── Eyebrow + reusable content block ──
-function Eyebrow({ label }: { label: string }) {
+function Eyebrow({ label, cmsKey }: { label: string; cmsKey: string }) {
   return (
     <p
       style={{
@@ -162,7 +163,7 @@ function Eyebrow({ label }: { label: string }) {
         aria-hidden="true"
         style={{ width: "6px", height: "6px", borderRadius: "50%", background: GREEN_LIGHT, flexShrink: 0 }}
       />
-      {label}
+      <CMSText k={cmsKey}>{label}</CMSText>
     </p>
   );
 }
@@ -182,7 +183,7 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
   const total = stage.rate * hours;
   return (
     <>
-      <Eyebrow label={stage.label} />
+      <Eyebrow label={stage.label} cmsKey={`pricing.${stage.id}_label`} />
 
       <h3
         style={{
@@ -193,9 +194,11 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
           margin: "0 0 2px",
         }}
       >
-        {stage.label}
+        <CMSText k={`pricing.${stage.id}_label`}>{stage.label}</CMSText>
       </h3>
-      <p style={{ fontSize: "14px", color: SUBTLE, margin: "0 0 32px" }}>{stage.range}</p>
+      <p style={{ fontSize: "14px", color: SUBTLE, margin: "0 0 32px" }}>
+        <CMSText k={`pricing.${stage.id}_range`}>{stage.range}</CMSText>
+      </p>
 
       {/* Price — flips with pill selection */}
       <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", marginBottom: "40px" }}>
@@ -220,7 +223,9 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
             </motion.span>
           </AnimatePresence>
         </div>
-        <span style={{ fontSize: "14px", color: SUBTLE, paddingBottom: "8px" }}>{perHour}</span>
+        <span style={{ fontSize: "14px", color: SUBTLE, paddingBottom: "8px" }}>
+          <CMSText k="pricing.per_hour">{perHour}</CMSText>
+        </span>
       </div>
 
       <div style={{ marginBottom: "44px" }}>
@@ -229,10 +234,10 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
 
       <div style={{ display: "flex", gap: "32px", flexWrap: "wrap" }}>
         <LearnMore href="/about" cmsKey="pricing_link_choose_time">
-          {ctaBook}
+          <CMSText k="pricing.cta_book">{ctaBook}</CMSText>
         </LearnMore>
         <LearnMore href="/pricing" cmsKey="pricing_link_details">
-          {ctaLearn}
+          <CMSText k="pricing.cta_learn">{ctaLearn}</CMSText>
         </LearnMore>
       </div>
     </>
@@ -373,7 +378,7 @@ export default function Pricing() {
               data-cms-key={stage.cmsKey}
             >
               {/* Section label — first section only */}
-              {i === 0 && <Eyebrow label={t('title')} />}
+              {i === 0 && <Eyebrow label={t('title')} cmsKey="pricing.title" />}
 
               {/* Period name + range */}
               <h3
@@ -385,9 +390,11 @@ export default function Pricing() {
                   margin: "0 0 4px",
                 }}
               >
-                {stage.label}
+                <CMSText k={`pricing.${stage.id}_label`}>{stage.label}</CMSText>
               </h3>
-              <p style={{ fontSize: "16px", color: SUBTLE, margin: 0 }}>{stage.range}</p>
+              <p style={{ fontSize: "16px", color: SUBTLE, margin: 0 }}>
+                <CMSText k={`pricing.${stage.id}_range`}>{stage.range}</CMSText>
+              </p>
 
               {/* Large icon — between text and price */}
               <div style={{ color: GREEN_LIGHT, margin: "40px 0" }} aria-hidden="true">
@@ -416,7 +423,9 @@ export default function Pricing() {
                   </motion.span>
                 </AnimatePresence>
               </div>
-              <p style={{ fontSize: "16px", color: SUBTLE, margin: "10px 0 0" }}>{perHour}</p>
+              <p style={{ fontSize: "16px", color: SUBTLE, margin: "10px 0 0" }}>
+                <CMSText k="pricing.per_hour">{perHour}</CMSText>
+              </p>
 
               {/* Duration pills */}
               <div style={{ display: "flex", justifyContent: "center", margin: "40px 0 0" }}>
@@ -426,10 +435,10 @@ export default function Pricing() {
               {/* Links */}
               <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", marginTop: "40px" }}>
                 <LearnMore href="/about" cmsKey="pricing_link_choose_time">
-                  {ctaBook}
+                  <CMSText k="pricing.cta_book">{ctaBook}</CMSText>
                 </LearnMore>
                 <LearnMore href="/pricing" cmsKey="pricing_link_details">
-                  {ctaLearn}
+                  <CMSText k="pricing.cta_learn">{ctaLearn}</CMSText>
                 </LearnMore>
               </div>
             </motion.div>

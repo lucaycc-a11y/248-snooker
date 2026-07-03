@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Sun, Zap, Moon } from "lucide-react";
+import { CMSText } from "@/components/cms/CMSText";
 import type { PricingPeriod, ServiceFees } from "@/lib/data/pricing";
 
 const DARK = "#1D1D1F";
@@ -69,10 +70,10 @@ function TierCard({ period, index }: { period: PricingPeriod; index: number }) {
         style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "white", margin: "24px 0 4px" }}
         data-cms-key={`pricing.period.${period.id}.title`}
       >
-        {t(`period_${period.id}_title`)}
+        <CMSText k={`pricingPage.period.${period.id}.title`}>{t(`period_${period.id}_title`)}</CMSText>
       </h3>
       <p style={{ fontSize: "14px", color: SUBTLE, margin: 0 }} data-cms-key={`pricing.period.${period.id}.time`}>
-        {t(`period_${period.id}_time`)}
+        <CMSText k={`pricingPage.period.${period.id}.time`}>{t(`period_${period.id}_time`)}</CMSText>
       </p>
 
       {/* FLUENT: price is the visual hero */}
@@ -93,7 +94,8 @@ function TierCard({ period, index }: { period: PricingPeriod; index: number }) {
           </AnimatePresence>
         </div>
         <span style={{ fontSize: "14px", color: SUBTLE, paddingBottom: "10px" }} data-cms-key="pricing.per_hour_suffix">
-          {hours > 1 ? `· ${fmt(period.rate)}${t("per_hour")}` : t("per_hour")}
+          {hours > 1 && `· ${fmt(period.rate)}`}
+          <CMSText k="pricingPage.per_hour_suffix">{t("per_hour")}</CMSText>
         </span>
       </div>
 
@@ -121,7 +123,7 @@ function TierCard({ period, index }: { period: PricingPeriod; index: number }) {
                 minHeight: 44,
               }}
             >
-              {t(d.key)}
+              <CMSText k={`pricingPage.${d.key}`}>{t(d.key)}</CMSText>
             </button>
           );
         })}
@@ -145,14 +147,14 @@ function TierCard({ period, index }: { period: PricingPeriod; index: number }) {
           }}
           data-cms-key="pricing.cta_book"
         >
-          {t("cta_book")}
+          <CMSText k="pricingPage.cta_book">{t("cta_book")}</CMSText>
         </Link>
         <a
           href="#breakdown"
           style={{ color: GREEN, fontSize: "15px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}
           data-cms-key="pricing.cta_details"
         >
-          {t("cta_details")} <span aria-hidden="true">›</span>
+          <CMSText k="pricingPage.cta_details">{t("cta_details")}</CMSText> <span aria-hidden="true">›</span>
         </a>
       </div>
     </motion.div>
@@ -186,7 +188,7 @@ export default function PricingContent({
           style={{ fontSize: "clamp(44px, 9vw, 72px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
           data-cms-key="pricing.hero_title"
         >
-          {t("hero_title")}
+          <CMSText k="pricingPage.hero_title">{t("hero_title")}</CMSText>
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -195,7 +197,7 @@ export default function PricingContent({
           style={{ fontSize: "19px", color: "rgba(255,255,255,0.6)", margin: "20px 0 0" }}
           data-cms-key="pricing.hero_subtitle"
         >
-          {t("hero_subtitle")}
+          <CMSText k="pricingPage.hero_subtitle">{t("hero_subtitle")}</CMSText>
         </motion.p>
       </section>
 
@@ -230,7 +232,7 @@ export default function PricingContent({
             style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 40px" }}
             data-cms-key="pricing.breakdown_title"
           >
-            {t("breakdown_title")}
+            <CMSText k="pricingPage.breakdown_title">{t("breakdown_title")}</CMSText>
           </h2>
 
           <div style={{ border: `1px solid ${DIVIDER}`, borderRadius: "16px", overflow: "hidden", background: "white" }}>
@@ -250,9 +252,9 @@ export default function PricingContent({
                 letterSpacing: "0.04em",
               }}
             >
-              <span data-cms-key="pricing.breakdown_period">{t("breakdown_period")}</span>
-              <span data-cms-key="pricing.breakdown_time">{t("breakdown_time")}</span>
-              <span style={{ textAlign: "right" }} data-cms-key="pricing.breakdown_rate">{t("breakdown_rate")}</span>
+              <span data-cms-key="pricing.breakdown_period"><CMSText k="pricingPage.breakdown_period">{t("breakdown_period")}</CMSText></span>
+              <span data-cms-key="pricing.breakdown_time"><CMSText k="pricingPage.breakdown_time">{t("breakdown_time")}</CMSText></span>
+              <span style={{ textAlign: "right" }} data-cms-key="pricing.breakdown_rate"><CMSText k="pricingPage.breakdown_rate">{t("breakdown_rate")}</CMSText></span>
             </div>
             {periods.map((p) => (
               <div
@@ -267,14 +269,14 @@ export default function PricingContent({
                 }}
               >
                 <span style={{ fontWeight: 600, fontSize: "16px" }} data-cms-key={`pricing.breakdown.${p.id}.name`}>
-                  {t(`period_${p.id}_title`)}
+                  <CMSText k={`pricingPage.breakdown.${p.id}.name`}>{t(`period_${p.id}_title`)}</CMSText>
                 </span>
                 <span style={{ fontSize: "15px", color: "#494951" }} data-cms-key={`pricing.breakdown.${p.id}.time`}>
-                  {t(`period_${p.id}_time`)}
+                  <CMSText k={`pricingPage.breakdown.${p.id}.time`}>{t(`period_${p.id}_time`)}</CMSText>
                 </span>
                 <span style={{ textAlign: "right", fontWeight: 700, fontSize: "17px", color: GREEN }} data-cms-key={`pricing.breakdown.${p.id}.rate`}>
                   {fmt(p.rate)}
-                  <span style={{ fontSize: "13px", color: SUBTLE, fontWeight: 400 }}>{t("per_hour")}</span>
+                  <span style={{ fontSize: "13px", color: SUBTLE, fontWeight: 400 }}><CMSText k="pricingPage.per_hour">{t("per_hour")}</CMSText></span>
                 </span>
               </div>
             ))}
@@ -292,7 +294,7 @@ export default function PricingContent({
             style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 48px", textAlign: "center" }}
             data-cms-key="pricing.benefits_title"
           >
-            {t("benefits_title")}
+            <CMSText k="pricingPage.benefits_title">{t("benefits_title")}</CMSText>
           </h2>
           <div style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
             {benefits.map((b, i) => (
@@ -326,7 +328,7 @@ export default function PricingContent({
             style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 40px" }}
             data-cms-key="pricing.services_title"
           >
-            {t("services_title")}
+            <CMSText k="pricingPage.services_title">{t("services_title")}</CMSText>
           </h2>
           <div style={{ display: "flex", flexDirection: "column" }}>
             {serviceRows.map((s, i) => (
@@ -361,7 +363,7 @@ export default function PricingContent({
             style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }}
             data-cms-key="pricing.faq_title"
           >
-            {t("faq_title")}
+            <CMSText k="pricingPage.faq_title">{t("faq_title")}</CMSText>
           </h2>
           <div>
             {faqs.map((f, i) => {
@@ -428,7 +430,7 @@ export default function PricingContent({
           style={{ fontSize: "clamp(32px, 6vw, 56px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }}
           data-cms-key="pricing.cta_section_title"
         >
-          {t("cta_section_title")}
+          <CMSText k="pricingPage.cta_section_title">{t("cta_section_title")}</CMSText>
         </h2>
         <Link
           href="/book"
@@ -447,7 +449,7 @@ export default function PricingContent({
           }}
           data-cms-key="pricing.cta_section_button"
         >
-          {t("cta_section_button")}
+          <CMSText k="pricingPage.cta_section_button">{t("cta_section_button")}</CMSText>
         </Link>
       </section>
     </div>

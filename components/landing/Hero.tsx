@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { CMSText } from "@/components/cms/CMSText";
 
 const GREEN = "#22C55E";
 
@@ -110,7 +111,7 @@ export default function Hero() {
               "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
           }}
         >
-          {t("tagline")}
+          <CMSText k="hero.tagline">{t("tagline")}</CMSText>
         </motion.h1>
 
         {/* CTA buttons — directly below headline, centred on all screens */}
@@ -128,7 +129,7 @@ export default function Hero() {
               textDecoration: "none",
             }}
           >
-            {t("cta_book")}
+            <CMSText k="hero.cta_book">{t("cta_book")}</CMSText>
           </Link>
 
           <button
@@ -143,7 +144,7 @@ export default function Hero() {
               fontWeight: 400,
             }}
           >
-            {t("cta_learn")}
+            <CMSText k="hero.cta_learn">{t("cta_learn")}</CMSText>
             <motion.span
               aria-hidden="true"
               animate={{ y: [0, 4, 0] }}

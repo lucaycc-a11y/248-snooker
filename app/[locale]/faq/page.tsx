@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import FAQ from "@/components/landing/FAQ";
+import { getFaqListData, getFaqJsonLdFromItems } from "@/lib/data/getFaqData";
 
 export const metadata: Metadata = {
   title: "常見問題 | Space8 — 香港自助桌球 06:00-24:00營業",
@@ -13,11 +15,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function FaqPage() {
+export default async function FaqPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'faq' });
+  const faqItems = await getFaqListData(locale, t);
+  const faqJsonLd = getFaqJsonLdFromItems(faqItems);
+
   return (
     <main className="relative bg-black">
       <Nav />
-      <FAQ />
+      <FAQ initialItems={faqItems} jsonLd={faqJsonLd} />
     </main>
   );
 }

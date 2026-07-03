@@ -2,6 +2,7 @@ import { getResend } from './client'
 import { BookingConfirmedEmail, type BookingConfirmedEmailProps } from './templates/booking-confirmed'
 import { BookingRefundedEmail, type BookingRefundedEmailProps } from './templates/booking-refunded'
 import { BookingRescheduledEmail, type BookingRescheduledEmailProps } from './templates/booking-rescheduled'
+import { AdminInviteEmail } from './templates/admin-invite'
 import { render } from '@react-email/render'
 
 type SendReceiptParams = {
@@ -169,6 +170,25 @@ export async function sendBookingRescheduledEmail(params: SendRescheduledParams)
     from: 'Space8 <bookings@248.formhk.com>',
     to: params.to,
     subject: subjectLines[params.locale],
+    html,
+  })
+}
+
+type SendAdminInviteParams = {
+  to: string
+  inviteUrl: string
+  role: 'admin' | 'super_admin'
+}
+
+export async function sendAdminInviteEmail(params: SendAdminInviteParams) {
+  const resend = getResend()
+
+  const html = await render(AdminInviteEmail({ inviteUrl: params.inviteUrl, role: params.role }))
+
+  await resend.emails.send({
+    from: 'Space8 <admin@248.formhk.com>',
+    to: params.to,
+    subject: "You've been invited to Space8 Admin",
     html,
   })
 }

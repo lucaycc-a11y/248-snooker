@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Target, Clock, Smartphone, Check, MapPin, MessageCircle, Mail, ChevronDown } from "lucide-react";
+import { CMSText } from "@/components/cms/CMSText";
 
 const DARK = "#1D1D1F";
 const SUBTLE = "#86868B";
@@ -79,7 +80,7 @@ export default function AboutContent() {
             style={{ fontSize: "clamp(48px, 11vw, 96px)", fontWeight: 700, letterSpacing: "-0.03em", color: "white", margin: 0, lineHeight: 1 }}
             data-cms-key="about.hero_title"
           >
-            {t("hero_title")}
+            <CMSText k="aboutPage.hero_title">{t("hero_title")}</CMSText>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
@@ -88,7 +89,7 @@ export default function AboutContent() {
             style={{ fontSize: "clamp(17px, 3vw, 22px)", color: "rgba(255,255,255,0.85)", margin: "20px 0 0", maxWidth: "600px" }}
             data-cms-key="about.hero_subtitle"
           >
-            {t("hero_subtitle")}
+            <CMSText k="aboutPage.hero_subtitle">{t("hero_subtitle")}</CMSText>
           </motion.p>
         </div>
         {/* Scroll indicator */}
@@ -116,7 +117,7 @@ export default function AboutContent() {
             style={{ fontSize: "14px", fontWeight: 600, color: GREEN, letterSpacing: "0.04em", margin: "0 0 24px" }}
             data-cms-key="about.mission_eyebrow"
           >
-            {t("mission_eyebrow")}
+            <CMSText k="aboutPage.mission_eyebrow">{t("mission_eyebrow")}</CMSText>
           </motion.p>
           <motion.h2
             initial={{ opacity: 0, y: 24 }}
@@ -126,7 +127,7 @@ export default function AboutContent() {
             style={{ fontSize: "clamp(30px, 5vw, 52px)", fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.15, margin: "0 0 64px", maxWidth: "820px" }}
             data-cms-key="about.mission_statement"
           >
-            {t("mission_statement")}
+            <CMSText k="aboutPage.mission_statement">{t("mission_statement")}</CMSText>
           </motion.h2>
 
           <div style={{ display: "grid", gap: "40px", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
@@ -168,7 +169,7 @@ export default function AboutContent() {
             style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }}
             data-cms-key="about.story_title"
           >
-            {t("story_title")}
+            <CMSText k="aboutPage.story_title">{t("story_title")}</CMSText>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
@@ -178,7 +179,7 @@ export default function AboutContent() {
             style={{ fontSize: "19px", lineHeight: 1.7, color: "rgba(255,255,255,0.75)", margin: 0 }}
             data-cms-key="about.story_body"
           >
-            {t("story_body")}
+            <CMSText k="aboutPage.story_body">{t("story_body")}</CMSText>
           </motion.p>
         </div>
       </section>
@@ -197,7 +198,7 @@ export default function AboutContent() {
             style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 48px" }}
             data-cms-key="about.venue_title"
           >
-            {t("venue_title")}
+            <CMSText k="aboutPage.venue_title">{t("venue_title")}</CMSText>
           </motion.h2>
 
           {/* Photo gallery — horizontal scroll-snap on mobile, grid on desktop */}
@@ -284,14 +285,14 @@ export default function AboutContent() {
             style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 48px" }}
             data-cms-key="about.contact_title"
           >
-            {t("contact_title")}
+            <CMSText k="aboutPage.contact_title">{t("contact_title")}</CMSText>
           </h2>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "28px", marginBottom: "48px" }}>
-            <ContactRow icon={<MapPin size={22} color={GREEN} strokeWidth={1.75} />} label={t("contact_address_label")} value={t("contact_address")} cmsKey="about.contact_address" />
-            <ContactRow icon={<MessageCircle size={22} color={GREEN} strokeWidth={1.75} />} label={t("contact_whatsapp_label")} value={PHONE} href={WHATSAPP_URL} cmsKey="about.contact_whatsapp" />
-            <ContactRow icon={<Mail size={22} color={GREEN} strokeWidth={1.75} />} label={t("contact_email_label")} value={EMAIL} href={`mailto:${EMAIL}`} cmsKey="about.contact_email" />
-            <ContactRow icon={<Clock size={22} color={GREEN} strokeWidth={1.75} />} label={t("contact_hours_label")} value={t("contact_hours")} cmsKey="about.contact_hours" />
+            <ContactRow icon={<MapPin size={22} color={GREEN} strokeWidth={1.75} />} label={t("contact_address_label")} labelCmsKey="aboutPage.contact_address_label" value={t("contact_address")} valueCmsKey="aboutPage.contact_address" cmsKey="about.contact_address" />
+            <ContactRow icon={<MessageCircle size={22} color={GREEN} strokeWidth={1.75} />} label={t("contact_whatsapp_label")} labelCmsKey="aboutPage.contact_whatsapp_label" value={PHONE} href={WHATSAPP_URL} cmsKey="about.contact_whatsapp" />
+            <ContactRow icon={<Mail size={22} color={GREEN} strokeWidth={1.75} />} label={t("contact_email_label")} labelCmsKey="aboutPage.contact_email_label" value={EMAIL} href={`mailto:${EMAIL}`} cmsKey="about.contact_email" />
+            <ContactRow icon={<Clock size={22} color={GREEN} strokeWidth={1.75} />} label={t("contact_hours_label")} labelCmsKey="aboutPage.contact_hours_label" value={t("contact_hours")} valueCmsKey="aboutPage.contact_hours" cmsKey="about.contact_hours" />
           </div>
 
           <a
@@ -314,7 +315,7 @@ export default function AboutContent() {
             data-cms-key="about.contact_cta"
           >
             <MessageCircle size={20} strokeWidth={2} />
-            {t("contact_cta")}
+            <CMSText k="aboutPage.contact_cta">{t("contact_cta")}</CMSText>
           </a>
         </div>
       </section>
@@ -325,13 +326,17 @@ export default function AboutContent() {
 function ContactRow({
   icon,
   label,
+  labelCmsKey,
   value,
+  valueCmsKey,
   href,
   cmsKey,
 }: {
   icon: React.ReactNode;
   label: string;
+  labelCmsKey?: string;
   value: string;
+  valueCmsKey?: string;
   href?: string;
   cmsKey: string;
 }) {
@@ -339,8 +344,12 @@ function ContactRow({
     <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
       <span style={{ flexShrink: 0 }}>{icon}</span>
       <span>
-        <span style={{ display: "block", fontSize: "13px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
-        <span style={{ display: "block", fontSize: "17px", color: "white", marginTop: "2px" }} data-cms-key={cmsKey}>{value}</span>
+        <span style={{ display: "block", fontSize: "13px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          {labelCmsKey ? <CMSText k={labelCmsKey}>{label}</CMSText> : label}
+        </span>
+        <span style={{ display: "block", fontSize: "17px", color: "white", marginTop: "2px" }} data-cms-key={cmsKey}>
+          {valueCmsKey ? <CMSText k={valueCmsKey}>{value}</CMSText> : value}
+        </span>
       </span>
     </div>
   );

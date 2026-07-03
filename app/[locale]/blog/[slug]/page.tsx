@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { Link } from "@/i18n/navigation";
+import { CMSText } from "@/components/cms/CMSText";
 import { getBlogPost, getRelatedPosts } from "@/lib/data/getBlog";
 import { renderRichText } from "@/lib/blog/renderRichText";
 import { safeJsonLd } from "@/lib/seo/jsonLd";
@@ -160,7 +161,9 @@ export default async function BlogPostPage({
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "20px", fontSize: "14px", color: "rgba(255,255,255,0.7)" }}>
             <span>{post.author || "Space8"}</span>
             <span aria-hidden="true">·</span>
-            <span>{t("read_time", { min: post.reading_time ?? 5 })}</span>
+            <span>
+              <CMSText k="blog.read_time">{t("read_time", { min: post.reading_time ?? 5 })}</CMSText>
+            </span>
           </div>
         </div>
       </section>
@@ -184,10 +187,9 @@ export default async function BlogPostPage({
             <Link
               href="/blog"
               style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: GREEN, fontSize: "15px", textDecoration: "none" }}
-              data-cms-key="blog.back_to_blog"
             >
               <ArrowLeft size={16} strokeWidth={2} />
-              {t("back_to_blog")}
+              <CMSText k="blog.back_to_blog">{t("back_to_blog")}</CMSText>
             </Link>
           </div>
         </div>
@@ -200,8 +202,8 @@ export default async function BlogPostPage({
           style={{ background: "#0A0A0A", color: "white", padding: "clamp(56px, 8vw, 96px) 24px", borderTop: `1px solid ${BORDER_DARK}` }}
         >
           <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-            <h2 style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }} data-cms-key="blog.related_title">
-              {t("related_title")}
+            <h2 style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }}>
+              <CMSText k="blog.related_title">{t("related_title")}</CMSText>
             </h2>
             <div style={{ display: "grid", gap: "32px", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
               {related.map((r) => {
