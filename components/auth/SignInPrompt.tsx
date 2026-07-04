@@ -78,13 +78,18 @@ export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () 
             display: "flex",
             alignItems: "center",
             gap: 14,
-            maxWidth: "calc(100vw - 32px)",
+            width: "calc(100vw - 32px)",
+            maxWidth: 420,
+            boxSizing: "border-box",
             padding: "14px 16px 14px 20px",
-            borderRadius: 9999,
+            borderRadius: 24,
           }}
           role="status"
         >
-          <span data-cms-key="nav.prompt_text" style={{ fontSize: 16, color: "#fff", whiteSpace: "nowrap" }}>
+          <span
+            data-cms-key="nav.prompt_text"
+            style={{ flex: 1, minWidth: 0, fontSize: 16, color: "#fff" }}
+          >
             {t("prompt_text")}
           </span>
           <button

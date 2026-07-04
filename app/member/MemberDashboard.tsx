@@ -281,7 +281,17 @@ export default function MemberDashboard({
         </div>
 
         {/* ── Points + tier progress ── */}
-        <div style={{ marginTop: "24px", border: `1px solid ${BORDER}`, borderRadius: "20px", padding: "24px", background: "rgba(255,255,255,0.03)" }}>
+        <div
+          style={{
+            marginTop: "24px",
+            border: `1px solid ${BORDER}`,
+            borderRadius: "20px",
+            padding: "24px",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <span data-cms-key="member.card_points" style={{ fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: SUBTLE }}>
               {t("card_points")}
@@ -336,7 +346,8 @@ export default function MemberDashboard({
         </div>
 
         {/* Stats row — Apple-Card style: no border box per stat, just a
-            hairline divider between them, so the number itself is the hero. */}
+            hairline divider between them, so the number itself is the hero.
+            Glass surface (bg+blur) matches the member/points cards above. */}
         <div
           style={{
             display: "grid",
@@ -345,6 +356,9 @@ export default function MemberDashboard({
             border: `1px solid ${BORDER}`,
             borderRadius: "16px",
             padding: "18px 0",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
           }}
         >
           <StatCard label={t("stat_bookings")} value={`${stats.bookings}`} unit={t("stat_bookings_unit")} />
@@ -550,7 +564,9 @@ function WalletButton({ icon, label, cmsKey }: { icon: React.ReactNode; label: s
         padding: "0 18px",
         borderRadius: "12px",
         border: `1px solid ${HAIRLINE}`,
-        background: "rgba(255,255,255,0.05)",
+        background: GLASS_BG,
+        backdropFilter: GLASS_BLUR,
+        WebkitBackdropFilter: GLASS_BLUR,
         color: INK,
         fontSize: "14px",
         fontWeight: 600,
@@ -654,7 +670,15 @@ function BookingsTab({
           onKeyDown={(e) => {
             if (e.key === "Enter") router.push(`/member/bookings/${b.id}`);
           }}
-          style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px", cursor: "pointer" }}
+          style={{
+            border: `1px solid ${BORDER}`,
+            borderRadius: "16px",
+            padding: "20px",
+            cursor: "pointer",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+          }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
             <div>

@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { Button, Card, ProgressSteps, BackButton, Space8Loader } from "@/components/ui"
+import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
@@ -2515,9 +2516,15 @@ export default function BookPage() {
         color: tokens.colors.text,
         display: "flex",
         justifyContent: "center",
+        position: "relative",
       }}
     >
-      <div className="book-container">
+      {/* Subtle backdrop dust — same treatment as the member dashboard, low
+          opacity so it never competes with booking content readability. */}
+      <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.35 }}>
+        <Starfield />
+      </div>
+      <div className="book-container" style={{ position: "relative", zIndex: 1 }}>
         {/* Progress — back arrow (hidden on the confirmation screen; booking is
             done, Screen4 offers a deliberate "Back to Home" instead) shares the
             same row as the stepper so it never overlaps it. */}

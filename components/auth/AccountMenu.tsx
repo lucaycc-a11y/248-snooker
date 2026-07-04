@@ -214,26 +214,30 @@ export function AccountMenu({
   const trigger =
     variant === "mobile" ? (
       <div style={{ position: "relative", width: 46, height: 46 }}>
-        {/* Revealed-on-swipe quick Sign Out (secondary path). */}
-        <button
-          type="button"
-          onClick={signOut}
-          aria-label={t("sign_out")}
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(248,113,113,0.15)", // glass-style red tint (not solid #7f1d1d)
-            backdropFilter: "blur(12px) saturate(150%)",
-            color: "#f87171",
-            border: "1px solid rgba(248,113,113,0.3)",
-            borderRadius: 999,
-          }}
-        >
-          <LogOut size={18} />
-        </button>
+        {/* Revealed-on-swipe quick Sign Out (secondary path). Only mounted while
+            actually revealed, so it can never paint underneath/behind the avatar
+            (e.g. during a slow avatar image load) and read as a stray red icon. */}
+        {swipeRevealed && (
+          <button
+            type="button"
+            onClick={signOut}
+            aria-label={t("sign_out")}
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(248,113,113,0.15)", // glass-style red tint (not solid #7f1d1d)
+              backdropFilter: "blur(12px) saturate(150%)",
+              color: "#f87171",
+              border: "1px solid rgba(248,113,113,0.3)",
+              borderRadius: 999,
+            }}
+          >
+            <LogOut size={18} />
+          </button>
+        )}
         <motion.button
           ref={triggerRef}
           type="button"

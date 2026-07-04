@@ -50,6 +50,10 @@ export default function Nav() {
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [theme, setTheme] = useState<NavTheme>('dark')
   const [loggedIn, setLoggedIn] = useState(false)
+  // Gates the member CTA render: loggedIn defaults to false, so without this,
+  // an already-logged-in visitor would flash the logged-out "登入" state for
+  // one tick while getSession() is still in flight.
+  const [sessionResolved, setSessionResolved] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
@@ -83,12 +87,14 @@ export default function Nav() {
     supabase.auth.getSession().then(({ data }) => {
       setLoggedIn(!!data.session)
       setAvatarUrl(data.session?.user?.user_metadata?.avatar_url ?? null)
+      setSessionResolved(true)
     })
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setLoggedIn(!!session)
       setAvatarUrl(session?.user?.user_metadata?.avatar_url ?? null)
+      setSessionResolved(true)
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -163,6 +169,11 @@ export default function Nav() {
   }
 
   function DesktopMemberCta() {
+    // Render nothing until the session check resolves — otherwise a logged-in
+    // visitor briefly sees the logged-out "登入" button before flipping to the
+    // avatar, and vice versa.
+    if (!sessionResolved) return null
+
     if (loggedIn) {
       return (
         <div
@@ -365,7 +376,9 @@ export default function Nav() {
             pointerEvents: 'auto',
           }}
         >
-          {loggedIn ? (
+          {/* Same session-resolved gate as DesktopMemberCta — avoids a logged-out
+              flash for already-authenticated visitors. */}
+          {!sessionResolved ? null : loggedIn ? (
             <AccountMenu avatarUrl={avatarUrl} variant="mobile" linkColor={linkColor} />
           ) : (
             <button
