@@ -594,6 +594,7 @@
     "instant_confirm": "Instant Confirmation · No Waiting",
     "login_title": "Complete Booking",
     "login_subtitle": "Your slot is temporarily held",
+    "login_subtitle_specific": "We've held {start}–{end}, {table} for you",
     "login_apple": "Sign in with Apple",
     "login_google": "Sign in with Google",
     "login_whatsapp": "WhatsApp Number",
@@ -649,7 +650,10 @@
     "slot_group_evening": "Evening",
     "remove_slot": "Remove",
     "multi_slot_hint": "You can pick several slots — they don't have to be consecutive.",
-    "slots_selected": "{count} slots selected"
+    "duration_hours_chip": "{count}h",
+    "most_popular": "Most popular",
+    "slots_selected": "{count} slots selected",
+    "points_earned_estimate": "Earn at least {pts} points on this booking"
   },
   "ticket": {
     "duration": "Duration",

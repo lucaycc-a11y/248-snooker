@@ -349,8 +349,10 @@ function PayForm({
   )
 }
 
-/** mm:ss countdown to `until`. Ticks every second; clamps at 0. */
-function useCountdown(until: string | null): string | null {
+/** mm:ss countdown to `until`, plus an `urgent` flag for the final 2 minutes
+ *  (Loss Aversion: the reminder should read as more urgent as the deadline
+ *  approaches, not stay a flat static color the whole 15 minutes). */
+function useCountdown(until: string | null): { text: string; urgent: boolean } | null {
   const [remainingMs, setRemainingMs] = useState<number | null>(null)
 
   useEffect(() => {
@@ -369,7 +371,7 @@ function useCountdown(until: string | null): string | null {
   const totalSeconds = Math.floor(remainingMs / 1000)
   const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0")
   const ss = String(totalSeconds % 60).padStart(2, "0")
-  return `${mm}:${ss}`
+  return { text: `${mm}:${ss}`, urgent: totalSeconds <= 120 }
 }
 
 /**
@@ -529,11 +531,13 @@ export default function StripePayment(props: Props) {
           style={{
             textAlign: "center",
             fontSize: 13,
-            color: "rgba(255,255,255,0.55)",
+            fontWeight: countdown.urgent ? 700 : 400,
+            color: countdown.urgent ? "#FF6B4A" : "rgba(255,255,255,0.55)",
             marginBottom: 12,
+            transition: "color 0.3s ease",
           }}
         >
-          {props.lockHoldLabel.replace("{time}", countdown)}
+          {props.lockHoldLabel.replace("{time}", countdown.text)}
         </p>
       )}
       <PayForm

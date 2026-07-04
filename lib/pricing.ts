@@ -196,6 +196,23 @@ export function quoteBlockTotal(
   return calculatePrice(slotStart, slotEnd, { discount: 1, multiplier: 1 }, periods).total
 }
 
+/**
+ * Minimum points a block will earn, shown pre-login on the slot picker where
+ * the visitor's real tier multiplier isn't known yet (Amateur 1× floor —
+ * Century/Maximum members earn more once signed in, per applyTierPolicy).
+ * With multiplier=1, pointsEarned === total, so this is quoteBlockTotal in
+ * all but name — kept as its own export so call sites read as "points", not
+ * an accidental reuse of a price number.
+ */
+export function quoteBlockMinPoints(
+  date: string,
+  startHour: number,
+  durationHours: number,
+  periods: PricingPeriod[] = DEFAULT_PERIODS,
+): number {
+  return quoteBlockTotal(date, startHour, durationHours, periods)
+}
+
 /** Convenience for add-ons priced from the services config (lockers, cue hire). */
 export function serviceFee(
   key: keyof ServiceFees,

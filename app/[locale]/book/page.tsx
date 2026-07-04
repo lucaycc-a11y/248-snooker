@@ -222,6 +222,69 @@ function scrollToRef(ref: React.RefObject<HTMLElement>) {
 }
 
 /* ─────────────────────────  Time Slot Grid  ───────────────────────── */
+// Smart default duration (spec ask): a small quick-pick row above the hour
+// grid offering 1h/2h/3h chips, with the venue's real most-common past
+// duration pre-highlighted (border/tint only — never auto-applied without
+// the user's own tap). Tapping a chip finds the EARLIEST contiguous window
+// of that length, on this date, with at least one table free, and selects
+// it via onPick — same tableStatesFor() availability check the grid/table
+// chips already use, so it can never propose an actually-taken window.
+const QUICK_PICK_DURATIONS = [1, 2, 3]
+
+function DurationQuickPicks({
+  daySlots,
+  dateStr,
+  popularDuration,
+  onPick,
+}: {
+  daySlots: DaySlot[]
+  dateStr: string
+  popularDuration: number
+  onPick: (startHour: number, count: number) => void
+}) {
+  const t = useTranslations("book")
+
+  const findEarliestWindow = (count: number): number | null => {
+    for (let start = 6; start + count <= 24; start++) {
+      const states = tableStatesFor(daySlots, dateStr, start, count)
+      if (ALL_TABLES.some((tn) => states.get(tn) === "available")) return start
+    }
+    return null
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+      {QUICK_PICK_DURATIONS.map((count) => {
+        const isPopular = count === popularDuration
+        return (
+          <button
+            key={count}
+            type="button"
+            onClick={() => {
+              const startHour = findEarliestWindow(count)
+              if (startHour !== null) onPick(startHour, count)
+            }}
+            data-cms-key={`book.duration_pick.${count}h`}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 999,
+              border: `1px solid ${isPopular ? tokens.colors.brand : "rgba(255,255,255,0.15)"}`,
+              background: isPopular ? tokens.colors.brandDim : "transparent",
+              color: isPopular ? tokens.colors.brand : tokens.colors.text,
+              fontSize: 13,
+              fontWeight: isPopular ? 600 : 500,
+              cursor: "pointer",
+            }}
+          >
+            {t("duration_hours_chip", { count })}
+            {isPopular ? ` · ${t("most_popular")}` : ""}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function TimeSlotGrid({
   selectedDate,
   daySlots,
@@ -1121,6 +1184,7 @@ function Screen1({
   setSelectedDate,
   hoursForDate,
   onToggleHour,
+  onSelectContiguousHours,
   onPruneHours,
   selectedHoursByDate,
   totalSelectedHours,
@@ -1139,6 +1203,7 @@ function Screen1({
   setSelectedDate: (d: Date) => void
   hoursForDate: Set<number>
   onToggleHour: (date: string, hour: number) => void
+  onSelectContiguousHours: (date: string, startHour: number, count: number) => void
   onPruneHours: (date: string, updater: (prev: Set<number>) => Set<number>) => void
   selectedHoursByDate: Map<string, Set<number>>
   totalSelectedHours: number
@@ -1164,6 +1229,26 @@ function Screen1({
   const timeRef = useRef<HTMLDivElement>(null)
   const tableRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
+
+  // Duration quick-pick: fetch the real most-common past duration once, to
+  // highlight (not auto-select) that chip — falls back to 1h silently on
+  // any error, since this only affects which chip is highlighted, not
+  // booking correctness.
+  const [popularDuration, setPopularDuration] = useState(1)
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/booking/popular-duration")
+      .then((r) => r.json())
+      .then((json) => {
+        if (!cancelled && typeof json?.popularDuration === "number") {
+          setPopularDuration(json.popularDuration)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // Read the day's slots from the shared prefetch cache. If the date is cached
   // (in the prefetched week, or fetched earlier) this is synchronous — no spinner.
@@ -1289,6 +1374,17 @@ function Screen1({
                   >
                     {t("multi_slot_hint")}
                   </div>
+                  {daySlots && hoursForDate.size === 0 && (
+                    <DurationQuickPicks
+                      daySlots={daySlots}
+                      dateStr={dateStr}
+                      popularDuration={popularDuration}
+                      onPick={(startHour, count) => {
+                        scrollToRef(tableRef)
+                        onSelectContiguousHours(dateStr, startHour, count)
+                      }}
+                    />
+                  )}
                   <TimeSlotGrid
                     selectedDate={selectedDate}
                     daySlots={daySlots}
@@ -1360,6 +1456,23 @@ function Screen1({
                         HK${orderTotal}
                       </div>
                     </div>
+                    {orderTotal > 0 && (
+                      <div
+                        data-cms-key="book.points_earned"
+                        style={{
+                          fontSize: 12,
+                          color: tokens.colors.textMuted,
+                          textAlign: "right",
+                          marginTop: 2,
+                        }}
+                      >
+                        {/* multiplier=1 floor: pointsEarned === total (see
+                            lib/pricing.ts's quoteBlockMinPoints) — reusing
+                            orderTotal directly rather than a second, identical
+                            computation. */}
+                        {t("points_earned_estimate", { pts: orderTotal })}
+                      </div>
+                    )}
                     {(() => {
                       const multiDate = new Set(runs.map((r) => r.date)).size > 1
                       return runs.map((r, i) => {
@@ -1459,6 +1572,24 @@ function Screen2({
   selectedTable: number | null
 }) {
   const t = useTranslations("book")
+  const tables = useTables()
+
+  // IKEA effect: name the actual held slot ("07:00–08:00, Table #2") instead
+  // of a generic "your slot is held" — the user just made this specific
+  // choice, so losing it reads as a bigger loss than losing an abstract one.
+  const holdSummary = useMemo(() => {
+    const entry = Array.from(selectedHoursByDate.entries())[0]
+    if (!entry) return null
+    const [, hours] = entry
+    if (hours.size === 0) return null
+    const sorted = Array.from(hours).sort((a, b) => a - b)
+    const startHour = sorted[0]
+    const endHour = sorted[sorted.length - 1] + 1
+    const tableName = tables.find((tb) => tb.id === selectedTable)?.name
+    return tableName
+      ? t("login_subtitle_specific", { start: padTime(startHour), end: padTime(endHour), table: tableName })
+      : null
+  }, [selectedHoursByDate, selectedTable, tables, t])
 
   // Persist the in-progress booking before any auth redirect (the Google fallback
   // flow leaves the page). On return, BookPage restores this and re-lands on the
@@ -1510,7 +1641,7 @@ function Screen2({
               data-cms-key="book.auth.subtitle"
               style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}
             >
-              {t("login_subtitle")}
+              {holdSummary ?? t("login_subtitle")}
             </p>
           </div>
           <AuthCard returnUrl="/book" onAuthComplete={onSuccess} />
@@ -1723,6 +1854,24 @@ function Screen3({
             backToSlotsLabel={t("back_to_slots")}
           />
 
+          {total > 0 && (
+            <div
+              data-cms-key="book.points_earned"
+              style={{
+                fontSize: 12,
+                color: tokens.colors.textMuted,
+                textAlign: "center",
+                marginTop: 12,
+              }}
+            >
+              {/* Same base-tier floor as Screen1 — the real signed-in tier
+                  multiplier isn't fetched anywhere in this page, so this
+                  stays a floor estimate here too rather than a half-accurate
+                  number from a new, scope-expanding tier lookup. */}
+              {t("points_earned_estimate", { pts: total })}
+            </div>
+          )}
+
           <div
             data-cms-key="book.payment_reminder"
             style={{
@@ -1783,7 +1932,27 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
         colors: ["#22c55e", "#ffffff", "#A78BFA"],
       })
     }, 2000)
-    return () => clearTimeout(timer)
+    // Second, delayed burst: tight angle + high velocity + low spread reads
+    // as a shooting star crossing the screen rather than a second identical
+    // confetti pop — reinforces the space theme without a new particle system.
+    const meteorTimer = setTimeout(() => {
+      confetti({
+        particleCount: 18,
+        startVelocity: 55,
+        angle: 55,
+        spread: 8,
+        scalar: 0.5,
+        gravity: 0.4,
+        decay: 0.94,
+        shapes: ["circle"],
+        origin: { x: 0.1, y: 0.15 },
+        colors: ["#ffffff", "#A78BFA"],
+      })
+    }, 2600)
+    return () => {
+      clearTimeout(timer)
+      clearTimeout(meteorTimer)
+    }
   }, [])
 
   return (
@@ -2035,6 +2204,20 @@ export default function BookPage() {
       const next = new Map(prev)
       if (nextSet.size === 0) next.delete(date)
       else next.set(date, nextSet)
+      return next
+    })
+  }, [])
+
+  // Duration quick-pick (Screen1) — replaces the current date's whole
+  // selection with `count` contiguous hours starting at `startHour`, rather
+  // than toggling one hour at a time. Used only for the user's own explicit
+  // chip tap, never auto-applied.
+  const selectContiguousHours = useCallback((date: string, startHour: number, count: number) => {
+    setSelectedHoursByDate((prev) => {
+      const nextSet = new Set<number>()
+      for (let h = startHour; h < startHour + count; h++) nextSet.add(h)
+      const next = new Map(prev)
+      next.set(date, nextSet)
       return next
     })
   }, [])
@@ -2349,7 +2532,12 @@ export default function BookPage() {
             />
           )}
           <div style={{ flex: 1 }}>
-            <ProgressSteps steps={STEPS} current={screen} onStepClick={goToStep} />
+            <ProgressSteps
+              steps={STEPS}
+              current={screen}
+              onStepClick={goToStep}
+              currentProgress={screen === 0 && totalSelectedHours > 0 ? 1 : 0}
+            />
           </div>
         </div>
 
@@ -2374,6 +2562,7 @@ export default function BookPage() {
                   setSelectedDate={setSelectedDate}
                   hoursForDate={hoursForActiveDate}
                   onToggleHour={toggleHour}
+                  onSelectContiguousHours={selectContiguousHours}
                   onPruneHours={pruneHoursForDate}
                   selectedHoursByDate={selectedHoursByDate}
                   totalSelectedHours={totalSelectedHours}

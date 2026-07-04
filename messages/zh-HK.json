@@ -594,6 +594,7 @@
     "instant_confirm": "即時確認・毋需等候",
     "login_title": "完成預訂",
     "login_subtitle": "你的時段已暫時鎖定",
+    "login_subtitle_specific": "已為你保留 {start}–{end}，{table}",
     "login_apple": "以 Apple 登入",
     "login_google": "以 Google 帳戶登入",
     "login_whatsapp": "WhatsApp 號碼",
@@ -649,7 +650,10 @@
     "slot_group_evening": "晚上",
     "remove_slot": "移除",
     "multi_slot_hint": "可揀多個時段，中間唔一定要連續。",
-    "slots_selected": "已揀 {count} 個時段"
+    "duration_hours_chip": "{count} 小時",
+    "most_popular": "最多人揀",
+    "slots_selected": "已揀 {count} 個時段",
+    "points_earned_estimate": "呢張booking最少賺 {pts} 分"
   },
   "ticket": {
     "duration": "時長",

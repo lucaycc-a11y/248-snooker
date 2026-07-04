@@ -6,6 +6,7 @@ import { CalendarPlus, Share2, ChevronDown } from "lucide-react"
 import { useTranslations } from "next-intl"
 import QRCodeLib from "qrcode"
 import { tokens } from "@/app/styles/tokens"
+import { Starfield } from "@/app/[locale]/Starfield"
 import {
   ApplePayLogo,
   GooglePayLogo,
@@ -164,19 +165,30 @@ export function TicketCard({
     <motion.div
       layout
       style={{
-        background: "linear-gradient(160deg, #111111 0%, #1a1a1a 100%)",
+        background: `${tokens.glassBg.dark}`,
+        backdropFilter: tokens.glass.surface,
+        WebkitBackdropFilter: tokens.glass.surface,
         borderRadius: 24,
-        border: "1px solid rgba(255,255,255,0.1)",
+        border: `1px solid ${tokens.glassBg.border}`,
         overflow: "hidden",
         position: "relative",
       }}
     >
+      {/* Starfield sits behind the glass card content — same recipe used on
+          the member page and 404 page, low opacity so it reads as ambient
+          texture through the glass rather than a competing pattern. */}
+      <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 0, opacity: 0.3, pointerEvents: "none" }}>
+        <Starfield />
+      </div>
+
       {/* Collapsed summary row — tap to expand into the full ticket. */}
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}
         aria-expanded={expanded}
         style={{
+          position: "relative",
+          zIndex: 1,
           width: "100%",
           display: "flex",
           alignItems: "center",
@@ -215,9 +227,11 @@ export function TicketCard({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            style={{ overflow: "hidden" }}
+            style={{ overflow: "hidden", position: "relative", zIndex: 1 }}
           >
-            {/* Perforation line */}
+            {/* Perforation line — the card is glass/translucent now, so a
+                punched hole must be genuinely transparent (not a fake solid
+                circle matching an opaque background that no longer exists). */}
             <div style={{ position: "relative", height: 20, margin: "0 0 4px" }}>
               <div
                 style={{
@@ -228,7 +242,8 @@ export function TicketCard({
                   width: 20,
                   height: 20,
                   borderRadius: "50%",
-                  background: tokens.colors.bg,
+                  background: "transparent",
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)",
                 }}
               />
               <div
@@ -240,7 +255,8 @@ export function TicketCard({
                   width: 20,
                   height: 20,
                   borderRadius: "50%",
-                  background: tokens.colors.bg,
+                  background: "transparent",
+                  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.1)",
                 }}
               />
               <div
@@ -272,13 +288,17 @@ export function TicketCard({
                 </div>
               </div>
 
-              {/* QR Code — per-ticket, door entry validates each independently */}
+              {/* QR Code — per-ticket, door entry validates each independently.
+                  Glow lives on this container's box-shadow only, entirely
+                  outside the QR's own black/white module area (16px padding
+                  gap), so scan contrast is never touched. */}
               <div
                 style={{
                   position: "relative",
                   background: "#0a0a0a",
                   borderRadius: 16,
                   border: "1px solid rgba(255,255,255,0.15)",
+                  boxShadow: "0 0 24px rgba(34,197,94,0.18)",
                   padding: 16,
                   display: "flex",
                   justifyContent: "center",

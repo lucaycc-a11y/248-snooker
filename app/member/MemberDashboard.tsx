@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BackButton } from "@/components/ui";
-import { Logo } from "@/components/brand/Logo";
+import { Starfield } from "@/app/[locale]/Starfield";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";
@@ -160,8 +160,28 @@ export default function MemberDashboard({
         background: "#000",
         minHeight: "100vh",
         color: INK,
+        position: "relative",
       }}
     >
+      {/* Ambient tier-coloured backdrop — same TIER_GLOW recipe as the
+          membership card, but full-page and animated (slow opacity breathe)
+          so the whole page reads as "this member's colour", not just the card. */}
+      <motion.div
+        aria-hidden="true"
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          background: TIER_GLOW[tierId] ?? TIER_GLOW.amateur,
+        }}
+      />
+      <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.35 }}>
+        <Starfield />
+      </div>
+
       {/* Fixed back arrow — shared component, identical to the booking flow. */}
       <BackButton href="/" ariaLabel={t("back")} cmsKey="member.back" color={INK} />
 
@@ -169,7 +189,7 @@ export default function MemberDashboard({
           would route to a non-existent /[locale]/member). */}
       <DashboardHeader displayName={user.display_name} />
 
-      <div style={{ maxWidth: "760px", margin: "0 auto", padding: "16px 20px 96px" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "760px", margin: "0 auto", padding: "16px 20px 96px" }}>
         {/* ── Membership card (club-card metaphor) ── */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -278,13 +298,34 @@ export default function MemberDashboard({
             <span style={{ fontSize: "14px", color: SUBTLE, marginBottom: "6px", letterSpacing: "0.08em" }}>PTS</span>
           </div>
 
-          {/* Thin brass progress bar */}
-          <div style={{ height: "3px", borderRadius: "100px", background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+          {/* Progress "orbit" — thin track + a ball riding the fill's leading
+              edge (the track itself keeps overflow:hidden for the fill bar;
+              the ball sits in a sibling, unclipped layer so it isn't cut off
+              at the track's height). */}
+          <div style={{ position: "relative", padding: "6px 0" }}>
+            <div style={{ height: "3px", borderRadius: "100px", background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.round(progress * 100)}%` }}
+                transition={{ duration: 0.9, ease: EASE }}
+                style={{ height: "100%", background: GREEN, borderRadius: "100px" }}
+              />
+            </div>
             <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.round(progress * 100)}%` }}
+              initial={{ left: 0 }}
+              animate={{ left: `${Math.round(progress * 100)}%` }}
               transition={{ duration: 0.9, ease: EASE }}
-              style={{ height: "100%", background: GREEN, borderRadius: "100px" }}
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: "50%",
+                width: "14px",
+                height: "14px",
+                borderRadius: "50%",
+                background: accent,
+                boxShadow: `0 0 8px ${accent}`,
+                transform: "translate(-50%, -50%)",
+              }}
             />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -459,9 +500,13 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
         borderBottom: `1px solid ${BORDER}`,
       }}
     >
-      {/* Brand wordmark only — back navigation is the shared fixed BackButton. */}
-      <Logo variant="mark" theme="dark" size={22} />
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      {/* Left side intentionally empty — BackButton is a separate fixed
+          element (this header's left padding already reserves space for it).
+          Greeting + language switcher — separated with real breathing room,
+          language toggle styled as its own frosted glass pill (matches the
+          public Nav's pill container recipe) rather than a flat text box. */}
+      <div />
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         <span style={{ fontSize: "14px", color: SUBTLE }}>
           {t("greeting")}{displayName ? `, ${displayName}` : ""}
         </span>
@@ -469,7 +514,19 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
           type="button"
           onClick={cycleLocale}
           aria-label="Switch language"
-          style={{ color: INK, fontSize: "13px", fontWeight: 500, background: "rgba(255,255,255,0.08)", border: `1px solid ${BORDER}`, borderRadius: "8px", padding: "6px 10px", cursor: "pointer", minHeight: 36 }}
+          style={{
+            color: INK,
+            fontSize: "13px",
+            fontWeight: 500,
+            background: "rgba(255,255,255,0.05)",
+            backdropFilter: "blur(24px) saturate(180%)",
+            WebkitBackdropFilter: "blur(24px) saturate(180%)",
+            border: `1px solid ${HAIRLINE}`,
+            borderRadius: "999px",
+            padding: "8px 14px",
+            cursor: "pointer",
+            minHeight: 36,
+          }}
         >
           {LABELS[locale] ?? "中"}
         </button>
@@ -955,7 +1012,9 @@ function SmallButton({
     padding: "0 14px",
     borderRadius: "100px",
     border: `1px solid ${primary ? GREEN : tone === "danger" ? `${DANGER}55` : BORDER}`,
-    background: primary ? `${GREEN}1f` : "transparent",
+    background: primary ? `${GREEN}1f` : "rgba(255,255,255,0.05)",
+    backdropFilter: "blur(20px) saturate(180%)",
+    WebkitBackdropFilter: "blur(20px) saturate(180%)",
     color: primary ? GREEN : toneColor,
     fontSize: "13px",
     fontWeight: primary ? 600 : 500,

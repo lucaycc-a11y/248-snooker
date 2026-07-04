@@ -385,7 +385,9 @@ export default function AIChatWidget() {
                 border: `1px solid ${tokens.colors.border}`,
                 borderRadius: tokens.radius.pill,
                 color: '#FFFFFF',
-                fontSize: 14,
+                // 16px, not 14 — iOS Safari auto-zooms the viewport on focus
+                // for any text input under 16px, which visibly jolts the page.
+                fontSize: 16,
                 outline: 'none',
                 transition: `border-color ${tokens.duration.base} ${tokens.easing.standard}`,
               }}

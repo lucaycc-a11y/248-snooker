@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { AdminProvider } from '@/lib/admin/AdminContext'
 import AdminSidebar from '@/components/admin/AdminSidebar'
+import AdminAIPanel from '@/components/admin/AdminAIPanel'
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const admin = await getAdminData()
@@ -24,6 +25,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <AdminSidebar />
         <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
       </div>
+      <AdminAIPanel />
     </AdminProvider>
   )
 }

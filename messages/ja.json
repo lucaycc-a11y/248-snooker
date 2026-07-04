@@ -594,6 +594,7 @@
     "instant_confirm": "即時確認・待ち時間なし",
     "login_title": "予約を完了する",
     "login_subtitle": "スロットを一時確保しています",
+    "login_subtitle_specific": "{start}〜{end}、{table} を確保しました",
     "login_apple": "Appleでサインイン",
     "login_google": "Googleアカウントでサインイン",
     "login_whatsapp": "WhatsApp番号",
@@ -649,7 +650,10 @@
     "slot_group_evening": "夜",
     "remove_slot": "削除",
     "multi_slot_hint": "複数の時間帯を選択できます。連続していなくても構いません。",
-    "slots_selected": "{count} 件の時間帯を選択中"
+    "duration_hours_chip": "{count}時間",
+    "most_popular": "人気No.1",
+    "slots_selected": "{count} 件の時間帯を選択中",
+    "points_earned_estimate": "このご予約で最低 {pts} ポイント獲得"
   },
   "ticket": {
     "duration": "プレイ時間",
