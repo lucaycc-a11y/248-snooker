@@ -14,6 +14,7 @@ import {
   Newspaper,
   PanelLeftClose,
   PanelLeftOpen,
+  KeyRound,
   type LucideIcon,
 } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
@@ -31,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/blog', label: 'Blog', icon: Newspaper },
   { href: '/admin/ai-settings', label: 'AI Settings', icon: Bot },
   { href: '/admin/team', label: 'Team', icon: UsersRound, superAdminOnly: true },
+  { href: '/admin/door', label: 'Door Lock', icon: KeyRound },
 ]
 
 // Same frosted-glass pill language as the public Nav (components/layout/Nav.tsx
