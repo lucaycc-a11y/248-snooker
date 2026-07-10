@@ -33,6 +33,25 @@
   --duration-slow: 380ms;
 }
 
+/* Responsive pricing grid — mobile stacks vertically, desktop side-by-side */
+@media (max-width: 768px) {
+  .responsive-pricing-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    padding: 24px 20px !important;
+    text-align: center;
+  }
+
+  .responsive-pricing-grid > div:first-child {
+    min-height: auto !important;
+  }
+
+  .responsive-pricing-grid > div:last-child {
+    min-height: auto !important;
+    padding-left: 0 !important;
+  }
+}
+
 * {
   box-sizing: border-box;
 }

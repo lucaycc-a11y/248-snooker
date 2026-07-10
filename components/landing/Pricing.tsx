@@ -198,6 +198,7 @@ interface StageContentProps {
 
 function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, ctaLearn, durations }: StageContentProps) {
   const total = stage.rate * hours;
+  const durationLabel = hours === 1 ? "1 小時" : `${hours} 小時`;
   return (
     <>
       <h3
@@ -243,7 +244,7 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
           </AnimatePresence>
         </div>
         <span style={{ fontSize: "16px", color: LIGHT_GRAY, paddingBottom: "8px" }}>
-          <CMSText k="pricing.per_hour">{perHour}</CMSText>
+          共{durationLabel}
         </span>
       </div>
 
@@ -377,6 +378,7 @@ export default function Pricing() {
         {stages.map((stage, i) => {
           const hours = hoursByStage[stage.id] ?? 1;
           const total = stage.rate * hours;
+          const durationLabel = hours === 1 ? "1 小時" : `${hours} 小時`;
           return (
             <motion.div
               key={stage.id}
@@ -447,7 +449,7 @@ export default function Pricing() {
                 </AnimatePresence>
               </div>
               <p style={{ fontSize: "16px", color: LIGHT_GRAY, margin: "10px 0 0" }}>
-                <CMSText k="pricing.per_hour">{perHour}</CMSText>
+                共{durationLabel}
               </p>
 
               {/* Duration pills */}
@@ -494,12 +496,13 @@ export default function Pricing() {
               maxWidth: "1100px",
               width: "100%",
               margin: "0 auto",
-              padding: "32px 48px",
+              padding: "32px 24px",
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: "64px",
+              gap: "48px",
               alignItems: "center",
             }}
+            className="responsive-pricing-grid"
           >
             {/* LEFT — large icon, crossfades with scroll (enlarged to 280px) */}
             <div
@@ -535,7 +538,6 @@ export default function Pricing() {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                paddingLeft: "48px",
               }}
             >
               <AnimatePresence initial={false}>
