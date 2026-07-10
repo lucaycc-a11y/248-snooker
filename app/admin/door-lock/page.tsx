@@ -447,7 +447,7 @@ export default function DoorLockPage() {
               key={log.id}
               style={{
                 padding: 10,
-                background: tokens.colors.bgSecondary,
+                background: tokens.colors.surface,
                 borderRadius: tokens.radius.input,
                 display: 'flex',
                 justifyContent: 'space-between',
