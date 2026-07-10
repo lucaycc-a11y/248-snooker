@@ -77,18 +77,28 @@ export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () 
             zIndex: 90,
             display: "flex",
             alignItems: "center",
-            gap: 14,
-            width: "calc(100vw - 32px)",
+            gap: 12,
+            width: "calc(100% - 32px)",
             maxWidth: 420,
+            minWidth: 0,
             boxSizing: "border-box",
-            padding: "14px 16px 14px 20px",
+            padding: "12px 14px",
             borderRadius: 24,
           }}
           role="status"
         >
           <span
             data-cms-key="nav.prompt_text"
-            style={{ flex: 1, minWidth: 0, fontSize: 16, color: "#fff" }}
+            style={{
+              flex: "1 1 auto",
+              minWidth: 0,
+              fontSize: 15,
+              lineHeight: 1.4,
+              color: "#fff",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
           >
             {t("prompt_text")}
           </span>
@@ -101,15 +111,16 @@ export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () 
             data-cms-key="nav.prompt_cta"
             style={{
               flexShrink: 0,
-              padding: "8px 18px",
+              padding: "8px 16px",
               borderRadius: 9999,
               background: GREEN,
               color: "#000",
               fontWeight: 700,
-              fontSize: 16,
+              fontSize: 15,
               textDecoration: "none",
               border: "none",
               cursor: "pointer",
+              whiteSpace: "nowrap",
             }}
           >
             {t("prompt_cta")}
@@ -118,7 +129,17 @@ export function SignInPrompt({ onOpenLogin, hidden = false }: { onOpenLogin: () 
             type="button"
             onClick={close}
             aria-label={t("prompt_dismiss")}
-            style={{ flexShrink: 0, background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", padding: 4 }}
+            style={{
+              flexShrink: 0,
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,0.5)",
+              cursor: "pointer",
+              padding: 4,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
             <X size={16} />
           </button>
