@@ -1,22 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { MessageCircle, X, Clock, Star, MapPin, HelpCircle } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 import { Sheet } from '@/components/ui/Sheet'
 import { Space8Loader } from '@/components/ui/Space8Loader'
 import { Logo } from '@/components/brand/Logo'
 import { tokens } from '@/app/styles/tokens'
+import { useLiquidGlass } from '@/lib/useLiquidGlass'
 
 const WHATSAPP_URL = 'https://wa.me/85264274620'
 const EMAIL = 'info.formhk@gmail.com'
 
-// Same glass-card recipe as the member card (app/member/MemberDashboard.tsx:
-// HAIRLINE border + GLASS_BG + GLASS_BLUR) — reused here so the panel reads
-// as part of the same design family, not a separate flat-black UI.
 const GLASS_BORDER = 'rgba(255,255,255,0.18)'
-const GLASS_BG = 'rgba(255,255,255,0.05)'
-const GLASS_BLUR = 'blur(20px) saturate(180%)'
 
 // One small icon per quick-reply chip, cycling through a fixed set rather
 // than requiring per-prompt icon config in /admin/ai-settings — the prompts
@@ -94,6 +90,9 @@ export default function AIChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [sending, setSending] = useState(false)
   const [settings, setSettings] = useState<WidgetSettings | null>(null)
+
+  const chatGlassRootRef = useRef<HTMLDivElement>(null)
+  useLiquidGlass(chatGlassRootRef, '.glass-chat-panel')
 
   const view: 'home' | 'chat' = messages.length === 0 ? 'home' : 'chat'
 
@@ -208,21 +207,36 @@ export default function AIChatWidget() {
       </button>
 
       <Sheet open={open} onClose={() => setOpen(false)}>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '60vh',
-            maxHeight: 480,
-            padding: tokens.spacing.md,
-            borderRadius: tokens.radius.card,
-            border: `1px solid ${GLASS_BORDER}`,
-            background: `linear-gradient(160deg, rgba(10,10,20,0.6) 0%, rgba(6,20,14,0.6) 100%), ${GLASS_BG}`,
-            backdropFilter: GLASS_BLUR,
-            WebkitBackdropFilter: GLASS_BLUR,
-            boxShadow: '0 0 40px rgba(34,197,94,0.08)',
-          }}
-        >
+        <div ref={chatGlassRootRef} style={{ position: 'relative' }}>
+          {/* Background gradient — positioned behind the glass panel as a sibling */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: tokens.radius.card,
+              background: 'linear-gradient(160deg, rgba(10,10,20,0.6) 0%, rgba(6,20,14,0.6) 100%)',
+              zIndex: 0,
+              pointerEvents: 'none',
+            }}
+          />
+
+          {/* Glass panel — direct child of root, WebGL shader applied by liquidglass */}
+          <div
+            className="glass-chat-panel"
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              height: '60vh',
+              maxHeight: 480,
+              padding: tokens.spacing.md,
+              borderRadius: tokens.radius.card,
+              border: `1px solid ${GLASS_BORDER}`,
+              boxShadow: '0 0 40px rgba(34,197,94,0.08)',
+            }}
+          >
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
             <button
               onClick={() => setOpen(false)}
@@ -413,6 +427,7 @@ export default function AIChatWidget() {
           <div style={{ marginTop: 8, fontSize: 10, color: 'rgba(255,255,255,0.28)', textAlign: 'center' }}>
             AI Provided by FORM
           </div>
+        </div>
         </div>
       </Sheet>
     </>
