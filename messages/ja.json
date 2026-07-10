@@ -208,19 +208,29 @@
     ]
   },
   "pricingPage": {
+    "hero_eyebrow": "Space8",
+    "hero_line1": "計算が分かる人のために。",
+    "hero_line2_before": "賢く予約。",
+    "hero_line2_highlight": "難しくない。",
     "hero_title": "明確な料金",
     "hero_subtitle": "必要なときに予約。隠れた費用なし。",
     "per_hour": "／時",
-    "period_afternoon_title": "オフピーク",
-    "period_afternoon_time": "平日 09:00〜18:00",
-    "period_evening_title": "ピーク",
-    "period_evening_time": "平日 18:00〜23:00／週末終日",
+    "period_afternoon_title": "午後",
+    "period_afternoon_time": "12pm – 6pm",
+    "period_evening_title": "夕方",
+    "period_evening_time": "6pm – 12am",
     "period_latenight_title": "深夜",
-    "period_latenight_time": "毎日 23:00〜02:00",
+    "period_latenight_time": "12am – 6am",
     "duration_1h": "1時間",
     "duration_2h": "2時間",
     "duration_3h": "3時間",
+    "member_price_prefix": "会員価格",
+    "time_line1": "あなたの時間、",
+    "time_line2": "無駄にしない。",
+    "cta_line1": "今、空いています。",
+    "cta_line2": "すぐにブレイク。",
     "cta_book": "今すぐ予約",
+    "cta_button": "今すぐ予約",
     "cta_details": "料金詳細",
     "breakdown_title": "料金一覧",
     "breakdown_period": "時間帯",
@@ -261,17 +271,18 @@
       }
     ],
     "faq_title": "よくある質問",
+    "faq_scroll_hint": "← スワイプして続きを見る",
     "faqs": [
       {
-        "q": "隠れた費用はありますか？",
+        "q": "隠れた費用は？",
         "a": "ありません。料金はすべて時間制で、予約時に明示されます。"
       },
       {
-        "q": "途中で延長できますか？",
+        "q": "途中で延長可能？",
         "a": "空き状況により可能です。超過料金は15分ごとに HK$50 です。"
       },
       {
-        "q": "超過料金はどう計算しますか？",
+        "q": "超過料金の計算は？",
         "a": "15分ごとに HK$50 で、登録済みカードから自動引き落としされます。"
       },
       {

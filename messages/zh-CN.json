@@ -208,19 +208,29 @@
     ]
   },
   "pricingPage": {
+    "hero_eyebrow": "Space8",
+    "hero_line1": "为了懂得算数的人。",
+    "hero_line2_before": "订台要想得尽。",
+    "hero_line2_highlight": "不用想得累。",
     "hero_title": "透明定价",
     "hero_subtitle": "按需预订，无隐藏费用。",
     "per_hour": "／小时",
-    "period_afternoon_title": "非繁忙时段",
-    "period_afternoon_time": "平日 09:00–18:00",
-    "period_evening_title": "繁忙时段",
-    "period_evening_time": "平日 18:00–23:00／周末全日",
+    "period_afternoon_title": "下午时段",
+    "period_afternoon_time": "12pm – 6pm",
+    "period_evening_title": "晚间时段",
+    "period_evening_time": "6pm – 12am",
     "period_latenight_title": "深夜时段",
-    "period_latenight_time": "每日 23:00–02:00",
+    "period_latenight_time": "12am – 6am",
     "duration_1h": "1 小时",
     "duration_2h": "2 小时",
     "duration_3h": "3 小时",
+    "member_price_prefix": "会员折实",
+    "time_line1": "你的时间，",
+    "time_line2": "不会白等。",
+    "cta_line1": "现在有位，",
+    "cta_line2": "即刻开波。",
     "cta_book": "立即预订",
+    "cta_button": "立即预订",
     "cta_details": "定价详情",
     "breakdown_title": "完整收费表",
     "breakdown_period": "时段",
@@ -261,9 +271,10 @@
       }
     ],
     "faq_title": "常见问题",
+    "faq_scroll_hint": "← 左右滑动查看更多",
     "faqs": [
       {
-        "q": "有没有隐藏费用？",
+        "q": "有隐藏费用吗？",
         "a": "没有。所有收费均按时计算并在预订时清楚显示，绝无隐藏费用。"
       },
       {

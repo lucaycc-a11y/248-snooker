@@ -208,19 +208,29 @@
     ]
   },
   "pricingPage": {
+    "hero_eyebrow": "Space8",
+    "hero_line1": "For those who can count.",
+    "hero_line2_before": "Book smart.",
+    "hero_line2_highlight": "Not hard.",
     "hero_title": "Transparent Pricing",
     "hero_subtitle": "Book on demand. No hidden fees.",
     "per_hour": "/hr",
-    "period_afternoon_title": "Off-Peak",
-    "period_afternoon_time": "Weekdays 09:00–18:00",
-    "period_evening_title": "Peak",
-    "period_evening_time": "Weekdays 18:00–23:00 / Weekends all day",
+    "period_afternoon_title": "Afternoon",
+    "period_afternoon_time": "12pm – 6pm",
+    "period_evening_title": "Evening",
+    "period_evening_time": "6pm – 12am",
     "period_latenight_title": "Late Night",
-    "period_latenight_time": "Daily 23:00–02:00",
+    "period_latenight_time": "12am – 6am",
     "duration_1h": "1 hour",
     "duration_2h": "2 hours",
     "duration_3h": "3 hours",
+    "member_price_prefix": "Members pay",
+    "time_line1": "Your time,",
+    "time_line2": "never wasted.",
+    "cta_line1": "Tables available now.",
+    "cta_line2": "Break right away.",
     "cta_book": "Book Now",
+    "cta_button": "Book Now",
     "cta_details": "Pricing Details",
     "breakdown_title": "Full Price List",
     "breakdown_period": "Period",
@@ -260,22 +270,23 @@
         "price": "Free"
       }
     ],
-    "faq_title": "FAQ",
+    "faq_title": "Questions?",
+    "faq_scroll_hint": "← Swipe to see more",
     "faqs": [
       {
-        "q": "Are there any hidden fees?",
+        "q": "Hidden fees?",
         "a": "No. All charges are hourly and shown clearly at booking — nothing hidden."
       },
       {
-        "q": "Can I extend mid-session?",
+        "q": "Extend mid-session?",
         "a": "Yes, subject to availability. Overtime is charged at HK$50 per 15 minutes."
       },
       {
-        "q": "How is overtime calculated?",
+        "q": "Overtime calculation?",
         "a": "HK$50 per 15 minutes, deducted automatically from your registered card."
       },
       {
-        "q": "What payment methods do you accept?",
+        "q": "Payment methods?",
         "a": "Credit cards, Apple Pay, Google Pay, Alipay, and WeChat Pay."
       }
     ],
