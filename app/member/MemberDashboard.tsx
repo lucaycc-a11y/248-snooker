@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,7 +22,6 @@ import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";
 import ReschedulePicker from "@/components/member/ReschedulePicker";
-import { useLiquidGlass } from "@/lib/useLiquidGlass";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -148,9 +147,6 @@ export default function MemberDashboard({
   const tierId = current.id;
   const accent = TIER_ACCENT[tierId] ?? GREEN;
 
-  const glassRootRef = useRef<HTMLDivElement>(null);
-  useLiquidGlass(glassRootRef, '.glass-card');
-
   const signOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -196,39 +192,26 @@ export default function MemberDashboard({
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "760px", margin: "0 auto", padding: "16px 20px 96px" }}>
         {/* ── Membership card (club-card metaphor) ── */}
-        <div ref={glassRootRef} style={{ position: "relative" }}>
-          {/* Background tier glow — positioned behind the glass card as a sibling */}
-          <div
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: "24px",
-              background: TIER_GLOW[tierId] ?? TIER_GLOW.amateur,
-              zIndex: 0,
-              pointerEvents: "none",
-            }}
-          />
-
-          {/* Glass card — direct child of root, WebGL shader applied by liquidglass */}
-          <motion.div
-            className="glass-card"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: EASE }}
-            style={{
-              position: "relative",
-              zIndex: 1,
-              borderRadius: "24px",
-              border: `1px solid ${HAIRLINE}`,
-              padding: "26px 28px",
-              minHeight: 210,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              gap: 28,
-            }}
-          >
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          style={{
+            position: "relative",
+            borderRadius: "24px",
+            border: `1px solid ${HAIRLINE}`,
+            background: `${TIER_GLOW[tierId] ?? TIER_GLOW.amateur}, ${GLASS_BG}`,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+            padding: "26px 28px",
+            overflow: "hidden",
+            minHeight: 210,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: 28,
+          }}
+        >
           {/* Top: wordmark + tier */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
@@ -291,7 +274,6 @@ export default function MemberDashboard({
             </div>
           </div>
         </motion.div>
-        </div>
 
         {/* Wallet buttons */}
         <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
