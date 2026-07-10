@@ -545,7 +545,14 @@
     "duration_2h": "2 hours",
     "duration_3h": "3 hours",
     "cta_book": "Pick a Slot",
-    "cta_learn": "Pricing Details"
+    "cta_learn": "Pricing Details",
+    "hero_eyebrow": "Space8",
+    "hero_line1": "For those who can count.",
+    "hero_line2": "Not hard.",
+    "time_line1": "Your time,",
+    "cta_line1": "Tables available now.",
+    "cta_button": "Book Now",
+    "faq_title": "Questions?"
   },
   "faq": {
     "title": "FAQ",
