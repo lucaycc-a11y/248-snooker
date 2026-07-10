@@ -417,7 +417,7 @@ export default function DoorLockPage() {
                 key={`${lockout.device_id}-${lockout.scope}`}
                 style={{
                   padding: 12,
-                  background: tokens.colors.bgSecondary,
+                  background: tokens.colors.surface,
                   borderRadius: tokens.radius.input,
                   borderLeft: `4px solid ${tokens.colors.danger}`,
                 }}
