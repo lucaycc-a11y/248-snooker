@@ -15,6 +15,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",
     "@react-email/render": "^1.4.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@stripe/react-stripe-js": "^6.6.0",
     "@stripe/stripe-js": "^9.8.0",
     "@supabase/ssr": "^0.12.0",
@@ -48,6 +50,7 @@
     "autoprefixer": "^10.4.19",
     "patch-package": "^8.0.1",
     "postcss": "^8.4.39",
+    "sharp": "^0.35.3",
     "tailwindcss": "^3.4.6",
     "typescript": "^5.5.3"
   }

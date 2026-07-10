@@ -33,7 +33,7 @@ export function EditableText({
   const [saved, setSaved] = useState(false)
   const originalRef = useRef(value)
 
-  const Component = Tag as React.ElementType
+  const Component = Tag as any
 
   useEffect(() => {
     if (!editing && ref.current) {

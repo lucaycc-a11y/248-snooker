@@ -4,6 +4,8 @@ import { BookingRefundedEmail, type BookingRefundedEmailProps } from './template
 import { BookingRescheduledEmail, type BookingRescheduledEmailProps } from './templates/booking-rescheduled'
 import { AdminInviteEmail } from './templates/admin-invite'
 import { render } from '@react-email/render'
+import { generateBookingQR, getRecommendedQRSize } from '@/lib/qrcode'
+import type { QrPayload } from '@/lib/qr/jwt'
 
 type SendReceiptParams = {
   to: string
@@ -34,6 +36,24 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
   const serviceFee = 0
   const total = subtotal + serviceFee
 
+  // Generate QR code for door access
+  const startIso = `${params.booking.date}T${params.booking.start_time}`
+  const endTimeHHMMSS = params.booking.end_time.length === 5 ? `${params.booking.end_time}:00` : params.booking.end_time
+  const endIso = `${params.booking.date}T${endTimeHHMMSS}`
+
+  const qrPayload: QrPayload = {
+    booking_id: params.booking.id,
+    user_id: params.booking.user_id,
+    table_number: params.booking.table_number,
+    start_time: startIso,
+    end_time: endIso,
+  }
+
+  const { qrCode, backupCode } = await generateBookingQR(qrPayload, {
+    format: 'data-url',
+    width: getRecommendedQRSize('email'),
+  })
+
   const emailProps: BookingConfirmedEmailProps = {
     locale: params.locale,
     customerName: params.customerName,
@@ -49,6 +69,8 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
     total,
     paymentMethod: params.booking.payment_method,
     paymentIntentId: params.paymentIntentId,
+    qrCodeDataUrl: qrCode as string,
+    backupCode,
   }
 
   const html = await render(BookingConfirmedEmail(emailProps))

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -142,10 +142,31 @@ export default function MemberDashboard({
   const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
   const [refundBooking, setRefundBooking] = useState<MemberBooking | null>(null);
   const [rescheduleBooking, setRescheduleBooking] = useState<MemberBooking | null>(null);
+  const [memberQrDataUrl, setMemberQrDataUrl] = useState<string | null>(null);
 
   const { current, next, progress, pointsToNext } = resolveTier(user.points, tiers);
   const tierId = current.id;
   const accent = TIER_ACCENT[tierId] ?? GREEN;
+
+  // Fetch real scannable QR code for member card from API
+  useEffect(() => {
+    if (!user.member_code) return
+
+    async function fetchQR() {
+      try {
+        const res = await fetch('/api/member/qr')
+        if (!res.ok) {
+          throw new Error(`QR fetch failed: ${res.status}`)
+        }
+        const data = await res.json()
+        setMemberQrDataUrl(data.qrCode)
+      } catch (err) {
+        console.error('[MemberDashboard] QR fetch failed:', err)
+      }
+    }
+
+    fetchQR()
+  }, [user.member_code])
 
   const signOut = async () => {
     const supabase = createClient();
@@ -270,7 +291,17 @@ export default function MemberDashboard({
                 borderRadius: "12px",
               }}
             >
-              <QRGlyph data={user.member_code} size={76} dark />
+              {memberQrDataUrl ? (
+                <img
+                  src={memberQrDataUrl}
+                  alt="Member QR Code"
+                  width={76}
+                  height={76}
+                  style={{ display: 'block' }}
+                />
+              ) : (
+                <QRGlyph data={user.member_code} size={76} dark />
+              )}
             </div>
           </div>
         </motion.div>

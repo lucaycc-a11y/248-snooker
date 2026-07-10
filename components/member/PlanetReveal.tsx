@@ -4,132 +4,12 @@ import { useEffect, useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Download, ArrowRight } from "lucide-react"
 import { type PlanetName, PLANET_METADATA } from "@/lib/member/planetSystem"
+import { Planet3D } from "./Planet3D"
 
 const GREEN = "#22c55e"
 const EASE = [0.16, 1, 0.3, 1] as const
 
 type Phase = "loading" | "reveal" | "complete"
-
-// Simplified 2D canvas-based planet renderer (fallback-first approach)
-// Uses radial gradients + noise patterns to create unique planet appearances
-function renderPlanetCanvas(
-  canvas: HTMLCanvasElement,
-  planetName: PlanetName,
-  phase: Phase
-) {
-  const ctx = canvas.getContext("2d")
-  if (!ctx) return
-
-  const dpr = Math.min(window.devicePixelRatio || 1, 2)
-  const size = 400
-  canvas.width = size * dpr
-  canvas.height = size * dpr
-  canvas.style.width = `${size}px`
-  canvas.style.height = `${size}px`
-  ctx.scale(dpr, dpr)
-
-  const centerX = size / 2
-  const centerY = size / 2
-  const radius = size * 0.4
-
-  const meta = PLANET_METADATA[planetName]
-
-  // Clear
-  ctx.clearRect(0, 0, size, size)
-
-  if (phase === "loading") {
-    // Scanning beam effect
-    const pulseRadius = radius * 0.5
-    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, pulseRadius)
-    gradient.addColorStop(0, `${GREEN}40`)
-    gradient.addColorStop(0.5, `${GREEN}20`)
-    gradient.addColorStop(1, `${GREEN}00`)
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, size, size)
-    return
-  }
-
-  // Planet sphere - base color
-  const baseGradient = ctx.createRadialGradient(
-    centerX - radius * 0.3,
-    centerY - radius * 0.3,
-    0,
-    centerX,
-    centerY,
-    radius
-  )
-
-  // Color variations based on planet type
-  const baseColor = meta.color
-  const lightColor = lightenColor(baseColor, 40)
-  const darkColor = darkenColor(baseColor, 30)
-
-  baseGradient.addColorStop(0, lightColor)
-  baseGradient.addColorStop(0.4, baseColor)
-  baseGradient.addColorStop(1, darkColor)
-
-  ctx.fillStyle = baseGradient
-  ctx.beginPath()
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
-  ctx.fill()
-
-  // Procedural surface texture using deterministic noise
-  const seed = planetName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-
-  // Add surface features (craters, clouds, etc.)
-  ctx.globalAlpha = 0.3
-  for (let i = 0; i < 30; i++) {
-    const angle = (seed + i * 137.5) % 360
-    const dist = ((seed + i * 47) % 100) / 100
-    const featureSize = 5 + ((seed + i * 23) % 20)
-
-    const x = centerX + Math.cos(angle) * dist * radius
-    const y = centerY + Math.sin(angle) * dist * radius
-
-    const distFromCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2)
-    if (distFromCenter > radius) continue
-
-    ctx.fillStyle = i % 2 === 0 ? `${darkColor}60` : `${lightColor}40`
-    ctx.beginPath()
-    ctx.arc(x, y, featureSize, 0, Math.PI * 2)
-    ctx.fill()
-  }
-  ctx.globalAlpha = 1
-
-  // Atmospheric glow (rim light)
-  const glowGradient = ctx.createRadialGradient(
-    centerX,
-    centerY,
-    radius * 0.95,
-    centerX,
-    centerY,
-    radius * 1.15
-  )
-  glowGradient.addColorStop(0, `${GREEN}00`)
-  glowGradient.addColorStop(0.5, `${GREEN}40`)
-  glowGradient.addColorStop(1, `${GREEN}00`)
-
-  ctx.fillStyle = glowGradient
-  ctx.beginPath()
-  ctx.arc(centerX, centerY, radius * 1.15, 0, Math.PI * 2)
-  ctx.fill()
-}
-
-function lightenColor(hex: string, percent: number): string {
-  const num = parseInt(hex.replace("#", ""), 16)
-  const r = Math.min(255, ((num >> 16) & 255) + percent)
-  const g = Math.min(255, ((num >> 8) & 255) + percent)
-  const b = Math.min(255, (num & 255) + percent)
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`
-}
-
-function darkenColor(hex: string, percent: number): string {
-  const num = parseInt(hex.replace("#", ""), 16)
-  const r = Math.max(0, ((num >> 16) & 255) - percent)
-  const g = Math.max(0, ((num >> 8) & 255) - percent)
-  const b = Math.max(0, (num & 255) - percent)
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`
-}
 
 // Starfield background
 function StarField() {
@@ -212,7 +92,6 @@ export function PlanetReveal({
   }
 }) {
   const [phase, setPhase] = useState<Phase>("loading")
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const meta = PLANET_METADATA[planetName]
 
   useEffect(() => {
@@ -225,23 +104,6 @@ export function PlanetReveal({
       clearTimeout(timer2)
     }
   }, [])
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    renderPlanetCanvas(canvas, planetName, phase)
-
-    // Animate planet rotation
-    if (phase === "reveal" || phase === "complete") {
-      let rotation = 0
-      const interval = setInterval(() => {
-        rotation += 1
-        renderPlanetCanvas(canvas, planetName, phase)
-      }, 50)
-      return () => clearInterval(interval)
-    }
-  }, [planetName, phase])
 
   return (
     <div
@@ -278,15 +140,26 @@ export function PlanetReveal({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <canvas
-                ref={canvasRef}
+              <div
                 style={{
                   width: 200,
                   height: 200,
                   margin: "0 auto 32px",
-                  display: "block",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
-              />
+              >
+                <div
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: "50%",
+                    background: `radial-gradient(circle, ${GREEN}40 0%, ${GREEN}20 50%, ${GREEN}00 100%)`,
+                    animation: "pulse 1.5s ease-in-out infinite",
+                  }}
+                />
+              </div>
               <p
                 style={{
                   fontSize: 18,
@@ -306,16 +179,13 @@ export function PlanetReveal({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1, ease: EASE }}
             >
-              <canvas
-                ref={canvasRef}
+              <div
                 style={{
-                  width: 400,
-                  height: 400,
-                  margin: "0 auto 48px",
-                  display: "block",
                   filter: "drop-shadow(0 0 40px rgba(34, 197, 94, 0.3))",
                 }}
-              />
+              >
+                <Planet3D planetName={planetName} phase={phase} width={400} height={400} />
+              </div>
             </motion.div>
           )}
 
@@ -326,16 +196,13 @@ export function PlanetReveal({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, ease: EASE }}
             >
-              <canvas
-                ref={canvasRef}
+              <div
                 style={{
-                  width: 300,
-                  height: 300,
-                  margin: "0 auto 32px",
-                  display: "block",
                   filter: "drop-shadow(0 0 40px rgba(34, 197, 94, 0.2))",
                 }}
-              />
+              >
+                <Planet3D planetName={planetName} phase={phase} width={300} height={300} />
+              </div>
 
               <h1
                 style={{
