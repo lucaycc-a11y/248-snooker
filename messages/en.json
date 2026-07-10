@@ -45,7 +45,13 @@
     "sign_in_otp": "Sign in with code",
     "switch_to_otp": "Use verification code instead",
     "switch_to_password": "Set a password before? Sign in with password",
-    "err_password": "Incorrect email or password"
+    "err_password": "Incorrect email or password",
+    "planet_loading": "Assigning your planet...",
+    "planet_welcome_prefix": "Welcome,",
+    "planet_welcome_suffix": "Member",
+    "planet_subtitle": "Your one-of-a-kind member code",
+    "planet_share": "Share My Planet",
+    "planet_continue": "Enter Member Center"
   },
   "404": {
     "code": "404",

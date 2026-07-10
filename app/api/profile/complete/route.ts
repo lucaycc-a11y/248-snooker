@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { validateProfile, normalizeHkPhone } from '@/lib/auth/profile'
+import { generateMemberCode } from '@/lib/member/planetSystem'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
@@ -67,6 +68,10 @@ export async function POST(req: Request) {
     // column intentionally holds an unverified, format-checked number for them.
     // NOTE: this write can only 500 — auth is fully settled above, so a 401 can
     // never originate from here regardless of which client performs the write.
+
+    // Generate planet-based member code (SPACE8-{PLANET}-{4chars}-{checksum})
+    const memberCode = generateMemberCode(user.id)
+
     const service = getServiceSupabase()
     const { error } = await service
       .from('users')
@@ -76,6 +81,7 @@ export async function POST(req: Request) {
           display_name: result.value.display_name,
           email: result.value.email,
           phone: result.value.phone,
+          member_code: memberCode,
           profile_complete: true,
           updated_at: new Date().toISOString(),
         },
@@ -93,8 +99,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'update_failed' }, { status: 500 })
     }
 
-    console.log('[profile/complete] success', { userId: user.id })
-    return NextResponse.json({ ok: true, profile: result.value })
+    console.log('[profile/complete] success', { userId: user.id, memberCode })
+    return NextResponse.json({ ok: true, profile: result.value, memberCode })
   } catch (err) {
     const e = err as Error
     console.error('[profile/complete] error', { message: e.message, stack: e.stack })

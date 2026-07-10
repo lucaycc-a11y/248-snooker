@@ -45,7 +45,13 @@
     "sign_in_otp": "確認コードでサインイン",
     "switch_to_otp": "確認コードを使う",
     "switch_to_password": "パスワードを設定済みですか？パスワードでサインイン",
-    "err_password": "メールアドレスまたはパスワードが正しくありません"
+    "err_password": "メールアドレスまたはパスワードが正しくありません",
+    "planet_loading": "あなた専用の惑星を割り当てています...",
+    "planet_welcome_prefix": "ようこそ、",
+    "planet_welcome_suffix": "会員",
+    "planet_subtitle": "全宇宙で唯一の会員番号",
+    "planet_share": "私の惑星をシェア",
+    "planet_continue": "会員センターへ"
   },
   "404": {
     "code": "404",

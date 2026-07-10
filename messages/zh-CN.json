@@ -45,7 +45,13 @@
     "sign_in_otp": "用验证码登录",
     "switch_to_otp": "改用验证码",
     "switch_to_password": "曾经设定过密码？用密码登录",
-    "err_password": "电邮或密码不正确"
+    "err_password": "电邮或密码不正确",
+    "planet_loading": "正在为你分配专属星球...",
+    "planet_welcome_prefix": "欢迎，",
+    "planet_welcome_suffix": "会员",
+    "planet_subtitle": "全宇宙独一无二的会员编号",
+    "planet_share": "分享我的星球",
+    "planet_continue": "进入会员中心"
   },
   "404": {
     "code": "404",

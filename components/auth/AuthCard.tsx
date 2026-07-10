@@ -11,6 +11,8 @@ import { GoogleSignInButton } from "./GoogleSignInButton"
 import { AppleSignInButton } from "./AppleSignInButton"
 import { OtpInput } from "./OtpInput"
 import { ProfileCompletion } from "./ProfileCompletion"
+import { PlanetReveal } from "@/components/member/PlanetReveal"
+import { extractPlanetFromCode, type PlanetName } from "@/lib/member/planetSystem"
 
 // Landing-page language: the site green is the single primary accent/CTA; black
 // text on the green button; surfaces are translucent-white glass (provided by the
@@ -21,7 +23,7 @@ const RESEND_COOLDOWN = 30
 const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type Phase = "methods" | "phone" | "otp" | "profile" | "password"
+type Phase = "methods" | "phone" | "otp" | "profile" | "password" | "planet_reveal"
 type OtpChannel = "sms" | "email"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
 
@@ -50,6 +52,8 @@ export function AuthCard({
   const [attemptsLeft, setAttemptsLeft] = useState(MAX_OTP_ATTEMPTS)
   const [cooldown, setCooldown] = useState(0)
   const [prefill, setPrefill] = useState<Prefill>({ name: "", email: "", phone: "", phoneVerified: false })
+  const [memberCode, setMemberCode] = useState<string | null>(null)
+  const [planetName, setPlanetName] = useState<PlanetName | null>(null)
   // True until the mount-time session check resolves — avoids flashing the method
   // picker to a user who's already signed in (e.g. returning from an OAuth redirect).
   const [initializing, setInitializing] = useState(true)
@@ -287,6 +291,25 @@ export function AuthCard({
     )
   }
 
+  // ── Planet Reveal (new member registration complete) ────────────────────────
+  if (phase === "planet_reveal" && memberCode && planetName) {
+    return (
+      <PlanetReveal
+        planetName={planetName}
+        memberCode={memberCode}
+        onComplete={onAuthComplete}
+        labels={{
+          loading: t("planet_loading"),
+          welcome_prefix: t("planet_welcome_prefix"),
+          welcome_suffix: t("planet_welcome_suffix"),
+          subtitle: t("planet_subtitle"),
+          share_button: t("planet_share"),
+          continue_button: t("planet_continue"),
+        }}
+      />
+    )
+  }
+
   // ── Profile gate ───────────────────────────────────────────────────────────
   if (phase === "profile") {
     return (
@@ -295,7 +318,19 @@ export function AuthCard({
         initialEmail={prefill.email}
         initialPhone={prefill.phone}
         isPhoneVerified={prefill.phoneVerified}
-        onComplete={onAuthComplete}
+        onComplete={(code) => {
+          if (code) {
+            const planet = extractPlanetFromCode(code)
+            if (planet) {
+              setMemberCode(code)
+              setPlanetName(planet)
+              setPhase("planet_reveal")
+              return
+            }
+          }
+          // Fallback if no planet code (shouldn't happen)
+          onAuthComplete()
+        }}
         labels={{
           title: t("profile_title"),
           subtitle: t("profile_subtitle"),

@@ -36,7 +36,8 @@
     "react-dom": "^18.3.1",
     "recharts": "^2.15.4",
     "resend": "^4.8.0",
-    "stripe": "^22.3.0"
+    "stripe": "^22.3.0",
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@types/matter-js": "^0.20.2",

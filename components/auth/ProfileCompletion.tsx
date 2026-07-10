@@ -45,7 +45,7 @@ export function ProfileCompletion({
   initialEmail?: string
   initialPhone?: string
   isPhoneVerified?: boolean
-  onComplete: () => void
+  onComplete: (memberCode?: string) => void
   labels: {
     title: string
     subtitle: string
@@ -111,6 +111,9 @@ export function ProfileCompletion({
         return
       }
 
+      const responseData = await res.json()
+      const memberCode = responseData.memberCode
+
       // Optional: set password if user provided one (Supabase updateUser)
       if (password.trim().length >= 6) {
         const supabase = createClient()
@@ -121,7 +124,7 @@ export function ProfileCompletion({
         }
       }
 
-      onComplete()
+      onComplete(memberCode)
     } catch {
       setErrMsg(labels.err_generic)
       setSaving(false)
