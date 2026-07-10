@@ -20,6 +20,21 @@ export default async function MemberPage() {
   const data = await getMemberData();
   if (!data) redirect("/login?returnUrl=/member");
 
+  // Profile completion gate: if profile is incomplete, redirect to /login where
+  // AuthCard will detect the session and show the profile completion flow (which
+  // includes the planet reveal animation for new members).
+  const { createClient } = await import("@/lib/supabase/server");
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("users")
+    .select("profile_complete")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  if (profile?.profile_complete !== true) {
+    redirect("/login?returnUrl=/member");
+  }
+
   // /member lives outside the [locale] segment (bypassed by middleware), so we
   // resolve the locale from the NEXT_LOCALE cookie and provide messages here.
   const locale = await resolveLocaleFromCookie();
