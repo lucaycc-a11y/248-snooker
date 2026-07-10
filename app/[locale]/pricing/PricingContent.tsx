@@ -17,7 +17,7 @@ const SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
-const DISPLAY_FONT = '"Bebas Neue", sans-serif';
+const DISPLAY_FONT = "var(--font-bebas), 'Bebas Neue', sans-serif";
 
 function fmt(value: number): string {
   return `HK$${Math.round(value)}`;
@@ -77,6 +77,7 @@ function FloatingIcons() {
               left,
               right,
               bottom,
+              willChange: "opacity, transform",
             }}
           >
             <Icon size={size} color={color} strokeWidth={1.5} />
@@ -111,14 +112,17 @@ export default function PricingContent({
           color: "#1d1d1f",
           padding: "clamp(120px, 15vh, 180px) 24px clamp(80px, 12vh, 120px)",
           textAlign: "center",
-          maxWidth: "1200px",
-          margin: "0 auto",
         }}
       >
         <motion.div
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: EASE }}
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            willChange: "opacity, transform",
+          }}
         >
           <h1
             style={{
@@ -191,7 +195,7 @@ export default function PricingContent({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.4 }}
                 transition={{ duration: 0.7, ease: EASE }}
-                style={{ textAlign: "center" }}
+                style={{ textAlign: "center", willChange: "opacity, transform" }}
               >
                 <Icon size={48} color={GREEN} strokeWidth={1.5} style={{ marginBottom: 24 }} />
 
@@ -304,6 +308,7 @@ export default function PricingContent({
             textAlign: "center",
             maxWidth: "800px",
             margin: "0 auto",
+            willChange: "opacity, transform",
           }}
         >
           <h2
@@ -346,6 +351,7 @@ export default function PricingContent({
               letterSpacing: "-0.02em",
               margin: "0 0 56px",
               textAlign: "center",
+              willChange: "opacity, transform",
             }}
             data-cms-key="pricing.faq_title"
           >
@@ -450,6 +456,7 @@ export default function PricingContent({
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true, amount: 0.5 }}
           transition={{ duration: 0.8, ease: EASE }}
+          style={{ willChange: "opacity, transform" }}
         >
           <Circle
             size={80}

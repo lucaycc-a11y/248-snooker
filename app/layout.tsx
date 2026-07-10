@@ -1,5 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Bebas_Neue } from "next/font/google";
 import "./globals.css";
+
+const bebasNeue = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-bebas",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Space8 · 香港自助中式桌球 06:00-24:00",
@@ -94,7 +102,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="zh-HK">
+    <html lang="zh-HK" className={bebasNeue.variable}>
       <body className="min-h-screen bg-black text-white antialiased">
         <script
           type="application/ld+json"
