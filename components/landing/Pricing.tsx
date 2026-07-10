@@ -7,6 +7,8 @@ import { CMSText } from "@/components/cms/CMSText";
 
 const GREEN_LIGHT = "#22C55E";
 const SUBTLE = "#86868B";
+const DARK_TEXT = "#1d1d1f";
+const LIGHT_GRAY = "#6e6e73";
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
@@ -14,6 +16,24 @@ const FONT_FAMILY =
 const EASE = [0.16, 1, 0.3, 1] as const;
 const SPRING = { type: "spring", stiffness: 260, damping: 26 } as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
+
+// Highlighter mark component — Apple's inline highlight effect
+function Mark({ children, color = GREEN_LIGHT }: { children: React.ReactNode; color?: string }) {
+  return (
+    <span
+      style={{
+        background: color,
+        color: "#000",
+        padding: "0 8px",
+        display: "inline",
+        boxDecorationBreak: "clone",
+        WebkitBoxDecorationBreak: "clone",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
 
 // ── Large period icons (lucide-react paths, inlined). stroke-width 1, sized via props. ──
 const LARGE_ICON_PROPS = {
@@ -73,30 +93,26 @@ function LearnMore({ href, children, cmsKey }: LearnMoreProps) {
   return (
     <a
       href={href}
-      className="group inline-flex items-center"
       style={{
-        color: GREEN_LIGHT,
-        fontSize: "16px",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: GREEN_LIGHT,
+        color: "#000",
+        fontSize: "15px",
+        fontWeight: 700,
         fontFamily: FONT_FAMILY,
         textDecoration: "none",
-        gap: "6px",
+        padding: "0 24px",
+        height: "44px",
+        borderRadius: "100px",
+        transition: "transform 0.2s ease",
       }}
+      onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+      onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
       data-cms-key={cmsKey}
     >
-      <span
-        aria-hidden="true"
-        style={{ width: "6px", height: "6px", borderRadius: "50%", background: GREEN_LIGHT, flexShrink: 0 }}
-      />
-      <span style={{ borderBottom: "1px solid transparent" }} className="group-hover:!border-current">
-        {children}
-      </span>
-      <span
-        aria-hidden="true"
-        style={{ transition: "transform 0.2s ease" }}
-        className="group-hover:translate-x-[3px]"
-      >
-        ›
-      </span>
+      {children}
     </a>
   );
 }
@@ -124,10 +140,10 @@ function DurationPills({ hours, onSelect, durations }: DurationPillsProps) {
             onClick={() => onSelect(d.hours)}
             style={{
               fontSize: "14px",
-              fontWeight: 500,
-              color: selected ? "#000" : "white",
-              background: selected ? "white" : "transparent",
-              border: `1px solid ${selected ? "white" : "#3D3D3D"}`,
+              fontWeight: 600,
+              color: selected ? "#000" : DARK_TEXT,
+              background: selected ? GREEN_LIGHT : "transparent",
+              border: `1px solid ${selected ? GREEN_LIGHT : "#d2d2d7"}`,
               borderRadius: "100px",
               padding: "9px 18px",
               cursor: "pointer",
@@ -156,6 +172,7 @@ function Eyebrow({ label, cmsKey }: { label: string; cmsKey: string }) {
         color: GREEN_LIGHT,
         letterSpacing: "0.04em",
         margin: "0 0 28px",
+        textTransform: "uppercase",
       }}
       data-cms-key="pricing_eyebrow"
     >
@@ -183,47 +200,49 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
   const total = stage.rate * hours;
   return (
     <>
-      <Eyebrow label={stage.label} cmsKey={`pricing.${stage.id}_label`} />
-
       <h3
         style={{
-          fontSize: "32px",
+          fontSize: "clamp(32px, 6vw, 48px)",
           fontWeight: 700,
           letterSpacing: "-0.02em",
-          color: "white",
-          margin: "0 0 2px",
+          color: DARK_TEXT,
+          margin: "0 0 8px",
         }}
       >
         <CMSText k={`pricing.${stage.id}_label`}>{stage.label}</CMSText>
       </h3>
-      <p style={{ fontSize: "14px", color: SUBTLE, margin: "0 0 32px" }}>
+      <p style={{ fontSize: "16px", color: LIGHT_GRAY, margin: "0 0 32px" }}>
         <CMSText k={`pricing.${stage.id}_range`}>{stage.range}</CMSText>
       </p>
 
-      {/* Price — flips with pill selection */}
-      <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", marginBottom: "40px" }}>
+      {/* Price with highlight effect */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", marginBottom: "40px", flexWrap: "wrap" }}>
         <div style={{ height: priceSize, overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
           <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
+            <motion.div
               key={`${stage.id}-${hours}`}
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
               transition={SPRING}
-              style={{
-                display: "block",
-                fontSize: priceSize,
-                fontWeight: 700,
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-                color: "white",
-              }}
+              style={{ display: "block" }}
             >
-              {formatPrice(total)}
-            </motion.span>
+              <Mark color={GREEN_LIGHT}>
+                <span
+                  style={{
+                    fontSize: priceSize,
+                    fontWeight: 700,
+                    letterSpacing: "-0.04em",
+                    lineHeight: 1,
+                  }}
+                >
+                  {formatPrice(total)}
+                </span>
+              </Mark>
+            </motion.div>
           </AnimatePresence>
         </div>
-        <span style={{ fontSize: "14px", color: SUBTLE, paddingBottom: "8px" }}>
+        <span style={{ fontSize: "16px", color: LIGHT_GRAY, paddingBottom: "8px" }}>
           <CMSText k="pricing.per_hour">{perHour}</CMSText>
         </span>
       </div>
@@ -232,8 +251,8 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
         <DurationPills hours={hours} onSelect={onSelect} durations={durations} />
       </div>
 
-      <div style={{ display: "flex", gap: "32px", flexWrap: "wrap" }}>
-        <LearnMore href="/about" cmsKey="pricing_link_choose_time">
+      <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+        <LearnMore href="/book" cmsKey="pricing_link_choose_time">
           <CMSText k="pricing.cta_book">{ctaBook}</CMSText>
         </LearnMore>
         <LearnMore href="/pricing" cmsKey="pricing_link_details">
@@ -346,8 +365,8 @@ export default function Pricing() {
         id="pricing"
         className="no-scrollbar"
         style={{
-          background: "#000000",
-          color: "white",
+          background: "#fff",
+          color: DARK_TEXT,
           fontFamily: FONT_FAMILY,
           height: "100vh",
           overflowY: "scroll",
@@ -386,44 +405,48 @@ export default function Pricing() {
                   fontSize: "40px",
                   fontWeight: 700,
                   letterSpacing: "-0.02em",
-                  color: "white",
+                  color: DARK_TEXT,
                   margin: "0 0 4px",
                 }}
               >
                 <CMSText k={`pricing.${stage.id}_label`}>{stage.label}</CMSText>
               </h3>
-              <p style={{ fontSize: "16px", color: SUBTLE, margin: 0 }}>
+              <p style={{ fontSize: "16px", color: LIGHT_GRAY, margin: 0 }}>
                 <CMSText k={`pricing.${stage.id}_range`}>{stage.range}</CMSText>
               </p>
 
               {/* Large icon — between text and price */}
               <div style={{ color: GREEN_LIGHT, margin: "40px 0" }} aria-hidden="true">
-                <stage.Glyph size={80} />
+                <stage.Glyph size={120} />
               </div>
 
-              {/* Price — flips with pill selection */}
+              {/* Price — flips with pill selection, wrapped in highlight Mark */}
               <div style={{ height: "72px", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
                 <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.span
+                  <motion.div
                     key={`${stage.id}-${hours}`}
                     initial={{ y: 56, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -56, opacity: 0 }}
                     transition={SPRING}
-                    style={{
-                      display: "block",
-                      fontSize: "72px",
-                      fontWeight: 700,
-                      letterSpacing: "-0.04em",
-                      lineHeight: 1,
-                      color: "white",
-                    }}
+                    style={{ display: "block" }}
                   >
-                    {formatPrice(total)}
-                  </motion.span>
+                    <Mark color={GREEN_LIGHT}>
+                      <span
+                        style={{
+                          fontSize: "72px",
+                          fontWeight: 700,
+                          letterSpacing: "-0.04em",
+                          lineHeight: 1,
+                        }}
+                      >
+                        {formatPrice(total)}
+                      </span>
+                    </Mark>
+                  </motion.div>
                 </AnimatePresence>
               </div>
-              <p style={{ fontSize: "16px", color: SUBTLE, margin: "10px 0 0" }}>
+              <p style={{ fontSize: "16px", color: LIGHT_GRAY, margin: "10px 0 0" }}>
                 <CMSText k="pricing.per_hour">{perHour}</CMSText>
               </p>
 
@@ -434,7 +457,7 @@ export default function Pricing() {
 
               {/* Links */}
               <div style={{ display: "flex", justifyContent: "center", gap: "24px", flexWrap: "wrap", marginTop: "40px" }}>
-                <LearnMore href="/about" cmsKey="pricing_link_choose_time">
+                <LearnMore href="/book" cmsKey="pricing_link_choose_time">
                   <CMSText k="pricing.cta_book">{ctaBook}</CMSText>
                 </LearnMore>
                 <LearnMore href="/pricing" cmsKey="pricing_link_details">
@@ -453,7 +476,7 @@ export default function Pricing() {
   const activeHours = hoursByStage[active.id] ?? 1;
 
   return (
-    <section id="pricing" data-nav-theme="dark" style={{ background: "#000000", color: "white", fontFamily: FONT_FAMILY }}>
+    <section id="pricing" data-nav-theme="light" style={{ background: "#fff", color: DARK_TEXT, fontFamily: FONT_FAMILY }}>
       <div ref={sectionRef} style={{ position: "relative", height: "300vh" }}>
         <div
           style={{
@@ -478,14 +501,14 @@ export default function Pricing() {
               alignItems: "center",
             }}
           >
-            {/* LEFT — large icon, crossfades with scroll (always one visible) */}
+            {/* LEFT — large icon, crossfades with scroll (enlarged to 280px) */}
             <div
               style={{
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                minHeight: "240px",
+                minHeight: "320px",
                 color: GREEN_LIGHT,
               }}
               aria-hidden="true"
@@ -499,12 +522,12 @@ export default function Pricing() {
                   transition={SPRING}
                   style={{ position: "absolute", display: "inline-flex" }}
                 >
-                  <active.Glyph size={160} />
+                  <active.Glyph size={280} />
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* RIGHT — content, crossfades with scroll (always one visible) */}
+            {/* RIGHT — content, crossfades with scroll */}
             <div
               style={{
                 position: "relative",
