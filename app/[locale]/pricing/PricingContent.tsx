@@ -102,11 +102,13 @@ export default function PricingContent({
   const MEMBER_DISCOUNT = { amateur: 1.0, century: 0.9, maximum: 0.8 };
 
   return (
-    <div style={{ fontFamily: FONT_FAMILY, background: "#000", color: "#fff" }}>
-      {/* ── Part 1: Hero — Apple-style split headline ── */}
+    <div style={{ fontFamily: FONT_FAMILY }}>
+      {/* ── Part 1: Hero — WHITE background, black text (Apple rhythm) ── */}
       <section
-        data-nav-theme="dark"
+        data-nav-theme="light"
         style={{
+          background: "#fff",
+          color: "#1d1d1f",
           padding: "clamp(120px, 15vh, 180px) 24px clamp(80px, 12vh, 120px)",
           textAlign: "center",
           maxWidth: "1200px",
@@ -124,7 +126,7 @@ export default function PricingContent({
               fontSize: "clamp(20px, 4vw, 32px)",
               fontWeight: 400,
               letterSpacing: "0.08em",
-              color: SUBTLE,
+              color: "#86868b",
               margin: "0 0 16px",
               textTransform: "uppercase",
             }}
@@ -140,6 +142,7 @@ export default function PricingContent({
               letterSpacing: "-0.03em",
               lineHeight: 1.05,
               margin: 0,
+              color: "#1d1d1f",
             }}
             data-cms-key="pricing.hero_line1"
           >
@@ -153,6 +156,7 @@ export default function PricingContent({
               letterSpacing: "-0.02em",
               lineHeight: 1.2,
               margin: "32px 0 0",
+              color: "#1d1d1f",
             }}
             data-cms-key="pricing.hero_line2"
           >
@@ -165,7 +169,7 @@ export default function PricingContent({
         </motion.div>
       </section>
 
-      {/* ── Part 2: Sectioned Pricing — one period per viewport ── */}
+      {/* ── Part 2: Sectioned Pricing — WHITE background for number clarity ── */}
       {periods.map((period, index) => {
         const memberPrice = period.rate * MEMBER_DISCOUNT.century; // Century tier as example
         const Icon = period.id === "afternoon" ? Sun : period.id === "evening" ? Zap : Moon;
@@ -173,10 +177,12 @@ export default function PricingContent({
         return (
           <section
             key={period.id}
-            data-nav-theme="dark"
+            data-nav-theme="light"
             style={{
+              background: "#fff",
+              color: "#1d1d1f",
               padding: "clamp(80px, 12vh, 140px) 24px",
-              borderTop: index > 0 ? "1px solid #1a1a1a" : "none",
+              borderTop: "1px solid #d2d2d7",
             }}
           >
             <div style={{ maxWidth: "900px", margin: "0 auto" }}>
@@ -195,6 +201,7 @@ export default function PricingContent({
                     fontWeight: 700,
                     letterSpacing: "-0.02em",
                     margin: "0 0 16px",
+                    color: "#1d1d1f",
                   }}
                   data-cms-key={`pricing.period.${period.id}.title`}
                 >
@@ -206,7 +213,7 @@ export default function PricingContent({
                 <p
                   style={{
                     fontSize: "clamp(20px, 4vw, 28px)",
-                    color: "rgba(255,255,255,0.6)",
+                    color: "#6e6e73",
                     margin: "0 0 48px",
                   }}
                   data-cms-key={`pricing.period.${period.id}.time`}
@@ -225,9 +232,9 @@ export default function PricingContent({
                     marginBottom: 48,
                   }}
                 >
-                  <div style={{ fontSize: "clamp(56px, 12vw, 96px)", fontWeight: 700, letterSpacing: "-0.03em" }}>
+                  <div style={{ fontSize: "clamp(56px, 12vw, 96px)", fontWeight: 700, letterSpacing: "-0.03em", color: "#1d1d1f" }}>
                     {fmt(period.rate)}
-                    <span style={{ fontSize: "clamp(20px, 4vw, 32px)", color: SUBTLE, fontWeight: 400 }}>
+                    <span style={{ fontSize: "clamp(20px, 4vw, 32px)", color: "#6e6e73", fontWeight: 400 }}>
                       {" "}
                       <CMSText k="pricingPage.per_hour">{t("per_hour")}</CMSText>
                     </span>
@@ -274,13 +281,14 @@ export default function PricingContent({
         );
       })}
 
-      {/* ── Part 3: Floating icons collage ── */}
+      {/* ── Part 3: Floating icons collage — BLACK background for atmosphere ── */}
       <section
         data-nav-theme="dark"
         style={{
           position: "relative",
+          background: "#000",
+          color: "#fff",
           padding: "clamp(100px, 15vh, 180px) 24px",
-          borderTop: "1px solid #1a1a1a",
           overflow: "hidden",
         }}
       >
@@ -317,12 +325,13 @@ export default function PricingContent({
         </motion.div>
       </section>
 
-      {/* ── Part 4: Black card FAQ carousel ── */}
+      {/* ── Part 4: Black card FAQ carousel — BLACK background (continuation) ── */}
       <section
         data-nav-theme="dark"
         style={{
+          background: "#000",
+          color: "#fff",
           padding: "clamp(100px, 15vh, 160px) 0",
-          borderTop: "1px solid #1a1a1a",
         }}
       >
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 24px" }}>
@@ -426,12 +435,13 @@ export default function PricingContent({
         </div>
       </section>
 
-      {/* ── Part 5: CTA finale — Apple's sparse icon + one-liner ── */}
+      {/* ── Part 5: CTA finale — WHITE background (bookend with hero) ── */}
       <section
-        data-nav-theme="dark"
+        data-nav-theme="light"
         style={{
+          background: "#fff",
+          color: "#1d1d1f",
           padding: "clamp(120px, 18vh, 200px) 24px clamp(100px, 15vh, 160px)",
-          borderTop: "1px solid #1a1a1a",
           textAlign: "center",
         }}
       >
@@ -455,6 +465,7 @@ export default function PricingContent({
               letterSpacing: "-0.02em",
               lineHeight: 1.1,
               margin: "0 0 48px",
+              color: "#1d1d1f",
             }}
             data-cms-key="pricing.cta_line1"
           >
