@@ -212,7 +212,7 @@ export default function DoorLockPage() {
               width: 12,
               height: 12,
               borderRadius: '50%',
-              background: deviceStatus?.status === 'online' ? tokens.colors.success : tokens.colors.error,
+              background: deviceStatus?.status === 'online' ? tokens.colors.brand : tokens.colors.danger,
             }}
           />
           <span style={{ color: tokens.colors.textMuted }}>
@@ -233,10 +233,10 @@ export default function DoorLockPage() {
             disabled={loading}
             style={{
               padding: '12px 16px',
-              background: tokens.colors.accent,
+              background: tokens.colors.brand,
               color: '#fff',
               border: 'none',
-              borderRadius: tokens.radius.md,
+              borderRadius: tokens.radius.button,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
               display: 'flex',
@@ -252,10 +252,10 @@ export default function DoorLockPage() {
             disabled={loading}
             style={{
               padding: '12px 16px',
-              background: tokens.colors.accent,
+              background: tokens.colors.brand,
               color: '#fff',
               border: 'none',
-              borderRadius: tokens.radius.md,
+              borderRadius: tokens.radius.button,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
               display: 'flex',
@@ -271,10 +271,10 @@ export default function DoorLockPage() {
             disabled={loading}
             style={{
               padding: '12px 16px',
-              background: tokens.colors.accent,
+              background: tokens.colors.brand,
               color: '#fff',
               border: 'none',
-              borderRadius: tokens.radius.md,
+              borderRadius: tokens.radius.button,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
               display: 'flex',
@@ -299,10 +299,10 @@ export default function DoorLockPage() {
             disabled={loading}
             style={{
               padding: '8px 12px',
-              background: tokens.colors.accentMuted,
-              color: tokens.colors.accent,
+              background: tokens.colors.brandDim,
+              color: tokens.colors.brand,
               border: 'none',
-              borderRadius: tokens.radius.sm,
+              borderRadius: tokens.radius.input,
               cursor: loading ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -322,15 +322,15 @@ export default function DoorLockPage() {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: 12,
-                background: tokens.colors.bgSecondary,
-                borderRadius: tokens.radius.sm,
+                background: tokens.colors.surface,
+                borderRadius: tokens.radius.input,
               }}
             >
               <div>
                 <div style={{ fontWeight: 600, color: tokens.colors.text }}>
                   {scope === 'main_door' ? 'Main Door' : scope === 'table_1' ? 'Table 1' : 'Table 2'}
                 </div>
-                <div style={{ fontSize: 24, fontFamily: 'monospace', color: tokens.colors.accent, marginTop: 4 }}>
+                <div style={{ fontSize: 24, fontFamily: 'monospace', color: tokens.colors.brand, marginTop: 4 }}>
                   {passwords[scope] || '------'}
                 </div>
               </div>
@@ -342,7 +342,7 @@ export default function DoorLockPage() {
                   background: 'transparent',
                   color: tokens.colors.textMuted,
                   border: `1px solid ${tokens.colors.border}`,
-                  borderRadius: tokens.radius.sm,
+                  borderRadius: tokens.radius.input,
                   cursor: loading ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -368,10 +368,10 @@ export default function DoorLockPage() {
             disabled={loading}
             style={{
               padding: '8px 12px',
-              background: tokens.colors.accentMuted,
-              color: tokens.colors.accent,
+              background: tokens.colors.brandDim,
+              color: tokens.colors.brand,
               border: 'none',
-              borderRadius: tokens.radius.sm,
+              borderRadius: tokens.radius.input,
               cursor: loading ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -389,7 +389,7 @@ export default function DoorLockPage() {
                 display: 'inline-block',
                 padding: 16,
                 background: '#fff',
-                borderRadius: tokens.radius.md,
+                borderRadius: tokens.radius.card,
                 marginBottom: 12,
               }}
             >
@@ -408,7 +408,7 @@ export default function DoorLockPage() {
       {lockouts.length > 0 && (
         <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg }}>
           <div style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <AlertTriangle size={20} color={tokens.colors.warning} />
+            <AlertTriangle size={20} color={tokens.colors.danger} />
             Lockout Alerts
           </div>
           <div style={{ display: 'grid', gap: 12 }}>
@@ -418,8 +418,8 @@ export default function DoorLockPage() {
                 style={{
                   padding: 12,
                   background: tokens.colors.bgSecondary,
-                  borderRadius: tokens.radius.sm,
-                  borderLeft: `4px solid ${tokens.colors.warning}`,
+                  borderRadius: tokens.radius.input,
+                  borderLeft: `4px solid ${tokens.colors.danger}`,
                 }}
               >
                 <div style={{ fontWeight: 600, color: tokens.colors.text }}>
@@ -448,7 +448,7 @@ export default function DoorLockPage() {
               style={{
                 padding: 10,
                 background: tokens.colors.bgSecondary,
-                borderRadius: tokens.radius.sm,
+                borderRadius: tokens.radius.input,
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -466,11 +466,11 @@ export default function DoorLockPage() {
                 <span
                   style={{
                     padding: '2px 8px',
-                    borderRadius: tokens.radius.sm,
+                    borderRadius: tokens.radius.input,
                     fontSize: 12,
                     fontWeight: 600,
-                    background: log.result === 'success' ? tokens.colors.successMuted : tokens.colors.errorMuted,
-                    color: log.result === 'success' ? tokens.colors.success : tokens.colors.error,
+                    background: log.result === 'success' ? tokens.colors.brandDim : 'rgba(255,69,58,0.15)',
+                    color: log.result === 'success' ? tokens.colors.brand : tokens.colors.danger,
                   }}
                 >
                   {log.result}
