@@ -480,10 +480,7 @@
     "admin": "管理画面",
     "sign_out": "ログアウト",
     "signing_out": "ログアウト中…",
-    "sign_out_error": "ログアウトできませんでした。もう一度お試しください。",
-    "prompt_text": "サインインで予約がもっと早く",
-    "prompt_cta": "サインイン",
-    "prompt_dismiss": "閉じる"
+    "sign_out_error": "ログアウトできませんでした。もう一度お試しください。"
   },
   "hero": {
     "title": "Space8",

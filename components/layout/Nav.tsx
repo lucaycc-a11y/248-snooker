@@ -15,7 +15,6 @@ import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui'
 import { AccountMenu } from '@/components/auth/AccountMenu'
-import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { createClient } from '@/lib/supabase/client'
 
@@ -235,7 +234,6 @@ export default function Nav() {
 
   return (
     <>
-      <SignInPrompt onOpenLogin={() => setLoginModalOpen(true)} hidden={menuOpen} />
       <nav
         style={{
           position: 'fixed',
