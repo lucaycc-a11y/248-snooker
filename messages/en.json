@@ -475,6 +475,7 @@
     "settings_err_generic": "Couldn't save. Please try again.",
     "qr_modal_title": "Booking QR Code",
     "qr_reference": "Booking reference",
+    "qr_tap_enlarge": "Tap to enlarge QR code",
     "close": "Close",
     "loading": "Loading…",
     "back": "Back",
@@ -695,7 +696,9 @@
     "paid": "Paid",
     "payment": "Payment",
     "confirmed": "Confirmed ✓",
-    "footer": "Show this QR code at entry · support hotline"
+    "footer": "Show this QR code at entry · support hotline",
+    "qr_tap_enlarge": "Tap to enlarge QR code",
+    "close": "Close"
   },
   "gallery": {
     "title": "The Venue, Up Close.",

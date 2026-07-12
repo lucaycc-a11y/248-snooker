@@ -476,6 +476,7 @@
     "settings_err_generic": "无法保存，请重试。",
     "qr_modal_title": "预订二维码",
     "qr_reference": "预订编号",
+    "qr_tap_enlarge": "点击放大二维码",
     "close": "关闭",
     "loading": "加载中…",
     "back": "返回",
@@ -689,7 +690,9 @@
     "paid": "已付",
     "payment": "付款",
     "confirmed": "已确认 ✓",
-    "footer": "请于入场时出示此二维码・客服热线"
+    "footer": "请于入场时出示此二维码・客服热线",
+    "qr_tap_enlarge": "点击放大二维码",
+    "close": "关闭"
   },
   "gallery": {
     "title": "场地。逐一看。",

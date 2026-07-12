@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,6 +23,7 @@ import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";
 import ReschedulePicker from "@/components/member/ReschedulePicker";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
+import { QRCode } from "@/components/shared/QRCode";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -59,50 +60,6 @@ const TIER_GLOW: Record<string, string> = {
 };
 
 type TabId = "bookings" | "points" | "settings";
-
-// Decorative QR rendering (visual only; real QR is issued at booking time).
-function QRGlyph({ data, size = 200, dark = false }: { data: string; size?: number; dark?: boolean }) {
-  const cells = 21;
-  const grid = useMemo(() => {
-    const g: boolean[][] = Array.from({ length: cells }, () => Array(cells).fill(false));
-    const finder = (r: number, c: number) => {
-      for (let dr = 0; dr < 7; dr++)
-        for (let dc = 0; dc < 7; dc++) {
-          const border = dr === 0 || dr === 6 || dc === 0 || dc === 6;
-          const inner = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
-          g[r + dr][c + dc] = border || inner;
-        }
-    };
-    finder(0, 0);
-    finder(0, 14);
-    finder(14, 0);
-    let seed = 0;
-    for (let i = 0; i < data.length; i++) seed = (seed * 31 + data.charCodeAt(i)) & 0xffff;
-    for (let r = 0; r < cells; r++)
-      for (let c = 0; c < cells; c++) {
-        if (g[r][c]) continue;
-        if (r < 7 && c < 7) continue;
-        if (r < 7 && c >= 14) continue;
-        if (r >= 14 && c < 7) continue;
-        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-        g[r][c] = (seed >> 16) % 3 === 0;
-      }
-    return g;
-  }, [data]);
-
-  const cell = size / cells;
-  const fg = dark ? "#0a0a0a" : GREEN;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="QR code" role="img">
-      <rect width={size} height={size} fill={dark ? "#FFFFFF" : "transparent"} />
-      {grid.map((row, r) =>
-        row.map((on, c) =>
-          on ? <rect key={`${r}-${c}`} x={c * cell} y={r * cell} width={cell} height={cell} fill={fg} /> : null
-        )
-      )}
-    </svg>
-  );
-}
 
 function formatDate(iso: string | null, locale: string, withTime = false): string {
   if (!iso) return "—";
@@ -296,17 +253,12 @@ export default function MemberDashboard({
                 borderRadius: "12px",
               }}
             >
-              {memberQrDataUrl ? (
-                <img
-                  src={memberQrDataUrl}
-                  alt="Member QR Code"
-                  width={76}
-                  height={76}
-                  style={{ display: 'block' }}
-                />
-              ) : (
-                <QRGlyph data={user.member_code} size={76} dark />
-              )}
+              <QRCode
+                src={memberQrDataUrl}
+                size={76}
+                enlargeLabel={t("qr_tap_enlarge")}
+                closeLabel={t("close")}
+              />
             </div>
           </div>
         </motion.div>
@@ -1243,7 +1195,7 @@ function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; 
               {t("qr_modal_title")}
             </h3>
             <div style={{ display: "flex", justifyContent: "center", padding: "20px", background: "white", borderRadius: "16px" }}>
-              <QRGlyph data={booking.reference ?? booking.id} size={200} dark />
+              <QRCode data={booking.qrData ?? booking.reference ?? booking.id} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
             </div>
             <div style={{ marginTop: "20px" }}>
               <div style={{ fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }} data-cms-key="member.qr_reference">

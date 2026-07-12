@@ -27,6 +27,7 @@ export type MemberBooking = {
   price: number
   status: string
   reference: string | null
+  qrData: string | null
   refundAmount: number | null
   refundFee: number | null
   refundedAt: string | null
@@ -91,6 +92,7 @@ function normalizeBooking(row: Row): MemberBooking {
     price: num(row, ['total_price', 'price', 'amount', 'total'], 0),
     status: str(row, ['status', 'state']) ?? 'confirmed',
     reference: str(row, ['reference', 'ref', 'booking_ref', 'code']),
+    qrData: str(row, ['qr_code']),
     refundAmount: typeof refundAmount === 'number' ? refundAmount : null,
     refundFee: typeof refundFee === 'number' ? refundFee : null,
     refundedAt: str(row, ['refunded_at']),

@@ -465,6 +465,7 @@
     "settings_err_generic": "未能儲存，請再試一次。",
     "qr_modal_title": "預訂 QR 碼",
     "qr_reference": "預訂編號",
+    "qr_tap_enlarge": "輕觸放大 QR 碼",
     "close": "關閉",
     "loading": "載入中…",
     "back": "返回",
@@ -678,7 +679,9 @@
     "paid": "已付",
     "payment": "付款",
     "confirmed": "已確認 ✓",
-    "footer": "請於入場時出示此二維碼・客服熱線"
+    "footer": "請於入場時出示此二維碼・客服熱線",
+    "qr_tap_enlarge": "輕觸放大 QR 碼",
+    "close": "關閉"
   },
   "gallery": {
     "title": "場地。逐一看。",

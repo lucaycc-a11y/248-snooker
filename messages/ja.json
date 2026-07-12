@@ -476,6 +476,7 @@
     "settings_err_generic": "保存できませんでした。もう一度お試しください。",
     "qr_modal_title": "予約QRコード",
     "qr_reference": "予約番号",
+    "qr_tap_enlarge": "タップしてQRコードを拡大",
     "close": "閉じる",
     "loading": "読み込み中…",
     "back": "戻る",
@@ -689,7 +690,9 @@
     "paid": "お支払い済み",
     "payment": "支払方法",
     "confirmed": "予約確定 ✓",
-    "footer": "入場時にこのQRコードをご提示ください・サポート窓口"
+    "footer": "入場時にこのQRコードをご提示ください・サポート窓口",
+    "qr_tap_enlarge": "タップしてQRコードを拡大",
+    "close": "閉じる"
   },
   "gallery": {
     "title": "施設を、間近で。",

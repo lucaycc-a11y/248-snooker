@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CalendarPlus, Share2, ChevronDown } from "lucide-react"
 import { useTranslations } from "next-intl"
-import QRCodeLib from "qrcode"
 import { tokens } from "@/app/styles/tokens"
 import { Starfield } from "@/app/[locale]/Starfield"
+import { QRCode } from "@/components/shared/QRCode"
 import {
   ApplePayLogo,
   GooglePayLogo,
@@ -41,45 +41,6 @@ function PaymentMark({ method }: { method?: string | null }) {
 }
 
 const QR_PX = 126
-function QRCode({ data }: { data: string }) {
-  const [url, setUrl] = useState<string | null>(null)
-  useEffect(() => {
-    let cancelled = false
-    QRCodeLib.toString(data, {
-      type: "svg",
-      margin: 2,
-      errorCorrectionLevel: "M",
-      color: { dark: "#0a0a0a", light: "#ffffff" },
-    })
-      .then((svg: string) => {
-        if (!cancelled) setUrl(`data:image/svg+xml;base64,${btoa(svg)}`)
-      })
-      .catch(() => {
-        /* leave placeholder on failure */
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [data])
-
-  if (!url) {
-    return (
-      <div
-        aria-hidden
-        style={{ width: QR_PX, height: QR_PX, background: "#ffffff", borderRadius: 8 }}
-      />
-    )
-  }
-  return (
-    <img
-      src={url}
-      width={QR_PX}
-      height={QR_PX}
-      alt="Booking QR code"
-      style={{ borderRadius: 8, display: "block" }}
-    />
-  )
-}
 
 export type TicketCardProps = {
   /** 'YYYY-MM-DD' */
@@ -305,7 +266,12 @@ export function TicketCard({
                   marginBottom: 10,
                 }}
               >
-                <QRCode data={qrData ?? bookingRef} />
+                <QRCode
+                  data={qrData ?? bookingRef}
+                  size={QR_PX}
+                  enlargeLabel={t_ticket("qr_tap_enlarge")}
+                  closeLabel={t_ticket("close")}
+                />
               </div>
 
               <div
