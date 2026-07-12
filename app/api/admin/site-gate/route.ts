@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { generateGatePassword } from '@/lib/gate/password'
+import { hashGatePassword } from '@/lib/gate/password'
+
+const MIN_PASSWORD_LENGTH = 6
 
 export const runtime = 'nodejs'
 
@@ -22,13 +24,14 @@ export async function GET() {
   return NextResponse.json({ enabled: data?.enabled === true, updatedAt: data?.updated_at ?? null })
 }
 
-type Body = { action: 'toggle'; enabled: boolean } | { action: 'regenerate_password' }
+type Body = { action: 'toggle'; enabled: boolean } | { action: 'set_password'; password: string }
 
 function isBody(value: unknown): value is Body {
   if (typeof value !== 'object' || value === null) return false
   const v = value as Record<string, unknown>
   if (v.action === 'toggle') return typeof v.enabled === 'boolean'
-  return v.action === 'regenerate_password'
+  if (v.action === 'set_password') return typeof v.password === 'string'
+  return false
 }
 
 // POST /api/admin/site-gate — toggle the gate on/off, or regenerate the
@@ -73,8 +76,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, enabled: body.enabled })
     }
 
-    // regenerate_password
-    const { password, salt, hash } = await generateGatePassword()
+    // set_password — admin-chosen password, hashed before it ever touches the DB.
+    if (body.password.length < MIN_PASSWORD_LENGTH) {
+      return NextResponse.json({ error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` }, { status: 400 })
+    }
+
+    const { salt, hash } = await hashGatePassword(body.password)
     const { error } = await service
       .from('site_gate_config')
       .update({
@@ -85,21 +92,21 @@ export async function POST(req: Request) {
       })
       .eq('id', CONFIG_ID)
     if (error) {
-      console.error('[admin/site-gate] regenerate failed', error)
+      console.error('[admin/site-gate] set_password failed', error)
       return NextResponse.json({ error: 'Internal error' }, { status: 500 })
     }
 
     await service.from('audit_log').insert({
       admin_user_id: admin.userId,
       admin_email: admin.email,
-      action: 'site_gate_regenerate_password',
+      action: 'site_gate_set_password',
       target_table: 'site_gate_config',
       target_id: CONFIG_ID,
       before_value: null,
       after_value: null, // never store the plaintext password, even in the audit log
     })
 
-    return NextResponse.json({ success: true, password })
+    return NextResponse.json({ success: true })
   } catch (err) {
     console.error('[admin/site-gate] unexpected error', err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

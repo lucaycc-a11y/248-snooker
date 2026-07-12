@@ -30,8 +30,8 @@ export default function SiteGateForm({
   const [enabled, setEnabled] = useState(initialEnabled)
   const [hasPassword, setHasPassword] = useState(initialHasPassword)
   const [toggling, setToggling] = useState(false)
-  const [regenerating, setRegenerating] = useState(false)
-  const [newPassword, setNewPassword] = useState<string | null>(null)
+  const [settingPassword, setSettingPassword] = useState(false)
+  const [passwordInput, setPasswordInput] = useState('')
   const [whitelist, setWhitelist] = useState(initialWhitelist)
   const [newIp, setNewIp] = useState('')
   const [newLabel, setNewLabel] = useState('')
@@ -66,27 +66,31 @@ export default function SiteGateForm({
     }
   }
 
-  async function regeneratePassword() {
-    setRegenerating(true)
+  async function setPassword() {
+    const password = passwordInput.trim()
+    if (password.length < 6) {
+      notify('error', 'Password must be at least 6 characters')
+      return
+    }
+    setSettingPassword(true)
     try {
       const res = await fetch('/api/admin/site-gate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'regenerate_password' }),
+        body: JSON.stringify({ action: 'set_password', password }),
       })
       const json: unknown = await res.json().catch(() => null)
       if (!res.ok) {
-        notify('error', errorMessage(json, 'Failed to regenerate'))
+        notify('error', errorMessage(json, 'Failed to set password'))
         return
       }
-      const password = isRecord(json) && typeof json.password === 'string' ? json.password : null
-      setNewPassword(password)
+      setPasswordInput('')
       setHasPassword(true)
-      notify('success', 'Password regenerated — copy it now')
+      notify('success', 'Password updated')
     } catch {
       notify('error', 'Network error')
     } finally {
-      setRegenerating(false)
+      setSettingPassword(false)
     }
   }
 
@@ -166,31 +170,27 @@ export default function SiteGateForm({
           Gate password
         </div>
         <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: tokens.spacing.md }}>
-          {hasPassword ? 'A password is set.' : 'No password set yet.'} Regenerating immediately invalidates the previous one.
+          {hasPassword ? 'A password is set.' : 'No password set yet.'} Setting a new one immediately invalidates the previous one.
         </div>
-        {newPassword && (
-          <div
-            style={{
-              padding: tokens.spacing.md,
-              borderRadius: tokens.radius.button,
-              background: 'rgba(34,197,94,0.1)',
-              border: `1px solid ${tokens.colors.brand}`,
-              marginBottom: tokens.spacing.md,
-              fontFamily: 'monospace',
-              fontSize: 18,
-              color: tokens.colors.text,
-              letterSpacing: '0.05em',
-            }}
-          >
-            {newPassword}
-            <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 6, fontFamily: tokens.font.sans }}>
-              Shown once — copy it now, it will not be shown again.
-            </div>
+        <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+          <div style={{ flex: 1, minWidth: 160 }}>
+            <Input
+              label="New password"
+              placeholder="At least 6 characters"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+            />
           </div>
-        )}
-        <Button variant="secondary" size="sm" loading={regenerating} onClick={regeneratePassword}>
-          Regenerate password
-        </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            loading={settingPassword}
+            disabled={passwordInput.trim().length < 6}
+            onClick={setPassword}
+          >
+            Confirm
+          </Button>
+        </div>
       </Card>
 
       <Card>

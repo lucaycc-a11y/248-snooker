@@ -16,20 +16,11 @@ function scrypt(password: string, salt: string): Promise<Buffer> {
   })
 }
 
-/** Generate a random gate password (human-typeable) + its salt/hash to store. */
-export async function generateGatePassword(): Promise<{
-  password: string
-  salt: string
-  hash: string
-}> {
-  // 10 unambiguous chars — long enough to resist guessing, short enough to type.
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  const bytes = crypto.randomBytes(10)
-  const password = Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('')
-
+/** Hash an admin-chosen gate password with a freshly generated salt. */
+export async function hashGatePassword(password: string): Promise<{ salt: string; hash: string }> {
   const salt = crypto.randomBytes(16).toString('hex')
   const hash = (await scrypt(password, salt)).toString('hex')
-  return { password, salt, hash }
+  return { salt, hash }
 }
 
 /** Verify a candidate password against the stored salt/hash, timing-safe. */
