@@ -51,6 +51,8 @@ export type TicketCardProps = {
   bookingRef: string
   /** Signed QR JWT from the confirmed booking; falls back to the ref when absent. */
   qrData?: string
+  /** space8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts); falls back to the ref when absent. */
+  humanCode?: string
   totalPrice: number
   paymentMethod?: string | null
   /** Renders fully expanded with no collapse affordance (single-ticket orders). */
@@ -69,6 +71,7 @@ export function TicketCard({
   tableNumber,
   bookingRef,
   qrData,
+  humanCode,
   totalPrice,
   paymentMethod,
   defaultExpanded = false,
@@ -284,7 +287,7 @@ export function TicketCard({
                   marginBottom: 6,
                 }}
               >
-                {bookingRef}
+                {humanCode ?? bookingRef}
               </div>
 
               <div

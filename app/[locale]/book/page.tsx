@@ -1909,6 +1909,7 @@ type ConfirmationTicket = {
   tableNumber: number
   bookingRef: string
   qrData?: string
+  humanCode?: string
   totalPrice: number
   paymentMethod?: string | null
 }
@@ -2001,6 +2002,7 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
               tableNumber={ticket.tableNumber}
               bookingRef={ticket.bookingRef}
               qrData={ticket.qrData}
+              humanCode={ticket.humanCode}
               totalPrice={ticket.totalPrice}
               paymentMethod={ticket.paymentMethod}
               defaultExpanded={i === 0}
@@ -2078,6 +2080,7 @@ type ConfirmedBooking = {
   total_price: number
   payment_method: string | null
   order_group_id: string | null
+  human_code?: string
 }
 
 // Shown after the Stripe redirect returns to /book while we poll the booking
@@ -2647,6 +2650,7 @@ export default function BookPage() {
                       tableNumber: b.table_number,
                       bookingRef: b.booking_reference ?? bookingRef,
                       qrData: b.qr_code ?? undefined,
+                      humanCode: b.human_code,
                       totalPrice: b.total_price,
                       paymentMethod: b.payment_method,
                     }))}

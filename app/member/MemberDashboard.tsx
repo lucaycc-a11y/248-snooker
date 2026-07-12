@@ -1202,7 +1202,7 @@ function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; 
                 {t("qr_reference")}
               </div>
               <div style={{ fontSize: "16px", fontWeight: 700, fontFamily: "ui-monospace, monospace", marginTop: "4px", color: INK }}>
-                {booking.reference ?? booking.id.slice(0, 12)}
+                {booking.humanCode}
               </div>
               <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "8px" }}>
                 {formatDate(booking.date, locale)}

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { humanReadableCode } from '@/lib/qr/jwt'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
@@ -61,7 +62,11 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({ booking: data, bookings })
+    // Attach the human-readable companion code (derived from id, not stored)
+    // so the confirmation screen can show it under the QR without a new column.
+    const withHumanCode = (b: typeof data) => ({ ...b, human_code: humanReadableCode(String(b.id)) })
+
+    return NextResponse.json({ booking: withHumanCode(data), bookings: bookings.map(withHumanCode) })
   } catch (err) {
     console.error('booking_status_error', (err as Error).message)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

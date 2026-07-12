@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { humanReadableCode } from '@/lib/qr/jwt'
 import { type Row, num, str, genId } from './adminReadHelpers'
 
 // The member dashboard reads from `users` (known shape from the auth callback)
@@ -28,6 +29,8 @@ export type MemberBooking = {
   status: string
   reference: string | null
   qrData: string | null
+  /** space8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
+  humanCode: string
   refundAmount: number | null
   refundFee: number | null
   refundedAt: string | null
@@ -61,6 +64,8 @@ export type MemberTicket = {
   tableNumber: number
   bookingRef: string
   qrData?: string
+  /** space8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
+  humanCode: string
   totalPrice: number
   paymentMethod: string | null
 }
@@ -78,8 +83,9 @@ function normalizeBooking(row: Row): MemberBooking {
   const date = str(row, ['date', 'booking_date', 'day']) ?? (start ? start.slice(0, 10) : null)
   const refundAmount = row.refund_amount
   const refundFee = row.refund_fee
+  const id = String(row.id ?? genId('booking'))
   return {
-    id: String(row.id ?? genId('booking')),
+    id,
     date,
     startTime: start,
     endTime: str(row, ['end_time', 'endTime', 'ends_at', 'end']),
@@ -93,6 +99,7 @@ function normalizeBooking(row: Row): MemberBooking {
     status: str(row, ['status', 'state']) ?? 'confirmed',
     reference: str(row, ['reference', 'ref', 'booking_ref', 'code']),
     qrData: str(row, ['qr_code']),
+    humanCode: humanReadableCode(id),
     refundAmount: typeof refundAmount === 'number' ? refundAmount : null,
     refundFee: typeof refundFee === 'number' ? refundFee : null,
     refundedAt: str(row, ['refunded_at']),
@@ -217,6 +224,7 @@ export async function getMemberTicket(bookingId: string): Promise<MemberTicket |
     tableNumber: num(row, ['table_number'], 0),
     bookingRef: str(row, ['booking_reference']) ?? bookingId,
     qrData: str(row, ['qr_code']) ?? undefined,
+    humanCode: humanReadableCode(bookingId),
     totalPrice: num(row, ['total_price'], 0),
     paymentMethod: str(row, ['payment_method']),
   }
