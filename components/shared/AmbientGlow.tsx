@@ -75,15 +75,15 @@ export function AmbientGlow({ variant = 'brand' }: { variant?: AmbientGlowVarian
             top: orb.top,
             left: orb.left,
             background: `radial-gradient(circle, ${orb.color}, transparent 70%)`,
-            filter: 'blur(120px)',
-            opacity: 0.3,
+            filter: 'blur(100px)',
+            opacity: variant === 'gemini' ? 0.55 : 0.5,
             mixBlendMode: blendMode,
             willChange: 'transform',
           }}
           animate={
             reducedMotion
               ? undefined
-              : { x: orb.moveX, y: orb.moveY, opacity: variant === 'gemini' ? [0.25, 0.4, 0.25] : undefined }
+              : { x: orb.moveX, y: orb.moveY, opacity: variant === 'gemini' ? [0.45, 0.7, 0.45] : [0.35, 0.55, 0.35] }
           }
           transition={
             reducedMotion
