@@ -5,23 +5,29 @@ import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { Starfield } from '@/app/[locale]/Starfield'
+import { AmbientGlow } from '@/components/shared/AmbientGlow'
 
 const GREEN = '#22c55e'
-const TRIGGER_TAPS = 5
-const TRIGGER_WINDOW_MS = 2500
+const LONG_PRESS_MS = 2500
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
-function WaitlistForm() {
+// The "Notify Me" button doubles as the hidden gate trigger: holding it down
+// for LONG_PRESS_MS opens the password modal instead of submitting the
+// waitlist form. type="button" (not "submit") so we fully control whether a
+// press results in a form submit or a long-press activation — a native
+// submit button would fire its click/submit on release regardless.
+function WaitlistForm({ onSecretActivate }: { onSecretActivate: () => void }) {
   const t = useTranslations('comingSoon')
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const longPressFired = useRef(false)
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
+  async function submit() {
     if (!isValidEmail(email)) {
       setError(t('err_email'))
       return
@@ -42,6 +48,26 @@ function WaitlistForm() {
     }
   }
 
+  function startPress() {
+    longPressFired.current = false
+    pressTimer.current = setTimeout(() => {
+      longPressFired.current = true
+      onSecretActivate()
+    }, LONG_PRESS_MS)
+  }
+
+  function cancelPress() {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current)
+      pressTimer.current = null
+    }
+  }
+
+  function endPress() {
+    cancelPress()
+    if (!longPressFired.current) submit()
+  }
+
   if (status === 'done') {
     return (
       <p data-cms-key="comingSoon.subscribed" style={{ color: GREEN, fontSize: 15, textAlign: 'center' }}>
@@ -51,7 +77,7 @@ function WaitlistForm() {
   }
 
   return (
-    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
       <input
         type="email"
         value={email}
@@ -75,9 +101,16 @@ function WaitlistForm() {
         </p>
       )}
       <button
-        type="submit"
+        type="button"
         disabled={status === 'saving'}
         data-cms-key="comingSoon.notify_me"
+        onMouseDown={startPress}
+        onMouseUp={endPress}
+        onMouseLeave={cancelPress}
+        onTouchStart={startPress}
+        onTouchEnd={endPress}
+        onTouchCancel={cancelPress}
+        onContextMenu={(e) => e.preventDefault()}
         style={{
           height: 52,
           borderRadius: 9999,
@@ -88,11 +121,14 @@ function WaitlistForm() {
           border: 'none',
           cursor: status === 'saving' ? 'not-allowed' : 'pointer',
           opacity: status === 'saving' ? 0.6 : 1,
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          userSelect: 'none',
         }}
       >
         {t('notify_me')}
       </button>
-    </form>
+    </div>
   )
 }
 
@@ -199,45 +235,6 @@ function PasswordModal({ open, onClose }: { open: boolean; onClose: () => void }
   )
 }
 
-// Hidden trigger: TRIGGER_TAPS taps on this near-invisible dot within
-// TRIGGER_WINDOW_MS opens the password modal. Purely a UX deterrent (per the
-// brief this is "psychological, not security" — the same origin's real gate
-// enforcement is the middleware + hashed password check server-side).
-function HiddenTrigger({ onActivate }: { onActivate: () => void }) {
-  const tapsRef = useRef<number[]>([])
-
-  function handleTap() {
-    const now = Date.now()
-    tapsRef.current = [...tapsRef.current, now].filter((t) => now - t < TRIGGER_WINDOW_MS)
-    if (tapsRef.current.length >= TRIGGER_TAPS) {
-      tapsRef.current = []
-      onActivate()
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleTap}
-      aria-hidden="true"
-      tabIndex={-1}
-      style={{
-        position: 'fixed',
-        bottom: 20,
-        right: 20,
-        width: 44,
-        height: 44,
-        borderRadius: '50%',
-        background: 'transparent',
-        border: 'none',
-        cursor: 'default',
-        opacity: 0.03,
-        zIndex: 40,
-      }}
-    />
-  )
-}
-
 export default function ComingSoonContent() {
   const t = useTranslations('comingSoon')
   const [modalOpen, setModalOpen] = useState(false)
@@ -256,7 +253,8 @@ export default function ComingSoonContent() {
       }}
     >
       <Starfield />
-      <section className="glass-panel" style={{ position: 'relative', width: '100%', maxWidth: 440, padding: 40 }}>
+      <AmbientGlow />
+      <section className="glass-panel" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 440, padding: 40 }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div
             data-cms-key="comingSoon.brand"
@@ -274,9 +272,8 @@ export default function ComingSoonContent() {
             {t('subtitle')}
           </p>
         </div>
-        <WaitlistForm />
+        <WaitlistForm onSecretActivate={() => setModalOpen(true)} />
       </section>
-      <HiddenTrigger onActivate={() => setModalOpen(true)} />
       <PasswordModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </main>
   )

@@ -102,21 +102,21 @@ export default function SiteGateForm({
       const res = await fetch('/api/admin/site-gate/whitelist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ipAddress: ip, label: newLabel.trim() || null }),
+        body: JSON.stringify({ ip, label: newLabel.trim() || null }),
       })
       const json: unknown = await res.json().catch(() => null)
       if (!res.ok) {
         notify('error', errorMessage(json, 'Failed to add IP'))
         return
       }
-      const row = isRecord(json) && isRecord(json.row) ? json.row : null
-      if (row && typeof row.id === 'string') {
+      const entry = isRecord(json) && isRecord(json.entry) ? json.entry : null
+      if (entry && typeof entry.id === 'string') {
         setWhitelist((prev) => [
           {
-            id: row.id as string,
-            ipAddress: String(row.ip_address ?? ip),
-            label: (row.label as string | null) ?? null,
-            createdAt: (row.created_at as string | null) ?? null,
+            id: entry.id as string,
+            ipAddress: String(entry.ip_address ?? ip),
+            label: (entry.label as string | null) ?? null,
+            createdAt: (entry.created_at as string | null) ?? null,
           },
           ...prev,
         ])

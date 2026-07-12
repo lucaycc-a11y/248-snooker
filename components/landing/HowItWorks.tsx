@@ -349,7 +349,7 @@ export default function HowItWorks() {
     <section
       data-nav-theme="light"
       style={{
-        background: "#F5F5F7",
+        background: "rgba(245,245,247,0.92)",
         color: DARK,
         padding: isMobile ? "88px 0" : "140px 0",
         fontFamily: FONT_FAMILY,

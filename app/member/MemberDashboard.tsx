@@ -22,6 +22,7 @@ import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";
 import ReschedulePicker from "@/components/member/ReschedulePicker";
+import { AmbientGlow } from "@/components/shared/AmbientGlow";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -185,6 +186,9 @@ export default function MemberDashboard({
         position: "relative",
       }}
     >
+      {/* Shared brand ambient orbs, layered behind the tier-coloured backdrop below. */}
+      <AmbientGlow />
+
       {/* Ambient tier-coloured backdrop — same TIER_GLOW recipe as the
           membership card, but full-page and animated (slow opacity breathe)
           so the whole page reads as "this member's colour", not just the card. */}

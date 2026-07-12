@@ -9,6 +9,7 @@ import Member from "@/components/landing/Member";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
+import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqListData, getFaqJsonLdFromItems } from "@/lib/data/getFaqData";
 
 export async function generateMetadata({
@@ -112,6 +113,7 @@ export default async function Home({
 
   return (
     <main className="relative bg-black">
+      <AmbientGlow />
       <Nav />
       <Hero />
       <Gallery />

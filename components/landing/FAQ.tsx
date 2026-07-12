@@ -58,7 +58,7 @@ export default function FAQ({
       id="faq"
       data-nav-theme="light"
       style={{
-        background: "#F5F5F7",
+        background: "rgba(245,245,247,0.92)",
         color: DARK,
         padding: "clamp(88px, 12vw, 140px) 24px",
         fontFamily: FONT_FAMILY,

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { resolveLocaleFromCookie, loadMessages } from "@/lib/i18n/serverLocale";
+import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import LoginForm from "./LoginForm";
 
 const BASE = "https://space8.com.hk";
@@ -49,7 +50,8 @@ export default async function LoginPage({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <main className="flex min-h-screen items-center justify-center bg-black px-4 py-24 text-white">
+      <main className="relative flex min-h-screen items-center justify-center bg-black px-4 py-24 text-white">
+        <AmbientGlow />
         <LoginForm returnUrl={returnUrl} error={error} />
       </main>
     </NextIntlClientProvider>

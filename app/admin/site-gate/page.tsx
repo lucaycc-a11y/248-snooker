@@ -17,7 +17,7 @@ export default async function AdminSiteGatePage() {
         initialHasPassword={data.hasPassword}
         initialWhitelist={data.whitelist}
       />
-      <SiteGateLog initial={data.log} />
+      <SiteGateLog initial={data.log} initialWhitelistedIps={data.whitelist.map((w) => w.ipAddress)} />
     </main>
   )
 }
