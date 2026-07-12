@@ -259,7 +259,7 @@ export default function ComingSoonContent() {
       <section className="glass-panel" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 440, padding: 40 }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-            <Logo variant="full" theme="dark" size={32} />
+            <Logo variant="full" theme="dark" size={48} />
           </div>
           <h1
             data-cms-key="comingSoon.title"

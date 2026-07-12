@@ -67,8 +67,10 @@ export function AmbientGlow({ variant = 'brand' }: { variant?: AmbientGlowVarian
   const reducedMotion = useReducedMotion()
   const edges = variant === 'gemini' ? GEMINI_EDGES : BRAND_EDGES
   const blendMode = variant === 'gemini' ? 'screen' : undefined
-  const baseOpacity = variant === 'gemini' ? 0.12 : 0.1
-  const pulseRange = variant === 'gemini' ? [0.08, 0.15, 0.08] : [0.07, 0.13, 0.07]
+  const baseOpacity = variant === 'gemini' ? 0.32 : 0.1
+  const pulseRange = variant === 'gemini' ? [0.24, 0.4, 0.24] : [0.07, 0.13, 0.07]
+  const blurAmount = variant === 'gemini' ? 160 : 200
+  const gradientStop = variant === 'gemini' ? '45%' : '35%'
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden bg-black" style={{ zIndex: -1 }}>
@@ -81,10 +83,10 @@ export function AmbientGlow({ variant = 'brand' }: { variant?: AmbientGlowVarian
             height: edge.size,
             ...edge.position,
             // Sources sit outside the viewport edges and stay fully
-            // transparent past 35% so the center of the page stays clean —
-            // only the outer ring of light reaches inward.
-            background: `radial-gradient(circle, ${edge.color}80, transparent 35%)`,
-            filter: 'blur(200px)',
+            // transparent past gradientStop so the center of the page stays
+            // clean — only the outer ring of light reaches inward.
+            background: `radial-gradient(circle, ${edge.color}80, transparent ${gradientStop})`,
+            filter: `blur(${blurAmount}px)`,
             opacity: baseOpacity,
             mixBlendMode: blendMode,
             willChange: 'transform',
