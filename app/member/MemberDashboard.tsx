@@ -184,6 +184,7 @@ export default function MemberDashboard({
         minHeight: "100vh",
         color: INK,
         position: "relative",
+        isolation: "isolate",
       }}
     >
       {/* Shared brand ambient orbs, layered behind the tier-coloured backdrop below. */}

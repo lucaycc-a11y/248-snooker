@@ -112,7 +112,7 @@ export default async function Home({
   const faqJsonLd = getFaqJsonLdFromItems(faqItems);
 
   return (
-    <main className="relative bg-black">
+    <main className="relative bg-black" style={{ isolation: "isolate" }}>
       <AmbientGlow />
       <Nav />
       <Hero />

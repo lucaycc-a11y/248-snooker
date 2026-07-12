@@ -50,7 +50,7 @@ export default async function LoginPage({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <main className="relative flex min-h-screen items-center justify-center bg-black px-4 py-24 text-white">
+      <main className="relative flex min-h-screen items-center justify-center bg-black px-4 py-24 text-white" style={{ isolation: "isolate" }}>
         <AmbientGlow />
         <LoginForm returnUrl={returnUrl} error={error} />
       </main>

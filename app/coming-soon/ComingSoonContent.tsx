@@ -243,6 +243,7 @@ export default function ComingSoonContent() {
     <main
       style={{
         position: 'relative',
+        isolation: 'isolate',
         minHeight: '100vh',
         background: '#000',
         display: 'flex',
