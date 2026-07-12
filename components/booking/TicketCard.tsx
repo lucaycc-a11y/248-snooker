@@ -86,6 +86,11 @@ export function TicketCard({
   const dateStr = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日 星期${DAY_NAMES[dateObj.getDay()]}`
   const tableName = `${t("table_label")} #${tableNumber}`
 
+  // Single user-facing code across the whole ticket (calendar, share, filename)
+  // so it always matches what's printed under the QR — never mix in bookingRef
+  // (a different format) for anything the customer actually reads.
+  const displayCode = humanCode ?? bookingRef
+
   const handleAddCalendar = () => {
     const start = new Date(dateObj)
     start.setHours(startHour, 0, 0, 0)
@@ -99,7 +104,7 @@ export function TicketCard({
       `DTSTART:${fmt(start)}`,
       `DTEND:${fmt(end)}`,
       `SUMMARY:Space8 · ${tableName}`,
-      `DESCRIPTION:預訂編號 ${bookingRef}`,
+      `DESCRIPTION:預訂編號 ${displayCode}`,
       "LOCATION:Space8",
       "END:VEVENT",
       "END:VCALENDAR",
@@ -107,13 +112,13 @@ export function TicketCard({
     const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }))
     const a = document.createElement("a")
     a.href = url
-    a.download = `248-${bookingRef}.ics`
+    a.download = `248-${displayCode}.ics`
     a.click()
     URL.revokeObjectURL(url)
   }
 
   const handleShare = async () => {
-    const text = `我的 Space8 預訂 · ${tableName} · 編號 ${bookingRef}`
+    const text = `我的 Space8 預訂 · ${tableName} · 編號 ${displayCode}`
     if (navigator.share) {
       try {
         await navigator.share({ title: "Space8", text })
@@ -287,7 +292,7 @@ export function TicketCard({
                   marginBottom: 6,
                 }}
               >
-                {humanCode ?? bookingRef}
+                {displayCode}
               </div>
 
               <div
