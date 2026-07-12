@@ -71,6 +71,21 @@
     "error_oauth": "无法登录，请重试。",
     "error_generic": "出错了，请重试。"
   },
+  "comingSoon": {
+    "brand": "SPACE8",
+    "title": "即将开幕",
+    "subtitle": "香港自助中式台球会所，即将开幕。",
+    "email_placeholder": "电子邮箱",
+    "notify_me": "开幕通知我",
+    "subscribed": "已为你登记。",
+    "err_email": "请输入正确的电子邮箱地址。",
+    "err_generic": "出错了，请重试。",
+    "password_placeholder": "密码",
+    "unlock": "解锁",
+    "unlocking": "解锁中…",
+    "err_password": "密码不正确。",
+    "err_rate_limited": "尝试次数过多，请稍后再试。"
+  },
   "legal": {
     "title": "法律信息",
     "subtitle": "使用 Space8 服务前，请仔细阅读以下条款。",

@@ -71,6 +71,21 @@
     "error_oauth": "未能登入，請再試一次。",
     "error_generic": "出咗啲問題，請再試一次。"
   },
+  "comingSoon": {
+    "brand": "SPACE8",
+    "title": "即將開幕",
+    "subtitle": "香港自助中式桌球會所，即將開幕。",
+    "email_placeholder": "電郵地址",
+    "notify_me": "開幕通知我",
+    "subscribed": "已為你登記。",
+    "err_email": "請輸入正確嘅電郵地址。",
+    "err_generic": "出咗啲問題，請再試一次。",
+    "password_placeholder": "密碼",
+    "unlock": "解鎖",
+    "unlocking": "解鎖中…",
+    "err_password": "密碼不正確。",
+    "err_rate_limited": "嘗試次數太多，請稍後再試。"
+  },
   "legal": {
     "title": "法律資訊",
     "subtitle": "使用 Space8 服務前，請細閱以下條款。",

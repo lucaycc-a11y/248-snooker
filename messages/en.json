@@ -71,6 +71,20 @@
     "error_oauth": "We couldn't sign you in. Please try again.",
     "error_generic": "Something went wrong. Please try again."
   },
+  "comingSoon": {
+    "brand": "SPACE8",
+    "title": "Coming Soon",
+    "subtitle": "Hong Kong's self-service snooker club is almost ready.",
+    "email_placeholder": "Email address",
+    "notify_me": "Notify Me",
+    "subscribed": "You're on the list.",
+    "err_email": "Enter a valid email address.",
+    "err_generic": "Something went wrong. Please try again.",
+    "password_placeholder": "Password",
+    "unlock": "Unlock",
+    "unlocking": "Unlocking…",
+    "err_password": "Incorrect password."
+  },
   "legal": {
     "title": "Legal",
     "subtitle": "Please read these terms carefully before using Space8.",

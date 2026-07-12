@@ -71,6 +71,21 @@
     "error_oauth": "サインインできませんでした。もう一度お試しください。",
     "error_generic": "問題が発生しました。もう一度お試しください。"
   },
+  "comingSoon": {
+    "brand": "SPACE8",
+    "title": "近日公開",
+    "subtitle": "香港のセルフサービス型スヌーカークラブ、もうすぐオープン。",
+    "email_placeholder": "メールアドレス",
+    "notify_me": "通知を受け取る",
+    "subscribed": "登録しました。",
+    "err_email": "有効なメールアドレスを入力してください。",
+    "err_generic": "問題が発生しました。もう一度お試しください。",
+    "password_placeholder": "パスワード",
+    "unlock": "解除",
+    "unlocking": "解除中…",
+    "err_password": "パスワードが正しくありません。",
+    "err_rate_limited": "試行回数が多すぎます。しばらくお待ちください。"
+  },
   "legal": {
     "title": "法的情報",
     "subtitle": "Space8 をご利用の前に、以下の規約をよくお読みください。",
