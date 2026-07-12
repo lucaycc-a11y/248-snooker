@@ -8,19 +8,16 @@ type LogoProps = {
 }
 
 export function Logo({ variant = 'full', theme = 'dark', size = 48 }: LogoProps) {
-  // Space8_full_icon_black_white_bkg.svg is the only logo asset that's a real
-  // transparent vector (plain black <path> fills, no background). The three
-  // "_white_black_bkg"/ball_icon variants are raster exports with an opaque
-  // black background baked in (no alpha channel) — using them renders as a
-  // solid black box on dark sections. So the full lockup always loads that one
-  // clean file and gets inverted to white via CSS filter for the dark theme;
-  // it stays untouched (black-on-transparent) for the light theme.
+  // Transparent-background PNG exports — white artwork for dark sections,
+  // black artwork for light sections, no CSS invert() hack needed.
   const src =
     variant === 'mark'
       ? theme === 'dark'
-        ? '/logos/Space8_ball_icon_white_black_bkg.svg'
-        : '/logos/Space8_ball_icon_black_white_bkg.svg'
-      : '/logos/Space8_full_icon_black_white_bkg.svg'
+        ? encodeURI('/logos/White Version Squ, Tran 8.png')
+        : encodeURI('/logos/Black Version Squ, Tran 8.png')
+      : theme === 'dark'
+        ? encodeURI('/logos/White Version Hor, Tran 8.png')
+        : encodeURI('/logos/Black Version Hor, Tran 8.png')
 
   // Marks are square; the full lockup is wider than tall.
   const width = variant === 'mark' ? size : Math.round(size * 2.8)
@@ -34,7 +31,6 @@ export function Logo({ variant = 'full', theme = 'dark', size = 48 }: LogoProps)
       style={{
         height: size,
         width: 'auto',
-        filter: variant === 'full' && theme === 'dark' ? 'invert(1)' : undefined,
       }}
       priority
     />

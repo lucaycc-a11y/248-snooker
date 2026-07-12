@@ -13,8 +13,8 @@ export function Space8Loader({
 }) {
   const src =
     theme === 'dark'
-      ? '/logos/Space8_ball_icon_white_black_bkg.svg'
-      : '/logos/Space8_ball_icon_black_white_bkg.svg'
+      ? encodeURI('/logos/White Version Squ, Tran 8.png')
+      : encodeURI('/logos/Black Version Squ, Tran 8.png')
 
   return (
     <div
