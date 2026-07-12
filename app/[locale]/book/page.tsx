@@ -10,7 +10,8 @@ import {
   Lock,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
-import { Button, Card, ProgressSteps, BackButton, Space8Loader } from "@/components/ui"
+import { Button, Card, ProgressSteps, BackButton } from "@/components/ui"
+import { LoadingGif } from "@/components/ui/LoadingGif"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
@@ -2114,7 +2115,7 @@ function ConfirmingPayment({ failed }: { failed: boolean }) {
         </>
       ) : (
         <>
-          <Space8Loader size={40} theme="dark" />
+          <LoadingGif />
           <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
             {t("confirming")}
           </p>

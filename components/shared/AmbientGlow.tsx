@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
-// Ambient floating gradient-orb backdrop (Gemini/Stripe-style "breathing" glow).
-// Heavily blurred radial blobs drift slowly behind page content. Purely
+// Ambient edge-glow backdrop (Gemini/Stripe-style "breathing" glow). Color
+// sources sit just outside the four corners/edges of the viewport and fade
+// inward, keeping the center clean and readable for text/cards. Purely
 // decorative — z-index kept below content, pointer-events disabled, and
 // motion is skipped entirely when the user has prefers-reduced-motion set (only
-// the static blobs render, no animate loop).
+// the static gradients render, no animate loop).
 //
 // Reused across dark-background pages (coming-soon, homepage, login, member) —
 // do not add this to light-background pages, the colors assume a black base.
@@ -17,33 +18,34 @@ import { motion } from 'framer-motion'
 // mix-blend-mode: screen for the "light bleeding into light" look — currently
 // scoped to /coming-soon only, pending sign-off before wider rollout.
 
-type Orb = {
+type EdgeGlow = {
   color: string
   size: number
-  top: string
-  left: string
-  moveX: number[]
-  moveY: number[]
+  position: { top?: string; bottom?: string; left?: string; right?: string }
+  driftX: number[]
+  driftY: number[]
   duration: number
   delay: number
 }
 
 type AmbientGlowVariant = 'brand' | 'gemini'
 
-const BRAND_ORBS: Orb[] = [
-  { color: '#22c55e', size: 560, top: '8%', left: '12%', moveX: [0, 90, -40, 0], moveY: [0, -60, 50, 0], duration: 14, delay: 0 },
-  { color: '#f97316', size: 480, top: '55%', left: '68%', moveX: [0, -70, 50, 0], moveY: [0, 60, -50, 0], duration: 17, delay: 1.5 },
-  { color: '#22c55e', size: 420, top: '72%', left: '18%', moveX: [0, 60, -60, 0], moveY: [0, -40, 30, 0], duration: 12, delay: 3 },
+const BRAND_EDGES: EdgeGlow[] = [
+  { color: '#22c55e', size: 900, position: { top: '-30%', left: '-25%' }, driftX: [0, 15, 0], driftY: [0, -10, 0], duration: 16, delay: 0 },
+  { color: '#f97316', size: 800, position: { top: '-30%', right: '-25%' }, driftX: [0, -15, 0], driftY: [0, 10, 0], duration: 19, delay: 2 },
+  { color: '#22c55e', size: 850, position: { bottom: '-30%', right: '-25%' }, driftX: [0, -10, 0], driftY: [0, -15, 0], duration: 14, delay: 4 },
+  { color: '#f97316', size: 800, position: { bottom: '-30%', left: '-25%' }, driftX: [0, 10, 0], driftY: [0, 15, 0], duration: 20, delay: 1 },
 ]
 
-// Google brand palette (blue/purple/pink/orange) + one brand-green orb kept
-// in the mix so the effect still reads as "Space8", not generic Gemini clone.
-const GEMINI_ORBS: Orb[] = [
-  { color: '#4285F4', size: 600, top: '10%', left: '15%', moveX: [0, 80, -60, 0], moveY: [0, -60, 90, 0], duration: 10, delay: 0 },
-  { color: '#A142F4', size: 500, top: '60%', left: '70%', moveX: [0, -80, 60, 0], moveY: [0, 60, -90, 0], duration: 12.5, delay: 1.2 },
-  { color: '#F442A1', size: 550, top: '30%', left: '75%', moveX: [0, 70, -50, 0], moveY: [0, -50, 70, 0], duration: 15, delay: 2.4 },
-  { color: '#FBBC05', size: 450, top: '75%', left: '20%', moveX: [0, -60, 80, 0], moveY: [0, 80, -60, 0], duration: 17.5, delay: 3.6 },
-  { color: '#22c55e', size: 600, top: '45%', left: '45%', moveX: [0, 60, -70, 0], moveY: [0, -70, 60, 0], duration: 20, delay: 4.8 },
+// Google brand palette (blue/purple/pink/orange) + one brand-green source
+// kept in the mix so the effect still reads as "Space8", not generic Gemini
+// clone. Four sit at the corners, the fifth (green) glows from the bottom edge.
+const GEMINI_EDGES: EdgeGlow[] = [
+  { color: '#4285F4', size: 900, position: { top: '-30%', left: '-25%' }, driftX: [0, 15, 0], driftY: [0, -10, 0], duration: 15, delay: 0 },
+  { color: '#A142F4', size: 850, position: { top: '-30%', right: '-25%' }, driftX: [0, -12, 0], driftY: [0, -12, 0], duration: 18, delay: 1.5 },
+  { color: '#F442A1', size: 850, position: { bottom: '-30%', right: '-25%' }, driftX: [0, -15, 0], driftY: [0, 10, 0], duration: 13, delay: 3 },
+  { color: '#FBBC05', size: 800, position: { bottom: '-30%', left: '-25%' }, driftX: [0, 12, 0], driftY: [0, 12, 0], duration: 20, delay: 4.5 },
+  { color: '#22c55e', size: 700, position: { bottom: '-25%', left: '30%' }, driftX: [0, 10, 0], driftY: [0, 8, 0], duration: 17, delay: 6 },
 ]
 
 function useReducedMotion(): boolean {
@@ -60,37 +62,39 @@ function useReducedMotion(): boolean {
 
 export function AmbientGlow({ variant = 'brand' }: { variant?: AmbientGlowVariant }) {
   const reducedMotion = useReducedMotion()
-  const orbs = variant === 'gemini' ? GEMINI_ORBS : BRAND_ORBS
+  const edges = variant === 'gemini' ? GEMINI_EDGES : BRAND_EDGES
   const blendMode = variant === 'gemini' ? 'screen' : undefined
+  const baseOpacity = variant === 'gemini' ? 0.12 : 0.1
+  const pulseRange = variant === 'gemini' ? [0.08, 0.15, 0.08] : [0.07, 0.13, 0.07]
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden bg-black" style={{ zIndex: -1 }}>
-      {orbs.map((orb, i) => (
+      {edges.map((edge, i) => (
         <motion.div
           key={i}
           className="absolute rounded-full"
           style={{
-            width: orb.size,
-            height: orb.size,
-            top: orb.top,
-            left: orb.left,
-            // 80 = ~50% alpha at the orb's core, fading out earlier (60%) so
-            // there's no visible disc edge once blurred.
-            background: `radial-gradient(circle, ${orb.color}80, transparent 60%)`,
-            filter: 'blur(180px)',
-            opacity: variant === 'gemini' ? 0.16 : 0.15,
+            width: edge.size,
+            height: edge.size,
+            ...edge.position,
+            // Sources sit outside the viewport edges and stay fully
+            // transparent past 35% so the center of the page stays clean —
+            // only the outer ring of light reaches inward.
+            background: `radial-gradient(circle, ${edge.color}80, transparent 35%)`,
+            filter: 'blur(200px)',
+            opacity: baseOpacity,
             mixBlendMode: blendMode,
             willChange: 'transform',
           }}
           animate={
             reducedMotion
               ? undefined
-              : { x: orb.moveX, y: orb.moveY, opacity: variant === 'gemini' ? [0.12, 0.18, 0.12] : [0.11, 0.16, 0.11] }
+              : { x: edge.driftX, y: edge.driftY, opacity: pulseRange }
           }
           transition={
             reducedMotion
               ? undefined
-              : { duration: orb.duration, delay: orb.delay, repeat: Infinity, ease: 'easeInOut' }
+              : { duration: edge.duration, delay: edge.delay, repeat: Infinity, ease: 'easeInOut' }
           }
         />
       ))}

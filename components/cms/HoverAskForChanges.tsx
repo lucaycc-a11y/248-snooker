@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Space8Loader } from '@/components/ui/Space8Loader'
+import { LoadingGif } from '@/components/ui/LoadingGif'
 import { tokens } from '@/app/styles/tokens'
 import { CMSEditCard, type ProposedEdit } from '@/components/admin/CMSEditCard'
 
@@ -99,7 +99,7 @@ export function HoverAskForChanges({
 
       {state === 'loading' ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
-          <Space8Loader size={18} theme="light" />
+          <LoadingGif size={120} />
           <span style={{ fontSize: 13, color: tokens.colors.textMuted }}>Thinking…</span>
         </div>
       ) : state === 'done' ? (

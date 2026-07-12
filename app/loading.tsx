@@ -1,7 +1,7 @@
-import { Space8Loader } from '@/components/ui'
+import { LoadingGif } from '@/components/ui'
 
 /** Next.js route-transition loading UI — full-screen black overlay with the
- * branded Space8 ball spinning in place (see Space8Loader). */
+ * branded loading GIF. */
 export default function Loading() {
   return (
     <div
@@ -15,7 +15,7 @@ export default function Loading() {
         zIndex: 9999,
       }}
     >
-      <Space8Loader size={64} theme="dark" />
+      <LoadingGif size={140} />
     </div>
   )
 }

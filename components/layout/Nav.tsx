@@ -268,7 +268,7 @@ export default function Nav() {
           className="nav-logo"
           aria-label={t('home')}
         >
-          <Logo variant="full" theme={theme} size={60} />
+          <Logo variant="full" theme={theme} size={36} />
         </Link>
 
         <div
@@ -470,7 +470,7 @@ export default function Nav() {
             left: 32px !important;
           }
           .nav-logo img {
-            height: 76px !important;
+            height: 36px !important;
             width: auto !important;
           }
         }

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { MessageCircle, X, Clock, Star, MapPin, HelpCircle } from 'lucide-react'
 import { useTranslations, useLocale } from 'next-intl'
 import { Sheet } from '@/components/ui/Sheet'
-import { Space8Loader } from '@/components/ui/Space8Loader'
+import { LoadingGif } from '@/components/ui/LoadingGif'
 import { Logo } from '@/components/brand/Logo'
 import { tokens } from '@/app/styles/tokens'
 import { useLiquidGlass } from '@/lib/useLiquidGlass'
@@ -370,7 +370,7 @@ export default function AIChatWidget() {
                       backgroundColor: '#1A1A1A',
                     }}
                   >
-                    <Space8Loader size={18} theme="light" />
+                    <LoadingGif size={120} />
                   </span>
                 </div>
               )}
