@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin', '/api', '/auth', '/member'],
     },
-    sitemap: 'https://248.formhk.com/sitemap.xml',
+    sitemap: 'https://space8.com.hk/sitemap.xml',
   }
 }

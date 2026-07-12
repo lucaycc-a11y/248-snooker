@@ -549,7 +549,7 @@ BEGIN
     ('faq', 'faq_items', 'zh-HK', 6, '{"question":"什麼是積分制度？","answer":"每消費 HK$1 賺取 1 積分。累積至 500 分升級 Century，享 9 折及積分 1.5 倍；累積至 1,500 分升級 Maximum，享 8 折及免費教練時段。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'zh-HK', 7, '{"question":"場地內有什麼設備？","answer":"專業桌球枱、頂級燈光設備、冷氣、免費 Wi-Fi，以及自助飲品區。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'zh-HK', 8, '{"question":"可以帶朋友一起來嗎？","answer":"可以，每個時段可容納多人，費用按時段計算，無需額外收費。"}'::jsonb, 'published'),
-    ('faq', 'faq_items', 'zh-HK', 9, '{"question":"如有問題如何聯絡？","answer":"可透過 WhatsApp 聯絡我們，或發送電郵至 hello@formhk.com，我們將盡快回覆。"}'::jsonb, 'published'),
+    ('faq', 'faq_items', 'zh-HK', 9, '{"question":"如有問題如何聯絡？","answer":"可透過 WhatsApp 聯絡我們，或發送電郵至 hello@space8.com.hk，我們將盡快回覆。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'zh-CN', 0, '{"question":"如何预订球桌？","answer":"选择日期、时段及时长，以 Apple Pay 或信用卡即时付款，确认后即获 QR 码。全程不需人工协助。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'zh-CN', 1, '{"question":"预订后如何入场？","answer":"付款确认后，你将收到专属 QR 码。到场扫描门口感应器，系统自动开门，全程自助。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'zh-CN', 2, '{"question":"可以取消预订吗？","answer":"开始前 2 小时内可免费取消，全额退款。逾时取消将不获退款。"}'::jsonb, 'published'),
@@ -559,7 +559,7 @@ BEGIN
     ('faq', 'faq_items', 'zh-CN', 6, '{"question":"什么是积分制度？","answer":"每消费 HK$1 赚取 1 积分。累积至 500 分升级 Century，享 9 折及积分 1.5 倍；累积至 1,500 分升级 Maximum，享 8 折及免费教练时段。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'zh-CN', 7, '{"question":"场地内有什么设备？","answer":"专业台球台、顶级灯光设备、冷气、免费 Wi-Fi，以及自助饮品区。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'zh-CN', 8, '{"question":"可以带朋友一起来吗？","answer":"可以，每个时段可容纳多人，费用按时段计算，无需额外收费。"}'::jsonb, 'published'),
-    ('faq', 'faq_items', 'zh-CN', 9, '{"question":"如有问题如何联系？","answer":"可透过 WhatsApp 联系我们，或发送电邮至 hello@formhk.com，我们将尽快回复。"}'::jsonb, 'published'),
+    ('faq', 'faq_items', 'zh-CN', 9, '{"question":"如有问题如何联系？","answer":"可透过 WhatsApp 联系我们，或发送电邮至 hello@space8.com.hk，我们将尽快回复。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'en', 0, '{"question":"How do I book a table?","answer":"Select a date, time slot, and duration, then pay instantly with Apple Pay or a credit card. You''ll receive a QR code immediately. No staff assistance required."}'::jsonb, 'published'),
     ('faq', 'faq_items', 'en', 1, '{"question":"How do I enter after booking?","answer":"After payment, you''ll receive a unique QR code. Scan the door sensor on arrival and the system unlocks automatically — fully self-service."}'::jsonb, 'published'),
     ('faq', 'faq_items', 'en', 2, '{"question":"Can I cancel my booking?","answer":"You can cancel for free up to 2 hours before your session starts and receive a full refund. Cancellations after that are non-refundable."}'::jsonb, 'published'),
@@ -569,7 +569,7 @@ BEGIN
     ('faq', 'faq_items', 'en', 6, '{"question":"How does the points system work?","answer":"Earn 1 point per HK$1 spent. Reach 500 points for Century tier (10% off, 1.5× points). Reach 1,500 for Maximum tier (20% off, free coaching)."}'::jsonb, 'published'),
     ('faq', 'faq_items', 'en', 7, '{"question":"What facilities are available?","answer":"Professional snooker tables, premium lighting, air conditioning, free Wi-Fi, and a self-serve drinks area."}'::jsonb, 'published'),
     ('faq', 'faq_items', 'en', 8, '{"question":"Can I bring friends?","answer":"Yes, each session can accommodate multiple players. The session fee covers everyone — no extra charge per person."}'::jsonb, 'published'),
-    ('faq', 'faq_items', 'en', 9, '{"question":"How can I contact you?","answer":"Reach us via WhatsApp or email hello@formhk.com — we''ll get back to you promptly."}'::jsonb, 'published'),
+    ('faq', 'faq_items', 'en', 9, '{"question":"How can I contact you?","answer":"Reach us via WhatsApp or email hello@space8.com.hk — we''ll get back to you promptly."}'::jsonb, 'published'),
     ('faq', 'faq_items', 'ja', 0, '{"question":"テーブルの予約方法は？","answer":"日付・時間帯・プレイ時間を選択し、Apple Payまたはクレジットカードで即時決済。QRコードがすぐに届きます。スタッフ対応は不要です。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'ja', 1, '{"question":"予約後の入場方法は？","answer":"支払い確認後、専用QRコードが届きます。ドアセンサーをスキャンするだけで自動解錠、完全セルフサービスです。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'ja', 2, '{"question":"キャンセルはできますか？","answer":"セッション開始2時間前までは無料でキャンセル、全額返金されます。それ以降のキャンセルは返金対象外です。"}'::jsonb, 'published'),
@@ -579,7 +579,7 @@ BEGIN
     ('faq', 'faq_items', 'ja', 6, '{"question":"ポイント制度について教えてください。","answer":"HK$1ごとに1ポイント獲得。500ポイントでCentury（10%割引・1.5倍ポイント）、1,500ポイントでMaximum（20%割引・無料コーチング）にアップグレードされます。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'ja', 7, '{"question":"施設内の設備は？","answer":"プロ仕様のスヌーカーテーブル、高品質照明、エアコン、無料Wi-Fi、セルフサービスドリンクコーナーをご用意しています。"}'::jsonb, 'published'),
     ('faq', 'faq_items', 'ja', 8, '{"question":"友人を連れて来られますか？","answer":"はい、各セッションに複数名が参加できます。料金はセッション単位で、追加費用はかかりません。"}'::jsonb, 'published'),
-    ('faq', 'faq_items', 'ja', 9, '{"question":"お問い合わせ方法は？","answer":"WhatsAppまたはhello@formhk.comまでご連絡ください。できる限り早くお返事いたします。"}'::jsonb, 'published');
+    ('faq', 'faq_items', 'ja', 9, '{"question":"お問い合わせ方法は？","answer":"WhatsAppまたはhello@space8.com.hkまでご連絡ください。できる限り早くお返事いたします。"}'::jsonb, 'published');
   END IF;
 END $$;
 

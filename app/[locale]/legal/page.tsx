@@ -6,7 +6,7 @@ import { getConfigValue } from "@/lib/data/getConfig";
 import { getLegalSections } from "@/lib/data/getLegalData";
 import LegalContent from "./LegalContent";
 
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 export async function generateMetadata({
   params,

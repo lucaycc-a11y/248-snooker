@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Space8 · 屬於你的主場",
     description: "香港首間自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
-    url: "https://248.formhk.com",
+    url: "https://space8.com.hk",
     siteName: "Space8",
     images: [
       {
@@ -73,7 +73,7 @@ export default function RootLayout({
     "@type": "SportsClub",
     name: "Space8",
     description: "香港首間自助英式桌球預訂平台，每日 06:00 至 24:00 營業",
-    url: "https://248.formhk.com",
+    url: "https://space8.com.hk",
     telephone: "+85264274620",
     address: {
       "@type": "PostalAddress",

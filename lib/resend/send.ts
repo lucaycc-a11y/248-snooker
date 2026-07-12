@@ -83,7 +83,7 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
   }
 
   await resend.emails.send({
-    from: 'Space8 <bookings@248.formhk.com>',
+    from: 'Space8 <bookings@space8.com.hk>',
     to: params.to,
     subject: subjectLines[params.locale],
     html,
@@ -137,7 +137,7 @@ export async function sendBookingRefundedEmail(params: SendRefundedParams) {
   }
 
   await resend.emails.send({
-    from: 'Space8 <bookings@248.formhk.com>',
+    from: 'Space8 <bookings@space8.com.hk>',
     to: params.to,
     subject: subjectLines[params.locale],
     html,
@@ -189,7 +189,7 @@ export async function sendBookingRescheduledEmail(params: SendRescheduledParams)
   }
 
   await resend.emails.send({
-    from: 'Space8 <bookings@248.formhk.com>',
+    from: 'Space8 <bookings@space8.com.hk>',
     to: params.to,
     subject: subjectLines[params.locale],
     html,
@@ -208,7 +208,7 @@ export async function sendAdminInviteEmail(params: SendAdminInviteParams) {
   const html = await render(AdminInviteEmail({ inviteUrl: params.inviteUrl, role: params.role }))
 
   await resend.emails.send({
-    from: 'Space8 <admin@248.formhk.com>',
+    from: 'Space8 <admin@space8.com.hk>',
     to: params.to,
     subject: "You've been invited to Space8 Admin",
     html,

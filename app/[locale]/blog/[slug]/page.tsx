@@ -15,7 +15,7 @@ import ShareButtons from "./ShareButtons";
 const SUBTLE = "#86868B";
 const GREEN = "#22C55E";
 const BORDER_DARK = "#2D2D2D";
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";

@@ -6,7 +6,7 @@ import WhatsAppButton from "@/components/shared/WhatsAppButton";
 import { safeJsonLd } from "@/lib/seo/jsonLd";
 import AboutContent from "./AboutContent";
 
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 export async function generateMetadata({
   params,

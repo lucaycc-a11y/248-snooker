@@ -4,7 +4,7 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { AppleLogo } from "@/components/brand"
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://248.formhk.com"
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://space8.com.hk"
 
 /**
  * Sign in with Apple — Supabase redirect OAuth, mirroring the WORKING Google flow

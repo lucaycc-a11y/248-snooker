@@ -5,7 +5,7 @@ import Footer from "@/components/layout/Footer";
 import { getBlogPosts } from "@/lib/data/getBlog";
 import BlogList from "./BlogList";
 
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 export async function generateMetadata({
   params,

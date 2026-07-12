@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   keywords:
     "桌球,香港桌球,桌球會所,自助桌球,桌球預訂,snooker hong kong",
   alternates: {
-    canonical: "https://248.formhk.com/faq",
+    canonical: "https://space8.com.hk/faq",
   },
 };
 

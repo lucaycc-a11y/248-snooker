@@ -50,7 +50,7 @@ async function convertLogo() {
     console.log('');
     console.log('Next steps:');
     console.log('1. Upload the PNG to your hosting (e.g., Vercel/Cloudflare)');
-    console.log('2. Verify it\'s accessible at: https://248.formhk.com/logos/space8-logo-email.png');
+    console.log('2. Verify it\'s accessible at: https://space8.com.hk/logos/space8-logo-email.png');
     console.log('3. Test emails in Gmail, Outlook, and Apple Mail to confirm rendering');
     console.log('');
     console.log('💡 The email templates already reference this URL, so once uploaded, they\'ll work immediately.');

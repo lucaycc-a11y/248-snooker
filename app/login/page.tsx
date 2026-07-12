@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { resolveLocaleFromCookie, loadMessages } from "@/lib/i18n/serverLocale";
 import LoginForm from "./LoginForm";
 
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 export const metadata: Metadata = {
   title: "Login | Space8",

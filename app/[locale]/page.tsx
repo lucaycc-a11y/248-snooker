@@ -25,7 +25,7 @@ export async function generateMetadata({
       keywords: ['桌球', '斯諾克', '香港桌球', '自助桌球會所', '自助桌球', '英式桌球'],
       ogTitle: 'Space8',
       ogDesc: '香港自助桌球會所 · 每日06:00-24:00營業',
-      canonical: 'https://248.formhk.com',
+      canonical: 'https://space8.com.hk',
       ogLocale: 'zh_HK',
     },
     'zh-CN': {
@@ -34,7 +34,7 @@ export async function generateMetadata({
       keywords: ['台球', '斯诺克', '香港台球', '自助台球会所', '自助台球', '英式台球'],
       ogTitle: 'Space8',
       ogDesc: '香港自助台球会所 · 每日06:00-24:00营业',
-      canonical: 'https://248.formhk.com/zh-CN',
+      canonical: 'https://space8.com.hk/zh-CN',
       ogLocale: 'zh_CN',
     },
     en: {
@@ -43,7 +43,7 @@ export async function generateMetadata({
       keywords: ['snooker', 'Hong Kong snooker', 'self service snooker club', 'self service snooker', 'billiards HK'],
       ogTitle: 'Space8',
       ogDesc: 'Snooker Club Hong Kong · Open Daily 06:00–24:00',
-      canonical: 'https://248.formhk.com/en',
+      canonical: 'https://space8.com.hk/en',
       ogLocale: 'en_HK',
     },
     ja: {
@@ -52,7 +52,7 @@ export async function generateMetadata({
       keywords: ['スヌーカー', '香港スヌーカー', 'セルフサービススヌーカー', 'ビリヤード香港'],
       ogTitle: 'Space8',
       ogDesc: '香港スヌーカークラブ · 毎日06:00〜24:00営業',
-      canonical: 'https://248.formhk.com/ja',
+      canonical: 'https://space8.com.hk/ja',
       ogLocale: 'ja_JP',
     },
   }
@@ -72,7 +72,7 @@ export async function generateMetadata({
       type: 'website',
       images: [
         {
-          url: 'https://248.formhk.com/og-image.png',
+          url: 'https://space8.com.hk/og-image.png',
           width: 1200,
           height: 630,
           alt: 'Space8 Club Hong Kong',
@@ -83,15 +83,15 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: 'Space8',
       description: m.ogDesc,
-      images: ['https://248.formhk.com/og-image.png'],
+      images: ['https://space8.com.hk/og-image.png'],
     },
     alternates: {
       canonical: m.canonical,
       languages: {
-        'zh-HK': 'https://248.formhk.com',
-        'zh-CN': 'https://248.formhk.com/zh-CN',
-        en: 'https://248.formhk.com/en',
-        ja: 'https://248.formhk.com/ja',
+        'zh-HK': 'https://space8.com.hk',
+        'zh-CN': 'https://space8.com.hk/zh-CN',
+        en: 'https://space8.com.hk/en',
+        ja: 'https://space8.com.hk/ja',
       },
     },
     robots: { index: true, follow: true },

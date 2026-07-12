@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://248.formhk.com"
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://space8.com.hk"
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 // Official Google 4-color "G" — used only by the fallback button (the GIS path

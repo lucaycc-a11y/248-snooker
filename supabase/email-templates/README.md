@@ -6,7 +6,7 @@ Space-themed email templates for all Supabase Auth events. All templates use bla
 
 All email templates reference a PNG logo at:
 ```
-https://248.formhk.com/logos/space8-logo-email.png
+https://space8.com.hk/logos/space8-logo-email.png
 ```
 
 **This PNG must be created and uploaded before the emails will display correctly.** Follow these steps:
@@ -29,14 +29,14 @@ npm install sharp --save-dev
 
 The PNG must be publicly accessible at the URL referenced in the templates. Options:
 
-- **Vercel:** Deploy and the file in `public/logos/` will be accessible at `https://248.formhk.com/logos/space8-logo-email.png`
+- **Vercel:** Deploy and the file in `public/logos/` will be accessible at `https://space8.com.hk/logos/space8-logo-email.png`
 - **Manual upload:** Upload to your CDN/hosting and verify the URL matches
 
 ### Step 3: Verify
 
 Open this URL in a browser to confirm it loads:
 ```
-https://248.formhk.com/logos/space8-logo-email.png
+https://space8.com.hk/logos/space8-logo-email.png
 ```
 
 The logo should display as white Space8 branding on transparent/black background.

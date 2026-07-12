@@ -9,7 +9,7 @@ import { sendAdminInviteEmail } from '@/lib/resend/send'
 // row was created but the email didn't send — is logged to audit_log.
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://248.formhk.com'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://space8.com.hk'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)

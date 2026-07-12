@@ -248,7 +248,7 @@ export function BookingConfirmedEmail({
             <td style={{ paddingTop: '24px' }}>
               <p style={{ color: '#525252', fontSize: '11px', lineHeight: '1.6', textAlign: 'center', margin: 0 }}>
                 {t.legalNotice}{' '}
-                <a href="https://248.formhk.com/legal/refund-policy" style={{ color: '#22c55e', textDecoration: 'none' }}>
+                <a href="https://space8.com.hk/legal/refund-policy" style={{ color: '#22c55e', textDecoration: 'none' }}>
                   {t.refundPolicyLink}
                 </a>
                 。

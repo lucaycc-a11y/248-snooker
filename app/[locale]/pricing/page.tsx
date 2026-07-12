@@ -6,7 +6,7 @@ import WhatsAppButton from "@/components/shared/WhatsAppButton";
 import { getConfig } from "@/lib/data/getConfig";
 import PricingContent from "./PricingContent";
 
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 export async function generateMetadata({
   params,

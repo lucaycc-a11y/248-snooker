@@ -7,7 +7,7 @@ export async function sendBookingConfirmation(client, phone, booking) {
     `💰 HK$${booking.total_price}\n` +
     `🔖 ${booking.booking_reference}\n\n` +
     `請於入場時出示預訂確認QR碼。\n` +
-    `如需更改請到：https://248.formhk.com`
+    `如需更改請到：https://space8.com.hk`
 
   await client.sendMessage(formatWhatsAppId(phone), msg)
 }
@@ -30,7 +30,7 @@ export async function sendSessionEnding(client, phone, booking) {
     `🔔 *時段完結提醒*\n\n` +
     `你的時段（${booking.start_time} – ${booking.end_time}）已完結。\n` +
     `如需延長，請即到網站預訂下一個時段：\n` +
-    `https://248.formhk.com\n\n` +
+    `https://space8.com.hk\n\n` +
     `多謝光臨 248 Snooker！🎱`
 
   await client.sendMessage(formatWhatsAppId(phone), msg)

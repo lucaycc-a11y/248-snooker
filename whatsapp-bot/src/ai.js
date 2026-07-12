@@ -54,7 +54,7 @@ ${bookings.map((booking) => `- ${booking.date} ${booking.start_time}-${booking.e
 - 唔確定嘅嘢唔好亂講
 - 唔好捏造任何資料
 - 驗證碼相關問題叫用戶直接回覆數字
-- 預訂問題引導去網站：https://248.formhk.com
+- 預訂問題引導去網站：https://space8.com.hk
 - 唔可以幫用戶直接修改預訂，叫佢去網站或聯絡管理員`
 
   const messages = [
