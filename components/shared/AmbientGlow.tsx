@@ -74,16 +74,18 @@ export function AmbientGlow({ variant = 'brand' }: { variant?: AmbientGlowVarian
             height: orb.size,
             top: orb.top,
             left: orb.left,
-            background: `radial-gradient(circle, ${orb.color}, transparent 70%)`,
-            filter: 'blur(100px)',
-            opacity: variant === 'gemini' ? 0.55 : 0.5,
+            // 80 = ~50% alpha at the orb's core, fading out earlier (60%) so
+            // there's no visible disc edge once blurred.
+            background: `radial-gradient(circle, ${orb.color}80, transparent 60%)`,
+            filter: 'blur(180px)',
+            opacity: variant === 'gemini' ? 0.16 : 0.15,
             mixBlendMode: blendMode,
             willChange: 'transform',
           }}
           animate={
             reducedMotion
               ? undefined
-              : { x: orb.moveX, y: orb.moveY, opacity: variant === 'gemini' ? [0.45, 0.7, 0.45] : [0.35, 0.55, 0.35] }
+              : { x: orb.moveX, y: orb.moveY, opacity: variant === 'gemini' ? [0.12, 0.18, 0.12] : [0.11, 0.16, 0.11] }
           }
           transition={
             reducedMotion
