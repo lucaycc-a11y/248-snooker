@@ -4,8 +4,32 @@ import { getBlogPosts } from '@/lib/data/getBlog'
 const BASE = 'https://space8.com.hk'
 const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
 
-function localePath(locale: string, slug: string): string {
-  return locale === 'zh-HK' ? `/blog/${slug}` : `/${locale}/blog/${slug}`
+function localePath(locale: string, path: string): string {
+  return locale === 'zh-HK' ? path : `/${locale}${path}`
+}
+
+// Full 4-locale + x-default hreflang alternates for a given root path (e.g.
+// '/', '/pricing'). Previously only zh-HK + a nonstandard 'en-HK' code were
+// listed here, missing zh-CN/ja entirely despite LOCALES covering all 4 —
+// inconsistent with the per-page generateMetadata functions.
+function alternatesFor(path: string) {
+  const languages = Object.fromEntries(LOCALES.map((locale) => [locale, `${BASE}${localePath(locale, path)}`]))
+  return { languages: { ...languages, 'x-default': `${BASE}${path}` } }
+}
+
+function staticEntry(
+  path: string,
+  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'],
+  priority: number,
+  now: Date,
+): MetadataRoute.Sitemap[number] {
+  return {
+    url: `${BASE}${path}`,
+    lastModified: now,
+    changeFrequency,
+    priority,
+    alternates: alternatesFor(path),
+  }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -14,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const postsByLocale = await Promise.all(LOCALES.map((locale) => getBlogPosts(locale)))
   const postEntries: MetadataRoute.Sitemap = postsByLocale.flatMap((posts, i) =>
     posts.map((post) => ({
-      url: `${BASE}${localePath(LOCALES[i], post.slug)}`,
+      url: `${BASE}${localePath(LOCALES[i], `/blog/${post.slug}`)}`,
       lastModified: post.published_at ? new Date(post.published_at) : now,
       changeFrequency: 'monthly' as const,
       priority: 0.6,
@@ -22,90 +46,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   )
 
   return [
-    {
-      url: BASE,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 1,
-      alternates: {
-        languages: {
-          'zh-HK': BASE,
-          'en-HK': `${BASE}/en`,
-        },
-      },
-    },
-    {
-      url: `${BASE}/book`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-      alternates: {
-        languages: {
-          'zh-HK': `${BASE}/book`,
-          'en-HK': `${BASE}/en/book`,
-        },
-      },
-    },
-    {
-      url: `${BASE}/pricing`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.8,
-      alternates: {
-        languages: {
-          'zh-HK': `${BASE}/pricing`,
-          'en-HK': `${BASE}/en/pricing`,
-        },
-      },
-    },
-    {
-      url: `${BASE}/about`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.6,
-      alternates: {
-        languages: {
-          'zh-HK': `${BASE}/about`,
-          'en-HK': `${BASE}/en/about`,
-        },
-      },
-    },
-    {
-      url: `${BASE}/faq`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.6,
-      alternates: {
-        languages: {
-          'zh-HK': `${BASE}/faq`,
-          'en-HK': `${BASE}/en/faq`,
-        },
-      },
-    },
-    {
-      url: `${BASE}/blog`,
-      lastModified: now,
-      changeFrequency: 'weekly',
-      priority: 0.7,
-      alternates: {
-        languages: {
-          'zh-HK': `${BASE}/blog`,
-          'en-HK': `${BASE}/en/blog`,
-        },
-      },
-    },
-    {
-      url: `${BASE}/legal`,
-      lastModified: now,
-      changeFrequency: 'yearly',
-      priority: 0.3,
-      alternates: {
-        languages: {
-          'zh-HK': `${BASE}/legal`,
-          'en-HK': `${BASE}/en/legal`,
-        },
-      },
-    },
+    staticEntry('/', 'weekly', 1, now),
+    staticEntry('/book', 'daily', 0.9, now),
+    staticEntry('/pricing', 'weekly', 0.8, now),
+    staticEntry('/about', 'monthly', 0.6, now),
+    staticEntry('/faq', 'monthly', 0.6, now),
+    staticEntry('/blog', 'weekly', 0.7, now),
+    staticEntry('/legal', 'yearly', 0.3, now),
     ...postEntries,
   ]
 }

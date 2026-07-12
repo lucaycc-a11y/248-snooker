@@ -3,7 +3,7 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/shared/WhatsAppButton";
-import { safeJsonLd } from "@/lib/seo/jsonLd";
+import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import AboutContent from "./AboutContent";
 
 const BASE = "https://space8.com.hk";
@@ -55,28 +55,9 @@ export default async function AboutPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // LocalBusiness (SportsClub) structured data — daily 06:00–24:00 hours, contact.
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SportsClub",
-    name: "Space8",
-    description: "香港首間每日06:00至24:00營業的自助英式桌球預訂平台",
-    url: `${BASE}${locale === "zh-HK" ? "/about" : `/${locale}/about`}`,
-    telephone: "+85264274620",
-    email: "info.formhk@gmail.com",
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "HK",
-      addressRegion: "Hong Kong",
-    },
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      opens: "06:00",
-      closes: "23:59",
-    },
-    priceRange: "HK$60-80/hr",
-  };
+  // LocalBusiness (SportsClub) structured data — shared builder, was previously
+  // a diverging inline copy (different priceRange/closes time from the homepage's).
+  const jsonLd = buildSportsClubJsonLd(locale, "/about");
 
   return (
     <main className="relative bg-black">

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bebas_Neue } from "next/font/google";
+import { getLocale } from "next-intl/server";
+import { routing } from "@/i18n/routing";
 import "./globals.css";
 
 const bebasNeue = Bebas_Neue({
@@ -10,6 +12,7 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://space8.com.hk"),
   title: "Space8 · 香港自助中式桌球 06:00-24:00",
   description:
     "香港首間自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
@@ -62,52 +65,20 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Static JSON-LD — no user input, safe to inline.
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SportsClub",
-    name: "Space8",
-    description: "香港首間自助英式桌球預訂平台，每日 06:00 至 24:00 營業",
-    url: "https://space8.com.hk",
-    telephone: "+85264274620",
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "HK",
-      addressRegion: "Hong Kong",
-    },
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
-      opens: "06:00",
-      closes: "24:00",
-    },
-    priceRange: "HK$60-120/hr",
-    amenityFeature: [
-      { "@type": "LocationFeatureSpecification", name: "Self-service booking", value: true },
-      { "@type": "LocationFeatureSpecification", name: "Apple Pay", value: true },
-    ],
-  };
+  // Routes outside [locale] (e.g. /login, /member, /admin) never set a request
+  // locale, so this falls back to routing.defaultLocale for them — still
+  // correct, since those routes render zh-HK-only chrome around client-side
+  // locale-aware content.
+  const locale = await getLocale().catch(() => routing.defaultLocale);
 
   return (
-    <html lang="zh-HK" className={bebasNeue.variable}>
+    <html lang={locale} className={bebasNeue.variable}>
       <body className="min-h-screen bg-black text-white antialiased">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
         {children}
       </body>
     </html>

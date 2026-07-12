@@ -11,6 +11,7 @@ import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqListData, getFaqJsonLdFromItems } from "@/lib/data/getFaqData";
+import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 
 export async function generateMetadata({
   params,
@@ -110,9 +111,11 @@ export default async function Home({
   const t = await getTranslations({ locale, namespace: 'faq' });
   const faqItems = await getFaqListData(locale, t);
   const faqJsonLd = getFaqJsonLdFromItems(faqItems);
+  const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`);
 
   return (
     <main className="relative bg-black" style={{ isolation: "isolate" }}>
+      <script type="application/ld+json">{safeJsonLd(sportsClubJsonLd)}</script>
       <AmbientGlow />
       <Nav />
       <Hero />
