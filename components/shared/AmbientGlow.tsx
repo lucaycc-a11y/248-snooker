@@ -40,12 +40,15 @@ const BRAND_EDGES: EdgeGlow[] = [
 // Google brand palette (blue/purple/pink/orange) + one brand-green source
 // kept in the mix so the effect still reads as "Space8", not generic Gemini
 // clone. Four sit at the corners, the fifth (green) glows from the bottom edge.
+// A deep space-blue source is layered on top (center/top) to push the overall
+// feel toward "space" rather than pure Gemini branding.
 const GEMINI_EDGES: EdgeGlow[] = [
   { color: '#4285F4', size: 900, position: { top: '-30%', left: '-25%' }, driftX: [0, 15, 0], driftY: [0, -10, 0], duration: 15, delay: 0 },
   { color: '#A142F4', size: 850, position: { top: '-30%', right: '-25%' }, driftX: [0, -12, 0], driftY: [0, -12, 0], duration: 18, delay: 1.5 },
   { color: '#F442A1', size: 850, position: { bottom: '-30%', right: '-25%' }, driftX: [0, -15, 0], driftY: [0, 10, 0], duration: 13, delay: 3 },
   { color: '#FBBC05', size: 800, position: { bottom: '-30%', left: '-25%' }, driftX: [0, 12, 0], driftY: [0, 12, 0], duration: 20, delay: 4.5 },
   { color: '#22c55e', size: 700, position: { bottom: '-25%', left: '30%' }, driftX: [0, 10, 0], driftY: [0, 8, 0], duration: 17, delay: 6 },
+  { color: '#3B82F6', size: 950, position: { top: '-35%', left: '30%' }, driftX: [0, -10, 0], driftY: [0, 12, 0], duration: 22, delay: 2.5 },
 ]
 
 function useReducedMotion(): boolean {

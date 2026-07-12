@@ -8,7 +8,7 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const CONFIG_ID = '00000000-0000-0000-0000-000000000001'
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days, matches lib/gate/cookie.ts
+const COOKIE_MAX_AGE = 60 * 60 // 1 hour, matches lib/gate/cookie.ts
 
 // POST /api/gate/verify  { password }
 // Public route (site gate is only reachable while the gate itself is active,

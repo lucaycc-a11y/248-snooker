@@ -5,7 +5,7 @@
 // lib/qr/jwt.ts, just built on SubtleCrypto instead.
 
 export const GATE_COOKIE_NAME = 'site_gate_bypass'
-const MAX_AGE_SECONDS = 60 * 60 * 24 * 7 // 7 days
+const MAX_AGE_SECONDS = 60 * 60 // 1 hour — deliberately short so the password must be re-entered often
 
 function base64url(bytes: ArrayBuffer): string {
   return Buffer.from(bytes).toString('base64url')

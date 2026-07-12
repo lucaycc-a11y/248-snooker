@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { Starfield } from '@/app/[locale]/Starfield'
 import { AmbientGlow } from '@/components/shared/AmbientGlow'
+import { Logo } from '@/components/brand/Logo'
 
 const GREEN = '#22c55e'
 const LONG_PRESS_MS = 2500
@@ -257,11 +258,8 @@ export default function ComingSoonContent() {
       <AmbientGlow variant="gemini" />
       <section className="glass-panel" style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 440, padding: 40 }}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div
-            data-cms-key="comingSoon.brand"
-            style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.32em', color: GREEN, marginBottom: 12 }}
-          >
-            {t('brand')}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <Logo variant="full" theme="dark" size={32} />
           </div>
           <h1
             data-cms-key="comingSoon.title"
