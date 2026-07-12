@@ -4,8 +4,8 @@ import { useEditMode } from './EditModeContext'
 
 // Small toggle for admins to flip public-site edit-mode on/off. Positioned
 // away from ContactButton's bottom-right slot to avoid overlap (ContactButton
-// itself becomes the "AI edit" entry point when edit-mode is on — see
-// components/shared/ContactButton.tsx).
+// itself becomes the "AI edit" entry point when edit-mode is on, replacing
+// WhatsAppButton — see components/shared/ContactButton.tsx).
 export default function EditModeToggle() {
   const ctx = useEditMode()
   if (!ctx) return null

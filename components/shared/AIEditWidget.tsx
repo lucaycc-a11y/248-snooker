@@ -8,9 +8,9 @@ import { tokens } from '@/app/styles/tokens'
 import { CMSEditCard, type ProposedEdit } from '@/components/admin/CMSEditCard'
 
 // Admin-in-edit-mode variant of the floating contact button (Phase C merge).
-// Same floating position as AIChatWidget/WhatsAppButton; opens a Sheet with
-// the SAME natural-language-to-CMS-edit flow as /admin/cms/ai, calling the
-// existing ai-edit route unchanged.
+// Same floating position as WhatsAppButton; opens a Sheet with the SAME
+// natural-language-to-CMS-edit flow as /admin/cms/ai, calling the existing
+// ai-edit route unchanged.
 export default function AIEditWidget() {
   const [open, setOpen] = useState(false)
   const [prompt, setPrompt] = useState('')
