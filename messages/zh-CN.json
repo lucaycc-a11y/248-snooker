@@ -448,7 +448,10 @@
     "reschedule_modal_unavailable_error": "此时段已被预订。",
     "reschedule_modal_generic_error": "改期失败，请重试。",
     "reschedule_success_toast": "已改期",
+    "bookings_upcoming": "即将到来",
+    "bookings_history": "历史记录",
     "no_bookings": "暂无预订记录",
+    "no_history": "暂无历史记录",
     "points_running_total": "余额",
     "points_earn_title": "赚取积分方式",
     "points_earn": [

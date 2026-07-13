@@ -447,7 +447,10 @@
     "reschedule_modal_unavailable_error": "That slot is no longer available.",
     "reschedule_modal_generic_error": "Couldn't reschedule. Please try again.",
     "reschedule_success_toast": "Rescheduled",
+    "bookings_upcoming": "Upcoming",
+    "bookings_history": "History",
     "no_bookings": "No bookings yet",
+    "no_history": "No past bookings",
     "points_running_total": "Balance",
     "points_earn_title": "Ways to Earn",
     "points_earn": [

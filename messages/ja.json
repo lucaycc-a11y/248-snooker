@@ -448,7 +448,10 @@
     "reschedule_modal_unavailable_error": "その時間帯は既に予約されています。",
     "reschedule_modal_generic_error": "変更に失敗しました。もう一度お試しください。",
     "reschedule_success_toast": "変更済み",
+    "bookings_upcoming": "今後の予約",
+    "bookings_history": "履歴",
     "no_bookings": "予約履歴はまだありません",
+    "no_history": "過去の予約はありません",
     "points_running_total": "残高",
     "points_earn_title": "ポイントの貯め方",
     "points_earn": [
