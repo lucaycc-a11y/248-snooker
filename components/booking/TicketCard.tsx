@@ -49,9 +49,9 @@ export type TicketCardProps = {
   duration: number
   tableNumber: number
   bookingRef: string
-  /** Signed QR JWT from the confirmed booking; falls back to the ref when absent. */
+  /** Human-readable code (SPACE8-XXXXX-X) from bookings.qr_code; falls back to the ref when absent. */
   qrData?: string
-  /** space8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts); falls back to the ref when absent. */
+  /** SPACE8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts); falls back to the ref when absent. */
   humanCode?: string
   totalPrice: number
   paymentMethod?: string | null

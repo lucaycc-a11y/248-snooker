@@ -29,7 +29,7 @@ export type MemberBooking = {
   status: string
   reference: string | null
   qrData: string | null
-  /** space8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
+  /** SPACE8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
   humanCode: string
   refundAmount: number | null
   refundFee: number | null
@@ -64,7 +64,7 @@ export type MemberTicket = {
   tableNumber: number
   bookingRef: string
   qrData?: string
-  /** space8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
+  /** SPACE8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
   humanCode: string
   totalPrice: number
   paymentMethod: string | null
@@ -99,7 +99,9 @@ function normalizeBooking(row: Row): MemberBooking {
     status: str(row, ['status', 'state']) ?? 'confirmed',
     reference: str(row, ['reference', 'ref', 'booking_ref', 'code']),
     qrData: str(row, ['qr_code']),
-    humanCode: humanReadableCode(id),
+    // Prefer the stored code (fixed at insert time); fall back to computing it
+    // for rows created before the human_code column existed.
+    humanCode: str(row, ['human_code']) ?? humanReadableCode(id),
     refundAmount: typeof refundAmount === 'number' ? refundAmount : null,
     refundFee: typeof refundFee === 'number' ? refundFee : null,
     refundedAt: str(row, ['refunded_at']),
@@ -208,7 +210,7 @@ export async function getMemberTicket(bookingId: string): Promise<MemberTicket |
   const { data, error } = await supabase
     .from('bookings')
     .select(
-      'date, start_time, duration_hours, table_number, booking_reference, qr_code, total_price, payment_method'
+      'date, start_time, duration_hours, table_number, booking_reference, qr_code, total_price, payment_method, human_code'
     )
     .eq('id', bookingId)
     .eq('user_id', user.id)
@@ -224,7 +226,8 @@ export async function getMemberTicket(bookingId: string): Promise<MemberTicket |
     tableNumber: num(row, ['table_number'], 0),
     bookingRef: str(row, ['booking_reference']) ?? bookingId,
     qrData: str(row, ['qr_code']) ?? undefined,
-    humanCode: humanReadableCode(bookingId),
+    // Prefer the stored code; fall back for rows predating the column.
+    humanCode: str(row, ['human_code']) ?? humanReadableCode(bookingId),
     totalPrice: num(row, ['total_price'], 0),
     paymentMethod: str(row, ['payment_method']),
   }

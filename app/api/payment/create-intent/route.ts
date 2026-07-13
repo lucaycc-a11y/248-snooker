@@ -1,8 +1,10 @@
+import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getStripe } from '@/lib/stripe/server'
 import { calculatePrice } from '@/lib/pricing'
+import { humanReadableCode } from '@/lib/qr/jwt'
 import {
   loadPeriods,
   resolveTierForUser,
@@ -101,9 +103,14 @@ export async function POST(req: Request) {
 
       let bookingId = existing?.id as string | undefined
       if (!bookingId) {
+        // Generate the id here (rather than letting the DB default fill it) so
+        // human_code can be derived from it and stored in the same INSERT —
+        // display-only, bookings.id stays the real lookup key everywhere else.
+        const newId = randomUUID()
         const { data: inserted, error: insErr } = await service
           .from('bookings')
           .insert({
+            id: newId,
             user_id: user.id,
             slot_id: slot.id,
             date: slot.date,
@@ -116,6 +123,7 @@ export async function POST(req: Request) {
             table_number: slot.table_number,
             is_free_booking: false, // self-serve bookings are always paid; comps are admin-flagged
             order_group_id: orderGroupId,
+            human_code: humanReadableCode(newId),
           })
           .select('id')
           .single()

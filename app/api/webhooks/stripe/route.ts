@@ -3,7 +3,8 @@ import type Stripe from 'stripe'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getStripe } from '@/lib/stripe/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { signQrToken } from '@/lib/qr/jwt'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for when door validation is fixed to verify JWTs again
+import { signQrToken, humanReadableCode } from '@/lib/qr/jwt'
 
 export const runtime = 'nodejs'
 
@@ -240,16 +241,6 @@ function parseBookingPaymentContext(value: unknown): BookingPaymentContext {
   }
 }
 
-function addOneIsoDate(date: string): string {
-  const value = new Date(`${date}T00:00:00.000Z`)
-  value.setUTCDate(value.getUTCDate() + 1)
-  return value.toISOString().slice(0, 10)
-}
-
-function composeSlotEndIso(date: string, startTime: string, endTime: string): string {
-  const endDate = endTime <= startTime ? addOneIsoDate(date) : date
-  return `${endDate}T${endTime}`
-}
 
 async function handleSucceeded(
   stripe: Stripe,
@@ -304,19 +295,7 @@ async function handleSucceeded(
     amount: paymentIntent.amount,
   })
 
-  const startIso = `${bookingContext.date}T${bookingContext.start_time}`
-  const endIso = composeSlotEndIso(
-    bookingContext.date,
-    bookingContext.start_time,
-    bookingContext.end_time,
-  )
-  const qrToken = signQrToken({
-    booking_id: bookingId,
-    user_id: String(userId ?? bookingContext.user_id ?? ''),
-    table_number: bookingContext.table_number,
-    start_time: startIso,
-    end_time: endIso,
-  })
+  const humanCode = humanReadableCode(bookingId)
 
   // Atomic confirm: stores the QR credential, marks slot booked, releases lock,
   // confirms booking, awards points, and stamps webhook_events.status='processed'
@@ -325,7 +304,7 @@ async function handleSucceeded(
     p_booking_id: bookingId,
     p_payment_intent_id: paymentIntent.id,
     p_payment_method: paymentMethod,
-    p_qr_code: qrToken,
+    p_qr_code: humanCode,
     p_event_id: eventId,
   })
   if (error) throw new Error(`confirm_booking failed: ${error.message}`)
@@ -416,19 +395,10 @@ async function handleGroupSucceeded(
   }
   const paymentMethod = mapPaymentMethod(charge, false)
 
-  // Sign a QR token per booking, keyed by booking id for confirm_booking_group.
+  // Human-readable code per booking, keyed by booking id for confirm_booking_group.
   const qrCodes: Record<string, string> = {}
   for (const r of rows) {
-    const ctx = parseBookingPaymentContext(r)
-    const startIso = `${ctx.date}T${ctx.start_time}`
-    const endIso = composeSlotEndIso(ctx.date, ctx.start_time, ctx.end_time)
-    qrCodes[r.id] = signQrToken({
-      booking_id: r.id,
-      user_id: String(paymentIntent.metadata?.user_id ?? ctx.user_id ?? ''),
-      table_number: ctx.table_number,
-      start_time: startIso,
-      end_time: endIso,
-    })
+    qrCodes[r.id] = humanReadableCode(r.id)
   }
 
   console.log('[webhook/stripe] confirming booking group', {

@@ -16,7 +16,7 @@ export type BookingConfirmedEmailProps = {
   paymentMethod: string
   paymentIntentId: string
   qrCodeDataUrl?: string // Base64-encoded QR code PNG
-  backupCode?: string // Human-readable backup code (e.g., space8-A7K2M-9)
+  backupCode?: string // Human-readable backup code (e.g., SPACE8-A7K2M-9)
 }
 
 const LOCALE_TEXT = {

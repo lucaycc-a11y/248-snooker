@@ -84,7 +84,7 @@ function checkChar(s: string): string {
 }
 
 /**
- * Deterministic human-readable companion code: space8-XXXXX-X
+ * Deterministic human-readable companion code: SPACE8-XXXXX-X
  * (5 chars + 1 check char). Derived from the booking id so it's stable and
  * reproducible — shown in the member/booking-history QR display and the
  * booking-confirmation email as a manual fallback if the QR itself won't scan.
@@ -92,5 +92,5 @@ function checkChar(s: string): string {
 export function humanReadableCode(bookingId: string): string {
   const h = crypto.createHash('sha256').update(bookingId).digest()
   const body = Array.from({ length: 5 }, (_, i) => ALPHABET[h[i] % ALPHABET.length]).join('')
-  return `space8-${body}-${checkChar(body)}`
+  return `SPACE8-${body}-${checkChar(body)}`
 }

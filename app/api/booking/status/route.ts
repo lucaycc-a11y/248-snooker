@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
     const service = getServiceSupabase()
     const columns =
-      'id, status, booking_reference, qr_code, date, start_time, end_time, duration_hours, table_number, total_price, payment_method, order_group_id'
+      'id, status, booking_reference, qr_code, date, start_time, end_time, duration_hours, table_number, total_price, payment_method, order_group_id, human_code'
     const { data, error } = await service
       .from('bookings')
       .select(columns)
@@ -62,9 +62,12 @@ export async function GET(req: Request) {
       }
     }
 
-    // Attach the human-readable companion code (derived from id, not stored)
-    // so the confirmation screen can show it under the QR without a new column.
-    const withHumanCode = (b: typeof data) => ({ ...b, human_code: humanReadableCode(String(b.id)) })
+    // Prefer the stored human_code (fixed at insert time); fall back to
+    // computing it for rows that predate the column.
+    const withHumanCode = (b: typeof data) => ({
+      ...b,
+      human_code: (b as { human_code?: string | null }).human_code ?? humanReadableCode(String(b.id)),
+    })
 
     return NextResponse.json({ booking: withHumanCode(data), bookings: bookings.map(withHumanCode) })
   } catch (err) {

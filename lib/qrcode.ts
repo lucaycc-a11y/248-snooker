@@ -3,7 +3,7 @@ import { signQrToken, humanReadableCode, type QrPayload } from './qr/jwt'
 
 // Unified QR code generation for Space8.
 // Generates scannable QR codes as data URLs or buffers for:
-// 1. Booking access (JWT token + human-readable backup code)
+// 1. Booking access (human-readable companion code; JWT retained for future door validation)
 // 2. Member identification (member_code from database)
 // 3. Admin access (JWT token with admin permissions)
 //
@@ -54,8 +54,9 @@ const DEFAULT_OPTIONS: Required<Omit<QROptions, 'color'>> & { color: { dark: str
 }
 
 /**
- * Generate a booking QR code containing a JWT access token.
- * The JWT is signed with QR_SECRET and can be verified offline by the ESP32 door controller.
+ * Generate a booking QR code containing the human-readable companion code (SPACE8-XXXXX-X).
+ * A JWT is still signed and returned for when door validation is restored, but the QR
+ * image itself encodes the human-readable code, matching bookings.qr_code.
  *
  * @param payload - Booking details (booking_id, user_id, table_number, start/end times)
  * @param options - QR generation options
@@ -67,14 +68,14 @@ export async function generateBookingQR(
 ): Promise<{ qrCode: string | Buffer; backupCode: string; jwt: string }> {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
-  // Sign JWT token for door access
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for when door validation is fixed to verify JWTs again
   const jwt = signQrToken(payload)
 
-  // Generate human-readable backup code (for manual entry at door if QR fails)
+  // Generate human-readable backup code (also the QR image's encoded data)
   const backupCode = humanReadableCode(payload.booking_id)
 
-  // Generate QR code from JWT
-  const qrCode = await generateQR(jwt, opts)
+  // Generate QR code from the human-readable code
+  const qrCode = await generateQR(backupCode, opts)
 
   return { qrCode, backupCode, jwt }
 }
