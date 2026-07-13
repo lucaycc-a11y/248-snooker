@@ -119,7 +119,7 @@ export default function PricingContent({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: EASE }}
           style={{
-            maxWidth: "1200px",
+            maxWidth: "1100px",
             margin: "0 auto",
             willChange: "opacity, transform",
           }}
@@ -136,7 +136,7 @@ export default function PricingContent({
             }}
             data-cms-key="pricing.hero_eyebrow"
           >
-            <CMSText k="pricingPage.hero_eyebrow">Space8</CMSText>
+            <CMSText k="pricingPage.hero_eyebrow">{t("hero_eyebrow")}</CMSText>
           </h1>
 
           <h2
@@ -150,7 +150,7 @@ export default function PricingContent({
             }}
             data-cms-key="pricing.hero_line1"
           >
-            <CMSText k="pricingPage.hero_line1">為咗識得計數嘅人。</CMSText>
+            <CMSText k="pricingPage.hero_line1">{t("hero_line1")}</CMSText>
           </h2>
 
           <p
@@ -164,10 +164,10 @@ export default function PricingContent({
             }}
             data-cms-key="pricing.hero_line2"
           >
-            <CMSText k="pricingPage.hero_line2_before">訂枱要諗到盡。</CMSText>
+            <CMSText k="pricingPage.hero_line2_before">{t("hero_line2_before")}</CMSText>
             <br />
             <Mark color={GREEN}>
-              <CMSText k="pricingPage.hero_line2_highlight">唔使諗到攰。</CMSText>
+              <CMSText k="pricingPage.hero_line2_highlight">{t("hero_line2_highlight")}</CMSText>
             </Mark>
           </p>
         </motion.div>
@@ -189,7 +189,7 @@ export default function PricingContent({
               borderTop: "1px solid #d2d2d7",
             }}
           >
-            <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+            <div style={{ maxWidth: "820px", margin: "0 auto" }}>
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -252,7 +252,7 @@ export default function PricingContent({
                     }}
                   >
                     <Mark color={GREEN}>
-                      <CMSText k="pricingPage.member_price_prefix">會員折實</CMSText> {fmt(memberPrice)}
+                      <CMSText k="pricingPage.member_price_prefix">{t("member_price_prefix")}</CMSText> {fmt(memberPrice)}
                     </Mark>
                   </div>
                 </div>
@@ -306,7 +306,7 @@ export default function PricingContent({
             position: "relative",
             zIndex: 1,
             textAlign: "center",
-            maxWidth: "800px",
+            maxWidth: "820px",
             margin: "0 auto",
             willChange: "opacity, transform",
           }}
@@ -321,10 +321,10 @@ export default function PricingContent({
             }}
             data-cms-key="pricing.time_line1"
           >
-            <CMSText k="pricingPage.time_line1">你嘅時間，</CMSText>
+            <CMSText k="pricingPage.time_line1">{t("time_line1")}</CMSText>
             <br />
             <Mark color={GREEN}>
-              <CMSText k="pricingPage.time_line2">唔會白等。</CMSText>
+              <CMSText k="pricingPage.time_line2">{t("time_line2")}</CMSText>
             </Mark>
           </h2>
         </motion.div>
@@ -339,7 +339,7 @@ export default function PricingContent({
           padding: "clamp(100px, 15vh, 160px) 0",
         }}
       >
-        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 24px" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px" }}>
           <motion.h2
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -436,7 +436,7 @@ export default function PricingContent({
               margin: "32px 0 0",
             }}
           >
-            <CMSText k="pricingPage.faq_scroll_hint">← 左右滑動查看更多</CMSText>
+            <CMSText k="pricingPage.faq_scroll_hint">{t("faq_scroll_hint")}</CMSText>
           </p>
         </div>
       </section>
@@ -476,10 +476,10 @@ export default function PricingContent({
             }}
             data-cms-key="pricing.cta_line1"
           >
-            <CMSText k="pricingPage.cta_line1">而家有位，</CMSText>
+            <CMSText k="pricingPage.cta_line1">{t("cta_line1")}</CMSText>
             <br />
             <Mark color={GREEN}>
-              <CMSText k="pricingPage.cta_line2">即刻開波。</CMSText>
+              <CMSText k="pricingPage.cta_line2">{t("cta_line2")}</CMSText>
             </Mark>
           </h2>
 
@@ -503,7 +503,7 @@ export default function PricingContent({
             onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             data-cms-key="pricing.cta_button"
           >
-            <CMSText k="pricingPage.cta_button">{t("cta_book")}</CMSText>
+            <CMSText k="pricingPage.cta_button">{t("cta_button")}</CMSText>
           </Link>
         </motion.div>
       </section>
