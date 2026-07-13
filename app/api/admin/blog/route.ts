@@ -60,6 +60,10 @@ export async function POST(req: Request) {
     const locale = body.locale
     const slugInput = typeof body.slug === 'string' && body.slug.trim() ? body.slug.trim() : slugify(title)
     const slug = slugify(slugInput) || `post-${Date.now()}`
+    // Joining an existing translation group (adding a locale to an existing
+    // post) vs. starting a brand-new one — see translate/route.ts for the
+    // "create sibling in another locale" flow that sets this.
+    const translationGroupId = typeof body.translation_group_id === 'string' ? body.translation_group_id : null
 
     const service = getServiceSupabase()
     const { data, error } = await service
@@ -88,6 +92,13 @@ export async function POST(req: Request) {
       }
       return NextResponse.json({ error: 'Internal error' }, { status: 500 })
     }
+
+    // New group defaults to the row's own id (set by the migration's default
+    // for existing rows); joining an existing group uses the caller's id.
+    await service
+      .from('blog_posts')
+      .update({ translation_group_id: translationGroupId ?? data.id })
+      .eq('id', data.id)
 
     await service.from('audit_log').insert({
       admin_user_id: admin.userId,

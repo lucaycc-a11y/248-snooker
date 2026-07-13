@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TiptapImage from '@tiptap/extension-image'
 import TiptapLink from '@tiptap/extension-link'
-import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -25,7 +26,10 @@ type BlogPost = {
   og_image_url: string | null
   author: string | null
   published_at: string | null
+  translation_group_id: string | null
 }
+
+type SiblingPost = { id: string; locale: string }
 
 const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
 
@@ -53,10 +57,10 @@ function ToolbarButton({ active, onClick, children, title }: { active?: boolean;
   )
 }
 
-export default function BlogEditorForm({ post }: { post: BlogPost }) {
+export default function BlogEditorForm({ post, siblings }: { post: BlogPost; siblings: SiblingPost[] }) {
+  const router = useRouter()
   const [title, setTitle] = useState(post.title)
   const [slug, setSlug] = useState(post.slug)
-  const [locale, setLocale] = useState(post.locale)
   const [excerpt, setExcerpt] = useState(post.excerpt ?? '')
   const [category, setCategory] = useState(post.category ?? '')
   const [seoTitle, setSeoTitle] = useState(post.seo_title ?? '')
@@ -67,6 +71,8 @@ export default function BlogEditorForm({ post }: { post: BlogPost }) {
   const [uploading, setUploading] = useState(false)
   const [generatingImage, setGeneratingImage] = useState(false)
   const [imageError, setImageError] = useState<string | null>(null)
+  const [translating, setTranslating] = useState<string | null>(null)
+  const [translateError, setTranslateError] = useState<string | null>(null)
 
   const editor = useEditor({
     extensions: [StarterKit, TiptapImage, TiptapLink.configure({ openOnClick: false })],
@@ -92,7 +98,6 @@ export default function BlogEditorForm({ post }: { post: BlogPost }) {
       const ok = await patch({
         title,
         slug,
-        locale,
         excerpt: excerpt || null,
         content: editor?.getHTML() ?? '',
         category: category || null,
@@ -163,28 +168,81 @@ export default function BlogEditorForm({ post }: { post: BlogPost }) {
     }
   }
 
+  async function translateTo(targetLocale: string) {
+    setTranslating(targetLocale)
+    setTranslateError(null)
+    try {
+      const res = await fetch('/api/admin/blog/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: post.id, target_locale: targetLocale }),
+      })
+      const json = await res.json()
+      if (res.ok && json.id) {
+        router.push(`/admin/blog/${json.id}`)
+      } else {
+        setTranslateError(
+          json.error === 'translation_exists'
+            ? `${targetLocale} translation already exists.`
+            : json.error === 'vectorengine_not_configured'
+              ? 'AI translate is not set up yet.'
+              : 'Translation failed — try again.'
+        )
+      }
+    } finally {
+      setTranslating(null)
+    }
+  }
+
+  function handleLocaleTab(targetLocale: string) {
+    if (targetLocale === post.locale) return
+    const sibling = siblings.find((s) => s.locale === targetLocale)
+    if (sibling) {
+      router.push(`/admin/blog/${sibling.id}`)
+    } else {
+      if (window.confirm(`Create ${targetLocale} translation with AI?`)) {
+        translateTo(targetLocale)
+      }
+    }
+  }
+
   return (
     <div>
-      <div style={{ display: 'flex', gap: 4, marginBottom: tokens.spacing.lg }}>
-        {LOCALES.map((l) => (
-          <button
-            key={l}
-            onClick={() => setLocale(l)}
-            style={{
-              padding: '6px 12px',
-              borderRadius: tokens.radius.button,
-              border: `1px solid ${locale === l ? tokens.colors.brand : tokens.colors.border}`,
-              background: locale === l ? tokens.colors.brandDim : 'transparent',
-              color: locale === l ? tokens.colors.text : tokens.colors.textMuted,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            {l}
-          </button>
-        ))}
+      <div style={{ display: 'flex', gap: 4, marginBottom: tokens.spacing.lg, flexWrap: 'wrap' }}>
+        {LOCALES.map((l) => {
+          const isCurrent = l === post.locale
+          const hasSibling = siblings.some((s) => s.locale === l)
+          const isTranslating = translating === l
+          return (
+            <button
+              key={l}
+              onClick={() => handleLocaleTab(l)}
+              disabled={isTranslating}
+              style={{
+                padding: '6px 12px',
+                borderRadius: tokens.radius.button,
+                border: `1px solid ${isCurrent ? tokens.colors.brand : tokens.colors.border}`,
+                background: isCurrent ? tokens.colors.brandDim : 'transparent',
+                color: isCurrent ? tokens.colors.text : hasSibling ? tokens.colors.textMuted : 'rgba(255,255,255,0.35)',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: isTranslating ? 'wait' : isCurrent ? 'default' : 'pointer',
+                position: 'relative',
+                opacity: isTranslating ? 0.6 : 1,
+              }}
+            >
+              {l}
+              {!isCurrent && hasSibling && <span style={{ marginLeft: 4 }}>✓</span>}
+              {isTranslating && <Languages size={12} style={{ marginLeft: 4 }} />}
+            </button>
+          )
+        })}
       </div>
+      {translateError && (
+        <div style={{ marginBottom: tokens.spacing.sm, padding: 12, background: 'rgba(255,69,58,0.1)', border: `1px solid ${tokens.colors.danger}`, borderRadius: tokens.radius.input, color: tokens.colors.danger, fontSize: 13 }}>
+          {translateError}
+        </div>
+      )}
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
