@@ -49,9 +49,7 @@ export type TicketCardProps = {
   duration: number
   tableNumber: number
   bookingRef: string
-  /** Human-readable code (SPACE8-XXXXX-X) from bookings.qr_code; falls back to the ref when absent. */
-  qrData?: string
-  /** SPACE8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts); falls back to the ref when absent. */
+  /** SPACE8-XXXXX-X companion code — encoded in the QR and printed below it (see lib/qr/jwt.ts); falls back to the ref when absent. */
   humanCode?: string
   totalPrice: number
   paymentMethod?: string | null
@@ -70,7 +68,6 @@ export function TicketCard({
   duration,
   tableNumber,
   bookingRef,
-  qrData,
   humanCode,
   totalPrice,
   paymentMethod,
@@ -275,7 +272,7 @@ export function TicketCard({
                 }}
               >
                 <QRCode
-                  data={qrData ?? bookingRef}
+                  data={displayCode}
                   size={QR_PX}
                   enlargeLabel={t_ticket("qr_tap_enlarge")}
                   closeLabel={t_ticket("close")}

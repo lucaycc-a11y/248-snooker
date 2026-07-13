@@ -53,7 +53,6 @@ export default async function MemberBookingPage({
             duration={ticket.duration}
             tableNumber={ticket.tableNumber}
             bookingRef={ticket.bookingRef}
-            qrData={ticket.qrData}
             humanCode={ticket.humanCode}
             totalPrice={ticket.totalPrice}
             paymentMethod={ticket.paymentMethod}

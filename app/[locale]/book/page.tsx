@@ -1908,7 +1908,6 @@ type ConfirmationTicket = {
   duration: number
   tableNumber: number
   bookingRef: string
-  qrData?: string
   humanCode?: string
   totalPrice: number
   paymentMethod?: string | null
@@ -2001,7 +2000,6 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
               duration={ticket.duration}
               tableNumber={ticket.tableNumber}
               bookingRef={ticket.bookingRef}
-              qrData={ticket.qrData}
               humanCode={ticket.humanCode}
               totalPrice={ticket.totalPrice}
               paymentMethod={ticket.paymentMethod}
@@ -2071,7 +2069,6 @@ type ConfirmedBooking = {
   id?: string
   status: string
   booking_reference: string | null
-  qr_code: string | null
   date: string
   start_time: string
   end_time: string
@@ -2649,7 +2646,6 @@ export default function BookPage() {
                       duration: Number(b.duration_hours),
                       tableNumber: b.table_number,
                       bookingRef: b.booking_reference ?? bookingRef,
-                      qrData: b.qr_code ?? undefined,
                       humanCode: b.human_code,
                       totalPrice: b.total_price,
                       paymentMethod: b.payment_method,

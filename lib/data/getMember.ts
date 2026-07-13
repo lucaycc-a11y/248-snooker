@@ -28,7 +28,6 @@ export type MemberBooking = {
   price: number
   status: string
   reference: string | null
-  qrData: string | null
   /** SPACE8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
   humanCode: string
   refundAmount: number | null
@@ -63,7 +62,6 @@ export type MemberTicket = {
   duration: number
   tableNumber: number
   bookingRef: string
-  qrData?: string
   /** SPACE8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
   humanCode: string
   totalPrice: number
@@ -98,7 +96,6 @@ function normalizeBooking(row: Row): MemberBooking {
     price: num(row, ['total_price', 'price', 'amount', 'total'], 0),
     status: str(row, ['status', 'state']) ?? 'confirmed',
     reference: str(row, ['reference', 'ref', 'booking_ref', 'code']),
-    qrData: str(row, ['qr_code']),
     // Prefer the stored code (fixed at insert time); fall back to computing it
     // for rows created before the human_code column existed.
     humanCode: str(row, ['human_code']) ?? humanReadableCode(id),
@@ -225,7 +222,6 @@ export async function getMemberTicket(bookingId: string): Promise<MemberTicket |
     duration: num(row, ['duration_hours'], 0),
     tableNumber: num(row, ['table_number'], 0),
     bookingRef: str(row, ['booking_reference']) ?? bookingId,
-    qrData: str(row, ['qr_code']) ?? undefined,
     // Prefer the stored code; fall back for rows predating the column.
     humanCode: str(row, ['human_code']) ?? humanReadableCode(bookingId),
     totalPrice: num(row, ['total_price'], 0),

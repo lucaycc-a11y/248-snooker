@@ -1195,7 +1195,7 @@ function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; 
               {t("qr_modal_title")}
             </h3>
             <div style={{ display: "flex", justifyContent: "center", padding: "20px", background: "white", borderRadius: "16px" }}>
-              <QRCode data={booking.qrData ?? booking.reference ?? booking.id} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
+              <QRCode data={booking.humanCode} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
             </div>
             <div style={{ marginTop: "20px" }}>
               <div style={{ fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }} data-cms-key="member.qr_reference">
