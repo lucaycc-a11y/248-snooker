@@ -12,6 +12,7 @@ export type AdminData = {
   userId: string
   email: string
   role: AdminRole
+  displayName: string | null
 }
 
 type Row = { email: string; role: string; invite_status: string }
@@ -49,5 +50,19 @@ export async function getAdminData(): Promise<AdminData | null> {
 
   if (!row || row.invite_status !== 'active') return null
 
-  return { userId: user.id, email: row.email, role: row.role as AdminRole }
+  // display_name lives on `users`, not `admin_users` — same source the member
+  // dashboard reads (lib/data/getMember.ts). Best-effort: a missing profile
+  // row just falls back to null, never blocks admin access.
+  const { data: profile } = await service
+    .from('users')
+    .select('display_name')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  return {
+    userId: user.id,
+    email: row.email,
+    role: row.role as AdminRole,
+    displayName: (profile?.display_name as string | undefined) ?? null,
+  }
 }

@@ -16,6 +16,7 @@ import {
   PanelLeftOpen,
   KeyRound,
   Lock,
+  CircleDot,
   type LucideIcon,
 } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
@@ -66,6 +67,8 @@ export default function AdminSidebar() {
         width: collapsed ? 72 : 220,
         flexShrink: 0,
         minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
         background: `linear-gradient(180deg, #000000 0%, #0A0A0A 100%), ${GLASS_BG}`,
         backdropFilter: 'blur(24px) saturate(180%)',
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
@@ -85,8 +88,25 @@ export default function AdminSidebar() {
         }}
       >
         {!collapsed && (
-          <div style={{ fontFamily: tokens.font.display, fontSize: 22, letterSpacing: 1, color: tokens.colors.text }}>
-            SPACE8
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div
+              aria-hidden="true"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 26,
+                height: 26,
+                borderRadius: 8,
+                background: 'linear-gradient(135deg, #22c55e 0%, #a855f7 50%, #ec4899 100%)',
+                flexShrink: 0,
+              }}
+            >
+              <CircleDot size={15} color="#000" strokeWidth={2.5} />
+            </div>
+            <div style={{ fontFamily: tokens.font.display, fontSize: 22, letterSpacing: 1, color: tokens.colors.text }}>
+              SPACE8
+            </div>
           </div>
         )}
         <button
@@ -108,7 +128,7 @@ export default function AdminSidebar() {
           {collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
         </button>
       </div>
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1 }}>
         {NAV_ITEMS.filter((item) => !item.superAdminOnly || admin.role === 'super_admin').map((item) => {
           const active = item.href === '/admin' ? pathname === '/admin' : pathname?.startsWith(item.href)
           const Icon = item.icon
@@ -139,6 +159,59 @@ export default function AdminSidebar() {
           )
         })}
       </nav>
+
+      {/* Logged-in admin identity — so it's always clear which account is
+          active (matters once multiple admins/staff share this panel). */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          gap: tokens.spacing.sm,
+          padding: collapsed ? '10px 0' : `10px ${tokens.spacing.sm}`,
+          marginTop: tokens.spacing.sm,
+          borderTop: `1px solid ${GLASS_BORDER}`,
+        }}
+        title={collapsed ? (admin.displayName ?? admin.email) : undefined}
+      >
+        <div
+          aria-hidden="true"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            flexShrink: 0,
+            background: 'linear-gradient(135deg, #22c55e 0%, #a855f7 50%, #ec4899 100%)',
+            color: '#000',
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          {(admin.displayName ?? admin.email).charAt(0).toUpperCase()}
+        </div>
+        {!collapsed && (
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: tokens.colors.text,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {admin.displayName ?? admin.email}
+            </div>
+            <div style={{ fontSize: 11, color: tokens.colors.textMuted, textTransform: 'capitalize' }}>
+              {admin.role.replace('_', ' ')}
+            </div>
+          </div>
+        )}
+      </div>
     </aside>
   )
 }
