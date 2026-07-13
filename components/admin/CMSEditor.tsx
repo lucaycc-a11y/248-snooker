@@ -41,6 +41,7 @@ function EditRow({
   const [value, setValue] = useState(row.value)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [translating, setTranslating] = useState(false)
   const dirty = value !== row.value
 
   async function save() {
@@ -66,6 +67,34 @@ function EditRow({
     } finally {
       setSaving(false)
       setConfirmOpen(false)
+    }
+  }
+
+  async function translate() {
+    setTranslating(true)
+    try {
+      const res = await fetch('/api/admin/cms/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field_key: row.key, source_locale: row.locale, source_value: value }),
+      })
+      const json: unknown = await res.json().catch(() => null)
+      if (!res.ok) {
+        const message =
+          json && typeof json === 'object' && 'error' in json && typeof (json as { error: unknown }).error === 'string'
+            ? (json as { error: string }).error
+            : 'Translate failed'
+        onSaved(message)
+        return
+      }
+      const count = json && typeof json === 'object' && Array.isArray((json as { edits?: unknown[] }).edits)
+        ? (json as { edits: unknown[] }).edits.length
+        : 0
+      onSaved(count > 0 ? `${count} translation draft(s) saved — review in CMS history` : 'No translations proposed')
+    } catch {
+      onSaved('Network error')
+    } finally {
+      setTranslating(false)
     }
   }
 
@@ -123,6 +152,9 @@ function EditRow({
       </div>
       <Button variant="secondary" size="sm" disabled={!dirty} onClick={() => setConfirmOpen(true)}>
         Save draft
+      </Button>
+      <Button variant="secondary" size="sm" disabled={dirty} loading={translating} onClick={translate}>
+        Translate to other locales
       </Button>
 
       <Sheet open={confirmOpen} onClose={() => setConfirmOpen(false)}>
