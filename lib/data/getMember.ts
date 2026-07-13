@@ -76,12 +76,29 @@ function deriveMemberCode(id: string, explicit: string | null): string {
   return `248-${clean.slice(0, 8).padEnd(8, '0')}`
 }
 
+// A 'pending' booking whose create-intent call never reached Stripe at all
+// (bad/missing API key, thrown exception, etc.) gets no payment_failed
+// webhook to stamp it — nothing ever calls release_slot_lock for it, since
+// Stripe never knew the payment intent existed. Without this, that row sits
+// at 'pending' (shown as "confirmed" by the badge's fallback, previously)
+// forever. Treat anything still 'pending' past this age as failed for
+// DISPLAY purposes only — doesn't write to the DB, so it can't race a
+// legitimate in-flight checkout, and if the webhook does eventually land the
+// real status simply takes over.
+const STUCK_PENDING_MINUTES = 20
+
 function normalizeBooking(row: Row): MemberBooking {
   const start = str(row, ['start_time', 'startTime', 'starts_at', 'start'])
   const date = str(row, ['date', 'booking_date', 'day']) ?? (start ? start.slice(0, 10) : null)
   const refundAmount = row.refund_amount
   const refundFee = row.refund_fee
   const id = String(row.id ?? genId('booking'))
+  const rawStatus = str(row, ['status', 'state']) ?? 'confirmed'
+  const createdAt = str(row, ['created_at'])
+  const isStuckPending =
+    rawStatus === 'pending' &&
+    createdAt != null &&
+    Date.now() - new Date(createdAt).getTime() > STUCK_PENDING_MINUTES * 60_000
   return {
     id,
     date,
@@ -94,7 +111,7 @@ function normalizeBooking(row: Row): MemberBooking {
       null,
     durationHours: num(row, ['duration', 'duration_hours', 'hours'], 0),
     price: num(row, ['total_price', 'price', 'amount', 'total'], 0),
-    status: str(row, ['status', 'state']) ?? 'confirmed',
+    status: isStuckPending ? 'payment_failed' : rawStatus,
     reference: str(row, ['reference', 'ref', 'booking_ref', 'code']),
     // Prefer the stored code (fixed at insert time); fall back to computing it
     // for rows created before the human_code column existed.

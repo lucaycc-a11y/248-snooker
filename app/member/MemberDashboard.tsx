@@ -14,6 +14,7 @@ import {
   Sparkles,
   X,
   LogOut,
+  RotateCw,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BackButton } from "@/components/ui";
@@ -595,8 +596,14 @@ function StatusBadge({ status }: { status: string }) {
     cancelled: { label: t("status_cancelled"), color: DANGER },
     completed: { label: t("status_completed"), color: SUBTLE },
     refunded: { label: t("status_refunded"), color: DANGER },
+    pending: { label: t("status_pending"), color: SUBTLE },
+    payment_failed: { label: t("status_payment_failed"), color: DANGER },
   };
-  const s = map[status] ?? map.confirmed;
+  // Unknown statuses used to silently render as "Confirmed" (the old
+  // fallback) — fall back to the neutral "Pending" look instead, since an
+  // unrecognized status is more likely a new/incomplete state than a
+  // confirmed one.
+  const s = map[status] ?? map.pending;
   return (
     <span style={{ fontSize: "12px", fontWeight: 600, color: s.color, background: `${s.color}1f`, borderRadius: "100px", padding: "3px 10px" }}>
       {s.label}
@@ -692,14 +699,28 @@ function BookingsTab({
             style={{ display: "flex", gap: "10px", marginTop: "16px", alignItems: "center" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Primary action — visually the only filled/tinted pill. */}
-            <SmallButton
-              onClick={() => onViewQr(b)}
-              icon={<QrCodeIcon size={15} strokeWidth={2} />}
-              label={t("booking_view_qr")}
-              cmsKey="member.booking_view_qr"
-              primary
-            />
+            {/* Primary action — visually the only filled/tinted pill. A
+                failed booking has no valid QR to show; offer to retry
+                payment instead of a QR that would never scan. */}
+            {b.status === "payment_failed" ? (
+              retryPaymentLink(b) && (
+                <SmallButton
+                  onClick={() => router.push(retryPaymentLink(b)!)}
+                  icon={<RotateCw size={15} strokeWidth={2} />}
+                  label={t("booking_retry_payment")}
+                  cmsKey="member.booking_retry_payment"
+                  primary
+                />
+              )
+            ) : (
+              <SmallButton
+                onClick={() => onViewQr(b)}
+                icon={<QrCodeIcon size={15} strokeWidth={2} />}
+                label={t("booking_view_qr")}
+                cmsKey="member.booking_view_qr"
+                primary
+              />
+            )}
             {/* Refund stays visible (higher-consequence, narrow time window)
                 but de-emphasized — outline only, danger-tinted text. */}
             {canRefund(b, refundCutoffHours) && (
@@ -1224,4 +1245,24 @@ function calendarLink(b: MemberBooking): string {
   const end = toCal(b.endTime);
   const dates = start && end ? `&dates=${start}/${end}` : "";
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}${dates}`;
+}
+
+// A payment_failed booking's original slot lock is long gone (locks expire
+// in minutes, this can be found much later) — retry can't resume the same
+// booking row, only send the user back into slot selection with the same
+// date/time/table/duration pre-filled via /book's existing prefill effect.
+// Availability isn't re-checked here on purpose, same as that effect's own
+// prefill path — Screen1 handles a since-taken slot the same way either way.
+function retryPaymentLink(b: MemberBooking): string | null {
+  if (!b.date || !b.startTime || !b.tableId) return null;
+  const hour = b.startTime.length > 8 ? b.startTime.slice(11, 13) : b.startTime.slice(0, 2);
+  const start = parseInt(hour, 10);
+  if (Number.isNaN(start)) return null;
+  const params = new URLSearchParams({
+    date: b.date,
+    start: String(start),
+    duration: String(b.durationHours || 1),
+    table: String(b.tableId),
+  });
+  return `/book?${params.toString()}`;
 }
