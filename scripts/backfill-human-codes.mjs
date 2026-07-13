@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// One-off script to backfill human_code for existing bookings where human_code IS NULL.
+// One-off script to backfill human_code for bookings where it's missing or
+// stale (e.g. lowercase codes written before the SPACE8- uppercase switch).
 // Run: node scripts/backfill-human-codes.mjs
 //
-// Reads all bookings with NULL human_code, computes SPACE8-XXXXX-X from the
-// booking UUID via the same SHA-256 + alphabet logic in lib/qr/jwt.ts, and
-// writes the result back to the human_code column.
+// Reads every booking, recomputes SPACE8-XXXXX-X from the booking UUID via
+// the same SHA-256 + alphabet logic in lib/qr/jwt.ts, and rewrites any row
+// whose stored human_code is missing or doesn't already match that value.
 
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'node:crypto'
@@ -42,11 +43,10 @@ function humanReadableCode(bookingId) {
 }
 
 async function main() {
-  console.log('[backfill-human-codes] fetching bookings with NULL human_code...')
+  console.log('[backfill-human-codes] fetching all bookings...')
   const { data: bookings, error } = await supabase
     .from('bookings')
-    .select('id')
-    .is('human_code', null)
+    .select('id, human_code')
     .order('created_at', { ascending: true })
 
   if (error) {
@@ -55,16 +55,23 @@ async function main() {
   }
 
   if (!bookings || bookings.length === 0) {
-    console.log('[backfill-human-codes] no bookings to backfill (all have human_code already)')
+    console.log('[backfill-human-codes] no bookings found')
     return
   }
 
-  console.log(`[backfill-human-codes] found ${bookings.length} bookings, generating codes...`)
+  // Catches both NULL rows and rows still holding the old lowercase/JWT value.
+  const stale = bookings.filter((b) => b.human_code !== humanReadableCode(b.id))
+  if (stale.length === 0) {
+    console.log('[backfill-human-codes] all bookings already have the current human_code')
+    return
+  }
+
+  console.log(`[backfill-human-codes] found ${stale.length} stale/missing out of ${bookings.length}, updating...`)
 
   let updated = 0
   let failed = 0
 
-  for (const booking of bookings) {
+  for (const booking of stale) {
     const code = humanReadableCode(booking.id)
     const { error: updateErr } = await supabase
       .from('bookings')
@@ -77,7 +84,7 @@ async function main() {
     } else {
       updated++
       if (updated % 100 === 0) {
-        console.log(`[backfill-human-codes] progress: ${updated}/${bookings.length}`)
+        console.log(`[backfill-human-codes] progress: ${updated}/${stale.length}`)
       }
     }
   }
