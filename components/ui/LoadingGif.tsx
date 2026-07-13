@@ -35,7 +35,11 @@ export function LoadingGif({ size = 140 }: { size?: number }) {
         alt=""
         width={clampedSize}
         height={clampedSize}
-        style={{ width: clampedSize, height: clampedSize, objectFit: 'contain' }}
+        // The GIF's canvas is opaque black (no alpha channel) — screen blending
+        // makes its black pixels transparent against any backdrop, so it only
+        // ever paints its bright animation content instead of a visible black
+        // square on non-black containers (gray tooltips, glass panels, etc.).
+        style={{ width: clampedSize, height: clampedSize, objectFit: 'contain', mixBlendMode: 'screen' }}
       />
     </div>
   )
