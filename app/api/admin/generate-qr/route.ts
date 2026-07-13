@@ -21,6 +21,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 檢查係咪admin（RPC本身亦有檢查，但呢層要同其他admin route一致）
+    const { data: admin } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('invite_status', 'active')
+      .single();
+
+    if (!admin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
     // 調用RPC function生成QR code
     const { data, error } = await supabase.rpc('generate_admin_qr');
 

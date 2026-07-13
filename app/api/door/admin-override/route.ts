@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const { data: admin } = await supabase
       .from('admin_users')
       .select('id, invite_status')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .eq('invite_status', 'active')
       .single();
 
