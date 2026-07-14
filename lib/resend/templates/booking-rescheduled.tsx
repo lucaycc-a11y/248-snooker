@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 export type BookingRescheduledEmailProps = {
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
   customerName: string
   customerEmail: string
   oldDate: string // YYYY-MM-DD
@@ -37,14 +37,6 @@ const LOCALE_TEXT = {
     tableLabel: 'Space8 · Table',
     previous: 'Previous',
     updated: 'New',
-    footer: 'Space8 · Hong Kong',
-  },
-  ja: {
-    title: '予約変更完了',
-    receiptNumber: '領収書番号',
-    tableLabel: 'Space8 · テーブル',
-    previous: '変更前',
-    updated: '変更後',
     footer: 'Space8 · Hong Kong',
   },
 }

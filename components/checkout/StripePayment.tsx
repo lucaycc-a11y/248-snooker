@@ -63,7 +63,6 @@ const STRIPE_LOCALES: Record<string, StripeElementLocale> = {
   "zh-HK": "zh-HK",
   "zh-CN": "zh",
   en: "en",
-  ja: "ja",
 }
 
 type Labels = {
@@ -114,7 +113,7 @@ type Props = Labels & {
   total: number
   /** Active next-intl locale — drives the Payment Element's own copy (Stripe's
    * "Pay", card-field labels, decline messages, etc.), not just our labels. */
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
   /** Path Stripe returns to after a redirect method (Alipay/WeChat/3DS). */
   returnPath?: string
   billingDetails?: BillingDetails
@@ -152,7 +151,7 @@ function PayForm({
   whatsappSupportLabel: string
   retryPaymentLabel: string
   billingDetails?: BillingDetails
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
   date: string
   startHour: number
   total: number

@@ -26,7 +26,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 const ROOT = process.cwd()
 const MESSAGES_DIR = join(ROOT, 'messages')
 

@@ -212,7 +212,7 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
       >
         <CMSText k={`pricing.${stage.id}_label`}>{stage.label}</CMSText>
       </h3>
-      <p style={{ fontSize: "16px", color: LIGHT_GRAY, margin: "0 0 32px" }}>
+      <p style={{ fontSize: "clamp(16px, 1.3vw, 18px)", color: LIGHT_GRAY, margin: "0 0 32px" }}>
         <CMSText k={`pricing.${stage.id}_range`}>{stage.range}</CMSText>
       </p>
 
@@ -243,7 +243,7 @@ function StageContent({ stage, hours, onSelect, priceSize, perHour, ctaBook, cta
             </motion.div>
           </AnimatePresence>
         </div>
-        <span style={{ fontSize: "16px", color: LIGHT_GRAY, paddingBottom: "8px" }}>
+        <span style={{ fontSize: "clamp(16px, 1.3vw, 18px)", color: LIGHT_GRAY, paddingBottom: "8px" }}>
           共{durationLabel}
         </span>
       </div>
@@ -413,7 +413,7 @@ export default function Pricing() {
               >
                 <CMSText k={`pricing.${stage.id}_label`}>{stage.label}</CMSText>
               </h3>
-              <p style={{ fontSize: "16px", color: LIGHT_GRAY, margin: 0 }}>
+              <p style={{ fontSize: "clamp(16px, 1.3vw, 18px)", color: LIGHT_GRAY, margin: 0 }}>
                 <CMSText k={`pricing.${stage.id}_range`}>{stage.range}</CMSText>
               </p>
 
@@ -448,7 +448,7 @@ export default function Pricing() {
                   </motion.div>
                 </AnimatePresence>
               </div>
-              <p style={{ fontSize: "16px", color: LIGHT_GRAY, margin: "10px 0 0" }}>
+              <p style={{ fontSize: "clamp(16px, 1.3vw, 18px)", color: LIGHT_GRAY, margin: "10px 0 0" }}>
                 共{durationLabel}
               </p>
 

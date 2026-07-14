@@ -477,8 +477,8 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
   const locale = useLocale();
   const router = useRouter();
 
-  const LOCALES = ["zh-HK", "zh-CN", "en", "ja"] as const;
-  const LABELS: Record<string, string> = { "zh-HK": "繁", "zh-CN": "简", en: "EN", ja: "JP" };
+  const LOCALES = ["zh-HK", "zh-CN", "en"] as const;
+  const LABELS: Record<string, string> = { "zh-HK": "繁", "zh-CN": "简", en: "EN" };
 
   // Cookie-based locale toggle (no route change — /member is single-path).
   const cycleLocale = () => {

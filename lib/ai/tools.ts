@@ -124,7 +124,7 @@ const proposeCmsEdit: ToolDef = {
       type: 'object',
       properties: {
         field_key: { type: 'string', description: 'The CMS field key, e.g. hero.tagline' },
-        locale: { type: 'string', enum: ['zh-HK', 'zh-CN', 'en', 'ja'] },
+        locale: { type: 'string', enum: ['zh-HK', 'zh-CN', 'en'] },
         new_value: { type: 'string', description: 'The proposed new text' },
       },
       required: ['field_key', 'locale', 'new_value'],

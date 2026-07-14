@@ -34,7 +34,7 @@ const TONE_INSTRUCTIONS: Record<AiTone, string> = {
   playful: 'Use a warm, playful tone with occasional light humor.',
 }
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 // Pseudo-tool: not backed by real logic. When the model's intent is
 // ambiguous (e.g. no date given for an availability question), it calls this

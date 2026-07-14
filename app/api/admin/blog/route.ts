@@ -7,7 +7,7 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 // Posts are drafts (published_at = null) until explicitly published — see
 // the PATCH handler in [id]/route.ts for publish/unpublish.
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)

@@ -15,7 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const MESSAGES_DIR = join(__dirname, '..', 'messages')
 
 // Locales that map to next-intl routing (messages/zh.json is legacy, skipped).
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 const data = {
   'zh-HK': {

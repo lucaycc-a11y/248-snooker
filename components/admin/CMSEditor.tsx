@@ -18,7 +18,6 @@ const LOCALES: { code: string; label: string }[] = [
   { code: 'zh-HK', label: '繁中' },
   { code: 'zh-CN', label: '简中' },
   { code: 'en', label: 'EN' },
-  { code: 'ja', label: '日本語' },
 ]
 
 const KNOWN_LISTS: { title: string; page: string; collectionKey: string; fieldNames: [string, string] }[] = [

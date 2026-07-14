@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 function flatten(obj, prefix = '') {
   let keys = []

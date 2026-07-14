@@ -173,8 +173,8 @@ export default function Gallery() {
                   </h3>
                   <p
                     style={{
-                      fontSize: "15px",
-                      color: "rgba(255,255,255,0.65)",
+                      fontSize: "clamp(15px, 1.3vw, 18px)",
+                      color: "rgba(255,255,255,0.75)",
                       marginTop: "8px",
                       lineHeight: 1.6,
                       fontFamily: FONT_FAMILY,

@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { getBlogPosts } from '@/lib/data/getBlog'
 
 const BASE = 'https://space8.com.hk'
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 function localePath(locale: string, path: string): string {
   return locale === 'zh-HK' ? path : `/${locale}${path}`

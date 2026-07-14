@@ -6,7 +6,7 @@ import { getAiWidgetSettings } from '@/lib/data/getAiWidgetSettings'
 // widget. Only exposes the two fields the widget needs; tone and
 // system_prompt_override stay server-side (used only inside app/api/ai/chat).
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 export async function GET(req: Request) {
   const url = new URL(req.url)

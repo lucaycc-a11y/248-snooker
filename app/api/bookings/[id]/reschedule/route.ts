@@ -96,7 +96,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           newStartTime: data.start_time,
           newEndTime: data.end_time,
           customerName: profile.name,
-          locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en' | 'ja') || 'zh-HK',
+          locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en') || 'zh-HK',
         })
       }
     } catch (e) {

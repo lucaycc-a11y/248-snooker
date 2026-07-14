@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 export type BookingConfirmedEmailProps = {
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
   customerName: string
   customerEmail: string
   customerPhone: string
@@ -71,31 +71,14 @@ const LOCALE_TEXT = {
     refundPolicyLink: 'Refund Policy',
     footer: 'Space8 · Hong Kong',
   },
-  ja: {
-    title: '予約確認',
-    receiptNumber: '領収書番号',
-    tableLabel: 'Space8 · テーブル',
-    subtotal: '小計',
-    serviceFee: 'サービス料',
-    total: '合計',
-    paymentMethod: '支払方法',
-    transactionId: '取引ID',
-    qrTitle: '入場QRコード',
-    qrInstructions: 'ドアでこのQRコードをスキャンしてください',
-    backupCodeLabel: 'バックアップコード',
-    backupCodeInstructions: 'QRコードがスキャンできない場合、このコードをスタッフに提供してください',
-    legalNotice: 'このメールは取引確認と領収書です。記録として保管してください。返金ポリシーについては',
-    refundPolicyLink: '返金規約',
-    footer: 'Space8 · Hong Kong',
-  },
 }
 
 const PAYMENT_METHOD_LABELS: Record<string, Record<string, string>> = {
-  card: { 'zh-HK': '信用卡/扣賬卡', 'zh-CN': '信用卡/借记卡', en: 'Card', ja: 'カード' },
-  apple_pay: { 'zh-HK': 'Apple Pay', 'zh-CN': 'Apple Pay', en: 'Apple Pay', ja: 'Apple Pay' },
-  google_pay: { 'zh-HK': 'Google Pay', 'zh-CN': 'Google Pay', en: 'Google Pay', ja: 'Google Pay' },
-  alipay_hk: { 'zh-HK': '支付寶', 'zh-CN': '支付宝', en: 'Alipay', ja: 'Alipay' },
-  wechat_pay: { 'zh-HK': '微信支付', 'zh-CN': '微信支付', en: 'WeChat Pay', ja: 'WeChat Pay' },
+  card: { 'zh-HK': '信用卡/扣賬卡', 'zh-CN': '信用卡/借记卡', en: 'Card' },
+  apple_pay: { 'zh-HK': 'Apple Pay', 'zh-CN': 'Apple Pay', en: 'Apple Pay' },
+  google_pay: { 'zh-HK': 'Google Pay', 'zh-CN': 'Google Pay', en: 'Google Pay' },
+  alipay_hk: { 'zh-HK': '支付寶', 'zh-CN': '支付宝', en: 'Alipay' },
+  wechat_pay: { 'zh-HK': '微信支付', 'zh-CN': '微信支付', en: 'WeChat Pay' },
 }
 
 export function BookingConfirmedEmail({

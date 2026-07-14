@@ -22,7 +22,7 @@ type SendReceiptParams = {
   paymentIntentId: string
   customerName: string
   customerPhone: string
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
 }
 
 export async function sendBookingReceipt(params: SendReceiptParams) {
@@ -76,10 +76,9 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
   const html = await render(BookingConfirmedEmail(emailProps))
 
   const subjectLines = {
-    'zh-HK': '你嘅預訂已確認 — Space8',
+    'zh-HK': '你的預訂已確認 — Space8',
     'zh-CN': '你的预订已确认 — Space8',
     en: 'Your booking is confirmed — Space8',
-    ja: 'ご予約が確認されました — Space8',
   }
 
   await resend.emails.send({
@@ -104,7 +103,7 @@ type SendRefundedParams = {
   refundAmount: number
   cancellationReason?: string | null
   customerName: string
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
 }
 
 export async function sendBookingRefundedEmail(params: SendRefundedParams) {
@@ -130,10 +129,9 @@ export async function sendBookingRefundedEmail(params: SendRefundedParams) {
   const html = await render(BookingRefundedEmail(emailProps))
 
   const subjectLines = {
-    'zh-HK': '你嘅退款已處理 — Space8',
+    'zh-HK': '你的退款已處理 — Space8',
     'zh-CN': '你的退款已处理 — Space8',
     en: 'Your refund has been processed — Space8',
-    ja: 'ご返金処理が完了しました — Space8',
   }
 
   await resend.emails.send({
@@ -157,7 +155,7 @@ type SendRescheduledParams = {
   newStartTime: string
   newEndTime: string
   customerName: string
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
 }
 
 export async function sendBookingRescheduledEmail(params: SendRescheduledParams) {
@@ -182,10 +180,9 @@ export async function sendBookingRescheduledEmail(params: SendRescheduledParams)
   const html = await render(BookingRescheduledEmail(emailProps))
 
   const subjectLines = {
-    'zh-HK': '你嘅預訂已改期 — Space8',
+    'zh-HK': '你的預訂已改期 — Space8',
     'zh-CN': '你的预订已改期 — Space8',
     en: 'Your booking has been rescheduled — Space8',
-    ja: 'ご予約が変更されました — Space8',
   }
 
   await resend.emails.send({

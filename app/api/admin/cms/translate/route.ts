@@ -11,7 +11,7 @@ import { rateLimit } from '@/lib/rate-limit'
 // gate as the free-form AI editor (ai-edit/route.ts), applied to translation
 // so a bad machine translation can't go live without a human clicking publish.
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja'] as const
+const LOCALES = ['zh-HK', 'zh-CN', 'en'] as const
 type Locale = (typeof LOCALES)[number]
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 export type BookingRefundedEmailProps = {
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
   customerName: string
   customerEmail: string
   date: string // YYYY-MM-DD
@@ -47,17 +47,6 @@ const LOCALE_TEXT = {
     refundAmount: 'Refund Amount',
     refundNotice: 'Your refund will appear in your original payment method within 5-10 business days.',
     reasonLabel: 'Reason',
-    footer: 'Space8 · Hong Kong',
-  },
-  ja: {
-    title: '返金処理完了',
-    receiptNumber: '領収書番号',
-    tableLabel: 'Space8 · テーブル',
-    originalPrice: '元の価格',
-    refundFee: '手数料',
-    refundAmount: '返金額',
-    refundNotice: '返金は5〜10営業日以内に元のお支払い方法に反映されます。',
-    reasonLabel: '理由',
     footer: 'Space8 · Hong Kong',
   },
 }

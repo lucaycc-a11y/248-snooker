@@ -12,7 +12,7 @@ import { rateLimit } from '@/lib/rate-limit'
 // (app/api/admin/cms/translate/route.ts), but blog content is long-form prose
 // so it's a full new row per locale, not a per-field diff.
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja'] as const
+const LOCALES = ['zh-HK', 'zh-CN', 'en'] as const
 type Locale = (typeof LOCALES)[number]
 
 function isRecord(value: unknown): value is Record<string, unknown> {

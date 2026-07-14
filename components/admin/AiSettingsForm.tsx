@@ -10,7 +10,6 @@ const LOCALES: { code: string; label: string }[] = [
   { code: 'zh-HK', label: '繁中' },
   { code: 'zh-CN', label: '简中' },
   { code: 'en', label: 'EN' },
-  { code: 'ja', label: '日本語' },
 ]
 
 const TONES: { value: 'friendly' | 'professional' | 'playful'; label: string }[] = [

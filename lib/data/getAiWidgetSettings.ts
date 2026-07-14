@@ -16,7 +16,7 @@ export type AiWidgetSettings = {
 }
 
 const DEFAULT_PROMPTS: Record<string, string[]> = {
-  'zh-HK': ['查詢今日仲有咩時段', '會員積分點計', '點樣退款/改期', '場地喺邊度'],
+  'zh-HK': ['查詢今日尚有哪些時段', '會員積分如何計算', '如何退款或改期', '場地位置'],
   'zh-CN': ['查询今天还有什么时段', '会员积分怎么算', '怎样退款/改期', '场地在哪里'],
   en: ['What slots are open today?', 'How do member points work?', 'How do refunds/reschedules work?', 'Where are you located?'],
   ja: ['本日の空き状況は?', '会員ポイントの仕組みは?', '返金・変更方法は?', '場所はどこですか?'],

@@ -6,7 +6,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await getAdminData()

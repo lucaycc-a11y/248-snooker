@@ -71,7 +71,6 @@ export default function Nav() {
     'zh-HK': '繁',
     'zh-CN': '简',
     en: 'EN',
-    ja: 'JP',
   }
 
   const toggleLocale = () => {
@@ -565,7 +564,7 @@ export default function Nav() {
                   padding: 8,
                 }}
               >
-                {locale === 'zh-HK' ? '繁中' : locale === 'zh-CN' ? '简中' : locale === 'en' ? 'English' : '日本語'}
+                {locale === 'zh-HK' ? '繁中' : locale === 'zh-CN' ? '简中' : 'English'}
               </button>
             </div>
 

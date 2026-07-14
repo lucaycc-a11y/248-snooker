@@ -11,7 +11,7 @@ import { rateLimit } from '@/lib/rate-limit'
 // rejected both in the system prompt AND independently in code, so the
 // restriction doesn't depend on the model obeying the prompt.
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 function isConfigKey(fieldKey: string): boolean {
   return fieldKey === 'config' || fieldKey.startsWith('config.')

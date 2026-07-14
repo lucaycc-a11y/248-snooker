@@ -6,7 +6,7 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 // 唔使confirm"): no draft/publish staging, unlike scalar CMS text. Available
 // to both admin and super_admin.
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 const TONES = ['friendly', 'professional', 'playful']
 
 function isRecord(value: unknown): value is Record<string, unknown> {

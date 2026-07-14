@@ -17,7 +17,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const ROOT = process.cwd()
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 function loadMessages(locale) {
   return JSON.parse(readFileSync(join(ROOT, 'messages', `${locale}.json`), 'utf8'))

@@ -1599,7 +1599,7 @@ function Screen3({
               tableNumber: b.tableNumber,
             }))}
             total={total}
-            locale={locale as "en" | "zh-HK" | "zh-CN" | "ja"}
+            locale={locale as "en" | "zh-HK" | "zh-CN"}
             returnPath="/book"
             payLabel={`${t("pay_now")} · HK$${total}`}
             processingLabel={t("processing")}

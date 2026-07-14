@@ -348,7 +348,7 @@ async function handleSucceeded(
         paymentIntentId: paymentIntent.id,
         customerName: profile.name,
         customerPhone: profile.phone || '',
-        locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en' | 'ja') || 'zh-HK',
+        locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en') || 'zh-HK',
       })
       console.log('[webhook/stripe] receipt_email_sent', { bookingId: result.booking_id })
     }
@@ -457,7 +457,7 @@ async function handleGroupSucceeded(
           paymentIntentId: paymentIntent.id,
           customerName: profile.name,
           customerPhone: profile.phone || '',
-          locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en' | 'ja') || 'zh-HK',
+          locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en') || 'zh-HK',
         })
       }
       await supabase.from('notification_log').insert(

@@ -35,7 +35,7 @@
     "email_continue": "以電郵繼續",
     "otp_subtitle_email": "我們已傳送 6 位數驗證碼至 {email}",
     "sms_title": "以短訊登入",
-    "sms_subtitle": "適用於曾以電話號碼註冊嘅會員。",
+    "sms_subtitle": "適用於曾以電話號碼註冊的會員。",
     "sms_fallback_link": "曾以電話號碼註冊？改用短訊登入",
     "profile_phone_send_code": "傳送驗證碼",
     "profile_phone_verified_badge": "電話已驗證",
@@ -49,14 +49,14 @@
     "planet_loading": "正在為你分配專屬星球...",
     "planet_welcome_prefix": "歡迎，",
     "planet_welcome_suffix": "會員",
-    "planet_subtitle": "全宇宙獨一無二嘅會員編號",
+    "planet_subtitle": "全宇宙獨一無二的會員編號",
     "planet_share": "分享我的星球",
     "planet_continue": "進入會員中心"
   },
   "404": {
     "code": "404",
-    "title": "呢頁唔存在",
-    "subtitle": "呢頁唔存在，但你的桌球時間不應該白費",
+    "title": "此頁面不存在",
+    "subtitle": "此頁面不存在，但你的桌球時間不應該白費",
     "hint": "撥動個球玩下先",
     "completed": "全部入袋！",
     "canvas_label": "互動桌球物理遊戲",
@@ -69,7 +69,7 @@
     "subtitle": "繼續你的預訂同會員服務。",
     "error_missing_code": "登入未完成，請再試一次。",
     "error_oauth": "未能登入，請再試一次。",
-    "error_generic": "出咗啲問題，請再試一次。"
+    "error_generic": "發生錯誤，請再試一次。"
   },
   "comingSoon": {
     "brand": "SPACE8",
@@ -78,8 +78,8 @@
     "email_placeholder": "電郵地址",
     "notify_me": "開幕通知我",
     "subscribed": "已為你登記。",
-    "err_email": "請輸入正確嘅電郵地址。",
-    "err_generic": "出咗啲問題，請再試一次。",
+    "err_email": "請輸入正確的電郵地址。",
+    "err_generic": "發生錯誤，請再試一次。",
     "password_placeholder": "密碼",
     "unlock": "解鎖",
     "unlocking": "解鎖中…",
@@ -230,9 +230,9 @@
   },
   "pricingPage": {
     "hero_eyebrow": "Space8",
-    "hero_line1": "為咗識得計數嘅人。",
-    "hero_line2_before": "訂枱要諗到盡。",
-    "hero_line2_highlight": "唔使諗到攰。",
+    "hero_line1": "為懂得計算的人而設。",
+    "hero_line2_before": "訂枱精打細算。",
+    "hero_line2_highlight": "毋須費神。",
     "hero_title": "透明定價",
     "hero_subtitle": "按需預訂，無隱藏費用。",
     "per_hour": "／小時",
@@ -246,10 +246,10 @@
     "duration_2h": "2 小時",
     "duration_3h": "3 小時",
     "member_price_prefix": "會員折實",
-    "time_line1": "你嘅時間，",
-    "time_line2": "唔會白等。",
-    "cta_line1": "而家有位，",
-    "cta_line2": "即刻開波。",
+    "time_line1": "你的時間，",
+    "time_line2": "不會白等。",
+    "cta_line1": "現在有位，",
+    "cta_line2": "立即開賽。",
     "cta_book": "立即預訂",
     "cta_button": "立即預訂",
     "cta_details": "定價詳情",
@@ -599,18 +599,18 @@
     "faq_contact_a": "可透過 WhatsApp 聯絡我們，或發送電郵至 hello@space8.com.hk，我們將盡快回覆。"
   },
   "whatsapp": {
-    "aria_label": "WhatsApp 我哋",
-    "tooltip": "WhatsApp 我哋"
+    "aria_label": "WhatsApp 聯絡我們",
+    "tooltip": "WhatsApp 聯絡我們"
   },
   "ai_chat": {
     "aria_label": "同AI傾偈",
     "tooltip": "同AI傾偈",
-    "placeholder": "有咩想問...",
+    "placeholder": "有任何問題，歡迎查詢…",
     "send": "傳送",
     "close": "關閉"
   },
   "common": {
-    "error": "出咗少少問題",
+    "error": "發生少許問題",
     "retry": "重試",
     "not_found": "找不到此頁面"
   },
@@ -621,7 +621,7 @@
     "snooker": "英式桌球",
     "available": "現時可預訂",
     "unavailable": "此時段已被預訂",
-    "slot_taken": "此時段啱啱被其他人預訂咗，請返回揀第二個時段。",
+    "slot_taken": "此時段剛被其他人預訂，請返回選擇另一時段。",
     "back_to_slots": "返回選擇時段",
     "selected": "已選擇",
     "select_this_table": "選擇此枱",
@@ -671,12 +671,12 @@
     "processing": "處理中…",
     "table_available": "現時可預訂",
     "table_unavailable": "此時段已被預訂",
-    "table_locked": "有人正在預訂緊",
-    "table_locked_tooltip": "有人正在預訂緊，請稍候或選擇另一張枱",
-    "table_locked_by_you": "繼續你未完成嘅預訂",
+    "table_locked": "有人正在預訂",
+    "table_locked_tooltip": "有人正在預訂，請稍候或選擇另一張球枱",
+    "table_locked_by_you": "繼續你未完成的預訂",
     "table_resume": "繼續",
     "table_release_and_pick_again": "釋放並重新選擇時段",
-    "tables_remaining": "呢個時段尚餘 {count} 張枱",
+    "tables_remaining": "此時段尚餘 {count} 張球枱",
     "lock_hold": "時段已為你保留 {time}",
     "pay_declined": "付款未能完成，請檢查付款方式或再試一次。",
     "pay_timeout": "付款處理需時比預期耐，請檢查網絡連線再試一次。",
@@ -692,7 +692,7 @@
     "duration_hours_chip": "{count} 小時",
     "most_popular": "最多人揀",
     "slots_selected": "已揀 {count} 個時段",
-    "points_earned_estimate": "呢張booking最少賺 {pts} 分",
+    "points_earned_estimate": "此預訂最少可賺 {pts} 積分",
     "terms_agree": "已代表同意 SPACE8 的<link>《場地使用守則》和《條款與細則》</link>",
     "legend_available": "可預約",
     "legend_selected": "已揀",
@@ -700,7 +700,7 @@
     "slot_booked": "已被預約",
     "free_suffix": "空",
     "selected_slots_title": "已揀時段",
-    "empty_picks": "未揀任何時段，喺上面時間表點擊即可加入。"
+    "empty_picks": "尚未選擇任何時段，在上方時間表點擊即可加入。"
   },
   "ticket": {
     "duration": "時長",

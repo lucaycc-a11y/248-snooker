@@ -125,7 +125,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           refundAmount: data.refund_amount,
           cancellationReason: reason,
           customerName: profile.name,
-          locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en' | 'ja') || 'zh-HK',
+          locale: (profile.preferred_locale as 'zh-HK' | 'zh-CN' | 'en') || 'zh-HK',
         })
       }
     } catch (e) {

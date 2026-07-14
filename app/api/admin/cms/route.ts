@@ -7,7 +7,7 @@ import { getCMSGrouped } from '@/lib/data/getAdminCMS'
 // the per-edit write in ai-edit/route.ts. Never touches cms_content directly;
 // only publish/route.ts does that.
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 function isConfigKey(fieldKey: string): boolean {
   return fieldKey === 'config' || fieldKey.startsWith('config.')

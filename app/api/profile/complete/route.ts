@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     console.log('[profile/complete] attempt', { userId: user.id })
 
     if (!normalizeHkPhone(body?.phone ?? '')) {
-      return NextResponse.json({ error: '請提供有效嘅電話號碼' }, { status: 400 })
+      return NextResponse.json({ error: '請提供有效的電話號碼' }, { status: 400 })
     }
 
     const result = validateProfile({
