@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { CMSText } from "@/components/cms/CMSText";
 
 const GREEN_LIGHT = "#22C55E";
 const DARK = "#1D1D1F";
@@ -183,7 +184,7 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
               className="group inline-flex items-center"
               style={{ color: GREEN_LIGHT, fontSize: "17px", textDecoration: "none", gap: "2px" }}
             >
-              <span className="group-hover:underline">{t('cta_learn')}</span>
+              <span className="group-hover:underline"><CMSText k="member.cta_learn">{t('cta_learn')}</CMSText></span>
               <span aria-hidden="true">›</span>
             </a>
           </motion.div>
@@ -316,7 +317,7 @@ export default function Member() {
             padding: "4px 10px",
           }}
         >
-          {card.badge}
+          <CMSText k={`member.${card.key}_badge`}>{card.badge}</CMSText>
         </span>
       )}
 
@@ -325,11 +326,11 @@ export default function Member() {
       </div>
 
       <h3 style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 4px", color: "white" }}>
-        {card.title}
+        <CMSText k={`member.${card.key}_title`}>{card.title}</CMSText>
       </h3>
       {card.subtitle && (
         <p style={{ fontSize: "15px", color: card.accent, fontWeight: 500, margin: "0 0 16px" }}>
-          {card.subtitle}
+          <CMSText k={`member.${card.key}_subtitle`}>{card.subtitle}</CMSText>
         </p>
       )}
       <p
@@ -406,7 +407,7 @@ export default function Member() {
           style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.03em", margin: "0 0 12px", color: "#86868B" }}
           data-cms-key="membership_title"
         >
-          {t('title')}。
+          <CMSText k="member.title">{t('title')}</CMSText>。
         </motion.h2>
 
         <a
@@ -415,7 +416,7 @@ export default function Member() {
           style={{ color: GREEN_LIGHT, fontSize: "19px", textDecoration: "none", gap: "2px", whiteSpace: "nowrap" }}
           data-cms-key="membership_link"
         >
-          <span className="group-hover:underline">{t('cta_join')}</span>
+          <span className="group-hover:underline"><CMSText k="member.cta_join">{t('cta_join')}</CMSText></span>
           <span aria-hidden="true">›</span>
         </a>
       </div>

@@ -1,3 +1,36 @@
+const BASE = "https://space8.com.hk";
+
+// Single source of truth for the SportsClub schema — was previously
+// duplicated (and drifting: different priceRange/closes time) between
+// app/layout.tsx and app/[locale]/about/page.tsx.
+export function buildSportsClubJsonLd(locale: string, path: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SportsClub",
+    name: "Space8",
+    description: "香港首間自助英式桌球預訂平台，每日 06:00 至 24:00 營業",
+    url: `${BASE}${locale === "zh-HK" ? path : `/${locale}${path}`}`,
+    telephone: "+85264274620",
+    email: "info.formhk@gmail.com",
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "HK",
+      addressRegion: "Hong Kong",
+    },
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      opens: "06:00",
+      closes: "24:00",
+    },
+    priceRange: "HK$60-120/hr",
+    amenityFeature: [
+      { "@type": "LocationFeatureSpecification", name: "Self-service booking", value: true },
+      { "@type": "LocationFeatureSpecification", name: "Apple Pay", value: true },
+    ],
+  };
+}
+
 // Render JSON-LD structured data safely as escaped <script> children.
 //
 // React escapes text children, but inside <script> the browser does not decode

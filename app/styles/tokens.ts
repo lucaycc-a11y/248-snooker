@@ -48,6 +48,20 @@ export const tokens = {
   breakpoint: {
     mobile: 768,
   },
+  // Liquid Glass recipes — consolidates what was previously ~8 distinct
+  // inline backdropFilter values scattered across Nav/Sheet/MemberDashboard/
+  // AIChatWidget/AdminSidebar into named tiers. `surface` matches the
+  // membership card's original GLASS_BLUR; `prominent` matches Nav/AdminSidebar.
+  glass: {
+    overlay: 'blur(8px)',
+    subtle: 'blur(12px) saturate(150%)',
+    surface: 'blur(20px) saturate(180%)',
+    prominent: 'blur(24px) saturate(180%)',
+  },
+  glassBg: {
+    dark: 'rgba(255,255,255,0.05)',
+    border: 'rgba(255,255,255,0.18)',
+  },
 } as const
 
 export type Tokens = typeof tokens

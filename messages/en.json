@@ -39,7 +39,19 @@
     "sms_fallback_link": "Signed up with a phone number? Use SMS instead",
     "profile_phone_send_code": "Send code",
     "profile_phone_verified_badge": "Phone verified",
-    "profile_phone_change_number": "Change number"
+    "profile_phone_change_number": "Change number",
+    "password_placeholder": "Password",
+    "sign_in_password": "Sign in with password",
+    "sign_in_otp": "Sign in with code",
+    "switch_to_otp": "Use verification code instead",
+    "switch_to_password": "Set a password before? Sign in with password",
+    "err_password": "Incorrect email or password",
+    "planet_loading": "Assigning your planet...",
+    "planet_welcome_prefix": "Welcome,",
+    "planet_welcome_suffix": "Member",
+    "planet_subtitle": "Your one-of-a-kind member code",
+    "planet_share": "Share My Planet",
+    "planet_continue": "Enter Member Center"
   },
   "404": {
     "code": "404",
@@ -52,16 +64,30 @@
     "cta_home": "Back to Home"
   },
   "login": {
-    "brand": "248 SNOOKER",
+    "brand": "SPACE8",
     "title": "Sign In",
     "subtitle": "Continue to your booking and member access.",
     "error_missing_code": "Sign-in didn't complete. Please try again.",
     "error_oauth": "We couldn't sign you in. Please try again.",
     "error_generic": "Something went wrong. Please try again."
   },
+  "comingSoon": {
+    "brand": "SPACE8",
+    "title": "Coming Soon",
+    "subtitle": "Hong Kong's self-service snooker club is almost ready.",
+    "email_placeholder": "Email address",
+    "notify_me": "Notify Me",
+    "subscribed": "You're on the list.",
+    "err_email": "Enter a valid email address.",
+    "err_generic": "Something went wrong. Please try again.",
+    "password_placeholder": "Password",
+    "unlock": "Unlock",
+    "unlocking": "Unlocking…",
+    "err_password": "Incorrect password."
+  },
   "legal": {
     "title": "Legal",
-    "subtitle": "Please read these terms carefully before using 248 Snooker.",
+    "subtitle": "Please read these terms carefully before using Space8.",
     "last_updated": "Last updated",
     "tab_terms": "Terms of Service",
     "tab_privacy": "Privacy Policy",
@@ -70,7 +96,7 @@
     "terms_sections": [
       {
         "title": "Service Description",
-        "body": "248 Snooker is operated by FORM, offering Hong Kong’s first 24-hour self-service English snooker booking platform."
+        "body": "Space8 is operated by FORM, offering Hong Kong’s first self-service English snooker booking platform, open daily from 06:00 to 24:00."
       },
       {
         "title": "Booking Terms",
@@ -98,7 +124,7 @@
       },
       {
         "title": "Disclaimer",
-        "body": "248 Snooker is not liable for any loss of property or personal injury."
+        "body": "Space8 is not liable for any loss of property or personal injury."
       },
       {
         "title": "Governing Law",
@@ -202,19 +228,29 @@
     ]
   },
   "pricingPage": {
+    "hero_eyebrow": "Space8",
+    "hero_line1": "For those who can count.",
+    "hero_line2_before": "Book smart.",
+    "hero_line2_highlight": "Not hard.",
     "hero_title": "Transparent Pricing",
     "hero_subtitle": "Book on demand. No hidden fees.",
     "per_hour": "/hr",
-    "period_afternoon_title": "Off-Peak",
-    "period_afternoon_time": "Weekdays 09:00–18:00",
-    "period_evening_title": "Peak",
-    "period_evening_time": "Weekdays 18:00–23:00 / Weekends all day",
+    "period_afternoon_title": "Afternoon",
+    "period_afternoon_time": "12pm – 6pm",
+    "period_evening_title": "Evening",
+    "period_evening_time": "6pm – 12am",
     "period_latenight_title": "Late Night",
-    "period_latenight_time": "Daily 23:00–02:00",
+    "period_latenight_time": "12am – 6am",
     "duration_1h": "1 hour",
     "duration_2h": "2 hours",
     "duration_3h": "3 hours",
+    "member_price_prefix": "Members pay",
+    "time_line1": "Your time,",
+    "time_line2": "never wasted.",
+    "cta_line1": "Tables available now.",
+    "cta_line2": "Break right away.",
     "cta_book": "Book Now",
+    "cta_button": "Book Now",
     "cta_details": "Pricing Details",
     "breakdown_title": "Full Price List",
     "breakdown_period": "Period",
@@ -254,22 +290,23 @@
         "price": "Free"
       }
     ],
-    "faq_title": "FAQ",
+    "faq_title": "Questions?",
+    "faq_scroll_hint": "← Swipe to see more",
     "faqs": [
       {
-        "q": "Are there any hidden fees?",
+        "q": "Hidden fees?",
         "a": "No. All charges are hourly and shown clearly at booking — nothing hidden."
       },
       {
-        "q": "Can I extend mid-session?",
+        "q": "Extend mid-session?",
         "a": "Yes, subject to availability. Overtime is charged at HK$50 per 15 minutes."
       },
       {
-        "q": "How is overtime calculated?",
+        "q": "Overtime calculation?",
         "a": "HK$50 per 15 minutes, deducted automatically from your registered card."
       },
       {
-        "q": "What payment methods do you accept?",
+        "q": "Payment methods?",
         "a": "Credit cards, Apple Pay, Google Pay, Alipay, and WeChat Pay."
       }
     ],
@@ -299,8 +336,8 @@
     "not_found": "Post not found"
   },
   "aboutPage": {
-    "hero_title": "248 Snooker",
-    "hero_subtitle": "Hong Kong’s first 24-hour self-service snooker.",
+    "hero_title": "Space8",
+    "hero_subtitle": "Hong Kong's first self-service snooker, open daily 06:00–24:00.",
     "scroll": "Scroll",
     "mission_eyebrow": "Our Mission",
     "mission_statement": "Give every snooker lover a home court to call their own.",
@@ -311,15 +348,15 @@
       },
       {
         "title": "Always Open",
-        "body": "24 hours a day, 365 days a year."
+        "body": "Open daily 06:00–24:00, 365 days a year."
       },
       {
         "title": "Tech Experience",
         "body": "Book in 3 seconds, enter with a QR code."
       }
     ],
-    "story_title": "About 248",
-    "story_body": "248 Snooker began with a simple belief: a great snooker venue shouldn’t be bound by opening hours. We reimagined the experience with technology so you can book your own table anytime, anywhere, in one tap. From booking to payment to entry, it’s fully self-service — no waiting. This is your home court.",
+    "story_title": "About Space8",
+    "story_body": "Space8 began with a simple belief: a great snooker venue shouldn't be bound by opening hours. We reimagined the experience with technology so you can book your own table anytime, anywhere, in one tap. From booking to payment to entry, it's fully self-service — no waiting. This is your home court.",
     "venue_title": "Facilities",
     "venue_features": [
       "Standard English tables",
@@ -335,8 +372,8 @@
         "label": "Pro snooker tables"
       },
       {
-        "value": "24",
-        "label": "Hours open"
+        "value": "18",
+        "label": "Hours daily"
       },
       {
         "value": "3",
@@ -353,7 +390,7 @@
     "contact_whatsapp_label": "WhatsApp",
     "contact_email_label": "Email",
     "contact_hours_label": "Hours",
-    "contact_hours": "Open 24/7, year-round",
+    "contact_hours": "Daily 06:00–24:00",
     "contact_cta": "Message on WhatsApp"
   },
   "memberPage": {
@@ -385,7 +422,38 @@
     "status_confirmed": "Confirmed",
     "status_cancelled": "Cancelled",
     "status_completed": "Completed",
+    "status_refunded": "Refunded",
+    "status_pending": "Processing",
+    "status_payment_failed": "Payment failed",
+    "booking_retry_payment": "Retry payment",
+    "booking_refund": "Refund",
+    "booking_reschedule": "Reschedule",
+    "booking_more_actions": "More actions",
+    "refund_modal_title": "Request Refund",
+    "refund_modal_original_price": "Original Price",
+    "refund_modal_fee": "Processing Fee",
+    "refund_modal_amount": "Refund Amount",
+    "refund_modal_reason_label": "Reason (optional)",
+    "refund_modal_confirm": "Confirm Refund",
+    "refund_modal_cancel": "Cancel",
+    "refund_modal_cutoff_error": "This booking is too close to start to be refunded.",
+    "refund_modal_generic_error": "Couldn't process the refund. Please try again.",
+    "refund_success_toast": "Refunded",
+    "refund_cutoff_notice": "Refundable up to {hours}h before start",
+    "reschedule_modal_title": "Reschedule Booking",
+    "reschedule_modal_date_label": "New date",
+    "reschedule_modal_table_label": "Table",
+    "reschedule_modal_time_label": "Available times",
+    "reschedule_modal_no_slots": "No available times on this date.",
+    "reschedule_modal_confirm": "Confirm Reschedule",
+    "reschedule_modal_cancel": "Cancel",
+    "reschedule_modal_unavailable_error": "That slot is no longer available.",
+    "reschedule_modal_generic_error": "Couldn't reschedule. Please try again.",
+    "reschedule_success_toast": "Rescheduled",
+    "bookings_upcoming": "Upcoming",
+    "bookings_history": "History",
     "no_bookings": "No bookings yet",
+    "no_history": "No past bookings",
     "points_running_total": "Balance",
     "points_earn_title": "Ways to Earn",
     "points_earn": [
@@ -413,6 +481,7 @@
     "settings_err_generic": "Couldn't save. Please try again.",
     "qr_modal_title": "Booking QR Code",
     "qr_reference": "Booking reference",
+    "qr_tap_enlarge": "Tap to enlarge QR code",
     "close": "Close",
     "loading": "Loading…",
     "back": "Back",
@@ -429,15 +498,13 @@
     "logout": "Sign Out",
     "my_account": "My Account",
     "settings": "Settings",
+    "admin": "Admin",
     "sign_out": "Sign Out",
     "signing_out": "Signing out…",
-    "sign_out_error": "Couldn't sign out. Please try again.",
-    "prompt_text": "Sign in for faster booking",
-    "prompt_cta": "Sign In",
-    "prompt_dismiss": "Dismiss"
+    "sign_out_error": "Couldn't sign out. Please try again."
   },
   "hero": {
-    "title": "248 Snooker",
+    "title": "Space8",
     "tagline": "Your Home Court",
     "cta_book": "Book Now",
     "cta_learn": "Learn More"
@@ -502,7 +569,14 @@
     "duration_2h": "2 hours",
     "duration_3h": "3 hours",
     "cta_book": "Pick a Slot",
-    "cta_learn": "Pricing Details"
+    "cta_learn": "Pricing Details",
+    "hero_eyebrow": "Space8",
+    "hero_line1": "For those who can count.",
+    "hero_line2": "Not hard.",
+    "time_line1": "Your time,",
+    "cta_line1": "Tables available now.",
+    "cta_button": "Book Now",
+    "faq_title": "Questions?"
   },
   "faq": {
     "title": "FAQ",
@@ -513,7 +587,7 @@
     "faq_cancel_q": "Can I cancel my booking?",
     "faq_cancel_a": "You can cancel for free up to 2 hours before your session starts and receive a full refund. Cancellations after that are non-refundable.",
     "faq_hours_q": "What are the opening hours?",
-    "faq_hours_a": "248 Snooker Club is open 24 hours a day, 365 days a year, including public holidays.",
+    "faq_hours_a": "Space8 is open daily from 06:00 to 24:00, year-round, including public holidays.",
     "faq_minimum_q": "What is the minimum booking duration?",
     "faq_minimum_a": "The minimum is 1 hour. You can book 1, 2, or 3 hours.",
     "faq_pricing_q": "How is pricing calculated?",
@@ -525,11 +599,18 @@
     "faq_guests_q": "Can I bring friends?",
     "faq_guests_a": "Yes, each session can accommodate multiple players. The session fee covers everyone — no extra charge per person.",
     "faq_contact_q": "How can I contact you?",
-    "faq_contact_a": "Reach us via WhatsApp or email hello@formhk.com — we'll get back to you promptly."
+    "faq_contact_a": "Reach us via WhatsApp or email hello@space8.com.hk — we'll get back to you promptly."
   },
   "whatsapp": {
     "aria_label": "WhatsApp us",
     "tooltip": "WhatsApp us"
+  },
+  "ai_chat": {
+    "aria_label": "Chat with us",
+    "tooltip": "Chat with us",
+    "placeholder": "Ask us anything...",
+    "send": "Send",
+    "close": "Close"
   },
   "common": {
     "error": "Something went wrong",
@@ -543,6 +624,8 @@
     "snooker": "English Snooker",
     "available": "Available Now",
     "unavailable": "Not Available",
+    "slot_taken": "This slot was just taken by someone else. Please go back and pick another time.",
+    "back_to_slots": "Back to time slots",
     "selected": "Selected",
     "select_this_table": "Select This Table",
     "hint": "If your preferred table is taken, switch to another anytime",
@@ -553,6 +636,7 @@
     "instant_confirm": "Instant Confirmation · No Waiting",
     "login_title": "Complete Booking",
     "login_subtitle": "Your slot is temporarily held",
+    "login_subtitle_specific": "We've held {start}–{end}, {table} for you",
     "login_apple": "Sign in with Apple",
     "login_google": "Sign in with Google",
     "login_whatsapp": "WhatsApp Number",
@@ -572,6 +656,7 @@
     "confirm_title": "Confirmed",
     "add_calendar": "Add to Calendar",
     "share": "Share",
+    "go_to_member": "Go to Member Center",
     "back_home": "Back to Home",
     "back": "Back",
     "leave_title": "Leave booking?",
@@ -580,7 +665,7 @@
     "leave_stay": "Stay",
     "checking": "Checking availability…",
     "fully_booked": "This time is fully booked — try another time or date.",
-    "qr_hint": "Show this QR code at entry · 24hr support",
+    "qr_hint": "Show this QR code at entry · support hotline",
     "your_booking": "Your Booking",
     "date": "Date",
     "time_slot": "Time",
@@ -591,21 +676,35 @@
     "table_unavailable": "Not Available",
     "table_locked": "Someone's booking this",
     "table_locked_tooltip": "Someone is currently booking this table — please wait or pick another",
+    "table_locked_by_you": "Continue your booking",
+    "table_resume": "resume",
+    "table_release_and_pick_again": "Release and pick a different time",
     "tables_remaining": "{count} table(s) left for this time",
     "lock_hold": "Your slot is held for {time}",
     "pay_declined": "Payment could not be completed. Please check your payment method and try again.",
     "pay_timeout": "Payment is taking longer than expected. Please check your connection and try again.",
-    "contiguous_slots_required": "Please select contiguous time slots",
+    "max_hours_reached": "You can select up to 6 hours",
     "payment_reminder": "Complete payment within 15 minutes or your reservation will be automatically cancelled",
     "whatsapp_support": "If you suspect you have been charged, please contact us via WhatsApp to verify:",
-    "retry_payment": "Choose another payment method"
+    "retry_payment": "Choose another payment method",
+    "slot_group_morning": "Morning",
+    "slot_group_afternoon": "Afternoon",
+    "slot_group_evening": "Evening",
+    "remove_slot": "Remove",
+    "multi_slot_hint": "You can pick several slots — they don't have to be consecutive.",
+    "duration_hours_chip": "{count}h",
+    "most_popular": "Most popular",
+    "slots_selected": "{count} slots selected",
+    "points_earned_estimate": "Earn at least {pts} points on this booking"
   },
   "ticket": {
     "duration": "Duration",
     "paid": "Paid",
     "payment": "Payment",
     "confirmed": "Confirmed ✓",
-    "footer": "Show this QR code at entry · 24hr support"
+    "footer": "Show this QR code at entry · support hotline",
+    "qr_tap_enlarge": "Tap to enlarge QR code",
+    "close": "Close"
   },
   "gallery": {
     "title": "The Venue, Up Close.",
@@ -617,33 +716,33 @@
       {
         "title": "Professional Tables",
         "subtitle": "Premium snooker tables with cloth replaced monthly for the best feel.",
-        "alt": "248 Snooker - professional tables"
+        "alt": "Space8 - professional tables"
       },
       {
-        "title": "Open 24 Hours",
-        "subtitle": "3am and still lit up. Always open for you.",
-        "alt": "248 Snooker - 24-hour venue"
+        "title": "Open Daily 06:00–24:00",
+        "subtitle": "Always open for you, every day of the year.",
+        "alt": "Space8 - venue open daily"
       },
       {
         "title": "Scan to Enter",
         "subtitle": "Get a QR code after booking. Scan on arrival and the door opens automatically.",
-        "alt": "248 Snooker - smart QR entry system"
+        "alt": "Space8 - smart QR entry system"
       },
       {
         "title": "Private Space",
         "subtitle": "The whole venue is yours. No queues, no sharing.",
-        "alt": "248 Snooker - private snooker room"
+        "alt": "Space8 - private snooker room"
       },
       {
         "title": "Premium Lighting",
         "subtitle": "Table-specific lighting that brings out every detail and every ball.",
-        "alt": "248 Snooker - professional table lighting"
+        "alt": "Space8 - professional table lighting"
       }
     ]
   },
   "footer": {
-    "tagline": "Hong Kong's 24-Hour Self-Service Snooker Club",
-    "copyright": "© 2026 248 Snooker",
+    "tagline": "Hong Kong's Self-Service Snooker Club · Open Daily 06:00–24:00",
+    "copyright": "© 2026 Space8",
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy"
   },

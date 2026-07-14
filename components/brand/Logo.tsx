@@ -8,14 +8,16 @@ type LogoProps = {
 }
 
 export function Logo({ variant = 'full', theme = 'dark', size = 48 }: LogoProps) {
+  // Transparent-background PNG exports — white artwork for dark sections,
+  // black artwork for light sections, no CSS invert() hack needed.
   const src =
     variant === 'mark'
       ? theme === 'dark'
-        ? '/logos/248_ball_white.svg'
-        : '/logos/248_ball_black.svg'
+        ? encodeURI('/logos/White Version Squ, Tran 8.png')
+        : encodeURI('/logos/Black Version Squ, Tran 8.png')
       : theme === 'dark'
-      ? '/logos/248_logo_dark_bg.svg'
-      : '/logos/248_logo_white_bg.svg'
+        ? encodeURI('/logos/White Version Hor, Tran 8.png')
+        : encodeURI('/logos/Black Version Hor, Tran 8.png')
 
   // Marks are square; the full lockup is wider than tall.
   const width = variant === 'mark' ? size : Math.round(size * 2.8)
@@ -23,10 +25,13 @@ export function Logo({ variant = 'full', theme = 'dark', size = 48 }: LogoProps)
   return (
     <Image
       src={src}
-      alt="248 Snooker Club"
+      alt="Space8"
       width={width}
       height={size}
-      style={{ height: size, width: 'auto' }}
+      style={{
+        height: size,
+        width: 'auto',
+      }}
       priority
     />
   )

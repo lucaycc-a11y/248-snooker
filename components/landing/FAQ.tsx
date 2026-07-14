@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations } from "next-intl";
-import { getFaqItems, getFaqJsonLd } from "./faqData";
+import { useTranslations, useLocale } from "next-intl";
+import { CMSText } from "@/components/cms/CMSText";
+import { CMSList } from "@/components/cms/CMSList";
+import { getFaqItems } from "./faqData";
+import type { FaqFields } from "@/lib/data/getFaqData";
+import type { CMSListItem } from "@/components/cms/CMSList";
 
 const DARK = "#1D1D1F";
 const DIVIDER = "#D2D2D7";
@@ -14,19 +18,47 @@ const FONT_FAMILY =
 const EASE = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
 
-export default function FAQ() {
+// initialItems/jsonLd are fetched server-side by the page that renders <FAQ>
+// (via getFaqListData) and passed down, so first paint has real content and
+// JSON-LD without a client round-trip. Falls back to the next-intl-derived
+// list client-side only if no props are given (keeps <FAQ> usable standalone,
+// e.g. on the homepage, without every call site needing the server fetch).
+export default function FAQ({
+  initialItems,
+  jsonLd,
+}: {
+  initialItems?: CMSListItem<FaqFields>[];
+  jsonLd?: object;
+}) {
   const t = useTranslations('faq');
-  const faqItems = getFaqItems(t);
-  const faqJsonLd = getFaqJsonLd(t);
+  const locale = useLocale();
+  const [items, setItems] = useState<CMSListItem<FaqFields>[]>(
+    initialItems ?? getFaqItems(t).map((item, i) => ({ id: item.id, orderIndex: i, fields: { question: item.question, answer: item.answer } }))
+  );
   // Only one item open at a time. null = all closed.
   const [openId, setOpenId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialItems) setItems(initialItems);
+  }, [initialItems]);
+
+  const faqJsonLd =
+    jsonLd ?? {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: items.map((item) => ({
+        "@type": "Question",
+        name: item.fields.question,
+        acceptedAnswer: { "@type": "Answer", text: item.fields.answer },
+      })),
+    };
 
   return (
     <section
       id="faq"
       data-nav-theme="light"
       style={{
-        background: "#F5F5F7",
+        background: "rgba(245,245,247,0.92)",
         color: DARK,
         padding: "clamp(88px, 12vw, 140px) 24px",
         fontFamily: FONT_FAMILY,
@@ -51,16 +83,37 @@ export default function FAQ() {
           }}
           data-cms-key="faq_title"
         >
-          {t('title')}。
+          <CMSText k="faq.title">{t('title')}</CMSText>。
         </motion.h2>
 
-        <div>
-          {faqItems.map((item) => {
-            const isOpen = openId === item.id;
+        <CMSList<FaqFields>
+          page="faq"
+          collectionKey="faq_items"
+          locale={locale}
+          initialItems={items}
+          emptyFields={{ question: '', answer: '' }}
+          renderForm={(fields, onChange) => (
+            <div>
+              <input
+                value={fields.question}
+                onChange={(e) => onChange({ ...fields, question: e.target.value })}
+                placeholder="Question"
+                style={{ width: '100%', marginBottom: 8, padding: 10, fontSize: 14 }}
+              />
+              <textarea
+                value={fields.answer}
+                onChange={(e) => onChange({ ...fields, answer: e.target.value })}
+                placeholder="Answer"
+                rows={3}
+                style={{ width: '100%', padding: 10, fontSize: 14 }}
+              />
+            </div>
+          )}
+          renderItem={(fields, id) => {
+            const isOpen = openId === id;
             return (
               <details
-                key={item.id}
-                id={item.id}
+                id={id}
                 open={isOpen}
                 style={{ borderBottom: `1px solid ${DIVIDER}` }}
               >
@@ -69,7 +122,7 @@ export default function FAQ() {
                     // Take over native toggle so framer-motion drives the visual,
                     // while keeping real <details>/<summary> for crawlers.
                     e.preventDefault();
-                    setOpenId((prev) => (prev === item.id ? null : item.id));
+                    setOpenId((prev) => (prev === id ? null : id));
                   }}
                   style={{
                     listStyle: "none",
@@ -90,7 +143,7 @@ export default function FAQ() {
                       lineHeight: 1.4,
                     }}
                   >
-                    {item.question}
+                    {fields.question}
                   </span>
                   <motion.span
                     aria-hidden="true"
@@ -130,15 +183,15 @@ export default function FAQ() {
                           maxWidth: "680px",
                         }}
                       >
-                        {item.answer}
+                        {fields.answer}
                       </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </details>
             );
-          })}
-        </div>
+          }}
+        />
       </div>
     </section>
   );

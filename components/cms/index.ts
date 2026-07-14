@@ -1,2 +1,2 @@
-export { default as CMSText } from './cms-text'
-export type { CMSTextProps } from './cms-text'
+export { CMSText } from './CMSText'
+export type { CMSTextProps } from './CMSText'

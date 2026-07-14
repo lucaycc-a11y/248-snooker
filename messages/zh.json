@@ -6,7 +6,7 @@
     "blog": "Blog"
   },
   "hero": {
-    "title": "248 Snooker",
+    "title": "Space8",
     "tagline": "屬於你的主場",
     "cta_book": "立即預訂",
     "cta_learn": "了解更多"
@@ -35,7 +35,7 @@
     "add_calendar": "加入日曆",
     "share": "分享",
     "back_home": "返回主頁",
-    "qr_hint": "請於入場時出示此二維碼・24小時客服"
+    "qr_hint": "請於入場時出示此二維碼・客服熱線"
   },
   "ticket": {
     "duration": "時長",

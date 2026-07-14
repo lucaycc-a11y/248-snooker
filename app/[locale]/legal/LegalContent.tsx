@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Check, X, AlertTriangle } from "lucide-react";
+import { CMSText } from "@/components/cms/CMSText";
+import { CMSList, type CMSListItem } from "@/components/cms/CMSList";
+import type { LegalSectionFields } from "@/lib/data/getLegalData";
 
 const DARK = "#1D1D1F";
 const SUBTLE = "#86868B";
@@ -25,21 +28,55 @@ const TABS: { id: TabId; key: string }[] = [
   { id: "rules", key: "tab_rules" },
 ];
 
-type Section = { title: string; body: string };
 type RefundRow = { case: string; result: string };
 type RefundTime = { method: string; time: string };
 
-// Numbered legal sections (terms, privacy) — shared renderer.
-function SectionList({ items, cmsPrefix }: { items: Section[]; cmsPrefix: string }) {
+// Numbered legal sections (terms, privacy) — addable/removable/reorderable
+// via CMSList, since an admin can add a new clause. `page`/`collectionKey`
+// select which of the two collections this renders.
+function SectionList({
+  items,
+  page,
+  collectionKey,
+  locale,
+}: {
+  items: CMSListItem<LegalSectionFields>[];
+  page: 'legal';
+  collectionKey: 'terms_sections' | 'privacy_sections';
+  locale: string;
+}) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
-      {items.map((s, i) => (
+    <CMSList<LegalSectionFields>
+      page={page}
+      collectionKey={collectionKey}
+      locale={locale}
+      initialItems={items}
+      emptyFields={{ title: '', body: '' }}
+      renderForm={(fields, onChange) => (
+        <div>
+          <input
+            value={fields.title}
+            onChange={(e) => onChange({ ...fields, title: e.target.value })}
+            placeholder="Title"
+            style={{ width: '100%', marginBottom: 8, padding: 10, fontSize: 14 }}
+          />
+          <textarea
+            value={fields.body}
+            onChange={(e) => onChange({ ...fields, body: e.target.value })}
+            placeholder="Body"
+            rows={3}
+            style={{ width: '100%', padding: 10, fontSize: 14 }}
+          />
+        </div>
+      )}
+      renderItem={(s, id, i) => (
         <motion.div
-          key={s.title}
+          key={id}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.5, ease: EASE, delay: Math.min(i * 0.04, 0.2) }}
+          transition={{ duration: 0.5, ease: EASE }}
+          style={{ marginBottom: 40 }}
         >
           <h3
             style={{
@@ -51,7 +88,6 @@ function SectionList({ items, cmsPrefix }: { items: Section[]; cmsPrefix: string
               color: DARK,
               margin: "0 0 10px",
             }}
-            data-cms-key={`${cmsPrefix}.${i}.title`}
           >
             <span style={{ color: GREEN, fontVariantNumeric: "tabular-nums" }}>
               {String(i + 1).padStart(2, "0")}
@@ -66,13 +102,12 @@ function SectionList({ items, cmsPrefix }: { items: Section[]; cmsPrefix: string
               margin: 0,
               paddingLeft: "36px",
             }}
-            data-cms-key={`${cmsPrefix}.${i}.content`}
           >
             {s.body}
           </p>
         </motion.div>
-      ))}
-    </div>
+      )}
+    />
   );
 }
 
@@ -99,8 +134,12 @@ function RefundPanel() {
             letterSpacing: "0.04em",
           }}
         >
-          <span data-cms-key="legal.refund.head.case">{t("refund_table_case")}</span>
-          <span data-cms-key="legal.refund.head.result">{t("refund_table_result")}</span>
+          <span data-cms-key="legal.refund.head.case">
+            <CMSText k="legal.refund.head.case">{t("refund_table_case")}</CMSText>
+          </span>
+          <span data-cms-key="legal.refund.head.result">
+            <CMSText k="legal.refund.head.result">{t("refund_table_result")}</CMSText>
+          </span>
         </div>
         {rows.map((r, i) => {
           const full = r.result.includes("100");
@@ -135,7 +174,7 @@ function RefundPanel() {
           style={{ fontSize: "20px", fontWeight: 700, color: DARK, margin: "0 0 16px" }}
           data-cms-key="legal.refund.times.title"
         >
-          {t("refund_times_title")}
+          <CMSText k="legal.refund.times.title">{t("refund_times_title")}</CMSText>
         </h3>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {times.map((tm, i) => (
@@ -192,7 +231,7 @@ function RulesPanel() {
             data-cms-key={`legal.rules.${g.cms}.title`}
           >
             <g.Icon size={22} color={g.color} strokeWidth={2.5} />
-            {g.title}
+            <CMSText k={`legal.rules.${g.cms}.title`}>{g.title}</CMSText>
           </h3>
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
             {g.items.map((item, i) => (
@@ -222,12 +261,20 @@ function RulesPanel() {
   );
 }
 
-export default function LegalContent({ initialTab, lastUpdated }: { initialTab: TabId; lastUpdated: string }) {
+export default function LegalContent({
+  initialTab,
+  lastUpdated,
+  termsSections,
+  privacySections,
+}: {
+  initialTab: TabId;
+  lastUpdated: string;
+  termsSections: CMSListItem<LegalSectionFields>[];
+  privacySections: CMSListItem<LegalSectionFields>[];
+}) {
   const t = useTranslations("legal");
+  const locale = useLocale();
   const [tab, setTab] = useState<TabId>(initialTab);
-
-  const termsSections = t.raw("terms_sections") as Section[];
-  const privacySections = t.raw("privacy_sections") as Section[];
 
   return (
     <div data-nav-theme="dark" style={{ background: "#ffffff", fontFamily: FONT_FAMILY }}>
@@ -244,13 +291,13 @@ export default function LegalContent({ initialTab, lastUpdated }: { initialTab: 
             style={{ fontSize: "clamp(40px, 8vw, 64px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
             data-cms-key="legal.title"
           >
-            {t("title")}
+            <CMSText k="legal.title">{t("title")}</CMSText>
           </motion.h1>
           <p
             style={{ fontSize: "17px", color: "rgba(255,255,255,0.6)", margin: "16px 0 0", maxWidth: "560px" }}
             data-cms-key="legal.subtitle"
           >
-            {t("subtitle")}
+            <CMSText k="legal.subtitle">{t("subtitle")}</CMSText>
           </p>
         </div>
       </section>
@@ -301,7 +348,7 @@ export default function LegalContent({ initialTab, lastUpdated }: { initialTab: 
                   minHeight: 44,
                 }}
               >
-                {t(tabItem.key)}
+                <CMSText k={`legal.${tabItem.key}`}>{t(tabItem.key)}</CMSText>
                 {active && (
                   <motion.span
                     layoutId="legal-tab-underline"
@@ -333,8 +380,8 @@ export default function LegalContent({ initialTab, lastUpdated }: { initialTab: 
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.3, ease: EASE }}
             >
-              {tab === "terms" && <SectionList items={termsSections} cmsPrefix="legal.terms.section" />}
-              {tab === "privacy" && <SectionList items={privacySections} cmsPrefix="legal.privacy.section" />}
+              {tab === "terms" && <SectionList items={termsSections} page="legal" collectionKey="terms_sections" locale={locale} />}
+              {tab === "privacy" && <SectionList items={privacySections} page="legal" collectionKey="privacy_sections" locale={locale} />}
               {tab === "refund" && <RefundPanel />}
               {tab === "rules" && <RulesPanel />}
             </motion.div>
@@ -344,7 +391,7 @@ export default function LegalContent({ initialTab, lastUpdated }: { initialTab: 
             style={{ marginTop: "64px", fontSize: "14px", color: SUBTLE }}
             data-cms-key="legal.last_updated"
           >
-            {t("last_updated")}: {lastUpdated}
+            <CMSText k="legal.last_updated">{t("last_updated")}</CMSText>: {lastUpdated}
           </p>
         </div>
       </section>

@@ -3,10 +3,10 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/shared/WhatsAppButton";
-import { safeJsonLd } from "@/lib/seo/jsonLd";
+import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import AboutContent from "./AboutContent";
 
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 export async function generateMetadata({
   params,
@@ -18,10 +18,10 @@ export async function generateMetadata({
   const path = locale === "zh-HK" ? "/about" : `/${locale}/about`;
 
   const titles: Record<string, string> = {
-    "zh-HK": "關於我們 | 248 Snooker",
-    "zh-CN": "关于我们 | 248 Snooker",
-    en: "About | 248 Snooker",
-    ja: "私たちについて | 248 Snooker",
+    "zh-HK": "關於我們 | Space8",
+    "zh-CN": "关于我们 | Space8",
+    en: "About | Space8",
+    ja: "私たちについて | Space8",
   };
 
   return {
@@ -40,7 +40,7 @@ export async function generateMetadata({
       title: titles[locale] ?? titles["zh-HK"],
       description: t("hero_subtitle"),
       url: `${BASE}${path}`,
-      siteName: "248 Snooker",
+      siteName: "Space8",
       type: "website",
     },
     robots: { index: true, follow: true },
@@ -55,28 +55,9 @@ export default async function AboutPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  // LocalBusiness (SportsClub) structured data — 24/7 hours, contact.
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SportsClub",
-    name: "248 Snooker",
-    description: "香港首間24小時自助英式桌球預訂平台",
-    url: `${BASE}${locale === "zh-HK" ? "/about" : `/${locale}/about`}`,
-    telephone: "+85264274620",
-    email: "info.formhk@gmail.com",
-    address: {
-      "@type": "PostalAddress",
-      addressCountry: "HK",
-      addressRegion: "Hong Kong",
-    },
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      opens: "00:00",
-      closes: "23:59",
-    },
-    priceRange: "HK$60-80/hr",
-  };
+  // LocalBusiness (SportsClub) structured data — shared builder, was previously
+  // a diverging inline copy (different priceRange/closes time from the homepage's).
+  const jsonLd = buildSportsClubJsonLd(locale, "/about");
 
   return (
     <main className="relative bg-black">

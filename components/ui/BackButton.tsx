@@ -3,14 +3,14 @@
 import type { CSSProperties, ReactNode } from "react"
 import { ChevronLeft } from "lucide-react"
 
-// Shared fixed top-left back arrow — the SINGLE source of truth for this control,
-// extracted verbatim from the booking flow so /member and /book stay identical.
-// Safe-area-aware, 44×44 tap target, white/glass. Renders an <a> when `href` is
-// given (real navigation, SSR-friendly), otherwise a <button> for in-flow handlers.
+// Shared back arrow — the SINGLE source of truth for this control, extracted
+// verbatim from the booking flow so /member and /book stay identical. Safe-
+// area-aware, 44×44 tap target, white/glass. Renders an <a> when `href` is
+// given (real navigation, SSR-friendly), otherwise a <button> for in-flow
+// handlers. `variant="inline"` drops the fixed-overlay positioning so it can
+// sit as a normal flex child (e.g. alongside /book's progress stepper) while
+// keeping identical visual tokens to the default fixed placement.
 const baseStyle: CSSProperties = {
-  position: "fixed",
-  top: "max(1rem, env(safe-area-inset-top, 0px))",
-  left: "max(1rem, env(safe-area-inset-left, 0px))",
   width: 44,
   height: 44,
   display: "flex",
@@ -22,8 +22,15 @@ const baseStyle: CSSProperties = {
   backdropFilter: "blur(12px)",
   WebkitBackdropFilter: "blur(12px)",
   cursor: "pointer",
-  zIndex: 60,
   textDecoration: "none",
+  flexShrink: 0,
+}
+
+const fixedStyle: CSSProperties = {
+  position: "fixed",
+  top: "max(1rem, env(safe-area-inset-top, 0px))",
+  left: "max(1rem, env(safe-area-inset-left, 0px))",
+  zIndex: 60,
 }
 
 export function BackButton({
@@ -33,6 +40,7 @@ export function BackButton({
   color = "#fff",
   cmsKey,
   iconSize = 22,
+  variant = "fixed",
 }: {
   onClick?: () => void
   href?: string
@@ -40,8 +48,9 @@ export function BackButton({
   color?: string
   cmsKey?: string
   iconSize?: number
+  variant?: "fixed" | "inline"
 }) {
-  const style = { ...baseStyle, color }
+  const style = { ...baseStyle, ...(variant === "fixed" ? fixedStyle : {}), color }
   const icon: ReactNode = <ChevronLeft size={iconSize} />
   if (href) {
     return (

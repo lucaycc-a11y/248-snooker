@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { Pause, Play, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { CMSText } from "@/components/cms/CMSText";
 
 interface SlideText {
   title: string;
@@ -106,7 +107,7 @@ export default function Gallery() {
           fontFamily: FONT_FAMILY,
         }}
       >
-        {t("title")}
+        <CMSText k="gallery.title">{t("title")}</CMSText>
       </h2>
 
       {/* Carousel */}

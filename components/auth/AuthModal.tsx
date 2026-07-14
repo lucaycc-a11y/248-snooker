@@ -65,15 +65,11 @@ export function AuthModal({
             exit={{ scale: 0.94, opacity: 0, y: 16 }}
             transition={{ type: "spring", damping: 24, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
+            className="glass-panel"
             style={{
               position: "relative",
               width: "100%",
               maxWidth: 400,
-              background: "rgba(255,255,255,0.05)",
-              backdropFilter: "blur(20px) saturate(180%)",
-              WebkitBackdropFilter: "blur(20px) saturate(180%)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 24,
               padding: 40,
             }}
           >
@@ -90,7 +86,7 @@ export function AuthModal({
 
             <div style={{ textAlign: "center", marginBottom: 28 }}>
               <div data-cms-key="auth.brand" style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.32em", color: GREEN, marginBottom: 12 }}>
-                248 SNOOKER
+                SPACE8
               </div>
               <h1 data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 34, letterSpacing: "0.02em", color: "#fff" }}>
                 {t("title")}

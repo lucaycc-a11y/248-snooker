@@ -8,30 +8,32 @@ import {
   ChevronLeft,
   Clock,
   Lock,
-  CalendarPlus,
-  Share2,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { Button, Card, ProgressSteps, BackButton } from "@/components/ui"
-import { VisaLogo } from "@/components/brand"
+import { LoadingGif } from "@/components/ui/LoadingGif"
+import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
+import { TicketCard } from "@/components/booking/TicketCard"
 import { createClient } from "@/lib/supabase/client"
+import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
+import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
+import { quoteBlockTotal } from "@/lib/pricing"
+import { DEFAULT_PERIODS, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
+import { useSearchParams } from "next/navigation"
 // @ts-ignore
 import confetti from "canvas-confetti"
-import QRCodeLib from "qrcode"
 
 /* ─────────────────────────  Config  ───────────────────────── */
-// TODO: connect Supabase — use getConfig() server-side and pass as prop
 const CONFIG = {
-  pricePerHour: 120,
   currency: "HKD",
   maxHours: 6,
-  openHour: 0,
-  closeHour: 24,
+  openHour: 6,  // Venue opens 06:00
+  closeHour: 24, // Last slot starts 23:00, ends 00:00
 }
 
 const BEBAS = "'Bebas Neue', system-ui, sans-serif"
@@ -52,6 +54,30 @@ function padTime(h: number): string {
   return String(((h % 24) + 24) % 24).padStart(2, "0") + ":00"
 }
 
+// Venue time is Hong Kong (UTC+8) regardless of the user's device timezone.
+// Deriving "today" and "current hour" from the browser's local clock caused a
+// P0 bug where a device in another timezone (or the memoized snapshot) greyed
+// out valid slots. Read the parts through Intl in the fixed venue zone instead.
+const HK_TIME_ZONE = "Asia/Hong_Kong"
+
+function getHongKongNow(date = new Date()): { date: string; hour: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: HK_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(date)
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ""
+  // Intl can emit "24" for midnight in some engines; normalise to 0.
+  const rawHour = Number(get("hour"))
+  return {
+    date: `${get("year")}-${get("month")}-${get("day")}`,
+    hour: rawHour % 24,
+  }
+}
+
 type DaySlot = {
   table_number: number
   date: string
@@ -59,16 +85,62 @@ type DaySlot = {
   duration_hours: number
   status: string
   locked_until: string | null
+  locked_by_you: boolean
 }
 
 const ALL_TABLES = [1, 2]
 
-type TableState = "available" | "locked" | "booked"
+// Shared empty-Set sentinel — avoids allocating a fresh object every render
+// when a date has no entry in selectedHoursByDate. Never mutated directly;
+// every write site copies it into a new Set first.
+const EMPTY_SET: Set<number> = new Set()
+
+// One selected slot block (a contiguous run of hours on one date, one table).
+// The order is the union of every run across every date the user has picked
+// hours on (selectedHoursByDate), grouped via groupHoursIntoRuns().
+type SelectedBlock = {
+  date: string // 'YYYY-MM-DD'
+  startHour: number
+  duration: number
+  tableNumber: number
+}
+
+// Collapse a set of selected hours (one date) into contiguous runs. Pure —
+// sorts ascending, merges adjacent hours into a single run each.
+function groupHoursIntoRuns(
+  hours: Iterable<number>,
+  date: string,
+  tableNumber: number,
+): SelectedBlock[] {
+  const sorted = Array.from(hours).sort((a, b) => a - b)
+  const runs: SelectedBlock[] = []
+  for (const h of sorted) {
+    const last = runs[runs.length - 1]
+    if (last && last.startHour + last.duration === h) {
+      last.duration += 1
+    } else {
+      runs.push({ date, startHour: h, duration: 1, tableNumber })
+    }
+  }
+  return runs
+}
+
+// Time-slot grid is grouped into labelled periods. Venue hours: 06:00–24:00
+// (last bookable slot starts at 23:00). Hours are inclusive-start.
+const SLOT_GROUPS: { key: string; hours: number[] }[] = [
+  { key: "morning", hours: [6, 7, 8, 9, 10, 11] },
+  { key: "afternoon", hours: [12, 13, 14, 15, 16, 17] },
+  { key: "evening", hours: [18, 19, 20, 21, 22, 23] },
+]
+
+type TableState = "available" | "locked_by_you" | "locked" | "booked"
 
 // Per-table state for [startHour, startHour+duration) on `dateStr`, given the
 // day's booked/active-locked slots. Pure + client-side so it drives both the wheel
 // greying (Step 2) and the table list (Step 3) without extra API calls.
-// "locked" = someone else has an active 15-min hold; "booked" = confirmed.
+// "locked_by_you" = the caller's OWN active hold (e.g. an abandoned checkout) —
+// clickable, resumes straight to payment (see onResumeLocked). "locked" =
+// someone else's active 15-min hold; "booked" = confirmed.
 function tableStatesFor(
   daySlots: DaySlot[],
   dateStr: string,
@@ -90,20 +162,52 @@ function tableStatesFor(
     const eEnd = new Date(eStart)
     eEnd.setHours(eEnd.getHours() + Number(s.duration_hours))
     if (eStart < reqEnd && reqStart < eEnd) {
-      states.set(s.table_number, s.status === "booked" ? "booked" : "locked")
+      states.set(
+        s.table_number,
+        s.status === "booked" ? "booked" : s.locked_by_you ? "locked_by_you" : "locked",
+      )
     }
   }
   return states
 }
 
-function freeTablesFor(
-  daySlots: DaySlot[],
-  dateStr: string,
-  startHour: number,
-  duration: number
-): number[] {
-  const states = tableStatesFor(daySlots, dateStr, startHour, duration)
-  return ALL_TABLES.filter((tn) => states.get(tn) === "available")
+// Worst (most-restrictive) per-table state across an arbitrary set of (date,
+// hour) pairs spanning the WHOLE order, not just one date — a single global
+// selectedTable must be valid for every block. Fails open per-date (a date
+// whose daySlots haven't loaded yet contributes no restriction; the caller's
+// fetch effect populates it and this recomputes once cached).
+function tableStatesForOrder(
+  selectedHoursByDate: Map<string, Set<number>>,
+  getDaySlots: (date: string) => DaySlot[] | null,
+): Map<number, TableState> {
+  const worst = new Map<number, TableState>(ALL_TABLES.map((tn) => [tn, "available"]))
+  const rank = { available: 0, locked_by_you: 1, locked: 2, booked: 3 } as const
+  for (const [date, hours] of selectedHoursByDate) {
+    const daySlots = getDaySlots(date)
+    if (!daySlots) continue
+    for (const h of hours) {
+      const states = tableStatesFor(daySlots, date, h, 1)
+      for (const tn of ALL_TABLES) {
+        const s = states.get(tn) ?? "available"
+        if (rank[s] > rank[worst.get(tn)!]) worst.set(tn, s)
+      }
+    }
+  }
+  return worst
+}
+
+// Shared parser for the persisted-selection JSON shape (both the durable
+// bookingSelection key and the one-shot pendingBooking key use this).
+function parseSelectionEntries(entries: unknown): Map<string, Set<number>> {
+  const restored = new Map<string, Set<number>>()
+  if (!Array.isArray(entries)) return restored
+  for (const e of entries) {
+    if (typeof (e as { date?: unknown })?.date !== "string") continue
+    const { date, hours } = e as { date: string; hours: unknown }
+    const validHours = Array.isArray(hours) ? hours.filter((h): h is number => typeof h === "number") : []
+    if (validHours.length > 0) restored.set(date, new Set(validHours))
+  }
+  return restored
 }
 
 // Smoothly scroll a revealed section into view (desktop and mobile alike).
@@ -120,20 +224,83 @@ function scrollToRef(ref: React.RefObject<HTMLElement>) {
 }
 
 /* ─────────────────────────  Time Slot Grid  ───────────────────────── */
+// Smart default duration (spec ask): a small quick-pick row above the hour
+// grid offering 1h/2h/3h chips, with the venue's real most-common past
+// duration pre-highlighted (border/tint only — never auto-applied without
+// the user's own tap). Tapping a chip finds the EARLIEST contiguous window
+// of that length, on this date, with at least one table free, and selects
+// it via onPick — same tableStatesFor() availability check the grid/table
+// chips already use, so it can never propose an actually-taken window.
+const QUICK_PICK_DURATIONS = [1, 2, 3]
+
+function DurationQuickPicks({
+  daySlots,
+  dateStr,
+  popularDuration,
+  onPick,
+}: {
+  daySlots: DaySlot[]
+  dateStr: string
+  popularDuration: number
+  onPick: (startHour: number, count: number) => void
+}) {
+  const t = useTranslations("book")
+
+  const findEarliestWindow = (count: number): number | null => {
+    for (let start = 6; start + count <= 24; start++) {
+      const states = tableStatesFor(daySlots, dateStr, start, count)
+      if (ALL_TABLES.some((tn) => states.get(tn) === "available")) return start
+    }
+    return null
+  }
+
+  return (
+    <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+      {QUICK_PICK_DURATIONS.map((count) => {
+        const isPopular = count === popularDuration
+        return (
+          <button
+            key={count}
+            type="button"
+            onClick={() => {
+              const startHour = findEarliestWindow(count)
+              if (startHour !== null) onPick(startHour, count)
+            }}
+            data-cms-key={`book.duration_pick.${count}h`}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 999,
+              border: `1px solid ${isPopular ? tokens.colors.brand : "rgba(255,255,255,0.15)"}`,
+              background: isPopular ? tokens.colors.brandDim : "transparent",
+              color: isPopular ? tokens.colors.brand : tokens.colors.text,
+              fontSize: 13,
+              fontWeight: isPopular ? 600 : 500,
+              cursor: "pointer",
+            }}
+          >
+            {t("duration_hours_chip", { count })}
+            {isPopular ? ` · ${t("most_popular")}` : ""}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function TimeSlotGrid({
   selectedDate,
   daySlots,
   dayLoading,
-  startHour,
-  duration,
-  onSelect,
+  hoursForDate,
+  totalSelectedHours,
+  onToggle,
 }: {
   selectedDate: Date
   daySlots: DaySlot[] | null
   dayLoading: boolean
-  startHour: number
-  duration: number
-  onSelect: (start: number, dur: number) => void
+  hoursForDate: Set<number>
+  totalSelectedHours: number
+  onToggle: (hour: number) => void
 }) {
   const t = useTranslations("book")
   const haptic = useHaptic()
@@ -146,164 +313,120 @@ function TimeSlotGrid({
     return `${y}-${m}-${d}`
   }, [selectedDate])
 
-  const today = useMemo(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
+  // All time comparisons use Hong Kong venue time, not the browser's clock.
+  // `nowTick` re-reads it every minute so the grid doesn't stale across the
+  // hour boundary while the page is open.
+  const [nowTick, setNowTick] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setNowTick((n) => n + 1), 60_000)
+    return () => clearInterval(id)
   }, [])
+  const nowHK = useMemo(() => getHongKongNow(), [nowTick])
+  const isTodayHK = dateStr === nowHK.date
 
-  const isToday = useMemo(() => {
-    const sel = new Date(selectedDate)
-    sel.setHours(0, 0, 0, 0)
-    return sel.getTime() === today.getTime()
-  }, [selectedDate, today])
-
-  const currentHour = useMemo(() => new Date().getHours(), [])
-
-  // Compute per-cell state: is this hour disabled? (both tables taken OR past hour)
+  // Per-cell state:
+  //  - hidden:   this hour is fully BOOKED on every table → don't render at all
+  //  - disabled: past hour (venue time) OR all tables taken by locks/past
+  //  - isLocked: at least one table is held by someone else's active 15-min lock
+  //  - isLockedByYou: at least one table is the caller's OWN active hold — never
+  //    counts toward "taken" (it's clickable, resumes to payment)
   const cellStates = useMemo(() => {
-    const states = new Map<number, { disabled: boolean; isLocked: boolean }>()
+    const states = new Map<
+      number,
+      { hidden: boolean; disabled: boolean; isLocked: boolean; isLockedByYou: boolean }
+    >()
     for (let h = 0; h < 24; h++) {
-      const isPast = isToday && h <= currentHour
-      const freeTables = daySlots ? freeTablesFor(daySlots, dateStr, h, 1) : []
-      const bothTaken = daySlots !== null && freeTables.length === 0
-      const disabled = isPast || bothTaken
+      const isPast = isTodayHK && h < nowHK.hour
+      const tableState = daySlots ? tableStatesFor(daySlots, dateStr, h, 1) : null
+      const bookedCount = tableState
+        ? Array.from(tableState.values()).filter((s) => s === "booked").length
+        : 0
+      const availableCount = tableState
+        ? Array.from(tableState.values()).filter((s) => s === "available" || s === "locked_by_you").length
+        : ALL_TABLES.length
+      const isLocked = tableState
+        ? Array.from(tableState.values()).some((s) => s === "locked")
+        : false
+      const isLockedByYou = tableState
+        ? Array.from(tableState.values()).some((s) => s === "locked_by_you")
+        : false
 
-      // Check if this hour is "locked" (one table locked, not necessarily both taken)
-      let isLocked = false
-      if (daySlots && !isPast) {
-        const states = tableStatesFor(daySlots, dateStr, h, 1)
-        isLocked = Array.from(states.values()).some((s) => s === "locked")
-      }
+      // Fully booked hours are removed from the grid entirely (Task 3).
+      const hidden = bookedCount === ALL_TABLES.length
+      // Disabled = in the past, or no free table left (remaining tables are
+      // locked/booked). Hidden cells are also treated as disabled defensively.
+      const disabled = hidden || isPast || (daySlots !== null && availableCount === 0)
 
-      states.set(h, { disabled, isLocked })
+      states.set(h, { hidden, disabled, isLocked, isLockedByYou })
     }
     return states
-  }, [daySlots, dateStr, isToday, currentHour])
+  }, [daySlots, dateStr, isTodayHK, nowHK.hour])
 
-  // Is the entire day fully booked? (all 24 cells disabled)
+  // Is the entire day unusable? (every hour hidden or disabled)
   const fullyBooked = useMemo(() => {
     if (daySlots === null) return false
     for (let h = 0; h < 24; h++) {
-      if (!cellStates.get(h)?.disabled) return false
+      const s = cellStates.get(h)
+      if (s && !s.hidden && !s.disabled) return false
     }
     return true
   }, [cellStates, daySlots])
 
-  // Which cells are currently selected? (startHour, startHour+1, ..., startHour+duration-1)
-  const isSelected = useCallback(
+  const isSelected = useCallback((h: number) => hoursForDate.has(h), [hoursForDate])
+
+  // Independent per-hour toggle: tap a free cell to select/deselect it. No
+  // more range extend/shrink/restart — every hour stands on its own. The only
+  // guard left is the total-hours-per-order cap (measured across every date
+  // in the order, not just this one).
+  const toggle = useCallback(
     (h: number) => {
-      if (duration === 0) return false
-      const runEnd = startHour + duration
-      // Handle cross-midnight: if runEnd >= 24, the run wraps into the next day
-      if (runEnd <= 24) {
-        return h >= startHour && h < runEnd
-      } else {
-        // Wrapped case: selected if h >= startHour OR h < (runEnd % 24)
-        return h >= startHour || h < (runEnd % 24)
-      }
-    },
-    [startHour, duration]
-  )
-
-  // Does this cell show a "+1日" badge? (it's hour 0 and part of a cross-midnight run)
-  const showNextDayBadge = useCallback(
-    (h: number) => {
-      if (h !== 0) return false
-      if (duration === 0) return false
-      const runEnd = startHour + duration
-      // Badge shows when hour 0 is selected AND the run started late (>= 18) so it's clearly "tomorrow"
-      return runEnd > 24 && startHour >= 18
-    },
-    [startHour, duration]
-  )
-
-  const handleCellTap = useCallback(
-    (tappedHour: number) => {
-      const cellState = cellStates.get(tappedHour)
-      if (!cellState || cellState.disabled) return // disabled cell, do nothing
-
+      const cellState = cellStates.get(h)
+      if (!cellState || cellState.disabled) return
       haptic.vibrate(8)
-
-      // No current selection: start a new 1-hour selection
-      if (duration === 0) {
-        onSelect(tappedHour, 1)
+      const willAdd = !hoursForDate.has(h)
+      if (willAdd && totalSelectedHours >= CONFIG.maxHours) {
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 2000)
         return
       }
-
-      const runEnd = startHour + duration
-      const lastCellHour = ((startHour + duration - 1) % 24 + 24) % 24
-
-      // Case 1: Re-tapping the run's last cell → shrink by 1
-      if (tappedHour === lastCellHour) {
-        if (duration === 1) {
-          onSelect(tappedHour, 0) // deselect entirely
-        } else {
-          onSelect(startHour, duration - 1)
-        }
-        return
-      }
-
-      // Case 2: Tapping the cell immediately after the run's end → extend by 1
-      const nextHour = runEnd % 24
-      if (tappedHour === nextHour) {
-        // Check constraints: max duration + availability
-        if (duration + 1 > CONFIG.maxHours) {
-          // Max duration reached, show toast and don't extend
-          setShowToast(true)
-          setTimeout(() => setShowToast(false), 2000)
-          return
-        }
-        // Check if the extension is available (both tables free for the full new range)
-        const freeForExtended = daySlots
-          ? freeTablesFor(daySlots, dateStr, startHour, duration + 1)
-          : []
-        if (freeForExtended.length === 0) {
-          // Can't extend, restart from tapped cell instead
-          onSelect(tappedHour, 1)
-          setShowToast(true)
-          setTimeout(() => setShowToast(false), 2000)
-          return
-        }
-        onSelect(startHour, duration + 1)
-        return
-      }
-
-      // Case 3: Tapping a cell already inside the current run (not the last) → restart from tapped cell
-      if (isSelected(tappedHour)) {
-        onSelect(tappedHour, 1)
-        return
-      }
-
-      // Case 4: Non-adjacent cell → show "contiguous slots required" toast and restart
-      setShowToast(true)
-      setTimeout(() => setShowToast(false), 2000)
-      onSelect(tappedHour, 1)
+      onToggle(h)
     },
-    [
-      cellStates,
-      duration,
-      startHour,
-      daySlots,
-      dateStr,
-      haptic,
-      onSelect,
-      isSelected,
-    ]
+    [cellStates, hoursForDate, totalSelectedHours, haptic, onToggle],
   )
 
+  // Skeleton: grey placeholder cells laid out as the real period groups, so an
+  // out-of-window date reads as "loading this grid" rather than a blank/spinner.
   if (dayLoading || daySlots === null) {
     return (
-      <div
-        style={{
-          padding: "40px 20px",
-          textAlign: "center",
-          fontSize: 14,
-          color: tokens.colors.textMuted,
-        }}
-        data-cms-key="book.checking"
-      >
-        {t("checking")}
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }} aria-busy="true">
+        {SLOT_GROUPS.map((group) => (
+          <div key={group.key}>
+            <div
+              style={{
+                width: 72,
+                height: 12,
+                marginBottom: 10,
+                borderRadius: 4,
+                background: "rgba(255,255,255,0.06)",
+              }}
+              className="skeleton-pulse"
+            />
+            <div className="slot-grid">
+              {group.hours.map((h) => (
+                <div
+                  key={h}
+                  className="skeleton-pulse"
+                  style={{
+                    minHeight: 56,
+                    borderRadius: tokens.radius.input,
+                    border: `1px solid ${tokens.colors.border}`,
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     )
   }
@@ -326,83 +449,91 @@ function TimeSlotGrid({
     )
   }
 
+  const renderCell = (h: number) => {
+    const state = cellStates.get(h)
+    if (state?.hidden) return null
+    const selected = isSelected(h)
+    const disabled = state?.disabled ?? false
+    const locked = state?.isLocked ?? false
+    const lockedByYou = state?.isLockedByYou ?? false
+
+    return (
+      <button
+        key={h}
+        type="button"
+        disabled={disabled}
+        onClick={() => toggle(h)}
+        style={{
+          position: "relative",
+          minHeight: 56,
+          padding: "12px 8px",
+          borderRadius: tokens.radius.input,
+          border: `1px solid ${selected ? tokens.colors.brand : lockedByYou ? tokens.colors.brand : tokens.colors.border}`,
+          background: selected
+            ? tokens.colors.brand
+            : disabled
+              ? "rgba(255,255,255,0.02)"
+              : "rgba(255,255,255,0.04)",
+          color: disabled
+            ? tokens.colors.textFaint
+            : selected
+              ? "#000"
+              : tokens.colors.text,
+          fontSize: 13,
+          fontWeight: selected ? 600 : 400,
+          opacity: disabled ? 0.4 : 1,
+          cursor: disabled ? "not-allowed" : "pointer",
+          transition: `all ${tokens.duration.fast}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4,
+        }}
+        title={
+          lockedByYou
+            ? t("table_locked_by_you")
+            : locked && disabled
+              ? t("table_locked")
+              : undefined
+        }
+      >
+        {locked && disabled && <Lock size={12} style={{ flexShrink: 0 }} />}
+        {lockedByYou && <Lock size={12} style={{ flexShrink: 0, color: tokens.colors.brand }} />}
+        <span style={{ whiteSpace: "nowrap" }}>{padTime(h)}</span>
+      </button>
+    )
+  }
+
   return (
     <>
-      <div className="table-grid" style={{ gap: 8 }}>
-        {Array.from({ length: 24 }, (_, h) => {
-          const state = cellStates.get(h)
-          const selected = isSelected(h)
-          const disabled = state?.disabled ?? false
-          const locked = state?.isLocked ?? false
-          const showBadge = showNextDayBadge(h)
-
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {SLOT_GROUPS.map((group) => {
+          // Skip a whole period if every hour in it is hidden (all booked/na).
+          const visibleHours = group.hours.filter((h) => !cellStates.get(h)?.hidden)
+          if (visibleHours.length === 0) return null
           return (
-            <button
-              key={h}
-              type="button"
-              disabled={disabled}
-              onClick={() => handleCellTap(h)}
-              style={{
-                position: "relative",
-                minHeight: 56,
-                padding: "12px 16px",
-                borderRadius: tokens.radius.input,
-                border: `1px solid ${selected ? tokens.colors.brand : tokens.colors.border}`,
-                background: selected
-                  ? tokens.colors.brand
-                  : disabled
-                    ? "rgba(255,255,255,0.02)"
-                    : "rgba(255,255,255,0.04)",
-                color: disabled
-                  ? tokens.colors.textFaint
-                  : selected
-                    ? "#000"
-                    : tokens.colors.text,
-                fontSize: 14,
-                fontWeight: selected ? 600 : 400,
-                opacity: disabled ? 0.4 : 1,
-                cursor: disabled ? "not-allowed" : "pointer",
-                transition: `all ${tokens.duration.fast}`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-              }}
-              title={
-                locked && disabled ? t("table_locked") : undefined
-              }
-            >
-              {locked && disabled && (
-                <Lock size={12} style={{ flexShrink: 0 }} />
-              )}
-              <span style={{ whiteSpace: "nowrap" }}>
-                {padTime(h)}–{padTime(h + 1)}
-              </span>
-              {showBadge && (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 4,
-                    right: 6,
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: selected ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.5)",
-                    padding: "2px 4px",
-                    borderRadius: 4,
-                    background: selected
-                      ? "rgba(0,0,0,0.08)"
-                      : "rgba(255,255,255,0.08)",
-                  }}
-                >
-                  +1日
-                </span>
-              )}
-            </button>
+            <div key={group.key}>
+              <div
+                data-cms-key={`book.slot_group_${group.key}`}
+                style={{
+                  fontSize: 12,
+                  color: tokens.colors.textMuted,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  marginBottom: 10,
+                }}
+              >
+                {t(`slot_group_${group.key}`)}
+              </div>
+              <div className="slot-grid">
+                {visibleHours.map((h) => renderCell(h))}
+              </div>
+            </div>
           )
         })}
       </div>
 
-      {/* Toast for "contiguous slots required" */}
+      {/* Toast for the max-hours-per-order cap */}
       <AnimatePresence>
         {showToast && (
           <motion.div
@@ -410,7 +541,7 @@ function TimeSlotGrid({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            data-cms-key="book.contiguous_slots_required"
+            data-cms-key="book.max_hours_reached"
             style={{
               position: "fixed",
               top: 100,
@@ -427,7 +558,7 @@ function TimeSlotGrid({
               pointerEvents: "none",
             }}
           >
-            {t("contiguous_slots_required")}
+            {t("max_hours_reached")}
           </motion.div>
         )}
       </AnimatePresence>
@@ -435,52 +566,184 @@ function TimeSlotGrid({
   )
 }
 
-/* ─────────────────────────  QR Code  ───────────────────────── */
-// Real, scannable QR rendered from `data` (the signed booking JWT) via the
-// `qrcode` library. Dark modules on a white tile for reliable scanning — the
-// ESP32 door reader validates the JWT signature offline. Generated client-side
-// to a data URL (the JWT is long, so this is a denser QR than a short code).
-const QR_PX = 126
-function QRCode({ data }: { data: string }) {
-  const [url, setUrl] = useState<string | null>(null)
-  useEffect(() => {
-    let cancelled = false
-    QRCodeLib.toDataURL(data, {
-      margin: 2,
-      width: 240,
-      errorCorrectionLevel: "M",
-      color: { dark: "#0a0a0a", light: "#ffffff" },
-    })
-      .then((u) => {
-        if (!cancelled) setUrl(u)
-      })
-      .catch(() => {
-        /* leave placeholder on failure */
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [data])
+/* ─────────────────────────  Table Chips (Tasks 2 & 5)  ───────────────────────── */
+// Explicit per-table selection for the chosen slot window. Each chip reflects that
+// table's REAL availability (tableStatesFor): a booked/locked table is disabled and
+// greyed — never blanket-enabled just because the period is generally free.
+function TableChips({
+  dateStr,
+  selectedHoursByDate,
+  getDaySlots,
+  selectedTable,
+  onSelect,
+  onResumeLocked,
+  onReleaseLocks,
+}: {
+  dateStr: string
+  selectedHoursByDate: Map<string, Set<number>>
+  getDaySlots: (date: string) => DaySlot[] | null
+  selectedTable: number | null
+  onSelect: (table: number) => void
+  onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
+  onReleaseLocks: () => void
+}) {
+  const t = useTranslations("book")
+  const haptic = useHaptic()
+  const states = useMemo(
+    () => tableStatesForOrder(selectedHoursByDate, getDaySlots),
+    [selectedHoursByDate, getDaySlots],
+  )
+  const [releasing, setReleasing] = useState(false)
+  const hasOwnLock = Array.from(states.values()).some((s) => s === "locked_by_you")
 
-  if (!url) {
-    return (
-      <div
-        aria-hidden
-        style={{ width: QR_PX, height: QR_PX, background: "#ffffff", borderRadius: 8 }}
-      />
-    )
+  // Resolve the caller's own locked row for a table on the active date, so
+  // the resume jump uses the LOCK's real window (not necessarily whatever
+  // hours happen to be toggled in the grid right now).
+  const findOwnLock = (tn: number): DaySlot | null => {
+    const daySlots = getDaySlots(dateStr) ?? []
+    return daySlots.find((s) => s.table_number === tn && s.locked_by_you) ?? null
   }
+
   return (
-    <img
-      src={url}
-      width={QR_PX}
-      height={QR_PX}
-      alt="Booking QR code"
-      style={{ borderRadius: 8, display: "block" }}
-    />
+    <div style={{ marginBottom: 32 }}>
+      <div
+        data-cms-key="book.table.title"
+        style={{
+          fontSize: 13,
+          color: tokens.colors.textMuted,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          marginBottom: 20,
+        }}
+      >
+        {t("select_table")}
+      </div>
+
+      {/* One shared venue photo — both tables live in the same room, so a
+          single hero image (Apple iPad-picker style) replaces the old
+          two-large-cards layout. Selection happens via the pill row below. */}
+      <div
+        style={{
+          width: "100%",
+          aspectRatio: "16/9",
+          borderRadius: tokens.radius.card,
+          overflow: "hidden",
+          border: `1px solid ${tokens.colors.border}`,
+          marginBottom: 16,
+        }}
+      >
+        <img
+          src="/gallery/IMG_1511.jpg"
+          alt={t("select_table")}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      </div>
+
+      {/* Small pill buttons — outline → solid green fill on select, per the
+          Apple color-picker reference. Availability/lock logic unchanged. */}
+      <div style={{ display: "flex", gap: 12 }}>
+        {ALL_TABLES.map((tn) => {
+          const state = states.get(tn) ?? "available"
+          const lockedByYou = state === "locked_by_you"
+          // Only a genuine third-party hold or a confirmed booking disables
+          // the chip — the caller's own lock stays clickable (resumes to
+          // payment instead of re-locking).
+          const disabled = state === "locked" || state === "booked"
+          const selected = selectedTable === tn
+          return (
+            <button
+              key={tn}
+              type="button"
+              disabled={disabled}
+              onClick={() => {
+                if (disabled) return
+                haptic.vibrate(8)
+                if (lockedByYou) {
+                  const own = findOwnLock(tn)
+                  if (own) {
+                    onResumeLocked(own.date, parseInt(own.start_time.slice(0, 2), 10), Number(own.duration_hours), tn)
+                    return
+                  }
+                }
+                onSelect(tn)
+              }}
+              data-cms-key={`book.table.card_${tn}`}
+              title={lockedByYou ? t("table_locked_by_you") : undefined}
+              style={{
+                flex: 1,
+                minHeight: 44,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "10px 16px",
+                borderRadius: 9999,
+                border:
+                  selected || lockedByYou
+                    ? `2px solid ${tokens.colors.brand}`
+                    : `1px solid ${tokens.colors.border}`,
+                background: selected ? tokens.colors.brand : "transparent",
+                color: selected
+                  ? "#000"
+                  : disabled
+                    ? tokens.colors.textFaint
+                    : lockedByYou
+                      ? tokens.colors.brand
+                      : tokens.colors.text,
+                fontSize: 15,
+                fontWeight: selected || lockedByYou ? 700 : 500,
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.5 : 1,
+                transition: `all ${tokens.duration.fast}`,
+              }}
+            >
+              {disabled && <Lock size={13} />}
+              {lockedByYou && <Lock size={13} color={tokens.colors.brand} />}
+              {t("table_label")} {tn}
+              {lockedByYou ? ` · ${t("table_resume")}` : ""}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Low-ceremony escape hatch: abandon the caller's own hold instead of
+          waiting out the ~15-min TTL, so they can pick a different time now. */}
+      {hasOwnLock && (
+        <button
+          type="button"
+          onClick={async () => {
+            if (releasing) return
+            setReleasing(true)
+            try {
+              await fetch("/api/booking/lock/release", { method: "POST" })
+              onReleaseLocks()
+            } finally {
+              setReleasing(false)
+            }
+          }}
+          disabled={releasing}
+          data-cms-key="book.table.release_lock"
+          style={{
+            display: "block",
+            marginTop: 12,
+            background: "none",
+            border: "none",
+            padding: 0,
+            fontSize: 13,
+            color: tokens.colors.textMuted,
+            textDecoration: "underline",
+            cursor: releasing ? "default" : "pointer",
+            opacity: releasing ? 0.6 : 1,
+          }}
+        >
+          {t("table_release_and_pick_again")}
+        </button>
+      )}
+    </div>
   )
 }
 
+/* ─────────────────────────  QR Code  ───────────────────────── */
 /* ─────────────────────────  Table Select  ───────────────────────── */
 type TableInfo = { id: number; name: string; type: string }
 
@@ -495,17 +758,20 @@ function useTables() {
 /* ─────────────────────────  Calendar  ───────────────────────── */
 const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
 
-// Mock — dates fully booked (red dot). TODO: swap to Supabase availability.
-function isFullyBooked(_d: Date): boolean {
-  return false
+function fmtYMD(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
 
 function Calendar({
   selected,
   onSelect,
+  monthAvailability,
+  datesWithSelections,
 }: {
   selected: Date
   onSelect: (d: Date) => void
+  monthAvailability: ReturnType<typeof useMonthAvailability>
+  datesWithSelections: Set<string>
 }) {
   const today = useMemo(() => {
     const d = new Date()
@@ -521,6 +787,15 @@ function Calendar({
   const { year, month } = view
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  // Fetch this month's fully-booked dates on mount and whenever the viewed
+  // month changes (prev/next navigation).
+  useEffect(() => {
+    monthAvailability.fetchMonth(year, month)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year, month])
+
+  const fullyBookedDates = monthAvailability.getFullyBookedDates(year, month)
 
   // 42 cells = 6 rows × 7 cols, leading blanks then dates
   const cells: (Date | null)[] = useMemo(() => {
@@ -632,7 +907,7 @@ function Calendar({
           const isPast = date.getTime() < today.getTime()
           const isToday = date.getTime() === today.getTime()
           const isSelected = date.toDateString() === selected.toDateString()
-          const booked = !isPast && isFullyBooked(date)
+          const booked = !isPast && (fullyBookedDates?.has(fmtYMD(date)) ?? false)
           return (
             <div
               key={date.toISOString()}
@@ -645,10 +920,10 @@ function Calendar({
             >
               <button
                 type="button"
-                disabled={isPast}
+                disabled={isPast || booked}
                 aria-label={`${date.getMonth() + 1}月${date.getDate()}日`}
                 aria-current={isSelected ? "date" : undefined}
-                onClick={() => !isPast && onSelect(date)}
+                onClick={() => !isPast && !booked && onSelect(date)}
                 style={{
                   // Tap target fills the whole grid cell (maximised to ~44px+);
                   // the visual circle inside stays 40px.
@@ -661,8 +936,8 @@ function Calendar({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  cursor: isPast ? "default" : "pointer",
-                  opacity: isPast ? 0.3 : 1,
+                  cursor: isPast || booked ? "default" : "pointer",
+                  opacity: isPast || booked ? 0.3 : 1,
                 }}
               >
                 <span
@@ -677,16 +952,25 @@ function Calendar({
                     fontSize: 15,
                     fontWeight: isSelected ? 600 : 400,
                     background: isSelected ? tokens.colors.link : "transparent",
-                    color: isSelected ? "#fff" : tokens.colors.text,
-                    border:
-                      isToday && !isSelected
-                        ? `1px solid ${tokens.colors.text}`
-                        : "1px solid transparent",
+                    // Fully-booked days read as unavailable via a red-tinted,
+                    // dimmed number (the small dot below is now reserved for
+                    // "today", so booked can't use a dot without colliding).
+                    color: isSelected
+                      ? "#fff"
+                      : booked
+                        ? tokens.colors.danger
+                        : tokens.colors.text,
+                    opacity: booked && !isSelected ? 0.55 : 1,
+                    textDecoration: booked && !isSelected ? "line-through" : "none",
+                    border: "1px solid transparent",
                     transition: `background ${tokens.duration.fast}`,
                   }}
                 >
                   {date.getDate()}
-                  {booked && (
+                  {/* Today marker — small dot under the number (calendar-1
+                      demo's data-today treatment). Hidden when this cell is
+                      selected (the solid fill already conveys state). */}
+                  {isToday && !isSelected && (
                     <span
                       style={{
                         position: "absolute",
@@ -696,7 +980,26 @@ function Calendar({
                         width: 4,
                         height: 4,
                         borderRadius: "50%",
-                        background: tokens.colors.danger,
+                        background: tokens.colors.brand,
+                      }}
+                    />
+                  )}
+                  {/* Cross-date order indicator — a dot marking dates that
+                      already have picked hours elsewhere in the order.
+                      Positioned at top (vs. the today-dot's bottom) so the
+                      two never collide on a date that is both today and has
+                      a selection. Passive only — no modal/count. */}
+                  {!isSelected && datesWithSelections.has(fmtYMD(date)) && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 4,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        width: 4,
+                        height: 4,
+                        borderRadius: "50%",
+                        background: tokens.colors.link,
                       }}
                     />
                   )}
@@ -714,8 +1017,7 @@ function Calendar({
 /* ─────────────────────────  Summary Card (Desktop)  ───────────────────────── */
 function SummaryCard({
   selectedDate,
-  startHour,
-  duration,
+  runs,
   total,
   canContinue,
   onContinue,
@@ -724,8 +1026,7 @@ function SummaryCard({
   ready = true,
 }: {
   selectedDate: Date
-  startHour: number
-  duration: number
+  runs: SelectedBlock[]
   total: number
   canContinue: boolean
   onContinue: () => void
@@ -733,10 +1034,12 @@ function SummaryCard({
   loading?: boolean
   ready?: boolean
 }) {
-  const endHour = startHour + duration
-  const crossDay = endHour >= 24
   const dash = "—"
   const t = useTranslations("book")
+  const totalHours = runs.reduce((sum, r) => sum + r.duration, 0)
+  const single = runs.length === 1 ? runs[0] : null
+  const endHour = single ? single.startHour + single.duration : 0
+  const crossDay = endHour >= 24
 
   return (
     <div className="desktop-card">
@@ -771,24 +1074,37 @@ function SummaryCard({
                 : dash}
             </span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
-              {t("time_slot")}
-            </span>
-            <span style={{ fontSize: 15, fontWeight: 500 }}>
-              {ready
-                ? `${padTime(startHour)} – ${padTime(endHour)}${crossDay ? " +1日" : ""}`
-                : dash}
-            </span>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
-              {t("duration")}
-            </span>
-            <span style={{ fontSize: 15, fontWeight: 500 }}>
-              {ready ? `${duration}${t("hours")}` : dash}
-            </span>
-          </div>
+          {single ? (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+                  {t("time_slot")}
+                </span>
+                <span style={{ fontSize: 15, fontWeight: 500 }}>
+                  {ready
+                    ? `${padTime(single.startHour)} – ${padTime(endHour)}${crossDay ? " +1日" : ""}`
+                    : dash}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+                  {t("duration")}
+                </span>
+                <span style={{ fontSize: 15, fontWeight: 500 }}>
+                  {ready ? `${single.duration}${t("hours")}` : dash}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+                {t("time_slot")}
+              </span>
+              <span style={{ fontSize: 15, fontWeight: 500 }}>
+                {ready ? t("slots_selected", { count: runs.length }) + ` · ${totalHours}${t("hours")}` : dash}
+              </span>
+            </div>
+          )}
         </div>
         <div
           style={{
@@ -868,32 +1184,40 @@ function Screen1({
   setSelectedTable,
   selectedDate,
   setSelectedDate,
-  startHour,
-  setStartHour,
-  duration,
-  setDuration,
+  hoursForDate,
+  onToggleHour,
+  onSelectContiguousHours,
+  onPruneHours,
+  selectedHoursByDate,
+  totalSelectedHours,
+  runs,
+  orderTotal,
+  removeRun,
   onContinue,
+  onResumeLocked,
+  availability,
+  monthAvailability,
+  periods,
 }: {
   selectedTable: number | null
   setSelectedTable: (id: number | null) => void
   selectedDate: Date
   setSelectedDate: (d: Date) => void
-  startHour: number
-  setStartHour: (h: number) => void
-  duration: number
-  setDuration: (d: number) => void
+  hoursForDate: Set<number>
+  onToggleHour: (date: string, hour: number) => void
+  onSelectContiguousHours: (date: string, startHour: number, count: number) => void
+  onPruneHours: (date: string, updater: (prev: Set<number>) => Set<number>) => void
+  selectedHoursByDate: Map<string, Set<number>>
+  totalSelectedHours: number
+  runs: SelectedBlock[]
+  orderTotal: number
+  removeRun: (run: SelectedBlock) => void
   onContinue: () => void
+  onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
+  availability: ReturnType<typeof useAvailabilityCache>
+  monthAvailability: ReturnType<typeof useMonthAvailability>
+  periods: PricingPeriod[]
 }) {
-  const total = CONFIG.pricePerHour * duration
-  const endHour = startHour + duration
-  const crossDay = endHour >= 24
-  const [displayTotal, setDisplayTotal] = useState(total)
-  const [dateChosen, setDateChosen] = useState(false)
-  const [daySlots, setDaySlots] = useState<DaySlot[] | null>(null)
-  const [dayLoading, setDayLoading] = useState(false)
-  const timeRef = useRef<HTMLDivElement>(null)
-  const t = useTranslations("book")
-
   const dateStr = useMemo(() => {
     const y = selectedDate.getFullYear()
     const m = String(selectedDate.getMonth() + 1).padStart(2, "0")
@@ -901,58 +1225,102 @@ function Screen1({
     return `${y}-${m}-${d}`
   }, [selectedDate])
 
-  // Fetch the day's booked/locked slots once per date; the time-slot grid then
-  // computes per-hour availability and auto table assignment locally, so tapping
-  // cells triggers no extra requests. Fails OPEN (empty = everything free) — the
-  // slot lock at payment is the authoritative guard against double-booking.
+  // If a persisted/restored selection already exists, reveal the grid
+  // immediately instead of forcing the user to re-tap the calendar.
+  const [dateChosen, setDateChosen] = useState(hoursForDate.size > 0)
+  const timeRef = useRef<HTMLDivElement>(null)
+  const tableRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations("book")
+
+  // Duration quick-pick: fetch the real most-common past duration once, to
+  // highlight (not auto-select) that chip — falls back to 1h silently on
+  // any error, since this only affects which chip is highlighted, not
+  // booking correctness.
+  const [popularDuration, setPopularDuration] = useState(1)
   useEffect(() => {
-    if (!dateChosen) {
-      setDaySlots(null)
-      return
-    }
     let cancelled = false
-    setDayLoading(true)
-    ;(async () => {
-      try {
-        const res = await fetch("/api/booking/availability", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ date: dateStr }),
-        })
-        if (!res.ok) throw new Error("availability")
-        const json = await res.json()
-        if (!cancelled) setDaySlots(Array.isArray(json.slots) ? json.slots : [])
-      } catch {
-        if (!cancelled) setDaySlots([]) // fail open
-      } finally {
-        if (!cancelled) setDayLoading(false)
-      }
-    })()
+    fetch("/api/booking/popular-duration")
+      .then((r) => r.json())
+      .then((json) => {
+        if (!cancelled && typeof json?.popularDuration === "number") {
+          setPopularDuration(json.popularDuration)
+        }
+      })
+      .catch(() => {})
     return () => {
       cancelled = true
     }
-  }, [dateChosen, dateStr])
+  }, [])
 
-  // Animate the live price total.
+  // Read the day's slots from the shared prefetch cache. If the date is cached
+  // (in the prefetched week, or fetched earlier) this is synchronous — no spinner.
+  // Out-of-window dates trigger an on-demand fetch; the grid shows a skeleton
+  // while availability.loadingDate matches. Fails OPEN (empty = everything free).
+  const daySlots = dateChosen ? availability.getSlots(dateStr) : null
+
   useEffect(() => {
-    const target = CONFIG.pricePerHour * duration
-    if (target === displayTotal) return
-    const step = target > displayTotal ? 10 : -10
-    const id = setInterval(() => {
-      setDisplayTotal((prev) => {
-        const next = prev + step
-        if ((step > 0 && next >= target) || (step < 0 && next <= target)) {
-          clearInterval(id)
-          return target
-        }
-        return next
-      })
-    }, 20)
-    return () => clearInterval(id)
-  }, [duration, displayTotal])
+    if (!dateChosen) return
+    // Not in cache yet and not already loading → fetch this single date on demand.
+    if (availability.getSlots(dateStr) === null && availability.loadingDate !== dateStr) {
+      availability.fetchDate(dateStr)
+    }
+    // getSlots identity changes with cache version, re-running this after prefetch.
+  }, [dateChosen, dateStr, availability])
 
-  const ready = dateChosen && duration > 0 && selectedTable !== null
+  // Ensure every OTHER date present in the order (besides the one currently
+  // being viewed) is also cached, so table-availability across the whole
+  // order can be computed without a stale/missing daySlots gap.
+  useEffect(() => {
+    for (const date of selectedHoursByDate.keys()) {
+      if (date === dateStr) continue
+      if (availability.getSlots(date) === null && availability.loadingDate !== date) {
+        availability.fetchDate(date)
+      }
+    }
+  }, [selectedHoursByDate, dateStr, availability])
+
+  const dayLoading = daySlots === null && availability.loadingDate === dateStr
+
+  // Prune hours on the viewed date that have since become unavailable (e.g.
+  // someone else's hold expired into a booking while this page was open).
+  useEffect(() => {
+    if (!daySlots) return
+    onPruneHours(dateStr, (prevHours) => {
+      let changed = false
+      const next = new Set(prevHours)
+      for (const h of prevHours) {
+        const states = tableStatesFor(daySlots, dateStr, h, 1)
+        const stillFree = ALL_TABLES.some((tn) => states.get(tn) === "available")
+        if (!stillFree) {
+          next.delete(h)
+          changed = true
+        }
+      }
+      return changed ? next : prevHours
+    })
+  }, [daySlots, dateStr, onPruneHours])
+
+  // Auto-pick/re-validate the single order-wide table whenever the selection
+  // or availability changes. A table must be free across EVERY selected
+  // (date, hour) in the order, not just the currently viewed date.
+  useEffect(() => {
+    if (selectedHoursByDate.size === 0) {
+      setSelectedTable(null)
+      return
+    }
+    const states = tableStatesForOrder(selectedHoursByDate, availability.getSlots)
+    const free = ALL_TABLES.filter((tn) => states.get(tn) === "available")
+    setSelectedTable(selectedTable !== null && free.includes(selectedTable) ? selectedTable : (free[0] ?? null))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedHoursByDate, availability])
+
+  const ready = runs.length > 0
   const canContinue = ready
+
+  const datesWithSelections = useMemo(
+    () => new Set(selectedHoursByDate.keys()),
+    [selectedHoursByDate],
+  )
 
   const sectionLabel = (text: string, cmsKey: string) => (
     <div
@@ -981,10 +1349,12 @@ function Screen1({
               onSelect={(d) => {
                 setSelectedDate(d)
                 setDateChosen(true)
-                setDuration(0)
-                setSelectedTable(null)
                 scrollToRef(timeRef)
+                // Deliberately NOT clearing selectedHoursByDate/selectedTable
+                // here — cross-date orders must survive a calendar switch.
               }}
+              monthAvailability={monthAvailability}
+              datesWithSelections={datesWithSelections}
             />
           </div>
 
@@ -1000,61 +1370,158 @@ function Screen1({
               >
                 <div style={{ marginBottom: 24 }}>
                   {sectionLabel(t("start_time"), "book.time.title")}
+                  <div
+                    data-cms-key="book.multi_slot_hint"
+                    style={{ fontSize: 12, color: tokens.colors.textMuted, marginBottom: 14 }}
+                  >
+                    {t("multi_slot_hint")}
+                  </div>
+                  {daySlots && hoursForDate.size === 0 && (
+                    <DurationQuickPicks
+                      daySlots={daySlots}
+                      dateStr={dateStr}
+                      popularDuration={popularDuration}
+                      onPick={(startHour, count) => {
+                        scrollToRef(tableRef)
+                        onSelectContiguousHours(dateStr, startHour, count)
+                      }}
+                    />
+                  )}
                   <TimeSlotGrid
                     selectedDate={selectedDate}
                     daySlots={daySlots}
                     dayLoading={dayLoading}
-                    startHour={startHour}
-                    duration={duration}
-                    onSelect={(start, dur) => {
-                      setStartHour(start)
-                      setDuration(dur)
-                      // Auto-assign table whenever selection changes
-                      if (dur > 0 && daySlots) {
-                        const free = freeTablesFor(daySlots, dateStr, start, dur)
-                        setSelectedTable(free.length > 0 ? free[0] : null)
-                      } else {
-                        setSelectedTable(null)
+                    hoursForDate={hoursForDate}
+                    totalSelectedHours={totalSelectedHours}
+                    onToggle={(h) => {
+                      // Auto-scroll to the table picker the moment the first
+                      // hour is picked on this date's grid.
+                      if (hoursForDate.size === 0) {
+                        scrollToRef(tableRef)
                       }
+                      onToggleHour(dateStr, h)
                     }}
                   />
                 </div>
 
-                {/* Live price summary (relocated below grid) */}
-                {duration > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                {/* Table chips — single table for the whole order, must be
+                    free across every selected (date, hour). */}
+                {hoursForDate.size > 0 && daySlots && (
+                  <div ref={tableRef}>
+                    <TableChips
+                      dateStr={dateStr}
+                      selectedHoursByDate={selectedHoursByDate}
+                      getDaySlots={availability.getSlots}
+                      selectedTable={selectedTable}
+                      onSelect={setSelectedTable}
+                      onResumeLocked={onResumeLocked}
+                      onReleaseLocks={() => {
+                        availability.invalidate(dateStr)
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Selected slots summary — every run in the order, across
+                    every date, each individually removable. */}
+                {runs.length > 0 && (
+                  <div
+                    className="glass-panel"
                     style={{
-                      background: tokens.colors.surface,
-                      border: `1px solid ${tokens.colors.border}`,
-                      borderRadius: tokens.radius.input,
-                      padding: "16px 20px",
-                      marginBottom: 20,
+                      marginBottom: 16,
+                      padding: 16,
+                      borderRadius: tokens.radius.card,
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      flexWrap: "wrap",
-                      gap: 8,
+                      flexDirection: "column",
+                      gap: 10,
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Clock size={14} style={{ color: tokens.colors.textMuted }} />
-                      <span style={{ fontSize: 15 }}>
-                        {padTime(startHour)} – {padTime(endHour)}
-                        {crossDay ? " (+1日)" : ""} · {duration}{t("hours")}
-                      </span>
-                    </div>
-                    <span
+                    <div
                       style={{
-                        fontFamily: BEBAS,
-                        fontSize: 24,
-                        color: tokens.colors.brand,
+                        display: "flex",
+                        alignItems: "baseline",
+                        justifyContent: "space-between",
                       }}
                     >
-                      HK${displayTotal}
-                    </span>
-                  </motion.div>
+                      <div
+                        data-cms-key="book.slots_selected"
+                        style={{
+                          fontSize: 12,
+                          color: tokens.colors.textMuted,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.08em",
+                        }}
+                      >
+                        {t("slots_selected", { count: runs.length })}
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: tokens.colors.brand }}>
+                        HK${orderTotal}
+                      </div>
+                    </div>
+                    {orderTotal > 0 && (
+                      <div
+                        data-cms-key="book.points_earned"
+                        style={{
+                          fontSize: 12,
+                          color: tokens.colors.textMuted,
+                          textAlign: "right",
+                          marginTop: 2,
+                        }}
+                      >
+                        {/* multiplier=1 floor: pointsEarned === total (see
+                            lib/pricing.ts's quoteBlockMinPoints) — reusing
+                            orderTotal directly rather than a second, identical
+                            computation. */}
+                        {t("points_earned_estimate", { pts: orderTotal })}
+                      </div>
+                    )}
+                    {(() => {
+                      const multiDate = new Set(runs.map((r) => r.date)).size > 1
+                      return runs.map((r, i) => {
+                        const prev = runs[i - 1]
+                        const hasGapBefore =
+                          i > 0 && (prev.date !== r.date || prev.startHour + prev.duration !== r.startHour)
+                        const [, m, d] = r.date.split("-")
+                        const dateLabel = multiDate ? `${Number(m)}月${Number(d)}日 ` : ""
+                        return (
+                          <div
+                            key={`${r.date}-${r.startHour}`}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "10px 14px",
+                              borderRadius: tokens.radius.input,
+                              border: `1px solid ${tokens.colors.brand}`,
+                              borderTop: hasGapBefore ? `1px dashed ${tokens.colors.textMuted}` : `1px solid ${tokens.colors.brand}`,
+                              background: "rgba(34,197,94,0.08)",
+                              fontSize: 14,
+                            }}
+                          >
+                            <span>
+                              {dateLabel}{padTime(r.startHour)} – {padTime(r.startHour + r.duration)} · {t("table_label")} #{r.tableNumber}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => removeRun(r)}
+                              data-cms-key="book.remove_slot"
+                              style={{
+                                fontSize: 13,
+                                color: tokens.colors.textMuted,
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                minHeight: 44,
+                                padding: "0 8px",
+                              }}
+                            >
+                              {t("remove_slot")}
+                            </button>
+                          </div>
+                        )
+                      })
+                    })()}
+                  </div>
                 )}
               </motion.div>
             )}
@@ -1077,9 +1544,8 @@ function Screen1({
         {/* Desktop summary */}
         <SummaryCard
           selectedDate={selectedDate}
-          startHour={startHour}
-          duration={duration}
-          total={total}
+          runs={runs}
+          total={orderTotal}
           canContinue={canContinue}
           onContinue={onContinue}
           ctaLabel={t("continue")}
@@ -1100,18 +1566,32 @@ function Screen1({
 /* ─────────────────────────  Screen 2: Auth  ───────────────────────── */
 function Screen2({
   onSuccess,
-  selectedDate,
-  startHour,
-  duration,
+  selectedHoursByDate,
   selectedTable,
 }: {
   onSuccess: () => void
-  selectedDate: Date
-  startHour: number
-  duration: number
+  selectedHoursByDate: Map<string, Set<number>>
   selectedTable: number | null
 }) {
   const t = useTranslations("book")
+  const tables = useTables()
+
+  // IKEA effect: name the actual held slot ("07:00–08:00, Table #2") instead
+  // of a generic "your slot is held" — the user just made this specific
+  // choice, so losing it reads as a bigger loss than losing an abstract one.
+  const holdSummary = useMemo(() => {
+    const entry = Array.from(selectedHoursByDate.entries())[0]
+    if (!entry) return null
+    const [, hours] = entry
+    if (hours.size === 0) return null
+    const sorted = Array.from(hours).sort((a, b) => a - b)
+    const startHour = sorted[0]
+    const endHour = sorted[sorted.length - 1] + 1
+    const tableName = tables.find((tb) => tb.id === selectedTable)?.name
+    return tableName
+      ? t("login_subtitle_specific", { start: padTime(startHour), end: padTime(endHour), table: tableName })
+      : null
+  }, [selectedHoursByDate, selectedTable, tables, t])
 
   // Persist the in-progress booking before any auth redirect (the Google fallback
   // flow leaves the page). On return, BookPage restores this and re-lands on the
@@ -1120,17 +1600,19 @@ function Screen2({
   useEffect(() => {
     if (typeof window === "undefined") return
     try {
+      const entries = Array.from(selectedHoursByDate.entries()).map(([date, hours]) => ({
+        date,
+        hours: Array.from(hours),
+      }))
       sessionStorage.setItem(
         "pendingBooking",
         JSON.stringify({
           tableNumber: selectedTable,
-          date: selectedDate.toISOString(),
-          startHour,
-          duration,
+          entries,
         }),
       )
     } catch {}
-  }, [selectedDate, startHour, duration, selectedTable])
+  }, [selectedHoursByDate, selectedTable])
 
   // Single source of truth for sign-in: the shared AuthCard (Apple placeholder,
   // official Google, real Supabase SMS OTP) + the mandatory profile gate. No more
@@ -1139,12 +1621,8 @@ function Screen2({
     <div className="screen-content auth-screen">
       <div style={{ maxWidth: 400, margin: "0 auto" }}>
         <div
+          className="glass-panel"
           style={{
-            background: "rgba(255,255,255,0.05)",
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
-            borderRadius: 24,
-            border: "1px solid rgba(255,255,255,0.1)",
             padding: 32,
           }}
         >
@@ -1165,7 +1643,7 @@ function Screen2({
               data-cms-key="book.auth.subtitle"
               style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}
             >
-              {t("login_subtitle")}
+              {holdSummary ?? t("login_subtitle")}
             </p>
           </div>
           <AuthCard returnUrl="/book" onAuthComplete={onSuccess} />
@@ -1177,26 +1655,33 @@ function Screen2({
 
 /* ─────────────────────────  Screen 3: Payment  ───────────────────────── */
 function Screen3({
-  selectedDate,
-  startHour,
-  duration,
   tableName,
-  tableNumber,
+  blocks,
+  onBackToSlots,
+  periods,
 }: {
-  selectedDate: Date
-  startHour: number
-  duration: number
   tableName: string
-  tableNumber: number
+  blocks: SelectedBlock[]
+  onBackToSlots?: () => void
+  periods: PricingPeriod[]
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
 
-  const total = CONFIG.pricePerHour * duration
+  // Single-block scalars used only for <StripePayment>'s flat-form fallback
+  // fields and the single-block summary display below — StripePayment itself
+  // already branches on blocks.length > 1 vs a flat single-block body.
+  const primary = blocks[0]
+  const dateStr = primary?.date ?? ""
+  const startHour = primary?.startHour ?? 0
+  const duration = primary?.duration ?? 0
+  const tableNumber = primary?.tableNumber ?? 0
+  const selectedDate = primary ? new Date(`${primary.date}T00:00:00`) : new Date()
+
+  // Order total across every block (grouped, non-contiguous orders sum them).
+  const total = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
   const endHour = startHour + duration
   const crossDay = endHour >= 24
-
-  const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
 
   // The user is already authenticated + profile_complete by the time they reach
   // this step (Screen2 gates on it), so `users` already has display_name/email/
@@ -1233,27 +1718,65 @@ function Screen3({
     <div className="screen-content">
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
         {/* Order summary */}
-        <Card style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
-              <span style={{ fontSize: 14 }}>
-                {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
-              </span>
+        <Card
+          className="glass-panel"
+          style={{ marginBottom: 24, borderRadius: 20 }}
+        >
+          {blocks.length > 1 ? (
+            /* Multi-block order (non-contiguous or cross-day) — itemize every
+               block so the displayed total is visibly traceable to its parts,
+               matching the sum Stripe's PaymentIntent.amount actually charges
+               (Task 8). Each block gets its own row with breathing room and a
+               hairline divider so a 3+ slot order doesn't read as one jammed
+               paragraph (Task 1). */
+            <div style={{ marginBottom: 16, display: "flex", flexDirection: "column" }}>
+              {blocks.map((b, i) => {
+                const [, m, d] = b.date.split("-")
+                const blockTotal = quoteBlockTotal(b.date, b.startHour, b.duration, periods)
+                return (
+                  <div
+                    key={`${b.date}-${b.startHour}-${b.tableNumber}`}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      fontSize: 13,
+                      padding: "10px 0",
+                      borderBottom: i < blocks.length - 1 ? `1px solid ${tokens.colors.border}` : "none",
+                    }}
+                  >
+                    <span style={{ color: tokens.colors.textMuted }}>
+                      {Number(m)}月{Number(d)}日 {padTime(b.startHour)}–{padTime(b.startHour + b.duration)}
+                      {" · "}
+                      {t("table_label")} #{b.tableNumber}
+                    </span>
+                    <span>HK${blockTotal}</span>
+                  </div>
+                )
+              })}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <Clock size={14} style={{ color: tokens.colors.textMuted }} />
-              <span style={{ fontSize: 14 }}>
-                {padTime(startHour)} – {padTime(endHour)}
-                {crossDay ? " +1日" : ""}
-              </span>
+          ) : (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
+                <span style={{ fontSize: 14 }}>
+                  {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Clock size={14} style={{ color: tokens.colors.textMuted }} />
+                <span style={{ fontSize: 14 }}>
+                  {padTime(startHour)} – {padTime(endHour)}
+                  {crossDay ? " +1日" : ""}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
           <div
             data-cms-key="book.pay.venue"
-            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: profile ? 12 : 16 }}
+            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: profile ? 12 : 16, paddingTop: blocks.length > 1 ? 4 : 0 }}
           >
-            248 Snooker · {tableName}
+            Space8 · {tableName}
           </div>
           {profile && (profile.name || profile.email || profile.phone) && (
             <>
@@ -1288,144 +1811,151 @@ function Screen3({
 
         {/* Payment — Stripe Payment Element rendered under our own chrome. It
             shows cards + Apple/Google Pay + Alipay/WeChat with officially-licensed
-            icons, and confirms via redirect (return to /book). */}
-        <div
-          data-cms-key="book.pay.method"
-          style={{ fontSize: 13, color: tokens.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}
+            icons, and confirms via redirect (return to /book). The glass surface
+            + entrance animation are purely visual; the <StripePayment> element and
+            all Stripe logic inside it are untouched. */}
+        <motion.div
+          className="glass-panel"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          style={{ borderRadius: 20, padding: 20 }}
         >
-          {t("payment_title")}
-        </div>
+          <div
+            data-cms-key="book.pay.method"
+            style={{ fontSize: 13, color: tokens.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}
+          >
+            {t("payment_title")}
+          </div>
 
-        <StripePayment
-          date={dateStr}
-          startHour={startHour}
-          duration={duration}
-          tableNumber={tableNumber}
-          total={total}
-          locale={locale as "en" | "zh-HK" | "zh-CN" | "ja"}
-          returnPath="/book"
-          payLabel={`${t("pay_now")} · HK$${total}`}
-          processingLabel={t("processing")}
-          errorLabel={t("pay_error")}
-          loadingLabel={t("pay_loading")}
-          lockHoldLabel={t("lock_hold")}
-          paymentFailedLabel={t("pay_declined")}
-          timeoutLabel={t("pay_timeout")}
-          whatsappSupportLabel={t("whatsapp_support")}
-          retryPaymentLabel={t("retry_payment")}
-          billingDetails={profile ?? undefined}
-        />
+          <StripePayment
+            date={dateStr}
+            startHour={startHour}
+            duration={duration}
+            tableNumber={tableNumber}
+            blocks={blocks.map((b) => ({
+              date: b.date,
+              startHour: b.startHour,
+              duration: b.duration,
+              tableNumber: b.tableNumber,
+            }))}
+            total={total}
+            locale={locale as "en" | "zh-HK" | "zh-CN" | "ja"}
+            returnPath="/book"
+            payLabel={`${t("pay_now")} · HK$${total}`}
+            processingLabel={t("processing")}
+            errorLabel={t("pay_error")}
+            slotTakenLabel={t("slot_taken")}
+            loadingLabel={t("pay_loading")}
+            lockHoldLabel={t("lock_hold")}
+            paymentFailedLabel={t("pay_declined")}
+            whatsappSupportLabel={t("whatsapp_support")}
+            retryPaymentLabel={t("retry_payment")}
+            billingDetails={profile ?? undefined}
+            onBackToSlots={onBackToSlots}
+            backToSlotsLabel={t("back_to_slots")}
+          />
 
-        <div
-          data-cms-key="book.payment_reminder"
-          style={{
-            fontSize: 13,
-            color: tokens.colors.textMuted,
-            textAlign: "center",
-            marginTop: 20,
-            padding: "0 16px",
-            lineHeight: 1.5,
-          }}
-        >
-          {t("payment_reminder")}
-        </div>
+          {total > 0 && (
+            <div
+              data-cms-key="book.points_earned"
+              style={{
+                fontSize: 12,
+                color: tokens.colors.textMuted,
+                textAlign: "center",
+                marginTop: 12,
+              }}
+            >
+              {/* Same base-tier floor as Screen1 — the real signed-in tier
+                  multiplier isn't fetched anywhere in this page, so this
+                  stays a floor estimate here too rather than a half-accurate
+                  number from a new, scope-expanding tier lookup. */}
+              {t("points_earned_estimate", { pts: total })}
+            </div>
+          )}
 
-        {/* Stripe secure */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
-          <Lock size={12} style={{ color: tokens.colors.textMuted }} />
-          <span data-cms-key="book.pay.secure" style={{ fontSize: 12, color: tokens.colors.textMuted }}>
-            {t("stripe_secure")}
-          </span>
-        </div>
+          <div
+            data-cms-key="book.payment_reminder"
+            style={{
+              fontSize: 13,
+              color: tokens.colors.textMuted,
+              textAlign: "center",
+              marginTop: 20,
+              padding: "0 16px",
+              lineHeight: 1.5,
+            }}
+          >
+            {t("payment_reminder")}
+          </div>
+
+          {/* Stripe secure */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
+            <Lock size={12} style={{ color: tokens.colors.textMuted }} />
+            <span data-cms-key="book.pay.secure" style={{ fontSize: 12, color: tokens.colors.textMuted }}>
+              {t("stripe_secure")}
+            </span>
+          </div>
+        </motion.div>
       </div>
     </div>
   )
 }
 
-/* ─────────────────────────  Screen 4: Confirmation Ticket  ───────────────────────── */
-function Screen4({
-  selectedDate,
-  startHour,
-  duration,
-  tableName,
-  bookingRef,
-  qrData,
-}: {
-  selectedDate: Date
+/* ─────────────────────────  Screen 4: Confirmation Tickets  ───────────────────────── */
+type ConfirmationTicket = {
+  date: string
   startHour: number
   duration: number
-  tableName: string
+  tableNumber: number
   bookingRef: string
-  // The signed QR JWT from the confirmed booking; falls back to the ref for the
-  // (decorative) code rendering when absent.
-  qrData?: string
-}) {
+  humanCode?: string
+  totalPrice: number
+  paymentMethod?: string | null
+}
+
+// Renders one TicketCard per booking from the checkout (Task 8 — a
+// non-contiguous multi-slot order produces N booking rows sharing an
+// order_group_id, so it must produce N independent, individually-scannable
+// tickets, not one screen that only shows the first). The first ticket opens
+// expanded so the confetti/QR reveal reads as "your booking is confirmed";
+// any additional tickets start collapsed to avoid a wall of QR codes.
+function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
 
-  const total = CONFIG.pricePerHour * duration
-  const endHour = startHour + duration
-  const crossDay = endHour >= 24
-  const dateStr = `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日 星期${DAY_NAMES[selectedDate.getDay()]}`
-
-  // canvas-confetti burst after ticket springs in
   useEffect(() => {
     const timer = setTimeout(() => {
       confetti({
         particleCount: 80,
-        spread: 60,
+        spread: 70,
+        scalar: 0.7,
+        shapes: ["star", "circle"],
         origin: { y: 0.6 },
-        colors: ["#22c55e", "#ffffff", "#16a34a"],
+        colors: ["#22c55e", "#ffffff", "#A78BFA"],
       })
     }, 2000)
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Add-to-calendar — generate a downloadable .ics file
-  const handleAddCalendar = () => {
-    const start = new Date(selectedDate)
-    start.setHours(startHour, 0, 0, 0)
-    const end = new Date(start)
-    end.setHours(start.getHours() + duration)
-    const fmt = (d: Date) =>
-      d
-        .toISOString()
-        .replace(/[-:]/g, "")
-        .replace(/\.\d{3}/, "")
-    const ics = [
-      "BEGIN:VCALENDAR",
-      "VERSION:2.0",
-      "BEGIN:VEVENT",
-      `DTSTART:${fmt(start)}`,
-      `DTEND:${fmt(end)}`,
-      `SUMMARY:248 Snooker · ${tableName}`,
-      `DESCRIPTION:預訂編號 ${bookingRef}`,
-      "LOCATION:248 Snooker",
-      "END:VEVENT",
-      "END:VCALENDAR",
-    ].join("\r\n")
-    const url = URL.createObjectURL(
-      new Blob([ics], { type: "text/calendar" })
-    )
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `248-${bookingRef}.ics`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  const handleShare = async () => {
-    const text = `我的 248 Snooker 預訂 · ${tableName} · 編號 ${bookingRef}`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "248 Snooker", text })
-      } catch {
-        /* user cancelled */
-      }
-    } else if (navigator.clipboard) {
-      await navigator.clipboard.writeText(text)
+    // Second, delayed burst: tight angle + high velocity + low spread reads
+    // as a shooting star crossing the screen rather than a second identical
+    // confetti pop — reinforces the space theme without a new particle system.
+    const meteorTimer = setTimeout(() => {
+      confetti({
+        particleCount: 18,
+        startVelocity: 55,
+        angle: 55,
+        spread: 8,
+        scalar: 0.5,
+        gravity: 0.4,
+        decay: 0.94,
+        shapes: ["circle"],
+        origin: { x: 0.1, y: 0.15 },
+        colors: ["#ffffff", "#A78BFA"],
+      })
+    }, 2600)
+    return () => {
+      clearTimeout(timer)
+      clearTimeout(meteorTimer)
     }
-  }
+  }, [])
 
   return (
     <div
@@ -1434,301 +1964,85 @@ function Screen4({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
         minHeight: "calc(100dvh - 80px)",
         position: "relative",
         padding: "24px 20px",
       }}
     >
-      {/* Ticket spring slide-up */}
-      <div style={{ width: "100%", maxWidth: 384, margin: "0 auto", position: "relative" }}>
+      <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
+        {/* Header — logo + confirmed pill, shared across all tickets */}
         <motion.div
-          initial={{ y: "80%", opacity: 0 }}
+          initial={{ y: "40%", opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.5 }}
-          style={{
-            background: "linear-gradient(160deg, #111111 0%, #1a1a1a 100%)",
-            borderRadius: 24,
-            border: "1px solid rgba(255,255,255,0.1)",
-            overflowY: "auto",
-            maxHeight: "85vh",
-            WebkitOverflowScrolling: "touch",
-            position: "relative",
-          }}
+          transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.2 }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}
         >
-        {/* Top section */}
-        <div style={{ padding: 20 }}>
-          {/* Header row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-            <img src="/logos/248_logo_white_bg.svg" alt="248 Snooker" style={{ height: 24, width: "auto" }} />
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 500, damping: 20, delay: 1.2 }}
-              style={{
-                background: tokens.colors.brand,
-                padding: "4px 12px",
-                borderRadius: 999,
-              }}
-            >
-              <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>{t_ticket("confirmed")}</span>
-            </motion.div>
-          </div>
-
-          {/* Time display — flex row, shrink-safe so it never clips */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              flexWrap: "nowrap",
-              margin: 0,
-            }}
-          >
-            <span
-              style={{
-                fontSize: "clamp(28px, 7vw, 48px)",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.05,
-                color: tokens.colors.text,
-              }}
-            >
-              {padTime(startHour)}
-            </span>
-            <span
-              style={{
-                fontSize: "clamp(20px, 4vw, 32px)",
-                opacity: 0.6,
-                color: tokens.colors.text,
-              }}
-            >
-              →
-            </span>
-            <span
-              style={{
-                fontSize: "clamp(28px, 7vw, 48px)",
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.05,
-                color: tokens.colors.text,
-              }}
-            >
-              {padTime(endHour)}
-            </span>
-            {crossDay && (
-              <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.4)", marginLeft: 4 }}>
-                +1日
-              </span>
-            )}
-          </div>
-
-          {/* Date */}
-          <div style={{ fontSize: 15, color: "rgba(255,255,255,0.7)", marginTop: 6 }}>
-            {dateStr}
-          </div>
-
-          {/* Venue */}
-          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
-            248 Snooker · {tableName}
-          </div>
-        </div>
-
-        {/* Perforation line */}
-        <div style={{ position: "relative", height: 20, margin: "20px 0" }}>
-          {/* Left notch */}
-          <div
-            style={{
-              position: "absolute",
-              left: -10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              background: tokens.colors.bg,
-            }}
-          />
-          {/* Right notch */}
-          <div
-            style={{
-              position: "absolute",
-              right: -10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              background: tokens.colors.bg,
-            }}
-          />
-          {/* Dashed line — animated width */}
+          <img src={encodeURI("/logos/White Version Hor, Tran 8.png")} alt="Space8" style={{ height: 24, width: "auto" }} />
           <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ delay: 1.0, duration: 0.6, ease: "linear" }}
-            style={{
-              transformOrigin: "left center",
-              position: "absolute",
-              top: "50%",
-              left: 20,
-              right: 20,
-              height: 0,
-              borderTop: "2px dashed rgba(255,255,255,0.15)",
-            }}
-          />
-        </div>
-
-        {/* Bottom stub */}
-        <div style={{ padding: "0 20px 20px" }}>
-          {/* Info row — 3 columns, stagger in */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.08, delayChildren: 1.4 } }
-            }}
-            style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 500, damping: 20, delay: 1.2 }}
+            style={{ background: tokens.colors.brand, padding: "4px 12px", borderRadius: 999 }}
           >
-            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("duration")}</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{duration}{t("hours")}</div>
-            </motion.div>
-            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("paid")}</div>
-              <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand }}>HK${total}</div>
-            </motion.div>
-            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 4 }}>{t_ticket("payment")}</div>
-              <VisaLogo className="h-4" />
-            </motion.div>
+            <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>
+              {t_ticket("confirmed")}
+            </span>
           </motion.div>
-
-          {/* QR Code — reveal with clip-path wipe + scan line */}
-          <motion.div
-            initial={{ clipPath: "inset(0 0 100% 0)" }}
-            animate={{ clipPath: "inset(0 0 0% 0)" }}
-            transition={{ delay: 1.6, duration: 0.8, ease: "linear" }}
-            style={{
-              position: "relative",
-              background: "#0a0a0a",
-              borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.15)",
-              padding: 16,
-              display: "flex",
-              justifyContent: "center",
-              marginTop: 12,
-              marginBottom: 10,
-            }}
-          >
-            <QRCode data={qrData ?? bookingRef} />
-            {/* Scan line */}
-            <motion.div
-              initial={{ top: "0%" }}
-              animate={{ top: "100%" }}
-              transition={{ delay: 1.6, duration: 0.8, ease: "linear" }}
-              style={{
-                position: "absolute",
-                left: 0,
-                width: "100%",
-                height: 2,
-                background: "linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent)",
-                pointerEvents: "none",
-                zIndex: 3,
-              }}
-            />
-          </motion.div>
-
-          {/* Booking ref */}
-          <div
-            style={{
-              fontFamily: "'SF Mono', 'Courier New', monospace",
-              fontSize: 13,
-              color: "rgba(255,255,255,0.6)",
-              letterSpacing: "0.15em",
-              textAlign: "center",
-              marginBottom: 6,
-            }}
-          >
-            {bookingRef}
-          </div>
-
-          {/* Helper text */}
-          <div
-            data-cms-key="book.ticket.footer"
-            style={{
-              fontSize: 11,
-              color: "rgba(255,255,255,0.3)",
-              textAlign: "center",
-            }}
-          >
-            {t("qr_hint")}
-          </div>
-        </div>
         </motion.div>
-      </div>
 
-      {/* Actions below ticket — stagger in after ticket lands */}
-      <div style={{ marginTop: 24, width: "100%", maxWidth: 400 }}>
-        <motion.div
+        {/* One collapsible card per booking */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
+          {tickets.map((ticket, i) => (
+            <TicketCard
+              key={ticket.bookingRef + i}
+              date={ticket.date}
+              startHour={ticket.startHour}
+              duration={ticket.duration}
+              tableNumber={ticket.tableNumber}
+              bookingRef={ticket.bookingRef}
+              humanCode={ticket.humanCode}
+              totalPrice={ticket.totalPrice}
+              paymentMethod={ticket.paymentMethod}
+              defaultExpanded={i === 0}
+            />
+          ))}
+        </div>
+
+        {/* Go to member center (Task 10). Plain <a>, not the locale-aware
+            router — /member lives outside app/[locale]/ (non-localized route,
+            same convention as AccountMenu.tsx), so router.push("/member")
+            would prefix the active locale (e.g. /en/member) and 404. */}
+        <motion.a
+          href="/member"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          style={{ display: "flex", gap: 12 }}
+          data-cms-key="book.ticket.member_cta"
+          style={{
+            width: "100%",
+            height: 52,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: tokens.colors.brand,
+            color: "#000",
+            border: "none",
+            borderRadius: 14,
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: "pointer",
+            marginBottom: 16,
+            textDecoration: "none",
+          }}
         >
-          <button
-            type="button"
-            onClick={handleAddCalendar}
-            data-cms-key="book.ticket.add-calendar"
-            style={{
-              flex: 1,
-              height: 48,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: 12,
-              color: tokens.colors.text,
-              fontSize: 15,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            <CalendarPlus size={16} />
-            {t("add_calendar")}
-          </button>
-          <button
-            type="button"
-            onClick={handleShare}
-            data-cms-key="book.ticket.share"
-            style={{
-              flex: 1,
-              height: 48,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.15)",
-              borderRadius: 12,
-              color: tokens.colors.text,
-              fontSize: 15,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            <Share2 size={16} />
-            {t("share")}
-          </button>
-        </motion.div>
+          {t("go_to_member")}
+        </motion.a>
+
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 2.4, duration: 0.4 }}
-          style={{ textAlign: "center", marginTop: 16 }}
+          style={{ textAlign: "center" }}
         >
           <button
             type="button"
@@ -1752,15 +2066,18 @@ function Screen4({
 
 /* ─────────────────────────  Confirming (Stripe redirect return)  ───────────────────────── */
 type ConfirmedBooking = {
+  id?: string
   status: string
   booking_reference: string | null
-  qr_code: string | null
   date: string
   start_time: string
   end_time: string
   duration_hours: number
   table_number: number
   total_price: number
+  payment_method: string | null
+  order_group_id: string | null
+  human_code?: string
 }
 
 // Shown after the Stripe redirect returns to /book while we poll the booking
@@ -1798,18 +2115,7 @@ function ConfirmingPayment({ failed }: { failed: boolean }) {
         </>
       ) : (
         <>
-          <motion.div
-            aria-hidden
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              border: "3px solid rgba(255,255,255,0.15)",
-              borderTopColor: tokens.colors.brand,
-            }}
-          />
+          <LoadingGif />
           <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
             {t("confirming")}
           </p>
@@ -1842,18 +2148,165 @@ export default function BookPage() {
     return d
   }, [])
   const [selectedDate, setSelectedDate] = useState<Date>(today)
-  const [startHour, setStartHour] = useState(() => {
-    const now = new Date()
-    return (now.getHours() + 1) % 24
-  })
-  const [duration, setDuration] = useState(0)
+  const [selectedHoursByDate, setSelectedHoursByDate] = useState<Map<string, Set<number>>>(new Map())
   const [selectedTable, setSelectedTable] = useState<number | null>(null)
   const [bookingRef] = useState(() => genRef())
   const paymentRef = useRef<HTMLDivElement>(null)
   // Stripe redirect-return confirmation state.
   const [confirmBookingId, setConfirmBookingId] = useState<string | null>(null)
   const [confirmedBooking, setConfirmedBooking] = useState<ConfirmedBooking | null>(null)
+  // Every ticket from the same checkout (order_group_id), primary first — a
+  // single-booking order is just a 1-element array (Task 8).
+  const [confirmedBookings, setConfirmedBookings] = useState<ConfirmedBooking[]>([])
   const [confirmError, setConfirmError] = useState(false)
+
+  const haptic = useHaptic()
+
+  // One-time prefill from ?date=YYYY-MM-DD&start=HH&duration=N&table=1|2 —
+  // used by the AI chat widget's booking handoff link (it can't lock a slot
+  // or take payment for an anonymous chat session, so it hands the visitor
+  // here with their requested slot pre-selected instead). Availability isn't
+  // re-checked here; Screen1's own pruning effect and the lock-on-checkout
+  // flow already handle a prefilled slot having been taken in the meantime,
+  // same as any manually-selected one.
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const dateParam = searchParams.get("date")
+    const startParam = searchParams.get("start")
+    const durationParam = searchParams.get("duration")
+    const tableParam = searchParams.get("table")
+    if (!dateParam || !/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) return
+
+    const start = Number(startParam)
+    const duration = Number(durationParam ?? "1")
+    const table = Number(tableParam)
+    if (!Number.isInteger(start) || start < CONFIG.openHour || start >= CONFIG.closeHour) return
+    if (!Number.isInteger(duration) || duration < 1 || duration > CONFIG.maxHours) return
+    if (start + duration > CONFIG.closeHour) return
+
+    const hours = new Set<number>()
+    for (let h = start; h < start + duration; h++) hours.add(h)
+    setSelectedHoursByDate(new Map([[dateParam, hours]]))
+    setSelectedDate(new Date(`${dateParam}T00:00:00`))
+    if (table === 1 || table === 2) setSelectedTable(table)
+    // Mount-only: this is a one-shot initial prefill, not a live sync with the URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Toggle one hour on/off for a given date. Deletes the date's map entry
+  // entirely when its Set becomes empty, so the map never accumulates empty
+  // entries.
+  const toggleHour = useCallback((date: string, hour: number) => {
+    setSelectedHoursByDate((prev) => {
+      const prevSet = prev.get(date) ?? EMPTY_SET
+      const nextSet = new Set(prevSet)
+      if (nextSet.has(hour)) nextSet.delete(hour)
+      else nextSet.add(hour)
+
+      const next = new Map(prev)
+      if (nextSet.size === 0) next.delete(date)
+      else next.set(date, nextSet)
+      return next
+    })
+  }, [])
+
+  // Duration quick-pick (Screen1) — replaces the current date's whole
+  // selection with `count` contiguous hours starting at `startHour`, rather
+  // than toggling one hour at a time. Used only for the user's own explicit
+  // chip tap, never auto-applied.
+  const selectContiguousHours = useCallback((date: string, startHour: number, count: number) => {
+    setSelectedHoursByDate((prev) => {
+      const nextSet = new Set<number>()
+      for (let h = startHour; h < startHour + count; h++) nextSet.add(h)
+      const next = new Map(prev)
+      next.set(date, nextSet)
+      return next
+    })
+  }, [])
+
+  // Prune/update a single date's hour Set via an updater function (used by
+  // Screen1's availability-pruning effect).
+  const pruneHoursForDate = useCallback((date: string, updater: (prev: Set<number>) => Set<number>) => {
+    setSelectedHoursByDate((prev) => {
+      const prevSet = prev.get(date) ?? EMPTY_SET
+      const nextSet = updater(prevSet)
+      if (nextSet === prevSet) return prev
+      const next = new Map(prev)
+      if (nextSet.size === 0) next.delete(date)
+      else next.set(date, nextSet)
+      return next
+    })
+  }, [])
+
+  // Remove every hour belonging to one run (across whichever date it's on).
+  const removeRun = useCallback((run: SelectedBlock) => {
+    haptic.vibrate(8)
+    setSelectedHoursByDate((prev) => {
+      const prevSet = prev.get(run.date)
+      if (!prevSet) return prev
+      const nextSet = new Set(prevSet)
+      for (let h = run.startHour; h < run.startHour + run.duration; h++) nextSet.delete(h)
+      const next = new Map(prev)
+      if (nextSet.size === 0) next.delete(run.date)
+      else next.set(run.date, nextSet)
+      return next
+    })
+  }, [haptic])
+
+  // Durable in-session selection persistence. Unlike `pendingBooking` (written
+  // only on the auth step and consumed once), this survives back/return/reload:
+  // it's written on every Screen1 selection change and only cleared when the
+  // booking is confirmed. Restored on mount BEFORE the pendingBooking fallback.
+  const bookingRestored = useRef(false)
+  useEffect(() => {
+    if (typeof window === "undefined" || bookingRestored.current) return
+    bookingRestored.current = true
+    try {
+      const saved = sessionStorage.getItem("bookingSelection")
+      if (!saved) return
+      const s = JSON.parse(saved)
+      const restored = parseSelectionEntries(s.entries)
+      if (restored.size > 0) {
+        setSelectedHoursByDate(restored)
+        const firstDate = Array.from(restored.keys()).sort()[0]
+        const d = new Date(`${firstDate}T00:00:00`)
+        if (!Number.isNaN(d.getTime())) setSelectedDate(d)
+      }
+      if (typeof s.tableNumber === "number") setSelectedTable(s.tableNumber)
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Persist selection whenever there's a real order in progress.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (selectedHoursByDate.size === 0) return
+    try {
+      const entries = Array.from(selectedHoursByDate.entries()).map(([date, hours]) => ({
+        date,
+        hours: Array.from(hours),
+      }))
+      sessionStorage.setItem(
+        "bookingSelection",
+        JSON.stringify({
+          entries,
+          tableNumber: selectedTable,
+          updatedAt: Date.now(),
+        }),
+      )
+    } catch {}
+  }, [selectedHoursByDate, selectedTable])
+
+  // Clear the persisted selection once a booking is confirmed, so a stale
+  // future selection doesn't resurface on the next visit.
+  useEffect(() => {
+    if (confirmedBooking && typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("bookingSelection")
+        sessionStorage.removeItem("pendingBooking")
+      } catch {}
+    }
+  }, [confirmedBooking])
 
   // Detect a Stripe redirect return (?bookingId&payment_intent&redirect_status).
   // The page reloaded fresh, so we jump to the confirmation screen and poll the
@@ -1879,9 +2332,12 @@ export default function BookPage() {
       try {
         const res = await fetch(`/api/booking/status?bookingId=${bId}`)
         if (res.ok) {
-          const { booking } = await res.json()
+          const { booking, bookings } = await res.json()
           if (booking?.status === "confirmed") {
-            if (!cancelled) setConfirmedBooking(booking)
+            if (!cancelled) {
+              setConfirmedBooking(booking)
+              setConfirmedBookings(Array.isArray(bookings) && bookings.length > 0 ? bookings : [booking])
+            }
             return
           }
         }
@@ -1898,9 +2354,74 @@ export default function BookPage() {
     }
   }, [])
 
+  // Shared availability cache: prefetches today + 7 days so date-switching in
+  // Screen1 is instant, and exposes invalidate() for post-payment refresh (Task 4).
+  const availability = useAvailabilityCache()
+  const monthAvailability = useMonthAvailability()
+
+  // Task 4: once a booking confirms, drop the cached availability for its
+  // date(s) and clear the whole selection, so returning to /book in the same
+  // session shows the just-booked slot/table as taken — no hard refresh.
+  useEffect(() => {
+    if (!confirmedBooking) return
+    if (confirmedBooking.date) availability.invalidate(confirmedBooking.date)
+    for (const date of selectedHoursByDate.keys()) availability.invalidate(date)
+    setSelectedHoursByDate(new Map())
+    setSelectedTable(null)
+    // Only react to a new confirmation; availability/selectedHoursByDate are
+    // stable enough here (same reasoning as before).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmedBooking])
+
+  const activeDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
+  const hoursForActiveDate = selectedHoursByDate.get(activeDateStr) ?? EMPTY_SET
+
+  // The order = every contiguous run across every date the user has picked
+  // hours on, sorted chronologically. Empty until a table is chosen (the
+  // order is scoped to one global table).
+  const runs: SelectedBlock[] = useMemo(() => {
+    if (selectedTable === null) return []
+    const dates = Array.from(selectedHoursByDate.keys()).sort()
+    const out: SelectedBlock[] = []
+    for (const date of dates) {
+      const hours = selectedHoursByDate.get(date)
+      if (!hours || hours.size === 0) continue
+      out.push(...groupHoursIntoRuns(hours, date, selectedTable))
+    }
+    return out
+  }, [selectedHoursByDate, selectedTable])
+
+  // Live pricing periods (afternoon/evening/latenight) — read straight from the
+  // public `config` table (RLS allows anon SELECT). Falls back to DEFAULT_PERIODS
+  // until this resolves or if it fails, same fallback contract as getConfig().
+  const [periods, setPeriods] = useState<PricingPeriod[]>(DEFAULT_PERIODS)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("config")
+        .select("value")
+        .eq("key", "pricing")
+        .single()
+      const fetched = (data?.value as { periods?: PricingPeriod[] } | null)?.periods
+      if (!cancelled && !error && fetched?.length) setPeriods(fetched)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const tables = useTables()
   const tableName =
     tables.find((t) => t.id === selectedTable)?.name ?? `枱號 #1`
+
+  const orderTotal = runs.reduce((sum, r) => sum + quoteBlockTotal(r.date, r.startHour, r.duration, periods), 0)
+  const totalSelectedHours = useMemo(() => {
+    let total = 0
+    for (const hours of selectedHoursByDate.values()) total += hours.size
+    return total
+  }, [selectedHoursByDate])
 
   const direction = useRef(1)
 
@@ -1908,6 +2429,27 @@ export default function BookPage() {
     direction.current = 1
     setScreen((s) => Math.min(s + 1, 3))
   }, [])
+
+  // Resume a slot the caller already has locked (e.g. an abandoned checkout)
+  // instead of re-picking: adopt its date/hour/table into the order state and
+  // jump straight to the payment screen. StripePayment's lock-on-mount effect
+  // re-locks as the same user, which the RPC treats as a no-op refresh of
+  // locked_until — never re-validates as "taken."
+  const resumeLockedSlot = useCallback(
+    (date: string, startHour: number, duration: number, tableNumber: number) => {
+      setSelectedHoursByDate(() => {
+        const hours = new Set<number>()
+        for (let h = startHour; h < startHour + duration; h++) hours.add(h)
+        return new Map([[date, hours]])
+      })
+      const d = new Date(`${date}T00:00:00`)
+      if (!Number.isNaN(d.getTime())) setSelectedDate(d)
+      setSelectedTable(tableNumber)
+      direction.current = 1
+      setScreen(2)
+    },
+    [],
+  )
 
   // Backward-only step navigation from the progress bar. Forward jumps are never
   // allowed (can't skip to payment from time-select). Not available once the
@@ -1941,10 +2483,14 @@ export default function BookPage() {
     if (!saved) return
     try {
       const state = JSON.parse(saved)
-      if (state.tableNumber) setSelectedTable(state.tableNumber)
-      if (state.date) setSelectedDate(new Date(state.date))
-      if (typeof state.startHour === "number") setStartHour(state.startHour)
-      if (typeof state.duration === "number") setDuration(state.duration)
+      if (typeof state.tableNumber === "number") setSelectedTable(state.tableNumber)
+      const restored = parseSelectionEntries(state.entries)
+      if (restored.size > 0) {
+        setSelectedHoursByDate(restored)
+        const firstDate = Array.from(restored.keys()).sort()[0]
+        const d = new Date(`${firstDate}T00:00:00`)
+        if (!Number.isNaN(d.getTime())) setSelectedDate(d)
+      }
     } catch {}
     sessionStorage.removeItem("pendingBooking")
     // Jump to the login step so AuthCard can resolve the returning session.
@@ -1971,19 +2517,36 @@ export default function BookPage() {
         color: tokens.colors.text,
         display: "flex",
         justifyContent: "center",
+        position: "relative",
       }}
     >
-      {/* Back arrow — fixed top-left across selection/login/payment. Hidden on
-          the confirmation screen (booking is done; Screen4 offers a deliberate
-          "Back to Home" instead, so users can't navigate back into a finished flow). */}
-      {screen < 3 && (
-        <BackButton onClick={handleBack} ariaLabel={t("back")} cmsKey="book.back" color={tokens.colors.text} />
-      )}
-
-      <div className="book-container">
-        {/* Progress */}
+      {/* Subtle backdrop dust — same treatment as the member dashboard, low
+          opacity so it never competes with booking content readability. */}
+      <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.35 }}>
+        <Starfield />
+      </div>
+      <div className="book-container" style={{ position: "relative", zIndex: 1 }}>
+        {/* Progress — back arrow (hidden on the confirmation screen; booking is
+            done, Screen4 offers a deliberate "Back to Home" instead) shares the
+            same row as the stepper so it never overlaps it. */}
         <div className="progress-bar-wrap">
-          <ProgressSteps steps={STEPS} current={screen} onStepClick={goToStep} />
+          {screen < 3 && (
+            <BackButton
+              variant="inline"
+              onClick={handleBack}
+              ariaLabel={t("back")}
+              cmsKey="book.back"
+              color={tokens.colors.text}
+            />
+          )}
+          <div style={{ flex: 1 }}>
+            <ProgressSteps
+              steps={STEPS}
+              current={screen}
+              onStepClick={goToStep}
+              currentProgress={screen === 0 && totalSelectedHours > 0 ? 1 : 0}
+            />
+          </div>
         </div>
 
         {/* Screen content — overflow-x:clip hides the horizontal wizard slide
@@ -2005,11 +2568,20 @@ export default function BookPage() {
                   setSelectedTable={setSelectedTable}
                   selectedDate={selectedDate}
                   setSelectedDate={setSelectedDate}
-                  startHour={startHour}
-                  setStartHour={setStartHour}
-                  duration={duration}
-                  setDuration={setDuration}
+                  hoursForDate={hoursForActiveDate}
+                  onToggleHour={toggleHour}
+                  onSelectContiguousHours={selectContiguousHours}
+                  onPruneHours={pruneHoursForDate}
+                  selectedHoursByDate={selectedHoursByDate}
+                  totalSelectedHours={totalSelectedHours}
+                  runs={runs}
+                  orderTotal={orderTotal}
+                  removeRun={removeRun}
                   onContinue={advance}
+                  onResumeLocked={resumeLockedSlot}
+                  availability={availability}
+                  monthAvailability={monthAvailability}
+                  periods={periods}
                 />
               </motion.div>
             )}
@@ -2025,9 +2597,7 @@ export default function BookPage() {
               >
                 <Screen2
                   onSuccess={advance}
-                  selectedDate={selectedDate}
-                  startHour={startHour}
-                  duration={duration}
+                  selectedHoursByDate={selectedHoursByDate}
                   selectedTable={selectedTable}
                 />
               </motion.div>
@@ -2044,11 +2614,15 @@ export default function BookPage() {
                 transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
               >
                 <Screen3
-                  selectedDate={selectedDate}
-                  startHour={startHour}
-                  duration={duration}
                   tableName={tableName}
-                  tableNumber={selectedTable ?? 0}
+                  blocks={runs}
+                  periods={periods}
+                  onBackToSlots={() => {
+                    for (const date of selectedHoursByDate.keys()) availability.invalidate(date)
+                    setSelectedHoursByDate(new Map())
+                    setSelectedTable(null)
+                    setScreen(0)
+                  }}
                 />
               </motion.div>
             )}
@@ -2066,20 +2640,34 @@ export default function BookPage() {
                   <ConfirmingPayment failed={confirmError} />
                 ) : confirmedBooking ? (
                   <Screen4
-                    selectedDate={new Date(`${confirmedBooking.date}T00:00:00`)}
-                    startHour={parseInt(confirmedBooking.start_time.slice(0, 2), 10)}
-                    duration={Number(confirmedBooking.duration_hours)}
-                    tableName={`${t("table_label")} #${confirmedBooking.table_number}`}
-                    bookingRef={confirmedBooking.booking_reference ?? bookingRef}
-                    qrData={confirmedBooking.qr_code ?? undefined}
+                    tickets={confirmedBookings.map((b) => ({
+                      date: b.date,
+                      startHour: parseInt(b.start_time.slice(0, 2), 10),
+                      duration: Number(b.duration_hours),
+                      tableNumber: b.table_number,
+                      bookingRef: b.booking_reference ?? bookingRef,
+                      humanCode: b.human_code,
+                      totalPrice: b.total_price,
+                      paymentMethod: b.payment_method,
+                    }))}
                   />
                 ) : (
+                  // Defensive fallback — the normal flow always sets confirmBookingId
+                  // via the Stripe redirect-return effect before screen reaches 3, so
+                  // this branch shouldn't render in practice.
                   <Screen4
-                    selectedDate={selectedDate}
-                    startHour={startHour}
-                    duration={duration}
-                    tableName={tableName}
-                    bookingRef={bookingRef}
+                    tickets={
+                      runs.length > 0
+                        ? runs.map((r) => ({
+                            date: r.date,
+                            startHour: r.startHour,
+                            duration: r.duration,
+                            tableNumber: r.tableNumber,
+                            bookingRef,
+                            totalPrice: quoteBlockTotal(r.date, r.startHour, r.duration, periods),
+                          }))
+                        : []
+                    }
                   />
                 )}
               </motion.div>
@@ -2183,6 +2771,9 @@ export default function BookPage() {
           border-bottom: 1px solid ${tokens.colors.border};
           padding: 16px 24px;
           z-index: 50;
+          display: flex;
+          align-items: center;
+          gap: 16px;
         }
         .screen-content {
           padding: 76px 16px calc(110px + env(safe-area-inset-bottom, 0px));
@@ -2199,6 +2790,28 @@ export default function BookPage() {
         @media (min-width: 480px) {
           .table-grid {
             grid-template-columns: 1fr 1fr;
+          }
+        }
+        .slot-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+        .skeleton-pulse {
+          animation: skeleton-pulse 1.4s ease-in-out infinite;
+        }
+        @keyframes skeleton-pulse {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
+        }
+        @media (min-width: 480px) {
+          .slot-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+        @media (min-width: 768px) {
+          .slot-grid {
+            grid-template-columns: repeat(6, 1fr);
           }
         }
         .two-col {

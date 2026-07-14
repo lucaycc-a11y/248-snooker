@@ -3,9 +3,10 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { getConfigValue } from "@/lib/data/getConfig";
+import { getLegalSections } from "@/lib/data/getLegalData";
 import LegalContent from "./LegalContent";
 
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 export async function generateMetadata({
   params,
@@ -17,7 +18,7 @@ export async function generateMetadata({
   const path = locale === "zh-HK" ? "/legal" : `/${locale}/legal`;
 
   return {
-    title: `${t("title")} | 248 Snooker`,
+    title: `${t("title")} | Space8`,
     description: t("subtitle"),
     alternates: {
       canonical: `${BASE}${path}`,
@@ -29,10 +30,10 @@ export async function generateMetadata({
       },
     },
     openGraph: {
-      title: `${t("title")} | 248 Snooker`,
+      title: `${t("title")} | Space8`,
       description: t("subtitle"),
       url: `${BASE}${path}`,
-      siteName: "248 Snooker",
+      siteName: "Space8",
       type: "website",
     },
     robots: { index: true, follow: true },
@@ -59,10 +60,23 @@ export default async function LegalPage({
   const legalCfg = await getConfigValue<{ updatedAt?: string }>("legal", {});
   const lastUpdated = legalCfg.updatedAt ?? "2026-06-29";
 
+  const t = await getTranslations({ locale, namespace: "legal" });
+  const termsFallback = t.raw("terms_sections") as { title: string; body: string }[];
+  const privacyFallback = t.raw("privacy_sections") as { title: string; body: string }[];
+  const [termsSections, privacySections] = await Promise.all([
+    getLegalSections("legal", "terms_sections", locale, termsFallback),
+    getLegalSections("legal", "privacy_sections", locale, privacyFallback),
+  ]);
+
   return (
     <main className="relative bg-white">
       <Nav />
-      <LegalContent initialTab={initialTab} lastUpdated={lastUpdated} />
+      <LegalContent
+        initialTab={initialTab}
+        lastUpdated={lastUpdated}
+        termsSections={termsSections}
+        privacySections={privacySections}
+      />
       <Footer />
     </main>
   );
