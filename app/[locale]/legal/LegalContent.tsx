@@ -101,6 +101,7 @@ function SectionList({
               color: "#494951",
               margin: 0,
               paddingLeft: "36px",
+              whiteSpace: "pre-line",
             }}
           >
             {s.body}

@@ -6,8 +6,11 @@ export const tokens = {
     border: 'rgba(255,255,255,0.1)',
     borderStrong: 'rgba(255,255,255,0.18)',
     text: '#FFFFFF',
-    textMuted: 'rgba(255,255,255,0.45)',
-    textFaint: 'rgba(255,255,255,0.25)',
+    // Raised from 0.45/0.25 — the old values rendered secondary text nearly
+    // invisible on pure black (reported readability bug on /book). Keep
+    // muted ≥0.62 and faint ≥0.42 for WCAG-ish contrast on #000.
+    textMuted: 'rgba(255,255,255,0.62)',
+    textFaint: 'rgba(255,255,255,0.42)',
     brand: '#25D366',
     brandHover: '#1FB855',
     brandDim: 'rgba(37,211,102,0.12)',

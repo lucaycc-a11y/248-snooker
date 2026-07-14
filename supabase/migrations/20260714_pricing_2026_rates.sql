@@ -41,3 +41,9 @@ set value = jsonb_build_array(
   jsonb_build_object('id','maximum','minPts',6000,'discount',1.0,'multiplier',2)
 )
 where key = 'tiers';
+
+-- Venue rules & terms revision date (shown as 更新日期 on /legal).
+insert into public.config (key, value)
+values ('legal', jsonb_build_object('updatedAt', '2026-07-14'))
+on conflict (key) do update
+set value = jsonb_set(coalesce(public.config.value, '{}'::jsonb), '{updatedAt}', '"2026-07-14"');

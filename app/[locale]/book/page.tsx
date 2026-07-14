@@ -1392,7 +1392,7 @@ function Screen2({
             </h2>
             <p
               data-cms-key="book.auth.subtitle"
-              style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}
+              style={{ fontSize: 13, color: "rgba(255,255,255,0.7)" }}
             >
               {holdSummary ?? t("login_subtitle")}
             </p>
@@ -1855,7 +1855,7 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
             style={{
               background: "none",
               border: "none",
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(255,255,255,0.6)",
               fontSize: 14,
               cursor: "pointer",
             }}

@@ -57,7 +57,7 @@ export default async function LegalPage({
 
   // Last-updated date is editable from the config table (key: legal.updatedAt).
   const legalCfg = await getConfigValue<{ updatedAt?: string }>("legal", {});
-  const lastUpdated = legalCfg.updatedAt ?? "2026-06-29";
+  const lastUpdated = legalCfg.updatedAt ?? "2026-07-14";
 
   const t = await getTranslations({ locale, namespace: "legal" });
   const termsFallback = t.raw("terms_sections") as { title: string; body: string }[];
