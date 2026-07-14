@@ -1,0 +1,114 @@
+import 'dotenv/config'
+import { getBotConfig, getPricing, getVenueConfig } from './database.js'
+
+const BASE_URL = process.env.VECTORENGINE_BASE_URL
+const API_KEY = process.env.VECTORENGINE_API_KEY
+
+async function callClaude(body) {
+  if (!BASE_URL || !API_KEY) {
+    throw new Error('Missing VectorEngine API configuration')
+  }
+
+  const response = await fetch(`${BASE_URL}/v1/messages`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    throw new Error(`VectorEngine request failed with ${response.status}`)
+  }
+
+  const data = await response.json()
+  return data.content?.[0]?.text || null
+}
+
+export async function generateReply(phone, userMessage, context) {
+  const { history, bookings } = context
+
+  const [personality, pricing, venue] = await Promise.all([
+    getBotConfig('personality'),
+    getPricing(),
+    getVenueConfig(),
+  ])
+
+  const systemPrompt = `${personality || '你是Space8的專業客服助手，用繁體中文書面語回覆，簡短友善，每次不超過3句。'}
+
+場地資料（從資料庫讀取，不可隨意更改）：
+- 名稱：${venue?.name || 'Space8'}
+- 開放時間：${venue?.opening_hours || '每日 06:00-24:00'}
+- 球枱：${venue?.tables || 2}張（枱號#1、枱號#2）
+- WhatsApp：+${venue?.whatsapp || '85264274620'}
+
+現時收費（從資料庫讀取）：
+${pricing?.rules?.map((rule) => `- ${rule.label}：HK$${rule.price_per_hour}/小時`).join('\n') || '請查詢最新價錢'}
+
+${bookings.length > 0 ? `用戶現有預訂：
+${bookings.map((booking) => `- ${booking.date} ${booking.start_time}-${booking.end_time} 枱號#${booking.table_number} ${booking.booking_reference} HK$${booking.total_price} [${booking.status}]`).join('\n')}` : '用戶暫無預訂'}
+
+重要規則：
+- 不確定的事情不要胡亂回答
+- 不要捏造任何資料
+- 驗證碼相關問題請用戶直接回覆數字
+- 預訂問題引導至網站：https://space8.com.hk
+- 不可直接為用戶修改預訂，請他前往網站或聯絡管理員`
+
+  const messages = [
+    ...history.map((item) => ({ role: item.role, content: item.content })),
+    { role: 'user', content: userMessage },
+  ]
+
+  try {
+    return await callClaude({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 500,
+      system: systemPrompt,
+      messages,
+    }) || '抱歉，我暫時無法回覆，請稍後再試。'
+  } catch (error) {
+    console.error('AI reply failed:', error.message)
+    return '抱歉，我暫時無法回覆，請稍後再試。'
+  }
+}
+
+export async function generateAdminReply(adminMessage, context) {
+  const { history } = context
+
+  const systemPrompt = `你是248 Snooker的管理系統AI。
+管理員用自然語言與你溝通，你負責理解他的意圖並執行或確認操作。
+
+可以執行的操作：
+- 更新性格設定 (update_personality)
+- 更新價錢 (update_pricing) — 需要確認
+- 加入維修日期 (add_maintenance) — 需要確認
+- 暫停/恢復自動回覆 (toggle_auto_reply)
+- 查看今日統計 (get_stats)
+- 測試客服 (test_mode)
+- 發送通知給用戶 (send_notification)
+
+如果操作是更改價錢或加入維修日期，必須先列出更改內容，待管理員回覆「確認」後才執行。
+
+回覆格式：
+ACTION:action_name
+PARAMS:json_params
+MESSAGE:顯示給管理員的訊息`
+
+  try {
+    return await callClaude({
+      model: 'claude-opus-4-8',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [
+        ...history.slice(-10).map((item) => ({ role: item.role, content: item.content })),
+        { role: 'user', content: adminMessage },
+      ],
+    }) || '處理失敗'
+  } catch (error) {
+    console.error('Admin AI reply failed:', error.message)
+    return '處理失敗'
+  }
+}

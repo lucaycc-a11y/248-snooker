@@ -1,0 +1,33 @@
+# Space8
+
+> Hong Kong's first self-service snooker club. Book a table online, pay by
+> Apple Pay or card, and enter with a QR code — no staff required. Open daily
+> 06:00–24:00.
+
+Space8 is a self-service snooker (English billiards) venue in Hong Kong.
+Members and guests book table time through the website, pay online, and get a
+QR code that unlocks entry at the venue. Pricing varies by time period
+(afternoon/evening/late-night) and membership tier (Amateur/Century/Maximum),
+which unlock discounts and point multipliers.
+
+## Key pages
+
+- [Booking](https://space8.com.hk/book): Book a table — select date, time,
+  and duration, then pay.
+- [Pricing](https://space8.com.hk/pricing): Hourly rates by time period, and
+  membership tier benefits.
+- [About](https://space8.com.hk/about): Venue details, hours, contact info.
+- [FAQ](https://space8.com.hk/faq): Booking process, entry method, fees,
+  cancellation policy, membership points.
+- [Blog](https://space8.com.hk/blog): Articles about snooker and the venue.
+
+## Languages
+
+Available in Cantonese (zh-HK, default), Simplified Chinese (zh-CN), English
+(en), and Japanese (ja). Non-default locales are prefixed, e.g.
+https://space8.com.hk/en/pricing.
+
+## Contact
+
+Phone: +852 6427 4620
+Email: info.formhk@gmail.com

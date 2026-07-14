@@ -1,0 +1,1268 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Apple,
+  Wallet,
+  CalendarPlus,
+  QrCode as QrCodeIcon,
+  Undo2,
+  CalendarClock,
+  Sparkles,
+  X,
+  LogOut,
+  RotateCw,
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { BackButton } from "@/components/ui";
+import { Starfield } from "@/app/[locale]/Starfield";
+import { resolveTier, type Tier } from "@/lib/data/pricing";
+import type { MemberData, MemberBooking } from "@/lib/data/getMember";
+import RefundConfirmModal from "@/components/member/RefundConfirmModal";
+import ReschedulePicker from "@/components/member/ReschedulePicker";
+import { AmbientGlow } from "@/components/shared/AmbientGlow";
+import { QRCode } from "@/components/shared/QRCode";
+
+// ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
+const DEEP = "#0a0a0a"; // near-black base (QR modal)
+const INK = "#f5f5f7"; // near-white text
+const SUBTLE = "#86868b"; // neutral grey
+const BORDER = "rgba(255,255,255,0.1)"; // glass hairline (cards)
+const HAIRLINE = "rgba(255,255,255,0.18)"; // glass hairline (emphasis)
+const GREEN = "#22C55E"; // primary accent + semantic confirmed
+const DANGER = "#FF453A";
+
+const FONT_FAMILY =
+  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const DISPLAY = '"Bebas Neue", sans-serif';
+
+const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+// Liquid-glass surface recipe for CSS-only surfaces (stats cards, booking list).
+// The member card itself uses WebGL liquidglass, not these constants.
+const GLASS_BG = "rgba(255,255,255,0.05)";
+const GLASS_BLUR = "blur(20px) saturate(180%)";
+
+// Tier accent matches the landing membership section: green / amber / purple.
+const TIER_ACCENT: Record<string, string> = {
+  amateur: "#22C55E",
+  century: "#F59E0B",
+  maximum: "#A78BFA",
+};
+// Subtle tier-coloured corner glow layered over the glass member card.
+const TIER_GLOW: Record<string, string> = {
+  amateur: "radial-gradient(120% 120% at 100% 0%, rgba(34,197,94,0.14), transparent 55%)",
+  century: "radial-gradient(120% 120% at 100% 0%, rgba(245,158,11,0.14), transparent 55%)",
+  maximum: "radial-gradient(120% 120% at 100% 0%, rgba(167,139,250,0.16), transparent 55%)",
+};
+
+type TabId = "bookings" | "points" | "settings";
+
+function formatDate(iso: string | null, locale: string, withTime = false): string {
+  if (!iso) return "—";
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+    }).format(new Date(iso));
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
+
+export default function MemberDashboard({
+  data,
+  tiers,
+  refundCutoffHours,
+}: {
+  data: MemberData;
+  tiers: Tier[];
+  refundCutoffHours: number;
+}) {
+  const t = useTranslations("memberPage");
+  const locale = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, points, stats } = data;
+  const [bookings, setBookings] = useState<MemberBooking[]>(data.bookings);
+
+  // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
+  const initialTab: TabId = ((): TabId => {
+    const q = searchParams.get("tab");
+    return q === "points" || q === "settings" || q === "bookings" ? q : "bookings";
+  })();
+  const [tab, setTab] = useState<TabId>(initialTab);
+  const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
+  const [refundBooking, setRefundBooking] = useState<MemberBooking | null>(null);
+  const [rescheduleBooking, setRescheduleBooking] = useState<MemberBooking | null>(null);
+  const [memberQrDataUrl, setMemberQrDataUrl] = useState<string | null>(null);
+
+  const { current, next, progress, pointsToNext } = resolveTier(user.points, tiers);
+  const tierId = current.id;
+  const accent = TIER_ACCENT[tierId] ?? GREEN;
+
+  // Fetch real scannable QR code for member card from API
+  useEffect(() => {
+    if (!user.member_code) return
+
+    async function fetchQR() {
+      try {
+        const res = await fetch('/api/member/qr')
+        if (!res.ok) {
+          throw new Error(`QR fetch failed: ${res.status}`)
+        }
+        const data = await res.json()
+        setMemberQrDataUrl(data.qrCode)
+      } catch (err) {
+        console.error('[MemberDashboard] QR fetch failed:', err)
+      }
+    }
+
+    fetchQR()
+  }, [user.member_code])
+
+  const signOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
+
+  return (
+    <div
+      style={{
+        fontFamily: FONT_FAMILY,
+        background: "#000",
+        minHeight: "100vh",
+        color: INK,
+        position: "relative",
+        isolation: "isolate",
+      }}
+    >
+      {/* Shared brand ambient orbs, layered behind the tier-coloured backdrop below. */}
+      <AmbientGlow />
+
+      {/* Ambient tier-coloured backdrop — same TIER_GLOW recipe as the
+          membership card, but full-page and animated (slow opacity breathe)
+          so the whole page reads as "this member's colour", not just the card. */}
+      <motion.div
+        aria-hidden="true"
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          background: TIER_GLOW[tierId] ?? TIER_GLOW.amateur,
+        }}
+      />
+      <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.35 }}>
+        <Starfield />
+      </div>
+
+      {/* Fixed back arrow — shared component, identical to the booking flow. */}
+      <BackButton href="/" ariaLabel={t("back")} cmsKey="member.back" color={INK} />
+
+      {/* Lightweight dashboard header (NOT the marketing Nav — its locale switch
+          would route to a non-existent /[locale]/member). */}
+      <DashboardHeader displayName={user.display_name} />
+
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "760px", margin: "0 auto", padding: "16px 20px 96px" }}>
+        {/* ── Membership card (club-card metaphor) ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          style={{
+            position: "relative",
+            borderRadius: "24px",
+            border: `1px solid ${HAIRLINE}`,
+            background: `${TIER_GLOW[tierId] ?? TIER_GLOW.amateur}, ${GLASS_BG}`,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+            padding: "26px 28px",
+            overflow: "hidden",
+            minHeight: 210,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: 28,
+          }}
+        >
+          {/* Top: wordmark + tier */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontFamily: DISPLAY, fontSize: "24px", letterSpacing: "0.12em", color: INK, lineHeight: 1 }}>
+                SPACE8
+              </div>
+              <div data-cms-key="member.card_label" style={{ fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase", color: SUBTLE, marginTop: "6px" }}>
+                {t("card_label")}
+              </div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <FieldLabel>{t("card_tier")}</FieldLabel>
+              <div style={{ fontFamily: DISPLAY, fontSize: "30px", letterSpacing: "0.04em", color: accent, lineHeight: 1, textTransform: "uppercase" }}>
+                {tierId}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom: identity + QR */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 20 }}>
+            <div style={{ minWidth: 0 }}>
+              <FieldLabel>{t("card_passenger")}</FieldLabel>
+              <div style={{ fontSize: "22px", fontWeight: 700, letterSpacing: "-0.01em", color: INK, marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {user.display_name ?? "—"}
+              </div>
+              <div data-cms-key="member.card_member_no" style={{ marginTop: "10px" }}>
+                <FieldLabel>{t("card_member_no")}</FieldLabel>
+                <div
+                  style={{
+                    fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
+                    fontSize: "16px",
+                    fontWeight: 600,
+                    letterSpacing: "0.14em",
+                    color: GREEN,
+                    textShadow: "0 1px 1px rgba(0,0,0,0.55)",
+                    marginTop: "2px",
+                  }}
+                >
+                  {user.member_code}
+                </div>
+              </div>
+              <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "10px" }}>
+                {t("card_member_since")} · {formatDate(user.created_at, locale)}
+              </div>
+            </div>
+
+            {/* Membership QR tile */}
+            <div
+              style={{
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "10px",
+                background: "#fdfcf8",
+                borderRadius: "12px",
+              }}
+            >
+              <QRCode
+                src={memberQrDataUrl}
+                size={76}
+                enlargeLabel={t("qr_tap_enlarge")}
+                closeLabel={t("close")}
+              />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Wallet buttons */}
+        <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
+          <WalletButton icon={<Apple size={18} strokeWidth={2} />} label={t("add_apple_wallet")} cmsKey="member.add_apple_wallet" />
+          <WalletButton icon={<Wallet size={18} strokeWidth={2} />} label={t("add_google_wallet")} cmsKey="member.add_google_wallet" />
+        </div>
+
+        {/* ── Points + tier progress ── */}
+        <div
+          style={{
+            marginTop: "24px",
+            border: `1px solid ${BORDER}`,
+            borderRadius: "20px",
+            padding: "24px",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <span data-cms-key="member.card_points" style={{ fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: SUBTLE }}>
+              {t("card_points")}
+            </span>
+            <span style={{ fontSize: "13px", color: SUBTLE }} data-cms-key="member.tier_progress_title">
+              {t("tier_progress_title")}
+            </span>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", margin: "6px 0 20px" }}>
+            <span style={{ fontFamily: DISPLAY, fontSize: "52px", lineHeight: 0.9, color: accent }}>
+              {user.points.toLocaleString()}
+            </span>
+            <span style={{ fontSize: "14px", color: SUBTLE, marginBottom: "6px", letterSpacing: "0.08em" }}>PTS</span>
+          </div>
+
+          {/* Progress "orbit" — thin track + a ball riding the fill's leading
+              edge (the track itself keeps overflow:hidden for the fill bar;
+              the ball sits in a sibling, unclipped layer so it isn't cut off
+              at the track's height). */}
+          <div style={{ position: "relative", padding: "6px 0" }}>
+            <div style={{ height: "3px", borderRadius: "100px", background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.round(progress * 100)}%` }}
+                transition={{ duration: 0.9, ease: EASE }}
+                style={{ height: "100%", background: GREEN, borderRadius: "100px" }}
+              />
+            </div>
+            <motion.div
+              initial={{ left: 0 }}
+              animate={{ left: `${Math.round(progress * 100)}%` }}
+              transition={{ duration: 0.9, ease: EASE }}
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: "50%",
+                width: "14px",
+                height: "14px",
+                borderRadius: "50%",
+                background: accent,
+                boxShadow: `0 0 8px ${accent}`,
+                transform: "translate(-50%, -50%)",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <span>{current.id}</span>
+            <span>{next ? t("points_to_next", { pts: pointsToNext.toLocaleString() }) : t("max_tier_reached")}</span>
+            {next && <span>{next.id}</span>}
+          </div>
+        </div>
+
+        {/* Stats row — Apple-Card style: no border box per stat, just a
+            hairline divider between them, so the number itself is the hero.
+            Glass surface (bg+blur) matches the member/points cards above. */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            marginTop: "16px",
+            border: `1px solid ${BORDER}`,
+            borderRadius: "16px",
+            padding: "18px 0",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+          }}
+        >
+          <StatCard label={t("stat_bookings")} value={`${stats.bookings}`} unit={t("stat_bookings_unit")} />
+          <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} last={false} />
+          <StatCard label={t("stat_spent")} value={`HK$${stats.spent.toLocaleString()}`} last />
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: "4px", marginTop: "32px", borderBottom: `1px solid ${BORDER}` }}>
+          {([
+            { id: "bookings", key: "tab_bookings" },
+            { id: "points", key: "tab_points" },
+            { id: "settings", key: "tab_settings" },
+          ] as const).map((tabItem) => {
+            const active = tab === tabItem.id;
+            return (
+              <button
+                key={tabItem.id}
+                type="button"
+                onClick={() => setTab(tabItem.id)}
+                data-cms-key={`member.${tabItem.key}`}
+                style={{
+                  position: "relative",
+                  padding: "14px 12px",
+                  fontSize: "15px",
+                  fontWeight: active ? 600 : 500,
+                  color: active ? INK : SUBTLE,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  minHeight: 44,
+                  fontFamily: FONT_FAMILY,
+                }}
+              >
+                {t(tabItem.key)}
+                {active && (
+                  <motion.span
+                    layoutId="member-tab-underline"
+                    style={{ position: "absolute", left: "12px", right: "12px", bottom: "-1px", height: "2px", background: GREEN }}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tab panels */}
+        <div style={{ marginTop: "28px" }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+            >
+              {tab === "bookings" && (
+                <BookingsTab
+                  bookings={bookings}
+                  locale={locale}
+                  refundCutoffHours={refundCutoffHours}
+                  onViewQr={setQrBooking}
+                  onRefund={setRefundBooking}
+                  onReschedule={setRescheduleBooking}
+                />
+              )}
+              {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} />}
+              {tab === "settings" && <SettingsTab user={user} onSignOut={signOut} />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* QR modal */}
+      <QrModal booking={qrBooking} onClose={() => setQrBooking(null)} locale={locale} />
+
+      {/* Refund confirmation modal */}
+      <RefundConfirmModal
+        booking={refundBooking}
+        onClose={() => setRefundBooking(null)}
+        onRefunded={(booking, result) => {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.id === booking.id
+                ? { ...b, status: "refunded", refundAmount: result.refundAmount, refundFee: result.refundFee }
+                : b,
+            ),
+          );
+          setRefundBooking(null);
+        }}
+      />
+
+      {/* Reschedule picker */}
+      <ReschedulePicker
+        booking={rescheduleBooking}
+        onClose={() => setRescheduleBooking(null)}
+        onRescheduled={(booking, result) => {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.id === booking.id
+                ? {
+                    ...b,
+                    date: result.date,
+                    startTime: result.startTime,
+                    endTime: result.endTime,
+                    tableId: result.tableNumber,
+                    rescheduleCount: result.rescheduleCount,
+                  }
+                : b,
+            ),
+          );
+          setRescheduleBooking(null);
+        }}
+      />
+    </div>
+  );
+}
+
+/* ── Small presentational helpers ── */
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <span style={{ fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: SUBTLE }}>{children}</span>;
+}
+
+function DashboardHeader({ displayName }: { displayName: string | null }) {
+  const t = useTranslations("memberPage");
+  const locale = useLocale();
+  const router = useRouter();
+
+  const LOCALES = ["zh-HK", "zh-CN", "en"] as const;
+  const LABELS: Record<string, string> = { "zh-HK": "繁", "zh-CN": "简", en: "EN" };
+
+  // Cookie-based locale toggle (no route change — /member is single-path).
+  const cycleLocale = () => {
+    const idx = LOCALES.indexOf(locale as (typeof LOCALES)[number]);
+    const next = LOCALES[(idx + 1) % LOCALES.length];
+    document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=31536000; samesite=lax`;
+    router.refresh();
+  };
+
+  return (
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 20,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "16px 20px 16px 72px",
+        background: "rgba(0,0,0,0.72)",
+        backdropFilter: "blur(20px) saturate(160%)",
+        WebkitBackdropFilter: "blur(20px) saturate(160%)",
+        borderBottom: `1px solid ${BORDER}`,
+      }}
+    >
+      {/* Left side intentionally empty — BackButton is a separate fixed
+          element (this header's left padding already reserves space for it).
+          Greeting + language switcher — separated with real breathing room,
+          language toggle styled as its own frosted glass pill (matches the
+          public Nav's pill container recipe) rather than a flat text box. */}
+      <div />
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <span style={{ fontSize: "14px", color: SUBTLE }}>
+          {t("greeting")}{displayName ? `, ${displayName}` : ""}
+        </span>
+        <button
+          type="button"
+          onClick={cycleLocale}
+          aria-label="Switch language"
+          style={{
+            color: INK,
+            fontSize: "14px",
+            fontWeight: 500,
+            background: "rgba(255,255,255,0.05)",
+            backdropFilter: "blur(24px) saturate(180%)",
+            WebkitBackdropFilter: "blur(24px) saturate(180%)",
+            border: `1px solid ${HAIRLINE}`,
+            borderRadius: "999px",
+            padding: "8px 14px",
+            cursor: "pointer",
+            minHeight: 36,
+          }}
+        >
+          {LABELS[locale] ?? "中"}
+        </button>
+      </div>
+    </header>
+  );
+}
+
+function WalletButton({ icon, label, cmsKey }: { icon: React.ReactNode; label: string; cmsKey: string }) {
+  return (
+    <button
+      type="button"
+      data-cms-key={cmsKey}
+      style={{
+        flex: "1 1 160px",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+        minHeight: 48,
+        padding: "0 18px",
+        borderRadius: "12px",
+        border: `1px solid ${HAIRLINE}`,
+        background: GLASS_BG,
+        backdropFilter: GLASS_BLUR,
+        WebkitBackdropFilter: GLASS_BLUR,
+        color: INK,
+        fontSize: "14px",
+        fontWeight: 600,
+        cursor: "pointer",
+        fontFamily: FONT_FAMILY,
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function StatCard({ label, value, unit, last }: { label: string; value: string; unit?: string; last?: boolean }) {
+  return (
+    <div
+      style={{
+        borderRight: last ? "none" : `1px solid ${BORDER}`,
+        padding: "0 16px",
+        textAlign: "center",
+      }}
+    >
+      <div style={{ fontFamily: DISPLAY, fontSize: "30px", letterSpacing: "0.02em", color: INK, lineHeight: 1 }}>
+        {value}
+        {unit ? <span style={{ fontSize: "12px", color: SUBTLE, marginLeft: "3px", fontFamily: FONT_FAMILY, fontWeight: 400 }}>{unit}</span> : null}
+      </div>
+      <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "8px" }}>{label}</div>
+    </div>
+  );
+}
+
+/* ── Tabs ── */
+function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("memberPage");
+  const map: Record<string, { label: string; color: string }> = {
+    confirmed: { label: t("status_confirmed"), color: GREEN },
+    cancelled: { label: t("status_cancelled"), color: DANGER },
+    completed: { label: t("status_completed"), color: SUBTLE },
+    refunded: { label: t("status_refunded"), color: DANGER },
+    pending: { label: t("status_pending"), color: SUBTLE },
+    payment_failed: { label: t("status_payment_failed"), color: DANGER },
+  };
+  // Unknown statuses used to silently render as "Confirmed" (the old
+  // fallback) — fall back to the neutral "Pending" look instead, since an
+  // unrecognized status is more likely a new/incomplete state than a
+  // confirmed one.
+  const s = map[status] ?? map.pending;
+  return (
+    <span style={{ fontSize: "12px", fontWeight: 600, color: s.color, background: `${s.color}1f`, borderRadius: "100px", padding: "3px 10px" }}>
+      {s.label}
+    </span>
+  );
+}
+
+// bookings.start_time is a bare Postgres `time` ("HH:MM:SS"), not a full
+// timestamp — anchor it to the booking's date for real "now vs start" math.
+// (Confirmed by getMemberTicket's parseInt(startTime.slice(0,2)) usage.)
+function bookingStart(b: MemberBooking): Date | null {
+  if (!b.date || !b.startTime) return null;
+  const time = b.startTime.length > 8 ? b.startTime.slice(11, 19) : b.startTime;
+  const d = new Date(`${b.date}T${time}`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function canRefund(b: MemberBooking, refundCutoffHours: number): boolean {
+  if (b.status !== "confirmed") return false;
+  const start = bookingStart(b);
+  if (!start) return false;
+  return Date.now() < start.getTime() - refundCutoffHours * 3600_000;
+}
+
+function canReschedule(b: MemberBooking): boolean {
+  if (b.status !== "confirmed") return false;
+  const start = bookingStart(b);
+  if (!start) return false;
+  return Date.now() < start.getTime();
+}
+
+function BookingsTab({
+  bookings,
+  locale,
+  refundCutoffHours,
+  onViewQr,
+  onRefund,
+  onReschedule,
+}: {
+  bookings: MemberBooking[];
+  locale: string;
+  refundCutoffHours: number;
+  onViewQr: (b: MemberBooking) => void;
+  onRefund: (b: MemberBooking) => void;
+  onReschedule: (b: MemberBooking) => void;
+}) {
+  const t = useTranslations("memberPage");
+  const router = useRouter();
+  if (bookings.length === 0) {
+    return <EmptyState text={t("no_bookings")} />;
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      {bookings.map((b) => (
+        <div
+          key={b.id}
+          onClick={() => router.push(`/member/bookings/${b.id}`)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") router.push(`/member/bookings/${b.id}`);
+          }}
+          style={{
+            border: `1px solid ${BORDER}`,
+            borderRadius: "16px",
+            padding: "20px",
+            cursor: "pointer",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+            <div>
+              <div style={{ fontSize: "16px", fontWeight: 600, color: INK }}>{formatDate(b.date, locale)}</div>
+              <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
+                {b.startTime?.slice(11, 16) || b.startTime || "—"}
+                {b.endTime ? ` – ${b.endTime.slice(11, 16) || b.endTime}` : ""}
+                {b.tableId ? ` · ${t("booking_table")} ${b.tableId}` : ""}
+              </div>
+              <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
+                {b.durationHours ? `${b.durationHours}h · ` : ""}HK${b.price}
+              </div>
+              {b.status === "refunded" && b.refundAmount != null ? (
+                <div style={{ fontSize: "13px", color: SUBTLE, marginTop: "2px" }}>
+                  {t("refund_success_toast")} HK${b.refundAmount}
+                </div>
+              ) : null}
+            </div>
+            <StatusBadge status={b.status} />
+          </div>
+          <div
+            style={{ display: "flex", gap: "10px", marginTop: "16px", alignItems: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Primary action — visually the only filled/tinted pill. A
+                failed booking has no valid QR to show; offer to retry
+                payment instead of a QR that would never scan. */}
+            {b.status === "payment_failed" ? (
+              retryPaymentLink(b) && (
+                <SmallButton
+                  onClick={() => router.push(retryPaymentLink(b)!)}
+                  icon={<RotateCw size={15} strokeWidth={2} />}
+                  label={t("booking_retry_payment")}
+                  cmsKey="member.booking_retry_payment"
+                  primary
+                />
+              )
+            ) : (
+              <SmallButton
+                onClick={() => onViewQr(b)}
+                icon={<QrCodeIcon size={15} strokeWidth={2} />}
+                label={t("booking_view_qr")}
+                cmsKey="member.booking_view_qr"
+                primary
+              />
+            )}
+            {/* Refund stays visible (higher-consequence, narrow time window)
+                but de-emphasized — outline only, danger-tinted text. */}
+            {canRefund(b, refundCutoffHours) && (
+              <SmallButton
+                onClick={() => onRefund(b)}
+                icon={<Undo2 size={15} strokeWidth={2} />}
+                label={t("booking_refund")}
+                cmsKey="member.booking_refund"
+                tone="danger"
+              />
+            )}
+            {/* Low-frequency actions collapse into an overflow menu so the
+                card doesn't read as a row of equal-weight buttons. */}
+            <div style={{ marginLeft: "auto" }}>
+              <OverflowMenu
+                items={[
+                  { label: t("booking_add_calendar"), icon: <CalendarPlus size={15} strokeWidth={2} />, href: calendarLink(b) },
+                  ...(canReschedule(b)
+                    ? [{ label: t("booking_reschedule"), icon: <CalendarClock size={15} strokeWidth={2} />, onClick: () => onReschedule(b) }]
+                    : []),
+                ]}
+                ariaLabel={t("booking_more_actions")}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Icon + tint per points_ledger category — mirrors StatusBadge's
+// ${color}1f-tinted-circle convention.
+const POINTS_CATEGORY_STYLE: Record<
+  import("@/lib/data/getMember").PointsEntry["category"],
+  { icon: React.ReactNode; color: string }
+> = {
+  booking: { icon: <CalendarPlus size={14} strokeWidth={2} />, color: GREEN },
+  refund: { icon: <Undo2 size={14} strokeWidth={2} />, color: DANGER },
+  manual: { icon: <Sparkles size={14} strokeWidth={2} />, color: SUBTLE },
+};
+
+function PointsTab({ points, balance, locale }: { points: import("@/lib/data/getMember").PointsEntry[]; balance: number; locale: string }) {
+  const t = useTranslations("memberPage");
+  const earn = t.raw("points_earn") as string[];
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "16px" }}>
+        <span style={{ fontSize: "14px", color: SUBTLE }} data-cms-key="member.points_running_total">{t("points_running_total")}</span>
+        <span style={{ fontFamily: DISPLAY, fontSize: "30px", color: INK, letterSpacing: "0.02em" }}>{balance.toLocaleString()} <span style={{ fontSize: "13px", color: SUBTLE, fontFamily: FONT_FAMILY }}>pts</span></span>
+      </div>
+
+      {points.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {points.map((p, i) => {
+            const iconStyle = POINTS_CATEGORY_STYLE[p.category];
+            return (
+              <div
+                key={p.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "16px 0",
+                  borderBottom: i < points.length - 1 ? `1px solid ${BORDER}` : "none",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    flexShrink: 0,
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: `${iconStyle.color}1f`,
+                    color: iconStyle.color,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {iconStyle.icon}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "15px", color: INK }}>{p.description || "—"}</div>
+                  <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "2px" }}>{formatDate(p.date, locale)}</div>
+                </div>
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    color: p.delta >= 0 ? GREEN : DANGER,
+                    minWidth: "64px",
+                    textAlign: "right",
+                    flexShrink: 0,
+                  }}
+                >
+                  {p.delta >= 0 ? "+" : ""}
+                  {p.delta}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState text={t("no_points")} />
+      )}
+
+      {/* Earn ways */}
+      <div style={{ marginTop: "32px", border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px" }}>
+        <h4 style={{ fontSize: "14px", fontWeight: 600, margin: "0 0 14px", color: INK }} data-cms-key="member.points_earn_title">{t("points_earn_title")}</h4>
+        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+          {earn.map((e, i) => (
+            <li key={e} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "14px", color: "rgba(244,241,234,0.75)" }} data-cms-key={`member.points_earn.${i}`}>
+              <span aria-hidden="true" style={{ width: "5px", height: "5px", borderRadius: "50%", background: GREEN }} />
+              {e}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut: () => void }) {
+  const t = useTranslations("memberPage");
+  const [name, setName] = useState(user.display_name ?? "");
+  const [phone, setPhone] = useState(user.phone ?? "");
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [notif, setNotif] = useState({ booking: true, points: true, promo: false });
+
+  const save = async () => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      // Validated server save (service-role) — mirrors the mandatory profile gate
+      // so a clean +852 number can't be overwritten with junk, and a failure is
+      // surfaced rather than swallowed (the old client .update() failed silently).
+      const res = await fetch("/api/profile/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setSaveError(
+          j.field === "name"
+            ? t("settings_err_name")
+            : j.field === "phone"
+              ? t("settings_err_phone")
+              : t("settings_err_generic"),
+        );
+        return;
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      setSaveError(t("settings_err_generic"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (window.confirm(t("delete_confirm"))) {
+      // Account deletion requires a privileged server action; placeholder hook.
+      window.alert(t("delete_confirm"));
+    }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    minHeight: 48,
+    padding: "0 16px",
+    borderRadius: "12px",
+    border: `1px solid ${BORDER}`,
+    background: "rgba(0,0,0,0.25)",
+    color: INK,
+    fontSize: "15px",
+    fontFamily: FONT_FAMILY,
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <Field label={t("settings_display_name")}>
+        <input value={name} onChange={(e) => setName(e.target.value)} style={inputStyle} aria-label={t("settings_display_name")} />
+      </Field>
+      <Field label={t("settings_email")}>
+        <input value={user.email ?? ""} readOnly style={{ ...inputStyle, color: SUBTLE, cursor: "not-allowed" }} aria-label={t("settings_email")} />
+      </Field>
+      <Field label={t("settings_phone")}>
+        <input value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} inputMode="tel" aria-label={t("settings_phone")} />
+      </Field>
+
+      {/* Notifications */}
+      <div style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px" }}>
+        <h4 style={{ fontSize: "14px", fontWeight: 600, margin: "0 0 16px", color: INK }} data-cms-key="member.settings_notifications">{t("settings_notifications")}</h4>
+        <Toggle label={t("notif_booking")} on={notif.booking} onChange={(v) => setNotif((s) => ({ ...s, booking: v }))} />
+        <Toggle label={t("notif_points")} on={notif.points} onChange={(v) => setNotif((s) => ({ ...s, points: v }))} />
+        <Toggle label={t("notif_promo")} on={notif.promo} onChange={(v) => setNotif((s) => ({ ...s, promo: v }))} last />
+      </div>
+
+      {saveError && (
+        <p data-cms-key="member.settings_error" style={{ fontSize: "14px", color: DANGER, margin: 0 }}>
+          {saveError}
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={save}
+        disabled={saving}
+        style={{
+          minHeight: 52,
+          borderRadius: "14px",
+          border: "none",
+          background: GREEN,
+          color: DEEP,
+          fontSize: "16px",
+          fontWeight: 700,
+          cursor: saving ? "default" : "pointer",
+          opacity: saving ? 0.6 : 1,
+        }}
+        data-cms-key="member.save"
+      >
+        {saved ? t("saved") : t("save")}
+      </button>
+
+      {/* Danger zone */}
+      <div style={{ border: `1px solid ${DANGER}55`, borderRadius: "16px", padding: "20px", marginTop: "12px" }}>
+        <h4 style={{ fontSize: "14px", fontWeight: 600, color: DANGER, margin: "0 0 12px" }} data-cms-key="member.danger_zone">{t("danger_zone")}</h4>
+        <button
+          type="button"
+          onClick={confirmDelete}
+          style={{ minHeight: 44, padding: "0 18px", borderRadius: "12px", border: `1px solid ${DANGER}`, background: "transparent", color: DANGER, fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
+          data-cms-key="member.delete_account"
+        >
+          {t("delete_account")}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={onSignOut}
+        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", minHeight: 48, borderRadius: "12px", border: `1px solid ${BORDER}`, background: "transparent", color: DANGER, fontSize: "15px", fontWeight: 600, cursor: "pointer" }}
+        data-cms-key="member.sign_out"
+      >
+        <LogOut size={16} strokeWidth={2} />
+        {t("sign_out")}
+      </button>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label style={{ display: "block" }}>
+      <span style={{ display: "block", fontSize: "14px", color: SUBTLE, marginBottom: "8px" }}>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function Toggle({ label, on, onChange, last }: { label: string; on: boolean; onChange: (v: boolean) => void; last?: boolean }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: last ? "none" : `1px solid ${BORDER}` }}>
+      <span style={{ fontSize: "15px", color: INK }}>{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={on}
+        aria-label={label}
+        onClick={() => onChange(!on)}
+        style={{
+          width: "48px",
+          height: "30px",
+          borderRadius: "100px",
+          border: "none",
+          background: on ? GREEN : "rgba(255,255,255,0.18)",
+          position: "relative",
+          cursor: "pointer",
+          transition: "background 0.2s ease",
+          flexShrink: 0,
+        }}
+      >
+        <motion.span
+          animate={{ x: on ? 20 : 2 }}
+          transition={SPRING}
+          style={{ position: "absolute", top: "3px", left: 0, width: "24px", height: "24px", borderRadius: "50%", background: "white" }}
+        />
+      </button>
+    </div>
+  );
+}
+
+function SmallButton({
+  label,
+  icon,
+  onClick,
+  href,
+  cmsKey,
+  primary,
+  tone,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  href?: string;
+  cmsKey: string;
+  /** Visually the hero action on the card (filled/tinted pill). */
+  primary?: boolean;
+  /** Outline-only, tinted text — for a visible-but-de-emphasized action. */
+  tone?: "danger";
+}) {
+  const toneColor = tone === "danger" ? DANGER : INK;
+  const style: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    minHeight: 40,
+    padding: "0 14px",
+    borderRadius: "100px",
+    border: `1px solid ${primary ? GREEN : tone === "danger" ? `${DANGER}55` : BORDER}`,
+    background: primary ? `${GREEN}1f` : "rgba(255,255,255,0.05)",
+    backdropFilter: "blur(20px) saturate(180%)",
+    WebkitBackdropFilter: "blur(20px) saturate(180%)",
+    color: primary ? GREEN : toneColor,
+    fontSize: "14px",
+    fontWeight: primary ? 600 : 500,
+    cursor: "pointer",
+    textDecoration: "none",
+    fontFamily: FONT_FAMILY,
+  };
+  return href ? (
+    <a href={href} download style={style} data-cms-key={cmsKey}>
+      {icon}
+      {label}
+    </a>
+  ) : (
+    <button type="button" onClick={onClick} style={style} data-cms-key={cmsKey}>
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+type OverflowMenuItem = {
+  label: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  href?: string;
+};
+
+// Small anchored popover for low-frequency secondary actions — same
+// AnimatePresence + SPRING recipe as QrModal, but a compact dropdown instead
+// of a full-screen overlay.
+function OverflowMenu({ items, ariaLabel }: { items: OverflowMenuItem[]; ariaLabel: string }) {
+  const [open, setOpen] = useState(false);
+  if (items.length === 0) return null;
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={ariaLabel}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          border: `1px solid ${BORDER}`,
+          background: "transparent",
+          color: SUBTLE,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "18px",
+          lineHeight: 1,
+        }}
+      >
+        ⋯
+      </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Click-outside catcher */}
+            <div
+              onClick={() => setOpen(false)}
+              style={{ position: "fixed", inset: 0, zIndex: 90 }}
+            />
+            <motion.div
+              role="menu"
+              initial={{ opacity: 0, scale: 0.95, y: -6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -6 }}
+              transition={SPRING}
+              style={{
+                position: "absolute",
+                top: "calc(100% + 6px)",
+                right: 0,
+                zIndex: 91,
+                minWidth: 180,
+                background: DEEP,
+                border: `1px solid ${HAIRLINE}`,
+                borderRadius: "14px",
+                padding: "6px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {items.map((item, i) => {
+                const itemStyle: React.CSSProperties = {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px 12px",
+                  borderRadius: "9px",
+                  border: "none",
+                  background: "transparent",
+                  color: INK,
+                  fontSize: "14px",
+                  fontFamily: FONT_FAMILY,
+                  cursor: "pointer",
+                  textAlign: "left",
+                  textDecoration: "none",
+                };
+                return item.href ? (
+                  <a key={i} href={item.href} download role="menuitem" style={itemStyle} onClick={() => setOpen(false)}>
+                    {item.icon}
+                    {item.label}
+                  </a>
+                ) : (
+                  <button
+                    key={i}
+                    type="button"
+                    role="menuitem"
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false);
+                      item.onClick?.();
+                    }}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div style={{ textAlign: "center", padding: "48px 24px", color: SUBTLE, fontSize: "15px" }}>{text}</div>
+  );
+}
+
+function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; onClose: () => void; locale: string }) {
+  const t = useTranslations("memberPage");
+  return (
+    <AnimatePresence>
+      {booking && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={onClose}
+          style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
+        >
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={SPRING}
+            onClick={(e) => e.stopPropagation()}
+            style={{ position: "relative", width: "100%", maxWidth: "360px", background: DEEP, border: `1px solid ${HAIRLINE}`, borderRadius: "24px", padding: "32px", textAlign: "center", fontFamily: FONT_FAMILY }}
+          >
+            <button type="button" onClick={onClose} aria-label={t("close")} style={{ position: "absolute", top: "16px", right: "16px", width: "36px", height: "36px", borderRadius: "50%", border: "none", background: "rgba(255,255,255,0.1)", color: INK, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <X size={18} />
+            </button>
+            <h3 style={{ fontFamily: DISPLAY, fontSize: "24px", letterSpacing: "0.04em", margin: "0 0 20px", color: INK }} data-cms-key="member.qr_modal_title">
+              {t("qr_modal_title")}
+            </h3>
+            <div style={{ display: "flex", justifyContent: "center", padding: "20px", background: "white", borderRadius: "16px" }}>
+              <QRCode data={booking.humanCode} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
+            </div>
+            <div style={{ marginTop: "20px" }}>
+              <div style={{ fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }} data-cms-key="member.qr_reference">
+                {t("qr_reference")}
+              </div>
+              <div style={{ fontSize: "16px", fontWeight: 700, fontFamily: "ui-monospace, monospace", marginTop: "4px", color: INK }}>
+                {booking.humanCode}
+              </div>
+              <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "8px" }}>
+                {formatDate(booking.date, locale)}
+                {booking.startTime ? ` · ${booking.startTime.slice(11, 16) || booking.startTime}` : ""}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// Build a Google Calendar "add event" link from a booking.
+function calendarLink(b: MemberBooking): string {
+  const title = encodeURIComponent("Space8");
+  const toCal = (iso: string | null) => (iso ? iso.replace(/[-:]/g, "").replace(/\.\d+/, "") : "");
+  const start = toCal(b.startTime);
+  const end = toCal(b.endTime);
+  const dates = start && end ? `&dates=${start}/${end}` : "";
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}${dates}`;
+}
+
+// A payment_failed booking's original slot lock is long gone (locks expire
+// in minutes, this can be found much later) — retry can't resume the same
+// booking row, only send the user back into slot selection with the same
+// date/time/table/duration pre-filled via /book's existing prefill effect.
+// Availability isn't re-checked here on purpose, same as that effect's own
+// prefill path — Screen1 handles a since-taken slot the same way either way.
+function retryPaymentLink(b: MemberBooking): string | null {
+  if (!b.date || !b.startTime || !b.tableId) return null;
+  const hour = b.startTime.length > 8 ? b.startTime.slice(11, 13) : b.startTime.slice(0, 2);
+  const start = parseInt(hour, 10);
+  if (Number.isNaN(start)) return null;
+  const params = new URLSearchParams({
+    date: b.date,
+    start: String(start),
+    duration: String(b.durationHours || 1),
+    table: String(b.tableId),
+  });
+  return `/book?${params.toString()}`;
+}

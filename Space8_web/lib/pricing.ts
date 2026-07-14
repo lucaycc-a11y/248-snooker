@@ -1,0 +1,233 @@
+// Server-side price calculation — the ONLY source of truth for what a booking
+// costs. The client may DISPLAY a quote (via /api/booking/quote), but the amount
+// charged to Stripe is always re-derived here at PaymentIntent creation time.
+// Never trust a price that arrived from the browser.
+//
+// Rates come from the `config` table ('pricing' key), with DEFAULT_PERIODS as the
+// offline fallback (see lib/data/pricing.ts). Period is resolved per-hour so a
+// booking spanning, e.g., 17:00–19:00 is billed partly at the afternoon rate and
+// partly at the evening rate.
+
+import {
+  DEFAULT_PERIODS,
+  DEFAULT_SERVICES,
+  type PricingPeriod,
+  type ServiceFees,
+  type Tier,
+} from './data/pricing'
+
+export type PriceLineItem = {
+  hourStart: string // 'HH:MM' of this billed hour
+  periodId: PricingPeriod['id'] | 'default'
+  rate: number // HK$ for this hour
+}
+
+export type PriceQuote = {
+  currency: 'hkd'
+  /** Integer HK dollars charged to the member (after any member discount). */
+  total: number
+  /** Total in the smallest currency unit (cents) — what Stripe expects. */
+  amountInCents: number
+  /** Pre-discount subtotal, before tier discount. */
+  subtotal: number
+  /** Loyalty points this booking earns (does NOT affect the charged amount). */
+  pointsEarned: number
+  durationHours: number
+  breakdown: PriceLineItem[]
+}
+
+function isWeekend(d: Date): boolean {
+  const day = d.getDay() // 0 Sun … 6 Sat
+  return day === 0 || day === 6
+}
+
+/** Does this period apply on the given day type? */
+function periodAppliesOnDay(period: PricingPeriod, weekend: boolean): boolean {
+  if (period.days === 'all') return true
+  return weekend ? period.days === 'weekend' : period.days === 'weekday'
+}
+
+/** 'HH:MM' → minutes since midnight. */
+function toMinutes(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number)
+  return h * 60 + m
+}
+
+/** Find the period covering a given hour-of-day for a given day type. */
+function periodForHour(
+  hourOfDay: number,
+  weekend: boolean,
+  periods: PricingPeriod[],
+): PricingPeriod | null {
+  const minute = hourOfDay * 60
+  for (const p of periods) {
+    if (!periodAppliesOnDay(p, weekend)) continue
+    const start = toMinutes(p.start)
+    // 'end' of '24:00' means end-of-day; treat 00:00 end as 24:00.
+    const endRaw = toMinutes(p.end)
+    const end = endRaw === 0 ? 24 * 60 : endRaw
+    if (minute >= start && minute < end) return p
+  }
+  return null
+}
+
+/**
+ * Calculate the price of a booking from its start/end and the member's tier.
+ *
+ * @param slotStart inclusive start (local HK time)
+ * @param slotEnd   exclusive end
+ * @param tier      the member's resolved tier (drives discount + points)
+ * @param periods   rate config (pass the live config; defaults to fallback)
+ */
+export function calculatePrice(
+  slotStart: Date,
+  slotEnd: Date,
+  tier: Pick<Tier, 'discount' | 'multiplier'>,
+  periods: PricingPeriod[] = DEFAULT_PERIODS,
+): PriceQuote {
+  if (slotEnd <= slotStart) {
+    throw new Error('slotEnd must be after slotStart')
+  }
+
+  const ms = slotEnd.getTime() - slotStart.getTime()
+  const durationHours = ms / (1000 * 60 * 60)
+  if (!Number.isInteger(durationHours) || durationHours < 1 || durationHours > 6) {
+    // Bookings are whole-hour, 1–6h (config.maxHours). Reject anything else
+    // rather than silently rounding — a non-integer duration means a bad client.
+    throw new Error(`Invalid booking duration: ${durationHours}h`)
+  }
+
+  const weekend = isWeekend(slotStart)
+  const breakdown: PriceLineItem[] = []
+  let subtotal = 0
+
+  // Long-booking discount is keyed off the booking's TOTAL duration (not each
+  // period's own run-length) — a single continuous booking spanning multiple
+  // periods still qualifies as soon as its overall length hits the period's
+  // discountMinHours, per period.
+  const cursor = new Date(slotStart)
+  for (let i = 0; i < durationHours; i++) {
+    const hourOfDay = cursor.getHours()
+    const period = periodForHour(hourOfDay, weekend, periods)
+    // Fall back to the cheapest configured rate if no period matches (e.g. an
+    // uncovered gap in the config) so we never bill HK$0 by accident.
+    const fallbackRate = Math.min(...periods.map((p) => p.rate))
+    const qualifiesForDiscount =
+      period?.discountRate !== undefined &&
+      period?.discountMinHours !== undefined &&
+      durationHours >= period.discountMinHours
+    const rate = period
+      ? qualifiesForDiscount
+        ? (period.discountRate as number)
+        : period.rate
+      : fallbackRate
+    subtotal += rate
+    breakdown.push({
+      hourStart: `${String(hourOfDay).padStart(2, '0')}:00`,
+      periodId: period?.id ?? 'default',
+      rate,
+    })
+    cursor.setHours(cursor.getHours() + 1)
+  }
+
+  // ── Member discount + points policy ──────────────────────────────────────
+  // TODO(business-decision): implement applyTierPolicy() below and use it here.
+  const { total, pointsEarned } = applyTierPolicy(subtotal, durationHours, tier)
+
+  return {
+    currency: 'hkd',
+    subtotal,
+    total,
+    amountInCents: Math.round(total * 100),
+    pointsEarned,
+    durationHours,
+    breakdown,
+  }
+}
+
+/**
+ * Decide (a) how much the member is actually CHARGED and (b) how many loyalty
+ * points the booking earns.
+ *
+ * FINALIZED POLICY (revenue-neutral — this is the decision, not a placeholder):
+ *  - Every member is charged the FULL calculated price. No tier reduces the
+ *    charged amount. `tier.discount` is intentionally NOT applied here.
+ *  - Tiers reward members through faster POINTS only:
+ *      pointsEarned = subtotal × tier.multiplier
+ *      (Amateur 1×, Century 1.5×, Maximum 2×)
+ *  - This matches the security skill ("tier multiplier affects points only, never
+ *    the charged price") and avoids committing to a margin-cutting discount that
+ *    hasn't been decided. If a member-discount is ever introduced, change it here
+ *    and nowhere else — this is the single source of truth for the charged amount.
+ *
+ * `total` is kept an integer (HKD has no sub-dollar pricing here) and never
+ * drops below 0.
+ */
+function applyTierPolicy(
+  subtotal: number,
+  durationHours: number,
+  tier: Pick<Tier, 'discount' | 'multiplier'>,
+): { total: number; pointsEarned: number } {
+  const total = Math.max(0, Math.round(subtotal)) // full price, no tier discount
+  const pointsEarned = Math.round(subtotal * tier.multiplier)
+  return { total, pointsEarned }
+}
+
+/**
+ * Client-safe duplicate of lib/booking/server.ts's slotBounds — that module
+ * imports getServiceSupabase() (secret key) and must never enter the browser
+ * bundle, so this trivial bounds math is re-exported here instead.
+ */
+export function slotBoundsPure(date: string, startHour: number, durationHours: number) {
+  const slotStart = new Date(`${date}T00:00:00`)
+  slotStart.setHours(startHour, 0, 0, 0)
+  const slotEnd = new Date(slotStart)
+  slotEnd.setHours(slotEnd.getHours() + durationHours)
+  return { slotStart, slotEnd }
+}
+
+/**
+ * Display-only total for a single block, given live (or fallback) pricing
+ * periods. Used by the /book UI's live-updating price — the actual Stripe
+ * charge is always re-derived server-side by calculatePrice() at intent
+ * creation, never trusted from here.
+ *
+ * The dummy tier is safe: applyTierPolicy() above charges the full subtotal
+ * regardless of tier (tier only affects pointsEarned), so tier never changes
+ * the displayed total.
+ */
+export function quoteBlockTotal(
+  date: string,
+  startHour: number,
+  durationHours: number,
+  periods: PricingPeriod[] = DEFAULT_PERIODS,
+): number {
+  if (durationHours <= 0) return 0
+  const { slotStart, slotEnd } = slotBoundsPure(date, startHour, durationHours)
+  return calculatePrice(slotStart, slotEnd, { discount: 1, multiplier: 1 }, periods).total
+}
+
+/**
+ * Minimum points a block will earn, shown pre-login on the slot picker where
+ * the visitor's real tier multiplier isn't known yet (Amateur 1× floor —
+ * Century/Maximum members earn more once signed in, per applyTierPolicy).
+ * With multiplier=1, pointsEarned === total, so this is quoteBlockTotal in
+ * all but name — kept as its own export so call sites read as "points", not
+ * an accidental reuse of a price number.
+ */
+export function quoteBlockMinPoints(
+  date: string,
+  startHour: number,
+  durationHours: number,
+  periods: PricingPeriod[] = DEFAULT_PERIODS,
+): number {
+  return quoteBlockTotal(date, startHour, durationHours, periods)
+}
+
+/** Convenience for add-ons priced from the services config (lockers, cue hire). */
+export function serviceFee(
+  key: keyof ServiceFees,
+  services: ServiceFees = DEFAULT_SERVICES,
+): number {
+  return services[key]
+}

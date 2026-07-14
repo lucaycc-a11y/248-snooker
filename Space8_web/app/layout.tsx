@@ -1,0 +1,86 @@
+import type { Metadata, Viewport } from "next";
+import { Bebas_Neue } from "next/font/google";
+import { getLocale } from "next-intl/server";
+import { routing } from "@/i18n/routing";
+import "./globals.css";
+
+const bebasNeue = Bebas_Neue({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-bebas",
+  display: "swap",
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL("https://space8.com.hk"),
+  title: "Space8 · 香港自助中式桌球 06:00-24:00",
+  description:
+    "香港首間自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
+  keywords: [
+    "中式桌球",
+    "桌球會",
+    "香港桌球",
+    "自助桌球",
+    "Chinese eight-ball Hong Kong",
+    "Space8",
+  ],
+  openGraph: {
+    title: "Space8 · 屬於你的主場",
+    description: "香港首間自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
+    url: "https://space8.com.hk",
+    siteName: "Space8",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Space8",
+      },
+    ],
+    locale: "zh_HK",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Space8",
+    description: "香港首間自助中式桌球會所",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon/favicon.ico", sizes: "48x48" },
+      { url: "/favicon/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon/web-app-manifest-192x192.png", sizes: "192x192" },
+    ],
+    apple: "/favicon/apple-touch-icon.png",
+    shortcut: "/favicon/favicon.ico",
+  },
+  manifest: "/favicon/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Routes outside [locale] (e.g. /login, /member, /admin) never set a request
+  // locale, so this falls back to routing.defaultLocale for them — still
+  // correct, since those routes render zh-HK-only chrome around client-side
+  // locale-aware content.
+  const locale = await getLocale().catch(() => routing.defaultLocale);
+
+  return (
+    <html lang={locale} className={bebasNeue.variable}>
+      <body className="min-h-screen bg-black text-white antialiased">
+        {children}
+      </body>
+    </html>
+  );
+}
