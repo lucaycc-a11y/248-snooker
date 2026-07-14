@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Sun, Zap, Moon, Circle, Triangle, Target } from "lucide-react";
+import { Circle, Triangle, Target } from "lucide-react";
 import { CMSText } from "@/components/cms/CMSText";
+import PeriodPricingSections from "@/components/pricing/PeriodPricingSections";
 import type { PricingPeriod, ServiceFees } from "@/lib/data/pricing";
 
 const GREEN = "#22c55e";
@@ -18,10 +19,6 @@ const SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const DISPLAY_FONT = "var(--font-bebas), 'Bebas Neue', sans-serif";
-
-function fmt(value: number): string {
-  return `HK$${Math.round(value)}`;
-}
 
 // Highlighter mark component — Apple's inline highlight effect
 function Mark({ children, color = GREEN }: { children: React.ReactNode; color?: string }) {
@@ -171,118 +168,8 @@ export default function PricingContent({
         </motion.div>
       </section>
 
-      {/* ── Part 2: Sectioned Pricing — WHITE background for number clarity ── */}
-      {periods.map((period, index) => {
-        const Icon = period.id === "morning" ? Sun : period.id === "afternoon" ? Zap : Moon;
-
-        return (
-          <section
-            key={period.id}
-            data-nav-theme="light"
-            style={{
-              background: "#fff",
-              color: "#1d1d1f",
-              padding: "clamp(80px, 12vh, 140px) 24px",
-              borderTop: "1px solid #d2d2d7",
-            }}
-          >
-            <div style={{ maxWidth: "820px", margin: "0 auto" }}>
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 0.7, ease: EASE }}
-                style={{ textAlign: "center", willChange: "opacity, transform" }}
-              >
-                <Icon size={48} color={GREEN} strokeWidth={1.5} style={{ marginBottom: 24 }} />
-
-                <h3
-                  style={{
-                    fontSize: "clamp(40px, 8vw, 72px)",
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    margin: "0 0 16px",
-                    color: "#1d1d1f",
-                  }}
-                  data-cms-key={`pricing.period.${period.id}.title`}
-                >
-                  <CMSText k={`pricingPage.period.${period.id}.title`}>
-                    {t(`period_${period.id}_title`)}
-                  </CMSText>
-                </h3>
-
-                <p
-                  style={{
-                    fontSize: "clamp(20px, 4vw, 28px)",
-                    color: "#6e6e73",
-                    margin: "0 0 48px",
-                  }}
-                  data-cms-key={`pricing.period.${period.id}.time`}
-                >
-                  <CMSText k={`pricingPage.period.${period.id}.time`}>
-                    {t(`period_${period.id}_time`)}
-                  </CMSText>
-                </p>
-
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 12,
-                    marginBottom: 48,
-                  }}
-                >
-                  <div style={{ fontSize: "clamp(56px, 12vw, 96px)", fontWeight: 700, letterSpacing: "-0.03em", color: "#1d1d1f" }}>
-                    {fmt(period.rate)}
-                    <span style={{ fontSize: "clamp(20px, 4vw, 32px)", color: "#6e6e73", fontWeight: 400 }}>
-                      {" "}
-                      <CMSText k="pricingPage.per_hour">{t("per_hour")}</CMSText>
-                    </span>
-                  </div>
-
-                  {period.rateFrom2h !== undefined && (
-                    <div
-                      style={{
-                        fontSize: "clamp(24px, 5vw, 40px)",
-                        fontWeight: 600,
-                        letterSpacing: "-0.01em",
-                      }}
-                    >
-                      <Mark color={GREEN}>
-                        <CMSText k="pricingPage.member_price_prefix">{t("member_price_prefix")}</CMSText> {fmt(period.rateFrom2h)}
-                      </Mark>
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  href="/book"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: GREEN,
-                    color: "#000",
-                    fontWeight: 700,
-                    fontSize: "clamp(15px, 3vw, 19px)",
-                    padding: "0 clamp(32px, 5vw, 48px)",
-                    height: "clamp(52px, 10vw, 64px)",
-                    borderRadius: "100px",
-                    textDecoration: "none",
-                    transition: "transform 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                  data-cms-key="pricing.cta_book"
-                >
-                  <CMSText k="pricingPage.cta_book">{t("cta_book")}</CMSText>
-                </Link>
-              </motion.div>
-            </div>
-          </section>
-        );
-      })}
+      {/* ── Part 2: Sectioned Pricing — shared with the homepage ── */}
+      <PeriodPricingSections periods={periods} />
 
       {/* ── Part 3: Floating icons collage — BLACK background for atmosphere ── */}
       <section

@@ -101,7 +101,7 @@ export default async function BlogPostPage({
     publisher: {
       "@type": "Organization",
       name: "Space8",
-      logo: { "@type": "ImageObject", url: `${BASE}${encodeURI("/logos/Black Version Hor, Tran 8.png")}` },
+      logo: { "@type": "ImageObject", url: `${BASE}/logos/space8_logo_black_hor.svg` },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };

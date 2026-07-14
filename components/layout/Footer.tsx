@@ -1,24 +1,27 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
-import { Instagram, MessageCircle } from 'lucide-react'
+import { Instagram, MessageCircle, MapPin, Clock } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
 import { useTranslations } from 'next-intl'
+import { Logo } from '@/components/brand'
 
 const WHATSAPP_URL = 'https://wa.me/85264274620'
 const INSTAGRAM_URL = 'https://instagram.com/248snooker'
-
-const BEBAS = "'Bebas Neue', system-ui, sans-serif"
+const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  '泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong',
+)}`
 
 export default function Footer() {
   const t = useTranslations()
 
   const navLinks: { label: string; href: string }[] = [
     { label: t('nav.book'), href: '/book' },
-    { label: t('nav.pricing'), href: '/pricing' },
+    { label: t('nav.venue'), href: '/venue' },
     { label: t('nav.about'), href: '/about' },
     { label: t('nav.blog'), href: '/blog' },
-    { label: t('footer.terms'), href: '/terms' },
+    { label: t('nav.membership'), href: '/membership' },
+    { label: t('footer.legal'), href: '/legal' },
     { label: t('footer.privacy'), href: '/privacy' },
   ]
   return (
@@ -31,7 +34,7 @@ export default function Footer() {
       }}
     >
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        {/* Top — wordmark + social icons */}
+        {/* Top — SVG logo + social icons */}
         <div
           style={{
             display: 'flex',
@@ -40,17 +43,7 @@ export default function Footer() {
             gap: '16px',
           }}
         >
-          <span
-            style={{
-              fontFamily: BEBAS,
-              color: tokens.colors.text,
-              fontSize: '28px',
-              letterSpacing: '0.04em',
-              lineHeight: 1,
-            }}
-          >
-            Space8
-          </span>
+          <Logo variant="full" theme="dark" size={32} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <a
@@ -87,6 +80,66 @@ export default function Footer() {
             >
               <Instagram size={22} strokeWidth={1.75} />
             </a>
+          </div>
+        </div>
+
+        {/* Contact — address + directions on every page */}
+        <div
+          style={{
+            marginTop: '32px',
+            paddingTop: '28px',
+            borderTop: `1px solid ${tokens.colors.border}`,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '20px 48px',
+          }}
+        >
+          <div style={{ minWidth: '260px', flex: '1 1 320px' }}>
+            <div
+              data-cms-key="footer.contact_title"
+              style={{
+                fontSize: '13px',
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: tokens.colors.textMuted,
+                marginBottom: '12px',
+              }}
+            >
+              {t('footer.contact_title')}
+            </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px' }}>
+              <MapPin size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0, marginTop: 2 }} />
+              <div>
+                <div data-cms-key="footer.address" style={{ fontSize: '14px', color: tokens.colors.text, lineHeight: 1.6 }}>
+                  {t('footer.address')}
+                </div>
+                <div data-cms-key="footer.directions" style={{ fontSize: '13px', color: tokens.colors.textMuted, marginTop: 4, lineHeight: 1.6 }}>
+                  {t('footer.directions')}
+                </div>
+                <a
+                  href={MAPS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-cms-key="footer.map_cta"
+                  style={{
+                    display: 'inline-block',
+                    marginTop: 8,
+                    fontSize: '13px',
+                    color: tokens.colors.link,
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px',
+                  }}
+                >
+                  {t('footer.map_cta')}
+                </a>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <Clock size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0 }} />
+              <span data-cms-key="footer.hours" style={{ fontSize: '13px', color: tokens.colors.textMuted }}>
+                {t('footer.hours')}
+              </span>
+            </div>
           </div>
         </div>
 

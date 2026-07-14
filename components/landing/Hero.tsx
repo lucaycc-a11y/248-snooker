@@ -26,12 +26,6 @@ export default function Hero() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLearnMore = () => {
-    document
-      .getElementById("gallery")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <section
       data-nav-theme="dark"
@@ -39,6 +33,7 @@ export default function Hero() {
       style={{ width: "100%", height: "100dvh" }}
     >
       {/* Video background — full-screen on mobile, square anchored bottom on desktop */}
+      {/* TODO: 需要 Luca 提供正確素材 — 中式桌球枱 hero 影片/照片（現有片為英式枱，暫用佔位） */}
       {/* Mobile: full-bleed cover */}
       <video
         className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
@@ -114,6 +109,24 @@ export default function Hero() {
           <CMSText k="hero.tagline">{t("tagline")}</CMSText>
         </motion.h1>
 
+        {/* Sub copy */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: showHeadline ? 1 : 0 }}
+          transition={{ duration: 1.2, ease: "easeIn", delay: 0.2 }}
+          className="mt-4 text-[15px] md:text-[18px]"
+          style={{
+            color: "rgba(255,255,255,0.72)",
+            fontWeight: 400,
+            letterSpacing: "-0.01em",
+            fontFamily:
+              "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif",
+          }}
+          data-cms-key="hero.subline"
+        >
+          <CMSText k="hero.subline">{t("subline")}</CMSText>
+        </motion.p>
+
         {/* CTA buttons — directly below headline, centred on all screens */}
         <div className="mt-10 md:mt-14 flex w-full flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
@@ -132,9 +145,8 @@ export default function Hero() {
             <CMSText k="hero.cta_book">{t("cta_book")}</CMSText>
           </Link>
 
-          <button
-            type="button"
-            onClick={handleLearnMore}
+          <Link
+            href="/venue"
             className="flex w-full items-center justify-center gap-2 px-[22px] py-[10px] text-[13px] transition-colors duration-200 hover:bg-white/[0.08] active:scale-[0.97] sm:w-auto md:px-[28px] md:py-[12px] md:text-[15px]"
             style={{
               background: "transparent",
@@ -142,18 +154,11 @@ export default function Hero() {
               color: "rgba(255,255,255,0.82)",
               borderRadius: "100px",
               fontWeight: 400,
+              textDecoration: "none",
             }}
           >
             <CMSText k="hero.cta_learn">{t("cta_learn")}</CMSText>
-            <motion.span
-              aria-hidden="true"
-              animate={{ y: [0, 4, 0] }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-              style={{ display: "inline-block" }}
-            >
-              ↓
-            </motion.span>
-          </button>
+          </Link>
         </div>
       </div>
     </section>

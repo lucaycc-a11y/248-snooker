@@ -8,19 +8,20 @@ type LogoProps = {
 }
 
 export function Logo({ variant = 'full', theme = 'dark', size = 48 }: LogoProps) {
-  // Transparent-background PNG exports — white artwork for dark sections,
-  // black artwork for light sections, no CSS invert() hack needed.
+  // Official SVG exports — white artwork for dark sections, black artwork for
+  // light sections. The 8-ball is part of the logo artwork itself; never
+  // redraw it in code.
   const src =
     variant === 'mark'
       ? theme === 'dark'
-        ? encodeURI('/logos/White Version Squ, Tran 8.png')
-        : encodeURI('/logos/Black Version Squ, Tran 8.png')
+        ? '/logos/space8_logo_white_squ.svg'
+        : '/logos/space8_logo_black_squ.svg'
       : theme === 'dark'
-        ? encodeURI('/logos/White Version Hor, Tran 8.png')
-        : encodeURI('/logos/Black Version Hor, Tran 8.png')
+        ? '/logos/space8_logo_white_hor.svg'
+        : '/logos/space8_logo_black_hor.svg'
 
-  // Marks are square; the full lockup is wider than tall.
-  const width = variant === 'mark' ? size : Math.round(size * 2.8)
+  // Marks are square (1080×1080); the full lockup is 1560.86×500.
+  const width = variant === 'mark' ? size : Math.round(size * 3.12)
 
   return (
     <Image

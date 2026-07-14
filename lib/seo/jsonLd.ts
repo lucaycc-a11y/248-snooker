@@ -8,12 +8,13 @@ export function buildSportsClubJsonLd(locale: string, path: string) {
     "@context": "https://schema.org",
     "@type": "SportsClub",
     name: "Space8",
-    description: "香港首間自助英式桌球預訂平台，每日 06:00 至 24:00 營業",
+    description: "香港自助中式桌球預訂平台，每日 06:00 至 24:00 營業",
     url: `${BASE}${locale === "zh-HK" ? path : `/${locale}${path}`}`,
     telephone: "+85264274620",
     email: "info.formhk@gmail.com",
     address: {
       "@type": "PostalAddress",
+      streetAddress: "Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong",
       addressCountry: "HK",
       addressRegion: "Hong Kong",
     },
@@ -23,7 +24,7 @@ export function buildSportsClubJsonLd(locale: string, path: string) {
       opens: "06:00",
       closes: "24:00",
     },
-    priceRange: "HK$60-120/hr",
+    priceRange: "HK$78-108/hr",
     amenityFeature: [
       { "@type": "LocationFeatureSpecification", name: "Self-service booking", value: true },
       { "@type": "LocationFeatureSpecification", name: "Apple Pay", value: true },

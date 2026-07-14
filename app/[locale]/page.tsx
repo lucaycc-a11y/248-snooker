@@ -4,7 +4,8 @@ import Nav from "@/components/layout/Nav";
 import Hero from "@/components/landing/Hero";
 import Gallery from "@/components/landing/Gallery";
 import HowItWorks from "@/components/landing/HowItWorks";
-import Pricing from "@/components/landing/Pricing";
+import PeriodPricingSections from "@/components/pricing/PeriodPricingSections";
+import { getConfig } from "@/lib/data/getConfig";
 import Member from "@/components/landing/Member";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/layout/Footer";
@@ -102,6 +103,7 @@ export default async function Home({
   const faqItems = await getFaqListData(locale, t);
   const faqJsonLd = getFaqJsonLdFromItems(faqItems);
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`);
+  const config = await getConfig();
 
   return (
     <main className="relative bg-black" style={{ isolation: "isolate" }}>
@@ -111,7 +113,7 @@ export default async function Home({
       <Hero />
       <Gallery />
       <HowItWorks />
-      <Pricing />
+      <PeriodPricingSections periods={config.periods} />
 
       {/* Learn More scroll target — zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />

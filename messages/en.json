@@ -338,62 +338,62 @@
     "not_found": "Post not found"
   },
   "aboutPage": {
-    "hero_title": "Space8",
-    "hero_subtitle": "Hong Kong's first self-service snooker, open daily 06:00–24:00.",
-    "scroll": "Scroll",
-    "mission_eyebrow": "Our Mission",
-    "mission_statement": "Give every snooker lover a home court to call their own.",
+    "hero_title": "About Space8",
+    "hero_subtitle": "A private, self-service, smoke-free Chinese pool room. Open daily 06:00–24:00.",
+    "scroll": "Scroll down",
+    "mission_eyebrow": "Our Philosophy",
+    "mission_statement": "Zero distractions, total focus. A Chinese eight-ball space of your own.",
     "mission_items": [
       {
-        "title": "Pro Equipment",
-        "body": "Standard English snooker tables, re-clothed monthly."
+        "title": "Professional Equipment",
+        "body": "A Star Chinese pool table."
       },
       {
-        "title": "Always Open",
-        "body": "Open daily 06:00–24:00, 365 days a year."
+        "title": "Technology",
+        "body": "Book in one minute, scan a QR code to enter."
       },
       {
-        "title": "Tech Experience",
-        "body": "Book in 3 seconds, enter with a QR code."
+        "title": "Private Space",
+        "body": "Self-service, smoke-free, private — no distractions."
       }
     ],
     "story_title": "About Space8",
-    "story_body": "Space8 began with a simple belief: a great snooker venue shouldn't be bound by opening hours. We reimagined the experience with technology so you can book your own table anytime, anywhere, in one tap. From booking to payment to entry, it's fully self-service — no waiting. This is your home court.",
+    "story_body": "A great Chinese eight-ball room should have no distractions. Space8 is a private, self-service, smoke-free Chinese pool room. Book your own table anytime, anywhere, in one tap. From booking to payment to entry, it's fully self-service — no waiting.",
     "venue_title": "Facilities",
     "venue_features": [
-      "Standard English tables",
-      "Pro-grade lighting",
+      "Star Chinese pool table",
+      "Professional lighting",
       "Climate control",
       "Free high-speed WiFi",
-      "Self-serve drinks",
+      "Self-service drinks",
       "Smart QR entry"
     ],
     "numbers": [
       {
-        "value": "2",
-        "label": "Pro snooker tables"
+        "value": "6",
+        "label": "person capacity"
       },
       {
         "value": "18",
-        "label": "Hours daily"
+        "label": "hours open daily"
       },
       {
-        "value": "3",
-        "label": "Seconds to book"
+        "value": "1",
+        "label": "minute to book"
       },
       {
         "value": "0",
-        "label": "Wait time"
+        "label": "waiting time"
       }
     ],
-    "contact_title": "Contact",
+    "contact_title": "Contact Us",
     "contact_address_label": "Address",
-    "contact_address": "Hong Kong (to be confirmed)",
+    "contact_address": "Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",
     "contact_whatsapp_label": "WhatsApp",
     "contact_email_label": "Email",
-    "contact_hours_label": "Hours",
+    "contact_hours_label": "Opening Hours",
     "contact_hours": "Daily 06:00–24:00",
-    "contact_cta": "Message on WhatsApp"
+    "contact_cta": "WhatsApp Us"
   },
   "memberPage": {
     "card_label": "MEMBER CARD",
@@ -511,7 +511,8 @@
     "title": "Space8",
     "tagline": "Your game, your space.",
     "cta_book": "Book Now",
-    "cta_learn": "Learn More"
+    "cta_learn": "Learn More",
+    "subline": "A private, self-service, smoke-free Chinese eight-ball room. No distractions."
   },
   "how": {
     "title": "How It Works",
@@ -627,7 +628,7 @@
     "title": "Book a Session",
     "select_table": "Select Table",
     "table_label": "Table",
-    "snooker": "English Snooker",
+    "snooker": "Chinese Pool",
     "available": "Available Now",
     "unavailable": "Not Available",
     "slot_taken": "This slot was just taken by someone else. Please go back and pick another time.",
@@ -691,7 +692,7 @@
     "pay_timeout": "Payment is taking longer than expected. Please check your connection and try again.",
     "max_hours_reached": "You can select up to 6 hours",
     "payment_reminder": "Complete payment within 15 minutes or your reservation will be automatically cancelled",
-    "whatsapp_support": "If you suspect you have been charged, please contact us via WhatsApp to verify:",
+    "whatsapp_support": "If you suspect you have been charged, please contact us on WhatsApp to verify",
     "retry_payment": "Choose another payment method",
     "slot_group_morning": "Morning",
     "slot_group_afternoon": "Afternoon",
@@ -721,44 +722,45 @@
     "close": "Close"
   },
   "gallery": {
-    "title": "The Venue, Up Close.",
-    "control_replay": "Replay",
-    "control_play": "Play",
-    "control_pause": "Pause",
+    "title": "The venue. Up close.",
     "goto": "Go to slide {n}",
     "slides": [
       {
-        "title": "Professional Tables",
-        "subtitle": "Premium snooker tables with cloth replaced monthly for the best feel.",
-        "alt": "Space8 - professional tables"
-      },
-      {
-        "title": "Open Daily 06:00–24:00",
-        "subtitle": "Always open for you, every day of the year.",
-        "alt": "Space8 - venue open daily"
+        "title": "Star Chinese Pool Table",
+        "subtitle": "A hand-picked Star table for the truest feel.",
+        "alt": "Space8 — Star Chinese pool table"
       },
       {
         "title": "Scan to Enter",
-        "subtitle": "Get a QR code after booking. Scan on arrival and the door opens automatically.",
-        "alt": "Space8 - smart QR entry system"
+        "subtitle": "Book online, get your QR code, scan at the door.",
+        "alt": "Space8 — smart QR entry"
       },
       {
-        "title": "Private Space",
-        "subtitle": "The whole venue is yours. No queues, no sharing.",
-        "alt": "Space8 - private snooker room"
+        "title": "Private Room",
+        "subtitle": "The whole venue is yours. No sharing.",
+        "alt": "Space8 — private pool room"
       },
       {
-        "title": "Premium Lighting",
-        "subtitle": "Table-specific lighting that brings out every detail and every ball.",
-        "alt": "Space8 - professional table lighting"
+        "title": "Tournament Lighting",
+        "subtitle": "Match-tuned lighting for total focus on every shot.",
+        "alt": "Space8 — tournament lighting"
       }
     ]
   },
   "footer": {
-    "tagline": "Hong Kong's Self-Service Snooker Club · Open Daily 06:00–24:00",
+    "tagline": "Self-service pool club Hong Kong · Open 06:00–24:00",
     "copyright": "© 2026 Space8",
     "terms": "Terms & Conditions",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "legal": "Venue Rules & Terms",
+    "contact_title": "Contact Us",
+    "address_label": "Address",
+    "address": "Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",
+    "directions_label": "Getting Here",
+    "directions": "About 10 minutes on foot from Diamond Hill or Kai Tak MTR",
+    "map_cta": "Open in Google Maps",
+    "hours_label": "Opening Hours",
+    "hours": "Daily 06:00–24:00"
   },
   "profile": {
     "add_phone_title": "Add Phone Number",

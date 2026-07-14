@@ -1781,7 +1781,7 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
           transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.2 }}
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}
         >
-          <img src={encodeURI("/logos/White Version Hor, Tran 8.png")} alt="Space8" style={{ height: 24, width: "auto" }} />
+          <img src="/logos/space8_logo_white_hor.svg" alt="Space8" style={{ height: 24, width: "auto" }} />
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}

@@ -339,48 +339,48 @@
     "not_found": "找不到文章"
   },
   "aboutPage": {
-    "hero_title": "Space8",
-    "hero_subtitle": "香港首家自助英式台球，每日 06:00 至 24:00 营业。",
+    "hero_title": "关于 Space8",
+    "hero_subtitle": "自助无烟中式桌球独立球室，每日 06:00 至 24:00 营业。",
     "scroll": "向下滑动",
     "mission_eyebrow": "我们的理念",
-    "mission_statement": "让每一个台球爱好者，都有属于自己的主场。",
+    "mission_statement": "零打扰，全专注。打造专属中八空间。",
     "mission_items": [
       {
         "title": "专业设备",
-        "body": "英式标准台球台，每月更换台布。"
-      },
-      {
-        "title": "全天候",
-        "body": "每日 06:00 至 24:00 开放，365 天全年无休。"
+        "body": "星牌中式桌球台。"
       },
       {
         "title": "科技体验",
-        "body": "3 秒完成预订，扫描二维码即可入场。"
+        "body": "1 分钟完成预订，扫描 QR 码即可入场。"
+      },
+      {
+        "title": "独立空间",
+        "body": "自助，无烟，独立球室，无多余干扰。"
       }
     ],
     "story_title": "关于 Space8",
-    "story_body": "Space8 源于一个简单信念：好的台球场地不应受营业时间限制。我们以科技重新定义台球体验，让你随时随地，一键预订专属球台。从预订、付款到入场，全程自助，无需等候。这里是属于你的主场。",
+    "story_body": "好的中八球室不应有多余干扰。Space8 自助无烟中式桌球独立球室。随时随地，一键预订专属球台。由预订、付款到入场，全程自助，无需等候。",
     "venue_title": "场地设施",
     "venue_features": [
-      "英式标准台球台",
+      "星牌中式桌球台",
       "专业级照明",
-      "恒温空调",
+      "恒温冷气",
       "免费高速 WiFi",
       "自助饮品区",
-      "智能二维码门禁"
+      "智能 QR 门禁"
     ],
     "numbers": [
       {
-        "value": "2",
-        "label": "张专业台球台"
+        "value": "6",
+        "label": "人上限独立球室"
       },
       {
         "value": "18",
         "label": "小时营业"
       },
       {
-        "value": "3",
-        "label": "秒完成预订"
+        "value": "1",
+        "label": "分钟完成预订"
       },
       {
         "value": "0",
@@ -389,9 +389,9 @@
     ],
     "contact_title": "联系我们",
     "contact_address_label": "地址",
-    "contact_address": "香港（地址确认中）",
+    "contact_address": "香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室",
     "contact_whatsapp_label": "WhatsApp",
-    "contact_email_label": "邮箱",
+    "contact_email_label": "电邮",
     "contact_hours_label": "营业时间",
     "contact_hours": "每日 06:00 至 24:00",
     "contact_cta": "WhatsApp 联系"
@@ -512,7 +512,8 @@
     "title": "Space8",
     "tagline": "属于你的主场",
     "cta_book": "立即预订",
-    "cta_learn": "了解更多"
+    "cta_learn": "了解更多",
+    "subline": "自助无烟中八独立球室，无多余干扰。"
   },
   "how": {
     "title": "预订流程",
@@ -621,7 +622,7 @@
     "title": "预订时段",
     "select_table": "选择球台",
     "table_label": "台号",
-    "snooker": "英式台球",
+    "snooker": "中式桌球",
     "available": "现时可预订",
     "unavailable": "此时段已被预订",
     "slot_taken": "此时段刚刚被其他人预订了，请返回选择其他时段。",
@@ -685,7 +686,7 @@
     "pay_timeout": "付款处理需时比预期耐，请检查网络连接再试一次。",
     "max_hours_reached": "最多可选 6 小时",
     "payment_reminder": "15 分钟内必须完成付款交易，否则预约时间自动取消",
-    "whatsapp_support": "如果你怀疑已经被扣款，请通过 WhatsApp 联络我们核实：",
+    "whatsapp_support": "如果你怀疑已经被扣款，请通过 WhatsApp 联系我们核实",
     "retry_payment": "重新选择付款方式",
     "slot_group_morning": "上午",
     "slot_group_afternoon": "下午",
@@ -716,43 +717,44 @@
   },
   "gallery": {
     "title": "场地。逐一看。",
-    "control_replay": "重播",
-    "control_play": "播放",
-    "control_pause": "暂停",
     "goto": "前往第 {n} 张",
     "slides": [
       {
-        "title": "专业中式台球台",
-        "subtitle": "精选顶级台球台，台布每月更换，确保最佳手感。",
-        "alt": "Space8 - 专业中式台球台"
-      },
-      {
-        "title": "全天候营业",
-        "subtitle": "每日 06:00 至 24:00，全年无休，永远为你而开。",
-        "alt": "Space8 - 全天候营业环境"
+        "title": "专业中式桌球台",
+        "subtitle": "精选星牌桌球台，确保最佳手感。",
+        "alt": "Space8 — 专业中式桌球台"
       },
       {
         "title": "扫码即入场",
-        "subtitle": "预订后即获QR Code，到场扫码，门自动打开。",
-        "alt": "Space8 - 智能扫码入场系统"
+        "subtitle": "网上预订后即获 QR Code，到场扫码，快捷方便。",
+        "alt": "Space8 — 智能扫码入场系统"
       },
       {
         "title": "私人独立空间",
-        "subtitle": "整个场地属于你，无需等位，无需共用。",
-        "alt": "Space8 - 私人独立台球室"
+        "subtitle": "整个场地属于你，无需共用。",
+        "alt": "Space8 — 私人独立桌球室"
       },
       {
         "title": "顶级灯光设备",
-        "subtitle": "台球专用灯具，照亮每个细节，清晰看见每一颗球。",
-        "alt": "Space8 - 专业台球灯光设备"
+        "subtitle": "特调比赛灯光模式，专注于每一次出杆。",
+        "alt": "Space8 — 专业桌球灯光设备"
       }
     ]
   },
   "footer": {
-    "tagline": "香港自助台球会所・06:00-24:00 营业",
+    "tagline": "香港自助桌球会所・06:00–24:00 营业",
     "copyright": "© 2026 Space8",
     "terms": "条款及细则",
-    "privacy": "隐私政策"
+    "privacy": "隐私政策",
+    "legal": "场地使用守则及条款",
+    "contact_title": "联系我们",
+    "address_label": "地址",
+    "address": "香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室",
+    "directions_label": "前往方法",
+    "directions": "港铁钻石山站或启德站步行约 10 分钟",
+    "map_cta": "Google Maps 导航",
+    "hours_label": "营业时间",
+    "hours": "每日 06:00 至 24:00"
   },
   "profile": {
     "add_phone_title": "加入电话号码",
