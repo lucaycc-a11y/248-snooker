@@ -12,28 +12,26 @@ description: Use when working on any booking-related page, component, API route,
    (QR + confirmation shown after successful payment)
 
 ## Pricing Logic (server-side only)
+Rates live in the `config` table (`pricing.periods`) — lib/pricing.calculatePrice()
+is the single source of truth. Current rate card (2026, all days):
 ```ts
-const PRICES = {
-  afternoon: 60,  // 12pm-6pm
-  evening: 80,    // 6pm-12am
-  latenight: 60,  // 12am-6am
-} as const
-
-const total = PRICES[period] * duration
+// morning   06:00–12:00  $88/h  ($78/h when contiguous block >= 2h)
+// afternoon 12:00–16:00  $98/h  ($88/h when contiguous block >= 2h)
+// evening   16:00–24:00  $108/h (no multi-hour discount)
 ```
+The 2h+ discount (`rateFrom2h`) applies per contiguous block, never across a
+whole multi-block order. Never hardcode these numbers in components.
 
 ## Session Storage Schema
 ```ts
 interface BookingSelection {
-  date: string        // 'YYYY-MM-DD'
-  period: 'afternoon' | 'evening' | 'latenight'
-  startTime: string   // 'HH:MM'
-  endTime: string
-  duration: 1 | 2 | 3
-  totalPrice: number  // server-verified
+  // per-date selection of individual (table, hour) slots — 'T:H' keys,
+  // e.g. '1:9' = Table 1, 09:00. Mixed-table orders are allowed.
+  entries: Array<{ date: string /* YYYY-MM-DD */; slots: string[] }>
+  updatedAt: number
 }
 ```
-Key: 'bookingSelection'
+Key: 'bookingSelection' (durable) / 'pendingBooking' (one-shot, auth redirect)
 
 ## API Routes (app/api)
 - app/api/slots        → available time slots

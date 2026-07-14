@@ -101,6 +101,12 @@ export function calculatePrice(
   const breakdown: PriceLineItem[] = []
   let subtotal = 0
 
+  // Multi-hour (contiguous-block) discount: booking 2h+ in one block bills
+  // every hour whose period defines `rateFrom2h` at that discounted rate.
+  // Each contiguous block is priced by its own calculatePrice() call, so the
+  // discount never leaks across non-contiguous slots in the same order.
+  const multiHour = durationHours >= 2
+
   const cursor = new Date(slotStart)
   for (let i = 0; i < durationHours; i++) {
     const hourOfDay = cursor.getHours()
@@ -108,7 +114,9 @@ export function calculatePrice(
     // Fall back to the cheapest configured rate if no period matches (e.g. the
     // 06:00–12:00 morning gap) so we never bill HK$0 by accident.
     const rate = period
-      ? period.rate
+      ? multiHour && period.rateFrom2h !== undefined
+        ? period.rateFrom2h
+        : period.rate
       : Math.min(...periods.map((p) => p.rate))
     subtotal += rate
     breakdown.push({
@@ -160,6 +168,57 @@ function applyTierPolicy(
   const total = Math.max(0, Math.round(subtotal)) // full price, no tier discount
   const pointsEarned = Math.round(subtotal * tier.multiplier)
   return { total, pointsEarned }
+}
+
+/**
+ * Client-safe duplicate of lib/booking/server.ts's slotBounds — that module
+ * imports getServiceSupabase() (secret key) and must never enter the browser
+ * bundle, so this trivial bounds math is re-exported here instead.
+ */
+export function slotBoundsPure(date: string, startHour: number, durationHours: number) {
+  const slotStart = new Date(`${date}T00:00:00`)
+  slotStart.setHours(startHour, 0, 0, 0)
+  const slotEnd = new Date(slotStart)
+  slotEnd.setHours(slotEnd.getHours() + durationHours)
+  return { slotStart, slotEnd }
+}
+
+/**
+ * Display-only total for a single block, given live (or fallback) pricing
+ * periods. Used by the /book UI's live-updating price — the actual Stripe
+ * charge is always re-derived server-side by calculatePrice() at intent
+ * creation, never trusted from here.
+ *
+ * The dummy tier is safe: applyTierPolicy() above charges the full subtotal
+ * regardless of tier (tier only affects pointsEarned), so tier never changes
+ * the displayed total.
+ */
+export function quoteBlockTotal(
+  date: string,
+  startHour: number,
+  durationHours: number,
+  periods: PricingPeriod[] = DEFAULT_PERIODS,
+): number {
+  if (durationHours <= 0) return 0
+  const { slotStart, slotEnd } = slotBoundsPure(date, startHour, durationHours)
+  return calculatePrice(slotStart, slotEnd, { discount: 1, multiplier: 1 }, periods).total
+}
+
+/**
+ * Minimum points a block will earn, shown pre-login on the slot picker where
+ * the visitor's real tier multiplier isn't known yet (Amateur 1× floor —
+ * Century/Maximum members earn more once signed in, per applyTierPolicy).
+ * With multiplier=1, pointsEarned === total, so this is quoteBlockTotal in
+ * all but name — kept as its own export so call sites read as "points", not
+ * an accidental reuse of a price number.
+ */
+export function quoteBlockMinPoints(
+  date: string,
+  startHour: number,
+  durationHours: number,
+  periods: PricingPeriod[] = DEFAULT_PERIODS,
+): number {
+  return quoteBlockTotal(date, startHour, durationHours, periods)
 }
 
 /** Convenience for add-ons priced from the services config (lockers, cue hire). */

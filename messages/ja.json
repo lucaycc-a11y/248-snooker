@@ -39,7 +39,19 @@
     "sms_fallback_link": "電話番号で登録済みですか？SMSでサインイン",
     "profile_phone_send_code": "確認コードを送信",
     "profile_phone_verified_badge": "電話番号確認済み",
-    "profile_phone_change_number": "番号を変更"
+    "profile_phone_change_number": "番号を変更",
+    "password_placeholder": "パスワード",
+    "sign_in_password": "パスワードでサインイン",
+    "sign_in_otp": "確認コードでサインイン",
+    "switch_to_otp": "確認コードを使う",
+    "switch_to_password": "パスワードを設定済みですか？パスワードでサインイン",
+    "err_password": "メールアドレスまたはパスワードが正しくありません",
+    "planet_loading": "あなた専用の惑星を割り当てています...",
+    "planet_welcome_prefix": "ようこそ、",
+    "planet_welcome_suffix": "会員",
+    "planet_subtitle": "全宇宙で唯一の会員番号",
+    "planet_share": "私の惑星をシェア",
+    "planet_continue": "会員センターへ"
   },
   "404": {
     "code": "404",
@@ -52,16 +64,31 @@
     "cta_home": "ホームに戻る"
   },
   "login": {
-    "brand": "248 SNOOKER",
+    "brand": "SPACE8",
     "title": "サインイン",
     "subtitle": "予約と会員サービスを続けます。",
     "error_missing_code": "サインインが完了しませんでした。もう一度お試しください。",
     "error_oauth": "サインインできませんでした。もう一度お試しください。",
     "error_generic": "問題が発生しました。もう一度お試しください。"
   },
+  "comingSoon": {
+    "brand": "SPACE8",
+    "title": "近日公開",
+    "subtitle": "香港のセルフサービス型スヌーカークラブ、もうすぐオープン。",
+    "email_placeholder": "メールアドレス",
+    "notify_me": "通知を受け取る",
+    "subscribed": "登録しました。",
+    "err_email": "有効なメールアドレスを入力してください。",
+    "err_generic": "問題が発生しました。もう一度お試しください。",
+    "password_placeholder": "パスワード",
+    "unlock": "解除",
+    "unlocking": "解除中…",
+    "err_password": "パスワードが正しくありません。",
+    "err_rate_limited": "試行回数が多すぎます。しばらくお待ちください。"
+  },
   "legal": {
     "title": "法的情報",
-    "subtitle": "248 Snooker をご利用の前に、以下の規約をよくお読みください。",
+    "subtitle": "Space8 をご利用の前に、以下の規約をよくお読みください。",
     "last_updated": "最終更新",
     "tab_terms": "利用規約",
     "tab_privacy": "プライバシーポリシー",
@@ -70,7 +97,7 @@
     "terms_sections": [
       {
         "title": "サービス説明",
-        "body": "248 Snooker は FORM が運営する、香港初の24時間セルフサービス・スヌーカー予約プラットフォームです。"
+        "body": "Space8 は FORM が運営する、香港初のセルフサービス・スヌーカー予約プラットフォームで、毎日06:00から24:00まで営業しています。"
       },
       {
         "title": "予約規約",
@@ -98,7 +125,7 @@
       },
       {
         "title": "免責事項",
-        "body": "248 Snooker は財物の損失や人身傷害について一切の責任を負いません。"
+        "body": "Space8 は財物の損失や人身傷害について一切の責任を負いません。"
       },
       {
         "title": "準拠法",
@@ -202,19 +229,29 @@
     ]
   },
   "pricingPage": {
+    "hero_eyebrow": "Space8",
+    "hero_line1": "計算が分かる人のために。",
+    "hero_line2_before": "賢く予約。",
+    "hero_line2_highlight": "難しくない。",
     "hero_title": "明確な料金",
     "hero_subtitle": "必要なときに予約。隠れた費用なし。",
     "per_hour": "／時",
-    "period_afternoon_title": "オフピーク",
-    "period_afternoon_time": "平日 09:00〜18:00",
-    "period_evening_title": "ピーク",
-    "period_evening_time": "平日 18:00〜23:00／週末終日",
+    "period_afternoon_title": "午後",
+    "period_afternoon_time": "毎日 12:00–16:00",
+    "period_evening_title": "ゴールデンタイム",
+    "period_evening_time": "毎日 16:00–00:00",
     "period_latenight_title": "深夜",
-    "period_latenight_time": "毎日 23:00〜02:00",
+    "period_latenight_time": "12am – 6am",
     "duration_1h": "1時間",
     "duration_2h": "2時間",
     "duration_3h": "3時間",
+    "member_price_prefix": "会員価格",
+    "time_line1": "あなたの時間、",
+    "time_line2": "無駄にしない。",
+    "cta_line1": "今、空いています。",
+    "cta_line2": "すぐにブレイク。",
     "cta_book": "今すぐ予約",
+    "cta_button": "今すぐ予約",
     "cta_details": "料金詳細",
     "breakdown_title": "料金一覧",
     "breakdown_period": "時間帯",
@@ -255,17 +292,18 @@
       }
     ],
     "faq_title": "よくある質問",
+    "faq_scroll_hint": "← スワイプして続きを見る",
     "faqs": [
       {
-        "q": "隠れた費用はありますか？",
+        "q": "隠れた費用は？",
         "a": "ありません。料金はすべて時間制で、予約時に明示されます。"
       },
       {
-        "q": "途中で延長できますか？",
+        "q": "途中で延長可能？",
         "a": "空き状況により可能です。超過料金は15分ごとに HK$50 です。"
       },
       {
-        "q": "超過料金はどう計算しますか？",
+        "q": "超過料金の計算は？",
         "a": "15分ごとに HK$50 で、登録済みカードから自動引き落としされます。"
       },
       {
@@ -274,7 +312,9 @@
       }
     ],
     "cta_section_title": "プレイの準備はできましたか？",
-    "cta_section_button": "今すぐ予約"
+    "cta_section_button": "今すぐ予約",
+    "period_morning_title": "午前",
+    "period_morning_time": "毎日 06:00–12:00"
   },
   "blog": {
     "title": "Blog",
@@ -299,8 +339,8 @@
     "not_found": "記事が見つかりません"
   },
   "aboutPage": {
-    "hero_title": "248 Snooker",
-    "hero_subtitle": "香港初の24時間セルフサービス・スヌーカー。",
+    "hero_title": "Space8",
+    "hero_subtitle": "香港初のセルフサービス・スヌーカー、毎日06:00〜24:00営業。",
     "scroll": "スクロール",
     "mission_eyebrow": "私たちの理念",
     "mission_statement": "すべてのスヌーカー愛好家に、自分だけのホームコートを。",
@@ -310,16 +350,16 @@
         "body": "英国式標準スヌーカーテーブル、毎月クロス張り替え。"
       },
       {
-        "title": "24時間営業",
-        "body": "24時間、年中無休。"
+        "title": "毎日営業",
+        "body": "毎日06:00〜24:00営業、年中無休。"
       },
       {
         "title": "テック体験",
         "body": "3秒で予約、QRコードで入場。"
       }
     ],
-    "story_title": "248 について",
-    "story_body": "248 Snooker は、シンプルな信念から始まりました。優れたスヌーカー施設は営業時間に縛られるべきではない、と。私たちはテクノロジーで体験を再定義し、いつでもどこでもワンタップで専用テーブルを予約できるようにしました。予約から支払い、入場まで完全セルフサービス、待ち時間はありません。ここはあなたのホームコートです。",
+    "story_title": "Space8 について",
+    "story_body": "Space8 は、シンプルな信念から始まりました。優れたスヌーカー施設は営業時間に縛られるべきではない、と。私たちはテクノロジーで体験を再定義し、いつでもどこでもワンタップで専用テーブルを予約できるようにしました。予約から支払い、入場まで完全セルフサービス、待ち時間はありません。ここはあなたのホームコートです。",
     "venue_title": "施設",
     "venue_features": [
       "英国式標準テーブル",
@@ -335,7 +375,7 @@
         "label": "プロ用テーブル"
       },
       {
-        "value": "24",
+        "value": "18",
         "label": "時間営業"
       },
       {
@@ -353,7 +393,7 @@
     "contact_whatsapp_label": "WhatsApp",
     "contact_email_label": "メール",
     "contact_hours_label": "営業時間",
-    "contact_hours": "24時間・年中無休",
+    "contact_hours": "毎日06:00〜24:00",
     "contact_cta": "WhatsApp で連絡"
   },
   "memberPage": {
@@ -385,7 +425,38 @@
     "status_confirmed": "確定",
     "status_cancelled": "キャンセル",
     "status_completed": "完了",
+    "status_refunded": "返金済み",
+    "status_pending": "処理中",
+    "status_payment_failed": "決済失敗",
+    "booking_retry_payment": "再決済",
+    "booking_refund": "返金申請",
+    "booking_reschedule": "予約変更",
+    "booking_more_actions": "その他の操作",
+    "refund_modal_title": "返金を申請",
+    "refund_modal_original_price": "元の価格",
+    "refund_modal_fee": "手数料",
+    "refund_modal_amount": "返金額",
+    "refund_modal_reason_label": "理由（任意）",
+    "refund_modal_confirm": "返金を確定",
+    "refund_modal_cancel": "キャンセル",
+    "refund_modal_cutoff_error": "開始時刻に近すぎるため返金できません。",
+    "refund_modal_generic_error": "返金処理に失敗しました。もう一度お試しください。",
+    "refund_success_toast": "返金済み",
+    "refund_cutoff_notice": "開始 {hours} 時間前まで返金可能",
+    "reschedule_modal_title": "予約変更",
+    "reschedule_modal_date_label": "新しい日付",
+    "reschedule_modal_table_label": "テーブル",
+    "reschedule_modal_time_label": "利用可能な時間",
+    "reschedule_modal_no_slots": "この日付には利用可能な時間がありません。",
+    "reschedule_modal_confirm": "変更を確定",
+    "reschedule_modal_cancel": "キャンセル",
+    "reschedule_modal_unavailable_error": "その時間帯は既に予約されています。",
+    "reschedule_modal_generic_error": "変更に失敗しました。もう一度お試しください。",
+    "reschedule_success_toast": "変更済み",
+    "bookings_upcoming": "今後の予約",
+    "bookings_history": "履歴",
     "no_bookings": "予約履歴はまだありません",
+    "no_history": "過去の予約はありません",
     "points_running_total": "残高",
     "points_earn_title": "ポイントの貯め方",
     "points_earn": [
@@ -413,6 +484,7 @@
     "settings_err_generic": "保存できませんでした。もう一度お試しください。",
     "qr_modal_title": "予約QRコード",
     "qr_reference": "予約番号",
+    "qr_tap_enlarge": "タップしてQRコードを拡大",
     "close": "閉じる",
     "loading": "読み込み中…",
     "back": "戻る",
@@ -429,15 +501,13 @@
     "logout": "ログアウト",
     "my_account": "マイアカウント",
     "settings": "設定",
+    "admin": "管理画面",
     "sign_out": "ログアウト",
     "signing_out": "ログアウト中…",
-    "sign_out_error": "ログアウトできませんでした。もう一度お試しください。",
-    "prompt_text": "サインインで予約がもっと早く",
-    "prompt_cta": "サインイン",
-    "prompt_dismiss": "閉じる"
+    "sign_out_error": "ログアウトできませんでした。もう一度お試しください。"
   },
   "hero": {
-    "title": "248 Snooker",
+    "title": "Space8",
     "tagline": "あなたのホームコート",
     "cta_book": "今すぐ予約",
     "cta_learn": "詳しく見る"
@@ -492,9 +562,9 @@
   "pricing": {
     "title": "料金",
     "afternoon_label": "午後",
-    "afternoon_range": "12pm – 6pm",
+    "afternoon_range": "12pm – 4pm",
     "evening_label": "夜",
-    "evening_range": "6pm – 12am",
+    "evening_range": "4pm – 12am",
     "night_label": "深夜",
     "night_range": "12am – 6am",
     "per_hour": "/時間",
@@ -502,7 +572,9 @@
     "duration_2h": "2時間",
     "duration_3h": "3時間",
     "cta_book": "スロット選択",
-    "cta_learn": "料金詳細"
+    "cta_learn": "料金詳細",
+    "morning_label": "午前",
+    "morning_range": "6am – 12pm"
   },
   "faq": {
     "title": "よくある質問",
@@ -513,7 +585,7 @@
     "faq_cancel_q": "キャンセルはできますか？",
     "faq_cancel_a": "セッション開始2時間前までは無料でキャンセル、全額返金されます。それ以降のキャンセルは返金対象外です。",
     "faq_hours_q": "営業時間は？",
-    "faq_hours_a": "248スヌーカークラブは年中無休で24時間営業しています（祝日含む）。",
+    "faq_hours_a": "Space8 は毎日06:00から24:00まで、年中無休で営業しています（祝日含む）。",
     "faq_minimum_q": "最低予約時間は？",
     "faq_minimum_a": "最低1時間から。1・2・3時間でお選びいただけます。",
     "faq_pricing_q": "料金の計算方法は？",
@@ -525,11 +597,18 @@
     "faq_guests_q": "友人を連れて来られますか？",
     "faq_guests_a": "はい、各セッションに複数名が参加できます。料金はセッション単位で、追加費用はかかりません。",
     "faq_contact_q": "お問い合わせ方法は？",
-    "faq_contact_a": "WhatsAppまたはhello@formhk.comまでご連絡ください。できる限り早くお返事いたします。"
+    "faq_contact_a": "WhatsAppまたはhello@space8.com.hkまでご連絡ください。できる限り早くお返事いたします。"
   },
   "whatsapp": {
     "aria_label": "WhatsAppでお問い合わせ",
     "tooltip": "WhatsAppでお問い合わせ"
+  },
+  "ai_chat": {
+    "aria_label": "チャットでお問い合わせ",
+    "tooltip": "チャットでお問い合わせ",
+    "placeholder": "何でも聞いてください...",
+    "send": "送信",
+    "close": "閉じる"
   },
   "common": {
     "error": "問題が発生しました",
@@ -543,6 +622,8 @@
     "snooker": "スヌーカー",
     "available": "予約可能",
     "unavailable": "予約不可",
+    "slot_taken": "この時間帯は他のお客様に予約されました。戻って別の時間をお選びください。",
+    "back_to_slots": "時間帯選択に戻る",
     "selected": "選択済み",
     "select_this_table": "このテーブルを選択",
     "hint": "ご希望のテーブルが満席の場合、いつでも切り替えできます",
@@ -553,6 +634,7 @@
     "instant_confirm": "即時確認・待ち時間なし",
     "login_title": "予約を完了する",
     "login_subtitle": "スロットを一時確保しています",
+    "login_subtitle_specific": "{start}〜{end}、{table} を確保しました",
     "login_apple": "Appleでサインイン",
     "login_google": "Googleアカウントでサインイン",
     "login_whatsapp": "WhatsApp番号",
@@ -572,6 +654,7 @@
     "confirm_title": "予約確定",
     "add_calendar": "カレンダーに追加",
     "share": "シェア",
+    "go_to_member": "会員センターへ",
     "back_home": "ホームに戻る",
     "back": "戻る",
     "leave_title": "予約を中断しますか？",
@@ -580,7 +663,7 @@
     "leave_stay": "予約を続ける",
     "checking": "空き状況を確認中…",
     "fully_booked": "この時間帯は満席です。別の時間または日付をお選びください。",
-    "qr_hint": "入場時にこのQRコードをご提示ください・24時間サポート",
+    "qr_hint": "入場時にこのQRコードをご提示ください・サポート窓口",
     "your_booking": "ご予約内容",
     "date": "日付",
     "time_slot": "時間帯",
@@ -591,21 +674,43 @@
     "table_unavailable": "予約不可",
     "table_locked": "予約手続き中",
     "table_locked_tooltip": "他のお客様がこのテーブルを予約手続き中です。しばらくお待ちいただくか、別のテーブルをお選びください",
+    "table_locked_by_you": "予約手続きを再開する",
+    "table_resume": "再開",
+    "table_release_and_pick_again": "解除して別の時間を選ぶ",
     "tables_remaining": "この時間帯は残り{count}台",
     "lock_hold": "予約枠を{time}保持しています",
     "pay_declined": "決済を完了できませんでした。お支払い方法をご確認のうえ、もう一度お試しください。",
     "pay_timeout": "決済処理に予想より時間がかかっています。ネットワーク接続をご確認のうえ、もう一度お試しください。",
-    "contiguous_slots_required": "連続した時間帯を選択してください",
+    "max_hours_reached": "最大6時間まで選択できます",
     "payment_reminder": "15分以内に決済を完了しないと予約は自動的にキャンセルされます",
     "whatsapp_support": "すでに請求されている疑いがある場合は、WhatsAppでお問い合わせください：",
-    "retry_payment": "別の支払い方法を選択"
+    "retry_payment": "別の支払い方法を選択",
+    "slot_group_morning": "午前",
+    "slot_group_afternoon": "午後",
+    "slot_group_evening": "夜",
+    "remove_slot": "削除",
+    "multi_slot_hint": "複数の時間帯を選択できます。2時間以上の連続予約で割引になります。",
+    "duration_hours_chip": "{count}時間",
+    "most_popular": "人気No.1",
+    "slots_selected": "{count} 件の時間帯を選択中",
+    "points_earned_estimate": "このご予約で最低 {pts} ポイント獲得",
+    "terms_agree": "SPACE8の<link>施設利用規約および利用条件</link>に同意します",
+    "legend_available": "予約可",
+    "legend_selected": "選択中",
+    "legend_booked": "予約済み",
+    "slot_booked": "予約済み",
+    "free_suffix": "空き",
+    "selected_slots_title": "選択した時間帯",
+    "empty_picks": "時間帯が未選択です。上の表をタップして追加してください。"
   },
   "ticket": {
     "duration": "プレイ時間",
     "paid": "お支払い済み",
     "payment": "支払方法",
     "confirmed": "予約確定 ✓",
-    "footer": "入場時にこのQRコードをご提示ください・24時間サポート"
+    "footer": "入場時にこのQRコードをご提示ください・サポート窓口",
+    "qr_tap_enlarge": "タップしてQRコードを拡大",
+    "close": "閉じる"
   },
   "gallery": {
     "title": "施設を、間近で。",
@@ -617,33 +722,33 @@
       {
         "title": "プロ仕様テーブル",
         "subtitle": "最高級スヌーカーテーブル。クロスは毎月交換し、最高の感触を保ちます。",
-        "alt": "248スヌーカー - プロ仕様テーブル"
+        "alt": "Space8 - プロ仕様テーブル"
       },
       {
-        "title": "24時間営業",
-        "subtitle": "深夜3時でも明かりは灯ったまま。いつでもあなたのために開いています。",
-        "alt": "248スヌーカー - 24時間営業の施設"
+        "title": "毎日営業",
+        "subtitle": "毎日06:00〜24:00、年中無休。いつでもあなたのために開いています。",
+        "alt": "Space8 - 営業中の施設"
       },
       {
         "title": "スキャンで入場",
         "subtitle": "予約後にQRコードを発行。到着時にスキャンすればドアが自動で開きます。",
-        "alt": "248スヌーカー - スマートQR入場システム"
+        "alt": "Space8 - スマートQR入場システム"
       },
       {
         "title": "プライベート空間",
         "subtitle": "施設全体があなたのもの。待ち時間なし、相席なし。",
-        "alt": "248スヌーカー - プライベートスヌーカールーム"
+        "alt": "Space8 - プライベートスヌーカールーム"
       },
       {
         "title": "プレミアム照明",
         "subtitle": "テーブル専用の照明が細部まで照らし、すべてのボールをくっきりと映し出します。",
-        "alt": "248スヌーカー - プロ仕様のテーブル照明"
+        "alt": "Space8 - プロ仕様のテーブル照明"
       }
     ]
   },
   "footer": {
-    "tagline": "香港24時間セルフサービス・スヌーカークラブ",
-    "copyright": "© 2026 248 Snooker",
+    "tagline": "香港のセルフサービス・スヌーカークラブ・毎日06:00〜24:00営業",
+    "copyright": "© 2026 Space8",
     "terms": "利用規約",
     "privacy": "プライバシーポリシー"
   },
