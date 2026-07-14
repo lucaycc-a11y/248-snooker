@@ -119,6 +119,41 @@ function scrollToRef(ref: React.RefObject<HTMLElement>) {
   }, 150)
 }
 
+/* ─────────────────────────  Slot Legend  ───────────────────────── */
+// Availability legend (available / selected / booked) shown above the time
+// grid. Purely explanatory — no interaction, no data — swatches reuse the
+// exact same colours/border-radius as the real slot-pill states below so
+// they never drift out of sync with the actual grid styling.
+function SlotLegend() {
+  const t = useTranslations("book")
+  const swatch = (background: string, border: string) => (
+    <span
+      aria-hidden="true"
+      style={{
+        width: 13,
+        height: 13,
+        borderRadius: tokens.radius.pill,
+        background,
+        border: `1.5px solid ${border}`,
+        flexShrink: 0,
+      }}
+    />
+  )
+  const item = (label: string, background: string, border: string) => (
+    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+      {swatch(background, border)}
+      <span style={{ fontSize: 12.5, color: tokens.colors.textMuted }}>{label}</span>
+    </div>
+  )
+  return (
+    <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginBottom: 14 }}>
+      {item(t("legend_available"), "transparent", tokens.colors.border)}
+      {item(t("legend_selected"), tokens.colors.brand, tokens.colors.brand)}
+      {item(t("legend_booked"), "rgba(255,69,58,0.08)", "rgba(255,69,58,0.35)")}
+    </div>
+  )
+}
+
 /* ─────────────────────────  Time Slot Grid  ───────────────────────── */
 function TimeSlotGrid({
   selectedDate,
@@ -342,12 +377,16 @@ function TimeSlotGrid({
               type="button"
               disabled={disabled}
               onClick={() => handleCellTap(h)}
+              // "slot-pill": hover glow is a real :hover rule (see <style jsx
+              // global> below) since inline styles can't express it; disabled
+              // buttons don't get the class so :hover never fires on them.
+              className={disabled ? undefined : "slot-pill"}
               style={{
                 position: "relative",
                 minHeight: 56,
                 padding: "12px 16px",
-                borderRadius: tokens.radius.input,
-                border: `1px solid ${selected ? tokens.colors.brand : tokens.colors.border}`,
+                borderRadius: tokens.radius.pill,
+                border: `1.5px solid ${selected ? tokens.colors.brand : tokens.colors.border}`,
                 background: selected
                   ? tokens.colors.brand
                   : disabled
@@ -358,8 +397,9 @@ function TimeSlotGrid({
                   : selected
                     ? "#000"
                     : tokens.colors.text,
-                fontSize: 14,
-                fontWeight: selected ? 600 : 400,
+                fontFamily: tokens.font.mono,
+                fontSize: 13,
+                fontWeight: selected ? 700 : 500,
                 opacity: disabled ? 0.4 : 1,
                 cursor: disabled ? "not-allowed" : "pointer",
                 transition: `all ${tokens.duration.fast}`,
@@ -649,6 +689,7 @@ function Calendar({
                 aria-label={`${date.getMonth() + 1}月${date.getDate()}日`}
                 aria-current={isSelected ? "date" : undefined}
                 onClick={() => !isPast && onSelect(date)}
+                className={isPast ? undefined : "cal-day-btn"}
                 style={{
                   // Tap target fills the whole grid cell (maximised to ~44px+);
                   // the visual circle inside stays 40px.
@@ -675,14 +716,15 @@ function Calendar({
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: 15,
-                    fontWeight: isSelected ? 600 : 400,
-                    background: isSelected ? tokens.colors.link : "transparent",
-                    color: isSelected ? "#fff" : tokens.colors.text,
-                    border:
-                      isToday && !isSelected
+                    fontWeight: isSelected ? 700 : 400,
+                    background: isSelected ? tokens.colors.brand : "transparent",
+                    color: isSelected ? "#000" : tokens.colors.text,
+                    border: isSelected
+                      ? `1.5px solid ${tokens.colors.brand}`
+                      : isToday
                         ? `1px solid ${tokens.colors.text}`
                         : "1px solid transparent",
-                    transition: `background ${tokens.duration.fast}`,
+                    transition: `background ${tokens.duration.fast}, border-color ${tokens.duration.fast}`,
                   }}
                 >
                   {date.getDate()}
@@ -1000,6 +1042,7 @@ function Screen1({
               >
                 <div style={{ marginBottom: 24 }}>
                   {sectionLabel(t("start_time"), "book.time.title")}
+                  <SlotLegend />
                   <TimeSlotGrid
                     selectedDate={selectedDate}
                     daySlots={daySlots}
@@ -1971,8 +2014,26 @@ export default function BookPage() {
         color: tokens.colors.text,
         display: "flex",
         justifyContent: "center",
+        position: "relative",
       }}
     >
+      {/* Ambient felt-table glow — two soft radial washes (brand green
+          top-left, brass top-right) evoking the club's snooker-felt palette.
+          Purely decorative, low-opacity, and non-interactive so it never
+          competes with content or tap targets above it. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          background:
+            `radial-gradient(ellipse 900px 600px at 15% -10%, ${tokens.colors.brandDim}, transparent 60%),` +
+            `radial-gradient(ellipse 700px 500px at 95% 5%, rgba(201,154,82,0.07), transparent 55%)`,
+        }}
+      />
+
       {/* Back arrow — fixed top-left across selection/login/payment. Hidden on
           the confirmation screen (booking is done; Screen4 offers a deliberate
           "Back to Home" instead, so users can't navigate back into a finished flow). */}
@@ -1980,7 +2041,7 @@ export default function BookPage() {
         <BackButton onClick={handleBack} ariaLabel={t("back")} cmsKey="book.back" color={tokens.colors.text} />
       )}
 
-      <div className="book-container">
+      <div className="book-container" style={{ position: "relative", zIndex: 1 }}>
         {/* Progress */}
         <div className="progress-bar-wrap">
           <ProgressSteps steps={STEPS} current={screen} onStepClick={goToStep} />
@@ -2200,6 +2261,13 @@ export default function BookPage() {
           .table-grid {
             grid-template-columns: 1fr 1fr;
           }
+        }
+        .slot-pill:hover {
+          border-color: ${tokens.colors.brand} !important;
+          background: ${tokens.colors.brandDim} !important;
+        }
+        .cal-day-btn:hover span {
+          background: ${tokens.colors.brandDim};
         }
         .two-col {
           display: flex;

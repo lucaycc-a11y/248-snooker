@@ -35,6 +35,10 @@ export const tokens = {
   font: {
     sans: 'system-ui, -apple-system, "SF Pro Text", sans-serif',
     display: '"Bebas Neue", sans-serif',
+    // System monospace stack — same convention already used for booking
+    // references/QR text (TicketCard.tsx), not a new webfont load. Used for
+    // slot/time labels in the booking grid.
+    mono: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace',
   },
   easing: {
     spring: 'cubic-bezier(0.16,1,0.3,1)',

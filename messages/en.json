@@ -598,7 +598,10 @@
     "contiguous_slots_required": "Please select contiguous time slots",
     "payment_reminder": "Complete payment within 15 minutes or your reservation will be automatically cancelled",
     "whatsapp_support": "If you suspect you have been charged, please contact us via WhatsApp to verify:",
-    "retry_payment": "Choose another payment method"
+    "retry_payment": "Choose another payment method",
+    "legend_available": "Available",
+    "legend_selected": "Selected",
+    "legend_booked": "Booked"
   },
   "ticket": {
     "duration": "Duration",
