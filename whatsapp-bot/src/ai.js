@@ -36,11 +36,11 @@ export async function generateReply(phone, userMessage, context) {
     getVenueConfig(),
   ])
 
-  const systemPrompt = `${personality || '你係248 Snooker嘅專業客服助手，用繁體廣東話書面語回覆，簡短友善，每次唔超過3句。'}
+  const systemPrompt = `${personality || '你係Space8嘅專業客服助手，用繁體廣東話書面語回覆，簡短友善，每次唔超過3句。'}
 
 場地資料（從資料庫讀取，唔可以亂改）：
-- 名稱：${venue?.name || '248 Snooker'}
-- 開放時間：${venue?.opening_hours || '24小時'}
+- 名稱：${venue?.name || 'Space8'}
+- 開放時間：${venue?.opening_hours || '每日 06:00-24:00'}
 - 球枱：${venue?.tables || 2}張（枱號#1、枱號#2）
 - WhatsApp：+${venue?.whatsapp || '85264274620'}
 
@@ -54,7 +54,7 @@ ${bookings.map((booking) => `- ${booking.date} ${booking.start_time}-${booking.e
 - 唔確定嘅嘢唔好亂講
 - 唔好捏造任何資料
 - 驗證碼相關問題叫用戶直接回覆數字
-- 預訂問題引導去網站：https://248.formhk.com
+- 預訂問題引導去網站：https://space8.com.hk
 - 唔可以幫用戶直接修改預訂，叫佢去網站或聯絡管理員`
 
   const messages = [

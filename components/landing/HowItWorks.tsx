@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { CMSText } from "@/components/cms/CMSText";
 
 const DARK = "#1D1D1F";
 const GREEN = "#22C55E";
@@ -348,7 +349,7 @@ export default function HowItWorks() {
     <section
       data-nav-theme="light"
       style={{
-        background: "#F5F5F7",
+        background: "rgba(245,245,247,0.92)",
         color: DARK,
         padding: isMobile ? "88px 0" : "140px 0",
         fontFamily: FONT_FAMILY,
@@ -384,7 +385,7 @@ export default function HowItWorks() {
             }}
             data-cms-key="how_it_works_title"
           >
-            {t('title')}。
+            <CMSText k="how.title">{t('title')}</CMSText>。
           </motion.h2>
           <motion.a
             initial={{ opacity: 0, y: 20 }}
@@ -457,7 +458,7 @@ export default function HowItWorks() {
               {step.icon}
             </div>
             <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: "0 0 12px" }}>
-              {step.title}
+              <CMSText k={`how.${step.key}_title`}>{step.title}</CMSText>
             </h3>
             <p style={{ fontSize: bodySize, lineHeight: 1.6, color: DARK, margin: 0 }}>
               {highlight(step.body, step.highlights, step.accent)}

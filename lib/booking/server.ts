@@ -119,6 +119,28 @@ export type DaySlotRow = {
   duration_hours: number
   status: string
   locked_until: string | null
+  // true when the CALLING user (not any other user) holds this lock — never
+  // the raw locked_by uuid, which would leak other users' identities to the
+  // client. Always false for a guest (userId === null) or a booked row.
+  locked_by_you: boolean
+}
+
+// Strips locked_by off a raw slots row and replaces it with the boolean
+// locked_by_you, computed against the calling user. Shared by getDaySlots/
+// getRangeSlots so the "never leak locked_by" rule lives in one place.
+function toDaySlotRow(
+  row: { table_number: number; date: string; start_time: string; duration_hours: number; status: string; locked_until: string | null; locked_by: string | null },
+  userId: string | null,
+): DaySlotRow {
+  return {
+    table_number: row.table_number,
+    date: row.date,
+    start_time: row.start_time,
+    duration_hours: row.duration_hours,
+    status: row.status,
+    locked_until: row.locked_until,
+    locked_by_you: userId !== null && row.locked_by === userId,
+  }
 }
 
 /**
@@ -126,8 +148,11 @@ export type DaySlotRow = {
  * day), so cross-midnight bookings are accounted for when the client computes
  * availability. Fails to an empty list on error (the client then treats the day
  * as fully open; the lock RPC remains the authoritative guard).
+ *
+ * userId (null for guests) is used ONLY to compute locked_by_you server-side —
+ * the raw locked_by column is never returned to the client.
  */
-export async function getDaySlots(date: string): Promise<DaySlotRow[]> {
+export async function getDaySlots(date: string, userId: string | null = null): Promise<DaySlotRow[]> {
   const base = new Date(`${date}T00:00:00`)
   if (Number.isNaN(base.getTime())) return []
   const fmt = (x: Date) =>
@@ -140,14 +165,49 @@ export async function getDaySlots(date: string): Promise<DaySlotRow[]> {
   const supabase = getServiceSupabase()
   const { data, error } = await supabase
     .from('slots')
-    .select('table_number, date, start_time, duration_hours, status, locked_until')
+    .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
     .in('date', [fmt(prev), date, fmt(next)])
     .in('status', ['locked', 'booked'])
   if (error) {
     console.error('day_slots_query_error', error.message)
     return []
   }
-  return (data ?? []) as DaySlotRow[]
+  return (data ?? []).map((row) => toDaySlotRow(row, userId))
+}
+
+/**
+ * Raw booked/active-locked slot rows spanning [startDate, startDate + days),
+ * padded by one day on each side so cross-midnight bookings at the range edges
+ * are accounted for. Powers the client's day-switch prefetch cache (Task 1): one
+ * query covers a week so switching dates needs no further network round-trip.
+ * Same fail-open contract as getDaySlots.
+ */
+export async function getRangeSlots(
+  startDate: string,
+  days: number,
+  userId: string | null = null,
+): Promise<DaySlotRow[]> {
+  const base = new Date(`${startDate}T00:00:00`)
+  if (Number.isNaN(base.getTime()) || days < 1) return []
+  const fmt = (x: Date) =>
+    `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`
+  const from = new Date(base)
+  from.setDate(from.getDate() - 1) // pad for cross-midnight at the low edge
+  const to = new Date(base)
+  to.setDate(to.getDate() + days) // exclusive end already pads the high edge
+
+  const supabase = getServiceSupabase()
+  const { data, error } = await supabase
+    .from('slots')
+    .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
+    .gte('date', fmt(from))
+    .lte('date', fmt(to))
+    .in('status', ['locked', 'booked'])
+  if (error) {
+    console.error('range_slots_query_error', error.message)
+    return []
+  }
+  return (data ?? []).map((row) => toDaySlotRow(row, userId))
 }
 
 export type LockedSlot = {

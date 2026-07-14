@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
-import { User, LogOut, UserCircle, Settings } from "lucide-react"
+import { User, LogOut, UserCircle, Settings, ShieldCheck } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -11,9 +11,6 @@ import { createClient } from "@/lib/supabase/client"
 const GREEN = "#22c55e"
 // Dark-glass surface for floating menus (readable over arbitrary content),
 // matching the landing nav's blur+saturate treatment.
-const GLASS_BG = "rgba(12,12,14,0.82)"
-const GLASS_BLUR = "blur(20px) saturate(180%)"
-const GLASS_BORDER = "1px solid rgba(255,255,255,0.12)"
 // Tier accents match the landing membership section: green / amber / purple.
 const TIER_ACCENT: Record<string, string> = {
   amateur: "#22C55E",
@@ -64,6 +61,7 @@ export function AccountMenu({
     name: null,
     tier: null,
   })
+  const [isAdmin, setIsAdmin] = useState(false)
   const [anchor, setAnchor] = useState<{ top: number; right: number } | null>(null)
   const [swipeRevealed, setSwipeRevealed] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
@@ -98,6 +96,21 @@ export function AccountMenu({
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [open])
+
+  // Admin-entry-point discoverability (Part 6) — thin check against the
+  // existing public whoami route (already used by the CMS edit-mode gate).
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/admin/whoami")
+      .then((res) => res.json())
+      .then((json: { isAdmin?: boolean }) => {
+        if (!cancelled && json.isAdmin) setIsAdmin(true)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const openMenu = () => {
     if (triggerRef.current) {
@@ -164,6 +177,11 @@ export function AccountMenu({
       <a href="/member?tab=settings" style={menuItemStyle} role="menuitem" data-cms-key="nav.settings">
         <Settings size={17} /> {t("settings")}
       </a>
+      {isAdmin && (
+        <a href="/admin" style={menuItemStyle} role="menuitem" data-cms-key="nav.admin">
+          <ShieldCheck size={17} /> {t("admin")}
+        </a>
+      )}
       <div style={{ height: 1, background: "rgba(255,255,255,0.08)", margin: "6px 0" }} />
       <button
         type="button"
@@ -196,25 +214,30 @@ export function AccountMenu({
   const trigger =
     variant === "mobile" ? (
       <div style={{ position: "relative", width: 46, height: 46 }}>
-        {/* Revealed-on-swipe quick Sign Out (secondary path). */}
-        <button
-          type="button"
-          onClick={signOut}
-          aria-label={t("sign_out")}
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "#7f1d1d",
-            color: "#fff",
-            border: "none",
-            borderRadius: 999,
-          }}
-        >
-          <LogOut size={18} />
-        </button>
+        {/* Revealed-on-swipe quick Sign Out (secondary path). Only mounted while
+            actually revealed, so it can never paint underneath/behind the avatar
+            (e.g. during a slow avatar image load) and read as a stray red icon. */}
+        {swipeRevealed && (
+          <button
+            type="button"
+            onClick={signOut}
+            aria-label={t("sign_out")}
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(248,113,113,0.15)", // glass-style red tint (not solid #7f1d1d)
+              backdropFilter: "blur(12px) saturate(150%)",
+              color: "#f87171",
+              border: "1px solid rgba(248,113,113,0.3)",
+              borderRadius: 999,
+            }}
+          >
+            <LogOut size={18} />
+          </button>
+        )}
         <motion.button
           ref={triggerRef}
           type="button"
@@ -278,16 +301,13 @@ export function AccountMenu({
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 320 }}
                 role="menu"
+                className="glass-panel-dark"
                 style={{
                   position: "fixed",
                   left: 0,
                   right: 0,
                   bottom: 0,
                   zIndex: 201,
-                  background: GLASS_BG,
-                  backdropFilter: GLASS_BLUR,
-                  WebkitBackdropFilter: GLASS_BLUR,
-                  borderTop: GLASS_BORDER,
                   borderTopLeftRadius: 24,
                   borderTopRightRadius: 24,
                   paddingBottom: 24,
@@ -303,16 +323,13 @@ export function AccountMenu({
                 exit={{ opacity: 0, y: -8, scale: 0.98 }}
                 transition={{ duration: 0.18 }}
                 role="menu"
+                className="glass-panel-dark"
                 style={{
                   position: "fixed",
                   top: anchor?.top ?? 64,
                   right: anchor?.right ?? 16,
                   zIndex: 201,
                   width: 240,
-                  background: GLASS_BG,
-                  backdropFilter: GLASS_BLUR,
-                  WebkitBackdropFilter: GLASS_BLUR,
-                  border: GLASS_BORDER,
                   borderRadius: 16,
                   overflow: "hidden",
                 }}

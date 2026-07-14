@@ -49,7 +49,7 @@ export default function Footer() {
               lineHeight: 1,
             }}
           >
-            248 Snooker
+            Space8
           </span>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -132,7 +132,7 @@ export default function Footer() {
             color: tokens.colors.textFaint,
           }}
         >
-          &copy; 2026 248 Snooker · {t('footer.tagline')}
+          &copy; 2026 Space8 · {t('footer.tagline')}
         </p>
       </div>
     </footer>

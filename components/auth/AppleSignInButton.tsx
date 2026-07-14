@@ -4,7 +4,7 @@ import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { AppleLogo } from "@/components/brand"
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://248.formhk.com"
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://space8.com.hk"
 
 /**
  * Sign in with Apple — Supabase redirect OAuth, mirroring the WORKING Google flow
@@ -52,31 +52,36 @@ export function AppleSignInButton({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={signIn}
-        disabled={busy}
-        data-cms-key="auth.apple"
-        style={{
-          width: "100%",
-          minHeight: 52,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 8,
-          background: "#fff",
-          color: "#000",
-          border: "none",
-          borderRadius: 9999,
-          fontWeight: 600,
-          fontSize: 16,
-          cursor: busy ? "not-allowed" : "pointer",
-          opacity: busy ? 0.7 : 1,
-        }}
-      >
-        <AppleLogo size={18} color="#000" />
-        {label}
-      </button>
+      {/* Apple's brand guideline requires a solid white "Sign in with Apple"
+          button — the glass frame around it (not the button itself) is what
+          carries the dark liquid-glass theme. */}
+      <div className="glass-control" style={{ padding: 4, borderRadius: 9999 }}>
+        <button
+          type="button"
+          onClick={signIn}
+          disabled={busy}
+          data-cms-key="auth.apple"
+          style={{
+            width: "100%",
+            minHeight: 52,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            background: "#fff",
+            color: "#000",
+            border: "none",
+            borderRadius: 9999,
+            fontWeight: 600,
+            fontSize: 16,
+            cursor: busy ? "not-allowed" : "pointer",
+            opacity: busy ? 0.7 : 1,
+          }}
+        >
+          <AppleLogo size={18} color="#000" />
+          {label}
+        </button>
+      </div>
       {err && <p style={{ marginTop: 8, fontSize: 13, color: "#f87171", textAlign: "center" }}>{err}</p>}
     </div>
   )

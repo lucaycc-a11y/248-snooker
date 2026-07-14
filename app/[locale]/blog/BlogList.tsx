@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { CMSText } from "@/components/cms/CMSText";
 import type { BlogPost } from "@/lib/data/getBlog";
 
 const SUBTLE = "#86868B";
@@ -95,7 +96,9 @@ function PostCard({ post, index, locale }: { post: BlogPost; index: number; loca
               letterSpacing: "0.02em",
             }}
           >
-            {t.has(`filter_${post.category}`) ? t(`filter_${post.category}`) : post.category}
+            <CMSText k={`blog.filter_${post.category}`}>
+              {t.has(`filter_${post.category}`) ? t(`filter_${post.category}`) : post.category}
+            </CMSText>
           </span>
         )}
 
@@ -132,7 +135,9 @@ function PostCard({ post, index, locale }: { post: BlogPost; index: number; loca
         <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: SUBTLE }}>
           <span>{formatDate(post.published_at, locale)}</span>
           <span aria-hidden="true">·</span>
-          <span>{t("read_time", { min: post.reading_time ?? 5 })}</span>
+          <span>
+            <CMSText k="blog.read_time">{t("read_time", { min: post.reading_time ?? 5 })}</CMSText>
+          </span>
           {post.author && (
             <>
               <span aria-hidden="true">·</span>
@@ -166,12 +171,11 @@ export default function BlogList({ posts, locale }: { posts: BlogPost[]; locale:
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
             style={{ fontSize: "clamp(44px, 9vw, 72px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
-            data-cms-key="blog.title"
           >
-            {t("title")}
+            <CMSText k="blog.title">{t("title")}</CMSText>
           </motion.h1>
-          <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", margin: "16px 0 0" }} data-cms-key="blog.subtitle">
-            {t("subtitle")}
+          <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", margin: "16px 0 0" }}>
+            <CMSText k="blog.subtitle">{t("subtitle")}</CMSText>
           </p>
         </div>
       </section>
@@ -191,7 +195,6 @@ export default function BlogList({ posts, locale }: { posts: BlogPost[]; locale:
                     key={c.id}
                     type="button"
                     onClick={() => setFilter(c.id)}
-                    data-cms-key={`blog.${c.key}`}
                     style={{
                       flexShrink: 0,
                       fontSize: "14px",
@@ -206,7 +209,7 @@ export default function BlogList({ posts, locale }: { posts: BlogPost[]; locale:
                       minHeight: 44,
                     }}
                   >
-                    {t(c.key)}
+                    <CMSText k={`blog.${c.key}`}>{t(c.key)}</CMSText>
                   </button>
                 );
               })}
@@ -241,11 +244,11 @@ function ComingSoon() {
       style={{ background: "#000", color: "white", padding: "40px 24px 160px", textAlign: "center" }}
     >
       <div style={{ maxWidth: "480px", margin: "0 auto" }}>
-        <h2 style={{ fontSize: "28px", fontWeight: 700, margin: "0 0 12px" }} data-cms-key="blog.coming_soon_title">
-          {t("coming_soon_title")}
+        <h2 style={{ fontSize: "28px", fontWeight: 700, margin: "0 0 12px" }}>
+          <CMSText k="blog.coming_soon_title">{t("coming_soon_title")}</CMSText>
         </h2>
-        <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", margin: "0 0 32px" }} data-cms-key="blog.coming_soon_body">
-          {t("coming_soon_body")}
+        <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", margin: "0 0 32px" }}>
+          <CMSText k="blog.coming_soon_body">{t("coming_soon_body")}</CMSText>
         </p>
         {/* Newsletter signup — visual only; wire to a real endpoint later. */}
         <form
@@ -281,9 +284,8 @@ function ComingSoon() {
               fontSize: "15px",
               cursor: "pointer",
             }}
-            data-cms-key="blog.newsletter_button"
           >
-            {t("newsletter_button")}
+            <CMSText k="blog.newsletter_button">{t("newsletter_button")}</CMSText>
           </button>
         </form>
       </div>

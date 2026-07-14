@@ -1,0 +1,31 @@
+-- 248 Snooker — reconcile production drift into repo migrations.
+--
+-- This migration is intentionally a placeholder until the maintainer runs:
+--   supabase/audit/schema_drift_dump.sql
+-- in the Supabase SQL Editor and pastes the output back.
+--
+-- WHY NOT GUESS?
+--   The prompt names several production-only functions/tables that are absent
+--   from repo migrations (`assign_member_code`, `handle_new_user`,
+--   `update_member_tier`, `validate_member_code`, possibly `admin_users`). Their
+--   exact function bodies, trigger bindings, RLS policies, and grants cannot be
+--   reconstructed safely from names alone. Inventing definitions would create a
+--   false migration record and could silently break live auth/member behavior.
+--
+-- WHAT HAS ALREADY BEEN RECONCILED IN COMMITTED MIGRATIONS:
+--   * 0008_confirm_booking_hardening.sql — P0 confirm_booking grant + trusted
+--     price/is_free redesign.
+--   * 0009_rate_limits_bucket_column.sql — production `rate_limits.action` drift
+--     normalized to canonical repo/code `bucket`.
+--   * 0010_webhook_idempotency_for_refund_and_failure.sql — webhook business
+--     state + webhook_events processed status in one DB transaction for failure
+--     and refund events.
+--
+-- NEXT STEP:
+--   1. Run supabase/audit/schema_drift_dump.sql in production.
+--   2. Paste the result back.
+--   3. Replace this placeholder with CREATE OR REPLACE FUNCTION / CREATE TRIGGER /
+--      ALTER TABLE / CREATE POLICY statements that exactly capture live prod.
+--
+-- Safety no-op so this file can exist without changing production.
+select '0011_reconcile_prod_drift placeholder — run schema_drift_dump.sql first' as message;

@@ -33,6 +33,25 @@
   --duration-slow: 380ms;
 }
 
+/* Responsive pricing grid — mobile stacks vertically, desktop side-by-side */
+@media (max-width: 768px) {
+  .responsive-pricing-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    padding: 24px 20px !important;
+    text-align: center;
+  }
+
+  .responsive-pricing-grid > div:first-child {
+    min-height: auto !important;
+  }
+
+  .responsive-pricing-grid > div:last-child {
+    min-height: auto !important;
+    padding-left: 0 !important;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -148,4 +167,53 @@ body {
   border: none;
   border-top: 1px solid #2d2d2d;
   margin: 2.5em 0;
+}
+
+/* ─────────────────────────  Liquid Glass  ─────────────────────────
+   Shared frosted-glass surfaces. Values are copied EXACTLY from the
+   Navbar's dark-theme pill (components/layout/Nav.tsx pillStyle(), lines
+   35-46) — that is the reference implementation everything else must
+   match. background/border/backdrop-filter are IDENTICAL between
+   .glass-panel and .glass-panel-dark on purpose (per explicit
+   instruction: only border-radius may differ, since that's a shape
+   choice — pill vs card corners — not a transparency choice). The two
+   class names are kept only because components already reference them
+   by name; they are not visually distinct anymore.
+   Per the Apple-UI skill we use borders (not shadows) for elevation. */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+}
+/* Same recipe as .glass-panel — components using this variant set their
+   own border-radius per instance (e.g. pill for a floating prompt, 16px
+   for a dropdown), so no radius is set here. */
+.glass-panel-dark {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+/* Small controls (chips, back button, slot cells) — same blur/background
+   recipe; only used for lower-emphasis surfaces than a full panel. */
+.glass-control {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+/* Space8 loading indicator — the branded ball icon rotating in place,
+   pure CSS (no video/GIF/Lottie). Used by <Space8Loader /> wherever the
+   site needs a loading spinner, replacing the old raster roll-animation
+   (components/shared/LoadingBall.tsx) and ad-hoc border-spinner divs. */
+@keyframes space8-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-space8-spin {
+  animation: space8-spin 1.4s linear infinite;
 }

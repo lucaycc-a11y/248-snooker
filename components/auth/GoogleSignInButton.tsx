@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://248.formhk.com"
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://space8.com.hk"
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 // Official Google 4-color "G" — used only by the fallback button (the GIS path
@@ -118,33 +118,37 @@ export function GoogleSignInButton({
         <div ref={gisRef} style={{ display: "flex", justifyContent: "center", minHeight: 44 }} />
       ) : null}
 
-      {/* Fallback button shown when GIS isn't configured or hasn't rendered yet. */}
+      {/* Fallback button shown when GIS isn't configured or hasn't rendered yet.
+          Google's brand guideline requires a solid white/light button here too —
+          same glass-frame treatment as the Apple fallback. */}
       {(!GOOGLE_CLIENT_ID || !gisReady) && (
-        <button
-          type="button"
-          onClick={fallbackSignIn}
-          disabled={busy}
-          data-cms-key="auth.google"
-          style={{
-            width: "100%",
-            minHeight: 52,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 10,
-            background: "#fff",
-            color: "#1a1a1a",
-            border: "none",
-            borderRadius: 9999,
-            fontWeight: 600,
-            fontSize: 16,
-            cursor: busy ? "not-allowed" : "pointer",
-            opacity: busy ? 0.7 : 1,
-          }}
-        >
-          <GoogleG />
-          {fallbackLabel}
-        </button>
+        <div className="glass-control" style={{ padding: 4, borderRadius: 9999 }}>
+          <button
+            type="button"
+            onClick={fallbackSignIn}
+            disabled={busy}
+            data-cms-key="auth.google"
+            style={{
+              width: "100%",
+              minHeight: 52,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              background: "#fff",
+              color: "#1a1a1a",
+              border: "none",
+              borderRadius: 9999,
+              fontWeight: 600,
+              fontSize: 16,
+              cursor: busy ? "not-allowed" : "pointer",
+              opacity: busy ? 0.7 : 1,
+            }}
+          >
+            <GoogleG />
+            {fallbackLabel}
+          </button>
+        </div>
       )}
 
       {err && <p style={{ marginTop: 8, fontSize: 13, color: "#f87171", textAlign: "center" }}>{err}</p>}

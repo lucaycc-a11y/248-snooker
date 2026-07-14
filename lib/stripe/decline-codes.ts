@@ -108,10 +108,10 @@ export function getWhatsAppSupportUrl(params: {
   amount: number
 }): string {
   const messages = {
-    'zh-HK': `我喺 248 Snooker 訂位時可能已被扣款但未收到確認，時段：${params.date} ${params.time}，金額：HK$${params.amount}`,
-    'zh-CN': `我在 248 Snooker 订位时可能已被扣款但未收到确认，时段：${params.date} ${params.time}，金额：HK$${params.amount}`,
-    en: `I may have been charged for a 248 Snooker booking but didn't receive confirmation. Time: ${params.date} ${params.time}, Amount: HK$${params.amount}`,
-    ja: `248 Snookerの予約で支払いが発生しましたが、確認が届いていません。時間：${params.date} ${params.time}、金額：HK$${params.amount}`,
+    'zh-HK': `我喺 Space8 訂位時可能已被扣款但未收到確認，時段：${params.date} ${params.time}，金額：HK$${params.amount}`,
+    'zh-CN': `我在 Space8 订位时可能已被扣款但未收到确认，时段：${params.date} ${params.time}，金额：HK$${params.amount}`,
+    en: `I may have been charged for a Space8 booking but didn't receive confirmation. Time: ${params.date} ${params.time}, Amount: HK$${params.amount}`,
+    ja: `Space8の予約で支払いが発生しましたが、確認が届いていません。時間：${params.date} ${params.time}、金額：HK$${params.amount}`,
   }
 
   // TODO: Replace with actual WhatsApp business number
