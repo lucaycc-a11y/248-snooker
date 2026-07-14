@@ -245,7 +245,7 @@
     "duration_1h": "1 小時",
     "duration_2h": "2 小時",
     "duration_3h": "3 小時",
-    "member_price_prefix": "會員折實",
+    "member_price_prefix": "連訂 2 小時或以上",
     "time_line1": "你的時間，",
     "time_line2": "不會白等。",
     "cta_line1": "現在有位，",
@@ -503,7 +503,9 @@
     "admin": "管理後台",
     "sign_out": "登出",
     "signing_out": "登出中…",
-    "sign_out_error": "登出失敗，請再試一次。"
+    "sign_out_error": "登出失敗，請再試一次。",
+    "venue": "場地",
+    "membership": "會員"
   },
   "hero": {
     "title": "Space8",
@@ -530,7 +532,7 @@
     "step3_highlight": "愈打愈著數",
     "step3_modal_label": "獎賞",
     "step3_modal_title": "累積積分",
-    "step3_modal_body": "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 Amateur、Century、Maximum，分別享有折扣、優先預訂及免費教練時段等專屬福利。",
+    "step3_modal_body": "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 Amateur、Century、Maximum，解鎖不同專屬福利。",
     "close": "關閉"
   },
   "member": {
@@ -540,19 +542,19 @@
     "amateur_highlight": "50 積分",
     "amateur_modal_body": "新用戶自動加入 Amateur 等級，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。開始你的旅程，輕鬆累積。",
     "century_title": "Century",
-    "century_subtitle": "500 積分起",
-    "century_body": "全場時段 9 折。優先預訂熱門時段。積分 1.5 倍加速。",
-    "century_highlight1": "9 折",
+    "century_subtitle": "800 積分起",
+    "century_body": "貼心補給，積分 1.5 倍加速。",
+    "century_highlight1": "貼心補給",
     "century_highlight2": "1.5 倍",
-    "century_modal_body": "累積 500 積分晉升 Century 等級。全場所有時段享 9 折優惠，可優先預訂晚上熱門時段，積分以 1.5 倍速度累積，升級更快。",
+    "century_modal_body": "解鎖「專屬燈光歡迎詞」，每場預約免費附送優質瓶裝水 2 支，積分 1.5 倍累積。",
     "maximum_title": "Maximum",
-    "maximum_subtitle": "1,500 積分起",
+    "maximum_subtitle": "6,000 積分起",
     "maximum_badge": "最高等級",
-    "maximum_body": "全場時段 8 折。專屬球桌保留權。積分雙倍，免費教練時段。",
-    "maximum_highlight1": "8 折",
-    "maximum_highlight2": "積分雙倍",
-    "maximum_highlight3": "免費教練時段",
-    "maximum_modal_body": "累積 1,500 積分達到 Maximum 最高等級。全場時段 8 折，享專屬球桌保留權，積分雙倍累積，並可預約免費教練時段。為最投入的玩家而設。",
+    "maximum_body": "極致玩家殿堂，積分雙倍，尊享特級禮遇。",
+    "maximum_highlight1": "積分雙倍",
+    "maximum_highlight2": "特級禮遇",
+    "maximum_highlight3": "教練時段",
+    "maximum_modal_body": "不定期 Space8 專屬品牌周邊饋贈，積分雙倍累積，可換購折扣券、預約教練時段。",
     "modal_label": "會員等級",
     "cta_join": "立即加入",
     "cta_learn": "了解更多",
@@ -590,7 +592,7 @@
     "faq_pricing_q": "收費如何計算？",
     "faq_pricing_a": "下午（12pm–6pm）及深夜（12am–6am）每小時 HK$60；晚上（6pm–12am）每小時 HK$80。",
     "faq_points_q": "什麼是積分制度？",
-    "faq_points_a": "每消費 HK$1 賺取 1 積分。累積至 500 分升級 Century，享 9 折及積分 1.5 倍；累積至 1,500 分升級 Maximum，享 8 折及免費教練時段。",
+    "faq_points_a": "每消費 HK$1 賺取 1 積分。累積至 800 分升級 Century，享貼心補給及積分 1.5 倍；累積至 6,000 分升級 Maximum，積分雙倍並尊享特級禮遇。",
     "faq_facilities_q": "場地內有什麼設備？",
     "faq_facilities_a": "專業桌球枱、頂級燈光設備、冷氣、免費 Wi-Fi，以及自助飲品區。",
     "faq_guests_q": "可以帶朋友一起來嗎？",
@@ -759,5 +761,97 @@
     "phone_placeholder": "9XXX XXXX",
     "save": "儲存",
     "skip": "略過"
+  },
+  "venuePage": {
+    "hero_title": "場地",
+    "hero_subtitle": "自助無煙中式桌球獨立球室，無多餘干擾。",
+    "facilities_title": "場地設施",
+    "facilities": [
+      {
+        "title": "星牌中式桌球枱",
+        "body": "精選星牌桌球枱，確保最佳手感。"
+      },
+      {
+        "title": "專業級照明",
+        "body": "特調比賽燈光模式，專注於每一次出杆。"
+      },
+      {
+        "title": "恆溫冷氣",
+        "body": "全場恆溫，長時間對局依然舒適。"
+      },
+      {
+        "title": "免費高速 WiFi",
+        "body": "全場覆蓋，隨時分享你的精彩一杆。"
+      },
+      {
+        "title": "自助飲品區",
+        "body": "自助售賣飲品，補給無需離場。"
+      },
+      {
+        "title": "智能 QR 門禁",
+        "body": "預訂確認後獲發 QR 碼，到場掃描自動開門。"
+      }
+    ],
+    "services_title": "服務說明",
+    "services": [
+      {
+        "title": "全自助營運",
+        "body": "由預訂、付款到入場全程自助，場內不設常駐職員。"
+      },
+      {
+        "title": "網上預訂",
+        "body": "於網站選擇日期及時段，以 Apple Pay 或信用卡即時付款。"
+      },
+      {
+        "title": "即時確認",
+        "body": "付款後即時收到確認電郵及進場 QR 碼。"
+      },
+      {
+        "title": "客戶支援",
+        "body": "如有查詢或需要協助，歡迎透過 WhatsApp 聯絡我們。"
+      }
+    ],
+    "rules_title": "要留意事項",
+    "rules": [
+      "每間球室使用人數上限為 6 人。",
+      "場內全面禁煙，包括電子煙及加熱煙。",
+      "未滿 12 歲人士須由年滿 18 歲成人全程陪同。",
+      "請於預約時段結束時準時離場，超時將收取超時費用。",
+      "離場前請完成場地復原：歸位球具、清潔枱面、套回防塵罩、關閉電源。",
+      "進場後如發現設施損壞，請於 10 分鐘內透過 WhatsApp 向我們報告。"
+    ],
+    "rules_link": "查看完整場地使用守則及條款",
+    "directions_title": "如何前往",
+    "address_label": "地址",
+    "address": "香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室",
+    "directions_body": "港鐵鑽石山站或啟德站步行約 10 分鐘；亦可乘搭巴士或小巴至大有街附近下車。",
+    "map_cta": "Google Maps 導航",
+    "book_cta": "立即預訂"
+  },
+  "membershipPage": {
+    "hero_title": "會員",
+    "hero_subtitle": "每一次消費，都在累積屬於你的福利。",
+    "stage_title": "你在哪一個階段",
+    "how_title": "玩法介紹",
+    "how_items": [
+      {
+        "title": "賺取積分",
+        "body": "每消費 HK$1 即累積 1 積分。新用戶註冊即送 50 積分。"
+      },
+      {
+        "title": "自動升級",
+        "body": "積分達到門檻即自動升級，毋須申請。等級愈高，積分累積速度愈快。"
+      },
+      {
+        "title": "使用積分",
+        "body": "積分可換購折扣券及預約教練時段，禮遇隨等級提升。"
+      },
+      {
+        "title": "查看進度",
+        "body": "登入會員中心，隨時查看積分結餘、等級進度及預訂記錄。"
+      }
+    ],
+    "cta_book": "立即預訂",
+    "cta_login": "登入會員中心"
   }
 }

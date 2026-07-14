@@ -244,7 +244,7 @@
     "duration_1h": "1 hour",
     "duration_2h": "2 hours",
     "duration_3h": "3 hours",
-    "member_price_prefix": "Members pay",
+    "member_price_prefix": "Book 2h+ for",
     "time_line1": "Your time,",
     "time_line2": "never wasted.",
     "cta_line1": "Tables available now.",
@@ -503,7 +503,9 @@
     "admin": "Admin",
     "sign_out": "Sign Out",
     "signing_out": "Signing out…",
-    "sign_out_error": "Couldn't sign out. Please try again."
+    "sign_out_error": "Couldn't sign out. Please try again.",
+    "venue": "Venue",
+    "membership": "Membership"
   },
   "hero": {
     "title": "Space8",
@@ -530,29 +532,29 @@
     "step3_highlight": "more you save",
     "step3_modal_label": "Rewards",
     "step3_modal_title": "Earn Points",
-    "step3_modal_body": "Earn 1 point per HK$1 spent, with automatic tier upgrades. Three tiers — Amateur, Century, Maximum — unlock discounts, priority booking, and free coaching sessions.",
+    "step3_modal_body": "Earn 1 point for every HK$1 spent and level up automatically. Three tiers — Amateur, Century, Maximum — each unlocking exclusive benefits.",
     "close": "Close"
   },
   "member": {
     "title": "Membership",
     "amateur_title": "Amateur",
-    "amateur_body": "HK$1 = 1 point. Start with 50 bonus points.",
-    "amateur_highlight": "50 bonus points",
-    "amateur_modal_body": "New users join Amateur automatically and receive 50 bonus points. Earn 1 point per HK$1 spent — a great starting point.",
+    "amateur_body": "HK$1 = 1 point. 50 points free on sign-up.",
+    "amateur_highlight": "50 points",
+    "amateur_modal_body": "New users join the Amateur tier automatically with 50 points as a welcome gift. Earn 1 point for every HK$1 spent — start your journey and build up with ease.",
     "century_title": "Century",
-    "century_subtitle": "From 500 pts",
-    "century_body": "10% off all sessions. Priority booking. 1.5× point multiplier.",
-    "century_highlight1": "10% off",
-    "century_highlight2": "1.5×",
-    "century_modal_body": "Reach 500 points to unlock Century tier. Enjoy 10% off all sessions, priority access to peak evening slots, and earn points 1.5× faster.",
+    "century_subtitle": "From 800 points",
+    "century_body": "Thoughtful perks, points at 1.5x speed.",
+    "century_highlight1": "Perks",
+    "century_highlight2": "1.5x",
+    "century_modal_body": "Unlock a personalised light welcome, receive 2 complimentary bottles of premium water every session, and earn points at 1.5x.",
     "maximum_title": "Maximum",
-    "maximum_subtitle": "From 1,500 pts",
+    "maximum_subtitle": "From 6,000 points",
     "maximum_badge": "Top Tier",
-    "maximum_body": "20% off all sessions. Reserved table access. 2× points, free coaching.",
-    "maximum_highlight1": "20% off",
-    "maximum_highlight2": "2× points",
-    "maximum_highlight3": "free coaching",
-    "maximum_modal_body": "Reach 1,500 points for Maximum status. 20% off all sessions, reserved table access, double point accumulation, and complimentary coaching sessions — for the most dedicated players.",
+    "maximum_body": "The hall of dedicated players. Double points, premium privileges.",
+    "maximum_highlight1": "Double points",
+    "maximum_highlight2": "Privileges",
+    "maximum_highlight3": "Coach sessions",
+    "maximum_modal_body": "Occasional exclusive Space8 merchandise, double points on every booking, redeemable discount vouchers and bookable coaching sessions.",
     "modal_label": "Membership Tier",
     "cta_join": "Join Now",
     "cta_learn": "Learn More",
@@ -597,7 +599,7 @@
     "faq_pricing_q": "How is pricing calculated?",
     "faq_pricing_a": "Afternoon (12pm–6pm) and late night (12am–6am) are HK$60/hr. Evening (6pm–12am) is HK$80/hr.",
     "faq_points_q": "How does the points system work?",
-    "faq_points_a": "Earn 1 point per HK$1 spent. Reach 500 points for Century tier (10% off, 1.5× points). Reach 1,500 for Maximum tier (20% off, free coaching).",
+    "faq_points_a": "Earn 1 point per HK$1 spent. Reach 800 points for Century (perks and 1.5x points). Reach 6,000 for Maximum (double points and premium privileges).",
     "faq_facilities_q": "What facilities are available?",
     "faq_facilities_a": "Professional snooker tables, premium lighting, air conditioning, free Wi-Fi, and a self-serve drinks area.",
     "faq_guests_q": "Can I bring friends?",
@@ -766,5 +768,97 @@
     "phone_placeholder": "9XXX XXXX",
     "save": "Save",
     "skip": "Skip"
+  },
+  "venuePage": {
+    "hero_title": "The Venue",
+    "hero_subtitle": "A private, self-service, smoke-free Chinese eight-ball room. No distractions.",
+    "facilities_title": "Facilities",
+    "facilities": [
+      {
+        "title": "Star Chinese Pool Table",
+        "body": "A hand-picked Star table for the truest feel."
+      },
+      {
+        "title": "Tournament Lighting",
+        "body": "Match-tuned lighting so you can focus on every shot."
+      },
+      {
+        "title": "Climate Control",
+        "body": "Constant temperature for comfort through long sessions."
+      },
+      {
+        "title": "Free High-Speed WiFi",
+        "body": "Full coverage — share your best shots anytime."
+      },
+      {
+        "title": "Self-Service Drinks",
+        "body": "Grab a drink without leaving the venue."
+      },
+      {
+        "title": "Smart QR Entry",
+        "body": "Get a QR code on confirmation; scan at the door to enter."
+      }
+    ],
+    "services_title": "How It Works",
+    "services": [
+      {
+        "title": "Fully Self-Service",
+        "body": "Booking, payment and entry are all self-service — no staff on site."
+      },
+      {
+        "title": "Book Online",
+        "body": "Pick a date and time slot, pay instantly with Apple Pay or card."
+      },
+      {
+        "title": "Instant Confirmation",
+        "body": "Receive your confirmation email and entry QR code right away."
+      },
+      {
+        "title": "Support",
+        "body": "Questions? Reach us anytime on WhatsApp."
+      }
+    ],
+    "rules_title": "Good to Know",
+    "rules": [
+      "Maximum 6 people per room.",
+      "Strictly no smoking, including e-cigarettes and heated tobacco.",
+      "Under-12s must be accompanied by an adult (18+) at all times.",
+      "Please leave on time at the end of your slot; overtime fees apply.",
+      "Before leaving: return equipment, brush the table, replace the dust cover and switch off the lights.",
+      "Report any existing damage via WhatsApp within 10 minutes of entry."
+    ],
+    "rules_link": "Read the full venue rules and terms",
+    "directions_title": "Getting Here",
+    "address_label": "Address",
+    "address": "Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",
+    "directions_body": "About 10 minutes on foot from Diamond Hill or Kai Tak MTR station; buses and minibuses also stop near Tai Yau Street.",
+    "map_cta": "Open in Google Maps",
+    "book_cta": "Book Now"
+  },
+  "membershipPage": {
+    "hero_title": "Membership",
+    "hero_subtitle": "Every session builds towards rewards that are yours.",
+    "stage_title": "Where You Stand",
+    "how_title": "How It Works",
+    "how_items": [
+      {
+        "title": "Earn Points",
+        "body": "Earn 1 point for every HK$1 spent. New members receive 50 points on sign-up."
+      },
+      {
+        "title": "Level Up Automatically",
+        "body": "Reach a tier threshold and you level up automatically — no application needed. Higher tiers earn points faster."
+      },
+      {
+        "title": "Spend Points",
+        "body": "Redeem points for discount vouchers and coaching sessions, with richer privileges at higher tiers."
+      },
+      {
+        "title": "Track Progress",
+        "body": "Sign in to the member centre to check your balance, tier progress and booking history anytime."
+      }
+    ],
+    "cta_book": "Book Now",
+    "cta_login": "Member Centre"
   }
 }

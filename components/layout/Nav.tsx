@@ -21,9 +21,10 @@ import { createClient } from '@/lib/supabase/client'
 const navItems = [
   { href: '/', key: 'home' },
   { href: '/book', key: 'book' },
-  { href: '/pricing', key: 'pricing' },
+  { href: '/venue', key: 'venue' },
   { href: '/about', key: 'about' },
   { href: '/blog', key: 'blog' },
+  { href: '/membership', key: 'membership' },
 ] as const
 
 type NavTheme = 'dark' | 'light'
@@ -300,35 +301,6 @@ export default function Nav() {
               </Link>
             )
           })}
-
-          <span
-            style={{
-              width: 1,
-              height: 14,
-              background: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-              margin: '0 2px',
-              flexShrink: 0,
-            }}
-          />
-
-          <PlainLink
-            href="/member"
-            data-cms-key="nav.link.member"
-            style={{
-              fontSize: 14,
-              fontWeight: 500,
-              color: pathname === '/member' ? tokens.colors.brand : linkColor,
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-              transition: PILL_TRANSITION,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-            }}
-          >
-            <User size={14} strokeWidth={1.8} />
-            {navText('member', 'Member')}
-          </PlainLink>
 
           <span
             style={{

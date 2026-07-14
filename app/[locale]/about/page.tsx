@@ -21,7 +21,6 @@ export async function generateMetadata({
     "zh-HK": "關於我們 | Space8",
     "zh-CN": "关于我们 | Space8",
     en: "About | Space8",
-    ja: "私たちについて | Space8",
   };
 
   return {
@@ -33,7 +32,6 @@ export async function generateMetadata({
         "zh-HK": `${BASE}/about`,
         "zh-CN": `${BASE}/zh-CN/about`,
         en: `${BASE}/en/about`,
-        ja: `${BASE}/ja/about`,
       },
     },
     openGraph: {

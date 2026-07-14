@@ -99,8 +99,6 @@ export default function PricingContent({
   const faqs = t.raw("faqs") as Array<{ q: string; a: string }>;
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Member discount: Century 10% off, Maximum 20% off (from tier config)
-  const MEMBER_DISCOUNT = { amateur: 1.0, century: 0.9, maximum: 0.8 };
 
   return (
     <div style={{ fontFamily: FONT_FAMILY }}>
@@ -175,7 +173,6 @@ export default function PricingContent({
 
       {/* ── Part 2: Sectioned Pricing — WHITE background for number clarity ── */}
       {periods.map((period, index) => {
-        const memberPrice = period.rate * MEMBER_DISCOUNT.century; // Century tier as example
         const Icon = period.id === "morning" ? Sun : period.id === "afternoon" ? Zap : Moon;
 
         return (
@@ -244,17 +241,19 @@ export default function PricingContent({
                     </span>
                   </div>
 
-                  <div
-                    style={{
-                      fontSize: "clamp(24px, 5vw, 40px)",
-                      fontWeight: 600,
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    <Mark color={GREEN}>
-                      <CMSText k="pricingPage.member_price_prefix">{t("member_price_prefix")}</CMSText> {fmt(memberPrice)}
-                    </Mark>
-                  </div>
+                  {period.rateFrom2h !== undefined && (
+                    <div
+                      style={{
+                        fontSize: "clamp(24px, 5vw, 40px)",
+                        fontWeight: 600,
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      <Mark color={GREEN}>
+                        <CMSText k="pricingPage.member_price_prefix">{t("member_price_prefix")}</CMSText> {fmt(period.rateFrom2h)}
+                      </Mark>
+                    </div>
+                  )}
                 </div>
 
                 <Link

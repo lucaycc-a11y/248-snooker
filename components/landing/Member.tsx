@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { CMSText } from "@/components/cms/CMSText";
 
 const GREEN_LIGHT = "#22C55E";
@@ -179,14 +180,14 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
             <p style={{ fontSize: "17px", lineHeight: 1.6, color: "rgba(255,255,255,0.75)", margin: "0 0 24px" }}>
               {data.body}
             </p>
-            <a
-              href="/member"
+            <Link
+              href="/membership"
               className="group inline-flex items-center"
               style={{ color: GREEN_LIGHT, fontSize: "17px", textDecoration: "none", gap: "2px" }}
             >
               <span className="group-hover:underline"><CMSText k="member.cta_learn">{t('cta_learn')}</CMSText></span>
               <span aria-hidden="true">›</span>
-            </a>
+            </Link>
           </motion.div>
         </motion.div>
       )}
@@ -410,15 +411,15 @@ export default function Member() {
           <CMSText k="member.title">{t('title')}</CMSText>。
         </motion.h2>
 
-        <a
-          href="/member"
+        <Link
+          href="/membership"
           className="group inline-flex items-center"
           style={{ color: GREEN_LIGHT, fontSize: "19px", textDecoration: "none", gap: "2px", whiteSpace: "nowrap" }}
           data-cms-key="membership_link"
         >
           <span className="group-hover:underline"><CMSText k="member.cta_join">{t('cta_join')}</CMSText></span>
           <span aria-hidden="true">›</span>
-        </a>
+        </Link>
       </div>
 
       {isMobile ? (

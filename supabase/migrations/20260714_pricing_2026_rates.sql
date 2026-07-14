@@ -29,3 +29,15 @@ where key = 'pricing';
 update public.config
 set value = jsonb_set(value, '{openHour}', '6')
 where key = 'site';
+
+-- 2026 membership tiers: Century from 800 pts, Maximum from 6000 pts.
+-- Tier benefits are points-speed + perks only — no price discount (discount
+-- stays 1.0; applyTierPolicy charges full price regardless, this keeps the
+-- config honest with the new public copy).
+update public.config
+set value = jsonb_build_array(
+  jsonb_build_object('id','amateur','minPts',0,   'discount',1.0,'multiplier',1),
+  jsonb_build_object('id','century','minPts',800, 'discount',1.0,'multiplier',1.5),
+  jsonb_build_object('id','maximum','minPts',6000,'discount',1.0,'multiplier',2)
+)
+where key = 'tiers';

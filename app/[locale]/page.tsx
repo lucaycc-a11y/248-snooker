@@ -48,15 +48,6 @@ export async function generateMetadata({
       canonical: 'https://space8.com.hk/en',
       ogLocale: 'en_HK',
     },
-    ja: {
-      title: 'Space8 · 香港スヌーカークラブ 毎日06:00〜24:00営業',
-      description: '香港初のセルフサービス・スヌーカー予約プラットフォーム。毎日06:00〜24:00営業。即時確認、Apple Pay決済、QRコード入場。',
-      keywords: ['スヌーカー', '香港スヌーカー', 'セルフサービススヌーカー', 'ビリヤード香港'],
-      ogTitle: 'Space8',
-      ogDesc: '香港スヌーカークラブ · 毎日06:00〜24:00営業',
-      canonical: 'https://space8.com.hk/ja',
-      ogLocale: 'ja_JP',
-    },
   }
 
   const m = meta[locale] ?? meta['zh-HK']
@@ -93,7 +84,6 @@ export async function generateMetadata({
         'zh-HK': 'https://space8.com.hk',
         'zh-CN': 'https://space8.com.hk/zh-CN',
         en: 'https://space8.com.hk/en',
-        ja: 'https://space8.com.hk/ja',
       },
     },
     robots: { index: true, follow: true },

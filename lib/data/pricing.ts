@@ -56,8 +56,8 @@ export const DEFAULT_PERIODS: PricingPeriod[] = [
 
 export const DEFAULT_TIERS: Tier[] = [
   { id: 'amateur', minPts: 0, discount: 1.0, multiplier: 1 },
-  { id: 'century', minPts: 500, discount: 0.9, multiplier: 1.5 },
-  { id: 'maximum', minPts: 1500, discount: 0.8, multiplier: 2 },
+  { id: 'century', minPts: 800, discount: 1.0, multiplier: 1.5 },
+  { id: 'maximum', minPts: 6000, discount: 1.0, multiplier: 2 },
 ]
 
 export const DEFAULT_SERVICES: ServiceFees = {

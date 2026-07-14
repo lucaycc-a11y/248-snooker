@@ -10,7 +10,7 @@ const intlMiddleware = createMiddleware(routing)
 // Public routes that have localized ([locale]) variants. Everything else
 // (admin, auth, member, login, maintenance, api, static) is single-language
 // and must bypass the intl rewrite so it keeps resolving at the root.
-const LOCALIZED_ROOTS = ['book', 'pricing', 'about', 'faq', 'legal', 'terms', 'privacy', 'blog']
+const LOCALIZED_ROOTS = ['book', 'pricing', 'about', 'faq', 'legal', 'terms', 'privacy', 'blog', 'venue', 'membership']
 
 // Routes that must never be rewritten by intl middleware.
 const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/maintenance', '/coming-soon']

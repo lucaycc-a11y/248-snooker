@@ -21,7 +21,6 @@ export async function generateMetadata({
     "zh-HK": "定價 | Space8 — 香港桌球 06:00-24:00營業",
     "zh-CN": "定价 | Space8 — 香港台球 06:00-24:00营业",
     en: "Pricing | Space8 — Snooker Hong Kong, Open Daily 06:00–24:00",
-    ja: "料金 | Space8 — 香港スヌーカー 毎日06:00〜24:00営業",
   };
 
   return {
@@ -33,7 +32,6 @@ export async function generateMetadata({
         "zh-HK": `${BASE}/pricing`,
         "zh-CN": `${BASE}/zh-CN/pricing`,
         en: `${BASE}/en/pricing`,
-        ja: `${BASE}/ja/pricing`,
       },
     },
     openGraph: {

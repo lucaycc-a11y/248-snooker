@@ -25,12 +25,6 @@ const META: Record<string, { title: string; description: string; keywords: strin
       "Space8 FAQ: booking flow, entry method, pricing, cancellation policy, membership tiers. Hong Kong's first self-service snooker club, open daily 06:00–24:00.",
     keywords: "snooker, Hong Kong snooker, self service snooker club, snooker booking",
   },
-  ja: {
-    title: "よくある質問 | Space8 — 香港スヌーカー 毎日06:00〜24:00営業",
-    description:
-      "Space8のよくある質問：予約方法、入場方法、料金、キャンセルポリシー、会員ポイント制度など。香港初のセルフサービス・スヌーカークラブ、毎日06:00〜24:00営業。",
-    keywords: "スヌーカー, 香港スヌーカー, セルフサービススヌーカー, スヌーカー予約",
-  },
 };
 
 export async function generateMetadata({
@@ -52,7 +46,6 @@ export async function generateMetadata({
         "zh-HK": `${BASE}/faq`,
         "zh-CN": `${BASE}/zh-CN/faq`,
         en: `${BASE}/en/faq`,
-        ja: `${BASE}/ja/faq`,
       },
     },
     openGraph: {
