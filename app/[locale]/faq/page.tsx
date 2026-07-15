@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
+import Footer from "@/components/layout/Footer";
 import FAQ from "@/components/landing/FAQ";
 import { getFaqListData, getFaqJsonLdFromItems } from "@/lib/data/getFaqData";
 
@@ -73,6 +74,7 @@ export default async function FaqPage({
     <main className="relative bg-black">
       <Nav />
       <FAQ initialItems={faqItems} jsonLd={faqJsonLd} />
+      <Footer />
     </main>
   );
 }
