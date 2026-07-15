@@ -1,5 +1,4 @@
 export { getConfig } from './getConfig'
-export { getCMS, getCMSMap } from './getCMS'
 export { getAvailability } from './getAvailability'
 export {
   DEFAULT_CONFIG,

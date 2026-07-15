@@ -1,7 +1,6 @@
 import { getRequestConfig } from 'next-intl/server'
 import { hasLocale } from 'next-intl'
 import { routing } from './routing'
-import { mergeMessagesWithCMS } from '@/lib/i18n/mergeMessages'
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // requestLocale is set by the middleware; fall back to the default.
@@ -10,11 +9,14 @@ export default getRequestConfig(async ({ requestLocale }) => {
     ? requested
     : routing.defaultLocale
 
-  // Load static messages as base
-  const staticMessages = (await import(`../messages/${locale}.json`)).default
-
-  // Merge with live CMS overrides from database
-  const messages = await mergeMessagesWithCMS(staticMessages, locale)
+  // Messages are served entirely from the static messages/{locale}.json
+  // bundles, built into the app. This used to be merged at request time with
+  // live overrides from the `cms_content` Supabase table (mergeMessagesWithCMS
+  // in lib/i18n/mergeMessages.ts, now removed) — that runtime DB fetch was
+  // dropped for SEO/static-rendering reasons; see app/[locale]/layout.tsx for
+  // the fuller rationale. The cms_content table itself is untouched in case a
+  // lightweight CMS is reintroduced later.
+  const messages = (await import(`../messages/${locale}.json`)).default
 
   return {
     locale,
