@@ -126,6 +126,10 @@ type Props = Labels & {
   /** External gate for the pay button (e.g. the terms-agreement checkbox on
    * the payment screen). Purely disables submission — no Stripe logic here. */
   payDisabled?: boolean
+  /** Fired when the user clicks the pay button while payDisabled is true —
+   * lets the parent explain WHY it's disabled (e.g. flash the terms checkbox)
+   * instead of a silently dead button. */
+  onDisabledPayClick?: () => void
 }
 
 function PayForm({
@@ -142,6 +146,7 @@ function PayForm({
   startHour,
   total,
   payDisabled,
+  onDisabledPayClick,
 }: {
   bookingId: string
   returnPath: string
@@ -156,6 +161,7 @@ function PayForm({
   startHour: number
   total: number
   payDisabled?: boolean
+  onDisabledPayClick?: () => void
 }) {
   const stripe = useStripe()
   const elements = useElements()
@@ -165,6 +171,12 @@ function PayForm({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Gated by the parent (terms checkbox unticked): don't silently no-op —
+    // tell the parent so it can point the user at the checkbox.
+    if (payDisabled) {
+      onDisabledPayClick?.()
+      return
+    }
     if (!stripe || !elements) return
     setSubmitting(true)
     setErr(null)
@@ -319,7 +331,11 @@ function PayForm({
       )}
       <button
         type="submit"
-        disabled={!stripe || submitting || payDisabled}
+        // payDisabled keeps the disabled LOOK but stays clickable, so tapping
+        // it can explain itself (onDisabledPayClick → parent flashes the terms
+        // checkbox) instead of being a dead grey button.
+        disabled={!stripe || submitting}
+        aria-disabled={payDisabled || undefined}
         style={{
           marginTop: 20,
           width: "100%",
@@ -330,7 +346,7 @@ function PayForm({
           color: submitting || payDisabled ? "rgba(255,255,255,0.6)" : "#000",
           fontWeight: 700,
           fontSize: 17,
-          cursor: submitting || payDisabled ? "not-allowed" : "pointer",
+          cursor: submitting ? "not-allowed" : "pointer",
         }}
       >
         {submitting ? processingLabel : payLabel}
@@ -544,6 +560,7 @@ export default function StripePayment(props: Props) {
         startHour={props.startHour}
         total={props.total}
         payDisabled={props.payDisabled}
+        onDisabledPayClick={props.onDisabledPayClick}
       />
     </Elements>
   )

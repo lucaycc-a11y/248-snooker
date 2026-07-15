@@ -683,6 +683,8 @@
     "slots_selected": "已选 {count} 个时段",
     "points_earned_estimate": "此预订最少赚 {pts} 积分",
     "terms_agree": "已代表同意 SPACE8 的<link>《场地使用守则》和《条款与细则》</link>",
+    "terms_required_hint": "* 必须同意条款方可继续付款",
+    "terms_required_error": "请先阅读并同意场地使用守则",
     "legend_available": "可预约",
     "legend_selected": "已选",
     "legend_booked": "已被预约",

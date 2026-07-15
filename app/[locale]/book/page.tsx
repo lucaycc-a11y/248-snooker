@@ -3,10 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
-  Calendar as CalendarIcon,
   ChevronRight,
   ChevronLeft,
-  Clock,
   Lock,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
@@ -1476,8 +1474,18 @@ function Screen3({
   const locale = useLocale()
 
   // Terms-agreement gate (Task: 付款前同意條款). The pay button inside
-  // StripePayment stays disabled until this is checked.
+  // StripePayment stays disabled until this is checked. Clicking the disabled
+  // pay button flags the checkbox (red border + shake + inline error) so the
+  // user can see WHY the button is grey instead of guessing.
   const [agreedToTerms, setAgreedToTerms] = useState(false)
+  const [termsError, setTermsError] = useState(false)
+  const [termsShake, setTermsShake] = useState(0)
+  const termsRef = useRef<HTMLDivElement>(null)
+  const flagTermsRequired = useCallback(() => {
+    setTermsError(true)
+    setTermsShake((n) => n + 1) // re-keys the wrapper so the animation replays
+    termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+  }, [])
 
   // Venue line label — a mixed-table order lists every table in the order.
   const tableName = Array.from(new Set(blocks.map((b) => b.tableNumber)))
@@ -1486,14 +1494,13 @@ function Screen3({
     .join(" + ")
 
   // Single-block scalars used only for <StripePayment>'s flat-form fallback
-  // fields and the single-block summary display below — StripePayment itself
-  // already branches on blocks.length > 1 vs a flat single-block body.
+  // fields — StripePayment itself branches on blocks.length > 1 vs a flat
+  // single-block body. (The summary card above always itemizes per block.)
   const primary = blocks[0]
   const dateStr = primary?.date ?? ""
   const startHour = primary?.startHour ?? 0
   const duration = primary?.duration ?? 0
   const tableNumber = primary?.tableNumber ?? 0
-  const selectedDate = primary ? new Date(`${primary.date}T00:00:00`) : new Date()
 
   // Order total across every block (grouped, non-contiguous orders sum them).
   const total = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
@@ -1504,8 +1511,6 @@ function Screen3({
     (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
     0,
   )
-  const endHour = startHour + duration
-  const crossDay = endHour >= 24
 
   // The user is already authenticated + profile_complete by the time they reach
   // this step (Screen2 gates on it), so `users` already has display_name/email/
@@ -1541,109 +1546,115 @@ function Screen3({
   return (
     <div className="screen-content">
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
-        {/* Order summary */}
+        {/* Order summary — card-based hierarchy (Task 4): three bordered
+            groups (時段 / 用戶資料 / 費用明細) instead of one flat text run.
+            Borders only, no shadows, per the design system. */}
         <Card
           className="glass-panel"
           style={{ marginBottom: 24, borderRadius: 20 }}
         >
-          {blocks.length > 1 ? (
-            /* Multi-block order (non-contiguous or cross-day) — itemize every
-               block so the displayed total is visibly traceable to its parts,
-               matching the sum Stripe's PaymentIntent.amount actually charges
-               (Task 8). Each block gets its own row with breathing room and a
-               hairline divider so a 3+ slot order doesn't read as one jammed
-               paragraph (Task 1). */
-            <div style={{ marginBottom: 16, display: "flex", flexDirection: "column" }}>
-              {blocks.map((b, i) => {
-                const [, m, d] = b.date.split("-")
-                const detail = quoteBlockDetail(b.date, b.startHour, b.duration, periods)
-                return (
-                  <div
-                    key={`${b.date}-${b.startHour}-${b.tableNumber}`}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      fontSize: 13,
-                      padding: "10px 0",
-                      borderBottom: i < blocks.length - 1 ? `1px solid ${tokens.colors.border}` : "none",
-                    }}
-                  >
-                    <span style={{ color: tokens.colors.textMuted }}>
-                      {Number(m)}月{Number(d)}日 {padTime(b.startHour)}–{padTime(b.startHour + b.duration)}
-                      {" · "}
-                      {t("table_label")} #{b.tableNumber}
-                    </span>
-                    <span style={{ fontVariantNumeric: "tabular-nums" }}>
-                      {detail.saved > 0 && (
-                        <s style={{ color: tokens.colors.textFaint, marginRight: 6 }}>HK${detail.baseTotal}</s>
-                      )}
-                      HK${detail.total}
-                    </span>
+          {/* ── Group 1: booked slots — one tinted item card per block ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+            {blocks.map((b) => {
+              const [, m, d] = b.date.split("-")
+              const detail = quoteBlockDetail(b.date, b.startHour, b.duration, periods)
+              const blockEnd = b.startHour + b.duration
+              return (
+                <div
+                  key={`${b.date}-${b.startHour}-${b.tableNumber}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 12,
+                    border: `1px solid ${tokens.colors.border}`,
+                    background: "rgba(255,255,255,0.04)",
+                    borderRadius: tokens.radius.input,
+                    padding: "12px 14px",
+                  }}
+                >
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                      {Number(m)}月{Number(d)}日 {padTime(b.startHour)}–{padTime(blockEnd)}
+                      {blockEnd >= 24 ? " +1日" : ""}
+                    </div>
+                    <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 2 }}>
+                      {t("table_label")} #{b.tableNumber} · {b.duration}
+                      {t("hours")}
+                    </div>
                   </div>
-                )
-              })}
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <CalendarIcon size={14} style={{ color: tokens.colors.textMuted }} />
-                <span style={{ fontSize: 14 }}>
-                  {selectedDate.getMonth() + 1}月{selectedDate.getDate()}日
-                </span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Clock size={14} style={{ color: tokens.colors.textMuted }} />
-                <span style={{ fontSize: 14 }}>
-                  {padTime(startHour)} – {padTime(endHour)}
-                  {crossDay ? " +1日" : ""}
-                </span>
-              </div>
-            </div>
-          )}
+                  <div style={{ flexShrink: 0, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                    {detail.saved > 0 && (
+                      <div>
+                        <s style={{ fontSize: 12, color: tokens.colors.textFaint }}>HK${detail.baseTotal}</s>
+                      </div>
+                    )}
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>HK${detail.total}</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
           <div
             data-cms-key="book.pay.venue"
-            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: profile ? 12 : 16, paddingTop: blocks.length > 1 ? 4 : 0 }}
+            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16 }}
           >
             Space8 · {tableName}
           </div>
+
+          {/* ── Group 2: payer identity ── */}
           {profile && (profile.name || profile.email || profile.phone) && (
-            <>
-              <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
-              <div style={{ marginBottom: 16 }}>
-                {profile.name && (
-                  <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 2 }}>{profile.name}</div>
-                )}
-                {(profile.email || profile.phone) && (
-                  <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
-                    {[profile.email, profile.phone].filter(Boolean).join(" · ")}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-          <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
-            <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>{t("subtotal")}</span>
-            <span style={{ fontVariantNumeric: "tabular-nums" }}>HK${total + totalSaved}</span>
-          </div>
-          {/* Discount line — Apple Store checkout hierarchy (小計 → 折扣 → 總計):
-              only rendered when the 2h+ contiguous-block rate actually saved
-              something, so the total is never an unexplained smaller number. */}
-          {totalSaved > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
-              <span data-cms-key="book.pay.discount" style={{ color: tokens.colors.textMuted }}>{t("discount_label")}</span>
-              <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
+            <div
+              style={{
+                border: `1px solid ${tokens.colors.border}`,
+                borderRadius: tokens.radius.input,
+                padding: "12px 14px",
+                marginBottom: 16,
+              }}
+            >
+              {profile.name && (
+                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 2 }}>{profile.name}</div>
+              )}
+              {(profile.email || profile.phone) && (
+                <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
+                  {[profile.email, profile.phone].filter(Boolean).join(" · ")}
+                </div>
+              )}
             </div>
           )}
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 12 }}>
-            <span data-cms-key="book.pay.fee" style={{ color: tokens.colors.textMuted }}>{t("service_fee")}</span>
-            <span>HK$0</span>
-          </div>
-          <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span data-cms-key="book.pay.total" style={{ fontSize: 15, fontWeight: 600 }}>{t("total")}</span>
-            <span style={{ fontFamily: BEBAS, fontSize: 28, color: tokens.colors.link }}>HK${total}</span>
+
+          {/* ── Group 3: fee breakdown — table-style rows, amounts right-
+              aligned with tabular numerals; 小計/服務費 sit a level below the
+              hero 總計 line. ── */}
+          <div
+            style={{
+              border: `1px solid ${tokens.colors.border}`,
+              borderRadius: tokens.radius.input,
+              padding: "12px 14px",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
+              <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>{t("subtotal")}</span>
+              <span style={{ color: tokens.colors.textMuted, fontVariantNumeric: "tabular-nums" }}>HK${total + totalSaved}</span>
+            </div>
+            {/* Discount line — Apple Store checkout hierarchy (小計 → 折扣 → 總計):
+                only rendered when the 2h+ contiguous-block rate actually saved
+                something, so the total is never an unexplained smaller number. */}
+            {totalSaved > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
+                <span data-cms-key="book.pay.discount" style={{ color: tokens.colors.textMuted }}>{t("discount_label")}</span>
+                <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 12 }}>
+              <span data-cms-key="book.pay.fee" style={{ color: tokens.colors.textMuted }}>{t("service_fee")}</span>
+              <span style={{ color: tokens.colors.textMuted, fontVariantNumeric: "tabular-nums" }}>HK$0</span>
+            </div>
+            <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span data-cms-key="book.pay.total" style={{ fontSize: 15, fontWeight: 600 }}>{t("total")}</span>
+              <span style={{ fontFamily: BEBAS, fontSize: 28, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>HK${total}</span>
+            </div>
           </div>
         </Card>
 
@@ -1693,51 +1704,83 @@ function Screen3({
             onBackToSlots={onBackToSlots}
             backToSlotsLabel={t("back_to_slots")}
             payDisabled={!agreedToTerms}
+            onDisabledPayClick={flagTermsRequired}
           />
 
           {/* Terms agreement — must be ticked before the pay button enables.
-              Rendered under the Payment Element, above the reminder copy. */}
-          <label
+              Rendered under the Payment Element, above the reminder copy.
+              A constant "* 必須同意…" hint explains the grey pay button up
+              front; clicking the disabled button shakes + reddens this block. */}
+          <motion.div
+            key={termsShake}
+            ref={termsRef}
+            animate={termsShake > 0 ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : false}
+            transition={{ duration: 0.45 }}
             style={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
               marginTop: 16,
-              cursor: "pointer",
-              minHeight: 44,
+              border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : "transparent"}`,
+              borderRadius: tokens.radius.input,
+              padding: "8px 10px",
+              transition: "border-color 0.2s ease",
             }}
           >
-            <input
-              type="checkbox"
-              checked={agreedToTerms}
-              onChange={(e) => setAgreedToTerms(e.target.checked)}
+            <label
               style={{
-                width: 18,
-                height: 18,
-                marginTop: 1,
-                flexShrink: 0,
-                accentColor: tokens.colors.link,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 10,
                 cursor: "pointer",
+                minHeight: 44,
               }}
-            />
-            <span
-              data-cms-key="book.terms_agree"
-              style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}
             >
-              {t.rich("terms_agree", {
-                link: (chunks) => (
-                  <LocaleLink
-                    href="/legal?doc=terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: tokens.colors.link, textDecoration: "underline" }}
-                  >
-                    {chunks}
-                  </LocaleLink>
-                ),
-              })}
-            </span>
-          </label>
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => {
+                  setAgreedToTerms(e.target.checked)
+                  if (e.target.checked) setTermsError(false)
+                }}
+                style={{
+                  width: 18,
+                  height: 18,
+                  marginTop: 1,
+                  flexShrink: 0,
+                  accentColor: tokens.colors.link,
+                  cursor: "pointer",
+                }}
+              />
+              <span
+                data-cms-key="book.terms_agree"
+                style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}
+              >
+                {t.rich("terms_agree", {
+                  link: (chunks) => (
+                    <LocaleLink
+                      href="/legal?doc=terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: tokens.colors.link, textDecoration: "underline" }}
+                    >
+                      {chunks}
+                    </LocaleLink>
+                  ),
+                })}
+              </span>
+            </label>
+            <div
+              data-cms-key={termsError && !agreedToTerms ? "book.terms_required_error" : "book.terms_required_hint"}
+              role={termsError && !agreedToTerms ? "alert" : undefined}
+              style={{
+                fontSize: 12,
+                color: termsError && !agreedToTerms ? tokens.colors.danger : tokens.colors.textMuted,
+                marginTop: 2,
+                paddingLeft: 28,
+                lineHeight: 1.5,
+              }}
+            >
+              {termsError && !agreedToTerms ? t("terms_required_error") : t("terms_required_hint")}
+            </div>
+          </motion.div>
 
           {total > 0 && (
             <div
