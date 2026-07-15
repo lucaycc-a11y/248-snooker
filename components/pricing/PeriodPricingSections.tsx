@@ -1,9 +1,13 @@
 "use client";
 
-// Shared per-period pricing sections — the /pricing page's "Part 2" blocks,
+// Shared per-period pricing section — the /pricing page's "Part 2" block,
 // extracted so the homepage reuses the exact same component (spec: the home
 // pricing section IS the pricing page's, not a rewrite). Rates flow from the
 // `config` table via getConfig() — never hardcoded here.
+//
+// Layout: all periods render as side-by-side cards (desktop grid) or a
+// horizontal snap-scroll carousel (mobile) — NOT one full-screen section per
+// period, so users see every period at a glance without scrolling.
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
@@ -21,140 +25,163 @@ function fmt(value: number): string {
   return `HK$${Math.round(value)}`;
 }
 
-function Mark({ children, color = GREEN }: { children: React.ReactNode; color?: string }) {
-  return (
-    <span
-      style={{
-        background: color,
-        color: "#000",
-        padding: "0 8px",
-        display: "inline",
-        boxDecorationBreak: "clone",
-        WebkitBoxDecorationBreak: "clone",
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
 export default function PeriodPricingSections({ periods }: { periods: PricingPeriod[] }) {
   const t = useTranslations("pricingPage");
 
+  // "Best value" badge goes on the cheapest effective rate — derived from
+  // config, not hardcoded to a period id.
+  const effectiveRate = (p: PricingPeriod) => p.rateFrom2h ?? p.rate;
+  const bestValueId = periods.reduce(
+    (best, p) => (effectiveRate(p) < effectiveRate(best) ? p : best),
+    periods[0],
+  )?.id;
+
   return (
-    <div style={{ fontFamily: FONT_FAMILY }}>
-      {periods.map((period) => {
-        const Icon = period.id === "morning" ? Sun : period.id === "afternoon" ? Zap : Moon;
+    <section
+      data-nav-theme="light"
+      style={{
+        background: "#fff",
+        color: "#1d1d1f",
+        padding: "clamp(80px, 12vh, 140px) 0",
+        borderTop: "1px solid #d2d2d7",
+        fontFamily: FONT_FAMILY,
+      }}
+    >
+      {/* Desktop: 3-up grid. Mobile: horizontal snap carousel so all periods
+          are discoverable with a sideways swipe instead of vertical scroll. */}
+      <div
+        className="mx-auto flex max-w-[1100px] snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 md:grid md:snap-none md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0"
+        style={{ scrollPaddingInline: "24px", WebkitOverflowScrolling: "touch" }}
+      >
+        {periods.map((period, i) => {
+          const Icon = period.id === "morning" ? Sun : period.id === "afternoon" ? Zap : Moon;
+          const isBestValue = period.id === bestValueId;
 
-        return (
-          <section
-            key={period.id}
-            data-nav-theme="light"
-            style={{
-              background: "#fff",
-              color: "#1d1d1f",
-              padding: "clamp(80px, 12vh, 140px) 24px",
-              borderTop: "1px solid #d2d2d7",
-            }}
-          >
-            <div style={{ maxWidth: "820px", margin: "0 auto" }}>
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 0.7, ease: EASE }}
-                style={{ textAlign: "center", willChange: "opacity, transform" }}
-              >
-                <Icon size={48} color={GREEN} strokeWidth={1.5} style={{ marginBottom: 24 }} />
-
-                <h3
+          return (
+            <motion.div
+              key={period.id}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, ease: EASE, delay: i * 0.1 }}
+              className="relative flex w-[78vw] max-w-[340px] flex-shrink-0 snap-center flex-col items-center md:w-auto md:max-w-none"
+              style={{
+                border: "1px solid #d2d2d7",
+                borderRadius: "18px",
+                padding: "40px 24px 32px",
+                textAlign: "center",
+                willChange: "opacity, transform",
+              }}
+            >
+              {/* Small "best value" tag — one card only, equal visual weight otherwise */}
+              {isBestValue && (
+                <span
+                  data-cms-key="pricingPage.badge_best_value"
                   style={{
-                    fontSize: "clamp(40px, 8vw, 72px)",
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    margin: "0 0 16px",
-                    color: "#1d1d1f",
-                  }}
-                >
-                  {t(`period_${period.id}_title`)}
-                </h3>
-
-                <p
-                  style={{
-                    fontSize: "clamp(20px, 4vw, 28px)",
-                    color: "#6e6e73",
-                    margin: "0 0 48px",
-                  }}
-                >
-                  {t(`period_${period.id}_time`)}
-                </p>
-
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 12,
-                    marginBottom: 48,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "clamp(56px, 12vw, 96px)",
-                      fontWeight: 700,
-                      letterSpacing: "-0.03em",
-                      color: "#1d1d1f",
-                    }}
-                  >
-                    {fmt(period.rate)}
-                    <span style={{ fontSize: "clamp(20px, 4vw, 32px)", color: "#6e6e73", fontWeight: 400 }}>
-                      {" "}
-                      {t("per_hour")}
-                    </span>
-                  </div>
-
-                  {period.rateFrom2h !== undefined && (
-                    <div
-                      style={{
-                        fontSize: "clamp(24px, 5vw, 40px)",
-                        fontWeight: 600,
-                        letterSpacing: "-0.01em",
-                      }}
-                    >
-                      <Mark color={GREEN}>
-                        {t("member_price_prefix")}{" "}
-                        {fmt(period.rateFrom2h)}
-                      </Mark>
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  href="/book"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    position: "absolute",
+                    top: "-12px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
                     background: GREEN,
                     color: "#000",
+                    fontSize: "12px",
                     fontWeight: 700,
-                    fontSize: "clamp(15px, 3vw, 19px)",
-                    padding: "0 clamp(32px, 5vw, 48px)",
-                    height: "clamp(52px, 10vw, 64px)",
+                    letterSpacing: "0.02em",
+                    padding: "4px 12px",
                     borderRadius: "100px",
-                    textDecoration: "none",
-                    transition: "transform 0.2s ease",
+                    whiteSpace: "nowrap",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                 >
-                  {t("cta_book")}
-                </Link>
-              </motion.div>
-            </div>
-          </section>
-        );
-      })}
-    </div>
+                  {t("badge_best_value")}
+                </span>
+              )}
+
+              <Icon size={36} color={GREEN} strokeWidth={1.5} style={{ marginBottom: 16 }} />
+
+              <h3
+                style={{
+                  fontSize: "clamp(22px, 3vw, 28px)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  margin: "0 0 6px",
+                  color: "#1d1d1f",
+                }}
+              >
+                {t(`period_${period.id}_title`)}
+              </h3>
+
+              <p
+                style={{
+                  fontSize: "15px",
+                  color: "#6e6e73",
+                  margin: "0 0 28px",
+                }}
+              >
+                {t(`period_${period.id}_time`)}
+              </p>
+
+              {/* Price is the visual hero of the card */}
+              <div
+                style={{
+                  fontSize: "clamp(44px, 5vw, 56px)",
+                  fontWeight: 700,
+                  letterSpacing: "-0.03em",
+                  color: "#1d1d1f",
+                  lineHeight: 1,
+                }}
+              >
+                {fmt(period.rate)}
+                <span style={{ fontSize: "17px", color: "#6e6e73", fontWeight: 400 }}>
+                  {" "}
+                  {t("per_hour")}
+                </span>
+              </div>
+
+              {/* Multi-hour discount badge — green highlight, fixed slot so
+                  cards without a discount keep equal height/rhythm */}
+              <div style={{ minHeight: "28px", margin: "14px 0 28px" }}>
+                {period.rateFrom2h !== undefined && (
+                  <span
+                    style={{
+                      display: "inline-block",
+                      background: GREEN,
+                      color: "#000",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      letterSpacing: "-0.01em",
+                      padding: "4px 12px",
+                      borderRadius: "100px",
+                    }}
+                  >
+                    {t("member_price_prefix")} {fmt(period.rateFrom2h)}
+                  </span>
+                )}
+              </div>
+
+              <Link
+                href="/book"
+                className="transition-transform duration-200 hover:scale-105"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: "auto",
+                  background: GREEN,
+                  color: "#000",
+                  fontWeight: 700,
+                  fontSize: "15px",
+                  padding: "0 32px",
+                  height: "48px",
+                  borderRadius: "100px",
+                  textDecoration: "none",
+                }}
+              >
+                {t("cta_book")}
+              </Link>
+            </motion.div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
