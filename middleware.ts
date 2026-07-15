@@ -47,7 +47,9 @@ async function checkSiteGate(request: NextRequest): Promise<NextResponse | null>
 
 function isLocalized(pathname: string): boolean {
   // Never rewrite auth/api routes — the OAuth callback must resolve as-is.
-  if (BYPASS_PREFIXES.some((p) => pathname.startsWith(p))) return false
+  // Segment-exact match: '/member' must NOT swallow '/membership' (a public
+  // localized page) — plain startsWith did, which 404'd /membership.
+  if (BYPASS_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return false
 
   const segments = pathname.split('/').filter(Boolean)
   if (segments[0] && routing.locales.includes(segments[0] as (typeof routing.locales)[number])) {
