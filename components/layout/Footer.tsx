@@ -168,6 +168,45 @@ export default function Footer() {
               </span>
             </div>
           </div>
+
+          {/* SEO blurb — fills the empty space beside the map/contact column.
+              Crawler-readable local-SEO copy with LocalBusiness microdata;
+              styled as secondary footer text so it stays visually quiet. */}
+          <div
+            itemScope
+            itemType="https://schema.org/LocalBusiness"
+            style={{ minWidth: '260px', flex: '1 1 320px' }}
+          >
+            <h2
+              data-cms-key="footer.seo_title"
+              itemProp="name"
+              style={{
+                fontSize: '13px',
+                fontWeight: 400,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                color: tokens.colors.textMuted,
+                margin: '0 0 12px',
+              }}
+            >
+              {t('footer.seo_title')}
+            </h2>
+            <p
+              data-cms-key="footer.seo_blurb"
+              itemProp="description"
+              style={{
+                fontSize: '13px',
+                color: tokens.colors.textMuted,
+                lineHeight: 1.7,
+                margin: 0,
+                maxWidth: '46ch',
+              }}
+            >
+              {t('footer.seo_blurb')}
+            </p>
+            <meta itemProp="address" content={t('footer.address')} />
+            <meta itemProp="openingHours" content="Mo-Su 06:00-24:00" />
+          </div>
         </div>
 
         {/* Middle — nav links, single centred row */}
