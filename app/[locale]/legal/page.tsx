@@ -80,6 +80,7 @@ export default async function LegalPage({
     <main className="relative bg-white">
       <Nav />
       <LegalContent
+        locale={locale as Locale}
         initialDoc={initialDoc}
         lastUpdated={lastUpdated}
         pageTitle={t("page_title")}

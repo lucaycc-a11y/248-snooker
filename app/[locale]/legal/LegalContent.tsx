@@ -5,6 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import type { LegalDocId } from "@/content/legal";
 import type { LegalDocument } from "@/content/legal/types";
+import type { Locale } from "@/i18n/routing";
+import { highlightKeyPhrases } from "./legalKeyPhrases";
 
 const DARK = "#1D1D1F";
 const SUBTLE = "#86868B";
@@ -16,10 +18,37 @@ const FONT_FAMILY =
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+// Each section's `body` is a single verbatim string with "小標籤：內容"-style
+// sub-clauses joined by "\n" (see content/legal/*.ts). Split on "\n" and
+// render each sub-clause as its own <p> (instead of one <p> with
+// whiteSpace:pre-line) purely so CSS margin can give each clause its own
+// visual block — the text itself is untouched, only how the same "\n"
+// breaks are turned into DOM elements changes.
+function BodyParagraphs({ body, locale }: { body: string; locale: Locale }) {
+  const lines = body.split("\n").filter((line) => line.length > 0);
+  return (
+    <>
+      {lines.map((line, i) => (
+        <p
+          key={i}
+          style={{
+            fontSize: "16px",
+            lineHeight: 1.65,
+            color: "#494951",
+            margin: i === lines.length - 1 ? 0 : "0 0 14px",
+          }}
+        >
+          {highlightKeyPhrases(line, locale)}
+        </p>
+      ))}
+    </>
+  );
+}
+
 // Numbered legal sections, rendered verbatim from the static content/legal/
 // document object — no CMS, no runtime fetch, no add/remove/reorder (the
 // content is fixed legal text, not an editable list).
-function SectionList({ sections }: { sections: LegalDocument["sections"] }) {
+function SectionList({ sections, locale }: { sections: LegalDocument["sections"]; locale: Locale }) {
   return (
     <>
       {sections.map((s, i) => (
@@ -47,18 +76,9 @@ function SectionList({ sections }: { sections: LegalDocument["sections"] }) {
             </span>
             {s.title}
           </h3>
-          <p
-            style={{
-              fontSize: "16px",
-              lineHeight: 1.65,
-              color: "#494951",
-              margin: 0,
-              paddingLeft: "36px",
-              whiteSpace: "pre-line",
-            }}
-          >
-            {s.body}
-          </p>
+          <div style={{ paddingLeft: "36px" }}>
+            <BodyParagraphs body={s.body} locale={locale} />
+          </div>
         </motion.div>
       ))}
     </>
@@ -66,6 +86,7 @@ function SectionList({ sections }: { sections: LegalDocument["sections"] }) {
 }
 
 export default function LegalContent({
+  locale,
   initialDoc,
   lastUpdated,
   pageTitle,
@@ -73,6 +94,7 @@ export default function LegalContent({
   nav,
   documents,
 }: {
+  locale: Locale;
   initialDoc: LegalDocId;
   lastUpdated: string;
   pageTitle: string;
@@ -203,11 +225,11 @@ export default function LegalContent({
                     {noticeLabel}
                   </div>
                   <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: 0, whiteSpace: "pre-line" }}>
-                    {termsIntroBody}
+                    {highlightKeyPhrases(termsIntroBody, locale)}
                   </p>
                 </div>
 
-                <SectionList sections={termsDoc.sections} />
+                <SectionList sections={termsDoc.sections} locale={locale} />
               </motion.div>
             )}
 
@@ -225,10 +247,10 @@ export default function LegalContent({
                   {documents.website_terms.title}
                 </h2>
                 <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: "0 0 56px", whiteSpace: "pre-line" }}>
-                  {documents.website_terms.intro}
+                  {highlightKeyPhrases(documents.website_terms.intro ?? "", locale)}
                 </p>
 
-                <SectionList sections={documents.website_terms.sections} />
+                <SectionList sections={documents.website_terms.sections} locale={locale} />
               </motion.div>
             )}
 
@@ -246,10 +268,10 @@ export default function LegalContent({
                   {documents.privacy.title}
                 </h2>
                 <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: "0 0 56px", whiteSpace: "pre-line" }}>
-                  {documents.privacy.intro}
+                  {highlightKeyPhrases(documents.privacy.intro ?? "", locale)}
                 </p>
 
-                <SectionList sections={documents.privacy.sections} />
+                <SectionList sections={documents.privacy.sections} locale={locale} />
               </motion.div>
             )}
           </AnimatePresence>
