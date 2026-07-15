@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { Link } from '@/i18n/navigation'
 import { Instagram, MessageCircle, MapPin, Clock } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
@@ -8,9 +9,31 @@ import { Logo } from '@/components/brand'
 
 const WHATSAPP_URL = 'https://wa.me/85264274620'
 const INSTAGRAM_URL = 'https://instagram.com/248snooker'
-const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-  '泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong',
-)}`
+const MAP_QUERY = '泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong'
+const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(MAP_QUERY)}`
+
+// Free CARTO Dark Matter tile map — no API key, no billing account needed
+// (replaces the old Google Maps Static API thumbnail). Leaflet touches
+// `window` at import time, so it must be loaded client-only.
+const FooterMap = dynamic(
+  () => import('./FooterMap').then((mod) => mod.FooterMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '320px',
+          aspectRatio: '2 / 1',
+          borderRadius: '14px',
+          border: `1px solid ${tokens.colors.border}`,
+          background: tokens.colors.surface,
+          marginBottom: '14px',
+        }}
+      />
+    ),
+  },
+)
 
 export default function Footer() {
   const t = useTranslations()
@@ -107,6 +130,10 @@ export default function Footer() {
             >
               {t('footer.contact_title')}
             </div>
+            {/* Dark map thumbnail — CARTO Dark Matter tiles (free, no API
+                key/billing). Links out to Google Maps like the text link
+                below, same as the old Google Static Maps image did. */}
+            <FooterMap mapsUrl={MAPS_URL} ariaLabel={t('footer.map_cta')} />
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px' }}>
               <MapPin size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0, marginTop: 2 }} />
               <div>
