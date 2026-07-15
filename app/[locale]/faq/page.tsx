@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import FAQ from "@/components/landing/FAQ";
-import { getFaqListData, getFaqJsonLdFromItems } from "@/lib/data/getFaqData";
+import { getFaqJsonLd } from "@/components/landing/faqData";
 
 const BASE = "https://space8.com.hk";
 
@@ -67,13 +67,12 @@ export default async function FaqPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'faq' });
-  const faqItems = await getFaqListData(locale, t);
-  const faqJsonLd = getFaqJsonLdFromItems(faqItems);
+  const faqJsonLd = getFaqJsonLd(t);
 
   return (
     <main className="relative bg-black">
       <Nav />
-      <FAQ initialItems={faqItems} jsonLd={faqJsonLd} />
+      <FAQ jsonLd={faqJsonLd} />
       <Footer />
     </main>
   );

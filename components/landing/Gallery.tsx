@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { CMSText } from "@/components/cms/CMSText";
 
 interface SlideText {
   title: string;
@@ -155,7 +154,7 @@ export default function Gallery() {
           boxSizing: "content-box",
         }}
       >
-        <CMSText k="gallery.title">{t("title")}</CMSText>
+        {t("title")}
       </h2>
 
       {isMobile ? (

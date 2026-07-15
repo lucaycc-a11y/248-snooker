@@ -1,13 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations, useLocale } from "next-intl";
-import { CMSText } from "@/components/cms/CMSText";
-import { CMSList } from "@/components/cms/CMSList";
-import { getFaqItems } from "./faqData";
-import type { FaqFields } from "@/lib/data/getFaqData";
-import type { CMSListItem } from "@/components/cms/CMSList";
+import { useTranslations } from "next-intl";
+import { getFaqItems, type FaqItem } from "./faqData";
 
 const DARK = "#1D1D1F";
 const DIVIDER = "#D2D2D7";
@@ -18,29 +14,17 @@ const FONT_FAMILY =
 const EASE = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
 
-// initialItems/jsonLd are fetched server-side by the page that renders <FAQ>
-// (via getFaqListData) and passed down, so first paint has real content and
-// JSON-LD without a client round-trip. Falls back to the next-intl-derived
-// list client-side only if no props are given (keeps <FAQ> usable standalone,
-// e.g. on the homepage, without every call site needing the server fetch).
-export default function FAQ({
-  initialItems,
-  jsonLd,
-}: {
-  initialItems?: CMSListItem<FaqFields>[];
-  jsonLd?: object;
-}) {
+// FAQ list is a fixed, static set of Q&A pairs sourced from the `faq`
+// next-intl namespace (see faqData.ts) — no longer addable/removable via a
+// runtime CMS list (see app/[locale]/layout.tsx for why runtime CMS reads
+// were dropped in favour of static next-intl content).
+// jsonLd is optionally passed by the page for a server-rendered <script> tag
+// identical to what this component would derive itself, avoiding drift.
+export default function FAQ({ jsonLd }: { jsonLd?: object }) {
   const t = useTranslations('faq');
-  const locale = useLocale();
-  const [items, setItems] = useState<CMSListItem<FaqFields>[]>(
-    initialItems ?? getFaqItems(t).map((item, i) => ({ id: item.id, orderIndex: i, fields: { question: item.question, answer: item.answer } }))
-  );
+  const items: FaqItem[] = getFaqItems(t);
   // Only one item open at a time. null = all closed.
   const [openId, setOpenId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (initialItems) setItems(initialItems);
-  }, [initialItems]);
 
   const faqJsonLd =
     jsonLd ?? {
@@ -48,8 +32,8 @@ export default function FAQ({
       "@type": "FAQPage",
       mainEntity: items.map((item) => ({
         "@type": "Question",
-        name: item.fields.question,
-        acceptedAnswer: { "@type": "Answer", text: item.fields.answer },
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
       })),
     };
 
@@ -63,7 +47,6 @@ export default function FAQ({
         padding: "clamp(88px, 12vw, 140px) 24px",
         fontFamily: FONT_FAMILY,
       }}
-      data-cms-key="faq_section"
     >
       {/* JSON-LD structured data for FAQ rich results. Content is fully static
           and contains no <, >, or & characters, so JSX text escaping is safe. */}
@@ -81,39 +64,17 @@ export default function FAQ({
             letterSpacing: "-0.03em",
             margin: "0 0 clamp(40px, 6vw, 56px)",
           }}
-          data-cms-key="faq_title"
         >
-          <CMSText k="faq.title">{t('title')}</CMSText>。
+          {t('title')}。
         </motion.h2>
 
-        <CMSList<FaqFields>
-          page="faq"
-          collectionKey="faq_items"
-          locale={locale}
-          initialItems={items}
-          emptyFields={{ question: '', answer: '' }}
-          renderForm={(fields, onChange) => (
-            <div>
-              <input
-                value={fields.question}
-                onChange={(e) => onChange({ ...fields, question: e.target.value })}
-                placeholder="Question"
-                style={{ width: '100%', marginBottom: 8, padding: 10, fontSize: 14 }}
-              />
-              <textarea
-                value={fields.answer}
-                onChange={(e) => onChange({ ...fields, answer: e.target.value })}
-                placeholder="Answer"
-                rows={3}
-                style={{ width: '100%', padding: 10, fontSize: 14 }}
-              />
-            </div>
-          )}
-          renderItem={(fields, id) => {
-            const isOpen = openId === id;
+        <div>
+          {items.map((item) => {
+            const isOpen = openId === item.id;
             return (
               <details
-                id={id}
+                key={item.id}
+                id={item.id}
                 open={isOpen}
                 style={{ borderBottom: `1px solid ${DIVIDER}` }}
               >
@@ -122,7 +83,7 @@ export default function FAQ({
                     // Take over native toggle so framer-motion drives the visual,
                     // while keeping real <details>/<summary> for crawlers.
                     e.preventDefault();
-                    setOpenId((prev) => (prev === id ? null : id));
+                    setOpenId((prev) => (prev === item.id ? null : item.id));
                   }}
                   style={{
                     listStyle: "none",
@@ -143,7 +104,7 @@ export default function FAQ({
                       lineHeight: 1.4,
                     }}
                   >
-                    {fields.question}
+                    {item.question}
                   </span>
                   <motion.span
                     aria-hidden="true"
@@ -183,15 +144,15 @@ export default function FAQ({
                           maxWidth: "680px",
                         }}
                       >
-                        {fields.answer}
+                        {item.answer}
                       </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </details>
             );
-          }}
-        />
+          })}
+        </div>
       </div>
     </section>
   );

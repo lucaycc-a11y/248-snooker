@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { CMSText } from "@/components/cms/CMSText";
 
 const DARK = "#1D1D1F";
 const GREEN = "#22C55E";
@@ -354,7 +353,6 @@ export default function HowItWorks() {
         padding: isMobile ? "88px 0" : "140px 0",
         fontFamily: FONT_FAMILY,
       }}
-      data-cms-key="how_it_works_section"
     >
       {/* Header row */}
       <div
@@ -383,9 +381,8 @@ export default function HowItWorks() {
               color: DARK,
               margin: "0 0 12px",
             }}
-            data-cms-key="how_it_works_title"
           >
-            <CMSText k="how.title">{t('title')}</CMSText>。
+            {t('title')}。
           </motion.h2>
           <motion.a
             initial={{ opacity: 0, y: 20 }}
@@ -395,7 +392,6 @@ export default function HowItWorks() {
             href="/about"
             className="group inline-flex items-center"
             style={{ color: GREEN, fontSize: "19px", textDecoration: "none", gap: "6px" }}
-            data-cms-key="how_it_works_link"
           >
             <span
               aria-hidden="true"
@@ -452,13 +448,12 @@ export default function HowItWorks() {
               display: "flex",
               flexDirection: "column",
             }}
-            data-cms-key={step.key}
           >
             <div style={{ width: "28px", height: "28px", color: step.accent, marginBottom: "20px" }}>
               {step.icon}
             </div>
             <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: "0 0 12px" }}>
-              <CMSText k={`how.${step.key}_title`}>{step.title}</CMSText>
+              {step.title}
             </h3>
             <p style={{ fontSize: bodySize, lineHeight: 1.6, color: DARK, margin: 0 }}>
               {highlight(step.body, step.highlights, step.accent)}

@@ -17,7 +17,6 @@ import {
   BadgeCheck,
   MousePointerClick,
 } from "lucide-react";
-import { CMSText } from "@/components/cms/CMSText";
 
 const DARK = "#1D1D1F";
 const SUBTLE = "#6e6e73";
@@ -99,9 +98,8 @@ export default function VenueContent() {
               margin: 0,
               lineHeight: 1.05,
             }}
-            data-cms-key="venue.hero_title"
           >
-            <CMSText k="venuePage.hero_title">{t("hero_title")}</CMSText>
+            {t("hero_title")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 16 }}
@@ -113,9 +111,8 @@ export default function VenueContent() {
               margin: "20px 0 0",
               maxWidth: "600px",
             }}
-            data-cms-key="venue.hero_subtitle"
           >
-            <CMSText k="venuePage.hero_subtitle">{t("hero_subtitle")}</CMSText>
+            {t("hero_subtitle")}
           </motion.p>
         </div>
       </section>
@@ -132,9 +129,8 @@ export default function VenueContent() {
             viewport={VIEWPORT}
             transition={{ duration: 0.6, ease: EASE }}
             style={sectionTitleStyle}
-            data-cms-key="venue.facilities_title"
           >
-            <CMSText k="venuePage.facilities_title">{t("facilities_title")}</CMSText>
+            {t("facilities_title")}
           </motion.h2>
           <div
             style={{
@@ -161,7 +157,6 @@ export default function VenueContent() {
                   <Icon size={30} color={GREEN} strokeWidth={1.6} style={{ marginBottom: 18 }} />
                   <h3
                     style={{ fontSize: "20px", fontWeight: 600, margin: "0 0 8px" }}
-                    data-cms-key={`venue.facility_${i}_title`}
                   >
                     {item.title}
                   </h3>
@@ -187,9 +182,8 @@ export default function VenueContent() {
             viewport={VIEWPORT}
             transition={{ duration: 0.6, ease: EASE }}
             style={sectionTitleStyle}
-            data-cms-key="venue.services_title"
           >
-            <CMSText k="venuePage.services_title">{t("services_title")}</CMSText>
+            {t("services_title")}
           </motion.h2>
           <div
             style={{
@@ -246,9 +240,8 @@ export default function VenueContent() {
             viewport={VIEWPORT}
             transition={{ duration: 0.6, ease: EASE }}
             style={sectionTitleStyle}
-            data-cms-key="venue.rules_title"
           >
-            <CMSText k="venuePage.rules_title">{t("rules_title")}</CMSText>
+            {t("rules_title")}
           </motion.h2>
           <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
             {rules.map((rule, i) => (
@@ -293,7 +286,6 @@ export default function VenueContent() {
           <div style={{ marginTop: "32px" }}>
             <Link
               href="/legal"
-              data-cms-key="venue.rules_link"
               style={{
                 fontSize: "16px",
                 color: GREEN,
@@ -301,7 +293,7 @@ export default function VenueContent() {
                 textUnderlineOffset: "4px",
               }}
             >
-              <CMSText k="venuePage.rules_link">{t("rules_link")}</CMSText>
+              {t("rules_link")}
             </Link>
           </div>
         </div>
@@ -319,9 +311,8 @@ export default function VenueContent() {
             viewport={VIEWPORT}
             transition={{ duration: 0.6, ease: EASE }}
             style={{ ...sectionTitleStyle, marginBottom: "32px" }}
-            data-cms-key="venue.directions_title"
           >
-            <CMSText k="venuePage.directions_title">{t("directions_title")}</CMSText>
+            {t("directions_title")}
           </motion.h2>
 
           <motion.div
@@ -338,9 +329,8 @@ export default function VenueContent() {
             <MapPin size={32} color={GREEN} strokeWidth={1.6} style={{ marginBottom: 16 }} />
             <p
               style={{ fontSize: "clamp(18px, 3vw, 22px)", fontWeight: 600, margin: "0 0 12px" }}
-              data-cms-key="venue.address"
             >
-              <CMSText k="venuePage.address">{t("address")}</CMSText>
+              {t("address")}
             </p>
             <p
               style={{
@@ -349,9 +339,8 @@ export default function VenueContent() {
                 lineHeight: 1.7,
                 margin: "0 0 32px",
               }}
-              data-cms-key="venue.directions_body"
             >
-              <CMSText k="venuePage.directions_body">{t("directions_body")}</CMSText>
+              {t("directions_body")}
             </p>
             <div
               style={{
@@ -365,7 +354,6 @@ export default function VenueContent() {
                 href={MAPS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                data-cms-key="venue.map_cta"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -381,11 +369,10 @@ export default function VenueContent() {
                 }}
               >
                 <MapPin size={18} strokeWidth={2} />
-                <CMSText k="venuePage.map_cta">{t("map_cta")}</CMSText>
+                {t("map_cta")}
               </a>
               <Link
                 href="/book"
-                data-cms-key="venue.book_cta"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -399,7 +386,7 @@ export default function VenueContent() {
                   textDecoration: "none",
                 }}
               >
-                <CMSText k="venuePage.book_cta">{t("book_cta")}</CMSText>
+                {t("book_cta")}
               </Link>
             </div>
           </motion.div>

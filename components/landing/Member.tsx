@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { CMSText } from "@/components/cms/CMSText";
 
 const GREEN_LIGHT = "#22C55E";
 const DARK = "#1D1D1F";
@@ -185,7 +184,7 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
               className="group inline-flex items-center"
               style={{ color: GREEN_LIGHT, fontSize: "17px", textDecoration: "none", gap: "2px" }}
             >
-              <span className="group-hover:underline"><CMSText k="member.cta_learn">{t('cta_learn')}</CMSText></span>
+              <span className="group-hover:underline">{t('cta_learn')}</span>
               <span aria-hidden="true">›</span>
             </Link>
           </motion.div>
@@ -302,7 +301,6 @@ export default function Member() {
         display: "flex",
         flexDirection: "column",
       }}
-      data-cms-key={card.key}
     >
       {card.badge && (
         <span
@@ -318,7 +316,7 @@ export default function Member() {
             padding: "4px 10px",
           }}
         >
-          <CMSText k={`member.${card.key}_badge`}>{card.badge}</CMSText>
+          {card.badge}
         </span>
       )}
 
@@ -327,11 +325,11 @@ export default function Member() {
       </div>
 
       <h3 style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 4px", color: "white" }}>
-        <CMSText k={`member.${card.key}_title`}>{card.title}</CMSText>
+        {card.title}
       </h3>
       {card.subtitle && (
         <p style={{ fontSize: "15px", color: card.accent, fontWeight: 500, margin: "0 0 16px" }}>
-          <CMSText k={`member.${card.key}_subtitle`}>{card.subtitle}</CMSText>
+          {card.subtitle}
         </p>
       )}
       <p
@@ -389,7 +387,6 @@ export default function Member() {
     <section
       data-nav-theme="dark"
       style={{ background: "#1D1D1F", color: DARK, padding: "clamp(88px, 12vw, 140px) 0", fontFamily: FONT_FAMILY }}
-      data-cms-key="membership_section"
     >
       {/* Header row */}
       <div
@@ -406,18 +403,16 @@ export default function Member() {
           viewport={VIEWPORT}
           transition={{ duration: 0.6, ease: EASE }}
           style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.03em", margin: "0 0 12px", color: "#A1A1A6" }}
-          data-cms-key="membership_title"
         >
-          <CMSText k="member.title">{t('title')}</CMSText>。
+          {t('title')}。
         </motion.h2>
 
         <Link
           href="/membership"
           className="group inline-flex items-center"
           style={{ color: GREEN_LIGHT, fontSize: "19px", textDecoration: "none", gap: "2px", whiteSpace: "nowrap" }}
-          data-cms-key="membership_link"
         >
-          <span className="group-hover:underline"><CMSText k="member.cta_join">{t('cta_join')}</CMSText></span>
+          <span className="group-hover:underline">{t('cta_join')}</span>
           <span aria-hidden="true">›</span>
         </Link>
       </div>

@@ -6,7 +6,6 @@ import { ArrowLeft } from "lucide-react";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { Link } from "@/i18n/navigation";
-import { CMSText } from "@/components/cms/CMSText";
 import { getBlogPost, getRelatedPosts } from "@/lib/data/getBlog";
 import { renderRichText } from "@/lib/blog/renderRichText";
 import { safeJsonLd } from "@/lib/seo/jsonLd";
@@ -162,7 +161,7 @@ export default async function BlogPostPage({
             <span>{post.author || "Space8"}</span>
             <span aria-hidden="true">·</span>
             <span>
-              <CMSText k="blog.read_time">{t("read_time", { min: post.reading_time ?? 5 })}</CMSText>
+              {t("read_time", { min: post.reading_time ?? 5 })}
             </span>
           </div>
         </div>
@@ -189,7 +188,7 @@ export default async function BlogPostPage({
               style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: GREEN, fontSize: "15px", textDecoration: "none" }}
             >
               <ArrowLeft size={16} strokeWidth={2} />
-              <CMSText k="blog.back_to_blog">{t("back_to_blog")}</CMSText>
+              {t("back_to_blog")}
             </Link>
           </div>
         </div>
@@ -203,7 +202,7 @@ export default async function BlogPostPage({
         >
           <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
             <h2 style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }}>
-              <CMSText k="blog.related_title">{t("related_title")}</CMSText>
+              {t("related_title")}
             </h2>
             <div style={{ display: "grid", gap: "32px", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
               {related.map((r) => {

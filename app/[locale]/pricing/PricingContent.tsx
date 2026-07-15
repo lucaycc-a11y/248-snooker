@@ -5,7 +5,6 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Circle, Triangle, Target } from "lucide-react";
-import { CMSText } from "@/components/cms/CMSText";
 import PeriodPricingSections from "@/components/pricing/PeriodPricingSections";
 import type { PricingPeriod, ServiceFees } from "@/lib/data/pricing";
 
@@ -129,9 +128,8 @@ export default function PricingContent({
               margin: "0 0 16px",
               textTransform: "uppercase",
             }}
-            data-cms-key="pricing.hero_eyebrow"
           >
-            <CMSText k="pricingPage.hero_eyebrow">{t("hero_eyebrow")}</CMSText>
+            {t("hero_eyebrow")}
           </h1>
 
           <h2
@@ -143,9 +141,8 @@ export default function PricingContent({
               margin: 0,
               color: "#1d1d1f",
             }}
-            data-cms-key="pricing.hero_line1"
           >
-            <CMSText k="pricingPage.hero_line1">{t("hero_line1")}</CMSText>
+            {t("hero_line1")}
           </h2>
 
           <p
@@ -157,12 +154,11 @@ export default function PricingContent({
               margin: "32px 0 0",
               color: "#1d1d1f",
             }}
-            data-cms-key="pricing.hero_line2"
           >
-            <CMSText k="pricingPage.hero_line2_before">{t("hero_line2_before")}</CMSText>
+            {t("hero_line2_before")}
             <br />
             <Mark color={GREEN}>
-              <CMSText k="pricingPage.hero_line2_highlight">{t("hero_line2_highlight")}</CMSText>
+              {t("hero_line2_highlight")}
             </Mark>
           </p>
         </motion.div>
@@ -205,12 +201,11 @@ export default function PricingContent({
               lineHeight: 1.1,
               margin: 0,
             }}
-            data-cms-key="pricing.time_line1"
           >
-            <CMSText k="pricingPage.time_line1">{t("time_line1")}</CMSText>
+            {t("time_line1")}
             <br />
             <Mark color={GREEN}>
-              <CMSText k="pricingPage.time_line2">{t("time_line2")}</CMSText>
+              {t("time_line2")}
             </Mark>
           </h2>
         </motion.div>
@@ -239,9 +234,8 @@ export default function PricingContent({
               textAlign: "center",
               willChange: "opacity, transform",
             }}
-            data-cms-key="pricing.faq_title"
           >
-            <CMSText k="pricingPage.faq_title">{t("faq_title")}</CMSText>
+            {t("faq_title")}
           </motion.h2>
 
           <div
@@ -279,7 +273,6 @@ export default function PricingContent({
                     flexDirection: "column",
                     gap: 20,
                   }}
-                  data-cms-key={`pricing.faq.${i}.q`}
                 >
                   <h3
                     style={{
@@ -304,7 +297,6 @@ export default function PricingContent({
                       color: "rgba(255,255,255,0.7)",
                       margin: 0,
                     }}
-                    data-cms-key={`pricing.faq.${i}.a`}
                   >
                     {faq.a}
                   </p>
@@ -322,7 +314,7 @@ export default function PricingContent({
               margin: "32px 0 0",
             }}
           >
-            <CMSText k="pricingPage.faq_scroll_hint">{t("faq_scroll_hint")}</CMSText>
+            {t("faq_scroll_hint")}
           </p>
         </div>
       </section>
@@ -360,12 +352,11 @@ export default function PricingContent({
               margin: "0 0 48px",
               color: "#1d1d1f",
             }}
-            data-cms-key="pricing.cta_line1"
           >
-            <CMSText k="pricingPage.cta_line1">{t("cta_line1")}</CMSText>
+            {t("cta_line1")}
             <br />
             <Mark color={GREEN}>
-              <CMSText k="pricingPage.cta_line2">{t("cta_line2")}</CMSText>
+              {t("cta_line2")}
             </Mark>
           </h2>
 
@@ -387,9 +378,8 @@ export default function PricingContent({
             }}
             onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
             onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            data-cms-key="pricing.cta_button"
           >
-            <CMSText k="pricingPage.cta_button">{t("cta_button")}</CMSText>
+            {t("cta_button")}
           </Link>
         </motion.div>
       </section>

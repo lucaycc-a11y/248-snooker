@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { CMSText } from "@/components/cms/CMSText";
 import { Logo } from "@/components/brand";
 
 const GREEN = "#22C55E";
@@ -40,6 +39,7 @@ export default function Hero() {
         className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
         style={{ filter: "brightness(1.3) contrast(1.05)" }}
         autoPlay
+        loop
         muted
         playsInline
         poster="/video/hero-poster.jpg"
@@ -53,6 +53,7 @@ export default function Hero() {
           className="h-full w-full object-cover [object-position:center_45%]"
           style={{ filter: "brightness(1.3) contrast(1.05)" }}
           autoPlay
+          loop
           muted
           playsInline
           poster="/video/hero-poster.jpg"
@@ -96,7 +97,7 @@ export default function Hero() {
               "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
           }}
         >
-          <CMSText k="hero.tagline">{t("tagline")}</CMSText>
+          {t("tagline")}
         </motion.h1>
 
         {/* Sub copy */}
@@ -112,9 +113,8 @@ export default function Hero() {
             fontFamily:
               "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif",
           }}
-          data-cms-key="hero.subline"
         >
-          <CMSText k="hero.subline">{t("subline")}</CMSText>
+          {t("subline")}
         </motion.p>
 
         {/* CTA buttons — directly below headline, centred on all screens */}
@@ -132,7 +132,7 @@ export default function Hero() {
               textDecoration: "none",
             }}
           >
-            <CMSText k="hero.cta_book">{t("cta_book")}</CMSText>
+            {t("cta_book")}
           </Link>
 
           <Link
@@ -147,7 +147,7 @@ export default function Hero() {
               textDecoration: "none",
             }}
           >
-            <CMSText k="hero.cta_learn">{t("cta_learn")}</CMSText>
+            {t("cta_learn")}
           </Link>
         </div>
       </div>

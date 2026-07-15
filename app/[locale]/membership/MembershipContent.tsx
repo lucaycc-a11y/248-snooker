@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Coins, TrendingUp, Gift, LayoutDashboard } from "lucide-react";
-import { CMSText } from "@/components/cms/CMSText";
 import Member from "@/components/landing/Member";
 
 const GREEN = "#22C55E";
@@ -49,9 +48,8 @@ export default function MembershipContent() {
             margin: 0,
             lineHeight: 1.05,
           }}
-          data-cms-key="membership.hero_title"
         >
-          <CMSText k="membershipPage.hero_title">{t("hero_title")}</CMSText>
+          {t("hero_title")}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -63,9 +61,8 @@ export default function MembershipContent() {
             margin: "20px auto 0",
             maxWidth: "560px",
           }}
-          data-cms-key="membership.hero_subtitle"
         >
-          <CMSText k="membershipPage.hero_subtitle">{t("hero_subtitle")}</CMSText>
+          {t("hero_subtitle")}
         </motion.p>
       </section>
 
@@ -86,9 +83,8 @@ export default function MembershipContent() {
               padding: "0 24px",
               textAlign: "center",
             }}
-            data-cms-key="membership.stage_title"
           >
-            <CMSText k="membershipPage.stage_title">{t("stage_title")}</CMSText>
+            {t("stage_title")}
           </motion.h2>
         </div>
         <Member />
@@ -115,9 +111,8 @@ export default function MembershipContent() {
               letterSpacing: "-0.02em",
               margin: "0 0 48px",
             }}
-            data-cms-key="membership.how_title"
           >
-            <CMSText k="membershipPage.how_title">{t("how_title")}</CMSText>
+            {t("how_title")}
           </motion.h2>
 
           <div
@@ -165,7 +160,6 @@ export default function MembershipContent() {
           >
             <Link
               href="/book"
-              data-cms-key="membership.cta_book"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -179,11 +173,10 @@ export default function MembershipContent() {
                 textDecoration: "none",
               }}
             >
-              <CMSText k="membershipPage.cta_book">{t("cta_book")}</CMSText>
+              {t("cta_book")}
             </Link>
             <a
               href="/member"
-              data-cms-key="membership.cta_login"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -197,7 +190,7 @@ export default function MembershipContent() {
                 textDecoration: "none",
               }}
             >
-              <CMSText k="membershipPage.cta_login">{t("cta_login")}</CMSText>
+              {t("cta_login")}
             </a>
           </div>
         </div>

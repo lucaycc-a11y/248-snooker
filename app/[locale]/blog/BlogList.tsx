@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { CMSText } from "@/components/cms/CMSText";
 import type { BlogPost } from "@/lib/data/getBlog";
 
 const SUBTLE = "#A1A1A6";
@@ -57,7 +56,6 @@ function PostCard({ post, index, locale }: { post: BlogPost; index: number; loca
       <Link
         href={`/blog/${post.slug}`}
         style={{ textDecoration: "none", color: "inherit", display: "block" }}
-        data-cms-key={`blog.post.${post.slug}`}
       >
         {/* Cover */}
         <div
@@ -96,9 +94,7 @@ function PostCard({ post, index, locale }: { post: BlogPost; index: number; loca
               letterSpacing: "0.02em",
             }}
           >
-            <CMSText k={`blog.filter_${post.category}`}>
-              {t.has(`filter_${post.category}`) ? t(`filter_${post.category}`) : post.category}
-            </CMSText>
+            {t.has(`filter_${post.category}`) ? t(`filter_${post.category}`) : post.category}
           </span>
         )}
 
@@ -136,7 +132,7 @@ function PostCard({ post, index, locale }: { post: BlogPost; index: number; loca
           <span>{formatDate(post.published_at, locale)}</span>
           <span aria-hidden="true">·</span>
           <span>
-            <CMSText k="blog.read_time">{t("read_time", { min: post.reading_time ?? 5 })}</CMSText>
+            {t("read_time", { min: post.reading_time ?? 5 })}
           </span>
           {post.author && (
             <>
@@ -172,10 +168,10 @@ export default function BlogList({ posts, locale }: { posts: BlogPost[]; locale:
             transition={{ duration: 0.6, ease: EASE }}
             style={{ fontSize: "clamp(44px, 9vw, 72px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
           >
-            <CMSText k="blog.title">{t("title")}</CMSText>
+            {t("title")}
           </motion.h1>
           <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", margin: "16px 0 0" }}>
-            <CMSText k="blog.subtitle">{t("subtitle")}</CMSText>
+            {t("subtitle")}
           </p>
         </div>
       </section>
@@ -209,7 +205,7 @@ export default function BlogList({ posts, locale }: { posts: BlogPost[]; locale:
                       minHeight: 44,
                     }}
                   >
-                    <CMSText k={`blog.${c.key}`}>{t(c.key)}</CMSText>
+                    {t(c.key)}
                   </button>
                 );
               })}
@@ -245,10 +241,10 @@ function ComingSoon() {
     >
       <div style={{ maxWidth: "480px", margin: "0 auto" }}>
         <h2 style={{ fontSize: "28px", fontWeight: 700, margin: "0 0 12px" }}>
-          <CMSText k="blog.coming_soon_title">{t("coming_soon_title")}</CMSText>
+          {t("coming_soon_title")}
         </h2>
         <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", margin: "0 0 32px" }}>
-          <CMSText k="blog.coming_soon_body">{t("coming_soon_body")}</CMSText>
+          {t("coming_soon_body")}
         </p>
         {/* Newsletter signup — visual only; wire to a real endpoint later. */}
         <form
@@ -285,7 +281,7 @@ function ComingSoon() {
               cursor: "pointer",
             }}
           >
-            <CMSText k="blog.newsletter_button">{t("newsletter_button")}</CMSText>
+            {t("newsletter_button")}
           </button>
         </form>
       </div>

@@ -11,7 +11,7 @@ import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
-import { getFaqListData, getFaqJsonLdFromItems } from "@/lib/data/getFaqData";
+import { getFaqJsonLd } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 
 export async function generateMetadata({
@@ -100,8 +100,7 @@ export default async function Home({
   setRequestLocale(locale);
 
   const t = await getTranslations({ locale, namespace: 'faq' });
-  const faqItems = await getFaqListData(locale, t);
-  const faqJsonLd = getFaqJsonLdFromItems(faqItems);
+  const faqJsonLd = getFaqJsonLd(t);
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`);
   const config = await getConfig();
 
@@ -122,7 +121,7 @@ export default async function Home({
       <Member />
 
       {/* FAQ — above the footer */}
-      <FAQ initialItems={faqItems} jsonLd={faqJsonLd} />
+      <FAQ jsonLd={faqJsonLd} />
 
       <Footer />
 

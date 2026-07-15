@@ -9,7 +9,6 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Sun, Zap, Moon } from "lucide-react";
-import { CMSText } from "@/components/cms/CMSText";
 import type { PricingPeriod } from "@/lib/data/pricing";
 
 const GREEN = "#22c55e";
@@ -76,11 +75,8 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
                     margin: "0 0 16px",
                     color: "#1d1d1f",
                   }}
-                  data-cms-key={`pricing.period.${period.id}.title`}
                 >
-                  <CMSText k={`pricingPage.period.${period.id}.title`}>
-                    {t(`period_${period.id}_title`)}
-                  </CMSText>
+                  {t(`period_${period.id}_title`)}
                 </h3>
 
                 <p
@@ -89,11 +85,8 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
                     color: "#6e6e73",
                     margin: "0 0 48px",
                   }}
-                  data-cms-key={`pricing.period.${period.id}.time`}
                 >
-                  <CMSText k={`pricingPage.period.${period.id}.time`}>
-                    {t(`period_${period.id}_time`)}
-                  </CMSText>
+                  {t(`period_${period.id}_time`)}
                 </p>
 
                 <div
@@ -116,7 +109,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
                     {fmt(period.rate)}
                     <span style={{ fontSize: "clamp(20px, 4vw, 32px)", color: "#6e6e73", fontWeight: 400 }}>
                       {" "}
-                      <CMSText k="pricingPage.per_hour">{t("per_hour")}</CMSText>
+                      {t("per_hour")}
                     </span>
                   </div>
 
@@ -129,7 +122,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
                       }}
                     >
                       <Mark color={GREEN}>
-                        <CMSText k="pricingPage.member_price_prefix">{t("member_price_prefix")}</CMSText>{" "}
+                        {t("member_price_prefix")}{" "}
                         {fmt(period.rateFrom2h)}
                       </Mark>
                     </div>
@@ -154,9 +147,8 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
                   onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                  data-cms-key="pricing.cta_book"
                 >
-                  <CMSText k="pricingPage.cta_book">{t("cta_book")}</CMSText>
+                  {t("cta_book")}
                 </Link>
               </motion.div>
             </div>
