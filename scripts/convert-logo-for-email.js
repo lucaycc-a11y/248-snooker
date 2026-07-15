@@ -3,7 +3,8 @@
  * Converts Space8 SVG logo to high-resolution PNG for email templates
  *
  * Email clients (especially Outlook) don't support SVG images reliably.
- * This script converts Space8_full_icon_white_black_bkg.svg to PNG at @3x resolution
+ * This script converts space8_wordmark_white.svg (brand guideline v1.0 reversed
+ * lockup — white artwork for the dark email background) to PNG at @3x resolution
  * for maximum quality on Retina displays.
  *
  * Target: 320px display width × 3 = 960px actual PNG width
@@ -23,7 +24,7 @@ try {
   process.exit(1);
 }
 
-const SVG_PATH = path.join(__dirname, '../public/logos/Space8_full_icon_white_black_bkg.svg');
+const SVG_PATH = path.join(__dirname, '../public/logos/space8_wordmark_white.svg');
 const PNG_PATH = path.join(__dirname, '../public/logos/space8-logo-email.png');
 const PNG_WIDTH = 960; // 320px display × 3 for @3x resolution
 

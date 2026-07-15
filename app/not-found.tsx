@@ -14,7 +14,7 @@ export default function NotFound() {
 
       <section className="relative z-10 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
         <div>
-          <Logo variant="mark" theme="dark" size={28} />
+          <Logo variant="full" theme="dark" size={39} />
           <p
             data-cms-key="404.brand"
             className="mb-3 mt-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"

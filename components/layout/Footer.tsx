@@ -43,7 +43,7 @@ export default function Footer() {
             gap: '16px',
           }}
         >
-          <Logo variant="full" theme="dark" size={32} />
+          <Logo variant="full" theme="dark" size={39} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <a
