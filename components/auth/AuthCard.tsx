@@ -68,7 +68,11 @@ export function AuthCard({
 
   // On mount: if a session already exists (returning from a Google redirect, or a
   // logged-in user reaching the login step), resolve straight to the profile gate
-  // or completion — never show the method picker again. Runs once.
+  // or completion — never show the method picker again. Runs once per completed
+  // attempt: if the effect is cancelled mid-flight (React 18 strict-mode's
+  // mount→unmount→remount, or any real remount), didInit resets so the re-run
+  // actually executes — otherwise the card hangs on the loading state forever
+  // with the session check half-done.
   useEffect(() => {
     if (didInit.current) return
     didInit.current = true
@@ -109,6 +113,7 @@ export function AuthCard({
     })()
     return () => {
       cancelled = true
+      didInit.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

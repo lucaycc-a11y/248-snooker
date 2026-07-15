@@ -98,6 +98,47 @@ export default function Nav() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // OAuth-return recovery: when Supabase can't honour the requested redirectTo
+  // (domain not in its allow-list) it falls back to its dashboard Site URL, so
+  // the user lands on the HOMEPAGE with ?code=... instead of /auth/callback —
+  // stranded mid-booking (the reported "login kicks me back to /" bug). The
+  // browser client auto-exchanges that code (PKCE detectSessionInUrl), so once
+  // a session exists we resume the journey the sign-in buttons stored in
+  // sessionStorage (authReturnUrl, e.g. /book) instead of leaving them here.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has('code')) return
+    let stored: string | null = null
+    try {
+      stored = sessionStorage.getItem('authReturnUrl')
+    } catch {}
+    if (!stored || !stored.startsWith('/') || stored.startsWith('//')) return
+    const dest = stored
+    const supabase = createClient()
+    let done = false
+    const resume = () => {
+      if (done) return
+      done = true
+      try {
+        sessionStorage.removeItem('authReturnUrl')
+      } catch {}
+      // Full navigation (not router.push): dest may be a non-localized root
+      // route (/book restores its own wizard state from sessionStorage).
+      window.location.replace(dest)
+    }
+    // The auto-exchange may already have completed before this effect ran.
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) resume()
+    })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) resume()
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
   useEffect(() => {
     const updateScrolled = () => setScrolled(window.scrollY > 12)
     updateScrolled()

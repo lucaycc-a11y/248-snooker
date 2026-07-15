@@ -39,9 +39,15 @@ export function AppleSignInButton({
     setBusy(true)
     setErr(null)
     const supabase = createClient()
+    // Actual origin, not the SITE_URL constant — see GoogleSignInButton's
+    // fallbackSignIn for why (multi-domain + Supabase Site-URL fallback).
+    const origin = typeof window !== "undefined" ? window.location.origin : SITE_URL
+    try {
+      sessionStorage.setItem("authReturnUrl", returnUrl)
+    } catch {}
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
-      options: { redirectTo: `${SITE_URL}/auth/callback?next=${encodeURIComponent(returnUrl)}` },
+      options: { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(returnUrl)}` },
     })
     if (error) {
       setErr(errorLabel)

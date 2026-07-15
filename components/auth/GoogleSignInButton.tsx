@@ -101,7 +101,19 @@ export function GoogleSignInButton({
     setBusy(true)
     setErr(null)
     const supabase = createClient()
-    const redirectTo = `${SITE_URL}/auth/callback?next=${encodeURIComponent(returnUrl)}`
+    // Build the callback from the ACTUAL origin the user is on, not the
+    // NEXT_PUBLIC_SITE_URL constant — the site serves from more than one
+    // domain (248.formhk.com vs space8.com.hk), and a mismatched redirect
+    // URL makes Supabase fall back to its dashboard Site URL, dumping the
+    // user on the homepage with ?code= and losing `next` entirely.
+    const origin = typeof window !== "undefined" ? window.location.origin : SITE_URL
+    // Belt-and-braces for that same fallback: persist the destination so the
+    // ?code= recovery effect (Nav.tsx) can resume the journey even when the
+    // OAuth return loses the next param.
+    try {
+      sessionStorage.setItem("authReturnUrl", returnUrl)
+    } catch {}
+    const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(returnUrl)}`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },
