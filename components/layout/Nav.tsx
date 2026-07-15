@@ -304,7 +304,12 @@ export default function Nav() {
             transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            pointerEvents: 'auto',
+            pointerEvents: menuOpen ? 'none' : 'auto',
+            // The nav (z-50) sits above the mobile menu overlay (z-40) so the
+            // close button stays reachable — but the logo shouldn't float over
+            // the menu content, so it fades out while the menu is open.
+            opacity: menuOpen ? 0 : 1,
+            transition: 'opacity 0.2s ease',
           }}
           className="nav-logo"
           aria-label={t('home')}
@@ -537,9 +542,11 @@ export default function Nav() {
               position: 'fixed',
               inset: 0,
               zIndex: 40,
-              background: 'rgba(0,0,0,0.92)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              // Near-opaque: the menu must fully cover the page underneath
+              // (logo/map bleeding through read as overlapping UI on mobile).
+              background: 'rgba(0,0,0,0.97)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',

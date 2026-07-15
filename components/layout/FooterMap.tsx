@@ -42,6 +42,11 @@ export function FooterMap({ mapsUrl, ariaLabel }: FooterMapProps) {
       style={{
         display: 'block',
         position: 'relative',
+        // Leaflet's internal panes carry z-index 200–900; without a stacking
+        // context here they'd escape into the page's root context and paint
+        // OVER unrelated UI (the mobile nav menu overlay at z-40 was visibly
+        // showing the map through it). isolation contains them all.
+        isolation: 'isolate',
         width: '100%',
         maxWidth: '320px',
         aspectRatio: '2 / 1',
