@@ -19,6 +19,10 @@ const HEADLINE_GRADIENT: React.CSSProperties = {
 
 export default function Hero() {
   const [showHeadline, setShowHeadline] = useState(false);
+  // Video plays once per page load (no loop). When it ends it cross-fades
+  // into the static poster frame underneath — no abrupt freeze on the last
+  // frame. A full page reload resets this state, so the video replays then.
+  const [videoEnded, setVideoEnded] = useState(false);
   const t = useTranslations("hero");
 
   useEffect(() => {
@@ -34,29 +38,54 @@ export default function Hero() {
     >
       {/* Video background — full-screen on mobile, square anchored bottom on desktop */}
       {/* TODO: 需要 Luca 提供正確素材 — 中式桌球枱 hero 影片/照片（現有片為英式枱，暫用佔位） */}
+      {/* Plays once per page load. On `ended` the video fades out over the
+          static end-frame image beneath it (same poster composition), so the
+          section settles into a designed still instead of freezing mid-frame. */}
       {/* Mobile: full-bleed cover */}
-      <video
+      <img
+        src="/video/hero-poster.jpg"
+        alt=""
+        aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
         style={{ filter: "brightness(1.3) contrast(1.05)" }}
+      />
+      <video
+        className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
+        style={{
+          filter: "brightness(1.3) contrast(1.05)",
+          opacity: videoEnded ? 0 : 1,
+          transition: "opacity 1.6s ease-out",
+        }}
         autoPlay
-        loop
         muted
         playsInline
         poster="/video/hero-poster.jpg"
+        onEnded={() => setVideoEnded(true)}
       >
         <source src="/video/248Snooker_hero.mp4" type="video/mp4" />
       </video>
 
       {/* Desktop: bottom-anchored square, black sides */}
       <div className="absolute bottom-0 left-1/2 hidden aspect-square w-[85vw] -translate-x-1/2 overflow-hidden md:block lg:w-[80vw] lg:max-w-[1000px] xl:w-[65vw] xl:max-w-[1100px]">
-        <video
-          className="h-full w-full object-cover [object-position:center_45%]"
+        <img
+          src="/video/hero-poster.jpg"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover [object-position:center_45%]"
           style={{ filter: "brightness(1.3) contrast(1.05)" }}
+        />
+        <video
+          className="relative h-full w-full object-cover [object-position:center_45%]"
+          style={{
+            filter: "brightness(1.3) contrast(1.05)",
+            opacity: videoEnded ? 0 : 1,
+            transition: "opacity 1.6s ease-out",
+          }}
           autoPlay
-          loop
           muted
           playsInline
           poster="/video/hero-poster.jpg"
+          onEnded={() => setVideoEnded(true)}
         >
           <source src="/video/248Snooker_hero.mp4" type="video/mp4" />
         </video>
