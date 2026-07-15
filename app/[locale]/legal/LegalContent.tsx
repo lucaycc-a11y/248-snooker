@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations, useLocale } from "next-intl";
-import { CMSText } from "@/components/cms/CMSText";
-import { CMSList, type CMSListItem } from "@/components/cms/CMSList";
-import type { LegalSectionFields, LegalCollectionKey } from "@/lib/data/getLegalData";
+import type { LegalDocId } from "@/content/legal";
+import type { LegalDocument } from "@/content/legal/types";
 
 const DARK = "#1D1D1F";
 const SUBTLE = "#86868B";
@@ -18,51 +16,15 @@ const FONT_FAMILY =
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-export type LegalDocId = "terms" | "website_terms" | "privacy";
-
-const DOC_ORDER: LegalDocId[] = ["terms", "website_terms", "privacy"];
-
-// Numbered legal sections — addable/removable/reorderable via CMSList, since
-// an admin can add a new clause. Each document (場地守則 / 網站條款 / 私隱政策)
-// is one <h2>-style numbered section per array item, rendered verbatim.
-function SectionList({
-  items,
-  page,
-  collectionKey,
-  locale,
-}: {
-  items: CMSListItem<LegalSectionFields>[];
-  page: "legal";
-  collectionKey: LegalCollectionKey;
-  locale: string;
-}) {
+// Numbered legal sections, rendered verbatim from the static content/legal/
+// document object — no CMS, no runtime fetch, no add/remove/reorder (the
+// content is fixed legal text, not an editable list).
+function SectionList({ sections }: { sections: LegalDocument["sections"] }) {
   return (
-    <CMSList<LegalSectionFields>
-      page={page}
-      collectionKey={collectionKey}
-      locale={locale}
-      initialItems={items}
-      emptyFields={{ title: "", body: "" }}
-      renderForm={(fields, onChange) => (
-        <div>
-          <input
-            value={fields.title}
-            onChange={(e) => onChange({ ...fields, title: e.target.value })}
-            placeholder="Title"
-            style={{ width: "100%", marginBottom: 8, padding: 10, fontSize: 14 }}
-          />
-          <textarea
-            value={fields.body}
-            onChange={(e) => onChange({ ...fields, body: e.target.value })}
-            placeholder="Body"
-            rows={3}
-            style={{ width: "100%", padding: 10, fontSize: 14 }}
-          />
-        </div>
-      )}
-      renderItem={(s, id, i) => (
+    <>
+      {sections.map((s, i) => (
         <motion.div
-          key={id}
+          key={`${i}-${s.title}`}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
@@ -98,26 +60,26 @@ function SectionList({
             {s.body}
           </p>
         </motion.div>
-      )}
-    />
+      ))}
+    </>
   );
 }
 
 export default function LegalContent({
   initialDoc,
   lastUpdated,
-  termsSections,
-  websiteTermsSections,
-  privacySections,
+  pageTitle,
+  lastUpdatedLabel,
+  nav,
+  documents,
 }: {
   initialDoc: LegalDocId;
   lastUpdated: string;
-  termsSections: CMSListItem<LegalSectionFields>[];
-  websiteTermsSections: CMSListItem<LegalSectionFields>[];
-  privacySections: CMSListItem<LegalSectionFields>[];
+  pageTitle: string;
+  lastUpdatedLabel: string;
+  nav: Record<LegalDocId, string>;
+  documents: Record<LegalDocId, LegalDocument>;
 }) {
-  const t = useTranslations("legal");
-  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const [activeDoc, setActiveDoc] = useState<LegalDocId>(initialDoc);
@@ -136,16 +98,16 @@ export default function LegalContent({
   // Doc 1 — 場地使用守則及條款 — verbatim intro is prefixed with the source's
   // own "【重要提示】" label; split it out so it can be styled as a heading
   // without altering a single character of the sentence that follows.
-  const rawSubtitle = t("terms.subtitle");
-  const noticeLabel = "【重要提示】";
-  const termsIntroBody = rawSubtitle.startsWith(noticeLabel)
-    ? rawSubtitle.slice(noticeLabel.length).replace(/^\n/, "")
-    : rawSubtitle;
+  const termsDoc = documents.terms;
+  const rawSubtitle = termsDoc.subtitle ?? "";
+  const newlineIdx = rawSubtitle.indexOf("\n");
+  const noticeLabel = newlineIdx > -1 ? rawSubtitle.slice(0, newlineIdx) : "";
+  const termsIntroBody = newlineIdx > -1 ? rawSubtitle.slice(newlineIdx + 1) : rawSubtitle;
 
   const tabs: { id: LegalDocId; label: string }[] = [
-    { id: "terms", label: t("nav.terms") },
-    { id: "website_terms", label: t("nav.website_terms") },
-    { id: "privacy", label: t("nav.privacy") },
+    { id: "terms", label: nav.terms },
+    { id: "website_terms", label: nav.website_terms },
+    { id: "privacy", label: nav.privacy },
   ];
 
   return (
@@ -161,9 +123,8 @@ export default function LegalContent({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
             style={{ fontSize: "clamp(32px, 6vw, 48px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
-            data-cms-key="legal.page_title"
           >
-            <CMSText k="legal.page_title">{t("page_title")}</CMSText>
+            {pageTitle}
           </motion.h1>
         </div>
       </section>
@@ -187,7 +148,6 @@ export default function LegalContent({
                 key={tab.id}
                 type="button"
                 onClick={() => selectDoc(tab.id)}
-                data-cms-key={`legal.nav.${tab.id}`}
                 style={{
                   appearance: "none",
                   background: "transparent",
@@ -203,7 +163,7 @@ export default function LegalContent({
                   transition: "color 0.2s ease, border-color 0.2s ease",
                 }}
               >
-                <CMSText k={`legal.nav.${tab.id}`}>{tab.label}</CMSText>
+                {tab.label}
               </button>
             );
           })}
@@ -224,9 +184,8 @@ export default function LegalContent({
               >
                 <h2
                   style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: DARK, margin: "0 0 24px" }}
-                  data-cms-key="legal.terms.title"
                 >
-                  <CMSText k="legal.terms.title">{t("terms.title")}</CMSText>
+                  {termsDoc.title}
                 </h2>
                 {/* Verbatim intro — 【重要提示】 */}
                 <div
@@ -240,19 +199,15 @@ export default function LegalContent({
                 >
                   <div
                     style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.04em", color: GREEN, marginBottom: "8px" }}
-                    data-cms-key="legal.terms.subtitle.label"
                   >
                     {noticeLabel}
                   </div>
-                  <p
-                    style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: 0, whiteSpace: "pre-line" }}
-                    data-cms-key="legal.terms.subtitle"
-                  >
-                    <CMSText k="legal.terms.subtitle">{termsIntroBody}</CMSText>
+                  <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: 0, whiteSpace: "pre-line" }}>
+                    {termsIntroBody}
                   </p>
                 </div>
 
-                <SectionList items={termsSections} page="legal" collectionKey="terms_sections" locale={locale} />
+                <SectionList sections={termsDoc.sections} />
               </motion.div>
             )}
 
@@ -266,23 +221,14 @@ export default function LegalContent({
               >
                 <h2
                   style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: DARK, margin: "0 0 24px" }}
-                  data-cms-key="legal.website_terms.title"
                 >
-                  <CMSText k="legal.website_terms.title">{t("website_terms.title")}</CMSText>
+                  {documents.website_terms.title}
                 </h2>
-                <p
-                  style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: "0 0 56px", whiteSpace: "pre-line" }}
-                  data-cms-key="legal.website_terms.intro"
-                >
-                  <CMSText k="legal.website_terms.intro">{t("website_terms.intro")}</CMSText>
+                <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: "0 0 56px", whiteSpace: "pre-line" }}>
+                  {documents.website_terms.intro}
                 </p>
 
-                <SectionList
-                  items={websiteTermsSections}
-                  page="legal"
-                  collectionKey="website_terms_sections"
-                  locale={locale}
-                />
+                <SectionList sections={documents.website_terms.sections} />
               </motion.div>
             )}
 
@@ -296,24 +242,20 @@ export default function LegalContent({
               >
                 <h2
                   style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: DARK, margin: "0 0 24px" }}
-                  data-cms-key="legal.privacy.title"
                 >
-                  <CMSText k="legal.privacy.title">{t("privacy.title")}</CMSText>
+                  {documents.privacy.title}
                 </h2>
-                <p
-                  style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: "0 0 56px", whiteSpace: "pre-line" }}
-                  data-cms-key="legal.privacy.intro"
-                >
-                  <CMSText k="legal.privacy.intro">{t("privacy.intro")}</CMSText>
+                <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: "0 0 56px", whiteSpace: "pre-line" }}>
+                  {documents.privacy.intro}
                 </p>
 
-                <SectionList items={privacySections} page="legal" collectionKey="privacy_sections" locale={locale} />
+                <SectionList sections={documents.privacy.sections} />
               </motion.div>
             )}
           </AnimatePresence>
 
-          <p style={{ marginTop: "48px", fontSize: "14px", color: SUBTLE }} data-cms-key="legal.last_updated">
-            <CMSText k="legal.last_updated">{t("last_updated")}</CMSText>：{formattedUpdated}
+          <p style={{ marginTop: "48px", fontSize: "14px", color: SUBTLE }}>
+            {lastUpdatedLabel}：{formattedUpdated}
           </p>
         </div>
       </section>
