@@ -405,7 +405,7 @@ export default function Member() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={VIEWPORT}
           transition={{ duration: 0.6, ease: EASE }}
-          style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.03em", margin: "0 0 12px", color: "#86868B" }}
+          style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.03em", margin: "0 0 12px", color: "#A1A1A6" }}
           data-cms-key="membership_title"
         >
           <CMSText k="member.title">{t('title')}</CMSText>。

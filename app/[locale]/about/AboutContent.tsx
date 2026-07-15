@@ -8,7 +8,7 @@ import { Target, Clock, Smartphone, Check, MapPin, MessageCircle, Mail, ChevronD
 import { CMSText } from "@/components/cms/CMSText";
 
 const DARK = "#1D1D1F";
-const SUBTLE = "#86868B";
+const SUBTLE = "#A1A1A6";
 const GREEN = "#22C55E";
 const BORDER_DARK = "#2D2D2D";
 

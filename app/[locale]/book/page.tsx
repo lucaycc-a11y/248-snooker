@@ -19,7 +19,7 @@ import { TicketCard } from "@/components/booking/TicketCard"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
-import { quoteBlockTotal } from "@/lib/pricing"
+import { quoteBlockTotal, quoteBlockDetail } from "@/lib/pricing"
 import { DEFAULT_PERIODS, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
@@ -632,6 +632,10 @@ function SelectedPicksCard({
         runs.map((r) => {
           const [, m, d] = r.date.split("-")
           const dateLabel = multiDate ? `${Number(m)}月${Number(d)}日 ` : ""
+          // Apple-style discount display: when the contiguous block earns the
+          // 2h+ rate, show the undiscounted price struck through next to the
+          // charged price, plus a "you save" line — never just the final number.
+          const detail = quoteBlockDetail(r.date, r.startHour, r.duration, periods)
           return (
             <div
               key={`${r.date}-${r.tableNumber}-${r.startHour}`}
@@ -654,9 +658,24 @@ function SelectedPicksCard({
                   {padTime(r.startHour)} – {padTime(r.startHour + r.duration)}
                 </div>
                 <div style={{ color: tokens.colors.textMuted, fontSize: 12, marginTop: 2 }}>
-                  {t("table_label")} #{r.tableNumber} · HK$
-                  {quoteBlockTotal(r.date, r.startHour, r.duration, periods)}
+                  {t("table_label")} #{r.tableNumber} ·{" "}
+                  {detail.saved > 0 && (
+                    <s style={{ color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
+                      HK${detail.baseTotal}
+                    </s>
+                  )}{detail.saved > 0 && " "}
+                  <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                    HK${detail.total}
+                  </span>
                 </div>
+                {detail.saved > 0 && (
+                  <div
+                    data-cms-key="book.block_saved_badge"
+                    style={{ color: tokens.colors.textMuted, fontSize: 12, marginTop: 2 }}
+                  >
+                    {t("block_saved_badge", { hours: r.duration, saved: detail.saved })}
+                  </div>
+                )}
               </div>
               <button
                 type="button"
@@ -963,6 +982,7 @@ function SummaryCard({
   ctaLabel,
   loading,
   ready = true,
+  periods,
 }: {
   selectedDate: Date
   runs: SelectedBlock[]
@@ -972,6 +992,7 @@ function SummaryCard({
   ctaLabel: string
   loading?: boolean
   ready?: boolean
+  periods: PricingPeriod[]
 }) {
   const dash = "—"
   const t = useTranslations("book")
@@ -979,6 +1000,12 @@ function SummaryCard({
   const single = runs.length === 1 ? runs[0] : null
   const endHour = single ? single.startHour + single.duration : 0
   const crossDay = endHour >= 24
+
+  // Order-wide multi-hour savings — sum of each block's (base − discounted).
+  const totalSaved = runs.reduce(
+    (sum, r) => sum + quoteBlockDetail(r.date, r.startHour, r.duration, periods).saved,
+    0,
+  )
 
   return (
     <Card variant="elevated">
@@ -1051,17 +1078,47 @@ function SummaryCard({
             marginBottom: 24,
           }}
         />
+        {/* Apple-style "was / now / you save": strike the pre-discount total
+            above the hero price whenever the 2h+ rate kicked in. */}
+        {ready && totalSaved > 0 && (
+          <div style={{ textAlign: "center", marginBottom: 6 }}>
+            <s
+              style={{
+                fontFamily: BEBAS,
+                fontSize: 22,
+                color: tokens.colors.textFaint,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              HK${total + totalSaved}
+            </s>
+          </div>
+        )}
         <div
           style={{
             fontFamily: BEBAS,
             fontSize: 40,
             textAlign: "center",
-            marginBottom: 28,
+            marginBottom: ready && totalSaved > 0 ? 10 : 28,
             color: tokens.colors.link,
           }}
         >
           {ready ? `HK$${total}` : "HK$—"}
         </div>
+        {ready && totalSaved > 0 && (
+          <div
+            data-cms-key="book.total_saved"
+            style={{
+              textAlign: "center",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#fff",
+              marginBottom: 22,
+            }}
+          >
+            {t("total_saved", { saved: totalSaved })}
+          </div>
+        )}
         <Button
           variant="primary"
           size="lg"
@@ -1300,6 +1357,7 @@ function Screen1({
             onContinue={onContinue}
             ctaLabel={t("continue")}
             ready={ready}
+            periods={periods}
           />
           <div style={{ marginTop: 16 }}>
             <SelectedPicksCard runs={runs} removeRun={removeRun} periods={periods} />
@@ -1439,6 +1497,13 @@ function Screen3({
 
   // Order total across every block (grouped, non-contiguous orders sum them).
   const total = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
+  // Pre-discount baseline for the Apple-style "小計 → 折扣 → 總計" hierarchy:
+  // subtotal shows the undiscounted sum, the discount row shows what the 2h+
+  // rate took off, and only then the total — so the discount is traceable.
+  const totalSaved = blocks.reduce(
+    (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
+    0,
+  )
   const endHour = startHour + duration
   const crossDay = endHour >= 24
 
@@ -1491,7 +1556,7 @@ function Screen3({
             <div style={{ marginBottom: 16, display: "flex", flexDirection: "column" }}>
               {blocks.map((b, i) => {
                 const [, m, d] = b.date.split("-")
-                const blockTotal = quoteBlockTotal(b.date, b.startHour, b.duration, periods)
+                const detail = quoteBlockDetail(b.date, b.startHour, b.duration, periods)
                 return (
                   <div
                     key={`${b.date}-${b.startHour}-${b.tableNumber}`}
@@ -1509,7 +1574,12 @@ function Screen3({
                       {" · "}
                       {t("table_label")} #{b.tableNumber}
                     </span>
-                    <span>HK${blockTotal}</span>
+                    <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                      {detail.saved > 0 && (
+                        <s style={{ color: tokens.colors.textFaint, marginRight: 6 }}>HK${detail.baseTotal}</s>
+                      )}
+                      HK${detail.total}
+                    </span>
                   </div>
                 )
               })}
@@ -1555,8 +1625,17 @@ function Screen3({
           <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
             <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>{t("subtotal")}</span>
-            <span>HK${total}</span>
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>HK${total + totalSaved}</span>
           </div>
+          {/* Discount line — Apple Store checkout hierarchy (小計 → 折扣 → 總計):
+              only rendered when the 2h+ contiguous-block rate actually saved
+              something, so the total is never an unexplained smaller number. */}
+          {totalSaved > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 8 }}>
+              <span data-cms-key="book.pay.discount" style={{ color: tokens.colors.textMuted }}>{t("discount_label")}</span>
+              <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
+            </div>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 12 }}>
             <span data-cms-key="book.pay.fee" style={{ color: tokens.colors.textMuted }}>{t("service_fee")}</span>
             <span>HK$0</span>
@@ -1781,7 +1860,8 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
           transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.2 }}
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}
         >
-          <img src="/logos/space8_logo_white_hor.svg" alt="Space8" style={{ height: 24, width: "auto" }} />
+          {/* Brand guideline v1.0: wordmark must render ≥120px wide (height 39 ≈ 122px) */}
+          <img src="/logos/space8_wordmark_white.svg" alt="Space8" style={{ height: 39, width: "auto" }} />
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}

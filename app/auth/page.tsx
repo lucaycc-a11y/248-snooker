@@ -1,6 +1,6 @@
 export default function Page() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black text-white/40">
+    <div className="flex min-h-screen items-center justify-center bg-black text-white/60">
       auth
     </div>
   );

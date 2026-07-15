@@ -478,7 +478,7 @@ export default function StripePayment(props: Props) {
         {/* Show the REAL captured cause (lock expired / not authenticated / Stripe
             error / pricing misconfig) beneath the friendly label, so a failure is
             diagnosable instead of a dead-end "couldn't start payment". */}
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 6, marginBottom: props.onBackToSlots ? 16 : 0 }}>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 6, marginBottom: props.onBackToSlots ? 16 : 0 }}>
           {error}
         </p>
         {props.onBackToSlots && (

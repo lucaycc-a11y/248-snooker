@@ -6,11 +6,12 @@ export const tokens = {
     border: 'rgba(255,255,255,0.1)',
     borderStrong: 'rgba(255,255,255,0.18)',
     text: '#FFFFFF',
-    // Raised from 0.45/0.25 — the old values rendered secondary text nearly
-    // invisible on pure black (reported readability bug on /book). Keep
-    // muted ≥0.62 and faint ≥0.42 for WCAG-ish contrast on #000.
-    textMuted: 'rgba(255,255,255,0.62)',
-    textFaint: 'rgba(255,255,255,0.42)',
+    // Raised again (0.62/0.42 → 0.72/0.52) — secondary text still read as too
+    // transparent on pure black (#000) in the /book flow and footer. Keep
+    // muted ≥0.72 and faint ≥0.52 so hint/caption text is clearly legible on
+    // #000 while staying visually subordinate to full-white primary text.
+    textMuted: 'rgba(255,255,255,0.72)',
+    textFaint: 'rgba(255,255,255,0.52)',
     brand: '#25D366',
     brandHover: '#1FB855',
     brandDim: 'rgba(37,211,102,0.12)',

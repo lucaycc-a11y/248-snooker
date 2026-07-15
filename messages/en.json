@@ -714,7 +714,10 @@
     "slot_booked": "Booked",
     "free_suffix": "free",
     "selected_slots_title": "Selected slots",
-    "empty_picks": "No slots selected yet — tap the timetable above to add."
+    "empty_picks": "No slots selected yet — tap the timetable above to add.",
+    "discount_label": "Multi-hour discount",
+    "block_saved_badge": "Book {hours}h together — save HK${saved}",
+    "total_saved": "You save HK${saved}"
   },
   "ticket": {
     "duration": "Duration",

@@ -267,7 +267,7 @@ export default function ComingSoonContent() {
           >
             {t('title')}
           </h1>
-          <p data-cms-key="comingSoon.subtitle" style={{ color: '#86868B', fontSize: 15, lineHeight: 1.5 }}>
+          <p data-cms-key="comingSoon.subtitle" style={{ color: '#A1A1A6', fontSize: 15, lineHeight: 1.5 }}>
             {t('subtitle')}
           </p>
         </div>

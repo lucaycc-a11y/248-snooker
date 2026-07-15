@@ -704,7 +704,10 @@
     "slot_booked": "已被预约",
     "free_suffix": "空",
     "selected_slots_title": "已选时段",
-    "empty_picks": "未选任何时段，在上方时间表点击即可加入。"
+    "empty_picks": "未选任何时段，在上方时间表点击即可加入。",
+    "discount_label": "连订折扣",
+    "block_saved_badge": "连订 {hours} 小时，省 HK${saved}",
+    "total_saved": "总共省 HK${saved}"
   },
   "ticket": {
     "duration": "时长",

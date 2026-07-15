@@ -204,6 +204,43 @@ export function quoteBlockTotal(
   return calculatePrice(slotStart, slotEnd, { discount: 1, multiplier: 1 }, periods).total
 }
 
+export type BlockPriceDetail = {
+  /** What the block actually costs (multi-hour discount applied). */
+  total: number
+  /** What the same hours would cost at single-hour rates (no 2h+ discount). */
+  baseTotal: number
+  /** baseTotal - total; 0 when no discount applies to any hour. */
+  saved: number
+  /** Per-hour lines with both the billed rate and the single-hour base rate. */
+  lines: Array<{ hourStart: string; rate: number; baseRate: number }>
+}
+
+/**
+ * Display-only price detail for a single block — the discounted total PLUS the
+ * undiscounted baseline, so the UI can render Apple-style "was / now / you
+ * save" pricing. Same trust model as quoteBlockTotal: the Stripe charge is
+ * always re-derived server-side; this only ever affects what's displayed.
+ */
+export function quoteBlockDetail(
+  date: string,
+  startHour: number,
+  durationHours: number,
+  periods: PricingPeriod[] = DEFAULT_PERIODS,
+): BlockPriceDetail {
+  if (durationHours <= 0) return { total: 0, baseTotal: 0, saved: 0, lines: [] }
+  const { slotStart, slotEnd } = slotBoundsPure(date, startHour, durationHours)
+  const quote = calculatePrice(slotStart, slotEnd, { discount: 1, multiplier: 1 }, periods)
+  // Base rate per hour = the same hour priced as a standalone 1h booking
+  // (multi-hour discount never kicks in), so savings trace to the rate card.
+  const lines = quote.breakdown.map((line, i) => ({
+    hourStart: line.hourStart,
+    rate: line.rate,
+    baseRate: quoteBlockTotal(date, startHour + i, 1, periods),
+  }))
+  const baseTotal = lines.reduce((sum, l) => sum + l.baseRate, 0)
+  return { total: quote.total, baseTotal, saved: Math.max(0, baseTotal - quote.total), lines }
+}
+
 /**
  * Minimum points a block will earn, shown pre-login on the slot picker where
  * the visitor's real tier multiplier isn't known yet (Amateur 1× floor —

@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BackButton } from "@/components/ui";
-import { Starfield } from "@/app/[locale]/Starfield";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";
@@ -29,7 +28,7 @@ import { QRCode } from "@/components/shared/QRCode";
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
 const INK = "#f5f5f7"; // near-white text
-const SUBTLE = "#86868b"; // neutral grey
+const SUBTLE = "#A1A1A6"; // neutral grey (raised from #86868b — legibility on #000)
 const BORDER = "rgba(255,255,255,0.1)"; // glass hairline (cards)
 const HAIRLINE = "rgba(255,255,255,0.18)"; // glass hairline (emphasis)
 const GREEN = "#22C55E"; // primary accent + semantic confirmed
@@ -163,10 +162,6 @@ export default function MemberDashboard({
           background: TIER_GLOW[tierId] ?? TIER_GLOW.amateur,
         }}
       />
-      <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", opacity: 0.35 }}>
-        <Starfield />
-      </div>
-
       {/* Fixed back arrow — shared component, identical to the booking flow. */}
       <BackButton href="/" ariaLabel={t("back")} cmsKey="member.back" color={INK} />
 

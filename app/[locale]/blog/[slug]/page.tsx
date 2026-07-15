@@ -12,7 +12,7 @@ import { renderRichText } from "@/lib/blog/renderRichText";
 import { safeJsonLd } from "@/lib/seo/jsonLd";
 import ShareButtons from "./ShareButtons";
 
-const SUBTLE = "#86868B";
+const SUBTLE = "#A1A1A6";
 const GREEN = "#22C55E";
 const BORDER_DARK = "#2D2D2D";
 const BASE = "https://space8.com.hk";
@@ -101,7 +101,7 @@ export default async function BlogPostPage({
     publisher: {
       "@type": "Organization",
       name: "Space8",
-      logo: { "@type": "ImageObject", url: `${BASE}/logos/space8_logo_black_hor.svg` },
+      logo: { "@type": "ImageObject", url: `${BASE}/logos/space8_wordmark_black.svg` },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };

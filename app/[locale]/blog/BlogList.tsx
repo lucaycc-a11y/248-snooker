@@ -8,7 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { CMSText } from "@/components/cms/CMSText";
 import type { BlogPost } from "@/lib/data/getBlog";
 
-const SUBTLE = "#86868B";
+const SUBTLE = "#A1A1A6";
 const GREEN = "#22C55E";
 const BORDER_DARK = "#2D2D2D";
 

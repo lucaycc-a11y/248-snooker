@@ -8,7 +8,7 @@ import type { MemberBooking } from "@/lib/data/getMember";
 
 const DEEP = "#0a0a0a";
 const INK = "#f5f5f7";
-const SUBTLE = "#86868b";
+const SUBTLE = "#A1A1A6";
 const HAIRLINE = "rgba(255,255,255,0.18)";
 const BORDER = "rgba(255,255,255,0.1)";
 const GREEN = "#22C55E";

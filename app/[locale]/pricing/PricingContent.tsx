@@ -12,7 +12,7 @@ import type { PricingPeriod, ServiceFees } from "@/lib/data/pricing";
 const GREEN = "#22c55e";
 const PURPLE = "#a855f7";
 const PINK = "#ec4899";
-const SUBTLE = "#86868b";
+const SUBTLE = "#a1a1a6"; // dark-section secondary text (raised from #86868b for #000 legibility)
 const EASE = [0.16, 1, 0.3, 1] as const;
 const SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
 
