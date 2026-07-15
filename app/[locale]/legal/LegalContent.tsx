@@ -48,17 +48,22 @@ function BodyParagraphs({ body, locale }: { body: string; locale: Locale }) {
 // Numbered legal sections, rendered verbatim from the static content/legal/
 // document object — no CMS, no runtime fetch, no add/remove/reorder (the
 // content is fixed legal text, not an editable list).
+// Each section carries id="section-N" (1-based, matching the visible 01/02/…
+// numbering) so external pages (e.g. FAQ answers) can deep-link straight to a
+// clause via /legal?doc=terms#section-N. scrollMarginTop keeps the heading
+// clear of the sticky tab bar when the browser jumps to the hash.
 function SectionList({ sections, locale }: { sections: LegalDocument["sections"]; locale: Locale }) {
   return (
     <>
       {sections.map((s, i) => (
         <motion.div
           key={`${i}-${s.title}`}
+          id={`section-${i + 1}`}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.5, ease: EASE }}
-          style={{ marginBottom: 40 }}
+          style={{ marginBottom: 40, scrollMarginTop: 76 }}
         >
           <h3
             style={{

@@ -7,6 +7,13 @@ export interface FaqItem {
   answer: string;
 }
 
+// Rule-type answers embed markdown-style links ([label](/path)) that FAQ.tsx
+// renders as real locale-aware <Link>s. JSON-LD wants plain text, so strip
+// the syntax down to just the label there.
+export function stripMarkdownLinks(text: string): string {
+  return text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+}
+
 export function getFaqItems(t: (key: string) => string): FaqItem[] {
   return [
     { id: "faq-booking",   question: t('faq_booking_q'),   answer: t('faq_booking_a') },
@@ -33,7 +40,7 @@ export function getFaqJsonLd(t: (key: string) => string) {
       name: item.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: item.answer,
+        text: stripMarkdownLinks(item.answer),
       },
     })),
   };

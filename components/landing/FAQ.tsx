@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { getFaqItems, type FaqItem } from "./faqData";
+import { Link } from "@/i18n/navigation";
+import { getFaqItems, stripMarkdownLinks, type FaqItem } from "./faqData";
 
 const DARK = "#1D1D1F";
 const DIVIDER = "#D2D2D7";
@@ -13,6 +14,34 @@ const FONT_FAMILY =
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
+
+// Rule-type answers reference the authoritative source (/legal, /pricing,
+// /membership) via markdown-style links — [label](/path) — instead of
+// restating the full clause text. Render those as locale-aware <Link>s so
+// one click jumps straight to the relevant section.
+const MD_LINK = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+function AnswerText({ answer }: { answer: string }) {
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  for (const match of answer.matchAll(MD_LINK)) {
+    const [full, label, href] = match;
+    const index = match.index ?? 0;
+    if (index > lastIndex) nodes.push(answer.slice(lastIndex, index));
+    nodes.push(
+      <Link
+        key={`${href}-${index}`}
+        href={href}
+        style={{ color: "#0071E3", textDecoration: "underline", textUnderlineOffset: "3px" }}
+      >
+        {label}
+      </Link>
+    );
+    lastIndex = index + full.length;
+  }
+  if (lastIndex < answer.length) nodes.push(answer.slice(lastIndex));
+  return <>{nodes}</>;
+}
 
 // FAQ list is a fixed, static set of Q&A pairs sourced from the `faq`
 // next-intl namespace (see faqData.ts) — no longer addable/removable via a
@@ -33,7 +62,7 @@ export default function FAQ({ jsonLd }: { jsonLd?: object }) {
       mainEntity: items.map((item) => ({
         "@type": "Question",
         name: item.question,
-        acceptedAnswer: { "@type": "Answer", text: item.answer },
+        acceptedAnswer: { "@type": "Answer", text: stripMarkdownLinks(item.answer) },
       })),
     };
 
@@ -144,7 +173,7 @@ export default function FAQ({ jsonLd }: { jsonLd?: object }) {
                           maxWidth: "680px",
                         }}
                       >
-                        {item.answer}
+                        <AnswerText answer={item.answer} />
                       </p>
                     </motion.div>
                   )}
