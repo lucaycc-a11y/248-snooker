@@ -108,9 +108,13 @@ export function BookingConfirmedEmail({
         <tbody>
           <tr>
             <td style={{ textAlign: 'center', paddingBottom: '32px' }}>
-              <span style={{ color: '#22c55e', fontFamily: "'Bebas Neue', sans-serif", fontSize: '24px', letterSpacing: '2px' }}>
-                SPACE8
-              </span>
+              <img
+                src="https://space8.com.hk/logos/space8-logo-email.png"
+                alt="Space8"
+                width="120"
+                height="38"
+                style={{ display: 'inline-block' }}
+              />
             </td>
           </tr>
           <tr>

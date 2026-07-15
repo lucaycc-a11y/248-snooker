@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { CMSText } from "@/components/cms/CMSText";
+import { Logo } from "@/components/brand";
 
 const GREEN = "#22C55E";
 
@@ -74,21 +75,10 @@ export default function Hero() {
 
       {/* Content — centred on mobile, top-anchored on desktop */}
       <div className="absolute left-1/2 top-[28%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[22%]">
-        {/* "Space8" — thin, static */}
-        <p
-          className="text-[clamp(28px,6vw,38px)] md:text-[42px]"
-          style={{
-            color: "rgba(255,255,255,0.92)",
-            fontWeight: 700,
-            letterSpacing: "-0.022em",
-            lineHeight: 1.1,
-            fontFamily:
-              "'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif",
-            marginBottom: "4px",
-          }}
-        >
-          Space8
-        </p>
+        {/* Space8 wordmark — official SVG artwork, not a text simulation */}
+        <div style={{ marginBottom: "4px" }}>
+          <Logo variant="full" theme="dark" size={34} />
+        </div>
 
         {/* Headline — single element, gradient, fades in after 3s */}
         <motion.h1

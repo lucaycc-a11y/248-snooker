@@ -5,8 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { AuthCard } from "./AuthCard"
-
-const GREEN = "#22c55e"
+import { Logo } from "@/components/brand"
 
 // Modal wrapper around the shared AuthCard, used by in-app entry points (e.g. the
 // booking flow). The /login PAGE renders AuthCard directly inside its own layout.
@@ -85,8 +84,8 @@ export function AuthModal({
             )}
 
             <div style={{ textAlign: "center", marginBottom: 28 }}>
-              <div data-cms-key="auth.brand" style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.32em", color: GREEN, marginBottom: 12 }}>
-                SPACE8
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                <Logo variant="mark" theme="dark" size={32} />
               </div>
               <h1 data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 34, letterSpacing: "0.02em", color: "#fff" }}>
                 {t("title")}
