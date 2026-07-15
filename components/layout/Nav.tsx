@@ -268,7 +268,19 @@ export default function Nav() {
           className="nav-logo"
           aria-label={t('home')}
         >
-          <Logo variant="full" theme={theme} size={39} />
+          {/* Full wordmark down to 360px — it comfortably fits with room to
+              spare next to the right-side login/hamburger cluster at every
+              viewport ≥360px. Below that (a handful of very old/small
+              phones), the wordmark's 120px brand-guideline floor would start
+              crowding the right cluster, so we swap to the icon-only mark
+              (secondary logo use — not bound by the wordmark's 120px rule)
+              via CSS rather than shrinking the wordmark under its minimum. */}
+          <span className="nav-logo-full">
+            <Logo variant="full" theme={theme} size={39} />
+          </span>
+          <span className="nav-logo-mark">
+            <Logo variant="mark" theme={theme} size={32} />
+          </span>
         </Link>
 
         <div
@@ -423,6 +435,24 @@ export default function Nav() {
       </nav>
 
       <style jsx global>{`
+        /* Icon-only fallback below 360px — see comment at the nav-logo Link
+           above. Default (mobile-first): wordmark shown, mark hidden. */
+        .nav-logo-full {
+          display: flex;
+          align-items: center;
+        }
+        .nav-logo-mark {
+          display: none;
+          align-items: center;
+        }
+        @media (max-width: 359px) {
+          .nav-logo-full {
+            display: none;
+          }
+          .nav-logo-mark {
+            display: flex;
+          }
+        }
         @media (min-width: 768px) {
           .nav-bar {
             top: 20px !important;
@@ -440,9 +470,17 @@ export default function Nav() {
           .nav-logo {
             left: 32px !important;
           }
+          /* Brand guideline v1.0 hard rule: wordmark must never render
+             narrower than 120px on digital. This used to hard-set
+             height:36px !important, which at the wordmark's 3.12 aspect
+             ratio renders ~112px wide — 8px under the floor. Logo.tsx
+             already sizes to size={39} (≈122px wide) via its own
+             MIN_WIDTH clamp; min-width here is a belt-and-braces floor
+             so no future CSS override can shrink it back under 120px
+             regardless of what height ends up applied. */
           .nav-logo img {
-            height: 36px !important;
             width: auto !important;
+            min-width: 120px !important;
           }
         }
       `}</style>
