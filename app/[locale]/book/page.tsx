@@ -1727,7 +1727,7 @@ function Screen3({
               {t.rich("terms_agree", {
                 link: (chunks) => (
                   <LocaleLink
-                    href="/legal"
+                    href="/legal?doc=terms"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: tokens.colors.link, textDecoration: "underline" }}

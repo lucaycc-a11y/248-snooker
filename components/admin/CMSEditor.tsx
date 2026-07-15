@@ -23,6 +23,7 @@ const LOCALES: { code: string; label: string }[] = [
 const KNOWN_LISTS: { title: string; page: string; collectionKey: string; fieldNames: [string, string] }[] = [
   { title: 'FAQ items', page: 'faq', collectionKey: 'faq_items', fieldNames: ['question', 'answer'] },
   { title: 'Legal — Terms sections', page: 'legal', collectionKey: 'terms_sections', fieldNames: ['title', 'body'] },
+  { title: 'Legal — Website terms sections', page: 'legal', collectionKey: 'website_terms_sections', fieldNames: ['title', 'body'] },
   { title: 'Legal — Privacy sections', page: 'legal', collectionKey: 'privacy_sections', fieldNames: ['title', 'body'] },
 ]
 
