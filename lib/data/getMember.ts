@@ -50,7 +50,7 @@ export type MemberData = {
   user: MemberUser
   bookings: MemberBooking[]
   points: PointsEntry[]
-  stats: { bookings: number; hours: number; spent: number }
+  stats: { bookings: number; hours: number }
 }
 
 // One ticket's worth of data — mirrors TicketCardProps in
@@ -204,7 +204,6 @@ export async function getMemberData(): Promise<MemberData | null> {
   const stats = {
     bookings: bookings.length,
     hours: bookings.reduce((sum, b) => sum + (b.durationHours || 0), 0),
-    spent: bookings.reduce((sum, b) => sum + (b.price || 0), 0),
   }
 
   return { user: memberUser, bookings, points, stats }

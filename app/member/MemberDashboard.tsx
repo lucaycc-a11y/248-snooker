@@ -336,7 +336,7 @@ export default function MemberDashboard({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(2, 1fr)",
             marginTop: "16px",
             border: `1px solid ${BORDER}`,
             borderRadius: "16px",
@@ -347,8 +347,7 @@ export default function MemberDashboard({
           }}
         >
           <StatCard label={t("stat_bookings")} value={`${stats.bookings}`} unit={t("stat_bookings_unit")} />
-          <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} last={false} />
-          <StatCard label={t("stat_spent")} value={`HK$${stats.spent.toLocaleString()}`} last />
+          <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} last />
         </div>
 
         {/* Tabs */}
@@ -630,6 +629,25 @@ function canReschedule(b: MemberBooking): boolean {
   return Date.now() < start.getTime();
 }
 
+// The entry QR is only useful while the slot can still be entered — once the
+// booking has ended (or was cancelled/refunded) the code would never scan, so
+// hide the button instead of offering a dead QR.
+function bookingEnd(b: MemberBooking): Date | null {
+  if (!b.date || !b.endTime) return null;
+  const time = b.endTime.length > 8 ? b.endTime.slice(11, 19) : b.endTime;
+  const d = new Date(`${b.date}T${time}`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function canShowQr(b: MemberBooking): boolean {
+  if (b.status !== "confirmed") return false;
+  const end = bookingEnd(b);
+  // No parseable end time — keep the QR visible rather than hiding a
+  // potentially valid ticket.
+  if (!end) return true;
+  return Date.now() < end.getTime();
+}
+
 function BookingsTab({
   bookings,
   locale,
@@ -696,7 +714,9 @@ function BookingsTab({
           >
             {/* Primary action — visually the only filled/tinted pill. A
                 failed booking has no valid QR to show; offer to retry
-                payment instead of a QR that would never scan. */}
+                payment instead of a QR that would never scan. Past or
+                cancelled/refunded bookings show no QR button at all —
+                their code can no longer be used for entry. */}
             {b.status === "payment_failed" ? (
               retryPaymentLink(b) && (
                 <SmallButton
@@ -708,13 +728,15 @@ function BookingsTab({
                 />
               )
             ) : (
-              <SmallButton
-                onClick={() => onViewQr(b)}
-                icon={<QrCodeIcon size={15} strokeWidth={2} />}
-                label={t("booking_view_qr")}
-                cmsKey="member.booking_view_qr"
-                primary
-              />
+              canShowQr(b) && (
+                <SmallButton
+                  onClick={() => onViewQr(b)}
+                  icon={<QrCodeIcon size={15} strokeWidth={2} />}
+                  label={t("booking_view_qr")}
+                  cmsKey="member.booking_view_qr"
+                  primary
+                />
+              )
             )}
             {/* Refund stays visible (higher-consequence, narrow time window)
                 but de-emphasized — outline only, danger-tinted text. */}
