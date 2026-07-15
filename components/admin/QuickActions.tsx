@@ -30,9 +30,6 @@ export default function QuickActions() {
       <Link href="/admin/settings" style={linkStyle}>
         Edit settings
       </Link>
-      <Link href="/admin/cms" style={linkStyle}>
-        Edit content
-      </Link>
       <Link href="/admin/calendar" style={linkStyle}>
         View calendar
       </Link>

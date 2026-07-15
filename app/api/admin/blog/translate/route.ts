@@ -7,10 +7,10 @@ import { rateLimit } from '@/lib/rate-limit'
 // Translates one blog post into another locale as an AI-drafted SUGGESTION —
 // creates a new draft blog_posts row (published_at = null) in the same
 // translation_group_id, never overwrites or publishes anything. The admin
-// reviews/edits the draft in the normal editor and publishes it manually,
-// same "AI proposes, human approves" shape as the CMS translate endpoint
-// (app/api/admin/cms/translate/route.ts), but blog content is long-form prose
-// so it's a full new row per locale, not a per-field diff.
+// reviews/edits the draft in the normal editor and publishes it manually
+// ("AI proposes, human approves"). Blog content is long-form prose, so this
+// is a full new row per locale, not a per-field diff (unlike the now-removed
+// CMS text-editing translate endpoint, which worked on individual keys).
 
 const LOCALES = ['zh-HK', 'zh-CN', 'en'] as const
 type Locale = (typeof LOCALES)[number]
