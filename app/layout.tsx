@@ -13,7 +13,7 @@ const bebasNeue = Bebas_Neue({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://space8.com.hk"),
-  title: "Space8 · 香港自助中式桌球 06:00-24:00",
+  title: "SPACE8 · 香港自助中式桌球 06:00-24:00",
   description:
     "香港首間自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
   keywords: [
@@ -22,19 +22,19 @@ export const metadata: Metadata = {
     "香港桌球",
     "自助桌球",
     "snooker hong kong",
-    "Space8",
+    "SPACE8",
   ],
   openGraph: {
-    title: "Space8 · 屬於你的主場",
+    title: "SPACE8 · 屬於你的主場",
     description: "香港首間自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
     url: "https://space8.com.hk",
-    siteName: "Space8",
+    siteName: "SPACE8",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Space8",
+        alt: "SPACE8",
       },
     ],
     locale: "zh_HK",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Space8",
+    title: "SPACE8",
     description: "香港首間自助中式桌球會所",
     images: ["/og-image.png"],
   },

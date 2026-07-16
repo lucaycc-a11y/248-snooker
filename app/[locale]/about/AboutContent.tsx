@@ -195,7 +195,7 @@ export default function AboutContent() {
 
           {/* Photo gallery — horizontal scroll-snap on mobile, grid on desktop */}
           <div
-            className="no-scrollbar"
+            className="no-scrollbar hscroll-track"
             style={{ display: "flex", gap: "16px", overflowX: "auto", scrollSnapType: "x mandatory", marginBottom: "56px", paddingBottom: "4px" }}
           >
             {VENUE_IMAGES.map((src, i) => (

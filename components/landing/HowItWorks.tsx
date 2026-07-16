@@ -412,7 +412,7 @@ export default function HowItWorks() {
       {/* Cards — desktop: equal-width row; mobile: snap scroll */}
       <div
         ref={trackRef}
-        className="no-scrollbar"
+        className="no-scrollbar hscroll-track"
         style={{
           maxWidth: "1100px",
           margin: "0 auto",
@@ -421,7 +421,6 @@ export default function HowItWorks() {
           gap: "24px",
           overflowX: isMobile ? "auto" : "visible",
           scrollSnapType: isMobile ? "x mandatory" : undefined,
-          WebkitOverflowScrolling: "touch",
           alignItems: "stretch",
         }}
       >

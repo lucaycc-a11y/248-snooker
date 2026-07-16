@@ -163,14 +163,13 @@ export default function Gallery() {
           <div
             ref={trackRef}
             onScroll={onScroll}
-            className="no-scrollbar"
+            className="no-scrollbar hscroll-track"
             style={{
               display: "flex",
               gap: "16px",
               overflowX: "auto",
               scrollSnapType: "x mandatory",
               padding: "0 24px",
-              WebkitOverflowScrolling: "touch",
             }}
           >
             {slides.map((slide, i) => card(slide, i))}

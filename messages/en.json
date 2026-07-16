@@ -94,8 +94,8 @@
       "privacy": "私隱政策"
     },
     "terms": {
-      "title": "Space8 自助桌球室場地使用守則及條款",
-      "subtitle": "【重要提示】\n歡迎使用 Space8。閣下登記成為會員、提交預約或進入本公司營運之自助桌球室場地（下稱「場地」），即表示閣下已閱讀、完全理解並同意受本《場地使用守則及條款》（下稱「本守則」）約束。本守則構成閣下與 Space8（下稱「本公司」）之間具有法律約束力的協議。如閣下不同意本守則之任何內容，請勿登記或使用場地。",
+      "title": "SPACE8 自助桌球室場地使用守則及條款",
+      "subtitle": "【重要提示】\n歡迎使用 SPACE8。閣下登記成為會員、提交預約或進入本公司營運之自助桌球室場地（下稱「場地」），即表示閣下已閱讀、完全理解並同意受本《場地使用守則及條款》（下稱「本守則」）約束。本守則構成閣下與 SPACE8（下稱「本公司」）之間具有法律約束力的協議。如閣下不同意本守則之任何內容，請勿登記或使用場地。",
       "sections": [
         {
           "title": "會員登記、預約及進場安排",
@@ -132,12 +132,12 @@
       ]
     },
     "website_terms": {
-      "title": "Space8 網站使用條款",
-      "intro": "歡迎瀏覽及使用 Space8 網站（www.space8.com.hk，下稱「本網站」）。使用本網站即表示閣下同意受本《網站使用條款》約束。",
+      "title": "SPACE8 網站使用條款",
+      "intro": "歡迎瀏覽及使用 SPACE8 網站（www.space8.com.hk，下稱「本網站」）。使用本網站即表示閣下同意受本《網站使用條款》約束。",
       "sections": [
         {
           "title": "服務性質",
-          "body": "本網站提供 Space8 自助桌球室之網上預約、會員登記及相關資訊服務。實體場地之使用另受《場地使用守則及條款》約束，兩者同時適用。"
+          "body": "本網站提供 SPACE8 自助桌球室之網上預約、會員登記及相關資訊服務。實體場地之使用另受《場地使用守則及條款》約束，兩者同時適用。"
         },
         {
           "title": "帳戶登記",
@@ -170,8 +170,8 @@
       ]
     },
     "privacy": {
-      "title": "Space8 私隱政策",
-      "intro": "本私隱政策說明 Space8（下稱「本公司」）如何收集、使用、儲存及保護閣下之個人資料，並符合香港《個人資料（私隱）條例》（第486章）之相關規定。",
+      "title": "SPACE8 私隱政策",
+      "intro": "本私隱政策說明 SPACE8（下稱「本公司」）如何收集、使用、儲存及保護閣下之個人資料，並符合香港《個人資料（私隱）條例》（第486章）之相關規定。",
       "sections": [
         {
           "title": "本公司收集之資料",
@@ -207,13 +207,13 @@
         },
         {
           "title": "聯絡方式",
-          "body": "如對本私隱政策有任何查詢，請透過官方 WhatsApp 聯絡 Space8。"
+          "body": "如對本私隱政策有任何查詢，請透過官方 WhatsApp 聯絡 SPACE8。"
         }
       ]
     }
   },
   "pricingPage": {
-    "hero_eyebrow": "Space8",
+    "hero_eyebrow": "SPACE8",
     "hero_line1": "For those who can count.",
     "hero_line2_before": "Book smart.",
     "hero_line2_highlight": "Not hard.",
@@ -277,7 +277,7 @@
       }
     ],
     "faq_title": "Questions?",
-    "faq_scroll_hint": "← Swipe to see more",
+    "faq_scroll_hint": "Swipe to see more",
     "faqs": [
       {
         "q": "Hidden fees?",
@@ -324,7 +324,7 @@
     "not_found": "Post not found"
   },
   "aboutPage": {
-    "hero_title": "About Space8",
+    "hero_title": "About SPACE8",
     "hero_subtitle": "A private, self-service, smoke-free Chinese pool room. Open daily 06:00–24:00.",
     "scroll": "Scroll down",
     "mission_eyebrow": "Our Philosophy",
@@ -343,8 +343,8 @@
         "body": "Self-service, smoke-free, private — no distractions."
       }
     ],
-    "story_title": "About Space8",
-    "story_body": "A great Chinese eight-ball room should have no distractions. Space8 is a private, self-service, smoke-free Chinese pool room. Book your own table anytime, anywhere, in one tap. From booking to payment to entry, it's fully self-service — no waiting.",
+    "story_title": "About SPACE8",
+    "story_body": "A great Chinese eight-ball room should have no distractions. SPACE8 is a private, self-service, smoke-free Chinese pool room. Book your own table anytime, anywhere, in one tap. From booking to payment to entry, it's fully self-service — no waiting.",
     "venue_title": "Facilities",
     "venue_features": [
       "Star Chinese pool table",
@@ -493,7 +493,7 @@
     "membership": "Membership"
   },
   "hero": {
-    "title": "Space8",
+    "title": "SPACE8",
     "tagline": "Your game, your space.",
     "cta_book": "Book Now",
     "cta_learn": "Learn More",
@@ -540,7 +540,7 @@
     "maximum_highlight1": "Double points",
     "maximum_highlight2": "Privileges",
     "maximum_highlight3": "Coach sessions",
-    "maximum_modal_body": "Occasional exclusive Space8 merchandise, double points on every booking, redeemable discount vouchers and bookable coaching sessions.",
+    "maximum_modal_body": "Occasional exclusive SPACE8 merchandise, double points on every booking, redeemable discount vouchers and bookable coaching sessions.",
     "modal_label": "Membership Tier",
     "cta_join": "Join Now",
     "cta_learn": "Learn More",
@@ -560,13 +560,14 @@
     "duration_3h": "3 hours",
     "cta_book": "Pick a Slot",
     "cta_learn": "Pricing Details",
-    "hero_eyebrow": "Space8",
+    "hero_eyebrow": "SPACE8",
     "hero_line1": "For those who can count.",
     "hero_line2": "Not hard.",
     "time_line1": "Your time,",
     "cta_line1": "Tables available now.",
     "cta_button": "Book Now",
     "faq_title": "Questions?",
+    "faq_scroll_hint": "Swipe to see more",
     "morning_label": "Morning",
     "morning_range": "6am – 12pm"
   },
@@ -579,7 +580,7 @@
     "faq_cancel_q": "Can I cancel or get a refund?",
     "faq_cancel_a": "Once confirmed, bookings cannot be cancelled, rescheduled, or refunded (except under Typhoon Signal No. 8 or above / Black Rainstorm Warning, when a reschedule may be requested). For full details, see the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3) and [Section 6](/legal?doc=terms#section-6).",
     "faq_hours_q": "What are the opening hours?",
-    "faq_hours_a": "Space8 is open daily from 06:00 to 24:00, year-round, including public holidays.",
+    "faq_hours_a": "SPACE8 is open daily from 06:00 to 24:00, year-round, including public holidays.",
     "faq_minimum_q": "What is the minimum booking duration?",
     "faq_minimum_a": "The minimum is 1 hour. You can book 1, 2, or 3 hours.",
     "faq_pricing_q": "How is pricing calculated?",
@@ -718,28 +719,28 @@
       {
         "title": "Star Chinese Pool Table",
         "subtitle": "A hand-picked Star table for the truest feel.",
-        "alt": "Space8 — Star Chinese pool table"
+        "alt": "SPACE8 — Star Chinese pool table"
       },
       {
         "title": "Scan to Enter",
         "subtitle": "Book online, get your QR code, scan at the door.",
-        "alt": "Space8 — smart QR entry"
+        "alt": "SPACE8 — smart QR entry"
       },
       {
         "title": "Private Room",
         "subtitle": "The whole venue is yours. No sharing.",
-        "alt": "Space8 — private pool room"
+        "alt": "SPACE8 — private pool room"
       },
       {
         "title": "Tournament Lighting",
         "subtitle": "Match-tuned lighting for total focus on every shot.",
-        "alt": "Space8 — tournament lighting"
+        "alt": "SPACE8 — tournament lighting"
       }
     ]
   },
   "footer": {
     "tagline": "Self-service pool club Hong Kong · Open 06:00–24:00",
-    "copyright": "© 2026 Space8",
+    "copyright": "© 2026 SPACE8",
     "terms": "Terms & Conditions",
     "privacy": "Privacy Policy",
     "legal": "Venue Rules & Terms",
@@ -752,7 +753,7 @@
     "hours_label": "Opening Hours",
     "hours": "Daily 06:00–24:00",
     "seo_title": "Self-Service Chinese Pool Club in San Po Kong, Hong Kong",
-    "seo_blurb": "Space8 is a self-service, smoke-free Chinese pool club with private rooms in San Po Kong, Hong Kong — open daily 06:00–24:00 with online booking and QR-code self check-in, no waiting around. Minutes from Diamond Hill and Kai Tak MTR stations, it is the ideal home ground for pool players across Kowloon."
+    "seo_blurb": "SPACE8 is a self-service, smoke-free Chinese pool club with private rooms in San Po Kong, Hong Kong — open daily 06:00–24:00 with online booking and QR-code self check-in, no waiting around. Minutes from Diamond Hill and Kai Tak MTR stations, it is the ideal home ground for pool players across Kowloon."
   },
   "profile": {
     "add_phone_title": "Add Phone Number",

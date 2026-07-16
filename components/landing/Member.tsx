@@ -422,7 +422,7 @@ export default function Member() {
           {/* Mobile — horizontal snap carousel */}
           <div
             ref={trackRef}
-            className="no-scrollbar"
+            className="no-scrollbar hscroll-track"
             style={{
               display: "flex",
               gap: "28px",
@@ -430,7 +430,6 @@ export default function Member() {
               scrollSnapType: "x mandatory",
               padding: "8px 24px",
               scrollPaddingLeft: "24px",
-              WebkitOverflowScrolling: "touch",
             }}
           >
             {cards.map((card, i) => renderCard(card, i, true))}

@@ -320,19 +320,8 @@ export default function Nav() {
           className="nav-logo"
           aria-label={t('home')}
         >
-          {/* Full wordmark down to 360px — it comfortably fits with room to
-              spare next to the right-side login/hamburger cluster at every
-              viewport ≥360px. Below that (a handful of very old/small
-              phones), the wordmark's 120px brand-guideline floor would start
-              crowding the right cluster, so we swap to the icon-only mark
-              (secondary logo use — not bound by the wordmark's 120px rule)
-              via CSS rather than shrinking the wordmark under its minimum. */}
-          <span className="nav-logo-full">
-            <Logo variant="full" theme={theme} size={39} />
-          </span>
-          <span className="nav-logo-mark">
-            <Logo variant="mark" theme={theme} size={32} />
-          </span>
+          <Logo variant="full" theme={theme} size={39} />
+          <Logo variant="mark" theme={theme} size={22} />
         </Link>
 
         <div
@@ -501,33 +490,29 @@ export default function Nav() {
             padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important;
             transform: none !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-            background: #000 !important;
+            /* Frosted glass: translucent dark surface so nav is clearly legible
+               above any background content while still feeling "embedded" in it.
+               backdrop-filter blurs whatever is scrolled behind the bar. */
+            background: rgba(0, 0, 0, 0.72) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
             /* Solid bar must swallow taps on its own surface — with the
                desktop 'none' value, content hidden under the bar would
                still receive touches. */
             pointer-events: auto !important;
           }
-          .nav-bar[data-nav-surface='light'] {
-            background: #f5f5f7 !important;
-            border-bottom-color: rgba(0, 0, 0, 0.1) !important;
-          }
-        }
-        /* Icon-only fallback below 360px — see comment at the nav-logo Link
-           above. Default (mobile-first): wordmark shown, mark hidden. */
-        .nav-logo-full {
-          display: flex;
-          align-items: center;
-        }
-        .nav-logo-mark {
-          display: none;
-          align-items: center;
-        }
-        @media (max-width: 359px) {
+          /* Mobile logo: icon-only mark (~69px wide at size=22), not the
+             full wordmark (~122px). Matches Apple navbar proportions. */
           .nav-logo-full {
-            display: none;
+            display: none !important;
           }
           .nav-logo-mark {
-            display: flex;
+            display: flex !important;
+            align-items: center;
+          }
+          .nav-logo img {
+            width: auto !important;
+            height: 22px !important;
           }
         }
         @media (min-width: 768px) {

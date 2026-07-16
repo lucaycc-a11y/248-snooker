@@ -240,13 +240,13 @@ export default function PricingContent({
 
           <div
             ref={carouselRef}
+            className="hscroll-track"
             style={{
               display: "flex",
               gap: 24,
               overflowX: "auto",
               scrollSnapType: "x mandatory",
               paddingBottom: 24,
-              WebkitOverflowScrolling: "touch",
               scrollbarWidth: "none",
               msOverflowStyle: "none",
             }}

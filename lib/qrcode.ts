@@ -1,7 +1,7 @@
 import QRCode from 'qrcode'
 import { signQrToken, humanReadableCode, type QrPayload } from './qr/jwt'
 
-// Unified QR code generation for Space8.
+// Unified QR code generation for SPACE8.
 // Generates scannable QR codes as data URLs or buffers for:
 // 1. Booking access (human-readable companion code; JWT retained for future door validation)
 // 2. Member identification (member_code from database)

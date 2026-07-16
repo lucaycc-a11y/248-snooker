@@ -54,9 +54,44 @@ export default function Footer() {
       style={{
         backgroundColor: tokens.colors.bg,
         borderTop: `1px solid ${tokens.colors.border}`,
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+      {/* ── Giant decorative "SPACE8" wordmark ──────────────────────────────
+          Top-to-bottom light→dark gradient over pure-black footer bg.
+          Sits absolutely behind all content; pointer-events:none so it
+          never blocks taps on links or interactive elements above. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '110%',
+          lineHeight: 0.88,
+          fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+          fontWeight: 800,
+          letterSpacing: '-0.03em',
+          // Clip slightly wider than container so the gradient fade bleeds
+          // into the page bg on the sides rather than hitting a hard edge.
+          background: 'linear-gradient(to bottom, #4a4a4a 0%, #222222 60%, #111111 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          pointerEvents: 'none',
+          userSelect: 'none',
+          zIndex: 0,
+          // Push baseline below the fold so the wordmark reads as an
+          // atmospheric backdrop, not a focal element.
+          marginBottom: -1,
+        }}
+      >
+        SPACE8
+      </div>
+
+      <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Top — SVG logo + social icons */}
         <div
           style={{
@@ -106,9 +141,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Contact — address + directions on every page. Each sub-block gets
-            its own breathing room (mobile screenshots showed map/address/
-            hours/SEO copy all fused into one unreadable run). */}
+        {/* Contact + SEO — same two-column layout as before */}
         <div
           style={{
             marginTop: '32px',
@@ -132,9 +165,6 @@ export default function Footer() {
             >
               {t('footer.contact_title')}
             </div>
-            {/* Dark map thumbnail — CARTO Dark Matter tiles (free, no API
-                key/billing). Links out to Google Maps like the text link
-                below, same as the old Google Static Maps image did. */}
             <div style={{ marginBottom: '20px' }}>
               <FooterMap mapsUrl={MAPS_URL} ariaLabel={t('footer.map_cta')} />
             </div>
@@ -175,9 +205,6 @@ export default function Footer() {
             </div>
           </section>
 
-          {/* SEO blurb — its own bordered block so it reads as a separate
-              section instead of a continuation of the address text.
-              Crawler-readable local-SEO copy with LocalBusiness microdata. */}
           <section
             itemScope
             itemType="https://schema.org/LocalBusiness"
@@ -222,9 +249,7 @@ export default function Footer() {
           </section>
         </div>
 
-        {/* Middle — nav links. Desktop: centred dotted row. Mobile: 2-column
-            grid of full-height (≥44px) tap targets — the dotted single-line
-            run wrapped into an unreadable, mis-tappable clump on 375-393px. */}
+        {/* Nav links */}
         <nav className="footer-links">
           {navLinks.map((link) => (
             <Link key={link.href} href={link.href} className="footer-link">
@@ -260,19 +285,59 @@ export default function Footer() {
           }
         `}</style>
 
-        {/* Bottom — single centred line */}
-        <p
+        {/* Bottom row — simplified copyright + legal links */}
+        <div
           style={{
             marginTop: '24px',
             paddingTop: '24px',
             borderTop: `1px solid ${tokens.colors.border}`,
-            textAlign: 'center',
-            fontSize: '13px',
-            color: tokens.colors.textFaint,
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px 24px',
           }}
         >
-          &copy; 2026 Space8 · {t('footer.tagline')}
-        </p>
+          <p
+            style={{
+              fontSize: '13px',
+              color: tokens.colors.textFaint,
+              margin: 0,
+            }}
+          >
+            &copy; 2026 SPACE8. All rights reserved.
+          </p>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '24px',
+            }}
+          >
+            <Link
+              href="/legal"
+              data-cms-key="footer.legal"
+              style={{
+                fontSize: '13px',
+                color: tokens.colors.textFaint,
+                textDecoration: 'none',
+              }}
+            >
+              {t('footer.legal')}
+            </Link>
+            <Link
+              href="/privacy"
+              data-cms-key="footer.privacy"
+              style={{
+                fontSize: '13px',
+                color: tokens.colors.textFaint,
+                textDecoration: 'none',
+              }}
+            >
+              {t('footer.privacy')}
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   )

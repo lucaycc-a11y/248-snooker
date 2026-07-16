@@ -19,7 +19,7 @@ export default function NotFound() {
             data-cms-key="404.brand"
             className="mb-3 mt-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"
           >
-            Space8
+            SPACE8
           </p>
           <h1
             data-cms-key="404.code"

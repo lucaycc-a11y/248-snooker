@@ -70,6 +70,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Horizontal snap carousels (pricing/venue/gallery card strips).
+   `x mandatory` snap containers can swallow VERTICAL touch gestures on
+   iOS Safari — a finger starting on a card could only swipe cards, never
+   scroll the page. The explicit `pan-x pan-y` declares both axes allowed:
+   horizontal stays on the carousel's native scroll, vertical pans chain
+   up to the page (the container has no vertical overflow). Do NOT use
+   `pan-y` alone — these are native scrollers, so that would disable
+   horizontal touch scrolling entirely. overscroll-behavior-x keeps an
+   end-of-strip swipe from triggering browser back/forward navigation. */
+.hscroll-track {
+  touch-action: pan-x pan-y;
+  overscroll-behavior-x: contain;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
