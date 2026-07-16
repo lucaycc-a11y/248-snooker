@@ -59,37 +59,34 @@ export default function Footer() {
       }}
     >
       {/* ── Giant decorative "SPACE8" wordmark ──────────────────────────────
-          Top-to-bottom light→dark gradient over pure-black footer bg.
-          Sits absolutely behind all content; pointer-events:none so it
-          never blocks taps on links or interactive elements above. */}
-      <div
+          Uses the official wordmark SVG (never CSS-simulated text — that
+          drifts on kerning and can overlap other text layers). Absolutely
+          positioned and clipped by the footer's own `overflow: hidden`, so it
+          can never bleed onto other sections. A top→bottom mask-image fades
+          the artwork from faint-grey at the top to fully transparent at the
+          baseline, reading as an atmospheric backdrop rather than a logo. */}
+      <img
+        src="/logos/space8_wordmark_white.svg"
+        alt=""
         aria-hidden="true"
         style={{
           position: 'absolute',
-          bottom: 0,
+          bottom: '-2%',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '110%',
-          lineHeight: 0.88,
-          fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
-          fontWeight: 800,
-          letterSpacing: '-0.03em',
-          // Clip slightly wider than container so the gradient fade bleeds
-          // into the page bg on the sides rather than hitting a hard edge.
-          background: 'linear-gradient(to bottom, #4a4a4a 0%, #222222 60%, #111111 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
+          width: '96%',
+          maxWidth: 1400,
+          height: 'auto',
+          // Dim the white artwork to a subtle grey, then fade it out toward the
+          // baseline for the light→dark gradient look.
+          opacity: 0.16,
+          WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.35) 70%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.35) 70%, transparent 100%)',
           pointerEvents: 'none',
           userSelect: 'none',
           zIndex: 0,
-          // Push baseline below the fold so the wordmark reads as an
-          // atmospheric backdrop, not a focal element.
-          marginBottom: -1,
         }}
-      >
-        SPACE8
-      </div>
+      />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Top — SVG logo + social icons */}

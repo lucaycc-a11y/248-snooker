@@ -56,6 +56,12 @@ export default function Nav() {
   const [sessionResolved, setSessionResolved] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
+  // The mobile bar is always a dark translucent surface (see .nav-bar CSS
+  // below), so its logo artwork + icon colours must stay light regardless of
+  // what section is scrolled behind it. Desktop keeps the scroll-detected
+  // theme. Without this, a light section behind the bar flips linkColor to
+  // near-black and loads the black wordmark — both invisible on the dark bar.
+  const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const locale = useLocale()
@@ -147,6 +153,14 @@ export default function Nav() {
   }, [])
 
   useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
@@ -185,7 +199,11 @@ export default function Nav() {
     }
   }, [pathname])
 
-  const linkColor = theme === 'dark' ? '#FFFFFF' : '#1A1A1A'
+  // On mobile the bar is a fixed dark translucent surface, so force the dark
+  // (light-artwork, white-icon) treatment there no matter what section is
+  // scrolled behind it. Desktop keeps the live scroll-detected theme.
+  const effectiveTheme: NavTheme = isMobile ? 'dark' : theme
+  const linkColor = effectiveTheme === 'dark' ? '#FFFFFF' : '#1A1A1A'
   const memberLabel = loggedIn ? t('member') : t('login')
 
   function MemberIcon({ size = 20 }: { size?: number }) {
@@ -320,8 +338,9 @@ export default function Nav() {
           className="nav-logo"
           aria-label={t('home')}
         >
-          <Logo variant="full" theme={theme} size={39} />
-          <Logo variant="mark" theme={theme} size={22} />
+          {/* Single logo only — the full "SPACE8" wordmark. The circular badge
+              variant is reserved for app icons / social avatars, never the nav. */}
+          <Logo variant="full" theme={effectiveTheme} size={38} />
         </Link>
 
         <div
@@ -394,7 +413,7 @@ export default function Nav() {
             transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
+            gap: 12,
             pointerEvents: 'auto',
           }}
         >
@@ -442,11 +461,11 @@ export default function Nav() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="nav-hamburger"
             style={{
-              ...pillStyle(theme),
+              ...pillStyle(effectiveTheme),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 50,
+              width: 46,
               height: 46,
               cursor: 'pointer',
               color: linkColor,
@@ -501,18 +520,15 @@ export default function Nav() {
                still receive touches. */
             pointer-events: auto !important;
           }
-          /* Mobile logo: icon-only mark (~69px wide at size=22), not the
-             full wordmark (~122px). Matches Apple navbar proportions. */
-          .nav-logo-full {
-            display: none !important;
-          }
-          .nav-logo-mark {
-            display: flex !important;
-            align-items: center;
-          }
+          /* Mobile wordmark: keep the full "SPACE8" lockup but scale it down
+             to ~34px tall (≈106px wide). Logo.tsx's 120px MIN_WIDTH clamp is a
+             digital-artwork floor; the visual nav treatment is allowed to sit
+             just under it on small screens for Apple-navbar proportions while
+             the wordmark stays fully legible (not the cramped ~112px it was). */
           .nav-logo img {
             width: auto !important;
-            height: 22px !important;
+            height: 30px !important;
+            min-width: 0 !important;
           }
         }
         @media (min-width: 768px) {
