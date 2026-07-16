@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale, getTranslations } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/shared/WhatsAppButton";
@@ -14,29 +14,42 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "aboutPage" });
   const path = locale === "zh-HK" ? "/about" : `/${locale}/about`;
 
-  const titles: Record<string, string> = {
-    "zh-HK": "關於我們 | Space8",
-    "zh-CN": "关于我们 | Space8",
-    en: "About | Space8",
+  const meta: Record<string, { title: string; description: string }> = {
+    "zh-HK": {
+      title: "關於我們｜SPACE8 新蒲崗自助中式桌球室",
+      description:
+        "SPACE8 是香港新蒲崗的自助無煙中式桌球獨立球室，1 分鐘完成網上預訂，QR 碼自助入場，全程不需人手協助。近鑽石山、啟德港鐵站，每日 06:00 至 24:00 營業。",
+    },
+    "zh-CN": {
+      title: "关于我们｜SPACE8 新蒲岗自助中式台球室",
+      description:
+        "SPACE8 是香港新蒲岗的自助无烟中式台球独立球室，1 分钟完成网上预订，二维码自助入场，全程不需人手协助。近钻石山、启德地铁站，每日 06:00 至 24:00 营业。",
+    },
+    en: {
+      title: "About｜SPACE8 Self-Service Chinese Pool, San Po Kong",
+      description:
+        "SPACE8 is a self-service, smoke-free Chinese pool club in San Po Kong, Kowloon. Book online in under a minute and enter by QR code — no staff required. Near MTR Diamond Hill and Kai Tak, open daily 06:00–24:00.",
+    },
   };
+  const m = meta[locale] ?? meta["zh-HK"];
 
   return {
-    title: titles[locale] ?? titles["zh-HK"],
-    description: t("hero_subtitle"),
+    title: m.title,
+    description: m.description,
     alternates: {
       canonical: `${BASE}${path}`,
       languages: {
         "zh-HK": `${BASE}/about`,
         "zh-CN": `${BASE}/zh-CN/about`,
         en: `${BASE}/en/about`,
+        "x-default": `${BASE}/about`,
       },
     },
     openGraph: {
-      title: titles[locale] ?? titles["zh-HK"],
-      description: t("hero_subtitle"),
+      title: m.title,
+      description: m.description,
       url: `${BASE}${path}`,
       siteName: "Space8",
       type: "website",

@@ -25,6 +25,7 @@ export async function generateMetadata({
         "zh-HK": `${BASE}/blog`,
         "zh-CN": `${BASE}/zh-CN/blog`,
         en: `${BASE}/en/blog`,
+        "x-default": `${BASE}/blog`,
       },
     },
     openGraph: {

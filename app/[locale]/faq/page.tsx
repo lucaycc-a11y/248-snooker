@@ -9,22 +9,22 @@ const BASE = "https://space8.com.hk";
 
 const META: Record<string, { title: string; description: string; keywords: string }> = {
   "zh-HK": {
-    title: "常見問題 | Space8 — 香港自助桌球 06:00-24:00營業",
+    title: "常見問題｜SPACE8 新蒲崗自助中式桌球室",
     description:
-      "Space8常見問題解答：預訂流程、入場方式、收費、取消政策、會員積分制度等。香港首間自助桌球會所，每日06:00至24:00營業。",
-    keywords: "桌球,香港桌球,桌球會所,自助桌球,桌球預訂,snooker hong kong",
+      "SPACE8 常見問題解答：預訂流程、QR 碼入場方式、收費、取消政策、會員積分制度等。香港新蒲崗自助無煙中式桌球室，每日 06:00 至 24:00 營業。",
+    keywords: "中式桌球,中八,新蒲崗桌球,鑽石山桌球,九龍桌球,自助桌球,桌球預訂",
   },
   "zh-CN": {
-    title: "常见问题 | Space8 — 香港自助台球 06:00-24:00营业",
+    title: "常见问题｜SPACE8 新蒲岗自助中式台球室",
     description:
-      "Space8常见问题解答：预订流程、入场方式、收费、取消政策、会员积分制度等。香港首家自助台球会所，每日06:00至24:00营业。",
-    keywords: "台球,香港台球,台球会所,自助台球,台球预订,snooker hong kong",
+      "SPACE8 常见问题解答：预订流程、二维码入场方式、收费、取消政策、会员积分制度等。香港新蒲岗自助无烟中式台球室，每日 06:00 至 24:00 营业。",
+    keywords: "中式台球,中八,新蒲岗台球,钻石山台球,九龙台球,自助台球,台球预订",
   },
   en: {
-    title: "FAQ | Space8 — Snooker Hong Kong, Open Daily 06:00–24:00",
+    title: "FAQ｜SPACE8 Self-Service Chinese Pool, San Po Kong",
     description:
-      "Space8 FAQ: booking flow, entry method, pricing, cancellation policy, membership tiers. Hong Kong's first self-service snooker club, open daily 06:00–24:00.",
-    keywords: "snooker, Hong Kong snooker, self service snooker club, snooker booking",
+      "SPACE8 FAQ: booking flow, QR-code entry, pricing, cancellation policy, membership tiers. Self-service, smoke-free Chinese pool club in San Po Kong, Kowloon, open daily 06:00–24:00.",
+    keywords: "Chinese pool, Chinese eight-ball, San Po Kong pool, Kowloon pool, self service pool, pool booking",
   },
 };
 
@@ -47,6 +47,7 @@ export async function generateMetadata({
         "zh-HK": `${BASE}/faq`,
         "zh-CN": `${BASE}/zh-CN/faq`,
         en: `${BASE}/en/faq`,
+        "x-default": `${BASE}/faq`,
       },
     },
     openGraph: {

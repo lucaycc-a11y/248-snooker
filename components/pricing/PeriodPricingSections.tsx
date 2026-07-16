@@ -101,6 +101,23 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
         </motion.p>
       </div>
 
+      {/* Complete-sentence pricing summary in the initial HTML — the cards above
+          present the same facts visually, but AI crawlers / screen readers get
+          full, self-contained sentences here (sr-only = present in the DOM,
+          visually hidden). Values come from the same `periods` config. */}
+      <p className="sr-only">
+        {periods
+          .map((p) => {
+            const label = t(`period_${p.id}_title`);
+            const time = t(`period_${p.id}_time`);
+            if (p.rateFrom2h !== undefined) {
+              return `Space8 ${label}（${time}）每小時收費 ${fmt(p.rate)}，${t("member_price_prefix")}每小時 ${fmt(p.rateFrom2h)}。`;
+            }
+            return `Space8 ${label}（${time}）每小時收費 ${fmt(p.rate)}。`;
+          })
+          .join("")}
+      </p>
+
       {/* Desktop: 3-up grid. Mobile: horizontal snap carousel so all periods
           are discoverable with a sideways swipe. Card width calc(100vw - 48px
           - 20px) leaves a deliberate, CONSISTENT 20px peek of the next card

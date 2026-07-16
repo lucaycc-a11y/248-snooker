@@ -42,6 +42,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: post.published_at ? new Date(post.published_at) : now,
       changeFrequency: 'monthly' as const,
       priority: 0.6,
+      // NOTE: no hreflang alternates here — blog posts are per-locale rows with
+      // independent slugs (getBlogPosts filters by locale), so a slug in one
+      // locale is not guaranteed to resolve under another locale's prefix.
+      // Advertising cross-locale alternates could point at 404s.
     }))
   )
 
@@ -49,6 +53,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     staticEntry('/', 'weekly', 1, now),
     staticEntry('/book', 'daily', 0.9, now),
     staticEntry('/pricing', 'weekly', 0.8, now),
+    staticEntry('/venue', 'monthly', 0.7, now),
+    staticEntry('/membership', 'monthly', 0.7, now),
     staticEntry('/about', 'monthly', 0.6, now),
     staticEntry('/faq', 'monthly', 0.6, now),
     staticEntry('/blog', 'weekly', 0.7, now),

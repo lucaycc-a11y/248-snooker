@@ -43,6 +43,7 @@ export async function generateMetadata({
         "zh-HK": `${BASE}/membership`,
         "zh-CN": `${BASE}/zh-CN/membership`,
         en: `${BASE}/en/membership`,
+        "x-default": `${BASE}/membership`,
       },
     },
     openGraph: {

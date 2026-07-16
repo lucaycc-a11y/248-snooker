@@ -343,6 +343,13 @@ export default function Member() {
         {highlight(card.body, card.highlights, card.accent)}
       </p>
 
+      {/* Full tier description in the initial HTML (visually hidden). The card
+          shows a short blurb; the same complete sentences are also behind the
+          "+" modal — but that content only mounts on click, so crawlers/screen
+          readers would miss it. This sr-only copy keeps the full, self-contained
+          text server-rendered and always present. */}
+      <p className="sr-only">{card.modalBody}</p>
+
       {/* + button — Apple proportion: 16px glyph in 44px circle (≈36%) */}
       <motion.button
         type="button"

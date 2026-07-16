@@ -2,8 +2,21 @@ import { MetadataRoute } from 'next'
 import { getSiteGate } from '@/lib/gate/config'
 
 // AI crawlers that respect robots.txt opt-in — explicitly allowed for GEO
-// (generative engine visibility in ChatGPT/Perplexity/Google AI Overview).
-const AI_USER_AGENTS = ['GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended', 'CCBot']
+// (generative engine visibility in ChatGPT/Perplexity/Google AI Overview,
+// Claude, Apple Intelligence). ChatGPT-User / Claude-Web are the live-fetch
+// agents (used when a user asks the assistant about us in real time);
+// GPTBot / ClaudeBot / CCBot are the training/index crawlers; Google-Extended
+// and Applebot-Extended gate Gemini / Apple Intelligence generative use.
+const AI_USER_AGENTS = [
+  'GPTBot',
+  'ChatGPT-User',
+  'ClaudeBot',
+  'Claude-Web',
+  'PerplexityBot',
+  'Google-Extended',
+  'Applebot-Extended',
+  'CCBot',
+]
 
 export default async function robots(): Promise<MetadataRoute.Robots> {
   // While the pre-launch site gate is on, every real page 302s to
