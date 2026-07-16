@@ -50,43 +50,57 @@ export default function Footer() {
   return (
     <footer
       data-nav-theme="dark"
-      className="px-6 py-12 md:px-8"
+      className="footer-root px-6 md:px-8"
       style={{
         backgroundColor: tokens.colors.bg,
         borderTop: `1px solid ${tokens.colors.border}`,
+        // position:relative is the anchor for the absolute background layer
+        // below; overflow:hidden clips the giant wordmark so it can never
+        // bleed past the footer's own box onto another section.
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* ── Giant decorative "SPACE8" wordmark ──────────────────────────────
-          Uses the official wordmark SVG (never CSS-simulated text — that
-          drifts on kerning and can overlap other text layers). Absolutely
-          positioned and clipped by the footer's own `overflow: hidden`, so it
-          can never bleed onto other sections. A top→bottom mask-image fades
-          the artwork from faint-grey at the top to fully transparent at the
-          baseline, reading as an atmospheric backdrop rather than a logo. */}
-      <img
-        src="/logos/space8_wordmark_white.svg"
-        alt=""
+      {/* ── Background layer: giant decorative "SPACE8" wordmark ──────────────
+          DOM-first child, position:absolute inset:0, z-index:0 — a pure
+          backdrop that sits *behind* every other footer element (all of which
+          live in the z-index:1 content wrapper). Its own overflow:hidden +ol
+          the footer's guarantees the artwork is always clipped to the footer
+          box. Uses the official wordmark SVG (never CSS-simulated text, which
+          drifts on kerning and overlaps other text layers). The mask fades the
+          artwork toward the TOP so its faint edge — not its dense body — is
+          what sits behind the copyright row, and the copyright row's own
+          bottom padding keeps clear of the dense band entirely. */}
+      <div
         aria-hidden="true"
         style={{
           position: 'absolute',
-          bottom: '-2%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '96%',
-          maxWidth: 1400,
-          height: 'auto',
-          // Dim the white artwork to a subtle grey, then fade it out toward the
-          // baseline for the light→dark gradient look.
-          opacity: 0.16,
-          WebkitMaskImage: 'linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.35) 70%, transparent 100%)',
-          maskImage: 'linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.35) 70%, transparent 100%)',
-          pointerEvents: 'none',
-          userSelect: 'none',
+          inset: 0,
+          overflow: 'hidden',
           zIndex: 0,
+          pointerEvents: 'none',
         }}
-      />
+      >
+        <img
+          src="/logos/space8_wordmark_white.svg"
+          alt=""
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '92%',
+            maxWidth: 1400,
+            height: 'auto',
+            opacity: 0.12,
+            // Densest at the bottom edge, fading out toward the top so the
+            // copyright/links sitting above it overlap only the faint tail.
+            WebkitMaskImage: 'linear-gradient(to top, #000 0%, rgba(0,0,0,0.4) 45%, transparent 100%)',
+            maskImage: 'linear-gradient(to top, #000 0%, rgba(0,0,0,0.4) 45%, transparent 100%)',
+            userSelect: 'none',
+          }}
+        />
+      </div>
 
       <div style={{ maxWidth: 1100, margin: '0 auto', position: 'relative', zIndex: 1 }}>
         {/* Top — SVG logo + social icons */}
@@ -279,6 +293,16 @@ export default function Footer() {
               justify-content: center;
               gap: 8px 32px;
             }
+          }
+        `}</style>
+        <style jsx global>{`
+          /* Top padding matches the old py-12 (48px). Bottom padding is larger
+             and viewport-scaled so the copyright row always clears the giant
+             wordmark's dense bottom band — the wordmark grows with viewport
+             width, so the clearance grows with it. */
+          .footer-root {
+            padding-top: 48px;
+            padding-bottom: clamp(72px, 16vw, 200px);
           }
         `}</style>
 

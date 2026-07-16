@@ -300,7 +300,9 @@
     "cta_section_title": "準備好開枱？",
     "cta_section_button": "立即預訂",
     "period_morning_title": "上午時段",
-    "period_morning_time": "每日 06:00–12:00"
+    "period_morning_time": "每日 06:00–12:00",
+    "periods_title": "定價",
+    "periods_subtitle": "按時段收費，愈連訂愈抵玩。"
   },
   "blog": {
     "title": "Blog",

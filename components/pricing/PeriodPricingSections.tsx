@@ -64,36 +64,79 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
         fontFamily: FONT_FAMILY,
       }}
     >
+      {/* Section header — gives the pricing block context on both the homepage
+          and /pricing (shared component). Matches the site's "short line +
+          full stop" heading style (e.g. "場地。逐一看。"). */}
+      <div className="mx-auto mb-10 max-w-[1100px] px-6 md:mb-14">
+        <motion.h2
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.6, ease: EASE }}
+          data-cms-key="pricingPage.periods_title"
+          style={{
+            fontSize: "clamp(36px, 5vw, 48px)",
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
+            color: "#1d1d1f",
+            margin: "0 0 12px",
+          }}
+        >
+          {t("periods_title")}。
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.6, ease: EASE, delay: 0.05 }}
+          data-cms-key="pricingPage.periods_subtitle"
+          style={{
+            fontSize: "clamp(17px, 2.2vw, 20px)",
+            color: "#6e6e73",
+            margin: 0,
+            maxWidth: "36ch",
+          }}
+        >
+          {t("periods_subtitle")}
+        </motion.p>
+      </div>
+
       {/* Desktop: 3-up grid. Mobile: horizontal snap carousel so all periods
           are discoverable with a sideways swipe. Card width calc(100vw - 48px
           - 20px) leaves a deliberate, CONSISTENT 20px peek of the next card
           (not the random sliver 78vw produced) so "there's more" reads as
           intent, not broken layout. scroll-padding keeps snapped cards
-          aligned with the 24px page gutter. */}
-      <div
+          aligned with the 24px page gutter.
+
+          The entrance animation lives on the TRACK, not each card: animating
+          per-card with whileInView made off-screen carousel cards (cards 2/3,
+          which start outside the horizontal viewport) still fire their y:40→0
+          reveal as you swiped to them, producing a vertical jump on every
+          snap. Animating the container once keeps cards perfectly static
+          during horizontal scrolling. */}
+      <motion.div
         ref={trackRef}
         onScroll={onScroll}
-        className="no-scrollbar hscroll-track mx-auto flex max-w-[1100px] snap-x snap-mandatory gap-4 overflow-x-auto px-6 md:grid md:snap-none md:grid-cols-3 md:gap-6 md:overflow-visible"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.7, ease: EASE }}
+        className="no-scrollbar hscroll-track mx-auto flex max-w-[1100px] snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-6 md:grid md:snap-none md:grid-cols-3 md:gap-6 md:overflow-visible"
         style={{ scrollPaddingInline: "24px", paddingTop: "14px", paddingBottom: "4px" }}
       >
-        {periods.map((period, i) => {
+        {periods.map((period) => {
           const Icon = period.id === "morning" ? Sun : period.id === "afternoon" ? Zap : Moon;
           const isBestValue = period.id === bestValueId;
 
           return (
-            <motion.div
+            <div
               key={period.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.7, ease: EASE, delay: i * 0.1 }}
               className="relative flex w-[calc(100vw-68px)] max-w-[340px] flex-shrink-0 snap-start flex-col items-center md:w-auto md:max-w-none"
               style={{
                 border: "1px solid #d2d2d7",
                 borderRadius: "18px",
                 padding: "40px 24px 32px",
                 textAlign: "center",
-                willChange: "opacity, transform",
               }}
             >
               {/* Small "best value" tag — one card only, equal visual weight otherwise */}
@@ -201,10 +244,10 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
               >
                 {t("cta_book")}
               </Link>
-            </motion.div>
+            </div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Mobile dots — mirror the snapped card; hidden on the desktop grid. */}
       <div className="flex items-center justify-center gap-2 pt-6 md:hidden">

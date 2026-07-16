@@ -299,7 +299,9 @@
     "cta_section_title": "Ready to play?",
     "cta_section_button": "Book Now",
     "period_morning_title": "Morning",
-    "period_morning_time": "Daily 06:00–12:00"
+    "period_morning_time": "Daily 06:00–12:00",
+    "periods_title": "Pricing",
+    "periods_subtitle": "Charged by time period — the more you book, the better the rate."
   },
   "blog": {
     "title": "Blog",
