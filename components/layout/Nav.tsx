@@ -276,6 +276,12 @@ export default function Nav() {
   return (
     <>
       <nav
+        // Mobile: the CSS below turns this into a solid, full-width top bar
+        // (content would otherwise scroll straight under the bare floating
+        // logo and read as overlapping text). The surface attr drives the
+        // bar's solid colour; while the menu is open it's forced dark so the
+        // bar blends into the menu overlay.
+        data-nav-surface={menuOpen ? 'dark' : theme}
         style={{
           position: 'fixed',
           top: 34,
@@ -481,6 +487,31 @@ export default function Nav() {
       </nav>
 
       <style jsx global>{`
+        /* ── Mobile: solid full-width top bar ──
+           The floating transparent nav let page content scroll straight
+           under the bare logo (logo + section headings visually merged).
+           Below 768px the nav becomes an opaque bar pinned to the very top;
+           height 64px + safe-area. Sections that need clearance get it from
+           .nav-bar's own solid surface, not from per-page padding. */
+        @media (max-width: 767px) {
+          .nav-bar {
+            top: 0 !important;
+            min-height: 64px;
+            padding: 10px 14px !important;
+            padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+            transform: none !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: #000 !important;
+            /* Solid bar must swallow taps on its own surface — with the
+               desktop 'none' value, content hidden under the bar would
+               still receive touches. */
+            pointer-events: auto !important;
+          }
+          .nav-bar[data-nav-surface='light'] {
+            background: #f5f5f7 !important;
+            border-bottom-color: rgba(0, 0, 0, 0.1) !important;
+          }
+        }
         /* Icon-only fallback below 360px — see comment at the nav-logo Link
            above. Default (mobile-first): wordmark shown, mark hidden. */
         .nav-logo-full {

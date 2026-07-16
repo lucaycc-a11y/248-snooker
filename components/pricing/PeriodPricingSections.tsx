@@ -9,6 +9,7 @@
 // horizontal snap-scroll carousel (mobile) — NOT one full-screen section per
 // period, so users see every period at a glance without scrolling.
 
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -27,6 +28,22 @@ function fmt(value: number): string {
 
 export default function PeriodPricingSections({ periods }: { periods: PricingPeriod[] }) {
   const t = useTranslations("pricingPage");
+
+  // Mobile carousel: track which card is snapped for the dot indicators.
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [current, setCurrent] = useState(0);
+  const onScroll = () => {
+    const el = trackRef.current;
+    if (!el || periods.length === 0) return;
+    const cardWidth = el.scrollWidth / periods.length;
+    setCurrent(Math.min(periods.length - 1, Math.round(el.scrollLeft / cardWidth)));
+  };
+  const scrollToCard = (i: number) => {
+    const el = trackRef.current;
+    if (!el || periods.length === 0) return;
+    const cardWidth = el.scrollWidth / periods.length;
+    el.scrollTo({ left: i * cardWidth, behavior: "smooth" });
+  };
 
   // "Best value" badge goes on the cheapest effective rate — derived from
   // config, not hardcoded to a period id.
@@ -48,10 +65,16 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
       }}
     >
       {/* Desktop: 3-up grid. Mobile: horizontal snap carousel so all periods
-          are discoverable with a sideways swipe instead of vertical scroll. */}
+          are discoverable with a sideways swipe. Card width calc(100vw - 48px
+          - 20px) leaves a deliberate, CONSISTENT 20px peek of the next card
+          (not the random sliver 78vw produced) so "there's more" reads as
+          intent, not broken layout. scroll-padding keeps snapped cards
+          aligned with the 24px page gutter. */}
       <div
-        className="mx-auto flex max-w-[1100px] snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-4 md:grid md:snap-none md:grid-cols-3 md:gap-6 md:overflow-visible md:pb-0"
-        style={{ scrollPaddingInline: "24px", WebkitOverflowScrolling: "touch" }}
+        ref={trackRef}
+        onScroll={onScroll}
+        className="no-scrollbar mx-auto flex max-w-[1100px] snap-x snap-mandatory gap-4 overflow-x-auto px-6 md:grid md:snap-none md:grid-cols-3 md:gap-6 md:overflow-visible"
+        style={{ scrollPaddingInline: "24px", WebkitOverflowScrolling: "touch", paddingTop: "14px", paddingBottom: "4px" }}
       >
         {periods.map((period, i) => {
           const Icon = period.id === "morning" ? Sun : period.id === "afternoon" ? Zap : Moon;
@@ -64,7 +87,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.7, ease: EASE, delay: i * 0.1 }}
-              className="relative flex w-[78vw] max-w-[340px] flex-shrink-0 snap-center flex-col items-center md:w-auto md:max-w-none"
+              className="relative flex w-[calc(100vw-68px)] max-w-[340px] flex-shrink-0 snap-start flex-col items-center md:w-auto md:max-w-none"
               style={{
                 border: "1px solid #d2d2d7",
                 borderRadius: "18px",
@@ -179,6 +202,44 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
                 {t("cta_book")}
               </Link>
             </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Mobile dots — mirror the snapped card; hidden on the desktop grid. */}
+      <div className="flex items-center justify-center gap-2 pt-6 md:hidden">
+        {periods.map((period, i) => {
+          const active = i === current;
+          return (
+            <button
+              key={period.id}
+              type="button"
+              onClick={() => scrollToCard(i)}
+              aria-label={t(`period_${period.id}_title`)}
+              aria-current={active}
+              style={{
+                // 44px invisible tap target around an 8px visual dot
+                width: 24,
+                height: 44,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+              }}
+            >
+              <span
+                style={{
+                  height: 8,
+                  width: active ? 24 : 8,
+                  borderRadius: 100,
+                  background: active ? "#1d1d1f" : "#d2d2d7",
+                  transition: "all 0.25s ease",
+                }}
+              />
+            </button>
           );
         })}
       </div>

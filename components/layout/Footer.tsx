@@ -106,7 +106,9 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Contact — address + directions on every page */}
+        {/* Contact — address + directions on every page. Each sub-block gets
+            its own breathing room (mobile screenshots showed map/address/
+            hours/SEO copy all fused into one unreadable run). */}
         <div
           style={{
             marginTop: '32px',
@@ -114,10 +116,10 @@ export default function Footer() {
             borderTop: `1px solid ${tokens.colors.border}`,
             display: 'flex',
             flexWrap: 'wrap',
-            gap: '20px 48px',
+            gap: '32px 48px',
           }}
         >
-          <div style={{ minWidth: '260px', flex: '1 1 320px' }}>
+          <section style={{ minWidth: '260px', flex: '1 1 320px' }}>
             <div
               data-cms-key="footer.contact_title"
               style={{
@@ -125,7 +127,7 @@ export default function Footer() {
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
                 color: tokens.colors.textMuted,
-                marginBottom: '12px',
+                marginBottom: '16px',
               }}
             >
               {t('footer.contact_title')}
@@ -133,8 +135,10 @@ export default function Footer() {
             {/* Dark map thumbnail — CARTO Dark Matter tiles (free, no API
                 key/billing). Links out to Google Maps like the text link
                 below, same as the old Google Static Maps image did. */}
-            <FooterMap mapsUrl={MAPS_URL} ariaLabel={t('footer.map_cta')} />
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <FooterMap mapsUrl={MAPS_URL} ariaLabel={t('footer.map_cta')} />
+            </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '16px' }}>
               <MapPin size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0, marginTop: 2 }} />
               <div>
                 <div data-cms-key="footer.address" style={{ fontSize: '14px', color: tokens.colors.text, lineHeight: 1.6 }}>
@@ -149,8 +153,10 @@ export default function Footer() {
                   rel="noopener noreferrer"
                   data-cms-key="footer.map_cta"
                   style={{
-                    display: 'inline-block',
-                    marginTop: 8,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    minHeight: 44,
+                    marginTop: 2,
                     fontSize: '13px',
                     color: tokens.colors.link,
                     textDecoration: 'underline',
@@ -167,15 +173,22 @@ export default function Footer() {
                 {t('footer.hours')}
               </span>
             </div>
-          </div>
+          </section>
 
-          {/* SEO blurb — fills the empty space beside the map/contact column.
-              Crawler-readable local-SEO copy with LocalBusiness microdata;
-              styled as secondary footer text so it stays visually quiet. */}
-          <div
+          {/* SEO blurb — its own bordered block so it reads as a separate
+              section instead of a continuation of the address text.
+              Crawler-readable local-SEO copy with LocalBusiness microdata. */}
+          <section
             itemScope
             itemType="https://schema.org/LocalBusiness"
-            style={{ minWidth: '260px', flex: '1 1 320px' }}
+            style={{
+              minWidth: '260px',
+              flex: '1 1 320px',
+              border: `1px solid ${tokens.colors.border}`,
+              borderRadius: '14px',
+              padding: '20px',
+              alignSelf: 'flex-start',
+            }}
           >
             <h2
               data-cms-key="footer.seo_title"
@@ -206,46 +219,53 @@ export default function Footer() {
             </p>
             <meta itemProp="address" content={t('footer.address')} />
             <meta itemProp="openingHours" content="Mo-Su 06:00-24:00" />
-          </div>
+          </section>
         </div>
 
-        {/* Middle — nav links, single centred row */}
-        <nav
-          style={{
-            marginTop: '32px',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px 16px',
-          }}
-        >
-          {navLinks.map((link, i) => (
-            <span
-              key={link.href}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '16px' }}
-            >
-              <Link
-                href={link.href}
-                style={{
-                  fontSize: '14px',
-                  color: tokens.colors.textMuted,
-                  textDecoration: 'none',
-                }}
-              >
-                {link.label}
-              </Link>
-              {i < navLinks.length - 1 && (
-                <span style={{ color: tokens.colors.textFaint, fontSize: '13px' }}>·</span>
-              )}
-            </span>
+        {/* Middle — nav links. Desktop: centred dotted row. Mobile: 2-column
+            grid of full-height (≥44px) tap targets — the dotted single-line
+            run wrapped into an unreadable, mis-tappable clump on 375-393px. */}
+        <nav className="footer-links">
+          {navLinks.map((link) => (
+            <Link key={link.href} href={link.href} className="footer-link">
+              {link.label}
+            </Link>
           ))}
         </nav>
+        <style jsx>{`
+          .footer-links {
+            margin-top: 40px;
+            padding-top: 28px;
+            border-top: 1px solid ${tokens.colors.border};
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 16px;
+          }
+          .footer-links :global(.footer-link) {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            font-size: 14px;
+            color: ${tokens.colors.textMuted};
+            text-decoration: none;
+          }
+          @media (min-width: 768px) {
+            .footer-links {
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              justify-content: center;
+              gap: 8px 32px;
+            }
+          }
+        `}</style>
 
         {/* Bottom — single centred line */}
         <p
           style={{
-            marginTop: '32px',
+            marginTop: '24px',
+            paddingTop: '24px',
+            borderTop: `1px solid ${tokens.colors.border}`,
             textAlign: 'center',
             fontSize: '13px',
             color: tokens.colors.textFaint,

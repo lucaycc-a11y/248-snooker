@@ -287,6 +287,9 @@ export default function VenueContent() {
             <Link
               href="/legal"
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 44,
                 fontSize: "16px",
                 color: GREEN,
                 textDecoration: "underline",

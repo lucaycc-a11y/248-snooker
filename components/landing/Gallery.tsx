@@ -189,24 +189,36 @@ export default function Gallery() {
             {slides.map((s, i) => {
               const active = i === current;
               return (
-                <motion.button
+                <button
                   key={s.title}
                   type="button"
                   onClick={() => scrollToCard(i)}
                   aria-label={t("goto", { n: i + 1 })}
                   aria-current={active}
-                  layout
-                  transition={DOT_SPRING}
                   style={{
-                    height: "8px",
-                    width: active ? "24px" : "8px",
-                    borderRadius: "100px",
-                    background: active ? "white" : "rgba(255,255,255,0.35)",
+                    // 8px visual dot inside a 44px-tall tap target
+                    width: active ? "40px" : "24px",
+                    height: "44px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "none",
                     border: "none",
                     padding: 0,
                     cursor: "pointer",
                   }}
-                />
+                >
+                  <motion.span
+                    layout
+                    transition={DOT_SPRING}
+                    style={{
+                      height: "8px",
+                      width: active ? "24px" : "8px",
+                      borderRadius: "100px",
+                      background: active ? "white" : "rgba(255,255,255,0.35)",
+                    }}
+                  />
+                </button>
               );
             })}
           </div>

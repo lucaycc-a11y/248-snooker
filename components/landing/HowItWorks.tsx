@@ -205,7 +205,7 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
             <a
               href={data.href}
               className="group inline-flex items-center"
-              style={{ color: GREEN, fontSize: "17px", textDecoration: "none", gap: "2px" }}
+              style={{ color: GREEN, fontSize: "17px", textDecoration: "none", gap: "2px", minHeight: 44 }}
             >
               <span className="group-hover:underline">了解更多</span>
               <span aria-hidden="true">›</span>
@@ -391,7 +391,7 @@ export default function HowItWorks() {
             transition={{ duration: 0.6, ease: EASE, delay: 0.05 }}
             href="/about"
             className="group inline-flex items-center"
-            style={{ color: GREEN, fontSize: "19px", textDecoration: "none", gap: "6px" }}
+            style={{ color: GREEN, fontSize: "19px", textDecoration: "none", gap: "6px", minHeight: 44 }}
           >
             <span
               aria-hidden="true"
@@ -518,7 +518,7 @@ export default function HowItWorks() {
         }}
       >
         <ArrowButton dir={-1} onClick={() => nudge(-1)} className="flex" />
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
           {steps.map((step, i) => (
             <button
               key={step.key}
@@ -526,16 +526,28 @@ export default function HowItWorks() {
               onClick={() => scrollToCard(i)}
               aria-label={`前往第 ${i + 1} 張`}
               style={{
-                width: activeDot === i ? "24px" : "8px",
-                height: "8px",
-                borderRadius: "100px",
+                // 8px visual dot inside a 44px-tall tap target
+                width: activeDot === i ? "40px" : "24px",
+                height: "44px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 border: "none",
-                background: activeDot === i ? step.accent : "rgba(0,0,0,0.18)",
+                background: "none",
                 cursor: "pointer",
-                transition: "all 0.3s ease",
                 padding: 0,
               }}
-            />
+            >
+              <span
+                style={{
+                  width: activeDot === i ? "24px" : "8px",
+                  height: "8px",
+                  borderRadius: "100px",
+                  background: activeDot === i ? step.accent : "rgba(0,0,0,0.18)",
+                  transition: "all 0.3s ease",
+                }}
+              />
+            </button>
           ))}
         </div>
         <ArrowButton dir={1} onClick={() => nudge(1)} className="flex" />

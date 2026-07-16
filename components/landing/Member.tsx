@@ -472,8 +472,8 @@ export default function Member() {
               ‹
             </motion.button>
 
-            {/* Dot indicators */}
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+            {/* Dot indicators — 8px visual dot inside a 44px-tall tap target */}
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
               {cards.map((card, i) => (
                 <button
                   key={card.key}
@@ -481,16 +481,27 @@ export default function Member() {
                   onClick={() => scrollToCard(i)}
                   aria-label={`前往第 ${i + 1} 張`}
                   style={{
-                    width: activeDot === i ? "24px" : "8px",
-                    height: "8px",
-                    borderRadius: "100px",
+                    width: activeDot === i ? "40px" : "24px",
+                    height: "44px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     border: "none",
-                    background: activeDot === i ? card.accent : "rgba(255,255,255,0.25)",
+                    background: "none",
                     cursor: "pointer",
-                    transition: "all 0.3s ease",
                     padding: 0,
                   }}
-                />
+                >
+                  <span
+                    style={{
+                      width: activeDot === i ? "24px" : "8px",
+                      height: "8px",
+                      borderRadius: "100px",
+                      background: activeDot === i ? card.accent : "rgba(255,255,255,0.25)",
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                </button>
               ))}
             </div>
 
