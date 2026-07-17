@@ -1,72 +1,21 @@
-# Space8
+# SPACE8
 
-> 香港新蒲崗自助無煙中式桌球獨立球室，每日 06:00–24:00 營業，網上預訂、QR
-> 碼自助入場，全程不需人手協助。Hong Kong's first self-service Chinese pool
-> (Chinese eight-ball) club in San Po Kong, Kowloon. Book online, pay by Apple
-> Pay or card, and enter with a QR code. Open daily 06:00–24:00.
+> [zh-HK] 香港新蒲崗自助無煙中八獨立球室，全預約制，網上預訂、QR碼自助入場。
+> [zh-CN] 香港新蒲岗自助无烟中式八球独立球室，全预约制，网上预订、QR码自助入场。
+> [en] Self-service, smoke-free Chinese eight-ball club in San Po Kong, Hong Kong. Reservation-based, book online with QR code check-in.
 
-Space8 is a self-service Chinese pool venue in San Po Kong, Kowloon, Hong Kong.
-Members and guests book table time through the website, pay online, and get a
-QR code that unlocks entry at the venue. Pricing varies by time period
-(morning / afternoon / prime time) and membership tier (Amateur / Century /
-Maximum), which unlock point multipliers.
+## 基本資料 / 基本资料 / Basic Info
+- 地址 / 地址 / Address：香港新蒲崗大有街32號泰力工業中心3樓05室
+- 交通 / 交通 / Transport：港鐵鑽石山站或啟德站步行約10分鐘 / Diamond Hill or Kai Tak MTR, ~10min walk
+- 網站 / 网站 / Website：https://space8.com.hk
+- 模式 / 模式 / Model：全預約制，非隨到隨用 / 全预约制，非随到随用 / Reservation-based, not walk-in
 
-## 基本資料 / Basics
+## 收費（每小時）/ 收费（每小时）/ Pricing (per hour)
+- 早晨 06:00–12:00：$88（連訂2h+ $78）
+- 下午 12:00–16:00：$98（連訂2h+ $88）
+- 繁忙 16:00–00:00：$108
 
-- 地址 Address：香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室
-  (Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong,
-  Kowloon, Hong Kong)
-- 交通 Getting there：港鐵鑽石山站或啟德站步行約 10 分鐘
-  (~10 min walk from MTR Diamond Hill or Kai Tak station)
-- 營業時間 Hours：每日 06:00–24:00 (open daily, including public holidays)
-- 網站 Website：https://space8.com.hk
-
-## 收費（每小時）/ Pricing (per hour)
-
-- 早晨時段 Morning (06:00–12:00)：HK$88，連訂 2 小時或以上每小時 HK$78
-- 下午時段 Afternoon (12:00–16:00)：HK$98，連訂 2 小時或以上每小時 HK$88
-- 繁忙時段 Prime time (16:00–24:00)：HK$108
-
-連續預訂 2 小時或以上可享較低時租；超時逗留另收超時費。價格以網站 /pricing
-頁面即時顯示為準。
-
-## 會員制度 / Membership
-
-- Amateur：註冊即成會員，每消費 HK$1 累積 1 積分（1× 積分）
-- Century（800 積分起）：積分 1.5 倍累積
-- Maximum（6000 積分起）：積分 2 倍累積
-
-會員等級隨累積積分自動升級，解鎖更快的積分累積速度與專屬禮遇。
-
-## 預訂流程 / How booking works
-
-1. 選擇日期、時段及時長（最少 1 小時，可選 1–3 小時）。
-2. 以 Apple Pay 或信用卡即時付款。
-3. 確認後即獲專屬 QR 碼。
-4. 到場掃描門口感應器，系統自動開門，全程自助。
-
-一經確認的預約一律不設取消、改期或退款（颱風 8 號或以上／黑色暴雨警告除外，
-可申請改期）。
-
-## 重要頁面 / Key pages
-
-- 預訂 Booking：https://space8.com.hk/book
-- 定價 Pricing：https://space8.com.hk/pricing
-- 場地 Venue：https://space8.com.hk/venue
-- 會員 Membership：https://space8.com.hk/membership
-- 關於 About：https://space8.com.hk/about
-- 常見問題 FAQ：https://space8.com.hk/faq
-- 場地使用守則 Terms：https://space8.com.hk/legal
-- 網誌 Blog：https://space8.com.hk/blog
-
-## 語言 / Languages
-
-Available in Cantonese (zh-HK, default), Simplified Chinese (zh-CN), and
-English (en). Non-default locales are prefixed, e.g.
-https://space8.com.hk/en/pricing.
-
-## 聯絡 / Contact
-
-- Phone / WhatsApp：+852 6427 4620
-- Email：info.formhk@gmail.com
-- Instagram：https://www.instagram.com/248snooker
+## 會員制度 / 会员制度 / Membership
+- Amateur：註冊送50積分，$1=1積分
+- Century（800積分起）：積分1.5倍
+- Maximum（6000積分起）：積分雙倍

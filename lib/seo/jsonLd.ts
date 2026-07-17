@@ -18,8 +18,8 @@ export function buildSportsClubJsonLd(locale: string, path: string) {
   return {
     "@context": "https://schema.org",
     "@type": ["SportsActivityLocation", "LocalBusiness"],
-    name: "Space8",
-    description: "香港新蒲崗自助無煙中式桌球獨立球室，每日 06:00 至 24:00 營業",
+    name: "SPACE8",
+    description: "香港新蒲崗自助無煙中八獨立球室，全預約制",
     url: `${BASE}${locale === "zh-HK" ? path : `/${locale}${path}`}`,
     telephone: "+85264274620",
     email: "info.formhk@gmail.com",
@@ -43,6 +43,7 @@ export function buildSportsClubJsonLd(locale: string, path: string) {
     },
     priceRange: "$78-$108",
     sameAs: SAME_AS,
+    inLanguage: ["zh-HK", "zh-CN", "en"],
     amenityFeature: [
       { "@type": "LocationFeatureSpecification", name: "Self-service booking", value: true },
       { "@type": "LocationFeatureSpecification", name: "Apple Pay", value: true },
@@ -69,9 +70,9 @@ export function buildPricingOffersJsonLd(
   return {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: "Space8 桌球球枱時租",
-    description: "香港新蒲崗自助中式桌球球枱按時段時租",
-    brand: { "@type": "Brand", name: "Space8" },
+    name: "SPACE8 中八球枱時租",
+    description: "香港新蒲崗自助中八球枱按時段時租，全預約制",
+    brand: { "@type": "Brand", name: "SPACE8" },
     offers: periods.map((p) => ({
       "@type": "Offer",
       name: labels.name(p.id),

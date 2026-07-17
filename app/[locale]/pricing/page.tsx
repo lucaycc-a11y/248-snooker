@@ -19,9 +19,9 @@ export async function generateMetadata({
   const path = locale === "zh-HK" ? "/pricing" : `/${locale}/pricing`;
 
   const titles: Record<string, string> = {
-    "zh-HK": "定價｜SPACE8 新蒲崗自助中式桌球室收費表",
-    "zh-CN": "定价｜SPACE8 新蒲岗自助中式台球室收费表",
-    en: "Pricing｜SPACE8 Self-Service Chinese Pool, San Po Kong",
+    "zh-HK": "定價｜SPACE8 自助中八球室收費表",
+    "zh-CN": "定价｜SPACE8 自助中式八球室收费表",
+    en: "Pricing｜SPACE8 Chinese Eight-Ball Rates",
   };
 
   // Keyword-rich description built from the SAME config the page renders — never
@@ -32,9 +32,9 @@ export async function generateMetadata({
     .map((p) => `${t(`period_${p.id}_title`)} HK$${p.rate}/h`)
     .join("、");
   const descByLocale: Record<string, string> = {
-    "zh-HK": `SPACE8 新蒲崗自助中式桌球室收費表：${rateList}。連訂 2 小時或以上享折扣。網上預訂、QR 碼自助入場，每日 06:00–24:00 營業。`,
-    "zh-CN": `SPACE8 新蒲岗自助中式台球室收费表：${rateList}。连订 2 小时或以上享折扣。网上预订、二维码自助入场，每日 06:00–24:00 营业。`,
-    en: `SPACE8 self-service Chinese pool rates in San Po Kong: ${rateList}. Discounts for 2+ hour bookings. Book online, enter by QR code, open daily 06:00–24:00.`,
+    "zh-HK": `SPACE8 新蒲崗自助中八球室收費表：${rateList}。連訂 2 小時或以上享折扣。全預約制，網上預訂、QR碼自助入場。`,
+    "zh-CN": `SPACE8 新蒲岗自助中式八球室收费表：${rateList}。连订 2 小时或以上享折扣。全预约制，网上预订、QR码自助入场。`,
+    en: `SPACE8 self-service Chinese eight-ball rates in San Po Kong: ${rateList}. Discounts for 2+ hour bookings. Reservation-based — book online, self check-in via QR code.`,
   };
   const description = descByLocale[locale] ?? descByLocale["zh-HK"];
 
