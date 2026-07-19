@@ -77,7 +77,12 @@ export default function Gallery() {
         position: "relative",
         flexShrink: 0,
         width: isMobile ? "84%" : "100%",
-        aspectRatio: "16 / 10",
+        // aspectRatio drives height on desktop; on mobile we fix an explicit
+        // height so every card is identical and the carousel track never
+        // reflows when snapping between cards.
+        aspectRatio: isMobile ? undefined : "16 / 10",
+        height: isMobile ? "56vw" : undefined,
+        minHeight: isMobile ? "200px" : undefined,
         borderRadius: isMobile ? "20px" : "24px",
         overflow: "hidden",
         background: "#2C2C2E",
@@ -170,6 +175,7 @@ export default function Gallery() {
               overflowX: "auto",
               scrollSnapType: "x mandatory",
               padding: "0 24px",
+              touchAction: "pan-y",
             }}
           >
             {slides.map((slide, i) => card(slide, i))}

@@ -422,6 +422,10 @@ export default function HowItWorks() {
           overflowX: isMobile ? "auto" : "visible",
           scrollSnapType: isMobile ? "x mandatory" : undefined,
           alignItems: "stretch",
+          // pan-y lets vertical page scroll pass through while we handle
+          // horizontal swipe — prevents the browser treating a diagonal swipe
+          // as a vertical scroll and killing the snap.
+          touchAction: isMobile ? "pan-y" : undefined,
         }}
       >
         {steps.map((step, i) => (
@@ -430,20 +434,26 @@ export default function HowItWorks() {
             ref={(el) => {
               cardRefs.current[i] = el;
             }}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={VIEWPORT}
-            transition={{ duration: 0.5, ease: EASE, delay: 0.08 * i }}
+            // Carousel cards suppress the y-entrance: the viewport fires when
+            // a card scrolls horizontally into view, producing a vertical jump
+            // mid-swipe. Desktop keeps the standard scroll-reveal.
+            {...(isMobile
+              ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.3, delay: 0.08 * i } }
+              : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 }, viewport: VIEWPORT, transition: { duration: 0.5, ease: EASE, delay: 0.08 * i } }
+            )}
             style={{
               position: "relative",
               flex: isMobile ? "0 0 auto" : "1 1 0",
               minWidth: isMobile ? "80vw" : 0,
+              // Fixed height on mobile keeps all 3 cards identical so the
+              // carousel track never reflows height when snapping between them.
+              minHeight: isMobile ? "280px" : "240px",
+              height: isMobile ? "280px" : "auto",
               scrollSnapAlign: isMobile ? "start" : undefined,
               background: "white",
               border: "1px solid #E5E5E5",
               borderRadius: "18px",
               padding: isMobile ? "28px" : "32px",
-              minHeight: "240px",
               display: "flex",
               flexDirection: "column",
             }}

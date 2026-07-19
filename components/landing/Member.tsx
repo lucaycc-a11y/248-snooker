@@ -278,20 +278,25 @@ export default function Member() {
   };
 
   // Single card — shared by desktop grid and mobile carousel.
+  // Carousel cards suppress the y-entrance: cards arrive horizontally so a
+  // vertical y:30→0 fires mid-swipe and causes a visible vertical jump.
   const renderCard = (card: TierCard, i: number, carousel: boolean) => (
     <motion.div
       key={card.key}
       ref={(el) => {
         cardRefs.current[i] = el;
       }}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.5, ease: EASE, delay: 0.05 * i }}
+      {...(carousel
+        ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.3, delay: 0.05 * i } }
+        : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.3 }, transition: { duration: 0.5, ease: EASE, delay: 0.05 * i } }
+      )}
       className={carousel ? "snap-start shrink-0" : ""}
       style={{
         width: carousel ? "min(85vw, 360px)" : "auto",
-        height: "auto",
+        // Fixed height keeps all carousel cards identical so the track never
+        // reflows when you swipe — desktop cards stretch to fill the grid cell.
+        minHeight: carousel ? "360px" : 0,
+        height: carousel ? "360px" : "auto",
         background: "#2D2D2D",
         border: "1px solid #3D3D3D",
         borderRadius: "24px",
@@ -437,6 +442,7 @@ export default function Member() {
               scrollSnapType: "x mandatory",
               padding: "8px 24px",
               scrollPaddingLeft: "24px",
+              touchAction: "pan-y",
             }}
           >
             {cards.map((card, i) => renderCard(card, i, true))}

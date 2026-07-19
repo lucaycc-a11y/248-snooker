@@ -139,7 +139,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.7, ease: EASE }}
         className="no-scrollbar hscroll-track mx-auto flex max-w-[1100px] snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-6 md:grid md:snap-none md:grid-cols-3 md:gap-6 md:overflow-visible"
-        style={{ scrollPaddingInline: "24px", paddingTop: "14px", paddingBottom: "4px" }}
+        style={{ scrollPaddingInline: "24px", paddingTop: "14px", paddingBottom: "4px", touchAction: "pan-y" }}
       >
         {periods.map((period) => {
           const Icon = period.id === "morning" ? Sun : period.id === "afternoon" ? Zap : Moon;
