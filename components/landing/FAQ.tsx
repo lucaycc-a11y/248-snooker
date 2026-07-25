@@ -49,9 +49,24 @@ function AnswerText({ answer }: { answer: string }) {
 // were dropped in favour of static next-intl content).
 // jsonLd is optionally passed by the page for a server-rendered <script> tag
 // identical to what this component would derive itself, avoiding drift.
-export default function FAQ({ jsonLd }: { jsonLd?: object }) {
+// `ids` narrows the rendered list to a curated subset (homepage shows 5 of
+// them, in the given order); `moreHref` adds a "了解更多" link below the list.
+export default function FAQ({
+  jsonLd,
+  ids,
+  moreHref,
+}: {
+  jsonLd?: object;
+  ids?: readonly string[];
+  moreHref?: string;
+}) {
   const t = useTranslations('faq');
-  const items: FaqItem[] = getFaqItems(t);
+  const allItems: FaqItem[] = getFaqItems(t);
+  const items: FaqItem[] = ids
+    ? ids
+        .map((id) => allItems.find((item) => item.id === id))
+        .filter((item): item is FaqItem => item !== undefined)
+    : allItems;
   // Only one item open at a time. null = all closed.
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -171,6 +186,7 @@ export default function FAQ({ jsonLd }: { jsonLd?: object }) {
                           margin: 0,
                           padding: "0 4px 40px",
                           maxWidth: "680px",
+                          whiteSpace: "pre-line",
                         }}
                       >
                         <AnswerText answer={item.answer} />
@@ -182,6 +198,35 @@ export default function FAQ({ jsonLd }: { jsonLd?: object }) {
             );
           })}
         </div>
+
+        {moreHref && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={VIEWPORT}
+            transition={{ duration: 0.5, ease: EASE }}
+            style={{ marginTop: "40px" }}
+          >
+            <Link
+              href={moreHref}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                minHeight: 44,
+                fontSize: "17px",
+                fontWeight: 500,
+                color: "#0071E3",
+                textDecoration: "none",
+              }}
+            >
+              {t("more")}
+              <span aria-hidden="true" style={{ fontSize: "20px", lineHeight: 1 }}>
+                ›
+              </span>
+            </Link>
+          </motion.div>
+        )}
       </div>
     </section>
   );

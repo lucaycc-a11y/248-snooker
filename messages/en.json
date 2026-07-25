@@ -492,7 +492,8 @@
     "signing_out": "Signing out…",
     "sign_out_error": "Couldn't sign out. Please try again.",
     "venue": "Venue",
-    "membership": "Membership"
+    "membership": "Membership",
+    "faq": "FAQ"
   },
   "hero": {
     "title": "SPACE8",
@@ -583,18 +584,23 @@
     "faq_cancel_a": "Once confirmed, bookings cannot be cancelled, rescheduled, or refunded (except under Typhoon Signal No. 8 or above / Black Rainstorm Warning, when a reschedule may be requested). For full details, see the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3) and [Section 6](/legal?doc=terms#section-6).",
     "faq_hours_q": "What are the opening hours?",
     "faq_hours_a": "SPACE8 is open daily from 06:00 to 24:00, year-round, including public holidays.",
-    "faq_minimum_q": "What is the minimum booking duration?",
-    "faq_minimum_a": "The minimum is 1 hour. You can book 1, 2, or 3 hours.",
+    "faq_smoking_q": "Is smoking prohibited inside the room?",
+    "faq_smoking_a": "The entire venue is strictly smoke-free (including cigarettes, e-cigarettes, and heated tobacco) to maintain the highest-quality smoke-free environment. If you need to smoke, please use the building's outdoor smoking area.",
+    "faq_weather_q": "What happens in bad weather?",
+    "faq_weather_a": "[Typhoon Signal No. 8 or above / Black Rainstorm Warning]\nOpen as usual: The venue's automated systems keep running, so you may come as planned once you've judged it safe to do so.\nReschedule policy: If you decide not to come, you must contact us via WhatsApp before your original booking start time to arrange a free reschedule within 7 days (no refund).\nLate requests: Requesting after the booking time has passed, or not using it within 7 days, is treated as forfeiting the entitlement.\n\n[General conditions / other weather (e.g. Signal No. 3, Red Rainstorm)]\nNo cancellation or change: Apart from the extreme-weather policy above, all confirmed bookings cannot be cancelled, rescheduled, or refunded.",
+    "faq_overtime_q": "What if I run over time?",
+    "faq_overtime_a": "If no other guests are booked after your slot, please leave within 15 minutes (if you keep using the facilities beyond 15 minutes' overtime, a full 1-hour rental charge applies). If the next slot is already booked, the system sends a friendly reminder on the concierge screen 5 minutes before your slot ends — please tidy up and leave before your booking time is over.",
     "faq_pricing_q": "How is pricing calculated?",
     "faq_pricing_a": "Rates are charged per hour and vary by time slot, with discounts for booking 2 or more consecutive hours; overtime stays incur an additional overtime charge. For full details, see the [Pricing page](/pricing) and the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3).",
     "faq_points_q": "How does the points system work?",
     "faq_points_a": "Earn 1 point per HK$1 spent. Accumulated points upgrade you to Century and Maximum tiers with extra privileges. For full details, see the [Membership page](/membership).",
     "faq_facilities_q": "What facilities are available?",
-    "faq_facilities_a": "Professional snooker tables, premium lighting, air conditioning, free Wi-Fi, and a self-serve drinks area.",
+    "faq_facilities_a": "Professional pool tables, high-quality standard house cues, premium lighting, air conditioning, free Wi-Fi, and a self-serve water station.",
     "faq_guests_q": "Can I bring friends?",
     "faq_guests_a": "Yes, each session can accommodate multiple players. The session fee covers everyone — no extra charge per person.",
     "faq_contact_q": "How can I contact you?",
-    "faq_contact_a": "Reach us via WhatsApp or email hello@space8.com.hk — we'll get back to you promptly."
+    "faq_contact_a": "Reach us via WhatsApp or email hello@space8.com.hk — we'll get back to you promptly.",
+    "more": "Learn more"
   },
   "whatsapp": {
     "aria_label": "WhatsApp us",
@@ -817,14 +823,16 @@
     ],
     "rules_title": "Good to Know",
     "rules": [
-      "Maximum 6 people per room.",
+      "Maximum 8 people per room.",
       "Strictly no smoking, including e-cigarettes and heated tobacco.",
       "Under-12s must be accompanied by an adult (18+) at all times.",
-      "Please leave on time at the end of your slot; overtime fees apply.",
+      "Please leave on time at the end of your slot; overtime beyond 15 minutes incurs an overtime fee.",
       "Before leaving: return equipment, brush the table, replace the dust cover and switch off the lights.",
       "Report any existing damage via WhatsApp within 10 minutes of entry."
     ],
     "rules_link": "Read the full venue rules and terms",
+    "weather_title": "Bad Weather & Special Arrangements",
+    "weather_body": "[Typhoon Signal No. 8 or above / Black Rainstorm Warning]\nOpen as usual: The venue's automated systems keep running, so you may come as planned once you've judged it safe to do so.\nReschedule policy: If you decide not to come, you must contact us via WhatsApp before your original booking start time to arrange a free reschedule within 7 days (no refund).\nLate requests: Requesting after the booking time has passed, or not using it within 7 days, is treated as forfeiting the entitlement.\n\n[General conditions / other weather (e.g. Signal No. 3, Red Rainstorm)]\nNo cancellation or change: Apart from the extreme-weather policy above, all confirmed bookings cannot be cancelled, rescheduled, or refunded.",
     "directions_title": "Getting Here",
     "address_label": "Address",
     "address": "Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",

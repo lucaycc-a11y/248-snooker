@@ -11,7 +11,7 @@ import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
-import { getFaqJsonLd } from "@/components/landing/faqData";
+import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 
 export async function generateMetadata({
@@ -101,7 +101,7 @@ export default async function Home({
   setRequestLocale(locale);
 
   const t = await getTranslations({ locale, namespace: 'faq' });
-  const faqJsonLd = getFaqJsonLd(t);
+  const faqJsonLd = getFaqJsonLd(t, HOMEPAGE_FAQ_IDS);
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`);
   const config = await getConfig();
 
@@ -121,8 +121,9 @@ export default async function Home({
       {/* Membership — last section before footer */}
       <Member />
 
-      {/* FAQ — above the footer */}
-      <FAQ jsonLd={faqJsonLd} />
+      {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
+          a "了解更多" link to the full /faq page. */}
+      <FAQ jsonLd={faqJsonLd} ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" />
 
       <Footer />
 

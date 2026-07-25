@@ -1546,6 +1546,33 @@ function Screen3({
   return (
     <div className="screen-content">
       <div style={{ maxWidth: 480, margin: "0 auto" }}>
+        {/* Back to slot selection — persistent, normal-flow entry point (not
+            just the error-state recovery button inside StripePayment). Reuses
+            the same handler passed down as onBackToSlots so both paths stay
+            in sync; selection state is preserved by the caller. */}
+        {onBackToSlots && (
+          <button
+            type="button"
+            onClick={onBackToSlots}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              minHeight: 44,
+              marginBottom: 12,
+              padding: 0,
+              background: "none",
+              border: "none",
+              color: tokens.colors.textMuted,
+              fontSize: 14,
+              cursor: "pointer",
+            }}
+          >
+            <ChevronLeft size={18} />
+            {t("back_to_slots")}
+          </button>
+        )}
+
         {/* Order summary — card-based hierarchy (Task 4): three bordered
             groups (時段 / 用戶資料 / 費用明細) instead of one flat text run.
             Borders only, no shadows, per the design system. */}
@@ -1904,7 +1931,7 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
           style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}
         >
           {/* Brand guideline v1.0: wordmark must render ≥120px wide (height 39 ≈ 122px) */}
-          <img src="/logos/space8_wordmark_white.svg" alt="Space8" style={{ height: 39, width: "auto" }} />
+          <img src="/logos/logo-white-horizontal.svg" alt="Space8" style={{ height: 39, width: "auto" }} />
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -2533,8 +2560,11 @@ export default function BookPage() {
                   blocks={runs}
                   periods={periods}
                   onBackToSlots={() => {
+                    // Refresh availability (the lock may have changed while on
+                    // the payment step) but keep the user's selection intact —
+                    // going back to slot-select must not reset date/table/time.
                     for (const date of selectedSlotsByDate.keys()) availability.invalidate(date)
-                    setSelectedSlotsByDate(new Map())
+                    direction.current = -1
                     setScreen(0)
                   }}
                 />

@@ -44,6 +44,7 @@ export default function Footer() {
     { label: t('nav.about'), href: '/about' },
     { label: t('nav.blog'), href: '/blog' },
     { label: t('nav.membership'), href: '/membership' },
+    { label: t('nav.faq'), href: '/faq' },
     { label: t('footer.legal'), href: '/legal' },
     { label: t('footer.privacy'), href: '/privacy' },
   ]
@@ -82,7 +83,7 @@ export default function Footer() {
         }}
       >
         <img
-          src="/logos/space8_wordmark_white.svg"
+          src="/logos/logo-white-horizontal.svg"
           alt=""
           style={{
             position: 'absolute',

@@ -16,6 +16,7 @@ import {
   MessageCircle,
   BadgeCheck,
   MousePointerClick,
+  CloudRain,
 } from "lucide-react";
 
 const DARK = "#1D1D1F";
@@ -299,6 +300,50 @@ export default function VenueContent() {
               {t("rules_link")}
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ── Bad weather & special arrangements — black.
+          Wording is kept identical to the homepage/FAQ 惡劣天氣 answer so the
+          two never contradict each other (see messages/*.json faq_weather_a). ── */}
+      <section
+        data-nav-theme="dark"
+        style={{ background: "#000", color: "#fff", padding: "clamp(80px, 10vw, 130px) 24px" }}
+      >
+        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={VIEWPORT}
+            transition={{ duration: 0.6, ease: EASE }}
+            style={sectionTitleStyle}
+          >
+            {t("weather_title")}
+          </motion.h2>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={VIEWPORT}
+            transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
+            style={{
+              border: "1px solid rgba(255,255,255,0.14)",
+              borderRadius: "20px",
+              padding: "36px 28px",
+            }}
+          >
+            <CloudRain size={30} color={GREEN} strokeWidth={1.6} style={{ marginBottom: 18 }} />
+            <p
+              style={{
+                fontSize: "16px",
+                color: "rgba(255,255,255,0.72)",
+                lineHeight: 1.75,
+                margin: 0,
+                whiteSpace: "pre-line",
+              }}
+            >
+              {t("weather_body")}
+            </p>
+          </motion.div>
         </div>
       </section>
 

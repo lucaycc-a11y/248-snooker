@@ -365,7 +365,7 @@ export default function HowItWorks() {
           justifyContent: "space-between",
           gap: "16px",
           flexWrap: "wrap",
-          marginBottom: isMobile ? "40px" : "56px",
+          marginBottom: isMobile ? "24px" : "56px",
         }}
       >
         <div>
@@ -409,23 +409,21 @@ export default function HowItWorks() {
         </div>
       </div>
 
-      {/* Cards — desktop: equal-width row; mobile: snap scroll */}
+      {/* Cards — desktop: equal-width row. Mobile: compact vertical stack
+          (icon-left, text-right row) so all 3 steps fit on one screen
+          without horizontal swiping or vertical scrolling. */}
       <div
         ref={trackRef}
-        className="no-scrollbar hscroll-track"
+        className={isMobile ? undefined : "no-scrollbar hscroll-track"}
         style={{
           maxWidth: "1100px",
           margin: "0 auto",
           padding: "0 24px",
           display: "flex",
-          gap: "24px",
-          overflowX: isMobile ? "auto" : "visible",
-          scrollSnapType: isMobile ? "x mandatory" : undefined,
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? "12px" : "24px",
+          overflowX: isMobile ? "visible" : "visible",
           alignItems: "stretch",
-          // pan-y lets vertical page scroll pass through while we handle
-          // horizontal swipe — prevents the browser treating a diagonal swipe
-          // as a vertical scroll and killing the snap.
-          touchAction: isMobile ? "pan-y" : undefined,
         }}
       >
         {steps.map((step, i) => (
@@ -434,39 +432,42 @@ export default function HowItWorks() {
             ref={(el) => {
               cardRefs.current[i] = el;
             }}
-            // Carousel cards suppress the y-entrance: the viewport fires when
-            // a card scrolls horizontally into view, producing a vertical jump
-            // mid-swipe. Desktop keeps the standard scroll-reveal.
-            {...(isMobile
-              ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.3, delay: 0.08 * i } }
-              : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 }, viewport: VIEWPORT, transition: { duration: 0.5, ease: EASE, delay: 0.08 * i } }
-            )}
+            initial={{ opacity: 0, y: isMobile ? 12 : 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={VIEWPORT}
+            transition={{ duration: isMobile ? 0.35 : 0.5, ease: EASE, delay: 0.06 * i }}
             style={{
               position: "relative",
               flex: isMobile ? "0 0 auto" : "1 1 0",
-              minWidth: isMobile ? "80vw" : 0,
-              // Fixed height on mobile keeps all 3 cards identical so the
-              // carousel track never reflows height when snapping between them.
-              minHeight: isMobile ? "280px" : "240px",
-              height: isMobile ? "280px" : "auto",
-              scrollSnapAlign: isMobile ? "start" : undefined,
               background: "white",
               border: "1px solid #E5E5E5",
-              borderRadius: "18px",
-              padding: isMobile ? "28px" : "32px",
+              borderRadius: isMobile ? "14px" : "18px",
+              padding: isMobile ? "16px" : "32px",
               display: "flex",
-              flexDirection: "column",
+              flexDirection: isMobile ? "row" : "column",
+              alignItems: isMobile ? "center" : "stretch",
+              gap: isMobile ? "14px" : 0,
             }}
           >
-            <div style={{ width: "28px", height: "28px", color: step.accent, marginBottom: "20px" }}>
+            <div
+              style={{
+                width: isMobile ? "36px" : "28px",
+                height: isMobile ? "36px" : "28px",
+                color: step.accent,
+                marginBottom: isMobile ? 0 : "20px",
+                flexShrink: 0,
+              }}
+            >
               {step.icon}
             </div>
-            <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: "0 0 12px" }}>
-              {step.title}
-            </h3>
-            <p style={{ fontSize: bodySize, lineHeight: 1.6, color: DARK, margin: 0 }}>
-              {highlight(step.body, step.highlights, step.accent)}
-            </p>
+            <div style={{ flex: 1, minWidth: 0, paddingRight: isMobile ? "48px" : 0 }}>
+              <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: isMobile ? "0 0 4px" : "0 0 12px" }}>
+                {step.title}
+              </h3>
+              <p style={{ fontSize: bodySize, lineHeight: 1.5, color: DARK, margin: 0 }}>
+                {highlight(step.body, step.highlights, step.accent)}
+              </p>
+            </div>
 
             {/* + button — solid black, white glyph */}
             <motion.button
@@ -484,10 +485,9 @@ export default function HowItWorks() {
               transition={SPRING}
               style={{
                 position: "absolute",
-                bottom: "16px",
-                right: "16px",
-                width: "44px",
-                height: "44px",
+                ...(isMobile
+                  ? { top: "50%", right: "16px", transform: "translateY(-50%)", width: "36px", height: "36px" }
+                  : { bottom: "16px", right: "16px", width: "44px", height: "44px" }),
                 borderRadius: "50%",
                 border: "none",
                 background: DARK,
@@ -514,52 +514,6 @@ export default function HowItWorks() {
             </motion.button>
           </motion.div>
         ))}
-      </div>
-
-      {/* Mobile controls — arrows flank dots, centred below cards */}
-      <div
-        className="flex md:hidden"
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "16px",
-          marginTop: "44px",
-        }}
-      >
-        <ArrowButton dir={-1} onClick={() => nudge(-1)} className="flex" />
-        <div style={{ display: "flex", alignItems: "center" }}>
-          {steps.map((step, i) => (
-            <button
-              key={step.key}
-              type="button"
-              onClick={() => scrollToCard(i)}
-              aria-label={`前往第 ${i + 1} 張`}
-              style={{
-                // 8px visual dot inside a 44px-tall tap target
-                width: activeDot === i ? "40px" : "24px",
-                height: "44px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                border: "none",
-                background: "none",
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              <span
-                style={{
-                  width: activeDot === i ? "24px" : "8px",
-                  height: "8px",
-                  borderRadius: "100px",
-                  background: activeDot === i ? step.accent : "rgba(0,0,0,0.18)",
-                  transition: "all 0.3s ease",
-                }}
-              />
-            </button>
-          ))}
-        </div>
-        <ArrowButton dir={1} onClick={() => nudge(1)} className="flex" />
       </div>
 
       <Modal data={modal} onClose={() => setModal(null)} />
