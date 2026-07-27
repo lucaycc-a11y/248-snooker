@@ -13,6 +13,7 @@ import {
   periodForStart,
 } from '@/lib/booking/server'
 import { rateLimit } from '@/lib/rate-limit'
+import { logSiteError } from '@/lib/errors/log'
 
 export const runtime = 'nodejs'
 
@@ -134,6 +135,12 @@ export async function POST(req: Request) {
             userId: user.id,
             slotId: slot.id,
           })
+          await logSiteError('payment/create-intent', 'error', 'pending booking insert failed', {
+            message: insErr?.message,
+            code: insErr?.code,
+            userId: user.id,
+            slotId: slot.id,
+          })
           return NextResponse.json({ error: 'Could not create booking' }, { status: 500 })
         }
         bookingId = inserted.id
@@ -218,6 +225,15 @@ export async function POST(req: Request) {
         userId: user.id,
         bookingIds,
       })
+      await logSiteError('payment/create-intent', 'error', 'Stripe PaymentIntent creation failed', {
+        message: e.message,
+        type: e.type,
+        code: e.code,
+        statusCode: e.statusCode,
+        amount: amountInCents,
+        userId: user.id,
+        bookingIds,
+      })
       return NextResponse.json(
         { error: 'stripe_error', detail: e.message ?? 'Stripe request failed', code: e.code ?? e.type ?? null },
         { status: 502 },
@@ -244,6 +260,7 @@ export async function POST(req: Request) {
   } catch (err) {
     const e = err as Error
     console.error('[payment/create-intent] error', { message: e.message, stack: e.stack })
+    await logSiteError('payment/create-intent', 'error', 'unhandled exception', { message: e.message, stack: e.stack })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }

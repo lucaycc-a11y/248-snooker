@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { slotBounds } from '@/lib/booking/server'
 import { rateLimit } from '@/lib/rate-limit'
+import { logSiteError } from '@/lib/errors/log'
 
 export const runtime = 'nodejs'
 
@@ -67,6 +68,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         return NextResponse.json({ error: 'Slot unavailable', reason: 'unavailable' }, { status: 409 })
       }
       console.error('[bookings/reschedule] rpc_error', { message: error.message, code, bookingId })
+      await logSiteError('bookings/reschedule', 'error', 'reschedule_booking failed', {
+        message: error.message,
+        code,
+        bookingId,
+      })
       return NextResponse.json({ error: 'Internal error' }, { status: 500 })
     }
     if (!data?.success) {
@@ -101,6 +107,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }
     } catch (e) {
       console.error('[bookings/reschedule] email_failed', { message: (e as Error).message, bookingId })
+      await logSiteError('bookings/reschedule', 'warning', 'reschedule confirmation email failed', {
+        message: (e as Error).message,
+        bookingId,
+      })
     }
 
     return NextResponse.json({
@@ -114,6 +124,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     })
   } catch (err) {
     console.error('[bookings/reschedule] error', { message: (err as Error).message })
+    await logSiteError('bookings/reschedule', 'error', 'unhandled exception', { message: (err as Error).message })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }

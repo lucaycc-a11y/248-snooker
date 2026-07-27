@@ -3,6 +3,7 @@ import type Stripe from 'stripe'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getStripe } from '@/lib/stripe/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { logSiteError } from '@/lib/errors/log'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for when door validation is fixed to verify JWTs again
 import { signQrToken, humanReadableCode } from '@/lib/qr/jwt'
 
@@ -46,6 +47,12 @@ export async function POST(req: Request) {
         message: claimErr.message,
         code: (claimErr as { code?: string }).code,
         eventId: event.id,
+      })
+      await logSiteError('webhooks/stripe', 'error', 'webhook_events claim failed', {
+        message: claimErr.message,
+        code: (claimErr as { code?: string }).code,
+        eventId: event.id,
+        eventType: event.type,
       })
       return NextResponse.json({ error: 'claim failed' }, { status: 500 })
     }
@@ -98,6 +105,14 @@ export async function POST(req: Request) {
       .from('webhook_events')
       .update({ status: 'failed', error: msg })
       .eq('id', event.id)
+    // payment_intent.payment_failed / charge.refunded handler failures are real
+    // money-moving problems (slot not released, refund not reflected) — always
+    // 'error' severity regardless of which Stripe event type triggered them.
+    await logSiteError('webhooks/stripe', 'error', `${event.type} handler failed`, {
+      message: msg,
+      eventId: event.id,
+      eventType: event.type,
+    })
     return NextResponse.json({ error: 'handler failed' }, { status: 500 })
   }
 }
@@ -363,6 +378,10 @@ async function handleSucceeded(
       message: (e as Error).message,
       bookingId: result.booking_id,
     })
+    await logSiteError('webhooks/stripe', 'warning', 'booking confirmation notification failed', {
+      message: (e as Error).message,
+      bookingId: result.booking_id,
+    })
   }
 }
 
@@ -469,6 +488,10 @@ async function handleGroupSucceeded(
     }
   } catch (e) {
     console.error('[webhook/stripe] group_notification_failed', {
+      message: (e as Error).message,
+      orderGroupId,
+    })
+    await logSiteError('webhooks/stripe', 'warning', 'group booking confirmation notification failed', {
       message: (e as Error).message,
       orderGroupId,
     })

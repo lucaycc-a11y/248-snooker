@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getStripe } from '@/lib/stripe/server'
 import { rateLimit } from '@/lib/rate-limit'
+import { logSiteError } from '@/lib/errors/log'
 
 export const runtime = 'nodejs'
 
@@ -64,6 +65,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         )
       }
       console.error('[bookings/refund] rpc_error', { message: error.message, code, bookingId })
+      await logSiteError('bookings/refund', 'error', 'request_booking_refund failed', {
+        message: error.message,
+        code,
+        bookingId,
+      })
       return NextResponse.json({ error: 'Internal error' }, { status: 500 })
     }
     if (!data?.success) {
@@ -87,6 +93,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         paymentIntentId: data.stripe_payment_intent,
         message: (stripeErr as Error).message,
       })
+      await logSiteError(
+        'bookings/refund',
+        'error',
+        'Stripe refund failed after DB commit — needs manual reconciliation',
+        {
+          bookingId,
+          refundAmount: data.refund_amount,
+          paymentIntentId: data.stripe_payment_intent,
+          message: (stripeErr as Error).message,
+        },
+      )
       return NextResponse.json(
         {
           error: 'refund_pending_manual_review',
@@ -130,6 +147,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       }
     } catch (e) {
       console.error('[bookings/refund] email_failed', { message: (e as Error).message, bookingId })
+      await logSiteError('bookings/refund', 'warning', 'refund confirmation email failed', {
+        message: (e as Error).message,
+        bookingId,
+      })
     }
 
     return NextResponse.json({
@@ -141,6 +162,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     })
   } catch (err) {
     console.error('[bookings/refund] error', { message: (err as Error).message })
+    await logSiteError('bookings/refund', 'error', 'unhandled exception', { message: (err as Error).message })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }

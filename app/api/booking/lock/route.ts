@@ -5,6 +5,7 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { calculatePrice } from '@/lib/pricing'
 import { loadPeriods, resolveTierForUser, slotBounds } from '@/lib/booking/server'
 import { rateLimit } from '@/lib/rate-limit'
+import { logSiteError } from '@/lib/errors/log'
 
 export const runtime = 'nodejs'
 
@@ -90,6 +91,15 @@ export async function POST(req: Request) {
           code,
           userId: user.id,
         })
+        // Ordinary slot contention (conflict) is expected traffic, not a site
+        // error — only log the unexpected RPC-failure branch.
+        if (!conflict) {
+          await logSiteError('booking/lock', 'error', 'find_or_lock_slots failed', {
+            message: error.message,
+            code,
+            userId: user.id,
+          })
+        }
         return NextResponse.json(
           conflict
             ? { error: 'Slot unavailable', reason: 'unavailable' }
@@ -158,6 +168,13 @@ export async function POST(req: Request) {
         hint: (error as { hint?: string }).hint,
         userId: user.id,
       })
+      await logSiteError('booking/lock', 'error', 'find_or_lock_slot failed', {
+        message: error.message,
+        code: (error as { code?: string }).code,
+        details: (error as { details?: string }).details,
+        hint: (error as { hint?: string }).hint,
+        userId: user.id,
+      })
       return NextResponse.json(
         {
           error: 'Could not lock slot',
@@ -193,6 +210,7 @@ export async function POST(req: Request) {
     // loadPeriods/resolveTierForUser, or a JSON parse. Detail is returned so the
     // real cause is visible instead of a blank "Internal error".
     console.error('[booking/lock] error', { message: msg, stack: e.stack })
+    await logSiteError('booking/lock', 'error', 'unhandled exception', { message: msg, stack: e.stack })
     return NextResponse.json({ error: 'Internal error', detail: msg }, { status: 500 })
   }
 }
