@@ -49,86 +49,105 @@ type TitledItem = { title: string; body: string };
 
 /* ── Injected CSS matching reference HTML exactly ── */
 const SITE_CSS = `
-/* ===== HERO ===== */
-.hero-stage {
+/* ===== VIDEO HERO (scroll-scrub) ===== */
+.hero-video-wrapper {
   position: relative;
-  height: 85vh;
+  height: 400vh;
 }
-.hero-sticky {
-  position: sticky; top: 0; height: 55vh; min-height: 460px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-align: center;
+.hero-video-sticky {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
   overflow: hidden;
+}
+.hero-video-el {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hero-video-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
   padding: 0 24px;
 }
-.lamp-glow {
-  position: absolute; top: -15%; left: 50%; transform: translateX(-50%);
-  width: 900px; height: 900px;
-  background: radial-gradient(circle, rgba(20,102,80,0.07) 0%, rgba(20,102,80,0.03) 38%, transparent 68%);
-  pointer-events: none;
-  transition: opacity .4s ease;
-  z-index: 0;
-}
-.hero-ring {
-  position: absolute; border-radius: 50%; border: 1px solid rgba(17,17,16,0.06);
-  top: 50%; left: 50%; z-index: 0;
-}
-.eyebrow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px; letter-spacing: 0.18em;
-  color: rgba(17,17,16,0.58);
-  text-transform: uppercase;
-  margin-bottom: 18px;
-  display: flex; align-items: center; gap: 10px;
-  position: relative; z-index: 2;
-}
-.eyebrow-dot { width: 5px; height: 5px; border-radius: 50%; background: #146650; }
-.hero-h1 {
+.hero-video-overlay * { pointer-events: auto; }
+.hero-headline {
   font-family: 'Noto Sans TC', sans-serif;
   font-weight: 900;
-  font-size: clamp(2.1rem, 5.2vw, 4.4rem);
-  line-height: 1.28;
-  letter-spacing: 0.005em;
-  max-width: 16ch;
-  color: #111110;
-  position: relative; z-index: 2;
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.35);
+}
+.hero-tagline {
+  font-family: 'SF Pro Text', 'Noto Sans TC', sans-serif;
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: rgba(255,255,255,0.7);
+  margin-top: 14px;
+  letter-spacing: 0.04em;
+}
+.hero-cta {
+  display: inline-block;
+  margin-top: 24px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: clamp(15px, 2vw, 17px);
+  font-weight: 500;
+  padding: 15px 36px;
+  border-radius: 999px;
+  background: #22C55E;
+  color: #ffffff;
+  text-decoration: none;
+  box-shadow: 0 8px 30px -8px rgba(34,197,94,0.4);
+  transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .35s ease;
+  cursor: pointer;
+}
+.hero-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 36px -6px rgba(34,197,94,0.55); }
+.hero-black-overlay {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  z-index: 5;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-video-wrapper { height: auto; }
+  .hero-video-sticky { position: relative; height: auto; min-height: 100dvh; }
+  .hero-video-el { display: block; position: relative; height: 100dvh; }
+}
+
+/* ===== BELOW HERO ===== */
+.hero-after-section {
+  background: #000000;
+  padding: 60px 24px 80px;
+}
+.hero-after-inner { max-width: 680px; margin: 0 auto; }
+.hero-after-title {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  color: #f5f2ec;
+  margin: 0 0 20px;
+  line-height: 1.3;
+}
+.hero-after-body {
+  font-size: clamp(14px, 1.4vw, 16px);
+  line-height: 1.7;
+  color: rgba(255,255,255,0.6);
+  max-width: 65ch;
   margin: 0;
 }
-.hero-sub {
-  margin-top: 18px;
-  font-size: clamp(15px, 1.6vw, 18px);
-  color: rgba(17,17,16,0.58);
-  max-width: 480px;
-  line-height: 1.7;
-  position: relative; z-index: 2;
-}
-.cta-row {
-  margin-top: 30px;
-  display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
-  position: relative; z-index: 2;
-}
-.btn {
-  font-size: 14.5px; font-weight: 500;
-  padding: 15px 34px; border-radius: 999px;
-  cursor: pointer; transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .35s ease, background .3s ease;
-  text-decoration: none; display: inline-block;
-}
-.btn-primary {
-  background: linear-gradient(180deg, #22b86b, #1a9d5c);
-  color: #ffffff;
-  box-shadow: 0 8px 30px -8px rgba(26,157,92,0.4);
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px -6px rgba(26,157,92,0.55); }
-.eightball {
-  position: absolute; top: 50%; left: 50%;
-  width: min(24vw, 280px); height: min(24vw, 280px);
-  will-change: transform;
-  z-index: 5;
-  filter: drop-shadow(0 40px 60px rgba(0,0,0,0.28));
-}
-.eightball img { width: 100%; height: 100%; display: block; border-radius: 50%; object-fit: cover; }
-@media (max-width: 720px) { .hero-stage { height: 75vh; } }
-@media (prefers-reduced-motion: reduce) { .eightball, .hero-ring { transition: none !important; } }
 
 /* ===== FACILITY ===== */
 .facility-section {
@@ -272,23 +291,6 @@ const SITE_CSS = `
   pointer-events: none;
 }
 .compare-label.right { z-index: 1; }
-.compare-label.center {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  font-family: 'Inter', sans-serif;
-  font-weight: 900;
-  font-size: clamp(1.7rem, 7vw, 4.6rem);
-  letter-spacing: 0.02em;
-  line-height: 1.05;
-  text-transform: uppercase;
-  text-align: center;
-  white-space: nowrap;
-  color: #ffffff;
-  text-shadow: 0 4px 30px rgba(0,0,0,0.55);
-  pointer-events: none;
-  z-index: 6;
-}
 .compare-handle {
   position: absolute;
   top: 0; bottom: 0;
@@ -886,74 +888,48 @@ export default function VenueContent() {
   const services = t.raw("services") as TitledItem[];
   const rules = t.raw("rules") as string[];
 
-  /* ── Hero 8-ball parallax (matches reference HTML exactly) ── */
-  const heroRef = useRef<HTMLDivElement>(null);
-  const ballRef = useRef<HTMLDivElement>(null);
-  const ring1Ref = useRef<HTMLDivElement>(null);
-  const ring2Ref = useRef<HTMLDivElement>(null);
-  const lampRef = useRef<HTMLDivElement>(null);
+  /* ── Video hero scroll-scrub ── */
+  const videoHeroWrapperRef = useRef<HTMLDivElement>(null);
+  const desktopVideoRef = useRef<HTMLVideoElement>(null);
+  const mobileVideoRef = useRef<HTMLVideoElement>(null);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    const stage = heroRef.current;
-    const ball = ballRef.current;
-    const ring1 = ring1Ref.current;
-    const ring2 = ring2Ref.current;
-    const lamp = lampRef.current;
-    if (!stage || !ball) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduceMotion(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setReduceMotion(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const sticky = stage.querySelector(".hero-sticky") as HTMLElement | null;
-    if (!sticky) return;
+  const { scrollYProgress } = useScroll({
+    target: videoHeroWrapperRef,
+    offset: ["start start", "end end"],
+  });
 
-    let ticking = false;
-    let animFrame = 0;
+  useEffect(() => {
+    const isDesktop = () => window.matchMedia("(min-width: 768px)").matches;
 
-    function clamp(v: number, min: number, max: number) {
-      return Math.max(min, Math.min(max, v));
-    }
-
-    function update() {
-      ticking = false;
-      if (reduceMotion) return;
-
-      const rect = stage!.getBoundingClientRect();
-      const total = rect.height - sticky!.offsetHeight;
-      const scrolled = clamp(-rect.top, 0, total);
-      const progress = total > 0 ? scrolled / total : 0;
-
-      const xFrom = -35, xTo = 135;
-      const x = xFrom + (xTo - xFrom) * progress;
-      const arcY = Math.sin(progress * Math.PI) * -50;
-      const rotate = progress * 500;
-      const scale = 0.75 + Math.sin(progress * Math.PI) * 0.5;
-      const edgeFade = clamp(1 - Math.pow(Math.abs(progress - 0.5) * 2.15, 3), 0, 1);
-
-      ball!.style.transform =
-        `translate(calc(-50% + ${x}vw), calc(-50% + ${arcY}px)) rotate(${rotate}deg) scale(${scale})`;
-      ball!.style.opacity = String(clamp(edgeFade + 0.15, 0, 1));
-
-      if (ring1) ring1.style.transform = `translate(calc(-50% + ${x * 0.35}vw), -50%)`;
-      if (ring2) ring2.style.transform = `translate(calc(-50% + ${x * 0.18}vw), -50%)`;
-      if (lamp) lamp.style.opacity = String(0.5 + edgeFade * 0.5);
-    }
-
-    function onScroll() {
-      if (!ticking) {
-        animFrame = window.requestAnimationFrame(update);
-        ticking = true;
+    const updateFrame = () => {
+      const progress = scrollYProgress.get();
+      const activeVideo = isDesktop() ? desktopVideoRef.current : mobileVideoRef.current;
+      if (activeVideo && activeVideo.duration) {
+        activeVideo.currentTime = progress * activeVideo.duration;
       }
-    }
+    };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    update();
+    const unsubscribe = scrollYProgress.on("change", () => {
+      requestAnimationFrame(updateFrame);
+    });
+
+    const handleResize = () => updateFrame();
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      cancelAnimationFrame(animFrame);
+      unsubscribe();
+      window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [scrollYProgress]);
 
   /* ── Comparison slider (matches reference HTML exactly) ── */
   const compareRef = useRef<HTMLDivElement>(null);
@@ -1087,50 +1063,87 @@ export default function VenueContent() {
     <div style={{ fontFamily: FONT_FAMILY }}>
       <style>{SITE_CSS}</style>
 
-      {/* ── Hero (matches reference HTML exactly) ── */}
-      <section ref={heroRef} className="hero-stage" data-nav-theme="dark">
-        <div className="hero-sticky">
-          <div ref={lampRef} className="lamp-glow" />
-          <div
-            ref={ring1Ref}
-            className="hero-ring"
-            style={{ width: "640px", height: "640px" }}
+      {/* ── Video Hero: scroll-scrubbed, dual-video, white text on dark ── */}
+      <div ref={videoHeroWrapperRef} className="hero-video-wrapper" data-nav-theme="dark">
+        <div className="hero-video-sticky">
+          {/* Desktop video (hidden on mobile) */}
+          <video
+            ref={desktopVideoRef}
+            src="/video/Venue_Hero/Venue_Hero_Desktop.mp4"
+            className="hero-video-el hidden md:block"
+            muted
+            playsInline
+            preload="auto"
+            poster="/video/Venue_Hero/Venue_Hero_Desktop_poster.jpg"
           />
-          <div
-            ref={ring2Ref}
-            className="hero-ring"
-            style={{ width: "920px", height: "920px" }}
+          {/* Mobile video (hidden on desktop) */}
+          <video
+            ref={mobileVideoRef}
+            src="/video/Venue_Hero/Venue_Hero_Mobile.mp4"
+            className="hero-video-el block md:hidden"
+            muted
+            playsInline
+            preload="auto"
+            poster="/video/Venue_Hero/Venue_Hero_Mobile_poster.jpg"
           />
 
-          <p className="eyebrow">
-            <span className="eyebrow-dot" />
-            自助入場 · 無菸環境
-          </p>
+          {/* Safety black overlay — fades in at the very end to guarantee a clean cut */}
+          <motion.div
+            className="hero-black-overlay"
+            style={{ opacity: useTransform(scrollYProgress, [0.97, 1], [0, 1]) }}
+          />
 
-          <h1 className="hero-h1">
-            自助中式桌球<br />
-            獨立球室
-          </h1>
+          {/* Text overlay layer — sits above both videos */}
+          {!reduceMotion ? (
+            <>
+              <motion.div
+                className="hero-video-overlay"
+                style={{
+                  opacity: useTransform(scrollYProgress, [0, 0.25, 0.32, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
+                  y: useTransform(scrollYProgress, [0.25, 0.32], [20, 0]),
+                }}
+              >
+                <h1 className="hero-headline">空間全開，由你主場</h1>
+              </motion.div>
 
-          <p className="hero-sub">
+              <motion.div
+                className="hero-video-overlay"
+                style={{
+                  opacity: useTransform(scrollYProgress, [0, 0.30, 0.37, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
+                  y: useTransform(scrollYProgress, [0.30, 0.37], [20, 0]),
+                }}
+              >
+                <p className="hero-tagline">自助入場 · 無菸環境</p>
+              </motion.div>
+
+              <motion.div
+                className="hero-video-overlay"
+                style={{
+                  opacity: useTransform(scrollYProgress, [0, 0.34, 0.40, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
+                  scale: useTransform(scrollYProgress, [0.34, 0.40], [0.95, 1]),
+                }}
+              >
+                <Link href="/book" className="hero-cta">立即預訂</Link>
+              </motion.div>
+            </>
+          ) : (
+            /* Reduced motion: show static content immediately */
+            <div className="hero-video-overlay">
+              <h1 className="hero-headline">空間全開，由你主場</h1>
+              <p className="hero-tagline">自助入場 · 無菸環境</p>
+              <Link href="/book" className="hero-cta">立即預訂</Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Below-hero content (after hero releases, before facility) ── */}
+      <section className="hero-after-section" data-nav-theme="dark">
+        <div className="hero-after-inner">
+          <h2 className="hero-after-title">自助中式桌球<br />獨立球室</h2>
+          <p className="hero-after-body">
             獨立球室，無多餘干擾。一顆球、一支桿、一段不被打斷的時間，掃碼開門，燈光為你亮起。
           </p>
-
-          <div className="cta-row">
-            <Link href="/book" className="btn btn-primary">
-              立即預約
-            </Link>
-          </div>
-
-          <div ref={ballRef} className="eightball">
-            <Image
-              src="/gallery/IMG_1511.jpg"
-              alt="8-ball"
-              fill
-              sizes="min(24vw, 280px)"
-              priority
-            />
-          </div>
         </div>
       </section>
 
@@ -1171,11 +1184,8 @@ export default function VenueContent() {
               sizes="(max-width: 720px) 100vw, 1100px"
               priority
             />
-            <div className="compare-label right">
-              SPACE<br />ETERNITY
-            </div>
 
-            {/* Clip overlay (Space Infinity side) — no label inside, rendered as unified overlay below */}
+            {/* Clip overlay (Space Infinity side) */}
             <div className="compare-clip" id="compareClip" style={{ width: `${sliderPos}%` }}>
               <div className="compare-clip-inner" id="compareClipInner">
                 <Image
@@ -1187,9 +1197,6 @@ export default function VenueContent() {
                 />
               </div>
             </div>
-
-            {/* Unified overlay label — always full, never clipped by the slider */}
-            <div className="compare-label center">SPACE<br />INFINITY</div>
 
             {/* Handle */}
             <div className="compare-handle" id="compareHandle" style={{ left: `${sliderPos}%` }}>

@@ -40,8 +40,8 @@
     "semantic_hash": "ab9c3dfc1dfc1a407b73408b3779b1a6"
   },
   "app/[locale]/about/AboutContent.tsx": {
-    "mtime": 1785329941.7283916,
-    "ast_hash": "0d6991de0c339fc05c6ec898481477fe",
+    "mtime": 1785332948.62723,
+    "ast_hash": "36b5fc2787fe747cf4691c524fe62e8f",
     "semantic_hash": ""
   },
   "app/[locale]/about/page.tsx": {
@@ -155,8 +155,8 @@
     "semantic_hash": "d39fcc00bd1fb0463520a6024ad69c9e"
   },
   "app/[locale]/venue/VenueContent.tsx": {
-    "mtime": 1785332434.2584784,
-    "ast_hash": "815c75fb68109f9c2960ad0338a7215c",
+    "mtime": 1785336443.588863,
+    "ast_hash": "dec3b2d183c6e7fb3fcac09361887ae7",
     "semantic_hash": ""
   },
   "app/[locale]/venue/page.tsx": {
@@ -1545,19 +1545,19 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1785322295.3079386,
-    "ast_hash": "81deb795509a5c6414e0e19832b53b8c",
-    "semantic_hash": "81deb795509a5c6414e0e19832b53b8c"
+    "mtime": 1785336073.4158366,
+    "ast_hash": "d86c396f0264c813a2daf099d7416f4d",
+    "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1785322295.3085423,
-    "ast_hash": "3965fead92c4b31215a7c63691ee7d41",
-    "semantic_hash": "3965fead92c4b31215a7c63691ee7d41"
+    "mtime": 1785336132.5420506,
+    "ast_hash": "70b060ce34a069259830212623208a98",
+    "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1785322295.3091865,
-    "ast_hash": "84f969ada059744d17292d096b3a92f8",
-    "semantic_hash": "84f969ada059744d17292d096b3a92f8"
+    "mtime": 1785336013.2862983,
+    "ast_hash": "045222485b2305fa001964abd30b18ab",
+    "semantic_hash": ""
   },
   "messages/zh.json": {
     "mtime": 1785307465.263383,
@@ -1565,7 +1565,7 @@
     "semantic_hash": "b9f2d4b9f41beb9d3948425d535a11de"
   },
   "middleware.ts": {
-    "mtime": 1784099452.589761,
+    "mtime": 1785334153.4646587,
     "ast_hash": "9f69852da4b1511a2d8aa1a6dc0b8ae9",
     "semantic_hash": "9f69852da4b1511a2d8aa1a6dc0b8ae9"
   },
@@ -2200,8 +2200,8 @@
     "semantic_hash": ""
   },
   "components/landing/GalleryScroll.tsx": {
-    "mtime": 1785332286.3421276,
-    "ast_hash": "57ceadb774bee72a4cefaf14d1207e22",
+    "mtime": 1785335653.9439092,
+    "ast_hash": "fa363c1d435b48e1d1fb912c8bd9dfe8",
     "semantic_hash": ""
   },
   "components/landing/HomeFAQ.tsx": {
@@ -2417,6 +2417,36 @@
   "public/gallery/table-loop.mp4": {
     "mtime": 1785331575.4714508,
     "ast_hash": "3ba42bc0a29b6cc3eab7eccbd48aa7e1",
+    "semantic_hash": ""
+  },
+  "public/video/Venue_Hero/Venue_Hero_Desktop_poster.jpg": {
+    "mtime": 1785335699.4522476,
+    "ast_hash": "1efc5da2db84e672761a6a73105a26c9",
+    "semantic_hash": ""
+  },
+  "public/video/Venue_Hero/Venue_Hero_Desktop_static.jpg": {
+    "mtime": 1785335897.5283737,
+    "ast_hash": "df410e2f9747fa34872400c01cb91973",
+    "semantic_hash": ""
+  },
+  "public/video/Venue_Hero/Venue_Hero_Mobile_poster.jpg": {
+    "mtime": 1785335699.5933337,
+    "ast_hash": "185ee6e53958c51defe2df9096b813d7",
+    "semantic_hash": ""
+  },
+  "public/video/Venue_Hero/Venue_Hero_Mobile_static.jpg": {
+    "mtime": 1785335897.5921798,
+    "ast_hash": "5911834b868efb25dadf9312629445a6",
+    "semantic_hash": ""
+  },
+  "public/video/Venue_Hero/Venue_Hero_Desktop.mp4": {
+    "mtime": 1785335505.2123137,
+    "ast_hash": "002729bae37a9ec812d5bb2baae3c7db",
+    "semantic_hash": ""
+  },
+  "public/video/Venue_Hero/Venue_Hero_Mobile.mp4": {
+    "mtime": 1785334868.763324,
+    "ast_hash": "b965e048d2ff56f26d7e5ac8678fad16",
     "semantic_hash": ""
   }
 }

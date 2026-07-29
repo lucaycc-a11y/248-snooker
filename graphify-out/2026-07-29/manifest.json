@@ -155,8 +155,8 @@
     "semantic_hash": "d39fcc00bd1fb0463520a6024ad69c9e"
   },
   "app/[locale]/venue/VenueContent.tsx": {
-    "mtime": 1785325449.5300663,
-    "ast_hash": "947b34bdc56563545d31eb5a885aad96",
+    "mtime": 1785332434.2584784,
+    "ast_hash": "815c75fb68109f9c2960ad0338a7215c",
     "semantic_hash": ""
   },
   "app/[locale]/venue/page.tsx": {
@@ -950,9 +950,9 @@
     "semantic_hash": "27c93492dfd7f570f8877a6fcb4705c6"
   },
   "components/landing/Gallery.tsx": {
-    "mtime": 1784454718.708667,
-    "ast_hash": "e3e7f6c3c9c06aee0a0dda70b4aff2b2",
-    "semantic_hash": "e3e7f6c3c9c06aee0a0dda70b4aff2b2"
+    "mtime": 1785332522.0816443,
+    "ast_hash": "75e67256e1b4a054548d2792ea33606f",
+    "semantic_hash": ""
   },
   "components/landing/Hero.tsx": {
     "mtime": 1785329922.5962765,
@@ -2200,8 +2200,8 @@
     "semantic_hash": ""
   },
   "components/landing/GalleryScroll.tsx": {
-    "mtime": 1785325706.4959407,
-    "ast_hash": "abaae16c6b97a32fdb7c150d8ac1c48d",
+    "mtime": 1785332286.3421276,
+    "ast_hash": "57ceadb774bee72a4cefaf14d1207e22",
     "semantic_hash": ""
   },
   "components/landing/HomeFAQ.tsx": {
@@ -2407,6 +2407,16 @@
   "public/video/Space8_Main_Hero.mp4": {
     "mtime": 1785329898.6183703,
     "ast_hash": "aade11549f199e1d690810df968754ec",
+    "semantic_hash": ""
+  },
+  "public/gallery/table-poster.jpg": {
+    "mtime": 1785331755.0560248,
+    "ast_hash": "792fcc121f1ddc2dd4bea6e26276320c",
+    "semantic_hash": ""
+  },
+  "public/gallery/table-loop.mp4": {
+    "mtime": 1785331575.4714508,
+    "ast_hash": "3ba42bc0a29b6cc3eab7eccbd48aa7e1",
     "semantic_hash": ""
   }
 }
