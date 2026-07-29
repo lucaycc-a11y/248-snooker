@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import GalleryScroll from "@/components/landing/GalleryScroll";
 import {
   Target,
   Lightbulb,
@@ -117,6 +118,9 @@ export default function VenueContent() {
           </motion.p>
         </div>
       </section>
+
+      {/* ── GalleryScroll — 場地。逐一看。 pinned image + scroll swap ── */}
+      <GalleryScroll />
 
       {/* ── Facilities — white ── */}
       <section
