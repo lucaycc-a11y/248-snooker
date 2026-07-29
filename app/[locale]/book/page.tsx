@@ -2538,6 +2538,16 @@ export default function BookPage() {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  zIndex: 120,
+                  background: tokens.colors.bg,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "auto",
+                }}
               >
                 <Screen2
                   onSuccess={advance}
@@ -2656,7 +2666,8 @@ export default function BookPage() {
           display: flex;
           flex-direction: column;
           justify-content: center;
-          min-height: calc(100dvh - 76px);
+          min-height: 100dvh;
+          padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
         }
         .dual-row {
           display: grid;

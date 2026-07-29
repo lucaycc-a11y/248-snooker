@@ -153,9 +153,11 @@ export default function Hero() {
           {t("subline")}
         </motion.p>
 
-        {/* CTA buttons — pop in with bounce after headline appears */}
+        {/* CTA buttons — pop in with bounce after headline appears.
+            A semi-transparent backdrop keeps the buttons legible over the
+            pool-table hero graphic (pocket/triangle overlap). */}
         <motion.div
-          className="mt-10 md:mt-14 flex w-full flex-col items-center justify-center gap-3 sm:flex-row"
+          className="mt-10 md:mt-14"
           initial={{ opacity: 0, scale: 0.90 }}
           animate={showButtons ? { opacity: 1, scale: 1 } : {}}
           transition={{
@@ -163,36 +165,35 @@ export default function Hero() {
             ease: [0.34, 1.56, 0.64, 1],
           }}
         >
-          <Link
-            href="/book"
-            prefetch
-            className="flex min-h-11 w-full items-center justify-center px-[25px] py-[14px] text-[13px] transition-[transform,filter] duration-200 hover:scale-[1.03] hover:brightness-[1.08] active:scale-95 sm:w-auto md:px-[28px] md:py-[12px] md:text-[15px]"
-            style={{
-              background: GREEN,
-              color: "#000",
-              borderRadius: "100px",
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              textDecoration: "none",
-            }}
-          >
-            {t("cta_book")}
-          </Link>
+          <div className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center gap-3 rounded-full bg-black/40 px-3 py-2.5 backdrop-blur-sm sm:px-4 sm:py-3">
+            <Link
+              href="/book"
+              prefetch
+              className="flex min-h-11 items-center justify-center rounded-full px-6 py-3 text-[13px] font-bold leading-none transition-[transform,filter] duration-200 hover:scale-[1.03] hover:brightness-[1.08] active:scale-95 md:px-7 md:py-3 md:text-[15px]"
+              style={{
+                background: GREEN,
+                color: "#000",
+                letterSpacing: "-0.01em",
+                textDecoration: "none",
+              }}
+            >
+              {t("cta_book")}
+            </Link>
 
-          <Link
-            href="/venue"
-            className="flex w-full items-center justify-center gap-2 px-[22px] py-[10px] text-[13px] transition-colors duration-200 hover:bg-white/[0.08] active:scale-[0.97] sm:w-auto md:px-[28px] md:py-[12px] md:text-[15px]"
-            style={{
-              background: "transparent",
-              border: "1px solid rgba(255,255,255,0.28)",
-              color: "rgba(255,255,255,0.82)",
-              borderRadius: "100px",
-              fontWeight: 400,
-              textDecoration: "none",
-            }}
-          >
-            {t("cta_learn")}
-          </Link>
+            <Link
+              href="/venue"
+              className="flex items-center justify-center rounded-full border px-6 py-3 text-[13px] leading-none transition-colors duration-200 hover:bg-white/[0.08] active:scale-[0.97] md:px-7 md:py-3 md:text-[15px]"
+              style={{
+                background: "transparent",
+                border: "1px solid rgba(255,255,255,0.28)",
+                color: "rgba(255,255,255,0.82)",
+                fontWeight: 400,
+                textDecoration: "none",
+              }}
+            >
+              {t("cta_learn")}
+            </Link>
+          </div>
         </motion.div>
       </div>
     </section>
