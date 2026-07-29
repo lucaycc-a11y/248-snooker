@@ -121,12 +121,14 @@ export default function GalleryScroll() {
     }
 
     function sizeStage() {
+      const s = stageRef.current;
+      if (!s) return;
       if (!isPinned()) {
-        stage.style.height = "auto";
+        s.style.height = "auto";
         return;
       }
       const vh = window.innerHeight;
-      stage.style.height = Math.round(vh * (1 + (n - 1) * STEP_VH + 0.35)) + "px";
+      s.style.height = Math.round(vh * (1 + (n - 1) * STEP_VH + 0.35)) + "px";
     }
 
     function revealTo(i: number) {
@@ -144,15 +146,15 @@ export default function GalleryScroll() {
       if (reduce) return;
 
       if (!isPinned()) {
-        const scrolledM = Math.max(0, (window.pageYOffset || 0) - stage.offsetTop);
-        const gapM = Math.max(110, Math.round(stage.offsetHeight * 0.5 / n));
+        const scrolledM = Math.max(0, (window.pageYOffset || 0) - stage!.offsetTop);
+        const gapM = Math.max(110, Math.round(stage!.offsetHeight * 0.5 / n));
         revealTo(Math.min(n - 1, Math.floor(scrolledM / gapM)));
         return;
       }
 
       const vh = window.innerHeight;
-      const rect = stage.getBoundingClientRect();
-      const total = stage.offsetHeight - vh;
+      const rect = stage!.getBoundingClientRect();
+      const total = stage!.offsetHeight - vh;
       if (total <= 0) return;
 
       const scrolled = Math.max(0, Math.min(total, -rect.top));
