@@ -306,6 +306,9 @@ export default function AboutContent() {
   const compareRef = useRef<HTMLDivElement>(null);
   const philRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const statRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   /* ── Reduced motion check ── */
   const [reduceMotion, setReduceMotion] = useState(false);
