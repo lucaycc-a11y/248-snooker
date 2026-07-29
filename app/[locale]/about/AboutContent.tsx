@@ -34,110 +34,6 @@ const WHATSAPP_URL = "https://wa.me/85264274620";
 const EMAIL = "info.formhk@gmail.com";
 const PHONE = "+852 6427 4620";
 
-/* ── CSS for room comparison section ── */
-const COMPARE_CSS = `
-.room-compare-section {
-  background: #1d1d1f;
-  padding: clamp(80px, 10vw, 130px) 24px;
-}
-.room-compare-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.room-compare-title {
-  font-family: 'Noto Sans TC', 'SF Pro Display', sans-serif;
-  font-weight: 900;
-  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
-  color: #f5f2ec;
-  margin-bottom: 12px;
-}
-.room-compare-sub {
-  font-size: 14.5px;
-  color: rgba(245, 242, 236, 0.5);
-  margin-bottom: 48px;
-}
-.room-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-.room-card {
-  position: relative;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #0d0d0f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  opacity: 0;
-  transform: translateY(24px) scale(0.95);
-  transition: opacity 0.7s cubic-bezier(.34,1.56,.64,1),
-              transform 0.7s cubic-bezier(.34,1.56,.64,1),
-              box-shadow 0.6s ease;
-  will-change: transform, opacity;
-}
-.room-card.is-in { opacity: 1; transform: none; }
-.room-card:nth-child(1) { transition-delay: 0s; }
-.room-card:nth-child(2) { transition-delay: 0.18s; }
-.room-card.is-in {
-  box-shadow: 0 0 0 0 rgba(34, 184, 107, 0);
-  animation: roomShadowPulse 0.9s ease-out;
-}
-.room-card:nth-child(2).is-in { animation-delay: 0.18s; }
-@keyframes roomShadowPulse {
-  0% { box-shadow: 0 0 0 0 rgba(34, 184, 107, 0.3); }
-  30% { box-shadow: 0 0 30px 6px rgba(34, 184, 107, 0.15); }
-  100% { box-shadow: 0 0 0 0 rgba(34, 184, 107, 0); }
-}
-.room-card-image {
-  position: relative; width: 100%; aspect-ratio: 16 / 11; overflow: hidden;
-  opacity: 0; transform: translateY(12px) scale(0.97);
-  transition: opacity 0.6s cubic-bezier(.34,1.56,.64,1), transform 0.6s cubic-bezier(.34,1.56,.64,1);
-}
-.room-card.is-in .room-card-image { opacity: 1; transform: none; transition-delay: 0.08s; }
-.room-card-body { padding: 28px 28px 34px; }
-.room-card-name {
-  font-family: 'Inter', sans-serif; font-weight: 700; font-size: clamp(20px, 2.5vw, 26px);
-  color: #f5f2ec; margin: 0 0 4px;
-  opacity: 0; transform: translateY(8px);
-  transition: opacity 0.5s cubic-bezier(.34,1.56,.64,1), transform 0.5s cubic-bezier(.34,1.56,.64,1);
-}
-.room-card.is-in .room-card-name { opacity: 1; transform: none; transition-delay: 0.2s; }
-.room-card-name-sub {
-  font-family: 'Noto Sans TC', sans-serif; font-size: 13px; color: rgba(245,242,236,0.4); margin: 0 0 20px;
-  opacity: 0; transform: translateY(6px);
-  transition: opacity 0.5s cubic-bezier(.34,1.56,.64,1), transform 0.5s cubic-bezier(.34,1.56,.64,1);
-}
-.room-card.is-in .room-card-name-sub { opacity: 1; transform: none; transition-delay: 0.28s; }
-.room-card-specs { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-.room-card-specs li {
-  font-size: 14px; color: rgba(245,242,236,0.6); padding-left: 18px; position: relative;
-  opacity: 0; transform: translateY(6px);
-  transition: opacity 0.45s cubic-bezier(.34,1.56,.64,1), transform 0.45s cubic-bezier(.34,1.56,.64,1);
-}
-.room-card-specs li::before {
-  content: ''; position: absolute; left: 0; top: 7px; width: 5px; height: 5px;
-  border-radius: 50%; background: rgba(34,184,107,0.5);
-}
-.room-card.is-in .room-card-specs li { opacity: 1; transform: none; }
-.room-card.is-in .room-card-specs li:nth-child(1) { transition-delay: 0.36s; }
-.room-card.is-in .room-card-specs li:nth-child(2) { transition-delay: 0.44s; }
-.room-card.is-in .room-card-specs li:nth-child(3) { transition-delay: 0.52s; }
-.room-card.is-in .room-card-specs li:nth-child(4) { transition-delay: 0.60s; }
-.room-card.is-in .room-card-specs li:nth-child(5) { transition-delay: 0.68s; }
-@media (max-width: 720px) {
-  .room-grid { grid-template-columns: 1fr; }
-  .room-card:nth-child(2) { transition-delay: 0.12s; }
-  .room-card:nth-child(2).is-in { animation-delay: 0.12s; }
-  .room-card.is-in .room-card-image { transition-delay: 0.06s; }
-  .room-card.is-in .room-card-name { transition-delay: 0.14s; }
-  .room-card.is-in .room-card-name-sub { transition-delay: 0.2s; }
-  .room-card.is-in .room-card-specs li:nth-child(1) { transition-delay: 0.24s; }
-  .room-card.is-in .room-card-specs li:nth-child(2) { transition-delay: 0.30s; }
-  .room-card.is-in .room-card-specs li:nth-child(3) { transition-delay: 0.36s; }
-  .room-card.is-in .room-card-specs li:nth-child(4) { transition-delay: 0.42s; }
-  .room-card.is-in .room-card-specs li:nth-child(5) { transition-delay: 0.48s; }
-}
-`;
-
 /* ── CSS for facilities carousel ── */
 const FACILITIES_CSS = `
 .car-section { background: #e8e8e8; padding: 120px 0 130px; overflow: hidden; }
@@ -310,6 +206,13 @@ export default function AboutContent() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
+  const [activeSlide, setActiveSlide] = useState(0);
+  const totalSlides = facilitiesItems.length;
+
+  /* ── Rotating words (hero) ── */
+  const rotatingWords = t.raw("hero_rotating_words") as string[];
+  const [wordIdx, setWordIdx] = useState(0);
+
   /* ── Reduced motion check ── */
   const [reduceMotion, setReduceMotion] = useState(false);
   useEffect(() => {
@@ -319,30 +222,6 @@ export default function AboutContent() {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
-
-  /* ── IntersectionObserver for room comparison ── */
-  useEffect(() => {
-    const el = compareRef.current;
-    if (!el) return;
-    if (reduceMotion || !("IntersectionObserver" in window)) {
-      el.classList.add("is-in");
-      document.querySelectorAll(".room-card").forEach((c) => c.classList.add("is-in"));
-      return;
-    }
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (!e.isIntersecting) return;
-          el.classList.add("is-in");
-          document.querySelectorAll(".room-card").forEach((c) => c.classList.add("is-in"));
-          obs.unobserve(e.target);
-        });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [reduceMotion]);
 
   /* ── IntersectionObserver for philosophy section ── */
   useEffect(() => {
