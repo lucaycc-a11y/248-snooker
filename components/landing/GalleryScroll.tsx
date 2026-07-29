@@ -152,8 +152,6 @@ export default function GalleryScroll() {
   }, [isMobile]);
 
   // ── Play/pause video when activeIndex changes ──
-  // Video only plays while item 0 (professional table) is active;
-  // paused when user scrolls past to items 1-3.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -181,7 +179,7 @@ export default function GalleryScroll() {
         transitionDelay: `${i * 0.08}s`,
       }}
     >
-      {/* Image */}
+      {/* Image — full-bleed style */}
       <div
         style={{
           position: "relative",
@@ -256,6 +254,42 @@ export default function GalleryScroll() {
     </div>
   );
 
+  // ── Desktop step state: dimmed / active / passed ──
+  const stepState = (i: number) => {
+    if (i === activeIndex) return "active";
+    if (i < activeIndex) return "passed";
+    return "upcoming";
+  };
+
+  const stepStyle = (state: "active" | "passed" | "upcoming") => {
+    switch (state) {
+      case "active":
+        return {
+          dotBorder: "rgba(34,197,94,0.5)",
+          dotColor: "#22C55E",
+          dotBg: "rgba(34,197,94,0.1)",
+          titleColor: "white",
+          subColor: "rgba(245,242,236,0.6)",
+        };
+      case "passed":
+        return {
+          dotBorder: "rgba(245,242,236,0.25)",
+          dotColor: "rgba(245,242,236,0.5)",
+          dotBg: "transparent",
+          titleColor: "rgba(245,242,236,0.7)",
+          subColor: "rgba(245,242,236,0.4)",
+        };
+      case "upcoming":
+        return {
+          dotBorder: "rgba(245,242,236,0.10)",
+          dotColor: "rgba(245,242,236,0.20)",
+          dotBg: "transparent",
+          titleColor: "rgba(245,242,236,0.25)",
+          subColor: "rgba(245,242,236,0.18)",
+        };
+    }
+  };
+
   return (
     <section
       ref={secRef}
@@ -309,7 +343,7 @@ export default function GalleryScroll() {
           </div>
         </div>
       ) : (
-        /* ── Desktop: 2-column grid, pinned media, scroll-synced swap ── */
+        /* ── Desktop: 2-column layout, all 4 steps visible, large sticky image ── */
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
           {/* ── Section title — full-width row above grid, never overlapped ── */}
           <h2
@@ -329,123 +363,113 @@ export default function GalleryScroll() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 44,
+              gridTemplateColumns: "1fr 1.1fr",
+              gap: 48,
               alignItems: "start",
             }}
           >
-            {/* Left: all 4 text items, visible at once */}
+            {/* Left: all 4 numbered steps, visible at once with dimmed/active/passed states */}
             <div
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 40,
+                gap: 36,
               }}
             >
-              {slides.map((slide, i) => (
-                <div
-                  key={slide.title}
-                  ref={(el) => {
-                    itemsRef.current[i] = el;
-                  }}
-                  data-index={i}
-                  onClick={() => setActiveIndex(i)}
-                  className="gs-item"
-                  style={{
-                    display: "flex",
-                    gap: 20,
-                    alignItems: "flex-start",
-                    cursor: "pointer",
-                    opacity: 0,
-                    transform: "translateY(20px) scale(0.95)",
-                    transition:
-                      "opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1)",
-                  }}
-                >
-                  {/* Numbered marker */}
-                  <span
+              {slides.map((slide, i) => {
+                const state = stepState(i);
+                const s = stepStyle(state);
+                return (
+                  <div
+                    key={slide.title}
+                    ref={(el) => {
+                      itemsRef.current[i] = el;
+                    }}
+                    data-index={i}
+                    onClick={() => setActiveIndex(i)}
+                    className="gs-item"
                     style={{
-                      flexShrink: 0,
-                      width: 42,
-                      height: 42,
-                      borderRadius: "50%",
-                      border: `1px solid ${
-                        i === activeIndex
-                          ? "rgba(34,197,94,0.5)"
-                          : "rgba(245,242,236,0.13)"
-                      }`,
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color:
-                        i === activeIndex
-                          ? "#22C55E"
-                          : "rgba(245,242,236,0.28)",
-                      background:
-                        i === activeIndex
-                          ? "rgba(34,197,94,0.1)"
-                          : "transparent",
+                      gap: 20,
+                      alignItems: "flex-start",
+                      cursor: "pointer",
+                      opacity: 0,
+                      transform: "translateY(20px) scale(0.95)",
                       transition:
-                        "all 0.4s cubic-bezier(0.16,1,0.3,1)",
-                      marginTop: 2,
+                        "opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1)",
                     }}
                   >
-                    {i + 1}
-                  </span>
+                    {/* Numbered marker */}
+                    <span
+                      style={{
+                        flexShrink: 0,
+                        width: 42,
+                        height: 42,
+                        borderRadius: "50%",
+                        border: `1px solid ${s.dotBorder}`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: s.dotColor,
+                        background: s.dotBg,
+                        transition:
+                          "all 0.4s cubic-bezier(0.16,1,0.3,1)",
+                        marginTop: 2,
+                      }}
+                    >
+                      {i + 1}
+                    </span>
 
-                  {/* Text content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h3
-                      style={{
-                        fontSize: "clamp(17px, 2vw, 20px)",
-                        fontWeight: 700,
-                        color:
-                          i === activeIndex
-                            ? "white"
-                            : "rgba(245,242,236,0.28)",
-                        margin: "0 0 8px",
-                        lineHeight: 1.3,
-                        transition:
-                          "color 0.4s cubic-bezier(0.16,1,0.3,1)",
-                      }}
-                    >
-                      {slide.title}
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: 14.5,
-                        lineHeight: 1.8,
-                        color:
-                          i === activeIndex
-                            ? "rgba(245,242,236,0.6)"
-                            : "rgba(245,242,236,0.28)",
-                        margin: 0,
-                        maxWidth: "34ch",
-                        transition:
-                          "color 0.4s cubic-bezier(0.16,1,0.3,1)",
-                      }}
-                    >
-                      {slide.subtitle}
-                    </p>
+                    {/* Text content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h3
+                        style={{
+                          fontSize: "clamp(17px, 2vw, 20px)",
+                          fontWeight: 700,
+                          color: s.titleColor,
+                          margin: "0 0 8px",
+                          lineHeight: 1.3,
+                          transition:
+                            "color 0.4s cubic-bezier(0.16,1,0.3,1)",
+                        }}
+                      >
+                        {slide.title}
+                      </h3>
+                      <p
+                        style={{
+                          fontSize: 14.5,
+                          lineHeight: 1.8,
+                          color: s.subColor,
+                          margin: 0,
+                          maxWidth: "34ch",
+                          transition:
+                            "color 0.4s cubic-bezier(0.16,1,0.3,1)",
+                        }}
+                      >
+                        {slide.subtitle}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Right: sticky pinned media with crossfade (video for item 1, images for 2-4) */}
+            {/* Right: LARGE sticky pinned media with crossfade */}
             <div
               style={{
                 position: "sticky",
-                top: "55%",
+                top: "50%",
                 transform: "translateY(-50%)",
                 alignSelf: "start",
-                borderRadius: 18,
+                borderRadius: 20,
                 overflow: "hidden",
                 border: "1px solid rgba(245,242,236,0.13)",
                 background: "#0b0b0d",
                 aspectRatio: "4 / 3",
+                width: "100%",
+                minHeight: 360,
               }}
             >
               {/* Video element — always mounted, shown/hidden via opacity */}
