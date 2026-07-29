@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import {
   Target,
@@ -271,6 +272,23 @@ const SITE_CSS = `
   pointer-events: none;
 }
 .compare-label.right { z-index: 1; }
+.compare-label.center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.7rem, 7vw, 4.6rem);
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  color: #ffffff;
+  text-shadow: 0 4px 30px rgba(0,0,0,0.55);
+  pointer-events: none;
+  z-index: 6;
+}
 .compare-handle {
   position: absolute;
   top: 0; bottom: 0;
@@ -1157,7 +1175,7 @@ export default function VenueContent() {
               SPACE<br />ETERNITY
             </div>
 
-            {/* Clip overlay (Space Infinity side) */}
+            {/* Clip overlay (Space Infinity side) — no label inside, rendered as unified overlay below */}
             <div className="compare-clip" id="compareClip" style={{ width: `${sliderPos}%` }}>
               <div className="compare-clip-inner" id="compareClipInner">
                 <Image
@@ -1168,8 +1186,10 @@ export default function VenueContent() {
                   priority
                 />
               </div>
-              <div className="compare-label left">SPACE<br />INFINITY</div>
             </div>
+
+            {/* Unified overlay label — always full, never clipped by the slider */}
+            <div className="compare-label center">SPACE<br />INFINITY</div>
 
             {/* Handle */}
             <div className="compare-handle" id="compareHandle" style={{ left: `${sliderPos}%` }}>
