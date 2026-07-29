@@ -523,9 +523,9 @@ body {
   padding: 28px 24px 30px;
   box-shadow: 0 1px 3px rgba(17,17,16,0.04);
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .8s cubic-bezier(.2,.7,.3,1),
-              transform .8s cubic-bezier(.2,.7,.3,1),
+  transform: translateY(24px) scale(0.95);
+  transition: opacity .55s cubic-bezier(.34,1.56,.64,1),
+              transform .55s cubic-bezier(.34,1.56,.64,1),
               border-color .35s ease,
               box-shadow .35s ease;
 }
@@ -840,6 +840,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .pi-card, .pi-actions { opacity: 1; transform: none; }
   .si-message svg, .si-instagram svg, .si-pin svg, .si-clock svg,
   .si-target svg, .si-phone svg, .si-check svg, .si-mail svg,
   .si-bulb svg, .si-therm svg, .si-wifi svg, .si-cup svg,

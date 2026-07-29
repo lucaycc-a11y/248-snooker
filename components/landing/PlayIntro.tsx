@@ -206,6 +206,17 @@ export default function PlayIntro() {
           </Link>
         </div>
       </div>
+
+      <style>{`
+        .pi-section.is-in .pi-card { opacity: 1 !important; transform: none !important; }
+        .pi-section.is-in .pi-card:nth-child(1) { transition-delay: .06s; }
+        .pi-section.is-in .pi-card:nth-child(2) { transition-delay: .14s; }
+        .pi-section.is-in .pi-card:nth-child(3) { transition-delay: .22s; }
+        .pi-section.is-in .pi-card:nth-child(4) { transition-delay: .30s; }
+        @media (prefers-reduced-motion: reduce) {
+          .pi-card { opacity: 1 !important; transform: none !important; }
+        }
+      `}</style>
     </section>
   );
 }
