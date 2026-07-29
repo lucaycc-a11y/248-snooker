@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Apple,
-  Wallet,
   CalendarPlus,
   QrCode as QrCodeIcon,
   Undo2,
@@ -258,12 +256,6 @@ export default function MemberDashboard({
             </div>
           </div>
         </motion.div>
-
-        {/* Wallet buttons */}
-        <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
-          <WalletButton icon={<Apple size={18} strokeWidth={2} />} label={t("add_apple_wallet")} cmsKey="member.add_apple_wallet" />
-          <WalletButton icon={<Wallet size={18} strokeWidth={2} />} label={t("add_google_wallet")} cmsKey="member.add_google_wallet" />
-        </div>
 
         {/* ── Points + tier progress ── */}
         <div
@@ -530,37 +522,6 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
         </button>
       </div>
     </header>
-  );
-}
-
-function WalletButton({ icon, label, cmsKey }: { icon: React.ReactNode; label: string; cmsKey: string }) {
-  return (
-    <button
-      type="button"
-      data-cms-key={cmsKey}
-      style={{
-        flex: "1 1 160px",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "8px",
-        minHeight: 48,
-        padding: "0 18px",
-        borderRadius: "12px",
-        border: `1px solid ${HAIRLINE}`,
-        background: GLASS_BG,
-        backdropFilter: GLASS_BLUR,
-        WebkitBackdropFilter: GLASS_BLUR,
-        color: INK,
-        fontSize: "14px",
-        fontWeight: 600,
-        cursor: "pointer",
-        fontFamily: FONT_FAMILY,
-      }}
-    >
-      {icon}
-      {label}
-    </button>
   );
 }
 

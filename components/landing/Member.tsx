@@ -27,8 +27,8 @@ const ICON_PROPS = {
 
 const UserIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <circle cx="24" cy="16" r="8" />
-    <path d="M10 40c0-7.7 6.3-14 14-14s14 6.3 14 14" />
+    <circle className="pi-user" cx="24" cy="16" r="8" />
+    <path className="pi-user" d="M10 40c0-7.7 6.3-14 14-14s14 6.3 14 14" />
   </svg>
 );
 
@@ -42,7 +42,8 @@ const TrophyIcon = (
 
 const StarIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <path d="M24 6l5.6 11.4L42 19l-9 8.8L35.2 40 24 34.2 12.8 40 15 27.8 6 19l12.4-1.6z" />
+    <path className="pi-star-rating" d="M24 6l5.6 11.4L42 19l-9 8.8L35.2 40 24 34.2 12.8 40 15 27.8 6 19l12.4-1.6z" />
+    <circle className="pi-star-rating-glow" cx="24" cy="23" r="14" fill="currentColor" stroke="none" opacity="0.15" />
   </svg>
 );
 

@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Hero from "@/components/landing/Hero";
-import Gallery from "@/components/landing/Gallery";
+import GalleryScroll from "@/components/landing/GalleryScroll";
 import HowItWorks from "@/components/landing/HowItWorks";
-import PeriodPricingSections from "@/components/pricing/PeriodPricingSections";
+import HomePricing from "@/components/landing/HomePricing";
 import { getConfig } from "@/lib/data/getConfig";
 import Member from "@/components/landing/Member";
-import FAQ from "@/components/landing/FAQ";
+import HomeFAQ from "@/components/landing/HomeFAQ";
 import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
@@ -100,8 +100,6 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const t = await getTranslations({ locale, namespace: 'faq' });
-  const faqJsonLd = getFaqJsonLd(t, HOMEPAGE_FAQ_IDS);
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`);
   const config = await getConfig();
 
@@ -111,9 +109,9 @@ export default async function Home({
       <AmbientGlow />
       <Nav />
       <Hero />
-      <Gallery />
+      <GalleryScroll />
       <HowItWorks />
-      <PeriodPricingSections periods={config.periods} />
+      <HomePricing periods={config.periods} />
 
       {/* Learn More scroll target — zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />
@@ -123,7 +121,7 @@ export default async function Home({
 
       {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
           a "了解更多" link to the full /faq page. */}
-      <FAQ jsonLd={faqJsonLd} ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" />
+      <HomeFAQ ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" />
 
       <Footer />
 

@@ -29,16 +29,16 @@ const CalendarClockIcon = (
     <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5" />
     <path d="M16 2v4M8 2v4M3 10h18" />
     <circle cx="16" cy="16" r="6" />
-    <path d="M16 14v2l1.5 1" />
+    <path className="pi-calendar-hand" d="M16 14v2l1.5 1" />
   </svg>
 );
 
 // lucide QrCode
 const QrCodeIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <rect x="3" y="3" width="5" height="5" rx="1" />
-    <rect x="16" y="3" width="5" height="5" rx="1" />
-    <rect x="3" y="16" width="5" height="5" rx="1" />
+    <rect className="pi-qr-shimmer" x="3" y="3" width="5" height="5" rx="1" />
+    <rect className="pi-qr-shimmer" x="16" y="3" width="5" height="5" rx="1" />
+    <rect className="pi-qr-shimmer" x="3" y="16" width="5" height="5" rx="1" />
     <path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1" />
   </svg>
 );
@@ -46,8 +46,8 @@ const QrCodeIcon = (
 // lucide Trophy
 const TrophyIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+    <path className="pi-trophy" d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+    <path className="pi-trophy" d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
     <path d="M4 22h16" />
     <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
     <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />

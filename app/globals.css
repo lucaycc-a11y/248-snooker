@@ -231,3 +231,282 @@ body {
 .animate-space8-spin {
   animation: space8-spin 1.4s linear infinite;
 }
+
+/* ──────────────────── Icon animations ────────────────────
+   Each handled via transform-box/transform-origin so the
+   animation stays inside its SVG viewBox. */
+
+/* Sun: core breathes, rays spin & flicker */
+.pi-sun-core { transform-box: fill-box; transform-origin: center;
+  animation: sunBreathe 3.2s ease-in-out infinite; }
+.pi-sun-rays { transform-box: fill-box; transform-origin: center;
+  animation: sunSpin 9s linear infinite; }
+.pi-sun-rays line { animation: rayFlicker 3.2s ease-in-out infinite; }
+.pi-sun-rays line:nth-child(2) { animation-delay: .4s; }
+.pi-sun-rays line:nth-child(3) { animation-delay: .8s; }
+.pi-sun-rays line:nth-child(4) { animation-delay: 1.2s; }
+.pi-sun-rays line:nth-child(5) { animation-delay: 1.6s; }
+.pi-sun-rays line:nth-child(6) { animation-delay: 2.0s; }
+.pi-sun-rays line:nth-child(7) { animation-delay: 2.4s; }
+.pi-sun-rays line:nth-child(8) { animation-delay: 2.8s; }
+@keyframes sunSpin { to { transform: rotate(360deg); } }
+@keyframes sunBreathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes rayFlicker { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* Bolt: draw stroke + glow flash */
+.pi-bolt { stroke-dasharray: 46;
+  animation: boltDraw 2.6s cubic-bezier(.4,.1,.3,1) infinite; }
+.pi-bolt-glow { transform-box: fill-box; transform-origin: center;
+  animation: boltFlash 2.6s ease-in-out infinite; }
+@keyframes boltDraw {
+  0% { stroke-dashoffset: 46; }
+  45% { stroke-dashoffset: 0; }
+  80% { stroke-dashoffset: 0; opacity: 1; }
+  92% { opacity: .35; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes boltFlash {
+  0%,72%,100% { opacity: 0; transform: scale(.7); }
+  80% { opacity: .55; transform: scale(1.5); }
+}
+
+/* Moon: gentle rock */
+.pi-moon { transform-box: fill-box; transform-origin: 60% 60%;
+  animation: moonRock 5s ease-in-out infinite; }
+@keyframes moonRock {
+  0%,100% { transform: rotate(-7deg); }
+  50% { transform: rotate(7deg); }
+}
+
+/* Stars: twinkle */
+.pi-star { transform-box: fill-box; transform-origin: center; opacity: 0;
+  animation: starTwinkle 3.4s ease-in-out infinite; }
+.pi-star2 { animation-delay: 1.5s; }
+@keyframes starTwinkle {
+  0%,100% { opacity: 0; transform: scale(.5); }
+  30% { opacity: 1; transform: scale(1); }
+  60% { opacity: 0; transform: scale(.6); }
+}
+
+/* Calendar clock: hour hand sweep */
+.pi-calendar-hand { transform-box: fill-box; transform-origin: 16px 16px;
+  animation: handSweep 4s linear infinite; }
+@keyframes handSweep {
+  to { transform: rotate(360deg); }
+}
+
+/* QR code: subtle shimmer across the squares */
+.pi-qr-shimmer { animation: qrPulse 3s ease-in-out infinite; }
+.pi-qr-shimmer:nth-child(2) { animation-delay: .5s; }
+.pi-qr-shimmer:nth-child(3) { animation-delay: 1s; }
+.pi-qr-shimmer:nth-child(4) { animation-delay: 1.5s; }
+@keyframes qrPulse {
+  0%,100% { opacity: .6; }
+  50% { opacity: 1; }
+}
+
+/* Trophy: gentle lift */
+.pi-trophy { transform-box: fill-box; transform-origin: center bottom;
+  animation: trophyLift 3s ease-in-out infinite; }
+@keyframes trophyLift {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* User icon: subtle breathe */
+.pi-user { transform-box: fill-box; transform-origin: center;
+  animation: userBreathe 4s ease-in-out infinite; }
+@keyframes userBreathe {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+/* Star rating: spin + glow */
+.pi-star-rating { transform-box: fill-box; transform-origin: center;
+  animation: starSpin 6s linear infinite; }
+.pi-star-rating-glow { animation: starGlow 3s ease-in-out infinite; }
+@keyframes starSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes starGlow {
+  0%,100% { opacity: .6; }
+  50% { opacity: 1; }
+}
+
+/* ──── Primary CTA: shine-sweep + breathing halo ──── */
+.pbtn-primary {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .35s ease;
+}
+.pbtn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg,
+    transparent 20%,
+    rgba(255,255,255,0.25) 45%,
+    rgba(255,255,255,0.35) 50%,
+    rgba(255,255,255,0.25) 55%,
+    transparent 80%
+  );
+  background-size: 300% 100%;
+  animation: shineSweep 4s ease-in-out infinite;
+  pointer-events: none;
+}
+.pbtn-primary::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at center, rgba(34,184,107,0.35), transparent 70%);
+  opacity: 0;
+  z-index: -1;
+  animation: breathHalo 3s ease-in-out infinite;
+}
+.pbtn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px -12px rgba(26,157,92,0.75);
+}
+@keyframes shineSweep {
+  0% { background-position: 200% 0; }
+  50% { background-position: -100% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes breathHalo {
+  0%,100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+/* ──── Ghost button: center-fill on hover ──── */
+.pbtn-ghost {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform .35s cubic-bezier(.2,.7,.3,1), border-color .3s ease;
+}
+.pbtn-ghost::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform .45s cubic-bezier(.2,.7,.3,1), opacity .3s ease;
+  z-index: -1;
+}
+.pbtn-ghost:hover {
+  transform: translateY(-2px);
+}
+.pbtn-ghost:hover::before {
+  opacity: .08;
+  transform: scaleX(1);
+}
+
+/* ──── Scroll-reveal via IntersectionObserver ──── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .8s cubic-bezier(.2,.7,.3,1),
+              transform .8s cubic-bezier(.2,.7,.3,1);
+}
+.scroll-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+.scroll-reveal-delay-1 { transition-delay: .06s; }
+.scroll-reveal-delay-2 { transition-delay: .18s; }
+.scroll-reveal-delay-3 { transition-delay: .30s; }
+.scroll-reveal-delay-4 { transition-delay: .42s; }
+
+/* ──── FAQ accordion ──── */
+.faq-item { border-bottom: 1px solid rgba(17,17,16,0.14); }
+.faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: none;
+  border: 0;
+  padding: 26px 4px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: #111110;
+  transition: color .3s ease;
+}
+.faq-q:hover { color: #1a9d5c; }
+.faq-q span {
+  font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  font-size: clamp(15px, 1.85vw, 17.5px);
+  line-height: 1.5;
+}
+.faq-icon-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+}
+.faq-icon-wrap::before,
+.faq-icon-wrap::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  background: currentColor;
+  border-radius: 2px;
+  transition: transform .4s cubic-bezier(.2,.7,.3,1), opacity .3s ease;
+}
+.faq-icon-wrap::before {
+  width: 15px; height: 1.8px;
+  transform: translate(-50%,-50%);
+}
+.faq-icon-wrap::after {
+  width: 1.8px; height: 15px;
+  transform: translate(-50%,-50%);
+}
+.faq-item.is-open .faq-icon-wrap::after {
+  transform: translate(-50%,-50%) rotate(90deg);
+  opacity: 0;
+}
+.faq-item.is-open .faq-q { color: #1a9d5c; }
+.faq-answer {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .5s cubic-bezier(.3,.8,.35,1);
+}
+.faq-answer-inner {
+  padding: 0 4px 28px;
+  font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.9;
+  color: rgba(17,17,16,0.62);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity .45s ease .05s, transform .45s ease .05s;
+}
+.faq-item.is-open .faq-answer-inner {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ──── Reduced motion ──── */
+@media (prefers-reduced-motion: reduce) {
+  .pi-sun-core, .pi-sun-rays, .pi-sun-rays line,
+  .pi-bolt, .pi-bolt-glow, .pi-moon, .pi-star,
+  .pi-calendar-hand, .pi-qr-shimmer, .pi-trophy,
+  .pi-user, .pi-star-rating, .pi-star-rating-glow {
+    animation: none !important;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+  .pbtn-primary::before, .pbtn-primary::after { display: none; }
+  .pbtn-ghost::before { display: none; }
+  .scroll-reveal { opacity: 1; transform: none; transition: none; }
+  .faq-answer { transition: none; }
+  .faq-answer-inner { transition: none; }
+}
