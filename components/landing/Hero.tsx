@@ -19,6 +19,7 @@ const HEADLINE_GRADIENT: React.CSSProperties = {
 
 export default function Hero() {
   const [showHeadline, setShowHeadline] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
   // Video plays once per page load (no loop). When it ends it cross-fades
   // into the static poster frame underneath — no abrupt freeze on the last
   // frame. A full page reload resets this state, so the video replays then.
@@ -29,6 +30,12 @@ export default function Hero() {
     const timer = setTimeout(() => setShowHeadline(true), 1500);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!showHeadline) return;
+    const timer = setTimeout(() => setShowButtons(true), 300);
+    return () => clearTimeout(timer);
+  }, [showHeadline]);
 
   return (
     <section
@@ -146,8 +153,16 @@ export default function Hero() {
           {t("subline")}
         </motion.p>
 
-        {/* CTA buttons — directly below headline, centred on all screens */}
-        <div className="mt-10 md:mt-14 flex w-full flex-col items-center justify-center gap-3 sm:flex-row">
+        {/* CTA buttons — pop in with bounce after headline appears */}
+        <motion.div
+          className="mt-10 md:mt-14 flex w-full flex-col items-center justify-center gap-3 sm:flex-row"
+          initial={{ opacity: 0, scale: 0.90 }}
+          animate={showButtons ? { opacity: 1, scale: 1 } : {}}
+          transition={{
+            duration: 0.55,
+            ease: [0.34, 1.56, 0.64, 1],
+          }}
+        >
           <Link
             href="/book"
             prefetch
@@ -178,7 +193,7 @@ export default function Hero() {
           >
             {t("cta_learn")}
           </Link>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -32,13 +32,40 @@ export default function GalleryScroll() {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [isIn, setIsIn] = useState(false);
   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const secRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // ── Section-level entrance: pop in all 4 items once ──
+  useEffect(() => {
+    const el = secRef.current;
+    if (!el) return;
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      !("IntersectionObserver" in window)
+    ) {
+      setIsIn(true);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          setIsIn(true);
+          obs.unobserve(e.target);
+        });
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   // ── Desktop: IntersectionObserver for scroll-synced image swap ──
@@ -78,6 +105,8 @@ export default function GalleryScroll() {
 
   return (
     <section
+      ref={secRef}
+      className={`gs-section ${isIn ? "is-in" : ""}`}
       data-nav-theme="dark"
       style={{
         background: "#1C1C1E",
@@ -107,10 +136,14 @@ export default function GalleryScroll() {
             {slides.map((slide, i) => (
               <div
                 key={slide.title}
+                className="gs-item"
                 style={{
                   display: "flex",
                   flexDirection: "column",
                   gap: 16,
+                  opacity: 0,
+                  transform: "translateY(16px) scale(0.97)",
+                  transition: "opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1)",
                 }}
               >
                 {/* Text row */}
@@ -212,11 +245,15 @@ export default function GalleryScroll() {
                   }}
                   data-index={i}
                   onClick={() => setActiveIndex(i)}
+                  className="gs-item"
                   style={{
                     display: "flex",
                     gap: 20,
                     alignItems: "flex-start",
                     cursor: "pointer",
+                    opacity: 0,
+                    transform: "translateY(20px) scale(0.95)",
+                    transition: "opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1)",
                   }}
                 >
                   {/* Numbered marker */}
@@ -325,6 +362,17 @@ export default function GalleryScroll() {
           </div>
         )}
       </div>
+
+      <style>{`
+        .gs-section.is-in .gs-item { opacity: 1 !important; transform: none !important; }
+        .gs-section.is-in .gs-item:nth-child(1) { transition-delay: .04s; }
+        .gs-section.is-in .gs-item:nth-child(2) { transition-delay: .12s; }
+        .gs-section.is-in .gs-item:nth-child(3) { transition-delay: .20s; }
+        .gs-section.is-in .gs-item:nth-child(4) { transition-delay: .28s; }
+        @media (prefers-reduced-motion: reduce) {
+          .gs-item { opacity: 1 !important; transform: none !important; }
+        }
+      `}</style>
     </section>
   );
 }

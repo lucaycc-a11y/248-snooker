@@ -131,10 +131,10 @@ export default function AboutContent() {
               return (
                 <motion.div
                   key={item.title}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 24, scale: 0.95 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={VIEWPORT}
-                  transition={{ duration: 0.5, ease: EASE, delay: i * 0.1 }}
+                  transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1], delay: i * 0.1 }}
                 >
                   <Icon size={32} color={GREEN} strokeWidth={1.5} />
                   <h3 style={{ fontSize: "20px", fontWeight: 700, margin: "20px 0 8px", color: DARK }}>
@@ -204,7 +204,7 @@ export default function AboutContent() {
                 initial={{ opacity: 0, scale: 0.97 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={VIEWPORT}
-                transition={{ duration: 0.5, ease: EASE, delay: Math.min(i * 0.06, 0.3) }}
+                transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1], delay: Math.min(i * 0.06, 0.3) }}
                 style={{
                   position: "relative",
                   flexShrink: 0,
@@ -251,10 +251,10 @@ export default function AboutContent() {
           {numbers.map((n, i) => (
             <motion.div
               key={n.label}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 24, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={VIEWPORT}
-              transition={{ duration: 0.5, ease: EASE, delay: i * 0.08 }}
+              transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1], delay: i * 0.08 }}
             >
               <div style={{ fontSize: "clamp(56px, 9vw, 88px)", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: GREEN }}>
                 {n.value}

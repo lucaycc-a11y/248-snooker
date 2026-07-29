@@ -432,10 +432,10 @@ export default function HowItWorks() {
             ref={(el) => {
               cardRefs.current[i] = el;
             }}
-            initial={{ opacity: 0, y: isMobile ? 12 : 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: isMobile ? 12 : 24, scale: isMobile ? 0.97 : 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={VIEWPORT}
-            transition={{ duration: isMobile ? 0.35 : 0.5, ease: EASE, delay: 0.06 * i }}
+            transition={{ duration: isMobile ? 0.35 : 0.5, ease: [0.34, 1.56, 0.64, 1], delay: 0.06 * i }}
             style={{
               position: "relative",
               flex: isMobile ? "0 0 auto" : "1 1 0",

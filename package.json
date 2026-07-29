@@ -11,12 +11,16 @@
     "cms:audit": "node scripts/cms-audit.mjs",
     "cms:sync": "node scripts/cms-sync.mjs",
     "cms:seed": "node scripts/seed-cms-from-messages.mjs",
-    "backfill:human-codes": "node scripts/backfill-human-codes.mjs"
+    "backfill:human-codes": "node scripts/backfill-human-codes.mjs",
+    "remotion:studio": "remotion studio remotion/index.ts",
+    "remotion:render": "remotion render remotion/index.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",
     "@react-email/render": "^1.4.0",
     "@react-three/fiber": "^8.18.0",
+    "@remotion/cli": "^4.0.500",
+    "@remotion/player": "^4.0.500",
     "@stripe/react-stripe-js": "^6.6.0",
     "@stripe/stripe-js": "^9.8.0",
     "@supabase/ssr": "^0.12.0",
@@ -39,6 +43,7 @@
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
     "recharts": "^2.15.4",
+    "remotion": "^4.0.500",
     "resend": "^4.8.0",
     "stripe": "^22.3.0",
     "three": "^0.160.0"

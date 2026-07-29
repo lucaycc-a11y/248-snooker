@@ -62,8 +62,8 @@ export default function Directions() {
             justifyContent: "center",
             boxShadow: "0 1px 2px rgba(17,17,16,0.04)",
             opacity: 0,
-            transform: "translateY(20px)",
-            transition: "opacity .8s cubic-bezier(.2,.7,.3,1), transform .8s cubic-bezier(.2,.7,.3,1)",
+            transform: "translateY(20px) scale(0.96)",
+            transition: "opacity .55s cubic-bezier(.34,1.56,.64,1), transform .55s cubic-bezier(.34,1.56,.64,1)",
           }}>
             <div className="dir-header" style={{
               display: "flex",
@@ -219,8 +219,8 @@ export default function Directions() {
             background: "#eceae5",
             minHeight: 380,
             opacity: 0,
-            transform: "translateY(20px)",
-            transition: "opacity .8s cubic-bezier(.2,.7,.3,1) .15s, transform .8s cubic-bezier(.2,.7,.3,1) .15s",
+            transform: "translateY(20px) scale(0.96)",
+            transition: "opacity .55s cubic-bezier(.34,1.56,.64,1) .15s, transform .55s cubic-bezier(.34,1.56,.64,1) .15s",
           }}>
             <iframe
               src={EMBED_URL}
@@ -286,7 +286,7 @@ export default function Directions() {
           .dir-btn { padding: 13px 20px !important; font-size: 13.5px !important; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .dir-card, .dir-map { opacity: 1 !important; transform: none !important; transition: none !important; }
+          .dir-card, .dir-map { opacity: 1 !important; transform: none !important; }
           .pi-pin-body, .pi-pin-dot { animation: none !important; }
         }
       `}</style>

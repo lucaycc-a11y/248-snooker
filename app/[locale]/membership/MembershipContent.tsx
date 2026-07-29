@@ -127,10 +127,10 @@ export default function MembershipContent() {
               return (
                 <motion.div
                   key={item.title}
-                  initial={{ opacity: 0, y: 24 }}
-                  whileInView={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 24, scale: 0.95 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={VIEWPORT}
-                  transition={{ duration: 0.5, ease: EASE, delay: i * 0.06 }}
+                  transition={{ duration: 0.5, ease: [0.34, 1.56, 0.64, 1], delay: i * 0.06 }}
                   style={{
                     border: "1px solid #d2d2d7",
                     borderRadius: "20px",

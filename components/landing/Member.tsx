@@ -288,8 +288,8 @@ export default function Member() {
         cardRefs.current[i] = el;
       }}
       {...(carousel
-        ? { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { duration: 0.3, delay: 0.05 * i } }
-        : { initial: { opacity: 0, y: 30 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: 0.3 }, transition: { duration: 0.5, ease: EASE, delay: 0.05 * i } }
+        ? { initial: { opacity: 0, scale: 0.95 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 0.35, ease: [0.34, 1.56, 0.64, 1], delay: 0.05 * i } }
+        : { initial: { opacity: 0, y: 24, scale: 0.95 }, whileInView: { opacity: 1, y: 0, scale: 1 }, viewport: { once: true, amount: 0.3 }, transition: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1], delay: 0.05 * i } }
       )}
       className={carousel ? "snap-start shrink-0" : ""}
       style={{
