@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 
@@ -44,10 +44,13 @@ export default function GalleryScroll() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [isIn, setIsIn] = useState(false);
-  const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const secRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const beatRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const stepsRef = useRef<HTMLDivElement>(null);
+  const imgsRef = useRef<(HTMLImageElement | null)[]>([]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -81,74 +84,116 @@ export default function GalleryScroll() {
     return () => obs.disconnect();
   }, []);
 
-  // ── Desktop: IntersectionObserver for scroll-synced media swap ──
+  // ── Desktop: scroll-driven reveal (matches reference HTML exactly) ──
   useEffect(() => {
     if (isMobile) return;
+    const stage = stageRef.current;
+    const stepsEl = stepsRef.current;
+    if (!stage || !stepsEl) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Pick the entry whose intersection rect is closest to viewport centre
-        let bestIdx = -1;
-        let bestDist = Infinity;
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const idx = Number(entry.target.getAttribute("data-index"));
-          const rect = entry.boundingClientRect;
-          const centre = rect.top + rect.height / 2;
-          const vh = window.innerHeight;
-          const dist = Math.abs(centre - vh / 2);
-          if (dist < bestDist) {
-            bestDist = dist;
-            bestIdx = idx;
-          }
-        });
-        if (bestIdx >= 0) setActiveIndex(bestIdx);
-      },
-      { threshold: 0.3, rootMargin: "-35% 0px -35% 0px" },
-    );
+    const steps = Array.from(stepsEl.querySelectorAll<HTMLElement>(".jr-step"));
+    const imgs = Array.from(document.querySelectorAll<HTMLElement>(".jr-img"));
+    const n = steps.length;
+    if (!n) return;
 
-    const current = itemsRef.current;
-    current.forEach((el) => {
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, [isMobile]);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let current = -1;
+    let revealedTo = -1;
+    const STEP_VH = 0.55;
+    let ticking = false;
 
-  // ── Mobile: IntersectionObserver for sequential beat reveal ──
-  useEffect(() => {
-    if (!isMobile) return;
-    const beats = beatRefs.current;
-    if (!beats.length) return;
-
-    if (
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
-      !("IntersectionObserver" in window)
-    ) {
-      beats.forEach((b) => {
-        if (!b) return;
-        b.style.opacity = "1";
-        b.style.transform = "none";
+    function setActive(i: number) {
+      i = Math.max(0, Math.min(n - 1, i));
+      if (i === current) return;
+      current = i;
+      setActiveIndex(i);
+      steps.forEach((s, k) => {
+        s.classList.toggle("is-active", k === i);
+        s.classList.toggle("is-done", k < i);
       });
+      imgs.forEach((im, k) => {
+        im.classList.toggle("is-on", k === i);
+      });
+    }
+
+    function isPinned() {
+      return !reduce && window.matchMedia("(min-width: 861px)").matches;
+    }
+
+    function sizeStage() {
+      if (!isPinned()) {
+        stage.style.height = "auto";
+        return;
+      }
+      const vh = window.innerHeight;
+      stage.style.height = Math.round(vh * (1 + (n - 1) * STEP_VH + 0.35)) + "px";
+    }
+
+    function revealTo(i: number) {
+      if (i > revealedTo) {
+        for (let k = revealedTo + 1; k <= i; k++) {
+          steps[k]?.classList.add("is-shown");
+        }
+        revealedTo = i;
+      }
+      setActive(i);
+    }
+
+    function update() {
+      ticking = false;
+      if (reduce) return;
+
+      if (!isPinned()) {
+        const scrolledM = Math.max(0, (window.pageYOffset || 0) - stage.offsetTop);
+        const gapM = Math.max(110, Math.round(stage.offsetHeight * 0.5 / n));
+        revealTo(Math.min(n - 1, Math.floor(scrolledM / gapM)));
+        return;
+      }
+
+      const vh = window.innerHeight;
+      const rect = stage.getBoundingClientRect();
+      const total = stage.offsetHeight - vh;
+      if (total <= 0) return;
+
+      const scrolled = Math.max(0, Math.min(total, -rect.top));
+      const p = scrolled / total;
+      const usable = (n - 1) * STEP_VH;
+      const pAdj = Math.min(1, p * (usable + 0.35) / usable);
+      const i = Math.min(n - 1, Math.floor(pAdj * n));
+      revealTo(i);
+    }
+
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    }
+
+    // Click a step
+    steps.forEach((s, k) => {
+      s.addEventListener("click", () => revealTo(k));
+    });
+
+    if (reduce) {
+      steps.forEach((s) => s.classList.add("is-shown"));
+      setActive(0);
       return;
     }
 
-    const obs = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target as HTMLElement;
-          el.style.opacity = "1";
-          el.style.transform = "none";
-          obs.unobserve(el);
-        });
-      },
-      { threshold: 0.15, rootMargin: "0px 0px -6% 0px" },
-    );
-
-    beats.forEach((b) => {
-      if (b) obs.observe(b);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", () => {
+      sizeStage();
+      onScroll();
     });
-    return () => obs.disconnect();
+
+    sizeStage();
+    update();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", sizeStage);
+    };
   }, [isMobile]);
 
   // ── Play/pause video when activeIndex changes ──
@@ -254,42 +299,6 @@ export default function GalleryScroll() {
     </div>
   );
 
-  // ── Desktop step state: dimmed / active / passed ──
-  const stepState = (i: number) => {
-    if (i === activeIndex) return "active";
-    if (i < activeIndex) return "passed";
-    return "upcoming";
-  };
-
-  const stepStyle = (state: "active" | "passed" | "upcoming") => {
-    switch (state) {
-      case "active":
-        return {
-          dotBorder: "rgba(34,197,94,0.5)",
-          dotColor: "#22C55E",
-          dotBg: "rgba(34,197,94,0.1)",
-          titleColor: "white",
-          subColor: "rgba(245,242,236,0.6)",
-        };
-      case "passed":
-        return {
-          dotBorder: "rgba(245,242,236,0.25)",
-          dotColor: "rgba(245,242,236,0.5)",
-          dotBg: "transparent",
-          titleColor: "rgba(245,242,236,0.7)",
-          subColor: "rgba(245,242,236,0.4)",
-        };
-      case "upcoming":
-        return {
-          dotBorder: "rgba(245,242,236,0.10)",
-          dotColor: "rgba(245,242,236,0.20)",
-          dotBg: "transparent",
-          titleColor: "rgba(245,242,236,0.25)",
-          subColor: "rgba(245,242,236,0.18)",
-        };
-    }
-  };
-
   return (
     <section
       ref={secRef}
@@ -298,7 +307,7 @@ export default function GalleryScroll() {
       style={{
         background: "#1C1C1E",
         fontFamily: FONT_FAMILY,
-        padding: isMobile ? "0 0 100px" : "140px 0 60vh",
+        padding: isMobile ? "0 0 100px" : 0,
       }}
     >
       {isMobile ? (
@@ -343,194 +352,242 @@ export default function GalleryScroll() {
           </div>
         </div>
       ) : (
-        /* ── Desktop: 2-column layout, all 4 steps visible, large sticky image ── */
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px" }}>
-          {/* ── Section title — full-width row above grid, never overlapped ── */}
-          <h2
-            data-cms-key="gallery.title"
-            style={{
-              fontWeight: 700,
-              fontSize: "clamp(32px, 4vw, 48px)",
-              letterSpacing: "-0.025em",
-              color: "white",
-              textAlign: "center",
-              margin: "0 0 80px",
-            }}
-          >
-            {sectionTitle}
-          </h2>
+        /* ── Desktop: jr-stage scroll-pinned layout (matches reference HTML exactly) ── */
+        <div ref={stageRef} className="jr-stage" style={{ position: "relative" }}>
+          <div className="jr-sticky">
+            <div className="venue-inner">
+              {/* Heading — INSIDE venue-inner, ABOVE jr-layout, with margin-bottom separating it */}
+              <h2
+                data-cms-key="gallery.title"
+                className="venue-title"
+              >
+                {sectionTitle}
+              </h2>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1.1fr",
-              gap: 48,
-              alignItems: "start",
-            }}
-          >
-            {/* Left: all 4 numbered steps, visible at once with dimmed/active/passed states */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 36,
-              }}
-            >
-              {slides.map((slide, i) => {
-                const state = stepState(i);
-                const s = stepStyle(state);
-                return (
-                  <div
-                    key={slide.title}
-                    ref={(el) => {
-                      itemsRef.current[i] = el;
-                    }}
-                    data-index={i}
-                    onClick={() => setActiveIndex(i)}
-                    className="gs-item"
-                    style={{
-                      display: "flex",
-                      gap: 20,
-                      alignItems: "flex-start",
-                      cursor: "pointer",
-                      opacity: 0,
-                      transform: "translateY(20px) scale(0.95)",
-                      transition:
-                        "opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1)",
-                    }}
-                  >
-                    {/* Numbered marker */}
-                    <span
-                      style={{
-                        flexShrink: 0,
-                        width: 42,
-                        height: 42,
-                        borderRadius: "50%",
-                        border: `1px solid ${s.dotBorder}`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: s.dotColor,
-                        background: s.dotBg,
-                        transition:
-                          "all 0.4s cubic-bezier(0.16,1,0.3,1)",
-                        marginTop: 2,
+              <div className="jr-layout">
+                {/* Left: steps */}
+                <div ref={stepsRef} className="jr-steps">
+                  {slides.map((slide, i) => (
+                    <button
+                      key={slide.title}
+                      ref={(el) => {
+                        itemsRef.current[i] = el;
                       }}
+                      data-i={i}
+                      type="button"
+                      className="jr-step"
                     >
-                      {i + 1}
-                    </span>
+                      <span className="jr-marker">
+                        <span className="jr-num">{i + 1}</span>
+                        <svg className="jr-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m5 12.5 4.5 4.5L19 7.5" />
+                        </svg>
+                      </span>
+                      <span className="jr-text">
+                        <span className="jr-h">{slide.title}</span>
+                        <span className="jr-p">{slide.subtitle}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
 
-                    {/* Text content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <h3
-                        style={{
-                          fontSize: "clamp(17px, 2vw, 20px)",
-                          fontWeight: 700,
-                          color: s.titleColor,
-                          margin: "0 0 8px",
-                          lineHeight: 1.3,
-                          transition:
-                            "color 0.4s cubic-bezier(0.16,1,0.3,1)",
-                        }}
-                      >
-                        {slide.title}
-                      </h3>
-                      <p
-                        style={{
-                          fontSize: 14.5,
-                          lineHeight: 1.8,
-                          color: s.subColor,
-                          margin: 0,
-                          maxWidth: "34ch",
-                          transition:
-                            "color 0.4s cubic-bezier(0.16,1,0.3,1)",
-                        }}
-                      >
-                        {slide.subtitle}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Right: LARGE sticky pinned media with crossfade */}
-            <div
-              style={{
-                position: "sticky",
-                top: "50%",
-                transform: "translateY(-50%)",
-                alignSelf: "start",
-                borderRadius: 20,
-                overflow: "hidden",
-                border: "1px solid rgba(245,242,236,0.13)",
-                background: "#0b0b0d",
-                aspectRatio: "4 / 3",
-                width: "100%",
-                minHeight: 360,
-              }}
-            >
-              {/* Video element — always mounted, shown/hidden via opacity */}
-              <video
-                ref={videoRef}
-                src={mediaItems[0].src}
-                muted
-                loop
-                playsInline
-                autoPlay
-                preload="auto"
-                poster="/gallery/table-poster.jpg"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  opacity: activeIndex === 0 ? 1 : 0,
-                  transition: "opacity 0.22s ease",
-                  zIndex: activeIndex === 0 ? 2 : 0,
-                }}
-              />
-              {/* Image elements — one per image item, crossfade via opacity */}
-              {mediaItems.slice(1).map((m) => {
-                const origIndex = mediaItems.findIndex(
-                  (mi) => mi.src === m.src,
-                );
-                return (
-                  <Image
-                    key={m.src}
-                    src={m.src}
-                    alt={slides[origIndex]?.alt ?? ""}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    priority={origIndex === 1}
+                {/* Right: visual — stacked images crossfade, video overlay for item 1 */}
+                <div className="jr-visual">
+                  {/* Video overlay — only shows when activeIndex === 0 */}
+                  <video
+                    ref={videoRef}
+                    src={mediaItems[0].src}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    preload="auto"
+                    poster="/gallery/table-poster.jpg"
+                    className="jr-img"
                     style={{
                       objectFit: "cover",
-                      opacity: activeIndex === origIndex ? 1 : 0,
-                      transition: "opacity 0.22s ease",
-                      zIndex: activeIndex === origIndex ? 2 : 0,
+                      zIndex: activeIndex === 0 ? 3 : 0,
                     }}
                   />
-                );
-              })}
+                  {/* 4 stacked images — crossfade via .is-on class */}
+                  {slides.map((slide, i) => (
+                    <Image
+                      key={slide.image}
+                      src={slide.image}
+                      alt={slide.alt}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      priority={i === 0}
+                      className={`jr-img ${i === activeIndex ? "is-on" : ""}`}
+                      ref={(el) => {
+                        imgsRef.current[i] = el;
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       <style>{`
-        .gs-section.is-in .gs-item { opacity: 1 !important; transform: none !important; }
-        .gs-section.is-in .gs-item:nth-child(1) { transition-delay: .04s; }
-        .gs-section.is-in .gs-item:nth-child(2) { transition-delay: .12s; }
-        .gs-section.is-in .gs-item:nth-child(3) { transition-delay: .20s; }
-        .gs-section.is-in .gs-item:nth-child(4) { transition-delay: .28s; }
-        .gs-mobile-beat { will-change: opacity, transform; }
-        @media (prefers-reduced-motion: reduce) {
-          .gs-item { opacity: 1 !important; transform: none !important; }
-          .gs-mobile-beat { opacity: 1 !important; transform: none !important; }
+        .jr-stage {
+          position: relative;
         }
+        .jr-sticky {
+          position: sticky;
+          top: 0;
+          height: 100vh;
+          display: flex;
+          align-items: center;
+          padding: 40px 24px;
+          overflow: hidden;
+        }
+        .venue-inner {
+          max-width: 1080px;
+          margin: 0 auto;
+          width: 100%;
+        }
+        .venue-title {
+          font-family: 'Noto Sans TC', sans-serif;
+          font-weight: 900;
+          font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+          color: #f5f2ec;
+          text-align: center;
+          margin-bottom: 34px;
+        }
+        .jr-layout {
+          display: grid;
+          grid-template-columns: 1fr 1.05fr;
+          gap: 44px;
+          align-items: center;
+        }
+        .jr-steps {
+          display: flex;
+          flex-direction: column;
+          gap: 30px;
+        }
+        .jr-step {
+          display: flex;
+          gap: 20px;
+          align-items: flex-start;
+          text-align: left;
+          background: none;
+          border: 0;
+          opacity: 0;
+          transform: translateY(16px);
+          transition: opacity .6s cubic-bezier(.2,.7,.3,1),
+                      transform .6s cubic-bezier(.2,.7,.3,1);
+          padding: 0;
+          cursor: pointer;
+          font: inherit;
+          color: inherit;
+        }
+        .jr-step.is-shown {
+          opacity: 1;
+          transform: none;
+        }
+        .jr-marker {
+          position: relative;
+          flex-shrink: 0;
+          width: 42px; height: 42px;
+          border-radius: 50%;
+          border: 1px solid rgba(245,242,236,0.13);
+          display: flex; align-items: center; justify-content: center;
+          color: rgba(245,242,236,0.28);
+          transition: background .45s ease, border-color .45s ease, color .45s ease, transform .45s cubic-bezier(.2,.7,.3,1);
+          margin-top: 2px;
+        }
+        .jr-num {
+          font-family: 'Inter', sans-serif;
+          font-size: 14px; font-weight: 500;
+          transition: opacity .3s ease;
+        }
+        .jr-check {
+          position: absolute;
+          width: 19px; height: 19px;
+          opacity: 0;
+          transition: opacity .3s ease;
+        }
+        .jr-text { display: block; }
+        .jr-h {
+          display: block;
+          font-family: 'Noto Sans TC', sans-serif;
+          font-weight: 700;
+          font-size: clamp(17px, 2vw, 20px);
+          color: rgba(245,242,236,0.28);
+          margin-bottom: 8px;
+          transition: color .45s ease, transform .55s cubic-bezier(.2,.7,.3,1);
+        }
+        .jr-p {
+          display: block;
+          font-family: 'Noto Sans TC', sans-serif;
+          font-size: 14.5px;
+          line-height: 1.8;
+          color: rgba(245,242,236,0.28);
+          max-width: 34ch;
+          transition: color .45s ease, transform .55s cubic-bezier(.2,.7,.3,1);
+        }
+
+        .jr-step.is-done .jr-marker {
+          border-color: rgba(34,184,107,0.5);
+          color: #22b86b;
+        }
+        .jr-step.is-done .jr-num { opacity: 0; }
+        .jr-step.is-done .jr-check { opacity: 1; }
+
+        .jr-step.is-active .jr-marker {
+          background: #1a9d5c;
+          border-color: #1a9d5c;
+          color: #ffffff;
+          transform: scale(1.06);
+        }
+        .jr-step.is-active .jr-num { opacity: 0; }
+        .jr-step.is-active .jr-check { opacity: 1; }
+        .jr-step.is-active .jr-h { color: #ffffff; transform: translateX(3px); }
+        .jr-step.is-active .jr-p { color: rgba(245,242,236,0.60); transform: translateX(3px); }
+
+        .jr-visual {
+          position: relative;
+          border-radius: 18px;
+          overflow: hidden;
+          border: 1px solid rgba(245,242,236,0.13);
+          background: #0b0b0d;
+          aspect-ratio: 4 / 3;
+        }
+        .jr-img {
+          position: absolute; inset: 0;
+          width: 100%; height: 100%;
+          object-fit: cover;
+          display: block;
+          opacity: 0;
+          transform: scale(1.05);
+          transition: opacity .75s ease, transform 1.2s cubic-bezier(.2,.7,.3,1);
+        }
+        .jr-img.is-on { opacity: 1; transform: scale(1); }
+
+        @media (max-width: 861px) {
+          .jr-layout { grid-template-columns: 1fr; gap: 30px; }
+          .jr-visual { order: -1; }
+          .jr-steps { gap: 24px; }
+          .venue-title { margin-bottom: 34px; }
+          .jr-stage { height: auto !important; }
+          .jr-sticky { position: relative; height: auto; padding: 80px 20px 90px; overflow: visible; }
+        }
+        @media (max-width: 560px) {
+          .jr-marker { width: 36px; height: 36px; }
+          .jr-step { gap: 15px; }
+          .jr-p { font-size: 13.5px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .jr-stage { height: auto !important; }
+          .jr-sticky { position: relative; height: auto; padding: 90px 24px 100px; min-height: 0; }
+          .jr-img { transition: none; }
+          .jr-h, .jr-p, .jr-marker { transition: none; }
+          .jr-step { opacity: 1 !important; transform: none !important; }
+        }
+        .gs-mobile-beat { will-change: opacity, transform; }
       `}</style>
     </section>
   );

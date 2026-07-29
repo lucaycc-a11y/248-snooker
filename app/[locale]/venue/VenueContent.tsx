@@ -95,12 +95,11 @@ const SITE_CSS = `
   font-weight: 500;
   font-size: clamp(14px, 2.5vw, 18px);
   color: rgba(255,255,255,0.7);
-  margin-top: 14px;
   letter-spacing: 0.04em;
+  margin: 0;
 }
 .hero-cta {
   display: inline-block;
-  margin-top: 24px;
   font-family: 'Noto Sans TC', sans-serif;
   font-size: clamp(15px, 2vw, 17px);
   font-weight: 500;
@@ -120,6 +119,9 @@ const SITE_CSS = `
   background: #000000;
   z-index: 5;
   pointer-events: none;
+}
+@media (max-width: 768px) {
+  .hero-video-wrapper { height: 200vh; }
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-video-wrapper { height: auto; }
@@ -147,6 +149,9 @@ const SITE_CSS = `
   color: rgba(255,255,255,0.6);
   max-width: 65ch;
   margin: 0;
+}
+@media (max-width: 560px) {
+  .hero-after-section { padding: 40px 24px 50px; }
 }
 
 /* ===== FACILITY ===== */
@@ -1093,22 +1098,26 @@ export default function VenueContent() {
             style={{ opacity: useTransform(scrollYProgress, [0.97, 1], [0, 1]) }}
           />
 
-          {/* Text overlay layer — sits above both videos */}
+          {/* Text overlay layer — sits above both videos, flex column with proper gaps */}
           {!reduceMotion ? (
-            <>
+            <motion.div
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 10,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                textAlign: "center",
+                pointerEvents: "none",
+                padding: "0 24px",
+              }}
+            >
               {/* Headline: pop in 0.25→0.32, fade out 0.55→0.62 */}
               <motion.h1
                 className="hero-headline"
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  zIndex: 10,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  pointerEvents: "none",
-                  padding: "0 24px",
                   margin: 0,
                   opacity: useTransform(scrollYProgress, [0, 0.25, 0.32, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
                   scale: useTransform(scrollYProgress, [0.25, 0.28, 0.32], [0.9, 1.04, 1]),
@@ -1121,17 +1130,7 @@ export default function VenueContent() {
               <motion.p
                 className="hero-tagline"
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  zIndex: 10,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  pointerEvents: "none",
-                  padding: "0 24px",
-                  margin: 0,
-                  paddingTop: "clamp(48px, 11vw, 80px)",
+                  marginTop: "clamp(16px, 2.5vw, 20px)",
                   opacity: useTransform(scrollYProgress, [0, 0.30, 0.37, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
                   scale: useTransform(scrollYProgress, [0.30, 0.33, 0.37], [0.95, 1.03, 1]),
                 }}
@@ -1142,29 +1141,21 @@ export default function VenueContent() {
               {/* CTA: pop in 0.34→0.40, fade out 0.55→0.62 */}
               <motion.div
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  zIndex: 10,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  textAlign: "center",
-                  pointerEvents: "none",
-                  padding: "0 24px",
-                  paddingTop: "clamp(100px, 14vw, 130px)",
+                  marginTop: "clamp(28px, 4vw, 32px)",
+                  pointerEvents: "auto",
                   opacity: useTransform(scrollYProgress, [0, 0.34, 0.40, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
                   scale: useTransform(scrollYProgress, [0.34, 0.37, 0.40], [0.85, 1.05, 1]),
                 }}
               >
                 <Link href="/book" className="hero-cta">立即預訂</Link>
               </motion.div>
-            </>
+            </motion.div>
           ) : (
             /* Reduced motion: show static content immediately */
-            <div className="hero-video-overlay">
-              <h1 className="hero-headline">空間全開，由你主場</h1>
-              <p className="hero-tagline">自助入場 · 無菸環境</p>
-              <Link href="/book" className="hero-cta">立即預訂</Link>
+            <div className="hero-video-overlay" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
+              <h1 className="hero-headline" style={{ margin: 0 }}>空間全開，由你主場</h1>
+              <p className="hero-tagline" style={{ marginTop: "clamp(16px, 2.5vw, 20px)" }}>自助入場 · 無菸環境</p>
+              <Link href="/book" className="hero-cta" style={{ marginTop: "clamp(28px, 4vw, 32px)" }}>立即預訂</Link>
             </div>
           )}
         </div>
