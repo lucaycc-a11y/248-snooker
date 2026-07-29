@@ -1058,7 +1058,7 @@ export default function AboutContent() {
               style={{ position: "relative", width: "clamp(130px, 17vw, 180px)", marginBottom: 28 }}
             >
               <Image
-                src="/video/hero-poster.jpg"
+                src="/video/Space8_Main_Hero_Poster.jpg"
                 alt="8-ball"
                 width={180}
                 height={180}

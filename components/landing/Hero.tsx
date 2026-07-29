@@ -50,7 +50,7 @@ export default function Hero() {
           section settles into a designed still instead of freezing mid-frame. */}
       {/* Mobile: full-bleed cover */}
       <img
-        src="/video/hero-poster.jpg"
+        src="/video/Space8_Main_Hero_Poster.jpg"
         alt=""
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
@@ -66,16 +66,16 @@ export default function Hero() {
         autoPlay
         muted
         playsInline
-        poster="/video/hero-poster.jpg"
+        poster="/video/Space8_Main_Hero_Poster.jpg"
         onEnded={() => setVideoEnded(true)}
       >
-        <source src="/video/248Snooker_hero.mp4" type="video/mp4" />
+        <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
       </video>
 
       {/* Desktop: bottom-anchored square, black sides */}
       <div className="absolute bottom-0 left-1/2 hidden aspect-square w-[85vw] -translate-x-1/2 overflow-hidden md:block lg:w-[80vw] lg:max-w-[1000px] xl:w-[65vw] xl:max-w-[1100px]">
         <img
-          src="/video/hero-poster.jpg"
+          src="/video/Space8_Main_Hero_Poster.jpg"
           alt=""
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover [object-position:center_45%]"
@@ -91,10 +91,10 @@ export default function Hero() {
           autoPlay
           muted
           playsInline
-          poster="/video/hero-poster.jpg"
+          poster="/video/Space8_Main_Hero_Poster.jpg"
           onEnded={() => setVideoEnded(true)}
         >
-          <source src="/video/248Snooker_hero.mp4" type="video/mp4" />
+          <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
         </video>
       </div>
 

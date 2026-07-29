@@ -1,21 +1,21 @@
 # Graph Report - Space8_web  (2026-07-29)
 
 ## Corpus Check
-- 444 files · ~486,583 words
+- 446 files · ~495,321 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1786 nodes · 3241 edges · 235 communities (176 shown, 59 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 85 edges (avg confidence: 0.85)
+- 1816 nodes · 3274 edges · 234 communities (174 shown, 60 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 101 edges (avg confidence: 0.79)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `35d71db1`
+- Built from commit: `7892b7e8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- service.ts
+- booking/server.ts
 - getMember.ts
 - config/route.ts
 - handler.js
@@ -28,31 +28,31 @@
 - getServiceSupabase
 - tokens.ts
 - tools.ts
-- createClient
+- AuthCard.tsx
 - compilerOptions
 - whatsapp-bot/package.json
 - middleware.ts
 - SiteGateLog.tsx
 - Planet3D.tsx
-- legal/index.ts
+- legal/page.tsx
 - getAdminStats.ts
 - TicketCard.tsx
 - StripePayment.tsx
-- rateLimit
+- service.ts
 - SettingsForm.tsx
 - FAQ.tsx
-- BlogEditorForm.tsx
+- legal/index.ts
 - Member.tsx
 - TeamTable.tsx
 - createClient
-- members/[id]/page.tsx
-- safeJsonLd
+- ui/index.ts
+- getConfig
 - Quick Deployment Guide — Payment Fixes
 - navigation.ts
 - Button.tsx
 - Nav.tsx
 - cms-sync.mjs
-- generate-image/route.ts
+- BlogEditorForm.tsx
 - HowItWorks.tsx
 - cms-seed-from-messages.mjs
 - Efficient Engineering
@@ -66,34 +66,34 @@
 - seed-cms-from-messages.mjs
 - Web Application Testing
 - profile.ts
-- Footer.tsx
+- PlayIntro.tsx
 - Booking Flow
 - Gallery.tsx
 - cms-audit.mjs
 - Supabase Email Templates README
-- member/bookings/[id]/page.tsx
+- planetSystem.ts
 - VenueContent.tsx
 - Graphify
 - 248 Snooker Club
-- getConfig.ts
-- [locale]/page.tsx
-- ui/index.ts
+- membership/page.tsx
+- BookingsTab
+- BackButton
 - i18n-locale-audit.mjs
-- Input.tsx
-- bookings/route.ts
+- Footer.tsx
+- AmbientGlow.tsx
 - 248 Booking Flow Skill
 - site-gate/route.ts
 - convert-logo-for-email.js
 - merge-messages.mjs
 - build_merge function
-- getConfig
+- RefundConfirmModal.tsx
 - AdminAIPanel.tsx
 - FooterMap.tsx
 - Hybrid CMS Architecture
 - count_sections
 - backfill-human-codes.mjs
 - is_server_ready
-- AuthCard.tsx
+- ReschedulePicker.tsx
 - backup-password/route.ts
 - validate-password/route.ts
 - validate-qr/route.ts
@@ -120,14 +120,14 @@
 - graphify benchmark command
 - CLAUDE.md native integration
 - Git post-commit hook
-- canvas-confetti
+- members/[id]/page.tsx
 - efficient-engineering skill
 - TOTP Password Validation API
 - Member Page Profile Completion Gate
 - framer-motion
 - leaflet
-- lib/pricing.ts
-- matter-js
+- animations.ts
+- shared/QRCode.tsx
 - next
 - next-intl
 - react
@@ -146,7 +146,7 @@
 - @supabase/supabase-js
 - three
 - @tiptap/react
-- @tiptap/starter-kit
+- qrcode
 - @types/canvas-confetti
 - @ybouane/liquidglass
 - rotate-apple-secret/index.ts
@@ -168,7 +168,7 @@
 - Space8 Club Information for LLMs
 - WhatsApp Bot Render Deploy Config
 - Security & Backend Skill
-- planetSystem.ts
+- resend
 - Installation Required
 - Next.js 14 App Router Patterns
 - AGENTS.md
@@ -176,11 +176,10 @@
 - Git Workflow Skill
 - Karpathy Guidelines
 - useNfcRegistrationStatus.ts
-- HomePricing.tsx
-- team/page.tsx
-- BackButton
-- getAvailability.ts
-- @anthropic-ai/sdk
+- [locale]/page.tsx
+- lucide-react
+- @tiptap/extension-image
+- @tiptap/extension-link
 
 ## God Nodes (most connected - your core abstractions)
 1. `getServiceSupabase()` - 119 edges
@@ -221,35 +220,35 @@
 - **Hybrid CMS Content System** — docs_cms_architecture_hybrid_cms, docs_cms_architecture_static_base, docs_cms_architecture_db_override, docs_cms_architecture_cms_text, docs_cms_fix_summary_merge_messages [INFERRED 0.85]
 - **User Registration and Profile Completion Flow** — docs_auth_payment_verification_sms_otp, docs_auth_payment_verification_apple_sign_in, docs_auth_payment_verification_login_fix, docs_auth_payment_verification_member_code_generation, docs_planet_reveal_planet_system_core, docs_planet_reveal_planet_reveal_component, docs_regression_fix_oauth_callback_check, docs_regression_fix_member_page_gate [INFERRED 0.85]
 
-## Communities (235 total, 59 thin omitted)
+## Communities (234 total, 60 thin omitted)
 
-### Community 0 - "service.ts"
+### Community 0 - "booking/server.ts"
 Cohesion: 0.19
 Nodes (20): Block, isValidBlock(), POST(), POST(), POST(), POST(), POST(), DaySlotRow (+12 more)
 
 ### Community 1 - "getMember.ts"
-Cohesion: 0.07
-Nodes (47): AdminBookingDetailPage(), getBookingDetail(), AdminCalendarPage(), AdminDoorPage(), AdminMembersPage(), isRecord(), PATCH(), GET() (+39 more)
+Cohesion: 0.05
+Nodes (61): AdminBookingDetailPage(), getBookingDetail(), AdminBookingsPage(), AdminCalendarPage(), AdminDoorPage(), AdminMembersPage(), isRecord(), PATCH() (+53 more)
 
 ### Community 2 - "config/route.ts"
-Cohesion: 0.21
-Nodes (20): BookingRulesValue, CONFIG_KEYS, ConfigKey, isFiniteNumber(), isRecord(), isTimeString(), PERIOD_DAYS, PERIOD_IDS (+12 more)
+Cohesion: 0.07
+Nodes (47): AdminSettingsPage(), BookingRulesValue, CONFIG_KEYS, ConfigKey, isFiniteNumber(), isRecord(), isTimeString(), PERIOD_DAYS (+39 more)
 
 ### Community 3 - "handler.js"
 Cohesion: 0.08
 Nodes (46): app, downloadChrome(), findChrome(), initWhatsApp(), executeAction(), executePendingAction(), handleAdminMessage(), parseAdminResponse() (+38 more)
 
 ### Community 4 - "book/page.tsx"
-Cohesion: 0.07
-Nodes (43): ALL_TABLES, BookPage(), Calendar(), CellState, cellStateFor(), CONFIG, ConfirmationTicket, ConfirmedBooking (+35 more)
+Cohesion: 0.06
+Nodes (44): ALL_TABLES, BookPage(), Calendar(), CellState, cellStateFor(), CONFIG, ConfirmationTicket, ConfirmedBooking (+36 more)
 
 ### Community 5 - "MemberDashboard.tsx"
-Cohesion: 0.06
-Nodes (32): bookingEnd(), BookingsTab(), bookingStart(), calendarLink(), canRefund(), canReschedule(), canShowQr(), EASE (+24 more)
+Cohesion: 0.10
+Nodes (12): EASE, formatDate(), MemberDashboard(), OverflowMenuItem, POINTS_CATEGORY_STYLE, PointsTab(), QrModal(), SPRING (+4 more)
 
 ### Community 6 - "send.ts"
 Cohesion: 0.06
-Nodes (51): isRecord(), POST(), GET(), assertRpcSucceeded(), BookingPaymentContext, ConfirmBookingResult, handleFailed(), handleGroupSucceeded() (+43 more)
+Nodes (49): isRecord(), POST(), GET(), assertRpcSucceeded(), BookingPaymentContext, ConfirmBookingResult, handleFailed(), handleGroupSucceeded() (+41 more)
 
 ### Community 7 - "devDependencies"
 Cohesion: 0.05
@@ -265,19 +264,19 @@ Nodes (34): 248 Snooker Club, FalkorDB export, graphify export command, graphify
 
 ### Community 10 - "getServiceSupabase"
 Cohesion: 0.07
-Nodes (46): Layout(), GET(), isRecord(), LOCALES, POST(), TONES, DELETE(), GET() (+38 more)
+Nodes (49): Layout(), GET(), isRecord(), LOCALES, POST(), TONES, DELETE(), GET() (+41 more)
 
 ### Community 11 - "tokens.ts"
 Cohesion: 0.13
 Nodes (11): AdminBlogListPage(), getPosts(), AccessLog, DeviceStatus, LockoutStatus, RelayStatus, Tokens, LiveOccupancy() (+3 more)
 
 ### Community 12 - "tools.ts"
-Cohesion: 0.08
-Nodes (30): ASK_CHOICE_DEFINITION, ChatMessage, isRecord(), LOCALES, POST(), TONE_INSTRUCTIONS, GET(), LOCALES (+22 more)
+Cohesion: 0.09
+Nodes (28): ASK_CHOICE_DEFINITION, ChatMessage, isRecord(), LOCALES, POST(), TONE_INSTRUCTIONS, GET(), LOCALES (+20 more)
 
-### Community 13 - "createClient"
-Cohesion: 0.23
-Nodes (8): AccountMenu(), menuItemStyle, TIER_ACCENT, AppleSignInButton(), GoogleSignInButton(), AuthState, useAuthSession(), createClient()
+### Community 13 - "AuthCard.tsx"
+Cohesion: 0.16
+Nodes (13): AccountMenu(), menuItemStyle, TIER_ACCENT, AppleSignInButton(), EASE, OtpChannel, Phase, Prefill (+5 more)
 
 ### Community 14 - "compilerOptions"
 Cohesion: 0.07
@@ -299,13 +298,13 @@ Nodes (18): AdminSiteGatePage(), errorMessage(), isRecord(), ToastState, errorMe
 Cohesion: 0.21
 Nodes (8): darkenColor(), generatePlanetTexture(), Planet3D(), PlanetSphere(), EASE, Phase, PLANET_METADATA, PlanetName
 
-### Community 19 - "legal/index.ts"
-Cohesion: 0.07
-Nodes (35): bebasNeue, metadata, viewport, BodyParagraphs(), EASE, LegalContent(), EN, getSortedPhrases() (+27 more)
+### Community 19 - "legal/page.tsx"
+Cohesion: 0.13
+Nodes (19): BodyParagraphs(), EASE, LegalContent(), EN, getSortedPhrases(), highlightKeyPhrases(), PHRASES_BY_LOCALE, IMPORTANT: this file does not alter a single character of the verbatim (+11 more)
 
 ### Community 20 - "getAdminStats.ts"
-Cohesion: 0.14
-Nodes (23): AdminDashboardPage(), money(), ChatMessage, isRecord(), POST(), GET(), isRecord(), Locale (+15 more)
+Cohesion: 0.11
+Nodes (28): AdminDashboardPage(), money(), ChatMessage, isRecord(), POST(), GET(), isRecord(), POST() (+20 more)
 
 ### Community 21 - "TicketCard.tsx"
 Cohesion: 0.07
@@ -315,9 +314,9 @@ Nodes (30): BallSpec, createBall(), createBallSpecs(), drawEightBallGlow(), draw
 Cohesion: 0.14
 Nodes (16): appearance, BillingDetails, BookingBlock, Labels, PayForm(), Props, STRIPE_LOCALES, StripePayment() (+8 more)
 
-### Community 23 - "rateLimit"
-Cohesion: 0.29
-Nodes (11): POST(), POST(), POST(), POST(), GET(), POST(), getDaySlots(), getRangeSlots() (+3 more)
+### Community 23 - "service.ts"
+Cohesion: 0.20
+Nodes (15): AdminTeamPage(), AdminUserRow, POST(), POST(), POST(), POST(), GET(), POST() (+7 more)
 
 ### Community 24 - "SettingsForm.tsx"
 Cohesion: 0.15
@@ -327,13 +326,13 @@ Nodes (15): BookingRulesSection(), BookingRulesValue, ConfigKey, DiffRow, fieldR
 Cohesion: 0.22
 Nodes (10): FaqPage(), META, EASE, FAQ(), VIEWPORT, FaqItem, getFaqItems(), getFaqJsonLd() (+2 more)
 
-### Community 26 - "BlogEditorForm.tsx"
-Cohesion: 0.24
-Nodes (6): AdminBlogEditPage(), getPost(), getSiblings(), BlogPost, LOCALES, SiblingPost
+### Community 26 - "legal/index.ts"
+Cohesion: 0.20
+Nodes (12): REGISTRY, privacyEn, privacyZhCN, privacyZhHK, termsEn, termsZhCN, termsZhHK, LegalDocument (+4 more)
 
 ### Community 27 - "Member.tsx"
-Cohesion: 0.13
-Nodes (12): EASE, HOW_ICONS, HowItem, VIEWPORT, EASE, highlight(), ICON_PROPS, Member() (+4 more)
+Cohesion: 0.22
+Nodes (8): EASE, highlight(), ICON_PROPS, Member(), ModalData, SPRING, TierCard, VIEWPORT
 
 ### Community 28 - "TeamTable.tsx"
 Cohesion: 0.21
@@ -343,37 +342,37 @@ Nodes (10): AdminSidebar(), NAV_ITEMS, NavItem, linkStyle, primaryLinkStyle, Qui
 Cohesion: 0.21
 Nodes (10): acceptInvite(), AcceptInvitePage(), InviteLookup, POST(), GET(), POST(), GET(), safeNextPath() (+2 more)
 
-### Community 30 - "members/[id]/page.tsx"
-Cohesion: 0.19
-Nodes (7): AdminMemberDetailPage(), getMemberDetail(), Props, SheetMode, TIERS, Sheet(), SheetProps
+### Community 30 - "ui/index.ts"
+Cohesion: 0.15
+Nodes (11): Props, SheetMode, TIERS, Input, InputProps, ProgressSteps(), ProgressStepsProps, Sheet() (+3 more)
 
-### Community 31 - "safeJsonLd"
-Cohesion: 0.24
-Nodes (9): AboutPage(), Home(), META, VenuePage(), buildSportsClubJsonLd(), GEO, OfferPeriod, safeJsonLd() (+1 more)
+### Community 31 - "getConfig"
+Cohesion: 0.20
+Nodes (13): AboutPage(), Home(), generateMetadata(), PricingPage(), META, VenuePage(), getConfig(), buildPricingOffersJsonLd() (+5 more)
 
 ### Community 32 - "Quick Deployment Guide — Payment Fixes"
 Cohesion: 0.13
 Nodes (14): 1. Install Dependencies, 2. Add Environment Variable, 3. Verify Resend Domain, 4. Update WhatsApp Number, After Deploy — Verify, Before Deploying, Check Logs, Database Migration (If Needed) (+6 more)
 
 ### Community 33 - "navigation.ts"
-Cohesion: 0.20
-Nodes (6): EASE, SPRING, EASE, fmt(), PeriodPricingSections(), { Link, redirect, usePathname, useRouter, getPathname }
+Cohesion: 0.21
+Nodes (5): bebasNeue, metadata, viewport, { Link, redirect, usePathname, useRouter, getPathname }, routing
 
 ### Community 34 - "Button.tsx"
-Cohesion: 0.19
-Nodes (10): PostRow, MemberBookingCalendar(), MemberBookingDay, monthLabel(), statusColor(), Button, ButtonProps, ButtonSize (+2 more)
+Cohesion: 0.14
+Nodes (14): PostRow, ApiResponse, BookingTable(), STATUS_OPTIONS, statusColor(), MemberBookingCalendar(), MemberBookingDay, monthLabel() (+6 more)
 
 ### Community 35 - "Nav.tsx"
-Cohesion: 0.21
-Nodes (9): AuthCard(), AuthModal(), EASE, Nav(), navItems, NavTheme, pillStyle(), PageShell() (+1 more)
+Cohesion: 0.28
+Nodes (7): AuthCard(), AuthModal(), EASE, Nav(), navItems, NavTheme, pillStyle()
 
 ### Community 36 - "cms-sync.mjs"
 Cohesion: 0.17
 Nodes (8): APP_DIR, COMPONENTS_DIR, extracted, files, LOCALES, MESSAGES_DIR, report, ROOT
 
-### Community 37 - "generate-image/route.ts"
-Cohesion: 0.83
-Nodes (3): isRecord(), POST(), generateImage()
+### Community 37 - "BlogEditorForm.tsx"
+Cohesion: 0.24
+Nodes (6): AdminBlogEditPage(), getPost(), getSiblings(), BlogPost, LOCALES, SiblingPost
 
 ### Community 38 - "HowItWorks.tsx"
 Cohesion: 0.20
@@ -393,15 +392,15 @@ Nodes (10): ESP32 Door Lock Device, QR Code Validation API, Door Lock Admin Dash
 
 ### Community 42 - "dependencies"
 Cohesion: 0.22
-Nodes (9): lucide-react, dependencies, lucide-react, resend, @tiptap/extension-image, @tiptap/extension-link, resend, @tiptap/extension-image (+1 more)
+Nodes (9): @anthropic-ai/sdk, canvas-confetti, matter-js, dependencies, @anthropic-ai/sdk, canvas-confetti, matter-js, @tiptap/starter-kit (+1 more)
 
 ### Community 43 - "AiSettingsForm.tsx"
 Cohesion: 0.28
 Nodes (7): AdminAiSettingsPage(), getInitialSettings(), AiSettingsForm(), emptyRow(), LOCALES, SettingsRow, TONES
 
 ### Community 44 - "AboutContent.tsx"
-Cohesion: 0.22
-Nodes (6): EASE, MISSION_ICONS, MissionItem, NumberItem, VENUE_IMAGES, VIEWPORT
+Cohesion: 0.09
+Nodes (14): AboutContent(), ClockIcon2(), EASE, FACILITY_ICONS, PhoneIcon2(), POP, SPRING, StatsItem (+6 more)
 
 ### Community 45 - "Apple UI Design Skill"
 Cohesion: 0.14
@@ -427,9 +426,9 @@ Nodes (8): Decision Tree, Playwright, Reconnaissance-Then-Action Pattern, Web Ap
 Cohesion: 0.26
 Nodes (11): POST(), NOTE: this write can only 500 — auth is fully settled above, so a 401 can, localHkPhoneValue(), ProfileCompletion(), NOTE: this is intentionally NOT tokens.colors.brand (#25D366, WhatsApp, NamePhoneValidation, normalizeHkPhone(), ProfileInput (+3 more)
 
-### Community 51 - "Footer.tsx"
-Cohesion: 0.22
-Nodes (4): META, FooterMap, ContactButton(), WhatsAppButton()
+### Community 51 - "PlayIntro.tsx"
+Cohesion: 0.18
+Nodes (5): EASE, VIEWPORT, CardItem, ICONS, PlayIntro()
 
 ### Community 52 - "Booking Flow"
 Cohesion: 0.25
@@ -447,13 +446,13 @@ Nodes (5): APP_DIR, COMPONENTS_DIR, files, offenders, ROOT
 Cohesion: 0.36
 Nodes (8): Change Email Confirmation (HTML), Confirm Signup (HTML), Email Changed Notification (HTML), User Invitation (HTML), Magic Link / OTP (HTML), Phone Changed Notification (HTML), Supabase Email Templates README, Reauthentication (HTML)
 
-### Community 56 - "member/bookings/[id]/page.tsx"
-Cohesion: 0.30
-Nodes (10): ComingSoonPage(), metadata, LoginPage(), metadata, safeReturnUrl(), MemberBookingPage(), metadata, getMemberTicket() (+2 more)
+### Community 56 - "planetSystem.ts"
+Cohesion: 0.31
+Nodes (7): extractPlanetFromCode(), generateMemberCode(), memberCheckChar(), MemberTier, PLANET_POOL, PlanetMeta, tierAbbr()
 
 ### Community 57 - "VenueContent.tsx"
-Cohesion: 0.18
-Nodes (7): EASE, FACILITY_ICONS, SERVICE_ICONS, TitledItem, VIEWPORT, TODO: 需要 Luca 提供正確素材 — 掃碼即入場、私人獨立空間、頂級燈光設備的專用照片, slideImages
+Cohesion: 0.22
+Nodes (7): EASE, FACILITY_ICON_CLASSES, FACILITY_ICONS, SERVICE_ICON_CLASSES, SERVICE_ICONS, TitledItem, VIEWPORT
 
 ### Community 58 - "Graphify"
 Cohesion: 0.29
@@ -463,37 +462,37 @@ Nodes (7): AST Extraction, Community Detection, God Nodes, Graphify, Honesty Rul
 Cohesion: 0.15
 Nodes (12): 1. Install dependencies, 248 Snooker Club, 2. Environment variables, 3. Database setup, 4. Stripe webhook (local dev), 5. Run the dev server, 6. CMS text sync, 7. Testing (+4 more)
 
-### Community 60 - "getConfig.ts"
-Cohesion: 0.44
-Nodes (9): DEFAULT_CONFIG, DEFAULT_PERIODS, DEFAULT_SERVICES, DEFAULT_TIERS, PricingPeriod, resolveTier(), ServiceFees, SiteConfig (+1 more)
+### Community 60 - "membership/page.tsx"
+Cohesion: 0.32
+Nodes (3): META, ContactButton(), WhatsAppButton()
 
-### Community 61 - "[locale]/page.tsx"
-Cohesion: 0.21
-Nodes (8): Directions(), HOMEPAGE_FAQ_IDS, AmbientGlow(), AmbientGlowVariant, BRAND_EDGES, EdgeGlow, GEMINI_EDGES, useReducedMotion()
+### Community 61 - "BookingsTab"
+Cohesion: 0.29
+Nodes (8): bookingEnd(), BookingsTab(), bookingStart(), calendarLink(), canRefund(), canReschedule(), canShowQr(), retryPaymentLink()
 
-### Community 62 - "ui/index.ts"
-Cohesion: 0.38
-Nodes (4): ProgressSteps(), ProgressStepsProps, Spinner(), SpinnerProps
+### Community 62 - "BackButton"
+Cohesion: 0.50
+Nodes (3): BackButton(), baseStyle, fixedStyle
 
 ### Community 63 - "i18n-locale-audit.mjs"
 Cohesion: 0.29
 Nodes (5): allKeys, __dirname, keysByLocale, LOCALES, missing
 
-### Community 64 - "Input.tsx"
-Cohesion: 0.27
-Nodes (6): ApiResponse, BookingTable(), STATUS_OPTIONS, statusColor(), Input, InputProps
+### Community 64 - "Footer.tsx"
+Cohesion: 0.38
+Nodes (3): FooterMap, PageShell(), PageShellProps
 
-### Community 65 - "bookings/route.ts"
-Cohesion: 0.47
-Nodes (5): AdminBookingsPage(), GET(), isRecord(), PATCH(), getAdminBookings()
+### Community 65 - "AmbientGlow.tsx"
+Cohesion: 0.33
+Nodes (6): AmbientGlow(), AmbientGlowVariant, BRAND_EDGES, EdgeGlow, GEMINI_EDGES, useReducedMotion()
 
 ### Community 66 - "248 Booking Flow Skill"
 Cohesion: 0.18
 Nodes (10): 248 Booking Flow Skill, API Routes (app/api), Member Tiers, Pricing Logic (server-side only), QR Code Generation, Session Storage Schema, Slot Locking, Stripe Flow (+2 more)
 
 ### Community 67 - "site-gate/route.ts"
-Cohesion: 0.31
-Nodes (8): Body, GET(), isBody(), POST(), POST(), hashGatePassword(), scrypt(), verifyGatePassword()
+Cohesion: 0.36
+Nodes (7): Body, GET(), isBody(), POST(), hashGatePassword(), scrypt(), verifyGatePassword()
 
 ### Community 68 - "convert-logo-for-email.js"
 Cohesion: 0.33
@@ -507,9 +506,9 @@ Nodes (4): data, __dirname, LOCALES, MESSAGES_DIR
 Cohesion: 0.50
 Nodes (5): build_merge function, detect_incremental function, graph_diff function, Incremental update pipeline, save_manifest function
 
-### Community 71 - "getConfig"
-Cohesion: 0.33
-Nodes (8): AdminSettingsPage(), generateMetadata(), PricingPage(), MemberPage(), metadata, getConfig(), getConfigValue(), buildPricingOffersJsonLd()
+### Community 71 - "RefundConfirmModal.tsx"
+Cohesion: 0.40
+Nodes (4): estimateRefund(), RefundConfirmModal(), SPRING, MemberBooking
 
 ### Community 72 - "AdminAIPanel.tsx"
 Cohesion: 0.60
@@ -535,9 +534,9 @@ Nodes (4): checkChar(), humanReadableCode(), main(), supabase
 Cohesion: 0.67
 Nodes (3): is_server_ready(), main(), Wait for server to be ready by polling the port.
 
-### Community 78 - "AuthCard.tsx"
-Cohesion: 0.22
-Nodes (6): EASE, OtpChannel, Phase, Prefill, OtpInput(), LoadingGif()
+### Community 78 - "ReschedulePicker.tsx"
+Cohesion: 0.47
+Nodes (5): availableStartHours(), DaySlotRow, ReschedulePicker(), SPRING, toDateInputValue()
 
 ### Community 79 - "backup-password/route.ts"
 Cohesion: 0.67
@@ -599,17 +598,17 @@ Nodes (3): SVG to PNG Logo Conversion Script, Supabase Auth Email Templates, Ema
 Cohesion: 0.67
 Nodes (3): Snooker Club Gallery Photo, Snooker Club Gallery Photo, Hero Video Poster Image
 
-### Community 136 - "lib/pricing.ts"
-Cohesion: 0.24
-Nodes (8): applyTierPolicy(), BlockPriceDetail, isWeekend(), periodAppliesOnDay(), periodForHour(), PriceLineItem, PriceQuote, toMinutes()
+### Community 136 - "animations.ts"
+Cohesion: 0.40
+Nodes (4): EASE, POP, POP_SUBTLE, VIEWPORT
+
+### Community 137 - "shared/QRCode.tsx"
+Cohesion: 0.67
+Nodes (3): QRCode(), renderQrDataUrl(), SPRING
 
 ### Community 221 - "Security & Backend Skill"
 Cohesion: 0.22
 Nodes (8): API Route Template, API Security, Auth Architecture, Environment Variables (never hardcode), QR Code Spec, Security & Backend Skill, Supabase Project, Supabase Rules
-
-### Community 222 - "planetSystem.ts"
-Cohesion: 0.31
-Nodes (7): extractPlanetFromCode(), generateMemberCode(), memberCheckChar(), MemberTier, PLANET_POOL, PlanetMeta, tierAbbr()
 
 ### Community 223 - "Installation Required"
 Cohesion: 0.25
@@ -639,37 +638,29 @@ Nodes (5): 1. Think Before Coding, 2. Simplicity First, 3. Surgical Changes, 4. 
 Cohesion: 0.40
 Nodes (5): DoorCardTable(), isRegistrationStatus(), NfcRegistrationStatus, RegistrationState, useNfcRegistrationStatus()
 
-### Community 231 - "team/page.tsx"
-Cohesion: 0.50
-Nodes (3): AdminTeamPage(), AdminUserRow, TeamRow
-
-### Community 232 - "BackButton"
-Cohesion: 0.50
-Nodes (3): BackButton(), baseStyle, fixedStyle
-
-### Community 233 - "getAvailability.ts"
-Cohesion: 0.50
-Nodes (3): getAvailability(), TODO: connect Supabase, UnavailableSlot
+### Community 230 - "[locale]/page.tsx"
+Cohesion: 0.17
+Nodes (7): Directions(), HOMEPAGE_FAQ_IDS, GalleryScroll(), TODO: 需要 Luca 提供正確素材 — 掃碼即入場、私人獨立空間、頂級燈光設備的專用照片, slideImages, fmt(), HomePricing()
 
 ## Knowledge Gaps
-- **596 isolated node(s):** `Snooker404TableProps`, `TableSize`, `BallSpec`, `EASE`, `VIEWPORT` (+591 more)
+- **606 isolated node(s):** `Snooker404TableProps`, `TableSize`, `BallSpec`, `EASE`, `SPRING` (+601 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **59 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **60 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `getServiceSupabase()` connect `getServiceSupabase` to `service.ts`, `getMember.ts`, `config/route.ts`, `send.ts`, `tokens.ts`, `tools.ts`, `middleware.ts`, `SiteGateLog.tsx`, `getAdminStats.ts`, `rateLimit`, `BlogEditorForm.tsx`, `createClient`, `members/[id]/page.tsx`, `generate-image/route.ts`, `AiSettingsForm.tsx`, `profile.ts`, `bookings/route.ts`, `site-gate/route.ts`, `team/page.tsx`?**
-  _High betweenness centrality (0.089) - this node is a cross-community bridge._
-- **Why does `dependencies` connect `dependencies` to `framer-motion`, `leaflet`, `send.ts`, `devDependencies`, `matter-js`, `next`, `next-intl`, `react`, `react-dom`, `@react-email/render`, `react-leaflet`, `@react-three/fiber`, `recharts`, `remotion`, `@remotion/cli`, `@remotion/player`, `stripe`, `@stripe/react-stripe-js`, `@stripe/stripe-js`, `@supabase/ssr`, `@supabase/supabase-js`, `three`, `@tiptap/react`, `@tiptap/starter-kit`, `@types/canvas-confetti`, `@ybouane/liquidglass`, `@anthropic-ai/sdk`, `canvas-confetti`?**
-  _High betweenness centrality (0.086) - this node is a cross-community bridge._
+- **Why does `getServiceSupabase()` connect `getServiceSupabase` to `booking/server.ts`, `getMember.ts`, `config/route.ts`, `site-gate/route.ts`, `BlogEditorForm.tsx`, `send.ts`, `tokens.ts`, `AiSettingsForm.tsx`, `tools.ts`, `middleware.ts`, `SiteGateLog.tsx`, `profile.ts`, `getAdminStats.ts`, `service.ts`, `createClient`, `members/[id]/page.tsx`?**
+  _High betweenness centrality (0.091) - this node is a cross-community bridge._
+- **Why does `dependencies` connect `dependencies` to `framer-motion`, `leaflet`, `devDependencies`, `next`, `next-intl`, `react`, `react-dom`, `@react-email/render`, `react-leaflet`, `@react-three/fiber`, `recharts`, `remotion`, `@remotion/cli`, `@remotion/player`, `stripe`, `@stripe/react-stripe-js`, `@stripe/stripe-js`, `@supabase/ssr`, `@supabase/supabase-js`, `three`, `@tiptap/react`, `qrcode`, `@types/canvas-confetti`, `@ybouane/liquidglass`, `resend`, `lucide-react`, `@tiptap/extension-image`, `@tiptap/extension-link`?**
+  _High betweenness centrality (0.083) - this node is a cross-community bridge._
+- **Why does `generateQR()` connect `send.ts` to `qrcode`?**
+  _High betweenness centrality (0.080) - this node is a cross-community bridge._
 - **What connects `Snooker404TableProps`, `TableSize`, `BallSpec` to the rest of the system?**
-  _596 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _606 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `getMember.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.052531645569620256 - nodes in this community are weakly interconnected._
+- **Should `config/route.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.06779661016949153 - nodes in this community are weakly interconnected._
 - **Should `handler.js` be split into smaller, more focused modules?**
   _Cohesion score 0.08395989974937343 - nodes in this community are weakly interconnected._
-- **Should `book/page.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.07102040816326531 - nodes in this community are weakly interconnected._
-- **Should `MemberDashboard.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.060129509713228495 - nodes in this community are weakly interconnected._
