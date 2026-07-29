@@ -50,7 +50,7 @@ export async function GET(request: Request) {
 
       // After OAuth sign-in, check if profile is complete. If not, redirect to
       // /login where AuthCard will detect the session and show the profile
-      // completion flow (including planet reveal for new members).
+      // completion flow (including member welcome for new members).
       const { data: userProfile } = await supabase
         .from('users')
         .select('profile_complete')

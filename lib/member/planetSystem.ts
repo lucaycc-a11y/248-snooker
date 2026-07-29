@@ -1,6 +1,56 @@
-// Space8 Planet-based Member Code System
-// Format: SPACE8-{PLANET}-{4chars}-{checksum}
-// Example: SPACE8-MARS-K7Q2-B
+// SPACE8 Member Code System — tier-abbreviation format.
+// Format: SPACE8-{TIER}-{4chars}-{check}, TIER ∈ AMA (amateur) | CEN (century) | MAX (maximum).
+// Example: SPACE8-AMA-K7Q2-B
+//
+// Mirrors the DB helper generate_member_code(p_tier) — same alphabet, same
+// checksum (positional ascii × index, mod 36) — so app-issued and DB-issued
+// codes are interchangeable. See supabase/migrations/20260729_member_code_tier_abbreviations.sql.
+//
+// The planet system below (PLANET_POOL, PLANET_METADATA, extractPlanetFromCode)
+// is retained ONLY to decode the 39 legacy planet-named codes already issued; it
+// no longer generates new codes. See docs/planet-reveal-implementation.md.
+
+import { randomInt } from 'crypto'
+
+// 32 unambiguous symbols (no 0/1/I/O) — must match the DB function's `chars`.
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+export type MemberTier = 'amateur' | 'century' | 'maximum'
+
+function tierAbbr(tier: MemberTier): string {
+  switch (tier) {
+    case 'century':
+      return 'CEN'
+    case 'maximum':
+      return 'MAX'
+    default:
+      return 'AMA'
+  }
+}
+
+// Checksum identical to the DB function: sum of ascii(char) * 1-based-position
+// over (abbr + payload), mod 36; 0–9 → digit, 10–35 → 'A'–'Z' (chr(55+n)).
+function memberCheckChar(raw: string): string {
+  let checksum = 0
+  for (let i = 0; i < raw.length; i++) {
+    checksum += raw.charCodeAt(i) * (i + 1)
+  }
+  checksum %= 36
+  return checksum < 10 ? String(checksum) : String.fromCharCode(55 + checksum)
+}
+
+// Generate a member code for the given tier (new signups are always 'amateur').
+// Codes are random, so callers must ensure uniqueness against users.member_code
+// (the profile-completion route reuses an existing code rather than reissuing).
+export function generateMemberCode(tier: MemberTier = 'amateur'): string {
+  const abbr = tierAbbr(tier)
+  let payload = ''
+  for (let i = 0; i < 4; i++) {
+    payload += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)]
+  }
+  const check = memberCheckChar(abbr + payload)
+  return `SPACE8-${abbr}-${payload}-${check}`
+}
 
 export const PLANET_POOL = [
   // Solar System planets
@@ -35,27 +85,7 @@ function luhnChecksum(input: string): string {
   return chars[checkDigit]
 }
 
-// Generate deterministic planet + code from user ID
-export function generateMemberCode(userId: string): string {
-  // Deterministic planet selection from user ID
-  const hash = userId.split('').reduce((acc, char) => {
-    return ((acc << 5) - acc) + char.charCodeAt(0)
-  }, 0)
-  const planetIndex = Math.abs(hash) % PLANET_POOL.length
-  const planet = PLANET_POOL[planetIndex]
-
-  // Generate 4-character code from user ID
-  const clean = userId.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
-  const code4 = (clean.slice(0, 4) + 'AAAA').slice(0, 4)
-
-  // Calculate checksum
-  const baseString = `SPACE8${planet}${code4}`
-  const checksum = luhnChecksum(baseString)
-
-  return `SPACE8-${planet}-${code4}-${checksum}`
-}
-
-// Extract planet name from member code
+// Extract planet name from member code (legacy planet-named codes only)
 export function extractPlanetFromCode(memberCode: string): PlanetName | null {
   const match = memberCode.match(/SPACE8-([A-Z]+)-/)
   if (!match) return null

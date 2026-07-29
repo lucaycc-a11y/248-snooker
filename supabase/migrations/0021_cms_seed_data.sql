@@ -5,7 +5,7 @@
 
 -- cms_content: scalar CMSText keys, one row per (key, locale).
 INSERT INTO public.cms_content (key, locale, value) VALUES
-('hero.tagline', 'zh-HK', '屬於你的主場'),
+('hero.tagline', 'zh-HK', '屬於你的空間'),
 ('hero.cta_book', 'zh-HK', '立即預訂'),
 ('hero.cta_learn', 'zh-HK', '了解更多'),
 ('pricing.afternoon_label', 'zh-HK', '下午'),
@@ -52,9 +52,9 @@ INSERT INTO public.cms_content (key, locale, value) VALUES
 ('aboutPage.hero_title', 'zh-HK', 'Space8'),
 ('aboutPage.hero_subtitle', 'zh-HK', '香港首間自助英式桌球，每日 06:00 至 24:00 營業。'),
 ('aboutPage.mission_eyebrow', 'zh-HK', '我們的理念'),
-('aboutPage.mission_statement', 'zh-HK', '讓每一個桌球愛好者，都有屬於自己的主場。'),
+('aboutPage.mission_statement', 'zh-HK', '讓每一個桌球愛好者，都有屬於自己的空間。'),
 ('aboutPage.story_title', 'zh-HK', '關於 Space8'),
-('aboutPage.story_body', 'zh-HK', 'Space8 源於一個簡單信念：好的桌球場地不應受營業時間限制。我們以科技重新定義桌球體驗，讓你隨時隨地，一鍵預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。這裡是屬於你的主場。'),
+('aboutPage.story_body', 'zh-HK', 'Space8 源於一個簡單信念：好的桌球場地不應受營業時間限制。我們以科技重新定義桌球體驗，讓你隨時隨地，一鍵預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。這裡是屬於你的空間。'),
 ('aboutPage.venue_title', 'zh-HK', '場地設施'),
 ('aboutPage.contact_title', 'zh-HK', '聯絡我們'),
 ('aboutPage.contact_cta', 'zh-HK', 'WhatsApp 聯絡'),

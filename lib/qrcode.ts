@@ -82,7 +82,7 @@ export async function generateBookingQR(
 
 /**
  * Generate a member QR code from the member_code stored in the database.
- * Format: SPACE8-{PLANET}-{4chars}-{checksum} (e.g., SPACE8-MARS-K7Q2-B)
+ * Format: SPACE8-{TIER}-{4chars}-{check} (e.g., SPACE8-AMA-K7Q2-B) or legacy SPACE8-{PLANET}-{4chars}-{check}
  *
  * @param memberCode - Member code from users.member_code
  * @param options - QR generation options

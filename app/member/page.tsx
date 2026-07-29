@@ -22,7 +22,7 @@ export default async function MemberPage() {
 
   // Profile completion gate: if profile is incomplete, redirect to /login where
   // AuthCard will detect the session and show the profile completion flow (which
-  // includes the planet reveal animation for new members).
+  // includes the member welcome/animation for new members).
   const { createClient } = await import("@/lib/supabase/server");
   const supabase = await createClient();
   const { data: profile } = await supabase

@@ -8,7 +8,7 @@ import { Logo } from "@/components/brand";
 
 const GREEN = "#22C55E";
 
-// "屬於你的主場" — iPad-Pro style left-to-right gradient across the whole string
+// "屬於你的空間" — iPad-Pro style left-to-right gradient across the whole string
 const HEADLINE_GRADIENT: React.CSSProperties = {
   backgroundImage:
     "linear-gradient(100deg, #3D1A08 5%, #6B3015 10%, #8B4513 18%, #A0522D 26%, #C87941 34%, #DEB887 42%, #F5DEB3 50%, #E8F5E0 56%, #A8D5A2 62%, #6BBF6B 68%, #3D8B3D 76%, #1F5C1F 84%, #0D3D0D 92%, #071F07 100%)",

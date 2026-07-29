@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     "SPACE8",
   ],
   openGraph: {
-    title: "SPACE8 · 屬於你的主場",
+    title: "SPACE8 · 屬於你的空間",
     description: "香港首間自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
     url: "https://space8.com.hk",
     siteName: "SPACE8",
