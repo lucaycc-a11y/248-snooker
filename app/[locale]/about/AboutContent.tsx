@@ -208,10 +208,16 @@ export default function AboutContent() {
 
   const [activeSlide, setActiveSlide] = useState(0);
   const totalSlides = facilitiesItems.length;
-
-  /* ── Rotating words (hero) ── */
   const rotatingWords = t.raw("hero_rotating_words") as string[];
   const [wordIdx, setWordIdx] = useState(0);
+
+  useEffect(() => {
+    if (rotatingWords.length <= 1) return;
+    const interval = setInterval(() => {
+      setWordIdx((prev) => (prev + 1) % rotatingWords.length);
+    }, 2400);
+    return () => clearInterval(interval);
+  }, [rotatingWords.length]);
 
   /* ── Reduced motion check ── */
   const [reduceMotion, setReduceMotion] = useState(false);
