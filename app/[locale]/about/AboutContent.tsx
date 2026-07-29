@@ -305,6 +305,7 @@ export default function AboutContent() {
 
   const compareRef = useRef<HTMLDivElement>(null);
   const philRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   /* ── Reduced motion check ── */
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -587,7 +588,6 @@ export default function AboutContent() {
 
   return (
     <div style={{ fontFamily: FONT_FAMILY }}>
-      <style>{COMPARE_CSS}</style>
       <style>{FACILITIES_CSS}</style>
       <style>{STATS_CSS}</style>
       <style>{PHIL_CSS}</style>
