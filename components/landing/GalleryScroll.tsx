@@ -44,6 +44,9 @@ export default function GalleryScroll() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [isIn, setIsIn] = useState(false);
+  const [revealedBeats, setRevealedBeats] = useState<boolean[]>(
+    new Array(slideImages.length).fill(false),
+  );
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const secRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -83,6 +86,35 @@ export default function GalleryScroll() {
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
+
+  // ── Mobile: sequential beat reveal via IntersectionObserver ──
+  useEffect(() => {
+    if (!isMobile) return;
+    const beatEls = beatRefs.current.filter(Boolean);
+    if (!beatEls.length) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const idx = beatEls.indexOf(entry.target as HTMLDivElement);
+          if (idx === -1) return;
+          setRevealedBeats((prev) => {
+            const next = [...prev];
+            if (!next[idx]) {
+              next[idx] = true;
+            }
+            return next;
+          });
+          obs.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.2, rootMargin: "0px 0px -8% 0px" },
+    );
+    beatEls.forEach((el) => {
+      if (el) obs.observe(el);
+    });
+    return () => obs.disconnect();
+  }, [isMobile]);
 
   // ── Desktop: scroll-driven reveal (matches reference HTML exactly) ──
   useEffect(() => {
@@ -212,94 +244,102 @@ export default function GalleryScroll() {
   const sectionTitle = t("title");
 
   // ── Mobile beat: image + numbered badge + title + description ──
-  const renderMobileBeat = (slide: (typeof slides)[number], i: number) => (
-    <div
-      key={slide.title}
-      ref={(el) => {
-        beatRefs.current[i] = el;
-      }}
-      className="gs-mobile-beat"
-      style={{
-        opacity: 0,
-        transform: "translateY(24px)",
-        transition: `opacity 0.6s cubic-bezier(${EASE[0]},${EASE[1]},${EASE[2]},${EASE[3]}), transform 0.6s cubic-bezier(${EASE[0]},${EASE[1]},${EASE[2]},${EASE[3]})`,
-        transitionDelay: `${i * 0.08}s`,
-      }}
-    >
-      {/* Image — full-bleed style */}
+  // Each beat occupies ~full viewport height — large image dominates, text below.
+  const renderMobileBeat = (slide: (typeof slides)[number], i: number) => {
+    const revealed = revealedBeats[i];
+    return (
       <div
+        key={slide.title}
+        ref={(el) => {
+          beatRefs.current[i] = el;
+        }}
+        className="gs-mobile-beat"
         style={{
-          position: "relative",
-          width: "100%",
-          aspectRatio: "4 / 3",
-          borderRadius: 18,
-          overflow: "hidden",
-          background: "#0b0b0d",
-          border: "1px solid rgba(245,242,236,0.13)",
+          opacity: revealed ? 1 : 0,
+          transform: revealed ? "translateY(0)" : "translateY(24px)",
+          transition: `opacity 0.6s cubic-bezier(${EASE[0]},${EASE[1]},${EASE[2]},${EASE[3]}), transform 0.6s cubic-bezier(${EASE[0]},${EASE[1]},${EASE[2]},${EASE[3]})`,
+          transitionDelay: `${i * 0.08}s`,
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
         }}
       >
-        <Image
-          src={slide.image}
-          alt={slide.alt}
-          fill
-          sizes="100vw"
-          style={{ objectFit: "cover" }}
-        />
-      </div>
-      {/* Text below image */}
-      <div style={{ paddingTop: 20 }}>
+        {/* Image — large, dominant, ~65vh minimum */}
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            marginBottom: 6,
+            position: "relative",
+            width: "100%",
+            minHeight: "65vh",
+            borderRadius: 20,
+            overflow: "hidden",
+            background: "#0b0b0d",
+            border: "1px solid rgba(245,242,236,0.13)",
           }}
         >
-          <span
+          <Image
+            src={slide.image}
+            alt={slide.alt}
+            fill
+            sizes="100vw"
+            style={{ objectFit: "cover" }}
+          />
+        </div>
+        {/* Text below image */}
+        <div style={{ paddingTop: 24 }}>
+          <div
             style={{
-              flexShrink: 0,
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              border: "1px solid rgba(34,197,94,0.5)",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#22C55E",
-              background: "rgba(34,197,94,0.1)",
+              gap: 12,
+              marginBottom: 8,
             }}
           >
-            {i + 1}
-          </span>
-          <h3
+            <span
+              style={{
+                flexShrink: 0,
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                border: "1px solid rgba(34,197,94,0.5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#22C55E",
+                background: "rgba(34,197,94,0.1)",
+              }}
+            >
+              {i + 1}
+            </span>
+            <h3
+              style={{
+                fontSize: 20,
+                fontWeight: 700,
+                color: "white",
+                margin: 0,
+                lineHeight: 1.3,
+              }}
+            >
+              {slide.title}
+            </h3>
+          </div>
+          <p
             style={{
-              fontSize: 18,
-              fontWeight: 700,
-              color: "white",
+              fontSize: 15,
+              lineHeight: 1.7,
+              color: "rgba(245,242,236,0.6)",
               margin: 0,
-              lineHeight: 1.3,
+              paddingLeft: 48,
             }}
           >
-            {slide.title}
-          </h3>
+            {slide.subtitle}
+          </p>
         </div>
-        <p
-          style={{
-            fontSize: 14.5,
-            lineHeight: 1.7,
-            color: "rgba(245,242,236,0.6)",
-            margin: 0,
-            paddingLeft: 44,
-          }}
-        >
-          {slide.subtitle}
-        </p>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <section
@@ -346,8 +386,8 @@ export default function GalleryScroll() {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 64,
-              padding: "0 24px",
+              gap: 120,
+              padding: "0 24px 0",
             }}
           >
             {slides.map((slide, i) => renderMobileBeat(slide, i))}
