@@ -383,7 +383,12 @@
     "contact_hours_label": "营业时间",
     "contact_hours": "每日 06:00 至 24:00",
     "contact_cta": "WhatsApp 联系",
-    "hero_rotating_words": ["Create Wonders", "Private Moments", "Pure Play", "Clean \"hero_rotating_words": ["创造奇迹", "独享私密", "纯粹玩乐", "干净舒适"] Comfortable"],
+    "hero_rotating_words": [
+      "创造奇迹",
+      "独享私密",
+      "纯粹玩乐",
+      "干净舒适"
+    ],
     "hero_prefix": "一个",
     "hero_suffix": "的空间",
     "hero_cta_primary": "立即预订",
