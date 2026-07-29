@@ -384,6 +384,8 @@
     "contact_hours": "每日 06:00 至 24:00",
     "contact_cta": "WhatsApp 聯絡",
     "hero_rotating_words": ["創造奇蹟", "獨享私密", "純粹玩樂", "乾淨舒適"],
+    "hero_prefix": "一個",
+    "hero_suffix": "的空間",
     "hero_cta_primary": "立即預訂",
     "hero_cta_secondary": "查看場地",
     "room_compare_title": "兩間 1T 獨立球室",

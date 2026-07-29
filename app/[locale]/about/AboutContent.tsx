@@ -302,28 +302,9 @@ export default function AboutContent() {
   const facilitiesItems = t.raw("facilities_items") as TitledItem[];
   const statsItems = t.raw("stats_items") as StatsItem[];
   const ctaSteps = t.raw("cta_steps") as StepItem[];
-  const roomSpecs = t.raw("room_specs") as string[];
 
   const compareRef = useRef<HTMLDivElement>(null);
   const philRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLDivElement>(null);
-  const statRef = useRef<HTMLDivElement>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const totalSlides = facilitiesItems.length;
-
-  /* ── Rotating words (hero) ── */
-  const rotatingWords = t.raw("hero_rotating_words") as string[];
-  const [wordIdx, setWordIdx] = useState(0);
-
-  useEffect(() => {
-    if (rotatingWords.length <= 1) return;
-    const interval = setInterval(() => {
-      setWordIdx((prev) => (prev + 1) % rotatingWords.length);
-    }, 2400);
-    return () => clearInterval(interval);
-  }, [rotatingWords.length]);
 
   /* ── Reduced motion check ── */
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -700,7 +681,7 @@ export default function AboutContent() {
               animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.9, ease: SPRING, delay: 0.18 }}
             >
-              一個
+              {t("hero_prefix")}
             </motion.span>
             <span
               style={{
@@ -744,7 +725,7 @@ export default function AboutContent() {
               animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
               transition={{ duration: 0.9, ease: SPRING, delay: 0.18 }}
             >
-              的空間
+              {t("hero_suffix")}
             </motion.span>
           </h1>
 
@@ -883,64 +864,6 @@ export default function AboutContent() {
                 </motion.div>
               );
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section 3: 兩間 1T 獨立球室 ── */}
-      <section
-        ref={compareRef}
-        className="room-compare-section"
-        data-nav-theme="dark"
-      >
-        <div className="room-compare-inner">
-          <motion.h2
-            className="room-compare-title"
-            initial={reduceMotion ? {} : { opacity: 0, y: 20 }}
-            whileInView={reduceMotion ? {} : { opacity: 1, y: 0 }}
-            viewport={VIEWPORT}
-            transition={{ duration: 0.6, ease: EASE }}
-          >
-            {t("room_compare_title")}
-          </motion.h2>
-          <motion.p
-            className="room-compare-sub"
-            initial={reduceMotion ? {} : { opacity: 0, y: 12 }}
-            whileInView={reduceMotion ? {} : { opacity: 1, y: 0 }}
-            viewport={VIEWPORT}
-            transition={{ duration: 0.5, ease: EASE, delay: 0.08 }}
-          >
-            {t("room_compare_sub")}
-          </motion.p>
-
-          <div className="room-grid">
-            {/* Room 1: Space Infinity */}
-            <div className="room-card">
-              <div className="room-card-image">
-                <Image src="/gallery/Space_Infinity.PNG" alt="Space Infinity（無限空間球室）" fill sizes="(max-width: 720px) 100vw, 50vw" style={{ objectFit: "cover" }} />
-              </div>
-              <div className="room-card-body">
-                <h3 className="room-card-name">{t("room_1_name")}</h3>
-                <p className="room-card-name-sub">{t("room_1_sub")}</p>
-                <ul className="room-card-specs">
-                  {roomSpecs.map((spec: string, i: number) => (<li key={i}>{spec}</li>))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Room 2: Space Eternity */}
-            <div className="room-card">
-              <div className="room-card-image">
-                <Image src="/gallery/Space_Enternity.PNG" alt="Space Eternity（永恆空間球室）" fill sizes="(max-width: 720px) 100vw, 50vw" style={{ objectFit: "cover" }} />
-              </div>
-              <div className="room-card-body">
-                <h3 className="room-card-name">{t("room_2_name")}</h3>
-                <p className="room-card-name-sub">{t("room_2_sub")}</p>
-                <ul className="room-card-specs">
-                  {roomSpecs.map((spec: string, i: number) => (<li key={i}>{spec}</li>))}
-                </ul>
-              </div>
-            </div>
           </div>
         </div>
       </section>
