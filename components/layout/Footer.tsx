@@ -121,6 +121,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
+              className="si-message"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -138,6 +139,7 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
+              className="si-instagram"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -181,7 +183,7 @@ export default function Footer() {
               <FooterMap mapsUrl={MAPS_URL} ariaLabel={t('footer.map_cta')} />
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '16px' }}>
-              <MapPin size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0, marginTop: 2 }} />
+              <span className="si-pin"><MapPin size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0, marginTop: 2 }} /></span>
               <div>
                 <div data-cms-key="footer.address" style={{ fontSize: '14px', color: tokens.colors.text, lineHeight: 1.6 }}>
                   {t('footer.address')}
@@ -210,7 +212,7 @@ export default function Footer() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <Clock size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0 }} />
+              <span className="si-clock"><Clock size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0 }} /></span>
               <span data-cms-key="footer.hours" style={{ fontSize: '13px', color: tokens.colors.textMuted }}>
                 {t('footer.hours')}
               </span>

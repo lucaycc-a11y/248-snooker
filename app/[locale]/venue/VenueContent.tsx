@@ -40,7 +40,9 @@ const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURICom
 )}`;
 
 const FACILITY_ICONS = [Target, Lightbulb, Thermometer, Wifi, CupSoda, QrCode];
+const FACILITY_ICON_CLASSES = ['si-target', 'si-bulb', 'si-therm', 'si-wifi', 'si-cup', 'si-qr'];
 const SERVICE_ICONS = [BadgeCheck, MousePointerClick, CalendarCheck, MessageCircle];
+const SERVICE_ICON_CLASSES = ['si-badge', 'si-click', 'si-cal', 'si-message'];
 
 type TitledItem = { title: string; body: string };
 
@@ -1121,9 +1123,10 @@ export default function VenueContent() {
           <div className="facility-grid">
             {facilities.map((item, i) => {
               const Icon = FACILITY_ICONS[i] ?? Target;
+              const iconClass = FACILITY_ICON_CLASSES[i] ?? '';
               return (
                 <div key={item.title} className="facility-card">
-                  <div className="facility-icon">
+                  <div className={`facility-icon ${iconClass}`}>
                     <Icon size={26} strokeWidth={1.8} />
                   </div>
                   <h3>{item.title}</h3>
@@ -1197,6 +1200,7 @@ export default function VenueContent() {
           <div ref={serviceGridRef} className="service-grid" id="serviceGrid">
             {services.map((item, i) => {
               const Icon = SERVICE_ICONS[i] ?? BadgeCheck;
+              const iconClass = SERVICE_ICON_CLASSES[i] ?? '';
               return (
                 <div key={item.title} className="service-card">
                   <div className="service-step">
@@ -1208,7 +1212,7 @@ export default function VenueContent() {
                           ? "STEP 03"
                           : "如有需要"}
                   </div>
-                  <div className="service-icon">
+                  <div className={`service-icon ${iconClass}`}>
                     <Icon size={26} strokeWidth={1.8} />
                   </div>
                   <h3>{item.title}</h3>
@@ -1383,7 +1387,7 @@ export default function VenueContent() {
         <div className="weather-inner">
           <div className="weather-card" id="weatherCard">
             <div className="weather-header" id="weatherHeader">
-              <div className="weather-icon">
+              <div className="weather-icon si-cloud">
                 <CloudRain size={52} strokeWidth={1.7} />
               </div>
               <h2 className="weather-title">{t("weather_title")}</h2>
@@ -1428,7 +1432,7 @@ export default function VenueContent() {
           <div className="dir-layout">
             <div className="dir-card">
               <div className="dir-header">
-                <div className="dir-pin">
+                <div className="dir-pin si-pin">
                   <MapPin size={38} strokeWidth={1.8} />
                 </div>
                 <h2 className="dir-title">{t("directions_title")}</h2>

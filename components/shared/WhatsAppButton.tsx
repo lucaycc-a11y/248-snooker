@@ -21,7 +21,7 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t('aria_label')}
-      className="md:hidden"
+      className="md:hidden si-whatsapp"
       onTouchStart={() => setShowTip(true)}
       onTouchEnd={() => setShowTip(false)}
       onMouseEnter={() => setShowTip(true)}

@@ -676,6 +676,183 @@ body {
 }
 
 /* ──── Reduced motion ──── */
+/* ──── Site-wide icon animations (lucide-react SVGs) ──── */
+/* Each icon wrapper has a .si-* class. The SVG inside gets animated. */
+
+/* MessageCircle → pulse/ripple */
+.si-message svg { animation: siPulse 3.4s ease-in-out infinite; }
+@keyframes siPulse {
+  0%,100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+/* Instagram → camera-shutter click */
+.si-instagram svg { animation: siShutter 4s ease-in-out infinite; }
+@keyframes siShutter {
+  0%,75%,100% { transform: scale(1); filter: brightness(1); }
+  85% { transform: scale(0.88); filter: brightness(1.15); }
+}
+
+/* MapPin → bounce-drop-settle */
+.si-pin svg { animation: siPinDrop 3s ease-in-out infinite; }
+@keyframes siPinDrop {
+  0%,100% { transform: translateY(0); }
+  40% { transform: translateY(-3px); }
+  55% { transform: translateY(0); }
+}
+
+/* Clock → hand-sweep (hour hand) */
+.si-clock svg { animation: siClockSweep 6s linear infinite; }
+@keyframes siClockSweep {
+  to { transform: rotate(360deg); }
+}
+
+/* Target → crosshair lock */
+.si-target svg { animation: siTarget 3.6s ease-in-out infinite; }
+@keyframes siTarget {
+  0%,100% { transform: scale(1); opacity: 0.8; }
+  30% { transform: scale(0.92); opacity: 1; }
+  60% { transform: scale(1.04); opacity: 0.7; }
+}
+
+/* Smartphone → screen pulse */
+.si-phone svg { animation: siScreenPulse 3.2s ease-in-out infinite; }
+@keyframes siScreenPulse {
+  0%,100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* Check → draw-in stroke */
+.si-check svg { animation: siCheckDraw 3s ease-in-out infinite; }
+@keyframes siCheckDraw {
+  0%,60%,100% { opacity: 0.7; transform: scale(1); }
+  75% { opacity: 1; transform: scale(1.08); }
+}
+
+/* Mail → envelope flap */
+.si-mail svg { animation: siMailBounce 3.8s ease-in-out infinite; }
+@keyframes siMailBounce {
+  0%,100% { transform: translateY(0); }
+  45% { transform: translateY(-2px); }
+  60% { transform: translateY(0); }
+}
+
+/* Lightbulb → glow pulse */
+.si-bulb svg { animation: siBulbGlow 3s ease-in-out infinite; }
+@keyframes siBulbGlow {
+  0%,100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+/* Thermometer → mercury rise */
+.si-therm svg { animation: siThermRise 4s ease-in-out infinite; }
+@keyframes siThermRise {
+  0%,100% { transform: translateY(1px); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Wifi → signal wave */
+.si-wifi svg { animation: siWifiPulse 2.4s ease-in-out infinite; }
+@keyframes siWifiPulse {
+  0%,100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* CupSoda → bubbles */
+.si-cup svg { animation: siCupShake 3.2s ease-in-out infinite; }
+@keyframes siCupShake {
+  0%,100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+/* BadgeCheck → stamp-in */
+.si-badge svg { animation: siStamp 3.6s ease-in-out infinite; }
+@keyframes siStamp {
+  0%,70%,100% { transform: scale(1); }
+  80% { transform: scale(0.9); }
+  90% { transform: scale(1.04); }
+}
+
+/* MousePointerClick → click ring */
+.si-click svg { animation: siClickRing 3.4s ease-in-out infinite; }
+@keyframes siClickRing {
+  0%,100% { transform: scale(1); }
+  40% { transform: scale(0.92); }
+  55% { transform: scale(1); }
+}
+
+/* CalendarCheck → gentle pulse */
+.si-cal svg { animation: siCalPulse 3s ease-in-out infinite; }
+@keyframes siCalPulse {
+  0%,100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+/* CloudRain → cloud shift */
+.si-cloud svg { animation: siCloudDrift 4s ease-in-out infinite; }
+@keyframes siCloudDrift {
+  0%,100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
+}
+
+/* QR code → shimmer pulse */
+.si-qr svg { animation: siQrPulse 3s ease-in-out infinite; }
+@keyframes siQrPulse {
+  0%,100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Star → twinkle */
+.si-star svg { animation: siTwinkle 3s ease-in-out infinite; }
+@keyframes siTwinkle {
+  0%,100% { opacity: 0.5; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Directions pin icon map pin - already in Directions.tsx SVG */
+.pi-pin-body { transform-box: fill-box; transform-origin: center;
+  animation: pinBreathe 3s ease-in-out infinite; }
+.pi-pin-dot { transform-box: fill-box; transform-origin: center;
+  animation: pinBounce 2.4s ease-in-out infinite; }
+@keyframes pinBreathe {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes pinBounce {
+  0%,100% { transform: translateY(0); }
+  40% { transform: translateY(-2px); }
+  55% { transform: translateY(0); }
+}
+
+/* User icon in Nav → subtle breathe */
+.si-user svg { animation: siUserBreathe 4s ease-in-out infinite; }
+@keyframes siUserBreathe {
+  0%,100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+
+/* WhatsApp icon → gentle attention pulse */
+.si-whatsapp svg { animation: siWAPulse 2.8s ease-in-out infinite; }
+@keyframes siWAPulse {
+  0%,100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .si-message svg, .si-instagram svg, .si-pin svg, .si-clock svg,
+  .si-target svg, .si-phone svg, .si-check svg, .si-mail svg,
+  .si-bulb svg, .si-therm svg, .si-wifi svg, .si-cup svg,
+  .si-badge svg, .si-click svg, .si-cal svg, .si-cloud svg,
+  .si-star svg, .si-user svg, .si-whatsapp svg,
+  .pi-pin-body, .pi-pin-dot {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pi-sun-core, .pi-sun-rays, .pi-sun-rays line,
   .pi-bolt, .pi-bolt-glow, .pi-moon, .pi-star,
