@@ -136,8 +136,8 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                   flexDirection: "column",
                   alignItems: "center",
                   opacity: 0,
-                  transform: "translateY(24px)",
-                  transition: "opacity .8s cubic-bezier(.2,.7,.3,1), transform .8s cubic-bezier(.2,.7,.3,1), border-color .35s ease, box-shadow .35s ease",
+                  transform: "translateY(24px) scale(0.95)",
+                  transition: "opacity .55s cubic-bezier(.34,1.56,.64,1), transform .55s cubic-bezier(.34,1.56,.64,1), border-color .35s ease, box-shadow .35s ease",
                 }}
               >
                 {isBestValue && (
@@ -258,16 +258,28 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
         .price-section.is-in .price-card:nth-child(2) { transition-delay: .18s; }
         .price-section.is-in .price-card:nth-child(3) { transition-delay: .30s; }
         .price-card:hover { border-color: rgba(26,157,92,0.45) !important; box-shadow: 0 22px 46px -24px rgba(17,17,16,0.3) !important; }
+
         @media (max-width: 860px) {
-          .price-grid { grid-template-columns: 1fr !important; gap: 34px 20px !important; max-width: 420px !important; margin: 0 auto !important; }
+          .price-grid { grid-template-columns: 1fr !important; gap: 28px !important; max-width: 440px !important; margin: 0 auto !important; }
+          .price-card { padding: 40px 28px 32px !important; }
+          .price-card .pbtn-primary { width: 100% !important; }
         }
+
         @media (max-width: 560px) {
-          .price-section { padding: 86px 20px 96px !important; }
-          .price-sub { margin-bottom: 44px !important; }
-          .price-card { padding: 40px 22px 30px !important; }
+          .price-section { padding: 80px 20px 90px !important; }
+          .price-sub { margin-bottom: 36px !important; }
+          .price-card { padding: 36px 24px 28px !important; }
+          .price-card .pbtn-primary { width: 100% !important; padding: 14px 20px !important; font-size: 15px !important; min-height: 48px !important; }
+          .price-amount b { font-size: clamp(2.4rem, 10vw, 3.2rem) !important; }
         }
+
+        @media (max-width: 400px) {
+          .price-card { padding: 30px 18px 24px !important; }
+          .price-amount b { font-size: 2.2rem !important; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .price-card { opacity: 1 !important; transform: none !important; transition: none !important; }
+          .price-card { opacity: 1 !important; transform: none !important; }
         }
       `}</style>
     </section>

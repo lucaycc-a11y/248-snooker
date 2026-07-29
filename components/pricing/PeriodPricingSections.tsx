@@ -56,6 +56,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
   return (
     <section
       data-nav-theme="light"
+      className="period-pricing-section"
       style={{
         background: "#fff",
         color: "#1d1d1f",
@@ -148,7 +149,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
           return (
             <div
               key={period.id}
-              className="relative flex w-[calc(100vw-68px)] max-w-[340px] flex-shrink-0 snap-start flex-col items-center md:w-auto md:max-w-none"
+              className="pricing-card relative flex w-[calc(100vw-68px)] max-w-[340px] flex-shrink-0 snap-start flex-col items-center md:w-auto md:max-w-none"
               style={{
                 border: "1px solid #d2d2d7",
                 borderRadius: "18px",
@@ -243,7 +244,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
 
               <Link
                 href="/book"
-                className="transition-transform duration-200 hover:scale-105"
+                className="transition-transform duration-200 hover:scale-105 md:w-auto"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -257,6 +258,8 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
                   height: "48px",
                   borderRadius: "100px",
                   textDecoration: "none",
+                  width: "100%",
+                  minHeight: 48,
                 }}
               >
                 {t("cta_book")}
@@ -303,6 +306,13 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
           );
         })}
       </div>
+    <style>{`
+        @media (max-width: 560px) {
+          .period-pricing-section { padding: 70px 0 80px !important; }
+          .period-pricing-section .pricing-card { padding: 32px 20px 28px !important; }
+          .period-pricing-section .pricing-card a { width: 100% !important; min-height: 48px !important; }
+        }
+      `}</style>
     </section>
   );
 }
