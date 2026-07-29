@@ -382,7 +382,12 @@
     "contact_hours_label": "Opening Hours",
     "contact_hours": "Daily 06:00–24:00",
     "contact_cta": "WhatsApp Us",
-    "hero_rotating_words": ["Create Wonders", "Private Moments", "Pure Play", "Clean & Comfortable"],
+    "hero_rotating_words": [
+      "Create Wonders",
+      "Private Moments",
+      "Pure Play",
+      "Clean & Comfortable"
+    ],
     "hero_prefix": "A space for",
     "hero_suffix": ".",
     "hero_cta_primary": "Book Now",
