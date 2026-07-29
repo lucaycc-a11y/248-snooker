@@ -236,6 +236,9 @@ const COMPARE_CSS = `
     padding: 22px 22px 28px;
   }
 }
+@media (max-width: 560px) {
+  .venue-dir-cta-button { width: 100% !important; min-height: 48px !important; justify-content: center !important; }
+}
 
 /* ── Reduced motion: show everything instantly ── */
 @media (prefers-reduced-motion: reduce) {
@@ -1649,9 +1652,11 @@ export default function VenueContent() {
                   href={MAPS_URL}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="venue-dir-cta-button"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
+                    justifyContent: "center",
                     gap: "9px",
                     fontSize: "14.5px",
                     fontWeight: 500,
@@ -1668,9 +1673,11 @@ export default function VenueContent() {
                 </a>
                 <Link
                   href="/book"
+                  className="venue-dir-cta-button"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
+                    justifyContent: "center",
                     gap: "9px",
                     fontSize: "14.5px",
                     fontWeight: 500,

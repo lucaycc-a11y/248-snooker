@@ -138,7 +138,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.7, ease: EASE }}
+        transition={{ duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
         className="no-scrollbar hscroll-track mx-auto flex max-w-[1100px] snap-x snap-mandatory items-stretch gap-4 overflow-x-auto px-6 md:grid md:snap-none md:grid-cols-3 md:gap-6 md:overflow-visible"
         style={{ scrollPaddingInline: "24px", paddingTop: "14px", paddingBottom: "4px", touchAction: "pan-y" }}
       >
