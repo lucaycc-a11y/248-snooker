@@ -25,8 +25,8 @@
     "semantic_hash": "a9cbad0a3155bb243832d37242d65a06"
   },
   ".claude/settings.local.json": {
-    "mtime": 1785317099.0307724,
-    "ast_hash": "5580b598e2ddd1f37a7e0ef7da7c3300",
+    "mtime": 1785330738.4164007,
+    "ast_hash": "a8292d20cdd4f8e640f763e08e10495f",
     "semantic_hash": ""
   },
   "app/[locale]/Snooker404Table.tsx": {
@@ -40,8 +40,8 @@
     "semantic_hash": "ab9c3dfc1dfc1a407b73408b3779b1a6"
   },
   "app/[locale]/about/AboutContent.tsx": {
-    "mtime": 1785325362.4229646,
-    "ast_hash": "2d8837c3c28c092a419691b0936da957",
+    "mtime": 1785329941.7283916,
+    "ast_hash": "0d6991de0c339fc05c6ec898481477fe",
     "semantic_hash": ""
   },
   "app/[locale]/about/page.tsx": {
@@ -955,8 +955,8 @@
     "semantic_hash": "e3e7f6c3c9c06aee0a0dda70b4aff2b2"
   },
   "components/landing/Hero.tsx": {
-    "mtime": 1785322880.5673807,
-    "ast_hash": "64dc1ec268a8891e2e9e0a3e3824a22b",
+    "mtime": 1785329922.5962765,
+    "ast_hash": "2b2e0e642bb3605adfddd2d9e359eccd",
     "semantic_hash": ""
   },
   "components/landing/HowItWorks.tsx": {
@@ -2194,41 +2194,6 @@
     "ast_hash": "04c04e4496c1651503ea2e56d80b7460",
     "semantic_hash": "04c04e4496c1651503ea2e56d80b7460"
   },
-  "public/gallery/IMG_1511.jpg": {
-    "mtime": 1783956133.0,
-    "ast_hash": "d57a971580a496190e2bca2e58e16983",
-    "semantic_hash": "d57a971580a496190e2bca2e58e16983"
-  },
-  "public/gallery/IMG_1512.jpg": {
-    "mtime": 1783956133.0,
-    "ast_hash": "8e45c68be5622fcd7dea7df403ab7578",
-    "semantic_hash": "8e45c68be5622fcd7dea7df403ab7578"
-  },
-  "public/gallery/IMG_1513.jpg": {
-    "mtime": 1783956133.0,
-    "ast_hash": "0d692069248686968660b9a5d15622e3",
-    "semantic_hash": "0d692069248686968660b9a5d15622e3"
-  },
-  "public/gallery/IMG_1514.jpg": {
-    "mtime": 1783956133.0,
-    "ast_hash": "53fe15279c4b4d9fee78f096505b4e13",
-    "semantic_hash": "53fe15279c4b4d9fee78f096505b4e13"
-  },
-  "public/gallery/IMG_1515.jpg": {
-    "mtime": 1783956133.0,
-    "ast_hash": "ce234110c97073d2ebd999d5c9301b23",
-    "semantic_hash": "ce234110c97073d2ebd999d5c9301b23"
-  },
-  "public/video/hero-poster.jpg": {
-    "mtime": 1783956133.0,
-    "ast_hash": "f5279d080406fcbb8ca3d3f78855336d",
-    "semantic_hash": "f5279d080406fcbb8ca3d3f78855336d"
-  },
-  "public/video/248Snooker_hero.mp4": {
-    "mtime": 1783956133.0,
-    "ast_hash": "425294c4d6cdea96d2b67b5dd0870563",
-    "semantic_hash": "425294c4d6cdea96d2b67b5dd0870563"
-  },
   "components/landing/Directions.tsx": {
     "mtime": 1785320124.4609613,
     "ast_hash": "c06d0ef126cc1571508f437b5bb13390",
@@ -2395,8 +2360,53 @@
     "semantic_hash": ""
   },
   "components/landing/PlayIntro.tsx": {
-    "mtime": 1785322599.7106364,
-    "ast_hash": "6c1bdf41a4eb1cc4d53c1e689fe91d76",
+    "mtime": 1785327359.4319952,
+    "ast_hash": "68ea4dc61f8cdf6588f1bfb669d1ea07",
+    "semantic_hash": ""
+  },
+  "public/gallery/Space8_Competition_Mode.PNG": {
+    "mtime": 1785327968.0,
+    "ast_hash": "95aacf12645b9d791a043dea9c708074",
+    "semantic_hash": ""
+  },
+  "public/gallery/Space8_Door.PNG": {
+    "mtime": 1785329591.0,
+    "ast_hash": "60d445ec2a79eab656e2b9bdb6393de8",
+    "semantic_hash": ""
+  },
+  "public/gallery/Space_Enternity.PNG": {
+    "mtime": 1785327588.0,
+    "ast_hash": "0a69773ae3c4554a1d7f530e76525a70",
+    "semantic_hash": ""
+  },
+  "public/gallery/Space_Infinity.PNG": {
+    "mtime": 1785325598.0,
+    "ast_hash": "8d1fba23b88bd4a8ac2e650f5482880f",
+    "semantic_hash": ""
+  },
+  "public/video/Main_hero/Space8_Main_Hero_Poster.jpg": {
+    "mtime": 1785328135.0,
+    "ast_hash": "bf01cfd3fed0b7fd045756a52899ab7b",
+    "semantic_hash": ""
+  },
+  "public/video/Space8_Main_Hero_Poster.jpg": {
+    "mtime": 1785329898.6229212,
+    "ast_hash": "bf01cfd3fed0b7fd045756a52899ab7b",
+    "semantic_hash": ""
+  },
+  "public/gallery/Space8_Professional_Table.mov": {
+    "mtime": 1784042547.0,
+    "ast_hash": "7a39ba29d26220a56dd6c1ca4b3ff12c",
+    "semantic_hash": ""
+  },
+  "public/video/Main_hero/Space8_Main_Hero.mp4": {
+    "mtime": 1785329113.009582,
+    "ast_hash": "aade11549f199e1d690810df968754ec",
+    "semantic_hash": ""
+  },
+  "public/video/Space8_Main_Hero.mp4": {
+    "mtime": 1785329898.6183703,
+    "ast_hash": "aade11549f199e1d690810df968754ec",
     "semantic_hash": ""
   }
 }

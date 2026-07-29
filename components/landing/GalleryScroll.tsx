@@ -7,13 +7,22 @@ import Image from "next/image";
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
-// TODO: 需要 Luca 提供正確素材 — 掃碼即入場、私人獨立空間、頂級燈光設備的專用照片
-// (暫用現有場地照片佔位，不同角度/場景)
+// Real media assets mapped per item (see README for provenance)
+// Item 1: looping video — professional table
+// Items 2-4: static photos — door/entry, Infinity room, competition lighting
+const mediaItems = [
+  { type: "video" as const, src: "/gallery/table-loop.mp4" },
+  { type: "image" as const, src: "/gallery/Space8_Door.PNG" },
+  { type: "image" as const, src: "/gallery/Space_Infinity.PNG" },
+  { type: "image" as const, src: "/gallery/Space8_Competition_Mode.PNG" },
+];
+
+// Static images for mobile (stacked layout uses images only — video poster for item 1)
 const slideImages = [
-  "/gallery/IMG_1511.jpg",
-  "/gallery/IMG_1513.jpg",
-  "/gallery/IMG_1514.jpg",
-  "/gallery/IMG_1515.jpg",
+  "/gallery/table-poster.jpg",
+  "/gallery/Space8_Door.PNG",
+  "/gallery/Space_Infinity.PNG",
+  "/gallery/Space8_Competition_Mode.PNG",
 ];
 
 export default function GalleryScroll() {
@@ -35,6 +44,7 @@ export default function GalleryScroll() {
   const [isIn, setIsIn] = useState(false);
   const itemsRef = useRef<(HTMLDivElement | null)[]>([]);
   const secRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -68,7 +78,7 @@ export default function GalleryScroll() {
     return () => obs.disconnect();
   }, []);
 
-  // ── Desktop: IntersectionObserver for scroll-synced image swap ──
+  // ── Desktop: IntersectionObserver for scroll-synced media swap ──
   useEffect(() => {
     if (isMobile) return;
 
@@ -100,6 +110,19 @@ export default function GalleryScroll() {
     });
     return () => observer.disconnect();
   }, [isMobile]);
+
+  // ── Play/pause video when activeIndex changes ──
+  // Video only plays while item 0 (professional table) is active;
+  // paused when user scrolls past to items 1-3.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (activeIndex === 0) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  }, [activeIndex]);
 
   const sectionTitle = t("title");
 
@@ -220,7 +243,7 @@ export default function GalleryScroll() {
             ))}
           </div>
         ) : (
-          /* ── Desktop: 2-column grid, pinned image, scroll-synced swap ── */
+          /* ── Desktop: 2-column grid, pinned media, scroll-synced swap ── */
           <div
             style={{
               display: "grid",
@@ -328,7 +351,7 @@ export default function GalleryScroll() {
               ))}
             </div>
 
-            {/* Right: sticky pinned image with crossfade */}
+            {/* Right: sticky pinned media with crossfade (video for item 1, images for 2-4) */}
             <div
               style={{
                 position: "sticky",
@@ -342,22 +365,48 @@ export default function GalleryScroll() {
                 aspectRatio: "4 / 3",
               }}
             >
-              {slides.map((slide, i) => (
-                <Image
-                  key={slide.image}
-                  src={slide.image}
-                  alt={slide.alt}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority={i === 0}
-                  style={{
-                    objectFit: "cover",
-                    opacity: i === activeIndex ? 1 : 0,
-                    transition:
-                      "opacity 0.22s ease",
-                  }}
-                />
-              ))}
+              {/* Video element — always mounted, shown/hidden via opacity */}
+              <video
+                ref={videoRef}
+                src={mediaItems[0].src}
+                muted
+                loop
+                playsInline
+                preload="auto"
+                poster="/gallery/table-poster.jpg"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  opacity: activeIndex === 0 ? 1 : 0,
+                  transition: "opacity 0.22s ease",
+                  zIndex: activeIndex === 0 ? 2 : 0,
+                }}
+              />
+              {/* Image elements — one per image item, crossfade via opacity */}
+              {mediaItems.slice(1).map((m) => {
+                const origIndex = mediaItems.findIndex(
+                  (mi) => mi.src === m.src,
+                );
+                return (
+                  <Image
+                    key={m.src}
+                    src={m.src}
+                    alt={slides[origIndex]?.alt ?? ""}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority={origIndex === 1}
+                    style={{
+                      objectFit: "cover",
+                      opacity: activeIndex === origIndex ? 1 : 0,
+                      transition: "opacity 0.22s ease",
+                      zIndex: activeIndex === origIndex ? 2 : 0,
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         )}

@@ -11,14 +11,13 @@ interface SlideText {
   alt: string;
 }
 
-// Image paths are not translatable — text comes from the `gallery` namespace,
-// merged with these by index.
-// TODO: 需要 Luca 提供正確素材 — 中式桌球枱場地照片（暫用現有圖佔位）
+// Real media assets — item 1 uses the video poster (static image for grid layout),
+// items 2-4 use the actual facility photos.
 const slideImages = [
-  "/gallery/IMG_1511.jpg",
-  "/gallery/IMG_1513.jpg",
-  "/gallery/IMG_1514.jpg",
-  "/gallery/IMG_1515.jpg",
+  "/gallery/table-poster.jpg",
+  "/gallery/Space8_Door.PNG",
+  "/gallery/Space_Infinity.PNG",
+  "/gallery/Space8_Competition_Mode.PNG",
 ];
 
 const FONT_FAMILY =

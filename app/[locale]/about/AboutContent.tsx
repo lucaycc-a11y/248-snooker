@@ -196,11 +196,11 @@ const STATS_CSS = `
 `;
 
 const VENUE_IMAGES = [
-  "/gallery/IMG_1511.jpg",
-  "/gallery/IMG_1512.jpg",
-  "/gallery/IMG_1513.jpg",
-  "/gallery/IMG_1514.jpg",
-  "/gallery/IMG_1515.jpg",
+  "/gallery/table-poster.jpg",
+  "/gallery/Space8_Door.PNG",
+  "/gallery/Space_Infinity.PNG",
+  "/gallery/Space8_Competition_Mode.PNG",
+  "/gallery/Space_Enternity.PNG",
 ];
 
 type TitledItem = { title: string; body: string };
@@ -917,7 +917,7 @@ export default function AboutContent() {
             {/* Room 1: Space Infinity */}
             <div className="room-card">
               <div className="room-card-image">
-                <Image src="/gallery/IMG_1511.jpg" alt="Space Infinity（無限空間球室）" fill sizes="(max-width: 720px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+                <Image src="/gallery/Space_Infinity.PNG" alt="Space Infinity（無限空間球室）" fill sizes="(max-width: 720px) 100vw, 50vw" style={{ objectFit: "cover" }} />
               </div>
               <div className="room-card-body">
                 <h3 className="room-card-name">{t("room_1_name")}</h3>
@@ -931,7 +931,7 @@ export default function AboutContent() {
             {/* Room 2: Space Eternity */}
             <div className="room-card">
               <div className="room-card-image">
-                <Image src="/gallery/IMG_1512.jpg" alt="Space Eternity（永恆空間球室）" fill sizes="(max-width: 720px) 100vw, 50vw" style={{ objectFit: "cover" }} />
+                <Image src="/gallery/Space_Enternity.PNG" alt="Space Eternity（永恆空間球室）" fill sizes="(max-width: 720px) 100vw, 50vw" style={{ objectFit: "cover" }} />
               </div>
               <div className="room-card-body">
                 <h3 className="room-card-name">{t("room_2_name")}</h3>

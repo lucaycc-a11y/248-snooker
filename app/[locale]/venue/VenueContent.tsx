@@ -271,6 +271,7 @@ const SITE_CSS = `
   pointer-events: none;
 }
 .compare-label.right { z-index: 1; }
+.compare-label.left { z-index: 3; }
 .compare-handle {
   position: absolute;
   top: 0; bottom: 0;
@@ -1147,7 +1148,7 @@ export default function VenueContent() {
           <div ref={compareRef} className="compare-frame" id="compareFrame">
             {/* Full image (Space Eternity side) */}
             <Image
-              src="/gallery/IMG_1512.jpg"
+              src="/gallery/Space_Enternity.PNG"
               alt="Space Eternity（永恆空間球室）"
               fill
               sizes="(max-width: 720px) 100vw, 1100px"
@@ -1161,15 +1162,17 @@ export default function VenueContent() {
             <div className="compare-clip" id="compareClip" style={{ width: `${sliderPos}%` }}>
               <div className="compare-clip-inner" id="compareClipInner">
                 <Image
-                  src="/gallery/IMG_1511.jpg"
+                  src="/gallery/Space_Infinity.PNG"
                   alt="Space Infinity（無限空間球室）"
                   fill
                   sizes="(max-width: 720px) 100vw, 1100px"
                   priority
                 />
               </div>
-              <div className="compare-label left">SPACE<br />INFINITY</div>
             </div>
+
+            {/* Infinity label — outside clip so it stays centred on the full image, not the clip edge */}
+            <div className="compare-label left">SPACE<br />INFINITY</div>
 
             {/* Handle */}
             <div className="compare-handle" id="compareHandle" style={{ left: `${sliderPos}%` }}>
