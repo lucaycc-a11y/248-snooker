@@ -183,11 +183,14 @@ export default function HomeFAQ({
       </div>
 
       <style>{`
+        #home-faq { padding: 120px 24px 140px !important; }
+        #home-faq .faq-head { margin-bottom: 52px !important; }
+        #home-faq .faq-q { padding: 26px 4px !important; gap: 24px !important; }
         @media (max-width: 560px) {
-          .faq-section { padding: 86px 20px 96px; }
-          .faq-head { margin-bottom: 36px; }
-          .faq-q { padding: 22px 2px; gap: 16px; }
-          .faq-answer-inner { font-size: 13.5px; padding-bottom: 24px; }
+          #home-faq { padding: 86px 20px 96px !important; }
+          #home-faq .faq-head { margin-bottom: 36px !important; }
+          #home-faq .faq-q { padding: 22px 2px !important; gap: 16px !important; }
+          #home-faq .faq-answer-inner { font-size: 13.5px !important; padding-bottom: 24px !important; }
         }
         @media (prefers-reduced-motion: reduce) {
           .faq-answer { transition: none !important; }

@@ -8,6 +8,7 @@ import HomePricing from "@/components/landing/HomePricing";
 import { getConfig } from "@/lib/data/getConfig";
 import Member from "@/components/landing/Member";
 import HomeFAQ from "@/components/landing/HomeFAQ";
+import Directions from "@/components/landing/Directions";
 import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
@@ -122,6 +123,8 @@ export default async function Home({
       {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
           a "了解更多" link to the full /faq page. */}
       <HomeFAQ ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" />
+
+      <Directions />
 
       <Footer />
 
