@@ -381,7 +381,98 @@
     "contact_email_label": "Email",
     "contact_hours_label": "Opening Hours",
     "contact_hours": "Daily 06:00–24:00",
-    "contact_cta": "WhatsApp Us"
+    "contact_cta": "WhatsApp Us",
+    "hero_rotating_words": ["Create Wonders", "Private Moments", "Pure Play", "Clean & Comfortable"],
+    "hero_cta_primary": "Book Now",
+    "hero_cta_secondary": "View Venue",
+    "room_compare_title": "Two 1T Private Rooms",
+    "room_compare_sub": "Each room holds up to 6 people — perfect for a session with friends or solo practice.",
+    "room_1_name": "Space Infinity",
+    "room_1_sub": "Modern space, total focus on every shot",
+    "room_2_name": "Space Eternity",
+    "room_2_sub": "Classic layout, comfortable play",
+    "room_specs": [
+      "Star Chinese pool table",
+      "Professional tournament lighting",
+      "Independent climate control",
+      "Free high-speed WiFi",
+      "Smart QR entry"
+    ],
+    "facilities_title": "Facilities",
+    "facilities_items": [
+      {
+        "title": "Star Chinese Pool Table",
+        "body": "A hand-picked Star table for the truest feel."
+      },
+      {
+        "title": "Tournament Lighting",
+        "body": "Match-tuned lighting for total focus on every shot."
+      },
+      {
+        "title": "Climate Control",
+        "body": "Constant temperature for comfort through long sessions."
+      },
+      {
+        "title": "Free High-Speed WiFi",
+        "body": "Full coverage — share your best shots anytime."
+      },
+      {
+        "title": "Smoke-Free Zone",
+        "body": "The entire venue is strictly smoke-free for a clean environment."
+      },
+      {
+        "title": "Smart QR Entry",
+        "body": "Get a QR code on confirmation; scan at the door to enter."
+      }
+    ],
+    "cta_title": "Ready to Play?",
+    "cta_subtitle": "Book your own table anytime, anywhere. From booking to payment to entry, it's fully self-service — no waiting.",
+    "cta_primary": "Book Now",
+    "cta_secondary": "View Pricing",
+    "cta_steps": [
+      {
+        "title": "Pick a Slot",
+        "body": "Choose a date and time slot, with real-time availability for both 1T rooms."
+      },
+      {
+        "title": "Pay Instantly",
+        "body": "Multiple payment methods, done in a minute."
+      },
+      {
+        "title": "Scan to Enter",
+        "body": "Scan the QR code at the door — auto-unlock, no waiting."
+      }
+    ],
+    "stats_items": [
+      {
+        "value": "1",
+        "unit": "min",
+        "suffix": "",
+        "label": "to book",
+        "live": ""
+      },
+      {
+        "value": "2",
+        "unit": "",
+        "suffix": "",
+        "label": "private rooms",
+        "live": ""
+      },
+      {
+        "value": "80",
+        "unit": "",
+        "suffix": "+",
+        "label": "hours played",
+        "live": "Counting up"
+      },
+      {
+        "value": "100",
+        "unit": "",
+        "suffix": "+",
+        "label": "players joined",
+        "live": "Growing"
+      }
+    ]
   },
   "memberPage": {
     "card_label": "MEMBER CARD",

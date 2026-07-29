@@ -382,7 +382,98 @@
     "contact_email_label": "電郵",
     "contact_hours_label": "營業時間",
     "contact_hours": "每日 06:00 至 24:00",
-    "contact_cta": "WhatsApp 聯絡"
+    "contact_cta": "WhatsApp 聯絡",
+    "hero_rotating_words": ["創造奇蹟", "獨享私密", "純粹玩樂", "乾淨舒適"],
+    "hero_cta_primary": "立即預訂",
+    "hero_cta_secondary": "查看場地",
+    "room_compare_title": "兩間 1T 獨立球室",
+    "room_compare_sub": "每間可容納 6 人，適合朋友切磋或一個人練波。",
+    "room_1_name": "Space Infinity（無限空間球室）",
+    "room_1_sub": "時尚空間，專注每一杆",
+    "room_2_name": "Space Eternity（永恆空間球室）",
+    "room_2_sub": "經典格局，舒適對局",
+    "room_specs": [
+      "星牌中式桌球枱",
+      "專業級比賽照明",
+      "獨立冷氣恆溫系統",
+      "免費高速 WiFi",
+      "智能 QR 門禁"
+    ],
+    "facilities_title": "場地設施",
+    "facilities_items": [
+      {
+        "title": "星牌中式桌球枱",
+        "body": "精選星牌桌球枱，確保最佳手感。"
+      },
+      {
+        "title": "專業級照明",
+        "body": "特調比賽燈光模式，專注於每一次出杆。"
+      },
+      {
+        "title": "恆溫冷氣",
+        "body": "全場恆溫，長時間對局依然舒適。"
+      },
+      {
+        "title": "免費高速 WiFi",
+        "body": "全場覆蓋，隨時分享你的精彩一杆。"
+      },
+      {
+        "title": "無煙區域",
+        "body": "場地全面禁煙，創造舒適環境。"
+      },
+      {
+        "title": "智能 QR 門禁",
+        "body": "預訂確認後獲發 QR 碼，到場掃描自動開門。"
+      }
+    ],
+    "cta_title": "準備好開球了嗎？",
+    "cta_subtitle": "一鍵預訂專屬球枱，隨時隨地開局。由預訂、付款到入場，全程自助，毋需等候。",
+    "cta_primary": "立即預訂",
+    "cta_secondary": "查看價目",
+    "cta_steps": [
+      {
+        "title": "選擇時段",
+        "body": "挑選日子、時段，即時看到 2 間 1T 球室的空位。"
+      },
+      {
+        "title": "即時付款",
+        "body": "多種付款方法，一分鐘完成。"
+      },
+      {
+        "title": "掃碼入場",
+        "body": "到場掃 QR 碼自動開門，無需等候。"
+      }
+    ],
+    "stats_items": [
+      {
+        "value": "1",
+        "unit": "分鐘",
+        "suffix": "",
+        "label": "完成預訂",
+        "live": ""
+      },
+      {
+        "value": "2",
+        "unit": "間",
+        "suffix": "",
+        "label": "獨立球室",
+        "live": ""
+      },
+      {
+        "value": "80",
+        "unit": "",
+        "suffix": "+",
+        "label": "累積體驗時數",
+        "live": "持續累積中"
+      },
+      {
+        "value": "100",
+        "unit": "",
+        "suffix": "+",
+        "label": "熱情球友加入",
+        "live": "持續增加中"
+      }
+    ]
   },
   "memberPage": {
     "card_label": "MEMBER CARD",
