@@ -271,7 +271,6 @@ const SITE_CSS = `
   pointer-events: none;
 }
 .compare-label.right { z-index: 1; }
-.compare-label.left { z-index: 3; }
 .compare-handle {
   position: absolute;
   top: 0; bottom: 0;
@@ -1169,10 +1168,8 @@ export default function VenueContent() {
                   priority
                 />
               </div>
+              <div className="compare-label left">SPACE<br />INFINITY</div>
             </div>
-
-            {/* Infinity label — outside clip so it stays centred on the full image, not the clip edge */}
-            <div className="compare-label left">SPACE<br />INFINITY</div>
 
             {/* Handle */}
             <div className="compare-handle" id="compareHandle" style={{ left: `${sliderPos}%` }}>

@@ -372,6 +372,7 @@ export default function GalleryScroll() {
                 muted
                 loop
                 playsInline
+                autoPlay
                 preload="auto"
                 poster="/gallery/table-poster.jpg"
                 style={{
