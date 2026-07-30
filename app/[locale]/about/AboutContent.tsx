@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { Logo } from "@/components/brand";
 import {
   Target,
   Clock,
@@ -868,13 +869,9 @@ export default function AboutContent() {
               transition={{ duration: 1.35, ease: [0.16, 0.72, 0.3, 1], delay: 0.15 }}
               style={{ position: "relative", width: "clamp(130px, 17vw, 180px)", marginBottom: 28 }}
             >
-              <Image
-                src="/video/Space8_Main_Hero_Poster.jpg"
-                alt="8-ball"
-                width={180}
-                height={180}
-                style={{ width: "100%", height: "auto", display: "block", borderRadius: "50%", objectFit: "cover", aspectRatio: "1/1" }}
-              />
+              <div style={{ width: "100%", aspectRatio: "1/1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Logo variant="mark" theme="dark" size={140} />
+              </div>
               <div
                 style={{
                   position: "absolute", left: "50%", bottom: -13, width: "74%", height: 14,
