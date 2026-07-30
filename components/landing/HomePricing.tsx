@@ -268,7 +268,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
         @media (max-width: 560px) {
           .price-section { padding: 80px 20px 90px !important; }
           .price-sub { margin-bottom: 36px !important; }
-          .price-card { padding: 36px 24px 28px !important; }
+          .price-card { padding: 32px 24px 28px !important; border-radius: 20px !important; }
           .price-card .pbtn-primary { width: 100% !important; padding: 14px 20px !important; font-size: 15px !important; min-height: 48px !important; }
           .price-amount b { font-size: clamp(2.4rem, 10vw, 3.2rem) !important; }
         }

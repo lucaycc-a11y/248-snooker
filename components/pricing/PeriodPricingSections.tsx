@@ -309,7 +309,7 @@ export default function PeriodPricingSections({ periods }: { periods: PricingPer
     <style>{`
         @media (max-width: 560px) {
           .period-pricing-section { padding: 70px 0 80px !important; }
-          .period-pricing-section .pricing-card { padding: 32px 20px 28px !important; }
+          .period-pricing-section .pricing-card { padding: 32px 20px 28px !important; border-radius: 20px !important; }
           .period-pricing-section .pricing-card a { width: 100% !important; min-height: 48px !important; }
         }
       `}</style>

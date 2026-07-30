@@ -386,7 +386,7 @@ export default function GalleryScroll() {
             style={{
               display: "flex",
               flexDirection: "column",
-              gap: 120,
+              gap: 80,
               padding: "0 24px 0",
             }}
           >

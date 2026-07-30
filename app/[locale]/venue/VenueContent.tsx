@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import {
   Target,
@@ -22,6 +22,7 @@ import {
   Star,
   Sun,
   Moon,
+  ChevronLeft,
 } from "lucide-react";
 
 const DARK = "#1D1D1F";
@@ -151,7 +152,7 @@ const SITE_CSS = `
   margin: 0;
 }
 @media (max-width: 560px) {
-  .hero-after-section { padding: 40px 24px 50px; }
+  .hero-after-section { padding: 40px 24px 48px; }
 }
 
 /* ===== FACILITY ===== */
@@ -221,6 +222,15 @@ const SITE_CSS = `
 }
 @media (max-width: 860px) { .facility-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) { .facility-grid { grid-template-columns: 1fr; } }
+.facility-carousel-track::-webkit-scrollbar { display: none; }
+@media (max-width: 767px) {
+  .facility-section { padding: 96px 20px 96px; }
+  .facility-title { margin-bottom: 32px; }
+  .facility-card { min-width: 82vw; padding: 24px; border-radius: 20px; }
+  .facility-card h3 { font-size: 16px; }
+  .facility-card p { font-size: 13.5px; }
+  .facility-icon { margin-bottom: 14px; }
+}
 
 /* ===== COMPARISON SLIDER (matches reference HTML exactly) ===== */
 .compare-section {
@@ -346,6 +356,7 @@ const SITE_CSS = `
   margin-top: 5px;
 }
 @media (max-width: 560px) {
+  .compare-section { padding: 80px 24px 96px; }
   .compare-captions { gap: 14px; }
   .compare-caption { font-size: 13.5px; }
   .compare-caption span { font-size: 12px; }
@@ -430,7 +441,7 @@ const SITE_CSS = `
 @media (max-width: 900px) { .service-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 560px) {
   .service-grid { grid-template-columns: 1fr; gap: 16px; }
-  .service-section { padding: 90px 24px 100px; }
+  .service-section { padding: 80px 24px 96px; }
   .service-title { margin-bottom: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -594,10 +605,21 @@ const SITE_CSS = `
   .rate-sub { max-width: none; }
 }
 @media (max-width: 560px) {
-  .rate-section { padding: 86px 20px 96px; }
-  .rate-row { grid-template-columns: auto 1fr; gap: 14px; padding: 22px 20px; }
-  .rate-price { grid-column: 1 / -1; text-align: left; padding-left: 56px; margin-top: -4px; }
-  .rate-price b { font-size: 1.5rem; }
+  .rate-section { padding: 80px 20px 96px; }
+  .rate-layout { gap: 32px; }
+  .rate-sub { font-size: 14px; margin-bottom: 24px; }
+  .rate-row { grid-template-columns: 1fr; gap: 0; padding: 24px; border-radius: 18px; border: 1px solid rgba(17,17,16,0.10); margin-bottom: 16px; }
+  .rate-row + .rate-row { border-top: 1px solid rgba(17,17,16,0.10); }
+  .rate-row.is-best { border-color: rgba(26,157,92,0.35); }
+  .rate-row.is-best::before { width: 100%; height: 3px; top: 0; bottom: auto; }
+  .rate-ic { margin-bottom: 12px; }
+  .rate-meta { text-align: center; }
+  .rate-meta h3 { justify-content: center; font-size: 17px; }
+  .rate-price { grid-column: 1 / -1; text-align: center; padding-left: 0; margin-top: 12px; padding-top: 16px; border-top: 1px solid rgba(17,17,16,0.07); }
+  .rate-price b { font-size: 1.65rem; }
+  .rate-price span { font-size: 12px; }
+  .rate-deal { display: inline-block; margin-top: 8px; }
+  .rate-cta { width: 100%; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .rate-row { opacity: 1; transform: none; transition: none; }
@@ -656,9 +678,9 @@ const SITE_CSS = `
 }
 .notes-link:hover { color: #4ad48c; }
 @media (max-width: 560px) {
-  .notes-section { padding: 90px 24px 100px; }
-  .notes-title { margin-bottom: 34px; }
-  .notes-list li { gap: 14px; padding: 18px 2px; }
+  .notes-section { padding: 80px 24px 96px; }
+  .notes-title { margin-bottom: 32px; }
+  .notes-list li { gap: 14px; padding: 16px 2px; }
   .notes-list p { font-size: 14px; }
 }
 
@@ -748,7 +770,7 @@ const SITE_CSS = `
 }
 .weather-list li b { color: #f5f2ec; font-weight: 700; }
 @media (max-width: 560px) {
-  .weather-section { padding: 90px 24px 100px; }
+  .weather-section { padding: 80px 24px 96px; }
   .weather-card { padding: 32px 24px 34px; border-radius: 16px; }
   .weather-header { gap: 13px; margin-bottom: 26px; }
   .weather-icon { width: 38px; height: 38px; }
@@ -876,14 +898,15 @@ const SITE_CSS = `
   .dir-map { aspect-ratio: 4 / 3; min-height: 0; }
 }
 @media (max-width: 560px) {
-  .dir-section { padding: 90px 24px 100px; }
-  .dir-card { padding: 30px 24px 32px; border-radius: 16px; }
-  .dir-header { gap: 12px; margin-bottom: 22px; }
+  .dir-section { padding: 80px 24px 96px; }
+  .dir-card { padding: 24px; border-radius: 18px; }
+  .dir-header { gap: 12px; margin-bottom: 20px; }
   .dir-pin { width: 30px; height: 30px; }
   .dir-map { border-radius: 16px; }
-  .dir-actions { gap: 10px; }
-  .dir-btn { padding: 13px 20px; font-size: 13.5px; }
+  .dir-actions { gap: 10px; flex-direction: column; }
+  .dir-btn { padding: 13px 20px; font-size: 13.5px; width: 100%; justify-content: center; min-height: 48px; }
   .venue-dir-cta-button { width: 100% !important; min-height: 48px !important; justify-content: center !important; }
+  .dir-notes { margin-bottom: 24px; }
 }
 `;
 
@@ -898,6 +921,14 @@ export default function VenueContent() {
   const desktopVideoRef = useRef<HTMLVideoElement>(null);
   const mobileVideoRef = useRef<HTMLVideoElement>(null);
   const [reduceMotion, setReduceMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -912,29 +943,17 @@ export default function VenueContent() {
     offset: ["start start", "end end"],
   });
 
-  useEffect(() => {
-    const isDesktop = () => window.matchMedia("(min-width: 768px)").matches;
-
-    const updateFrame = () => {
-      const progress = scrollYProgress.get();
-      const activeVideo = isDesktop() ? desktopVideoRef.current : mobileVideoRef.current;
-      if (activeVideo && activeVideo.duration) {
-        activeVideo.currentTime = progress * activeVideo.duration;
-      }
-    };
-
-    const unsubscribe = scrollYProgress.on("change", () => {
-      requestAnimationFrame(updateFrame);
-    });
-
-    const handleResize = () => updateFrame();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      unsubscribe();
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [scrollYProgress]);
+  // Desktop scroll scrub: seek video directly on the animation frame.
+  // Framer Motion's on("change") already fires on the rAF loop, so wrapping
+  // in another requestAnimationFrame only adds a frame of seek latency,
+  // making the scrub feel one frame behind the finger. Direct seek = fluid.
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+    const activeVideo = isDesktop ? desktopVideoRef.current : mobileVideoRef.current;
+    if (activeVideo && activeVideo.duration) {
+      activeVideo.currentTime = latest * activeVideo.duration;
+    }
+  });
 
   /* ── Comparison slider (matches reference HTML exactly) ── */
   const compareRef = useRef<HTMLDivElement>(null);
@@ -998,6 +1017,35 @@ export default function VenueContent() {
       window.removeEventListener("resize", sizeClipImg);
     };
   }, [sizeClipImg]);
+
+  /* ── Facility carousel (mobile) ── */
+  const facilityTrackRef = useRef<HTMLDivElement>(null);
+  const [facilityActive, setFacilityActive] = useState(0);
+
+  useEffect(() => {
+    const track = facilityTrackRef.current;
+    if (!track) return;
+    const onScroll = () => {
+      const center = track.scrollLeft + track.clientWidth / 2;
+      const cards = Array.from(track.querySelectorAll<HTMLElement>(".facility-card"));
+      let nearest = 0, min = Infinity;
+      cards.forEach((el, i) => {
+        const cardCenter = el.offsetLeft + el.offsetWidth / 2;
+        const dist = Math.abs(cardCenter - center);
+        if (dist < min) { min = dist; nearest = i; }
+      });
+      setFacilityActive(nearest);
+    };
+    track.addEventListener("scroll", onScroll, { passive: true });
+    return () => track.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const scrollToFacility = (i: number) => {
+    const track = facilityTrackRef.current;
+    if (!track) return;
+    const cards = track.querySelectorAll<HTMLElement>(".facility-card");
+    cards[i]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  };
 
   /* ── Service card sequential reveal (matches reference HTML) ── */
   const serviceGridRef = useRef<HTMLDivElement>(null);
@@ -1078,7 +1126,7 @@ export default function VenueContent() {
             className="hero-video-el hidden md:block"
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             poster="/video/Venue_Hero/Venue_Hero_Desktop_poster.jpg"
           />
           {/* Mobile video (hidden on desktop) */}
@@ -1088,7 +1136,7 @@ export default function VenueContent() {
             className="hero-video-el block md:hidden"
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             poster="/video/Venue_Hero/Venue_Hero_Mobile_poster.jpg"
           />
 
@@ -1166,7 +1214,7 @@ export default function VenueContent() {
         <div className="hero-after-inner">
           <h2 className="hero-after-title">自助中式桌球<br />獨立球室</h2>
           <p className="hero-after-body">
-            獨立球室，無多餘干擾。一顆球、一支桿、一段不被打斷的時間，掃碼開門，燈光為你亮起。
+            獨立球室，無多餘干擾。一顆球、一支桿、一段<strong style={{color:"#fff",fontWeight:700}}>不被打斷的時間</strong>，掃碼開門，<strong style={{color:"#fff",fontWeight:700}}>燈光為你亮起</strong>。
           </p>
         </div>
       </section>
@@ -1175,21 +1223,79 @@ export default function VenueContent() {
       <section className="facility-section" data-nav-theme="dark">
         <div className="facility-inner">
           <h2 className="facility-title">{t("facilities_title")}</h2>
-          <div className="facility-grid">
-            {facilities.map((item, i) => {
-              const Icon = FACILITY_ICONS[i] ?? Target;
-              const iconClass = FACILITY_ICON_CLASSES[i] ?? '';
-              return (
-                <div key={item.title} className="facility-card">
-                  <div className={`facility-icon ${iconClass}`}>
-                    <Icon size={26} strokeWidth={1.8} />
+          {isMobile ? (
+            <>
+              <div ref={facilityTrackRef} className="facility-carousel-track" style={{
+                display: "flex",
+                gap: 14,
+                overflowX: "auto",
+                scrollSnapType: "x mandatory",
+                WebkitOverflowScrolling: "touch",
+                scrollbarWidth: "none",
+                padding: "0 4px 8px",
+              }}>
+                {facilities.map((item, i) => {
+                  const Icon = FACILITY_ICONS[i] ?? Target;
+                  const iconClass = FACILITY_ICON_CLASSES[i] ?? '';
+                  return (
+                    <div key={item.title} className="facility-card" style={{
+                      minWidth: "82vw",
+                      scrollSnapAlign: "center",
+                      flexShrink: 0,
+                    }}>
+                      <div className={`facility-icon ${iconClass}`}>
+                        <Icon size={26} strokeWidth={1.8} />
+                      </div>
+                      <h3>{item.title}</h3>
+                      <p>{item.body}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Dot indicators */}
+              <div className="facility-dots" style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 8,
+                marginTop: 28,
+              }}>
+                {facilities.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => scrollToFacility(i)}
+                    aria-label={`Facility ${i + 1}`}
+                    style={{
+                      width: i === facilityActive ? 28 : 8,
+                      height: 4,
+                      borderRadius: 4,
+                      border: 0,
+                      padding: 0,
+                      background: i === facilityActive ? "#22b86b" : "rgba(255,255,255,0.25)",
+                      transition: "all .3s ease",
+                      cursor: "pointer",
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="facility-grid">
+              {facilities.map((item, i) => {
+                const Icon = FACILITY_ICONS[i] ?? Target;
+                const iconClass = FACILITY_ICON_CLASSES[i] ?? '';
+                return (
+                  <div key={item.title} className="facility-card">
+                    <div className={`facility-icon ${iconClass}`}>
+                      <Icon size={26} strokeWidth={1.8} />
+                    </div>
+                    <h3>{item.title}</h3>
+                    <p>{item.body}</p>
                   </div>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 

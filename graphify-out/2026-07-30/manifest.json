@@ -40,8 +40,8 @@
     "semantic_hash": "ab9c3dfc1dfc1a407b73408b3779b1a6"
   },
   "app/[locale]/about/AboutContent.tsx": {
-    "mtime": 1785342391.9063,
-    "ast_hash": "7a97fd74be4973776a855b5c68586166",
+    "mtime": 1785332948.62723,
+    "ast_hash": "36b5fc2787fe747cf4691c524fe62e8f",
     "semantic_hash": ""
   },
   "app/[locale]/about/page.tsx": {
@@ -80,9 +80,9 @@
     "semantic_hash": "093726ca0bcb4d8994f48c18db9894d9"
   },
   "app/[locale]/book/page.tsx": {
-    "mtime": 1785337861.4006655,
-    "ast_hash": "03d2f0f71819529d795199b2ae213e36",
-    "semantic_hash": ""
+    "mtime": 1784985773.003011,
+    "ast_hash": "2d1e771edbdff32385cf200ac962c525",
+    "semantic_hash": "2d1e771edbdff32385cf200ac962c525"
   },
   "app/[locale]/faq/page.tsx": {
     "mtime": 1784206134.2144127,
@@ -155,8 +155,8 @@
     "semantic_hash": "d39fcc00bd1fb0463520a6024ad69c9e"
   },
   "app/[locale]/venue/VenueContent.tsx": {
-    "mtime": 1785348733.2453222,
-    "ast_hash": "bc55b283a8a5b6a376d6a87af008b3bb",
+    "mtime": 1785336443.588863,
+    "ast_hash": "dec3b2d183c6e7fb3fcac09361887ae7",
     "semantic_hash": ""
   },
   "app/[locale]/venue/page.tsx": {
@@ -955,8 +955,8 @@
     "semantic_hash": ""
   },
   "components/landing/Hero.tsx": {
-    "mtime": 1785348761.6061945,
-    "ast_hash": "84e127b4b7027c4bcbce9fa0c02fddb4",
+    "mtime": 1785329922.5962765,
+    "ast_hash": "2b2e0e642bb3605adfddd2d9e359eccd",
     "semantic_hash": ""
   },
   "components/landing/HowItWorks.tsx": {
@@ -1040,8 +1040,8 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "components/pricing/PeriodPricingSections.tsx": {
-    "mtime": 1785348722.0312502,
-    "ast_hash": "f2b949770c0783e39775c3880b2897db",
+    "mtime": 1785321040.7854426,
+    "ast_hash": "c11129340e387529494c8d69ee532b56",
     "semantic_hash": ""
   },
   "components/shared/AmbientGlow.tsx": {
@@ -1545,18 +1545,18 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1785341905.0287437,
-    "ast_hash": "fd7e830587f8a0f8274f9e87c00a28f5",
+    "mtime": 1785336073.4158366,
+    "ast_hash": "d86c396f0264c813a2daf099d7416f4d",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1785343147.992323,
-    "ast_hash": "979529cab3b75d99cd248c63b974ccdb",
+    "mtime": 1785336132.5420506,
+    "ast_hash": "70b060ce34a069259830212623208a98",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1785343146.9191518,
-    "ast_hash": "5fa72b2b2a53a3ea151a4b574d8fd0d5",
+    "mtime": 1785336013.2862983,
+    "ast_hash": "045222485b2305fa001964abd30b18ab",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -2195,13 +2195,13 @@
     "semantic_hash": "04c04e4496c1651503ea2e56d80b7460"
   },
   "components/landing/Directions.tsx": {
-    "mtime": 1785348641.0593538,
-    "ast_hash": "9bf24f303056fd621bfa0388fa884507",
+    "mtime": 1785320124.4609613,
+    "ast_hash": "c06d0ef126cc1571508f437b5bb13390",
     "semantic_hash": ""
   },
   "components/landing/GalleryScroll.tsx": {
-    "mtime": 1785348770.1294017,
-    "ast_hash": "454996b3ff4f4105275632bc78c417a4",
+    "mtime": 1785335653.9439092,
+    "ast_hash": "fa363c1d435b48e1d1fb912c8bd9dfe8",
     "semantic_hash": ""
   },
   "components/landing/HomeFAQ.tsx": {
@@ -2210,8 +2210,8 @@
     "semantic_hash": ""
   },
   "components/landing/HomePricing.tsx": {
-    "mtime": 1785348705.3587286,
-    "ast_hash": "5f0a634810c76b4d07836dcd3590dd22",
+    "mtime": 1785320125.512114,
+    "ast_hash": "1b44cbdde6cb90894bc61e085c99396f",
     "semantic_hash": ""
   },
   ".agents/skills/apple-ui/SKILL.md": {
@@ -2447,11 +2447,6 @@
   "public/video/Venue_Hero/Venue_Hero_Mobile.mp4": {
     "mtime": 1785334868.763324,
     "ast_hash": "b965e048d2ff56f26d7e5ac8678fad16",
-    "semantic_hash": ""
-  },
-  "public/gallery/Space8_Ball.png": {
-    "mtime": 1785324908.3635664,
-    "ast_hash": "410b0c60030b281846e1395b43786d2a",
     "semantic_hash": ""
   }
 }

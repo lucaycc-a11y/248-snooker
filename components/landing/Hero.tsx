@@ -175,6 +175,8 @@ export default function Hero() {
                 color: "#000",
                 letterSpacing: "-0.01em",
                 textDecoration: "none",
+                minHeight: 44,
+                minWidth: 44,
               }}
             >
               {t("cta_book")}
@@ -189,6 +191,8 @@ export default function Hero() {
                 color: "rgba(255,255,255,0.82)",
                 fontWeight: 400,
                 textDecoration: "none",
+                minHeight: 44,
+                minWidth: 44,
               }}
             >
               {t("cta_learn")}

@@ -277,13 +277,14 @@ export default function Directions() {
           .dir-map { aspect-ratio: 4 / 3; min-height: 0 !important; }
         }
         @media (max-width: 560px) {
-          .dir-section { padding: 90px 24px 100px !important; }
-          .dir-card { padding: 30px 24px 32px !important; border-radius: 16px !important; }
-          .dir-header { gap: 12px !important; margin-bottom: 22px !important; }
+          .dir-section { padding: 80px 24px 96px !important; }
+          .dir-card { padding: 24px !important; border-radius: 18px !important; }
+          .dir-header { gap: 12px !important; margin-bottom: 20px !important; }
           .dir-pin { width: 30px !important; height: 30px !important; }
           .dir-map { border-radius: 16px !important; }
-          .dir-actions { gap: 10px !important; }
-          .dir-btn { padding: 13px 20px !important; font-size: 13.5px !important; }
+          .dir-actions { gap: 10px !important; flex-direction: column !important; }
+          .dir-btn { padding: 13px 20px !important; font-size: 13.5px !important; width: 100% !important; justify-content: center !important; min-height: 48px !important; }
+          .dir-notes { margin-bottom: 24px !important; }
         }
         @media (prefers-reduced-motion: reduce) {
           .dir-card, .dir-map { opacity: 1 !important; transform: none !important; }
