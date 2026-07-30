@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion } from 'motion/react'
+import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import TextFlippingBoard from '@/components/ui/text-flipping-board'
 import { tokens } from '@/app/styles/tokens'

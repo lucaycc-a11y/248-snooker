@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 /* ── Character set ───────────────────────────────────────────────────
    Only Latin letters, digits, and common symbols — the flap mechanism
