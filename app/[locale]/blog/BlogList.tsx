@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { BlogPost } from "@/lib/data/getBlog";
 
-const SUBTLE = "#86868B";
+const SUBTLE = "#A1A1A6";
 const GREEN = "#22C55E";
 const BORDER_DARK = "#2D2D2D";
 
@@ -56,7 +56,6 @@ function PostCard({ post, index, locale }: { post: BlogPost; index: number; loca
       <Link
         href={`/blog/${post.slug}`}
         style={{ textDecoration: "none", color: "inherit", display: "block" }}
-        data-cms-key={`blog.post.${post.slug}`}
       >
         {/* Cover */}
         <div
@@ -132,7 +131,9 @@ function PostCard({ post, index, locale }: { post: BlogPost; index: number; loca
         <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: SUBTLE }}>
           <span>{formatDate(post.published_at, locale)}</span>
           <span aria-hidden="true">·</span>
-          <span>{t("read_time", { min: post.reading_time ?? 5 })}</span>
+          <span>
+            {t("read_time", { min: post.reading_time ?? 5 })}
+          </span>
           {post.author && (
             <>
               <span aria-hidden="true">·</span>
@@ -166,11 +167,10 @@ export default function BlogList({ posts, locale }: { posts: BlogPost[]; locale:
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
             style={{ fontSize: "clamp(44px, 9vw, 72px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
-            data-cms-key="blog.title"
           >
             {t("title")}
           </motion.h1>
-          <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", margin: "16px 0 0" }} data-cms-key="blog.subtitle">
+          <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.6)", margin: "16px 0 0" }}>
             {t("subtitle")}
           </p>
         </div>
@@ -191,7 +191,6 @@ export default function BlogList({ posts, locale }: { posts: BlogPost[]; locale:
                     key={c.id}
                     type="button"
                     onClick={() => setFilter(c.id)}
-                    data-cms-key={`blog.${c.key}`}
                     style={{
                       flexShrink: 0,
                       fontSize: "14px",
@@ -241,10 +240,10 @@ function ComingSoon() {
       style={{ background: "#000", color: "white", padding: "40px 24px 160px", textAlign: "center" }}
     >
       <div style={{ maxWidth: "480px", margin: "0 auto" }}>
-        <h2 style={{ fontSize: "28px", fontWeight: 700, margin: "0 0 12px" }} data-cms-key="blog.coming_soon_title">
+        <h2 style={{ fontSize: "28px", fontWeight: 700, margin: "0 0 12px" }}>
           {t("coming_soon_title")}
         </h2>
-        <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", margin: "0 0 32px" }} data-cms-key="blog.coming_soon_body">
+        <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.6)", margin: "0 0 32px" }}>
           {t("coming_soon_body")}
         </p>
         {/* Newsletter signup — visual only; wire to a real endpoint later. */}
@@ -281,7 +280,6 @@ function ComingSoon() {
               fontSize: "15px",
               cursor: "pointer",
             }}
-            data-cms-key="blog.newsletter_button"
           >
             {t("newsletter_button")}
           </button>

@@ -35,16 +35,28 @@
     "email_continue": "以電郵繼續",
     "otp_subtitle_email": "我們已傳送 6 位數驗證碼至 {email}",
     "sms_title": "以短訊登入",
-    "sms_subtitle": "適用於曾以電話號碼註冊嘅會員。",
+    "sms_subtitle": "適用於曾以電話號碼註冊的會員。",
     "sms_fallback_link": "曾以電話號碼註冊？改用短訊登入",
     "profile_phone_send_code": "傳送驗證碼",
     "profile_phone_verified_badge": "電話已驗證",
-    "profile_phone_change_number": "更改號碼"
+    "profile_phone_change_number": "更改號碼",
+    "password_placeholder": "密碼",
+    "sign_in_password": "用密碼登入",
+    "sign_in_otp": "用驗證碼登入",
+    "switch_to_otp": "改用驗證碼",
+    "switch_to_password": "曾經設定過密碼？用密碼登入",
+    "err_password": "電郵或密碼不正確",
+    "planet_loading": "正在為你分配專屬星球...",
+    "planet_welcome_prefix": "歡迎，",
+    "planet_welcome_suffix": "會員",
+    "planet_subtitle": "全宇宙獨一無二的會員編號",
+    "planet_share": "分享我的星球",
+    "planet_continue": "進入會員中心"
   },
   "404": {
     "code": "404",
-    "title": "呢頁唔存在",
-    "subtitle": "呢頁唔存在，但你的桌球時間不應該白費",
+    "title": "此頁面不存在",
+    "subtitle": "此頁面不存在，但你的桌球時間不應該白費",
     "hint": "撥動個球玩下先",
     "completed": "全部入袋！",
     "canvas_label": "互動桌球物理遊戲",
@@ -52,169 +64,180 @@
     "cta_home": "返回主頁"
   },
   "login": {
-    "brand": "248 SNOOKER",
+    "brand": "SPACE8",
     "title": "登入",
     "subtitle": "繼續你的預訂同會員服務。",
     "error_missing_code": "登入未完成，請再試一次。",
     "error_oauth": "未能登入，請再試一次。",
-    "error_generic": "出咗啲問題，請再試一次。"
+    "error_generic": "發生錯誤，請再試一次。"
+  },
+  "comingSoon": {
+    "brand": "SPACE8",
+    "title": "即將開幕",
+    "subtitle": "香港自助中式桌球會所，即將開幕。",
+    "email_placeholder": "電郵地址",
+    "notify_me": "開幕通知我",
+    "subscribed": "已為你登記。",
+    "err_email": "請輸入正確的電郵地址。",
+    "err_generic": "發生錯誤，請再試一次。",
+    "password_placeholder": "密碼",
+    "unlock": "解鎖",
+    "unlocking": "解鎖中…",
+    "err_password": "密碼不正確。",
+    "err_rate_limited": "嘗試次數太多，請稍後再試。"
   },
   "legal": {
-    "title": "法律資訊",
-    "subtitle": "使用 248 Snooker 服務前，請細閱以下條款。",
-    "last_updated": "最後更新",
-    "tab_terms": "使用條款",
-    "tab_privacy": "私隱政策",
-    "tab_refund": "退款政策",
-    "tab_rules": "場地規則",
-    "terms_sections": [
-      {
-        "title": "服務說明",
-        "body": "248 Snooker 由 FORM 營運，提供香港首間 24 小時自助英式桌球預訂服務。"
-      },
-      {
-        "title": "預訂條款",
-        "body": "每位用戶最多可持有 2 個有效預訂，每張枱最多 2 人，名額先到先得。"
-      },
-      {
-        "title": "入場規則",
-        "body": "入場須出示專屬 QR 碼。遲到逾 15 分鐘視為自動放棄，QR 碼不得轉讓他人。"
-      },
-      {
-        "title": "場地規則",
-        "body": "場內禁止吸煙、賭博及攜帶外來食物。請愛護設備，違規者預訂將被取消且不獲退款。"
-      },
-      {
-        "title": "付款條款",
-        "body": "所有費用以港幣 (HKD) 計算，接受信用卡、Apple Pay、Google Pay、Alipay 及 WeChat Pay。"
-      },
-      {
-        "title": "逾時條款",
-        "body": "逾時每 15 分鐘收費 HK$50，將從已登記的信用卡自動扣除。"
-      },
-      {
-        "title": "積分計劃",
-        "body": "每消費 HK$10 可獲 1 積分。積分不可兌換現金，有效期為 24 個月。"
-      },
-      {
-        "title": "免責聲明",
-        "body": "248 Snooker 不對任何財物損失或人身傷害承擔責任。"
-      },
-      {
-        "title": "適用法律",
-        "body": "本條款受香港特別行政區法律管轄並據此詮釋。"
-      }
-    ],
-    "privacy_sections": [
-      {
-        "title": "收集資料",
-        "body": "我們收集姓名、電郵、電話、付款資料、預訂記錄及 CCTV 影像。"
-      },
-      {
-        "title": "使用目的",
-        "body": "用於處理預訂、發送通知、管理積分及改善服務質素。"
-      },
-      {
-        "title": "第三方服務",
-        "body": "我們使用 Stripe、Google、Supabase、Resend 及 WhatsApp 等第三方服務。"
-      },
-      {
-        "title": "資料保留",
-        "body": "CCTV 影像最多保留 31 日；付款資料由 Stripe 處理及保存。"
-      },
-      {
-        "title": "您的權利",
-        "body": "您有權查閱、更正或刪除個人資料，請電郵 info.formhk@gmail.com 聯絡我們。"
-      },
-      {
-        "title": "Cookie",
-        "body": "繼續使用本網站即表示您同意我們使用 Cookie。"
-      },
-      {
-        "title": "聯絡我們",
-        "body": "info.formhk@gmail.com／+852 6427 4620"
-      }
-    ],
-    "refund_table_case": "情況",
-    "refund_table_result": "退款",
-    "refund_rows": [
-      {
-        "case": "預訂後 1 小時內",
-        "result": "100% 退款"
-      },
-      {
-        "case": "開始前 2 小時或以上",
-        "result": "50% 退款"
-      },
-      {
-        "case": "開始前 2 小時內",
-        "result": "不退款"
-      },
-      {
-        "case": "No-show 逾 15 分鐘",
-        "result": "不退款"
-      },
-      {
-        "case": "場地故障",
-        "result": "100% 退款"
-      },
-      {
-        "case": "颱風 8 號或以上",
-        "result": "100% 退款"
-      }
-    ],
-    "refund_times_title": "退款時間",
-    "refund_times": [
-      {
-        "method": "信用卡",
-        "time": "5–10 個工作天"
-      },
-      {
-        "method": "Apple Pay／Google Pay",
-        "time": "3–5 個工作天"
-      },
-      {
-        "method": "Alipay／WeChat Pay",
-        "time": "即時"
-      }
-    ],
-    "rules_allowed_title": "允許",
-    "rules_allowed": [
-      "自攜球桿",
-      "拍照（個人用途）",
-      "有蓋外帶飲品"
-    ],
-    "rules_prohibited_title": "禁止",
-    "rules_prohibited": [
-      "吸煙（包括電子煙）",
-      "賭博",
-      "大聲喧嘩",
-      "背心及拖鞋",
-      "酒精飲品",
-      "攜帶食物",
-      "損壞設備"
-    ],
-    "rules_notes_title": "注意事項",
-    "rules_notes": [
-      "場內設有 CCTV 全程監察",
-      "違規者預訂即時終止且不獲退款",
-      "嚴重違規者將被永久封鎖帳戶"
-    ]
+    "page_title": "法律文件",
+    "last_updated": "更新日期",
+    "nav": {
+      "terms": "場地守則",
+      "website_terms": "網站條款",
+      "privacy": "私隱政策"
+    },
+    "terms": {
+      "title": "SPACE8 自助桌球室場地使用守則及條款",
+      "subtitle": "【重要提示】\n歡迎使用 SPACE8。閣下登記成為會員、提交預約或進入本公司營運之自助桌球室場地（下稱「場地」），即表示閣下已閱讀、完全理解並同意受本《場地使用守則及條款》（下稱「本守則」）約束。本守則構成閣下與 SPACE8（下稱「本公司」）之間具有法律約束力的協議。如閣下不同意本守則之任何內容，請勿登記或使用場地。",
+      "sections": [
+        {
+          "title": "會員登記、預約及進場安排",
+          "body": "會員制與預約： 本場地採全自助網上預約制，僅供已成功於本公司官方網站或系統登記之會員使用。未經預約或未持有有效進場憑證之人士，一律禁止進入場地。本公司保留拒絕任何人士進入場地或終止其會員資格之絕對權利。\n進場憑證： 預約及付款成功後，系統將自動向閣下登記之電郵或指定通訊軟件發送確認通知及進場二維碼（QR Code）。閣下須憑該有效 QR Code 於預約時段內自助進場。\n無人駐守聲明： 閣下充分知悉並同意，本場地為全自助式營運，場內並無常駐職員或保安人員。閣下在場地內的一切活動均屬自發行為，並須自行承擔相應之注意義務與安全責任。"
+        },
+        {
+          "title": "場地使用規範與限制",
+          "body": "人數限制： 每間桌球室之使用人數上限嚴格限制為 6人。如發現超出人數限制，本公司有權即時終止該時段之使用權，且不作任何退款，並保留追究違約金的權利。\n年齡限制： 未滿十二（12）歲之人士，必須由至少一名年滿十八歲之成人全程陪同方可進入及使用場地。該陪同成人須對該未成年人之所有行為、人身安全及器材操作負上全部法律及賠償責任。\n場內禁令： 場內全面禁煙（包括但不限於傳統香煙、電子煙、加熱煙或任何會產生煙霧之裝置）。場內亦嚴禁攜帶任何寵物進入（陪同視障人士之導盲犬除外）。\n財物保管： 閣下須自行小心看護個人財物。本公司對於閣下或任何訪客在場地內發生的財物遺失、盜竊、損壞或滅失，概不承擔任何法律或賠償責任。"
+        },
+        {
+          "title": "時段控管及超時收費",
+          "body": "準時離場： 閣下必須於預約時段結束時立即收拾財物並離開場地，以確保下一位使用者的權益。\n超時罰則： 若租用時段結束後超過 5 分鐘閣下仍未完全離場，本公司將有權從閣下之賬戶或付款工具中，自動扣除超時費用。超時費用以每小時為單位計算（不足一小時亦按一小時正價租金計算），本公司並保留因超時導致下一位使用者損失而向閣下索償之權利。"
+        },
+        {
+          "title": "自助清理與復原責任",
+          "body": "本場地不設即時清理服務，閣下及同伴在使用時段結束前，必須自行完成以下場地復原工作：\n將所有桌球計數、擦拭並整齊歸位於指定位置。\n使用專用球刷清理桌球枱面（方向必須由 D 區順向掃至黑波位置）。\n將防塵球枱保護罩完整套回桌球枱上。\n關閉球枱專用燈、冷氣機、抽風機及所有照明設備。\n將所有個人垃圾、食物殘渣及廢物帶離場地，或妥善分類丟棄於場內指定垃圾桶內，確保場地回復至整潔狀態。"
+        },
+        {
+          "title": "設施檢查、損壞賠償及自動扣款授權",
+          "body": "前期檢查義務： 進入場地後，閣下有義務立即檢查所有設施、設備及桌球器材。如發現任何既有的損壞、故障或異常，必須在進場後 10 分鐘內透過官方 WhatsApp 拍下照片並向本公司報告。否則，該場地及器材將被法律推定為在閣下接手時處於完好無損之狀態。\n損壞賠償責任： 如場地內任何設施設備（包括但不限於桌球枱、絨布、球桿、地板、牆壁、智能系統等）因閣下或閣下同伴之不當使用、疏忽、蓄意破壞或因飲品傾倒、遺留污跡等行為導致損毀、遺失、弄污或功能受損，閣下須承擔全部清潔、維修、更換、復原費用及因暫停營業導致的營業額損失。\n最低收費與授權扣款： 本公司將根據實際損壞情況評估費用，最低清潔或維修行政費為港幣 $300 元起（上限依實際修復或更換發票為準）。閣下在此不可撤銷地同意並授權本公司，可直接從閣下預約時所提供的信用卡、電子錢包或其他付款帳戶中扣除上述一切應付之賠償費用及罰款。"
+        },
+        {
+          "title": "惡劣天氣特殊安排",
+          "body": "改期原則： 除本守則另有明文規定外，所有預約一經確認，一律不設取消、改期或退款。\n颱風及暴雨特殊機制： 當香港天文台發出 8號或以上颱風信號 或 黑色暴雨警告信號 時：\n本場地之自動化系統仍會維持正常運作，閣下如評估安全後仍可選擇如常前往使用。\n若閣下因安全考慮決定不前往，閣下必須於原定預約時段開始前透過官方 WhatsApp 聯絡本公司申請改期。經本公司系統核實後，閣下可獲安排於原定日期起計 7天內 重新預約同等價值之時段，逾期未申請或未使用者視為自動放棄，本公司不作任何退款。"
+        },
+        {
+          "title": "責任限制與法律免責聲明",
+          "body": "人身傷害聲明： 除因本公司自身故意或重大疏忽之設施故障（且該故障為直接誘因）而依法不得免除的因疏忽引致的人身傷害或死亡責任外，本公司對於閣下或任何人士在場地內因自身行為、同伴行為、不當操作器材、跌倒、突發疾病或任何意外所引致的任何個人傷害、疾病、財物損害或死亡，概不承擔任何法律或賠償責任。\n服務中斷免責： 本公司致力維持設施正常運作，但若因第三方供電中斷、政府突發命令、網絡故障、系統維修或其他不可抗力（Force Majeure）原因導致場地暫時無法使用，本公司不承擔任何間接商業損失賠償，但將盡力為受影響之會員安排時段補償或退款。\n電子監控： 為保障場地安全、防止犯罪及處理爭議，場地內設有 24 小時閉路電視錄像監控系統（CCTV）。閣下進入場地即代表同意本公司收集及在法律允許或爭議處理之範圍內使用該等錄像資料。"
+        },
+        {
+          "title": "違規後果、修訂權及管轄法律",
+          "body": "違規懲罰： 如閣下或閣下同伴違反本守則任何條款，本公司有權即時暫停或永久註銷閣下的會員帳戶、取消所有未使用的預約、並拒絕閣下再次進入場地，且不作任何形式的補償或退款，並保留法律追訴權。\n條款修訂： 本公司保留隨時修改、增刪本守則任何條款的權利而無須個別預先通知。最新版本將刊載於本公司網站，閣下於修訂後繼續使用場地即視為接受新修訂之守則。\n管轄法律： 本守則受香港特別行政區法律管轄，並按其解釋。如因本守則或使用場地引起任何爭議，雙方同意先以友好協商或調解方式解決；如未能解決，則提交由香港法院具備排他性的管轄權審理。"
+        }
+      ]
+    },
+    "website_terms": {
+      "title": "SPACE8 網站使用條款",
+      "intro": "歡迎瀏覽及使用 SPACE8 網站（www.space8.com.hk，下稱「本網站」）。使用本網站即表示閣下同意受本《網站使用條款》約束。",
+      "sections": [
+        {
+          "title": "服務性質",
+          "body": "本網站提供 SPACE8 自助桌球室之網上預約、會員登記及相關資訊服務。實體場地之使用另受《場地使用守則及條款》約束，兩者同時適用。"
+        },
+        {
+          "title": "帳戶登記",
+          "body": "1. 閣下須提供真實、準確及完整之登記資料，並有責任保持該等資料為最新狀態。\n2. 閣下須對其帳戶及密碼之保密負責，並對透過該帳戶進行之所有活動負全部責任。\n3. 本公司保留在合理懷疑帳戶資料不實、被盜用或涉及濫用時，暫停或終止該帳戶之權利。"
+        },
+        {
+          "title": "預約與付款",
+          "body": "1. 所有預約須透過本網站或指定系統以線上付款方式完成，價格以下單時網站顯示之金額為準。\n2. 付款透過第三方持牌支付服務供應商處理，本公司不會儲存閣下完整之信用卡資料。\n3. 退款、改期及取消安排以《場地使用守則及條款》所載條文為準。"
+        },
+        {
+          "title": "知識產權",
+          "body": "本網站所有內容，包括但不限於文字、圖像、標誌（SPACE8 商標及相關圖形）、程式碼及設計，均屬本公司或其授權方所有，未經書面同意不得複製、修改、發佈或用於商業用途。"
+        },
+        {
+          "title": "禁止行為",
+          "body": "閣下同意不會：\n1. 以任何方式干擾或破壞本網站之正常運作（包括但不限於惡意攻擊、爬蟲程式過度存取）；\n2. 冒用他人身份或提供虛假資料進行登記或預約；\n3. 利用本網站進行任何違法或侵犯第三方權益之行為。"
+        },
+        {
+          "title": "免責聲明",
+          "body": "1. 本網站按「現狀」及「現有」基礎提供，本公司不保證網站服務不受干擾或完全無誤。\n2. 本公司對因網絡故障、第三方系統中斷或不可抗力因素導致之服務中斷，不承擔任何責任。\n3. 實體場地使用之責任限制及免責條款，以《場地使用守則及條款》第七條為準。"
+        },
+        {
+          "title": "條款修訂",
+          "body": "本公司保留隨時修訂本條款之權利，修訂後條款將刊載於本網站，閣下持續使用本網站即視為接受有關修訂。"
+        },
+        {
+          "title": "管轄法律",
+          "body": "本條款受香港特別行政區法律管轄，並按其解釋。"
+        }
+      ]
+    },
+    "privacy": {
+      "title": "SPACE8 私隱政策",
+      "intro": "本私隱政策說明 SPACE8（下稱「本公司」）如何收集、使用、儲存及保護閣下之個人資料，並符合香港《個人資料（私隱）條例》（第486章）之相關規定。",
+      "sections": [
+        {
+          "title": "本公司收集之資料",
+          "body": "1. 登記資料：姓名、電話號碼、電郵地址。\n2. 預約資料：預約日期、時段、桌枱編號、消費記錄。\n3. 付款資料：透過持牌付款處理服務供應商處理之交易記錄（本公司不會直接儲存閣下完整信用卡號碼）。\n4. 使用記錄：登入記錄、進場二維碼掃描記錄、會員積分及等級變動記錄。\n5. 閉路電視（CCTV）影像：閣下進入場地期間之錄像資料。\n6. 通訊記錄：閣下透過 WhatsApp 或其他指定通訊渠道與本公司之對話記錄。"
+        },
+        {
+          "title": "收集資料之目的",
+          "body": "本公司收集上述資料，僅用於：\n1. 處理會員登記、預約、付款及退款；\n2. 核實身份及進場憑證；\n3. 提供客戶服務及處理查詢、投訴；\n4. 保障場地安全及處理爭議（CCTV）；\n5. 因應法律要求或監管機構之要求；\n6. 在閣下同意之情況下，發送優惠或活動推廣資訊。"
+        },
+        {
+          "title": "資料之使用及第三方分享",
+          "body": "本公司可能將閣下之資料提供予以下類別之第三方服務供應商，僅限於履行上述目的所需：\n- 付款處理服務供應商（包括信用卡及電子錢包支付平台）\n- 雲端資料庫及系統後台服務供應商\n- 短訊及電話號碼驗證服務供應商\n- 電郵通知服務供應商\n- 客戶服務及訊息自動處理系統供應商\n本公司不會將閣下之個人資料出售予任何第三方作直接促銷用途。上述服務供應商僅可在其提供服務所需之範圍內處理閣下之資料，並須遵守與本公司之保密及資料保護約定。"
+        },
+        {
+          "title": "資料保留期",
+          "body": "本公司將於達成收集目的所需之合理期間內保留閣下之個人資料，其後將按內部政策刪除或匿名化處理。閉路電視（CCTV）錄像將按本公司內部保安政策所定期限保留，除非涉及爭議調查、保安事故或法律要求，本公司可能需要延長保留有關錄像。"
+        },
+        {
+          "title": "閣下之權利",
+          "body": "根據《個人資料（私隱）條例》，閣下有權：\n1. 查閱本公司持有關於閣下之個人資料；\n2. 要求更正不準確之資料；\n3. 要求本公司停止使用閣下之資料作直接促銷（如適用）。\n如欲行使上述權利，請透過官方 WhatsApp 或電郵聯絡本公司。"
+        },
+        {
+          "title": "資料保安",
+          "body": "\n1. 一般保安措施\n本公司採取合理之技術及行政措施保障閣下之個人資料，包括但不限於：\n- 資料傳輸加密（HTTPS/TLS 加密協議）；\n- 資料庫存取權限分級管理，僅授權人員可查閱相關資料；\n- 定期檢視系統安全漏洞及更新防護措施；\n- 敏感操作（如退款、資料刪除）均設有紀錄及審核機制。\n\n2. 付款資料保安\n本公司高度重視閣下之付款安全，並採取以下措施：\n- 本公司不會於自身伺服器直接儲存閣下完整之信用卡號碼、CVV 安全碼或電子錢包登入密碼；所有付款均透過符合 PCI DSS（支付卡行業資料安全標準）之持牌付款處理服務供應商處理；\n- 閣下之付款資料於傳輸及處理過程中均經加密（Tokenization／代碼化技術），本公司系統僅接收及儲存交易結果（例如成功、失敗、金額、交易編號），不會接觸或儲存原始付款憑證資料；\n- 如日後本公司新增或更換付款方式（包括但不限於電子錢包平台），該等新增付款渠道亦須符合同等或以上之安全認證標準，方可啟用。\n\n3. 資料外洩通報\n如不幸發生資料外洩事件並可能對閣下造成重大影響，本公司將在切實可行範圍內盡快通知受影響之閣下，並按適用法律要求向相關監管機構通報，同時採取合理補救措施以減低影響。\n\n4. 閣下之責任\n閣下亦有責任妥善保管自己嘅帳戶登入資料及密碼，不與第三方分享，並在懷疑帳戶被未經授權存取時立即通知本公司。"
+        },
+        {
+          "title": "Cookies 及追蹤技術",
+          "body": "本網站可能使用 Cookies 以改善用戶體驗及分析網站流量，閣下可透過瀏覽器設定管理或拒絕 Cookies，惟可能影響部分網站功能之正常運作。"
+        },
+        {
+          "title": "政策修訂",
+          "body": "本公司保留隨時修訂本私隱政策之權利，修訂後版本將刊載於本網站。"
+        },
+        {
+          "title": "聯絡方式",
+          "body": "如對本私隱政策有任何查詢，請透過官方 WhatsApp 聯絡 SPACE8。"
+        }
+      ]
+    }
   },
   "pricingPage": {
+    "hero_eyebrow": "SPACE8",
+    "hero_line1": "為懂得計算的人而設。",
+    "hero_line2_before": "訂枱精打細算。",
+    "hero_line2_highlight": "毋須費神。",
     "hero_title": "透明定價",
     "hero_subtitle": "按需預訂，無隱藏費用。",
     "per_hour": "／小時",
-    "period_afternoon_title": "非繁忙時段",
-    "period_afternoon_time": "平日 09:00–18:00",
-    "period_evening_title": "繁忙時段",
-    "period_evening_time": "平日 18:00–23:00／週末全日",
+    "period_afternoon_title": "下午時段",
+    "period_afternoon_time": "每日 12:00–16:00",
+    "period_evening_title": "黃金時段",
+    "period_evening_time": "每日 16:00–00:00",
     "period_latenight_title": "深夜時段",
     "period_latenight_time": "每日 23:00–02:00",
     "duration_1h": "1 小時",
     "duration_2h": "2 小時",
     "duration_3h": "3 小時",
+    "member_price_prefix": "連訂 2 小時或以上",
+    "badge_best_value": "最抵玩",
+    "time_line1": "你的時間，",
+    "time_line2": "不會白等。",
+    "cta_line1": "現在有位，",
+    "cta_line2": "立即開賽。",
     "cta_book": "立即預訂",
+    "cta_button": "立即預訂",
     "cta_details": "定價詳情",
     "breakdown_title": "完整收費表",
     "breakdown_period": "時段",
@@ -255,6 +278,7 @@
       }
     ],
     "faq_title": "常見問題",
+    "faq_scroll_hint": "左右滑動睇更多",
     "faqs": [
       {
         "q": "有冇隱藏費用？",
@@ -274,7 +298,11 @@
       }
     ],
     "cta_section_title": "準備好開枱？",
-    "cta_section_button": "立即預訂"
+    "cta_section_button": "立即預訂",
+    "period_morning_title": "上午時段",
+    "period_morning_time": "每日 06:00–12:00",
+    "periods_title": "定價",
+    "periods_subtitle": "按時段收費，愈連訂愈抵玩。"
   },
   "blog": {
     "title": "Blog",
@@ -299,48 +327,48 @@
     "not_found": "找不到文章"
   },
   "aboutPage": {
-    "hero_title": "248 Snooker",
-    "hero_subtitle": "香港首間 24 小時自助英式桌球。",
+    "hero_title": "關於 SPACE8",
+    "hero_subtitle": "自助無煙中式桌球獨立球室，每日 06:00 至 24:00 營業。",
     "scroll": "向下滑動",
     "mission_eyebrow": "我們的理念",
-    "mission_statement": "讓每一個桌球愛好者，都有屬於自己的主場。",
+    "mission_statement": "零打擾，全專注。打造專屬中八空間。",
     "mission_items": [
       {
         "title": "專業設備",
-        "body": "英式標準桌球枱，月月更換枱布。"
-      },
-      {
-        "title": "全天候",
-        "body": "24 小時開放，365 天全年無休。"
+        "body": "星牌中式桌球枱。"
       },
       {
         "title": "科技體驗",
-        "body": "3 秒完成預訂，掃描 QR 碼即可入場。"
+        "body": "1 分鐘完成預訂，掃描 QR 碼即可入場。"
+      },
+      {
+        "title": "獨立空間",
+        "body": "自助，無煙，獨立球室，無多餘干擾。"
       }
     ],
-    "story_title": "關於 248",
-    "story_body": "248 Snooker 源於一個簡單信念：好的桌球場地不應受營業時間限制。我們以科技重新定義桌球體驗，讓你隨時隨地，一鍵預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。這裡是屬於你的主場。",
+    "story_title": "關於 SPACE8",
+    "story_body": "好的中八球室不應有多餘干擾。SPACE8 自助無煙中式桌球獨立球室。隨時隨地，一鍵預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。",
     "venue_title": "場地設施",
     "venue_features": [
-      "英式標準桌球枱",
+      "星牌中式桌球枱",
       "專業級照明",
       "恆溫冷氣",
       "免費高速 WiFi",
-      "自助飲品區",
+      "私人獨立空間",
       "智能 QR 門禁"
     ],
     "numbers": [
       {
-        "value": "2",
-        "label": "張專業桌球枱"
+        "value": "6",
+        "label": "人上限獨立球室"
       },
       {
-        "value": "24",
-        "label": "小時開放"
+        "value": "18",
+        "label": "小時營業"
       },
       {
-        "value": "3",
-        "label": "秒完成預訂"
+        "value": "1",
+        "label": "分鐘完成預訂"
       },
       {
         "value": "0",
@@ -349,12 +377,97 @@
     ],
     "contact_title": "聯絡我們",
     "contact_address_label": "地址",
-    "contact_address": "香港（地址確認中）",
+    "contact_address": "香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室",
     "contact_whatsapp_label": "WhatsApp",
     "contact_email_label": "電郵",
     "contact_hours_label": "營業時間",
-    "contact_hours": "24 小時全年無休",
-    "contact_cta": "WhatsApp 聯絡"
+    "contact_hours": "每日 06:00 至 24:00",
+    "contact_cta": "WhatsApp 聯絡",
+    "hero_rotating_words": [
+      "創造奇蹟",
+      "獨享私密",
+      "純粹玩樂",
+      "乾淨舒適"
+    ],
+    "hero_prefix": "一個",
+    "hero_suffix": "的空間",
+    "hero_cta_primary": "立即預訂",
+    "hero_cta_secondary": "查看場地",
+    "facilities_title": "場地設施",
+    "facilities_items": [
+      {
+        "title": "星牌中式桌球枱",
+        "body": "精選星牌桌球枱，確保最佳手感。"
+      },
+      {
+        "title": "專業級照明",
+        "body": "特調比賽燈光模式，專注於每一次出杆。"
+      },
+      {
+        "title": "恆溫冷氣",
+        "body": "全場恆溫，長時間對局依然舒適。"
+      },
+      {
+        "title": "免費高速 WiFi",
+        "body": "全場覆蓋，隨時分享你的精彩一杆。"
+      },
+      {
+        "title": "無煙區域",
+        "body": "場地全面禁煙，創造舒適環境。"
+      },
+      {
+        "title": "智能 QR 門禁",
+        "body": "預訂確認後獲發 QR 碼，到場掃描自動開門。"
+      }
+    ],
+    "cta_title": "準備好開球了嗎？",
+    "cta_subtitle": "一鍵預訂專屬球枱，隨時隨地開局。由預訂、付款到入場，全程自助，毋需等候。",
+    "cta_primary": "立即預訂",
+    "cta_secondary": "查看價目",
+    "cta_steps": [
+      {
+        "title": "選擇時段",
+        "body": "挑選日子、時段，即時看到 2 間 1T 球室的空位。"
+      },
+      {
+        "title": "即時付款",
+        "body": "多種付款方法，一分鐘完成。"
+      },
+      {
+        "title": "掃碼入場",
+        "body": "到場掃 QR 碼自動開門，無需等候。"
+      }
+    ],
+    "stats_items": [
+      {
+        "value": "1",
+        "unit": "分鐘",
+        "suffix": "",
+        "label": "完成預訂",
+        "live": ""
+      },
+      {
+        "value": "2",
+        "unit": "間",
+        "suffix": "",
+        "label": "獨立球室",
+        "live": ""
+      },
+      {
+        "value": "80",
+        "unit": "",
+        "suffix": "+",
+        "label": "累積體驗時數",
+        "live": "持續累積中"
+      },
+      {
+        "value": "100",
+        "unit": "",
+        "suffix": "+",
+        "label": "熱情球友加入",
+        "live": "持續增加中"
+      }
+    ]
   },
   "memberPage": {
     "card_label": "MEMBER CARD",
@@ -369,7 +482,6 @@
     "stat_bookings_unit": "次",
     "stat_hours": "遊玩時間",
     "stat_hours_unit": "小時",
-    "stat_spent": "消費總額",
     "tier_progress_title": "等級進度",
     "tier_current": "目前等級",
     "tier_next": "下一等級",
@@ -385,11 +497,42 @@
     "status_confirmed": "已確認",
     "status_cancelled": "已取消",
     "status_completed": "已完成",
+    "status_refunded": "已退款",
+    "status_pending": "處理中",
+    "status_payment_failed": "付款失敗",
+    "booking_retry_payment": "重新付款",
+    "booking_refund": "申請退款",
+    "booking_reschedule": "改期",
+    "booking_more_actions": "更多操作",
+    "refund_modal_title": "申請退款",
+    "refund_modal_original_price": "原價",
+    "refund_modal_fee": "手續費",
+    "refund_modal_amount": "退款金額",
+    "refund_modal_reason_label": "原因（選填）",
+    "refund_modal_confirm": "確認退款",
+    "refund_modal_cancel": "取消",
+    "refund_modal_cutoff_error": "此預訂已太接近開場時間，無法退款。",
+    "refund_modal_generic_error": "退款處理失敗，請重試。",
+    "refund_success_toast": "已退款",
+    "refund_cutoff_notice": "開場前 {hours} 小時內無法退款",
+    "reschedule_modal_title": "改期",
+    "reschedule_modal_date_label": "新日期",
+    "reschedule_modal_table_label": "枱號",
+    "reschedule_modal_time_label": "可選時段",
+    "reschedule_modal_no_slots": "此日期暫無可選時段。",
+    "reschedule_modal_confirm": "確認改期",
+    "reschedule_modal_cancel": "取消",
+    "reschedule_modal_unavailable_error": "此時段已被預訂。",
+    "reschedule_modal_generic_error": "改期失敗，請重試。",
+    "reschedule_success_toast": "已改期",
+    "bookings_upcoming": "即將到來",
+    "bookings_history": "歷史記錄",
     "no_bookings": "尚無預訂記錄",
+    "no_history": "尚無歷史記錄",
     "points_running_total": "結餘",
     "points_earn_title": "賺取積分方式",
     "points_earn": [
-      "每消費 HK$10 = 1 積分",
+      "每消費 HK$1 = 1 積分",
       "首次登入 = 50 積分",
       "生日月份 = 雙倍積分"
     ],
@@ -413,6 +556,7 @@
     "settings_err_generic": "未能儲存，請再試一次。",
     "qr_modal_title": "預訂 QR 碼",
     "qr_reference": "預訂編號",
+    "qr_tap_enlarge": "輕觸放大 QR 碼",
     "close": "關閉",
     "loading": "載入中…",
     "back": "返回",
@@ -429,18 +573,20 @@
     "logout": "登出",
     "my_account": "我的帳戶",
     "settings": "設定",
+    "admin": "管理後台",
     "sign_out": "登出",
     "signing_out": "登出中…",
     "sign_out_error": "登出失敗，請再試一次。",
-    "prompt_text": "登入享更快預訂",
-    "prompt_cta": "登入",
-    "prompt_dismiss": "關閉"
+    "venue": "場地",
+    "membership": "會員",
+    "faq": "常見問題"
   },
   "hero": {
-    "title": "248 Snooker",
-    "tagline": "屬於你的主場",
+    "title": "SPACE8",
+    "tagline": "屬於你的空間",
     "cta_book": "立即預訂",
-    "cta_learn": "了解更多"
+    "cta_learn": "了解更多",
+    "subline": "自助無煙中八獨立球室，無多餘干擾。"
   },
   "how": {
     "title": "預訂流程",
@@ -461,7 +607,7 @@
     "step3_highlight": "愈打愈著數",
     "step3_modal_label": "獎賞",
     "step3_modal_title": "累積積分",
-    "step3_modal_body": "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 Amateur、Century、Maximum，分別享有折扣、優先預訂及免費教練時段等專屬福利。",
+    "step3_modal_body": "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 Amateur、Century、Maximum，解鎖不同專屬福利。",
     "close": "關閉"
   },
   "member": {
@@ -471,19 +617,19 @@
     "amateur_highlight": "50 積分",
     "amateur_modal_body": "新用戶自動加入 Amateur 等級，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。開始你的旅程，輕鬆累積。",
     "century_title": "Century",
-    "century_subtitle": "500 積分起",
-    "century_body": "全場時段 9 折。優先預訂熱門時段。積分 1.5 倍加速。",
-    "century_highlight1": "9 折",
+    "century_subtitle": "800 積分起",
+    "century_body": "貼心補給。積分 1.5 倍加速。",
+    "century_highlight1": "貼心補給",
     "century_highlight2": "1.5 倍",
-    "century_modal_body": "累積 500 積分晉升 Century 等級。全場所有時段享 9 折優惠，可優先預訂晚上熱門時段，積分以 1.5 倍速度累積，升級更快。",
+    "century_modal_body": "累積 800 積分晉升 Century 等級。解鎖「專屬燈光歡迎詞」。每場預約均免費隨附優質瓶裝水 2 支。積分以 1.5 倍速度累積，升級更快。",
     "maximum_title": "Maximum",
-    "maximum_subtitle": "1,500 積分起",
+    "maximum_subtitle": "6,000 積分起",
     "maximum_badge": "最高等級",
-    "maximum_body": "全場時段 8 折。專屬球桌保留權。積分雙倍，免費教練時段。",
-    "maximum_highlight1": "8 折",
-    "maximum_highlight2": "積分雙倍",
-    "maximum_highlight3": "免費教練時段",
-    "maximum_modal_body": "累積 1,500 積分達到 Maximum 最高等級。全場時段 8 折，享專屬球桌保留權，積分雙倍累積，並可預約免費教練時段。為最投入的玩家而設。",
+    "maximum_body": "極致玩家殿堂，積分雙倍，尊享特級禮遇。",
+    "maximum_highlight1": "積分雙倍",
+    "maximum_highlight2": "特級禮遇",
+    "maximum_highlight3": "教練時段",
+    "maximum_modal_body": "累積 6000 積分達到 Maximum 最高等級。尊享不定期 SPACE8 專屬品牌周邊饋贈。積分雙倍累積，並可以用以換購折扣劵，預約教練時段。為最投入的玩家而設。",
     "modal_label": "會員等級",
     "cta_join": "立即加入",
     "cta_learn": "了解更多",
@@ -492,9 +638,9 @@
   "pricing": {
     "title": "定價",
     "afternoon_label": "下午",
-    "afternoon_range": "12pm – 6pm",
+    "afternoon_range": "12pm – 4pm",
     "evening_label": "晚上",
-    "evening_range": "6pm – 12am",
+    "evening_range": "4pm – 12am",
     "night_label": "深夜",
     "night_range": "12am – 6am",
     "per_hour": "/小時",
@@ -502,7 +648,9 @@
     "duration_2h": "2 小時",
     "duration_3h": "3 小時",
     "cta_book": "選擇時段",
-    "cta_learn": "了解定價詳情"
+    "cta_learn": "了解定價詳情",
+    "morning_label": "上午",
+    "morning_range": "6am – 12pm"
   },
   "faq": {
     "title": "常見問題",
@@ -510,29 +658,41 @@
     "faq_booking_a": "選擇日期、時段及時長，以 Apple Pay 或信用卡即時付款，確認後即獲 QR 碼。全程不需人手協助。",
     "faq_entry_q": "預訂後如何入場？",
     "faq_entry_a": "付款確認後，你將收到專屬 QR 碼。到場掃描門口感應器，系統自動開門，全程自助。",
-    "faq_cancel_q": "可以即場取消嗎？",
-    "faq_cancel_a": "開始前 2 小時內可免費取消，全額退款。逾時取消將不獲退款。",
+    "faq_cancel_q": "可以取消或退款嗎？",
+    "faq_cancel_a": "所有預約一經確認，一律不設取消、改期或退款（颱風 8 號或以上／黑色暴雨警告除外，可申請改期）。詳情請參閱《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)及[第六條](/legal?doc=terms#section-6)。",
     "faq_hours_q": "營業時間是什麼？",
-    "faq_hours_a": "248 桌球會全年 24 小時營業，包括公眾假期。",
-    "faq_minimum_q": "每次最少預訂多少時間？",
-    "faq_minimum_a": "最少 1 小時，可選 1、2 或 3 小時。",
+    "faq_hours_a": "每日 06:00 至 24:00 營業，全年無休，包括公眾假期。",
+    "faq_smoking_q": "球室內禁止吸煙嗎？",
+    "faq_smoking_a": "本球室全區嚴格禁菸（包含紙菸、電子菸及加熱菸），旨在維護最高品質的無煙環境。若有吸菸需求，請至大廈戶外吸煙。",
+    "faq_weather_q": "惡劣天氣怎麼辦？",
+    "faq_weather_a": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自動化系統維持正常運作，閣下可評估安全後如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯絡客服，即可安排於 7 天內免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天內使用，將視為自動放棄權益。\n\n【一般情況 / 其它天氣（如 3 號風球、紅雨）】\n不設退改：除上述極端天氣守則外，所有預約一經確認，一律不接受取消、改期或退款。",
+    "faq_overtime_q": "如果超時了該怎麼辦？",
+    "faq_overtime_a": "若您預約的時段後面無其他顧客，請在 15 分鐘內離開場地（如超時 15 分鐘後仍使用相關設施，需要繳付 1 小時的正價租用費用）；若下一時段已有預約，系統會在結束前 5 分鐘會以小管家螢幕作溫馨提醒，請於預約時間結束前整理離場。",
     "faq_pricing_q": "收費如何計算？",
-    "faq_pricing_a": "下午（12pm–6pm）及深夜（12am–6am）每小時 HK$60；晚上（6pm–12am）每小時 HK$80。",
+    "faq_pricing_a": "按時段每小時計費，不同時段費率不同，連續預訂 2 小時或以上可享優惠；超時逗留將另收超時費用。詳情請參閱[定價頁面](/pricing)及《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)。",
     "faq_points_q": "什麼是積分制度？",
-    "faq_points_a": "每消費 HK$1 賺取 1 積分。累積至 500 分升級 Century，享 9 折及積分 1.5 倍；累積至 1,500 分升級 Maximum，享 8 折及免費教練時段。",
-    "faq_facilities_q": "場地內有什麼設備？",
-    "faq_facilities_a": "專業桌球枱、頂級燈光設備、冷氣、免費 Wi-Fi，以及自助飲品區。",
+    "faq_points_a": "每消費 HK$1 賺取 1 積分，累積積分可升級 Century 及 Maximum 會籍，尊享更多禮遇。詳情請參閱[會員頁面](/membership)。",
+    "faq_facilities_q": "場地內有什麼設施？",
+    "faq_facilities_a": "專業桌球枱、高品質標準公桿、頂級燈光設備、冷氣、免費 Wi-Fi，以及自助飲水區。",
     "faq_guests_q": "可以帶朋友一起來嗎？",
     "faq_guests_a": "可以，每個時段可容納多人，費用按時段計算，無需額外收費。",
-    "faq_contact_q": "如有問題如何聯絡？",
-    "faq_contact_a": "可透過 WhatsApp 聯絡我們，或發送電郵至 hello@formhk.com，我們將盡快回覆。"
+    "faq_contact_q": "有問題如何聯絡？",
+    "faq_contact_a": "可透過 WhatsApp 聯絡我們，或發送電郵至 hello@space8.com.hk，我們將盡快回覆。",
+    "more": "了解更多"
   },
   "whatsapp": {
-    "aria_label": "WhatsApp 我哋",
-    "tooltip": "WhatsApp 我哋"
+    "aria_label": "WhatsApp 聯絡我們",
+    "tooltip": "WhatsApp 聯絡我們"
+  },
+  "ai_chat": {
+    "aria_label": "同AI傾偈",
+    "tooltip": "同AI傾偈",
+    "placeholder": "有任何問題，歡迎查詢…",
+    "send": "傳送",
+    "close": "關閉"
   },
   "common": {
-    "error": "出咗少少問題",
+    "error": "發生少許問題",
     "retry": "重試",
     "not_found": "找不到此頁面"
   },
@@ -540,9 +700,11 @@
     "title": "預訂時段",
     "select_table": "選擇球枱",
     "table_label": "枱號",
-    "snooker": "英式桌球",
+    "snooker": "中式桌球",
     "available": "現時可預訂",
     "unavailable": "此時段已被預訂",
+    "slot_taken": "此時段剛被其他人預訂，請返回選擇另一時段。",
+    "back_to_slots": "返回選擇時段",
     "selected": "已選擇",
     "select_this_table": "選擇此枱",
     "hint": "如所選時段該枱已被預訂，可隨時切換至另一枱",
@@ -553,6 +715,7 @@
     "instant_confirm": "即時確認・毋需等候",
     "login_title": "完成預訂",
     "login_subtitle": "你的時段已暫時鎖定",
+    "login_subtitle_specific": "已為你保留 {start}–{end}，{table}",
     "login_apple": "以 Apple 登入",
     "login_google": "以 Google 帳戶登入",
     "login_whatsapp": "WhatsApp 號碼",
@@ -572,6 +735,7 @@
     "confirm_title": "已確認",
     "add_calendar": "加入日曆",
     "share": "分享",
+    "go_to_member": "前往會員中心",
     "back_home": "返回主頁",
     "back": "返回",
     "leave_title": "離開預訂？",
@@ -580,7 +744,7 @@
     "leave_stay": "繼續預訂",
     "checking": "正在檢查可用球枱…",
     "fully_booked": "此時段已滿，請選擇其他時間或日期。",
-    "qr_hint": "請於入場時出示此二維碼・24小時客服",
+    "qr_hint": "請於入場時出示此二維碼・客服熱線",
     "your_booking": "你的預約",
     "date": "日期",
     "time_slot": "時段",
@@ -589,63 +753,95 @@
     "processing": "處理中…",
     "table_available": "現時可預訂",
     "table_unavailable": "此時段已被預訂",
-    "table_locked": "有人正在預訂緊",
-    "table_locked_tooltip": "有人正在預訂緊，請稍候或選擇另一張枱",
-    "tables_remaining": "呢個時段尚餘 {count} 張枱",
+    "table_locked": "有人正在預訂",
+    "table_locked_tooltip": "有人正在預訂，請稍候或選擇另一張球枱",
+    "table_locked_by_you": "繼續你未完成的預訂",
+    "table_resume": "繼續",
+    "table_release_and_pick_again": "釋放並重新選擇時段",
+    "tables_remaining": "此時段尚餘 {count} 張球枱",
     "lock_hold": "時段已為你保留 {time}",
     "pay_declined": "付款未能完成，請檢查付款方式或再試一次。",
     "pay_timeout": "付款處理需時比預期耐，請檢查網絡連線再試一次。",
-    "contiguous_slots_required": "請選擇連續時段",
+    "max_hours_reached": "最多可選 6 小時",
     "payment_reminder": "15 分鐘內必須完成付款交易，否則預約時間自動取消",
-    "whatsapp_support": "如果你懷疑已經被扣款，請透過 WhatsApp 聯絡我們核實：",
-    "retry_payment": "重新選擇付款方式"
+    "whatsapp_support": "如果你懷疑已經被扣款，請透過 WhatsApp 聯絡我們核實",
+    "retry_payment": "重新選擇付款方式",
+    "slot_group_morning": "上午",
+    "slot_group_afternoon": "下午",
+    "slot_group_evening": "晚上",
+    "remove_slot": "移除",
+    "multi_slot_hint": "可選多個時段，連訂更有折扣。",
+    "duration_hours_chip": "{count} 小時",
+    "most_popular": "最多人揀",
+    "slots_selected": "已揀 {count} 個時段",
+    "points_earned_estimate": "此預訂最少可賺 {pts} 積分",
+    "terms_agree": "已代表同意 SPACE8 的<link>《場地使用守則》和《條款與細則》</link>",
+    "terms_required_hint": "* 必須同意條款先可以繼續付款",
+    "terms_required_error": "請先閱讀並同意場地使用守則",
+    "legend_available": "可預約",
+    "legend_selected": "已揀",
+    "legend_booked": "已被預約",
+    "slot_booked": "已被預約",
+    "free_suffix": "空",
+    "selected_slots_title": "已揀時段",
+    "empty_picks": "尚未選擇任何時段，在上方時間表點擊即可加入。",
+    "discount_label": "連訂折扣",
+    "block_saved_badge": "連訂 {hours} 小時，慳 HK${saved}",
+    "total_saved": "總共慳 HK${saved}"
   },
   "ticket": {
     "duration": "時長",
     "paid": "已付",
     "payment": "付款",
     "confirmed": "已確認 ✓",
-    "footer": "請於入場時出示此二維碼・24小時客服"
+    "footer": "請於入場時出示此二維碼・客服熱線",
+    "qr_tap_enlarge": "輕觸放大 QR 碼",
+    "close": "關閉"
   },
   "gallery": {
     "title": "場地。逐一看。",
-    "control_replay": "重播",
-    "control_play": "播放",
-    "control_pause": "暫停",
     "goto": "前往第 {n} 張",
     "slides": [
       {
-        "title": "專業中式桌球枱",
-        "subtitle": "精選頂級桌球枱，枱布每月更換，確保最佳手感。",
-        "alt": "248桌球會 - 專業中式桌球枱"
-      },
-      {
-        "title": "24小時全天候",
-        "subtitle": "凌晨三點，依然燈火通明，永遠為你而開。",
-        "alt": "248桌球會 - 24小時營業環境"
+        "title": "專業中八桌球枱",
+        "subtitle": "精選星牌桌球枱，確保最佳手感。",
+        "alt": "SPACE8 中八桌球枱"
       },
       {
         "title": "掃碼即入場",
-        "subtitle": "預訂後即獲QR Code，到場掃碼，門自動打開。",
-        "alt": "248桌球會 - 智能掃碼入場系統"
+        "subtitle": "網上預訂後即獲 QR Code，到場掃碼，快捷方便。",
+        "alt": "SPACE8 — 智能掃碼入場系統"
       },
       {
         "title": "私人獨立空間",
-        "subtitle": "整個場地屬於你，無需等位，無需共用。",
-        "alt": "248桌球會 - 私人獨立桌球室"
+        "subtitle": "整個場地屬於你，無需共用。",
+        "alt": "SPACE8 — 私人獨立桌球室"
       },
       {
         "title": "頂級燈光設備",
-        "subtitle": "台球專用燈具，照亮每個細節，清晰看見每一顆球。",
-        "alt": "248桌球會 - 專業桌球燈光設備"
+        "subtitle": "特調比賽燈光模式，專注於每一次出杆。",
+        "alt": "SPACE8 — 專業桌球燈光設備"
       }
     ]
   },
   "footer": {
-    "tagline": "香港24小時自助桌球會所",
-    "copyright": "© 2026 248 Snooker",
+    "tagline": "香港自助桌球會所・06:00–24:00 營業",
+    "copyright": "© 2026 SPACE8",
     "terms": "條款及細則",
-    "privacy": "私隱政策"
+    "privacy": "私隱政策",
+    "legal": "場地使用守則及條款",
+    "contact_title": "聯絡我們",
+    "address_label": "地址",
+    "address": "香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室",
+    "directions_label": "前往方法",
+    "directions": "港鐵鑽石山站或啟德站步行約 10 分鐘",
+    "map_cta": "Google Maps 導航",
+    "hours_label": "營業時間",
+    "hours": "每日 06:00 至 24:00",
+    "seo_title": "香港新蒲崗自助中式桌球室",
+    "seo_blurb": "SPACE8 是香港新蒲崗自助無煙中式桌球獨立球室，每日 06:00 至 24:00 營業，網上預訂、QR 碼自助入場，無需等候。鄰近鑽石山及啟德港鐵站，是九龍區桌球愛好者的理想主場。",
+    "credits": "製作團隊",
+    "credits_closing": "於香港用心製作。每個細節，每個像素。"
   },
   "profile": {
     "add_phone_title": "加入電話號碼",
@@ -655,5 +851,99 @@
     "phone_placeholder": "9XXX XXXX",
     "save": "儲存",
     "skip": "略過"
+  },
+  "venuePage": {
+    "hero_title": "場地",
+    "hero_subtitle": "自助無煙中式桌球獨立球室，無多餘干擾。",
+    "facilities_title": "場地設施",
+    "facilities": [
+      {
+        "title": "星牌中式桌球枱",
+        "body": "精選星牌桌球枱，確保最佳手感。"
+      },
+      {
+        "title": "專業級照明",
+        "body": "特調比賽燈光模式，專注於每一次出杆。"
+      },
+      {
+        "title": "恆溫冷氣",
+        "body": "全場恆溫，長時間對局依然舒適。"
+      },
+      {
+        "title": "免費高速 WiFi",
+        "body": "全場覆蓋，隨時分享你的精彩一杆。"
+      },
+      {
+        "title": "無煙區域",
+        "body": "場地全面禁煙，創造舒適環境"
+      },
+      {
+        "title": "智能 QR 門禁",
+        "body": "預訂確認後獲發 QR 碼，到場掃描自動開門。"
+      }
+    ],
+    "services_title": "服務說明",
+    "services": [
+      {
+        "title": "全自助營運",
+        "body": "由預訂、付款到入場全程自助，場內不設常駐職員。"
+      },
+      {
+        "title": "網上預訂",
+        "body": "於網站選擇日期及時段，以 Apple Pay 或信用卡即時付款。"
+      },
+      {
+        "title": "即時確認",
+        "body": "付款後即時收到確認電郵及進場 QR 碼。"
+      },
+      {
+        "title": "客戶支援",
+        "body": "如有查詢或需要協助，歡迎透過 WhatsApp 聯絡我們。"
+      }
+    ],
+    "rules_title": "留意事項",
+    "rules": [
+      "每間球室使用人數上限為 8 人。",
+      "場內全面禁煙，包括電子煙及加熱煙。",
+      "未滿 12 歲人士須由年滿 18 歲成人全程陪同。",
+      "請於預約時段結束時準時離場，超時 15 分鐘將收取超時費用。",
+      "離場前請完成場地復原：歸位球具、清潔枱面、套回防塵罩、關閉電源。",
+      "進場後如發現設施損壞，請於 10 分鐘內透過 WhatsApp 向我們報告。"
+    ],
+    "rules_link": "查看完整場地使用守則及條款",
+    "weather_title": "惡劣天氣及特殊安排",
+    "weather_body": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自動化系統維持正常運作，閣下可評估安全後如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯絡客服，即可安排於 7 天內免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天內使用，將視為自動放棄權益。\n\n【一般情況 / 其它天氣（如 3 號風球、紅雨）】\n不設退改：除上述極端天氣守則外，所有預約一經確認，一律不接受取消、改期或退款。",
+    "directions_title": "如何前往",
+    "address_label": "地址",
+    "address": "香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室",
+    "directions_body": "港鐵鑽石山站或啟德站步行約 10 分鐘；亦可乘搭巴士或小巴至大有街附近下車。",
+    "map_cta": "Google Maps 導航",
+    "book_cta": "立即預訂"
+  },
+  "membershipPage": {
+    "hero_title": "會員",
+    "hero_subtitle": "每一次消費，都在累積屬於你的福利。",
+    "stage_title": "你在哪一個階段",
+    "how_title": "玩法介紹",
+    "how_items": [
+      {
+        "title": "賺取積分",
+        "body": "每消費 HK$1 即累積 1 積分。新用戶註冊即送 50 積分。"
+      },
+      {
+        "title": "自動升級",
+        "body": "積分達到門檻即自動升級，毋須申請。等級愈高，積分累積速度愈快。"
+      },
+      {
+        "title": "使用積分",
+        "body": "積分可換購折扣券及預約教練時段，禮遇隨等級提升。"
+      },
+      {
+        "title": "查看進度",
+        "body": "登入會員中心，隨時查看積分結餘、等級進度及預訂記錄。"
+      }
+    ],
+    "cta_book": "立即預訂",
+    "cta_login": "登入會員中心"
   }
 }

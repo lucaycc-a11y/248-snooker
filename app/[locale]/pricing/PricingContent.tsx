@@ -1,161 +1,86 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Sun, Zap, Moon } from "lucide-react";
+import { Circle, Triangle, Target } from "lucide-react";
+import PeriodPricingSections from "@/components/pricing/PeriodPricingSections";
 import type { PricingPeriod, ServiceFees } from "@/lib/data/pricing";
 
-const DARK = "#1D1D1F";
-const SUBTLE = "#86868B";
-const GREEN = "#22C55E";
-const BORDER_DARK = "#2D2D2D";
-const DIVIDER = "#E5E5E5";
+const GREEN = "#22c55e";
+const PURPLE = "#a855f7";
+const PINK = "#ec4899";
+const SUBTLE = "#a1a1a6"; // dark-section secondary text (raised from #86868b for #000 legibility)
+const EASE = [0.16, 1, 0.3, 1] as const;
+const SPRING = { type: "spring", stiffness: 300, damping: 30 } as const;
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+const DISPLAY_FONT = "var(--font-bebas), 'Bebas Neue', sans-serif";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
-const SPRING = { type: "spring", stiffness: 260, damping: 26 } as const;
-const VIEWPORT = { once: true, amount: 0.3 } as const;
-
-const PERIOD_ICON: Record<string, typeof Sun> = {
-  afternoon: Sun,
-  evening: Zap,
-  latenight: Moon,
-};
-
-const DURATIONS = [
-  { hours: 1, key: "duration_1h" },
-  { hours: 2, key: "duration_2h" },
-  { hours: 3, key: "duration_3h" },
-] as const;
-
-type Benefit = { tier: string; desc: string };
-type Service = { name: string; price: string };
-type Faq = { q: string; a: string };
-
-function fmt(value: number): string {
-  return `HK$${Math.round(value)}`;
-}
-
-// ── Section 2 — one full-height tier card with duration pills + animated price ──
-function TierCard({ period, index }: { period: PricingPeriod; index: number }) {
-  const t = useTranslations("pricingPage");
-  const [hours, setHours] = useState(1);
-  const Icon = PERIOD_ICON[period.id] ?? Sun;
-  const total = period.rate * hours;
-
+// Highlighter mark component — Apple's inline highlight effect
+function Mark({ children, color = GREEN }: { children: React.ReactNode; color?: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={VIEWPORT}
-      transition={{ duration: 0.6, ease: EASE }}
+    <span
       style={{
-        scrollSnapAlign: "start",
-        border: `1px solid ${BORDER_DARK}`,
-        borderRadius: "24px",
-        padding: "clamp(28px, 5vw, 48px)",
-        background: "#0A0A0A",
-        display: "flex",
-        flexDirection: "column",
+        background: color,
+        color: "#000",
+        padding: "0 8px",
+        display: "inline",
+        boxDecorationBreak: "clone",
+        WebkitBoxDecorationBreak: "clone",
       }}
     >
-      <Icon size={32} color={GREEN} strokeWidth={1.5} />
+      {children}
+    </span>
+  );
+}
 
-      <h3
-        style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: "white", margin: "24px 0 4px" }}
-        data-cms-key={`pricing.period.${period.id}.title`}
-      >
-        {t(`period_${period.id}_title`)}
-      </h3>
-      <p style={{ fontSize: "14px", color: SUBTLE, margin: 0 }} data-cms-key={`pricing.period.${period.id}.time`}>
-        {t(`period_${period.id}_time`)}
-      </p>
+// Floating snooker icons — scattered irregularly like Apple's app icon collage
+function FloatingIcons() {
+  const icons = [
+    { Icon: Circle, size: 48, top: "15%", left: "8%", rotate: 12, color: GREEN },
+    { Icon: Triangle, size: 64, top: "45%", right: "12%", rotate: -8, color: PURPLE },
+    { Icon: Target, size: 56, bottom: "20%", left: "15%", rotate: 15, color: PINK },
+    { Icon: Circle, size: 40, top: "70%", right: "20%", rotate: -12, color: GREEN },
+    { Icon: Triangle, size: 52, top: "25%", right: "25%", rotate: 20, color: PINK },
+  ];
 
-      {/* FLUENT: price is the visual hero */}
-      <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", margin: "36px 0 28px" }}>
-        <div style={{ height: "72px", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={hours}
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -50, opacity: 0 }}
-              transition={SPRING}
-              style={{ display: "block", fontSize: "72px", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1, color: "white" }}
-              data-cms-key={`pricing.period.${period.id}.price`}
-            >
-              {fmt(total)}
-            </motion.span>
-          </AnimatePresence>
-        </div>
-        <span style={{ fontSize: "14px", color: SUBTLE, paddingBottom: "10px" }} data-cms-key="pricing.per_hour_suffix">
-          {hours > 1 ? `· ${fmt(period.rate)}${t("per_hour")}` : t("per_hour")}
-        </span>
-      </div>
-
-      {/* Duration pills */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "32px" }}>
-        {DURATIONS.map((d) => {
-          const selected = hours === d.hours;
-          return (
-            <button
-              key={d.hours}
-              type="button"
-              onClick={() => setHours(d.hours)}
-              data-cms-key={`pricing.${d.key}`}
-              style={{
-                fontSize: "14px",
-                fontWeight: 500,
-                color: selected ? "#000" : "white",
-                background: selected ? "white" : "transparent",
-                border: `1px solid ${selected ? "white" : "#3D3D3D"}`,
-                borderRadius: "100px",
-                padding: "10px 18px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                fontFamily: FONT_FAMILY,
-                minHeight: 44,
-              }}
-            >
-              {t(d.key)}
-            </button>
-          );
-        })}
-      </div>
-
-      <div style={{ marginTop: "auto", display: "flex", gap: "24px", flexWrap: "wrap", alignItems: "center" }}>
-        <Link
-          href="/book"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: GREEN,
-            color: "#000",
-            fontWeight: 700,
-            fontSize: "15px",
-            padding: "0 24px",
-            height: "48px",
-            borderRadius: "100px",
-            textDecoration: "none",
-          }}
-          data-cms-key="pricing.cta_book"
-        >
-          {t("cta_book")}
-        </Link>
-        <a
-          href="#breakdown"
-          style={{ color: GREEN, fontSize: "15px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px" }}
-          data-cms-key="pricing.cta_details"
-        >
-          {t("cta_details")} <span aria-hidden="true">›</span>
-        </a>
-      </div>
-    </motion.div>
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        pointerEvents: "none",
+        opacity: 0.15,
+      }}
+    >
+      {icons.map((props, i) => {
+        const { Icon, size, top, left, right, bottom, rotate, color } = props;
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, scale: 0.8, rotate: 0 }}
+            whileInView={{ opacity: 1, scale: 1, rotate }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 1.2, ease: EASE, delay: i * 0.1 }}
+            style={{
+              position: "absolute",
+              top,
+              left,
+              right,
+              bottom,
+              willChange: "opacity, transform",
+            }}
+          >
+            <Icon size={size} color={color} strokeWidth={1.5} />
+          </motion.div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -167,288 +92,296 @@ export default function PricingContent({
   services: ServiceFees;
 }) {
   const t = useTranslations("pricingPage");
-  const benefits = t.raw("benefits") as Benefit[];
-  const serviceRows = t.raw("services") as Service[];
-  const faqs = t.raw("faqs") as Faq[];
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const faqs = t.raw("faqs") as Array<{ q: string; a: string }>;
+  const carouselRef = useRef<HTMLDivElement>(null);
+
 
   return (
     <div style={{ fontFamily: FONT_FAMILY }}>
-      {/* ── Section 1 — Hero (black) ── */}
+      {/* ── Part 1: Hero — WHITE background, black text (Apple rhythm) ── */}
       <section
-        data-nav-theme="dark"
-        style={{ background: "#000", color: "white", padding: "160px 24px 80px", textAlign: "center" }}
+        data-nav-theme="light"
+        style={{
+          background: "#fff",
+          color: "#1d1d1f",
+          padding: "clamp(120px, 15vh, 180px) 24px clamp(80px, 12vh, 120px)",
+          textAlign: "center",
+        }}
       >
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE }}
-          style={{ fontSize: "clamp(44px, 9vw, 72px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
-          data-cms-key="pricing.hero_title"
-        >
-          {t("hero_title")}
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE, delay: 0.1 }}
-          style={{ fontSize: "19px", color: "rgba(255,255,255,0.6)", margin: "20px 0 0" }}
-          data-cms-key="pricing.hero_subtitle"
-        >
-          {t("hero_subtitle")}
-        </motion.p>
-      </section>
-
-      {/* ── Section 2 — Tier cards (black) ── */}
-      <section
-        data-nav-theme="dark"
-        style={{ background: "#000", padding: "0 24px 96px" }}
-      >
-        <div
+          transition={{ duration: 0.8, ease: EASE }}
           style={{
             maxWidth: "1100px",
             margin: "0 auto",
-            display: "grid",
-            gap: "20px",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            willChange: "opacity, transform",
           }}
         >
-          {periods.map((p, i) => (
-            <TierCard key={p.id} period={p} index={i} />
-          ))}
-        </div>
-      </section>
-
-      {/* ── Section 3 — Full breakdown (white) ── */}
-      <section
-        id="breakdown"
-        data-nav-theme="light"
-        style={{ background: "#F5F5F7", color: DARK, padding: "clamp(72px, 10vw, 120px) 24px" }}
-      >
-        <div style={{ maxWidth: "820px", margin: "0 auto" }}>
-          <h2
-            style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 40px" }}
-            data-cms-key="pricing.breakdown_title"
+          <h1
+            style={{
+              fontFamily: DISPLAY_FONT,
+              fontSize: "clamp(20px, 4vw, 32px)",
+              fontWeight: 400,
+              letterSpacing: "0.08em",
+              color: "#86868b",
+              margin: "0 0 16px",
+              textTransform: "uppercase",
+            }}
           >
-            {t("breakdown_title")}
+            {t("hero_eyebrow")}
+          </h1>
+
+          <h2
+            style={{
+              fontSize: "clamp(48px, 10vw, 96px)",
+              fontWeight: 700,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.05,
+              margin: 0,
+              color: "#1d1d1f",
+            }}
+          >
+            {t("hero_line1")}
           </h2>
 
-          <div style={{ border: `1px solid ${DIVIDER}`, borderRadius: "16px", overflow: "hidden", background: "white" }}>
-            {/* header row — hidden on mobile, shown as table head on >=sm */}
-            <div
-              className="pricing-breakdown-head"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1.2fr 1.5fr auto",
-                gap: "16px",
-                padding: "16px 20px",
-                background: "#F5F5F7",
-                fontSize: "13px",
-                fontWeight: 600,
-                color: SUBTLE,
-                textTransform: "uppercase",
-                letterSpacing: "0.04em",
-              }}
-            >
-              <span data-cms-key="pricing.breakdown_period">{t("breakdown_period")}</span>
-              <span data-cms-key="pricing.breakdown_time">{t("breakdown_time")}</span>
-              <span style={{ textAlign: "right" }} data-cms-key="pricing.breakdown_rate">{t("breakdown_rate")}</span>
-            </div>
-            {periods.map((p) => (
-              <div
-                key={p.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1.2fr 1.5fr auto",
-                  gap: "16px",
-                  alignItems: "center",
-                  padding: "18px 20px",
-                  borderTop: `1px solid ${DIVIDER}`,
-                }}
-              >
-                <span style={{ fontWeight: 600, fontSize: "16px" }} data-cms-key={`pricing.breakdown.${p.id}.name`}>
-                  {t(`period_${p.id}_title`)}
-                </span>
-                <span style={{ fontSize: "15px", color: "#494951" }} data-cms-key={`pricing.breakdown.${p.id}.time`}>
-                  {t(`period_${p.id}_time`)}
-                </span>
-                <span style={{ textAlign: "right", fontWeight: 700, fontSize: "17px", color: GREEN }} data-cms-key={`pricing.breakdown.${p.id}.rate`}>
-                  {fmt(p.rate)}
-                  <span style={{ fontSize: "13px", color: SUBTLE, fontWeight: 400 }}>{t("per_hour")}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+          <p
+            style={{
+              fontSize: "clamp(28px, 6vw, 56px)",
+              fontWeight: 600,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.2,
+              margin: "32px 0 0",
+              color: "#1d1d1f",
+            }}
+          >
+            {t("hero_line2_before")}
+            <br />
+            <Mark color={GREEN}>
+              {t("hero_line2_highlight")}
+            </Mark>
+          </p>
+        </motion.div>
       </section>
 
-      {/* ── Section 4 — Member benefits (black) ── */}
+      {/* ── Part 2: Sectioned Pricing — shared with the homepage ── */}
+      <PeriodPricingSections periods={periods} />
+
+      {/* ── Part 3: Floating icons collage — BLACK background for atmosphere ── */}
       <section
         data-nav-theme="dark"
-        style={{ background: "#000", color: "white", padding: "clamp(72px, 10vw, 120px) 24px" }}
+        style={{
+          position: "relative",
+          background: "#000",
+          color: "#fff",
+          padding: "clamp(100px, 15vh, 180px) 24px",
+          overflow: "hidden",
+        }}
       >
-        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+        <FloatingIcons />
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.8, ease: EASE }}
+          style={{
+            position: "relative",
+            zIndex: 1,
+            textAlign: "center",
+            maxWidth: "820px",
+            margin: "0 auto",
+            willChange: "opacity, transform",
+          }}
+        >
           <h2
-            style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 48px", textAlign: "center" }}
-            data-cms-key="pricing.benefits_title"
+            style={{
+              fontSize: "clamp(40px, 8vw, 72px)",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.1,
+              margin: 0,
+            }}
           >
-            {t("benefits_title")}
+            {t("time_line1")}
+            <br />
+            <Mark color={GREEN}>
+              {t("time_line2")}
+            </Mark>
           </h2>
-          <div style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-            {benefits.map((b, i) => (
-              <motion.div
-                key={b.tier}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={VIEWPORT}
-                transition={{ duration: 0.5, ease: EASE, delay: i * 0.08 }}
-                style={{ border: `1px solid ${BORDER_DARK}`, borderRadius: "20px", padding: "32px", background: "#0A0A0A" }}
-              >
-                <h3 style={{ fontSize: "22px", fontWeight: 700, margin: "0 0 12px" }} data-cms-key={`pricing.benefit.${i}.tier`}>
-                  {b.tier}
-                </h3>
-                <p style={{ fontSize: "16px", lineHeight: 1.6, color: "rgba(255,255,255,0.7)", margin: 0 }} data-cms-key={`pricing.benefit.${i}.desc`}>
-                  {b.desc}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* ── Section 5 — Additional services (dark gray) ── */}
+      {/* ── Part 4: Black card FAQ carousel — BLACK background (continuation) ── */}
       <section
         data-nav-theme="dark"
-        style={{ background: "#1C1C1E", color: "white", padding: "clamp(72px, 10vw, 120px) 24px" }}
+        style={{
+          background: "#000",
+          color: "#fff",
+          padding: "clamp(100px, 15vh, 160px) 0",
+        }}
       >
-        <div style={{ maxWidth: "820px", margin: "0 auto" }}>
-          <h2
-            style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 40px" }}
-            data-cms-key="pricing.services_title"
-          >
-            {t("services_title")}
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {serviceRows.map((s, i) => (
-              <div
-                key={s.name}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "16px",
-                  padding: "20px 0",
-                  borderBottom: i < serviceRows.length - 1 ? `1px solid ${BORDER_DARK}` : "none",
-                }}
-              >
-                <span style={{ fontSize: "17px", fontWeight: 500 }} data-cms-key={`pricing.service.${i}.name`}>{s.name}</span>
-                <span style={{ fontSize: "16px", color: "rgba(255,255,255,0.7)", textAlign: "right" }} data-cms-key={`pricing.service.${i}.price`}>
-                  {s.price}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Section 6 — FAQ (white) ── */}
-      <section
-        data-nav-theme="light"
-        style={{ background: "#fff", color: DARK, padding: "clamp(72px, 10vw, 120px) 24px" }}
-      >
-        <div style={{ maxWidth: "760px", margin: "0 auto" }}>
-          <h2
-            style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }}
-            data-cms-key="pricing.faq_title"
+        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 24px" }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: EASE }}
+            style={{
+              fontSize: "clamp(32px, 6vw, 56px)",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              margin: "0 0 56px",
+              textAlign: "center",
+              willChange: "opacity, transform",
+            }}
           >
             {t("faq_title")}
-          </h2>
-          <div>
-            {faqs.map((f, i) => {
-              const isOpen = openFaq === i;
+          </motion.h2>
+
+          <div
+            ref={carouselRef}
+            className="hscroll-track"
+            style={{
+              display: "flex",
+              gap: 24,
+              overflowX: "auto",
+              scrollSnapType: "x mandatory",
+              paddingBottom: 24,
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
+            {faqs.map((faq, i) => {
+              // Keyword color cycling — green, purple, pink
+              const keywordColor = [GREEN, PURPLE, PINK][i % 3];
+
               return (
-                <details key={f.q} open={isOpen} style={{ borderBottom: `1px solid ${DIVIDER}` }}>
-                  <summary
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setOpenFaq((prev) => (prev === i ? null : i));
-                    }}
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 40 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.5, ease: EASE, delay: i * 0.08 }}
+                  style={{
+                    flex: "0 0 clamp(280px, 85vw, 400px)",
+                    scrollSnapAlign: "start",
+                    background: "#000",
+                    border: "1px solid #1a1a1a",
+                    borderRadius: 24,
+                    padding: "clamp(32px, 6vw, 48px)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 20,
+                  }}
+                >
+                  <h3
                     style={{
-                      listStyle: "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "24px",
-                      padding: "24px 4px",
-                      userSelect: "none",
+                      fontSize: "clamp(24px, 5vw, 32px)",
+                      fontWeight: 700,
+                      letterSpacing: "-0.01em",
+                      lineHeight: 1.2,
+                      margin: 0,
                     }}
                   >
-                    <span style={{ fontSize: "17px", fontWeight: 500, color: DARK }} data-cms-key={`pricing.faq.${i}.q`}>
-                      {f.q}
-                    </span>
-                    <motion.span
-                      aria-hidden="true"
-                      animate={{ rotate: isOpen ? 90 : 0 }}
-                      transition={{ duration: 0.3, ease: EASE }}
-                      style={{ flexShrink: 0, color: SUBTLE, fontSize: "22px", lineHeight: 1 }}
-                    >
-                      ›
-                    </motion.span>
-                  </summary>
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        key="a"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.35, ease: EASE }}
-                        style={{ overflow: "hidden" }}
-                      >
-                        <p style={{ fontSize: "16px", lineHeight: 1.6, color: "#494951", margin: 0, padding: "0 4px 28px" }} data-cms-key={`pricing.faq.${i}.a`}>
-                          {f.a}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </details>
+                    {/* Simple keyword highlighting — first word gets color */}
+                    {faq.q.split(" ").map((word, wi) => (
+                      <span key={wi} style={{ color: wi === 0 ? keywordColor : "#fff" }}>
+                        {word}{wi < faq.q.split(" ").length - 1 ? " " : ""}
+                      </span>
+                    ))}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: "clamp(15px, 3vw, 17px)",
+                      lineHeight: 1.5,
+                      color: "rgba(255,255,255,0.7)",
+                      margin: 0,
+                    }}
+                  >
+                    {faq.a}
+                  </p>
+                </motion.div>
               );
             })}
           </div>
+
+          {/* Scroll hint */}
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: 14,
+              color: SUBTLE,
+              margin: "32px 0 0",
+            }}
+          >
+            {t("faq_scroll_hint")}
+          </p>
         </div>
       </section>
 
-      {/* ── CTA section (black) ── */}
+      {/* ── Part 5: CTA finale — WHITE background (bookend with hero) ── */}
       <section
-        data-nav-theme="dark"
-        style={{ background: "#000", color: "white", padding: "clamp(72px, 10vw, 120px) 24px", textAlign: "center" }}
+        data-nav-theme="light"
+        style={{
+          background: "#fff",
+          color: "#1d1d1f",
+          padding: "clamp(120px, 18vh, 200px) 24px clamp(100px, 15vh, 160px)",
+          textAlign: "center",
+        }}
       >
-        <h2
-          style={{ fontSize: "clamp(32px, 6vw, 56px)", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }}
-          data-cms-key="pricing.cta_section_title"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.5 }}
+          transition={{ duration: 0.8, ease: EASE }}
+          style={{ willChange: "opacity, transform" }}
         >
-          {t("cta_section_title")}
-        </h2>
-        <Link
-          href="/book"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: GREEN,
-            color: "#000",
-            fontWeight: 700,
-            fontSize: "17px",
-            padding: "0 40px",
-            height: "56px",
-            borderRadius: "100px",
-            textDecoration: "none",
-          }}
-          data-cms-key="pricing.cta_section_button"
-        >
-          {t("cta_section_button")}
-        </Link>
+          <Circle
+            size={80}
+            color={GREEN}
+            strokeWidth={2}
+            style={{ margin: "0 auto 48px", display: "block" }}
+          />
+
+          <h2
+            style={{
+              fontSize: "clamp(40px, 8vw, 72px)",
+              fontWeight: 700,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.1,
+              margin: "0 0 48px",
+              color: "#1d1d1f",
+            }}
+          >
+            {t("cta_line1")}
+            <br />
+            <Mark color={GREEN}>
+              {t("cta_line2")}
+            </Mark>
+          </h2>
+
+          <Link
+            href="/book"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: GREEN,
+              color: "#000",
+              fontWeight: 700,
+              fontSize: "clamp(16px, 3.5vw, 20px)",
+              padding: "0 clamp(40px, 6vw, 56px)",
+              height: "clamp(56px, 11vw, 72px)",
+              borderRadius: "100px",
+              textDecoration: "none",
+              transition: "transform 0.2s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            {t("cta_button")}
+          </Link>
+        </motion.div>
       </section>
     </div>
   );

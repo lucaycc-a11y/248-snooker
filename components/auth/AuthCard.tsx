@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
 import { normalizeHkPhone } from "@/lib/auth/profile"
+import { LoadingGif } from "@/components/ui/LoadingGif"
 import { GoogleSignInButton } from "./GoogleSignInButton"
 import { AppleSignInButton } from "./AppleSignInButton"
 import { OtpInput } from "./OtpInput"
@@ -20,7 +21,7 @@ const RESEND_COOLDOWN = 30
 const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type Phase = "methods" | "phone" | "otp" | "profile"
+type Phase = "methods" | "phone" | "otp" | "profile" | "password"
 type OtpChannel = "sms" | "email"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
 
@@ -41,6 +42,7 @@ export function AuthCard({
   const [phase, setPhase] = useState<Phase>("methods")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [otpChannel, setOtpChannel] = useState<OtpChannel>("sms")
   const [otp, setOtp] = useState("")
   const [busy, setBusy] = useState(false)
@@ -62,7 +64,11 @@ export function AuthCard({
 
   // On mount: if a session already exists (returning from a Google redirect, or a
   // logged-in user reaching the login step), resolve straight to the profile gate
-  // or completion — never show the method picker again. Runs once.
+  // or completion — never show the method picker again. Runs once per completed
+  // attempt: if the effect is cancelled mid-flight (React 18 strict-mode's
+  // mount→unmount→remount, or any real remount), didInit resets so the re-run
+  // actually executes — otherwise the card hangs on the loading state forever
+  // with the session check half-done.
   useEffect(() => {
     if (didInit.current) return
     didInit.current = true
@@ -103,6 +109,7 @@ export function AuthCard({
     })()
     return () => {
       cancelled = true
+      didInit.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -223,6 +230,31 @@ export function AuthCard({
     }
   }
 
+  const signInWithPassword = async () => {
+    const trimmed = email.trim()
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError(t("err_email"))
+      return
+    }
+    if (!password) {
+      setError(t("err_password"))
+      return
+    }
+    setBusy(true)
+    setError(null)
+    const supabase = createClient()
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: trimmed,
+      password,
+    })
+    if (signInErr) {
+      setError(t("err_password"))
+      setBusy(false)
+      return
+    }
+    await afterSignIn()
+  }
+
   const verifyOtp = async (code: string) => {
     setBusy(true)
     setError(null)
@@ -255,18 +287,7 @@ export function AuthCard({
   if (initializing && phase === "methods") {
     return (
       <div style={{ display: "flex", justifyContent: "center", padding: "32px 0" }}>
-        <motion.div
-          aria-hidden
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: "50%",
-            border: "3px solid rgba(255,255,255,0.15)",
-            borderTopColor: GREEN,
-          }}
-        />
+        <LoadingGif />
       </div>
     )
   }
@@ -279,7 +300,12 @@ export function AuthCard({
         initialEmail={prefill.email}
         initialPhone={prefill.phone}
         isPhoneVerified={prefill.phoneVerified}
-        onComplete={onAuthComplete}
+        onComplete={() => {
+          // Member code generation still happens server-side via the
+          // generate_member_code() RPC/trigger — we just no longer show the
+          // celebratory planet-reveal screen for it. Go straight into the flow.
+          onAuthComplete()
+        }}
         labels={{
           title: t("profile_title"),
           subtitle: t("profile_subtitle"),
@@ -378,6 +404,63 @@ export function AuthCard({
     )
   }
 
+  // ── Password entry ───────────────────────────────────────────────────────────
+  if (phase === "password") {
+    return (
+      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
+        <button
+          type="button"
+          onClick={() => { setPhase("methods"); setError(null); setPassword("") }}
+          aria-label={t("back")}
+          style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}
+        >
+          <ChevronLeft size={16} /> {t("back")}
+        </button>
+        <h2 data-cms-key="auth.password.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>
+          {t("sign_in_password")}
+        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={t("email_placeholder")}
+            inputMode="email"
+            autoComplete="email"
+            aria-label={t("email_placeholder")}
+            style={{ height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
+          />
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t("password_placeholder")}
+            type="password"
+            autoComplete="current-password"
+            aria-label={t("password_placeholder")}
+            style={{ height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
+          />
+          <button
+            type="button"
+            onClick={signInWithPassword}
+            disabled={busy}
+            data-cms-key="auth.password.submit"
+            style={{ width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}
+          >
+            {busy ? t("sending") : t("sign_in_password")}
+          </button>
+          {error && <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
+          <button
+            type="button"
+            onClick={() => { setPhase("methods"); setError(null); setPassword("") }}
+            data-cms-key="auth.password.switch_to_otp"
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 13, cursor: "pointer", textAlign: "center" }}
+          >
+            {t("switch_to_otp")}
+          </button>
+        </div>
+      </motion.div>
+    )
+  }
+
   // ── Method picker ──────────────────────────────────────────────────────────
   return (
     <div>
@@ -423,6 +506,18 @@ export function AuthCard({
         {error && phase === "methods" && (
           <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>
         )}
+
+        {/* Password sign-in — for users who set a password after their first
+            email OTP login (task: post-OTP optional password + password/OTP
+            choice on return). */}
+        <button
+          type="button"
+          onClick={() => { setPhase("password"); setError(null) }}
+          data-cms-key="auth.switch_to_password"
+          style={{ marginTop: -4, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 13, cursor: "pointer", textAlign: "center" }}
+        >
+          {t("switch_to_password")}
+        </button>
 
         {/* De-emphasized fallback — existing phone-only members still need a way
             in; not shown as a primary CTA per the Apple/Google/Email redesign. */}

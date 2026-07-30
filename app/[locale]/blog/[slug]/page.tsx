@@ -11,10 +11,10 @@ import { renderRichText } from "@/lib/blog/renderRichText";
 import { safeJsonLd } from "@/lib/seo/jsonLd";
 import ShareButtons from "./ShareButtons";
 
-const SUBTLE = "#86868B";
+const SUBTLE = "#A1A1A6";
 const GREEN = "#22C55E";
 const BORDER_DARK = "#2D2D2D";
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
@@ -32,10 +32,10 @@ export async function generateMetadata({
   const post = await getBlogPost(slug, locale);
 
   if (!post) {
-    return { title: "404 | 248 Snooker", robots: { index: false, follow: false } };
+    return { title: "404 | Space8", robots: { index: false, follow: false } };
   }
 
-  const title = post.seo_title || `${post.title} | 248 Snooker`;
+  const title = post.seo_title || `${post.title} | Space8`;
   const description = post.seo_description || post.excerpt || undefined;
   const ogImage = post.og_image_url || post.cover_image_url;
 
@@ -47,7 +47,7 @@ export async function generateMetadata({
       title,
       description,
       url: `${BASE}${localePath(locale, slug)}`,
-      siteName: "248 Snooker",
+      siteName: "Space8",
       type: "article",
       publishedTime: post.published_at ?? undefined,
       authors: post.author ? [post.author] : undefined,
@@ -96,11 +96,11 @@ export default async function BlogPostPage({
     description: post.seo_description || post.excerpt || undefined,
     image: cover || undefined,
     datePublished: post.published_at || undefined,
-    author: { "@type": "Organization", name: post.author || "248 Snooker" },
+    author: { "@type": "Organization", name: post.author || "Space8" },
     publisher: {
       "@type": "Organization",
-      name: "248 Snooker",
-      logo: { "@type": "ImageObject", url: `${BASE}/logos/248_logo_dark_bg.svg` },
+      name: "Space8",
+      logo: { "@type": "ImageObject", url: `${BASE}/logos/logo-black-horizontal.svg` },
     },
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
   };
@@ -158,9 +158,11 @@ export default async function BlogPostPage({
             {post.title}
           </h1>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "20px", fontSize: "14px", color: "rgba(255,255,255,0.7)" }}>
-            <span>{post.author || "248 Snooker"}</span>
+            <span>{post.author || "Space8"}</span>
             <span aria-hidden="true">·</span>
-            <span>{t("read_time", { min: post.reading_time ?? 5 })}</span>
+            <span>
+              {t("read_time", { min: post.reading_time ?? 5 })}
+            </span>
           </div>
         </div>
       </section>
@@ -184,7 +186,6 @@ export default async function BlogPostPage({
             <Link
               href="/blog"
               style={{ display: "inline-flex", alignItems: "center", gap: "8px", color: GREEN, fontSize: "15px", textDecoration: "none" }}
-              data-cms-key="blog.back_to_blog"
             >
               <ArrowLeft size={16} strokeWidth={2} />
               {t("back_to_blog")}
@@ -200,7 +201,7 @@ export default async function BlogPostPage({
           style={{ background: "#0A0A0A", color: "white", padding: "clamp(56px, 8vw, 96px) 24px", borderTop: `1px solid ${BORDER_DARK}` }}
         >
           <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-            <h2 style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }} data-cms-key="blog.related_title">
+            <h2 style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 32px" }}>
               {t("related_title")}
             </h2>
             <div style={{ display: "grid", gap: "32px", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>

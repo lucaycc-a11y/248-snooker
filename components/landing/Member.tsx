@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const GREEN_LIGHT = "#22C55E";
 const DARK = "#1D1D1F";
@@ -26,8 +27,8 @@ const ICON_PROPS = {
 
 const UserIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <circle cx="24" cy="16" r="8" />
-    <path d="M10 40c0-7.7 6.3-14 14-14s14 6.3 14 14" />
+    <circle className="pi-user" cx="24" cy="16" r="8" />
+    <path className="pi-user" d="M10 40c0-7.7 6.3-14 14-14s14 6.3 14 14" />
   </svg>
 );
 
@@ -41,7 +42,8 @@ const TrophyIcon = (
 
 const StarIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <path d="M24 6l5.6 11.4L42 19l-9 8.8L35.2 40 24 34.2 12.8 40 15 27.8 6 19l12.4-1.6z" />
+    <path className="pi-star-rating" d="M24 6l5.6 11.4L42 19l-9 8.8L35.2 40 24 34.2 12.8 40 15 27.8 6 19l12.4-1.6z" />
+    <circle className="pi-star-rating-glow" cx="24" cy="23" r="14" fill="currentColor" stroke="none" opacity="0.15" />
   </svg>
 );
 
@@ -178,14 +180,14 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
             <p style={{ fontSize: "17px", lineHeight: 1.6, color: "rgba(255,255,255,0.75)", margin: "0 0 24px" }}>
               {data.body}
             </p>
-            <a
-              href="/member"
+            <Link
+              href="/membership"
               className="group inline-flex items-center"
               style={{ color: GREEN_LIGHT, fontSize: "17px", textDecoration: "none", gap: "2px" }}
             >
               <span className="group-hover:underline">{t('cta_learn')}</span>
               <span aria-hidden="true">›</span>
-            </a>
+            </Link>
           </motion.div>
         </motion.div>
       )}
@@ -277,20 +279,25 @@ export default function Member() {
   };
 
   // Single card — shared by desktop grid and mobile carousel.
+  // Carousel cards suppress the y-entrance: cards arrive horizontally so a
+  // vertical y:30→0 fires mid-swipe and causes a visible vertical jump.
   const renderCard = (card: TierCard, i: number, carousel: boolean) => (
     <motion.div
       key={card.key}
       ref={(el) => {
         cardRefs.current[i] = el;
       }}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.5, ease: EASE, delay: 0.05 * i }}
+      {...(carousel
+        ? { initial: { opacity: 0, scale: 0.95 }, animate: { opacity: 1, scale: 1 }, transition: { duration: 0.35, ease: [0.34, 1.56, 0.64, 1], delay: 0.05 * i } }
+        : { initial: { opacity: 0, y: 24, scale: 0.95 }, whileInView: { opacity: 1, y: 0, scale: 1 }, viewport: { once: true, amount: 0.3 }, transition: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1], delay: 0.05 * i } }
+      )}
       className={carousel ? "snap-start shrink-0" : ""}
       style={{
         width: carousel ? "min(85vw, 360px)" : "auto",
-        height: "auto",
+        // Fixed height keeps all carousel cards identical so the track never
+        // reflows when you swipe — desktop cards stretch to fill the grid cell.
+        minHeight: carousel ? "360px" : 0,
+        height: carousel ? "360px" : "auto",
         background: "#2D2D2D",
         border: "1px solid #3D3D3D",
         borderRadius: "24px",
@@ -300,7 +307,6 @@ export default function Member() {
         display: "flex",
         flexDirection: "column",
       }}
-      data-cms-key={card.key}
     >
       {card.badge && (
         <span
@@ -342,6 +348,13 @@ export default function Member() {
       >
         {highlight(card.body, card.highlights, card.accent)}
       </p>
+
+      {/* Full tier description in the initial HTML (visually hidden). The card
+          shows a short blurb; the same complete sentences are also behind the
+          "+" modal — but that content only mounts on click, so crawlers/screen
+          readers would miss it. This sr-only copy keeps the full, self-contained
+          text server-rendered and always present. */}
+      <p className="sr-only">{card.modalBody}</p>
 
       {/* + button — Apple proportion: 16px glyph in 44px circle (≈36%) */}
       <motion.button
@@ -387,7 +400,6 @@ export default function Member() {
     <section
       data-nav-theme="dark"
       style={{ background: "#1D1D1F", color: DARK, padding: "clamp(88px, 12vw, 140px) 0", fontFamily: FONT_FAMILY }}
-      data-cms-key="membership_section"
     >
       {/* Header row */}
       <div
@@ -403,21 +415,19 @@ export default function Member() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={VIEWPORT}
           transition={{ duration: 0.6, ease: EASE }}
-          style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.03em", margin: "0 0 12px", color: "#86868B" }}
-          data-cms-key="membership_title"
+          style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.03em", margin: "0 0 12px", color: "#A1A1A6" }}
         >
           {t('title')}。
         </motion.h2>
 
-        <a
-          href="/member"
+        <Link
+          href="/membership"
           className="group inline-flex items-center"
           style={{ color: GREEN_LIGHT, fontSize: "19px", textDecoration: "none", gap: "2px", whiteSpace: "nowrap" }}
-          data-cms-key="membership_link"
         >
           <span className="group-hover:underline">{t('cta_join')}</span>
           <span aria-hidden="true">›</span>
-        </a>
+        </Link>
       </div>
 
       {isMobile ? (
@@ -425,7 +435,7 @@ export default function Member() {
           {/* Mobile — horizontal snap carousel */}
           <div
             ref={trackRef}
-            className="no-scrollbar"
+            className="no-scrollbar hscroll-track"
             style={{
               display: "flex",
               gap: "28px",
@@ -433,7 +443,7 @@ export default function Member() {
               scrollSnapType: "x mandatory",
               padding: "8px 24px",
               scrollPaddingLeft: "24px",
-              WebkitOverflowScrolling: "touch",
+              touchAction: "pan-y",
             }}
           >
             {cards.map((card, i) => renderCard(card, i, true))}
@@ -475,8 +485,8 @@ export default function Member() {
               ‹
             </motion.button>
 
-            {/* Dot indicators */}
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+            {/* Dot indicators — 8px visual dot inside a 44px-tall tap target */}
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
               {cards.map((card, i) => (
                 <button
                   key={card.key}
@@ -484,16 +494,27 @@ export default function Member() {
                   onClick={() => scrollToCard(i)}
                   aria-label={`前往第 ${i + 1} 張`}
                   style={{
-                    width: activeDot === i ? "24px" : "8px",
-                    height: "8px",
-                    borderRadius: "100px",
+                    width: activeDot === i ? "40px" : "24px",
+                    height: "44px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     border: "none",
-                    background: activeDot === i ? card.accent : "rgba(255,255,255,0.25)",
+                    background: "none",
                     cursor: "pointer",
-                    transition: "all 0.3s ease",
                     padding: 0,
                   }}
-                />
+                >
+                  <span
+                    style={{
+                      width: activeDot === i ? "24px" : "8px",
+                      height: "8px",
+                      borderRadius: "100px",
+                      background: activeDot === i ? card.accent : "rgba(255,255,255,0.25)",
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                </button>
               ))}
             </div>
 

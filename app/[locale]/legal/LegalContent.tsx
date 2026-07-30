@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations } from "next-intl";
-import { Check, X, AlertTriangle } from "lucide-react";
+import type { LegalDocId } from "@/content/legal";
+import type { LegalDocument } from "@/content/legal/types";
+import type { Locale } from "@/i18n/routing";
+import { highlightKeyPhrases } from "./legalKeyPhrases";
 
 const DARK = "#1D1D1F";
 const SUBTLE = "#86868B";
 const GREEN = "#22C55E";
-const DANGER = "#FF453A";
-const AMBER = "#F59E0B";
 const DIVIDER = "#E5E5E5";
 
 const FONT_FAMILY =
@@ -17,29 +18,52 @@ const FONT_FAMILY =
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-type TabId = "terms" | "privacy" | "refund" | "rules";
-const TABS: { id: TabId; key: string }[] = [
-  { id: "terms", key: "tab_terms" },
-  { id: "privacy", key: "tab_privacy" },
-  { id: "refund", key: "tab_refund" },
-  { id: "rules", key: "tab_rules" },
-];
-
-type Section = { title: string; body: string };
-type RefundRow = { case: string; result: string };
-type RefundTime = { method: string; time: string };
-
-// Numbered legal sections (terms, privacy) — shared renderer.
-function SectionList({ items, cmsPrefix }: { items: Section[]; cmsPrefix: string }) {
+// Each section's `body` is a single verbatim string with "小標籤：內容"-style
+// sub-clauses joined by "\n" (see content/legal/*.ts). Split on "\n" and
+// render each sub-clause as its own <p> (instead of one <p> with
+// whiteSpace:pre-line) purely so CSS margin can give each clause its own
+// visual block — the text itself is untouched, only how the same "\n"
+// breaks are turned into DOM elements changes.
+function BodyParagraphs({ body, locale }: { body: string; locale: Locale }) {
+  const lines = body.split("\n").filter((line) => line.length > 0);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
-      {items.map((s, i) => (
+    <>
+      {lines.map((line, i) => (
+        <p
+          key={i}
+          style={{
+            fontSize: "16px",
+            lineHeight: 1.65,
+            color: "#494951",
+            margin: i === lines.length - 1 ? 0 : "0 0 14px",
+          }}
+        >
+          {highlightKeyPhrases(line, locale)}
+        </p>
+      ))}
+    </>
+  );
+}
+
+// Numbered legal sections, rendered verbatim from the static content/legal/
+// document object — no CMS, no runtime fetch, no add/remove/reorder (the
+// content is fixed legal text, not an editable list).
+// Each section carries id="section-N" (1-based, matching the visible 01/02/…
+// numbering) so external pages (e.g. FAQ answers) can deep-link straight to a
+// clause via /legal?doc=terms#section-N. scrollMarginTop keeps the heading
+// clear of the sticky tab bar when the browser jumps to the hash.
+function SectionList({ sections, locale }: { sections: LegalDocument["sections"]; locale: Locale }) {
+  return (
+    <>
+      {sections.map((s, i) => (
         <motion.div
-          key={s.title}
+          key={`${i}-${s.title}`}
+          id={`section-${i + 1}`}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.5, ease: EASE, delay: Math.min(i * 0.04, 0.2) }}
+          transition={{ duration: 0.5, ease: EASE }}
+          style={{ marginBottom: 40, scrollMarginTop: 76 }}
         >
           <h3
             style={{
@@ -51,183 +75,67 @@ function SectionList({ items, cmsPrefix }: { items: Section[]; cmsPrefix: string
               color: DARK,
               margin: "0 0 10px",
             }}
-            data-cms-key={`${cmsPrefix}.${i}.title`}
           >
             <span style={{ color: GREEN, fontVariantNumeric: "tabular-nums" }}>
               {String(i + 1).padStart(2, "0")}
             </span>
             {s.title}
           </h3>
-          <p
-            style={{
-              fontSize: "16px",
-              lineHeight: 1.65,
-              color: "#494951",
-              margin: 0,
-              paddingLeft: "36px",
-            }}
-            data-cms-key={`${cmsPrefix}.${i}.content`}
-          >
-            {s.body}
-          </p>
+          <div style={{ paddingLeft: "36px" }}>
+            <BodyParagraphs body={s.body} locale={locale} />
+          </div>
         </motion.div>
       ))}
-    </div>
+    </>
   );
 }
 
-function RefundPanel() {
-  const t = useTranslations("legal");
-  const rows = t.raw("refund_rows") as RefundRow[];
-  const times = t.raw("refund_times") as RefundTime[];
+export default function LegalContent({
+  locale,
+  initialDoc,
+  lastUpdated,
+  pageTitle,
+  lastUpdatedLabel,
+  nav,
+  documents,
+}: {
+  locale: Locale;
+  initialDoc: LegalDocId;
+  lastUpdated: string;
+  pageTitle: string;
+  lastUpdatedLabel: string;
+  nav: Record<LegalDocId, string>;
+  documents: Record<LegalDocId, LegalDocument>;
+}) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [activeDoc, setActiveDoc] = useState<LegalDocId>(initialDoc);
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "48px" }}>
-      {/* Refund matrix — card list on mobile, table-like rows on desktop */}
-      <div style={{ border: `1px solid ${DIVIDER}`, borderRadius: "16px", overflow: "hidden" }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: "16px",
-            padding: "16px 20px",
-            background: "#F5F5F7",
-            fontSize: "13px",
-            fontWeight: 600,
-            color: SUBTLE,
-            textTransform: "uppercase",
-            letterSpacing: "0.04em",
-          }}
-        >
-          <span data-cms-key="legal.refund.head.case">{t("refund_table_case")}</span>
-          <span data-cms-key="legal.refund.head.result">{t("refund_table_result")}</span>
-        </div>
-        {rows.map((r, i) => {
-          const full = r.result.includes("100");
-          const none = r.result.includes("不") || /No refund|返金なし/.test(r.result);
-          const color = full ? GREEN : none ? DANGER : AMBER;
-          return (
-            <div
-              key={r.case}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr auto",
-                gap: "16px",
-                alignItems: "center",
-                padding: "18px 20px",
-                borderTop: `1px solid ${DIVIDER}`,
-                fontSize: "16px",
-                color: DARK,
-              }}
-            >
-              <span data-cms-key={`legal.refund.row.${i}.case`}>{r.case}</span>
-              <span style={{ fontWeight: 600, color }} data-cms-key={`legal.refund.row.${i}.result`}>
-                {r.result}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+  // lastUpdated arrives as an ISO date ("2026-07-14") from config; render as
+  // the Chinese date format used on this page ("2026年7月14日").
+  const [y, m, d] = lastUpdated.split("-").map(Number);
+  const formattedUpdated = y && m && d ? `${y}年${m}月${d}日` : lastUpdated;
 
-      {/* Processing times */}
-      <div>
-        <h3
-          style={{ fontSize: "20px", fontWeight: 700, color: DARK, margin: "0 0 16px" }}
-          data-cms-key="legal.refund.times.title"
-        >
-          {t("refund_times_title")}
-        </h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {times.map((tm, i) => (
-            <div
-              key={tm.method}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "16px",
-                fontSize: "16px",
-                color: "#494951",
-                padding: "8px 0",
-                borderBottom: i < times.length - 1 ? `1px solid ${DIVIDER}` : "none",
-              }}
-            >
-              <span data-cms-key={`legal.refund.time.${i}.method`}>{tm.method}</span>
-              <span style={{ fontWeight: 500, color: DARK }} data-cms-key={`legal.refund.time.${i}.time`}>
-                {tm.time}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+  const selectDoc = (docId: LegalDocId) => {
+    setActiveDoc(docId);
+    const url = docId === "terms" ? pathname : `${pathname}?doc=${docId}`;
+    router.replace(url, { scroll: false });
+  };
 
-function RulesPanel() {
-  const t = useTranslations("legal");
-  const allowed = t.raw("rules_allowed") as string[];
-  const prohibited = t.raw("rules_prohibited") as string[];
-  const notes = t.raw("rules_notes") as string[];
+  // Doc 1 — 場地使用守則及條款 — verbatim intro is prefixed with the source's
+  // own "【重要提示】" label; split it out so it can be styled as a heading
+  // without altering a single character of the sentence that follows.
+  const termsDoc = documents.terms;
+  const rawSubtitle = termsDoc.subtitle ?? "";
+  const newlineIdx = rawSubtitle.indexOf("\n");
+  const noticeLabel = newlineIdx > -1 ? rawSubtitle.slice(0, newlineIdx) : "";
+  const termsIntroBody = newlineIdx > -1 ? rawSubtitle.slice(newlineIdx + 1) : rawSubtitle;
 
-  const groups = [
-    { title: t("rules_allowed_title"), items: allowed, Icon: Check, color: GREEN, cms: "allowed" },
-    { title: t("rules_prohibited_title"), items: prohibited, Icon: X, color: DANGER, cms: "prohibited" },
-    { title: t("rules_notes_title"), items: notes, Icon: AlertTriangle, color: AMBER, cms: "notes" },
+  const tabs: { id: LegalDocId; label: string }[] = [
+    { id: "terms", label: nav.terms },
+    { id: "website_terms", label: nav.website_terms },
+    { id: "privacy", label: nav.privacy },
   ];
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
-      {groups.map((g) => (
-        <div key={g.cms}>
-          <h3
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              fontSize: "20px",
-              fontWeight: 700,
-              color: DARK,
-              margin: "0 0 16px",
-            }}
-            data-cms-key={`legal.rules.${g.cms}.title`}
-          >
-            <g.Icon size={22} color={g.color} strokeWidth={2.5} />
-            {g.title}
-          </h3>
-          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: "12px" }}>
-            {g.items.map((item, i) => (
-              <li
-                key={item}
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "12px",
-                  fontSize: "16px",
-                  lineHeight: 1.5,
-                  color: "#494951",
-                }}
-                data-cms-key={`legal.rules.${g.cms}.${i}`}
-              >
-                <span
-                  aria-hidden="true"
-                  style={{ marginTop: "9px", width: "6px", height: "6px", borderRadius: "50%", background: g.color, flexShrink: 0 }}
-                />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-export default function LegalContent({ initialTab, lastUpdated }: { initialTab: TabId; lastUpdated: string }) {
-  const t = useTranslations("legal");
-  const [tab, setTab] = useState<TabId>(initialTab);
-
-  const termsSections = t.raw("terms_sections") as Section[];
-  const privacySections = t.raw("privacy_sections") as Section[];
 
   return (
     <div data-nav-theme="dark" style={{ background: "#ffffff", fontFamily: FONT_FAMILY }}>
@@ -241,110 +149,140 @@ export default function LegalContent({ initialTab, lastUpdated }: { initialTab: 
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: EASE }}
-            style={{ fontSize: "clamp(40px, 8vw, 64px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
-            data-cms-key="legal.title"
+            style={{ fontSize: "clamp(32px, 6vw, 48px)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}
           >
-            {t("title")}
+            {pageTitle}
           </motion.h1>
-          <p
-            style={{ fontSize: "17px", color: "rgba(255,255,255,0.6)", margin: "16px 0 0", maxWidth: "560px" }}
-            data-cms-key="legal.subtitle"
-          >
-            {t("subtitle")}
-          </p>
         </div>
       </section>
 
-      {/* Sticky tab bar */}
-      <div
-        data-nav-theme="light"
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 30,
-          background: "rgba(255,255,255,0.85)",
-          backdropFilter: "blur(20px) saturate(180%)",
-          WebkitBackdropFilter: "blur(20px) saturate(180%)",
-          borderBottom: `1px solid ${DIVIDER}`,
-        }}
-      >
+      {/* Tab bar */}
+      <section style={{ background: "#ffffff", borderBottom: `1px solid ${DIVIDER}`, position: "sticky", top: 0, zIndex: 10 }}>
         <div
-          className="no-scrollbar"
           style={{
             maxWidth: "820px",
             margin: "0 auto",
             display: "flex",
-            gap: "4px",
-            padding: "0 16px",
+            gap: "8px",
+            padding: "0 24px",
             overflowX: "auto",
           }}
         >
-          {TABS.map((tabItem) => {
-            const active = tab === tabItem.id;
+          {tabs.map((tab) => {
+            const active = activeDoc === tab.id;
             return (
               <button
-                key={tabItem.id}
+                key={tab.id}
                 type="button"
-                onClick={() => setTab(tabItem.id)}
-                data-cms-key={`legal.${tabItem.key}`}
+                onClick={() => selectDoc(tab.id)}
                 style={{
-                  position: "relative",
-                  flexShrink: 0,
-                  padding: "16px 16px",
-                  fontSize: "15px",
-                  fontWeight: active ? 600 : 500,
-                  color: active ? DARK : SUBTLE,
-                  background: "none",
+                  appearance: "none",
+                  background: "transparent",
                   border: "none",
+                  borderBottom: active ? `2px solid ${GREEN}` : "2px solid transparent",
+                  padding: "16px 4px",
+                  marginRight: "20px",
+                  fontSize: "15px",
+                  fontWeight: active ? 700 : 500,
+                  color: active ? DARK : SUBTLE,
                   cursor: "pointer",
-                  fontFamily: FONT_FAMILY,
-                  minHeight: 44,
+                  whiteSpace: "nowrap",
+                  transition: "color 0.2s ease, border-color 0.2s ease",
                 }}
               >
-                {t(tabItem.key)}
-                {active && (
-                  <motion.span
-                    layoutId="legal-tab-underline"
-                    style={{
-                      position: "absolute",
-                      left: "16px",
-                      right: "16px",
-                      bottom: 0,
-                      height: "2px",
-                      background: GREEN,
-                      borderRadius: "2px",
-                    }}
-                  />
-                )}
+                {tab.label}
               </button>
             );
           })}
         </div>
-      </div>
+      </section>
 
       {/* Content */}
       <section style={{ padding: "clamp(48px, 8vw, 88px) 24px 96px" }}>
         <div style={{ maxWidth: "820px", margin: "0 auto" }}>
           <AnimatePresence mode="wait">
-            <motion.div
-              key={tab}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.3, ease: EASE }}
-            >
-              {tab === "terms" && <SectionList items={termsSections} cmsPrefix="legal.terms.section" />}
-              {tab === "privacy" && <SectionList items={privacySections} cmsPrefix="legal.privacy.section" />}
-              {tab === "refund" && <RefundPanel />}
-              {tab === "rules" && <RulesPanel />}
-            </motion.div>
+            {activeDoc === "terms" && (
+              <motion.div
+                key="terms"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.3, ease: EASE }}
+              >
+                <h2
+                  style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: DARK, margin: "0 0 24px" }}
+                >
+                  {termsDoc.title}
+                </h2>
+                {/* Verbatim intro — 【重要提示】 */}
+                <div
+                  style={{
+                    border: `1px solid ${DIVIDER}`,
+                    borderLeft: `3px solid ${GREEN}`,
+                    borderRadius: "12px",
+                    padding: "20px 24px",
+                    marginBottom: "56px",
+                  }}
+                >
+                  <div
+                    style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.04em", color: GREEN, marginBottom: "8px" }}
+                  >
+                    {noticeLabel}
+                  </div>
+                  <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: 0, whiteSpace: "pre-line" }}>
+                    {highlightKeyPhrases(termsIntroBody, locale)}
+                  </p>
+                </div>
+
+                <SectionList sections={termsDoc.sections} locale={locale} />
+              </motion.div>
+            )}
+
+            {activeDoc === "website_terms" && (
+              <motion.div
+                key="website_terms"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.3, ease: EASE }}
+              >
+                <h2
+                  style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: DARK, margin: "0 0 24px" }}
+                >
+                  {documents.website_terms.title}
+                </h2>
+                <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: "0 0 56px", whiteSpace: "pre-line" }}>
+                  {highlightKeyPhrases(documents.website_terms.intro ?? "", locale)}
+                </p>
+
+                <SectionList sections={documents.website_terms.sections} locale={locale} />
+              </motion.div>
+            )}
+
+            {activeDoc === "privacy" && (
+              <motion.div
+                key="privacy"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.3, ease: EASE }}
+              >
+                <h2
+                  style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: DARK, margin: "0 0 24px" }}
+                >
+                  {documents.privacy.title}
+                </h2>
+                <p style={{ fontSize: "16px", lineHeight: 1.7, color: "#494951", margin: "0 0 56px", whiteSpace: "pre-line" }}>
+                  {highlightKeyPhrases(documents.privacy.intro ?? "", locale)}
+                </p>
+
+                <SectionList sections={documents.privacy.sections} locale={locale} />
+              </motion.div>
+            )}
           </AnimatePresence>
 
-          <p
-            style={{ marginTop: "64px", fontSize: "14px", color: SUBTLE }}
-            data-cms-key="legal.last_updated"
-          >
-            {t("last_updated")}: {lastUpdated}
+          <p style={{ marginTop: "48px", fontSize: "14px", color: SUBTLE }}>
+            {lastUpdatedLabel}：{formattedUpdated}
           </p>
         </div>
       </section>

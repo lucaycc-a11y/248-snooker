@@ -3,20 +3,22 @@ type AppleLogoProps = {
   color?: string
 }
 
-// Official Apple glyph (viewBox 16×19). `size` sets the height; width scales to
-// preserve aspect ratio. `color` fills the path. Used on white login buttons.
+// Official Apple glyph (viewBox 24×24, from Simple Icons' brand-verified mark —
+// more accurate proportions than the previous hand-traced path). `size` sets
+// both width and height (square viewBox). `color` fills the path. Used on
+// white login buttons.
 export function AppleLogo({ size = 19, color = '#000000' }: AppleLogoProps) {
   return (
     <svg
-      width={(size * 16) / 19}
+      width={size}
       height={size}
-      viewBox="0 0 16 19"
+      viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       style={{ display: 'block', flexShrink: 0 }}
     >
       <path
-        d="M13.173 10.137c-.022-2.557 2.09-3.793 2.185-3.852-1.19-1.74-3.045-1.979-3.7-2.003-1.575-.158-3.074.924-3.872.924-.797 0-2.024-.9-3.33-.876C2.74 4.356 1.2 5.023.403 6.198-1.24 8.6.062 12.17 1.64 14.12c.786 1.127 1.722 2.393 2.953 2.347 1.186-.047 1.634-.764 3.069-.764s1.838.764 3.092.74c1.278-.022 2.083-1.15 2.863-2.28.906-1.307 1.278-2.575 1.3-2.64-.03-.013-2.52-1.024-2.544-4.386zM10.718 2.726C11.39 1.914 11.85.8 11.714-.36c-.946.038-2.099.633-2.78 1.427-.609.706-1.147 1.848-1.003 2.936 1.057.082 2.138-.536 2.787-1.277z"
+        d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
         fill={color}
       />
     </svg>

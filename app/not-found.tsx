@@ -1,4 +1,6 @@
 import { Snooker404Table } from './[locale]/Snooker404Table'
+import { Starfield } from './[locale]/Starfield'
+import { Logo } from '@/components/brand/Logo'
 
 export default function NotFound() {
   return (
@@ -6,16 +8,18 @@ export default function NotFound() {
       data-nav-theme="dark"
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black px-4 py-24 text-white sm:px-6"
     >
+      <Starfield />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(34,197,94,0.16),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.06),transparent_28%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.86))]" />
 
       <section className="relative z-10 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
         <div>
+          <Logo variant="full" theme="dark" size={39} />
           <p
             data-cms-key="404.brand"
-            className="mb-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"
+            className="mb-3 mt-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"
           >
-            248 Snooker
+            SPACE8
           </p>
           <h1
             data-cms-key="404.code"

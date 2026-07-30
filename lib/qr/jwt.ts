@@ -70,9 +70,9 @@ export function verifyQrToken(token: string): (QrPayload & { exp: number }) | nu
 // Unambiguous alphabet (no 0/O/1/I) for codes humans read aloud / type.
 const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 
-/** Luhn-style mod-100 check digits over the alphabet positions — catches typos
+/** Luhn-style mod-N check character over the alphabet positions — catches typos
  * when staff key a code in manually. Not cryptographic; the JWT is the real auth. */
-function checkDigits(s: string): string {
+function checkChar(s: string): string {
   let sum = 0
   for (let i = 0; i < s.length; i++) {
     let v = ALPHABET.indexOf(s[i])
@@ -80,19 +80,17 @@ function checkDigits(s: string): string {
     if (i % 2 === 0) v *= 2
     sum += v
   }
-  return String(sum % 100).padStart(2, '0')
+  return ALPHABET[sum % ALPHABET.length]
 }
 
 /**
- * Deterministic human-readable companion code: 248-XXXXXXXX-XXXX-CC
- * (8 chars, 4 chars, 2 check digits). Derived from the booking id so it's stable
- * and reproducible for staff/manual fallback at the door.
+ * Deterministic human-readable companion code: SPACE8-XXXXX-X
+ * (5 chars + 1 check char). Derived from the booking id so it's stable and
+ * reproducible — shown in the member/booking-history QR display and the
+ * booking-confirmation email as a manual fallback if the QR itself won't scan.
  */
 export function humanReadableCode(bookingId: string): string {
   const h = crypto.createHash('sha256').update(bookingId).digest()
-  const pick = (start: number, len: number) =>
-    Array.from({ length: len }, (_, i) => ALPHABET[h[start + i] % ALPHABET.length]).join('')
-  const p1 = pick(0, 8)
-  const p2 = pick(8, 4)
-  return `248-${p1}-${p2}-${checkDigits(p1 + p2)}`
+  const body = Array.from({ length: 5 }, (_, i) => ALPHABET[h[i] % ALPHABET.length]).join('')
+  return `SPACE8-${body}-${checkChar(body)}`
 }

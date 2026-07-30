@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Hero from "@/components/landing/Hero";
-import Gallery from "@/components/landing/Gallery";
+import GalleryScroll from "@/components/landing/GalleryScroll";
 import HowItWorks from "@/components/landing/HowItWorks";
-import Pricing from "@/components/landing/Pricing";
+import HomePricing from "@/components/landing/HomePricing";
+import { getConfig } from "@/lib/data/getConfig";
 import Member from "@/components/landing/Member";
-import FAQ from "@/components/landing/FAQ";
+import HomeFAQ from "@/components/landing/HomeFAQ";
+import Directions from "@/components/landing/Directions";
 import Footer from "@/components/layout/Footer";
-import WhatsAppButton from "@/components/shared/WhatsAppButton";
+import ContactButton from "@/components/shared/ContactButton";
+import { AmbientGlow } from "@/components/shared/AmbientGlow";
+import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
+import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 
 export async function generateMetadata({
   params,
@@ -19,40 +24,31 @@ export async function generateMetadata({
 
   const meta: Record<string, { title: string; description: string; keywords: string[]; ogTitle: string; ogDesc: string; canonical: string; ogLocale: string }> = {
     'zh-HK': {
-      title: '248 Snooker · 香港24小時自助桌球會所',
-      description: '香港首間24小時自助英式桌球預訂平台。即時確認，Apple Pay付款，QR碼入場。',
-      keywords: ['桌球', '斯諾克', '香港桌球', '24小時桌球', '自助桌球', '英式桌球'],
-      ogTitle: '248 Snooker',
-      ogDesc: '香港24小時自助桌球會所',
-      canonical: 'https://248.formhk.com',
+      title: 'SPACE8｜香港中八桌球室｜新蒲崗自助無煙獨立球室',
+      description: 'SPACE8 是香港新蒲崗自助無煙中八獨立球室，全預約制，網上預訂、QR碼自助入場。鄰近鑽石山及啟德港鐵站，九龍區中八愛好者主場。',
+      keywords: ['中八', '中式八球', '中式桌球', '香港中八', '新蒲崗桌球', '鑽石山桌球', '九龍桌球', '自助桌球', '無煙桌球室'],
+      ogTitle: 'SPACE8',
+      ogDesc: '香港中八桌球室 · 新蒲崗自助無煙獨立球室 · 全預約制',
+      canonical: 'https://space8.com.hk',
       ogLocale: 'zh_HK',
     },
     'zh-CN': {
-      title: '248 Snooker · 香港24小时自助台球会所',
-      description: '香港首家24小时自助英式台球预订平台。即时确认，Apple Pay付款，二维码入场。',
-      keywords: ['台球', '斯诺克', '香港台球', '24小时台球', '自助台球', '英式台球'],
-      ogTitle: '248 Snooker',
-      ogDesc: '香港24小时自助台球会所',
-      canonical: 'https://248.formhk.com/zh-CN',
+      title: 'SPACE8｜香港中式八球台球室｜新蒲岗自助无烟独立球室',
+      description: 'SPACE8 是香港新蒲岗自助无烟中式八球独立球室，全预约制，网上预订、QR码自助入场。邻近钻石山及启德港铁站，九龙区中式八球爱好者主场。',
+      keywords: ['中式八球', '中八', '中式台球', '香港中式八球', '新蒲岗台球', '钻石山台球', '九龙台球', '自助台球', '无烟台球室'],
+      ogTitle: 'SPACE8',
+      ogDesc: '香港中式八球台球室 · 新蒲岗自助无烟独立球室 · 全预约制',
+      canonical: 'https://space8.com.hk/zh-CN',
       ogLocale: 'zh_CN',
     },
     en: {
-      title: '248 Snooker · 24-Hour Snooker Club Hong Kong',
-      description: "Hong Kong's first 24-hour self-service snooker booking platform. Instant confirmation, Apple Pay, QR code entry.",
-      keywords: ['snooker', 'Hong Kong snooker', '24 hour snooker', 'self service snooker', 'billiards HK'],
-      ogTitle: '248 Snooker',
-      ogDesc: '24-Hour Snooker Club Hong Kong',
-      canonical: 'https://248.formhk.com/en',
+      title: 'SPACE8｜Hong Kong Chinese Eight-Ball Club｜Self-Service Private Rooms in San Po Kong',
+      description: 'SPACE8 is a self-service, smoke-free Chinese eight-ball club in San Po Kong, Hong Kong. Reservation-based, book online with QR code check-in. Near Diamond Hill and Kai Tak MTR stations.',
+      keywords: ['Chinese eight-ball', 'Chinese 8-ball pool', 'Chinese eight-ball Hong Kong', 'San Po Kong pool', 'Kowloon pool', 'self service pool', 'smoke-free pool room'],
+      ogTitle: 'SPACE8',
+      ogDesc: 'Hong Kong Chinese Eight-Ball Club · San Po Kong · Reservation-Based',
+      canonical: 'https://space8.com.hk/en',
       ogLocale: 'en_HK',
-    },
-    ja: {
-      title: '248 Snooker · 香港24時間スヌーカークラブ',
-      description: '香港初の24時間セルフサービス・スヌーカー予約プラットフォーム。即時確認、Apple Pay決済、QRコード入場。',
-      keywords: ['スヌーカー', '香港スヌーカー', '24時間スヌーカー', 'ビリヤード香港'],
-      ogTitle: '248 Snooker',
-      ogDesc: '香港24時間スヌーカークラブ',
-      canonical: 'https://248.formhk.com/ja',
-      ogLocale: 'ja_JP',
     },
   }
 
@@ -66,31 +62,31 @@ export async function generateMetadata({
       title: m.ogTitle,
       description: m.ogDesc,
       url: m.canonical,
-      siteName: '248 Snooker',
+      siteName: 'Space8',
       locale: m.ogLocale,
       type: 'website',
       images: [
         {
-          url: 'https://248.formhk.com/og-image.png',
+          url: 'https://space8.com.hk/og-image.png',
           width: 1200,
           height: 630,
-          alt: '248 Snooker Club Hong Kong',
+          alt: 'SPACE8 Club Hong Kong',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: '248 Snooker',
+      title: 'Space8',
       description: m.ogDesc,
-      images: ['https://248.formhk.com/og-image.png'],
+      images: ['https://space8.com.hk/og-image.png'],
     },
     alternates: {
       canonical: m.canonical,
       languages: {
-        'zh-HK': 'https://248.formhk.com',
-        'zh-CN': 'https://248.formhk.com/zh-CN',
-        en: 'https://248.formhk.com/en',
-        ja: 'https://248.formhk.com/ja',
+        'zh-HK': 'https://space8.com.hk',
+        'zh-CN': 'https://space8.com.hk/zh-CN',
+        en: 'https://space8.com.hk/en',
+        'x-default': 'https://space8.com.hk',
       },
     },
     robots: { index: true, follow: true },
@@ -105,13 +101,18 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`);
+  const config = await getConfig();
+
   return (
-    <main className="relative bg-black">
+    <main className="relative bg-black" style={{ isolation: "isolate" }}>
+      <script type="application/ld+json">{safeJsonLd(sportsClubJsonLd)}</script>
+      <AmbientGlow />
       <Nav />
       <Hero />
-      <Gallery />
+      <GalleryScroll />
       <HowItWorks />
-      <Pricing />
+      <HomePricing periods={config.periods} />
 
       {/* Learn More scroll target — zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />
@@ -119,13 +120,17 @@ export default async function Home({
       {/* Membership — last section before footer */}
       <Member />
 
-      {/* FAQ — above the footer */}
-      <FAQ />
+      {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
+          a "了解更多" link to the full /faq page. */}
+      <HomeFAQ ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" />
+
+      <Directions />
 
       <Footer />
 
-      {/* Floating WhatsApp CTA — mobile only */}
-      <WhatsAppButton />
+      {/* Floating contact CTA — mobile only. AI chat by default; becomes an
+          AI-edit entry point when an admin has edit-mode on. */}
+      <ContactButton />
     </main>
   );
 }

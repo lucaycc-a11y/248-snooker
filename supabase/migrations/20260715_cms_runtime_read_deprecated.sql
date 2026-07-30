@@ -1,0 +1,20 @@
+-- No-op migration — documentation only.
+--
+-- As of 2026-07-15, the app no longer reads cms_content / cms_list_items /
+-- cms_versions at runtime. All page copy (including the 3 legal documents)
+-- now ships as static next-intl message bundles (messages/{locale}.json) and
+-- static content/legal/*.ts files, bundled at build time. This was done to
+-- drop a request-time Supabase round-trip from every page render (SEO /
+-- static-rendering reasons) — see app/[locale]/layout.tsx and
+-- i18n/request.ts for the call sites that used to do this.
+--
+-- These 3 tables are INTENTIONALLY KEPT (not dropped) so a lightweight CMS
+-- can be reintroduced later without a data-migration project. The admin
+-- inline CMS editor UI (app/admin/cms/*) and its API routes
+-- (app/api/admin/cms/*, app/api/cms/*) were deleted in the same change,
+-- since there is no longer any runtime reader for them to publish into.
+--
+-- If/when the CMS is reintroduced, historical row data in these tables
+-- should still be intact and can be read again with a getCMS()-style
+-- accessor — just re-add the runtime fetch, don't recreate the schema.
+select 1;

@@ -8,8 +8,11 @@
 // returns the live DB values instead.
 
 export type PricingPeriod = {
-  id: 'afternoon' | 'evening' | 'latenight'
+  id: 'morning' | 'afternoon' | 'evening' | 'latenight'
   rate: number // HK$ per hour
+  /** Discounted per-hour rate when the contiguous block is 2h or longer.
+      Omitted = no multi-hour discount for this period. */
+  rateFrom2h?: number
   start: string // 'HH:MM'
   end: string // 'HH:MM'
   days: 'weekday' | 'weekend' | 'all'
@@ -46,15 +49,15 @@ export type SiteConfig = {
 }
 
 export const DEFAULT_PERIODS: PricingPeriod[] = [
-  { id: 'afternoon', rate: 60, start: '12:00', end: '18:00', days: 'weekday' },
-  { id: 'evening', rate: 80, start: '18:00', end: '24:00', days: 'all' },
-  { id: 'latenight', rate: 60, start: '00:00', end: '06:00', days: 'all' },
+  { id: 'morning', rate: 88, rateFrom2h: 78, start: '06:00', end: '12:00', days: 'all' },
+  { id: 'afternoon', rate: 98, rateFrom2h: 88, start: '12:00', end: '16:00', days: 'all' },
+  { id: 'evening', rate: 108, start: '16:00', end: '24:00', days: 'all' },
 ]
 
 export const DEFAULT_TIERS: Tier[] = [
   { id: 'amateur', minPts: 0, discount: 1.0, multiplier: 1 },
-  { id: 'century', minPts: 500, discount: 0.9, multiplier: 1.5 },
-  { id: 'maximum', minPts: 1500, discount: 0.8, multiplier: 2 },
+  { id: 'century', minPts: 800, discount: 1.0, multiplier: 1.5 },
+  { id: 'maximum', minPts: 6000, discount: 1.0, multiplier: 2 },
 ]
 
 export const DEFAULT_SERVICES: ServiceFees = {
@@ -67,10 +70,10 @@ export const DEFAULT_SERVICES: ServiceFees = {
 }
 
 export const DEFAULT_CONFIG: SiteConfig = {
-  pricePerHour: 60,
+  pricePerHour: 88,
   currency: 'HKD',
   maxHours: 6,
-  openHour: 0,
+  openHour: 6,
   closeHour: 24,
   periods: DEFAULT_PERIODS,
   tiers: DEFAULT_TIERS,

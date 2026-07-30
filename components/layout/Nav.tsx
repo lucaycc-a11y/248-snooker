@@ -15,16 +15,16 @@ import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui'
 import { AccountMenu } from '@/components/auth/AccountMenu'
-import { SignInPrompt } from '@/components/auth/SignInPrompt'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
   { href: '/', key: 'home' },
   { href: '/book', key: 'book' },
-  { href: '/pricing', key: 'pricing' },
+  { href: '/venue', key: 'venue' },
   { href: '/about', key: 'about' },
   { href: '/blog', key: 'blog' },
+  { href: '/membership', key: 'membership' },
 ] as const
 
 type NavTheme = 'dark' | 'light'
@@ -50,8 +50,18 @@ export default function Nav() {
   const [loginModalOpen, setLoginModalOpen] = useState(false)
   const [theme, setTheme] = useState<NavTheme>('dark')
   const [loggedIn, setLoggedIn] = useState(false)
+  // Gates the member CTA render: loggedIn defaults to false, so without this,
+  // an already-logged-in visitor would flash the logged-out "登入" state for
+  // one tick while getSession() is still in flight.
+  const [sessionResolved, setSessionResolved] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
+  // The mobile bar is always a dark translucent surface (see .nav-bar CSS
+  // below), so its logo artwork + icon colours must stay light regardless of
+  // what section is scrolled behind it. Desktop keeps the scroll-detected
+  // theme. Without this, a light section behind the bar flips linkColor to
+  // near-black and loads the black wordmark — both invisible on the dark bar.
+  const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const locale = useLocale()
@@ -68,7 +78,6 @@ export default function Nav() {
     'zh-HK': '繁',
     'zh-CN': '简',
     en: 'EN',
-    ja: 'JP',
   }
 
   const toggleLocale = () => {
@@ -83,12 +92,55 @@ export default function Nav() {
     supabase.auth.getSession().then(({ data }) => {
       setLoggedIn(!!data.session)
       setAvatarUrl(data.session?.user?.user_metadata?.avatar_url ?? null)
+      setSessionResolved(true)
     })
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setLoggedIn(!!session)
       setAvatarUrl(session?.user?.user_metadata?.avatar_url ?? null)
+      setSessionResolved(true)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // OAuth-return recovery: when Supabase can't honour the requested redirectTo
+  // (domain not in its allow-list) it falls back to its dashboard Site URL, so
+  // the user lands on the HOMEPAGE with ?code=... instead of /auth/callback —
+  // stranded mid-booking (the reported "login kicks me back to /" bug). The
+  // browser client auto-exchanges that code (PKCE detectSessionInUrl), so once
+  // a session exists we resume the journey the sign-in buttons stored in
+  // sessionStorage (authReturnUrl, e.g. /book) instead of leaving them here.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has('code')) return
+    let stored: string | null = null
+    try {
+      stored = sessionStorage.getItem('authReturnUrl')
+    } catch {}
+    if (!stored || !stored.startsWith('/') || stored.startsWith('//')) return
+    const dest = stored
+    const supabase = createClient()
+    let done = false
+    const resume = () => {
+      if (done) return
+      done = true
+      try {
+        sessionStorage.removeItem('authReturnUrl')
+      } catch {}
+      // Full navigation (not router.push): dest may be a non-localized root
+      // route (/book restores its own wizard state from sessionStorage).
+      window.location.replace(dest)
+    }
+    // The auto-exchange may already have completed before this effect ran.
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) resume()
+    })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) resume()
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -98,6 +150,14 @@ export default function Nav() {
     updateScrolled()
     window.addEventListener('scroll', updateScrolled, { passive: true })
     return () => window.removeEventListener('scroll', updateScrolled)
+  }, [])
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
   }, [])
 
   useEffect(() => {
@@ -139,7 +199,11 @@ export default function Nav() {
     }
   }, [pathname])
 
-  const linkColor = theme === 'dark' ? '#FFFFFF' : '#1A1A1A'
+  // On mobile the bar is a fixed dark translucent surface, so force the dark
+  // (light-artwork, white-icon) treatment there no matter what section is
+  // scrolled behind it. Desktop keeps the live scroll-detected theme.
+  const effectiveTheme: NavTheme = isMobile ? 'dark' : theme
+  const linkColor = effectiveTheme === 'dark' ? '#FFFFFF' : '#1A1A1A'
   const memberLabel = loggedIn ? t('member') : t('login')
 
   function MemberIcon({ size = 20 }: { size?: number }) {
@@ -163,6 +227,11 @@ export default function Nav() {
   }
 
   function DesktopMemberCta() {
+    // Render nothing until the session check resolves — otherwise a logged-in
+    // visitor briefly sees the logged-out "登入" button before flipping to the
+    // avatar, and vice versa.
+    if (!sessionResolved) return null
+
     if (loggedIn) {
       return (
         <div
@@ -224,8 +293,13 @@ export default function Nav() {
 
   return (
     <>
-      <SignInPrompt onOpenLogin={() => setLoginModalOpen(true)} hidden={menuOpen} />
       <nav
+        // Mobile: the CSS below turns this into a solid, full-width top bar
+        // (content would otherwise scroll straight under the bare floating
+        // logo and read as overlapping text). The surface attr drives the
+        // bar's solid colour; while the menu is open it's forced dark so the
+        // bar blends into the menu overlay.
+        data-nav-surface={menuOpen ? 'dark' : theme}
         style={{
           position: 'fixed',
           top: 34,
@@ -254,12 +328,19 @@ export default function Nav() {
             transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            pointerEvents: 'auto',
+            pointerEvents: menuOpen ? 'none' : 'auto',
+            // The nav (z-50) sits above the mobile menu overlay (z-40) so the
+            // close button stays reachable — but the logo shouldn't float over
+            // the menu content, so it fades out while the menu is open.
+            opacity: menuOpen ? 0 : 1,
+            transition: 'opacity 0.2s ease',
           }}
           className="nav-logo"
           aria-label={t('home')}
         >
-          <Logo variant="full" theme={theme} size={52} />
+          {/* Single logo only — the full "SPACE8" wordmark. The circular badge
+              variant is reserved for app icons / social avatars, never the nav. */}
+          <Logo variant="full" theme={effectiveTheme} size={38} />
         </Link>
 
         <div
@@ -303,35 +384,6 @@ export default function Nav() {
             }}
           />
 
-          <PlainLink
-            href="/member"
-            data-cms-key="nav.link.member"
-            style={{
-              fontSize: 14,
-              fontWeight: 500,
-              color: pathname === '/member' ? tokens.colors.brand : linkColor,
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-              transition: PILL_TRANSITION,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-            }}
-          >
-            <User size={14} strokeWidth={1.8} />
-            {navText('member', 'Member')}
-          </PlainLink>
-
-          <span
-            style={{
-              width: 1,
-              height: 14,
-              background: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-              margin: '0 2px',
-              flexShrink: 0,
-            }}
-          />
-
           <button
             onClick={toggleLocale}
             aria-label="Switch language"
@@ -361,11 +413,13 @@ export default function Nav() {
             transform: 'translateY(-50%)',
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
+            gap: 12,
             pointerEvents: 'auto',
           }}
         >
-          {loggedIn ? (
+          {/* Same session-resolved gate as DesktopMemberCta — avoids a logged-out
+              flash for already-authenticated visitors. */}
+          {!sessionResolved ? null : loggedIn ? (
             <AccountMenu avatarUrl={avatarUrl} variant="mobile" linkColor={linkColor} />
           ) : (
             <button
@@ -407,11 +461,11 @@ export default function Nav() {
             onClick={() => setMenuOpen(!menuOpen)}
             className="nav-hamburger"
             style={{
-              ...pillStyle(theme),
+              ...pillStyle(effectiveTheme),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 50,
+              width: 46,
               height: 46,
               cursor: 'pointer',
               color: linkColor,
@@ -441,6 +495,42 @@ export default function Nav() {
       </nav>
 
       <style jsx global>{`
+        /* ── Mobile: solid full-width top bar ──
+           The floating transparent nav let page content scroll straight
+           under the bare logo (logo + section headings visually merged).
+           Below 768px the nav becomes an opaque bar pinned to the very top;
+           height 64px + safe-area. Sections that need clearance get it from
+           .nav-bar's own solid surface, not from per-page padding. */
+        @media (max-width: 767px) {
+          .nav-bar {
+            top: 0 !important;
+            min-height: 64px;
+            padding: 10px 14px !important;
+            padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important;
+            transform: none !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            /* Frosted glass: translucent dark surface so nav is clearly legible
+               above any background content while still feeling "embedded" in it.
+               backdrop-filter blurs whatever is scrolled behind the bar. */
+            background: rgba(0, 0, 0, 0.72) !important;
+            backdrop-filter: blur(20px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            /* Solid bar must swallow taps on its own surface — with the
+               desktop 'none' value, content hidden under the bar would
+               still receive touches. */
+            pointer-events: auto !important;
+          }
+          /* Mobile wordmark: keep the full "SPACE8" lockup but scale it down
+             to ~34px tall (≈106px wide). Logo.tsx's 120px MIN_WIDTH clamp is a
+             digital-artwork floor; the visual nav treatment is allowed to sit
+             just under it on small screens for Apple-navbar proportions while
+             the wordmark stays fully legible (not the cramped ~112px it was). */
+          .nav-logo img {
+            width: auto !important;
+            height: 30px !important;
+            min-width: 0 !important;
+          }
+        }
         @media (min-width: 768px) {
           .nav-bar {
             top: 20px !important;
@@ -458,6 +548,18 @@ export default function Nav() {
           .nav-logo {
             left: 32px !important;
           }
+          /* Brand guideline v1.0 hard rule: wordmark must never render
+             narrower than 120px on digital. This used to hard-set
+             height:36px !important, which at the wordmark's 3.12 aspect
+             ratio renders ~112px wide — 8px under the floor. Logo.tsx
+             already sizes to size={39} (≈122px wide) via its own
+             MIN_WIDTH clamp; min-width here is a belt-and-braces floor
+             so no future CSS override can shrink it back under 120px
+             regardless of what height ends up applied. */
+          .nav-logo img {
+            width: auto !important;
+            min-width: 120px !important;
+          }
         }
       `}</style>
 
@@ -472,9 +574,11 @@ export default function Nav() {
               position: 'fixed',
               inset: 0,
               zIndex: 40,
-              background: 'rgba(0,0,0,0.92)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              // Near-opaque: the menu must fully cover the page underneath
+              // (logo/map bleeding through read as overlapping UI on mobile).
+              background: 'rgba(0,0,0,0.97)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
@@ -550,7 +654,7 @@ export default function Nav() {
                   padding: 8,
                 }}
               >
-                {locale === 'zh-HK' ? '繁中' : locale === 'zh-CN' ? '简中' : locale === 'en' ? 'English' : '日本語'}
+                {locale === 'zh-HK' ? '繁中' : locale === 'zh-CN' ? '简中' : 'English'}
               </button>
             </div>
 
