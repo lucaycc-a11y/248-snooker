@@ -36,6 +36,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.408.0",
     "matter-js": "^0.20.0",
+    "motion": "^12.43.0",
     "next": "^14.2.33",
     "next-intl": "^4.13.0",
     "qrcode": "^1.5.4",

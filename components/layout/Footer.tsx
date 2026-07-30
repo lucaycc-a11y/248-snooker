@@ -360,6 +360,16 @@ export default function Footer() {
             >
               {t('footer.privacy')}
             </Link>
+            <Link
+              href="/credits"
+              style={{
+                fontSize: '13px',
+                color: tokens.colors.textFaint,
+                textDecoration: 'none',
+              }}
+            >
+              {t('footer.credits')}
+            </Link>
           </div>
         </div>
       </div>
