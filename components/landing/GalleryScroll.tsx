@@ -117,6 +117,44 @@ export default function GalleryScroll() {
   }, [isMobile]);
 
   // ── Desktop: scroll-driven reveal (matches reference HTML exactly) ──
+  //
+  // ── 3-STATE BEHAVIOR (REGRESSION-SAFETY LOCK) ──
+  // Every step button (.jr-step) is always rendered in the DOM and always
+  // visible (opacity: 1). The three visual states are:
+  //
+  //   1. DEFAULT / UNVISITED (dimmed — all steps start here)
+  //      - .jr-step itself: opacity 1, no is-shown/is-active/is-done
+  //      - Marker circle: grey outline, grey number inside
+  //      - Title (.jr-h):  rgba(245,242,236,0.28) — dimmed but legible
+  //      - Desc (.jr-p):   rgba(245,242,236,0.28) — dimmed but legible
+  //      → CSS: .jr-step (default) + .jr-h / .jr-p defaults
+  //
+  //   2. ACTIVE (the step currently in view)
+  //      - Marker: solid green fill (#1a9d5c), white checkmark, slight scale
+  //      - Title:  #ffffff full opacity, translateX(3px)
+  //      - Desc:   rgba(245,242,236,0.60) brightened, translateX(3px)
+  //      → CSS: .jr-step.is-active + children
+  //
+  //   3. DONE (scrolled past — stays bright permanently, never reverts)
+  //      - Marker: green outline, checkmark icon (number hidden)
+  //      - Title:  stays at full opacity (is-done doesn't touch .jr-h/.jr-p,
+  //                so they inherit from is-shown or is-active)
+  //      - Desc:   same as title
+  //      → CSS: .jr-step.is-done + children
+  //
+  // CRITICAL REGRESSION GUARD:
+  //   - Do NOT add opacity:0 / display:none / visibility:hidden to .jr-step
+  //     or its text children in the default state. All 4 steps must remain
+  //     legible at all times — dimmed via rgba(…,0.28) text colour, NOT
+  //     hidden. The "is-shown" class only controls the entrance translateY
+  //     (16px→0) animation; opacity is always 1 on steps.
+  //   - Do NOT remove the "is-done" class or merge it with "is-active" —
+  //     they are distinct: done stays bright, only the current is "active"
+  //     (green fill + scale). Reverting to a single-state model would
+  //     break the "never fade back to dimmed" invariant.
+  //   - is-done does NOT touch .jr-h / .jr-p colour — those inherit from
+  //     is-shown (bright). If you add colour overrides to is-done, verify
+  //     they do NOT fade previously-reached steps back to dimmed.
   useEffect(() => {
     if (isMobile) return;
     const stage = stageRef.current;
@@ -474,6 +512,46 @@ export default function GalleryScroll() {
       )}
 
       <style>{`
+        /* ─── 3-STATE BEHAVIOR (REGRESSION-SAFETY LOCK) ───
+         *
+         * Every .jr-step is always rendered in the DOM and always visible
+         * (opacity: 1, no display:none, no visibility:hidden). The three
+         * visual states are:
+         *
+         *   DEFAULT / UNVISITED (dimmed — all steps start here)
+         *     - .jr-step itself: opacity 1, no is-shown/is-active/is-done
+         *     - Marker circle: grey outline, grey number inside
+         *     - Title (.jr-h):  rgba(245,242,236,0.28) — dimmed but legible
+         *     - Desc (.jr-p):   rgba(245,242,236,0.28) — dimmed but legible
+         *     → CSS: .jr-step (default) + .jr-h / .jr-p defaults
+         *
+         *   ACTIVE (the step currently in view)
+         *     - Marker: solid green fill (#1a9d5c), white checkmark, slight scale
+         *     - Title:  #ffffff full opacity, translateX(3px)
+         *     - Desc:   rgba(245,242,236,0.60) brightened, translateX(3px)
+         *     → CSS: .jr-step.is-active + children
+         *
+         *   DONE (scrolled past — stays bright permanently, never reverts)
+         *     - Marker: green outline, checkmark icon (number hidden)
+         *     - Title:  stays at full opacity (is-done doesn't touch .jr-h/.jr-p,
+         *               so they inherit from is-shown or is-active)
+         *     - Desc:   same as title
+         *     → CSS: .jr-step.is-done + children
+         *
+         * CRITICAL REGRESSION GUARD:
+         *   - Do NOT add opacity:0 / display:none / visibility:hidden to .jr-step
+         *     or its text children in the default state. All 4 steps must remain
+         *     legible at all times — dimmed via rgba(…,0.28) text colour, NOT
+         *     hidden. The "is-shown" class only controls the entrance translateY
+         *     (16px→0) animation; opacity is always 1 on steps.
+         *   - Do NOT remove the "is-done" class or merge it with "is-active" —
+         *     they are distinct: done stays bright, only the current is "active"
+         *     (green fill + scale). Reverting to a single-state model would
+         *     break the "never fade back to dimmed" invariant.
+         *   - is-done does NOT touch .jr-h / .jr-p colour — those inherit from
+         *     is-shown (bright). If you add colour overrides to is-done, verify
+         *     they do NOT fade previously-reached steps back to dimmed.
+         */
         .jr-stage {
           position: relative;
         }
@@ -517,7 +595,7 @@ export default function GalleryScroll() {
           text-align: left;
           background: none;
           border: 0;
-          opacity: 0;
+          opacity: 1;
           transform: translateY(16px);
           transition: opacity .6s cubic-bezier(.2,.7,.3,1),
                       transform .6s cubic-bezier(.2,.7,.3,1);
@@ -527,7 +605,6 @@ export default function GalleryScroll() {
           color: inherit;
         }
         .jr-step.is-shown {
-          opacity: 1;
           transform: none;
         }
         .jr-marker {
