@@ -3,8 +3,10 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import {
   DEFAULT_PERIODS,
   DEFAULT_TIERS,
+  pricingRatesToPeriods,
   resolveTier,
   type PricingPeriod,
+  type PricingRates,
   type Tier,
 } from '@/lib/data/pricing'
 
@@ -14,18 +16,18 @@ import {
 
 const TABLE_NUMBERS = [1, 2] as const
 
-/** Load live pricing periods from the `config` table; fall back to bundled defaults. */
+/** Load live pricing periods from the `config` table (`pricing_rates` key); fall back to bundled defaults. */
 export async function loadPeriods(): Promise<PricingPeriod[]> {
   const supabase = getPublicSupabase()
   if (!supabase) return DEFAULT_PERIODS
   const { data, error } = await supabase
     .from('config')
     .select('value')
-    .eq('key', 'pricing')
+    .eq('key', 'pricing_rates')
     .single()
-  const periods = (data?.value as { periods?: PricingPeriod[] } | null)?.periods
-  if (error || !periods?.length) return DEFAULT_PERIODS
-  return periods
+  const rates = data?.value as PricingRates | null
+  if (error || !rates || typeof rates !== 'object' || Array.isArray(rates)) return DEFAULT_PERIODS
+  return pricingRatesToPeriods(rates)
 }
 
 /** Resolve a member's tier from their points balance. Guests → Amateur (base tier). */

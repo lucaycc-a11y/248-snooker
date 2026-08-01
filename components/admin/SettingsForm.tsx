@@ -10,20 +10,12 @@ import { tokens } from '@/app/styles/tokens'
 import type { PricingPeriod, ServiceFees, Tier } from '@/lib/data/pricing'
 
 type SiteValue = { currency: string; maxHours: number; openHour: number; closeHour: number }
-type PricingValue = { periods: PricingPeriod[]; services: ServiceFees }
+/** Shape of the `pricing_rates` config key — the single source of truth. */
+type PricingRatesValue = Record<string, { base: number; discount: number; timeRange: string }>
 type BookingRulesValue = { refundCutoffHours: number }
-type ConfigKey = 'site' | 'pricing' | 'tiers' | 'booking_rules'
+type ConfigKey = 'site' | 'pricing_rates' | 'tiers' | 'booking_rules'
 type DiffRow = { label: string; before: string; after: string }
 type ToastState = { type: 'success' | 'error'; message: string }
-
-const SERVICE_LABELS: Record<keyof ServiceFees, string> = {
-  locker_single: 'Locker (single use)',
-  locker_monthly: 'Locker (monthly)',
-  cue_pro_per_hour: 'Pro cue (per hour)',
-  overtime_per_15min: 'Overtime (per 15 min)',
-  drinks_min: 'Drinks (min)',
-  drinks_max: 'Drinks (max)',
-}
 
 function sectionTitleStyle(): React.CSSProperties {
   return { fontSize: 18, fontWeight: 700, color: tokens.colors.text, marginBottom: tokens.spacing.md }
@@ -151,73 +143,46 @@ function SiteSection({ initial, onSave }: { initial: SiteValue; onSave: (v: Site
   )
 }
 
-function PricingSection({ initial, onSave }: { initial: PricingValue; onSave: (v: PricingValue) => Promise<boolean> }) {
+function PricingSection({ initial, onSave }: { initial: PricingRatesValue; onSave: (v: PricingRatesValue) => Promise<boolean> }) {
   const [value, setValue] = useState(initial)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const dirty = JSON.stringify(value) !== JSON.stringify(initial)
 
-  function setPeriod(id: PricingPeriod['id'], patch: Partial<PricingPeriod>) {
-    setValue((v) => ({ ...v, periods: v.periods.map((p) => (p.id === id ? { ...p, ...patch } : p)) }))
-  }
-  function setService(key: keyof ServiceFees, num: number) {
-    setValue((v) => ({ ...v, services: { ...v.services, [key]: num } }))
+  function setField(id: string, field: 'base' | 'discount', num: number) {
+    setValue((v) => ({
+      ...v,
+      [id]: { ...v[id], [field]: num },
+    }))
   }
 
   const rows: DiffRow[] = []
-  value.periods.forEach((p) => {
-    const before = initial.periods.find((ip) => ip.id === p.id)
-    if (!before) return
-    if (p.rate !== before.rate) rows.push({ label: `${p.id} rate`, before: `${before.rate}`, after: `${p.rate}` })
-    if (p.rateFrom2h !== before.rateFrom2h) rows.push({ label: `${p.id} rate (2h+)`, before: `${before.rateFrom2h ?? '—'}`, after: `${p.rateFrom2h ?? '—'}` })
-    if (p.start !== before.start) rows.push({ label: `${p.id} start`, before: before.start, after: p.start })
-    if (p.end !== before.end) rows.push({ label: `${p.id} end`, before: before.end, after: p.end })
-  })
-  SERVICE_KEYS_FOR_DIFF.forEach((key) => {
-    if (value.services[key] !== initial.services[key]) {
-      rows.push({ label: SERVICE_LABELS[key], before: `${initial.services[key]}`, after: `${value.services[key]}` })
-    }
-  })
+  for (const id of ['morning', 'afternoon', 'evening']) {
+    const before = initial[id]
+    const after = value[id]
+    if (!before || !after) continue
+    if (after.base !== before.base) rows.push({ label: `${id} base`, before: `${before.base}`, after: `${after.base}` })
+    if (after.discount !== before.discount) rows.push({ label: `${id} discount (2h+)`, before: `${before.discount}`, after: `${after.discount}` })
+  }
 
   return (
     <>
-      <SectionShell title="Pricing" dirty={dirty} onRequestSave={() => setConfirmOpen(true)}>
-        {value.periods.map((p) => (
-          <div key={p.id} style={{ marginBottom: tokens.spacing.base }}>
-            <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: tokens.spacing.xs, textTransform: 'capitalize' }}>
-              {p.id} ({p.days})
+      <SectionShell title="Pricing (pricing_rates)" dirty={dirty} onRequestSave={() => setConfirmOpen(true)}>
+        {['morning', 'afternoon', 'evening'].map((id) => {
+          const p = value[id]
+          if (!p) return null
+          return (
+            <div key={id} style={{ marginBottom: tokens.spacing.base }}>
+              <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: tokens.spacing.xs, textTransform: 'capitalize' }}>
+                {id} ({p.timeRange})
+              </div>
+              <div style={fieldRowStyle()}>
+                <Input label="Base rate (HK$/hr)" type="number" min={0} inputMode="numeric" value={p.base} onChange={(e) => setField(id, 'base', Number(e.target.value) || 0)} />
+                <Input label="Discount 2h+ (HK$/hr)" type="number" min={0} inputMode="numeric" value={p.discount} onChange={(e) => setField(id, 'discount', Number(e.target.value) || 0)} />
+              </div>
             </div>
-            <div style={fieldRowStyle()}>
-              <Input label="Rate (HK$/hr)" type="number" min={0} inputMode="numeric" value={p.rate} onChange={(e) => setPeriod(p.id, { rate: Number(e.target.value) || 0 })} />
-              <Input
-                label="Rate 2h+ (blank = none)"
-                type="number"
-                min={0}
-                inputMode="numeric"
-                value={p.rateFrom2h ?? ''}
-                onChange={(e) => setPeriod(p.id, { rateFrom2h: e.target.value === '' ? undefined : Number(e.target.value) || 0 })}
-              />
-              <Input label="Start" value={p.start} onChange={(e) => setPeriod(p.id, { start: e.target.value })} />
-              <Input label="End" value={p.end} onChange={(e) => setPeriod(p.id, { end: e.target.value })} />
-            </div>
-          </div>
-        ))}
-        <div style={{ fontSize: 13, color: tokens.colors.textMuted, margin: `${tokens.spacing.base} 0 ${tokens.spacing.xs}` }}>
-          Service fees
-        </div>
-        <div style={fieldRowStyle()}>
-          {SERVICE_KEYS_FOR_DIFF.map((key) => (
-            <Input
-              key={key}
-              label={SERVICE_LABELS[key]}
-              type="number"
-              min={0}
-              inputMode="numeric"
-              value={value.services[key]}
-              onChange={(e) => setService(key, Number(e.target.value) || 0)}
-            />
-          ))}
-        </div>
+          )
+        })}
       </SectionShell>
       <ConfirmModal
         open={confirmOpen}
@@ -235,15 +200,6 @@ function PricingSection({ initial, onSave }: { initial: PricingValue; onSave: (v
     </>
   )
 }
-
-const SERVICE_KEYS_FOR_DIFF: (keyof ServiceFees)[] = [
-  'locker_single',
-  'locker_monthly',
-  'cue_pro_per_hour',
-  'overtime_per_15min',
-  'drinks_min',
-  'drinks_max',
-]
 
 function TiersSection({ initial, onSave }: { initial: Tier[]; onSave: (v: Tier[]) => Promise<boolean> }) {
   const [value, setValue] = useState(initial)
@@ -347,12 +303,12 @@ function BookingRulesSection({
 
 export default function SettingsForm({
   site,
-  pricing,
+  pricingRates,
   tiers,
   bookingRules,
 }: {
   site: SiteValue
-  pricing: PricingValue
+  pricingRates: PricingRatesValue
   tiers: Tier[]
   bookingRules: BookingRulesValue
 }) {
@@ -387,7 +343,7 @@ export default function SettingsForm({
   return (
     <div>
       <SiteSection initial={site} onSave={(v) => saveConfig('site', v)} />
-      <PricingSection initial={pricing} onSave={(v) => saveConfig('pricing', v)} />
+      <PricingSection initial={pricingRates} onSave={(v) => saveConfig('pricing_rates', v)} />
       <TiersSection initial={tiers} onSave={(v) => saveConfig('tiers', v)} />
       <BookingRulesSection initial={bookingRules} onSave={(v) => saveConfig('booking_rules', v)} />
 

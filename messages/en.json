@@ -848,7 +848,10 @@
     "seo_title": "Self-Service Chinese Pool Club in San Po Kong, Hong Kong",
     "seo_blurb": "SPACE8 is a self-service, smoke-free Chinese pool club with private rooms in San Po Kong, Hong Kong — open daily 06:00–24:00 with online booking and QR-code self check-in, no waiting around. Minutes from Diamond Hill and Kai Tak MTR stations, it is the ideal home ground for pool players across Kowloon.",
     "credits": "Credits",
-    "credits_closing": "Made with care in Hong Kong. Every detail, every pixel."
+    "credits_closing": "Made with care in Hong Kong. Every detail, every pixel.",
+    "trust_ssl": "256-bit SSL Encryption — All connections encrypted",
+    "trust_stripe": "Powered by Stripe — Card details handled by Stripe, PCI DSS Level 1 compliant. We never store your card number",
+    "trust_privacy": "Data Protected — Personal data handled in accordance with Hong Kong's Personal Data (Privacy) Ordinance"
   },
   "profile": {
     "add_phone_title": "Add Phone Number",

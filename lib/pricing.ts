@@ -3,7 +3,8 @@
 // charged to Stripe is always re-derived here at PaymentIntent creation time.
 // Never trust a price that arrived from the browser.
 //
-// Rates come from the `config` table ('pricing' key), with DEFAULT_PERIODS as the
+// Rates come from the `config` table ('pricing_rates' key), converted to
+// PricingPeriod[] via pricingRatesToPeriods(), with DEFAULT_PERIODS as the
 // offline fallback (see lib/data/pricing.ts). Period is resolved per-hour so a
 // booking spanning, e.g., 17:00–19:00 is billed partly at the afternoon rate and
 // partly at the evening rate.

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import type { PricingPeriod, ServiceFees, SiteConfig, Tier } from '@/lib/data/pricing'
+import type { SiteConfig, Tier } from '@/lib/data/pricing'
 
 // Admin-only config writer. GET is intentionally omitted — the settings page
 // reads current values directly via getConfig()/getConfigValue() as a Server
@@ -9,12 +9,12 @@ import type { PricingPeriod, ServiceFees, SiteConfig, Tier } from '@/lib/data/pr
 // admin (checked again here, independent of app/admin/layout.tsx, since API
 // routes are reachable without rendering the page).
 
-type ConfigKey = 'site' | 'pricing' | 'tiers' | 'booking_rules'
+type ConfigKey = 'site' | 'pricing_rates' | 'tiers' | 'booking_rules'
 
-const CONFIG_KEYS: ConfigKey[] = ['site', 'pricing', 'tiers', 'booking_rules']
+const CONFIG_KEYS: ConfigKey[] = ['site', 'pricing_rates', 'tiers', 'booking_rules']
 
 type SiteValue = Pick<SiteConfig, 'currency' | 'maxHours' | 'openHour' | 'closeHour'>
-type PricingValue = { periods: PricingPeriod[]; services: ServiceFees; currency?: string; maxHours?: number }
+type PricingRatesValue = Record<string, { base: number; discount: number; timeRange: string }>
 type BookingRulesValue = { refundCutoffHours: number }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -23,10 +23,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
-}
-
-function isTimeString(value: unknown): value is string {
-  return typeof value === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(value)
 }
 
 function validateSite(value: unknown): SiteValue | null {
@@ -39,60 +35,21 @@ function validateSite(value: unknown): SiteValue | null {
   return { currency, maxHours, openHour, closeHour }
 }
 
-const PERIOD_IDS: PricingPeriod['id'][] = ['morning', 'afternoon', 'evening', 'latenight']
-const PERIOD_DAYS: PricingPeriod['days'][] = ['weekday', 'weekend', 'all']
-const SERVICE_KEYS: (keyof ServiceFees)[] = [
-  'locker_single',
-  'locker_monthly',
-  'cue_pro_per_hour',
-  'overtime_per_15min',
-  'drinks_min',
-  'drinks_max',
-]
-
-function validatePeriod(value: unknown): PricingPeriod | null {
-  if (!isRecord(value)) return null
-  const { id, rate, rateFrom2h, start, end, days } = value
-  if (typeof id !== 'string' || !PERIOD_IDS.includes(id as PricingPeriod['id'])) return null
-  if (!isFiniteNumber(rate) || rate < 0) return null
-  if (rateFrom2h !== undefined && (!isFiniteNumber(rateFrom2h) || rateFrom2h < 0)) return null
-  if (!isTimeString(start) || !isTimeString(end)) return null
-  if (typeof days !== 'string' || !PERIOD_DAYS.includes(days as PricingPeriod['days'])) return null
-  const period: PricingPeriod = {
-    id: id as PricingPeriod['id'],
-    rate,
-    start,
-    end,
-    days: days as PricingPeriod['days'],
+function validatePricingRates(value: unknown): PricingRatesValue | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null
+  const obj = value as Record<string, unknown>
+  const validated: PricingRatesValue = {}
+  const periodIds = ['morning', 'afternoon', 'evening']
+  for (const id of periodIds) {
+    const p = obj[id]
+    if (typeof p !== 'object' || p === null) return null
+    const period = p as Record<string, unknown>
+    if (typeof period.base !== 'number' || !Number.isFinite(period.base) || period.base < 0) return null
+    if (typeof period.discount !== 'number' || !Number.isFinite(period.discount) || period.discount < 0) return null
+    if (typeof period.timeRange !== 'string') return null
+    validated[id] = { base: period.base, discount: period.discount, timeRange: period.timeRange }
   }
-  if (rateFrom2h !== undefined) period.rateFrom2h = rateFrom2h as number
-  return period
-}
-
-function validatePricing(value: unknown): PricingValue | null {
-  if (!isRecord(value)) return null
-  const { periods, services } = value
-  // Any non-empty subset of the known period ids is valid (the live rate card
-  // covers morning/afternoon/evening; latenight is retired but still accepted).
-  if (!Array.isArray(periods) || periods.length === 0 || periods.length > PERIOD_IDS.length) return null
-  const validatedPeriods: PricingPeriod[] = []
-  const seenIds = new Set<string>()
-  for (const p of periods) {
-    const period = validatePeriod(p)
-    if (!period || seenIds.has(period.id)) return null
-    seenIds.add(period.id)
-    validatedPeriods.push(period)
-  }
-
-  if (!isRecord(services)) return null
-  const validatedServices = {} as ServiceFees
-  for (const key of SERVICE_KEYS) {
-    const v = services[key]
-    if (!isFiniteNumber(v) || v < 0) return null
-    validatedServices[key] = v
-  }
-
-  return { periods: validatedPeriods, services: validatedServices }
+  return validated
 }
 
 const TIER_IDS: Tier['id'][] = ['amateur', 'century', 'maximum']
@@ -132,8 +89,8 @@ function validateByKey(key: ConfigKey, value: unknown): unknown | null {
   switch (key) {
     case 'site':
       return validateSite(value)
-    case 'pricing':
-      return validatePricing(value)
+    case 'pricing_rates':
+      return validatePricingRates(value)
     case 'tiers':
       return validateTiers(value)
     case 'booking_rules':

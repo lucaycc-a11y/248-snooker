@@ -841,7 +841,10 @@
     "seo_title": "香港新蒲崗自助中式桌球室",
     "seo_blurb": "SPACE8 是香港新蒲崗自助無煙中式桌球獨立球室，每日 06:00 至 24:00 營業，網上預訂、QR 碼自助入場，無需等候。鄰近鑽石山及啟德港鐵站，是九龍區桌球愛好者的理想主場。",
     "credits": "製作團隊",
-    "credits_closing": "於香港用心製作。每個細節，每個像素。"
+    "credits_closing": "於香港用心製作。每個細節，每個像素。",
+    "trust_ssl": "256-bit SSL 加密 — 全站連線加密",
+    "trust_stripe": "Stripe 安全付款 — 卡號由 Stripe 處理，PCI DSS Level 1 合規，本站唔會儲存你嘅卡號",
+    "trust_privacy": "資料受保護 — 個人資料按香港《個人資料（私隱）條例》處理"
   },
   "profile": {
     "add_phone_title": "加入電話號碼",

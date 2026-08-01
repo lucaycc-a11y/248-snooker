@@ -93,7 +93,7 @@ export async function getPricing() {
   const { data, error } = await supabase
     .from('config')
     .select('value')
-    .eq('key', 'pricing')
+    .eq('key', 'pricing_rates')
     .maybeSingle()
 
   if (error) {
@@ -154,7 +154,7 @@ export async function updatePricing(rules) {
       value: rules,
       updated_at: new Date().toISOString(),
     })
-    .eq('key', 'pricing')
+    .eq('key', 'pricing_rates')
 
   if (error) throw error
 }

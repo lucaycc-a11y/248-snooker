@@ -18,6 +18,28 @@ export type PricingPeriod = {
   days: 'weekday' | 'weekend' | 'all'
 }
 
+/** Shape of the `pricing_rates` config key — the single source of truth for
+ * per-period rates (base = 1h rate, discount = 2h+ rate). */
+export type PricingRates = Record<string, { base: number; discount: number; timeRange: string }>
+
+/** Convert a `pricing_rates` value to the `PricingPeriod[]` array the rest of
+ * the codebase uses. */
+export function pricingRatesToPeriods(rates: PricingRates): PricingPeriod[] {
+  return Object.entries(rates).map(([id, r]) => {
+    const [start, end] = r.timeRange.split('-')
+    const period: PricingPeriod = {
+      id: id as PricingPeriod['id'],
+      rate: r.base,
+      start,
+      end,
+      days: 'all',
+    }
+    // discount is the 2h+ multi-hour rate
+    if (r.discount !== undefined) period.rateFrom2h = r.discount
+    return period
+  })
+}
+
 export type Tier = {
   id: 'amateur' | 'century' | 'maximum'
   minPts: number

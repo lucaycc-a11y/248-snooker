@@ -841,7 +841,10 @@
     "seo_title": "香港新蒲岗自助中式台球室",
     "seo_blurb": "SPACE8 是香港新蒲岗自助无烟中式台球独立球室，每日 06:00 至 24:00 营业，网上预订、二维码自助入场，无需等候。邻近钻石山及启德港铁站，是九龙区台球爱好者的理想主场。",
     "credits": "制作团队",
-    "credits_closing": "于香港用心制作。每个细节，每个像素。"
+    "credits_closing": "于香港用心制作。每个细节，每个像素。",
+    "trust_ssl": "256-bit SSL 加密 — 全站连接加密",
+    "trust_stripe": "Stripe 安全付款 — 卡号由 Stripe 处理，PCI DSS Level 1 合规，本站不会储存您的卡号",
+    "trust_privacy": "资料受保护 — 个人资料按香港《个人资料（隐私）条例》处理"
   },
   "profile": {
     "add_phone_title": "加入电话号码",

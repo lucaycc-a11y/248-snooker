@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { Link } from '@/i18n/navigation'
-import { Instagram, MessageCircle, MapPin, Clock } from 'lucide-react'
+import { Instagram, MessageCircle, MapPin, Clock, Lock, CreditCard, ShieldCheck } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
 import { useTranslations } from 'next-intl'
 import { Logo } from '@/components/brand'
@@ -308,6 +308,72 @@ export default function Footer() {
             padding-bottom: clamp(72px, 16vw, 200px);
           }
         `}</style>
+
+        {/* ── Trust badges ──────────────────────────────────────── */}
+        <div
+          style={{
+            marginTop: '32px',
+            paddingTop: '24px',
+            borderTop: `1px solid ${tokens.colors.border}`,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: '20px 32px',
+            }}
+          >
+            {/* 256-bit SSL Encryption */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '13px',
+                color: tokens.colors.textFaint,
+              }}
+            >
+              <Lock size={14} strokeWidth={1.5} style={{ flexShrink: 0, color: tokens.colors.textMuted }} />
+              <span data-cms-key="footer.trust_ssl">
+                {t('footer.trust_ssl')}
+              </span>
+            </div>
+
+            {/* Stripe Secure Payment */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '13px',
+                color: tokens.colors.textFaint,
+              }}
+            >
+              <CreditCard size={14} strokeWidth={1.5} style={{ flexShrink: 0, color: tokens.colors.textMuted }} />
+              <span data-cms-key="footer.trust_stripe">
+                {t('footer.trust_stripe')}
+              </span>
+            </div>
+
+            {/* Data Protection */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '13px',
+                color: tokens.colors.textFaint,
+              }}
+            >
+              <ShieldCheck size={14} strokeWidth={1.5} style={{ flexShrink: 0, color: tokens.colors.textMuted }} />
+              <span data-cms-key="footer.trust_privacy">
+                {t('footer.trust_privacy')}
+              </span>
+            </div>
+          </div>
+        </div>
 
         {/* Bottom row — simplified copyright + legal links */}
         <div

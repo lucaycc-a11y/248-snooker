@@ -1,5 +1,6 @@
 import { getConfig, getConfigValue } from '@/lib/data/getConfig'
 import SettingsForm from '@/components/admin/SettingsForm'
+import { pricingRatesToPeriods, type PricingRates } from '@/lib/data/pricing'
 
 // Auth already enforced by app/admin/layout.tsx (Phase 0). This page just
 // reads current config values server-side and hands them to the client form.
@@ -7,6 +8,9 @@ import SettingsForm from '@/components/admin/SettingsForm'
 export default async function AdminSettingsPage() {
   const config = await getConfig()
   const bookingRules = await getConfigValue('booking_rules', { refundCutoffHours: 1 })
+
+  // Read pricing_rates directly for the admin form (the simple shape).
+  const pricingRates = await getConfigValue<PricingRates>('pricing_rates', {})
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '32px 16px' }}>
@@ -18,7 +22,7 @@ export default async function AdminSettingsPage() {
           openHour: config.openHour,
           closeHour: config.closeHour,
         }}
-        pricing={{ periods: config.periods, services: config.services }}
+        pricingRates={pricingRates}
         tiers={config.tiers}
         bookingRules={bookingRules}
       />

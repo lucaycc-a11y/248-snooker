@@ -4,7 +4,9 @@ import {
   DEFAULT_PERIODS,
   DEFAULT_SERVICES,
   DEFAULT_TIERS,
+  pricingRatesToPeriods,
   type PricingPeriod,
+  type PricingRates,
   type ServiceFees,
   type SiteConfig,
   type Tier,
@@ -30,7 +32,7 @@ export async function getConfigValue<T>(key: string, fallback: T): Promise<T> {
   }
 }
 
-// Read site config from the Supabase `config` table (keys: site, pricing, tiers).
+// Read site config from the Supabase `config` table (keys: site, pricing_rates, tiers).
 // Falls back to bundled DEFAULT_CONFIG when Supabase is unreachable or the table
 // is empty, so pages always render. Prices are NEVER hardcoded in components —
 // they flow from here.
@@ -42,7 +44,7 @@ export async function getConfig(): Promise<SiteConfig> {
     const { data, error } = await supabase
       .from('config')
       .select('key, value')
-      .in('key', ['site', 'pricing', 'tiers'])
+      .in('key', ['site', 'pricing_rates', 'tiers'])
 
     if (error || !data) return DEFAULT_CONFIG
 
@@ -52,11 +54,14 @@ export async function getConfig(): Promise<SiteConfig> {
     >
 
     const site = (rows.site ?? {}) as Record<string, unknown>
-    const pricing = (rows.pricing ?? {}) as Record<string, unknown>
+    const pricingRates = (rows.pricing_rates ?? {}) as Record<string, unknown>
 
-    const periods = (Array.isArray(pricing.periods) && pricing.periods.length
-      ? pricing.periods
-      : DEFAULT_PERIODS) as PricingPeriod[]
+    // Convert pricing_rates (morning/afternoon/evening → {base, discount, timeRange})
+    // into the PricingPeriod[] array the rest of the codebase expects.
+    const periods: PricingPeriod[] =
+      typeof pricingRates === 'object' && !Array.isArray(pricingRates) && Object.keys(pricingRates).length
+        ? pricingRatesToPeriods(pricingRates as PricingRates)
+        : DEFAULT_PERIODS
 
     const tiers = (Array.isArray(rows.tiers) && rows.tiers.length
       ? rows.tiers
@@ -64,7 +69,7 @@ export async function getConfig(): Promise<SiteConfig> {
 
     const services = {
       ...DEFAULT_SERVICES,
-      ...((pricing.services as Partial<ServiceFees>) ?? {}),
+      ...((pricingRates.services as Partial<ServiceFees>) ?? {}),
     } as ServiceFees
 
     // The "base" hourly price used by simple callers = cheapest period rate.
@@ -75,9 +80,9 @@ export async function getConfig(): Promise<SiteConfig> {
 
     return {
       pricePerHour,
-      currency: (site.currency as string) ?? (pricing.currency as string) ?? DEFAULT_CONFIG.currency,
+      currency: (site.currency as string) ?? DEFAULT_CONFIG.currency,
       maxHours:
-        (site.maxHours as number) ?? (pricing.maxHours as number) ?? DEFAULT_CONFIG.maxHours,
+        (site.maxHours as number) ?? (pricingRates.maxHours as number) ?? DEFAULT_CONFIG.maxHours,
       openHour: (site.openHour as number) ?? DEFAULT_CONFIG.openHour,
       closeHour: (site.closeHour as number) ?? DEFAULT_CONFIG.closeHour,
       periods,

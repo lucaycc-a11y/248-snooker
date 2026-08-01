@@ -18,7 +18,7 @@ import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
 import { quoteBlockTotal, quoteBlockDetail } from "@/lib/pricing"
-import { DEFAULT_PERIODS, type PricingPeriod } from "@/lib/data/pricing"
+import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter, Link as LocaleLink } from "@/i18n/navigation"
@@ -2345,8 +2345,9 @@ export default function BookPage() {
   }, [selectedSlotsByDate])
 
   // Live pricing periods (afternoon/evening/latenight) — read straight from the
-  // public `config` table (RLS allows anon SELECT). Falls back to DEFAULT_PERIODS
-  // until this resolves or if it fails, same fallback contract as getConfig().
+  // public `config` table (`pricing_rates` key; RLS allows anon SELECT). Falls
+  // back to DEFAULT_PERIODS until this resolves or if it fails, same fallback
+  // contract as getConfig().
   const [periods, setPeriods] = useState<PricingPeriod[]>(DEFAULT_PERIODS)
   useEffect(() => {
     let cancelled = false
@@ -2355,10 +2356,12 @@ export default function BookPage() {
       const { data, error } = await supabase
         .from("config")
         .select("value")
-        .eq("key", "pricing")
+        .eq("key", "pricing_rates")
         .single()
-      const fetched = (data?.value as { periods?: PricingPeriod[] } | null)?.periods
-      if (!cancelled && !error && fetched?.length) setPeriods(fetched)
+      const rates = data?.value as Record<string, { base: number; discount: number; timeRange: string }> | null
+      if (!cancelled && !error && rates && typeof rates === 'object' && !Array.isArray(rates)) {
+        setPeriods(pricingRatesToPeriods(rates))
+      }
     })()
     return () => {
       cancelled = true
