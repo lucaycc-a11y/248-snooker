@@ -29,16 +29,16 @@ const CalendarClockIcon = (
     <path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5" />
     <path d="M16 2v4M8 2v4M3 10h18" />
     <circle cx="16" cy="16" r="6" />
-    <path d="M16 14v2l1.5 1" />
+    <path className="pi-calendar-hand" d="M16 14v2l1.5 1" />
   </svg>
 );
 
 // lucide QrCode
 const QrCodeIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <rect x="3" y="3" width="5" height="5" rx="1" />
-    <rect x="16" y="3" width="5" height="5" rx="1" />
-    <rect x="3" y="16" width="5" height="5" rx="1" />
+    <rect className="pi-qr-shimmer" x="3" y="3" width="5" height="5" rx="1" />
+    <rect className="pi-qr-shimmer" x="16" y="3" width="5" height="5" rx="1" />
+    <rect className="pi-qr-shimmer" x="3" y="16" width="5" height="5" rx="1" />
     <path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1" />
   </svg>
 );
@@ -46,8 +46,8 @@ const QrCodeIcon = (
 // lucide Trophy
 const TrophyIcon = (
   <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+    <path className="pi-trophy" d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+    <path className="pi-trophy" d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
     <path d="M4 22h16" />
     <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
     <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
@@ -205,7 +205,7 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
             <a
               href={data.href}
               className="group inline-flex items-center"
-              style={{ color: GREEN, fontSize: "17px", textDecoration: "none", gap: "2px" }}
+              style={{ color: GREEN, fontSize: "17px", textDecoration: "none", gap: "2px", minHeight: 44 }}
             >
               <span className="group-hover:underline">了解更多</span>
               <span aria-hidden="true">›</span>
@@ -348,12 +348,11 @@ export default function HowItWorks() {
     <section
       data-nav-theme="light"
       style={{
-        background: "#F5F5F7",
+        background: "rgba(245,245,247,0.92)",
         color: DARK,
         padding: isMobile ? "88px 0" : "140px 0",
         fontFamily: FONT_FAMILY,
       }}
-      data-cms-key="how_it_works_section"
     >
       {/* Header row */}
       <div
@@ -366,7 +365,7 @@ export default function HowItWorks() {
           justifyContent: "space-between",
           gap: "16px",
           flexWrap: "wrap",
-          marginBottom: isMobile ? "40px" : "56px",
+          marginBottom: isMobile ? "24px" : "56px",
         }}
       >
         <div>
@@ -382,7 +381,6 @@ export default function HowItWorks() {
               color: DARK,
               margin: "0 0 12px",
             }}
-            data-cms-key="how_it_works_title"
           >
             {t('title')}。
           </motion.h2>
@@ -393,8 +391,7 @@ export default function HowItWorks() {
             transition={{ duration: 0.6, ease: EASE, delay: 0.05 }}
             href="/about"
             className="group inline-flex items-center"
-            style={{ color: GREEN, fontSize: "19px", textDecoration: "none", gap: "6px" }}
-            data-cms-key="how_it_works_link"
+            style={{ color: GREEN, fontSize: "19px", textDecoration: "none", gap: "6px", minHeight: 44 }}
           >
             <span
               aria-hidden="true"
@@ -412,19 +409,20 @@ export default function HowItWorks() {
         </div>
       </div>
 
-      {/* Cards — desktop: equal-width row; mobile: snap scroll */}
+      {/* Cards — desktop: equal-width row. Mobile: compact vertical stack
+          (icon-left, text-right row) so all 3 steps fit on one screen
+          without horizontal swiping or vertical scrolling. */}
       <div
         ref={trackRef}
-        className="no-scrollbar"
+        className={isMobile ? undefined : "no-scrollbar hscroll-track"}
         style={{
           maxWidth: "1100px",
           margin: "0 auto",
           padding: "0 24px",
           display: "flex",
-          gap: "24px",
-          overflowX: isMobile ? "auto" : "visible",
-          scrollSnapType: isMobile ? "x mandatory" : undefined,
-          WebkitOverflowScrolling: "touch",
+          flexDirection: isMobile ? "column" : "row",
+          gap: isMobile ? "12px" : "24px",
+          overflowX: isMobile ? "visible" : "visible",
           alignItems: "stretch",
         }}
       >
@@ -434,34 +432,42 @@ export default function HowItWorks() {
             ref={(el) => {
               cardRefs.current[i] = el;
             }}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: isMobile ? 12 : 24, scale: isMobile ? 0.97 : 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
             viewport={VIEWPORT}
-            transition={{ duration: 0.5, ease: EASE, delay: 0.08 * i }}
+            transition={{ duration: isMobile ? 0.35 : 0.5, ease: [0.34, 1.56, 0.64, 1], delay: 0.06 * i }}
             style={{
               position: "relative",
               flex: isMobile ? "0 0 auto" : "1 1 0",
-              minWidth: isMobile ? "80vw" : 0,
-              scrollSnapAlign: isMobile ? "start" : undefined,
               background: "white",
               border: "1px solid #E5E5E5",
-              borderRadius: "18px",
-              padding: isMobile ? "28px" : "32px",
-              minHeight: "240px",
+              borderRadius: isMobile ? "14px" : "18px",
+              padding: isMobile ? "16px" : "32px",
               display: "flex",
-              flexDirection: "column",
+              flexDirection: isMobile ? "row" : "column",
+              alignItems: isMobile ? "center" : "stretch",
+              gap: isMobile ? "14px" : 0,
             }}
-            data-cms-key={step.key}
           >
-            <div style={{ width: "28px", height: "28px", color: step.accent, marginBottom: "20px" }}>
+            <div
+              style={{
+                width: isMobile ? "36px" : "28px",
+                height: isMobile ? "36px" : "28px",
+                color: step.accent,
+                marginBottom: isMobile ? 0 : "20px",
+                flexShrink: 0,
+              }}
+            >
               {step.icon}
             </div>
-            <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: "0 0 12px" }}>
-              {step.title}
-            </h3>
-            <p style={{ fontSize: bodySize, lineHeight: 1.6, color: DARK, margin: 0 }}>
-              {highlight(step.body, step.highlights, step.accent)}
-            </p>
+            <div style={{ flex: 1, minWidth: 0, paddingRight: isMobile ? "48px" : 0 }}>
+              <h3 style={{ fontSize: titleSize, fontWeight: 700, letterSpacing: "-0.01em", color: DARK, margin: isMobile ? "0 0 4px" : "0 0 12px" }}>
+                {step.title}
+              </h3>
+              <p style={{ fontSize: bodySize, lineHeight: 1.5, color: DARK, margin: 0 }}>
+                {highlight(step.body, step.highlights, step.accent)}
+              </p>
+            </div>
 
             {/* + button — solid black, white glyph */}
             <motion.button
@@ -479,10 +485,9 @@ export default function HowItWorks() {
               transition={SPRING}
               style={{
                 position: "absolute",
-                bottom: "16px",
-                right: "16px",
-                width: "44px",
-                height: "44px",
+                ...(isMobile
+                  ? { top: "50%", right: "16px", transform: "translateY(-50%)", width: "36px", height: "36px" }
+                  : { bottom: "16px", right: "16px", width: "44px", height: "44px" }),
                 borderRadius: "50%",
                 border: "none",
                 background: DARK,
@@ -509,40 +514,6 @@ export default function HowItWorks() {
             </motion.button>
           </motion.div>
         ))}
-      </div>
-
-      {/* Mobile controls — arrows flank dots, centred below cards */}
-      <div
-        className="flex md:hidden"
-        style={{
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "16px",
-          marginTop: "44px",
-        }}
-      >
-        <ArrowButton dir={-1} onClick={() => nudge(-1)} className="flex" />
-        <div style={{ display: "flex", gap: "8px" }}>
-          {steps.map((step, i) => (
-            <button
-              key={step.key}
-              type="button"
-              onClick={() => scrollToCard(i)}
-              aria-label={`前往第 ${i + 1} 張`}
-              style={{
-                width: activeDot === i ? "24px" : "8px",
-                height: "8px",
-                borderRadius: "100px",
-                border: "none",
-                background: activeDot === i ? step.accent : "rgba(0,0,0,0.18)",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                padding: 0,
-              }}
-            />
-          ))}
-        </div>
-        <ArrowButton dir={1} onClick={() => nudge(1)} className="flex" />
       </div>
 
       <Modal data={modal} onClose={() => setModal(null)} />

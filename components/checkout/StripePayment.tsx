@@ -13,6 +13,12 @@ import { getDeclineMessage, getWhatsAppSupportUrl } from "@/lib/stripe/decline-c
 
 const stripePromise = getStripeClient()
 
+// Internal sentinel: the lock effect throws this exact string when the slot was
+// lost to a concurrent booker (409 + reason 'unavailable'), so the render can
+// swap in the clear "someone just took this" copy instead of the generic
+// lock-failure detail. Not user-facing text — matched by reference, never shown.
+const SLOT_TAKEN = "__slot_taken__"
+
 // Match the booking page's black + brand-green + pill design language.
 // PaymentElement renders official, licensed method icons + native Apple/Google
 // Pay buttons, so no brand assets to source ourselves. `rules` targets the
@@ -57,7 +63,6 @@ const STRIPE_LOCALES: Record<string, StripeElementLocale> = {
   "zh-HK": "zh-HK",
   "zh-CN": "zh",
   en: "en",
-  ja: "ja",
 }
 
 type Labels = {
@@ -66,13 +71,14 @@ type Labels = {
   errorLabel: string
   loadingLabel: string
   lockHoldLabel: string
+  /** Shown when the slot lock is lost to a concurrent booker (409/unavailable
+   * from find_or_lock_slot) — a clear "someone just took this, pick another"
+   * message, distinct from the generic "couldn't start payment" errorLabel. */
+  slotTakenLabel: string
   /** Generic fallback shown under the Payment Element when Stripe returns no
    * message of its own (declines/validation almost always include one, but
    * some edge cases don't) — must be CMS/i18n text, never a bare English string. */
   paymentFailedLabel: string
-  /** Shown if confirmPayment() hasn't resolved after 15s, instead of an
-   * infinite spinner (e.g. a hung network request). */
-  timeoutLabel: string
   /** WhatsApp support call-to-action for suspected double-charge scenarios */
   whatsappSupportLabel: string
   retryPaymentLabel: string
@@ -88,21 +94,43 @@ type BillingDetails = {
   phone: string
 }
 
+export type BookingBlock = {
+  date: string // 'YYYY-MM-DD'
+  startHour: number
+  duration: number
+  tableNumber: number
+}
+
 type Props = Labels & {
   date: string // 'YYYY-MM-DD'
   startHour: number
   duration: number
   tableNumber: number
+  /** Non-contiguous multi-slot order (Task 3). When set with >1 entry, the whole
+   * group is locked atomically and paid with one PaymentIntent. Omitted/1-entry
+   * orders use the single-slot path unchanged. Includes the primary block. */
+  blocks?: BookingBlock[]
   total: number
   /** Active next-intl locale — drives the Payment Element's own copy (Stripe's
    * "Pay", card-field labels, decline messages, etc.), not just our labels. */
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
   /** Path Stripe returns to after a redirect method (Alipay/WeChat/3DS). */
   returnPath?: string
   billingDetails?: BillingDetails
+  /** Called when the slot lock is lost to a concurrent booker, or on any other
+   * unrecoverable lock/intent failure — sends the user back to slot selection
+   * with stale availability invalidated, instead of leaving them on a dead-end
+   * error screen with no way forward except the browser back button. */
+  onBackToSlots?: () => void
+  backToSlotsLabel: string
+  /** External gate for the pay button (e.g. the terms-agreement checkbox on
+   * the payment screen). Purely disables submission — no Stripe logic here. */
+  payDisabled?: boolean
+  /** Fired when the user clicks the pay button while payDisabled is true —
+   * lets the parent explain WHY it's disabled (e.g. flash the terms checkbox)
+   * instead of a silently dead button. */
+  onDisabledPayClick?: () => void
 }
-
-const CONFIRM_TIMEOUT_MS = 15_000
 
 function PayForm({
   bookingId,
@@ -110,7 +138,6 @@ function PayForm({
   payLabel,
   processingLabel,
   paymentFailedLabel,
-  timeoutLabel,
   whatsappSupportLabel,
   retryPaymentLabel,
   billingDetails,
@@ -118,20 +145,23 @@ function PayForm({
   date,
   startHour,
   total,
+  payDisabled,
+  onDisabledPayClick,
 }: {
   bookingId: string
   returnPath: string
   payLabel: string
   processingLabel: string
   paymentFailedLabel: string
-  timeoutLabel: string
   whatsappSupportLabel: string
   retryPaymentLabel: string
   billingDetails?: BillingDetails
-  locale: 'zh-HK' | 'zh-CN' | 'en' | 'ja'
+  locale: 'zh-HK' | 'zh-CN' | 'en'
   date: string
   startHour: number
   total: number
+  payDisabled?: boolean
+  onDisabledPayClick?: () => void
 }) {
   const stripe = useStripe()
   const elements = useElements()
@@ -141,53 +171,64 @@ function PayForm({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    // Gated by the parent (terms checkbox unticked): don't silently no-op —
+    // tell the parent so it can point the user at the checkbox.
+    if (payDisabled) {
+      onDisabledPayClick?.()
+      return
+    }
     if (!stripe || !elements) return
     setSubmitting(true)
     setErr(null)
-    const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}`
+    // Keyed off ?bookingId&redirect_status so the parent page's poll-for-
+    // 'confirmed' effect (app/[locale]/book/page.tsx) recognizes this as a
+    // completed payment return — omitting redirect_status here silently
+    // skipped that effect and left a stale sessionStorage `pendingBooking`
+    // entry to force the screen back to the login step (Screen2) instead of
+    // confirmation, even though the booking was already paid and confirmed.
+    const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}&redirect_status=succeeded`
 
-    // redirect: 'if_required' means Stripe only navigates away when the
-    // method actually needs it (Alipay/WeChat/wallets/3DS) — a plain card
-    // with no extra verification resolves right here instead of a full-page
-    // redirect round-trip. A 15s watchdog guards against confirmPayment()
-    // hanging (e.g. a stalled network request) so the button never spins
-    // forever with no feedback.
-    let timedOut = false
-    const timeout = new Promise<"timeout">((resolve) =>
-      setTimeout(() => {
-        timedOut = true
-        resolve("timeout")
-      }, CONFIRM_TIMEOUT_MS),
-    )
-    const confirm = stripe.confirmPayment({
+    // We opt the Payment Element OUT of collecting billing fields (fields.
+    // billingDetails.* = 'never' below). Stripe's contract: EVERY field set to
+    // 'never' on the Element MUST be supplied back here in confirmParams.
+    // payment_method_data.billing_details — otherwise confirmPayment() throws a
+    // synchronous IntegrationError, the promise never resolves, and the button
+    // hangs on "處理中" forever. This object must mirror the `fields` config EXACTLY.
+    //
+    // address.postalCode + address.country are UNCONDITIONALLY 'never', so we
+    // ALWAYS supply the address. Stripe requires BOTH keys be present in
+    // confirmParams when set to 'never', even if the field value is optional for
+    // this region — an empty string satisfies the contract when we don't collect it.
+    const prefilledBilling: {
+      name?: string
+      email?: string
+      phone?: string
+      address: { country: string; postal_code: string }
+    } = {
+      address: { country: "HK", postal_code: "" },
+    }
+    if (billingDetails?.name) prefilledBilling.name = billingDetails.name
+    if (billingDetails?.email) prefilledBilling.email = billingDetails.email
+    if (billingDetails?.phone) prefilledBilling.phone = billingDetails.phone
+
+    // redirect: 'if_required' means Stripe only navigates away when the method
+    // actually needs it (Alipay/WeChat/wallets). For 3DS on card, Stripe.js opens
+    // the challenge modal in-page and confirmPayment() stays pending until the
+    // user completes it — we must NOT race it against a fixed timer, or a
+    // legitimately in-progress 3DS challenge gets killed and the payment hangs at
+    // 'requires_action'. Stripe.js manages the challenge lifecycle and rejects on
+    // its own (network/card errors surface via `error` below).
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: { return_url: returnUrl },
+      confirmParams: {
+        return_url: returnUrl,
+        // Always sent: prefilledBilling always carries at least address.country
+        // (unconditionally 'never' on the Element), plus name/email/phone when known.
+        payment_method_data: { billing_details: prefilledBilling },
+      },
       redirect: "if_required",
     })
-    const result = await Promise.race([confirm, timeout])
 
-    if (result === "timeout") {
-      console.error("[payment] confirmPayment_timeout", {
-        bookingId,
-        timeoutMs: CONFIRM_TIMEOUT_MS,
-        timestamp: new Date().toISOString(),
-      })
-      setErr(timeoutLabel)
-      setSubmitting(false)
-      return
-    }
-    // confirmPayment() resolved after the watchdog already fired — the
-    // timeout message is already showing; let it be rather than overwrite
-    // with a stale success/error from the slow call.
-    if (timedOut) {
-      console.warn("[payment] confirmPayment_resolved_after_timeout", {
-        bookingId,
-        status: result.paymentIntent?.status,
-      })
-      return
-    }
-
-    const { error, paymentIntent } = result
     if (error) {
       // error.message is already localized by Stripe (Elements' `locale`
       // option, set below) — the fallback only fires on the rare error with
@@ -267,10 +308,10 @@ function PayForm({
         <div style={{ marginTop: 12 }}>
           <p style={{ fontSize: 13, color: "#f87171", margin: 0 }}>{err}</p>
           {showWhatsApp && (
-            <div style={{ marginTop: 16, padding: "12px 16px", backgroundColor: "#0a0a0a", borderRadius: 12, border: "1px solid #262626" }}>
-              <p style={{ fontSize: 13, color: "#a3a3a3", margin: "0 0 10px" }}>
-                {whatsappSupportLabel}
-              </p>
+            /* Plain-text support line (no card/button chrome) — the WhatsApp
+               contact is an inline text link, per the copy spec. */
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", margin: "10px 0 0", lineHeight: 1.6 }}>
+              {whatsappSupportLabel}{" "}
               <a
                 href={getWhatsAppSupportUrl({
                   locale,
@@ -280,39 +321,29 @@ function PayForm({
                 })}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "8px 16px",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#000",
-                  backgroundColor: "#22c55e",
-                  borderRadius: 8,
-                  textDecoration: "none",
-                }}
+                style={{ color: "#22c55e", textDecoration: "underline", textUnderlineOffset: 3 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                </svg>
-                WhatsApp
+                {locale === "en" ? "Contact us" : "聯絡我們"}
               </a>
-            </div>
+            </p>
           )}
         </div>
       )}
       <button
         type="submit"
+        // payDisabled keeps the disabled LOOK but stays clickable, so tapping
+        // it can explain itself (onDisabledPayClick → parent flashes the terms
+        // checkbox) instead of being a dead grey button.
         disabled={!stripe || submitting}
+        aria-disabled={payDisabled || undefined}
         style={{
           marginTop: 20,
           width: "100%",
           height: 54,
           border: "none",
           borderRadius: 14,
-          background: submitting ? "rgba(255,255,255,0.15)" : "#22c55e",
-          color: submitting ? "rgba(255,255,255,0.6)" : "#000",
+          background: submitting || payDisabled ? "rgba(255,255,255,0.15)" : "#22c55e",
+          color: submitting || payDisabled ? "rgba(255,255,255,0.6)" : "#000",
           fontWeight: 700,
           fontSize: 17,
           cursor: submitting ? "not-allowed" : "pointer",
@@ -324,8 +355,10 @@ function PayForm({
   )
 }
 
-/** mm:ss countdown to `until`. Ticks every second; clamps at 0. */
-function useCountdown(until: string | null): string | null {
+/** mm:ss countdown to `until`, plus an `urgent` flag for the final 2 minutes
+ *  (Loss Aversion: the reminder should read as more urgent as the deadline
+ *  approaches, not stay a flat static color the whole 15 minutes). */
+function useCountdown(until: string | null): { text: string; urgent: boolean } | null {
   const [remainingMs, setRemainingMs] = useState<number | null>(null)
 
   useEffect(() => {
@@ -344,7 +377,7 @@ function useCountdown(until: string | null): string | null {
   const totalSeconds = Math.floor(remainingMs / 1000)
   const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0")
   const ss = String(totalSeconds % 60).padStart(2, "0")
-  return `${mm}:${ss}`
+  return { text: `${mm}:${ss}`, urgent: totalSeconds <= 120 }
 }
 
 /**
@@ -360,28 +393,51 @@ export default function StripePayment(props: Props) {
   const [lockedUntil, setLockedUntil] = useState<string | null>(null)
   const countdown = useCountdown(lockedUntil)
 
+  // Grouped when more than one block was selected (Task 3).
+  const blocks = props.blocks && props.blocks.length > 1 ? props.blocks : null
+  const blocksKey = blocks
+    ? blocks.map((b) => `${b.date}|${b.startHour}|${b.duration}|${b.tableNumber}`).join(",")
+    : `${props.date}|${props.startHour}|${props.duration}|${props.tableNumber}`
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
+        // Lock: multi-block sends { blocks[] } (atomic all-or-nothing), single
+        // sends the flat form. Response gives slotId(s) [+ orderGroupId].
+        const lockBody = blocks
+          ? { blocks }
+          : {
+              date: props.date,
+              startHour: props.startHour,
+              duration: props.duration,
+              tableNumber: props.tableNumber,
+            }
         const lockRes = await fetch("/api/booking/lock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            date: props.date,
-            startHour: props.startHour,
-            duration: props.duration,
-            tableNumber: props.tableNumber,
-          }),
+          body: JSON.stringify(lockBody),
         })
         const lockJson = await lockRes.json()
-        if (!lockRes.ok) throw new Error(lockJson.detail || lockJson.error || "lock failed")
+        if (!lockRes.ok) {
+          // A 409 with reason 'unavailable' means we lost a slot to a concurrent
+          // booker (advisory-lock path; for groups, ANY block being taken rolls
+          // the whole lock back). Surface the clear "someone just took this" copy.
+          if (lockRes.status === 409 && lockJson?.reason === "unavailable") {
+            throw new Error(SLOT_TAKEN)
+          }
+          throw new Error(lockJson.detail || lockJson.error || "lock failed")
+        }
         if (!cancelled) setLockedUntil(lockJson.lockedUntil ?? null)
 
+        // Create intent: multi sends { slotIds, orderGroupId }, single sends { slotId }.
+        const intentBody = blocks
+          ? { slotIds: lockJson.slotIds, orderGroupId: lockJson.orderGroupId }
+          : { slotId: lockJson.slotId }
         const intentRes = await fetch("/api/payment/create-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ slotId: lockJson.slotId }),
+          body: JSON.stringify(intentBody),
         })
         const intentJson = await intentRes.json()
         if (!intentRes.ok) throw new Error(intentJson.detail || intentJson.error || "intent failed")
@@ -397,16 +453,69 @@ export default function StripePayment(props: Props) {
     return () => {
       cancelled = true
     }
-  }, [props.date, props.startHour, props.duration, props.tableNumber])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocksKey])
 
   if (error) {
+    // Slot lost to a concurrent booker: show ONLY the clear "pick another time"
+    // message — no generic errorLabel, no raw detail (there's nothing to
+    // diagnose, the slot is simply gone).
+    if (error === SLOT_TAKEN) {
+      return (
+        <div className="glass-panel" style={{ textAlign: "center", padding: "24px 20px", borderRadius: 16 }}>
+          <p style={{ fontSize: 14, color: "#f87171", marginBottom: props.onBackToSlots ? 16 : 0 }}>
+            {props.slotTakenLabel}
+          </p>
+          {props.onBackToSlots && (
+            <button
+              type="button"
+              onClick={props.onBackToSlots}
+              style={{
+                minHeight: 44,
+                padding: "0 24px",
+                borderRadius: 9999,
+                border: "none",
+                background: "#22c55e",
+                color: "#000",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              {props.backToSlotsLabel}
+            </button>
+          )}
+        </div>
+      )
+    }
     return (
-      <div style={{ textAlign: "center", padding: "16px 0" }}>
+      <div className="glass-panel" style={{ textAlign: "center", padding: "24px 20px", borderRadius: 16 }}>
         <p style={{ fontSize: 14, color: "#f87171" }}>{props.errorLabel}</p>
         {/* Show the REAL captured cause (lock expired / not authenticated / Stripe
             error / pricing misconfig) beneath the friendly label, so a failure is
             diagnosable instead of a dead-end "couldn't start payment". */}
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 6 }}>{error}</p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 6, marginBottom: props.onBackToSlots ? 16 : 0 }}>
+          {error}
+        </p>
+        {props.onBackToSlots && (
+          <button
+            type="button"
+            onClick={props.onBackToSlots}
+            style={{
+              minHeight: 44,
+              padding: "0 24px",
+              borderRadius: 9999,
+              border: "none",
+              background: "#22c55e",
+              color: "#000",
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer",
+            }}
+          >
+            {props.backToSlotsLabel}
+          </button>
+        )}
       </div>
     )
   }
@@ -428,11 +537,13 @@ export default function StripePayment(props: Props) {
           style={{
             textAlign: "center",
             fontSize: 13,
-            color: "rgba(255,255,255,0.55)",
+            fontWeight: countdown.urgent ? 700 : 400,
+            color: countdown.urgent ? "#FF6B4A" : "rgba(255,255,255,0.55)",
             marginBottom: 12,
+            transition: "color 0.3s ease",
           }}
         >
-          {props.lockHoldLabel.replace("{time}", countdown)}
+          {props.lockHoldLabel.replace("{time}", countdown.text)}
         </p>
       )}
       <PayForm
@@ -441,7 +552,6 @@ export default function StripePayment(props: Props) {
         payLabel={props.payLabel}
         processingLabel={props.processingLabel}
         paymentFailedLabel={props.paymentFailedLabel}
-        timeoutLabel={props.timeoutLabel}
         whatsappSupportLabel={props.whatsappSupportLabel}
         retryPaymentLabel={props.retryPaymentLabel}
         billingDetails={props.billingDetails}
@@ -449,6 +559,8 @@ export default function StripePayment(props: Props) {
         date={props.date}
         startHour={props.startHour}
         total={props.total}
+        payDisabled={props.payDisabled}
+        onDisabledPayClick={props.onDisabledPayClick}
       />
     </Elements>
   )

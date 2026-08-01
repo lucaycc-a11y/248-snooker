@@ -1,10 +1,20 @@
 "use client"
 
 import { useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 
-const BRASS = "#c9a876"
-const DEEP = "#0a1a0f"
+// Matches the GREEN constant duplicated across every other auth-flow file
+// (AuthCard.tsx, AuthModal.tsx, AccountMenu.tsx, OtpInput.tsx,
+// SignInPrompt.tsx) — this file previously used its own unrelated "BRASS"
+// (#c9a876) gold constant instead, which is why this submit button kept
+// reverting to gold after earlier fixes: those fixes touched the other
+// auth buttons, never this file's hardcoded constant.
+// NOTE: this is intentionally NOT tokens.colors.brand (#25D366, WhatsApp
+// green) — every hand-rolled auth button in this flow uses #22c55e, so
+// matching that (not the shared Button component's token) is what keeps
+// this button visually consistent with its siblings.
+const GREEN = "#22c55e"
 
 function localHkPhoneValue(value: string): string {
   const normalized = normalizeHkPhone(value)
@@ -35,7 +45,7 @@ export function ProfileCompletion({
   initialEmail?: string
   initialPhone?: string
   isPhoneVerified?: boolean
-  onComplete: () => void
+  onComplete: (memberCode?: string) => void
   labels: {
     title: string
     subtitle: string
@@ -55,6 +65,8 @@ export function ProfileCompletion({
   const [name, setName] = useState(initialName)
   const [email, setEmail] = useState(initialEmail)
   const [phone, setPhone] = useState(() => localHkPhoneValue(initialPhone))
+  const [password, setPassword] = useState("")
+  const [showPasswordField, setShowPasswordField] = useState(false)
   const [saving, setSaving] = useState(false)
   const [errField, setErrField] = useState<"name" | "email" | "phone" | null>(null)
   const [errMsg, setErrMsg] = useState<string | null>(null)
@@ -98,7 +110,21 @@ export function ProfileCompletion({
         setSaving(false)
         return
       }
-      onComplete()
+
+      const responseData = await res.json()
+      const memberCode = responseData.memberCode
+
+      // Optional: set password if user provided one (Supabase updateUser)
+      if (password.trim().length >= 6) {
+        const supabase = createClient()
+        const { error: pwErr } = await supabase.auth.updateUser({ password: password.trim() })
+        if (pwErr) {
+          console.error('[ProfileCompletion] password set failed:', pwErr)
+          // Non-blocking: profile is already saved, password is optional
+        }
+      }
+
+      onComplete(memberCode)
     } catch {
       setErrMsg(labels.err_generic)
       setSaving(false)
@@ -180,6 +206,53 @@ export function ProfileCompletion({
             ✓ {labels.phone_verified_badge}
           </div>
         )}
+
+        {/* Optional password setup (collapsible) */}
+        <div style={{ marginTop: 8, paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <button
+            type="button"
+            onClick={() => setShowPasswordField(!showPasswordField)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#22c55e",
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+              padding: 0,
+              textDecoration: "underline",
+              marginBottom: showPasswordField ? 12 : 0,
+            }}
+          >
+            {showPasswordField ? "跳過設定密碼" : "設定密碼（可選）"}
+          </button>
+          {showPasswordField && (
+            <>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="密碼（至少 6 個字元）"
+                autoComplete="new-password"
+                aria-label="設定密碼"
+                style={{
+                  width: "100%",
+                  height: 52,
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  borderRadius: 12,
+                  padding: "0 16px",
+                  color: "#fff",
+                  fontSize: 16,
+                  outline: "none",
+                }}
+              />
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 6 }}>
+                設定密碼後，下次可以用密碼或驗證碼登入。
+              </p>
+            </>
+          )}
+        </div>
       </div>
 
       {errMsg && (
@@ -199,8 +272,8 @@ export function ProfileCompletion({
           height: 52,
           border: "none",
           borderRadius: 12,
-          background: canSubmit ? BRASS : "rgba(201,168,118,0.5)",
-          color: DEEP,
+          background: canSubmit ? GREEN : "rgba(34,197,94,0.5)",
+          color: "#000",
           fontWeight: 700,
           fontSize: 16,
           cursor: canSubmit ? "pointer" : "not-allowed",

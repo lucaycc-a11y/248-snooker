@@ -47,6 +47,19 @@ export async function GET(request: Request) {
           provider: user.app_metadata?.provider ?? null,
         })
       }
+
+      // After OAuth sign-in, check if profile is complete. If not, redirect to
+      // /login where AuthCard will detect the session and show the profile
+      // completion flow (including member welcome for new members).
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('profile_complete')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (userProfile?.profile_complete !== true) {
+        return NextResponse.redirect(`${origin}/login?returnUrl=${encodeURIComponent(next)}`)
+      }
     }
 
     return NextResponse.redirect(`${origin}${next}`)

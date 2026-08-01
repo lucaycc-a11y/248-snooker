@@ -5,7 +5,7 @@ import Footer from "@/components/layout/Footer";
 import { getBlogPosts } from "@/lib/data/getBlog";
 import BlogList from "./BlogList";
 
-const BASE = "https://248.formhk.com";
+const BASE = "https://space8.com.hk";
 
 export async function generateMetadata({
   params,
@@ -17,7 +17,7 @@ export async function generateMetadata({
   const path = locale === "zh-HK" ? "/blog" : `/${locale}/blog`;
 
   return {
-    title: `${t("title")} | 248 Snooker`,
+    title: `${t("title")} | Space8`,
     description: t("subtitle"),
     alternates: {
       canonical: `${BASE}${path}`,
@@ -25,14 +25,14 @@ export async function generateMetadata({
         "zh-HK": `${BASE}/blog`,
         "zh-CN": `${BASE}/zh-CN/blog`,
         en: `${BASE}/en/blog`,
-        ja: `${BASE}/ja/blog`,
+        "x-default": `${BASE}/blog`,
       },
     },
     openGraph: {
-      title: `${t("title")} | 248 Snooker`,
+      title: `${t("title")} | Space8`,
       description: t("subtitle"),
       url: `${BASE}${path}`,
-      siteName: "248 Snooker",
+      siteName: "Space8",
       type: "website",
     },
     robots: { index: true, follow: true },

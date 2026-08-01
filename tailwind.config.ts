@@ -23,6 +23,7 @@ const config: Config = {
           "Helvetica Neue",
           "sans-serif",
         ],
+        display: ["var(--font-bebas)", "sans-serif"],
       },
       keyframes: {
         marquee: {

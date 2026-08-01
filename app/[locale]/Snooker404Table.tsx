@@ -70,7 +70,10 @@ export function Snooker404Table({ hint, completedText, canvasLabel }: Snooker404
       options: {
         width: W,
         height: H,
-        background: '#1A4A2A',
+        // Cooler, desaturated teal-green — reads as sci-fi-lit felt rather
+        // than a warm snooker-hall green, matching the Space8 brand's
+        // starfield/space theme.
+        background: '#123B33',
         wireframes: false,
         pixelRatio: Math.min(window.devicePixelRatio, 2),
       },
@@ -111,6 +114,7 @@ export function Snooker404Table({ hint, completedText, canvasLabel }: Snooker404
       const context = render.context
       drawFeltTexture(context, W, H)
       drawPocketRims(context, pocketPositions)
+      drawEightBallGlow(context, ballsRef.current)
       drawEightBallLabel(context, ballsRef.current)
     }
 
@@ -161,9 +165,11 @@ export function Snooker404Table({ hint, completedText, canvasLabel }: Snooker404
           import('canvas-confetti').then(({ default: confetti }) => {
             confetti({
               particleCount: 80,
-              spread: 62,
+              spread: 72,
+              scalar: 0.7,
+              shapes: ['star', 'circle'],
               origin: { y: 0.62 },
-              colors: ['#22C55E', '#FFFFFF', '#C9A46A'],
+              colors: ['#22C55E', '#FFFFFF', '#A78BFA'],
             })
           })
           respawnAllBalls(2000)
@@ -398,6 +404,29 @@ function drawPocketRims(context: CanvasRenderingContext2D, positions: Matter.Vec
     context.lineWidth = 4
     context.stroke()
   })
+  context.restore()
+}
+
+function drawEightBallGlow(context: CanvasRenderingContext2D, balls: Matter.Body[]) {
+  const eightBall = balls.find((ball) => ball.label === 'ball:8')
+  if (!eightBall) return
+
+  // Small-asteroid halo: a soft radial gradient centred on the ball, drawn
+  // BEHIND it (this runs before drawEightBallLabel in the same afterRender
+  // pass, and Matter has already painted the ball body itself by then, so
+  // this reads as a glow around the rendered ball rather than under it —
+  // acceptable since the gradient is much larger than the ball and low-alpha).
+  const { x, y } = eightBall.position
+  const glowRadius = BALL_RADIUS * 2.6
+  const gradient = context.createRadialGradient(x, y, BALL_RADIUS * 0.8, x, y, glowRadius)
+  gradient.addColorStop(0, 'rgba(167,139,250,0.35)')
+  gradient.addColorStop(1, 'rgba(167,139,250,0)')
+
+  context.save()
+  context.fillStyle = gradient
+  context.beginPath()
+  context.arc(x, y, glowRadius, 0, Math.PI * 2)
+  context.fill()
   context.restore()
 }
 

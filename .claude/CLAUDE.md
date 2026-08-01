@@ -20,3 +20,6 @@
 
 - All new visible text should go through `CMSText` or `next-intl`, keyed for CMS sync.
 - Run `npm run cms:sync` after adding or changing user-visible text.
+# graphify
+- **graphify** (`.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.

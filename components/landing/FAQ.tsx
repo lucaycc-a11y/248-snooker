@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { getFaqItems, getFaqJsonLd } from "./faqData";
+import { Link } from "@/i18n/navigation";
+import { getFaqItems, stripMarkdownLinks, type FaqItem } from "./faqData";
 
 const DARK = "#1D1D1F";
 const DIVIDER = "#D2D2D7";
@@ -14,24 +15,82 @@ const FONT_FAMILY =
 const EASE = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
 
-export default function FAQ() {
+// Rule-type answers reference the authoritative source (/legal, /pricing,
+// /membership) via markdown-style links — [label](/path) — instead of
+// restating the full clause text. Render those as locale-aware <Link>s so
+// one click jumps straight to the relevant section.
+const MD_LINK = /\[([^\]]+)\]\(([^)]+)\)/g;
+
+function AnswerText({ answer }: { answer: string }) {
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  for (const match of answer.matchAll(MD_LINK)) {
+    const [full, label, href] = match;
+    const index = match.index ?? 0;
+    if (index > lastIndex) nodes.push(answer.slice(lastIndex, index));
+    nodes.push(
+      <Link
+        key={`${href}-${index}`}
+        href={href}
+        style={{ color: "#0071E3", textDecoration: "underline", textUnderlineOffset: "3px" }}
+      >
+        {label}
+      </Link>
+    );
+    lastIndex = index + full.length;
+  }
+  if (lastIndex < answer.length) nodes.push(answer.slice(lastIndex));
+  return <>{nodes}</>;
+}
+
+// FAQ list is a fixed, static set of Q&A pairs sourced from the `faq`
+// next-intl namespace (see faqData.ts) — no longer addable/removable via a
+// runtime CMS list (see app/[locale]/layout.tsx for why runtime CMS reads
+// were dropped in favour of static next-intl content).
+// jsonLd is optionally passed by the page for a server-rendered <script> tag
+// identical to what this component would derive itself, avoiding drift.
+// `ids` narrows the rendered list to a curated subset (homepage shows 5 of
+// them, in the given order); `moreHref` adds a "了解更多" link below the list.
+export default function FAQ({
+  jsonLd,
+  ids,
+  moreHref,
+}: {
+  jsonLd?: object;
+  ids?: readonly string[];
+  moreHref?: string;
+}) {
   const t = useTranslations('faq');
-  const faqItems = getFaqItems(t);
-  const faqJsonLd = getFaqJsonLd(t);
+  const allItems: FaqItem[] = getFaqItems(t);
+  const items: FaqItem[] = ids
+    ? ids
+        .map((id) => allItems.find((item) => item.id === id))
+        .filter((item): item is FaqItem => item !== undefined)
+    : allItems;
   // Only one item open at a time. null = all closed.
   const [openId, setOpenId] = useState<string | null>(null);
+
+  const faqJsonLd =
+    jsonLd ?? {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: items.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: stripMarkdownLinks(item.answer) },
+      })),
+    };
 
   return (
     <section
       id="faq"
       data-nav-theme="light"
       style={{
-        background: "#F5F5F7",
+        background: "rgba(245,245,247,0.92)",
         color: DARK,
         padding: "clamp(88px, 12vw, 140px) 24px",
         fontFamily: FONT_FAMILY,
       }}
-      data-cms-key="faq_section"
     >
       {/* JSON-LD structured data for FAQ rich results. Content is fully static
           and contains no <, >, or & characters, so JSX text escaping is safe. */}
@@ -49,13 +108,12 @@ export default function FAQ() {
             letterSpacing: "-0.03em",
             margin: "0 0 clamp(40px, 6vw, 56px)",
           }}
-          data-cms-key="faq_title"
         >
           {t('title')}。
         </motion.h2>
 
         <div>
-          {faqItems.map((item) => {
+          {items.map((item) => {
             const isOpen = openId === item.id;
             return (
               <details
@@ -128,9 +186,10 @@ export default function FAQ() {
                           margin: 0,
                           padding: "0 4px 40px",
                           maxWidth: "680px",
+                          whiteSpace: "pre-line",
                         }}
                       >
-                        {item.answer}
+                        <AnswerText answer={item.answer} />
                       </p>
                     </motion.div>
                   )}
@@ -139,6 +198,35 @@ export default function FAQ() {
             );
           })}
         </div>
+
+        {moreHref && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={VIEWPORT}
+            transition={{ duration: 0.5, ease: EASE }}
+            style={{ marginTop: "40px" }}
+          >
+            <Link
+              href={moreHref}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                minHeight: 44,
+                fontSize: "17px",
+                fontWeight: 500,
+                color: "#0071E3",
+                textDecoration: "none",
+              }}
+            >
+              {t("more")}
+              <span aria-hidden="true" style={{ fontSize: "20px", lineHeight: 1 }}>
+                ›
+              </span>
+            </Link>
+          </motion.div>
+        )}
       </div>
     </section>
   );

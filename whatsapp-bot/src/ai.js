@@ -36,11 +36,11 @@ export async function generateReply(phone, userMessage, context) {
     getVenueConfig(),
   ])
 
-  const systemPrompt = `${personality || '你係248 Snooker嘅專業客服助手，用繁體廣東話書面語回覆，簡短友善，每次唔超過3句。'}
+  const systemPrompt = `${personality || '你是 Space8 的專業客服助手，以繁體中文書面語回覆，簡短友善，每次不超過 3 句。'}
 
 場地資料（從資料庫讀取，唔可以亂改）：
-- 名稱：${venue?.name || '248 Snooker'}
-- 開放時間：${venue?.opening_hours || '24小時'}
+- 名稱：${venue?.name || 'Space8'}
+- 開放時間：${venue?.opening_hours || '每日 06:00-24:00'}
 - 球枱：${venue?.tables || 2}張（枱號#1、枱號#2）
 - WhatsApp：+${venue?.whatsapp || '85264274620'}
 
@@ -51,11 +51,11 @@ ${bookings.length > 0 ? `用戶現有預訂：
 ${bookings.map((booking) => `- ${booking.date} ${booking.start_time}-${booking.end_time} 枱號#${booking.table_number} ${booking.booking_reference} HK$${booking.total_price} [${booking.status}]`).join('\n')}` : '用戶暫無預訂'}
 
 重要規則：
-- 唔確定嘅嘢唔好亂講
-- 唔好捏造任何資料
+- 不確定的資訊不可亂說
+- 不可捏造任何資料
 - 驗證碼相關問題叫用戶直接回覆數字
-- 預訂問題引導去網站：https://248.formhk.com
-- 唔可以幫用戶直接修改預訂，叫佢去網站或聯絡管理員`
+- 預訂問題引導去網站：https://space8.com.hk
+- 不可代用戶直接修改預訂，請引導用戶前往網站或聯絡管理員`
 
   const messages = [
     ...history.map((item) => ({ role: item.role, content: item.content })),
@@ -68,10 +68,10 @@ ${bookings.map((booking) => `- ${booking.date} ${booking.start_time}-${booking.e
       max_tokens: 500,
       system: systemPrompt,
       messages,
-    }) || '唔好意思，我暫時無法回覆，請稍後再試。'
+    }) || '不好意思，我暫時無法回覆，請稍後再試。'
   } catch (error) {
     console.error('AI reply failed:', error.message)
-    return '唔好意思，我暫時無法回覆，請稍後再試。'
+    return '不好意思，我暫時無法回覆，請稍後再試。'
   }
 }
 

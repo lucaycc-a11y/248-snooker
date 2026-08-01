@@ -5,7 +5,7 @@ const ROOT = process.cwd()
 const APP_DIR = join(ROOT, 'app')
 const COMPONENTS_DIR = join(ROOT, 'components')
 const MESSAGES_DIR = join(ROOT, 'messages')
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 function walk(dir, files = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

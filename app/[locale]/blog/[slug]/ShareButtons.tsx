@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Share2, Link2, Check } from "lucide-react";
 
-const SUBTLE = "#86868B";
+const SUBTLE = "#A1A1A6";
 const BORDER_DARK = "#2D2D2D";
 
 // WhatsApp share + copy-to-clipboard. Needs the browser, hence a client island.

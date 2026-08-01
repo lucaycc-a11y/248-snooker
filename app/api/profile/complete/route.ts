@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { validateProfile, normalizeHkPhone } from '@/lib/auth/profile'
+import { generateMemberCode } from '@/lib/member/planetSystem'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     console.log('[profile/complete] attempt', { userId: user.id })
 
     if (!normalizeHkPhone(body?.phone ?? '')) {
-      return NextResponse.json({ error: '請提供有效嘅電話號碼' }, { status: 400 })
+      return NextResponse.json({ error: '請提供有效的電話號碼' }, { status: 400 })
     }
 
     const result = validateProfile({
@@ -67,7 +68,39 @@ export async function POST(req: Request) {
     // column intentionally holds an unverified, format-checked number for them.
     // NOTE: this write can only 500 — auth is fully settled above, so a 401 can
     // never originate from here regardless of which client performs the write.
+
     const service = getServiceSupabase()
+
+    // Member code: SPACE8-{TIER}-{4chars}-{check}. New signups always start at
+    // the Amateur tier (→ AMA). Codes are random, so this is idempotent by reuse:
+    // if the user already has one, keep it — never reissue on a profile re-submit.
+    // Only mint a new code for a first-time completion, retrying on the (tiny)
+    // chance of a collision against an existing users.member_code.
+    const { data: existing } = await service
+      .from('users')
+      .select('member_code')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    let memberCode = existing?.member_code ?? null
+    if (!memberCode) {
+      for (let attempt = 0; attempt < 5 && !memberCode; attempt++) {
+        const candidate = generateMemberCode('amateur')
+        const { data: clash } = await service
+          .from('users')
+          .select('id')
+          .eq('member_code', candidate)
+          .maybeSingle()
+        if (!clash) memberCode = candidate
+      }
+      if (!memberCode) {
+        console.error('[profile/complete] member code generation failed after retries', {
+          userId: user.id,
+        })
+        return NextResponse.json({ error: 'update_failed' }, { status: 500 })
+      }
+    }
+
     const { error } = await service
       .from('users')
       .upsert(
@@ -76,6 +109,7 @@ export async function POST(req: Request) {
           display_name: result.value.display_name,
           email: result.value.email,
           phone: result.value.phone,
+          member_code: memberCode,
           profile_complete: true,
           updated_at: new Date().toISOString(),
         },
@@ -93,8 +127,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'update_failed' }, { status: 500 })
     }
 
-    console.log('[profile/complete] success', { userId: user.id })
-    return NextResponse.json({ ok: true, profile: result.value })
+    console.log('[profile/complete] success', { userId: user.id, memberCode })
+    return NextResponse.json({ ok: true, profile: result.value, memberCode })
   } catch (err) {
     const e = err as Error
     console.error('[profile/complete] error', { message: e.message, stack: e.stack })

@@ -1,6 +1,7 @@
 "use client";
 
 import { Snooker404Table } from "./[locale]/Snooker404Table";
+import { Starfield } from "./[locale]/Starfield";
 
 export default function Error({
   reset,
@@ -13,6 +14,7 @@ export default function Error({
       data-nav-theme="dark"
       className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black px-4 py-24 text-white sm:px-6"
     >
+      <Starfield />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(34,197,94,0.14),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.05),transparent_30%)]" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.86))]" />
 
@@ -22,7 +24,7 @@ export default function Error({
             data-cms-key="error.brand"
             className="mb-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"
           >
-            248 Snooker
+            SPACE8
           </p>
           <h1
             data-cms-key="error.code"

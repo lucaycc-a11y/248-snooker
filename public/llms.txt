@@ -1,0 +1,21 @@
+# SPACE8
+
+> [zh-HK] 香港新蒲崗自助無煙中八獨立球室，全預約制，網上預訂、QR碼自助入場。
+> [zh-CN] 香港新蒲岗自助无烟中式八球独立球室，全预约制，网上预订、QR码自助入场。
+> [en] Self-service, smoke-free Chinese eight-ball club in San Po Kong, Hong Kong. Reservation-based, book online with QR code check-in.
+
+## 基本資料 / 基本资料 / Basic Info
+- 地址 / 地址 / Address：香港新蒲崗大有街32號泰力工業中心3樓05室
+- 交通 / 交通 / Transport：港鐵鑽石山站或啟德站步行約10分鐘 / Diamond Hill or Kai Tak MTR, ~10min walk
+- 網站 / 网站 / Website：https://space8.com.hk
+- 模式 / 模式 / Model：全預約制，非隨到隨用 / 全预约制，非随到随用 / Reservation-based, not walk-in
+
+## 收費（每小時）/ 收费（每小时）/ Pricing (per hour)
+- 早晨 06:00–12:00：$88（連訂2h+ $78）
+- 下午 12:00–16:00：$98（連訂2h+ $88）
+- 繁忙 16:00–00:00：$108
+
+## 會員制度 / 会员制度 / Membership
+- Amateur：註冊送50積分，$1=1積分
+- Century（800積分起）：積分1.5倍
+- Maximum（6000積分起）：積分雙倍

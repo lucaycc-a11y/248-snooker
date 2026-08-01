@@ -7,9 +7,14 @@ type ProgressStepsProps = {
   // backward navigation. Current and future steps are never clickable — no
   // forward-jumping past work that isn't done.
   onStepClick?: (index: number) => void
+  // Goal Gradient Effect: 0-1 fraction filling the connector line INTO the
+  // current step, so making a selection on the current screen (before its
+  // own explicit "Continue" click advances `current`) already visually
+  // reads as progress, instead of only jumping in whole steps.
+  currentProgress?: number
 }
 
-export function ProgressSteps({ steps, current, onStepClick }: ProgressStepsProps) {
+export function ProgressSteps({ steps, current, onStepClick, currentProgress = 0 }: ProgressStepsProps) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
       {steps.map((label, i) => {
@@ -84,6 +89,7 @@ export function ProgressSteps({ steps, current, onStepClick }: ProgressStepsProp
                 style={{
                   flex: 1,
                   height: '2px',
+                  position: 'relative',
                   backgroundColor: isComplete ? tokens.colors.text : tokens.colors.textFaint,
                   marginLeft: '8px',
                   marginRight: '8px',
@@ -91,7 +97,19 @@ export function ProgressSteps({ steps, current, onStepClick }: ProgressStepsProp
                   alignSelf: 'flex-start',
                   transition: `background-color ${tokens.duration.base} ${tokens.easing.standard}`,
                 }}
-              />
+              >
+                {isCurrent && currentProgress > 0 && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: `${Math.min(currentProgress, 1) * 100}%`,
+                      backgroundColor: tokens.colors.brand,
+                      transition: `width ${tokens.duration.base} ${tokens.easing.standard}`,
+                    }}
+                  />
+                )}
+              </div>
             )}
           </div>
         )

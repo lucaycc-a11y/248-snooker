@@ -1,26 +1,32 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Apple,
-  Wallet,
   CalendarPlus,
   QrCode as QrCodeIcon,
+  Undo2,
+  CalendarClock,
+  Sparkles,
   X,
   LogOut,
+  RotateCw,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BackButton } from "@/components/ui";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
+import RefundConfirmModal from "@/components/member/RefundConfirmModal";
+import ReschedulePicker from "@/components/member/ReschedulePicker";
+import { AmbientGlow } from "@/components/shared/AmbientGlow";
+import { QRCode } from "@/components/shared/QRCode";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
 const INK = "#f5f5f7"; // near-white text
-const SUBTLE = "#86868b"; // neutral grey
+const SUBTLE = "#A1A1A6"; // neutral grey (raised from #86868b — legibility on #000)
 const BORDER = "rgba(255,255,255,0.1)"; // glass hairline (cards)
 const HAIRLINE = "rgba(255,255,255,0.18)"; // glass hairline (emphasis)
 const GREEN = "#22C55E"; // primary accent + semantic confirmed
@@ -33,7 +39,8 @@ const DISPLAY = '"Bebas Neue", sans-serif';
 const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-// Liquid-glass surface recipe (matches the landing page).
+// Liquid-glass surface recipe for CSS-only surfaces (stats cards, booking list).
+// The member card itself uses WebGL liquidglass, not these constants.
 const GLASS_BG = "rgba(255,255,255,0.05)";
 const GLASS_BLUR = "blur(20px) saturate(180%)";
 
@@ -52,50 +59,6 @@ const TIER_GLOW: Record<string, string> = {
 
 type TabId = "bookings" | "points" | "settings";
 
-// Decorative QR rendering (visual only; real QR is issued at booking time).
-function QRGlyph({ data, size = 200, dark = false }: { data: string; size?: number; dark?: boolean }) {
-  const cells = 21;
-  const grid = useMemo(() => {
-    const g: boolean[][] = Array.from({ length: cells }, () => Array(cells).fill(false));
-    const finder = (r: number, c: number) => {
-      for (let dr = 0; dr < 7; dr++)
-        for (let dc = 0; dc < 7; dc++) {
-          const border = dr === 0 || dr === 6 || dc === 0 || dc === 6;
-          const inner = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
-          g[r + dr][c + dc] = border || inner;
-        }
-    };
-    finder(0, 0);
-    finder(0, 14);
-    finder(14, 0);
-    let seed = 0;
-    for (let i = 0; i < data.length; i++) seed = (seed * 31 + data.charCodeAt(i)) & 0xffff;
-    for (let r = 0; r < cells; r++)
-      for (let c = 0; c < cells; c++) {
-        if (g[r][c]) continue;
-        if (r < 7 && c < 7) continue;
-        if (r < 7 && c >= 14) continue;
-        if (r >= 14 && c < 7) continue;
-        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-        g[r][c] = (seed >> 16) % 3 === 0;
-      }
-    return g;
-  }, [data]);
-
-  const cell = size / cells;
-  const fg = dark ? "#0a0a0a" : GREEN;
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-label="QR code" role="img">
-      <rect width={size} height={size} fill={dark ? "#FFFFFF" : "transparent"} />
-      {grid.map((row, r) =>
-        row.map((on, c) =>
-          on ? <rect key={`${r}-${c}`} x={c * cell} y={r * cell} width={cell} height={cell} fill={fg} /> : null
-        )
-      )}
-    </svg>
-  );
-}
-
 function formatDate(iso: string | null, locale: string, withTime = false): string {
   if (!iso) return "—";
   try {
@@ -110,12 +73,21 @@ function formatDate(iso: string | null, locale: string, withTime = false): strin
   }
 }
 
-export default function MemberDashboard({ data, tiers }: { data: MemberData; tiers: Tier[] }) {
+export default function MemberDashboard({
+  data,
+  tiers,
+  refundCutoffHours,
+}: {
+  data: MemberData;
+  tiers: Tier[];
+  refundCutoffHours: number;
+}) {
   const t = useTranslations("memberPage");
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, bookings, points, stats } = data;
+  const { user, points, stats } = data;
+  const [bookings, setBookings] = useState<MemberBooking[]>(data.bookings);
 
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
@@ -124,10 +96,33 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
   const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
+  const [refundBooking, setRefundBooking] = useState<MemberBooking | null>(null);
+  const [rescheduleBooking, setRescheduleBooking] = useState<MemberBooking | null>(null);
+  const [memberQrDataUrl, setMemberQrDataUrl] = useState<string | null>(null);
 
   const { current, next, progress, pointsToNext } = resolveTier(user.points, tiers);
   const tierId = current.id;
   const accent = TIER_ACCENT[tierId] ?? GREEN;
+
+  // Fetch real scannable QR code for member card from API
+  useEffect(() => {
+    if (!user.member_code) return
+
+    async function fetchQR() {
+      try {
+        const res = await fetch('/api/member/qr')
+        if (!res.ok) {
+          throw new Error(`QR fetch failed: ${res.status}`)
+        }
+        const data = await res.json()
+        setMemberQrDataUrl(data.qrCode)
+      } catch (err) {
+        console.error('[MemberDashboard] QR fetch failed:', err)
+      }
+    }
+
+    fetchQR()
+  }, [user.member_code])
 
   const signOut = async () => {
     const supabase = createClient();
@@ -143,8 +138,28 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
         background: "#000",
         minHeight: "100vh",
         color: INK,
+        position: "relative",
+        isolation: "isolate",
       }}
     >
+      {/* Shared brand ambient orbs, layered behind the tier-coloured backdrop below. */}
+      <AmbientGlow />
+
+      {/* Ambient tier-coloured backdrop — same TIER_GLOW recipe as the
+          membership card, but full-page and animated (slow opacity breathe)
+          so the whole page reads as "this member's colour", not just the card. */}
+      <motion.div
+        aria-hidden="true"
+        animate={{ opacity: [0.6, 1, 0.6] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          background: TIER_GLOW[tierId] ?? TIER_GLOW.amateur,
+        }}
+      />
       {/* Fixed back arrow — shared component, identical to the booking flow. */}
       <BackButton href="/" ariaLabel={t("back")} cmsKey="member.back" color={INK} />
 
@@ -152,7 +167,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
           would route to a non-existent /[locale]/member). */}
       <DashboardHeader displayName={user.display_name} />
 
-      <div style={{ maxWidth: "760px", margin: "0 auto", padding: "16px 20px 96px" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "760px", margin: "0 auto", padding: "16px 20px 96px" }}>
         {/* ── Membership card (club-card metaphor) ── */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -178,7 +193,7 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <div style={{ fontFamily: DISPLAY, fontSize: "24px", letterSpacing: "0.12em", color: INK, lineHeight: 1 }}>
-                248 SNOOKER
+                SPACE8
               </div>
               <div data-cms-key="member.card_label" style={{ fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase", color: SUBTLE, marginTop: "6px" }}>
                 {t("card_label")}
@@ -232,19 +247,28 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
                 borderRadius: "12px",
               }}
             >
-              <QRGlyph data={user.member_code} size={76} dark />
+              <QRCode
+                src={memberQrDataUrl}
+                size={76}
+                enlargeLabel={t("qr_tap_enlarge")}
+                closeLabel={t("close")}
+              />
             </div>
           </div>
         </motion.div>
 
-        {/* Wallet buttons */}
-        <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
-          <WalletButton icon={<Apple size={18} strokeWidth={2} />} label={t("add_apple_wallet")} cmsKey="member.add_apple_wallet" />
-          <WalletButton icon={<Wallet size={18} strokeWidth={2} />} label={t("add_google_wallet")} cmsKey="member.add_google_wallet" />
-        </div>
-
         {/* ── Points + tier progress ── */}
-        <div style={{ marginTop: "24px", border: `1px solid ${BORDER}`, borderRadius: "20px", padding: "24px", background: "rgba(255,255,255,0.03)" }}>
+        <div
+          style={{
+            marginTop: "24px",
+            border: `1px solid ${BORDER}`,
+            borderRadius: "20px",
+            padding: "24px",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <span data-cms-key="member.card_points" style={{ fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: SUBTLE }}>
               {t("card_points")}
@@ -261,13 +285,34 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
             <span style={{ fontSize: "14px", color: SUBTLE, marginBottom: "6px", letterSpacing: "0.08em" }}>PTS</span>
           </div>
 
-          {/* Thin brass progress bar */}
-          <div style={{ height: "3px", borderRadius: "100px", background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+          {/* Progress "orbit" — thin track + a ball riding the fill's leading
+              edge (the track itself keeps overflow:hidden for the fill bar;
+              the ball sits in a sibling, unclipped layer so it isn't cut off
+              at the track's height). */}
+          <div style={{ position: "relative", padding: "6px 0" }}>
+            <div style={{ height: "3px", borderRadius: "100px", background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.round(progress * 100)}%` }}
+                transition={{ duration: 0.9, ease: EASE }}
+                style={{ height: "100%", background: GREEN, borderRadius: "100px" }}
+              />
+            </div>
             <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.round(progress * 100)}%` }}
+              initial={{ left: 0 }}
+              animate={{ left: `${Math.round(progress * 100)}%` }}
               transition={{ duration: 0.9, ease: EASE }}
-              style={{ height: "100%", background: GREEN, borderRadius: "100px" }}
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                top: "50%",
+                width: "14px",
+                height: "14px",
+                borderRadius: "50%",
+                background: accent,
+                boxShadow: `0 0 8px ${accent}`,
+                transform: "translate(-50%, -50%)",
+              }}
             />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -277,11 +322,24 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
           </div>
         </div>
 
-        {/* Stats row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "16px" }}>
+        {/* Stats row — Apple-Card style: no border box per stat, just a
+            hairline divider between them, so the number itself is the hero.
+            Glass surface (bg+blur) matches the member/points cards above. */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)",
+            marginTop: "16px",
+            border: `1px solid ${BORDER}`,
+            borderRadius: "16px",
+            padding: "18px 0",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+          }}
+        >
           <StatCard label={t("stat_bookings")} value={`${stats.bookings}`} unit={t("stat_bookings_unit")} />
-          <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} />
-          <StatCard label={t("stat_spent")} value={`HK$${stats.spent.toLocaleString()}`} />
+          <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} last />
         </div>
 
         {/* Tabs */}
@@ -333,7 +391,16 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
             >
-              {tab === "bookings" && <BookingsTab bookings={bookings} locale={locale} onViewQr={setQrBooking} />}
+              {tab === "bookings" && (
+                <BookingsTab
+                  bookings={bookings}
+                  locale={locale}
+                  refundCutoffHours={refundCutoffHours}
+                  onViewQr={setQrBooking}
+                  onRefund={setRefundBooking}
+                  onReschedule={setRescheduleBooking}
+                />
+              )}
               {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} />}
               {tab === "settings" && <SettingsTab user={user} onSignOut={signOut} />}
             </motion.div>
@@ -343,6 +410,45 @@ export default function MemberDashboard({ data, tiers }: { data: MemberData; tie
 
       {/* QR modal */}
       <QrModal booking={qrBooking} onClose={() => setQrBooking(null)} locale={locale} />
+
+      {/* Refund confirmation modal */}
+      <RefundConfirmModal
+        booking={refundBooking}
+        onClose={() => setRefundBooking(null)}
+        onRefunded={(booking, result) => {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.id === booking.id
+                ? { ...b, status: "refunded", refundAmount: result.refundAmount, refundFee: result.refundFee }
+                : b,
+            ),
+          );
+          setRefundBooking(null);
+        }}
+      />
+
+      {/* Reschedule picker */}
+      <ReschedulePicker
+        booking={rescheduleBooking}
+        onClose={() => setRescheduleBooking(null)}
+        onRescheduled={(booking, result) => {
+          setBookings((prev) =>
+            prev.map((b) =>
+              b.id === booking.id
+                ? {
+                    ...b,
+                    date: result.date,
+                    startTime: result.startTime,
+                    endTime: result.endTime,
+                    tableId: result.tableNumber,
+                    rescheduleCount: result.rescheduleCount,
+                  }
+                : b,
+            ),
+          );
+          setRescheduleBooking(null);
+        }}
+      />
     </div>
   );
 }
@@ -357,8 +463,8 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
   const locale = useLocale();
   const router = useRouter();
 
-  const LOCALES = ["zh-HK", "zh-CN", "en", "ja"] as const;
-  const LABELS: Record<string, string> = { "zh-HK": "繁", "zh-CN": "简", en: "EN", ja: "JP" };
+  const LOCALES = ["zh-HK", "zh-CN", "en"] as const;
+  const LABELS: Record<string, string> = { "zh-HK": "繁", "zh-CN": "简", en: "EN" };
 
   // Cookie-based locale toggle (no route change — /member is single-path).
   const cycleLocale = () => {
@@ -384,9 +490,13 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
         borderBottom: `1px solid ${BORDER}`,
       }}
     >
-      {/* Brand wordmark only — back navigation is the shared fixed BackButton. */}
-      <span style={{ fontFamily: DISPLAY, fontSize: "20px", letterSpacing: "0.08em", color: INK }}>248</span>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      {/* Left side intentionally empty — BackButton is a separate fixed
+          element (this header's left padding already reserves space for it).
+          Greeting + language switcher — separated with real breathing room,
+          language toggle styled as its own frosted glass pill (matches the
+          public Nav's pill container recipe) rather than a flat text box. */}
+      <div />
+      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         <span style={{ fontSize: "14px", color: SUBTLE }}>
           {t("greeting")}{displayName ? `, ${displayName}` : ""}
         </span>
@@ -394,7 +504,19 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
           type="button"
           onClick={cycleLocale}
           aria-label="Switch language"
-          style={{ color: INK, fontSize: "13px", fontWeight: 500, background: "rgba(255,255,255,0.08)", border: `1px solid ${BORDER}`, borderRadius: "8px", padding: "6px 10px", cursor: "pointer", minHeight: 36 }}
+          style={{
+            color: INK,
+            fontSize: "13px",
+            fontWeight: 500,
+            background: "rgba(255,255,255,0.05)",
+            backdropFilter: "blur(24px) saturate(180%)",
+            WebkitBackdropFilter: "blur(24px) saturate(180%)",
+            border: `1px solid ${HAIRLINE}`,
+            borderRadius: "999px",
+            padding: "8px 14px",
+            cursor: "pointer",
+            minHeight: 36,
+          }}
         >
           {LABELS[locale] ?? "中"}
         </button>
@@ -403,38 +525,15 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
   );
 }
 
-function WalletButton({ icon, label, cmsKey }: { icon: React.ReactNode; label: string; cmsKey: string }) {
+function StatCard({ label, value, unit, last }: { label: string; value: string; unit?: string; last?: boolean }) {
   return (
-    <button
-      type="button"
-      data-cms-key={cmsKey}
+    <div
       style={{
-        flex: "1 1 160px",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "8px",
-        minHeight: 48,
-        padding: "0 18px",
-        borderRadius: "12px",
-        border: `1px solid ${HAIRLINE}`,
-        background: "rgba(255,255,255,0.05)",
-        color: INK,
-        fontSize: "14px",
-        fontWeight: 600,
-        cursor: "pointer",
-        fontFamily: FONT_FAMILY,
+        borderRight: last ? "none" : `1px solid ${BORDER}`,
+        padding: "0 16px",
+        textAlign: "center",
       }}
     >
-      {icon}
-      {label}
-    </button>
-  );
-}
-
-function StatCard({ label, value, unit }: { label: string; value: string; unit?: string }) {
-  return (
-    <div style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "18px 16px", textAlign: "center" }}>
       <div style={{ fontFamily: DISPLAY, fontSize: "30px", letterSpacing: "0.02em", color: INK, lineHeight: 1 }}>
         {value}
         {unit ? <span style={{ fontSize: "12px", color: SUBTLE, marginLeft: "3px", fontFamily: FONT_FAMILY, fontWeight: 400 }}>{unit}</span> : null}
@@ -451,8 +550,15 @@ function StatusBadge({ status }: { status: string }) {
     confirmed: { label: t("status_confirmed"), color: GREEN },
     cancelled: { label: t("status_cancelled"), color: DANGER },
     completed: { label: t("status_completed"), color: SUBTLE },
+    refunded: { label: t("status_refunded"), color: DANGER },
+    pending: { label: t("status_pending"), color: SUBTLE },
+    payment_failed: { label: t("status_payment_failed"), color: DANGER },
   };
-  const s = map[status] ?? map.confirmed;
+  // Unknown statuses used to silently render as "Confirmed" (the old
+  // fallback) — fall back to the neutral "Pending" look instead, since an
+  // unrecognized status is more likely a new/incomplete state than a
+  // confirmed one.
+  const s = map[status] ?? map.pending;
   return (
     <span style={{ fontSize: "12px", fontWeight: 600, color: s.color, background: `${s.color}1f`, borderRadius: "100px", padding: "3px 10px" }}>
       {s.label}
@@ -460,23 +566,90 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// bookings.start_time is a bare Postgres `time` ("HH:MM:SS"), not a full
+// timestamp — anchor it to the booking's date for real "now vs start" math.
+// (Confirmed by getMemberTicket's parseInt(startTime.slice(0,2)) usage.)
+function bookingStart(b: MemberBooking): Date | null {
+  if (!b.date || !b.startTime) return null;
+  const time = b.startTime.length > 8 ? b.startTime.slice(11, 19) : b.startTime;
+  const d = new Date(`${b.date}T${time}`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function canRefund(b: MemberBooking, refundCutoffHours: number): boolean {
+  if (b.status !== "confirmed") return false;
+  const start = bookingStart(b);
+  if (!start) return false;
+  return Date.now() < start.getTime() - refundCutoffHours * 3600_000;
+}
+
+function canReschedule(b: MemberBooking): boolean {
+  if (b.status !== "confirmed") return false;
+  const start = bookingStart(b);
+  if (!start) return false;
+  return Date.now() < start.getTime();
+}
+
+// The entry QR is only useful while the slot can still be entered — once the
+// booking has ended (or was cancelled/refunded) the code would never scan, so
+// hide the button instead of offering a dead QR.
+function bookingEnd(b: MemberBooking): Date | null {
+  if (!b.date || !b.endTime) return null;
+  const time = b.endTime.length > 8 ? b.endTime.slice(11, 19) : b.endTime;
+  const d = new Date(`${b.date}T${time}`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function canShowQr(b: MemberBooking): boolean {
+  if (b.status !== "confirmed") return false;
+  const end = bookingEnd(b);
+  // No parseable end time — keep the QR visible rather than hiding a
+  // potentially valid ticket.
+  if (!end) return true;
+  return Date.now() < end.getTime();
+}
+
 function BookingsTab({
   bookings,
   locale,
+  refundCutoffHours,
   onViewQr,
+  onRefund,
+  onReschedule,
 }: {
   bookings: MemberBooking[];
   locale: string;
+  refundCutoffHours: number;
   onViewQr: (b: MemberBooking) => void;
+  onRefund: (b: MemberBooking) => void;
+  onReschedule: (b: MemberBooking) => void;
 }) {
   const t = useTranslations("memberPage");
+  const router = useRouter();
   if (bookings.length === 0) {
     return <EmptyState text={t("no_bookings")} />;
   }
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {bookings.map((b) => (
-        <div key={b.id} style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px" }}>
+        <div
+          key={b.id}
+          onClick={() => router.push(`/member/bookings/${b.id}`)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") router.push(`/member/bookings/${b.id}`);
+          }}
+          style={{
+            border: `1px solid ${BORDER}`,
+            borderRadius: "16px",
+            padding: "20px",
+            cursor: "pointer",
+            background: GLASS_BG,
+            backdropFilter: GLASS_BLUR,
+            WebkitBackdropFilter: GLASS_BLUR,
+          }}
+        >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
             <div>
               <div style={{ fontSize: "16px", fontWeight: 600, color: INK }}>{formatDate(b.date, locale)}</div>
@@ -488,23 +661,85 @@ function BookingsTab({
               <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
                 {b.durationHours ? `${b.durationHours}h · ` : ""}HK${b.price}
               </div>
+              {b.status === "refunded" && b.refundAmount != null ? (
+                <div style={{ fontSize: "13px", color: SUBTLE, marginTop: "2px" }}>
+                  {t("refund_success_toast")} HK${b.refundAmount}
+                </div>
+              ) : null}
             </div>
             <StatusBadge status={b.status} />
           </div>
-          <div style={{ display: "flex", gap: "10px", marginTop: "16px", flexWrap: "wrap" }}>
-            <SmallButton onClick={() => onViewQr(b)} icon={<QrCodeIcon size={15} strokeWidth={2} />} label={t("booking_view_qr")} cmsKey="member.booking_view_qr" />
-            <SmallButton
-              href={calendarLink(b)}
-              icon={<CalendarPlus size={15} strokeWidth={2} />}
-              label={t("booking_add_calendar")}
-              cmsKey="member.booking_add_calendar"
-            />
+          <div
+            style={{ display: "flex", gap: "10px", marginTop: "16px", alignItems: "center" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Primary action — visually the only filled/tinted pill. A
+                failed booking has no valid QR to show; offer to retry
+                payment instead of a QR that would never scan. Past or
+                cancelled/refunded bookings show no QR button at all —
+                their code can no longer be used for entry. */}
+            {b.status === "payment_failed" ? (
+              retryPaymentLink(b) && (
+                <SmallButton
+                  onClick={() => router.push(retryPaymentLink(b)!)}
+                  icon={<RotateCw size={15} strokeWidth={2} />}
+                  label={t("booking_retry_payment")}
+                  cmsKey="member.booking_retry_payment"
+                  primary
+                />
+              )
+            ) : (
+              canShowQr(b) && (
+                <SmallButton
+                  onClick={() => onViewQr(b)}
+                  icon={<QrCodeIcon size={15} strokeWidth={2} />}
+                  label={t("booking_view_qr")}
+                  cmsKey="member.booking_view_qr"
+                  primary
+                />
+              )
+            )}
+            {/* Refund stays visible (higher-consequence, narrow time window)
+                but de-emphasized — outline only, danger-tinted text. */}
+            {canRefund(b, refundCutoffHours) && (
+              <SmallButton
+                onClick={() => onRefund(b)}
+                icon={<Undo2 size={15} strokeWidth={2} />}
+                label={t("booking_refund")}
+                cmsKey="member.booking_refund"
+                tone="danger"
+              />
+            )}
+            {/* Low-frequency actions collapse into an overflow menu so the
+                card doesn't read as a row of equal-weight buttons. */}
+            <div style={{ marginLeft: "auto" }}>
+              <OverflowMenu
+                items={[
+                  { label: t("booking_add_calendar"), icon: <CalendarPlus size={15} strokeWidth={2} />, href: calendarLink(b) },
+                  ...(canReschedule(b)
+                    ? [{ label: t("booking_reschedule"), icon: <CalendarClock size={15} strokeWidth={2} />, onClick: () => onReschedule(b) }]
+                    : []),
+                ]}
+                ariaLabel={t("booking_more_actions")}
+              />
+            </div>
           </div>
         </div>
       ))}
     </div>
   );
 }
+
+// Icon + tint per points_ledger category — mirrors StatusBadge's
+// ${color}1f-tinted-circle convention.
+const POINTS_CATEGORY_STYLE: Record<
+  import("@/lib/data/getMember").PointsEntry["category"],
+  { icon: React.ReactNode; color: string }
+> = {
+  booking: { icon: <CalendarPlus size={14} strokeWidth={2} />, color: GREEN },
+  refund: { icon: <Undo2 size={14} strokeWidth={2} />, color: DANGER },
+  manual: { icon: <Sparkles size={14} strokeWidth={2} />, color: SUBTLE },
+};
 
 function PointsTab({ points, balance, locale }: { points: import("@/lib/data/getMember").PointsEntry[]; balance: number; locale: string }) {
   const t = useTranslations("memberPage");
@@ -518,27 +753,55 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
 
       {points.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {points.map((p, i) => (
-            <div
-              key={p.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "16px 0",
-                borderBottom: i < points.length - 1 ? `1px solid ${BORDER}` : "none",
-              }}
-            >
-              <div>
-                <div style={{ fontSize: "15px", color: INK }}>{p.description || "—"}</div>
-                <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "2px" }}>{formatDate(p.date, locale)}</div>
+          {points.map((p, i) => {
+            const iconStyle = POINTS_CATEGORY_STYLE[p.category];
+            return (
+              <div
+                key={p.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "16px 0",
+                  borderBottom: i < points.length - 1 ? `1px solid ${BORDER}` : "none",
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    flexShrink: 0,
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: `${iconStyle.color}1f`,
+                    color: iconStyle.color,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {iconStyle.icon}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "15px", color: INK }}>{p.description || "—"}</div>
+                  <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "2px" }}>{formatDate(p.date, locale)}</div>
+                </div>
+                <span
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    color: p.delta >= 0 ? GREEN : DANGER,
+                    minWidth: "64px",
+                    textAlign: "right",
+                    flexShrink: 0,
+                  }}
+                >
+                  {p.delta >= 0 ? "+" : ""}
+                  {p.delta}
+                </span>
               </div>
-              <span style={{ fontSize: "16px", fontWeight: 700, color: p.delta >= 0 ? GREEN : DANGER }}>
-                {p.delta >= 0 ? "+" : ""}
-                {p.delta}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <EmptyState text={t("no_points")} />
@@ -739,13 +1002,20 @@ function SmallButton({
   onClick,
   href,
   cmsKey,
+  primary,
+  tone,
 }: {
   label: string;
   icon: React.ReactNode;
   onClick?: () => void;
   href?: string;
   cmsKey: string;
+  /** Visually the hero action on the card (filled/tinted pill). */
+  primary?: boolean;
+  /** Outline-only, tinted text — for a visible-but-de-emphasized action. */
+  tone?: "danger";
 }) {
+  const toneColor = tone === "danger" ? DANGER : INK;
   const style: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
@@ -753,11 +1023,13 @@ function SmallButton({
     minHeight: 40,
     padding: "0 14px",
     borderRadius: "100px",
-    border: `1px solid ${BORDER}`,
-    background: "transparent",
-    color: INK,
+    border: `1px solid ${primary ? GREEN : tone === "danger" ? `${DANGER}55` : BORDER}`,
+    background: primary ? `${GREEN}1f` : "rgba(255,255,255,0.05)",
+    backdropFilter: "blur(20px) saturate(180%)",
+    WebkitBackdropFilter: "blur(20px) saturate(180%)",
+    color: primary ? GREEN : toneColor,
     fontSize: "13px",
-    fontWeight: 500,
+    fontWeight: primary ? 600 : 500,
     cursor: "pointer",
     textDecoration: "none",
     fontFamily: FONT_FAMILY,
@@ -772,6 +1044,117 @@ function SmallButton({
       {icon}
       {label}
     </button>
+  );
+}
+
+type OverflowMenuItem = {
+  label: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  href?: string;
+};
+
+// Small anchored popover for low-frequency secondary actions — same
+// AnimatePresence + SPRING recipe as QrModal, but a compact dropdown instead
+// of a full-screen overlay.
+function OverflowMenu({ items, ariaLabel }: { items: OverflowMenuItem[]; ariaLabel: string }) {
+  const [open, setOpen] = useState(false);
+  if (items.length === 0) return null;
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={ariaLabel}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          border: `1px solid ${BORDER}`,
+          background: "transparent",
+          color: SUBTLE,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "18px",
+          lineHeight: 1,
+        }}
+      >
+        ⋯
+      </button>
+      <AnimatePresence>
+        {open && (
+          <>
+            {/* Click-outside catcher */}
+            <div
+              onClick={() => setOpen(false)}
+              style={{ position: "fixed", inset: 0, zIndex: 90 }}
+            />
+            <motion.div
+              role="menu"
+              initial={{ opacity: 0, scale: 0.95, y: -6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -6 }}
+              transition={SPRING}
+              style={{
+                position: "absolute",
+                top: "calc(100% + 6px)",
+                right: 0,
+                zIndex: 91,
+                minWidth: 180,
+                background: DEEP,
+                border: `1px solid ${HAIRLINE}`,
+                borderRadius: "14px",
+                padding: "6px",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {items.map((item, i) => {
+                const itemStyle: React.CSSProperties = {
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "10px 12px",
+                  borderRadius: "9px",
+                  border: "none",
+                  background: "transparent",
+                  color: INK,
+                  fontSize: "14px",
+                  fontFamily: FONT_FAMILY,
+                  cursor: "pointer",
+                  textAlign: "left",
+                  textDecoration: "none",
+                };
+                return item.href ? (
+                  <a key={i} href={item.href} download role="menuitem" style={itemStyle} onClick={() => setOpen(false)}>
+                    {item.icon}
+                    {item.label}
+                  </a>
+                ) : (
+                  <button
+                    key={i}
+                    type="button"
+                    role="menuitem"
+                    style={itemStyle}
+                    onClick={() => {
+                      setOpen(false);
+                      item.onClick?.();
+                    }}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                );
+              })}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -811,14 +1194,14 @@ function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; 
               {t("qr_modal_title")}
             </h3>
             <div style={{ display: "flex", justifyContent: "center", padding: "20px", background: "white", borderRadius: "16px" }}>
-              <QRGlyph data={booking.reference ?? booking.id} size={200} dark />
+              <QRCode data={booking.humanCode} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
             </div>
             <div style={{ marginTop: "20px" }}>
               <div style={{ fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }} data-cms-key="member.qr_reference">
                 {t("qr_reference")}
               </div>
               <div style={{ fontSize: "16px", fontWeight: 700, fontFamily: "ui-monospace, monospace", marginTop: "4px", color: INK }}>
-                {booking.reference ?? booking.id.slice(0, 12)}
+                {booking.humanCode}
               </div>
               <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "8px" }}>
                 {formatDate(booking.date, locale)}
@@ -834,10 +1217,30 @@ function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; 
 
 // Build a Google Calendar "add event" link from a booking.
 function calendarLink(b: MemberBooking): string {
-  const title = encodeURIComponent("248 Snooker");
+  const title = encodeURIComponent("Space8");
   const toCal = (iso: string | null) => (iso ? iso.replace(/[-:]/g, "").replace(/\.\d+/, "") : "");
   const start = toCal(b.startTime);
   const end = toCal(b.endTime);
   const dates = start && end ? `&dates=${start}/${end}` : "";
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}${dates}`;
+}
+
+// A payment_failed booking's original slot lock is long gone (locks expire
+// in minutes, this can be found much later) — retry can't resume the same
+// booking row, only send the user back into slot selection with the same
+// date/time/table/duration pre-filled via /book's existing prefill effect.
+// Availability isn't re-checked here on purpose, same as that effect's own
+// prefill path — Screen1 handles a since-taken slot the same way either way.
+function retryPaymentLink(b: MemberBooking): string | null {
+  if (!b.date || !b.startTime || !b.tableId) return null;
+  const hour = b.startTime.length > 8 ? b.startTime.slice(11, 13) : b.startTime.slice(0, 2);
+  const start = parseInt(hour, 10);
+  if (Number.isNaN(start)) return null;
+  const params = new URLSearchParams({
+    date: b.date,
+    start: String(start),
+    duration: String(b.durationHours || 1),
+    table: String(b.tableId),
+  });
+  return `/book?${params.toString()}`;
 }

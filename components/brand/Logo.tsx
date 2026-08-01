@@ -8,25 +8,42 @@ type LogoProps = {
 }
 
 export function Logo({ variant = 'full', theme = 'dark', size = 48 }: LogoProps) {
+  // Official SVG exports — white artwork for dark sections, black artwork for
+  // light sections. The 8-ball is part of the logo artwork itself; never
+  // redraw it in code.
+  //
+  // NOTE: there is no black-on-transparent "mark only" export in the current
+  // brand asset set (only a white one). `mark`+`light` falls back to the
+  // black square lockup (wordmark + ball, still square-ratio) until a true
+  // black abstract mark is supplied.
   const src =
     variant === 'mark'
       ? theme === 'dark'
-        ? '/logos/248_ball_white.svg'
-        : '/logos/248_ball_black.svg'
+        ? '/logos/logo-white-mark.svg'
+        : '/logos/logo-black-square.svg'
       : theme === 'dark'
-      ? '/logos/248_logo_dark_bg.svg'
-      : '/logos/248_logo_white_bg.svg'
+        ? '/logos/logo-white-horizontal.svg'
+        : '/logos/logo-black-horizontal.svg'
 
-  // Marks are square; the full lockup is wider than tall.
-  const width = variant === 'mark' ? size : Math.round(size * 2.8)
+  // Marks are square (1080×1080); the full lockup is 1560.86×500.
+  // Brand guideline v1.0 hard rule: never render the logo narrower than
+  // 120px (digital minimum) — clamp the height so the width stays ≥120px.
+  const MIN_WIDTH = 120
+  const ratio = variant === 'mark' ? 1 : 3.12
+  const minHeight = Math.ceil(MIN_WIDTH / ratio)
+  const height = Math.max(size, minHeight)
+  const width = Math.round(height * ratio)
 
   return (
     <Image
       src={src}
-      alt="248 Snooker Club"
+      alt="Space8"
       width={width}
-      height={size}
-      style={{ height: size, width: 'auto' }}
+      height={height}
+      style={{
+        height,
+        width: 'auto',
+      }}
       priority
     />
   )

@@ -21,7 +21,7 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label={t('aria_label')}
-      className="md:hidden"
+      className="md:hidden si-whatsapp"
       onTouchStart={() => setShowTip(true)}
       onTouchEnd={() => setShowTip(false)}
       onMouseEnter={() => setShowTip(true)}
@@ -46,16 +46,13 @@ export default function WhatsAppButton() {
       {/* Tooltip */}
       <span
         role="tooltip"
+        className="glass-panel-dark"
         style={{
           position: 'absolute',
           right: '64px',
           top: '50%',
           transform: 'translateY(-50%)',
           whiteSpace: 'nowrap',
-          background: 'rgba(0,0,0,0.85)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          border: '1px solid rgba(255,255,255,0.2)',
           color: '#FFFFFF',
           fontSize: '13px',
           fontWeight: 500,
