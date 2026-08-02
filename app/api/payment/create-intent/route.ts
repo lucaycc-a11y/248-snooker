@@ -195,10 +195,10 @@ export async function POST(req: Request) {
           amount: amountInCents,
           currency: 'hkd',
           automatic_payment_methods: { enabled: true },
-          // Stripe emails the receipt itself on success — one less thing for the
-          // frontend/webhook to send. user.email is the authoritative auth email,
-          // never client input.
-          receipt_email: user.email ?? undefined,
+          // receipt_email intentionally omitted: Stripe Dashboard's email
+          // settings are OFF (we send our own via Resend). Passing receipt_email
+          // here would override the Dashboard toggle and re-enable Stripe's
+          // automatic receipt emails.
           metadata: {
             // booking_id kept for back-compat / single path; order_group_id drives
             // the grouped confirm in the webhook.
