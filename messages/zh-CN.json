@@ -721,7 +721,10 @@
     "login_whatsapp": "WhatsApp 号码",
     "or": "或",
     "payment_title": "付款",
+    "payment_subtitle": "选择你惯用的付款方式完成预约",
     "subtotal": "小计",
+    "points_earned_label": "可赚积分",
+    "points": "分",
     "service_fee": "服务费",
     "total": "总计",
     "pay_now": "立即付款",
@@ -787,7 +790,12 @@
     "empty_picks": "未选任何时段，在上方时间表点击即可加入。",
     "discount_label": "连订折扣",
     "block_saved_badge": "连订 {hours} 小时，省 HK${saved}",
-    "total_saved": "总共省 HK${saved}"
+    "total_saved": "总共省 HK${saved}",
+    "test_mode_label": "测试模式",
+    "test_mode_desc": "此付款方式仅供内部测试，不会经过 Stripe 或产生实际收费",
+    "test_mode_title": "内部测试订单",
+    "test_mode_confirm_detail": "确认后将直接建立预约，不会产生任何付款记录",
+    "confirm_test_booking": "确认测试预约"
   },
   "ticket": {
     "duration": "时长",

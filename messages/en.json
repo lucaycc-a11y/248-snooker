@@ -728,7 +728,10 @@
     "login_whatsapp": "WhatsApp Number",
     "or": "or",
     "payment_title": "Payment",
+    "payment_subtitle": "Choose your preferred payment method",
     "subtotal": "Subtotal",
+    "points_earned_label": "Points earned",
+    "points": "pts",
     "service_fee": "Service Fee",
     "total": "Total",
     "pay_now": "Pay Now",
@@ -794,7 +797,12 @@
     "empty_picks": "No slots selected yet — tap the timetable above to add.",
     "discount_label": "Multi-hour discount",
     "block_saved_badge": "Book {hours}h together — save HK${saved}",
-    "total_saved": "You save HK${saved}"
+    "total_saved": "You save HK${saved}",
+    "test_mode_label": "Test Mode",
+    "test_mode_desc": "For internal testing only — no Stripe payment will be processed",
+    "test_mode_title": "Internal Test Booking",
+    "test_mode_confirm_detail": "This will create a confirmed booking with no payment record",
+    "confirm_test_booking": "Confirm Test Booking"
   },
   "ticket": {
     "duration": "Duration",

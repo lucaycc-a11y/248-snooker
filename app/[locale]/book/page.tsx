@@ -16,11 +16,11 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
-import { TABLE_NAMES } from "@/lib/booking/constants"
+import { getTableName } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
-import { quoteBlockTotal, quoteBlockDetail } from "@/lib/pricing"
+import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
@@ -600,6 +600,7 @@ function SelectedPicksCard({
   periods: PricingPeriod[]
 }) {
   const t = useTranslations("book")
+  const locale = useLocale()
   const multiDate = new Set(runs.map((r) => r.date)).size > 1
 
   return (
@@ -659,7 +660,7 @@ function SelectedPicksCard({
                   {padTime(r.startHour)} – {padTime(r.startHour + r.duration)}
                 </div>
                 <div style={{ color: tokens.colors.textMuted, fontSize: 12, marginTop: 2 }}>
-                  {t("table_label")} #{r.tableNumber} ·{" "}
+                  {getTableName(r.tableNumber, locale)} ·{" "}
                   {detail.saved > 0 && (
                     <s style={{ color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
                       HK${detail.baseTotal}
@@ -708,9 +709,10 @@ type TableInfo = { id: number; name: string; type: string }
 
 function useTables() {
   const t = useTranslations("book")
+  const locale = useLocale()
   return [
-    { id: 1, name: `${t("table_label")} #1`, type: t("snooker") },
-    { id: 2, name: `${t("table_label")} #2`, type: t("snooker") },
+    { id: 1, name: getTableName(1, locale), type: t("snooker") },
+    { id: 2, name: getTableName(2, locale), type: t("snooker") },
   ]
 }
 
@@ -1507,7 +1509,7 @@ function Screen3({
   // Venue line label — display names instead of table numbers
   const tableName = Array.from(new Set(blocks.map((b) => b.tableNumber)))
     .sort()
-    .map((tn) => TABLE_NAMES[tn as 1 | 2] ?? `${t("table_label")} #${tn}`)
+    .map((tn) => getTableName(tn, locale) ?? `${t("table_label")} #${tn}`)
     .join(" + ")
 
   const primary = blocks[0]
@@ -1619,7 +1621,7 @@ function Screen3({
               {tableName}
             </div>
             <div style={{ fontSize: 14, color: tokens.colors.textMuted }}>
-              {t("table_count", { count: blocks.length }) || "Snooker"}
+              {t("snooker")}
             </div>
           </div>
 
@@ -1637,7 +1639,7 @@ function Screen3({
               const [, m, d] = b.date.split("-")
               const detail = quoteBlockDetail(b.date, b.startHour, b.duration, periods)
               const blockEnd = b.startHour + b.duration
-              const displayName = TABLE_NAMES[b.tableNumber as 1 | 2] ?? `${t("table_label")} #${b.tableNumber}`
+              const displayName = getTableName(b.tableNumber, locale) ?? `${t("table_label")} #${b.tableNumber}`
               return (
                 <div
                   key={`${b.date}-${b.startHour}-${b.tableNumber}`}
@@ -1726,6 +1728,11 @@ function Screen3({
                 <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
               </div>
             )}
+            {/* Points earned row */}
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
+              <span data-cms-key="book.points_earned_label">{t("points_earned_label")}</span>
+              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>+{total} {t("points")}</span>
+            </div>
             <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
@@ -1833,6 +1840,38 @@ function Screen3({
                 payDisabled={!agreedToTerms}
                 onDisabledPayClick={flagTermsRequired}
               />
+
+              {/* Payment reminder — near countdown */}
+              <div
+                data-cms-key="book.payment_reminder"
+                style={{
+                  fontSize: 12,
+                  color: tokens.colors.textFaint,
+                  textAlign: "center",
+                  marginTop: 16,
+                  padding: "0 8px",
+                  lineHeight: 1.5,
+                }}
+              >
+                {t("payment_reminder")}
+              </div>
+
+              {/* Powered by Stripe */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  marginTop: 14,
+                  opacity: 0.5,
+                }}
+              >
+                <Lock size={12} strokeWidth={1.5} style={{ color: tokens.colors.textMuted }} />
+                <span style={{ fontSize: 11, color: tokens.colors.textMuted, letterSpacing: "0.02em" }}>
+                  Powered by Stripe
+                </span>
+              </div>
             </div>
           )}
 
@@ -1963,33 +2002,6 @@ function Screen3({
             </div>
           </motion.div>
 
-          {total > 0 && (
-            <div
-              data-cms-key="book.points_earned"
-              style={{
-                fontSize: 12,
-                color: tokens.colors.textMuted,
-                textAlign: "center",
-                marginTop: 12,
-              }}
-            >
-              {t("points_earned_estimate", { pts: total })}
-            </div>
-          )}
-
-          <div
-            data-cms-key="book.payment_reminder"
-            style={{
-              fontSize: 13,
-              color: tokens.colors.textMuted,
-              textAlign: "center",
-              marginTop: 16,
-              padding: "0 16px",
-              lineHeight: 1.5,
-            }}
-          >
-            {t("payment_reminder")}
-          </div>
         </div>
       </div>
     </div>
