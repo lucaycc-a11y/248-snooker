@@ -38,7 +38,6 @@ const CONFIG = {
 }
 
 const BEBAS = "'Bebas Neue', system-ui, sans-serif"
-const STEPS = ["選擇時段", "登入", "付款", "確認"]
 
 /* ─────────────────────────  Helpers  ───────────────────────── */
 function genRef(): string {
@@ -1829,6 +1828,8 @@ function Screen3({
                 processingLabel={t("processing")}
                 errorLabel={t("pay_error")}
                 slotTakenLabel={t("slot_taken")}
+                bookingExpiredLabel={t("booking_expired")}
+                bookingExpiredDescLabel={t("booking_expired_desc")}
                 loadingLabel={t("pay_loading")}
                 lockHoldLabel={t("lock_hold")}
                 paymentFailedLabel={t("pay_declined")}
@@ -1856,21 +1857,25 @@ function Screen3({
                 {t("payment_reminder")}
               </div>
 
-              {/* Powered by Stripe */}
+              {/* Powered by Stripe — official badge */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 6,
                   marginTop: 14,
                   opacity: 0.5,
                 }}
               >
-                <Lock size={12} strokeWidth={1.5} style={{ color: tokens.colors.textMuted }} />
-                <span style={{ fontSize: 11, color: tokens.colors.textMuted, letterSpacing: "0.02em" }}>
-                  Powered by Stripe
-                </span>
+                <img
+                  src="/logos/payment/powered-by-stripe-badge.svg"
+                  alt="Powered by Stripe"
+                  style={{
+                    height: 18,
+                    width: "auto",
+                    display: "block",
+                  }}
+                />
               </div>
             </div>
           )}
@@ -2238,6 +2243,14 @@ export default function BookPage() {
   const t = useTranslations("book")
   const router = useRouter()
   const [screen, setScreen] = useState(0)
+
+  // Step labels from i18n so the progress bar matches the page locale
+  const STEPS = [
+    t("step_select"),
+    t("step_login"),
+    t("step_payment"),
+    t("step_confirm"),
+  ]
 
   const handleBack = useCallback(() => {
     if (screen === 0) {
