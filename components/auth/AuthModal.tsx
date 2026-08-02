@@ -83,11 +83,11 @@ export function AuthModal({
               </button>
             )}
 
-            <div style={{ textAlign: "center", marginBottom: 28 }}>
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-                <Logo variant="mark" theme="dark" size={32} />
+            <div style={{ textAlign: "center", marginBottom: 24 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+                <Logo variant="mark" theme="dark" size={40} />
               </div>
-              <h1 data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 34, letterSpacing: "0.02em", color: "#fff" }}>
+              <h1 data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 32, letterSpacing: "0.02em", color: "#fff", margin: 0 }}>
                 {t("title")}
               </h1>
             </div>

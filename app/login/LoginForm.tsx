@@ -4,8 +4,6 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AuthCard } from "@/components/auth/AuthCard";
 
-const GREEN = "#22c55e";
-
 function safeReturnUrl(value: string): string {
   if (!value.startsWith("/")) return "/member";
   if (value.startsWith("//")) return "/member";
@@ -46,16 +44,23 @@ export default function LoginForm({
         padding: 40,
       }}
     >
-      <div style={{ textAlign: "center", marginBottom: 28 }}>
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
         <div
-          data-cms-key="login.brand"
-          style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.32em", color: GREEN, marginBottom: 12 }}
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: 20,
+          }}
         >
-          {t("brand")}
+          <img
+            src="/logos/logo-white-mark.svg"
+            alt="Space8"
+            style={{ height: 48, width: "auto" }}
+          />
         </div>
         <h1
           data-cms-key="login.title"
-          style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 34, letterSpacing: "0.02em", color: "#fff" }}
+          style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 32, letterSpacing: "0.02em", color: "#fff", margin: 0 }}
         >
           {t("title")}
         </h1>

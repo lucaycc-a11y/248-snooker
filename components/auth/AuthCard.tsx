@@ -464,9 +464,8 @@ export function AuthCard({
   // ── Method picker ──────────────────────────────────────────────────────────
   return (
     <div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {/* Sign in with Apple — official Apple JS SDK popup (in-place via
-            signInWithIdToken), with automatic redirect-OAuth fallback. */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Sign in with Apple */}
         <AppleSignInButton returnUrl={returnUrl} label={t("apple")} errorLabel={t("err_generic")} />
 
         <GoogleSignInButton
@@ -476,14 +475,13 @@ export function AuthCard({
           errorLabel={t("err_generic")}
         />
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "4px 0" }}>
-          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.12)" }} />
-          <span style={{ fontSize: 11, letterSpacing: "0.12em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>{t("or")}</span>
-          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.12)" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "6px 0" }}>
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+          <span style={{ fontSize: 11, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>{t("or")}</span>
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
         </div>
 
-        {/* Email OTP entry — third primary method, replaces SMS as the default
-            non-social path (task: Apple/Google/Email OTP). */}
+        {/* Email OTP entry */}
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -491,47 +489,34 @@ export function AuthCard({
           inputMode="email"
           autoComplete="email"
           aria-label={t("email_placeholder")}
-          style={{ height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
+          style={{ height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
         />
         <button
           type="button"
           onClick={sendEmailOtp}
           disabled={busy}
           data-cms-key="auth.email.continue"
-          style={{ width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}
+          style={{ width: "100%", height: 50, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer", transition: "background 0.2s ease" }}
         >
           {busy ? t("sending") : t("email_continue")}
         </button>
 
         {error && phase === "methods" && (
-          <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>
+          <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center", margin: 0 }}>{error}</p>
         )}
 
-        {/* Password sign-in — for users who set a password after their first
-            email OTP login (task: post-OTP optional password + password/OTP
-            choice on return). */}
+        {/* Password sign-in — subtle, de-emphasized */}
         <button
           type="button"
           onClick={() => { setPhase("password"); setError(null) }}
           data-cms-key="auth.switch_to_password"
-          style={{ marginTop: -4, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 13, cursor: "pointer", textAlign: "center" }}
+          style={{ marginTop: 2, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12.5, cursor: "pointer", textAlign: "center", textDecoration: "underline", textUnderlineOffset: 2, textDecorationColor: "rgba(255,255,255,0.1)" }}
         >
           {t("switch_to_password")}
         </button>
-
-        {/* De-emphasized fallback — existing phone-only members still need a way
-            in; not shown as a primary CTA per the Apple/Google/Email redesign. */}
-        <button
-          type="button"
-          onClick={() => { setPhase("phone"); setError(null) }}
-          data-cms-key="auth.sms.fallback_link"
-          style={{ marginTop: 4, background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 13, cursor: "pointer", textAlign: "center" }}
-        >
-          {t("sms_fallback_link")}
-        </button>
       </div>
 
-      <p data-cms-key="auth.terms" style={{ marginTop: 20, textAlign: "center", fontSize: 12, lineHeight: 1.6, color: "rgba(255,255,255,0.4)" }}>
+      <p data-cms-key="auth.terms" style={{ marginTop: 24, textAlign: "center", fontSize: 11, lineHeight: 1.6, color: "rgba(255,255,255,0.3)" }}>
         {t("terms")}
       </p>
     </div>

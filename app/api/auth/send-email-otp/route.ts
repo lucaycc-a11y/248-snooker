@@ -33,10 +33,27 @@ export async function POST(req: Request) {
       options: { shouldCreateUser: true },
     })
     if (error) {
+      // Log the FULL error shape — Supabase can return non-standard error objects
+      // where message is an object rather than a string, which the previous sparse
+      // log ('{}') silently hid. Capture every own-property so we can diagnose
+      // the actual cause.
+      const errorProps: Record<string, unknown> = {}
+      try {
+        for (const k of Object.getOwnPropertyNames(error)) {
+          errorProps[k] = (error as unknown as Record<string, unknown>)[k]
+        }
+      } catch {}
       console.error('[send-email-otp] error', {
         message: error.message,
+        messageType: typeof error.message,
+        messageJson: typeof error.message === 'object' ? JSON.stringify(error.message) : error.message,
         status: (error as { status?: number }).status,
         code: (error as { code?: string }).code,
+        name: (error as { name?: string }).name,
+        // Full serialized error — captures properties that aren't enumerable
+        // or that get lost in the generic log object
+        serialized: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+        allProps: errorProps,
       })
       const isRate = /rate|limit|too many/i.test(error.message)
       // Deliberately NOT a 5xx — see send-otp/route.ts for why (a 502 hides the
