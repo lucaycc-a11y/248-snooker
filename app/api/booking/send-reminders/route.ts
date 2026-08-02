@@ -22,19 +22,41 @@ export async function POST() {
   const supabase = getServiceSupabase()
 
   try {
+    // Compute the time window in Hong Kong time (UTC+8).
+    // start_time is a `time` column (no date), so we compare it against the
+    // current clock time +25/+35 minutes as a plain time string, not a SQL
+    // expression — the Supabase JS client parameterizes values, meaning
+    // `now() + interval '25 minutes'` would be sent as a string literal
+    // and fail to cast to `time`.
+    const now = new Date()
+    const hkOffset = 8 * 60 * 60 * 1000
+    const hkNow = new Date(now.getTime() + hkOffset)
+    const in25 = new Date(hkNow.getTime() + 25 * 60 * 1000)
+    const in35 = new Date(hkNow.getTime() + 35 * 60 * 1000)
+
+    const fmtTime = (d: Date) =>
+      `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}:00`
+
+    const time25 = fmtTime(in25)
+    const time35 = fmtTime(in35)
+
     // Find bookings that need reminder emails
     // Criteria:
     // 1. status = 'confirmed'
     // 2. reminder_email_sent_at IS NULL (not yet sent)
-    // 3. start_time is 25-35 minutes from now
-    // 4. date != created_at date (not same-day booking)
+    // 3. date is today (in HKT — start_time is a `time` column, so we also
+    //    need to match the date to avoid picking up past/future dates)
+    // 4. start_time is between 25 and 35 minutes from now (as time-of-day)
+    // 5. date != created_at date (not same-day booking)
+    const todayHKT = `${hkNow.getUTCFullYear()}-${String(hkNow.getUTCMonth() + 1).padStart(2, '0')}-${String(hkNow.getUTCDate()).padStart(2, '0')}`
     const { data: bookings, error } = await supabase
       .from('bookings')
       .select('id, date, start_time, created_at, status')
       .eq('status', 'confirmed')
       .is('reminder_email_sent_at', null)
-      .gte('start_time', `now() + interval '25 minutes'`)
-      .lte('start_time', `now() + interval '35 minutes'`)
+      .eq('date', todayHKT)
+      .gte('start_time', time25)
+      .lte('start_time', time35)
 
     if (error) {
       console.error('[send-reminders] query failed', { message: error.message })
@@ -47,8 +69,10 @@ export async function POST() {
 
     // Filter out same-day bookings: only send reminders for bookings whose
     // booking date is different from the day they were created.
+    // date is a `date` column (already YYYY-MM-DD format), created_at is
+    // timestamptz — slice(0,10) gives the date portion of both.
     const eligible = bookings.filter((b) => {
-      const bookingDate = b.date?.slice(0, 10)
+      const bookingDate = b.date
       const createdDate = b.created_at?.slice(0, 10)
       return bookingDate && createdDate && bookingDate !== createdDate
     })

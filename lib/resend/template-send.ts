@@ -1,6 +1,7 @@
 import { getResend } from './client'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getTableName } from '@/lib/booking/constants'
+import { humanReadableCode } from '@/lib/qr/jwt'
 import QRCode from 'qrcode'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -177,8 +178,15 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     booking.stripe_payment_intent,
   )
 
-  // QR code image from the stored qr_code value
-  const qrCodeDataUrl = await QRCode.toDataURL(booking.qr_code ?? '', {
+  // QR code image from the stored qr_code value (human-readable code).
+  // If qr_code is missing (e.g. stale read), fall back to human_code, then
+  // regenerate from humanReadableCode(). Empty string would crash qrcode
+  // with "No input text".
+  const qrContent = booking.qr_code ?? booking.human_code ?? humanReadableCode(bookingId)
+  if (!qrContent) {
+    throw new Error(`missing_qr_content: booking ${bookingId} has no qr_code, human_code, or derivable code`)
+  }
+  const qrCodeDataUrl = await QRCode.toDataURL(qrContent, {
     errorCorrectionLevel: 'M',
     type: 'image/png',
     width: 500,
@@ -292,7 +300,11 @@ async function renderBookingReminderHtml(bookingId: string): Promise<{
   const durationHours = Number(booking.duration_hours)
 
   // QR code image
-  const qrCodeDataUrl = await QRCode.toDataURL(booking.qr_code ?? '', {
+  const qrContent = booking.qr_code ?? booking.human_code ?? humanReadableCode(bookingId)
+  if (!qrContent) {
+    throw new Error(`missing_qr_content: booking ${bookingId} has no qr_code, human_code, or derivable code`)
+  }
+  const qrCodeDataUrl = await QRCode.toDataURL(qrContent, {
     errorCorrectionLevel: 'M',
     type: 'image/png',
     width: 500,
