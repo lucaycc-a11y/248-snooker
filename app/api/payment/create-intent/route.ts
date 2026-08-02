@@ -72,8 +72,8 @@ export async function POST(req: Request) {
     for (const sid of slotIds) {
       const slot = await validateSlotLock(sid, user.id)
       if (!slot) {
-        console.log('[payment/create-intent] rejected', { userId: user.id, slotId: sid, reason: 'lock_invalid_or_expired' })
-        return NextResponse.json({ error: 'Slot lock invalid or expired' }, { status: 409 })
+        console.log('[payment/create-intent] rejected', { userId: user.id, slotId: sid, reason: 'lock_expired' })
+        return NextResponse.json({ error: 'booking_expired', message: 'Slot lock no longer valid' }, { status: 409 })
       }
 
       const startHour = parseInt(slot.start_time.slice(0, 2), 10)

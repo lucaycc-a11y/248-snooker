@@ -10,6 +10,7 @@ import {
 import type { Appearance, StripeElementLocale } from "@stripe/stripe-js"
 import { getStripeClient } from "@/lib/stripe/client"
 import { getDeclineMessage, getWhatsAppSupportUrl } from "@/lib/stripe/decline-codes"
+import { tokens } from "@/app/styles/tokens"
 
 const stripePromise = getStripeClient()
 
@@ -18,6 +19,10 @@ const stripePromise = getStripeClient()
 // swap in the clear "someone just took this" copy instead of the generic
 // lock-failure detail. Not user-facing text — matched by reference, never shown.
 const SLOT_TAKEN = "__slot_taken__"
+// Internal sentinel: thrown when the PaymentIntent API returns booking_expired
+// (the slot lock expired before the user paid), so the render can show a
+// dedicated "booking expired" screen instead of the generic error message.
+const BOOKING_EXPIRED = "__booking_expired__"
 
 // Match the booking page's black + brand-green + pill design language.
 // PaymentElement renders official, licensed method icons + native Apple/Google
@@ -75,6 +80,9 @@ type Labels = {
    * from find_or_lock_slot) — a clear "someone just took this, pick another"
    * message, distinct from the generic "couldn't start payment" errorLabel. */
   slotTakenLabel: string
+  /** Shown when the slot lock expired before payment completed (409/booking_expired
+   * from create-intent) — a clear "your hold period expired, pick again" message. */
+  bookingExpiredLabel: string
   /** Generic fallback shown under the Payment Element when Stripe returns no
    * message of its own (declines/validation almost always include one, but
    * some edge cases don't) — must be CMS/i18n text, never a bare English string. */
@@ -123,6 +131,8 @@ type Props = Labels & {
    * error screen with no way forward except the browser back button. */
   onBackToSlots?: () => void
   backToSlotsLabel: string
+  bookingExpiredLabel: string
+  bookingExpiredDescLabel: string
   /** External gate for the pay button (e.g. the terms-agreement checkbox on
    * the payment screen). Purely disables submission — no Stripe logic here. */
   payDisabled?: boolean
@@ -439,12 +449,33 @@ export default function StripePayment(props: Props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(intentBody),
         })
-        const intentJson = await intentRes.json()
-        if (!intentRes.ok) throw new Error(intentJson.detail || intentJson.error || "intent failed")
+
+        // Safe JSON parsing: the API guarantees JSON, but a proxy/nginx/vercel
+        // edge error could produce HTML. Never raw-parse response.json().
+        let intentJson: Record<string, unknown>
+        try {
+          intentJson = await intentRes.json()
+        } catch {
+          throw new Error("intent_failed")
+        }
+
+        if (!intentRes.ok) {
+          // 409 + booking_expired = the slot lock expired before the user paid.
+          if (intentRes.status === 409 && intentJson?.error === "booking_expired") {
+            throw new Error(BOOKING_EXPIRED)
+          }
+          throw new Error(
+            typeof intentJson?.detail === "string"
+              ? intentJson.detail
+              : typeof intentJson?.error === "string"
+                ? intentJson.error
+                : "intent_failed",
+          )
+        }
 
         if (!cancelled) {
-          setClientSecret(intentJson.clientSecret)
-          setBookingId(intentJson.bookingId)
+          setClientSecret(typeof intentJson.clientSecret === "string" ? intentJson.clientSecret : null)
+          setBookingId(typeof intentJson.bookingId === "string" ? intentJson.bookingId : null)
         }
       } catch (e) {
         if (!cancelled) setError((e as Error).message)
@@ -473,6 +504,41 @@ export default function StripePayment(props: Props) {
               style={{
                 minHeight: 44,
                 padding: "0 24px",
+                borderRadius: 9999,
+                border: "none",
+                background: "#22c55e",
+                color: "#000",
+                fontWeight: 700,
+                fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              {props.backToSlotsLabel}
+            </button>
+          )}
+        </div>
+      )
+    }
+
+    // Slot lock expired before payment: show a dedicated "booking expired"
+    // screen with a clock icon, clear explanation, and a CTA to rebook.
+    if (error === BOOKING_EXPIRED) {
+      return (
+        <div className="glass-panel" style={{ textAlign: "center", padding: "32px 20px", borderRadius: 16 }}>
+          <div style={{ fontSize: 36, marginBottom: 12, lineHeight: 1, opacity: 0.7 }}>⏳</div>
+          <p style={{ fontSize: 17, fontWeight: 700, color: tokens.colors.text, margin: "0 0 8px" }}>
+            {props.bookingExpiredLabel}
+          </p>
+          <p style={{ fontSize: 13, color: tokens.colors.textMuted, margin: "0 0 24px", lineHeight: 1.6, maxWidth: 320, marginLeft: "auto", marginRight: "auto" }}>
+            {props.bookingExpiredDescLabel}
+          </p>
+          {props.onBackToSlots && (
+            <button
+              type="button"
+              onClick={props.onBackToSlots}
+              style={{
+                minHeight: 44,
+                padding: "0 28px",
                 borderRadius: 9999,
                 border: "none",
                 background: "#22c55e",
