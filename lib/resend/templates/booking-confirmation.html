@@ -48,10 +48,7 @@
               <!-- Room & Time -->
               <div style="border-top:1px solid #262626;border-bottom:1px solid #262626;padding:20px 0;margin-bottom:20px;">
                 <p style="color:#ffffff;font-size:18px;font-weight:600;margin:0 0 4px;">
-                  {{roomName}}
-                </p>
-                <p style="color:#a3a3a3;font-size:14px;margin:0 0 4px;">
-                  {{roomNameZh}}
+                  {{venueDisplayName}}
                 </p>
                 <p style="color:#ffffff;font-size:16px;margin:12px 0 4px;">
                   {{bookingDate}} · {{startTime}}–{{endTime}}
@@ -72,10 +69,18 @@
               </div>
 
               <!-- Price -->
-              <div style="border-top:1px solid #262626;padding-top:12px;margin-bottom:20px;">
+              <div style="border-top:1px solid #262626;padding-top:12px;margin-bottom:8px;">
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="color:#a3a3a3;font-size:14px;padding:4px 0;">總計 Total</td>
+                    <td style="color:#a3a3a3;font-size:14px;padding:4px 0;">小計 Subtotal</td>
+                    <td style="color:#ffffff;font-size:15px;text-align:right;">HK${{totalPrice}}</td>
+                  </tr>
+                  <tr>
+                    <td style="color:#a3a3a3;font-size:14px;padding:4px 0;">賺取積分 Points Earned</td>
+                    <td style="color:#22c55e;font-size:15px;text-align:right;">+{{pointsEarned}} pts</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;"><span style="color:#a3a3a3;font-size:14px;font-weight:600;">總計 Total</span></td>
                     <td style="color:#22c55e;font-size:20px;font-weight:700;text-align:right;">HK${{totalPrice}}</td>
                   </tr>
                 </table>
@@ -90,6 +95,19 @@
               <div style="text-align:center;margin-bottom:24px;">
                 <a href="{{bookingDetailUrl}}" style="display:inline-block;background-color:#22c55e;color:#000000;font-size:14px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:12px;">
                   查看預約詳情 View Booking Details
+                </a>
+              </div>
+
+              <!-- Venue Address -->
+              <div style="background-color:rgba(255,255,255,0.04);border-radius:12px;padding:16px;margin-bottom:20px;">
+                <p style="color:#a3a3a3;font-size:12px;margin:0 0 6px;">
+                  場地地址 Venue Address
+                </p>
+                <p style="color:#ffffff;font-size:14px;margin:0 0 8px;">
+                  {{venueAddress}}
+                </p>
+                <a href="{{googleMapsUrl}}" style="color:#22c55e;font-size:13px;text-decoration:none;">
+                  在 Google Maps 打開 Open in Google Maps →
                 </a>
               </div>
 
@@ -114,7 +132,7 @@
                 <a href="https://space8.com.hk/legal/refund-policy" style="color:#22c55e;text-decoration:none;">退款條款 Refund Policy</a>
               </p>
               <p style="color:#525252;font-size:12px;margin:16px 0 0;">
-                SPACE8 · Hong Kong
+                &copy; {{currentYear}} SPACE8 · Hong Kong
               </p>
             </td>
           </tr>
