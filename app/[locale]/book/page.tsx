@@ -6,6 +6,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Lock,
+  ShieldCheck,
+  AlertTriangle,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { Button, Card, ProgressSteps, BackButton } from "@/components/ui"
@@ -14,6 +16,7 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
+import { TABLE_NAMES } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
@@ -1473,50 +1476,52 @@ function Screen3({
   const t = useTranslations("book")
   const locale = useLocale()
 
-  // Terms-agreement gate (Task: 付款前同意條款). The pay button inside
-  // StripePayment stays disabled until this is checked. Clicking the disabled
-  // pay button flags the checkbox (red border + shake + inline error) so the
-  // user can see WHY the button is grey instead of guessing.
+  // Terms-agreement gate
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [termsError, setTermsError] = useState(false)
   const [termsShake, setTermsShake] = useState(0)
   const termsRef = useRef<HTMLDivElement>(null)
   const flagTermsRequired = useCallback(() => {
     setTermsError(true)
-    setTermsShake((n) => n + 1) // re-keys the wrapper so the animation replays
+    setTermsShake((n) => n + 1)
     termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
   }, [])
 
-  // Venue line label — a mixed-table order lists every table in the order.
+  // Admin test mode
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [testMode, setTestMode] = useState(false)
+  const [testConfirming, setTestConfirming] = useState(false)
+  const [testError, setTestError] = useState<string | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch("/api/booking/admin-test-confirm")
+        const { isAdmin: admin } = await res.json()
+        if (!cancelled) setIsAdmin(!!admin)
+      } catch {}
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  // Venue line label — display names instead of table numbers
   const tableName = Array.from(new Set(blocks.map((b) => b.tableNumber)))
     .sort()
-    .map((tn) => `${t("table_label")} #${tn}`)
+    .map((tn) => TABLE_NAMES[tn as 1 | 2] ?? `${t("table_label")} #${tn}`)
     .join(" + ")
 
-  // Single-block scalars used only for <StripePayment>'s flat-form fallback
-  // fields — StripePayment itself branches on blocks.length > 1 vs a flat
-  // single-block body. (The summary card above always itemizes per block.)
   const primary = blocks[0]
   const dateStr = primary?.date ?? ""
   const startHour = primary?.startHour ?? 0
   const duration = primary?.duration ?? 0
   const tableNumber = primary?.tableNumber ?? 0
 
-  // Order total across every block (grouped, non-contiguous orders sum them).
   const total = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
-  // Pre-discount baseline for the Apple-style "小計 → 折扣 → 總計" hierarchy:
-  // subtotal shows the undiscounted sum, the discount row shows what the 2h+
-  // rate took off, and only then the total — so the discount is traceable.
   const totalSaved = blocks.reduce(
     (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
     0,
   )
 
-  // The user is already authenticated + profile_complete by the time they reach
-  // this step (Screen2 gates on it), so `users` already has display_name/email/
-  // phone — read it once here rather than asking the Payment Element to collect
-  // it again. RLS lets a user select their own row via the cookie-bound browser
-  // client (same pattern as AuthCard/AccountMenu).
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
   useEffect(() => {
     let cancelled = false
@@ -1538,217 +1543,366 @@ function Screen3({
         phone: (data?.phone as string) ?? "",
       })
     })()
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [])
+
+  // Admin test confirm handler
+  const handleTestConfirm = useCallback(async () => {
+    if (!agreedToTerms) {
+      flagTermsRequired()
+      return
+    }
+    setTestConfirming(true)
+    setTestError(null)
+    try {
+      const body = blocks.length > 1
+        ? { blocks: blocks.map((b) => ({ date: b.date, startHour: b.startHour, duration: b.duration, tableNumber: b.tableNumber })) }
+        : { date: dateStr, startHour, duration, tableNumber }
+      const res = await fetch("/api/booking/admin-test-confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setTestError(json.detail || json.error || "Test booking failed")
+        setTestConfirming(false)
+        return
+      }
+      // Navigate to confirmation — same as Stripe redirect return
+      window.location.href = `/book?bookingId=${json.primaryBookingId}&redirect_status=succeeded`
+    } catch (e) {
+      setTestError((e as Error).message)
+      setTestConfirming(false)
+    }
+  }, [blocks, dateStr, startHour, duration, tableNumber, agreedToTerms, flagTermsRequired])
 
   return (
     <div className="screen-content">
-      <div style={{ maxWidth: 480, margin: "0 auto" }}>
-        {/* Back to slot selection — persistent, normal-flow entry point (not
-            just the error-state recovery button inside StripePayment). Reuses
-            the same handler passed down as onBackToSlots so both paths stay
-            in sync; selection state is preserved by the caller. */}
-        {onBackToSlots && (
-          <button
-            type="button"
-            onClick={onBackToSlots}
+      {/* Back button */}
+      {onBackToSlots && (
+        <button
+          type="button"
+          onClick={onBackToSlots}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            minHeight: 44,
+            marginBottom: 16,
+            padding: 0,
+            background: "none",
+            border: "none",
+            color: tokens.colors.textMuted,
+            fontSize: 14,
+            cursor: "pointer",
+          }}
+        >
+          <ChevronLeft size={18} />
+          {t("back_to_slots")}
+        </button>
+      )}
+
+      {/* Left-right layout */}
+      <div className="checkout-layout">
+        {/* ── LEFT: Order Summary ── */}
+        <div className="checkout-summary">
+          {/* Venue header */}
+          <div style={{ marginBottom: 24 }}>
+            <div
+              data-cms-key="book.pay.venue"
+              style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: tokens.colors.link, marginBottom: 8 }}
+            >
+              {t("venue") || "SPACE8"}
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>
+              {tableName}
+            </div>
+            <div style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+              {t("table_count", { count: blocks.length }) || "Snooker"}
+            </div>
+          </div>
+
+          {/* Booked slots */}
+          <div
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              minHeight: 44,
-              marginBottom: 12,
-              padding: 0,
-              background: "none",
-              border: "none",
-              color: tokens.colors.textMuted,
-              fontSize: 14,
-              cursor: "pointer",
+              background: tokens.colors.surface,
+              border: `1px solid ${tokens.colors.border}`,
+              borderRadius: tokens.radius.card,
+              padding: 24,
+              marginBottom: 16,
             }}
           >
-            <ChevronLeft size={18} />
-            {t("back_to_slots")}
-          </button>
-        )}
-
-        {/* Order summary — card-based hierarchy (Task 4): three bordered
-            groups (時段 / 用戶資料 / 費用明細) instead of one flat text run.
-            Borders only, no shadows, per the design system. */}
-        <Card
-          className="glass-panel"
-          style={{ marginBottom: 24, borderRadius: 20 }}
-        >
-          {/* ── Group 1: booked slots — one tinted item card per block ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
             {blocks.map((b) => {
               const [, m, d] = b.date.split("-")
               const detail = quoteBlockDetail(b.date, b.startHour, b.duration, periods)
               const blockEnd = b.startHour + b.duration
+              const displayName = TABLE_NAMES[b.tableNumber as 1 | 2] ?? `${t("table_label")} #${b.tableNumber}`
               return (
                 <div
                   key={`${b.date}-${b.startHour}-${b.tableNumber}`}
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 12,
-                    border: `1px solid ${tokens.colors.border}`,
-                    background: "rgba(255,255,255,0.04)",
-                    borderRadius: tokens.radius.input,
-                    padding: "12px 14px",
+                    alignItems: "flex-start",
+                    gap: 16,
+                    padding: blocks.length > 1 && blocks.indexOf(b) < blocks.length - 1 ? "0 0 16px" : 0,
+                    marginBottom: blocks.length > 1 && blocks.indexOf(b) < blocks.length - 1 ? 16 : 0,
+                    borderBottom: blocks.length > 1 && blocks.indexOf(b) < blocks.length - 1 ? `1px solid ${tokens.colors.border}` : "none",
                   }}
                 >
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                      {Number(m)}月{Number(d)}日 {padTime(b.startHour)}–{padTime(blockEnd)}
-                      {blockEnd >= 24 ? " +1日" : ""}
+                  <div>
+                    <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums", marginBottom: 4 }}>
+                      {Number(m)}/{Number(d)} · {padTime(b.startHour)}–{padTime(blockEnd)}{blockEnd >= 24 ? " +1" : ""}
                     </div>
-                    <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 2 }}>
-                      {t("table_label")} #{b.tableNumber} · {b.duration}
-                      {t("hours")}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: tokens.colors.textMuted, flexWrap: "wrap" }}>
+                      <span>{displayName}</span>
+                      <span style={{ color: tokens.colors.textFaint }}>·</span>
+                      <span>{b.duration}{t("hours")}</span>
                     </div>
                   </div>
-                  <div style={{ flexShrink: 0, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
                     {detail.saved > 0 && (
-                      <div>
-                        <s style={{ fontSize: 12, color: tokens.colors.textFaint }}>HK${detail.baseTotal}</s>
-                      </div>
+                      <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}>HK${detail.baseTotal}</s>
                     )}
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>HK${detail.total}</div>
+                    HK${detail.total}
                   </div>
                 </div>
               )
             })}
           </div>
-          <div
-            data-cms-key="book.pay.venue"
-            style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16 }}
-          >
-            Space8 · {tableName}
-          </div>
 
-          {/* ── Group 2: payer identity ── */}
+          {/* Contact info */}
           {profile && (profile.name || profile.email || profile.phone) && (
             <div
               style={{
+                background: tokens.colors.surface,
                 border: `1px solid ${tokens.colors.border}`,
-                borderRadius: tokens.radius.input,
-                padding: "12px 14px",
+                borderRadius: tokens.radius.card,
+                padding: 20,
                 marginBottom: 16,
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
               }}
             >
-              {profile.name && (
-                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 2 }}>{profile.name}</div>
-              )}
-              {(profile.email || profile.phone) && (
-                <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
-                  {[profile.email, profile.phone].filter(Boolean).join(" · ")}
-                </div>
-              )}
+              <div
+                style={{
+                  width: 42, height: 42, borderRadius: "50%",
+                  background: `linear-gradient(135deg, ${tokens.colors.link}, #0f7845)`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontWeight: 700, fontSize: 15, flexShrink: 0,
+                }}
+              >
+                {(profile.name || "?").charAt(0).toUpperCase()}
+              </div>
+              <div>
+                {profile.name && <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>{profile.name}</div>}
+                {(profile.email || profile.phone) && (
+                  <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
+                    {[profile.email, profile.phone].filter(Boolean).join(" · ")}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* ── Group 3: fee breakdown — table-style rows, amounts right-
-              aligned with tabular numerals; 小計/服務費 sit a level below the
-              hero 總計 line. ── */}
+          {/* Price breakdown — NO service fee row */}
           <div
             style={{
+              background: tokens.colors.surface,
               border: `1px solid ${tokens.colors.border}`,
-              borderRadius: tokens.radius.input,
-              padding: "12px 14px",
+              borderRadius: tokens.radius.card,
+              padding: 24,
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
-              <span data-cms-key="book.pay.subtotal" style={{ color: tokens.colors.textMuted }}>{t("subtotal")}</span>
-              <span style={{ color: tokens.colors.textMuted, fontVariantNumeric: "tabular-nums" }}>HK${total + totalSaved}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
+              <span data-cms-key="book.pay.subtotal">{t("subtotal")}</span>
+              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>HK${total + totalSaved}</span>
             </div>
-            {/* Discount line — Apple Store checkout hierarchy (小計 → 折扣 → 總計):
-                only rendered when the 2h+ contiguous-block rate actually saved
-                something, so the total is never an unexplained smaller number. */}
             {totalSaved > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 8 }}>
-                <span data-cms-key="book.pay.discount" style={{ color: tokens.colors.textMuted }}>{t("discount_label")}</span>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
+                <span data-cms-key="book.pay.discount">{t("discount_label")}</span>
                 <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
               </div>
             )}
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 12 }}>
-              <span data-cms-key="book.pay.fee" style={{ color: tokens.colors.textMuted }}>{t("service_fee")}</span>
-              <span style={{ color: tokens.colors.textMuted, fontVariantNumeric: "tabular-nums" }}>HK$0</span>
-            </div>
-            <div style={{ height: 1, background: tokens.colors.border, marginBottom: 12 }} />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span data-cms-key="book.pay.total" style={{ fontSize: 15, fontWeight: 600 }}>{t("total")}</span>
-              <span style={{ fontFamily: BEBAS, fontSize: 28, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>HK${total}</span>
+            <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+              <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
+              <span style={{ fontFamily: BEBAS, fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
+                <span style={{ fontSize: 16, opacity: 0.7, marginRight: 2 }}>HK$</span>{total}
+              </span>
             </div>
           </div>
-        </Card>
 
-        {/* Payment — Stripe Payment Element rendered under our own chrome. It
-            shows cards + Apple/Google Pay + Alipay/WeChat with officially-licensed
-            icons, and confirms via redirect (return to /book). The glass surface
-            + entrance animation are purely visual; the <StripePayment> element and
-            all Stripe logic inside it are untouched. */}
-        <motion.div
-          className="glass-panel"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          style={{ borderRadius: 20, padding: 20 }}
-        >
-          <div
-            data-cms-key="book.pay.method"
-            style={{ fontSize: 13, color: tokens.colors.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}
-          >
-            {t("payment_title")}
+          {/* Trust strip */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, fontSize: 12.5, color: tokens.colors.textFaint }}>
+            <Lock size={14} style={{ color: tokens.colors.link, flexShrink: 0 }} />
+            <span data-cms-key="book.pay.secure">{t("stripe_secure")}</span>
+          </div>
+        </div>
+
+        {/* ── RIGHT: Payment ── */}
+        <div className="checkout-payment">
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("payment_title")}</div>
+            <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>{t("payment_subtitle") || "Choose your payment method"}</div>
           </div>
 
-          <StripePayment
-            date={dateStr}
-            startHour={startHour}
-            duration={duration}
-            tableNumber={tableNumber}
-            blocks={blocks.map((b) => ({
-              date: b.date,
-              startHour: b.startHour,
-              duration: b.duration,
-              tableNumber: b.tableNumber,
-            }))}
-            total={total}
-            locale={locale as "en" | "zh-HK" | "zh-CN"}
-            returnPath="/book"
-            payLabel={`${t("pay_now")} · HK$${total}`}
-            processingLabel={t("processing")}
-            errorLabel={t("pay_error")}
-            slotTakenLabel={t("slot_taken")}
-            loadingLabel={t("pay_loading")}
-            lockHoldLabel={t("lock_hold")}
-            paymentFailedLabel={t("pay_declined")}
-            whatsappSupportLabel={t("whatsapp_support")}
-            retryPaymentLabel={t("retry_payment")}
-            billingDetails={profile ?? undefined}
-            onBackToSlots={onBackToSlots}
-            backToSlotsLabel={t("back_to_slots")}
-            payDisabled={!agreedToTerms}
-            onDisabledPayClick={flagTermsRequired}
-          />
+          {/* Admin Test Mode banner */}
+          {isAdmin && (
+            <div
+              style={{
+                background: "rgba(255,159,10,0.08)",
+                border: "1px solid rgba(255,159,10,0.3)",
+                borderRadius: tokens.radius.input,
+                padding: "12px 16px",
+                marginBottom: 20,
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  cursor: "pointer",
+                  minHeight: 44,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={testMode}
+                  onChange={(e) => setTestMode(e.target.checked)}
+                  style={{
+                    width: 18, height: 18,
+                    accentColor: "#FF9F0A",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                  }}
+                />
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, color: "#FF9F0A" }}>
+                    <AlertTriangle size={16} />
+                    TEST · {t("test_mode_label") || "不記入營收"}
+                  </div>
+                  <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 2 }}>
+                    {t("test_mode_desc") || "直接確認訂單，唔經 Stripe 付款"}
+                  </div>
+                </div>
+              </label>
+            </div>
+          )}
 
-          {/* Terms agreement — must be ticked before the pay button enables.
-              Rendered under the Payment Element, above the reminder copy.
-              A constant "* 必須同意…" hint explains the grey pay button up
-              front; clicking the disabled button shakes + reddens this block. */}
+          {/* Stripe Payment (hidden when test mode is active) */}
+          {!testMode && (
+            <div
+              style={{
+                background: tokens.colors.surface,
+                border: `1px solid ${tokens.colors.border}`,
+                borderRadius: tokens.radius.card,
+                padding: 24,
+                marginBottom: 20,
+              }}
+            >
+              <StripePayment
+                date={dateStr}
+                startHour={startHour}
+                duration={duration}
+                tableNumber={tableNumber}
+                blocks={blocks.map((b) => ({
+                  date: b.date,
+                  startHour: b.startHour,
+                  duration: b.duration,
+                  tableNumber: b.tableNumber,
+                }))}
+                total={total}
+                locale={locale as "en" | "zh-HK" | "zh-CN"}
+                returnPath="/book"
+                payLabel={`${t("pay_now")} · HK$${total}`}
+                processingLabel={t("processing")}
+                errorLabel={t("pay_error")}
+                slotTakenLabel={t("slot_taken")}
+                loadingLabel={t("pay_loading")}
+                lockHoldLabel={t("lock_hold")}
+                paymentFailedLabel={t("pay_declined")}
+                whatsappSupportLabel={t("whatsapp_support")}
+                retryPaymentLabel={t("retry_payment")}
+                billingDetails={profile ?? undefined}
+                onBackToSlots={onBackToSlots}
+                backToSlotsLabel={t("back_to_slots")}
+                payDisabled={!agreedToTerms}
+                onDisabledPayClick={flagTermsRequired}
+              />
+            </div>
+          )}
+
+          {/* Test mode: show admin confirm button */}
+          {testMode && (
+            <div
+              style={{
+                background: "rgba(255,159,10,0.05)",
+                border: "1px solid rgba(255,159,10,0.2)",
+                borderRadius: tokens.radius.card,
+                padding: 24,
+                marginBottom: 20,
+              }}
+            >
+              <div
+                data-cms-key="book.pay.test_title"
+                style={{ fontSize: 14, fontWeight: 600, color: "#FF9F0A", marginBottom: 8 }}
+              >
+                {t("test_mode_title") || "管理員測試模式"}
+              </div>
+              <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
+                {t("test_mode_confirm_detail") || "此訂單會直接標記為已付款，唔會產生 Stripe 收費。適合開發測試使用。"}
+              </div>
+              {testError && (
+                <div style={{ fontSize: 13, color: tokens.colors.danger, marginBottom: 12, padding: "8px 12px", background: "rgba(255,69,58,0.08)", borderRadius: tokens.radius.input }}>
+                  {testError}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleTestConfirm}
+                disabled={testConfirming}
+                style={{
+                  width: "100%",
+                  height: 54,
+                  border: "none",
+                  borderRadius: tokens.radius.button,
+                  background: testConfirming ? "rgba(255,255,255,0.15)" : "#FF9F0A",
+                  color: testConfirming ? "rgba(255,255,255,0.6)" : "#000",
+                  fontWeight: 700,
+                  fontSize: 17,
+                  cursor: testConfirming ? "not-allowed" : "pointer",
+                  transition: `background ${tokens.duration.fast}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                {testConfirming ? (
+                  <>{t("processing")}</>
+                ) : (
+                  <>{t("confirm_test_booking") || "TEST 確認訂單"} · HK${total}</>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Terms agreement */}
           <motion.div
             key={termsShake}
             ref={termsRef}
             animate={termsShake > 0 ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : false}
             transition={{ duration: 0.45 }}
             style={{
-              marginTop: 16,
               border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : "transparent"}`,
               borderRadius: tokens.radius.input,
               padding: "8px 10px",
               transition: "border-color 0.2s ease",
+              marginBottom: 16,
             }}
           >
             <label
@@ -1819,10 +1973,6 @@ function Screen3({
                 marginTop: 12,
               }}
             >
-              {/* Same base-tier floor as Screen1 — the real signed-in tier
-                  multiplier isn't fetched anywhere in this page, so this
-                  stays a floor estimate here too rather than a half-accurate
-                  number from a new, scope-expanding tier lookup. */}
               {t("points_earned_estimate", { pts: total })}
             </div>
           )}
@@ -1833,22 +1983,14 @@ function Screen3({
               fontSize: 13,
               color: tokens.colors.textMuted,
               textAlign: "center",
-              marginTop: 20,
+              marginTop: 16,
               padding: "0 16px",
               lineHeight: 1.5,
             }}
           >
             {t("payment_reminder")}
           </div>
-
-          {/* Stripe secure */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
-            <Lock size={12} style={{ color: tokens.colors.textMuted }} />
-            <span data-cms-key="book.pay.secure" style={{ fontSize: 12, color: tokens.colors.textMuted }}>
-              {t("stripe_secure")}
-            </span>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
@@ -2688,6 +2830,30 @@ export default function BookPage() {
           .dual-row {
             grid-template-columns: 64px 1fr 1fr;
             gap: 6px;
+          }
+        }
+        .checkout-layout {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+        .checkout-summary {
+          flex: 1;
+        }
+        .checkout-payment {
+          flex: 1;
+        }
+        @media (min-width: 768px) {
+          .checkout-layout {
+            display: grid;
+            grid-template-columns: 1fr 440px;
+            gap: 40px;
+            align-items: start;
+          }
+          .checkout-summary {
+            position: sticky;
+            top: 88px;
+            align-self: start;
           }
         }
         .two-col {
