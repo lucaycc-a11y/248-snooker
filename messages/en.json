@@ -798,11 +798,14 @@
     "discount_label": "Multi-hour discount",
     "block_saved_badge": "Book {hours}h together — save HK${saved}",
     "total_saved": "You save HK${saved}",
-    "test_mode_label": "Test Mode",
-    "test_mode_desc": "For internal testing only — no Stripe payment will be processed",
-    "test_mode_title": "Internal Test Booking",
-    "test_mode_confirm_detail": "This will create a confirmed booking with no payment record",
-    "confirm_test_booking": "Confirm Test Booking"
+    "confirm_test_booking": "TEST Confirm Booking",
+    "payment_subtitle": "Choose your payment method",
+    "table_count": "Snooker",
+    "test_mode_confirm_detail": "This booking will be marked as paid without charging Stripe. For development/testing use only.",
+    "test_mode_desc": "Confirm booking directly without Stripe payment",
+    "test_mode_label": "No revenue recording",
+    "test_mode_title": "Admin Test Mode",
+    "venue": "SPACE8"
   },
   "ticket": {
     "duration": "Duration",

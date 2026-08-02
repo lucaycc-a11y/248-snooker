@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CalendarPlus, Share2, ChevronDown } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { tokens } from "@/app/styles/tokens"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { QRCode } from "@/components/shared/QRCode"
+import { getTableName } from "@/lib/booking/constants"
 import {
   ApplePayLogo,
   GooglePayLogo,
@@ -75,13 +76,14 @@ export function TicketCard({
 }: TicketCardProps) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
+  const locale = useLocale()
   const [expanded, setExpanded] = useState(defaultExpanded)
 
   const endHour = startHour + duration
   const crossDay = endHour >= 24
   const dateObj = new Date(`${date}T00:00:00`)
   const dateStr = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日 星期${DAY_NAMES[dateObj.getDay()]}`
-  const tableName = `${t("table_label")} #${tableNumber}`
+  const tableName = getTableName(tableNumber, locale)
 
   // Single user-facing code across the whole ticket (calendar, share, filename)
   // so it always matches what's printed under the QR — never mix in bookingRef

@@ -791,11 +791,14 @@
     "discount_label": "连订折扣",
     "block_saved_badge": "连订 {hours} 小时，省 HK${saved}",
     "total_saved": "总共省 HK${saved}",
-    "test_mode_label": "测试模式",
-    "test_mode_desc": "此付款方式仅供内部测试，不会经过 Stripe 或产生实际收费",
-    "test_mode_title": "内部测试订单",
-    "test_mode_confirm_detail": "确认后将直接建立预约，不会产生任何付款记录",
-    "confirm_test_booking": "确认测试预约"
+    "confirm_test_booking": "TEST 确认订单",
+    "payment_subtitle": "选择付款方式",
+    "table_count": "Snooker",
+    "test_mode_confirm_detail": "此订单会直接标记为已付款，不会产生 Stripe 收费。适合开发测试使用。",
+    "test_mode_desc": "直接确认订单，不经 Stripe 付款",
+    "test_mode_label": "不计入营收",
+    "test_mode_title": "管理员测试模式",
+    "venue": "SPACE8"
   },
   "ticket": {
     "duration": "时长",
