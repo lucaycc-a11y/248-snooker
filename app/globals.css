@@ -873,3 +873,10 @@ body {
   .pk-coin, .pk-spark, .pk-trend, .pk-arrow,
   .pk-gift-lid, .pk-gift-bow, .pk-tile { animation: none !important; opacity: 1; stroke-dashoffset: 0; }
 }
+
+/* ── TextFlippingBoard link ──────────────────────────────────────────
+   Subtle hover underline for the CTA link on the last message. Only
+   visible on hover — no blue/colored link styling, just a faint line. */
+.text-flip-link:hover {
+  border-bottom-color: rgba(255, 255, 255, 0.4) !important;
+}

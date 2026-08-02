@@ -10,11 +10,11 @@ const EASE = [0.2, 0.7, 0.3, 1] as const
 const VIEWPORT = { once: true, amount: 0.25 } as const
 
 const FLAP_MESSAGES = [
-  'SPACE8',
-  'MADE BY LUCA YAU',
+  'THIS SITE WAS BUILT SOLO BY LUCA YAU',
   'PHOTOGRAPHY & DESIGN BY MIKE LAU',
   '3 MONTHS. 100+ HOURS.',
-  'THANK YOU FOR PLAYING',
+  'WANT A SITE THIS GOOD?',
+  'VISIT FORMHK.COM',
 ]
 
 export default function CreditsContent() {
@@ -62,6 +62,8 @@ export default function CreditsContent() {
             <TextFlippingBoard
               messages={FLAP_MESSAGES}
               interval={5000}
+              lastMessageDuration={9000}
+              lastMessageUrl="https://formhk.com"
               tickSpeed={40}
               staggerDelay={30}
               style={{

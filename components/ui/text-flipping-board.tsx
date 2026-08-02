@@ -14,6 +14,11 @@ interface TextFlippingBoardProps {
   messages: string[]
   /** Interval per message in ms (default 4500) */
   interval?: number
+  /** Longer interval for the last (CTA) message in ms — lets the call-to-action
+   *  breathe before the cycle restarts (default same as interval) */
+  lastMessageDuration?: number
+  /** Optional URL to make the last message clickable (subtle hover underline) */
+  lastMessageUrl?: string
   /** Tick duration per flap step in ms (default 40) */
   tickSpeed?: number
   /** Stagger delay between characters in ms (default 30) */
@@ -27,6 +32,8 @@ interface TextFlippingBoardProps {
 export default function TextFlippingBoard({
   messages,
   interval = 4500,
+  lastMessageDuration,
+  lastMessageUrl,
   tickSpeed = 40,
   staggerDelay = 30,
   className,
@@ -39,8 +46,15 @@ export default function TextFlippingBoard({
   )
   const [isAnimating, setIsAnimating] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
+  // Refs to keep the animation loop stable (avoids re-creating the interval
+  // on every frame when displayChars changes)
+  const displayCharsRef = useRef(displayChars)
+  const reducedMotionRef = useRef(reducedMotion)
   const rafRef = useRef<number | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Keep refs in sync
+  displayCharsRef.current = displayChars
+  reducedMotionRef.current = reducedMotion
 
   // Mark as mounted after hydration, so SSR + first client render match
   // (AnimatePresence can produce different DOM during SSR vs client)
@@ -57,40 +71,33 @@ export default function TextFlippingBoard({
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  // Expose reducedMotion for callers who need it
-  // (used to skip the flap animation entirely)
-
   const animateFlip = useCallback(
     (target: string) => {
-      if (reducedMotion) {
+      if (reducedMotionRef.current) {
         setDisplayChars(target.toUpperCase().split(''))
         return
       }
 
       setIsAnimating(true)
       const targetChars = target.toUpperCase().split('')
-      const maxLen = Math.max(displayChars.length, targetChars.length)
-      const current = [...displayChars]
+      const current = [...displayCharsRef.current]
+      const maxLen = Math.max(current.length, targetChars.length)
       // Pad shorter array with spaces
       while (current.length < maxLen) current.push(' ')
       while (targetChars.length < maxLen) targetChars.push(' ')
 
       let step = 0
-      // Each character has its own "spinner" tracking which FLAP_CHARS
-      // index it has reached. We compute the shortest rotation distance.
       const charProgress = current.map((ch, i) => {
         const fromIdx = FLAP_CHARS.indexOf(ch) >= 0 ? FLAP_CHARS.indexOf(ch) : 0
         const toIdx =
           FLAP_CHARS.indexOf(targetChars[i]!) >= 0
             ? FLAP_CHARS.indexOf(targetChars[i]!)
             : 0
-        // Distance: how many steps to reach target (forward only)
         const dist =
           toIdx >= fromIdx ? toIdx - fromIdx : FLAP_CHARS.length - fromIdx + toIdx
         return { fromIdx, toIdx, dist, currentIdx: fromIdx }
       })
 
-      // Pre-compute the max distance so we know when everyone is done
       const maxDist = Math.max(...charProgress.map((p) => p.dist), 1)
 
       const tick = () => {
@@ -101,7 +108,6 @@ export default function TextFlippingBoard({
         for (let i = 0; i < charProgress.length; i++) {
           const p = charProgress[i]!
           if (p.dist === 0) {
-            // Already matches — keep as-is
             next[i] = FLAP_CHARS[p.toIdx]!
             continue
           }
@@ -134,7 +140,7 @@ export default function TextFlippingBoard({
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
       rafRef.current = requestAnimationFrame(tick)
     },
-    [displayChars, reducedMotion, staggerDelay],
+    [staggerDelay], // ← only depends on staggerDelay, not displayChars
   )
 
   // Cycle through messages
@@ -144,20 +150,38 @@ export default function TextFlippingBoard({
       return
     }
 
-    intervalRef.current = setInterval(() => {
-      setMsgIndex((prev) => {
-        const next = (prev + 1) % messages.length
-        animateFlip(messages[next]!)
-        return next
-      })
-    }, interval)
+    let currentMsgIndex = 0
+    let timeoutRef: ReturnType<typeof setTimeout> | null = null
+
+    const scheduleNext = () => {
+      const nextIndex = (currentMsgIndex + 1) % messages.length
+      const delay =
+        lastMessageDuration && currentMsgIndex === messages.length - 1
+          ? lastMessageDuration
+          : interval
+
+      timeoutRef = setTimeout(() => {
+        currentMsgIndex = nextIndex
+        setMsgIndex(currentMsgIndex)
+        animateFlip(messages[currentMsgIndex]!)
+        scheduleNext()
+      }, delay)
+    }
+
+    // Kick off: show first message, then schedule the next
+    animateFlip(messages[currentMsgIndex]!)
+    scheduleNext()
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (timeoutRef) clearTimeout(timeoutRef)
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages, interval, animateFlip])
+  }, [messages, interval, lastMessageDuration, animateFlip])
+
+  // Determine if the current message is the "last" (CTA) one
+  const isLastMessage = msgIndex === messages.length - 1
+  const isLastMessageCTA = isLastMessage && lastMessageUrl
 
   return (
     <div
@@ -201,7 +225,27 @@ export default function TextFlippingBoard({
                 lineHeight: 1.15,
               }}
             >
-              {char === ' ' ? ' ' : char}
+              {char === ' ' ? (
+                <span style={{ display: 'inline-block', width: '0.3em' }} />
+              ) : isLastMessageCTA ? (
+                <a
+                  href={lastMessageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'inherit',
+                    textDecoration: 'none',
+                    borderBottom: '1px solid transparent',
+                    transition: 'border-color 0.2s ease',
+                  }}
+                  className="text-flip-link"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {char}
+                </a>
+              ) : (
+                char
+              )}
             </motion.span>
           ))}
         </AnimatePresence>
