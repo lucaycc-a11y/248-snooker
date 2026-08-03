@@ -73,7 +73,7 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="color:#a3a3a3;font-size:14px;padding:4px 0;">小計 Subtotal</td>
-                    <td style="color:#ffffff;font-size:15px;text-align:right;">HK${{totalPrice}}</td>
+                    <td style="color:#ffffff;font-size:15px;text-align:right;">HK\x24\x7B\x7BtotalPrice\x7D\x7D</td>
                   </tr>
                   <tr>
                     <td style="color:#a3a3a3;font-size:14px;padding:4px 0;">賺取積分 Points Earned</td>
@@ -81,7 +81,7 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
                   </tr>
                   <tr>
                     <td style="padding:4px 0;"><span style="color:#a3a3a3;font-size:14px;font-weight:600;">總計 Total</span></td>
-                    <td style="color:#22c55e;font-size:20px;font-weight:700;text-align:right;">HK${{totalPrice}}</td>
+                    <td style="color:#22c55e;font-size:20px;font-weight:700;text-align:right;">HK\x24\x7B\x7BtotalPrice\x7D\x7D</td>
                   </tr>
                 </table>
               </div>
