@@ -135,6 +135,7 @@ export default function LegalContent({
     { id: "terms", label: nav.terms },
     { id: "website_terms", label: nav.website_terms },
     { id: "privacy", label: nav.privacy },
+    { id: "accessibility", label: nav.accessibility },
   ];
 
   return (
@@ -277,6 +278,24 @@ export default function LegalContent({
                 </p>
 
                 <SectionList sections={documents.privacy.sections} locale={locale} />
+              </motion.div>
+            )}
+
+            {activeDoc === "accessibility" && (
+              <motion.div
+                key="accessibility"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.3, ease: EASE }}
+              >
+                <h2
+                  style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-0.02em", color: DARK, margin: "0 0 24px" }}
+                >
+                  {documents.accessibility.title}
+                </h2>
+
+                <SectionList sections={documents.accessibility.sections} locale={locale} />
               </motion.div>
             )}
           </AnimatePresence>
