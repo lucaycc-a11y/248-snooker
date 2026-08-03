@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -88,6 +88,25 @@ export default function MemberDashboard({
   const searchParams = useSearchParams();
   const { user, points, stats } = data;
   const [bookings, setBookings] = useState<MemberBooking[]>(data.bookings);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Active bookings: status is 'confirmed' and in the future or within
+  // RECENT_DAYS (default 30) in the past. Everything else (cancelled, old)
+  // is hidden by default and shown when the user clicks "View history".
+  const RECENT_DAYS = 30
+  const activeBookings = useMemo(() => {
+    const cutoff = Date.now() - RECENT_DAYS * 86400_000
+    return bookings.filter((b) => {
+      if (b.status === 'cancelled' || b.status === 'refunded') return false
+      if (!b.date) return false
+      const bookingTime = new Date(b.date + 'T' + (b.startTime?.slice(11, 19) || b.startTime || '00:00:00')).getTime()
+      if (Number.isNaN(bookingTime)) return true
+      return bookingTime > cutoff
+    })
+  }, [bookings])
+  const historyBookings = useMemo(() => {
+    return bookings.filter((b) => !activeBookings.includes(b))
+  }, [bookings, activeBookings])
 
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
@@ -392,14 +411,31 @@ export default function MemberDashboard({
               transition={{ duration: 0.25 }}
             >
               {tab === "bookings" && (
-                <BookingsTab
-                  bookings={bookings}
-                  locale={locale}
-                  refundCutoffHours={refundCutoffHours}
-                  onViewQr={setQrBooking}
-                  onRefund={setRefundBooking}
-                  onReschedule={setRescheduleBooking}
-                />
+                <>
+                  <BookingsTab
+                    bookings={showHistory ? historyBookings : activeBookings}
+                    locale={locale}
+                    refundCutoffHours={refundCutoffHours}
+                    onViewQr={setQrBooking}
+                    onRefund={setRefundBooking}
+                    onReschedule={setRescheduleBooking}
+                  />
+                  {historyBookings.length > 0 && (
+                    <div style={{ textAlign: 'center', marginTop: 16 }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowHistory(!showHistory)}
+                        style={{
+                          background: 'none', border: `1px solid rgba(255,255,255,0.1)`,
+                          color: '#A1A1A6', fontSize: 13, padding: '8px 20px',
+                          borderRadius: 999, cursor: 'pointer',
+                        }}
+                      >
+                        {showHistory ? 'Show active bookings' : `View history (${historyBookings.length})`}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
               {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} />}
               {tab === "settings" && <SettingsTab user={user} onSignOut={signOut} />}
