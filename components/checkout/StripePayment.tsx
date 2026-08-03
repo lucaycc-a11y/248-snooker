@@ -315,7 +315,7 @@ function PayForm({
         }}
       />
       {err && (
-        <div style={{ marginTop: 12 }}>
+        <div style={{ marginTop: 12 }} role="alert" aria-live="polite">
           <p style={{ fontSize: 13, color: "#f87171", margin: 0 }}>{err}</p>
           {showWhatsApp && (
             /* Plain-text support line (no card/button chrome) — the WhatsApp
@@ -608,6 +608,7 @@ export default function StripePayment(props: Props) {
             marginBottom: 12,
             transition: "color 0.3s ease",
           }}
+          aria-live="polite"
         >
           {props.lockHoldLabel.replace("{time}", countdown.text)}
         </p>

@@ -452,7 +452,7 @@ export function AuthCard({
             type="button"
             onClick={() => { setPhase("methods"); setError(null); setPassword("") }}
             data-cms-key="auth.password.switch_to_otp"
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: 13, cursor: "pointer", textAlign: "center" }}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", textAlign: "center" }}
           >
             {t("switch_to_otp")}
           </button>

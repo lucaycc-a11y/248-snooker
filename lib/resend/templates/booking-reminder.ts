@@ -1,0 +1,110 @@
+export const bookingReminderTemplate = `<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Reminder</title>
+</head>
+<body style="margin:0;padding:0;background-color:#000000;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','PingFang HK','Noto Sans TC',sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#000000;">
+    <tr>
+      <td style="padding:48px 24px;">
+        <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;" cellpadding="0" cellspacing="0">
+          <!-- Logo -->
+          <tr>
+            <td style="text-align:center;padding-bottom:32px;">
+              <img src="https://space8.com.hk/logos/space8-logo-email.png" alt="SPACE8" width="160" height="auto" style="display:inline-block;max-width:160px;height:auto;" />
+            </td>
+          </tr>
+
+          <!-- Main Card -->
+          <tr>
+            <td style="background-color:#0a0a0a;border-radius:24px;padding:40px 32px;">
+              <!-- Reminder Badge -->
+              <div style="text-align:center;margin-bottom:24px;">
+                <span style="display:inline-block;background-color:#22c55e;color:#000000;font-size:12px;font-weight:700;padding:4px 14px;border-radius:999px;letter-spacing:0.04em;">
+                  入場提醒 ⏰ Entry Reminder
+                </span>
+              </div>
+
+              <!-- Title -->
+              <h1 style="color:#ffffff;font-size:22px;font-weight:600;margin:0 0 4px;text-align:center;">
+                準備入場 Ready to Play
+              </h1>
+              <p style="color:#a3a3a3;font-size:14px;text-align:center;margin:0 0 28px;">
+                你嘅預約即將開始。Your session starts soon.
+              </p>
+
+              <!-- Room & Time -->
+              <div style="border-top:1px solid #262626;border-bottom:1px solid #262626;padding:20px 0;margin-bottom:24px;">
+                <p style="color:#ffffff;font-size:18px;font-weight:600;margin:0 0 4px;">
+                  {{venueDisplayName}}
+                </p>
+                <p style="color:#ffffff;font-size:16px;margin:12px 0 4px;">
+                  {{bookingDate}} · {{startTime}}–{{endTime}}
+                </p>
+                <p style="color:#a3a3a3;font-size:14px;margin:0;">
+                  時長 Duration：{{durationHours}} 小時
+                </p>
+                <p style="color:#a3a3a3;font-size:13px;margin:8px 0 0;">
+                  預約編號 Reference：{{bookingReference}}
+                </p>
+              </div>
+
+              <!-- QR Code -->
+              <div style="margin-bottom:24px;text-align:center;">
+                <h2 style="color:#22c55e;font-size:16px;font-weight:600;margin:0 0 12px;">
+                  入場 QR Code
+                </h2>
+                <div style="background-color:#ffffff;border-radius:16px;padding:16px;display:inline-block;box-shadow:0 0 20px rgba(34,197,94,0.15);">
+                  <img src="{{qrCodeUrl}}" alt="Entry QR Code" width="200" height="200" style="display:block;margin:0 auto;" />
+                </div>
+                <p style="color:#a3a3a3;font-size:13px;margin:12px 0 0;line-height:1.5;">
+                  到場時掃描此 QR Code 即可開門入場<br/>
+                  Scan this QR code at the door for entry
+                </p>
+              </div>
+
+              <!-- Venue Address -->
+              <div style="background-color:rgba(255,255,255,0.04);border-radius:12px;padding:16px;margin-bottom:16px;">
+                <p style="color:#a3a3a3;font-size:12px;margin:0 0 6px;">
+                  場地地址 Venue Address
+                </p>
+                <p style="color:#ffffff;font-size:14px;margin:0 0 8px;">
+                  {{venueAddress}}
+                </p>
+                <a href="{{googleMapsUrl}}" style="color:#22c55e;font-size:13px;text-decoration:none;">
+                  在 Google Maps 打開 Open in Google Maps →
+                </a>
+              </div>
+
+              <!-- WhatsApp Support -->
+              <div style="background-color:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.2);border-radius:12px;padding:16px;margin-bottom:20px;text-align:center;">
+                <p style="color:#a3a3a3;font-size:12px;margin:0 0 8px;">
+                  需要協助？ Need help?
+                </p>
+                <a href="https://wa.me/{{whatsappNumber}}" style="color:#25d366;font-size:14px;font-weight:600;text-decoration:none;">
+                  WhatsApp 聯絡我們 Contact Us
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Legal Footer -->
+          <tr>
+            <td style="padding-top:24px;text-align:center;">
+              <p style="color:#525252;font-size:11px;line-height:1.6;margin:0;">
+                此電郵為交易確認及提醒，請妥善保存。<br/>
+                This email serves as a booking reminder. Please keep it for your records.
+              </p>
+              <p style="color:#525252;font-size:12px;margin:16px 0 0;">
+                &copy; {{currentYear}} SPACE8 · Hong Kong
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;

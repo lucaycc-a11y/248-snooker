@@ -3,9 +3,9 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { getTableName } from '@/lib/booking/constants'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import QRCode from 'qrcode'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { getStripe } from '@/lib/stripe/server'
+import { bookingConfirmationTemplate } from './templates/booking-confirmation'
+import { bookingReminderTemplate } from './templates/booking-reminder'
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 
