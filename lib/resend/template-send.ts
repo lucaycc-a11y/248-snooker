@@ -96,12 +96,19 @@ async function getWhatsAppNumber(): Promise<string> {
 /* ── Template rendering ───────────────────────────────────────────────────── */
 
 /**
- * Load an HTML template file and substitute {{variable}} placeholders.
- * Detects any unsubstituted variables and warns.
+ * Load an HTML template from the compiled template string and substitute {{variable}} placeholders.
+ * No runtime file I/O — the template is a TypeScript string constant compiled at build time.
  */
 function renderTemplate(templateName: string, replacements: Record<string, string>): string {
-  const templatePath = join(process.cwd(), 'lib', 'resend', 'templates', templateName)
-  let html = readFileSync(templatePath, 'utf-8')
+  const templates: Record<string, string> = {
+    'booking-confirmation.html': bookingConfirmationTemplate,
+    'booking-reminder.html': bookingReminderTemplate,
+  }
+
+  let html = templates[templateName]
+  if (!html) {
+    throw new Error(`Unknown template: ${templateName}`)
+  }
 
   for (const [key, value] of Object.entries(replacements)) {
     html = html.replaceAll(key, value)
