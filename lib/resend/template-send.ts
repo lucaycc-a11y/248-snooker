@@ -265,7 +265,7 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     '{{currentYear}}': currentYear,
   })
 
-  const subject = `預約已確認 Booking Confirmed · ${booking.booking_reference ?? booking.human_code ?? ''}`
+  const subject = `預約確認 · Space8 · ${bookingDate} ${startTime}–${endTime}`
 
   return { html, subject, to: customerEmail, locale }
 }

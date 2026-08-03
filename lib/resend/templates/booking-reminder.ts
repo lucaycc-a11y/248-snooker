@@ -47,7 +47,7 @@ export const bookingReminderTemplate = `<!DOCTYPE html>
                   時長 Duration：{{durationHours}} 小時
                 </p>
                 <p style="color:#a3a3a3;font-size:13px;margin:8px 0 0;">
-                  預約編號 Reference：{{bookingReference}}
+                  預約編號 Reference：{{humanCode}}
                 </p>
               </div>
 
