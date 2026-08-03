@@ -141,6 +141,17 @@ export async function POST(req: Request) {
       }
     }
 
+    // Send confirmation emails (same function as Stripe webhook, non-blocking)
+    for (const bookingId of bookingIds) {
+      try {
+        const { sendBookingConfirmation } = await import('@/lib/resend/template-send')
+        await sendBookingConfirmation(bookingId)
+      } catch (e) {
+        console.error('[admin-test-confirm] confirmation_email_failed', { bookingId, message: (e as Error).message })
+        // Non-fatal — don't break the response
+      }
+    }
+
     // Fetch the confirmed bookings for the response
     const columns = 'id, status, booking_reference, date, start_time, end_time, duration_hours, table_number, total_price, payment_method, order_group_id, human_code'
     const { data: bookings } = await service
