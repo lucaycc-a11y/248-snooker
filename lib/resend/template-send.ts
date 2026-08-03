@@ -185,24 +185,57 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     booking.stripe_payment_intent,
   )
 
-  // QR code image from the stored qr_code value (human-readable code).
-  // If qr_code is missing (e.g. stale read), fall back to human_code, then
-  // regenerate from humanReadableCode(). Empty string would crash qrcode
-  // with "No input text".
+  // QR code image — upload to Supabase Storage for reliable HTTPS URL
   const qrContent = booking.qr_code ?? booking.human_code ?? humanReadableCode(bookingId)
   if (!qrContent) {
     throw new Error(`missing_qr_content: booking ${bookingId} has no qr_code, human_code, or derivable code`)
   }
-  const qrCodeDataUrl = await QRCode.toDataURL(qrContent, {
-    errorCorrectionLevel: 'M',
-    type: 'image/png',
-    width: 500,
-    margin: 4,
-    color: { dark: '#000000', light: '#FFFFFF' },
-  })
 
-  // Booking detail URL
-  const bookingDetailUrl = `https://space8.com.hk/booking?ref=${booking.human_code ?? ''}`
+  let qrCodeUrl: string
+  try {
+    // Generate QR as PNG buffer
+    const qrBuffer = await QRCode.toBuffer(qrContent, {
+      errorCorrectionLevel: 'M',
+      type: 'png',
+      width: 500,
+      margin: 4,
+      color: { dark: '#000000', light: '#FFFFFF' },
+    })
+
+    // Upload to Supabase Storage (public bucket)
+    const qrFileName = `booking-${bookingId}.png`
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from('qr-codes')
+      .upload(qrFileName, qrBuffer, {
+        contentType: 'image/png',
+        upsert: true,
+      })
+
+    if (uploadError) {
+      throw uploadError
+    }
+
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('qr-codes')
+      .getPublicUrl(qrFileName)
+
+    qrCodeUrl = publicUrlData.publicUrl
+  } catch (qrErr) {
+    // Fallback to base64 data URL if storage upload fails
+    console.warn('[template-send] QR upload failed, falling back to base64', { bookingId, error: (qrErr as Error).message })
+    qrCodeUrl = await QRCode.toDataURL(qrContent, {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      width: 500,
+      margin: 4,
+      color: { dark: '#000000', light: '#FFFFFF' },
+    })
+  }
+
+  // Booking detail URL — link to member dashboard
+  const bookingDetailUrl = `https://space8.com.hk/member`
 
   // WhatsApp number
   const whatsappNumber = await getWhatsAppNumber()
@@ -221,7 +254,7 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     '{{durationHours}}': String(durationHours),
     '{{bookingReference}}': booking.booking_reference ?? '',
     '{{humanCode}}': booking.human_code ?? '',
-    '{{qrCodeUrl}}': qrCodeDataUrl,
+    '{{qrCodeUrl}}': qrCodeUrl,
     '{{totalPrice}}': String(totalPrice),
     '{{paymentMethod}}': paymentMethodDisplay,
     '{{pointsEarned}}': String(pointsEarned),
@@ -306,18 +339,49 @@ async function renderBookingReminderHtml(bookingId: string): Promise<{
   const endTime = formatTime(booking.end_time)
   const durationHours = Number(booking.duration_hours)
 
-  // QR code image
+  // QR code image — upload to Supabase Storage for reliable HTTPS URL
   const qrContent = booking.qr_code ?? booking.human_code ?? humanReadableCode(bookingId)
   if (!qrContent) {
     throw new Error(`missing_qr_content: booking ${bookingId} has no qr_code, human_code, or derivable code`)
   }
-  const qrCodeDataUrl = await QRCode.toDataURL(qrContent, {
-    errorCorrectionLevel: 'M',
-    type: 'image/png',
-    width: 500,
-    margin: 4,
-    color: { dark: '#000000', light: '#FFFFFF' },
-  })
+
+  let qrCodeUrl: string
+  try {
+    const qrBuffer = await QRCode.toBuffer(qrContent, {
+      errorCorrectionLevel: 'M',
+      type: 'png',
+      width: 500,
+      margin: 4,
+      color: { dark: '#000000', light: '#FFFFFF' },
+    })
+
+    const qrFileName = `booking-${bookingId}.png`
+    const { error: uploadError } = await supabase
+      .storage
+      .from('qr-codes')
+      .upload(qrFileName, qrBuffer, {
+        contentType: 'image/png',
+        upsert: true,
+      })
+
+    if (uploadError) throw uploadError
+
+    const { data: publicUrlData } = supabase
+      .storage
+      .from('qr-codes')
+      .getPublicUrl(qrFileName)
+
+    qrCodeUrl = publicUrlData.publicUrl
+  } catch (qrErr) {
+    console.warn('[template-send] QR upload failed for reminder, falling back to base64', { bookingId, error: (qrErr as Error).message })
+    qrCodeUrl = await QRCode.toDataURL(qrContent, {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      width: 500,
+      margin: 4,
+      color: { dark: '#000000', light: '#FFFFFF' },
+    })
+  }
 
   const whatsappNumber = await getWhatsAppNumber()
   const currentYear = String(new Date().getFullYear())
@@ -333,7 +397,7 @@ async function renderBookingReminderHtml(bookingId: string): Promise<{
     '{{durationHours}}': String(durationHours),
     '{{bookingReference}}': booking.booking_reference ?? '',
     '{{humanCode}}': booking.human_code ?? '',
-    '{{qrCodeUrl}}': qrCodeDataUrl,
+    '{{qrCodeUrl}}': qrCodeUrl,
     '{{whatsappNumber}}': whatsappNumber,
     '{{venueAddress}}': VENUE_ADDRESS,
     '{{googleMapsUrl}}': GOOGLE_MAPS_URL,

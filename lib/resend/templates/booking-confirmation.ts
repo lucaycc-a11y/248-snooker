@@ -24,11 +24,8 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
               <h1 style="color:#ffffff;font-size:22px;font-weight:600;margin:0 0 4px;text-align:center;">
                 預約已確認 Booking Confirmed
               </h1>
-              <p style="color:#a3a3a3;font-size:14px;text-align:center;margin:0 0 8px;">
-                預約編號 Reference：{{bookingReference}}
-              </p>
-              <p style="color:#22c55e;font-size:13px;text-align:center;margin:0 0 32px;font-family:monospace;letter-spacing:1px;">
-                {{humanCode}}
+              <p style="color:#a3a3a3;font-size:14px;text-align:center;margin:0 0 32px;font-family:monospace;letter-spacing:1px;">
+                預約編號 Reference：{{humanCode}}
               </p>
 
               <!-- QR Code -->
