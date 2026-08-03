@@ -282,7 +282,7 @@ export async function sendBookingConfirmation(bookingId: string): Promise<void> 
   const supabase = getServiceSupabase()
 
   await resend.emails.send({
-    from: 'SPACE8 <bookings@space8.com.hk>',
+    from: 'SPACE8 <no-reply@space8.com.hk>',
     to,
     subject,
     html,
@@ -421,7 +421,7 @@ export async function sendBookingReminder(bookingId: string): Promise<void> {
   const supabase = getServiceSupabase()
 
   await resend.emails.send({
-    from: 'SPACE8 <reminders@space8.com.hk>',
+    from: 'SPACE8 <no-reply@space8.com.hk>',
     to,
     subject,
     html,
