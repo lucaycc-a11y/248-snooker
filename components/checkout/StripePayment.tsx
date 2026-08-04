@@ -415,6 +415,9 @@ export default function StripePayment(props: Props) {
   const [lockedUntil, setLockedUntil] = useState<string | null>(null)
   const countdown = useCountdown(lockedUntil)
 
+  const promoCode = props.promoCode
+  const displayTotal = promoCode ? promoCode.final_amount : props.total
+
   // Grouped when more than one block was selected (Task 3).
   const blocks = props.blocks && props.blocks.length > 1 ? props.blocks : null
   const blocksKey = blocks
@@ -453,9 +456,13 @@ export default function StripePayment(props: Props) {
         if (!cancelled) setLockedUntil(lockJson.lockedUntil ?? null)
 
         // Create intent: multi sends { slotIds, orderGroupId }, single sends { slotId }.
-        const intentBody = blocks
+        // Include promo code if applied — re-validated server-side.
+        const intentBody: Record<string, unknown> = blocks
           ? { slotIds: lockJson.slotIds, orderGroupId: lockJson.orderGroupId }
           : { slotId: lockJson.slotId }
+        if (promoCode) {
+          intentBody.promoCode = promoCode.code
+        }
         const intentRes = await fetch("/api/payment/create-intent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -625,6 +632,32 @@ export default function StripePayment(props: Props) {
           {props.lockHoldLabel.replace("{time}", countdown.text)}
         </p>
       )}
+      {/* Promo code input — placed above the Payment Element so users can
+          apply a discount before entering payment details. */}
+      <PromoCodeInput
+        originalTotal={props.total}
+        activeCode={promoCode}
+        onApply={props.onPromoChange}
+        onRemove={() => props.onPromoChange(null)}
+      />
+      {/* Show discounted total when promo is applied */}
+      {promoCode && (
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '12px 0', borderTop: '1px solid rgba(255,255,255,0.08)',
+          marginBottom: 8,
+        }}>
+          <span style={{ fontSize: 13, color: '#A1A1A6' }}>Total after discount</span>
+          <div style={{ textAlign: 'right' }}>
+            <s style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginRight: 8 }}>
+              HK${props.total}
+            </s>
+            <span style={{ fontSize: 18, fontWeight: 700, color: '#22c55e' }}>
+              HK${promoCode.final_amount}
+            </span>
+          </div>
+        </div>
+      )}
       <PayForm
         bookingId={bookingId}
         returnPath={props.returnPath ?? "/book"}
@@ -637,7 +670,7 @@ export default function StripePayment(props: Props) {
         locale={props.locale}
         date={props.date}
         startHour={props.startHour}
-        total={props.total}
+        total={displayTotal}
         payDisabled={props.payDisabled}
         onDisabledPayClick={props.onDisabledPayClick}
       />

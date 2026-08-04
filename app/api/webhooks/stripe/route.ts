@@ -334,6 +334,27 @@ async function handleSucceeded(
     bookingReference: result.booking_reference,
   })
 
+  // ── Promotion code: increment used_count atomically ──────────────────────
+  const promoCode = paymentIntent.metadata.promo_code
+  if (promoCode) {
+    try {
+      const { error: useErr } = await supabase.rpc('use_promotion_code', { p_code: promoCode })
+      if (useErr) {
+        console.error('[webhook/stripe] promo use_promotion_code failed', {
+          code: promoCode, error: useErr.message,
+        })
+      } else {
+        console.log('[webhook/stripe] promo applied', { bookingId, promoCode })
+        // Stamp the booking row with the promo code used
+        await supabase.from('bookings')
+          .update({ promo_code: promoCode, discount_cents: parseInt(paymentIntent.metadata.discount_cents ?? '0', 10) })
+          .eq('id', bookingId)
+      }
+    } catch (err) {
+      console.error('[webhook/stripe] promo stamp failed', err)
+    }
+  }
+
   // Notifications: send DIRECTLY then record in notification_log (it's a post-send
   // log, not a queue). Recorded non-fatally so a notification hiccup never fails
   // an already-confirmed booking.

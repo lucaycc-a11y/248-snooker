@@ -178,6 +178,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Could not resolve booking' }, { status: 500 })
     }
 
+    // ── Promotion code validation (server-side, never trust the client) ────────
+    let discountCents = 0
+    let promoCode: string | null = null
+    if (typeof body?.promoCode === 'string' && body.promoCode.trim()) {
+      const code = body.promoCode.trim().toUpperCase()
+      const { data: promoResult, error: promoErr } = await service.rpc(
+        'validate_promotion_code',
+        { p_code: code, p_cart_amount: amountInCents / 100 }
+      )
+      if (promoErr || !promoResult || !promoResult.valid) {
+        console.log('[payment/create-intent] promo rejected', { code, error: promoErr?.message, result: promoResult })
+        return NextResponse.json({ error: 'Promo code is no longer valid' }, { status: 400 })
+      }
+      const discountAmount = Number(promoResult.discount_amount)
+      discountCents = Math.round(discountAmount * 100)
+      amountInCents = Math.max(0, amountInCents - discountCents)
+      promoCode = code
+      console.log('[payment/create-intent] promo applied', {
+        code, discountAmount, finalAmountCents: amountInCents,
+      })
+    }
+
     // Idempotency key: bind to the booking/group AND the amount. A retry with the
     // SAME amount reuses one Stripe intent (protects against double-taps and 3DS
     // retries), but if the same pending booking is reused for a DIFFERENT amount
@@ -206,6 +228,7 @@ export async function POST(req: Request) {
             order_group_id: orderGroupId ?? '',
             slot_id: slotIds.length === 1 ? slotIds[0] : '',
             user_id: user.id,
+            ...(promoCode ? { promo_code: promoCode, discount_cents: String(discountCents) } : {}),
           },
         },
         { idempotencyKey },

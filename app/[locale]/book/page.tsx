@@ -15,6 +15,7 @@ import { LoadingGif } from "@/components/ui/LoadingGif"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
+import type { PromoResult } from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { getTableName } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
@@ -1469,10 +1470,14 @@ function Screen3({
   blocks,
   onBackToSlots,
   periods,
+  promoCode,
+  onPromoChange,
 }: {
   blocks: SelectedBlock[]
   onBackToSlots?: () => void
   periods: PricingPeriod[]
+  promoCode: PromoResult | null
+  onPromoChange: (p: PromoResult | null) => void
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
@@ -1840,8 +1845,8 @@ function Screen3({
                 backToSlotsLabel={t("back_to_slots")}
                 payDisabled={!agreedToTerms}
                 onDisabledPayClick={flagTermsRequired}
-                promoCode={null}
-                onPromoChange={() => {}}
+                promoCode={promoCode}
+                onPromoChange={onPromoChange}
               />
 
               {/* Payment reminder — near countdown */}
@@ -2276,6 +2281,7 @@ export default function BookPage() {
   // order can mix tables. Runs are derived per (date, table) below.
   const [selectedSlotsByDate, setSelectedSlotsByDate] = useState<Map<string, Set<string>>>(new Map())
   const [bookingRef] = useState(() => genRef())
+  const [promoCode, setPromoCode] = useState<PromoResult | null>(null)
   const paymentRef = useRef<HTMLDivElement>(null)
   // Stripe redirect-return confirmation state.
   const [confirmBookingId, setConfirmBookingId] = useState<string | null>(null)
@@ -2317,6 +2323,21 @@ export default function BookPage() {
     // Mount-only: this is a one-shot initial prefill, not a live sync with the URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Pre-fill promo code from ?promo= URL param (affiliate / marketing links).
+  useEffect(() => {
+    const promoParam = searchParams.get("promo")
+    if (!promoParam) return
+    const code = promoParam.trim().toUpperCase()
+    if (!code) return
+    // Store the code — it'll be validated when the user reaches the payment
+    // screen and enters a total
+    sessionStorage.setItem('pendingPromo', code)
+  }, [])
+  // Clear the pending promo when it's actually applied
+  useEffect(() => {
+    if (promoCode) sessionStorage.removeItem('pendingPromo')
+  }, [promoCode])
 
   // Toggle one (table, hour) slot on/off for a given date. Deletes the date's
   // map entry entirely when its Set becomes empty, so the map never
@@ -2741,6 +2762,8 @@ export default function BookPage() {
                 <Screen3
                   blocks={runs}
                   periods={periods}
+                  promoCode={promoCode}
+                  onPromoChange={setPromoCode}
                   onBackToSlots={() => {
                     // Refresh availability (the lock may have changed while on
                     // the payment step) but keep the user's selection intact —
