@@ -1840,6 +1840,8 @@ function Screen3({
                 backToSlotsLabel={t("back_to_slots")}
                 payDisabled={!agreedToTerms}
                 onDisabledPayClick={flagTermsRequired}
+                promoCode={null}
+                onPromoChange={() => {}}
               />
 
               {/* Payment reminder — near countdown */}
