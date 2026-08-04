@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -13,6 +13,10 @@ import {
   X,
   LogOut,
   RotateCw,
+  History,
+  Ticket,
+  Zap,
+  Clock,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BackButton } from "@/components/ui";
@@ -59,6 +63,9 @@ const TIER_GLOW: Record<string, string> = {
 
 type TabId = "bookings" | "points" | "settings";
 
+// Number of days after which a past booking moves to "History"
+const RECENT_DAYS = 30
+
 function formatDate(iso: string | null, locale: string, withTime = false): string {
   if (!iso) return "—";
   try {
@@ -90,23 +97,51 @@ export default function MemberDashboard({
   const [bookings, setBookings] = useState<MemberBooking[]>(data.bookings);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Active bookings: status is 'confirmed' and in the future or within
-  // RECENT_DAYS (default 30) in the past. Everything else (cancelled, old)
-  // is hidden by default and shown when the user clicks "View history".
-  const RECENT_DAYS = 30
-  const activeBookings = useMemo(() => {
-    const cutoff = Date.now() - RECENT_DAYS * 86400_000
-    return bookings.filter((b) => {
-      if (b.status === 'cancelled' || b.status === 'refunded') return false
-      if (!b.date) return false
+  // Classify bookings into three buckets:
+  // - upcoming: confirmed, future start time
+  // - recent:   confirmed, within last RECENT_DAYS (default 30)
+  // - history:  cancelled, refunded, or older than RECENT_DAYS
+  const { upcomingBookings, recentBookings, historyBookings } = useMemo(() => {
+    const now = Date.now()
+    const cutoff = now - RECENT_DAYS * 86400_000
+
+    const upcoming: MemberBooking[] = []
+    const recent: MemberBooking[] = []
+    const history: MemberBooking[] = []
+
+    for (const b of bookings) {
+      if (b.status === 'cancelled' || b.status === 'refunded') {
+        history.push(b)
+        continue
+      }
+
+      if (!b.date) {
+        recent.push(b) // can't classify, show in recent
+        continue
+      }
+
       const bookingTime = new Date(b.date + 'T' + (b.startTime?.slice(11, 19) || b.startTime || '00:00:00')).getTime()
-      if (Number.isNaN(bookingTime)) return true
-      return bookingTime > cutoff
-    })
+      if (Number.isNaN(bookingTime)) {
+        recent.push(b)
+        continue
+      }
+
+      if (bookingTime > now) {
+        upcoming.push(b)
+      } else if (bookingTime > cutoff) {
+        recent.push(b)
+      } else {
+        history.push(b)
+      }
+    }
+
+    return { upcomingBookings: upcoming, recentBookings: recent, historyBookings: history }
   }, [bookings])
-  const historyBookings = useMemo(() => {
-    return bookings.filter((b) => !activeBookings.includes(b))
-  }, [bookings, activeBookings])
+
+  const activeBookings = useMemo(
+    () => [...upcomingBookings, ...recentBookings],
+    [upcomingBookings, recentBookings]
+  )
 
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
@@ -413,27 +448,47 @@ export default function MemberDashboard({
               {tab === "bookings" && (
                 <>
                   <BookingsTab
-                    bookings={showHistory ? historyBookings : activeBookings}
+                    upcomingBookings={showHistory ? [] : upcomingBookings}
+                    recentBookings={showHistory ? [] : recentBookings}
+                    historyBookings={showHistory ? historyBookings : []}
                     locale={locale}
                     refundCutoffHours={refundCutoffHours}
                     onViewQr={setQrBooking}
                     onRefund={setRefundBooking}
                     onReschedule={setRescheduleBooking}
                   />
-                  {historyBookings.length > 0 && (
-                    <div style={{ textAlign: 'center', marginTop: 16 }}>
+                  {(historyBookings.length > 0 || upcomingBookings.length + recentBookings.length === 0) && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      style={{ textAlign: 'center', marginTop: 20 }}
+                    >
                       <button
                         type="button"
                         onClick={() => setShowHistory(!showHistory)}
+                        className="group"
                         style={{
-                          background: 'none', border: `1px solid rgba(255,255,255,0.1)`,
-                          color: '#A1A1A6', fontSize: 13, padding: '8px 20px',
-                          borderRadius: 999, cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          background: showHistory ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.06)',
+                          border: `1px solid ${showHistory ? 'rgba(34,197,94,0.25)' : 'rgba(255,255,255,0.1)'}`,
+                          color: showHistory ? GREEN : SUBTLE,
+                          fontSize: 13,
+                          fontWeight: 500,
+                          padding: '10px 22px',
+                          borderRadius: 999,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          fontFamily: FONT_FAMILY,
                         }}
                       >
-                        {showHistory ? 'Show active bookings' : `View history (${historyBookings.length})`}
+                        <History size={15} strokeWidth={2} />
+                        {showHistory
+                          ? `Back to active bookings`
+                          : `View all ${historyBookings.length} past bookings`}
                       </button>
-                    </div>
+                    </motion.div>
                   )}
                 </>
               )}
@@ -646,14 +701,18 @@ function canShowQr(b: MemberBooking): boolean {
 }
 
 function BookingsTab({
-  bookings,
+  upcomingBookings,
+  recentBookings,
+  historyBookings,
   locale,
   refundCutoffHours,
   onViewQr,
   onRefund,
   onReschedule,
 }: {
-  bookings: MemberBooking[];
+  upcomingBookings: MemberBooking[];
+  recentBookings: MemberBooking[];
+  historyBookings: MemberBooking[];
   locale: string;
   refundCutoffHours: number;
   onViewQr: (b: MemberBooking) => void;
@@ -662,107 +721,220 @@ function BookingsTab({
 }) {
   const t = useTranslations("memberPage");
   const router = useRouter();
-  if (bookings.length === 0) {
-    return <EmptyState text={t("no_bookings")} />;
-  }
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      {bookings.map((b) => (
-        <div
-          key={b.id}
-          onClick={() => router.push(`/member/bookings/${b.id}`)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") router.push(`/member/bookings/${b.id}`);
-          }}
-          style={{
-            border: `1px solid ${BORDER}`,
-            borderRadius: "16px",
-            padding: "20px",
-            cursor: "pointer",
-            background: GLASS_BG,
-            backdropFilter: GLASS_BLUR,
-            WebkitBackdropFilter: GLASS_BLUR,
-          }}
+
+  const allEmpty = upcomingBookings.length === 0 && recentBookings.length === 0 && historyBookings.length === 0
+  if (allEmpty) {
+    return (
+      <div style={{ textAlign: "center", padding: "48px 24px" }}>
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
-            <div>
-              <div style={{ fontSize: "16px", fontWeight: 600, color: INK }}>{formatDate(b.date, locale)}</div>
-              <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
-                {b.startTime?.slice(11, 16) || b.startTime || "—"}
-                {b.endTime ? ` – ${b.endTime.slice(11, 16) || b.endTime}` : ""}
-                {b.tableId ? ` · ${t("booking_table")} ${b.tableId}` : ""}
-              </div>
-              <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
-                {b.durationHours ? `${b.durationHours}h · ` : ""}HK${b.price}
-              </div>
-              {b.status === "refunded" && b.refundAmount != null ? (
-                <div style={{ fontSize: "13px", color: SUBTLE, marginTop: "2px" }}>
-                  {t("refund_success_toast")} HK${b.refundAmount}
-                </div>
-              ) : null}
-            </div>
-            <StatusBadge status={b.status} />
-          </div>
           <div
-            style={{ display: "flex", gap: "10px", marginTop: "16px", alignItems: "center" }}
-            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'rgba(34,197,94,0.1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}
           >
-            {/* Primary action — visually the only filled/tinted pill. A
-                failed booking has no valid QR to show; offer to retry
-                payment instead of a QR that would never scan. Past or
-                cancelled/refunded bookings show no QR button at all —
-                their code can no longer be used for entry. */}
-            {b.status === "payment_failed" ? (
-              retryPaymentLink(b) && (
-                <SmallButton
-                  onClick={() => router.push(retryPaymentLink(b)!)}
-                  icon={<RotateCw size={15} strokeWidth={2} />}
-                  label={t("booking_retry_payment")}
-                  cmsKey="member.booking_retry_payment"
-                  primary
-                />
-              )
-            ) : (
-              canShowQr(b) && (
-                <SmallButton
-                  onClick={() => onViewQr(b)}
-                  icon={<QrCodeIcon size={15} strokeWidth={2} />}
-                  label={t("booking_view_qr")}
-                  cmsKey="member.booking_view_qr"
-                  primary
-                />
-              )
-            )}
-            {/* Refund stays visible (higher-consequence, narrow time window)
-                but de-emphasized — outline only, danger-tinted text. */}
-            {canRefund(b, refundCutoffHours) && (
-              <SmallButton
-                onClick={() => onRefund(b)}
-                icon={<Undo2 size={15} strokeWidth={2} />}
-                label={t("booking_refund")}
-                cmsKey="member.booking_refund"
-                tone="danger"
-              />
-            )}
-            {/* Low-frequency actions collapse into an overflow menu so the
-                card doesn't read as a row of equal-weight buttons. */}
-            <div style={{ marginLeft: "auto" }}>
-              <OverflowMenu
-                items={[
-                  { label: t("booking_add_calendar"), icon: <CalendarPlus size={15} strokeWidth={2} />, href: calendarLink(b) },
-                  ...(canReschedule(b)
-                    ? [{ label: t("booking_reschedule"), icon: <CalendarClock size={15} strokeWidth={2} />, onClick: () => onReschedule(b) }]
-                    : []),
-                ]}
-                ariaLabel={t("booking_more_actions")}
-              />
-            </div>
+            <Ticket size={24} strokeWidth={1.5} color={GREEN} />
           </div>
-        </div>
-      ))}
+          <div style={{ fontSize: "16px", fontWeight: 600, color: INK, marginBottom: 6 }}>
+            {t("no_bookings_title") || "No bookings yet"}
+          </div>
+          <div style={{ fontSize: "14px", color: SUBTLE, maxWidth: 280, margin: '0 auto', lineHeight: 1.5 }}>
+            {t("no_bookings_desc") || "When you make a booking, it'll appear here. Ready to play?"}
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+      {upcomingBookings.length > 0 && (
+        <BookingSection
+          title={t("section_upcoming") || "Upcoming"}
+          subtitle={t("section_upcoming_desc") || "Your confirmed future bookings"}
+          icon={<Zap size={14} strokeWidth={2} />}
+          bookings={upcomingBookings}
+          locale={locale}
+          refundCutoffHours={refundCutoffHours}
+          onViewQr={onViewQr}
+          onRefund={onRefund}
+          onReschedule={onReschedule}
+        />
+      )}
+      {recentBookings.length > 0 && (
+        <BookingSection
+          title={t("section_recent") || "Recent"}
+          subtitle={t("section_recent_desc") || `Last ${RECENT_DAYS} days`}
+          icon={<Clock size={14} strokeWidth={2} />}
+          bookings={recentBookings}
+          locale={locale}
+          refundCutoffHours={refundCutoffHours}
+          onViewQr={onViewQr}
+          onRefund={onRefund}
+          onReschedule={onReschedule}
+        />
+      )}
+      {historyBookings.length > 0 && (
+        <BookingSection
+          title={t("section_history") || "History"}
+          subtitle={`${historyBookings.length} booking${historyBookings.length !== 1 ? 's' : ''}`}
+          icon={<History size={14} strokeWidth={2} />}
+          bookings={historyBookings}
+          locale={locale}
+          refundCutoffHours={refundCutoffHours}
+          onViewQr={onViewQr}
+          onRefund={onRefund}
+          onReschedule={onReschedule}
+          muted
+        />
+      )}
     </div>
+  );
+}
+
+function BookingSection({
+  title, subtitle, icon, bookings, locale, refundCutoffHours, onViewQr, onRefund, onReschedule, muted,
+}: {
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  bookings: MemberBooking[];
+  locale: string;
+  refundCutoffHours: number;
+  onViewQr: (b: MemberBooking) => void;
+  onRefund: (b: MemberBooking) => void;
+  onReschedule: (b: MemberBooking) => void;
+  muted?: boolean;
+}) {
+  const t = useTranslations("memberPage");
+  const router = useRouter();
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      {/* Section header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <span style={{
+          width: 24, height: 24, borderRadius: '50%',
+          background: muted ? 'rgba(255,255,255,0.05)' : 'rgba(34,197,94,0.12)',
+          color: muted ? SUBTLE : GREEN,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+        }}>
+          {icon}
+        </span>
+        <div>
+          <span style={{ fontSize: 13, fontWeight: 600, color: muted ? SUBTLE : INK, letterSpacing: '0.02em' }}>
+            {title}
+          </span>
+          <span style={{ fontSize: 11, color: SUBTLE, marginLeft: 8 }}>{subtitle}</span>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {bookings.map((b) => (
+          <div
+            key={b.id}
+            onClick={() => router.push(`/member/bookings/${b.id}`)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") router.push(`/member/bookings/${b.id}`);
+            }}
+            style={{
+              border: `1px solid ${BORDER}`,
+              borderRadius: "16px",
+              padding: "18px",
+              cursor: "pointer",
+              background: GLASS_BG,
+              backdropFilter: GLASS_BLUR,
+              WebkitBackdropFilter: GLASS_BLUR,
+              opacity: muted ? 0.65 : 1,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 600, color: muted ? SUBTLE : INK }}>
+                  {formatDate(b.date, locale)}
+                </div>
+                <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
+                  {b.startTime?.slice(11, 16) || b.startTime || "—"}
+                  {b.endTime ? ` – ${b.endTime.slice(11, 16) || b.endTime}` : ""}
+                  {b.tableId ? ` · ${t("booking_table")} ${b.tableId}` : ""}
+                </div>
+                <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
+                  {b.durationHours ? `${b.durationHours}h · ` : ""}HK${b.price}
+                </div>
+                {b.status === "refunded" && b.refundAmount != null && (
+                  <div style={{ fontSize: "13px", color: SUBTLE, marginTop: "2px" }}>
+                    {t("refund_success_toast")} HK${b.refundAmount}
+                  </div>
+                )}
+              </div>
+              <StatusBadge status={b.status} />
+            </div>
+            {!muted && (
+              <div
+                style={{ display: "flex", gap: "10px", marginTop: "16px", alignItems: "center" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {b.status === "payment_failed" ? (
+                  retryPaymentLink(b) && (
+                    <SmallButton
+                      onClick={() => router.push(retryPaymentLink(b)!)}
+                      icon={<RotateCw size={15} strokeWidth={2} />}
+                      label={t("booking_retry_payment")}
+                      cmsKey="member.booking_retry_payment"
+                      primary
+                    />
+                  )
+                ) : (
+                  canShowQr(b) && (
+                    <SmallButton
+                      onClick={() => onViewQr(b)}
+                      icon={<QrCodeIcon size={15} strokeWidth={2} />}
+                      label={t("booking_view_qr")}
+                      cmsKey="member.booking_view_qr"
+                      primary
+                    />
+                  )
+                )}
+                {canRefund(b, refundCutoffHours) && (
+                  <SmallButton
+                    onClick={() => onRefund(b)}
+                    icon={<Undo2 size={15} strokeWidth={2} />}
+                    label={t("booking_refund")}
+                    cmsKey="member.booking_refund"
+                    tone="danger"
+                  />
+                )}
+                <div style={{ marginLeft: "auto" }}>
+                  <OverflowMenu
+                    items={[
+                      { label: t("booking_add_calendar"), icon: <CalendarPlus size={15} strokeWidth={2} />, href: calendarLink(b) },
+                      ...(canReschedule(b)
+                        ? [{ label: t("booking_reschedule"), icon: <CalendarClock size={15} strokeWidth={2} />, onClick: () => onReschedule(b) }]
+                        : []),
+                    ]}
+                    ariaLabel={t("booking_more_actions")}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </motion.section>
   );
 }
 
