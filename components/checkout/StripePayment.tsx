@@ -11,6 +11,7 @@ import type { Appearance, StripeElementLocale } from "@stripe/stripe-js"
 import { getStripeClient } from "@/lib/stripe/client"
 import { getDeclineMessage, getWhatsAppSupportUrl } from "@/lib/stripe/decline-codes"
 import { tokens } from "@/app/styles/tokens"
+import PromoCodeInput from "./PromoCodeInput"
 
 const stripePromise = getStripeClient()
 
@@ -109,6 +110,14 @@ export type BookingBlock = {
   tableNumber: number
 }
 
+export type PromoResult = {
+  code: string
+  discount_type: 'percentage' | 'fixed_amount'
+  discount_value: number
+  discount_amount: number
+  final_amount: number
+}
+
 type Props = Labels & {
   date: string // 'YYYY-MM-DD'
   startHour: number
@@ -119,6 +128,9 @@ type Props = Labels & {
    * orders use the single-slot path unchanged. Includes the primary block. */
   blocks?: BookingBlock[]
   total: number
+  /** Promo code state — managed by the parent so it survives re-renders. */
+  promoCode: PromoResult | null
+  onPromoChange: (promo: PromoResult | null) => void
   /** Active next-intl locale — drives the Payment Element's own copy (Stripe's
    * "Pay", card-field labels, decline messages, etc.), not just our labels. */
   locale: 'zh-HK' | 'zh-CN' | 'en'
