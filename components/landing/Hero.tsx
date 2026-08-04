@@ -111,7 +111,7 @@ export default function Hero() {
       />
 
       {/* Content — centred on mobile, top-anchored on desktop */}
-      <div className="absolute left-1/2 top-[28%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[22%]">
+      <div className="absolute left-1/2 top-[34%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[28%]">
         {/* Space8 wordmark — official SVG artwork, not a text simulation */}
         <div style={{ marginBottom: "4px" }}>
           <Logo variant="full" theme="dark" size={34} />

@@ -17,6 +17,12 @@ import {
   Ticket,
   Zap,
   Clock,
+  Bell,
+  Home,
+  Settings2,
+  Percent,
+  Coins,
+  Check,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { BackButton } from "@/components/ui";
@@ -61,7 +67,7 @@ const TIER_GLOW: Record<string, string> = {
   maximum: "radial-gradient(120% 120% at 100% 0%, rgba(167,139,250,0.16), transparent 55%)",
 };
 
-type TabId = "bookings" | "points" | "settings";
+type TabId = "overview" | "bookings" | "points" | "settings";
 
 // Number of days after which a past booking moves to "History"
 const RECENT_DAYS = 30
@@ -146,13 +152,35 @@ export default function MemberDashboard({
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
     const q = searchParams.get("tab");
-    return q === "points" || q === "settings" || q === "bookings" ? q : "bookings";
+    if (q === "bookings" || q === "points" || q === "settings") return q;
+    return "overview";
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
   const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
   const [refundBooking, setRefundBooking] = useState<MemberBooking | null>(null);
   const [rescheduleBooking, setRescheduleBooking] = useState<MemberBooking | null>(null);
   const [memberQrDataUrl, setMemberQrDataUrl] = useState<string | null>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Array<{
+    id: string; type: string; message: string; read: boolean; created_at: string;
+  }>>([]);
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Fetch member notifications from notification_log
+  useEffect(() => {
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/api/member/notifications')
+        if (res.ok) {
+          const data = await res.json()
+          setNotifications(data.notifications ?? [])
+        }
+      } catch {
+        // non-fatal — notification bell just shows 0
+      }
+    }
+    fetchNotifications()
+  }, [])
 
   const { current, next, progress, pointsToNext } = resolveTier(user.points, tiers);
   const tierId = current.id;
@@ -219,7 +247,10 @@ export default function MemberDashboard({
 
       {/* Lightweight dashboard header (NOT the marketing Nav — its locale switch
           would route to a non-existent /[locale]/member). */}
-      <DashboardHeader displayName={user.display_name} />
+      <DashboardHeader displayName={user.display_name} notifOpen={notifOpen} setNotifOpen={setNotifOpen} notifications={notifications} unreadCount={unreadCount} markAllRead={() => {
+    fetch('/api/member/notifications', { method: 'PATCH' }).catch(() => {})
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }} />
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "760px", margin: "0 auto", padding: "16px 20px 96px" }}>
         {/* ── Membership card (club-card metaphor) ── */}
@@ -399,10 +430,11 @@ export default function MemberDashboard({
         {/* Tabs */}
         <div style={{ display: "flex", gap: "4px", marginTop: "32px", borderBottom: `1px solid ${BORDER}` }}>
           {([
-            { id: "bookings", key: "tab_bookings" },
-            { id: "points", key: "tab_points" },
-            { id: "settings", key: "tab_settings" },
-          ] as const).map((tabItem) => {
+            { id: "overview" as TabId, key: "tab_overview", icon: <Home size={15} strokeWidth={2} /> },
+            { id: "bookings" as TabId, key: "tab_bookings", icon: <Ticket size={15} strokeWidth={2} /> },
+            { id: "points" as TabId, key: "tab_points", icon: <Coins size={15} strokeWidth={2} /> },
+            { id: "settings" as TabId, key: "tab_settings", icon: <Settings2 size={15} strokeWidth={2} /> },
+          ]).map((tabItem) => {
             const active = tab === tabItem.id;
             return (
               <button
@@ -423,7 +455,8 @@ export default function MemberDashboard({
                   fontFamily: FONT_FAMILY,
                 }}
               >
-                {t(tabItem.key)}
+                {tabItem.icon}
+                <span style={{ marginLeft: 6 }}>{t(tabItem.key)}</span>
                 {active && (
                   <motion.span
                     layoutId="member-tab-underline"
@@ -445,6 +478,20 @@ export default function MemberDashboard({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25 }}
             >
+              {tab === "overview" && (
+                <OverviewTab
+                  user={user}
+                  tierId={tierId}
+                  accent={accent}
+                  progress={progress}
+                  pointsToNext={pointsToNext}
+                  next={next}
+                  current={current}
+                  memberQrDataUrl={memberQrDataUrl}
+                  stats={stats}
+                  upcomingCount={upcomingBookings.length}
+                />
+              )}
               {tab === "bookings" && (
                 <>
                   <BookingsTab
@@ -549,7 +596,14 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return <span style={{ fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: SUBTLE }}>{children}</span>;
 }
 
-function DashboardHeader({ displayName }: { displayName: string | null }) {
+function DashboardHeader({ displayName, notifOpen, setNotifOpen, notifications, unreadCount, markAllRead }: {
+  displayName: string | null;
+  notifOpen: boolean;
+  setNotifOpen: (v: boolean) => void;
+  notifications: Array<{ id: string; type: string; message: string; read: boolean; created_at: string }>;
+  unreadCount: number;
+  markAllRead: () => void;
+}) {
   const t = useTranslations("memberPage");
   const locale = useLocale();
   const router = useRouter();
@@ -591,6 +645,34 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
         <span style={{ fontSize: "14px", color: SUBTLE }}>
           {t("greeting")}{displayName ? `, ${displayName}` : ""}
         </span>
+        {/* Notification bell */}
+        <button
+          type="button"
+          onClick={() => setNotifOpen(!notifOpen)}
+          aria-label={`Notifications (${unreadCount} unread)`}
+          style={{
+            position: 'relative',
+            width: 40, height: 40, borderRadius: '50%',
+            border: `1px solid ${HAIRLINE}`,
+            background: notifOpen ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.05)',
+            color: notifOpen ? GREEN : SUBTLE,
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <Bell size={17} strokeWidth={2} />
+          {unreadCount > 0 && (
+            <span style={{
+              position: 'absolute', top: -2, right: -2,
+              width: 18, height: 18, borderRadius: '50%',
+              background: DANGER, color: '#fff',
+              fontSize: 10, fontWeight: 700,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {unreadCount}
+            </span>
+          )}
+        </button>
         <button
           type="button"
           onClick={cycleLocale}
@@ -612,6 +694,83 @@ function DashboardHeader({ displayName }: { displayName: string | null }) {
           {LABELS[locale] ?? "中"}
         </button>
       </div>
+
+      {/* Notification dropdown */}
+      <AnimatePresence>
+        {notifOpen && (
+          <>
+            <div
+              onClick={() => setNotifOpen(false)}
+              style={{ position: 'fixed', inset: 0, zIndex: 50 }}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              transition={{ duration: 0.2, ease: EASE }}
+              style={{
+                position: 'absolute',
+                top: '100%',
+                right: 20,
+                zIndex: 51,
+                width: 360,
+                maxHeight: 400,
+                overflowY: 'auto',
+                background: DEEP,
+                border: `1px solid ${HAIRLINE}`,
+                borderRadius: 20,
+                padding: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px 8px' }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: INK }}>Notifications</span>
+                {notifications.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={markAllRead}
+                    style={{ background: 'none', border: 'none', color: GREEN, fontSize: 12, cursor: 'pointer' }}
+                  >
+                    Mark all read
+                  </button>
+                )}
+              </div>
+              {notifications.length === 0 ? (
+                <div style={{ padding: '20px 14px', textAlign: 'center', color: SUBTLE, fontSize: 13 }}>
+                  No notifications yet
+                </div>
+              ) : (
+                notifications.slice(0, 10).map((n) => (
+                  <div
+                    key={n.id}
+                    style={{
+                      display: 'flex', gap: 10, padding: '12px 14px',
+                      borderRadius: 12,
+                      background: n.read ? 'transparent' : 'rgba(34,197,94,0.06)',
+                      borderBottom: `1px solid ${BORDER}`,
+                    }}
+                  >
+                    <div style={{
+                      width: 8, height: 8, borderRadius: '50%', marginTop: 5, flexShrink: 0,
+                      background: n.read ? 'transparent' : GREEN,
+                    }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, color: n.read ? SUBTLE : INK, lineHeight: 1.4 }}>
+                        {n.message}
+                      </div>
+                      <div style={{ fontSize: 11, color: SUBTLE, marginTop: 4 }}>
+                        {new Date(n.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                    {!n.read && (
+                      <Check size={14} color={GREEN} style={{ flexShrink: 0, marginTop: 3, opacity: 0.5 }} />
+                    )}
+                  </div>
+                ))
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
@@ -698,6 +857,94 @@ function canShowQr(b: MemberBooking): boolean {
   // potentially valid ticket.
   if (!end) return true;
   return Date.now() < end.getTime();
+}
+
+/* ── Overview Tab — first-time landing, card + stats in compact view ── */
+function OverviewTab({
+  user, tierId, accent, progress, pointsToNext, next, current,
+  memberQrDataUrl, stats, upcomingCount,
+}: {
+  user: MemberData['user']; tierId: string; accent: string; progress: number;
+  pointsToNext: number; next: Tier | null; current: Tier;
+  memberQrDataUrl: string | null; stats: { bookings: number; hours: number };
+  upcomingCount: number;
+}) {
+  const t = useTranslations('memberPage');
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: EASE }}
+    >
+      {/* Quick actions row */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20,
+      }}>
+        <QuickActionCard
+          icon={<Zap size={18} strokeWidth={2} />}
+          label={t('stat_bookings')}
+          value={upcomingCount > 0 ? `${upcomingCount} upcoming` : 'None'}
+          accent={GREEN}
+        />
+        <QuickActionCard
+          icon={<Coins size={18} strokeWidth={2} />}
+          label={t('card_points')}
+          value={`${user.points.toLocaleString()} pts`}
+          accent={accent}
+        />
+      </div>
+
+      {/* Tier progress condensed */}
+      <div style={{
+        border: `1px solid ${BORDER}`, borderRadius: 16, padding: 18,
+        background: GLASS_BG, marginBottom: 16,
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 600, color: accent, textTransform: 'uppercase' }}>
+            {tierId}
+          </span>
+          {next && (
+            <span style={{ fontSize: 11, color: SUBTLE }}>
+              {t('points_to_next', { pts: pointsToNext.toLocaleString() })}
+            </span>
+          )}
+        </div>
+        <div style={{ height: 4, borderRadius: 100, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${Math.round(progress * 100)}%` }}
+            transition={{ duration: 0.9, ease: EASE }}
+            style={{ height: '100%', background: accent, borderRadius: 100 }}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function QuickActionCard({ icon, label, value, accent }: {
+  icon: React.ReactNode; label: string; value: string; accent: string;
+}) {
+  return (
+    <div style={{
+      border: `1px solid ${BORDER}`, borderRadius: 14, padding: 16,
+      background: GLASS_BG,
+    }}>
+      <div style={{
+        width: 36, height: 36, borderRadius: '50%',
+        background: `${accent}1f`, color: accent,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        marginBottom: 10,
+      }}>
+        {icon}
+      </div>
+      <div style={{ fontSize: 12, color: SUBTLE, marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: INK }}>
+        {value || '—'}
+      </div>
+    </div>
+  );
 }
 
 function BookingsTab({
@@ -1040,6 +1287,17 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
   const [saveError, setSaveError] = useState<string | null>(null);
   const [notif, setNotif] = useState({ booking: true, points: true, promo: false });
 
+  const toggleNotif = async (key: 'booking' | 'points' | 'promo', value: boolean) => {
+    setNotif((s) => ({ ...s, [key]: value }));
+    try {
+      await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notif_prefs: { ...notif, [key]: value } }),
+      });
+    } catch {}
+  };
+
   const save = async () => {
     setSaving(true);
     setSaveError(null);
@@ -1074,8 +1332,8 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
 
   const confirmDelete = () => {
     if (window.confirm(t("delete_confirm"))) {
-      // Account deletion requires a privileged server action; placeholder hook.
-      window.alert(t("delete_confirm"));
+      // Deletion requires a server action — redirect to support
+      window.location.href = 'https://wa.me/85264274620'
     }
   };
 
@@ -1106,9 +1364,9 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
       {/* Notifications */}
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px" }}>
         <h4 style={{ fontSize: "14px", fontWeight: 600, margin: "0 0 16px", color: INK }} data-cms-key="member.settings_notifications">{t("settings_notifications")}</h4>
-        <Toggle label={t("notif_booking")} on={notif.booking} onChange={(v) => setNotif((s) => ({ ...s, booking: v }))} />
-        <Toggle label={t("notif_points")} on={notif.points} onChange={(v) => setNotif((s) => ({ ...s, points: v }))} />
-        <Toggle label={t("notif_promo")} on={notif.promo} onChange={(v) => setNotif((s) => ({ ...s, promo: v }))} last />
+        <Toggle label={t("notif_booking")} on={notif.booking} onChange={(v) => toggleNotif('booking', v)} />
+        <Toggle label={t("notif_points")} on={notif.points} onChange={(v) => toggleNotif('points', v)} />
+        <Toggle label={t("notif_promo")} on={notif.promo} onChange={(v) => toggleNotif('promo', v)} last />
       </div>
 
       {saveError && (

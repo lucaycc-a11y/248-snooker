@@ -1,7 +1,7 @@
+import { redirect } from 'next/navigation'
+
+// The /member/history route is superseded by the "Bookings" tab in the main
+// dashboard (app/member/MemberDashboard.tsx) which shows History inline.
 export default function Page() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-black text-white/60">
-      memberhistory
-    </div>
-  );
+  redirect('/member?tab=bookings')
 }
