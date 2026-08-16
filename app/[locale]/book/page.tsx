@@ -15,6 +15,8 @@ import { LoadingGif } from "@/components/ui/LoadingGif"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
+import KPayPayment from "@/components/checkout/KPayPayment"
+import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import type { PromoResult } from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { getTableName } from "@/lib/booking/constants"
@@ -1498,6 +1500,13 @@ function Screen3({
   const [testMode, setTestMode] = useState(false)
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
+
+  // KPay payment method selection
+  const [kpayMethod, setKpayMethod] = useState<KPayMethod | null>(null)
+  const [kpayMode, setKpayMode] = useState<KPayMode>('qr')
+  const [showKpayMethods, setShowKpayMethods] = useState(false)
+  // Which payment method the user selected — null = choose
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'fps' | 'payme' | 'octopus' | null>(null)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -1804,87 +1813,271 @@ function Screen3({
             </div>
           )}
 
-          {/* Stripe Payment (hidden when test mode is active) */}
+          {/* Payment method selection — hidden when test mode is active */}
           {!testMode && (
-            <div
-              style={{
-                background: tokens.colors.surface,
-                border: `1px solid ${tokens.colors.border}`,
-                borderRadius: tokens.radius.card,
-                padding: 24,
-                marginBottom: 20,
-              }}
-            >
-              <StripePayment
-                date={dateStr}
-                startHour={startHour}
-                duration={duration}
-                tableNumber={tableNumber}
-                blocks={blocks.map((b) => ({
-                  date: b.date,
-                  startHour: b.startHour,
-                  duration: b.duration,
-                  tableNumber: b.tableNumber,
-                }))}
-                total={total}
-                locale={locale as "en" | "zh-HK" | "zh-CN"}
-                returnPath="/book"
-                payLabel={`${t("pay_now")} · HK$${total}`}
-                processingLabel={t("processing")}
-                errorLabel={t("pay_error")}
-                slotTakenLabel={t("slot_taken")}
-                bookingExpiredLabel={t("booking_expired")}
-                bookingExpiredDescLabel={t("booking_expired_desc")}
-                loadingLabel={t("pay_loading")}
-                lockHoldLabel={t("lock_hold")}
-                paymentFailedLabel={t("pay_declined")}
-                whatsappSupportLabel={t("whatsapp_support")}
-                retryPaymentLabel={t("retry_payment")}
-                billingDetails={profile ?? undefined}
-                onBackToSlots={onBackToSlots}
-                backToSlotsLabel={t("back_to_slots")}
-                payDisabled={!agreedToTerms}
-                onDisabledPayClick={flagTermsRequired}
-                promoCode={promoCode}
-                onPromoChange={onPromoChange}
-              />
-
-              {/* Payment reminder — near countdown */}
-              <div
-                data-cms-key="book.payment_reminder"
-                style={{
-                  fontSize: 12,
-                  color: tokens.colors.textFaint,
-                  textAlign: "center",
-                  marginTop: 16,
-                  padding: "0 8px",
-                  lineHeight: 1.5,
-                }}
-              >
-                {t("payment_reminder")}
-              </div>
-
-              {/* Powered by Stripe — official badge */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginTop: 14,
-                  opacity: 0.5,
-                }}
-              >
-                <img
-                  src="/logos/payment/powered-by-stripe-badge.svg"
-                  alt="Powered by Stripe"
+            <>
+              {paymentMethod === null ? (
+                /* ── Method chips ── */
+                <div
                   style={{
-                    height: 18,
-                    width: "auto",
-                    display: "block",
+                    background: tokens.colors.surface,
+                    border: `1px solid ${tokens.colors.border}`,
+                    borderRadius: tokens.radius.card,
+                    padding: 24,
+                    marginBottom: 20,
+                  }}
+                >
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: tokens.colors.textMuted }}>
+                    {t("kpay_choose_method") || "選擇付款方式"}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {/* Card */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod("card")}
+                      style={{
+                        minHeight: 52,
+                        padding: "0 16px",
+                        border: `1px solid ${tokens.colors.border}`,
+                        borderRadius: 14,
+                        background: "transparent",
+                        color: tokens.colors.text,
+                        fontWeight: 600,
+                        fontSize: 15,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        width: "100%",
+                        textAlign: "left",
+                        transition: `border-color ${tokens.duration.fast}, background ${tokens.duration.fast}`,
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.textFaint; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)" }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.border; (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M2 10h20" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M6 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                      {t("kpay_card") || "信用卡 / 扣賬卡"}
+                    </button>
+
+                    {/* FPS */}
+                    <button
+                      type="button"
+                      onClick={() => { setPaymentMethod("fps"); setKpayMethod("fps"); setKpayMode("qr") }}
+                      style={{
+                        minHeight: 52,
+                        padding: "0 16px",
+                        border: `1px solid ${tokens.colors.border}`,
+                        borderRadius: 14,
+                        background: "transparent",
+                        color: tokens.colors.text,
+                        fontWeight: 600,
+                        fontSize: 15,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        width: "100%",
+                        textAlign: "left",
+                        transition: `border-color ${tokens.duration.fast}, background ${tokens.duration.fast}`,
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.textFaint; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)" }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.border; (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                      {t("kpay_fps") || "FPS 轉數快"}
+                    </button>
+
+                    {/* PayMe */}
+                    <button
+                      type="button"
+                      onClick={() => { setPaymentMethod("payme"); setKpayMethod("payme"); setKpayMode("qr") }}
+                      style={{
+                        minHeight: 52,
+                        padding: "0 16px",
+                        border: `1px solid ${tokens.colors.border}`,
+                        borderRadius: 14,
+                        background: "transparent",
+                        color: tokens.colors.text,
+                        fontWeight: 600,
+                        fontSize: 15,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        width: "100%",
+                        textAlign: "left",
+                        transition: `border-color ${tokens.duration.fast}, background ${tokens.duration.fast}`,
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.textFaint; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)" }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.border; (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      </svg>
+                      {t("kpay_payme") || "PayMe"}
+                    </button>
+
+                    {/* Octopus */}
+                    <button
+                      type="button"
+                      onClick={() => { setPaymentMethod("octopus"); setKpayMethod("octopus"); setKpayMode("qr") }}
+                      style={{
+                        minHeight: 52,
+                        padding: "0 16px",
+                        border: `1px solid ${tokens.colors.border}`,
+                        borderRadius: 14,
+                        background: "transparent",
+                        color: tokens.colors.text,
+                        fontWeight: 600,
+                        fontSize: 15,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        width: "100%",
+                        textAlign: "left",
+                        transition: `border-color ${tokens.duration.fast}, background ${tokens.duration.fast}`,
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.textFaint; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)" }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.border; (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <rect x="4" y="6" width="16" height="12" rx="3" stroke="currentColor" strokeWidth="1.5" />
+                        <circle cx="10" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
+                        <path d="M14 10l2 2-2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      {t("kpay_octopus") || "八達通"}
+                    </button>
+                  </div>
+                </div>
+              ) : paymentMethod === "card" ? (
+                /* ── StripePayment (card) ── */
+                <div
+                  style={{
+                    background: tokens.colors.surface,
+                    border: `1px solid ${tokens.colors.border}`,
+                    borderRadius: tokens.radius.card,
+                    padding: 24,
+                    marginBottom: 20,
+                  }}
+                >
+                  <StripePayment
+                    date={dateStr}
+                    startHour={startHour}
+                    duration={duration}
+                    tableNumber={tableNumber}
+                    blocks={blocks.map((b) => ({
+                      date: b.date,
+                      startHour: b.startHour,
+                      duration: b.duration,
+                      tableNumber: b.tableNumber,
+                    }))}
+                    total={total}
+                    locale={locale as "en" | "zh-HK" | "zh-CN"}
+                    returnPath="/book"
+                    payLabel={`${t("pay_now")} · HK$${total}`}
+                    processingLabel={t("processing")}
+                    errorLabel={t("pay_error")}
+                    slotTakenLabel={t("slot_taken")}
+                    bookingExpiredLabel={t("booking_expired")}
+                    bookingExpiredDescLabel={t("booking_expired_desc")}
+                    loadingLabel={t("pay_loading")}
+                    lockHoldLabel={t("lock_hold")}
+                    paymentFailedLabel={t("pay_declined")}
+                    whatsappSupportLabel={t("whatsapp_support")}
+                    retryPaymentLabel={t("retry_payment")}
+                    billingDetails={profile ?? undefined}
+                    onBackToSlots={onBackToSlots}
+                    backToSlotsLabel={t("back_to_slots")}
+                    payDisabled={!agreedToTerms}
+                    onDisabledPayClick={flagTermsRequired}
+                    promoCode={promoCode}
+                    onPromoChange={onPromoChange}
+                  />
+
+                  {/* Payment reminder — near countdown */}
+                  <div
+                    data-cms-key="book.payment_reminder"
+                    style={{
+                      fontSize: 12,
+                      color: tokens.colors.textFaint,
+                      textAlign: "center",
+                      marginTop: 16,
+                      padding: "0 8px",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {t("payment_reminder")}
+                  </div>
+
+                  {/* Powered by Stripe — official badge */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginTop: 14,
+                      opacity: 0.5,
+                    }}
+                  >
+                    <img
+                      src="/logos/payment/powered-by-stripe-badge.svg"
+                      alt="Powered by Stripe"
+                      style={{
+                        height: 18,
+                        width: "auto",
+                        display: "block",
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* ── KPay payment (FPS / PayMe / Octopus) ── */
+                <KPayPayment
+                  blocks={blocks.map((b) => ({
+                    date: b.date,
+                    startHour: b.startHour,
+                    duration: b.duration,
+                    tableNumber: b.tableNumber as 1 | 2,
+                  }))}
+                  method={kpayMethod ?? "fps"}
+                  mode={kpayMode}
+                  labels={{
+                    title: t("kpay_title"),
+                    pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : "八達通"} 掃描以下二維碼`,
+                    pending_desc: t("kpay_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
+                    pending_confirmation: t("kpay_pending_confirmation") || "確認付款中",
+                    pending_confirmation_desc: t("kpay_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
+                    success: t("kpay_success") || "付款成功",
+                    success_desc: t("kpay_success_desc") || "你的預訂已確認",
+                    failed: t("kpay_failed") || "付款失敗",
+                    failed_desc: t("kpay_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
+                    expired: t("kpay_expired") || "二維碼已過期",
+                    expired_desc: t("kpay_expired_desc") || "此二維碼已過期，新二維碼即將自動生成",
+                    regenerate: t("kpay_regenerate") || "重新生成",
+                    try_again: t("kpay_try_again") || "重試",
+                    countdown: t("kpay_countdown") || "二維碼將於 {time} 後過期",
+                    help: t("kpay_help") || "需要幫助？",
+                    support_whatsapp: t("kpay_support_whatsapp") || "WhatsApp 客服",
+                    back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
+                    processing: t("kpay_processing") || "處理中…",
+                  }}
+                  onBackToMethods={() => setPaymentMethod(null)}
+                  onSuccess={() => {
+                    // After successful payment, navigate to confirmation
+                    window.location.href = "/book?redirect_status=succeeded"
                   }}
                 />
-              </div>
-            </div>
+              )}
+            </>
           )}
 
           {/* Test mode: show admin confirm button */}

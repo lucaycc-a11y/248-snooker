@@ -40,6 +40,7 @@
     "next": "^14.2.33",
     "next-intl": "^4.13.0",
     "qrcode": "^1.5.4",
+    "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-leaflet": "^4.2.1",
@@ -65,6 +66,7 @@
     "postcss": "^8.4.39",
     "sharp": "^0.35.3",
     "tailwindcss": "^3.4.6",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "^4.1.10"
   }
 }
