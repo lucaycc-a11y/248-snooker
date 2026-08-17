@@ -164,7 +164,7 @@ export default function PaymentMethodCard({
         />
       </span>
 
-      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ flex: 1, minWidth: 0 }}>
         <span
           style={{
             display: "block",
@@ -176,27 +176,32 @@ export default function PaymentMethodCard({
         >
           {label}
         </span>
-        <span
-          style={{
-            display: "block",
-            fontSize: 11.5,
-            color: selected ? "rgba(255,255,255,0.72)" : tokens.colors.textFaint,
-            marginTop: 2,
-            lineHeight: 1.4,
-            transition: `color 0.25s ease`,
-          }}
-        >
-          {sublabel}
-        </span>
+        {sublabel && (
+          <span
+            style={{
+              display: "block",
+              fontSize: 11.5,
+              color: selected ? "rgba(255,255,255,0.72)" : tokens.colors.textFaint,
+              marginTop: 2,
+              lineHeight: 1.4,
+              transition: `color 0.25s ease`,
+            }}
+          >
+            {sublabel}
+          </span>
+        )}
       </span>
 
       {icons ? (
         <span
           style={{
             display: "flex",
+            flexWrap: "wrap",
             alignItems: "center",
-            gap: 6,
+            gap: 4,
             flexShrink: 0,
+            maxWidth: 160,
+            justifyContent: "flex-end",
           }}
         >
           {icons}

@@ -64,7 +64,7 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
   {
     id: "card",
     label: "信用卡",
-    sublabel: "Visa · Mastercard · 銀聯 · JCB · Diners · Amex",
+    sublabel: "",
     disabled: false,
     icons: (
       <>

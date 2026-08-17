@@ -337,8 +337,8 @@ export default function Footer() {
               Secured by
             </span>
             <img
-              src="/logos/payment/stripe-white.svg"
-              alt="Stripe"
+              src="/logos/kpay-logo.svg"
+              alt="KPay"
               style={{
                 height: '20px',
                 width: 'auto',
