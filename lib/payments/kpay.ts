@@ -14,7 +14,7 @@ import type {
   WebhookEvent,
 } from './types'
 import { buildSignText, signKpay, generateNonce, toPem } from './kpay-sign'
-import { kpayErrorMessage } from './types'
+import { kpayErrorMessage, KPAY_MIN_AMOUNT_HKD } from './types'
 
 // ── Env accessors (throw early on missing config) ─────────────
 
@@ -31,6 +31,11 @@ function getKpayBaseUrl(): string {
   if (env === 'prod') return 'https://payment.kpay-group.com'
   return 'https://payment.uat.kpay-group.com'
 }
+
+// Where an Alipay form-post payInfo is submitted when the payload carries no
+// gateway of its own. Cross-border (intl) gateway — Alipay CN and HK both
+// accept it for merchant-initiated H5 sales.
+const ALIPAY_GATEWAY_URL = 'https://intlmapi.alipay.com/gateway.do'
 
 // ── KPay API response type ────────────────────────────────────
 
@@ -79,6 +84,16 @@ export class KPayProvider implements PaymentProvider {
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
     const { outTradeNo, bookingId, amount, method, mode, remark, baseUrl } = params
 
+    // Gateway floor, checked before the request so a too-small test amount
+    // fails with a readable message instead of KPay's opaque 1047 無效金額.
+    // This is a KPay constraint, not a pricing rule — real prices come from
+    // the config table and are far above it.
+    if (!Number.isFinite(amount) || amount < KPAY_MIN_AMOUNT_HKD) {
+      throw new Error(
+        `KPay 建單失敗：金額 HKD ${amount} 低於閘道最低限額 HKD ${KPAY_MIN_AMOUNT_HKD}（KPay 會回 1047 無效金額）`,
+      )
+    }
+
     // ── Credit card: CNP Hosted (redirect to KPay's card entry page) ──────
     // KPay requires their own PCI-compliant page for card number input +
     // 3DS. We create the order with CNP_SALES_GATEWAY, then build a signed
@@ -121,16 +136,65 @@ export class KPayProvider implements PaymentProvider {
       throw new Error(`KPay 取碼失敗：${qrRes.message ?? kpayErrorMessage(String(qrRes.code))}`)
     }
 
-    console.log('[KPay] 取碼成功:', '| outTradeNo:', outTradeNo, '| orderNo:', qrRes.data!.orderNo)
+    const payInfo = qrRes.data!.payInfo
+
+    console.log('[KPay] 取碼成功:', '| outTradeNo:', outTradeNo, '| orderNo:', qrRes.data!.orderNo, '| payInfoKind:', mode === 'qr' ? 'qr' : this.classifyH5PayInfo(payInfo).kind)
 
     return {
       // The QR endpoint creates and returns its own orderNo — this is the
       // authoritative provider order reference for status polling and refunds.
       providerOrderNo: qrRes.data!.orderNo,
-      payInfo: qrRes.data!.payInfo,
-      kind: mode === 'qr' ? 'qr' : 'link',
+      payInfo,
+      ...(mode === 'qr'
+        ? { kind: 'qr' as const }
+        : this.classifyH5PayInfo(payInfo)),
       expiresInSeconds: this.getExpiresInSeconds(method),
     }
+  }
+
+  /**
+   * Classify an H5 payInfo by its actual shape rather than by method.
+   *
+   * Alipay H5 (ALIPAY_SALE_H5) returns a JSON parameter map, not a URL — those
+   * params must be submitted as an HTML form POST to Alipay's gateway. Other
+   * direct-connect methods return a plain URL that can be navigated to.
+   *
+   * Assigning a JSON blob to location.href produces
+   * https://site/{"service":...} — the bug this classification prevents.
+   */
+  private classifyH5PayInfo(
+    payInfo: string,
+  ): { kind: 'link' | 'form-post'; formAction?: string } {
+    const trimmed = payInfo.trim()
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      return { kind: 'link' }
+    }
+
+    if (trimmed.startsWith('{')) {
+      let fields: Record<string, unknown>
+      try {
+        fields = JSON.parse(trimmed) as Record<string, unknown>
+      } catch {
+        // Starts like JSON but isn't — treat as opaque so the UI shows an
+        // error rather than navigating to a malformed URL.
+        return { kind: 'form-post', formAction: ALIPAY_GATEWAY_URL }
+      }
+
+      // Prefer a gateway URL carried in the payload over our default, so a
+      // gateway change on KPay's side doesn't require a code change here.
+      for (const key of ['gateway', 'action', 'url', 'payUrl', 'gatewayUrl']) {
+        const val = fields[key]
+        if (typeof val === 'string' && /^https?:\/\//i.test(val)) {
+          return { kind: 'form-post', formAction: val }
+        }
+      }
+      return { kind: 'form-post', formAction: ALIPAY_GATEWAY_URL }
+    }
+
+    // Neither a URL nor JSON (e.g. a scheme like alipays://) — let the client
+    // navigate, which is correct for app-scheme deep links.
+    return { kind: 'link' }
   }
 
   // ── CNP Hosted (credit card) ────────────────────────────────────────────

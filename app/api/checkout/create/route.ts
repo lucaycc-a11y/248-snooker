@@ -217,51 +217,20 @@ export async function POST(req: Request) {
         totalAmount += quote.total
       }
 
-      const primaryBookingId = bookingIds[0]
-      const origin = new URL(req.url).origin
-
-      // Create the KPay order against the PRIMARY booking's human code.
-      const result = await provider.createOrder({
-        outTradeNo: humanReadableCode(primaryBookingId),
-        bookingId: primaryBookingId,
-        amount: totalAmount,
-        method: paymentMethod,
-        mode,
-        baseUrl: origin,
-      })
-
-      // Stamp provider info on every booking in the group.
-      const { error: stampErr } = await service
-        .from('bookings')
-        .update({ payment_provider: 'kpay', provider_order_no: result.providerOrderNo })
-        .eq('user_id', user.id)
-        .in('id', bookingIds)
-      if (stampErr) {
-        // Non-fatal: the KPay order exists; the webhook stamps on confirmation.
-        console.error('[checkout/create] group provider_order_no stamp failed', {
-          bookingIds,
-          providerOrderNo: result.providerOrderNo,
-          error: stampErr.message,
-        })
-      }
-
-      console.log('[checkout/create] blocks-mode success', {
-        bookingIds,
-        providerOrderNo: result.providerOrderNo,
-        method,
-        mode,
-        amount: totalAmount,
-      })
-
-      return NextResponse.json({
-        bookingId: primaryBookingId,
+      // Converge on the shared path — Mode A does not create the order itself.
+      return await createAndStamp({
+        service,
+        provider,
+        userId: user.id,
+        primaryBookingId: bookingIds[0],
+        outTradeNo: humanReadableCode(bookingIds[0]),
+        siblingIds: bookingIds.slice(1),
         orderGroupId,
-        bookingIds,
-        providerOrderNo: result.providerOrderNo,
-        payInfo: result.payInfo,
-        kind: result.kind,
-        expiresInSeconds: result.expiresInSeconds,
-        existing: false,
+        totalAmount,
+        paymentMethod,
+        mode,
+        origin: new URL(req.url).origin,
+        extra: { orderGroupId, bookingIds },
       })
     }
 
@@ -313,108 +282,19 @@ export async function POST(req: Request) {
       }
     }
 
-    // ── Create the KPay order ──────────────────────────────────────────────
-    // Concurrency note: the guard against a duplicate KPay order is the
-    // conditional stamp below (.is('provider_order_no', null)), not an
-    // in-process lock — serverless instances share no memory, so a Map-based
-    // lock cannot see a request handled by another instance.
-    const origin = new URL(req.url).origin
-    const outTradeNo = booking.human_code
-
-    const result = await provider.createOrder({
-      outTradeNo,
-      bookingId,
-      amount: totalAmount,
-      method: paymentMethod,
+    // Same shared path as Mode A — one place calls createOrder, one place stamps.
+    return await createAndStamp({
+      service,
+      provider,
+      userId: user.id,
+      primaryBookingId: bookingId,
+      outTradeNo: booking.human_code,
+      siblingIds: [],
+      orderGroupId: orderGroupId ?? null,
+      totalAmount,
+      paymentMethod,
       mode,
-      baseUrl: origin,
-    })
-
-    // ── Persist provider info on the booking ───────────────────────────────
-    // Conditional on provider_order_no still being NULL: if a concurrent
-    // request already stamped one, this matches 0 rows and we surface THAT
-    // order instead of handing back two different orders for one booking.
-    const { data: stamped, error: updateErr } = await service
-      .from('bookings')
-      .update({
-        payment_provider: 'kpay',
-        provider_order_no: result.providerOrderNo,
-      })
-      .eq('id', bookingId)
-      .is('provider_order_no', null)
-      .select('id')
-
-    if (updateErr) {
-      console.error('[checkout/create] provider_order_no stamp failed', {
-        bookingId,
-        providerOrderNo: result.providerOrderNo,
-        error: updateErr.message,
-      })
-      await logSiteError('checkout/create', 'warning', 'provider_order_no stamp failed', {
-        bookingId,
-        providerOrderNo: result.providerOrderNo,
-        message: updateErr.message,
-      })
-    }
-
-    if (!updateErr && (!stamped || stamped.length === 0)) {
-      const { data: winner } = await service
-        .from('bookings')
-        .select('provider_order_no')
-        .eq('id', bookingId)
-        .single()
-
-      if (winner?.provider_order_no && winner.provider_order_no !== result.providerOrderNo) {
-        console.warn('[checkout/create] concurrent stamp detected — returning existing order', {
-          bookingId,
-          ours: result.providerOrderNo,
-          existing: winner.provider_order_no,
-        })
-        return NextResponse.json({
-          bookingId: booking.id,
-          providerOrderNo: winner.provider_order_no,
-          existing: true,
-        })
-      }
-    }
-
-    // ── For grouped orders, stamp provider_order_no on all siblings ────────
-    if (orderGroupId) {
-      const { error: groupUpdateErr } = await service
-        .from('bookings')
-        .update({
-          payment_provider: 'kpay',
-          provider_order_no: result.providerOrderNo,
-        })
-        .eq('order_group_id', orderGroupId)
-        .eq('user_id', user.id)
-        .neq('id', bookingId)
-
-      if (groupUpdateErr) {
-        console.error('[checkout/create] group provider_order_no stamp failed', {
-          orderGroupId,
-          providerOrderNo: result.providerOrderNo,
-          error: groupUpdateErr.message,
-        })
-      }
-    }
-
-    console.log('[checkout/create] success', {
-      bookingId,
-      providerOrderNo: result.providerOrderNo,
-      method,
-      mode,
-      amount: totalAmount,
-      elapsedMs: Date.now() - startTime,
-    })
-
-    return NextResponse.json({
-      bookingId: booking.id,
-      providerOrderNo: result.providerOrderNo,
-      payInfo: result.payInfo,
-      kind: result.kind,
-      expiresInSeconds: result.expiresInSeconds,
-      existing: false,
+      origin: new URL(req.url).origin,
     })
   } catch (err) {
     const e = err as Error
@@ -431,4 +311,129 @@ export async function POST(req: Request) {
     await logSiteError('checkout/create', 'error', 'unhandled exception', { message: e.message, stack: e.stack })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
+}
+
+// ── Single order-creation path ───────────────────────────────────────────────
+//
+// The ONLY place in this route that calls provider.createOrder. Both entry
+// modes (first order, resume/retry) converge here, so there is exactly one
+// create + stamp sequence and one duplicate guard.
+//
+// The guard is the conditional stamp (.is('provider_order_no', null)), not an
+// in-process lock: serverless instances share no memory, so a Map-based lock
+// cannot see a request handled by another instance. If a concurrent request
+// stamped first, this update matches 0 rows and we return THAT order rather
+// than handing back two different orders for one booking.
+type CreateAndStampArgs = {
+  service: ReturnType<typeof getServiceSupabase>
+  provider: ReturnType<typeof getPaymentProvider>
+  userId: string
+  primaryBookingId: string
+  outTradeNo: string
+  siblingIds: string[]
+  orderGroupId: string | null
+  totalAmount: number
+  paymentMethod: PaymentMethod
+  mode: 'qr' | 'h5'
+  origin: string
+  extra?: Record<string, unknown>
+}
+
+async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
+  const {
+    service, provider, userId, primaryBookingId, outTradeNo, siblingIds,
+    orderGroupId, totalAmount, paymentMethod, mode, origin, extra,
+  } = args
+
+  const result = await provider.createOrder({
+    outTradeNo,
+    bookingId: primaryBookingId,
+    amount: totalAmount,
+    method: paymentMethod,
+    mode,
+    baseUrl: origin,
+  })
+
+  const { data: stamped, error: updateErr } = await service
+    .from('bookings')
+    .update({ payment_provider: 'kpay', provider_order_no: result.providerOrderNo })
+    .eq('id', primaryBookingId)
+    .eq('user_id', userId)
+    .is('provider_order_no', null)
+    .select('id')
+
+  if (updateErr) {
+    console.error('[checkout/create] provider_order_no stamp failed', {
+      primaryBookingId,
+      providerOrderNo: result.providerOrderNo,
+      error: updateErr.message,
+    })
+    await logSiteError('checkout/create', 'warning', 'provider_order_no stamp failed', {
+      bookingId: primaryBookingId,
+      providerOrderNo: result.providerOrderNo,
+      message: updateErr.message,
+    })
+  }
+
+  // Lost the race — surface the winning order instead of our orphan.
+  if (!updateErr && (!stamped || stamped.length === 0)) {
+    const { data: winner } = await service
+      .from('bookings')
+      .select('provider_order_no')
+      .eq('id', primaryBookingId)
+      .single()
+
+    if (winner?.provider_order_no && winner.provider_order_no !== result.providerOrderNo) {
+      console.warn('[checkout/create] concurrent stamp detected — returning existing order', {
+        primaryBookingId,
+        ours: result.providerOrderNo,
+        existing: winner.provider_order_no,
+      })
+      return NextResponse.json({
+        bookingId: primaryBookingId,
+        providerOrderNo: winner.provider_order_no,
+        existing: true,
+      })
+    }
+  }
+
+  // Siblings share the primary's provider order (grouped multi-slot checkout).
+  const groupTargets = siblingIds.length > 0 ? siblingIds : null
+  if (groupTargets || orderGroupId) {
+    const q = service
+      .from('bookings')
+      .update({ payment_provider: 'kpay', provider_order_no: result.providerOrderNo })
+      .eq('user_id', userId)
+    const { error: groupErr } = groupTargets
+      ? await q.in('id', groupTargets)
+      : await q.eq('order_group_id', orderGroupId!).neq('id', primaryBookingId)
+
+    if (groupErr) {
+      console.error('[checkout/create] group provider_order_no stamp failed', {
+        orderGroupId,
+        providerOrderNo: result.providerOrderNo,
+        error: groupErr.message,
+      })
+    }
+  }
+
+  console.log('[checkout/create] success', {
+    primaryBookingId,
+    providerOrderNo: result.providerOrderNo,
+    method: paymentMethod,
+    mode,
+    kind: result.kind,
+    amount: totalAmount,
+  })
+
+  return NextResponse.json({
+    bookingId: primaryBookingId,
+    providerOrderNo: result.providerOrderNo,
+    payInfo: result.payInfo,
+    kind: result.kind,
+    formAction: result.formAction,
+    expiresInSeconds: result.expiresInSeconds,
+    existing: false,
+    ...extra,
+  })
 }

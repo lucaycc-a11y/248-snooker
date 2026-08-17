@@ -59,6 +59,63 @@ type Props = {
   onSuccess: () => void
 }
 
+// ── Gateway form POST (Alipay H5) ────────────────────────────────────────────
+
+const ALIPAY_GATEWAY_FALLBACK = 'https://intlmapi.alipay.com/gateway.do'
+
+/**
+ * Submit a JSON parameter map to a payment gateway as an HTML form POST.
+ *
+ * Alipay H5 returns its parameters as JSON rather than a URL; the gateway
+ * expects them as form fields. Each key becomes a hidden input and the form is
+ * submitted immediately, navigating the top-level page to the gateway.
+ *
+ * Returns false when payInfo cannot be parsed, so the caller can surface an
+ * error instead of leaving the user on a stalled screen.
+ */
+function submitGatewayForm(payInfo: string, formAction?: string): boolean {
+  let fields: Record<string, unknown>
+  try {
+    const parsed: unknown = JSON.parse(payInfo)
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return false
+    fields = parsed as Record<string, unknown>
+  } catch {
+    return false
+  }
+
+  const action = formAction ?? ALIPAY_GATEWAY_FALLBACK
+  if (!/^https:\/\//i.test(action)) return false
+
+  const form = document.createElement('form')
+  form.method = 'POST'
+  form.action = action
+  form.style.display = 'none'
+
+  // Gateway params are flat scalars. Skip nested values and the gateway key
+  // itself — it addresses the form, it isn't a field the gateway expects back.
+  const GATEWAY_KEYS = new Set(['gateway', 'action', 'url', 'payUrl', 'gatewayUrl'])
+  let fieldCount = 0
+
+  for (const [key, value] of Object.entries(fields)) {
+    if (value === null || value === undefined) continue
+    if (typeof value === 'object') continue
+    if (GATEWAY_KEYS.has(key)) continue
+
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = key
+    input.value = String(value)
+    form.appendChild(input)
+    fieldCount++
+  }
+
+  if (fieldCount === 0) return false
+
+  document.body.appendChild(form)
+  form.submit()
+  return true
+}
+
 // ── Method display names ─────────────────────────────────────────────────────
 
 const METHOD_NAMES: Record<KPayMethod, string> = {
@@ -168,8 +225,25 @@ export default function KPayPayment(props: Props) {
       if (json.orderGroupId) setLocalOrderGroupId(String(json.orderGroupId))
       setState('pending')
 
-      // Redirect immediately for card (CNP hosted) or any link-type response
+      // Hand off to the gateway. 'form-post' payInfo is a JSON field map, not a
+      // URL — it must be POSTed as a form. Assigning it to location.href yields
+      // https://site/{"service":...}, which is the bug this branch prevents.
+      if (json.kind === 'form-post') {
+        if (!submitGatewayForm(json.payInfo, json.formAction)) {
+          setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
+          setState('failed')
+        }
+        return
+      }
+
       if ((json.kind === 'redirect' || json.kind === 'link' || mode === 'h5') && json.payInfo) {
+        // Guard the URL cases too: only navigate to something that really is a
+        // URL, so a shape change upstream can never produce a garbled address.
+        if (!/^(https?:\/\/|[a-z][a-z0-9+.-]*:)/i.test(json.payInfo.trim())) {
+          setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
+          setState('failed')
+          return
+        }
         window.location.href = json.payInfo
       }
     } catch (e) {
