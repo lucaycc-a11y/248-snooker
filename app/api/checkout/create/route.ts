@@ -69,7 +69,15 @@ export async function POST(req: Request) {
     const method = body?.method as string | undefined
     const mode: 'qr' | 'h5' = body?.mode === 'h5' ? 'h5' : 'qr'
 
-    if (!method || !['fps', 'payme', 'octopus'].includes(method)) {
+    // ── Explicit deny: Apple Pay / Google Pay are UI-only "coming soon" ────
+    if (method === 'apple_pay' || method === 'google_pay') {
+      return NextResponse.json(
+        { error: 'Apple Pay 及 Google Pay 尚未開放，請使用其他付款方式' },
+        { status: 400 },
+      )
+    }
+
+    if (!method || !['fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'].includes(method)) {
       return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
     }
 

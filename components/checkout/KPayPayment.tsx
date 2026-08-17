@@ -6,7 +6,7 @@ import { tokens } from '@/app/styles/tokens'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type KPayMethod = 'fps' | 'payme' | 'octopus'
+export type KPayMethod = 'fps' | 'payme' | 'octopus' | 'alipay' | 'alipayhk' | 'wechat' | 'unionpay_qp'
 
 export type KPayState =
   | 'idle'          // initial — not yet created
@@ -65,6 +65,10 @@ const METHOD_NAMES: Record<KPayMethod, string> = {
   fps: 'FPS 轉數快',
   payme: 'PayMe',
   octopus: '八達通',
+  alipay: '支付寶',
+  alipayhk: 'AlipayHK',
+  wechat: '微信支付',
+  unionpay_qp: '雲閃付',
 }
 
 // ── Color tokens (Space8 design system — never Tailwind greens) ──────────────

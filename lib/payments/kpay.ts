@@ -62,6 +62,15 @@ export class KPayProvider implements PaymentProvider {
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
     const { outTradeNo, amount, method, mode, remark, baseUrl } = params
 
+    // ── Credit card: CNP Hosted (redirect to KPay's card entry page) ──────
+    // KPay requires their own PCI-compliant page for card number input +
+    // 3DS. We create the order with CNP_SALES_GATEWAY, then build a signed
+    // H5 URL that redirects the user to KPay's hosted checkout.
+    if (method === 'card') {
+      return this.createCnpHostedOrder(outTradeNo, amount, remark, baseUrl)
+    }
+
+    // ── Direct-connect methods (FPS / PayMe / Octopus / wallets) ──────────
     // Step 1: create the trade order
     const orderBody = {
       outTradeNo,
@@ -85,11 +94,13 @@ export class KPayProvider implements PaymentProvider {
     const providerOrderNo = orderRes.data!.orderNo
 
     // Step 2: get the QR code or H5 link
-    const qrBody = {
+    const institution = this.getPaymentInstitution(method)
+    const qrBody: Record<string, unknown> = {
       outTradeNo,
       payAmount: amount.toFixed(2),
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
+      ...(institution ? { paymentInstitution: institution } : {}),
     }
 
     const qrEndpoint = this.getQrEndpoint(method, mode)
@@ -109,6 +120,54 @@ export class KPayProvider implements PaymentProvider {
       payInfo: qrRes.data!.payInfo,
       kind: mode === 'qr' ? 'qr' : 'link',
       expiresInSeconds,
+    }
+  }
+
+  // ── CNP Hosted (credit card) ────────────────────────────────────────────
+
+  private async createCnpHostedOrder(
+    outTradeNo: string,
+    amount: number,
+    remark: string | undefined,
+    baseUrl: string,
+  ): Promise<CreateOrderResult> {
+    // Step 1: create order with CNP_SALES_GATEWAY type
+    const orderBody = {
+      outTradeNo,
+      orderType: 'CNP_SALES_GATEWAY',
+      payAmount: amount.toFixed(2),
+      payCurrency: 'HKD',
+      notifyUrl: `${baseUrl}/api/webhooks/kpay`,
+      returnUrl: `${baseUrl}/book/confirmation?orderNo=${outTradeNo}`,
+      ...(remark ? { orderRemark: remark } : {}),
+    }
+
+    const orderRes = await this.apiPost<KPayApiResponse<{ orderNo: string }>>(
+      '/v1/order/add',
+      orderBody,
+    )
+
+    if (orderRes.code !== 10000) {
+      throw new Error(`KPay 建單失敗：${orderRes.message ?? kpayErrorMessage(String(orderRes.code))}`)
+    }
+
+    const orderNo = orderRes.data!.orderNo
+
+    // Step 2: build signed H5 redirect URL for KPay's hosted card page
+    const timestamp = Date.now().toString()
+    const nonceStr = generateNonce()
+    const h5Path = `/v1/h5?orderNo=${encodeURIComponent(orderNo)}&language=zh_HK&K-Merchant-Code=${encodeURIComponent(this.merchantCode)}&K-Nonce-Str=${encodeURIComponent(nonceStr)}&K-Timestamp=${encodeURIComponent(timestamp)}`
+
+    const signText = buildSignText('GET', h5Path, timestamp, nonceStr, this.merchantCode, '')
+    const signature = signKpay(this.privateKey, signText)
+
+    const redirectUrl = `${this.baseUrl}${h5Path}&K-Signature=${encodeURIComponent(signature)}`
+
+    return {
+      providerOrderNo: orderNo,
+      payInfo: redirectUrl,
+      kind: 'redirect',
+      expiresInSeconds: 1800, // 30 minutes for credit card
     }
   }
 
@@ -232,25 +291,44 @@ export class KPayProvider implements PaymentProvider {
 
   private getOrderType(method: string, mode: 'qr' | 'h5'): string {
     const map: Record<string, { qr: string; h5: string }> = {
-      fps:     { qr: 'FPS_SALE_QR',     h5: 'FPS_SALE_H5'     },
-      payme:   { qr: 'PAYME_SALE_QR',   h5: 'PAYME_SALE_H5'   },
-      octopus: { qr: 'OCTOPUS_SALE_QR', h5: 'OCTOPUS_SALE_H5' },
+      fps:          { qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       },
+      payme:        { qr: 'PAYME_SALE_QR',     h5: 'PAYME_SALE_H5'     },
+      octopus:      { qr: 'OCTOPUS_SALE_QR',   h5: 'OCTOPUS_SALE_H5'   },
+      alipay:       { qr: 'ALIPAY_SALE_QR',    h5: 'ALIPAY_SALE_H5'    },
+      alipayhk:     { qr: 'ALIPAY_SALE_QR',    h5: 'ALIPAY_SALE_H5'    },
+      wechat:       { qr: 'WXPAY_SALE_QR',     h5: 'WXPAY_SALE_H5'     },
+      unionpay_qp:  { qr: 'UNIONPAY_SALE_QR',  h5: 'UNIONPAY_SALE_QR'  },
     }
     return map[method]?.[mode] ?? 'FPS_SALE_H5'
   }
 
   private getQrEndpoint(method: string, mode: 'qr' | 'h5'): string {
     const map: Record<string, { qr: string; h5: string }> = {
-      fps:     { qr: '/v1/qr/sales/scan/fps',     h5: '/v1/qr/sales/h5/fps'     },
-      payme:   { qr: '/v1/qr/sales/scan/payme',   h5: '/v1/qr/sales/h5/payme'   },
-      octopus: { qr: '/v1/qr/sales/scan/octopus', h5: '/v1/qr/sales/h5/octopus' },
+      fps:          { qr: '/v1/qr/sales/scan/fps',      h5: '/v1/qr/sales/h5/fps'      },
+      payme:        { qr: '/v1/qr/sales/scan/payme',    h5: '/v1/qr/sales/h5/payme'    },
+      octopus:      { qr: '/v1/qr/sales/scan/octopus',  h5: '/v1/qr/sales/h5/octopus'  },
+      alipay:       { qr: '/v1/qr/sales/scan/alipay',   h5: '/v1/qr/sales/h5/alipay'   },
+      alipayhk:     { qr: '/v1/qr/sales/scan/alipay',   h5: '/v1/qr/sales/h5/alipay'   },
+      wechat:       { qr: '/v1/qr/sales/scan/wxpay',    h5: '/v1/qr/sales/h5/wxpay'    },
+      unionpay_qp:  { qr: '/v1/qr/sales/scan/unionpay', h5: '/v1/qr/sales/scan/unionpay' },
     }
     return map[method]?.[mode] ?? '/v1/qr/sales/h5/fps'
   }
 
+  /**
+   * For Alipay CN vs HK, KPay uses the same endpoint but distinguishes
+   * via paymentInstitution in the request body. Returns undefined for
+   * methods that don't need it.
+   */
+  private getPaymentInstitution(method: string): string | undefined {
+    if (method === 'alipay') return 'ALIPAYCN'
+    if (method === 'alipayhk') return 'ALIPAYHK'
+    return undefined
+  }
+
   private getExpiresInSeconds(method: string): number {
     if (method === 'fps') return 60
-    return 600 // payme / octopus
+    return 600
   }
 
   private async apiPost<T>(path: string, body: Record<string, unknown>): Promise<T> {

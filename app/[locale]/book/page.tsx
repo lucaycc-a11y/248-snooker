@@ -16,6 +16,8 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import KPayPayment from "@/components/checkout/KPayPayment"
+import PaymentMethodList from "@/components/checkout/PaymentMethodList"
+import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import type { PromoResult } from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
@@ -63,13 +65,14 @@ function padTime(h: number): string {
 // out valid slots. Read the parts through Intl in the fixed venue zone instead.
 const HK_TIME_ZONE = "Asia/Hong_Kong"
 
-function getHongKongNow(date = new Date()): { date: string; hour: number } {
+function getHongKongNow(date = new Date()): { date: string; hour: number; minute: number } {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: HK_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
+    minute: "2-digit",
     hour12: false,
   }).formatToParts(date)
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? ""
@@ -78,6 +81,7 @@ function getHongKongNow(date = new Date()): { date: string; hour: number } {
   return {
     date: `${get("year")}-${get("month")}-${get("day")}`,
     hour: rawHour % 24,
+    minute: Number(get("minute")) || 0,
   }
 }
 
@@ -1506,7 +1510,8 @@ function Screen3({
   const [kpayMode, setKpayMode] = useState<KPayMode>('qr')
   const [showKpayMethods, setShowKpayMethods] = useState(false)
   // Which payment method the user selected — null = choose
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'fps' | 'payme' | 'octopus' | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -1817,147 +1822,20 @@ function Screen3({
           {!testMode && (
             <>
               {paymentMethod === null ? (
-                /* ── Method chips ── */
-                <div
-                  style={{
-                    background: tokens.colors.surface,
-                    border: `1px solid ${tokens.colors.border}`,
-                    borderRadius: tokens.radius.card,
-                    padding: 24,
-                    marginBottom: 20,
+                /* ── PaymentMethodList (full method selector) ── */
+                <PaymentMethodList
+                  selected={paymentMethod}
+                  onSelect={(method) => {
+                    setPaymentError(null)
+                    setPaymentMethod(method)
+                    // Map the general method id to the KPay-specific method
+                    const kpayMethods: KPayMethod[] = ['fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
+                    if (kpayMethods.includes(method as KPayMethod)) {
+                      setKpayMethod(method as KPayMethod)
+                      setKpayMode("h5")
+                    }
                   }}
-                >
-                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16, color: tokens.colors.textMuted }}>
-                    {t("kpay_choose_method") || "選擇付款方式"}
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {/* Card */}
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod("card")}
-                      style={{
-                        minHeight: 52,
-                        padding: "0 16px",
-                        border: `1px solid ${tokens.colors.border}`,
-                        borderRadius: 14,
-                        background: "transparent",
-                        color: tokens.colors.text,
-                        fontWeight: 600,
-                        fontSize: 15,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        width: "100%",
-                        textAlign: "left",
-                        transition: `border-color ${tokens.duration.fast}, background ${tokens.duration.fast}`,
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.textFaint; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)" }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.border; (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M2 10h20" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M6 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                      {t("kpay_card") || "信用卡 / 扣賬卡"}
-                    </button>
-
-                    {/* FPS */}
-                    <button
-                      type="button"
-                      onClick={() => { setPaymentMethod("fps"); setKpayMethod("fps"); setKpayMode("qr") }}
-                      style={{
-                        minHeight: 52,
-                        padding: "0 16px",
-                        border: `1px solid ${tokens.colors.border}`,
-                        borderRadius: 14,
-                        background: "transparent",
-                        color: tokens.colors.text,
-                        fontWeight: 600,
-                        fontSize: 15,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        width: "100%",
-                        textAlign: "left",
-                        transition: `border-color ${tokens.duration.fast}, background ${tokens.duration.fast}`,
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.textFaint; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)" }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.border; (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                      {t("kpay_fps") || "FPS 轉數快"}
-                    </button>
-
-                    {/* PayMe */}
-                    <button
-                      type="button"
-                      onClick={() => { setPaymentMethod("payme"); setKpayMethod("payme"); setKpayMode("qr") }}
-                      style={{
-                        minHeight: 52,
-                        padding: "0 16px",
-                        border: `1px solid ${tokens.colors.border}`,
-                        borderRadius: 14,
-                        background: "transparent",
-                        color: tokens.colors.text,
-                        fontWeight: 600,
-                        fontSize: 15,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        width: "100%",
-                        textAlign: "left",
-                        transition: `border-color ${tokens.duration.fast}, background ${tokens.duration.fast}`,
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.textFaint; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)" }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.border; (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                      </svg>
-                      {t("kpay_payme") || "PayMe"}
-                    </button>
-
-                    {/* Octopus */}
-                    <button
-                      type="button"
-                      onClick={() => { setPaymentMethod("octopus"); setKpayMethod("octopus"); setKpayMode("qr") }}
-                      style={{
-                        minHeight: 52,
-                        padding: "0 16px",
-                        border: `1px solid ${tokens.colors.border}`,
-                        borderRadius: 14,
-                        background: "transparent",
-                        color: tokens.colors.text,
-                        fontWeight: 600,
-                        fontSize: 15,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        width: "100%",
-                        textAlign: "left",
-                        transition: `border-color ${tokens.duration.fast}, background ${tokens.duration.fast}`,
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.textFaint; (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)" }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = tokens.colors.border; (e.currentTarget as HTMLButtonElement).style.background = "transparent" }}
-                    >
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <rect x="4" y="6" width="16" height="12" rx="3" stroke="currentColor" strokeWidth="1.5" />
-                        <circle cx="10" cy="12" r="2" stroke="currentColor" strokeWidth="1.5" />
-                        <path d="M14 10l2 2-2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {t("kpay_octopus") || "八達通"}
-                    </button>
-                  </div>
-                </div>
+                />
               ) : paymentMethod === "card" ? (
                 /* ── StripePayment (card) ── */
                 <div
@@ -2039,8 +1917,8 @@ function Screen3({
                     />
                   </div>
                 </div>
-              ) : (
-                /* ── KPay payment (FPS / PayMe / Octopus) ── */
+              ) : (['fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
+                /* ── KPay payment (all 7 methods) ── */
                 <KPayPayment
                   blocks={blocks.map((b) => ({
                     date: b.date,
@@ -2052,7 +1930,7 @@ function Screen3({
                   mode={kpayMode}
                   labels={{
                     title: t("kpay_title"),
-                    pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : "八達通"} 掃描以下二維碼`,
+                    pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : "雲閃付"} 掃描以下二維碼`,
                     pending_desc: t("kpay_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
                     pending_confirmation: t("kpay_pending_confirmation") || "確認付款中",
                     pending_confirmation_desc: t("kpay_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
@@ -2076,7 +1954,7 @@ function Screen3({
                     window.location.href = "/book?redirect_status=succeeded"
                   }}
                 />
-              )}
+              ) : null}
             </>
           )}
 

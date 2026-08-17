@@ -69,8 +69,9 @@ export async function GET(req: Request) {
     // Query the payment provider for current order status.
     // Use the booking's stored method so the query signs with the right
     // merchant context; the provider is KPay here (checked above).
-    const method = (booking.payment_method === 'fps' || booking.payment_method === 'payme' || booking.payment_method === 'octopus')
-      ? booking.payment_method
+    const kpayMethods = ['fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const
+    const method = kpayMethods.includes(booking.payment_method as typeof kpayMethods[number])
+      ? (booking.payment_method as typeof kpayMethods[number])
       : 'fps'
     const provider = await getProviderForMethod(method, {})
     const orderStatus = await provider.queryOrder(booking.provider_order_no)

@@ -10,6 +10,10 @@ export type PaymentMethod =
   | 'fps'
   | 'payme'
   | 'octopus'
+  | 'alipay'
+  | 'alipayhk'
+  | 'wechat'
+  | 'unionpay_qp'
 
 export type PayInfoKind = 'qr' | 'link' | 'redirect'
 
@@ -20,24 +24,33 @@ export type KPayOrderType =
   | 'PAYME_SALE_H5'
   | 'OCTOPUS_SALE_QR'
   | 'OCTOPUS_SALE_H5'
+  | 'ALIPAY_SALE_QR'
+  | 'ALIPAY_SALE_H5'
+  | 'WXPAY_SALE_QR'
+  | 'WXPAY_SALE_H5'
+  | 'UNIONPAY_SALE_QR'
 
 /** Map a PaymentMethod to the KPay orderType (QR vs H5 variant). */
 export function getKPayOrderType(method: PaymentMethod, mode: 'qr' | 'h5'): KPayOrderType {
-  const map: Record<PaymentMethod, { qr: KPayOrderType; h5: KPayOrderType }> = {
-    fps:       { qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       },
-    payme:     { qr: 'PAYME_SALE_QR',     h5: 'PAYME_SALE_H5'     },
-    octopus:   { qr: 'OCTOPUS_SALE_QR',   h5: 'OCTOPUS_SALE_H5'   },
-    card:      { qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       }, // fallback
-    apple_pay: { qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       },
-    google_pay:{ qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       },
+  const map: Record<string, { qr: KPayOrderType; h5: KPayOrderType }> = {
+    fps:          { qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       },
+    payme:        { qr: 'PAYME_SALE_QR',     h5: 'PAYME_SALE_H5'     },
+    octopus:      { qr: 'OCTOPUS_SALE_QR',   h5: 'OCTOPUS_SALE_H5'   },
+    alipay:       { qr: 'ALIPAY_SALE_QR',    h5: 'ALIPAY_SALE_H5'    },
+    alipayhk:     { qr: 'ALIPAY_SALE_QR',    h5: 'ALIPAY_SALE_H5'    },
+    wechat:       { qr: 'WXPAY_SALE_QR',     h5: 'WXPAY_SALE_H5'     },
+    unionpay_qp:  { qr: 'UNIONPAY_SALE_QR',  h5: 'UNIONPAY_SALE_QR'  }, // QR only
+    card:         { qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       }, // fallback
+    apple_pay:    { qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       },
+    google_pay:   { qr: 'FPS_SALE_QR',       h5: 'FPS_SALE_H5'       },
   }
   return map[method]?.[mode] ?? 'FPS_SALE_H5'
 }
 
-/** Expiry (seconds) per KPay payment method. */
+/** Expiry (seconds) per KPay payment method. FPS = 60s, all others = 600s. */
 export function kpayExpiresInSeconds(method: PaymentMethod): number {
   if (method === 'fps') return 60
-  return 600 // payme / octopus
+  return 600
 }
 
 export interface CreateOrderParams {

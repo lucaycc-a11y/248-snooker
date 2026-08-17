@@ -715,6 +715,7 @@
     "back_to_slots": "Back to time slots",
     "booking_expired": "This booking has expired",
     "booking_expired_desc": "Your time slot hold has exceeded 15 minutes without payment. The slot has been released — please select a new time.",
+    "current_session_cutoff_passed": "This session started more than 15 minutes ago and is no longer available for booking",
     "selected": "Selected",
     "select_this_table": "Select This Table",
     "hint": "If your preferred table is taken, switch to another anytime",

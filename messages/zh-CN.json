@@ -708,6 +708,7 @@
     "back_to_slots": "返回选择时段",
     "booking_expired": "此预约时段已过期",
     "booking_expired_desc": "您的保留时段已超过15分钟未完成付款，系统已自动释放此时段，请重新选择时间。",
+    "current_session_cutoff_passed": "此时段已开始超过 15 分钟，暂不接受预订",
     "selected": "已选择",
     "select_this_table": "选择此台",
     "hint": "如所选时段该台已被预订，可随时切换至另一台",
