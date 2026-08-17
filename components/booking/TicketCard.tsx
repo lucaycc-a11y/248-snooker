@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CalendarPlus, Share2, ChevronDown } from "lucide-react"
@@ -8,13 +6,6 @@ import { tokens } from "@/app/styles/tokens"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { QRCode } from "@/components/shared/QRCode"
 import { getTableName } from "@/lib/booking/constants"
-import {
-  ApplePayLogo,
-  GooglePayLogo,
-  AlipayLogo,
-  WeChatPayLogo,
-  VisaLogo,
-} from "@/components/brand"
 
 const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
 
@@ -22,23 +13,29 @@ function padTime(h: number): string {
   return String(((h % 24) + 24) % 24).padStart(2, "0") + ":00"
 }
 
-// Maps bookings.payment_method (set by the Stripe webhook, see
-// mapPaymentMethod in app/api/webhooks/stripe/route.ts) to the matching brand
-// mark. Unknown/null falls back to a generic card mark rather than a specific
-// scheme, since we don't actually know which card brand was used (Task 9).
+// Maps bookings.payment_method to a small payment brand image.
+// KPay card bookings store method='card'; legacy Stripe methods stored
+// 'apple_pay', 'google_pay', 'alipay_hk', 'wechat_pay'.
+// Unknown/null falls back to the generic card mark.
+const PAYMENT_ICON_MAP: Record<string, string> = {
+  card:        '/icons/payment/cnp-visa.png',      // generic card — no specific scheme known
+  fps:         '/icons/payment/fps.png',
+  payme:       '/icons/payment/payme.png',
+  octopus:     '/icons/payment/cloud.png',
+  alipay:      '/icons/payment/alipaycn.png',
+  alipayhk:    '/icons/payment/alipayhk.png',
+  alipay_hk:   '/icons/payment/alipayhk.png',
+  wechat:      '/icons/payment/wechat.png',
+  wechat_pay:  '/icons/payment/wechat.png',
+  apple_pay:   '/icons/payment/apple.png',
+  google_pay:  '/icons/payment/google.png',
+  unionpay_qp: '/icons/payment/cloud.png',
+}
+
 function PaymentMark({ method }: { method?: string | null }) {
-  switch (method) {
-    case "apple_pay":
-      return <ApplePayLogo className="h-4" />
-    case "google_pay":
-      return <GooglePayLogo className="h-4" />
-    case "alipay_hk":
-      return <AlipayLogo className="h-4" />
-    case "wechat_pay":
-      return <WeChatPayLogo className="h-4" />
-    default:
-      return <VisaLogo className="h-4" />
-  }
+  const src = (method && PAYMENT_ICON_MAP[method]) ?? '/icons/payment/cnp-visa.png'
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={method ?? 'card'} style={{ height: 20, width: 'auto', display: 'block' }} />
 }
 
 const QR_PX = 126
