@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { getProviderForMethod } from '@/lib/payments'
+import { getPaymentProvider } from '@/lib/payments'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -69,11 +69,7 @@ export async function GET(req: Request) {
     // Query the payment provider for current order status.
     // Use the booking's stored method so the query signs with the right
     // merchant context; the provider is KPay here (checked above).
-    const kpayMethods = ['fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const
-    const method = kpayMethods.includes(booking.payment_method as typeof kpayMethods[number])
-      ? (booking.payment_method as typeof kpayMethods[number])
-      : 'fps'
-    const provider = await getProviderForMethod(method, {})
+    const provider = getPaymentProvider()
     const orderStatus = await provider.queryOrder(booking.provider_order_no)
 
     // Map KPay order status to a UI-friendly status

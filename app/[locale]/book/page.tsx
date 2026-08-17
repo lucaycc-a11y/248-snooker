@@ -1829,131 +1829,55 @@ function Screen3({
                     setPaymentError(null)
                     setPaymentMethod(method)
                     // Map the general method id to the KPay-specific method
-                    const kpayMethods: KPayMethod[] = ['fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
+                    const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
                     if (kpayMethods.includes(method as KPayMethod)) {
                       setKpayMethod(method as KPayMethod)
                       setKpayMode("h5")
                     }
                   }}
                 />
-              ) : paymentMethod === "card" ? (
-                /* ── StripePayment (card) ── */
-                <div
-                  style={{
-                    background: tokens.colors.surface,
-                    border: `1px solid ${tokens.colors.border}`,
-                    borderRadius: tokens.radius.card,
-                    padding: 24,
-                    marginBottom: 20,
-                  }}
-                >
-                  <StripePayment
-                    date={dateStr}
-                    startHour={startHour}
-                    duration={duration}
-                    tableNumber={tableNumber}
+              ) : (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
+                /* ── KPay payment (card via CNP Hosted + all direct-connect methods) ── */
+                <>
+                  <KPayPayment
                     blocks={blocks.map((b) => ({
                       date: b.date,
                       startHour: b.startHour,
                       duration: b.duration,
-                      tableNumber: b.tableNumber,
+                      tableNumber: b.tableNumber as 1 | 2,
                     }))}
-                    total={total}
-                    locale={locale as "en" | "zh-HK" | "zh-CN"}
-                    returnPath="/book"
-                    payLabel={`${t("pay_now")} · HK$${total}`}
-                    processingLabel={t("processing")}
-                    errorLabel={t("pay_error")}
-                    slotTakenLabel={t("slot_taken")}
-                    bookingExpiredLabel={t("booking_expired")}
-                    bookingExpiredDescLabel={t("booking_expired_desc")}
-                    loadingLabel={t("pay_loading")}
-                    lockHoldLabel={t("lock_hold")}
-                    paymentFailedLabel={t("pay_declined")}
-                    whatsappSupportLabel={t("whatsapp_support")}
-                    retryPaymentLabel={t("retry_payment")}
-                    billingDetails={profile ?? undefined}
-                    onBackToSlots={onBackToSlots}
-                    backToSlotsLabel={t("back_to_slots")}
-                    payDisabled={!agreedToTerms}
-                    onDisabledPayClick={flagTermsRequired}
-                    promoCode={promoCode}
-                    onPromoChange={onPromoChange}
+                    method={kpayMethod ?? "fps"}
+                    mode={kpayMode}
+                    labels={{
+                      title: t("kpay_title"),
+                      pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : kpayMethod === "card" ? "信用卡" : "雲閃付"} 掃描以下二維碼`,
+                      pending_desc: t("kpay_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
+                      pending_confirmation: t("kpay_pending_confirmation") || "確認付款中",
+                      pending_confirmation_desc: t("kpay_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
+                      success: t("kpay_success") || "付款成功",
+                      success_desc: t("kpay_success_desc") || "你的預訂已確認",
+                      failed: t("kpay_failed") || "付款失敗",
+                      failed_desc: t("kpay_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
+                      expired: t("kpay_expired") || "二維碼已過期",
+                      expired_desc: t("kpay_expired_desc") || "此二維碼已過期，新二維碼即將自動生成",
+                      regenerate: t("kpay_regenerate") || "重新生成",
+                      try_again: t("kpay_try_again") || "重試",
+                      countdown: t("kpay_countdown") || "二維碼將於 {time} 後過期",
+                      help: t("kpay_help") || "需要幫助？",
+                      support_whatsapp: t("kpay_support_whatsapp") || "WhatsApp 客服",
+                      back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
+                      processing: t("kpay_processing") || "處理中…",
+                    }}
+                    onBackToMethods={() => setPaymentMethod(null)}
+                    onSuccess={() => {
+                      window.location.href = "/book?redirect_status=succeeded"
+                    }}
                   />
-
-                  {/* Payment reminder — near countdown */}
-                  <div
-                    data-cms-key="book.payment_reminder"
-                    style={{
-                      fontSize: 12,
-                      color: tokens.colors.textFaint,
-                      textAlign: "center",
-                      marginTop: 16,
-                      padding: "0 8px",
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {t("payment_reminder")}
+                  {/* Powered by KPay */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 14, opacity: 0.5 }}>
+                    <img src="/logos/kpay-logo.svg" alt="Powered by KPay" style={{ height: 18, width: "auto", display: "block" }} />
                   </div>
-
-                  {/* Powered by Stripe — official badge */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      marginTop: 14,
-                      opacity: 0.5,
-                    }}
-                  >
-                    <img
-                      src="/logos/payment/powered-by-stripe-badge.svg"
-                      alt="Powered by Stripe"
-                      style={{
-                        height: 18,
-                        width: "auto",
-                        display: "block",
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : (['fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
-                /* ── KPay payment (all 7 methods) ── */
-                <KPayPayment
-                  blocks={blocks.map((b) => ({
-                    date: b.date,
-                    startHour: b.startHour,
-                    duration: b.duration,
-                    tableNumber: b.tableNumber as 1 | 2,
-                  }))}
-                  method={kpayMethod ?? "fps"}
-                  mode={kpayMode}
-                  labels={{
-                    title: t("kpay_title"),
-                    pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : "雲閃付"} 掃描以下二維碼`,
-                    pending_desc: t("kpay_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
-                    pending_confirmation: t("kpay_pending_confirmation") || "確認付款中",
-                    pending_confirmation_desc: t("kpay_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
-                    success: t("kpay_success") || "付款成功",
-                    success_desc: t("kpay_success_desc") || "你的預訂已確認",
-                    failed: t("kpay_failed") || "付款失敗",
-                    failed_desc: t("kpay_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
-                    expired: t("kpay_expired") || "二維碼已過期",
-                    expired_desc: t("kpay_expired_desc") || "此二維碼已過期，新二維碼即將自動生成",
-                    regenerate: t("kpay_regenerate") || "重新生成",
-                    try_again: t("kpay_try_again") || "重試",
-                    countdown: t("kpay_countdown") || "二維碼將於 {time} 後過期",
-                    help: t("kpay_help") || "需要幫助？",
-                    support_whatsapp: t("kpay_support_whatsapp") || "WhatsApp 客服",
-                    back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
-                    processing: t("kpay_processing") || "處理中…",
-                  }}
-                  onBackToMethods={() => setPaymentMethod(null)}
-                  onSuccess={() => {
-                    // After successful payment, navigate to confirmation
-                    window.location.href = "/book?redirect_status=succeeded"
-                  }}
-                />
+                </>
               ) : null}
             </>
           )}

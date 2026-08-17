@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { getProviderForMethod, getPaymentMethodSettings } from '@/lib/payments'
+import { getPaymentProvider, getPaymentMethodSettings } from '@/lib/payments'
 import { calculatePrice } from '@/lib/pricing'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import {
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       )
     }
 
-    if (!method || !['fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'].includes(method)) {
+    if (!method || !['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'].includes(method)) {
       return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
     }
 
@@ -91,17 +91,9 @@ export async function POST(req: Request) {
         { status: 400 },
       )
     }
-    if (settings.provider !== 'kpay') {
-      return NextResponse.json(
-        { error: `付款方式 ${method} 尚未支援` },
-        { status: 400 },
-      )
-    }
 
     const service = getServiceSupabase()
-    const provider = await getProviderForMethod(paymentMethod, {
-      getSettings: getPaymentMethodSettings,
-    })
+    const provider = getPaymentProvider()
 
     // ── Mode A: blocks[] — lock slots + insert pending bookings ────────────
     const rawBlocks = body?.blocks as unknown[] | undefined

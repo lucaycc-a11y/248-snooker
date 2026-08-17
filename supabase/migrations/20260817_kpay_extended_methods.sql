@@ -7,18 +7,17 @@
 
 -- ── 1. Seed new KPay methods (enabled — real keys are configured) ───────────
 
-insert into public.payment_settings (method, provider, enabled) values
-  ('alipay',      'kpay', true),
-  ('alipayhk',    'kpay', true),
-  ('wechat',      'kpay', true),
-  ('unionpay_qp', 'kpay', true)
+insert into public.payment_settings (method, enabled) values
+  ('alipay',      true),
+  ('alipayhk',    true),
+  ('wechat',      true),
+  ('unionpay_qp', true)
 on conflict (method) do nothing;
 
 -- Also enable the original three KPay methods (they were seeded disabled)
 update public.payment_settings
   set enabled = true, updated_at = now()
   where method in ('fps', 'payme', 'octopus')
-    and provider = 'kpay'
     and enabled = false;
 
 -- ── 2. Extend bookings payment_method check constraint ───────────────────────

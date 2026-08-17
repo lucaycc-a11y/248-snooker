@@ -6,7 +6,7 @@ import { tokens } from '@/app/styles/tokens'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type KPayMethod = 'fps' | 'payme' | 'octopus' | 'alipay' | 'alipayhk' | 'wechat' | 'unionpay_qp'
+export type KPayMethod = 'card' | 'fps' | 'payme' | 'octopus' | 'alipay' | 'alipayhk' | 'wechat' | 'unionpay_qp'
 
 export type KPayState =
   | 'idle'          // initial — not yet created
@@ -62,6 +62,7 @@ type Props = {
 // ── Method display names ─────────────────────────────────────────────────────
 
 const METHOD_NAMES: Record<KPayMethod, string> = {
+  card: '信用卡',
   fps: 'FPS 轉數快',
   payme: 'PayMe',
   octopus: '八達通',
@@ -160,8 +161,8 @@ export default function KPayPayment(props: Props) {
       if (json.orderGroupId) setLocalOrderGroupId(String(json.orderGroupId))
       setState('pending')
 
-      // If mode is H5, the user is redirected immediately
-      if (mode === 'h5' && json.payInfo) {
+      // Redirect immediately for card (CNP hosted) or any link-type response
+      if ((json.kind === 'redirect' || json.kind === 'link' || mode === 'h5') && json.payInfo) {
         window.location.href = json.payInfo
       }
     } catch (e) {
