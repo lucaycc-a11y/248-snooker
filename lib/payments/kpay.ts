@@ -88,61 +88,30 @@ export class KPayProvider implements PaymentProvider {
     }
 
     // ── Direct-connect methods (FPS / PayMe / Octopus / wallets) ──────────
-    // Step 0: check-first — query KPay to see if an order with this outTradeNo already exists
-    // This handles retries after partial failures (e.g., Step 1 succeeded but we didn't write DB)
+    // SINGLE-STEP: /v1/qr/sales/{scan,h5}/* creates the order itself — its body
+    // takes outTradeNo + amount + currency + notifyUrl + returnUrl (a complete
+    // order-creation payload, NOT an orderNo referencing a prior order).
+    //
+    // Do NOT call /v1/order/add first: that registers outTradeNo with KPay, and
+    // the QR call then collides with it and fails "商戶訂單號已存在". That was a
+    // self-collision inside one request, not a concurrent double-submit.
     const directReturnUrl = `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`
-    console.log('[KPay] createOrder:', '| method:', method, '| mode:', mode, '| outTradeNo:', outTradeNo, '| bookingId:', bookingId)
+    const institution = this.getPaymentInstitution(method)
+    const qrEndpoint = this.getQrEndpoint(method, mode)
 
-    let providerOrderNo: string | undefined
-    try {
-      const existing = await this.queryOrder(outTradeNo)
-      console.log('[KPay] 查詢現有訂單:', '| outTradeNo:', outTradeNo, '| providerOrderNo:', existing.providerOrderNo, '| status:', existing.status)
-      providerOrderNo = existing.providerOrderNo  // reuse this on next API call
-    } catch (e) {
-      // Query failed — assume this is a new order and proceed to create
-      console.warn('[KPay] 查詢失敗，繼續建單:', e instanceof Error ? e.message : String(e))
-    }
+    console.log('[KPay] createOrder:', '| method:', method, '| mode:', mode, '| outTradeNo:', outTradeNo, '| bookingId:', bookingId, '| endpoint:', qrEndpoint)
 
-    // Step 1: create the trade order (skip if already exists)
-    const orderBody = {
+    const qrBody: Record<string, unknown> = {
       outTradeNo,
       orderType: this.getOrderType(method, mode),
       payAmount: amount.toFixed(2),
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
       returnUrl: directReturnUrl,
+      ...(institution ? { paymentInstitution: institution } : {}),
       ...(remark ? { orderRemark: remark } : {}),
     }
 
-    // Only create if query didn't find an existing order
-    let orderRes: KPayApiResponse<{ orderNo: string }> | null = null
-    if (!providerOrderNo) {
-      orderRes = await this.apiPost<KPayApiResponse<{ orderNo: string }>>(
-        '/v1/order/add',
-        orderBody,
-      )
-
-      if (orderRes.code !== 10000) {
-        throw new Error(`KPay 建單失敗：${orderRes.message ?? kpayErrorMessage(String(orderRes.code))}`)
-      }
-
-      providerOrderNo = orderRes.data!.orderNo
-    } else {
-      console.log('[KPay] 跳過建單，使用現有 orderNo:', providerOrderNo)
-    }
-
-    // Step 2: get the QR code or H5 link
-    const institution = this.getPaymentInstitution(method)
-    const qrBody: Record<string, unknown> = {
-      outTradeNo,
-      payAmount: amount.toFixed(2),
-      payCurrency: 'HKD',
-      notifyUrl: `${baseUrl}/api/webhooks/kpay`,
-      returnUrl: directReturnUrl,
-      ...(institution ? { paymentInstitution: institution } : {}),
-    }
-
-    const qrEndpoint = this.getQrEndpoint(method, mode)
     const qrRes = await this.apiPost<KPayApiResponse<{ orderNo: string; payInfo: string }>>(
       qrEndpoint,
       qrBody,
@@ -152,13 +121,15 @@ export class KPayProvider implements PaymentProvider {
       throw new Error(`KPay 取碼失敗：${qrRes.message ?? kpayErrorMessage(String(qrRes.code))}`)
     }
 
-    const expiresInSeconds = this.getExpiresInSeconds(method)
+    console.log('[KPay] 取碼成功:', '| outTradeNo:', outTradeNo, '| orderNo:', qrRes.data!.orderNo)
 
     return {
-      providerOrderNo: providerOrderNo!,
+      // The QR endpoint creates and returns its own orderNo — this is the
+      // authoritative provider order reference for status polling and refunds.
+      providerOrderNo: qrRes.data!.orderNo,
       payInfo: qrRes.data!.payInfo,
       kind: mode === 'qr' ? 'qr' : 'link',
-      expiresInSeconds,
+      expiresInSeconds: this.getExpiresInSeconds(method),
     }
   }
 
@@ -214,8 +185,11 @@ export class KPayProvider implements PaymentProvider {
 
   // ── queryOrder ───────────────────────────────────────────────
 
+  // Takes KPay's own orderNo (as stored in bookings.provider_order_no), so it
+  // queries by orderNo — passing it as outTradeNo asks KPay to match our
+  // merchant reference against their order id and always yields 30002.
   async queryOrder(providerOrderNo: string): Promise<OrderStatus> {
-    const url = `/v1/order/sales/result?outTradeNo=${encodeURIComponent(providerOrderNo)}`
+    const url = `/v1/order/sales/result?orderNo=${encodeURIComponent(providerOrderNo)}`
     console.log('[KPay] queryOrder:', '| method:', 'GET', '| url:', url)
 
     const res = await this.apiGet<KPayApiResponse<{

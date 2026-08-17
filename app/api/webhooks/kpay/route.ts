@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
+import crypto from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { verifyKpaySignature } from '@/lib/payments/kpay-sign'
+import { verifyKpaySignature, toPem } from '@/lib/payments/kpay-sign'
 import { logSiteError } from '@/lib/errors/log'
 import { humanReadableCode } from '@/lib/qr/jwt'
 
@@ -37,9 +38,26 @@ export async function POST(req: Request) {
   }
 
   // ── Verify signature against platform public key ───────────────────────
-  const platformPublicKey = process.env.KPAY_PLATFORM_PUBLIC_KEY
-  if (!platformPublicKey) {
+  // The env var holds RAW base64 (no PEM armour), which node:crypto rejects with
+  // "DECODER routines::unsupported". toPem() must wrap it before verification —
+  // KPayProvider's constructor does the same for its own copy of this key.
+  const rawPlatformPublicKey = process.env.KPAY_PLATFORM_PUBLIC_KEY
+  if (!rawPlatformPublicKey) {
     console.error('[webhook/kpay] KPAY_PLATFORM_PUBLIC_KEY not configured')
+    return new NextResponse('Server configuration error', { status: 500 })
+  }
+
+  let platformPublicKey: string
+  try {
+    platformPublicKey = toPem(rawPlatformPublicKey, 'PUBLIC KEY')
+    crypto.createPublicKey(platformPublicKey)
+  } catch (e) {
+    console.error('[webhook/kpay] KPAY_PLATFORM_PUBLIC_KEY 格式錯誤，parse 唔到', {
+      message: (e as Error).message,
+    })
+    await logSiteError('webhooks/kpay', 'error', 'platform public key unparseable', {
+      message: (e as Error).message,
+    })
     return new NextResponse('Server configuration error', { status: 500 })
   }
 
