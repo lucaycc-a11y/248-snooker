@@ -215,11 +215,24 @@ export class KPayProvider implements PaymentProvider {
   // ── queryOrder ───────────────────────────────────────────────
 
   async queryOrder(providerOrderNo: string): Promise<OrderStatus> {
+    const url = `/v1/order/sales/result?outTradeNo=${encodeURIComponent(providerOrderNo)}`
+    console.log('[KPay] queryOrder:', '| method:', 'GET', '| url:', url)
+
     const res = await this.apiGet<KPayApiResponse<{
       orderNo: string
       outTradeNo: string
       result: string
-    }>>(`/v1/order/sales/result?outTradeNo=${encodeURIComponent(providerOrderNo)}`)
+    }>>(url)
+
+    console.log('[KPay] queryOrder response:', JSON.stringify({
+      code: res.code,
+      message: res.message,
+      data: res.data ? {
+        orderNo: res.data.orderNo,
+        outTradeNo: res.data.outTradeNo,
+        result: res.data.result,
+      } : null,
+    }, null, 2))
 
     if (res.code !== 10000) {
       throw new Error(`KPay 查詢失敗：${res.message ?? kpayErrorMessage(String(res.code))}`)
