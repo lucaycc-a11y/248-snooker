@@ -173,7 +173,8 @@ export class KPayProvider implements PaymentProvider {
     // Step 2: build signed H5 redirect URL for KPay's hosted card page
     const timestamp = Date.now().toString()
     const nonceStr = generateNonce()
-    const h5Path = `/v1/h5?orderNo=${encodeURIComponent(orderNo)}&language=zh_HK&K-Merchant-Code=${encodeURIComponent(this.merchantCode)}&K-Nonce-Str=${encodeURIComponent(nonceStr)}&K-Timestamp=${encodeURIComponent(timestamp)}`
+    const returnUrl = `${baseUrl}/book/confirmation?orderNo=${encodeURIComponent(outTradeNo)}`
+    const h5Path = `/v1/h5?orderNo=${encodeURIComponent(orderNo)}&language=zh_HK&returnUrl=${encodeURIComponent(returnUrl)}&K-Merchant-Code=${encodeURIComponent(this.merchantCode)}&K-Nonce-Str=${encodeURIComponent(nonceStr)}&K-Timestamp=${encodeURIComponent(timestamp)}`
 
     const signText = buildSignText('GET', h5Path, timestamp, nonceStr, this.merchantCode, '')
     const signature = signKpay(this.privateKey, signText)
