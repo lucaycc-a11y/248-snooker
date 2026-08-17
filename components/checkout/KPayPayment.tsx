@@ -385,9 +385,9 @@ export default function KPayPayment(props: Props) {
           <div
             style={{
               ...styles.countdownBarFill,
-              width: `${(countdown / expiresIn) * 100}%`,
+              transform: `scaleX(${countdown / expiresIn})`,
               background: isUrgent ? DANGER : GREEN_BRIGHT,
-              transition: `width 1s linear`,
+              transition: `transform 1s linear, background 0.3s ease`,
             }}
           />
         </div>
@@ -496,7 +496,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   countdownBarFill: {
     height: '100%',
+    width: '100%',
     borderRadius: 2,
+    transformOrigin: 'left',
   },
   helpText: {
     fontSize: 12,
