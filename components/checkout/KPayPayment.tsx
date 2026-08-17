@@ -143,13 +143,20 @@ export default function KPayPayment(props: Props) {
         body: JSON.stringify(body),
       })
 
-      const json = await res.json()
-
       if (!res.ok) {
-        setError(json.error ?? 'Failed to create order')
+        let message = '付款初始化失敗，請重試'
+        try {
+          const errBody = await res.json()
+          message = errBody.error || message
+        } catch {
+          // non-JSON response (e.g. unexpected HTML error page) — use default
+        }
+        setError(message)
         setState('failed')
         return
       }
+
+      const json = await res.json()
 
       setProviderOrderNo(json.providerOrderNo)
       setPayInfo(json.payInfo)
