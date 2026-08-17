@@ -81,6 +81,16 @@ export function generateNonce(): string {
 }
 
 /**
+ * Convert a raw base64-encoded RSA key (without PEM headers) to PEM format.
+ * Strips all whitespace from the input before processing.
+ */
+export function toPem(rawKey: string, type: 'PRIVATE KEY' | 'PUBLIC KEY'): string {
+  const cleaned = rawKey.replace(/\s+/g, '')
+  const lines = cleaned.match(/.{1,64}/g) || []
+  return `-----BEGIN ${type}-----\n${lines.join('\n')}\n-----END ${type}-----\n`
+}
+
+/**
  * Generate an RSA key pair for testing purposes.
  * Returns { publicKey, privateKey } in PEM format.
  */

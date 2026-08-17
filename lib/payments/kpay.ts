@@ -13,7 +13,7 @@ import type {
   RefundResult,
   WebhookEvent,
 } from './types'
-import { buildSignText, signKpay, generateNonce } from './kpay-sign'
+import { buildSignText, signKpay, generateNonce, toPem } from './kpay-sign'
 import { kpayErrorMessage } from './types'
 
 // ── Env accessors (throw early on missing config) ─────────────
@@ -52,9 +52,26 @@ export class KPayProvider implements PaymentProvider {
 
   constructor() {
     this.merchantCode = requireEnv('KPAY_MERCHANT_CODE')
-    this.privateKey = requireEnv('KPAY_PRIVATE_KEY')
-    this.platformPublicKey = requireEnv('KPAY_PLATFORM_PUBLIC_KEY')
+    this.privateKey = toPem(requireEnv('KPAY_PRIVATE_KEY'), 'PRIVATE KEY')
+    this.platformPublicKey = toPem(requireEnv('KPAY_PLATFORM_PUBLIC_KEY'), 'PUBLIC KEY')
     this.baseUrl = getKpayBaseUrl()
+
+    // Validate key formats at startup so misconfigured keys fail loudly on
+    // cold-start rather than silently at the first payment request.
+    try {
+      const signer = crypto.createSign('RSA-SHA256')
+      signer.update('self-test', 'utf8')
+      signer.end()
+      signer.sign(this.privateKey)
+    } catch (e) {
+      throw new Error(`KPAY_PRIVATE_KEY 格式錯誤，parse 唔到：${(e as Error).message}`)
+    }
+
+    try {
+      crypto.createPublicKey(this.platformPublicKey)
+    } catch (e) {
+      throw new Error(`KPAY_PLATFORM_PUBLIC_KEY 格式錯誤，parse 唔到：${(e as Error).message}`)
+    }
   }
 
   // ── createOrder ──────────────────────────────────────────────
