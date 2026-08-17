@@ -89,13 +89,15 @@ export class KPayProvider implements PaymentProvider {
 
     // ── Direct-connect methods (FPS / PayMe / Octopus / wallets) ──────────
     // Step 1: create the trade order
+    const directReturnUrl = `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`
+    console.log('[KPay] returnUrl:', directReturnUrl, '| baseUrl:', baseUrl, '| bookingId:', bookingId)
     const orderBody = {
       outTradeNo,
       orderType: this.getOrderType(method, mode),
       payAmount: amount.toFixed(2),
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
-      returnUrl: `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`,
+      returnUrl: directReturnUrl,
       ...(remark ? { orderRemark: remark } : {}),
     }
 
