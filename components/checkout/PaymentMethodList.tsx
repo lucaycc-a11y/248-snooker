@@ -29,6 +29,10 @@ import {
   UnionPayQuickPassBadgeIcon,
   PayMeBadgeIcon,
   FpsBadgeIcon,
+  UnionPayCNPBadgeIcon,
+  JcbBadgeIcon,
+  DinersBadgeIcon,
+  AmexBadgeIcon,
 } from "./icons/PaymentIcons"
 
 // ── Method definition ──────────────────────────────────────────
@@ -66,6 +70,10 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
       <>
         <VisaBadgeIcon />
         <MastercardBadgeIcon />
+        <UnionPayCNPBadgeIcon />
+        <JcbBadgeIcon />
+        <DinersBadgeIcon />
+        <AmexBadgeIcon />
       </>
     ),
   },

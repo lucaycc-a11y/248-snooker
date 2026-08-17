@@ -13,6 +13,33 @@ type BadgeProps = {
   className?: string
 }
 
+// ── Image-based badge (for schemes with official PNGs in /icons/payment/) ──
+
+type ImgBadgeProps = BadgeProps & { src: string; alt: string }
+
+function ImgBadgeIcon({ height = 24, className, src, alt }: ImgBadgeProps) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} height={height} style={{ display: 'block', width: 'auto' }} className={className} />
+  )
+}
+
+export function UnionPayCNPBadgeIcon(props: BadgeProps) {
+  return <ImgBadgeIcon {...props} src="/icons/payment/cnp-unionpay.png" alt="UnionPay" />
+}
+
+export function JcbBadgeIcon(props: BadgeProps) {
+  return <ImgBadgeIcon {...props} src="/icons/payment/cnp-jcb.png" alt="JCB" />
+}
+
+export function DinersBadgeIcon(props: BadgeProps) {
+  return <ImgBadgeIcon {...props} src="/icons/payment/cnp-diners-club.png" alt="Diners Club" />
+}
+
+export function AmexBadgeIcon(props: BadgeProps) {
+  return <ImgBadgeIcon {...props} src="/icons/payment/cnp-amex.png" alt="American Express" />
+}
+
 // Card schemes
 export function VisaBadgeIcon({ height = 24, className }: BadgeProps) {
   return (
