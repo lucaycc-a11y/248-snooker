@@ -1,3 +1,75 @@
 {
-  "buildPath": "code"
+  "buildPath": "code",
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "#0f7845",
+        "createdAt": "2026-08-17T10:50:08.156Z",
+        "reason": "Space8 design system GREEN_DEEP token, used consistently in dark-UI components"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,159,10,0.08)",
+        "createdAt": "2026-08-17T10:50:08.234Z",
+        "reason": "Test-mode amber warning color, intentional admin-only UI"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,159,10,0.3)",
+        "createdAt": "2026-08-17T10:50:08.296Z",
+        "reason": "Test-mode amber warning color, intentional admin-only UI"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ff9f0a",
+        "createdAt": "2026-08-17T10:50:08.356Z",
+        "reason": "Test-mode amber warning color, intentional admin-only UI"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,159,10,0.2)",
+        "createdAt": "2026-08-17T10:50:08.415Z",
+        "reason": "Test-mode amber warning color, intentional admin-only UI"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,159,10,0.05)",
+        "createdAt": "2026-08-17T10:50:08.477Z",
+        "reason": "Test-mode amber warning color, intentional admin-only UI"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "16px",
+        "createdAt": "2026-08-17T10:56:10.720Z",
+        "reason": "Pre-existing QR code wrapper radius in Space8 dark-UI components, consistent with inner-radius pattern"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34, 1.56, .64, 1)",
+        "createdAt": "2026-08-17T10:58:44.986Z",
+        "reason": "EASE_SPRING — intentional named design system constant in Space8 dark-UI components"
+      },
+      {
+        "rule": "layout-transition",
+        "value": "width",
+        "createdAt": "2026-08-17T10:58:45.066Z",
+        "reason": "Pre-existing countdown bar animation, out-of-scope per task constraints"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "arial",
+        "createdAt": "2026-08-17T11:18:56.441Z",
+        "reason": "SVG badge wordmarks use Arial as a web-safe fallback inside inline SVG text elements — not body copy, pre-existing payment badge icons"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "pingfang hk",
+        "createdAt": "2026-08-17T11:18:56.517Z",
+        "reason": "CJK SVG badge wordmarks require a CJK font stack — pre-existing payment badge icons"
+      }
+    ]
+  }
 }
