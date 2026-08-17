@@ -119,6 +119,7 @@ export class KPayProvider implements PaymentProvider {
       payAmount: amount.toFixed(2),
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
+      returnUrl: directReturnUrl,
       ...(institution ? { paymentInstitution: institution } : {}),
     }
 
