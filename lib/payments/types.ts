@@ -56,6 +56,8 @@ export function kpayExpiresInSeconds(method: PaymentMethod): number {
 export interface CreateOrderParams {
   /** Space8 human-readable booking code (outTradeNo). */
   outTradeNo: string
+  /** Primary booking UUID — used in the returnUrl so /book can poll by id. */
+  bookingId: string
   /** Amount in HKD (not cents). */
   amount: number
   /** The payment method the user chose. */

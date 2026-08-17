@@ -77,14 +77,14 @@ export class KPayProvider implements PaymentProvider {
   // ── createOrder ──────────────────────────────────────────────
 
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
-    const { outTradeNo, amount, method, mode, remark, baseUrl } = params
+    const { outTradeNo, bookingId, amount, method, mode, remark, baseUrl } = params
 
     // ── Credit card: CNP Hosted (redirect to KPay's card entry page) ──────
     // KPay requires their own PCI-compliant page for card number input +
     // 3DS. We create the order with CNP_SALES_GATEWAY, then build a signed
     // H5 URL that redirects the user to KPay's hosted checkout.
     if (method === 'card') {
-      return this.createCnpHostedOrder(outTradeNo, amount, remark, baseUrl)
+      return this.createCnpHostedOrder(outTradeNo, bookingId, amount, remark, baseUrl)
     }
 
     // ── Direct-connect methods (FPS / PayMe / Octopus / wallets) ──────────
@@ -95,7 +95,7 @@ export class KPayProvider implements PaymentProvider {
       payAmount: amount.toFixed(2),
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
-      returnUrl: `${baseUrl}/book/confirmation?orderNo=${outTradeNo}`,
+      returnUrl: `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`,
       ...(remark ? { orderRemark: remark } : {}),
     }
 
@@ -144,6 +144,7 @@ export class KPayProvider implements PaymentProvider {
 
   private async createCnpHostedOrder(
     outTradeNo: string,
+    bookingId: string,
     amount: number,
     remark: string | undefined,
     baseUrl: string,
@@ -155,7 +156,7 @@ export class KPayProvider implements PaymentProvider {
       payAmount: amount.toFixed(2),
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
-      returnUrl: `${baseUrl}/book/confirmation?orderNo=${outTradeNo}`,
+      returnUrl: `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`,
       ...(remark ? { orderRemark: remark } : {}),
     }
 
@@ -173,7 +174,7 @@ export class KPayProvider implements PaymentProvider {
     // Step 2: build signed H5 redirect URL for KPay's hosted card page
     const timestamp = Date.now().toString()
     const nonceStr = generateNonce()
-    const returnUrl = `${baseUrl}/book/confirmation?orderNo=${encodeURIComponent(outTradeNo)}`
+    const returnUrl = `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=succeeded`
     const h5Path = `/v1/h5?orderNo=${encodeURIComponent(orderNo)}&language=zh_HK&returnUrl=${encodeURIComponent(returnUrl)}&K-Merchant-Code=${encodeURIComponent(this.merchantCode)}&K-Nonce-Str=${encodeURIComponent(nonceStr)}&K-Timestamp=${encodeURIComponent(timestamp)}`
 
     const signText = buildSignText('GET', h5Path, timestamp, nonceStr, this.merchantCode, '')

@@ -220,6 +220,7 @@ export async function POST(req: Request) {
       // Create the KPay order against the PRIMARY booking's human code.
       const result = await provider.createOrder({
         outTradeNo: humanReadableCode(primaryBookingId),
+        bookingId: primaryBookingId,
         amount: totalAmount,
         method: paymentMethod,
         mode,
@@ -315,6 +316,7 @@ export async function POST(req: Request) {
 
     const result = await provider.createOrder({
       outTradeNo,
+      bookingId,
       amount: totalAmount,
       method: paymentMethod,
       mode,
