@@ -90,7 +90,7 @@ export class KPayProvider implements PaymentProvider {
     // ── Direct-connect methods (FPS / PayMe / Octopus / wallets) ──────────
     // Step 1: create the trade order
     const directReturnUrl = `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`
-    console.log('[KPay] returnUrl:', directReturnUrl, '| baseUrl:', baseUrl, '| bookingId:', bookingId)
+    console.log('[KPay] createOrder:', '| method:', method, '| mode:', mode, '| outTradeNo:', outTradeNo, '| bookingId:', bookingId)
     const orderBody = {
       outTradeNo,
       orderType: this.getOrderType(method, mode),
