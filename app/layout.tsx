@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   title: "SPACE8 · 香港自助中式桌球 06:00-24:00",
   description:
     "香港首間自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
+  verification: {
+    google: "t5MhRgSpnnNRfckNMeR0y2ycI_HGgay1IalMFu4sUDI",
+  },
   keywords: [
     "中式桌球",
     "桌球會",

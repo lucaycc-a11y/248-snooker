@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-16T00:00:00.000Z",
+  "title": "Design System: SPACE8",
+  "extensions": {
+    "colorMeta": {
+      "bg": { "role": "neutral", "displayName": "Pitch Black", "canonical": "#000000", "tonalRamp": ["#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000"] },
+      "surface": { "role": "neutral", "displayName": "Surface Dark", "canonical": "#111111", "tonalRamp": ["#050505", "#0a0a0a", "#111111", "#161616", "#1a1a1a", "#222222", "#2a2a2a", "#333333"] },
+      "surface-elevated": { "role": "neutral", "displayName": "Surface Elevated", "canonical": "#1A1A1A", "tonalRamp": ["#0d0d0d", "#141414", "#1A1A1A", "#222222", "#2a2a2a", "#333333", "#3d3d3d", "#4a4a4a"] },
+      "brand": { "role": "primary", "displayName": "Brand Green", "canonical": "#25D366", "tonalRamp": ["#0a3d1a", "#0f5c28", "#147a36", "#1a9944", "#25D366", "#4dda7a", "#7ae39c", "#a8edbe"] },
+      "brand-hover": { "role": "primary", "displayName": "Brand Green Hover", "canonical": "#1FB855", "tonalRamp": ["#083215", "#0c4f20", "#106b2b", "#158836", "#1FB855", "#3cc46c", "#5fd087", "#85dc9f"] },
+      "danger": { "role": "tertiary", "displayName": "Danger Red", "canonical": "#FF453A", "tonalRamp": ["#4a0f0c", "#731712", "#9d2018", "#c6281e", "#FF453A", "#ff635a", "#ff837c", "#ffa39e"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (Bebas Neue)", "purpose": "Hero headlines, section titles, large display text. All-caps by nature of the typeface." },
+      "body": { "displayName": "Body (SF Pro)", "purpose": "Paragraphs, descriptions, feature copy, and all reading text." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-spring", "value": "cubic-bezier(0.16,1,0.3,1)", "purpose": "Default easing for physical motion — sheets, panels, interactive elements. Feels bouncy and tactile." },
+      { "name": "ease-standard", "value": "cubic-bezier(0.4,0,0.2,1)", "purpose": "Default easing for state transitions — hover, focus, colour changes. Smooth and predictable." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Hover states, micro-interactions, colour transitions." },
+      { "name": "duration-base", "value": "250ms", "purpose": "Standard transitions, focus states, border colour changes." },
+      { "name": "duration-slow", "value": "380ms", "purpose": "Panel entrances, overlay fades, larger layout transitions." },
+      { "name": "press-scale", "value": "scale(0.97)", "purpose": "Tactile press feedback on buttons and interactive cards. Applied on pointerdown, released on pointerup/leave." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Solid green accent button. The primary call to action — book now, confirm, pay.",
+      "html": "<button class=\"ds-btn-primary\">Book Now</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 24px; background: #25D366; color: #000; font-family: system-ui, -apple-system, 'SF Pro Text', sans-serif; font-size: 16px; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1); white-space: nowrap; user-select: none; -webkit-tap-highlight-color: transparent; } .ds-btn-primary:hover { background: #1FB855; } .ds-btn-primary:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined button for secondary actions. Transparent body with white border.",
+      "html": "<button class=\"ds-btn-secondary\">Learn More</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 24px; background: transparent; color: #fff; font-family: system-ui, -apple-system, 'SF Pro Text', sans-serif; font-size: 16px; font-weight: 500; border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1); white-space: nowrap; user-select: none; -webkit-tap-highlight-color: transparent; } .ds-btn-secondary:hover { background: rgba(255,255,255,0.05); } .ds-btn-secondary:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Borderless button for tertiary actions. Minimal footprint.",
+      "html": "<button class=\"ds-btn-ghost\">Cancel</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; padding: 0 24px; background: transparent; color: rgba(255,255,255,0.72); font-family: system-ui, -apple-system, 'SF Pro Text', sans-serif; font-size: 16px; font-weight: 500; border: none; border-radius: 14px; cursor: pointer; transition: all 150ms cubic-bezier(0.4,0,0.2,1); white-space: nowrap; user-select: none; -webkit-tap-highlight-color: transparent; } .ds-btn-ghost:hover { color: rgba(255,255,255,0.9); } .ds-btn-ghost:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Default Card",
+      "kind": "card",
+      "refersTo": "card-default",
+      "description": "Standard content container. One step above the black canvas.",
+      "html": "<div class=\"ds-card-default\"><h3 style=\"margin: 0 0 8px; font-size: 1.125rem; font-weight: 600; color: #fff;\">Card Title</h3><p style=\"margin: 0; font-size: 15px; color: rgba(255,255,255,0.72); line-height: 1.5;\">Card content goes here.</p></div>",
+      "css": ".ds-card-default { background: #111111; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 24px; }"
+    },
+    {
+      "name": "Glass Card",
+      "kind": "card",
+      "refersTo": "card-glass",
+      "description": "Translucent glass surface for overlays and elevated panels.",
+      "html": "<div class=\"ds-card-glass\"><h3 style=\"margin: 0 0 8px; font-size: 1.125rem; font-weight: 600; color: #fff;\">Glass Panel</h3><p style=\"margin: 0; font-size: 15px; color: rgba(255,255,255,0.72); line-height: 1.5;\">Content with backdrop blur effect.</p></div>",
+      "css": ".ds-card-glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px; padding: 24px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Dark-themed text input with green focus border.",
+      "html": "<div style=\"width: 100%;\"><label style=\"display: block; margin-bottom: 8px; font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.72);\">Label</label><div class=\"ds-input-wrap\"><input class=\"ds-input\" type=\"text\" placeholder=\"Placeholder\" /></div></div>",
+      "css": ".ds-input-wrap { display: flex; align-items: center; height: 52px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; transition: border-color 250ms cubic-bezier(0.4,0,0.2,1); } .ds-input-wrap:focus-within { border-color: #25D366; } .ds-input { flex: 1; height: 100%; padding: 0 16px; background: transparent; border: none; outline: none; color: #fff; font-size: 16px; font-family: system-ui, -apple-system, 'SF Pro Text', sans-serif; } .ds-input::placeholder { color: rgba(255,255,255,0.52); }"
+    },
+    {
+      "name": "Navigation Bar",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Fixed pill-shaped navigation with glass effect.",
+      "html": "<nav class=\"ds-nav\"><div class=\"ds-nav-inner\"><a href=\"#\" style=\"color: #fff; text-decoration: none; font-size: 14px; font-weight: 500;\">Home</a><a href=\"#\" style=\"color: rgba(255,255,255,0.72); text-decoration: none; font-size: 14px; font-weight: 500;\">Book</a><a href=\"#\" style=\"color: rgba(255,255,255,0.72); text-decoration: none; font-size: 14px; font-weight: 500;\">Venue</a></div></nav>",
+      "css": ".ds-nav { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 50; background: rgba(255,255,255,0.05); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.10); border-radius: 999px; padding: 8px 20px; pointer-events: auto; transition: all 0.25s ease; } .ds-nav-inner { display: flex; align-items: center; gap: 24px; }"
+    },
+    {
+      "name": "Bottom Sheet (Mobile)",
+      "kind": "custom",
+      "refersTo": "sheet",
+      "description": "Mobile bottom sheet with drag handle, slides up from bottom.",
+      "html": "<div style=\"position: fixed; bottom: 0; left: 0; right: 0; z-index: 101; background: #1A1A1A; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px 20px 0 0; max-height: 85vh; overflow: auto;\"><div style=\"display: flex; justify-content: center; padding: 12px 0 8px;\"><div style=\"width: 40px; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.52);\"></div></div><div style=\"padding: 24px;\"><p style=\"margin: 0; color: #fff; font-size: 16px;\">Sheet content</p></div></div>",
+      "css": ".ds-sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cue Sports Sanctuary",
+    "overview": "SPACE8 is a dark, minimal, Apple-inspired design system built for a premium self-service snooker club. The system is defined by a total black canvas (#000000), subtle glass surfaces, and a single green accent drawn from the snooker table felt. It channels the quiet focus of a pool hall at night — the green felt is the only colour that matters, and everything else recedes into darkness.\n\nThe atmosphere is refined, tactile, and deliberate. Surfaces are layered through transparency and blur rather than shadows, creating depth without visual weight. Typography is clean and neutral (SF Pro) with a sharp display accent (Bebas Neue) for headlines. Motion is spring-based, responsive, and feels physical — buttons depress, sheets slide, cards respond to touch.",
+    "keyCharacteristics": [
+      "Black canvas (#000000) with layered dark surfaces (glass, elevated, flat)",
+      "Single green accent (#25D366) — reserved for primary actions, active states, and brand moments",
+      "Glassmorphism for navigation and overlay surfaces (blur + semi-transparent backgrounds)",
+      "Spring-based motion with scale-down press feedback on interactive elements",
+      "Rounded corners (20px cards, 14px buttons, 12px inputs) — Apple-inspired radius hierarchy",
+      "Bebas Neue for display headlines; SF Pro system stack for body text",
+      "No shadows — depth is conveyed through tonal layering and glass blur instead"
+    ],
+    "rules": [
+      { "name": "The Green Felt Rule", "body": "Brand green (#25D366) is used on ≤10% of any given screen. Its rarity is the point — it signals the one thing the user should do. Overuse dilutes the snooker-felt metaphor and flattens the hierarchy.", "section": "colors" },
+      { "name": "The Black Canvas Rule", "body": "The background is always #000000. No dark grey, no gradient, no pattern. The black is the silence that makes the green sing.", "section": "colors" },
+      { "name": "The One-Typeface Rule", "body": "Bebas Neue is the only display face. No decorative, script, or secondary display font. The branding is built on the tension between one loud voice and one quiet voice — a third voice breaks the polarity.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest. No shadows, no gradients, no decorative depth. Elevation appears only through tonal surface change or glass blur — never through drop shadows.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use brand green sparingly — ≤10% of any screen. Let the black canvas do the heavy lifting.",
+      "Do use Bebas Neue for display headlines that need to command attention. It's the only display face for a reason.",
+      "Do layer surfaces tonally (#000 → #111 → #1A1A1A) to create depth without shadows.",
+      "Do use the glass effect for navigation, overlays, and surfaces that need to feel elevated without being solid.",
+      "Do use the spring easing (cubic-bezier(0.16,1,0.3,1)) for motion — it makes interactions feel physical."
+    ],
+    "donts": [
+      "Don't use box shadows anywhere. SPACE8 is a shadow-free system. Depth comes from tonal layering and glass blur.",
+      "Don't introduce a second accent colour. The green is the single voice — no orange, no blue, no purple.",
+      "Don't use the brand green as a large background fill. It's for buttons, active states, and accents — not hero sections.",
+      "Don't use decorative typography beyond Bebas Neue. No script fonts, no slab serifs, no novelty typefaces.",
+      "Don't use gradients on backgrounds unless it's the predefined card gradient variant. The system is flat at rest.",
+      "Don't use #000 text on dark surfaces. White text on dark backgrounds is the system default; brand green buttons get black text for contrast.",
+      "Don't hardcode pricing, booking time, or tier logic. The config table is the single source of truth."
+    ]
+  }
+}
