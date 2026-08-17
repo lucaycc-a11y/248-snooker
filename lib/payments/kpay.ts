@@ -88,9 +88,22 @@ export class KPayProvider implements PaymentProvider {
     }
 
     // ── Direct-connect methods (FPS / PayMe / Octopus / wallets) ──────────
-    // Step 1: create the trade order
+    // Step 0: check-first — query KPay to see if an order with this outTradeNo already exists
+    // This handles retries after partial failures (e.g., Step 1 succeeded but we didn't write DB)
     const directReturnUrl = `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`
     console.log('[KPay] createOrder:', '| method:', method, '| mode:', mode, '| outTradeNo:', outTradeNo, '| bookingId:', bookingId)
+
+    let providerOrderNo: string | undefined
+    try {
+      const existing = await this.queryOrder(outTradeNo)
+      console.log('[KPay] 查詢現有訂單:', '| outTradeNo:', outTradeNo, '| providerOrderNo:', existing.providerOrderNo, '| status:', existing.status)
+      providerOrderNo = existing.providerOrderNo  // reuse this on next API call
+    } catch (e) {
+      // Query failed — assume this is a new order and proceed to create
+      console.warn('[KPay] 查詢失敗，繼續建單:', e instanceof Error ? e.message : String(e))
+    }
+
+    // Step 1: create the trade order (skip if already exists)
     const orderBody = {
       outTradeNo,
       orderType: this.getOrderType(method, mode),
@@ -101,16 +114,22 @@ export class KPayProvider implements PaymentProvider {
       ...(remark ? { orderRemark: remark } : {}),
     }
 
-    const orderRes = await this.apiPost<KPayApiResponse<{ orderNo: string }>>(
-      '/v1/order/add',
-      orderBody,
-    )
+    // Only create if query didn't find an existing order
+    let orderRes: KPayApiResponse<{ orderNo: string }> | null = null
+    if (!providerOrderNo) {
+      orderRes = await this.apiPost<KPayApiResponse<{ orderNo: string }>>(
+        '/v1/order/add',
+        orderBody,
+      )
 
-    if (orderRes.code !== 10000) {
-      throw new Error(`KPay 建單失敗：${orderRes.message ?? kpayErrorMessage(String(orderRes.code))}`)
+      if (orderRes.code !== 10000) {
+        throw new Error(`KPay 建單失敗：${orderRes.message ?? kpayErrorMessage(String(orderRes.code))}`)
+      }
+
+      providerOrderNo = orderRes.data!.orderNo
+    } else {
+      console.log('[KPay] 跳過建單，使用現有 orderNo:', providerOrderNo)
     }
-
-    const providerOrderNo = orderRes.data!.orderNo
 
     // Step 2: get the QR code or H5 link
     const institution = this.getPaymentInstitution(method)
@@ -136,7 +155,7 @@ export class KPayProvider implements PaymentProvider {
     const expiresInSeconds = this.getExpiresInSeconds(method)
 
     return {
-      providerOrderNo,
+      providerOrderNo: providerOrderNo!,
       payInfo: qrRes.data!.payInfo,
       kind: mode === 'qr' ? 'qr' : 'link',
       expiresInSeconds,
