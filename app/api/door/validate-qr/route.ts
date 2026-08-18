@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { BOOKING_QR_ENTRY_LEAD_MINUTES } from '@/lib/door/access-window';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
 
       const isActive =
         booking.status === 'confirmed' &&
-        nowTime >= startTime - 5 * 60 * 1000 && // 提前5分鐘可入
+        nowTime >= startTime - BOOKING_QR_ENTRY_LEAD_MINUTES * 60 * 1000 && // 提前5分鐘可入
         nowTime <= endTime;
 
       if (!isActive) {

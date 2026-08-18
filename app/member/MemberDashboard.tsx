@@ -30,6 +30,7 @@ import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";
 import ReschedulePicker from "@/components/member/ReschedulePicker";
+import MemberQrGuide from "@/components/member/MemberQrGuide";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
 
@@ -67,7 +68,7 @@ const TIER_GLOW: Record<string, string> = {
   maximum: "radial-gradient(120% 120% at 100% 0%, rgba(167,139,250,0.16), transparent 55%)",
 };
 
-type TabId = "overview" | "bookings" | "points" | "settings";
+type TabId = "overview" | "bookings" | "points" | "settings" | "access";
 
 // Number of days after which a past booking moves to "History"
 const RECENT_DAYS = 30
@@ -152,7 +153,7 @@ export default function MemberDashboard({
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
     const q = searchParams.get("tab");
-    if (q === "bookings" || q === "points" || q === "settings") return q;
+    if (q === "bookings" || q === "points" || q === "settings" || q === "access") return q;
     return "overview";
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
@@ -428,12 +429,13 @@ export default function MemberDashboard({
         </div>
 
         {/* Tabs */}
-        <div style={{ display: "flex", gap: "4px", marginTop: "32px", borderBottom: `1px solid ${BORDER}` }}>
+        <div style={{ display: "flex", gap: "4px", marginTop: "32px", borderBottom: `1px solid ${BORDER}`, overflowX: "auto", scrollbarWidth: "thin" }}>
           {([
             { id: "overview" as TabId, key: "tab_overview", icon: <Home size={15} strokeWidth={2} /> },
             { id: "bookings" as TabId, key: "tab_bookings", icon: <Ticket size={15} strokeWidth={2} /> },
             { id: "points" as TabId, key: "tab_points", icon: <Coins size={15} strokeWidth={2} /> },
             { id: "settings" as TabId, key: "tab_settings", icon: <Settings2 size={15} strokeWidth={2} /> },
+            { id: "access" as TabId, key: "tab_access", icon: <QrCodeIcon size={15} strokeWidth={2} /> },
           ]).map((tabItem) => {
             const active = tab === tabItem.id;
             return (
@@ -452,6 +454,7 @@ export default function MemberDashboard({
                   border: "none",
                   cursor: "pointer",
                   minHeight: 44,
+                  flexShrink: 0,
                   fontFamily: FONT_FAMILY,
                 }}
               >
@@ -541,6 +544,9 @@ export default function MemberDashboard({
               )}
               {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} />}
               {tab === "settings" && <SettingsTab user={user} onSignOut={signOut} />}
+              {tab === "access" && (
+                <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
