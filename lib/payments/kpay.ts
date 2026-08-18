@@ -229,7 +229,7 @@ export class KPayProvider implements PaymentProvider {
     const res = await this.apiGet<KPayApiResponse<{
       orderNo: string
       outTradeNo: string
-      result: string
+      result: string | number
     }>>(url)
 
     console.log('[KPay] queryOrder response:', JSON.stringify({
@@ -250,7 +250,7 @@ export class KPayProvider implements PaymentProvider {
     return {
       providerOrderNo: res.data!.orderNo,
       status: this.mapKPayResult(result),
-      rawStatus: result,
+      rawStatus: String(result),
     }
   }
 
@@ -474,8 +474,8 @@ export class KPayProvider implements PaymentProvider {
     return json
   }
 
-  private mapKPayResult(result: string): OrderStatus['status'] {
-    switch (result) {
+  private mapKPayResult(result: string | number): OrderStatus['status'] {
+    switch (String(result)) {
       case '2': return 'success'
       case '3': return 'failed'
       case '4': return 'refunded'

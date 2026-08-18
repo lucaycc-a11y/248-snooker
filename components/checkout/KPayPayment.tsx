@@ -229,6 +229,18 @@ export default function KPayPayment(props: Props) {
 
       const json = await res.json()
 
+      // Redirect responses must leave the page before committing pending UI
+      // state; card/CNP Hosted must never briefly render the QR screen.
+      if ((json.kind === 'redirect' || json.kind === 'link') && json.payInfo) {
+        if (!/^(https?:\/\/|[a-z][a-z0-9+.-]*:)/i.test(json.payInfo.trim())) {
+          setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
+          setState('failed')
+          return
+        }
+        window.location.href = json.payInfo
+        return
+      }
+
       setProviderOrderNo(json.providerOrderNo)
       setPayInfo(json.payInfo)
       setKind(json.kind)
@@ -240,28 +252,14 @@ export default function KPayPayment(props: Props) {
       if (json.orderGroupId) setLocalOrderGroupId(String(json.orderGroupId))
       setState('pending')
 
-      // Hand off to the gateway. 'form-post' payInfo is a JSON field map, not a
-      // URL — it must be POSTed as a form. Assigning it to location.href yields
-      // https://site/{"service":...}, which is the bug this branch prevents.
+      // 'form-post' payInfo is a JSON field map, not a URL — it must be POSTed
+      // as a form instead of assigned to location.href.
       if (json.kind === 'form-post') {
         if (!submitGatewayForm(json.payInfo)) {
           setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
           setState('failed')
         }
         return
-      }
-
-      // 'qr' payInfo (incl. unionpay_qp, which has no real H5 variant) is
-      // rendered in place below — never navigated to.
-      if ((json.kind === 'redirect' || json.kind === 'link') && json.payInfo) {
-        // Guard the URL cases too: only navigate to something that really is a
-        // URL, so a shape change upstream can never produce a garbled address.
-        if (!/^(https?:\/\/|[a-z][a-z0-9+.-]*:)/i.test(json.payInfo.trim())) {
-          setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
-          setState('failed')
-          return
-        }
-        window.location.href = json.payInfo
       }
     } catch (e) {
       setError((e as Error).message)
@@ -450,9 +448,10 @@ export default function KPayPayment(props: Props) {
     )
   }
 
-  // QR payload (mode === 'qr' direct-connect methods, or unionpay_qp which
-  // has no H5 variant and always comes back as kind 'qr' regardless of mode)
-  if ((kind === 'qr' || mode === 'qr') && payInfo) {
+  // QR payload — the server-decided kind is authoritative. In particular,
+  // card/CNP Hosted may be requested with desktop mode "qr" but returns a
+  // redirect URL and must never render the QR screen.
+  if (kind === 'qr' && payInfo) {
     return (
       <div style={styles.card}>
         <p style={styles.qrTitle}>

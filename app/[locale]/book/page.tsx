@@ -30,8 +30,10 @@ import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pr
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
-import { useRouter, Link as LocaleLink } from "@/i18n/navigation"
+import { useRouter } from "@/i18n/navigation"
 import { useSearchParams } from "next/navigation"
+import LegalDocumentRenderer from "@/components/legal/LegalDocumentRenderer"
+import { getLegalDocument } from "@/content/legal"
 // @ts-ignore
 import confetti from "canvas-confetti"
 
@@ -44,6 +46,84 @@ const CONFIG = {
 }
 
 const BEBAS = "'Bebas Neue', system-ui, sans-serif"
+
+const legalLinkStyle: React.CSSProperties = {
+  appearance: "none",
+  border: "none",
+  padding: 0,
+  background: "transparent",
+  color: tokens.colors.link,
+  textDecoration: "underline",
+  textUnderlineOffset: 3,
+  font: "inherit",
+  cursor: "pointer",
+}
+
+const modalOverlayStyle: React.CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  zIndex: 100,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 16,
+  background: "rgba(0,0,0,0.78)",
+}
+
+const modalStyle: React.CSSProperties = {
+  width: "min(100%, 680px)",
+  maxHeight: "min(88vh, 760px)",
+  display: "flex",
+  flexDirection: "column",
+  background: "#000",
+  border: `1px solid ${tokens.colors.borderStrong}`,
+  borderRadius: 20,
+  overflow: "hidden",
+}
+
+const modalHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+  padding: "16px 16px 16px 20px",
+  borderBottom: `1px solid ${tokens.colors.border}`,
+  flexShrink: 0,
+}
+
+const modalCloseStyle: React.CSSProperties = {
+  width: 44,
+  height: 44,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: `1px solid ${tokens.colors.borderStrong}`,
+  borderRadius: "50%",
+  background: "transparent",
+  color: tokens.colors.text,
+  fontSize: 28,
+  lineHeight: 1,
+  cursor: "pointer",
+}
+
+const modalContentStyle: React.CSSProperties = {
+  minHeight: 0,
+  overflowY: "auto",
+  padding: "24px 20px 8px",
+  WebkitOverflowScrolling: "touch",
+}
+
+const modalBottomCloseStyle: React.CSSProperties = {
+  minHeight: 44,
+  margin: "8px 20px 16px",
+  border: `1px solid ${tokens.colors.borderStrong}`,
+  borderRadius: tokens.radius.button,
+  background: "transparent",
+  color: tokens.colors.text,
+  fontWeight: 600,
+  cursor: "pointer",
+  flexShrink: 0,
+}
 
 /* ─────────────────────────  Helpers  ───────────────────────── */
 function isDesktopDevice(): boolean {
@@ -1501,12 +1581,22 @@ function Screen3({
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [termsError, setTermsError] = useState(false)
   const [termsShake, setTermsShake] = useState(0)
+  const [openModal, setOpenModal] = useState<'venue-rules' | 'terms' | null>(null)
   const termsRef = useRef<HTMLDivElement>(null)
   const flagTermsRequired = useCallback(() => {
     setTermsError(true)
     setTermsShake((n) => n + 1)
     termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
   }, [])
+
+  useEffect(() => {
+    if (!openModal) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpenModal(null)
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [openModal])
 
   // Admin test mode
   const [isAdmin, setIsAdmin] = useState(false)
@@ -1837,6 +1927,7 @@ function Screen3({
                   onSelect={(method) => {
                     setPaymentError(null)
                     setPaymentMethod(method)
+                    if (!agreedToTerms) flagTermsRequired()
                     // Map the general method id to the KPay-specific method
                     const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
                     if (kpayMethods.includes(method as KPayMethod)) {
@@ -1993,18 +2084,14 @@ function Screen3({
                 data-cms-key="book.terms_agree"
                 style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}
               >
-                {t.rich("terms_agree", {
-                  link: (chunks) => (
-                    <LocaleLink
-                      href="/legal?doc=terms"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: tokens.colors.link, textDecoration: "underline" }}
-                    >
-                      {chunks}
-                    </LocaleLink>
-                  ),
-                })}
+                {t("terms_agree_prefix")}{" "}
+                <button type="button" onClick={() => setOpenModal("venue-rules")} style={legalLinkStyle}>
+                  {t("venue_rules_label")}
+                </button>
+                {" "}{t("terms_agree_connector")}{" "}
+                <button type="button" onClick={() => setOpenModal("terms")} style={legalLinkStyle}>
+                  {t("terms_label")}
+                </button>
               </span>
             </label>
             <div
@@ -2021,6 +2108,46 @@ function Screen3({
               {termsError && !agreedToTerms ? t("terms_required_error") : t("terms_required_hint")}
             </div>
           </motion.div>
+
+          {openModal && (
+            <motion.div
+              role="presentation"
+              onClick={() => setOpenModal(null)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={modalOverlayStyle}
+            >
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="checkout-legal-modal-title"
+                onClick={(event) => event.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 12 }}
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                style={modalStyle}
+              >
+                <div style={modalHeaderStyle}>
+                  <h2 id="checkout-legal-modal-title" style={{ margin: 0, fontSize: 19, fontWeight: 700 }}>
+                    {openModal === "venue-rules" ? t("venue_rules_label") : t("terms_label")}
+                  </h2>
+                  <button type="button" aria-label={t("legal_modal_close")} onClick={() => setOpenModal(null)} style={modalCloseStyle}>×</button>
+                </div>
+                <div style={modalContentStyle}>
+                  <LegalDocumentRenderer
+                    document={getLegalDocument("terms", locale as import("@/i18n/routing").Locale)}
+                    locale={locale as import("@/i18n/routing").Locale}
+                    compact
+                  />
+                </div>
+                <button type="button" onClick={() => setOpenModal(null)} style={modalBottomCloseStyle}>
+                  {t("legal_modal_close")}
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
 
         </div>
       </div>
