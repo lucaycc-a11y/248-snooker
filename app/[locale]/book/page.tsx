@@ -46,6 +46,14 @@ const CONFIG = {
 const BEBAS = "'Bebas Neue', system-ui, sans-serif"
 
 /* ─────────────────────────  Helpers  ───────────────────────── */
+function isDesktopDevice(): boolean {
+  if (typeof navigator === "undefined") return false
+  const userAgent = navigator.userAgent
+  const isDesktop = !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(userAgent)
+  console.log("[KPay] device check:", { userAgent, isDesktop })
+  return isDesktop
+}
+
 function genRef(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
   const block = (n: number) =>
@@ -1832,8 +1840,8 @@ function Screen3({
                     // Map the general method id to the KPay-specific method
                     const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
                     if (kpayMethods.includes(method as KPayMethod)) {
-                      setKpayMethod(method as KPayMethod)
-                      setKpayMode("h5")
+                    setKpayMethod(method as KPayMethod)
+                      setKpayMode(isDesktopDevice() ? "qr" : "h5")
                     }
                   }}
                 />

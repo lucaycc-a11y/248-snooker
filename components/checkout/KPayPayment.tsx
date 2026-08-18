@@ -84,6 +84,7 @@ function submitGatewayForm(payInfo: string): boolean {
   }
 
   const action = fields.action
+  console.log('[Alipay form-post] fields:', JSON.stringify(fields))
   if (typeof action !== 'string' || !/^https:\/\//i.test(action)) return false
 
   const form = document.createElement('form')
