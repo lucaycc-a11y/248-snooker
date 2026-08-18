@@ -739,6 +739,8 @@
     "pay_loading": "正在準備安全付款…",
     "confirming": "正在確認付款…",
     "confirm_failed": "未能確認付款，如已扣款請聯絡客服。",
+    "confirm_timeout": "處理時間較長，請稍後查看訂單狀態。",
+    "confirm_view_order": "查看我的訂單",
     "confirm_title": "已確認",
     "add_calendar": "加入日曆",
     "share": "分享",

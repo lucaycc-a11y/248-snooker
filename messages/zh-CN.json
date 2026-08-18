@@ -739,6 +739,8 @@
     "pay_loading": "正在准备安全付款…",
     "confirming": "正在确认付款…",
     "confirm_failed": "未能确认付款，如已扣款请联系客服。",
+    "confirm_timeout": "处理时间较长，请稍后查看订单状态。",
+    "confirm_view_order": "查看我的订单",
     "confirm_title": "已确认",
     "add_calendar": "加入日历",
     "share": "分享",

@@ -78,11 +78,12 @@ export interface CreateOrderParams {
 
 export interface CreateOrderResult {
   providerOrderNo: string
-  /** QR content, redirect URL, or (when kind is 'form-post') a JSON field map. */
+  /**
+   * QR payload, redirect URL, or (when kind is 'form-post') a JSON field map
+   * that itself carries `action` (target URL) and `method` (HTTP verb).
+   */
   payInfo: string
   kind: PayInfoKind
-  /** Where a 'form-post' payInfo must be submitted. Set only for that kind. */
-  formAction?: string
   expiresInSeconds: number
 }
 

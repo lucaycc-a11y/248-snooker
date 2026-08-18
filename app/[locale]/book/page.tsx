@@ -25,6 +25,7 @@ import { getTableName } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
+import { useOrderConfirmationPolling } from "@/lib/booking/useOrderConfirmationPolling"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
@@ -1869,8 +1870,10 @@ function Screen3({
                       processing: t("kpay_processing") || "處理中…",
                     }}
                     onBackToMethods={() => setPaymentMethod(null)}
-                    onSuccess={() => {
-                      window.location.href = "/book?redirect_status=succeeded"
+                    onSuccess={(returnedBookingId) => {
+                      if (returnedBookingId) {
+                        window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
+                      }
                     }}
                   />
                   {/* Powered by KPay */}
@@ -2198,7 +2201,7 @@ type ConfirmedBooking = {
 // Shown after the Stripe redirect returns to /book while we poll the booking
 // status until the webhook flips it to 'confirmed'. `failed` covers a declined
 // redirect or a poll that timed out.
-function ConfirmingPayment({ failed }: { failed: boolean }) {
+function ConfirmingPayment({ failed, timeout, onViewOrder, onRetry }: { failed: boolean; timeout: boolean; onViewOrder: () => void; onRetry: () => void }) {
   const t = useTranslations("book")
   return (
     <div
@@ -2219,13 +2222,20 @@ function ConfirmingPayment({ failed }: { failed: boolean }) {
           <p data-cms-key="book.pay.confirm_failed" style={{ fontSize: 16, color: tokens.colors.text, maxWidth: 320 }}>
             {t("confirm_failed")}
           </p>
-          <button
-            type="button"
-            onClick={() => (window.location.href = "/")}
-            data-cms-key="book.pay.confirm_failed_home"
-            style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}
-          >
+          <button type="button" onClick={onRetry} data-cms-key="book.pay.confirm_retry" style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}>
+            {t("kpay_try_again")}
+          </button>
+          <button type="button" onClick={() => (window.location.href = "/")} data-cms-key="book.pay.confirm_failed_home" style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}>
             {t("back_home")}
+          </button>
+        </>
+      ) : timeout ? (
+        <>
+          <p data-cms-key="book.pay.confirm_timeout" style={{ fontSize: 16, color: tokens.colors.text, maxWidth: 320 }}>
+            {t("confirm_timeout")}
+          </p>
+          <button type="button" onClick={onViewOrder} data-cms-key="book.pay.confirm_view_order" style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}>
+            {t("confirm_view_order")}
           </button>
         </>
       ) : (
@@ -2278,13 +2288,15 @@ export default function BookPage() {
   const [bookingRef] = useState(() => genRef())
   const [promoCode, setPromoCode] = useState<PromoResult | null>(null)
   const paymentRef = useRef<HTMLDivElement>(null)
-  // Stripe redirect-return confirmation state.
+  // Stripe and KPay external-return confirmation state.
   const [confirmBookingId, setConfirmBookingId] = useState<string | null>(null)
   const [confirmedBooking, setConfirmedBooking] = useState<ConfirmedBooking | null>(null)
   // Every ticket from the same checkout (order_group_id), primary first — a
   // single-booking order is just a 1-element array (Task 8).
   const [confirmedBookings, setConfirmedBookings] = useState<ConfirmedBooking[]>([])
   const [confirmError, setConfirmError] = useState(false)
+  const [confirmTimeout, setConfirmTimeout] = useState(false)
+  const confirmationStatus = useOrderConfirmationPolling(confirmBookingId, Boolean(confirmBookingId) && !confirmError)
 
   const haptic = useHaptic()
 
@@ -2436,10 +2448,8 @@ export default function BookPage() {
     }
   }, [confirmedBooking])
 
-  // Detect a Stripe redirect return (?bookingId&payment_intent&redirect_status).
-  // The page reloaded fresh, so we jump to the confirmation screen and poll the
-  // booking status until the webhook marks it 'confirmed' (then Screen4 renders
-  // from the real booking row). Capped retries → failure state on timeout.
+  // Detect an external payment return. The page reloads after KPay/Stripe
+  // navigation, so polling must start here rather than inside the payment form.
   useEffect(() => {
     if (typeof window === "undefined") return
     const params = new URLSearchParams(window.location.search)
@@ -2448,39 +2458,34 @@ export default function BookPage() {
 
     setConfirmBookingId(bId)
     setScreen(3)
-    if (params.get("redirect_status") === "failed") {
-      setConfirmError(true)
-      return
-    }
-
-    let cancelled = false
-    let tries = 0
-    const poll = async () => {
-      tries++
-      try {
-        const res = await fetch(`/api/booking/status?bookingId=${bId}`)
-        if (res.ok) {
-          const { booking, bookings } = await res.json()
-          if (booking?.status === "confirmed") {
-            if (!cancelled) {
-              setConfirmedBooking(booking)
-              setConfirmedBookings(Array.isArray(bookings) && bookings.length > 0 ? bookings : [booking])
-            }
-            return
-          }
-        }
-      } catch {
-        /* transient — keep polling */
-      }
-      if (cancelled) return
-      if (tries < 25) setTimeout(poll, 1500)
-      else setConfirmError(true)
-    }
-    poll()
-    return () => {
-      cancelled = true
-    }
+    if (params.get("redirect_status") === "failed") setConfirmError(true)
   }, [])
+
+  // Once the provider-aware poll sees success, load the existing confirmation
+  // payload so Screen4 can reuse the established ticket/printer animation.
+  useEffect(() => {
+    if (!confirmBookingId || confirmationStatus !== "success") return
+    let cancelled = false
+    const loadConfirmation = async () => {
+      try {
+        const response = await fetch(`/api/booking/status?bookingId=${encodeURIComponent(confirmBookingId)}`, { cache: "no-store" })
+        if (!response.ok) throw new Error("booking status unavailable")
+        const payload = await response.json() as { booking?: ConfirmedBooking; bookings?: ConfirmedBooking[] }
+        if (cancelled || !payload.booking) return
+        setConfirmedBooking(payload.booking)
+        setConfirmedBookings(Array.isArray(payload.bookings) && payload.bookings.length > 0 ? payload.bookings : [payload.booking])
+      } catch {
+        if (!cancelled) setConfirmError(true)
+      }
+    }
+    void loadConfirmation()
+    return () => { cancelled = true }
+  }, [confirmBookingId, confirmationStatus])
+
+  useEffect(() => {
+    if (confirmationStatus === "timeout") setConfirmTimeout(true)
+    if (confirmationStatus === "failed") setConfirmError(true)
+  }, [confirmationStatus])
 
   // Shared availability cache: prefetches today + 7 days so date-switching in
   // Screen1 is instant, and exposes invalidate() for post-payment refresh (Task 4).
@@ -2781,7 +2786,17 @@ export default function BookPage() {
                 transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
               >
                 {confirmBookingId && !confirmedBooking ? (
-                  <ConfirmingPayment failed={confirmError} />
+                  <ConfirmingPayment
+                    failed={confirmError}
+                    timeout={confirmTimeout}
+                    onViewOrder={() => router.push(`/member/bookings/${encodeURIComponent(confirmBookingId)}`)}
+                    onRetry={() => {
+                      setConfirmError(false)
+                      setConfirmTimeout(false)
+                      setConfirmBookingId(null)
+                      window.location.href = "/book"
+                    }}
+                  />
                 ) : confirmedBooking ? (
                   <Screen4
                     tickets={confirmedBookings.map((b) => ({

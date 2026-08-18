@@ -746,6 +746,8 @@
     "pay_loading": "Preparing secure payment…",
     "confirming": "Confirming your payment…",
     "confirm_failed": "We couldn't confirm your payment. If you were charged, please contact support.",
+    "confirm_timeout": "Processing is taking longer than expected. Please check your order status later.",
+    "confirm_view_order": "View my order",
     "confirm_title": "Confirmed",
     "add_calendar": "Add to Calendar",
     "share": "Share",

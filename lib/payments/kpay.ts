@@ -6,6 +6,8 @@
 import crypto from 'node:crypto'
 import type {
   PaymentProvider,
+  PaymentMethod,
+  PayInfoKind,
   CreateOrderParams,
   CreateOrderResult,
   OrderStatus,
@@ -31,11 +33,6 @@ function getKpayBaseUrl(): string {
   if (env === 'prod') return 'https://payment.kpay-group.com'
   return 'https://payment.uat.kpay-group.com'
 }
-
-// Where an Alipay form-post payInfo is submitted when the payload carries no
-// gateway of its own. Cross-border (intl) gateway — Alipay CN and HK both
-// accept it for merchant-initiated H5 sales.
-const ALIPAY_GATEWAY_URL = 'https://intlmapi.alipay.com/gateway.do'
 
 // ── KPay API response type ────────────────────────────────────
 
@@ -137,64 +134,37 @@ export class KPayProvider implements PaymentProvider {
     }
 
     const payInfo = qrRes.data!.payInfo
+    const kind = this.getPayInfoKind(method, mode)
 
-    console.log('[KPay] 取碼成功:', '| outTradeNo:', outTradeNo, '| orderNo:', qrRes.data!.orderNo, '| payInfoKind:', mode === 'qr' ? 'qr' : this.classifyH5PayInfo(payInfo).kind)
+    console.log('[KPay] 取碼成功:', '| outTradeNo:', outTradeNo, '| orderNo:', qrRes.data!.orderNo, '| payInfoKind:', kind)
 
     return {
       // The QR endpoint creates and returns its own orderNo — this is the
       // authoritative provider order reference for status polling and refunds.
       providerOrderNo: qrRes.data!.orderNo,
       payInfo,
-      ...(mode === 'qr'
-        ? { kind: 'qr' as const }
-        : this.classifyH5PayInfo(payInfo)),
+      kind,
       expiresInSeconds: this.getExpiresInSeconds(method),
     }
   }
 
   /**
-   * Classify an H5 payInfo by its actual shape rather than by method.
+   * Classify payInfo by method + mode, per KPay's documented per-method
+   * response shape — not by sniffing the payload's shape at runtime.
    *
-   * Alipay H5 (ALIPAY_SALE_H5) returns a JSON parameter map, not a URL — those
-   * params must be submitted as an HTML form POST to Alipay's gateway. Other
-   * direct-connect methods return a plain URL that can be navigated to.
-   *
-   * Assigning a JSON blob to location.href produces
-   * https://site/{"service":...} — the bug this classification prevents.
+   * - unionpay_qp has no H5 variant (both qr/h5 route to the scan endpoint —
+   *   see getQrEndpoint): payInfo is always a raw QR payload, never a link.
+   * - qr mode always returns QR payload content for the client to render.
+   * - Alipay H5 (ALIPAY_SALE_H5) returns a JSON parameter map, not a URL —
+   *   it must be submitted as an HTML form POST, never assigned to
+   *   location.href (that produces https://site/{"service":...}).
+   * - Other direct-connect H5 methods return a plain redirect URL.
    */
-  private classifyH5PayInfo(
-    payInfo: string,
-  ): { kind: 'link' | 'form-post'; formAction?: string } {
-    const trimmed = payInfo.trim()
-
-    if (/^https?:\/\//i.test(trimmed)) {
-      return { kind: 'link' }
-    }
-
-    if (trimmed.startsWith('{')) {
-      let fields: Record<string, unknown>
-      try {
-        fields = JSON.parse(trimmed) as Record<string, unknown>
-      } catch {
-        // Starts like JSON but isn't — treat as opaque so the UI shows an
-        // error rather than navigating to a malformed URL.
-        return { kind: 'form-post', formAction: ALIPAY_GATEWAY_URL }
-      }
-
-      // Prefer a gateway URL carried in the payload over our default, so a
-      // gateway change on KPay's side doesn't require a code change here.
-      for (const key of ['gateway', 'action', 'url', 'payUrl', 'gatewayUrl']) {
-        const val = fields[key]
-        if (typeof val === 'string' && /^https?:\/\//i.test(val)) {
-          return { kind: 'form-post', formAction: val }
-        }
-      }
-      return { kind: 'form-post', formAction: ALIPAY_GATEWAY_URL }
-    }
-
-    // Neither a URL nor JSON (e.g. a scheme like alipays://) — let the client
-    // navigate, which is correct for app-scheme deep links.
-    return { kind: 'link' }
+  private getPayInfoKind(method: PaymentMethod, mode: 'qr' | 'h5'): PayInfoKind {
+    if (method === 'unionpay_qp') return 'qr'
+    if (mode === 'qr') return 'qr'
+    if (method === 'alipay' || method === 'alipayhk') return 'form-post'
+    return 'link'
   }
 
   // ── CNP Hosted (credit card) ────────────────────────────────────────────

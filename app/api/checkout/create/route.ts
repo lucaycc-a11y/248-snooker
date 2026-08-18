@@ -431,7 +431,6 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
     providerOrderNo: result.providerOrderNo,
     payInfo: result.payInfo,
     kind: result.kind,
-    formAction: result.formAction,
     expiresInSeconds: result.expiresInSeconds,
     existing: false,
     ...extra,

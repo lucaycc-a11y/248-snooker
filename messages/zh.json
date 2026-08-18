@@ -32,6 +32,8 @@
     "total": "總計",
     "pay_now": "立即付款",
     "confirm_title": "已確認",
+    "confirm_timeout": "處理時間較長，請稍後查看訂單狀態。",
+    "confirm_view_order": "查看我的訂單",
     "add_calendar": "加入日曆",
     "share": "分享",
     "back_home": "返回主頁",

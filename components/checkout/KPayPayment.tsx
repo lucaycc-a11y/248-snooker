@@ -56,24 +56,24 @@ type Props = {
   mode: KPayMode
   labels: KPayLabels
   onBackToMethods: () => void
-  onSuccess: () => void
+  onSuccess: (bookingId?: string) => void
 }
 
 // ── Gateway form POST (Alipay H5) ────────────────────────────────────────────
 
-const ALIPAY_GATEWAY_FALLBACK = 'https://intlmapi.alipay.com/gateway.do'
-
 /**
- * Submit a JSON parameter map to a payment gateway as an HTML form POST.
+ * Submit a JSON parameter map to a payment gateway as an HTML form submit.
  *
  * Alipay H5 returns its parameters as JSON rather than a URL; the gateway
- * expects them as form fields. Each key becomes a hidden input and the form is
- * submitted immediately, navigating the top-level page to the gateway.
+ * expects them as form fields, with the target URL and HTTP method carried
+ * INSIDE the JSON itself (`action` / `method`) — not assumed by us. Assigning
+ * the JSON to location.href yields https://site/{"service":...}, which is
+ * the bug this branch prevents.
  *
- * Returns false when payInfo cannot be parsed, so the caller can surface an
- * error instead of leaving the user on a stalled screen.
+ * Returns false when payInfo cannot be parsed or carries no usable action,
+ * so the caller can surface an error instead of leaving the user stalled.
  */
-function submitGatewayForm(payInfo: string, formAction?: string): boolean {
+function submitGatewayForm(payInfo: string): boolean {
   let fields: Record<string, unknown>
   try {
     const parsed: unknown = JSON.parse(payInfo)
@@ -83,23 +83,23 @@ function submitGatewayForm(payInfo: string, formAction?: string): boolean {
     return false
   }
 
-  const action = formAction ?? ALIPAY_GATEWAY_FALLBACK
-  if (!/^https:\/\//i.test(action)) return false
+  const action = fields.action
+  if (typeof action !== 'string' || !/^https:\/\//i.test(action)) return false
 
   const form = document.createElement('form')
-  form.method = 'POST'
+  // Trust the gateway's own method field; default to POST only when it does
+  // not explicitly say GET (KPay's docs show payloads with either).
+  form.method = typeof fields.method === 'string' && fields.method.toUpperCase() === 'GET' ? 'GET' : 'POST'
   form.action = action
   form.style.display = 'none'
 
-  // Gateway params are flat scalars. Skip nested values and the gateway key
-  // itself — it addresses the form, it isn't a field the gateway expects back.
-  const GATEWAY_KEYS = new Set(['gateway', 'action', 'url', 'payUrl', 'gatewayUrl'])
+  // `action`/`method` address the form — they are not fields the gateway
+  // expects back as form data.
   let fieldCount = 0
-
   for (const [key, value] of Object.entries(fields)) {
+    if (key === 'action' || key === 'method') continue
     if (value === null || value === undefined) continue
     if (typeof value === 'object') continue
-    if (GATEWAY_KEYS.has(key)) continue
 
     const input = document.createElement('input')
     input.type = 'hidden'
@@ -154,6 +154,10 @@ export default function KPayPayment(props: Props) {
 
   const [state, setState] = useState<KPayState>('idle')
   const [payInfo, setPayInfo] = useState<string | null>(null)
+  // Server-decided payInfo shape (see getPayInfoKind in lib/payments/kpay.ts) —
+  // authoritative over the `mode` prop, since e.g. unionpay_qp has no real H5
+  // variant and always comes back as 'qr' regardless of the requested mode.
+  const [kind, setKind] = useState<string | null>(null)
   const [providerOrderNo, setProviderOrderNo] = useState<string | null>(null)
   const [localBookingId, setLocalBookingId] = useState<string | undefined>(bookingId)
   const [localOrderGroupId, setLocalOrderGroupId] = useState<string | undefined>(orderGroupId)
@@ -217,6 +221,7 @@ export default function KPayPayment(props: Props) {
 
       setProviderOrderNo(json.providerOrderNo)
       setPayInfo(json.payInfo)
+      setKind(json.kind)
       setExpiresIn(json.expiresInSeconds)
       setCountdown(json.expiresInSeconds)
       // Mode A returns bookingId/orderGroupId — remember them so re-creates
@@ -229,14 +234,16 @@ export default function KPayPayment(props: Props) {
       // URL — it must be POSTed as a form. Assigning it to location.href yields
       // https://site/{"service":...}, which is the bug this branch prevents.
       if (json.kind === 'form-post') {
-        if (!submitGatewayForm(json.payInfo, json.formAction)) {
+        if (!submitGatewayForm(json.payInfo)) {
           setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
           setState('failed')
         }
         return
       }
 
-      if ((json.kind === 'redirect' || json.kind === 'link' || mode === 'h5') && json.payInfo) {
+      // 'qr' payInfo (incl. unionpay_qp, which has no real H5 variant) is
+      // rendered in place below — never navigated to.
+      if ((json.kind === 'redirect' || json.kind === 'link') && json.payInfo) {
         // Guard the URL cases too: only navigate to something that really is a
         // URL, so a shape change upstream can never produce a garbled address.
         if (!/^(https?:\/\/|[a-z][a-z0-9+.-]*:)/i.test(json.payInfo.trim())) {
@@ -313,7 +320,7 @@ export default function KPayPayment(props: Props) {
           // Brief buffer to let the webhook finish DB writes
           setTimeout(() => {
             setState('success')
-            onSuccess()
+            onSuccess(localBookingId)
           }, 1500)
           if (pollRef.current) clearInterval(pollRef.current)
         } else if (json.providerStatus === 'failed' || json.providerStatus === 'cancelled' || json.providerStatus === 'closed') {
@@ -431,8 +438,9 @@ export default function KPayPayment(props: Props) {
     )
   }
 
-  // QR mode
-  if (mode === 'qr' && payInfo) {
+  // QR payload (mode === 'qr' direct-connect methods, or unionpay_qp which
+  // has no H5 variant and always comes back as kind 'qr' regardless of mode)
+  if ((kind === 'qr' || mode === 'qr') && payInfo) {
     return (
       <div style={styles.card}>
         <p style={styles.qrTitle}>
