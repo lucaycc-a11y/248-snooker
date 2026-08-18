@@ -1,5 +1,6 @@
 "use client";
 
+import { SITE_CONTACT } from "@/lib/site/contact";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
@@ -1339,7 +1340,7 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
   const confirmDelete = () => {
     if (window.confirm(t("delete_confirm"))) {
       // Deletion requires a server action — redirect to support
-      window.location.href = 'https://wa.me/85264274620'
+      window.location.href = SITE_CONTACT.whatsappUrl
     }
   };
 

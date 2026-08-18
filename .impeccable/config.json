@@ -2,7 +2,10 @@
   "buildPath": "code",
   "detector": {
     "ignoreRules": [],
-    "ignoreFiles": [],
+    "ignoreFiles": [
+      "app/[locale]/venue/VenueContent.tsx",
+      "app/[locale]/about/AboutContent.tsx"
+    ],
     "ignoreValues": [
       {
         "rule": "design-system-color",

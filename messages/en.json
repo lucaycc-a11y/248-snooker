@@ -211,7 +211,7 @@
   },
   "aboutPage": {
     "hero_title": "About SPACE8",
-    "hero_subtitle": "A private, self-service, smoke-free Chinese pool room. Open daily 06:00–24:00.",
+    "hero_subtitle": "A great Chinese eight-ball room should have no distractions. SPACE8 is a self-service, smoke-free private room. Book your own table anytime, anywhere, in one tap. From booking and payment to entry, everything is self-service — no waiting.",
     "scroll": "Scroll down",
     "mission_eyebrow": "Our Philosophy",
     "mission_statement": "Zero distractions, total focus. A Chinese eight-ball space of your own.",
@@ -899,5 +899,23 @@
     ],
     "cta_book": "Book Now",
     "cta_login": "Member Centre"
+  },
+  "spacePilot": {
+    "eyebrow": "SPACE8 SMART CONCIERGE",
+    "title": "SPACE8 Smart Concierge",
+    "intro": "A smarter self-service experience for every room, every match, and every member.",
+    "more": "The full Space Pilot experience",
+    "features": [
+      { "title": "Unstaffed, but never impersonal", "body": "Scan in and the screen greets you by name, tier, and total wins, drawing from 450 welcome lines that shift with the time of day. Every visit feels fresh." },
+      { "title": "Let the AI run your tournament", "body": "Not sure how to organise a big group? The system recommends the fairest format that actually fits your session, and starts it in one tap." },
+      { "title": "Five formats to choose from", "body": "Round robin, Swiss, double elimination, king of the table, and single elimination — the right fit for anything from three friends to a group of eight." },
+      { "title": "Wins that stack up", "body": "Every result feeds your personal total, taking you from Nova to Platinum to Diamond. Now there's something to play for." },
+      { "title": "Friends without memberships? No problem", "body": "Add a guest player in one tap and they're in the match instantly. They can always join up later to keep their record." },
+      { "title": "Big-screen live scoring", "body": "Red versus blue, bold and clear, readable from anywhere in the room." },
+      { "title": "Time management without the awkwardness", "body": "Automatic alerts at 10 and 5 minutes, a polite wrap-up message, and renewal by QR code. No staff involvement needed at any point." },
+      { "title": "Do Not Disturb mode", "body": "While you're focused on the table, the screen simply tells the time. It only speaks up in the last five minutes — better for the mood and the power bill." },
+      { "title": "Trilingual interface", "body": "Instant switching between Traditional Chinese, Simplified Chinese, and English for regulars and visitors alike." },
+      { "title": "Two rooms, one experience", "body": "Space Infinity and Space Eternity, both running the same seamless system." }
+    ]
   }
 }

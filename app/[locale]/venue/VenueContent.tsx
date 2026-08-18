@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import { Link } from "@/i18n/navigation";
+import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import {
   Target,
   Lightbulb,
@@ -1298,6 +1299,8 @@ export default function VenueContent() {
           )}
         </div>
       </section>
+
+      <SpacePilotSection limit={4} compact />
 
       {/* ── Comparison: 兩間 1T 獨立球室 (drag slider, matches reference HTML exactly) ── */}
       <section className="compare-section" data-nav-theme="dark">

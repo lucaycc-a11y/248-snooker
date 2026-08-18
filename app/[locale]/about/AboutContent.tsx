@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { SITE_CONTACT } from "@/lib/site/contact";
 import { Logo } from "@/components/brand";
 import {
   Target,
@@ -31,9 +32,9 @@ const SPRING = [0.2, 0.7, 0.3, 1] as const;
 const POP = [0.34, 1.56, 0.64, 1] as const;
 const VIEWPORT = { once: true, amount: 0.25 } as const;
 
-const WHATSAPP_URL = "https://wa.me/85264274620";
-const EMAIL = "info.formhk@gmail.com";
-const PHONE = "+852 6427 4620";
+const WHATSAPP_URL = SITE_CONTACT.whatsappUrl;
+const EMAIL = SITE_CONTACT.email;
+const PHONE = SITE_CONTACT.phone;
 
 /* ── CSS for facilities carousel ── */
 const FACILITIES_CSS = `

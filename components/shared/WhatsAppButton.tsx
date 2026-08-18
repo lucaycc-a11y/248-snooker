@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { SITE_CONTACT } from '@/lib/site/contact'
 
-const WHATSAPP_URL = 'https://wa.me/85264274620'
+const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
 
 /**
  * Floating WhatsApp contact button — mobile only (md:hidden).

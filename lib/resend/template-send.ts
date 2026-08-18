@@ -6,12 +6,13 @@ import QRCode from 'qrcode'
 import { getStripe } from '@/lib/stripe/server'
 import { bookingConfirmationTemplate } from './templates/booking-confirmation'
 import { bookingReminderTemplate } from './templates/booking-reminder'
+import { SITE_CONTACT } from '@/lib/site/contact'
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 
 const VENUE_ADDRESS = 'Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong'
 const GOOGLE_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Tai+Lik+Industrial+Centre+32+Tai+Yau+Street+San+Po+Kong+Hong+Kong'
-const WHATSAPP_FALLBACK = '85264274620'
+const WHATSAPP_FALLBACK = SITE_CONTACT.phoneDigits
 
 /**
  * Human-readable labels for payment_method values.

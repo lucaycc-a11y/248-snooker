@@ -42,7 +42,7 @@ export async function generateReply(phone, userMessage, context) {
 - 名稱：${venue?.name || 'Space8'}
 - 開放時間：${venue?.opening_hours || '每日 06:00-24:00'}
 - 球枱：${venue?.tables || 2}張（枱號#1、枱號#2）
-- WhatsApp：+${venue?.whatsapp || '85264274620'}
+- WhatsApp：+${venue?.whatsapp || '85261808022'}
 
 現時收費（從資料庫讀取）：
 ${pricing?.rules?.map((rule) => `- ${rule.label}：HK$${rule.price_per_hour}/小時`).join('\n') || '請查詢最新價錢'}

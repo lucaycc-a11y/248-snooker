@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Trophy, Gem } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
@@ -15,37 +16,14 @@ const FONT_FAMILY =
 const EASE = [0.16, 1, 0.3, 1] as const;
 const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
-
 const ICON_PROPS = {
-  viewBox: "0 0 48 48",
+  viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 2,
+  strokeWidth: 1.5,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
-
-const UserIcon = (
-  <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <circle className="pi-user" cx="24" cy="16" r="8" />
-    <path className="pi-user" d="M10 40c0-7.7 6.3-14 14-14s14 6.3 14 14" />
-  </svg>
-);
-
-const TrophyIcon = (
-  <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <path d="M14 8h20v9a10 10 0 0 1-20 0z" />
-    <path d="M14 11H8v3a6 6 0 0 0 6 6M34 11h6v3a6 6 0 0 1-6 6" />
-    <path d="M24 27v7M17 40h14M20 40v-3a4 4 0 0 1 8 0v3" />
-  </svg>
-);
-
-const StarIcon = (
-  <svg {...ICON_PROPS} width="100%" height="100%" aria-hidden="true">
-    <path className="pi-star-rating" d="M24 6l5.6 11.4L42 19l-9 8.8L35.2 40 24 34.2 12.8 40 15 27.8 6 19l12.4-1.6z" />
-    <circle className="pi-star-rating-glow" cx="24" cy="23" r="14" fill="currentColor" stroke="none" opacity="0.15" />
-  </svg>
-);
 
 // Wrap each key word in an accent-coloured span (Apple-style inline highlight)
 function highlight(text: string, words: string[], color: string): React.ReactNode {
@@ -206,8 +184,8 @@ export default function Member() {
   const cards: TierCard[] = [
     {
       key: "tier_amateur",
-      icon: UserIcon,
-      accent: "#22C55E",
+      icon: <Sparkles {...ICON_PROPS} width="100%" height="100%" aria-hidden="true" />,
+      accent: "#86EFAC",
       title: t('amateur_title'),
       body: t('amateur_body'),
       highlights: [t('amateur_highlight')],
@@ -215,8 +193,8 @@ export default function Member() {
     },
     {
       key: "tier_century",
-      icon: TrophyIcon,
-      accent: "#F59E0B",
+      icon: <Trophy {...ICON_PROPS} width="100%" height="100%" aria-hidden="true" />,
+      accent: "#E5E7EB",
       title: t('century_title'),
       subtitle: t('century_subtitle'),
       body: t('century_body'),
@@ -225,8 +203,8 @@ export default function Member() {
     },
     {
       key: "tier_maximum",
-      icon: StarIcon,
-      accent: "#A78BFA",
+      icon: <Gem {...ICON_PROPS} width="100%" height="100%" aria-hidden="true" />,
+      accent: "#BFDBFE",
       title: t('maximum_title'),
       subtitle: t('maximum_subtitle'),
       badge: t('maximum_badge'),

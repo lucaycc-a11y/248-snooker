@@ -4,6 +4,8 @@ const BASE = "https://space8.com.hk";
 // (components/layout/FooterMap.tsx SPACE8_COORDS).
 const GEO = { lat: 22.3372097, lng: 114.1973068 };
 
+import { SITE_CONTACT } from "@/lib/site/contact";
+
 const SAME_AS = ["https://www.instagram.com/248snooker"];
 
 // Single source of truth for the venue schema — was previously duplicated
@@ -21,8 +23,8 @@ export function buildSportsClubJsonLd(locale: string, path: string) {
     name: "SPACE8",
     description: "香港新蒲崗自助無煙中八獨立球室，全預約制",
     url: `${BASE}${locale === "zh-HK" ? path : `/${locale}${path}`}`,
-    telephone: "+85264274620",
-    email: "info.formhk@gmail.com",
+    telephone: SITE_CONTACT.phone,
+    email: SITE_CONTACT.email,
     address: {
       "@type": "PostalAddress",
       streetAddress: "大有街32號泰力工業中心3樓05室",

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import Member from "@/components/landing/Member";
 import PlayIntro from "@/components/landing/PlayIntro";
+import SpacePilotSection from "@/components/landing/SpacePilotSection";
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif";
@@ -44,6 +45,7 @@ export default function MembershipContent() {
       </section>
 
       {/* ── Section 2 — 玩法介紹 (white, production reference) ── */}
+      <SpacePilotSection limit={4} compact />
       <PlayIntro />
     </div>
   );
