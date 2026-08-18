@@ -83,134 +83,17 @@
     "password_placeholder": "Password",
     "unlock": "Unlock",
     "unlocking": "Unlocking…",
-    "err_password": "Incorrect password."
+    "err_password": "Incorrect password.",
+    "err_rate_limited": "Too many attempts. Please try again later."
   },
   "legal": {
-    "page_title": "法律文件",
-    "last_updated": "更新日期",
+    "page_title": "Legal Documents",
+    "last_updated": "Last updated",
     "nav": {
-      "terms": "場地守則",
-      "website_terms": "網站條款",
-      "privacy": "私隱政策",
+      "terms": "Venue Rules",
+      "website_terms": "Website Terms",
+      "privacy": "Privacy Policy",
       "accessibility": "Accessibility Statement"
-    },
-    "terms": {
-      "title": "SPACE8 自助桌球室場地使用守則及條款",
-      "subtitle": "【重要提示】\n歡迎使用 SPACE8。閣下登記成為會員、提交預約或進入本公司營運之自助桌球室場地（下稱「場地」），即表示閣下已閱讀、完全理解並同意受本《場地使用守則及條款》（下稱「本守則」）約束。本守則構成閣下與 SPACE8（下稱「本公司」）之間具有法律約束力的協議。如閣下不同意本守則之任何內容，請勿登記或使用場地。",
-      "sections": [
-        {
-          "title": "會員登記、預約及進場安排",
-          "body": "會員制與預約： 本場地採全自助網上預約制，僅供已成功於本公司官方網站或系統登記之會員使用。未經預約或未持有有效進場憑證之人士，一律禁止進入場地。本公司保留拒絕任何人士進入場地或終止其會員資格之絕對權利。\n進場憑證： 預約及付款成功後，系統將自動向閣下登記之電郵或指定通訊軟件發送確認通知及進場二維碼（QR Code）。閣下須憑該有效 QR Code 於預約時段內自助進場。\n無人駐守聲明： 閣下充分知悉並同意，本場地為全自助式營運，場內並無常駐職員或保安人員。閣下在場地內的一切活動均屬自發行為，並須自行承擔相應之注意義務與安全責任。"
-        },
-        {
-          "title": "場地使用規範與限制",
-          "body": "人數限制： 每間桌球室之使用人數上限嚴格限制為 6人。如發現超出人數限制，本公司有權即時終止該時段之使用權，且不作任何退款，並保留追究違約金的權利。\n年齡限制： 未滿十二（12）歲之人士，必須由至少一名年滿十八歲之成人全程陪同方可進入及使用場地。該陪同成人須對該未成年人之所有行為、人身安全及器材操作負上全部法律及賠償責任。\n場內禁令： 場內全面禁煙（包括但不限於傳統香煙、電子煙、加熱煙或任何會產生煙霧之裝置）。場內亦嚴禁攜帶任何寵物進入（陪同視障人士之導盲犬除外）。\n財物保管： 閣下須自行小心看護個人財物。本公司對於閣下或任何訪客在場地內發生的財物遺失、盜竊、損壞或滅失，概不承擔任何法律或賠償責任。"
-        },
-        {
-          "title": "時段控管及超時收費",
-          "body": "準時離場： 閣下必須於預約時段結束時立即收拾財物並離開場地，以確保下一位使用者的權益。\n超時罰則： 若租用時段結束後超過 5 分鐘閣下仍未完全離場，本公司將有權從閣下之賬戶或付款工具中，自動扣除超時費用。超時費用以每小時為單位計算（不足一小時亦按一小時正價租金計算），本公司並保留因超時導致下一位使用者損失而向閣下索償之權利。"
-        },
-        {
-          "title": "自助清理與復原責任",
-          "body": "本場地不設即時清理服務，閣下及同伴在使用時段結束前，必須自行完成以下場地復原工作：\n將所有桌球計數、擦拭並整齊歸位於指定位置。\n使用專用球刷清理桌球枱面（方向必須由 D 區順向掃至黑波位置）。\n將防塵球枱保護罩完整套回桌球枱上。\n關閉球枱專用燈、冷氣機、抽風機及所有照明設備。\n將所有個人垃圾、食物殘渣及廢物帶離場地，或妥善分類丟棄於場內指定垃圾桶內，確保場地回復至整潔狀態。"
-        },
-        {
-          "title": "設施檢查、損壞賠償及自動扣款授權",
-          "body": "前期檢查義務： 進入場地後，閣下有義務立即檢查所有設施、設備及桌球器材。如發現任何既有的損壞、故障或異常，必須在進場後 10 分鐘內透過官方 WhatsApp 拍下照片並向本公司報告。否則，該場地及器材將被法律推定為在閣下接手時處於完好無損之狀態。\n損壞賠償責任： 如場地內任何設施設備（包括但不限於桌球枱、絨布、球桿、地板、牆壁、智能系統等）因閣下或閣下同伴之不當使用、疏忽、蓄意破壞或因飲品傾倒、遺留污跡等行為導致損毀、遺失、弄污或功能受損，閣下須承擔全部清潔、維修、更換、復原費用及因暫停營業導致的營業額損失。\n最低收費與授權扣款： 本公司將根據實際損壞情況評估費用，最低清潔或維修行政費為港幣 $300 元起（上限依實際修復或更換發票為準）。閣下在此不可撤銷地同意並授權本公司，可直接從閣下預約時所提供的信用卡、電子錢包或其他付款帳戶中扣除上述一切應付之賠償費用及罰款。"
-        },
-        {
-          "title": "惡劣天氣特殊安排",
-          "body": "改期原則： 除本守則另有明文規定外，所有預約一經確認，一律不設取消、改期或退款。\n颱風及暴雨特殊機制： 當香港天文台發出 8號或以上颱風信號 或 黑色暴雨警告信號 時：\n本場地之自動化系統仍會維持正常運作，閣下如評估安全後仍可選擇如常前往使用。\n若閣下因安全考慮決定不前往，閣下必須於原定預約時段開始前透過官方 WhatsApp 聯絡本公司申請改期。經本公司系統核實後，閣下可獲安排於原定日期起計 7天內 重新預約同等價值之時段，逾期未申請或未使用者視為自動放棄，本公司不作任何退款。"
-        },
-        {
-          "title": "責任限制與法律免責聲明",
-          "body": "人身傷害聲明： 除因本公司自身故意或重大疏忽之設施故障（且該故障為直接誘因）而依法不得免除的因疏忽引致的人身傷害或死亡責任外，本公司對於閣下或任何人士在場地內因自身行為、同伴行為、不當操作器材、跌倒、突發疾病或任何意外所引致的任何個人傷害、疾病、財物損害或死亡，概不承擔任何法律或賠償責任。\n服務中斷免責： 本公司致力維持設施正常運作，但若因第三方供電中斷、政府突發命令、網絡故障、系統維修或其他不可抗力（Force Majeure）原因導致場地暫時無法使用，本公司不承擔任何間接商業損失賠償，但將盡力為受影響之會員安排時段補償或退款。\n電子監控： 為保障場地安全、防止犯罪及處理爭議，場地內設有 24 小時閉路電視錄像監控系統（CCTV）。閣下進入場地即代表同意本公司收集及在法律允許或爭議處理之範圍內使用該等錄像資料。"
-        },
-        {
-          "title": "違規後果、修訂權及管轄法律",
-          "body": "違規懲罰： 如閣下或閣下同伴違反本守則任何條款，本公司有權即時暫停或永久註銷閣下的會員帳戶、取消所有未使用的預約、並拒絕閣下再次進入場地，且不作任何形式的補償或退款，並保留法律追訴權。\n條款修訂： 本公司保留隨時修改、增刪本守則任何條款的權利而無須個別預先通知。最新版本將刊載於本公司網站，閣下於修訂後繼續使用場地即視為接受新修訂之守則。\n管轄法律： 本守則受香港特別行政區法律管轄，並按其解釋。如因本守則或使用場地引起任何爭議，雙方同意先以友好協商或調解方式解決；如未能解決，則提交由香港法院具備排他性的管轄權審理。"
-        }
-      ]
-    },
-    "website_terms": {
-      "title": "SPACE8 網站使用條款",
-      "intro": "歡迎瀏覽及使用 SPACE8 網站（www.space8.com.hk，下稱「本網站」）。使用本網站即表示閣下同意受本《網站使用條款》約束。",
-      "sections": [
-        {
-          "title": "服務性質",
-          "body": "本網站提供 SPACE8 自助桌球室之網上預約、會員登記及相關資訊服務。實體場地之使用另受《場地使用守則及條款》約束，兩者同時適用。"
-        },
-        {
-          "title": "帳戶登記",
-          "body": "1. 閣下須提供真實、準確及完整之登記資料，並有責任保持該等資料為最新狀態。\n2. 閣下須對其帳戶及密碼之保密負責，並對透過該帳戶進行之所有活動負全部責任。\n3. 本公司保留在合理懷疑帳戶資料不實、被盜用或涉及濫用時，暫停或終止該帳戶之權利。"
-        },
-        {
-          "title": "預約與付款",
-          "body": "1. 所有預約須透過本網站或指定系統以線上付款方式完成，價格以下單時網站顯示之金額為準。\n2. 付款透過第三方持牌支付服務供應商處理，本公司不會儲存閣下完整之信用卡資料。\n3. 退款、改期及取消安排以《場地使用守則及條款》所載條文為準。"
-        },
-        {
-          "title": "知識產權",
-          "body": "本網站所有內容，包括但不限於文字、圖像、標誌（SPACE8 商標及相關圖形）、程式碼及設計，均屬本公司或其授權方所有，未經書面同意不得複製、修改、發佈或用於商業用途。"
-        },
-        {
-          "title": "禁止行為",
-          "body": "閣下同意不會：\n1. 以任何方式干擾或破壞本網站之正常運作（包括但不限於惡意攻擊、爬蟲程式過度存取）；\n2. 冒用他人身份或提供虛假資料進行登記或預約；\n3. 利用本網站進行任何違法或侵犯第三方權益之行為。"
-        },
-        {
-          "title": "免責聲明",
-          "body": "1. 本網站按「現狀」及「現有」基礎提供，本公司不保證網站服務不受干擾或完全無誤。\n2. 本公司對因網絡故障、第三方系統中斷或不可抗力因素導致之服務中斷，不承擔任何責任。\n3. 實體場地使用之責任限制及免責條款，以《場地使用守則及條款》第七條為準。"
-        },
-        {
-          "title": "條款修訂",
-          "body": "本公司保留隨時修訂本條款之權利，修訂後條款將刊載於本網站，閣下持續使用本網站即視為接受有關修訂。"
-        },
-        {
-          "title": "管轄法律",
-          "body": "本條款受香港特別行政區法律管轄，並按其解釋。"
-        }
-      ]
-    },
-    "privacy": {
-      "title": "SPACE8 私隱政策",
-      "intro": "本私隱政策說明 SPACE8（下稱「本公司」）如何收集、使用、儲存及保護閣下之個人資料，並符合香港《個人資料（私隱）條例》（第486章）之相關規定。",
-      "sections": [
-        {
-          "title": "本公司收集之資料",
-          "body": "1. 登記資料：姓名、電話號碼、電郵地址。\n2. 預約資料：預約日期、時段、桌枱編號、消費記錄。\n3. 付款資料：透過持牌付款處理服務供應商處理之交易記錄（本公司不會直接儲存閣下完整信用卡號碼）。\n4. 使用記錄：登入記錄、進場二維碼掃描記錄、會員積分及等級變動記錄。\n5. 閉路電視（CCTV）影像：閣下進入場地期間之錄像資料。\n6. 通訊記錄：閣下透過 WhatsApp 或其他指定通訊渠道與本公司之對話記錄。"
-        },
-        {
-          "title": "收集資料之目的",
-          "body": "本公司收集上述資料，僅用於：\n1. 處理會員登記、預約、付款及退款；\n2. 核實身份及進場憑證；\n3. 提供客戶服務及處理查詢、投訴；\n4. 保障場地安全及處理爭議（CCTV）；\n5. 因應法律要求或監管機構之要求；\n6. 在閣下同意之情況下，發送優惠或活動推廣資訊。"
-        },
-        {
-          "title": "資料之使用及第三方分享",
-          "body": "本公司可能將閣下之資料提供予以下類別之第三方服務供應商，僅限於履行上述目的所需：\n- 付款處理服務供應商（包括信用卡及電子錢包支付平台）\n- 雲端資料庫及系統後台服務供應商\n- 短訊及電話號碼驗證服務供應商\n- 電郵通知服務供應商\n- 客戶服務及訊息自動處理系統供應商\n本公司不會將閣下之個人資料出售予任何第三方作直接促銷用途。上述服務供應商僅可在其提供服務所需之範圍內處理閣下之資料，並須遵守與本公司之保密及資料保護約定。"
-        },
-        {
-          "title": "資料保留期",
-          "body": "本公司將於達成收集目的所需之合理期間內保留閣下之個人資料，其後將按內部政策刪除或匿名化處理。閉路電視（CCTV）錄像將按本公司內部保安政策所定期限保留，除非涉及爭議調查、保安事故或法律要求，本公司可能需要延長保留有關錄像。"
-        },
-        {
-          "title": "閣下之權利",
-          "body": "根據《個人資料（私隱）條例》，閣下有權：\n1. 查閱本公司持有關於閣下之個人資料；\n2. 要求更正不準確之資料；\n3. 要求本公司停止使用閣下之資料作直接促銷（如適用）。\n如欲行使上述權利，請透過官方 WhatsApp 或電郵聯絡本公司。"
-        },
-        {
-          "title": "資料保安",
-          "body": "\n1. 一般保安措施\n本公司採取合理之技術及行政措施保障閣下之個人資料，包括但不限於：\n- 資料傳輸加密（HTTPS/TLS 加密協議）；\n- 資料庫存取權限分級管理，僅授權人員可查閱相關資料；\n- 定期檢視系統安全漏洞及更新防護措施；\n- 敏感操作（如退款、資料刪除）均設有紀錄及審核機制。\n\n2. 付款資料保安\n本公司高度重視閣下之付款安全，並採取以下措施：\n- 本公司不會於自身伺服器直接儲存閣下完整之信用卡號碼、CVV 安全碼或電子錢包登入密碼；所有付款均透過符合 PCI DSS（支付卡行業資料安全標準）之持牌付款處理服務供應商處理；\n- 閣下之付款資料於傳輸及處理過程中均經加密（Tokenization／代碼化技術），本公司系統僅接收及儲存交易結果（例如成功、失敗、金額、交易編號），不會接觸或儲存原始付款憑證資料；\n- 如日後本公司新增或更換付款方式（包括但不限於電子錢包平台），該等新增付款渠道亦須符合同等或以上之安全認證標準，方可啟用。\n\n3. 資料外洩通報\n如不幸發生資料外洩事件並可能對閣下造成重大影響，本公司將在切實可行範圍內盡快通知受影響之閣下，並按適用法律要求向相關監管機構通報，同時採取合理補救措施以減低影響。\n\n4. 閣下之責任\n閣下亦有責任妥善保管自己嘅帳戶登入資料及密碼，不與第三方分享，並在懷疑帳戶被未經授權存取時立即通知本公司。"
-        },
-        {
-          "title": "Cookies 及追蹤技術",
-          "body": "本網站可能使用 Cookies 以改善用戶體驗及分析網站流量，閣下可透過瀏覽器設定管理或拒絕 Cookies，惟可能影響部分網站功能之正常運作。"
-        },
-        {
-          "title": "政策修訂",
-          "body": "本公司保留隨時修訂本私隱政策之權利，修訂後版本將刊載於本網站。"
-        },
-        {
-          "title": "聯絡方式",
-          "body": "如對本私隱政策有任何查詢，請透過官方 WhatsApp 聯絡 SPACE8。"
-        }
-      ]
     }
   },
   "pricingPage": {
@@ -246,15 +129,15 @@
     "benefits_title": "Member Benefits",
     "benefits": [
       {
-        "tier": "Amateur",
+        "tier": "Nova",
         "desc": "Base points earning"
       },
       {
-        "tier": "Century",
+        "tier": "Platinum",
         "desc": "1.5× points + priority booking"
       },
       {
-        "tier": "Maximum",
+        "tier": "Diamond",
         "desc": "2× points + one free extension/month"
       }
     ],
@@ -448,7 +331,7 @@
       },
       {
         "value": "2",
-        "unit": "",
+        "unit": "rooms",
         "suffix": "",
         "label": "private rooms",
         "live": ""
@@ -479,7 +362,7 @@
     "add_apple_wallet": "Add to Apple Wallet",
     "add_google_wallet": "Add to Google Wallet",
     "stat_bookings": "Bookings",
-    "stat_bookings_unit": "",
+    "stat_bookings_unit": "bookings",
     "stat_hours": "Play Time",
     "stat_hours_unit": "hrs",
     "tier_progress_title": "Tier Progress",
@@ -607,22 +490,22 @@
     "step3_highlight": "more you save",
     "step3_modal_label": "Rewards",
     "step3_modal_title": "Earn Points",
-    "step3_modal_body": "Earn 1 point for every HK$1 spent and level up automatically. Three tiers — Amateur, Century, Maximum — each unlocking exclusive benefits.",
+    "step3_modal_body": "Earn 1 point for every HK$1 spent and level up automatically. Three tiers — Nova, Platinum, Diamond — each unlocking exclusive benefits.",
     "close": "Close"
   },
   "member": {
     "title": "Membership",
-    "amateur_title": "Amateur",
+    "amateur_title": "Nova",
     "amateur_body": "HK$1 = 1 point. 50 points free on sign-up.",
     "amateur_highlight": "50 points",
-    "amateur_modal_body": "New users join the Amateur tier automatically with 50 points as a welcome gift. Earn 1 point for every HK$1 spent — start your journey and build up with ease.",
-    "century_title": "Century",
+    "amateur_modal_body": "New users join the Nova tier automatically with 50 points as a welcome gift. Earn 1 point for every HK$1 spent — start your journey and build up with ease.",
+    "century_title": "Platinum",
     "century_subtitle": "From 800 points",
     "century_body": "Thoughtful perks, points at 1.5x speed.",
     "century_highlight1": "Perks",
     "century_highlight2": "1.5x",
     "century_modal_body": "Unlock a personalised light welcome, receive 2 complimentary bottles of premium water every session, and earn points at 1.5x.",
-    "maximum_title": "Maximum",
+    "maximum_title": "Diamond",
     "maximum_subtitle": "From 6,000 points",
     "maximum_badge": "Top Tier",
     "maximum_body": "The hall of dedicated players. Double points, premium privileges.",
@@ -634,31 +517,6 @@
     "cta_join": "Join Now",
     "cta_learn": "Learn More",
     "close_modal": "Close"
-  },
-  "pricing": {
-    "title": "Pricing",
-    "afternoon_label": "Afternoon",
-    "afternoon_range": "12pm – 4pm",
-    "evening_label": "Evening",
-    "evening_range": "4pm – 12am",
-    "night_label": "Late Night",
-    "night_range": "12am – 6am",
-    "per_hour": "/hr",
-    "duration_1h": "1 hour",
-    "duration_2h": "2 hours",
-    "duration_3h": "3 hours",
-    "cta_book": "Pick a Slot",
-    "cta_learn": "Pricing Details",
-    "hero_eyebrow": "SPACE8",
-    "hero_line1": "For those who can count.",
-    "hero_line2": "Not hard.",
-    "time_line1": "Your time,",
-    "cta_line1": "Tables available now.",
-    "cta_button": "Book Now",
-    "faq_title": "Questions?",
-    "faq_scroll_hint": "Swipe to see more",
-    "morning_label": "Morning",
-    "morning_range": "6am – 12pm"
   },
   "faq": {
     "title": "FAQ",
@@ -679,7 +537,7 @@
     "faq_pricing_q": "How is pricing calculated?",
     "faq_pricing_a": "Rates are charged per hour and vary by time slot, with discounts for booking 2 or more consecutive hours; overtime stays incur an additional overtime charge. For full details, see the [Pricing page](/pricing) and the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3).",
     "faq_points_q": "How does the points system work?",
-    "faq_points_a": "Earn 1 point per HK$1 spent. Accumulated points upgrade you to Century and Maximum tiers with extra privileges. For full details, see the [Membership page](/membership).",
+    "faq_points_a": "Earn 1 point per HK$1 spent. Accumulated points upgrade you to Platinum and Diamond tiers with extra privileges. For full details, see the [Membership page](/membership).",
     "faq_facilities_q": "What facilities are available?",
     "faq_facilities_a": "Professional pool tables, high-quality standard house cues, premium lighting, air conditioning, free Wi-Fi, and a self-serve water station.",
     "faq_guests_q": "Can I bring friends?",
