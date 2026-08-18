@@ -40,8 +40,8 @@ security definer
 set search_path = public
 as $$
 declare
-  v_req_start  timestamp;
-  v_req_end    timestamp;
+  v_req_start  timestamptz;
+  v_req_end    timestamptz;
   v_end_time   time;
   v_slot_id    uuid;
   v_locked_until timestamptz;
@@ -55,7 +55,7 @@ begin
 
   perform pg_advisory_xact_lock(hashtextextended(p_table_number::text, 0));
 
-  v_req_start := p_date + p_start_time;
+  v_req_start := (p_date + p_start_time) AT TIME ZONE 'Asia/Hong_Kong';
   v_req_end   := v_req_start + (p_duration_hours || ' hours')::interval;
   v_end_time  := (p_start_time + (p_duration_hours || ' hours')::interval)::time; -- wraps past midnight
 
@@ -68,15 +68,14 @@ begin
         s.status = 'booked'
         or (s.status = 'locked' and s.locked_until > now() and s.locked_by is distinct from p_user_id)
       )
-      and (s.date + s.start_time) < v_req_end
-      and (s.date + s.start_time + (s.duration_hours || ' hours')::interval) > v_req_start
+      and ((s.date + s.start_time) AT TIME ZONE 'Asia/Hong_Kong') < v_req_end
+      and ((s.date + s.start_time) AT TIME ZONE 'Asia/Hong_Kong') + (s.duration_hours || ' hours')::interval > v_req_start
   ) then
     return jsonb_build_object('success', false, 'reason', 'unavailable');
   end if;
 
-  -- 15-minute current-session cutoff: if the session is ongoing and more than
-  -- 15 minutes have passed since the start, reject the booking.
-  if v_req_start <= now() and now() < v_req_end and now() > v_req_start + interval '15 minutes' then
+  -- Hard cutoff: once start + 15 minutes is reached, reject new bookings.
+  if now() >= v_req_start + interval '15 minutes' then
     return jsonb_build_object('success', false, 'reason', 'current_session_cutoff_passed');
   end if;
 
@@ -126,8 +125,8 @@ declare
   v_duration      numeric;
   v_table         integer;
   v_price         integer;
-  v_req_start     timestamp;
-  v_req_end       timestamp;
+  v_req_start     timestamptz;
+  v_req_end       timestamptz;
   v_end_time      time;
   v_slot_id       uuid;
   v_locked_until  timestamptz;
@@ -150,7 +149,7 @@ begin
     -- Serialize concurrent lockers on this TABLE (same rule as find_or_lock_slot).
     perform pg_advisory_xact_lock(hashtextextended(v_table::text, 0));
 
-    v_req_start := v_date + v_start_time;
+    v_req_start := (v_date + v_start_time) AT TIME ZONE 'Asia/Hong_Kong';
     v_req_end   := v_req_start + (v_duration || ' hours')::interval;
     v_end_time  := (v_start_time + (v_duration || ' hours')::interval)::time; -- wraps past midnight
 
@@ -163,16 +162,15 @@ begin
           s.status = 'booked'
           or (s.status = 'locked' and s.locked_until > now() and s.locked_by is distinct from p_user_id)
         )
-        and (s.date + s.start_time) < v_req_end
-        and (s.date + s.start_time + (s.duration_hours || ' hours')::interval) > v_req_start
+        and ((s.date + s.start_time) AT TIME ZONE 'Asia/Hong_Kong') < v_req_end
+        and ((s.date + s.start_time) AT TIME ZONE 'Asia/Hong_Kong') + (s.duration_hours || ' hours')::interval > v_req_start
     ) then
       raise exception 'slot_unavailable:%:% ', v_table, (v_date || ' ' || v_start_time)
         using errcode = 'P0001';
     end if;
 
-    -- 15-minute current-session cutoff: if the session is ongoing and more than
-    -- 15 minutes have passed since the start, reject the booking.
-    if v_req_start <= now() and now() < v_req_end and now() > v_req_start + interval '15 minutes' then
+    -- Hard cutoff: once start + 15 minutes is reached, reject new bookings.
+    if now() >= v_req_start + interval '15 minutes' then
       raise exception 'current_session_cutoff_passed:%:%', v_table, (v_date || ' ' || v_start_time)
         using errcode = 'P0001';
     end if;
@@ -183,8 +181,8 @@ begin
       select 1 from unnest(v_slot_ids) sid
       join public.slots s on s.id = sid
       where s.table_number = v_table
-        and (s.date + s.start_time) < v_req_end
-        and (s.date + s.start_time + (s.duration_hours || ' hours')::interval) > v_req_start
+        and ((s.date + s.start_time) AT TIME ZONE 'Asia/Hong_Kong') < v_req_end
+        and ((s.date + s.start_time) AT TIME ZONE 'Asia/Hong_Kong') + (s.duration_hours || ' hours')::interval > v_req_start
     ) then
       raise exception 'overlapping_request_blocks:%:%', v_table, (v_date || ' ' || v_start_time)
         using errcode = 'P0001';

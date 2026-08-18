@@ -10,6 +10,7 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
+import { isSlotStillBookable, slotStartInHongKong } from "@/lib/booking/slot-cutoff"
 import { Button, Card, ProgressSteps, BackButton } from "@/components/ui"
 import { LoadingGif } from "@/components/ui/LoadingGif"
 import { Starfield } from "@/app/[locale]/Starfield"
@@ -369,8 +370,7 @@ function DualTableGrid({
     const id = setInterval(() => setNowTick((n) => n + 1), 60_000)
     return () => clearInterval(id)
   }, [])
-  const nowHK = useMemo(() => getHongKongNow(), [nowTick])
-  const isTodayHK = dateStr === nowHK.date
+  const now = useMemo(() => new Date(), [nowTick])
 
   const bookableHours = useMemo(
     () => SLOT_GROUPS.flatMap((g) => g.hours),
@@ -381,7 +381,8 @@ function DualTableGrid({
   const cellStates = useMemo(() => {
     const states = new Map<SlotKey, CellState>()
     for (const h of bookableHours) {
-      const past = isTodayHK && h < nowHK.hour
+      const slotStart = slotStartInHongKong(dateStr, h)
+      const past = !isSlotStillBookable(slotStart, now)
       const perTable = daySlots ? tableStatesFor(daySlots, dateStr, h, 1) : null
       for (const tn of ALL_TABLES) {
         const state: TableState = perTable?.get(tn) ?? "available"
@@ -392,7 +393,7 @@ function DualTableGrid({
       }
     }
     return states
-  }, [bookableHours, daySlots, dateStr, isTodayHK, nowHK.hour])
+  }, [bookableHours, daySlots, dateStr, now])
 
   // Header stats + mini rail per table: free = neither past nor taken.
   const tableStats = useMemo(() => {
@@ -1336,23 +1337,33 @@ function Screen1({
 
   const dayLoading = daySlots === null && availability.loadingDate === dateStr
 
+  const [cutoffTick, setCutoffTick] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => setCutoffTick((n) => n + 1), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   // Prune selected slots on the viewed date that have since become unavailable
-  // (e.g. someone else's hold expired into a booking while this page was open).
+  // (including the hard start + 15-minute cutoff).
   useEffect(() => {
     if (!daySlots) return
+    const now = new Date()
     onPruneSlots(dateStr, (prevSlots) => {
       let changed = false
       const next = new Set(prevSlots)
       for (const key of prevSlots) {
         const { table, hour } = parseSlotKey(key)
-        if (cellStateFor(daySlots, dateStr, hour, table) !== "available") {
+        if (
+          !isSlotStillBookable(slotStartInHongKong(dateStr, hour), now) ||
+          cellStateFor(daySlots, dateStr, hour, table) !== "available"
+        ) {
           next.delete(key)
           changed = true
         }
       }
       return changed ? next : prevSlots
     })
-  }, [daySlots, dateStr, onPruneSlots])
+  }, [daySlots, dateStr, onPruneSlots, cutoffTick])
 
   const ready = runs.length > 0
   const canContinue = ready

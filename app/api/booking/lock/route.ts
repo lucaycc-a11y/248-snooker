@@ -6,6 +6,7 @@ import { calculatePrice } from '@/lib/pricing'
 import { loadPeriods, resolveTierForUser, slotBounds } from '@/lib/booking/server'
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
+import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 
 export const runtime = 'nodejs'
 
@@ -60,6 +61,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
       }
       const validBlocks = blocks as Block[]
+      if (validBlocks.some((b) => !isValidSlotStart(b.date, b.startHour))) {
+        return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+      }
+      if (validBlocks.some((b) => !isSlotStillBookable(slotStartInHongKong(b.date, b.startHour)))) {
+        return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
+      }
       // Re-derive each block's price server-side; build the jsonb payload the RPC
       // expects. Never trust any client-supplied amount.
       const pSlots = validBlocks.map((b) => {
@@ -138,6 +145,13 @@ export async function POST(req: Request) {
       (tableNumber !== 1 && tableNumber !== 2)
     ) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+    }
+
+    if (!isValidSlotStart(date, startHour)) {
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+    }
+    if (!isSlotStillBookable(slotStartInHongKong(date, startHour))) {
+      return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
     }
 
     console.log('[booking/lock] attempt', { userId: user.id, tableNumber, date, startHour, duration })

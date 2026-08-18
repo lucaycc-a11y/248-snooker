@@ -15,6 +15,7 @@ import {
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
 import type { PaymentMethod } from '@/lib/payments/types'
+import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 
 export const runtime = 'nodejs'
 
@@ -111,6 +112,12 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Invalid blocks' }, { status: 400 })
       }
       const blocks = rawBlocks as Block[]
+      if (blocks.some((b) => !isValidSlotStart(b.date, b.startHour))) {
+        return NextResponse.json({ error: 'Invalid blocks' }, { status: 400 })
+      }
+      if (blocks.some((b) => !isSlotStillBookable(slotStartInHongKong(b.date, b.startHour)))) {
+        return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
+      }
 
       const periods = await loadPeriods()
       const tier = await resolveTierForUser(user.id)

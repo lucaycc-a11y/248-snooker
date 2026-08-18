@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { slotBounds } from '@/lib/booking/server'
+import { isSlotStillBookable, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
 
@@ -44,6 +45,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
 
     const service = getServiceSupabase()
+
+    if (!isSlotStillBookable(slotStartInHongKong(date, startHour))) {
+      return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
+    }
 
     const { data: owned } = await service
       .from('bookings')

@@ -14,6 +14,7 @@ import {
 } from '@/lib/booking/server'
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
+import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 
 export const runtime = 'nodejs'
 
@@ -77,6 +78,12 @@ export async function POST(req: Request) {
       }
 
       const startHour = parseInt(slot.start_time.slice(0, 2), 10)
+      if (!isValidSlotStart(slot.date, startHour)) {
+        return NextResponse.json({ error: 'Invalid slot' }, { status: 400 })
+      }
+      if (!isSlotStillBookable(slotStartInHongKong(slot.date, startHour))) {
+        return NextResponse.json({ error: 'Slot unavailable', reason: 'booking_cutoff' }, { status: 409 })
+      }
       const { slotStart, slotEnd } = slotBounds(slot.date, startHour, slot.duration_hours)
       const quote = calculatePrice(slotStart, slotEnd, tier, periods)
 
