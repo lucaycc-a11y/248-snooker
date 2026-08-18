@@ -25,9 +25,11 @@ import {
   GooglePayBadgeIcon,
   ApplePayBadgeIcon,
   AlipayBadgeIcon,
+  AlipayHKBadgeIcon,
   WeChatPayBadgeIcon,
   UnionPayQuickPassBadgeIcon,
   PayMeBadgeIcon,
+  OctopusBadgeIcon,
   FpsBadgeIcon,
   UnionPayCNPBadgeIcon,
   JcbBadgeIcon,
@@ -45,6 +47,7 @@ export type PaymentMethodId =
   | "alipayhk"
   | "wechat"
   | "unionpay_qp"
+  | "octopus"
   | "payme"
   | "fps"
 
@@ -105,7 +108,7 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     label: "AlipayHK",
     sublabel: "香港支付寶錢包",
     disabled: false,
-    icons: <AlipayBadgeIcon />,
+    icons: <AlipayHKBadgeIcon />,
   },
   {
     id: "wechat",
@@ -120,6 +123,13 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     sublabel: "UnionPay QuickPass",
     disabled: false,
     icons: <UnionPayQuickPassBadgeIcon />,
+  },
+  {
+    id: "octopus",
+    label: "八達通",
+    sublabel: "Octopus",
+    disabled: false,
+    icons: <OctopusBadgeIcon />,
   },
   {
     id: "payme",

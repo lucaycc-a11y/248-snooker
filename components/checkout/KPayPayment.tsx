@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import { CircleCheck, CircleX, Clock3 } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -44,6 +45,7 @@ export type KPayLabels = {
   support_whatsapp: string
   back_to_methods: string
   processing: string
+  terms_required: string
 }
 
 type Props = {
@@ -55,6 +57,7 @@ type Props = {
   method: KPayMethod
   mode: KPayMode
   labels: KPayLabels
+  agreedToTerms: boolean
   onBackToMethods: () => void
   onSuccess: (bookingId?: string) => void
 }
@@ -151,7 +154,7 @@ const EASE_STANDARD = 'cubic-bezier(.2,.7,.3,1)'
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function KPayPayment(props: Props) {
-  const { blocks, bookingId, orderGroupId, method, mode, labels, onBackToMethods, onSuccess } = props
+  const { blocks, bookingId, orderGroupId, method, mode, labels, agreedToTerms, onBackToMethods, onSuccess } = props
 
   const [state, setState] = useState<KPayState>('idle')
   const [payInfo, setPayInfo] = useState<string | null>(null)
@@ -174,6 +177,11 @@ export default function KPayPayment(props: Props) {
   // ── Create order (idempotent) ──────────────────────────────────────────────
 
   const createOrder = useCallback(async () => {
+    if (!agreedToTerms) {
+      setError('請先同意條款與細則')
+      setState('failed')
+      return
+    }
     if (creatingRef.current) return
     creatingRef.current = true
     setCreating(true)
@@ -183,6 +191,7 @@ export default function KPayPayment(props: Props) {
       const body: Record<string, unknown> = {
         method,
         mode,
+        agreedToTerms,
       }
 
       // Mode A: blocks[] — the KPay path creates bookings server-side
@@ -261,17 +270,17 @@ export default function KPayPayment(props: Props) {
       creatingRef.current = false
       setCreating(false)
     }
-  }, [blocks, localBookingId, localOrderGroupId, method, mode])
+  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode])
 
   // ── Create order on mount ─────────────────────────────────────────────────
 
   useEffect(() => {
-    createOrder()
+    if (agreedToTerms) createOrder()
     return () => {
       creatingRef.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [agreedToTerms])
 
   // ── Countdown timer ────────────────────────────────────────────────────────
 
@@ -353,23 +362,31 @@ export default function KPayPayment(props: Props) {
   // ── Render helpers ─────────────────────────────────────────────────────────
 
   const formatCountdown = (seconds: number): string => {
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    if (seconds >= 60) {
+      const minutes = Math.floor(seconds / 60)
+      const remainder = seconds % 60
+      return remainder === 0 ? `${minutes} 分鐘` : `${minutes} 分 ${remainder} 秒`
+    }
+    return `${seconds} 秒`
   }
 
   const isUrgent = countdown <= 60
 
   // ── State screens ──────────────────────────────────────────────────────────
 
+  if (!agreedToTerms) {
+    return (
+      <div style={styles.card}>
+        <p style={styles.stateTitle}>{labels.terms_required}</p>
+      </div>
+    )
+  }
+
   if (state === 'success') {
     return (
       <div style={styles.card}>
         <div style={styles.iconWrap}>
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="22" stroke={GREEN_BRIGHT} strokeWidth="3" />
-            <path d="M14 24l7 7 13-13" stroke={GREEN_BRIGHT} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <CircleCheck size={48} color={GREEN_BRIGHT} aria-hidden />
         </div>
         <p style={styles.stateTitle}>{labels.success}</p>
         <p style={styles.stateDesc}>{labels.success_desc}</p>
@@ -391,10 +408,7 @@ export default function KPayPayment(props: Props) {
     return (
       <div style={styles.card}>
         <div style={styles.iconWrap}>
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="22" stroke={DANGER} strokeWidth="3" />
-            <path d="M16 16l16 16M32 16l-16 16" stroke={DANGER} strokeWidth="3" strokeLinecap="round" />
-          </svg>
+          <CircleX size={48} color={DANGER} aria-hidden />
         </div>
         <p style={styles.stateTitle}>{labels.failed}</p>
         <p style={styles.stateDesc}>
@@ -414,10 +428,7 @@ export default function KPayPayment(props: Props) {
     return (
       <div style={styles.card}>
         <div style={styles.iconWrap}>
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="22" stroke={TEXT_FAINT} strokeWidth="3" />
-            <path d="M24 12v12l8 4" stroke={TEXT_FAINT} strokeWidth="3" strokeLinecap="round" />
-          </svg>
+          <Clock3 size={48} color={TEXT_FAINT} aria-hidden />
         </div>
         <p style={styles.stateTitle}>{labels.expired}</p>
         <p style={styles.stateDesc}>{labels.expired_desc}</p>

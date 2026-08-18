@@ -1772,7 +1772,7 @@ function Screen3({
           {/* Trust strip */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, fontSize: 12.5, color: tokens.colors.textFaint }}>
             <Lock size={14} style={{ color: tokens.colors.link, flexShrink: 0 }} />
-            <span data-cms-key="book.pay.secure">{t("stripe_secure")}</span>
+            <span data-cms-key="book.pay.secure">{t("kpay_secure")}</span>
           </div>
         </div>
 
@@ -1857,6 +1857,7 @@ function Screen3({
                     }))}
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
+                    agreedToTerms={agreedToTerms}
                     labels={{
                       title: t("kpay_title"),
                       pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : kpayMethod === "card" ? "信用卡" : "雲閃付"} 掃描以下二維碼`,
@@ -1876,6 +1877,7 @@ function Screen3({
                       support_whatsapp: t("kpay_support_whatsapp") || "WhatsApp 客服",
                       back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
                       processing: t("kpay_processing") || "處理中…",
+                      terms_required: t("terms_required_hint"),
                     }}
                     onBackToMethods={() => setPaymentMethod(null)}
                     onSuccess={(returnedBookingId) => {
@@ -1911,7 +1913,7 @@ function Screen3({
                 {t("test_mode_title") || "管理員測試模式"}
               </div>
               <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
-                {t("test_mode_confirm_detail") || "此訂單會直接標記為已付款，唔會產生 Stripe 收費。適合開發測試使用。"}
+                {t("test_mode_confirm_detail") || "此訂單會直接標記為已付款，不會產生支付交易。適合開發測試使用。"}
               </div>
               {testError && (
                 <div style={{ fontSize: 13, color: tokens.colors.danger, marginBottom: 12, padding: "8px 12px", background: "rgba(255,69,58,0.08)", borderRadius: tokens.radius.input }}>

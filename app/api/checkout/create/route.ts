@@ -69,6 +69,12 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json().catch(() => null)
+    if (!body?.agreedToTerms) {
+      return NextResponse.json(
+        { error: '請先同意條款與細則' },
+        { status: 400 },
+      )
+    }
     const method = body?.method as string | undefined
     const mode: 'qr' | 'h5' = body?.mode === 'h5' ? 'h5' : 'qr'
 

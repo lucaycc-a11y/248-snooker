@@ -734,7 +734,7 @@
     "pay_now": "立即付款",
     "card_number": "卡号",
     "cardholder": "持卡人姓名",
-    "stripe_secure": "以 Stripe 安全加密处理・香港",
+    "kpay_secure": "KPay 加密支付・資料安全傳輸",
     "pay_error": "无法开始付款，请返回再试。",
     "pay_loading": "正在准备安全付款…",
     "confirming": "正在确认付款…",
@@ -803,8 +803,8 @@
     "step_confirm": "确认",
     "confirm_test_booking": "TEST 确认订单",
     "table_count": "Snooker",
-    "test_mode_confirm_detail": "此订单会直接标记为已付款，不会产生 Stripe 收费。适合开发测试使用。",
-    "test_mode_desc": "直接确认订单，不经 Stripe 付款",
+    "test_mode_confirm_detail": "此订单会直接标记为已付款，不会产生支付交易。适合开发测试使用。",
+    "test_mode_desc": "直接确认订单，不经支付网关",
     "test_mode_label": "不计入营收",
     "test_mode_title": "管理员测试模式",
     "venue": "SPACE8",
@@ -888,7 +888,7 @@
     "credits": "制作团队",
     "credits_closing": "于香港用心制作。每个细节，每个像素。",
     "trust_ssl": "256-bit SSL 加密 — 全站连接加密",
-    "trust_stripe": "Stripe 安全付款 — 卡号由 Stripe 处理，PCI DSS Level 1 合规，本站不会储存您的卡号",
+    "trust_stripe": "KPay 安全付款 — 付款资料加密传输，本网站不会储存完整卡号",
     "trust_privacy": "资料受保护 — 个人资料按香港《个人资料（隐私）条例》处理"
   },
   "profile": {

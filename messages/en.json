@@ -741,7 +741,7 @@
     "pay_now": "Pay Now",
     "card_number": "Card Number",
     "cardholder": "Cardholder Name",
-    "stripe_secure": "Secured by Stripe · Hong Kong",
+    "kpay_secure": "KPay encrypted payment · secure data transmission",
     "pay_error": "Couldn't start payment. Please go back and try again.",
     "pay_loading": "Preparing secure payment…",
     "confirming": "Confirming your payment…",
@@ -810,8 +810,8 @@
     "step_confirm": "Confirm",
     "confirm_test_booking": "TEST Confirm Booking",
     "table_count": "Snooker",
-    "test_mode_confirm_detail": "This booking will be marked as paid without charging Stripe. For development/testing use only.",
-    "test_mode_desc": "Confirm booking directly without Stripe payment",
+    "test_mode_confirm_detail": "This booking will be marked as paid without a payment transaction. For development/testing use only.",
+    "test_mode_desc": "Confirm booking directly without a payment gateway",
     "test_mode_label": "No revenue recording",
     "test_mode_title": "Admin Test Mode",
     "venue": "SPACE8",
@@ -895,7 +895,7 @@
     "credits": "Credits",
     "credits_closing": "Made with care in Hong Kong. Every detail, every pixel.",
     "trust_ssl": "256-bit SSL Encryption — All connections encrypted",
-    "trust_stripe": "Powered by Stripe — Card details handled by Stripe, PCI DSS Level 1 compliant. We never store your card number",
+    "trust_stripe": "KPay secure payment — payment data is encrypted in transit; we never store your full card number",
     "trust_privacy": "Data Protected — Personal data handled in accordance with Hong Kong's Personal Data (Privacy) Ordinance"
   },
   "profile": {

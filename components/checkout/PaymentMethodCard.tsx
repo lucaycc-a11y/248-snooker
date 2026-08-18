@@ -18,6 +18,7 @@
 // ────────────────────────────────────────────────────────────────
 
 import type { CSSProperties, ReactNode } from "react"
+import { CircleMinus } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 
 const GREEN = "#1a9d5c"
@@ -82,10 +83,7 @@ export default function PaymentMethodCard({
         }}
       >
         {/* Disabled glyph — muted dash instead of the radio */}
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-          <circle cx="10" cy="10" r="8.5" stroke={tokens.colors.textFaint} strokeWidth="1.5" />
-          <path d="M6.5 10h7" stroke={tokens.colors.textFaint} strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
+        <CircleMinus size={20} aria-hidden />
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: tokens.colors.text }}>{label}</div>
