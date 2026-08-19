@@ -51,5 +51,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'internal' }, { status: 500 })
   }
 
-  return NextResponse.json({ session_token: sessionToken, room_display_name: device.room_display_name })
+  return NextResponse.json({
+    session_token: sessionToken,
+    room_code: device.room_code,
+    room_display_name: device.room_display_name,
+    table_number: (device as { table_number?: number }).table_number ?? null,
+  })
 }

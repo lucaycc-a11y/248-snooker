@@ -135,6 +135,78 @@ export async function POST(req: Request) {
     // else: prior attempt didn't finish → reprocess
   }
 
+  // ── Space Pilot renewal branch ────────────────────────────────────────
+  // If outTradeNo matches a renewal_orders.id, handle it here and return early.
+  // This never touches the ordinary booking confirmation path.
+  const { data: renewalOrder, error: renewalLookupErr } = await supabase
+    .from('renewal_orders')
+    .select('id, booking_id, extend_minutes, status')
+    .eq('id', outTradeNo)
+    .maybeSingle()
+
+  if (renewalLookupErr) {
+    console.error('[webhook/kpay] renewal_order_lookup_failed', { outTradeNo, message: renewalLookupErr.message })
+    // Non-fatal — fall through to ordinary booking path.
+  }
+
+  if (renewalOrder) {
+    // This outTradeNo is a renewal order, not a booking.
+    try {
+      if (isSuccess) {
+        // Idempotent: only update if still pending.
+        const { error: paidErr } = await supabase
+          .from('renewal_orders')
+          .update({ status: 'paid', paid_at: new Date().toISOString() })
+          .eq('id', renewalOrder.id)
+          .eq('status', 'pending')
+        if (paidErr) throw new Error(`renewal mark paid failed: ${paidErr.message}`)
+
+        // Extend booking end_time.
+        const { data: bookingRow, error: bErr } = await supabase
+          .from('bookings')
+          .select('id, end_time')
+          .eq('id', renewalOrder.booking_id)
+          .single()
+        if (bErr || !bookingRow) throw new Error(`renewal booking lookup failed: ${bErr?.message}`)
+        // Compute new end_time by adding extend_minutes to existing end_time.
+        const [h, m, s] = bookingRow.end_time.split(':').map(Number)
+        const totalMinutes = h * 60 + m + renewalOrder.extend_minutes
+        const newH = Math.floor(totalMinutes / 60) % 24
+        const newM = totalMinutes % 60
+        const newEndTime = `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}:${String(s ?? 0).padStart(2, '0')}`
+        const { error: updErr } = await supabase
+          .from('bookings')
+          .update({ end_time: newEndTime })
+          .eq('id', renewalOrder.booking_id)
+        if (updErr) throw new Error(`renewal booking extend failed: ${updErr.message}`)
+      } else if (isFailed) {
+        await supabase
+          .from('renewal_orders')
+          .update({ status: 'failed' })
+          .eq('id', renewalOrder.id)
+          .eq('status', 'pending')
+      } else if (isRefunded) {
+        await supabase
+          .from('renewal_orders')
+          .update({ status: 'cancelled' })
+          .eq('id', renewalOrder.id)
+      }
+
+      await markWebhookProcessed(supabase, eventId)
+      console.log('[webhook/kpay] renewal_processed', { renewalOrderId: renewalOrder.id, status })
+    } catch (err) {
+      const msg = (err as Error).message
+      console.error('[webhook/kpay] renewal_handler_error', { renewalOrderId: renewalOrder.id, message: msg })
+      await markWebhookFailed(supabase, eventId, msg)
+      await logSiteError('webhooks/kpay', 'error', 'renewal handler failed', {
+        message: msg,
+        renewalOrderId: renewalOrder.id,
+        eventId,
+      })
+    }
+    return new NextResponse('OK', { status: 200 })
+  }
+
   // ── Look up booking by outTradeNo (human_code) ─────────────────────────
   const { data: booking, error: bookingErr } = await supabase
     .from('bookings')

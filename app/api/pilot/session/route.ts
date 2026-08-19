@@ -36,5 +36,10 @@ export async function GET(request: Request) {
 
   const device = Array.isArray(session.pilot_devices) ? session.pilot_devices[0] : session.pilot_devices
   if (!device) return NextResponse.json({ valid: false })
-  return NextResponse.json({ valid: true, room_code: device.room_code, room_display_name: device.room_display_name })
+  return NextResponse.json({
+    valid: true,
+    room_code: device.room_code,
+    room_display_name: device.room_display_name,
+    table_number: (device as { table_number?: number }).table_number ?? null,
+  })
 }
