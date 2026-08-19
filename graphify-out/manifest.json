@@ -110,8 +110,8 @@
     "semantic_hash": "dc839f103f77bec79495a74867872e1a"
   },
   "app/[locale]/membership/MembershipContent.tsx": {
-    "mtime": 1787067411.8032897,
-    "ast_hash": "30ebbc0a7f992a53bbc33cb580add872",
+    "mtime": 1787117434.3948617,
+    "ast_hash": "b2039af5a9d8390d010ccba1337a4c90",
     "semantic_hash": ""
   },
   "app/[locale]/membership/page.tsx": {
@@ -125,8 +125,8 @@
     "semantic_hash": "ea7d6497a6809640fdbb81f23d743b73"
   },
   "app/[locale]/page.tsx": {
-    "mtime": 1787067343.8973956,
-    "ast_hash": "cd3c5aa109d1f97fbe70f8cf658a4de4",
+    "mtime": 1787117788.015116,
+    "ast_hash": "929db06caf57ee579f1732cd71027b0c",
     "semantic_hash": ""
   },
   "app/[locale]/pricing/PricingContent.tsx": {
@@ -815,8 +815,8 @@
     "semantic_hash": "73405a2adabcf020c334d9b1f29005d8"
   },
   "components/auth/AuthCard.tsx": {
-    "mtime": 1785721169.813043,
-    "ast_hash": "219cd4bbbd44ed4eff2cb80e104624e4",
+    "mtime": 1787120017.963138,
+    "ast_hash": "aa68911a0b6deb8eeeaef08e8c036aa9",
     "semantic_hash": ""
   },
   "components/auth/AuthModal.tsx": {
@@ -1540,18 +1540,18 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1787067238.5204647,
-    "ast_hash": "23308cdca5ef160d47f71fda83ee9c4d",
+    "mtime": 1787117202.1059067,
+    "ast_hash": "2b6c7fc0ba92c90d124f7f35ec4259bb",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1787067313.8729458,
-    "ast_hash": "08de7ecbb649e116bbe739ad3584aeb1",
+    "mtime": 1787117202.1077738,
+    "ast_hash": "3cee9a116edeaaa6f2957113cd3138df",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1787067291.731603,
-    "ast_hash": "ae39651bd4eaafeb14a0ecaa20a380ae",
+    "mtime": 1787117202.1067603,
+    "ast_hash": "6d4c6976074bd236497e26402085d0a2",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -3565,8 +3565,8 @@
     "semantic_hash": ""
   },
   ".impeccable/config.json": {
-    "mtime": 1786965536.5191197,
-    "ast_hash": "7a5b4951516e72b477931fbe32689bdf",
+    "mtime": 1787068753.7511475,
+    "ast_hash": "281fee3c02190a9bdc035f3222590279",
     "semantic_hash": ""
   },
   ".impeccable/design.json": {
@@ -4482,6 +4482,16 @@
   "supabase/migrations/20260818_space_pilot_backend.sql": {
     "mtime": 1787068306.4506059,
     "ast_hash": "1298f43ba61e6fa3008cd4c177583d42",
+    "semantic_hash": ""
+  },
+  "components/auth/QRGuideModal.tsx": {
+    "mtime": 1787118065.4302921,
+    "ast_hash": "d175a4609f2ee0daec5784187c695b65",
+    "semantic_hash": ""
+  },
+  "components/landing/SpacePilotHomepage.tsx": {
+    "mtime": 1787117649.5799954,
+    "ast_hash": "877afd7aa1ba874f432011e041fce577",
     "semantic_hash": ""
   }
 }

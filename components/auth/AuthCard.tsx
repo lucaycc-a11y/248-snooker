@@ -11,6 +11,7 @@ import { GoogleSignInButton } from "./GoogleSignInButton"
 import { AppleSignInButton } from "./AppleSignInButton"
 import { OtpInput } from "./OtpInput"
 import { ProfileCompletion } from "./ProfileCompletion"
+import { QRGuideModal } from "./QRGuideModal"
 
 // Landing-page language: the site green is the single primary accent/CTA; black
 // text on the green button; surfaces are translucent-white glass (provided by the
@@ -54,6 +55,8 @@ export function AuthCard({
   // picker to a user who's already signed in (e.g. returning from an OAuth redirect).
   const [initializing, setInitializing] = useState(true)
   const didInit = useRef(false)
+  // QR guide modal — shown after first profile completion (new registration).
+  const [qrMemberCode, setQrMemberCode] = useState<string | null>(null)
 
   // Resend cooldown ticker.
   useEffect(() => {
@@ -295,15 +298,17 @@ export function AuthCard({
   // ── Profile gate ───────────────────────────────────────────────────────────
   if (phase === "profile") {
     return (
+      <>
       <ProfileCompletion
         initialName={prefill.name}
         initialEmail={prefill.email}
         initialPhone={prefill.phone}
         isPhoneVerified={prefill.phoneVerified}
-        onComplete={() => {
-          // Member code generation still happens server-side via the
-          // generate_member_code() RPC/trigger — we just no longer show the
-          // celebratory planet-reveal screen for it. Go straight into the flow.
+        onComplete={(memberCode) => {
+          if (memberCode) {
+            setQrMemberCode(memberCode)
+            return
+          }
           onAuthComplete()
         }}
         labels={{
@@ -321,6 +326,13 @@ export function AuthCard({
           phone_verified_badge: t("profile_phone_verified_badge"),
         }}
       />
+      {qrMemberCode && (
+        <QRGuideModal
+          memberCode={qrMemberCode}
+          onClose={() => { setQrMemberCode(null); onAuthComplete() }}
+        />
+      )}
+      </>
     )
   }
 
