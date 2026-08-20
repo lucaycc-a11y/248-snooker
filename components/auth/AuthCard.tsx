@@ -164,27 +164,40 @@ export function AuthCard({
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch("/api/auth/send-otp", {
+      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+      if (!siteKey) {
+        setError(t("err_send"))
+        setBusy(false)
+        return
+      }
+
+      if (typeof window === "undefined" || !(window as any).grecaptcha) {
+        setError(t("err_send"))
+        setBusy(false)
+        return
+      }
+
+      const recaptchaToken = await (window as any).grecaptcha.execute(siteKey, {
+        action: "send_otp",
+      })
+
+      const res = await fetch("/api/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: normalized }),
+        body: JSON.stringify({ phone: normalized, recaptchaToken }),
       })
       const j = await res.json().catch(() => ({}))
-      // Provider failures now arrive as HTTP 200 with { ok:false } (a real 502
-      // gets misread as a crash and hides the body). Branch on the body, not
-      // res.ok, so we never advance to the OTP screen on a failed send.
-      if (j?.ok !== true) {
+
+      if (!j?.success) {
         if (j?.error === "rate_limited") {
           setError(t("err_rate_limited"))
         } else {
-          // Show the REAL underlying cause when present (e.g. "Unsupported phone
-          // provider", Twilio trial "unverified number"), so a misconfig is
-          // diagnosable in the UI instead of a dead-end retry.
-          setError(j?.detail ? `${t("err_send")} (${j.detail})` : t("err_send"))
+          setError(j?.error || t("err_send"))
         }
         setBusy(false)
         return
       }
+
       setOtp("")
       setOtpChannel("sms")
       setAttemptsLeft(MAX_OTP_ATTEMPTS)
