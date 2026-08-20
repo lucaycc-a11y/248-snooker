@@ -85,7 +85,7 @@ export function AuthModal({
 
             <div style={{ textAlign: "center", marginBottom: 24 }}>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
-                <Logo variant="mark" theme="dark" size={40} />
+                <Logo variant="full" theme="dark" size={40} />
               </div>
               <h1 data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 32, letterSpacing: "0.02em", color: "#fff", margin: 0 }}>
                 {t("title")}

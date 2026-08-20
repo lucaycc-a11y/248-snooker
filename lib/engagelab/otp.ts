@@ -41,6 +41,43 @@ export async function sendEngagelabOtp(phone: string, language: string = 'zh_HK'
   return data
 }
 
+export interface EngagelabVerifyResponse {
+  verified?: boolean
+  code?: number
+  message?: string
+}
+
+export async function verifyEngagelabOtp(messageId: string, code: string): Promise<EngagelabVerifyResponse> {
+  const authBase64 = process.env.ENGAGELAB_AUTH_BASE64
+  if (!authBase64) {
+    throw new Error('Engagelab configuration missing')
+  }
+
+  const res = await fetch('https://otp.api.engagelab.cc/v1/verifications', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Basic ${authBase64}`,
+    },
+    body: JSON.stringify({
+      message_id: messageId,
+      verify_code: code,
+    }),
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw {
+      code: data.code,
+      message: data.message,
+      httpStatus: res.status,
+    }
+  }
+
+  return data
+}
+
 export function mapEngagelabError(code: number): string {
   const map: Record<number, string> = {
     3004: '請稍後再試，驗證碼發送過於頻繁',

@@ -18,20 +18,20 @@ import { QRGuideModal } from "./QRGuideModal"
 // parent modal/login card).
 const GREEN = "#22c55e"
 const OTP_LENGTH = 6
-const RESEND_COOLDOWN = 30
+const RESEND_COOLDOWN = 60
 const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type Phase = "methods" | "phone" | "otp" | "profile" | "password"
+type Phase = "methods" | "otp" | "profile" | "password"
 type OtpChannel = "sms" | "email"
+type OtpDeliveryChannel = "whatsapp" | "sms"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
 
 // Reusable auth content — the single source of truth used by BOTH the /login page
-// and the in-booking modal. Primary methods: Apple, Google, Email OTP. SMS is kept
-// as a de-emphasized fallback link (existing phone-only members still need a way
-// in) rather than a primary button. After any first sign-in it gates on profile
-// completion — which itself requires a verified phone (see ProfileCompletion) —
-// before calling onAuthComplete.
+// and the in-booking modal. Primary methods: Apple, Google, Email OTP, plus a
+// SMS/WhatsApp OTP option (phone entry → Engagelab-sent code). After any first
+// sign-in it gates on profile completion — which itself requires a verified phone
+// (see ProfileCompletion) — before calling onAuthComplete.
 export function AuthCard({
   returnUrl,
   onAuthComplete,
@@ -45,6 +45,8 @@ export function AuthCard({
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [otpChannel, setOtpChannel] = useState<OtpChannel>("sms")
+  const [messageId, setMessageId] = useState("")
+  const [otpDeliveryChannel, setOtpDeliveryChannel] = useState<OtpDeliveryChannel>("sms")
   const [otp, setOtp] = useState("")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -200,6 +202,8 @@ export function AuthCard({
 
       setOtp("")
       setOtpChannel("sms")
+      setMessageId(typeof j?.messageId === "string" ? j.messageId : "")
+      setOtpDeliveryChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
       setAttemptsLeft(MAX_OTP_ATTEMPTS)
       setCooldown(RESEND_COOLDOWN)
       setBusy(false)
@@ -275,10 +279,52 @@ export function AuthCard({
     setBusy(true)
     setError(null)
     const supabase = createClient()
-    const { error: vErr } =
-      otpChannel === "email"
-        ? await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "email" })
-        : await supabase.auth.verifyOtp({ phone: normalizeHkPhone(phone) ?? "", token: code, type: "sms" })
+
+    // SMS/WhatsApp path: the code was issued by Engagelab (not Supabase), so
+    // Supabase's native sms verifyOtp can't validate it. We POST to /api/otp/verify,
+    // which checks the code with Engagelab and returns a Supabase magiclink
+    // token_hash; exchanging that mints the session with Supabase as the authority.
+    let vErr: { message: string } | null = null
+    if (otpChannel === "email") {
+      const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "email" })
+      vErr = error
+    } else {
+      const normalized = normalizeHkPhone(phone) ?? ""
+      if (!normalized || !messageId) {
+        setError(t("err_otp_expired"))
+        setBusy(false)
+        return
+      }
+      const res = await fetch("/api/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: normalized, messageId, code }),
+      }).catch(() => null)
+      const j = res ? await res.json().catch(() => ({})) : {}
+      if (!j?.success || typeof j.tokenHash !== "string") {
+        if (j?.error === "rate_limited") {
+          setError(t("err_rate_limited"))
+          setBusy(false)
+          return
+        }
+        // Backend rejected the code (wrong / expired / no such account). Same
+        // localized attempt-countdown UX as the email branch.
+        const remaining = attemptsLeft - 1
+        setAttemptsLeft(remaining)
+        setOtp("")
+        if (remaining > 0) {
+          setError(t("err_otp_wrong", { count: remaining }))
+        } else {
+          setError(t("err_otp_locked"))
+          setPhase("methods")
+        }
+        setBusy(false)
+        return
+      }
+      const { error } = await supabase.auth.verifyOtp({ token_hash: j.tokenHash, type: "magiclink" })
+      vErr = error
+    }
+
     if (vErr) {
       const expired = /expired/i.test(vErr.message)
       const remaining = attemptsLeft - 1
@@ -365,7 +411,11 @@ export function AuthCard({
           {t("otp_title")}
         </h2>
         <p data-cms-key="auth.otp.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
-          {otpChannel === "email" ? t("otp_subtitle_email", { email }) : t("otp_subtitle", { phone })}
+          {otpChannel === "email"
+            ? t("otp_subtitle_email", { email })
+            : otpDeliveryChannel === "whatsapp"
+              ? t("otp_subtitle_whatsapp", { phone })
+              : t("otp_subtitle", { phone })}
         </p>
 
         <OtpInput length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={verifyOtp} disabled={busy} invalid={!!error} />
@@ -381,50 +431,6 @@ export function AuthCard({
         >
           {cooldown > 0 ? t("resend_in", { seconds: cooldown }) : t("resend")}
         </button>
-      </motion.div>
-    )
-  }
-
-  // ── Phone entry (de-emphasized fallback for existing SMS-only members) ──────
-  if (phase === "phone") {
-    return (
-      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
-        <button
-          type="button"
-          onClick={() => { setPhase("methods"); setError(null) }}
-          aria-label={t("back")}
-          style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}
-        >
-          <ChevronLeft size={16} /> {t("back")}
-        </button>
-        <h2 data-cms-key="auth.sms.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>
-          {t("sms_title")}
-        </h2>
-        <p data-cms-key="auth.sms.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
-          {t("sms_subtitle")}
-        </p>
-        <div style={{ display: "flex", gap: 8 }}>
-          <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, color: "#fff", fontSize: 16 }}>+852</span>
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder={t("phone_placeholder")}
-            inputMode="tel"
-            autoComplete="tel"
-            aria-label={t("phone_placeholder")}
-            style={{ flex: 1, height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={sendOtp}
-          disabled={busy}
-          data-cms-key="auth.sms.continue"
-          style={{ marginTop: 12, width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}
-        >
-          {busy ? t("sending") : t("sms_continue")}
-        </button>
-        {error && <p data-cms-key="auth.error" style={{ marginTop: 12, fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
       </motion.div>
     )
   }
@@ -499,6 +505,35 @@ export function AuthCard({
           fallbackLabel={t("google")}
           errorLabel={t("err_generic")}
         />
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "6px 0" }}>
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+          <span style={{ fontSize: 11, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>{t("or")}</span>
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+        </div>
+
+        {/* SMS/WhatsApp OTP entry */}
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 50, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 16 }}>+852</span>
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder={t("phone_placeholder")}
+            inputMode="tel"
+            autoComplete="tel"
+            aria-label={t("phone_placeholder")}
+            style={{ flex: 1, height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={sendOtp}
+          disabled={busy}
+          data-cms-key="auth.phone.send_code"
+          style={{ width: "100%", height: 50, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer", transition: "background 0.2s ease" }}
+        >
+          {busy ? t("sending") : t("phone_send_code")}
+        </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "6px 0" }}>
           <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />

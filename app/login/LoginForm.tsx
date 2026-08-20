@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AuthCard } from "@/components/auth/AuthCard";
+import { Logo } from "@/components/brand";
 
 function safeReturnUrl(value: string): string {
   if (!value.startsWith("/")) return "/member";
@@ -52,11 +53,7 @@ export default function LoginForm({
             marginBottom: 20,
           }}
         >
-          <img
-            src="/logos/logo-white-mark.svg"
-            alt="Space8"
-            style={{ height: 48, width: "auto" }}
-          />
+          <Logo variant="full" theme="dark" size={40} />
         </div>
         <h1
           data-cms-key="login.title"

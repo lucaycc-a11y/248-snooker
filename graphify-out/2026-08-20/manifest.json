@@ -630,8 +630,8 @@
     "semantic_hash": "8c8e6211913bb8c46051c6919bc6c55c"
   },
   "app/login/LoginForm.tsx": {
-    "mtime": 1787231350.1414065,
-    "ast_hash": "24fc0f1e802ace6f5db10becabce6693",
+    "mtime": 1785661594.4104557,
+    "ast_hash": "666c61cd114ed2daf37ef7e02100e625",
     "semantic_hash": ""
   },
   "app/login/page.tsx": {
@@ -815,13 +815,13 @@
     "semantic_hash": "73405a2adabcf020c334d9b1f29005d8"
   },
   "components/auth/AuthCard.tsx": {
-    "mtime": 1787232850.4606073,
-    "ast_hash": "ee8ed3516ec0be5c3a636e74af6e287b",
+    "mtime": 1787217280.8249888,
+    "ast_hash": "1a39b6567739a5a6bdab4cb3d2166e70",
     "semantic_hash": ""
   },
   "components/auth/AuthModal.tsx": {
-    "mtime": 1787231321.0916612,
-    "ast_hash": "b8a59ca1fe62c107f92af3bcf3e950d1",
+    "mtime": 1785661196.3837047,
+    "ast_hash": "505e609c9d086a65830531bf21e866cb",
     "semantic_hash": ""
   },
   "components/auth/GoogleOneTap.tsx": {
@@ -1540,18 +1540,18 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1787231789.575981,
-    "ast_hash": "6bdc6ba298cdeac99bac07499c564e02",
+    "mtime": 1787117202.1059067,
+    "ast_hash": "2b6c7fc0ba92c90d124f7f35ec4259bb",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1787231845.0088973,
-    "ast_hash": "9cda9ca9a73e2ec5d6196a9b00ebbddb",
+    "mtime": 1787117202.1077738,
+    "ast_hash": "3cee9a116edeaaa6f2957113cd3138df",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1787231727.4211035,
-    "ast_hash": "249bd5bf76f78e9a9eeeebcf56d7283a",
+    "mtime": 1787117202.1067603,
+    "ast_hash": "6d4c6976074bd236497e26402085d0a2",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -4500,8 +4500,8 @@
     "semantic_hash": ""
   },
   "lib/engagelab/otp.ts": {
-    "mtime": 1787225125.8592348,
-    "ast_hash": "89e830bf4d31176650f1363087452f1a",
+    "mtime": 1787217117.1844027,
+    "ast_hash": "2ff5f0237038ff8eef138d8dacf57c51",
     "semantic_hash": ""
   },
   "types/recaptcha.d.ts": {
@@ -4587,11 +4587,6 @@
   "public/logos/payment/wechat.png": {
     "mtime": 1787068631.885961,
     "ast_hash": "77c3ae69cb8b87be0c283501dfe5f0a5",
-    "semantic_hash": ""
-  },
-  "app/api/otp/verify/route.ts": {
-    "mtime": 1787232477.4286687,
-    "ast_hash": "6d6b41ed3d5c61c04593d3b1c8a20d05",
     "semantic_hash": ""
   }
 }
