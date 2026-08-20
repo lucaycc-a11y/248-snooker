@@ -815,8 +815,8 @@
     "semantic_hash": "73405a2adabcf020c334d9b1f29005d8"
   },
   "components/auth/AuthCard.tsx": {
-    "mtime": 1787232850.4606073,
-    "ast_hash": "ee8ed3516ec0be5c3a636e74af6e287b",
+    "mtime": 1787240415.4756043,
+    "ast_hash": "51b4a8d3bdad2b561e46e093977bd6ed",
     "semantic_hash": ""
   },
   "components/auth/AuthModal.tsx": {
@@ -1540,18 +1540,18 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1787231789.575981,
-    "ast_hash": "6bdc6ba298cdeac99bac07499c564e02",
+    "mtime": 1787240434.1314967,
+    "ast_hash": "820b6174c8d56610ab586afb0c36dfe1",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1787231845.0088973,
-    "ast_hash": "9cda9ca9a73e2ec5d6196a9b00ebbddb",
+    "mtime": 1787240442.353995,
+    "ast_hash": "e415a10c9d60590f451c02f0b0485b93",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1787231727.4211035,
-    "ast_hash": "249bd5bf76f78e9a9eeeebcf56d7283a",
+    "mtime": 1787240424.67913,
+    "ast_hash": "81dedad99f71a399762a4d2915c52865",
     "semantic_hash": ""
   },
   "messages/zh.json": {

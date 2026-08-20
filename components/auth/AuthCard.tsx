@@ -22,16 +22,17 @@ const RESEND_COOLDOWN = 60
 const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type Phase = "methods" | "otp" | "profile" | "password"
+type Phase = "methods" | "contact" | "otp" | "profile" | "password"
 type OtpChannel = "sms" | "email"
 type OtpDeliveryChannel = "whatsapp" | "sms"
+type ContactTab = "phone" | "email"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
 
 // Reusable auth content — the single source of truth used by BOTH the /login page
-// and the in-booking modal. Primary methods: Apple, Google, Email OTP, plus a
-// SMS/WhatsApp OTP option (phone entry → Engagelab-sent code). After any first
-// sign-in it gates on profile completion — which itself requires a verified phone
-// (see ProfileCompletion) — before calling onAuthComplete.
+// and the in-booking modal. Method picker shows three clean options: Apple, Google,
+// and "continue with phone or email" (which expands to a tabbed phone/email entry).
+// After any first sign-in it gates on profile completion — which itself requires a
+// verified phone (see ProfileCompletion) — before calling onAuthComplete.
 export function AuthCard({
   returnUrl,
   onAuthComplete,
@@ -41,6 +42,7 @@ export function AuthCard({
 }) {
   const t = useTranslations("auth")
   const [phase, setPhase] = useState<Phase>("methods")
+  const [contactTab, setContactTab] = useState<ContactTab>("phone")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -492,6 +494,106 @@ export function AuthCard({
     )
   }
 
+  // ── Contact entry (phone / email tabbed) ────────────────────────────────────
+  if (phase === "contact") {
+    return (
+      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
+        <button
+          type="button"
+          onClick={() => { setPhase("methods"); setError(null) }}
+          aria-label={t("back")}
+          style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}
+        >
+          <ChevronLeft size={16} /> {t("back")}
+        </button>
+
+        {/* Tab switch */}
+        <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: 4, marginBottom: 20 }}>
+          {(["phone", "email"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => { setContactTab(tab); setError(null) }}
+              data-cms-key={tab === "phone" ? "auth.contact.phone_tab" : "auth.contact.email_tab"}
+              style={{
+                flex: 1,
+                height: 40,
+                border: "none",
+                borderRadius: 9,
+                background: contactTab === tab ? "rgba(255,255,255,0.12)" : "transparent",
+                color: contactTab === tab ? "#fff" : "rgba(255,255,255,0.5)",
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: "pointer",
+                transition: "background 0.15s ease, color 0.15s ease",
+              }}
+            >
+              {tab === "phone" ? t("contact_phone_tab") : t("contact_email_tab")}
+            </button>
+          ))}
+        </div>
+
+        {contactTab === "phone" ? (
+          <>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 50, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 16 }}>+852</span>
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder={t("phone_placeholder")}
+                inputMode="tel"
+                autoComplete="tel"
+                aria-label={t("phone_placeholder")}
+                style={{ flex: 1, height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={sendOtp}
+              disabled={busy}
+              data-cms-key="auth.phone.send_code"
+              style={{ marginTop: 12, width: "100%", height: 50, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer", transition: "background 0.2s ease" }}
+            >
+              {busy ? t("sending") : t("phone_send_code")}
+            </button>
+          </>
+        ) : (
+          <>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("email_placeholder")}
+              inputMode="email"
+              autoComplete="email"
+              aria-label={t("email_placeholder")}
+              style={{ height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
+            />
+            <button
+              type="button"
+              onClick={sendEmailOtp}
+              disabled={busy}
+              data-cms-key="auth.email.continue"
+              style={{ marginTop: 12, width: "100%", height: 50, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer", transition: "background 0.2s ease" }}
+            >
+              {busy ? t("sending") : t("email_continue")}
+            </button>
+          </>
+        )}
+
+        {error && <p data-cms-key="auth.error" style={{ marginTop: 12, fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
+
+        <button
+          type="button"
+          onClick={() => { setPhase("password"); setError(null) }}
+          data-cms-key="auth.switch_to_password"
+          style={{ marginTop: 16, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12.5, cursor: "pointer", textAlign: "center", textDecoration: "underline", textUnderlineOffset: 2, textDecorationColor: "rgba(255,255,255,0.1)" }}
+        >
+          {t("switch_to_password")}
+        </button>
+      </motion.div>
+    )
+  }
+
   // ── Method picker ──────────────────────────────────────────────────────────
   return (
     <div>
@@ -506,59 +608,14 @@ export function AuthCard({
           errorLabel={t("err_generic")}
         />
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "6px 0" }}>
-          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
-          <span style={{ fontSize: 11, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>{t("or")}</span>
-          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
-        </div>
-
-        {/* SMS/WhatsApp OTP entry */}
-        <div style={{ display: "flex", gap: 8 }}>
-          <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 50, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 16 }}>+852</span>
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder={t("phone_placeholder")}
-            inputMode="tel"
-            autoComplete="tel"
-            aria-label={t("phone_placeholder")}
-            style={{ flex: 1, height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
-          />
-        </div>
+        {/* Phone / email — expands to a tabbed entry */}
         <button
           type="button"
-          onClick={sendOtp}
-          disabled={busy}
-          data-cms-key="auth.phone.send_code"
-          style={{ width: "100%", height: 50, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer", transition: "background 0.2s ease" }}
+          onClick={() => { setPhase("contact"); setError(null) }}
+          data-cms-key="auth.contact.continue"
+          style={{ width: "100%", height: 52, border: "1px solid rgba(255,255,255,0.14)", borderRadius: 9999, background: "rgba(255,255,255,0.04)", color: "#fff", fontWeight: 600, fontSize: 16, cursor: "pointer", transition: "background 0.2s ease" }}
         >
-          {busy ? t("sending") : t("phone_send_code")}
-        </button>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "6px 0" }}>
-          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
-          <span style={{ fontSize: 11, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>{t("or")}</span>
-          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
-        </div>
-
-        {/* Email OTP entry */}
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder={t("email_placeholder")}
-          inputMode="email"
-          autoComplete="email"
-          aria-label={t("email_placeholder")}
-          style={{ height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
-        />
-        <button
-          type="button"
-          onClick={sendEmailOtp}
-          disabled={busy}
-          data-cms-key="auth.email.continue"
-          style={{ width: "100%", height: 50, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer", transition: "background 0.2s ease" }}
-        >
-          {busy ? t("sending") : t("email_continue")}
+          {t("contact_continue")}
         </button>
 
         {error && phase === "methods" && (
