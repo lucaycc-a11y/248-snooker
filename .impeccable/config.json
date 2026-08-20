@@ -72,6 +72,24 @@
         "value": "pingfang hk",
         "createdAt": "2026-08-17T11:18:56.517Z",
         "reason": "CJK SVG badge wordmarks require a CJK font stack — pre-existing payment badge icons"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "bowwobble",
+        "createdAt": "2026-08-20T16:01:30.289Z",
+        "reason": "Agent: literal gift-bow wobble — a physical object wobbling; easing is ease-in-out, detector fires on the name only"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "simailbounce",
+        "createdAt": "2026-08-20T16:01:30.327Z",
+        "reason": "Agent: literal mail-flap bob of 2px with ease-in-out; name-only detector hit"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "pinbounce",
+        "createdAt": "2026-08-20T16:01:30.356Z",
+        "reason": "Agent: literal map-pin drop bounce (2px) with ease-in-out; domain-appropriate physical motion"
       }
     ]
   }
