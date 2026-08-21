@@ -3,6 +3,7 @@ import { rateLimit, clientIp } from '@/lib/rate-limit'
 import { normalizeHkPhone } from '@/lib/auth/profile'
 import { verifyEngagelabOtp, mapEngagelabError } from '@/lib/engagelab/otp'
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { findUserByPhone } from '@/lib/auth/phone-binding'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -71,27 +72,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '登入失敗，請重試' }, { status: 500 })
     }
 
-    // Returner path: the phone is already attached to a user; find their email
-    // (listUsers has no phone filter, so scan the page — fine at member scale).
+    // Returner path: query public.users directly instead of scanning listUsers.
     let userEmail = email
     if (createError) {
-      const { data: users, error: listError } = await service.auth.admin.listUsers({
-        page: 1,
-        perPage: 1000,
-      })
-      if (listError) {
-        console.error('[otp/verify] listUsers failed', {
-          message: listError.message,
-          phone,
-        })
-        return NextResponse.json({ error: '登入失敗，請重試' }, { status: 500 })
-      }
-      const match = users?.users.find((u) => u.phone === phone)
-      if (!match?.email) {
+      const existingId = await findUserByPhone(phone)
+      if (!existingId) {
         console.error('[otp/verify] no user with this phone', { phone })
         return NextResponse.json({ error: '此電話號碼未有註冊帳戶' }, { status: 400 })
       }
-      userEmail = match.email
+      // Reconstruct the synthetic email from the canonical phone on record.
+      userEmail = toPhoneEmail(phone)
     }
 
     const { data: linkData, error: linkError } = await service.auth.admin.generateLink({

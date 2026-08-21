@@ -5,6 +5,19 @@ export type PhoneBindingResult =
   | { ok: true }
   | { ok: false; error: 'phone_invalid' | 'phone_taken' | 'db_error' }
 
+// Returns the auth user id whose public.users row has this phone, or null.
+// Queries the table directly — avoids admin.listUsers pagination and rate limits.
+export async function findUserByPhone(e164Phone: string): Promise<string | null> {
+  const sb = getServiceSupabase()
+  const { data, error } = await sb
+    .from('users')
+    .select('id')
+    .eq('phone', e164Phone)
+    .maybeSingle()
+  if (error || !data) return null
+  return data.id as string
+}
+
 export async function bindVerifiedPhone(
   userId: string,
   rawPhone: string,
