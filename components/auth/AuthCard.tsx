@@ -590,6 +590,31 @@ export function AuthCard({
         >
           {t("switch_to_password")}
         </button>
+
+        {/* reCAPTCHA compliance notice — only shown on the contact/OTP phase
+            where reCAPTCHA is actually executed (sendOtp calls grecaptcha.execute).
+            Required by Google when hiding the grecaptcha-badge. */}
+        <p style={{ marginTop: 16, textAlign: "center", fontSize: 11, lineHeight: 1.6, color: "rgba(255,255,255,0.3)" }}>
+          本網站受 reCAPTCHA 保護，適用 Google{' '}
+          <a
+            href="https://policies.google.com/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "rgba(255,255,255,0.3)", textDecoration: "underline" }}
+          >
+            私隱政策
+          </a>{' '}
+          及{' '}
+          <a
+            href="https://policies.google.com/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "rgba(255,255,255,0.3)", textDecoration: "underline" }}
+          >
+            服務條款
+          </a>
+          。
+        </p>
       </motion.div>
     )
   }

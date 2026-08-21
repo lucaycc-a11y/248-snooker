@@ -357,6 +357,15 @@ body {
   50% { opacity: 1; }
 }
 
+/* ──── reCAPTCHA badge ──── */
+/* Hidden per Google's recommendation (visibility, not display:none) to avoid
+   breaking the reCAPTCHA script. Compliance text is added in the auth modal
+   contact phase (AuthCard.tsx) — hiding the badge is only allowed alongside
+   a visible privacy/terms notice. */
+.grecaptcha-badge {
+  visibility: hidden;
+}
+
 /* ──── Primary CTA: shine-sweep + breathing halo ──── */
 .pbtn-primary {
   position: relative;

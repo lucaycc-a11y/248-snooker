@@ -94,7 +94,8 @@
       {
         "rule": "side-tab",
         "value": "3px solid #22c55e",
-        "createdAt": "2026-08-21T07:32:18.340Z"
+        "createdAt": "2026-08-21T07:32:18.340Z",
+        "reason": "Standard blockquote left-border in .blog-prose — a typographic treatment, not a card side-tab accent"
       },
       {
         "rule": "design-system-font",
@@ -122,24 +123,40 @@
         "createdAt": "2026-08-21T07:32:18.505Z"
       },
       {
-        "rule": "app/globals.css",
-        "value": "border-left: 3px solid #22c55e blockquote left-border in .blog-prose is a standard typographic treatment, not a card accent",
-        "createdAt": "2026-08-21T07:42:48.088Z"
+        "rule": "design-system-color",
+        "value": "#1a9d5c",
+        "createdAt": "2026-08-21T07:45:47.582Z",
+        "reason": "Light-theme green accent throughout FAQ/About/Membership sections — intentional brand color for light pages, outside dark-UI DESIGN.md scope"
       },
       {
-        "rule": "app/globals.css",
-        "value": "#1a9d5c site accent green used consistently throughout faq and prose styles — intentional brand color",
-        "createdAt": "2026-08-21T07:45:47.582Z"
+        "rule": "design-system-font",
+        "value": "Noto Sans TC",
+        "createdAt": "2026-08-21T07:45:47.633Z",
+        "reason": "CJK font for light-theme Traditional Chinese content (FAQ/About/Membership) — intentional i18n typography outside dark-UI DESIGN.md scope"
       },
       {
-        "rule": "app/globals.css",
-        "value": "noto sans tc cjk font stack for traditional chinese faq content — intentional i18n typography choice",
-        "createdAt": "2026-08-21T07:45:47.633Z"
+        "rule": "design-system-font",
+        "value": "Inter",
+        "createdAt": "2026-08-21T07:45:47.633Z",
+        "reason": "Light-theme body font for English-featured content (About stat labels, Venue descriptions) — intentional design choice outside dark-UI DESIGN.md scope"
       },
       {
-        "rule": "app/globals.css",
-        "value": "2px 2px border-radius on faq icon pseudo-elements (plus/minus lines) — intentional micro-detail, not a card shape",
-        "createdAt": "2026-08-21T07:45:47.669Z"
+        "rule": "design-system-radius",
+        "value": "2px",
+        "createdAt": "2026-08-21T07:45:47.669Z",
+        "reason": "Micro-border-radius on FAQ icon plus/minus pseudo-element lines — intentional micro-detail, not a card shape"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.42)",
+        "createdAt": "2026-08-21T07:45:47.582Z",
+        "reason": "Tonal variant of #1a9d5c light-theme green accent for hover borders — intentional brand color drift"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "18px",
+        "createdAt": "2026-08-21T07:45:47.582Z",
+        "reason": "Card border-radius in light-theme sections (FAQ, About, Membership) — intentional design choice outside dark-UI scope"
       }
     ]
   }
