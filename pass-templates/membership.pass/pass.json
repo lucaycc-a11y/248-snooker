@@ -1,0 +1,45 @@
+{
+  "formatVersion": 1,
+  "passTypeIdentifier": "pass.com.248.member",
+  "teamIdentifier": "APPLE_TEAM_ID_PLACEHOLDER",
+  "organizationName": "SPACE8",
+  "description": "SPACE8 Member Card",
+  "logoText": "SPACE8",
+  "backgroundColor": "#000000",
+  "foregroundColor": "#FFFFFF",
+  "labelColor": "#22b86b",
+  "serialNumber": "MEMBER_SERIAL_PLACEHOLDER",
+  "storeCard": {
+    "primaryFields": [
+      {
+        "key": "member",
+        "label": "MEMBER_LABEL",
+        "value": "MEMBER_VALUE_PLACEHOLDER"
+      }
+    ],
+    "secondaryFields": [
+      {
+        "key": "tier",
+        "label": "TIER_LABEL",
+        "value": "TIER_VALUE_PLACEHOLDER"
+      },
+      {
+        "key": "points",
+        "label": "POINTS_LABEL",
+        "value": "POINTS_VALUE_PLACEHOLDER"
+      }
+    ],
+    "auxiliaryFields": [
+      {
+        "key": "latestBooking",
+        "label": "NEXT_BOOKING_LABEL",
+        "value": "NO_BOOKING_VALUE_PLACEHOLDER"
+      }
+    ],
+    "barcode": {
+      "format": "PKBarcodeFormatQR",
+      "message": "QR_MESSAGE_PLACEHOLDER",
+      "messageEncoding": "iso-8859-1"
+    }
+  }
+}

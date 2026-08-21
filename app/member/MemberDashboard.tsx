@@ -926,6 +926,39 @@ function OverviewTab({
           />
         </div>
       </div>
+
+      {/* Wallet cards section */}
+      <div style={{
+        border: `1px solid ${BORDER}`, borderRadius: 16, padding: 18,
+        background: GLASS_BG, marginBottom: 16,
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: INK, marginBottom: 12 }}>
+          Wallet Card
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+          <WalletButton
+            href="/api/wallet/apple-pass"
+            label={t('add_apple_wallet')}
+            icon={
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M17.05 12.97c.04 3.78 3.32 5.04 3.36 5.06-.03.09-.53 1.8-1.73 3.57-1.04 1.54-2.12 3.07-3.82 3.1-1.67.04-2.2-1.11-4.1-1.11-1.9 0-2.5 1.08-4.07 1.15-1.63.07-2.87-1.66-3.92-3.2-2.13-3.08-3.76-8.7-1.57-12.5C6.32 6.72 8.03 5.6 9.9 5.57c1.56-.03 3.03 1.1 3.99 1.1.95 0 2.74-1.36 4.62-1.16.79.03 3 .32 4.42 2.4-.11.07-2.64 1.54-2.61 4.6M12.2 5.52c.7-.84 1.17-2.01 1.04-3.17-.1-.01-2.12.04-3.9 1.63-.65.53-1.2 1.37-1.26 2.6-.07.01 2.38.18 4.12-1.06Z"/>
+              </svg>
+            }
+          />
+          <WalletButton
+            href="/api/wallet/google-pass"
+            label={t('add_google_wallet')}
+            icon={
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M22.17 12.57c0-.53-.05-1.04-.14-1.53H12.3v2.9h5.56a3.45 3.45 0 0 1-1.5 2.26v1.88h2.42c1.42-1.31 2.24-3.24 2.24-5.51Z"/>
+                <path d="M12.3 22.3c2.04 0 3.75-.67 5-1.82l-2.43-1.88c-.68.46-1.55.72-2.57.72-1.97 0-3.64-1.33-4.24-3.12H5.57v1.94A7.55 7.55 0 0 0 12.3 22.3Z"/>
+                <path d="M8.06 16.2a4.55 4.55 0 0 1-.24-1.46c0-.5.09-1 .24-1.46V11.34H5.57a7.55 7.55 0 0 0 0 6.8l2.49-1.94Z"/>
+                <path d="M12.3 7.78c1.11 0 2.1.38 2.88 1.13l2.16-2.16C16.04 5.22 14.34 4.5 12.3 4.5a7.55 7.55 0 0 0-6.73 4.17l2.49 1.94c.6-1.8 2.27-3.12 4.24-3.12Z"/>
+              </svg>
+            }
+          />
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -951,6 +984,28 @@ function QuickActionCard({ icon, label, value, accent }: {
         {value || '—'}
       </div>
     </div>
+  );
+}
+
+// Button that streams the pass download (Apple: .pkpass buffer; Google:
+// redirect to pay.google.com save endpoint). Both are GET navigation, so a
+// plain anchor keeps the member signed in (cookie) and starts the download.
+function WalletButton({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      data-cms-key={`member.${label}`}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        gap: 8, minHeight: 44, padding: '0 12px', borderRadius: 12,
+        border: `1px solid ${BORDER}`, background: 'rgba(255,255,255,0.05)',
+        color: INK, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+        textDecoration: 'none', fontFamily: FONT_FAMILY,
+      }}
+    >
+      {icon}
+      {label}
+    </a>
   );
 }
 
