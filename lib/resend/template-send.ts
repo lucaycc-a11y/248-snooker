@@ -186,10 +186,11 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     booking.stripe_payment_intent,
   )
 
-  // QR code image — upload to Supabase Storage for reliable HTTPS URL
-  const qrContent = booking.qr_code ?? booking.human_code ?? humanReadableCode(bookingId)
+  // QR code image — encodes the user's member_code so every QR is the universal
+  // member identifier, not a booking-specific code.
+  const qrContent = user.member_code
   if (!qrContent) {
-    throw new Error(`missing_qr_content: booking ${bookingId} has no qr_code, human_code, or derivable code`)
+    throw new Error(`missing_member_code: user ${booking.user_id} has no member_code`)
   }
 
   let qrCodeUrl: string
@@ -321,7 +322,7 @@ async function renderBookingReminderHtml(bookingId: string): Promise<{
   // ── Fetch user ─────────────────────────────────────────────────────────────
   const { data: user, error: userErr } = await supabase
     .from('users')
-    .select('id, display_name, email, phone')
+    .select('id, display_name, email, phone, member_code')
     .eq('id', booking.user_id)
     .single()
 
@@ -340,12 +341,12 @@ async function renderBookingReminderHtml(bookingId: string): Promise<{
   const endTime = formatTime(booking.end_time)
   const durationHours = Number(booking.duration_hours)
 
-  // QR code image — upload to Supabase Storage for reliable HTTPS URL
-  const qrContent = booking.qr_code ?? booking.human_code ?? humanReadableCode(bookingId)
+  // QR code image — encodes the user's member_code so every QR is the universal
+  // member identifier, not a booking-specific code.
+  const qrContent = user.member_code
   if (!qrContent) {
-    throw new Error(`missing_qr_content: booking ${bookingId} has no qr_code, human_code, or derivable code`)
+    throw new Error(`missing_member_code: user ${booking.user_id} has no member_code`)
   }
-
   let qrCodeUrl: string
   try {
     const qrBuffer = await QRCode.toBuffer(qrContent, {

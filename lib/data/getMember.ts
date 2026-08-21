@@ -62,8 +62,10 @@ export type MemberTicket = {
   duration: number
   tableNumber: number
   bookingRef: string
-  /** SPACE8-XXXXX-X companion code shown under the QR (see lib/qr/jwt.ts). */
+  /** SPACE8-XXXXX-X companion code shown under the QR — customer-service lookup only, never encoded in QR. */
   humanCode: string
+  /** Universal member identifier — the value encoded in every QR code. */
+  memberCode: string
   totalPrice: number
   paymentMethod: string | null
 }
@@ -223,12 +225,19 @@ export async function getMemberTicket(bookingId: string): Promise<MemberTicket |
   const { data, error } = await supabase
     .from('bookings')
     .select(
-      'date, start_time, duration_hours, table_number, booking_reference, qr_code, total_price, payment_method, human_code'
+      'date, start_time, duration_hours, table_number, booking_reference, qr_code, total_price, payment_method, human_code, user_id'
     )
     .eq('id', bookingId)
     .eq('user_id', user.id)
     .maybeSingle()
   if (error || !data) return null
+
+  // Fetch member_code from the users table — it's the universal QR identifier.
+  const { data: userData } = await supabase
+    .from('users')
+    .select('member_code')
+    .eq('id', user.id)
+    .single()
 
   const row = data as Row
   const startTime = str(row, ['start_time']) ?? '00:00'
@@ -240,6 +249,7 @@ export async function getMemberTicket(bookingId: string): Promise<MemberTicket |
     bookingRef: str(row, ['booking_reference']) ?? bookingId,
     // Prefer the stored code; fall back for rows predating the column.
     humanCode: str(row, ['human_code']) ?? humanReadableCode(bookingId),
+    memberCode: userData?.member_code ?? user.id,
     totalPrice: num(row, ['total_price'], 0),
     paymentMethod: str(row, ['payment_method']),
   }

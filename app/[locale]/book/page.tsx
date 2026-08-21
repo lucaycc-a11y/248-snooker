@@ -2174,6 +2174,8 @@ type ConfirmationTicket = {
   tableNumber: number
   bookingRef: string
   humanCode?: string
+  /** Universal member identifier — the value encoded in every QR code. */
+  memberCode: string
   totalPrice: number
   paymentMethod?: string | null
 }
@@ -2267,6 +2269,7 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
               tableNumber={ticket.tableNumber}
               bookingRef={ticket.bookingRef}
               humanCode={ticket.humanCode}
+              memberCode={ticket.memberCode}
               totalPrice={ticket.totalPrice}
               paymentMethod={ticket.paymentMethod}
               defaultExpanded={i === 0}
@@ -2344,6 +2347,8 @@ type ConfirmedBooking = {
   payment_method: string | null
   order_group_id: string | null
   human_code?: string
+  /** Injected by /api/booking/status — the universal member QR identifier. */
+  member_code?: string
 }
 
 // Shown after the Stripe redirect returns to /book while we poll the booking
@@ -2954,6 +2959,7 @@ export default function BookPage() {
                       tableNumber: b.table_number,
                       bookingRef: b.booking_reference ?? bookingRef,
                       humanCode: b.human_code,
+                      memberCode: b.member_code ?? user?.id ?? '',
                       totalPrice: b.total_price,
                       paymentMethod: b.payment_method,
                     }))}
@@ -2971,6 +2977,7 @@ export default function BookPage() {
                             duration: r.duration,
                             tableNumber: r.tableNumber,
                             bookingRef,
+                            memberCode: user?.id ?? '',
                             totalPrice: quoteBlockTotal(r.date, r.startHour, r.duration, periods),
                           }))
                         : []

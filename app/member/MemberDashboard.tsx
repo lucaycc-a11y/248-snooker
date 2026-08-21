@@ -554,7 +554,7 @@ export default function MemberDashboard({
       </div>
 
       {/* QR modal */}
-      <QrModal booking={qrBooking} onClose={() => setQrBooking(null)} locale={locale} />
+      <QrModal booking={qrBooking} memberCode={user.member_code} onClose={() => setQrBooking(null)} locale={locale} />
 
       {/* Refund confirmation modal */}
       <RefundConfirmModal
@@ -1637,7 +1637,7 @@ function EmptyState({ text }: { text: string }) {
   );
 }
 
-function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; onClose: () => void; locale: string }) {
+function QrModal({ booking, memberCode, onClose, locale }: { booking: MemberBooking | null; memberCode: string; onClose: () => void; locale: string }) {
   const t = useTranslations("memberPage");
   return (
     <AnimatePresence>
@@ -1667,7 +1667,7 @@ function QrModal({ booking, onClose, locale }: { booking: MemberBooking | null; 
               {t("qr_modal_title")}
             </h3>
             <div style={{ display: "flex", justifyContent: "center", padding: "20px", background: "white", borderRadius: "16px" }}>
-              <QRCode data={booking.humanCode} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
+              <QRCode data={memberCode} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
             </div>
             <div style={{ marginTop: "20px" }}>
               <div style={{ fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }} data-cms-key="member.qr_reference">

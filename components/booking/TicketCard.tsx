@@ -49,8 +49,10 @@ export type TicketCardProps = {
   duration: number
   tableNumber: number
   bookingRef: string
-  /** SPACE8-XXXXX-X companion code — encoded in the QR and printed below it (see lib/qr/jwt.ts); falls back to the ref when absent. */
+  /** SPACE8-XXXXX-X companion code — shown as plain text below the QR for customer-service lookup only; never encoded in the QR. */
   humanCode?: string
+  /** Universal member identifier — the value encoded in every QR code. Always use this for QR; never use humanCode for QR. */
+  memberCode: string
   totalPrice: number
   paymentMethod?: string | null
   /** Renders fully expanded with no collapse affordance (single-ticket orders). */
@@ -58,10 +60,9 @@ export type TicketCardProps = {
 }
 
 // One booking's ticket — time hero, dashed perforation, DURATION/PAID/PAYMENT
-// row, its own QR (door entry validates each booking's JWT independently, so
-// QR codes are never shared across tickets), ref, and per-ticket
-// add-to-calendar/share actions. Collapsible: a multi-booking checkout (Task 8)
-// renders one of these per row instead of a single fixed screen.
+// row, its own QR (door entry validates each booking independently via member_code),
+// ref, and per-ticket add-to-calendar/share actions. Collapsible: a multi-booking
+// checkout renders one of these per row instead of a single fixed screen.
 export function TicketCard({
   date,
   startHour,
@@ -69,6 +70,7 @@ export function TicketCard({
   tableNumber,
   bookingRef,
   humanCode,
+  memberCode,
   totalPrice,
   paymentMethod,
   defaultExpanded = false,
@@ -84,9 +86,8 @@ export function TicketCard({
   const dateStr = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日 星期${DAY_NAMES[dateObj.getDay()]}`
   const tableName = getTableName(tableNumber, locale)
 
-  // Single user-facing code across the whole ticket (calendar, share, filename)
-  // so it always matches what's printed under the QR — never mix in bookingRef
-  // (a different format) for anything the customer actually reads.
+  // displayCode is what appears as human-readable text below the QR — customer-service reference only.
+  // memberCode is what gets encoded in the QR — never use humanCode/bookingRef for QR data.
   const displayCode = humanCode ?? bookingRef
 
   const handleAddCalendar = () => {
@@ -273,7 +274,7 @@ export function TicketCard({
                 }}
               >
                 <QRCode
-                  data={displayCode}
+                  data={memberCode}
                   size={QR_PX}
                   enlargeLabel={t_ticket("qr_tap_enlarge")}
                   closeLabel={t_ticket("close")}

@@ -140,25 +140,36 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, reason: 'member_inactive' });
       }
 
-      // 檢查呢個member而家有冇生效緊嘅booking
+      // 檢查呢個member而家有冇生效緊嘅booking（含5分鐘提前入場）
+      const nowTime = Date.now();
+      const windowStart = new Date(nowTime - BOOKING_QR_ENTRY_LEAD_MINUTES * 60 * 1000).toISOString();
+
       const { data: activeBooking } = await supabase
         .from('bookings')
-        .select('id, start_time, end_time')
-        .eq('member_id', member.id)
+        .select('id, start_time, end_time, user_id')
         .eq('status', 'confirmed')
-        .lte('start_time', now)
+        // booking must belong to this member's user account
+        .eq('user_id', member.id)
+        .lte('start_time', new Date(nowTime + BOOKING_QR_ENTRY_LEAD_MINUTES * 60 * 1000).toISOString())
         .gte('end_time', now)
         .maybeSingle();
 
-      let tables: number[] = [];
-      if (activeBooking) {
-        const { data: bookingTables } = await supabase
-          .from('booking_tables')
-          .select('table_number')
-          .eq('booking_id', activeBooking.id);
-
-        tables = bookingTables?.map((t) => t.table_number) || [];
+      // Security requirement: member QR MUST have an active booking to open the door.
+      // Merely being an active member is not sufficient.
+      if (!activeBooking) {
+        await logAccess(device_id, 'qr_member', code, 'denied', 'no_active_booking');
+        return NextResponse.json({
+          success: false,
+          reason: 'no_active_booking',
+        });
       }
+
+      const { data: bookingTables } = await supabase
+        .from('booking_tables')
+        .select('table_number')
+        .eq('booking_id', activeBooking.id);
+
+      const tables = bookingTables?.map((t) => t.table_number) || [];
 
       await logAccess(device_id, 'qr_member', code, 'success', null);
 
@@ -166,7 +177,7 @@ export async function POST(req: NextRequest) {
         success: true,
         type: 'member',
         tier: member.tier,
-        has_active_booking: !!activeBooking,
+        has_active_booking: true,
         tables,
       });
     }

@@ -54,6 +54,7 @@ export default async function MemberBookingPage({
             tableNumber={ticket.tableNumber}
             bookingRef={ticket.bookingRef}
             humanCode={ticket.humanCode}
+            memberCode={ticket.memberCode}
             totalPrice={ticket.totalPrice}
             paymentMethod={ticket.paymentMethod}
             defaultExpanded
