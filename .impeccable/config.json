@@ -125,6 +125,21 @@
         "rule": "app/globals.css",
         "value": "border-left: 3px solid #22c55e blockquote left-border in .blog-prose is a standard typographic treatment, not a card accent",
         "createdAt": "2026-08-21T07:42:48.088Z"
+      },
+      {
+        "rule": "app/globals.css",
+        "value": "#1a9d5c site accent green used consistently throughout faq and prose styles — intentional brand color",
+        "createdAt": "2026-08-21T07:45:47.582Z"
+      },
+      {
+        "rule": "app/globals.css",
+        "value": "noto sans tc cjk font stack for traditional chinese faq content — intentional i18n typography choice",
+        "createdAt": "2026-08-21T07:45:47.633Z"
+      },
+      {
+        "rule": "app/globals.css",
+        "value": "2px 2px border-radius on faq icon pseudo-elements (plus/minus lines) — intentional micro-detail, not a card shape",
+        "createdAt": "2026-08-21T07:45:47.669Z"
       }
     ]
   }
