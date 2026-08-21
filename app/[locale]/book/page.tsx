@@ -2977,7 +2977,7 @@ export default function BookPage() {
                             duration: r.duration,
                             tableNumber: r.tableNumber,
                             bookingRef,
-                            memberCode: user?.id ?? '',
+                            memberCode: '',
                             totalPrice: quoteBlockTotal(r.date, r.startHour, r.duration, periods),
                           }))
                         : []
