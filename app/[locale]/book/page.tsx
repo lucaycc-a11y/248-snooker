@@ -2959,7 +2959,7 @@ export default function BookPage() {
                       tableNumber: b.table_number,
                       bookingRef: b.booking_reference ?? bookingRef,
                       humanCode: b.human_code,
-                      memberCode: b.member_code ?? user?.id ?? '',
+                      memberCode: b.member_code ?? '',
                       totalPrice: b.total_price,
                       paymentMethod: b.payment_method,
                     }))}
