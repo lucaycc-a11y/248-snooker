@@ -927,8 +927,9 @@ function OverviewTab({
         </div>
       </div>
 
-      {/* Wallet cards section */}
-      <div style={{
+      {/* 暫時停用，等 Apple PEM 格式問題同 Google service account 設定好返先重開，相關 prompt：wallet-pass-refined-prompt.md */}
+      {false && (
+        <div style={{
         border: `1px solid ${BORDER}`, borderRadius: 16, padding: 18,
         background: GLASS_BG, marginBottom: 16,
       }}>
@@ -958,7 +959,8 @@ function OverviewTab({
             }
           />
         </div>
-      </div>
+        </div>
+      )}
     </motion.div>
   );
 }
