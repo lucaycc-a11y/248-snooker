@@ -433,6 +433,17 @@ export default function KPayPayment(props: Props) {
         <button type="button" onClick={createOrder} style={styles.primaryButton}>
           {labels.regenerate}
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (pollRef.current) clearInterval(pollRef.current)
+            if (countdownRef.current) clearInterval(countdownRef.current)
+            onBackToMethods()
+          }}
+          style={styles.secondaryButton}
+        >
+          {labels.back_to_methods}
+        </button>
       </div>
     )
   }
@@ -501,6 +512,18 @@ export default function KPayPayment(props: Props) {
             {labels.support_whatsapp}
           </a>
         </p>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (pollRef.current) clearInterval(pollRef.current)
+            if (countdownRef.current) clearInterval(countdownRef.current)
+            onBackToMethods()
+          }}
+          style={styles.secondaryButton}
+        >
+          {labels.back_to_methods}
+        </button>
       </div>
     )
   }
