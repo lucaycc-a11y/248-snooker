@@ -90,6 +90,41 @@
         "value": "pinbounce",
         "createdAt": "2026-08-20T16:01:30.356Z",
         "reason": "Agent: literal map-pin drop bounce (2px) with ease-in-out; domain-appropriate physical motion"
+      },
+      {
+        "rule": "side-tab",
+        "value": "3px solid #22c55e",
+        "createdAt": "2026-08-21T07:32:18.340Z"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "sfmono-regular",
+        "createdAt": "2026-08-21T07:32:18.385Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "6px",
+        "createdAt": "2026-08-21T07:32:18.413Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "32px",
+        "createdAt": "2026-08-21T07:32:18.443Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.35)",
+        "createdAt": "2026-08-21T07:32:18.474Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.75)",
+        "createdAt": "2026-08-21T07:32:18.505Z"
+      },
+      {
+        "rule": "app/globals.css",
+        "value": "border-left: 3px solid #22c55e blockquote left-border in .blog-prose is a standard typographic treatment, not a card accent",
+        "createdAt": "2026-08-21T07:42:48.088Z"
       }
     ]
   }
