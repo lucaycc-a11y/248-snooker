@@ -127,11 +127,8 @@ export default function GooglePayPayment(props: Props) {
     setState('ready')
 
     if (buttonContainerRef.current) {
-      const btn = client.createButton({
-        onClick: handlePayClick,
-        buttonType: 'pay',
-        buttonColor: 'black',
-      })
+      // createButton must be called for SDK readiness, but we hide its output
+      const btn = client.createButton({ onClick: handlePayClick, buttonType: 'pay', buttonColor: 'black' })
       buttonContainerRef.current.replaceChildren(btn)
     }
   }
@@ -300,17 +297,13 @@ export default function GooglePayPayment(props: Props) {
           <p style={styles.stateTitle}>{labels.processing}</p>
         </>
       )}
-      <div
-        ref={buttonContainerRef}
-        style={{
-          display: state === 'ready' ? 'flex' : 'none',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 12,
-          width: '100%',
-        }}
-        aria-label={labels.title}
-      />
+      {state === 'ready' && (
+        <button type="button" onClick={handlePayClick} style={styles.primaryButton}>
+          {labels.title}
+        </button>
+      )}
+      {/* hidden container required for SDK initialisation */}
+      <div ref={buttonContainerRef} style={{ display: 'none' }} />
     </div>
   )
 }
