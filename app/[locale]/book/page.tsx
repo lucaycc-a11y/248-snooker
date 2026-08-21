@@ -17,6 +17,7 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import KPayPayment from "@/components/checkout/KPayPayment"
+import GooglePayPayment from "@/components/checkout/GooglePayPayment"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
@@ -1620,7 +1621,7 @@ function Screen3({
   const [kpayMode, setKpayMode] = useState<KPayMode>('qr')
   const [showKpayMethods, setShowKpayMethods] = useState(false)
   // Which payment method the user selected — null = choose
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>("google_pay")
   const [paymentError, setPaymentError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
@@ -1939,11 +1940,42 @@ function Screen3({
                     setPaymentError(null)
                     setPaymentMethod(method)
                     if (!agreedToTerms) flagTermsRequired()
-                    // Map the general method id to the KPay-specific method
                     const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
                     if (kpayMethods.includes(method as KPayMethod)) {
-                    setKpayMethod(method as KPayMethod)
+                      setKpayMethod(method as KPayMethod)
                       setKpayMode(isDesktopDevice() ? "qr" : "h5")
+                    }
+                  }}
+                />
+              ) : paymentMethod === "google_pay" ? (
+                /* ── Google Pay ── */
+                <GooglePayPayment
+                  blocks={blocks.map((b) => ({
+                    date: b.date,
+                    startHour: b.startHour,
+                    duration: b.duration,
+                    tableNumber: b.tableNumber as 1 | 2,
+                  }))}
+                  merchantId={process.env.NEXT_PUBLIC_KPAY_MERCHANT_ID ?? ""}
+                  merchantName="Space8 Snooker Club"
+                  currencyCode="HKD"
+                  countryCode="HK"
+                  agreedToTerms={agreedToTerms}
+                  labels={{
+                    title: "Google Pay",
+                    processing: t("kpay_processing") || "處理中…",
+                    success: t("kpay_success") || "付款成功",
+                    success_desc: t("kpay_success_desc") || "你的預訂已確認",
+                    failed: t("kpay_failed") || "付款失敗",
+                    failed_desc: t("kpay_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
+                    try_again: t("kpay_try_again") || "重試",
+                    back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
+                    terms_required: t("terms_required_hint"),
+                  }}
+                  onBackToMethods={() => setPaymentMethod(null)}
+                  onSuccess={(returnedBookingId) => {
+                    if (returnedBookingId) {
+                      window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
                     }
                   }}
                 />

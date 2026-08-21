@@ -84,8 +84,7 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     id: "google_pay",
     label: "Google Pay",
     sublabel: "用手機一鍵付款",
-    disabled: true,
-    disabledReason: "即將推出",
+    disabled: false,
     icons: <GooglePayBadgeIcon />,
   },
   {

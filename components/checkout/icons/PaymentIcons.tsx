@@ -54,7 +54,11 @@ export function AmexBadgeIcon(props: BadgeProps) {
 
 // Wallets and direct-connect methods
 export function GooglePayBadgeIcon(props: BadgeProps) {
-  return <ImgBadgeIcon {...props} src="/icons/payment/google.png" alt="Google Pay" width={40} />
+  return (
+    <span style={{ background: '#fff', borderRadius: 4, padding: '2px 4px', display: 'inline-flex', alignItems: 'center' }}>
+      <ImgBadgeIcon {...props} src="/icons/payment/google.png" alt="Google Pay" width={40} />
+    </span>
+  )
 }
 
 export function ApplePayBadgeIcon(props: BadgeProps) {
