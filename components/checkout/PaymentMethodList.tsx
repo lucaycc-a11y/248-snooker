@@ -91,8 +91,7 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     id: "apple_pay",
     label: "Apple Pay",
     sublabel: "用 Apple Pay 快速付款",
-    disabled: true,
-    disabledReason: "即將推出",
+    disabled: false,
     icons: <ApplePayBadgeIcon />,
   },
   {

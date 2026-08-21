@@ -499,9 +499,15 @@ body {
 }
 .faq-item.is-open .faq-q { color: #1a9d5c; }
 .faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows .5s cubic-bezier(.3,.8,.35,1);
+}
+.faq-item.is-open .faq-answer {
+  grid-template-rows: 1fr;
+}
+.faq-answer > * {
   overflow: hidden;
-  max-height: 0;
-  transition: max-height .5s cubic-bezier(.3,.8,.35,1);
 }
 .faq-answer-inner {
   padding: 0 4px 28px;

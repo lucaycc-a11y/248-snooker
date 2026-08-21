@@ -1621,7 +1621,7 @@ function Screen3({
   const [kpayMode, setKpayMode] = useState<KPayMode>('qr')
   const [showKpayMethods, setShowKpayMethods] = useState(false)
   // Which payment method the user selected — null = choose
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>("google_pay")
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   useEffect(() => {
     let cancelled = false
