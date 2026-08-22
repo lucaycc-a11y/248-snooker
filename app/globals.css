@@ -10,6 +10,16 @@
   font-display: swap;
 }
 
+/* Hide scrollbar utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 :root {
   --bg: #000000;
   --surface: #111111;

@@ -184,6 +184,7 @@ export default function MembershipContent() {
         }}
       >
         <div
+          className="hide-scrollbar"
           style={{
             maxWidth: "1200px",
             margin: "0 auto",

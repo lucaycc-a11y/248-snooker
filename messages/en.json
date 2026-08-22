@@ -914,6 +914,8 @@
     "title": "SPACE8 Smart Concierge",
     "intro": "A smarter self-service experience for every room, every match, and every member.",
     "more": "The full Space Pilot experience",
+    "cta_book": "Book a table now",
+    "cta_qr": "Learn about member QR codes",
     "features": [
       {
         "title": "Unstaffed, but never impersonal",

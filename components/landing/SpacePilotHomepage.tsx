@@ -411,6 +411,7 @@ export default function SpacePilotHomepage({ compact = false }: SpacePilotHomepa
             <Link
               href="/book"
               className="group inline-flex items-center"
+              data-cms-key="spacePilot.cta_book"
               style={{
                 background: GREEN,
                 color: "#000",
@@ -422,11 +423,12 @@ export default function SpacePilotHomepage({ compact = false }: SpacePilotHomepa
                 transition: "all 0.3s ease",
               }}
             >
-              <span className="group-hover:opacity-90">立即訂場體驗</span>
+              <span className="group-hover:opacity-90">{t("cta_book")}</span>
             </Link>
             <Link
               href="/membership?tab=qr"
               className="group inline-flex items-center"
+              data-cms-key="spacePilot.cta_qr"
               style={{
                 color: GREEN,
                 fontSize: "15px",
@@ -438,7 +440,7 @@ export default function SpacePilotHomepage({ compact = false }: SpacePilotHomepa
                 transition: "all 0.3s ease",
               }}
             >
-              <span className="group-hover:underline">了解會員 QR Code</span>
+              <span className="group-hover:underline">{t("cta_qr")}</span>
             </Link>
           </motion.div>
         )}

@@ -914,6 +914,8 @@
     "title": "SPACE8 智能管家",
     "intro": "一套更聪明的自助体验，让每个球室、每场球局与每位会员都更流畅。",
     "more": "探索完整 Space Pilot 体验",
+    "cta_book": "立即订场体验",
+    "cta_qr": "了解会员 QR Code",
     "features": [
       {
         "title": "无人自助也有专属招待",
