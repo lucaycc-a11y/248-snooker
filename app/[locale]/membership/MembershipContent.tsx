@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
@@ -158,20 +158,44 @@ function PlayTabIcon() {
 
 /* ── Main Component ────────────────────────────────────────────────────── */
 
+const SECTIONS = [
+  { id: "membership-tiers", labelKey: "tabs.0", icon: <MembershipTabIcon /> },
+  { id: "member-qr", labelKey: "tabs.1", icon: <QrTabIcon /> },
+  { id: "smart-concierge", labelKey: "tabs.2", icon: <PilotTabIcon /> },
+  { id: "how-to-play", labelKey: "tabs.3", icon: <PlayTabIcon /> },
+] as const;
+
 export default function MembershipContent() {
   const t = useTranslations("membershipHub");
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeSection, setActiveSection] = useState<string>(SECTIONS[0].id);
 
-  const tabs = [
-    { icon: <MembershipTabIcon />, label: t("tabs.0") },
-    { icon: <QrTabIcon />, label: t("tabs.1") },
-    { icon: <PilotTabIcon />, label: t("tabs.2") },
-    { icon: <PlayTabIcon />, label: t("tabs.3") },
-  ];
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-40% 0px -40% 0px" }
+    );
+
+    const elements = SECTIONS.map(({ id }) => document.getElementById(id)).filter(
+      (el): el is HTMLElement => el !== null
+    );
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  function scrollToSection(id: string) {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <div style={{ fontFamily: FONT_FAMILY, background: "#000", minHeight: "100vh" }}>
-      {/* Tab Bar */}
+      {/* Sticky Nav Bar */}
       <div
         style={{
           position: "sticky",
@@ -194,52 +218,54 @@ export default function MembershipContent() {
             msOverflowStyle: "none",
           }}
         >
-          {tabs.map((tab, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveTab(i)}
-              style={{
-                flex: "1 0 0",
-                minWidth: 0,
-                padding: "16px 12px",
-                background: "none",
-                border: "none",
-                borderBottom: activeTab === i ? `2px solid ${GREEN}` : "2px solid transparent",
-                color: activeTab === i ? GREEN : "rgba(255,255,255,0.5)",
-                fontSize: "14px",
-                fontWeight: activeTab === i ? 600 : 400,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                transition: "all 0.3s ease",
-                fontFamily: FONT_FAMILY,
-              }}
-            >
-              {tab.icon}
-              <span style={{ whiteSpace: "nowrap" }}>{tab.label}</span>
-            </button>
-          ))}
+          {SECTIONS.map((section) => {
+            const isActive = activeSection === section.id;
+            return (
+              <button
+                key={section.id}
+                onClick={() => scrollToSection(section.id)}
+                style={{
+                  flex: "1 0 0",
+                  minWidth: 0,
+                  padding: "16px 12px",
+                  background: "none",
+                  border: "none",
+                  borderBottom: isActive ? `2px solid ${GREEN}` : "2px solid transparent",
+                  color: isActive ? GREEN : "rgba(255,255,255,0.5)",
+                  fontSize: "14px",
+                  fontWeight: isActive ? 600 : 400,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  transition: "all 0.3s ease",
+                  fontFamily: FONT_FAMILY,
+                }}
+              >
+                {section.icon}
+                <span style={{ whiteSpace: "nowrap" }}>{t(section.labelKey)}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Tab Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.35, ease: EASE }}
-          style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}
-        >
-          {activeTab === 0 && <TabMembership t={t} />}
-          {activeTab === 1 && <TabQR t={t} />}
-          {activeTab === 2 && <TabPilot t={t} />}
-          {activeTab === 3 && <TabPlay t={t} />}
-        </motion.div>
-      </AnimatePresence>
+      {/* All Sections Rendered as Single Page Scroll */}
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+        <section id="membership-tiers">
+          <TabMembership t={t} />
+        </section>
+        <section id="member-qr">
+          <TabQR t={t} />
+        </section>
+        <section id="smart-concierge">
+          <TabPilot t={t} />
+        </section>
+        <section id="how-to-play">
+          <TabPlay t={t} />
+        </section>
+      </div>
     </div>
   );
 }
