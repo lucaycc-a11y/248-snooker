@@ -289,7 +289,7 @@ export default function MemberDashboard({
             <div style={{ textAlign: "right" }}>
               <FieldLabel>{t("card_tier")}</FieldLabel>
               <div className="font-label" style={{ fontFamily: DISPLAY, fontSize: "30px", color: accent, lineHeight: 1 }}>
-                {current.name}
+                {current.id}
               </div>
             </div>
           </div>
