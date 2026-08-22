@@ -282,11 +282,10 @@ export function TicketCard({
               </div>
 
               <div
+                className="font-code"
                 style={{
-                  fontFamily: "'SF Mono', 'Courier New', monospace",
                   fontSize: 13,
                   color: "rgba(255,255,255,0.6)",
-                  letterSpacing: "0.15em",
                   textAlign: "center",
                   marginBottom: 6,
                 }}

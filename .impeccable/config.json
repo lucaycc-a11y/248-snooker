@@ -130,13 +130,13 @@
       },
       {
         "rule": "design-system-font",
-        "value": "Noto Sans TC",
+        "value": "noto sans tc",
         "createdAt": "2026-08-21T07:45:47.633Z",
         "reason": "CJK font for light-theme Traditional Chinese content (FAQ/About/Membership) — intentional i18n typography outside dark-UI DESIGN.md scope"
       },
       {
         "rule": "design-system-font",
-        "value": "Inter",
+        "value": "inter",
         "createdAt": "2026-08-21T07:45:47.633Z",
         "reason": "Light-theme body font for English-featured content (About stat labels, Venue descriptions) — intentional design choice outside dark-UI DESIGN.md scope"
       },
@@ -157,6 +157,54 @@
         "value": "18px",
         "createdAt": "2026-08-21T07:45:47.582Z",
         "reason": "Card border-radius in light-theme sections (FAQ, About, Membership) — intentional design choice outside dark-UI scope"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "good times",
+        "createdAt": "2026-08-22T02:24:34.704Z",
+        "reason": "User-requested brand display font for code-like text (member/booking codes) and short English labels"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,158,11,0.14)",
+        "createdAt": "2026-08-22T02:26:58.984Z",
+        "reason": "Tier accent glow for century tier, matches landing membership section"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(167,139,250,0.16)",
+        "createdAt": "2026-08-22T02:27:21.659Z",
+        "reason": "Tier accent glow for maximum tier"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "24px",
+        "createdAt": "2026-08-22T02:27:41.158Z",
+        "reason": "Member card corner radius, matches glass panel design"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#fdfcf8",
+        "createdAt": "2026-08-22T02:27:55.758Z",
+        "reason": "QR tile background on member card"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(244,241,234,0.75)",
+        "createdAt": "2026-08-22T02:28:11.863Z",
+        "reason": "Member card surface color"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#5f6368",
+        "createdAt": "2026-08-22T02:29:06.601Z",
+        "reason": "Neutral gray text color in QR guide light theme section"
+      },
+      {
+        "rule": "side-tab",
+        "value": "blog-prose",
+        "createdAt": "2026-08-22T02:35:07.612Z",
+        "reason": "Blog prose code styling, not side-tab card accent"
       }
     ]
   }

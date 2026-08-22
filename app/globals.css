@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Good Times';
+  src: url('/fonts/GOODTIME.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg: #000000;
   --surface: #111111;
@@ -31,6 +39,20 @@
   --duration-fast: 150ms;
   --duration-base: 250ms;
   --duration-slow: 380ms;
+}
+
+/* ──────────────────── Good Times Display Font ────────────────────
+   Code-like text (member codes, booking codes) and short English labels.
+   Never applied to Chinese text, long sentences, or body text. */
+.font-code {
+  font-family: 'Good Times', 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.font-label {
+  font-family: 'Good Times', Arial, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* Responsive pricing grid — mobile stacks vertically, desktop side-by-side */

@@ -50,11 +50,11 @@ async function getMemberDetail(id: string) {
   return { user, bookings, pointsLedger }
 }
 
-function Row_({ label, value }: { label: string; value: string }) {
+function Row_({ label, value, isCode }: { label: string; value: string; isCode?: boolean }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${tokens.colors.border}` }}>
       <span style={{ color: tokens.colors.textMuted, fontSize: 14 }}>{label}</span>
-      <span style={{ color: tokens.colors.text, fontSize: 14 }}>{value}</span>
+      <span className={isCode ? 'font-code' : ''} style={{ color: tokens.colors.text, fontSize: 14 }}>{value}</span>
     </div>
   )
 }
@@ -90,7 +90,7 @@ export default async function AdminMemberDetailPage({ params }: { params: Promis
       <MemberActions userId={id} currentTier={str(user, ['tier']) ?? 'amateur'} isBlacklisted={user.is_blacklisted === true} />
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <Row_ label="Member code" value={str(user, ['member_code']) ?? '—'} />
+        <Row_ label="Member code" value={str(user, ['member_code']) ?? '—'} isCode={true} />
         {str(user, ['email']) && <Row_ label="Email" value={str(user, ['email'])!} />}
         {str(user, ['phone']) && <Row_ label="Phone" value={str(user, ['phone'])!} />}
         <Row_ label="Tier" value={str(user, ['tier']) ?? 'amateur'} />

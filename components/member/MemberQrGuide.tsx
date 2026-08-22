@@ -79,7 +79,7 @@ export default function MemberQrGuide({
         </div>
         <div style={{ marginTop: 18, color: '#5F6368', fontSize: 13 }}>
           {t('access_qr_identity')}
-          <div style={{ marginTop: 8, color: '#0A0A0A', fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace", fontWeight: 700, letterSpacing: '0.12em', overflowWrap: 'anywhere' }}>{memberCode}</div>
+          <div className="font-code" style={{ marginTop: 8, color: '#0A0A0A', fontWeight: 700, overflowWrap: 'anywhere' }}>{memberCode}</div>
         </div>
       </section>
 

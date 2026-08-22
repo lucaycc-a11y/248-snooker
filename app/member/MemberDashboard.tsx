@@ -304,11 +304,10 @@ export default function MemberDashboard({
               <div data-cms-key="member.card_member_no" style={{ marginTop: "10px" }}>
                 <FieldLabel>{t("card_member_no")}</FieldLabel>
                 <div
+                  className="font-code"
                   style={{
-                    fontFamily: "ui-monospace, 'SF Mono', Menlo, monospace",
                     fontSize: "16px",
                     fontWeight: 600,
-                    letterSpacing: "0.14em",
                     color: GREEN,
                     textShadow: "0 1px 1px rgba(0,0,0,0.55)",
                     marginTop: "2px",
