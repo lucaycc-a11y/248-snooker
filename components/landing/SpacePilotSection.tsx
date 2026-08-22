@@ -61,7 +61,8 @@ export default function SpacePilotSection({ limit, compact = false }: SpacePilot
         >
           <p
             data-cms-key="spacePilot.eyebrow"
-            style={{ color: "#22C55E", fontSize: 12, letterSpacing: "0.14em", margin: "0 0 14px", textTransform: "uppercase" }}
+            className="font-label"
+            style={{ color: "#22C55E", fontSize: 12, margin: "0 0 14px" }}
           >
             {t("eyebrow")}
           </p>

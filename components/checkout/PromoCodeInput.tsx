@@ -176,7 +176,7 @@ export default function PromoCodeInput({ originalTotal, onApply, onRemove, activ
               <Check size={14} color={GREEN} strokeWidth={2.5} />
             </span>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: GREEN, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div className="font-code" style={{ fontSize: 14, fontWeight: 600, color: GREEN }}>
                 {activeCode.code}
               </div>
               <div style={{ fontSize: 12, color: MUTED, marginTop: 1 }}>

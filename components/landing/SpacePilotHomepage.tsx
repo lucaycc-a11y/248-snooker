@@ -96,7 +96,8 @@ export default function SpacePilotHomepage({ compact = false }: SpacePilotHomepa
         >
           <p
             data-cms-key="spacePilot.eyebrow"
-            style={{ color: GREEN, fontSize: 12, letterSpacing: "0.14em", margin: "0 0 14px", textTransform: "uppercase" }}
+            className="font-label"
+            style={{ color: GREEN, fontSize: 12, margin: "0 0 14px" }}
           >
             {t("eyebrow")}
           </p>
@@ -380,11 +381,11 @@ export default function SpacePilotHomepage({ compact = false }: SpacePilotHomepa
                     }}
                   >
                     <span
+                      className="font-label"
                       style={{
                         fontSize: "11px",
                         fontWeight: 600,
                         color: match.result === "win" ? "#22C55E" : "rgba(255,255,255,0.5)",
-                        textTransform: "uppercase",
                       }}
                     >
                       {match.result === "win" ? "WIN" : "LOSS"}

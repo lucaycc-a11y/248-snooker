@@ -119,14 +119,13 @@ export default function PricingContent({
           }}
         >
           <h1
+            className="font-label"
             style={{
               fontFamily: DISPLAY_FONT,
               fontSize: "clamp(20px, 4vw, 32px)",
               fontWeight: 400,
-              letterSpacing: "0.08em",
               color: "#86868b",
               margin: "0 0 16px",
-              textTransform: "uppercase",
             }}
           >
             {t("hero_eyebrow")}

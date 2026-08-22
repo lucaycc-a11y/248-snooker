@@ -205,6 +205,54 @@
         "value": "blog-prose",
         "createdAt": "2026-08-22T02:35:07.612Z",
         "reason": "Blog prose code styling, not side-tab card accent"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "9px",
+        "createdAt": "2026-08-22T02:55:59.448Z",
+        "reason": "Badge/pill radius in member dashboard"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#86efac",
+        "createdAt": "2026-08-22T02:59:44.440Z",
+        "reason": "Space Pilot section accent colors"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e5e7eb",
+        "createdAt": "2026-08-22T03:00:02.923Z",
+        "reason": "Space Pilot section colors"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ef4444",
+        "createdAt": "2026-08-22T03:00:02.992Z",
+        "reason": "Space Pilot win/loss colors"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3b82f6",
+        "createdAt": "2026-08-22T03:00:03.054Z",
+        "reason": "Space Pilot accent colors"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "8px",
+        "createdAt": "2026-08-22T03:00:03.112Z",
+        "reason": "Space Pilot card radius"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#d5d5d5",
+        "createdAt": "2026-08-22T03:01:12.607Z",
+        "reason": "HowItWorks section colors"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,245,247,0.92)",
+        "createdAt": "2026-08-22T03:01:12.691Z",
+        "reason": "HowItWorks modal colors"
       }
     ]
   }

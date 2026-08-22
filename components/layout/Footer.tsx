@@ -170,10 +170,9 @@ export default function Footer() {
           <section style={{ minWidth: '260px', flex: '1 1 320px' }}>
             <div
               data-cms-key="footer.contact_title"
+              className="font-label"
               style={{
                 fontSize: '13px',
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
                 color: tokens.colors.textMuted,
                 marginBottom: '16px',
               }}
@@ -235,11 +234,10 @@ export default function Footer() {
             <h2
               data-cms-key="footer.seo_title"
               itemProp="name"
+              className="font-label"
               style={{
                 fontSize: '13px',
                 fontWeight: 400,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
                 color: tokens.colors.textMuted,
                 margin: '0 0 12px',
               }}

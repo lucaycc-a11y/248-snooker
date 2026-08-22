@@ -141,11 +141,10 @@ function Modal({ data, onClose }: { data: ModalData | null; onClose: () => void 
             </button>
 
             <p
+              className="font-label"
               style={{
                 fontSize: "13px",
                 fontWeight: 500,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
                 color: GREEN_LIGHT,
                 margin: "0 0 12px",
               }}

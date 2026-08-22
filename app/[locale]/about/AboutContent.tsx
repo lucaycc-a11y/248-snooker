@@ -1013,7 +1013,7 @@ function ContactRow({ icon, label, value, href }: { icon: React.ReactNode; label
     <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
       <span style={{ flexShrink: 0 }}>{icon}</span>
       <span>
-        <span style={{ display: "block", fontSize: 13, color: "#A1A1A6", textTransform: "uppercase", letterSpacing: "0.04em" }}>{label}</span>
+        <span className="font-label" style={{ display: "block", fontSize: 13, color: "#A1A1A6" }}>{label}</span>
         <span style={{ display: "block", fontSize: 17, color: "white", marginTop: 2 }}>{value}</span>
       </span>
     </div>

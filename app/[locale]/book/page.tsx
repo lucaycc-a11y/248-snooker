@@ -618,11 +618,10 @@ function DualTableGrid({
           <div key={group.key}>
             <div
               data-cms-key={`book.slot_group_${group.key}`}
+              className="font-label"
               style={{
                 padding: "10px 12px 6px",
                 fontSize: 11,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
                 color: tokens.colors.textMuted,
                 background: "rgba(255,255,255,0.03)",
                 borderTop: `1px solid ${tokens.colors.border}`,
@@ -710,11 +709,10 @@ function SelectedPicksCard({
     >
       <div
         data-cms-key="book.selected_slots_title"
+        className="font-label"
         style={{
           fontSize: 12,
           color: tokens.colors.textMuted,
-          textTransform: "uppercase",
-          letterSpacing: "0.06em",
           marginBottom: 12,
         }}
       >
@@ -1111,11 +1109,10 @@ function SummaryCard({
     <Card variant="elevated">
         <div
           data-cms-key="book.card.title"
+          className="font-label"
           style={{
             fontSize: 12,
             color: tokens.colors.textMuted,
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
             marginBottom: 20,
           }}
         >
@@ -1377,11 +1374,10 @@ function Screen1({
   const sectionLabel = (text: string, cmsKey: string) => (
     <div
       data-cms-key={cmsKey}
+      className="font-label"
       style={{
         fontSize: 13,
         color: tokens.colors.textMuted,
-        textTransform: "uppercase",
-        letterSpacing: "0.08em",
         marginBottom: 14,
       }}
     >
@@ -1742,7 +1738,8 @@ function Screen3({
           <div style={{ marginBottom: 24 }}>
             <div
               data-cms-key="book.pay.venue"
-              style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: tokens.colors.link, marginBottom: 8 }}
+              className="font-label"
+              style={{ fontSize: 12, fontWeight: 600, color: tokens.colors.link, marginBottom: 8 }}
             >
               {t("venue") || "SPACE8"}
             </div>

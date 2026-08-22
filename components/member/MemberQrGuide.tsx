@@ -51,7 +51,7 @@ export default function MemberQrGuide({
         }}
       >
         <div style={{ maxWidth: 680 }}>
-          <div style={{ color: GREEN, fontSize: 12, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+          <div className="font-label" style={{ color: GREEN, fontSize: 12, fontWeight: 700 }}>
             {t('access_eyebrow')}
           </div>
           <motion.h1
@@ -70,7 +70,7 @@ export default function MemberQrGuide({
       </section>
 
       <section aria-labelledby="member-qr-title" style={{ marginTop: 20, border: `1px solid ${BORDER}`, borderRadius: 24, background: '#FDFCF8', color: '#0A0A0A', padding: 'clamp(24px, 6vw, 48px)', textAlign: 'center' }}>
-        <div style={{ color: '#5F6368', fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t('access_qr_label')}</div>
+        <div className="font-label" style={{ color: '#5F6368', fontSize: 12, fontWeight: 700 }}>{t('access_qr_label')}</div>
         <h2 id="member-qr-title" style={{ fontSize: 'clamp(24px, 5vw, 36px)', lineHeight: 1.1, margin: '12px 0 8px', letterSpacing: '-0.03em' }}>{t('access_qr_title')}</h2>
         <p style={{ color: '#5F6368', margin: '0 auto 24px', maxWidth: 520, lineHeight: 1.65 }}>{t('access_qr_description')}</p>
         <div style={{ position: 'relative', display: 'inline-flex', padding: 18, border: '1px solid rgba(0,0,0,0.12)', borderRadius: 18, background: '#fff' }}>

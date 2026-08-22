@@ -282,14 +282,14 @@ export default function MemberDashboard({
               <div style={{ fontFamily: DISPLAY, fontSize: "24px", letterSpacing: "0.12em", color: INK, lineHeight: 1 }}>
                 SPACE8
               </div>
-              <div data-cms-key="member.card_label" style={{ fontSize: "10px", letterSpacing: "0.22em", textTransform: "uppercase", color: SUBTLE, marginTop: "6px" }}>
+              <div data-cms-key="member.card_label" className="font-label" style={{ fontSize: "10px", color: SUBTLE, marginTop: "6px" }}>
                 {t("card_label")}
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
               <FieldLabel>{t("card_tier")}</FieldLabel>
-              <div style={{ fontFamily: DISPLAY, fontSize: "30px", letterSpacing: "0.04em", color: accent, lineHeight: 1, textTransform: "uppercase" }}>
-                {tierId}
+              <div className="font-label" style={{ fontFamily: DISPLAY, fontSize: "30px", color: accent, lineHeight: 1 }}>
+                {current.name}
               </div>
             </div>
           </div>
@@ -356,7 +356,7 @@ export default function MemberDashboard({
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <span data-cms-key="member.card_points" style={{ fontSize: "11px", letterSpacing: "0.12em", textTransform: "uppercase", color: SUBTLE }}>
+            <span data-cms-key="member.card_points" className="font-label" style={{ fontSize: "11px", color: SUBTLE }}>
               {t("card_points")}
             </span>
             <span style={{ fontSize: "13px", color: SUBTLE }} data-cms-key="member.tier_progress_title">
@@ -401,7 +401,7 @@ export default function MemberDashboard({
               }}
             />
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          <div className="font-label" style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE }}>
             <span>{current.id}</span>
             <span>{next ? t("points_to_next", { pts: pointsToNext.toLocaleString() }) : t("max_tier_reached")}</span>
             {next && <span>{next.id}</span>}
@@ -599,7 +599,7 @@ export default function MemberDashboard({
 
 /* ── Small presentational helpers ── */
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <span style={{ fontSize: "10px", letterSpacing: "0.12em", textTransform: "uppercase", color: SUBTLE }}>{children}</span>;
+  return <span className="font-label" style={{ fontSize: "10px", color: SUBTLE }}>{children}</span>;
 }
 
 function DashboardHeader({ displayName, notifOpen, setNotifOpen, notifications, unreadCount, markAllRead }: {
@@ -907,7 +907,7 @@ function OverviewTab({
         background: GLASS_BG, marginBottom: 16,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: accent, textTransform: 'uppercase' }}>
+          <span className="font-code" style={{ fontSize: 13, fontWeight: 600, color: accent }}>
             {tierId}
           </span>
           {next && (
@@ -1726,7 +1726,7 @@ function QrModal({ booking, memberCode, onClose, locale }: { booking: MemberBook
               <QRCode data={memberCode} size={200} enlargeLabel={t("qr_tap_enlarge")} closeLabel={t("close")} />
             </div>
             <div style={{ marginTop: "20px" }}>
-              <div style={{ fontSize: "12px", color: SUBTLE, textTransform: "uppercase", letterSpacing: "0.06em" }} data-cms-key="member.qr_reference">
+              <div className="font-label" style={{ fontSize: "12px", color: SUBTLE }} data-cms-key="member.qr_reference">
                 {t("qr_reference")}
               </div>
               <div style={{ fontSize: "16px", fontWeight: 700, fontFamily: "ui-monospace, monospace", marginTop: "4px", color: INK }}>

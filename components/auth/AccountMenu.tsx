@@ -157,12 +157,11 @@ export function AccountMenu({
         <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{profile.name ?? "—"}</div>
         {profile.tier && (
           <div
+            className="font-label"
             style={{
               marginTop: 4,
               fontSize: 11,
               fontWeight: 700,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
               color: tierAccent,
             }}
           >
