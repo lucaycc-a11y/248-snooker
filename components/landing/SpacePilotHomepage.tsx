@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { Logo } from "@/components/brand/Logo";
 
 const GREEN = "#22C55E";
 const BORDER = "#2D2D2D";
@@ -94,13 +95,16 @@ export default function SpacePilotHomepage({ compact = false }: SpacePilotHomepa
           transition={{ duration: 0.7, ease: EASE }}
           style={{ maxWidth: 700, marginBottom: compact ? 34 : 52 }}
         >
-          <p
-            data-cms-key="spacePilot.eyebrow"
-            className="font-label"
-            style={{ color: GREEN, fontSize: 12, margin: "0 0 14px" }}
-          >
-            {t("eyebrow")}
-          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+            <Logo variant="mark" theme="dark" size={28} />
+            <p
+              data-cms-key="spacePilot.eyebrow"
+              className="font-label"
+              style={{ color: GREEN, fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", margin: 0 }}
+            >
+              SMART CONCIERGE
+            </p>
+          </div>
           <h2 id="space-pilot-title" data-cms-key="spacePilot.title" style={{ fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: 1.08, letterSpacing: "-0.04em", margin: 0 }}>
             {t("title")}
           </h2>
