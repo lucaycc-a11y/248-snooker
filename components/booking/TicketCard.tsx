@@ -111,7 +111,7 @@ export function TicketCard({
     const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }))
     const a = document.createElement("a")
     a.href = url
-    a.download = `248-${displayCode}.ics`
+    a.download = `SPACE8-${displayCode}.ics`
     a.click()
     URL.revokeObjectURL(url)
   }

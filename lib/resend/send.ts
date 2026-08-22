@@ -18,6 +18,7 @@ type SendReceiptParams = {
     table_number: number
     total_price: number
     payment_method: string
+    human_code?: string
   }
   paymentIntentId: string
   customerName: string
@@ -28,8 +29,8 @@ type SendReceiptParams = {
 export async function sendBookingReceipt(params: SendReceiptParams) {
   const resend = getResend()
 
-  // Generate receipt number from booking ID (e.g., "248-12345")
-  const receiptNumber = `248-${params.booking.id.slice(0, 8).toUpperCase()}`
+  // Use human_code (SPACE8-XXXXX-C format) as receipt number
+  const receiptNumber = params.booking.human_code || `248-${params.booking.id.slice(0, 8).toUpperCase()}`
 
   // For now, assume no service fee (adjust if your pricing includes one)
   const subtotal = params.booking.total_price
@@ -97,6 +98,7 @@ type SendRefundedParams = {
     start_time: string
     end_time: string
     table_number: number
+    human_code?: string
   }
   originalPrice: number
   refundFee: number
@@ -109,7 +111,7 @@ type SendRefundedParams = {
 export async function sendBookingRefundedEmail(params: SendRefundedParams) {
   const resend = getResend()
 
-  const receiptNumber = `248-${params.booking.id.slice(0, 8).toUpperCase()}`
+  const receiptNumber = params.booking.human_code || `248-${params.booking.id.slice(0, 8).toUpperCase()}`
 
   const emailProps: BookingRefundedEmailProps = {
     locale: params.locale,
@@ -147,6 +149,7 @@ type SendRescheduledParams = {
   booking: {
     id: string
     table_number: number
+    human_code?: string
   }
   oldDate: string
   oldStartTime: string
@@ -161,7 +164,7 @@ type SendRescheduledParams = {
 export async function sendBookingRescheduledEmail(params: SendRescheduledParams) {
   const resend = getResend()
 
-  const receiptNumber = `248-${params.booking.id.slice(0, 8).toUpperCase()}`
+  const receiptNumber = params.booking.human_code || `248-${params.booking.id.slice(0, 8).toUpperCase()}`
 
   const emailProps: BookingRescheduledEmailProps = {
     locale: params.locale,
