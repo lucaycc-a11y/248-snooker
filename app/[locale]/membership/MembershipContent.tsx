@@ -1,5 +1,6 @@
 "use client";
 
+import { QRCodeSVG } from "qrcode.react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -327,7 +328,7 @@ function TabQR({ t }: { t: ReturnType<typeof useTranslations> }) {
         </p>
       </motion.div>
 
-      {/* QR Illustration */}
+      {/* QR Illustration — static demo QR code */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -345,44 +346,13 @@ function TabQR({ t }: { t: ReturnType<typeof useTranslations> }) {
           position: "relative",
         }}
       >
-        {/* Decorative QR pattern */}
-        <div style={{ color: "rgba(255,255,255,0.15)" }}>
-          <svg viewBox="0 0 200 200" width="60%" height="60%">
-            <rect x="20" y="20" width="50" height="50" rx="4" stroke="currentColor" strokeWidth="3" fill="none" />
-            <rect x="30" y="30" width="30" height="30" rx="2" fill="currentColor" />
-            <rect x="130" y="20" width="50" height="50" rx="4" stroke="currentColor" strokeWidth="3" fill="none" />
-            <rect x="140" y="30" width="30" height="30" rx="2" fill="currentColor" />
-            <rect x="20" y="130" width="50" height="50" rx="4" stroke="currentColor" strokeWidth="3" fill="none" />
-            <rect x="30" y="140" width="30" height="30" rx="2" fill="currentColor" />
-            <rect x="85" y="85" width="30" height="30" rx="2" fill="currentColor" />
-            <rect x="90" y="20" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="102" y="20" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="85" y="35" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="102" y="35" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="90" y="50" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="20" y="85" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="20" y="100" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="35" y="85" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="50" y="100" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="130" y="85" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="145" y="100" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="160" y="85" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="130" y="110" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="145" y="110" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="160" y="110" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="85" y="130" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="100" y="130" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="85" y="145" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="100" y="145" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="115" y="145" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="130" y="130" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="145" y="130" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="160" y="130" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="130" y="160" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="145" y="160" width="8" height="8" rx="1" fill="currentColor" />
-            <rect x="160" y="160" width="8" height="8" rx="1" fill="currentColor" />
-          </svg>
-        </div>
+        <QRCodeSVG
+          value="SPACE8-DEMO-A1B2C3"
+          size={200}
+          bgColor="transparent"
+          fgColor="#22C55E"
+          level="M"
+        />
       </motion.div>
 
       <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", margin: "0 0 32px" }}>
