@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -13,7 +12,6 @@ const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 const EASE = [0.2, 0.7, 0.3, 1] as const;
-const SPRING = { type: "spring", stiffness: 320, damping: 30 } as const;
 const VIEWPORT = { once: true, amount: 0.2 } as const;
 
 /* ── Inline SVG Icons ──────────────────────────────────────────────────── */
@@ -107,150 +105,13 @@ function QrIcon() {
   );
 }
 
-/* ── Tab Icons ─────────────────────────────────────────────────────────── */
-
-function MembershipTabIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
-      <path d="M6 9V2h12v7" />
-      <path d="M6 6h12v4a6 6 0 01-12 0V6z" />
-      <path d="M10 14v2a2 2 0 004 0v-2" />
-    </svg>
-  );
-}
-
-function QrTabIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="5" y="5" width="3" height="3" />
-      <rect x="16" y="5" width="3" height="3" />
-      <rect x="5" y="16" width="3" height="3" />
-    </svg>
-  );
-}
-
-function PilotTabIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
-      <path d="M12 2v4" />
-      <path d="M12 18v4" />
-      <path d="M4.93 4.93l2.83 2.83" />
-      <path d="M16.24 16.24l2.83 2.83" />
-      <path d="M2 12h4" />
-      <path d="M18 12h4" />
-      <path d="M4.93 19.07l2.83-2.83" />
-      <path d="M16.24 7.76l2.83-2.83" />
-    </svg>
-  );
-}
-
-function PlayTabIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M10 8l6 4-6 4V8z" />
-    </svg>
-  );
-}
-
 /* ── Main Component ────────────────────────────────────────────────────── */
-
-const SECTIONS = [
-  { id: "membership-tiers", labelKey: "tabs.0", icon: <MembershipTabIcon /> },
-  { id: "member-qr", labelKey: "tabs.1", icon: <QrTabIcon /> },
-  { id: "smart-concierge", labelKey: "tabs.2", icon: <PilotTabIcon /> },
-  { id: "how-to-play", labelKey: "tabs.3", icon: <PlayTabIcon /> },
-] as const;
 
 export default function MembershipContent() {
   const t = useTranslations("membershipHub");
-  const [activeSection, setActiveSection] = useState<string>(SECTIONS[0].id);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        }
-      },
-      { rootMargin: "-40% 0px -40% 0px" }
-    );
-
-    const elements = SECTIONS.map(({ id }) => document.getElementById(id)).filter(
-      (el): el is HTMLElement => el !== null
-    );
-    elements.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
-
-  function scrollToSection(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
 
   return (
     <div style={{ fontFamily: FONT_FAMILY, background: "#000", minHeight: "100vh" }}>
-      {/* Sticky Nav Bar */}
-      <div
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          background: "rgba(0,0,0,0.85)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderBottom: `1px solid ${BORDER}`,
-        }}
-      >
-        <div
-          className="hide-scrollbar"
-          style={{
-            maxWidth: "1200px",
-            margin: "0 auto",
-            display: "flex",
-            overflowX: "auto",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-        >
-          {SECTIONS.map((section) => {
-            const isActive = activeSection === section.id;
-            return (
-              <button
-                key={section.id}
-                onClick={() => scrollToSection(section.id)}
-                style={{
-                  flex: "1 0 0",
-                  minWidth: 0,
-                  padding: "16px 12px",
-                  background: "none",
-                  border: "none",
-                  borderBottom: isActive ? `2px solid ${GREEN}` : "2px solid transparent",
-                  color: isActive ? GREEN : "rgba(255,255,255,0.5)",
-                  fontSize: "14px",
-                  fontWeight: isActive ? 600 : 400,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  transition: "all 0.3s ease",
-                  fontFamily: FONT_FAMILY,
-                }}
-              >
-                {section.icon}
-                <span style={{ whiteSpace: "nowrap" }}>{t(section.labelKey)}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       {/* All Sections Rendered as Single Page Scroll */}
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
         <section id="membership-tiers">
