@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { Link } from '@/i18n/navigation'
-import { Instagram, MessageCircle, MapPin, Clock } from 'lucide-react'
+import { Clock, Instagram, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
 import { useTranslations } from 'next-intl'
 import { Logo } from '@/components/brand'
@@ -217,6 +217,40 @@ export default function Footer() {
                 {t('footer.hours')}
               </span>
             </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '12px' }}>
+              <span className="si-phone"><Phone size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0 }} /></span>
+              <a
+                href={`tel:+${SITE_CONTACT.phoneDigits}`}
+                data-cms-key="footer.phone_label"
+                style={{
+                  fontSize: '13px',
+                  color: tokens.colors.textMuted,
+                  textDecoration: 'none',
+                  minHeight: 44,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                {SITE_CONTACT.phone}
+              </a>
+            </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '12px' }}>
+              <span className="si-mail"><Mail size={16} strokeWidth={1.75} style={{ color: tokens.colors.textMuted, flexShrink: 0 }} /></span>
+              <a
+                href={`mailto:${SITE_CONTACT.email}`}
+                data-cms-key="footer.email_label"
+                style={{
+                  fontSize: '13px',
+                  color: tokens.colors.textMuted,
+                  textDecoration: 'none',
+                  minHeight: 44,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                {SITE_CONTACT.email}
+              </a>
+            </div>
           </section>
 
           <section
@@ -262,22 +296,54 @@ export default function Footer() {
           </section>
         </div>
 
-        {/* Nav links */}
+        {/* Nav links — main nav + legal links in separate groups */}
         <nav className="footer-links">
-          {navLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="footer-link">
-              {link.label}
-            </Link>
-          ))}
+          <div className="footer-link-group">
+            <span className="footer-link-group-label">{t('footer.group_nav_label')}</span>
+            <div className="footer-links-row">
+              {navLinks.slice(0, 5).map((link) => (
+                <Link key={link.href} href={link.href} className="footer-link">
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="footer-link-group">
+            <span className="footer-link-group-label">{t('footer.group_legal_label')}</span>
+            <div className="footer-links-row">
+              {navLinks.slice(5).map((link) => (
+                <Link key={link.href} href={link.href} className="footer-link">
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </nav>
         <style jsx>{`
           .footer-links {
             margin-top: 40px;
             padding-top: 28px;
             border-top: 1px solid ${tokens.colors.border};
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+          }
+          .footer-link-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+          .footer-link-group-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: ${tokens.colors.textFaint};
+          }
+          .footer-links-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 24px;
           }
           .footer-links :global(.footer-link) {
             display: inline-flex;
@@ -287,12 +353,19 @@ export default function Footer() {
             color: ${tokens.colors.textMuted};
             text-decoration: none;
           }
+          .footer-links :global(.footer-link):hover {
+            color: ${tokens.colors.text};
+          }
           @media (min-width: 768px) {
             .footer-links {
-              display: flex;
-              flex-wrap: wrap;
-              align-items: center;
+              flex-direction: row;
               justify-content: center;
+              gap: 48px;
+            }
+            .footer-link-group {
+              gap: 12px;
+            }
+            .footer-links-row {
               gap: 8px 32px;
             }
           }

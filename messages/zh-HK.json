@@ -8,16 +8,42 @@
     "phone_placeholder": "電話號碼",
     "phone_send_code": "發送驗證碼",
     "contact_continue": "用電話或電郵登入",
+    "contact": {
+      "continue": "用電話或電郵登入"
+    },
     "contact_phone_tab": "電話",
     "contact_email_tab": "電郵",
     "sending": "傳送中…",
     "terms": "繼續即表示你同意我們的條款及私隱政策。",
     "back": "返回",
+    "error": "發生錯誤，請再試一次",
+    "otp": {
+      "title": "輸入驗證碼",
+      "subtitle": "我們已傳送 6 位數驗證碼至 +852 {phone}",
+      "error": "驗證碼不正確",
+      "resend": "重新傳送驗證碼"
+    },
     "otp_title": "輸入驗證碼",
     "otp_subtitle": "我們已傳送 6 位數驗證碼至 +852 {phone}",
     "resend": "重新傳送驗證碼",
     "resend_in": "{seconds} 秒後可重新傳送",
     "saving": "儲存中…",
+    "email": {
+      "continue": "以電郵繼續"
+    },
+    "email_continue": "以電郵繼續",
+    "password": {
+      "title": "用密碼登入",
+      "submit": "登入",
+      "switch_to_otp": "改用驗證碼"
+    },
+    "profile": {
+      "title": "完成個人資料",
+      "subtitle": "首次預訂前，請填寫少量資料",
+      "submit": "繼續",
+      "error": "儲存資料時發生錯誤",
+      "phone_verified_badge": "電話已驗證"
+    },
     "profile_title": "完成個人資料",
     "profile_subtitle": "首次預訂前，請填寫少量資料。",
     "profile_name": "全名",
@@ -35,11 +61,9 @@
     "err_otp_wrong": "驗證碼不正確，尚餘 {count} 次機會。",
     "err_otp_locked": "錯誤次數過多，請重新開始。",
     "email_placeholder": "電郵地址",
-    "email_continue": "以電郵繼續",
     "otp_subtitle_email": "我們已傳送 6 位數驗證碼至 {email}",
     "otp_subtitle_whatsapp": "我們已透過 WhatsApp 傳送 6 位數驗證碼至 +852 {phone}",
     "profile_phone_send_code": "傳送驗證碼",
-    "profile_phone_verified_badge": "電話已驗證",
     "profile_phone_change_number": "更改號碼",
     "password_placeholder": "密碼",
     "sign_in_password": "用密碼登入",
@@ -52,9 +76,13 @@
     "planet_welcome_suffix": "會員",
     "planet_subtitle": "全宇宙獨一無二的會員編號",
     "planet_share": "分享我的星球",
-    "planet_continue": "進入會員中心"
+    "planet_continue": "進入會員中心",
+    "phone": {
+      "send_code": "發送驗證碼"
+    }
   },
   "404": {
+    "brand": "SPACE8",
     "code": "404",
     "title": "此頁面不存在",
     "subtitle": "此頁面不存在，但你的桌球時間不應該白費",
@@ -71,6 +99,66 @@
     "error_missing_code": "登入未完成，請再試一次。",
     "error_oauth": "未能登入，請再試一次。",
     "error_generic": "發生錯誤，請再試一次。"
+  },
+  "error": {
+    "brand": "SPACE8",
+    "code": "錯誤",
+    "subtitle": "發生錯誤",
+    "try_again": "再試一次",
+    "home": "返回主頁"
+  },
+  "nav": {
+    "link": {
+      "member": "會員"
+    },
+    "login-desktop": "登入",
+    "login-mobile": "登入"
+  },
+  "book": {
+    "auth": {
+      "title": "登入以繼續預訂",
+      "subtitle": "登入後即可確認預訂"
+    },
+    "card": {
+      "title": "付款資料"
+    },
+    "pay": {
+      "venue": "場地",
+      "subtotal": "小計",
+      "discount": "折扣",
+      "secure": "安全付款",
+      "test_title": "測試付款",
+      "confirming": "確認付款中...",
+      "confirm_timeout": "付款確認超時",
+      "confirm_failed": "付款確認失敗",
+      "confirm_retry": "重試",
+      "confirm_view_order": "查看訂單",
+      "confirm_failed_home": "返回主頁"
+    },
+    "ticket": {
+      "confirmed": "預訂已確認",
+      "footer": "感謝預訂",
+      "home": "返回主頁",
+      "share": "分享",
+      "add-calendar": "加入日曆",
+      "member_cta": "成為會員"
+    }
+  },
+  "member": {
+    "card_label": "會員卡",
+    "card_member_no": "會員編號",
+    "card_points": "積分",
+    "tier_progress_title": "會員等級進度",
+    "points_earn_title": "賺取積分",
+    "points_running_total": "總積分",
+    "qr_modal_title": "會員 QR 碼",
+    "qr_reference": "參考編號",
+    "settings_notifications": "通知",
+    "settings_error": "儲存設定時發生錯誤",
+    "save": "儲存",
+    "sign_out": "登出",
+    "danger_zone": "危險區域",
+    "delete_account": "刪除帳戶"
   },
   "comingSoon": {
     "brand": "SPACE8",
@@ -364,6 +452,7 @@
     "add_google_wallet": "加入 Google Wallet",
     "stat_bookings": "總預訂",
     "stat_bookings_unit": "次",
+    "quick_view_details": "查看詳情",
     "stat_hours": "遊玩時間",
     "stat_hours_unit": "小時",
     "tier_progress_title": "等級進度",
@@ -791,6 +880,8 @@
     "privacy": "私隱政策",
     "legal": "場地使用守則及條款",
     "contact_title": "聯絡我們",
+    "group_nav_label": "導覽",
+    "group_legal_label": "法律",
     "address_label": "地址",
     "address": "香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室",
     "directions_label": "前往方法",
@@ -798,6 +889,8 @@
     "map_cta": "Google Maps 導航",
     "hours_label": "營業時間",
     "hours": "每日 06:00 至 24:00",
+    "phone_label": "電話",
+    "email_label": "電郵",
     "seo_title": "香港新蒲崗自助中式桌球室",
     "seo_blurb": "SPACE8 是香港新蒲崗自助無煙中式桌球獨立球室，每日 06:00 至 24:00 營業，網上預訂、QR 碼自助入場，無需等候。鄰近鑽石山及啟德港鐵站，是九龍區桌球愛好者的理想主場。",
     "credits": "製作團隊",
