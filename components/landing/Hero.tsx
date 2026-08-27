@@ -111,7 +111,7 @@ export default function Hero() {
       />
 
       {/* Content — centred on mobile, top-anchored on desktop */}
-      <div className="absolute left-1/2 top-[34%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[28%]">
+      <div className="absolute left-1/2 top-[22%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[20%]">
         {/* Space8 wordmark — official SVG artwork, not a text simulation */}
         <div style={{ marginBottom: "4px" }}>
           <Logo variant="full" theme="dark" size={34} />
@@ -165,7 +165,7 @@ export default function Hero() {
             ease: [0.34, 1.56, 0.64, 1],
           }}
         >
-          <div className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center gap-3 rounded-full bg-black/40 px-3 py-2.5 backdrop-blur-sm sm:px-4 sm:py-3">
+          <div className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center gap-3 rounded-full px-3 py-2.5 sm:px-4 sm:py-3">
             <Link
               href="/book"
               prefetch
@@ -186,7 +186,9 @@ export default function Hero() {
               href="/venue"
               className="flex items-center justify-center rounded-full border px-6 py-3 text-[13px] leading-none transition-colors duration-200 hover:bg-white/[0.08] active:scale-[0.97] md:px-7 md:py-3 md:text-[15px]"
               style={{
-                background: "transparent",
+                background: "rgba(255,255,255,0.08)",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
                 border: "1px solid rgba(255,255,255,0.28)",
                 color: "rgba(255,255,255,0.82)",
                 fontWeight: 400,
