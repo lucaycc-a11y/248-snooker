@@ -2,15 +2,9 @@
 
 // ────────────────────────────────────────────────────────────────
 // PaymentMethodList — full payment method selector for the Space8
-// checkout flow. Nine methods, each with a label, sublabel, and
-// branded badge icons. Two layers of gating:
-//
-//   1. UI disabled (this file) — Google Pay / Apple Pay are always
-//      disabled ("即將推出"). They stay visible but are inert.
-//
-//   2. Backend gate — POST /api/checkout/create rejects apple_pay
-//      and google_pay with 400. The three KPay methods (fps, payme,
-//      octopus) additionally check payment_settings.enabled.
+// checkout flow. Eight methods, each with a label, sublabel, and
+// branded badge icons. The backend still rejects any direct API request
+// using the permanently unsupported Apple Pay / Google Pay method IDs.
 //
 // alipay / alipayhk / wechat / unionpay_qp are marked disabled:false
 // (clickable) but the backend has no implementation for them — they
@@ -22,8 +16,6 @@ import PaymentMethodCard from "./PaymentMethodCard"
 import {
   VisaBadgeIcon,
   MastercardBadgeIcon,
-  GooglePayBadgeIcon,
-  ApplePayBadgeIcon,
   AlipayBadgeIcon,
   AlipayHKBadgeIcon,
   WeChatPayBadgeIcon,
@@ -41,8 +33,6 @@ import {
 
 export type PaymentMethodId =
   | "card"
-  | "google_pay"
-  | "apple_pay"
   | "alipay"
   | "alipayhk"
   | "wechat"
@@ -79,20 +69,6 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
         <AmexBadgeIcon />
       </>
     ),
-  },
-  {
-    id: "google_pay",
-    label: "Google Pay",
-    sublabel: "用手機一鍵付款",
-    disabled: false,
-    icons: <GooglePayBadgeIcon />,
-  },
-  {
-    id: "apple_pay",
-    label: "Apple Pay",
-    sublabel: "用 Apple Pay 快速付款",
-    disabled: false,
-    icons: <ApplePayBadgeIcon />,
   },
   {
     id: "alipay",
