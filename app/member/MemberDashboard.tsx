@@ -1,7 +1,7 @@
 "use client";
 
 import { SITE_CONTACT } from "@/lib/site/contact";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -67,6 +67,14 @@ const TIER_GLOW: Record<string, string> = {
   amateur: "radial-gradient(120% 120% at 100% 0%, rgba(34,197,94,0.14), transparent 55%)",
   century: "radial-gradient(120% 120% at 100% 0%, rgba(245,158,11,0.14), transparent 55%)",
   maximum: "radial-gradient(120% 120% at 100% 0%, rgba(167,139,250,0.16), transparent 55%)",
+};
+
+// Display names for tier IDs — used wherever the raw ID would leak to the UI.
+// Short English label matches the .font-label (Good Times, uppercase) style.
+const TIER_TITLE: Record<string, string> = {
+  amateur: "NOVA",
+  century: "PLATINUM",
+  maximum: "DIAMOND",
 };
 
 type TabId = "overview" | "bookings" | "points" | "settings" | "access";
@@ -158,6 +166,8 @@ export default function MemberDashboard({
     return "overview";
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
+  const [fadeVisible, setFadeVisible] = useState(false);
+  const tabsRef = useRef<HTMLDivElement>(null);
   const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
   const [refundBooking, setRefundBooking] = useState<MemberBooking | null>(null);
   const [rescheduleBooking, setRescheduleBooking] = useState<MemberBooking | null>(null);
@@ -167,6 +177,24 @@ export default function MemberDashboard({
     id: string; type: string; message: string; read: boolean; created_at: string;
   }>>([]);
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Tabs overflow fade — show gradient on mobile when tabs overflow
+  // and the user hasn't scrolled to the rightmost end.
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    const check = () => {
+      setFadeVisible(el.scrollWidth > el.clientWidth && el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    };
+    check();
+    el.addEventListener("scroll", check);
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => {
+      el.removeEventListener("scroll", check);
+      ro.disconnect();
+    };
+  }, []);
 
   // Fetch member notifications from notification_log
   useEffect(() => {
@@ -263,8 +291,8 @@ export default function MemberDashboard({
           style={{
             position: "relative",
             borderRadius: "24px",
-            border: `1px solid ${HAIRLINE}`,
-            background: `${TIER_GLOW[tierId] ?? TIER_GLOW.amateur}, ${GLASS_BG}`,
+            border: "1px solid rgba(34,184,107,0.15)",
+            background: `linear-gradient(160deg, rgba(44,44,48,0.92) 0%, rgba(10,10,10,1) 100%), ${TIER_GLOW[tierId] ?? TIER_GLOW.amateur}, ${GLASS_BG}`,
             backdropFilter: GLASS_BLUR,
             WebkitBackdropFilter: GLASS_BLUR,
             padding: "26px 28px",
@@ -289,7 +317,7 @@ export default function MemberDashboard({
             <div style={{ textAlign: "right" }}>
               <FieldLabel>{t("card_tier")}</FieldLabel>
               <div className="font-label" style={{ fontFamily: DISPLAY, fontSize: "30px", color: accent, lineHeight: 1 }}>
-                {current.id}
+                {TIER_TITLE[current.id] ?? current.id}
               </div>
             </div>
           </div>
@@ -331,6 +359,7 @@ export default function MemberDashboard({
                 padding: "10px",
                 background: "#fdfcf8",
                 borderRadius: "12px",
+                boxShadow: "0 0 0 1px rgba(34,197,94,0.2), 0 0 20px rgba(34,197,94,0.15)",
               }}
             >
               <QRCode
@@ -402,9 +431,9 @@ export default function MemberDashboard({
             />
           </div>
           <div className="font-label" style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE }}>
-            <span>{current.id}</span>
+            <span>{TIER_TITLE[current.id] ?? current.id}</span>
             <span>{next ? t("points_to_next", { pts: pointsToNext.toLocaleString() }) : t("max_tier_reached")}</span>
-            {next && <span>{next.id}</span>}
+            {next && <span>{TIER_TITLE[next.id] ?? next.id}</span>}
           </div>
         </div>
 
@@ -428,8 +457,24 @@ export default function MemberDashboard({
           <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} last />
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: "4px", marginTop: "32px", borderBottom: `1px solid ${BORDER}`, overflowX: "auto", scrollbarWidth: "thin" }}>
+        {/* Tabs — overflow container. Thin/auto scrollbar is a touch/mouse
+            affordance; the sheer overflow also suppresses it on desktop. On
+            mobile the right-edge fade (absolute overlay) hints more tabs. */}
+        <div style={{ position: "relative" }}>
+          <div
+            ref={tabsRef}
+            className="hide-scrollbar"
+            style={{
+              display: "flex",
+              gap: "4px",
+              marginTop: "32px",
+              borderBottom: `1px solid ${BORDER}`,
+              overflowX: "auto",
+              scrollbarWidth: "thin",
+              WebkitOverflowScrolling: "touch",
+              scrollbarColor: "rgba(255,255,255,0.25) transparent",
+            }}
+          >
           {([
             { id: "overview" as TabId, key: "tab_overview", icon: <Home size={15} strokeWidth={2} /> },
             { id: "bookings" as TabId, key: "tab_bookings", icon: <Ticket size={15} strokeWidth={2} /> },
@@ -470,6 +515,25 @@ export default function MemberDashboard({
             );
           })}
         </div>
+        {/* Right-edge scroll fade hint — visible only when the tabs overflow
+            (mobile). CSS can't measure overflow, so JS sets `fadeVisible`. */}
+        <div
+          aria-hidden="true"
+          className={fadeVisible ? "tabs-fade-on" : ""}
+          style={{
+            position: "absolute",
+            top: "32px",
+            right: 0,
+            width: "48px",
+            height: "44px",
+            pointerEvents: "none",
+            background: "linear-gradient(to left, rgba(0,0,0,0.9), rgba(0,0,0,0))",
+            borderRadius: "12px",
+            opacity: 0,
+            transition: "opacity 0.25s ease",
+          }}
+        />
+        </div>
 
         {/* Tab panels */}
         <div style={{ marginTop: "28px" }}>
@@ -492,7 +556,7 @@ export default function MemberDashboard({
                   current={current}
                   memberQrDataUrl={memberQrDataUrl}
                   stats={stats}
-                  upcomingCount={upcomingBookings.length}
+                  onSwitchTab={setTab}
                 />
               )}
               {tab === "bookings" && (
@@ -868,12 +932,12 @@ function canShowQr(b: MemberBooking): boolean {
 /* ── Overview Tab — first-time landing, card + stats in compact view ── */
 function OverviewTab({
   user, tierId, accent, progress, pointsToNext, next, current,
-  memberQrDataUrl, stats, upcomingCount,
+  memberQrDataUrl, stats, onSwitchTab,
 }: {
   user: MemberData['user']; tierId: string; accent: string; progress: number;
   pointsToNext: number; next: Tier | null; current: Tier;
   memberQrDataUrl: string | null; stats: { bookings: number; hours: number };
-  upcomingCount: number;
+  onSwitchTab: (tab: TabId) => void;
 }) {
   const t = useTranslations('memberPage');
 
@@ -890,14 +954,16 @@ function OverviewTab({
         <QuickActionCard
           icon={<Zap size={18} strokeWidth={2} />}
           label={t('stat_bookings')}
-          value={upcomingCount > 0 ? `${upcomingCount} upcoming` : 'None'}
+          value={`${stats.bookings}`}
           accent={GREEN}
+          onClick={() => onSwitchTab('bookings')}
         />
         <QuickActionCard
           icon={<Coins size={18} strokeWidth={2} />}
           label={t('card_points')}
           value={`${user.points.toLocaleString()} pts`}
           accent={accent}
+          onClick={() => onSwitchTab('points')}
         />
       </div>
 
@@ -908,7 +974,7 @@ function OverviewTab({
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <span className="font-code" style={{ fontSize: 13, fontWeight: 600, color: accent }}>
-            {tierId}
+            {TIER_TITLE[tierId] ?? tierId}
           </span>
           {next && (
             <span style={{ fontSize: 11, color: SUBTLE }}>
@@ -964,14 +1030,22 @@ function OverviewTab({
   );
 }
 
-function QuickActionCard({ icon, label, value, accent }: {
-  icon: React.ReactNode; label: string; value: string; accent: string;
+function QuickActionCard({ icon, label, value, accent, onClick }: {
+  icon: React.ReactNode; label: string; value: string; accent: string; onClick?: () => void;
 }) {
+  const t = useTranslations("memberPage");
   return (
-    <div style={{
-      border: `1px solid ${BORDER}`, borderRadius: 14, padding: 16,
-      background: GLASS_BG,
-    }}>
+    <div
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter") onClick(); } : undefined}
+      style={{
+        border: `1px solid ${BORDER}`, borderRadius: 14, padding: 16,
+        background: GLASS_BG, cursor: onClick ? "pointer" : "default",
+        transition: "all 0.2s ease",
+      }}
+    >
       <div style={{
         width: 36, height: 36, borderRadius: '50%',
         background: `${accent}1f`, color: accent,
@@ -984,6 +1058,12 @@ function QuickActionCard({ icon, label, value, accent }: {
       <div style={{ fontSize: 16, fontWeight: 700, color: INK }}>
         {value || '—'}
       </div>
+      {onClick && (
+        <div style={{ fontSize: 12, color: GREEN, marginTop: 8, display: "flex", alignItems: "center", gap: 2 }}>
+          {t("quick_view_details")}
+          <span aria-hidden="true">→</span>
+        </div>
+      )}
     </div>
   );
 }

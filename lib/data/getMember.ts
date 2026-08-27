@@ -95,7 +95,9 @@ function normalizeBooking(row: Row): MemberBooking {
   const refundAmount = row.refund_amount
   const refundFee = row.refund_fee
   const id = String(row.id ?? genId('booking'))
-  const rawStatus = str(row, ['status', 'state']) ?? 'confirmed'
+  // Missing/unknown status is not a successful booking. Keep it visible for
+  // support, but never let a malformed row inflate member statistics.
+  const rawStatus = str(row, ['status', 'state']) ?? 'unknown'
   const createdAt = str(row, ['created_at'])
   const isStuckPending =
     rawStatus === 'pending' &&
@@ -177,6 +179,7 @@ export async function getMemberData(): Promise<MemberData | null> {
 
   // Bookings (defensive).
   let bookings: MemberBooking[] = []
+  let confirmedBookingsForStats: MemberBooking[] | null = null
   try {
     const { data } = await supabase
       .from('bookings')
@@ -185,11 +188,31 @@ export async function getMemberData(): Promise<MemberData | null> {
       .order('created_at', { ascending: false })
       .limit(50)
     if (Array.isArray(data)) bookings = data.map((r) => normalizeBooking(r as Row))
+
+    // Keep the broad list above for history/support, but never derive lifetime
+    // aggregates from it: the display list is capped at 50 rows and includes
+    // pending/payment_failed/refunded records. This query is the sole source
+    // for the member's booking count and play hours.
+    const { data: confirmedData, error: confirmedError } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'confirmed')
+    if (confirmedError) throw confirmedError
+    if (Array.isArray(confirmedData)) {
+      confirmedBookingsForStats = confirmedData.map((r) => normalizeBooking(r as Row))
+    }
   } catch {
     /* table may not exist yet */
   }
 
-  // Points ledger (defensive).
+  // If the confirmed-only query is unavailable, use only confirmed rows from
+  // the already-loaded list rather than allowing failed rows into the totals.
+  const confirmedBookings = confirmedBookingsForStats ?? bookings.filter((booking) => booking.status === 'confirmed')
+  const stats = {
+    bookings: confirmedBookings.length,
+    hours: confirmedBookings.reduce((sum, b) => sum + (b.durationHours || 0), 0),
+  }
   let points: PointsEntry[] = []
   try {
     const { data } = await supabase
@@ -201,11 +224,6 @@ export async function getMemberData(): Promise<MemberData | null> {
     if (Array.isArray(data)) points = data.map((r) => normalizePoints(r as Row))
   } catch {
     /* table may not exist yet */
-  }
-
-  const stats = {
-    bookings: bookings.length,
-    hours: bookings.reduce((sum, b) => sum + (b.durationHours || 0), 0),
   }
 
   return { user: memberUser, bookings, points, stats }

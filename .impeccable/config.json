@@ -253,6 +253,24 @@
         "value": "rgba(245,245,247,0.92)",
         "createdAt": "2026-08-22T03:01:12.691Z",
         "reason": "HowItWorks modal colors"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.15)",
+        "files": [
+          "/Users/lucayau/Documents/Space8_web/app/member/MemberDashboard.tsx"
+        ],
+        "createdAt": "2026-08-23T08:21:35.342Z",
+        "reason": "Intentional green-tinted card border per B2 requirement (user-requested member card depth)"
+      },
+      {
+        "rule": "side-tab",
+        "value": "border-left: 3px solid #22c55e",
+        "files": [
+          "/Users/lucayau/Documents/Space8_web/app/globals.css"
+        ],
+        "createdAt": "2026-08-23T08:22:04.885Z",
+        "reason": "Standard blockquote styling in blog prose, not a side-tab UI pattern"
       }
     ]
   }

@@ -949,3 +949,11 @@ body {
 .text-flip-link:hover {
   border-bottom-color: rgba(255, 255, 255, 0.4) !important;
 }
+
+/* ── Member dashboard tabs fade ──────────────────────────────────────
+   Right-edge gradient that hints more tabs are scrollable. Toggled on
+   by JS (MemberDashboard) only while the tab row actually overflows —
+   on desktop all 5 tabs fit, so it stays hidden. */
+.tabs-fade-on {
+  opacity: 1 !important;
+}
