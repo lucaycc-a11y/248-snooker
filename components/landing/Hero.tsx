@@ -73,7 +73,12 @@ export default function Hero() {
       </video>
 
       {/* Desktop: bottom-anchored square, black sides */}
-      <div className="absolute bottom-0 left-1/2 hidden aspect-square w-[85vw] -translate-x-1/2 overflow-hidden md:block lg:w-[80vw] lg:max-w-[1000px] xl:w-[65vw] xl:max-w-[1100px]">
+      <motion.div
+        className="absolute bottom-0 left-1/2 hidden aspect-square w-[85vw] overflow-hidden md:block lg:w-[80vw] lg:max-w-[1000px] xl:w-[65vw] xl:max-w-[1100px]"
+        whileHover={{ scale: 1.025 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        style={{ x: "-50%", transformOrigin: "center bottom", willChange: "transform" }}
+      >
         <img
           src="/video/Space8_Main_Hero_Poster.jpg"
           alt=""
@@ -96,7 +101,7 @@ export default function Hero() {
         >
           <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
         </video>
-      </div>
+      </motion.div>
 
       {/* Subtle bottom gradient — keeps buttons readable over the table */}
       <div
@@ -113,7 +118,7 @@ export default function Hero() {
       {/* Content — centred on mobile, top-anchored on desktop */}
       <div className="absolute left-1/2 top-[22%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[20%]">
         {/* Space8 wordmark — official SVG artwork, not a text simulation */}
-        <div style={{ marginBottom: "4px" }}>
+        <div style={{ marginBottom: "12px" }}>
           <Logo variant="full" theme="dark" size={34} />
         </div>
 
@@ -128,6 +133,7 @@ export default function Hero() {
             fontWeight: 600,
             letterSpacing: "-0.015em",
             lineHeight: 1.04,
+            margin: 0,
             whiteSpace: "normal",
             fontFamily:
               "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
@@ -141,7 +147,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: showHeadline ? 1 : 0 }}
           transition={{ duration: 1.2, ease: "easeIn", delay: 0.2 }}
-          className="mt-4 text-[15px] md:text-[18px]"
+          className="mt-5 text-[15px] md:mt-6 md:text-[18px]"
           style={{
             color: "rgba(255,255,255,0.72)",
             fontWeight: 400,
@@ -157,7 +163,7 @@ export default function Hero() {
             A semi-transparent backdrop keeps the buttons legible over the
             pool-table hero graphic (pocket/triangle overlap). */}
         <motion.div
-          className="mt-10 md:mt-14"
+          className="mt-8 md:mt-10"
           initial={{ opacity: 0, scale: 0.90 }}
           animate={showButtons ? { opacity: 1, scale: 1 } : {}}
           transition={{
