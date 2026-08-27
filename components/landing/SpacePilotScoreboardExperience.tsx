@@ -61,7 +61,8 @@ export default function SpacePilotScoreboardExperience({
           </div>
           <Activity size={18} strokeWidth={1.6} className="shrink-0 text-[#22C55E]" aria-hidden="true" />
         </div>
-        <div className="relative aspect-[983/674] overflow-hidden rounded-[14px] border border-white/10 bg-black">
+        <div className="relative aspect-[983/674] overflow-hidden rounded-[16px] border-8 border-[#090a0e] bg-black shadow-[0_18px_45px_rgba(0,0,0,0.45),inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:rounded-[20px] sm:border-[10px]">
+          <div className="pointer-events-none absolute inset-x-1/2 top-1 z-20 h-0.5 w-8 -translate-x-1/2 rounded-full bg-white/20" aria-hidden="true" />
           <Image
             src={SCOREBOARD_IMAGE}
             alt={t("scoreboard_alt")}
@@ -70,6 +71,8 @@ export default function SpacePilotScoreboardExperience({
             className="object-cover"
             draggable={false}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-white/[0.06]" aria-hidden="true" />
+          <div className="pointer-events-none absolute inset-x-1/2 bottom-1 z-20 h-0.5 w-10 -translate-x-1/2 rounded-full bg-white/25" aria-hidden="true" />
           <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-lg border border-white/15 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md">
             <span data-cms-key="spacePilot.scoreboard_live">{t("scoreboard_live")}</span>
             <span data-cms-key="spacePilot.scoreboard_match" className="flex items-center gap-1 text-[#22C55E]"><span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]" aria-hidden="true" />{t("scoreboard_match")}</span>
@@ -106,46 +109,50 @@ export default function SpacePilotScoreboardExperience({
             </div>
           </div>
 
-          <div className="relative mx-auto max-w-6xl [perspective:1400px]">
+          <div className="relative mx-auto max-w-6xl px-1 [perspective:1400px] sm:px-2">
             <motion.div
               style={reducedMotion ? undefined : { scale: imageScale, rotateX: imageRotate, y: imageY, opacity: imageOpacity }}
               transition={{ duration: 0.7, ease: EASE }}
-              className="relative z-10 mx-auto aspect-[983/674] w-full max-w-5xl overflow-hidden rounded-[22px] border border-white/20 bg-[#11131b] md:rounded-[30px] md:border-2"
+              className="relative z-10 mx-auto w-full max-w-5xl rounded-[30px] border border-white/20 bg-[#090a0e] p-2 shadow-[0_30px_90px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.16)] sm:p-3 md:rounded-[42px] md:border-2 md:p-4"
             >
-              <Image
-                src={SCOREBOARD_IMAGE}
-                alt={t("scoreboard_alt")}
-                fill
-                sizes="(max-width: 768px) 100vw, 1024px"
-                className="object-cover"
-                priority
-                draggable={false}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-white/[0.06]" aria-hidden="true" />
+              <div className="pointer-events-none absolute inset-x-1/2 top-1.5 z-30 h-1 w-12 -translate-x-1/2 rounded-full bg-black/90 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] sm:top-2 md:top-3 md:h-1.5 md:w-16" aria-hidden="true" />
+              <div className="relative aspect-[983/674] overflow-hidden rounded-[22px] border border-black/80 bg-[#11131b] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] md:rounded-[30px]">
+                <Image
+                  src={SCOREBOARD_IMAGE}
+                  alt={t("scoreboard_alt")}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 1024px"
+                  className="object-cover"
+                  priority
+                  draggable={false}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-white/[0.06]" aria-hidden="true" />
 
-              <motion.div
-                style={reducedMotion ? undefined : { x: leftPanelX }}
-                className="absolute left-3 top-3 hidden items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md sm:flex md:left-6 md:top-6 md:px-4"
-              >
-                <Trophy size={14} className="text-[#F59E0B]" aria-hidden="true" />
-                <span data-cms-key="spacePilot.scoreboard_wins">{t("scoreboard_wins")}</span>
-              </motion.div>
+                <motion.div
+                  style={reducedMotion ? undefined : { x: leftPanelX }}
+                  className="absolute left-3 top-3 hidden items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md sm:flex md:left-6 md:top-6 md:px-4"
+                >
+                  <Trophy size={14} className="text-[#F59E0B]" aria-hidden="true" />
+                  <span data-cms-key="spacePilot.scoreboard_wins">{t("scoreboard_wins")}</span>
+                </motion.div>
 
-              <motion.div
-                style={reducedMotion ? undefined : { x: rightPanelX }}
-                className="absolute right-3 top-3 hidden items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md sm:flex md:right-6 md:top-6 md:px-4"
-              >
-                <Clock3 size={14} className="text-[#60A5FA]" aria-hidden="true" />
-                <span data-cms-key="spacePilot.scoreboard_time">{t("scoreboard_time")}</span>
-              </motion.div>
+                <motion.div
+                  style={reducedMotion ? undefined : { x: rightPanelX }}
+                  className="absolute right-3 top-3 hidden items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md sm:flex md:right-6 md:top-6 md:px-4"
+                >
+                  <Clock3 size={14} className="text-[#60A5FA]" aria-hidden="true" />
+                  <span data-cms-key="spacePilot.scoreboard_time">{t("scoreboard_time")}</span>
+                </motion.div>
 
-              <motion.div
-                style={reducedMotion ? undefined : { y: standingsY, opacity: standingsOpacity }}
-                className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-black/75 px-3 py-2.5 text-[10px] text-white/80 backdrop-blur-md md:inset-x-6 md:bottom-6 md:px-4 md:py-3"
-              >
-                <span data-cms-key="spacePilot.scoreboard_standings" className="flex items-center gap-2"><BarChart3 size={14} className="text-[#A78BFA]" aria-hidden="true" />{t("scoreboard_standings")}</span>
-                <span data-cms-key="spacePilot.scoreboard_match" className="hidden text-white/45 sm:inline">{t("scoreboard_match")}</span>
-              </motion.div>
+                <motion.div
+                  style={reducedMotion ? undefined : { y: standingsY, opacity: standingsOpacity }}
+                  className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-black/75 px-3 py-2.5 text-[10px] text-white/80 backdrop-blur-md md:inset-x-6 md:bottom-6 md:px-4 md:py-3"
+                >
+                  <span data-cms-key="spacePilot.scoreboard_standings" className="flex items-center gap-2"><BarChart3 size={14} className="text-[#A78BFA]" aria-hidden="true" />{t("scoreboard_standings")}</span>
+                  <span data-cms-key="spacePilot.scoreboard_match" className="hidden text-white/45 sm:inline">{t("scoreboard_match")}</span>
+                </motion.div>
+              </div>
+              <div className="mx-auto mt-2 h-1 w-12 rounded-full bg-white/20 md:mt-3 md:h-1.5 md:w-16" aria-hidden="true" />
             </motion.div>
 
             <div className="pointer-events-none absolute inset-x-0 -bottom-8 z-20 mx-auto flex max-w-5xl items-center gap-3 px-2 md:-bottom-10">
