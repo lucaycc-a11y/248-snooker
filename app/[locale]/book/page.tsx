@@ -2244,6 +2244,7 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
             memberCode={firstTicket.memberCode}
             totalPrice={firstTicket.totalPrice}
             holderName={firstTicket.holderName}
+            paymentMethod={firstTicket.paymentMethod}
             locale={locale}
           />
         ) : (
