@@ -65,10 +65,12 @@ export async function GET(req: Request) {
     // Fetch member_code from users — it's the universal QR identifier, not stored on bookings.
     const { data: userData } = await service
       .from('users')
-      .select('member_code')
+      .select('member_code, display_name')
       .eq('id', user.id)
       .maybeSingle()
-    const member_code: string = (userData as { member_code?: string | null } | null)?.member_code ?? user.id
+    const profile = userData as { member_code?: string | null; display_name?: string | null } | null
+    const member_code: string = profile?.member_code ?? user.id
+    const holder_name = profile?.display_name ?? null
 
     // Prefer the stored human_code (fixed at insert time); fall back to
     // computing it for rows that predate the column.
@@ -76,6 +78,7 @@ export async function GET(req: Request) {
       ...b,
       human_code: (b as { human_code?: string | null }).human_code ?? humanReadableCode(String(b.id)),
       member_code,
+      holder_name,
     })
 
     return NextResponse.json({ booking: withHumanCode(data), bookings: bookings.map(withHumanCode) })

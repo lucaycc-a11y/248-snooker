@@ -22,6 +22,7 @@ import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import type { PromoResult } from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
+import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
@@ -2172,6 +2173,7 @@ type ConfirmationTicket = {
   humanCode?: string
   /** Universal member identifier — the value encoded in every QR code. */
   memberCode: string
+  holderName: string | null
   totalPrice: number
   paymentMethod?: string | null
 }
@@ -2185,6 +2187,7 @@ type ConfirmationTicket = {
 function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
+  const locale = useLocale()
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -2194,12 +2197,9 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
         scalar: 0.7,
         shapes: ["star", "circle"],
         origin: { y: 0.6 },
-        colors: ["#22c55e", "#ffffff", "#A78BFA"],
+        colors: [tokens.colors.brand, "#ffffff", "#b8f5c9"],
       })
-    }, 2000)
-    // Second, delayed burst: tight angle + high velocity + low spread reads
-    // as a shooting star crossing the screen rather than a second identical
-    // confetti pop — reinforces the space theme without a new particle system.
+    }, 1550)
     const meteorTimer = setTimeout(() => {
       confetti({
         particleCount: 18,
@@ -2211,116 +2211,69 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
         decay: 0.94,
         shapes: ["circle"],
         origin: { x: 0.1, y: 0.15 },
-        colors: ["#ffffff", "#A78BFA"],
+        colors: [tokens.colors.brand, "#ffffff"],
       })
-    }, 2600)
+    }, 2150)
     return () => {
       clearTimeout(timer)
       clearTimeout(meteorTimer)
     }
   }, [])
 
+  const firstTicket = tickets[0]
+  const startTime = firstTicket ? padTime(firstTicket.startHour) : "—"
+  const endTime = firstTicket ? padTime(firstTicket.startHour + firstTicket.duration) : "—"
+
   return (
-    <div
-      className="screen-content"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        minHeight: "calc(100dvh - 80px)",
-        position: "relative",
-        padding: "24px 20px",
-      }}
-    >
+    <div className="screen-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: "calc(100dvh - 80px)", position: "relative", padding: "24px 20px" }}>
       <div style={{ width: "100%", maxWidth: 400, margin: "0 auto" }}>
-        {/* Header — logo + confirmed pill, shared across all tickets */}
-        <motion.div
-          initial={{ y: "40%", opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.2 }}
-          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}
-        >
-          {/* Brand guideline v1.0: wordmark must render ≥120px wide (height 39 ≈ 122px) */}
+        <motion.div initial={{ y: "40%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: "spring", damping: 20, stiffness: 120, duration: 1.2 }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <img src="/logos/logo-white-horizontal.svg" alt="Space8" style={{ height: 39, width: "auto" }} />
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 500, damping: 20, delay: 1.2 }}
-            style={{ background: tokens.colors.brand, padding: "4px 12px", borderRadius: 999 }}
-          >
-            <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>
-              {t_ticket("confirmed")}
-            </span>
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 20, delay: 1.1 }} style={{ background: tokens.colors.brand, padding: "4px 12px", borderRadius: 999 }}>
+            <span data-cms-key="book.ticket.confirmed" style={{ fontSize: 12, fontWeight: 700, color: "#000" }}>{t_ticket("confirmed")}</span>
           </motion.div>
         </motion.div>
 
-        {/* One collapsible card per booking */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
-          {tickets.map((ticket, i) => (
-            <TicketCard
-              key={ticket.bookingRef + i}
-              date={ticket.date}
-              startHour={ticket.startHour}
-              duration={ticket.duration}
-              tableNumber={ticket.tableNumber}
-              bookingRef={ticket.bookingRef}
-              humanCode={ticket.humanCode}
-              memberCode={ticket.memberCode}
-              totalPrice={ticket.totalPrice}
-              paymentMethod={ticket.paymentMethod}
-              defaultExpanded={i === 0}
-            />
-          ))}
-        </div>
+        {firstTicket ? (
+          <TicketPrinter
+            date={firstTicket.date}
+            startTime={startTime}
+            endTime={endTime}
+            roomName={getTableName(firstTicket.tableNumber, locale)}
+            bookingCode={firstTicket.humanCode ?? firstTicket.bookingRef}
+            memberCode={firstTicket.memberCode}
+            totalPrice={firstTicket.totalPrice}
+            holderName={firstTicket.holderName}
+            locale={locale}
+          />
+        ) : (
+          <div style={{ height: 420 }} />
+        )}
 
-        {/* Go to member center (Task 10). Plain <a>, not the locale-aware
-            router — /member lives outside app/[locale]/ (non-localized route,
-            same convention as AccountMenu.tsx), so router.push("/member")
-            would prefix the active locale (e.g. /en/member) and 404. */}
-        <motion.a
-          href="/member"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          data-cms-key="book.ticket.member_cta"
-          style={{
-            width: "100%",
-            height: 52,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: tokens.colors.brand,
-            color: "#000",
-            border: "none",
-            borderRadius: 14,
-            fontSize: 16,
-            fontWeight: 700,
-            cursor: "pointer",
-            marginBottom: 16,
-            textDecoration: "none",
-          }}
-        >
+        {tickets.length > 1 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
+            {tickets.slice(1).map((ticket, i) => (
+              <TicketCard
+                key={ticket.bookingRef + i}
+                date={ticket.date}
+                startHour={ticket.startHour}
+                duration={ticket.duration}
+                tableNumber={ticket.tableNumber}
+                bookingRef={ticket.bookingRef}
+                humanCode={ticket.humanCode}
+                memberCode={ticket.memberCode}
+                totalPrice={ticket.totalPrice}
+                paymentMethod={ticket.paymentMethod}
+              />
+            ))}
+          </div>
+        )}
+
+        <motion.a href="/member" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 2.2, duration: 0.4, ease: [0.16, 1, 0.3, 1] }} data-cms-key="book.ticket.member_cta" style={{ width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginBottom: 16, textDecoration: "none" }}>
           {t("go_to_member")}
         </motion.a>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.4, duration: 0.4 }}
-          style={{ textAlign: "center" }}
-        >
-          <button
-            type="button"
-            onClick={() => (window.location.href = "/")}
-            data-cms-key="book.ticket.home"
-            style={{
-              background: "none",
-              border: "none",
-              color: "rgba(255,255,255,0.6)",
-              fontSize: 14,
-              cursor: "pointer",
-            }}
-          >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.4, duration: 0.4 }} style={{ textAlign: "center" }}>
+          <button type="button" onClick={() => (window.location.href = "/")} data-cms-key="book.ticket.home" style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer" }}>
             {t("back_home")}
           </button>
         </motion.div>
@@ -2345,6 +2298,7 @@ type ConfirmedBooking = {
   human_code?: string
   /** Injected by /api/booking/status — the universal member QR identifier. */
   member_code?: string
+  holder_name?: string | null
 }
 
 // Shown after the Stripe redirect returns to /book while we poll the booking
@@ -2956,6 +2910,7 @@ export default function BookPage() {
                       bookingRef: b.booking_reference ?? bookingRef,
                       humanCode: b.human_code,
                       memberCode: b.member_code ?? '',
+                      holderName: b.holder_name ?? null,
                       totalPrice: b.total_price,
                       paymentMethod: b.payment_method,
                     }))}
@@ -2974,6 +2929,7 @@ export default function BookPage() {
                             tableNumber: r.tableNumber,
                             bookingRef,
                             memberCode: '',
+                            holderName: null,
                             totalPrice: quoteBlockTotal(r.date, r.startHour, r.duration, periods),
                           }))
                         : []
