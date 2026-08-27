@@ -1,9 +1,10 @@
 "use client"
 
-import { useRef, useState, type KeyboardEvent, type ClipboardEvent } from "react"
+import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react"
 
 // Accessible OTP entry: N digit boxes with auto-advance, backspace-to-previous,
-// and paste-the-whole-code support. Calls onComplete when all digits are filled.
+// and paste/autofill support. Empty slots stay positional until the full code is
+// complete, so editing one digit never shifts the digits that follow it.
 const GREEN = "#22c55e"
 
 export function OtpInput({
@@ -13,82 +14,120 @@ export function OtpInput({
   onComplete,
   disabled,
   invalid,
+  className,
+  digitLabel = (index) => `Digit ${index + 1}`,
+  ariaDescribedBy,
+  focusFirst = false,
 }: {
   length?: number
-  value: string
-  onChange: (next: string) => void
+  value: string[]
+  onChange: (next: string[]) => void
   onComplete?: (code: string) => void
   disabled?: boolean
   invalid?: boolean
+  className?: string
+  digitLabel?: (index: number) => string
+  ariaDescribedBy?: string
+  focusFirst?: boolean
 }) {
   const refs = useRef<(HTMLInputElement | null)[]>([])
   const [focused, setFocused] = useState<number | null>(null)
+  const slots = Array.from({ length }, (_, index) => value[index] ?? "")
 
-  const setDigit = (i: number, d: string) => {
-    const next = value.split("")
-    next[i] = d
-    const joined = next.join("").slice(0, length)
-    onChange(joined)
-    if (d && i < length - 1) refs.current[i + 1]?.focus()
-    // join("") collapses empty slots, so a full code is exactly `length` chars;
-    // any gap makes it shorter. (Note: String.includes("") is always true — the
-    // old "!joined.includes('')" guard meant onComplete could never fire on type.)
-    if (joined.length === length) {
-      onComplete?.(joined)
+  useEffect(() => {
+    if (focusFirst) refs.current[0]?.focus()
+  }, [focusFirst])
+
+  const completeIfReady = (next: string[]) => {
+    if (!slots.every((digit) => digit.length === 1) && next.every((digit) => digit.length === 1)) {
+      onComplete?.(next.join(""))
     }
   }
 
-  const handleKey = (i: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace") {
-      e.preventDefault()
-      const next = value.split("")
-      if (next[i]) {
-        next[i] = ""
-        onChange(next.join(""))
-      } else if (i > 0) {
-        next[i - 1] = ""
-        onChange(next.join(""))
-        refs.current[i - 1]?.focus()
-      }
-    } else if (e.key === "ArrowLeft" && i > 0) {
-      refs.current[i - 1]?.focus()
-    } else if (e.key === "ArrowRight" && i < length - 1) {
-      refs.current[i + 1]?.focus()
-    }
+  const setSlots = (next: string[], focusIndex?: number) => {
+    onChange(next)
+    if (focusIndex !== undefined) refs.current[focusIndex]?.focus()
+    completeIfReady(next)
   }
 
-  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault()
-    const digits = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, length)
+  const setDigit = (index: number, digit: string) => {
+    const next = [...slots]
+    next[index] = digit
+    setSlots(next, digit && index < length - 1 ? index + 1 : undefined)
+  }
+
+  const setCode = (startIndex: number, raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, length - startIndex)
     if (!digits) return
-    onChange(digits)
-    const focusIdx = Math.min(digits.length, length - 1)
-    refs.current[focusIdx]?.focus()
-    if (digits.length === length) onComplete?.(digits)
+
+    const next = [...slots]
+    for (let offset = 0; offset < digits.length; offset += 1) {
+      next[startIndex + offset] = digits[offset]
+    }
+
+    const nextEmpty = next.findIndex((digit) => !digit)
+    const focusIndex = nextEmpty >= 0 ? nextEmpty : length - 1
+    setSlots(next, focusIndex)
+  }
+
+  const handleChange = (index: number, raw: string) => {
+    // Mobile browsers may put the entire SMS code into the first field despite
+    // maxLength=1. Distribute it before the single-character path truncates it.
+    if (raw.length > 1) {
+      setCode(index, raw)
+      return
+    }
+    setDigit(index, raw.replace(/\D/g, "").slice(-1))
+  }
+
+  const handleKey = (index: number, event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Backspace") {
+      event.preventDefault()
+      const next = [...slots]
+      if (next[index]) {
+        next[index] = ""
+        onChange(next)
+      } else if (index > 0) {
+        next[index - 1] = ""
+        setSlots(next, index - 1)
+      }
+    } else if (event.key === "ArrowLeft" && index > 0) {
+      event.preventDefault()
+      refs.current[index - 1]?.focus()
+    } else if (event.key === "ArrowRight" && index < length - 1) {
+      event.preventDefault()
+      refs.current[index + 1]?.focus()
+    }
+  }
+
+  const handlePaste = (event: ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault()
+    setCode(0, event.clipboardData.getData("text"))
   }
 
   return (
-    <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-      {Array.from({ length }).map((_, i) => (
+    <div className={`otp-input-row${className ? ` ${className}` : ""}`}>
+      {slots.map((digit, index) => (
         <input
-          key={i}
-          ref={(el) => {
-            refs.current[i] = el
+          key={index}
+          className="otp-digit-input"
+          ref={(element) => {
+            refs.current[index] = element
           }}
           inputMode="numeric"
-          autoComplete={i === 0 ? "one-time-code" : "off"}
-          maxLength={1}
+          autoComplete={index === 0 ? "one-time-code" : "off"}
+          maxLength={length}
           disabled={disabled}
-          aria-label={`Digit ${i + 1}`}
-          value={value[i] ?? ""}
-          onChange={(e) => setDigit(i, e.target.value.replace(/\D/g, "").slice(-1))}
-          onKeyDown={(e) => handleKey(i, e)}
+          aria-label={digitLabel(index)}
+          aria-describedby={ariaDescribedBy}
+          aria-invalid={invalid || undefined}
+          value={digit}
+          onChange={(event) => handleChange(index, event.target.value)}
+          onKeyDown={(event) => handleKey(index, event)}
           onPaste={handlePaste}
-          onFocus={() => setFocused(i)}
+          onFocus={() => setFocused(index)}
           onBlur={() => setFocused(null)}
           style={{
-            width: 44,
-            height: 56,
             textAlign: "center",
             fontSize: 24,
             fontWeight: 600,
@@ -97,12 +136,11 @@ export function OtpInput({
             border: `1px solid ${
               invalid
                 ? "#f87171"
-                : focused === i
+                : focused === index
                   ? GREEN
-                  : "rgba(255,255,255,0.14)"
+                  : "rgba(255,255,255,0.28)"
             }`,
             borderRadius: 12,
-            outline: "none",
             transition: "border-color 150ms ease",
           }}
         />

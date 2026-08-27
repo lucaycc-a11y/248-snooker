@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -26,16 +26,32 @@ export function AuthModal({
   dismissible?: boolean
 }) {
   const t = useTranslations("auth")
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLElement | null>(null)
 
-  // Lock body scroll while open.
+  // Lock body scroll while open and place focus inside the dialog. The parent
+  // trigger is restored on close when it is still connected to the document.
   useEffect(() => {
     if (!open) return
+    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     const prev = document.body.style.overflow
     document.body.style.overflow = "hidden"
+    const frame = window.requestAnimationFrame(() => dialogRef.current?.focus())
     return () => {
+      window.cancelAnimationFrame(frame)
       document.body.style.overflow = prev
+      triggerRef.current?.focus()
     }
   }, [open])
+
+  useEffect(() => {
+    if (!open || !dismissible) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose()
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => document.removeEventListener("keydown", onKeyDown)
+  }, [dismissible, onClose, open])
 
   return (
     <AnimatePresence>
@@ -59,6 +75,10 @@ export function AuthModal({
           }}
         >
           <motion.div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="auth-modal-title"
             initial={{ scale: 0.94, opacity: 0, y: 16 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.94, opacity: 0, y: 16 }}
@@ -69,6 +89,8 @@ export function AuthModal({
               position: "relative",
               width: "100%",
               maxWidth: 400,
+              maxHeight: "calc(100dvh - 40px)",
+              overflowY: "auto",
               padding: 40,
             }}
           >
@@ -87,7 +109,7 @@ export function AuthModal({
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
                 <Logo variant="full" theme="dark" size={40} />
               </div>
-              <h1 data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 32, letterSpacing: "0.02em", color: "#fff", margin: 0 }}>
+              <h1 id="auth-modal-title" data-cms-key="auth.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 32, letterSpacing: "0.02em", color: "#fff", margin: 0 }}>
                 {t("title")}
               </h1>
             </div>

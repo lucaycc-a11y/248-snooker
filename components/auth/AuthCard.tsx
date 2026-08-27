@@ -9,7 +9,7 @@ import { normalizeHkPhone } from "@/lib/auth/profile"
 import { LoadingGif } from "@/components/ui/LoadingGif"
 import { GoogleSignInButton } from "./GoogleSignInButton"
 import { AppleSignInButton } from "./AppleSignInButton"
-import { OtpInput } from "./OtpInput"
+import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
 import { ProfileCompletion } from "./ProfileCompletion"
 import { QRGuideModal } from "./QRGuideModal"
 
@@ -27,6 +27,15 @@ type OtpChannel = "sms" | "email"
 type OtpDeliveryChannel = "whatsapp" | "sms"
 type ContactTab = "phone" | "email"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
+type Grecaptcha = {
+  execute: (siteKey: string, options: { action: string }) => Promise<string>
+}
+
+function isGrecaptcha(value: unknown): value is Grecaptcha {
+  if (!value || typeof value !== "object") return false
+  const candidate = value as { execute?: unknown }
+  return typeof candidate.execute === "function"
+}
 
 // Reusable auth content — the single source of truth used by BOTH the /login page
 // and the in-booking modal. Method picker shows three clean options: Apple, Google,
@@ -49,7 +58,8 @@ export function AuthCard({
   const [otpChannel, setOtpChannel] = useState<OtpChannel>("sms")
   const [messageId, setMessageId] = useState("")
   const [otpDeliveryChannel, setOtpDeliveryChannel] = useState<OtpDeliveryChannel>("sms")
-  const [otp, setOtp] = useState("")
+  const [otp, setOtp] = useState<string[]>(() => Array.from({ length: OTP_LENGTH }, () => ""))
+  const [otpStatus, setOtpStatus] = useState<OtpVerificationStatus>("input")
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [attemptsLeft, setAttemptsLeft] = useState(MAX_OTP_ATTEMPTS)
@@ -132,6 +142,7 @@ export function AuthCard({
     if (!user) {
       setError(t("err_generic"))
       setBusy(false)
+      setOtpStatus("failure")
       return
     }
     const { data } = await supabase
@@ -175,15 +186,14 @@ export function AuthCard({
         return
       }
 
-      if (typeof window === "undefined" || !(window as any).grecaptcha) {
+      const grecaptchaValue: unknown = typeof window === "undefined" ? undefined : window.grecaptcha
+      if (!isGrecaptcha(grecaptchaValue)) {
         setError(t("err_send"))
         setBusy(false)
         return
       }
 
-      const recaptchaToken = await (window as any).grecaptcha.execute(siteKey, {
-        action: "send_otp",
-      })
+      const recaptchaToken = await grecaptchaValue.execute(siteKey, { action: "send_otp" })
 
       const res = await fetch("/api/otp/send", {
         method: "POST",
@@ -202,7 +212,8 @@ export function AuthCard({
         return
       }
 
-      setOtp("")
+      setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+      setOtpStatus("input")
       setOtpChannel("sms")
       setMessageId(typeof j?.messageId === "string" ? j.messageId : "")
       setOtpDeliveryChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
@@ -240,7 +251,8 @@ export function AuthCard({
         setBusy(false)
         return
       }
-      setOtp("")
+      setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+      setOtpStatus("input")
       setOtpChannel("email")
       setAttemptsLeft(MAX_OTP_ATTEMPTS)
       setCooldown(RESEND_COOLDOWN)
@@ -279,6 +291,7 @@ export function AuthCard({
 
   const verifyOtp = async (code: string) => {
     setBusy(true)
+    setOtpStatus("verifying")
     setError(null)
     const supabase = createClient()
 
@@ -294,6 +307,7 @@ export function AuthCard({
       const normalized = normalizeHkPhone(phone) ?? ""
       if (!normalized || !messageId) {
         setError(t("err_otp_expired"))
+        setOtpStatus("failure")
         setBusy(false)
         return
       }
@@ -306,20 +320,27 @@ export function AuthCard({
       if (!j?.success || typeof j.tokenHash !== "string") {
         if (j?.error === "rate_limited") {
           setError(t("err_rate_limited"))
+          setOtpStatus("failure")
           setBusy(false)
           return
         }
-        // Backend rejected the code (wrong / expired / no such account). Same
-        // localized attempt-countdown UX as the email branch.
+        if (j?.status === "not_found") {
+          setError(t("err_otp_not_found"))
+          setOtpStatus("failure")
+          setBusy(false)
+          return
+        }
+        // Backend rejected the code (wrong / expired). Same localized
+        // attempt-countdown UX as the email branch.
         const remaining = attemptsLeft - 1
         setAttemptsLeft(remaining)
-        setOtp("")
         if (remaining > 0) {
           setError(t("err_otp_wrong", { count: remaining }))
         } else {
           setError(t("err_otp_locked"))
           setPhase("methods")
         }
+        setOtpStatus("failure")
         setBusy(false)
         return
       }
@@ -330,8 +351,6 @@ export function AuthCard({
     if (vErr) {
       const expired = /expired/i.test(vErr.message)
       const remaining = attemptsLeft - 1
-      setAttemptsLeft(remaining)
-      setOtp("")
       if (expired) {
         setError(t("err_otp_expired"))
       } else if (remaining > 0) {
@@ -340,9 +359,12 @@ export function AuthCard({
         setError(t("err_otp_locked"))
         setPhase("methods")
       }
+      setOtpStatus(remaining > 0 ? "failure" : "input")
       setBusy(false)
       return
     }
+    setOtpStatus("success")
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 720))
     await afterSignIn()
   }
 
@@ -403,7 +425,7 @@ export function AuthCard({
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
         <button
           type="button"
-          onClick={() => { setPhase("methods"); setError(null) }}
+          onClick={() => { setPhase("methods"); setError(null); setOtpStatus("input") }}
           aria-label={t("back")}
           style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}
         >
@@ -420,9 +442,16 @@ export function AuthCard({
               : t("otp_subtitle", { phone })}
         </p>
 
-        <OtpInput length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={verifyOtp} disabled={busy} invalid={!!error} />
-
-        {error && <p data-cms-key="auth.otp.error" style={{ marginTop: 14, fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
+          <OtpVerification
+            length={OTP_LENGTH}
+            value={otp}
+            onChange={setOtp}
+            onComplete={verifyOtp}
+            status={otpStatus}
+            error={error}
+            onReset={() => { setOtp(Array.from({ length: OTP_LENGTH }, () => "")); setError(null); setOtpStatus("input") }}
+            disabled={busy}
+          />
 
         <button
           type="button"
@@ -500,7 +529,7 @@ export function AuthCard({
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
         <button
           type="button"
-          onClick={() => { setPhase("methods"); setError(null) }}
+          onClick={() => { setPhase("methods"); setError(null); setOtpStatus("input") }}
           aria-label={t("back")}
           style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}
         >
