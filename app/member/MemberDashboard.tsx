@@ -34,6 +34,7 @@ import ReschedulePicker from "@/components/member/ReschedulePicker";
 import MemberQrGuide from "@/components/member/MemberQrGuide";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
+import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -991,6 +992,9 @@ function OverviewTab({
           />
         </div>
       </div>
+
+      {/* Space Pilot scoreboard — a compact authenticated view of the live match experience. */}
+      <SpacePilotScoreboardExperience compact />
 
       {/* 暫時停用，等 Apple PEM 格式問題同 Google service account 設定好返先重開，相關 prompt：wallet-pass-refined-prompt.md */}
       {false && (
