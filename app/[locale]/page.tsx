@@ -13,6 +13,7 @@ import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import SpacePilotHomepage from "@/components/landing/SpacePilotHomepage";
+import SpacePilotScrollDemo from "@/components/landing/SpacePilotScrollDemo";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 
@@ -121,6 +122,7 @@ export default async function Home({
       {/* Membership — last section before footer */}
       <Member />
       <SpacePilotHomepage />
+      <SpacePilotScrollDemo />
 
       {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
           a "了解更多" link to the full /faq page. */}
