@@ -231,7 +231,11 @@ export function TicketPrinter({
           transform: translateY(-600px) rotateX(-5deg) scaleY(0.72);
           transform-origin: top center;
           animation: ticket-paper-eject 2.5s steps(24, end) forwards;
-          pointer-events: none;
+          pointer-events: auto;
+        }
+
+        .ticket-printer-paper-wrap :global(button) {
+          pointer-events: auto;
         }
 
         .ticket-printer-caption {
