@@ -187,16 +187,50 @@ export class KPayProvider implements PaymentProvider {
       ...(remark ? { orderRemark: remark } : {}),
     }
 
-    const orderRes = await this.apiPost<KPayApiResponse<{ orderNo: string }>>(
-      '/v1/order/add',
-      orderBody,
-    )
+    console.log('[KPay] createCnpHostedOrder START:', JSON.stringify({
+      outTradeNo,
+      bookingId,
+      amount,
+      orderType: 'CNP_SALES_GATEWAY',
+    }))
+
+    let orderRes: KPayApiResponse<{ orderNo: string }>
+    try {
+      orderRes = await this.apiPost<KPayApiResponse<{ orderNo: string }>>(
+        '/v1/order/add',
+        orderBody,
+      )
+    } catch (err) {
+      const e = err as Error
+      console.error('[KPay] createCnpHostedOrder /v1/order/add 拋錯:', {
+        outTradeNo,
+        bookingId,
+        errorMessage: e.message,
+        errorStack: e.stack,
+      })
+      throw err
+    }
+
+    console.log('[KPay] createCnpHostedOrder /v1/order/add 回應:', JSON.stringify({
+      code: orderRes.code,
+      message: orderRes.message,
+      data: orderRes.data,
+    }, null, 2))
 
     if (orderRes.code !== 10000) {
-      throw new Error(`KPay 建單失敗：${orderRes.message ?? kpayErrorMessage(String(orderRes.code))}`)
+      const errorDetail = {
+        outTradeNo,
+        bookingId,
+        responseCode: orderRes.code,
+        responseMessage: orderRes.message,
+        responseData: orderRes.data,
+      }
+      console.error('[KPay] createCnpHostedOrder 建單失敗（code !== 10000）:', JSON.stringify(errorDetail, null, 2))
+      throw new Error(`KPay 建單失敗：${orderRes.message ?? kpayErrorMessage(String(orderRes.code))} (code: ${orderRes.code})`)
     }
 
     const orderNo = orderRes.data!.orderNo
+    console.log('[KPay] createCnpHostedOrder orderNo:', orderNo)
 
     // Step 2: build signed H5 redirect URL for KPay's hosted card page
     const timestamp = Date.now().toString()
@@ -208,6 +242,12 @@ export class KPayProvider implements PaymentProvider {
     const signature = signKpay(this.privateKey, signText)
 
     const redirectUrl = `${this.baseUrl}${h5Path}&K-Signature=${encodeURIComponent(signature)}`
+
+    console.log('[KPay] createCnpHostedOrder 成功:', {
+      outTradeNo,
+      orderNo,
+      redirectUrl: redirectUrl.slice(0, 100) + '...',
+    })
 
     return {
       providerOrderNo: orderNo,
@@ -403,33 +443,85 @@ export class KPayProvider implements PaymentProvider {
     const signature = signKpay(this.privateKey, signText)
 
     const url = `${this.baseUrl}${path}`
-    const res = await fetch(url, {
+
+    console.log('[KPay] apiPost REQUEST:', JSON.stringify({
       method: 'POST',
-      headers: {
-        'K-Merchant-Code': this.merchantCode,
-        'K-Nonce-Str': nonceStr,
-        'K-Signature': signature,
-        'K-Timestamp': timestamp,
-        'K-Language': 'zh_HK',
-        'content-type': 'application/json;charset=UTF-8',
-      },
-      body: bodyStr,
-    })
+      url,
+      path,
+      bodyPreview: bodyStr.slice(0, 200),
+    }))
+
+    let res: Response
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'K-Merchant-Code': this.merchantCode,
+          'K-Nonce-Str': nonceStr,
+          'K-Signature': signature,
+          'K-Timestamp': timestamp,
+          'K-Language': 'zh_HK',
+          'content-type': 'application/json;charset=UTF-8',
+        },
+        body: bodyStr,
+      })
+    } catch (err) {
+      const e = err as Error
+      console.error('[KPay] apiPost FETCH 失敗（網絡錯誤）:', {
+        url,
+        path,
+        errorMessage: e.message,
+        errorStack: e.stack,
+      })
+      throw new Error(`KPay API 網絡錯誤：${e.message}`)
+    }
 
     const text = await res.text()
+
+    console.log('[KPay] apiPost RESPONSE:', JSON.stringify({
+      status: res.status,
+      statusText: res.statusText,
+      ok: res.ok,
+      headers: {
+        'content-type': res.headers.get('content-type'),
+      },
+      bodyPreview: text.slice(0, 500),
+    }, null, 2))
+
     let json: T
     try {
       json = JSON.parse(text)
-    } catch {
-      throw new Error(`KPay API 回應非 JSON: ${text.slice(0, 200)}`)
+    } catch (parseErr) {
+      const e = parseErr as Error
+      console.error('[KPay] apiPost 回應非 JSON:', {
+        url,
+        path,
+        httpStatus: res.status,
+        responseText: text.slice(0, 500),
+        parseError: e.message,
+      })
+      throw new Error(`KPay API 回應非 JSON (HTTP ${res.status}): ${text.slice(0, 200)}`)
     }
+
+    console.log('[KPay] apiPost PARSED JSON:', JSON.stringify(json, null, 2))
 
     if (!res.ok) {
       const code = (json as { code?: number })?.code
       const message = (json as { message?: string })?.message
+      const fullError = {
+        httpStatus: res.status,
+        httpStatusText: res.statusText,
+        url,
+        path,
+        responseCode: code,
+        responseMessage: message,
+        fullResponse: json,
+      }
+      console.error('[KPay] apiPost HTTP 錯誤 (!res.ok):', JSON.stringify(fullError, null, 2))
+
       const detail = code
-        ? `KPay API 錯誤 (${code}): ${message ?? kpayErrorMessage(String(code))}`
-        : `KPay API HTTP ${res.status}`
+        ? `KPay API 錯誤 (code ${code}): ${message ?? kpayErrorMessage(String(code))}`
+        : `KPay API HTTP ${res.status}: ${res.statusText}`
       throw new Error(detail)
     }
 

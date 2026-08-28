@@ -3,7 +3,6 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Hero from "@/components/landing/Hero";
 import GalleryScroll from "@/components/landing/GalleryScroll";
-import HomeSlogan from "@/components/landing/HomeSlogan";
 import HomeFacilities from "@/components/landing/HomeFacilities";
 import HomeRooms from "@/components/landing/HomeRooms";
 import HomeFocus from "@/components/landing/HomeFocus";
@@ -117,7 +116,6 @@ export default async function Home({
       <AmbientGlow />
       <Nav />
       <Hero />
-      <HomeSlogan />
       <GalleryScroll />
       <HomeFacilities />
       <HomeRooms />
