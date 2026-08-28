@@ -208,6 +208,7 @@ export async function POST(req: Request) {
           status: 'pending',
           table_number: slot.table_number,
           is_free_booking: false,
+          payment_method: paymentMethod,
           order_group_id: orderGroupId,
           human_code: humanReadableCode(newId),
         })
@@ -258,7 +259,7 @@ export async function POST(req: Request) {
     // ── Load the primary booking ───────────────────────────────────────────
     const { data: booking, error: bookingErr } = await service
       .from('bookings')
-      .select('id, status, total_price, human_code, order_group_id, payment_provider, provider_order_no')
+      .select('id, status, total_price, human_code, order_group_id, payment_method, payment_provider, provider_order_no')
       .eq('id', bookingId)
       .eq('user_id', user.id)
       .single()
@@ -274,12 +275,60 @@ export async function POST(req: Request) {
     }
 
     // ── Idempotency: if already has a provider order, return it ────────────
+    // A finalized external order owns its original payment rail; never rewrite
+    // payment_method on this path.
     if (booking.payment_provider === 'kpay' && booking.provider_order_no) {
       return NextResponse.json({
         bookingId: booking.id,
         providerOrderNo: booking.provider_order_no,
         existing: true,
       })
+    }
+
+    // Persist the currently selected rail while the booking is still pending.
+    // A retry may intentionally switch methods, but a finalized provider order
+    // must never be rewritten for a different payment rail.
+    const { data: methodStamp, error: methodStampErr } = await service
+      .from('bookings')
+      .update({ payment_method: paymentMethod })
+      .eq('id', booking.id)
+      .eq('user_id', user.id)
+      .eq('status', 'pending')
+      .is('provider_order_no', null)
+      .select('id')
+
+    if (methodStampErr) {
+      console.error('[checkout/create] payment_method stamp failed', {
+        bookingId: booking.id,
+        paymentMethod,
+        error: methodStampErr.message,
+      })
+      return NextResponse.json({ error: 'Could not prepare booking' }, { status: 500 })
+    }
+    if (!methodStamp || methodStamp.length === 0) {
+      return NextResponse.json({ error: 'Booking is no longer available for payment' }, { status: 409 })
+    }
+
+    // Group siblings must carry the same customer-selected payment rail before
+    // the provider order is created, while they remain pending and unclaimed.
+    if (orderGroupId) {
+      const { error: siblingMethodErr } = await service
+        .from('bookings')
+        .update({ payment_method: paymentMethod })
+        .eq('order_group_id', orderGroupId)
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .is('provider_order_no', null)
+        .neq('id', booking.id)
+
+      if (siblingMethodErr) {
+        console.error('[checkout/create] group payment_method stamp failed', {
+          orderGroupId,
+          paymentMethod,
+          error: siblingMethodErr.message,
+        })
+        return NextResponse.json({ error: 'Could not prepare booking group' }, { status: 500 })
+      }
     }
 
     // ── Calculate total for the group (or single booking) ──────────────────
@@ -369,7 +418,11 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
 
   const { data: stamped, error: updateErr } = await service
     .from('bookings')
-    .update({ payment_provider: 'kpay', provider_order_no: result.providerOrderNo })
+    .update({
+      payment_provider: 'kpay',
+      provider_order_no: result.providerOrderNo,
+      payment_method: paymentMethod,
+    })
     .eq('id', primaryBookingId)
     .eq('user_id', userId)
     .is('provider_order_no', null)
@@ -415,7 +468,11 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
   if (groupTargets || orderGroupId) {
     const q = service
       .from('bookings')
-      .update({ payment_provider: 'kpay', provider_order_no: result.providerOrderNo })
+      .update({
+      payment_provider: 'kpay',
+      provider_order_no: result.providerOrderNo,
+      payment_method: paymentMethod,
+    })
       .eq('user_id', userId)
     const { error: groupErr } = groupTargets
       ? await q.in('id', groupTargets)

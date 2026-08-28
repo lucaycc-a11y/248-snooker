@@ -59,7 +59,7 @@
         "rule": "layout-transition",
         "value": "width",
         "createdAt": "2026-08-17T10:58:45.066Z",
-        "reason": "Pre-existing countdown bar animation, out-of-scope per task constraints"
+        "reason": "Pre-existing sidebar collapse animation — not introduced in this session; fixing requires a separate refactor to grid-template-columns"
       },
       {
         "rule": "design-system-font",
@@ -507,6 +507,78 @@
           "components/checkout/TicketPrinter.tsx"
         ],
         "createdAt": "2026-08-28T02:38:52.107Z"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "sf pro display",
+        "createdAt": "2026-08-28T15:42:49.238Z",
+        "reason": "Email template uses inline font stack — CSS custom properties not supported in email clients"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a3a3a3",
+        "createdAt": "2026-08-28T15:42:49.287Z",
+        "reason": "Email template inline hex — email clients cannot use CSS variables"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#525252",
+        "createdAt": "2026-08-28T15:42:49.337Z",
+        "reason": "Email template inline hex"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0a0a0a",
+        "createdAt": "2026-08-28T15:42:49.389Z",
+        "reason": "Email template inline hex"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#22c55e",
+        "createdAt": "2026-08-28T15:42:49.434Z",
+        "reason": "Email template inline hex"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#262626",
+        "createdAt": "2026-08-28T15:42:49.483Z",
+        "reason": "Email template inline hex"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#25d366",
+        "createdAt": "2026-08-28T15:42:49.597Z",
+        "reason": "Email template inline hex — WhatsApp brand color"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "4px",
+        "createdAt": "2026-08-28T15:43:30.218Z",
+        "reason": "Inline email HTML — email clients cannot use design tokens or CSS custom properties; literal pixel value required"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f87171",
+        "createdAt": "2026-08-28T15:51:15.666Z",
+        "reason": "Standard danger/error semantic color used consistently across Space8 admin components"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(248,113,113,0.12)",
+        "createdAt": "2026-08-28T15:51:15.697Z",
+        "reason": "Danger tint for destructive action button backgrounds, paired with #f87171 text"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a855f7",
+        "createdAt": "2026-08-28T15:52:05.414Z",
+        "reason": "Pre-existing AdminSidebar super-admin gradient — not introduced in this session"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ec4899",
+        "createdAt": "2026-08-28T15:52:05.451Z",
+        "reason": "Pre-existing AdminSidebar super-admin gradient — not introduced in this session"
       }
     ]
   }

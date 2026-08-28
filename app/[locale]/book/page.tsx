@@ -1568,6 +1568,137 @@ function Screen2({
   )
 }
 
+/* ─────────────────────────  Points Redemption  ───────────────────────── */
+type RedemptionRule = { id: string; points_required: number; discount_amount: number; display_order: number }
+
+function PointsRedemptionSection({
+  blocks,
+  onDiscountChange,
+}: {
+  blocks: SelectedBlock[]
+  onDiscountChange: (discount: number) => void
+}) {
+  const t = useTranslations("book")
+  const [rules, setRules] = useState<RedemptionRule[]>([])
+  const [available, setAvailable] = useState(0)
+  const [selected, setSelected] = useState<string | null>(null)
+  const [appliedDiscount, setAppliedDiscount] = useState(0)
+  const [bookingId, setBookingId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  // Derive the active booking id from the first block's known KPay booking if present,
+  // but for this section we rely on the parent providing it via context in a follow-up.
+  // For now, expose the section in the UI so the rule list and balance are visible.
+  const blocksKey = blocks.map((b) => `${b.date}|${b.startHour}|${b.tableNumber}`).join(",")
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch("/api/checkout/redeem-points")
+        if (!res.ok) return
+        const json = await res.json()
+        if (cancelled) return
+        setAvailable(json.available ?? 0)
+        setRules(json.rules ?? [])
+      } catch {}
+    })()
+    return () => { cancelled = true }
+  }, [blocksKey])
+
+  const applyRule = async (ruleId: string | null) => {
+    if (!bookingId) {
+      setSelected(ruleId)
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await fetch("/api/checkout/redeem-points", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId, ruleId }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        setSelected(ruleId)
+        const discount = json.discount ?? 0
+        setAppliedDiscount(discount)
+        onDiscountChange(discount)
+      }
+    } catch {}
+    setLoading(false)
+  }
+
+  if (rules.length === 0) return null
+
+  return (
+    <div
+      style={{
+        background: tokens.colors.surface,
+        border: `1px solid ${tokens.colors.border}`,
+        borderRadius: tokens.radius.card,
+        padding: 20,
+        marginTop: 16,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <span style={{ fontSize: 14, fontWeight: 600 }} data-cms-key="book.redeem_points_title">
+          {t("redeem_points_title")}
+        </span>
+        <span style={{ fontSize: 13, color: tokens.colors.textMuted }}>
+          {t("redeem_points_balance", { pts: available })}
+        </span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {rules.map((rule) => {
+          const isSelected = selected === rule.id
+          const canAfford = available >= rule.points_required
+          return (
+            <button
+              key={rule.id}
+              type="button"
+              disabled={loading || (!canAfford && !isSelected)}
+              onClick={() => applyRule(isSelected ? null : rule.id)}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "10px 14px",
+                borderRadius: tokens.radius.input,
+                border: `1px solid ${isSelected ? tokens.colors.link : tokens.colors.border}`,
+                background: isSelected ? "rgba(34,197,94,0.07)" : "transparent",
+                color: canAfford ? tokens.colors.text : tokens.colors.textFaint,
+                fontSize: 13,
+                cursor: canAfford ? "pointer" : "not-allowed",
+                minHeight: 44,
+                textAlign: "left",
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              <span>{t("redeem_points_applied", { discount: rule.discount_amount, pts: rule.points_required })}</span>
+              {isSelected && (
+                <span style={{ fontSize: 12, color: tokens.colors.link, fontWeight: 600 }}>
+                  {t("redeem_points_remove")}
+                </span>
+              )}
+              {!canAfford && !isSelected && (
+                <span style={{ fontSize: 12, color: tokens.colors.textFaint }}>
+                  {t("redeem_points_insufficient")}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+      {appliedDiscount > 0 && (
+        <div style={{ marginTop: 10, fontSize: 13, color: tokens.colors.link, fontWeight: 600 }}>
+          −HK${appliedDiscount}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ─────────────────────────  Screen 3: Payment  ───────────────────────── */
 function Screen3({
   blocks,
@@ -1867,6 +1998,9 @@ function Screen3({
               </span>
             </div>
           </div>
+
+          {/* Points redemption */}
+          <PointsRedemptionSection blocks={blocks} onDiscountChange={() => {}} />
 
           {/* Trust strip */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, fontSize: 12.5, color: tokens.colors.textFaint }}>

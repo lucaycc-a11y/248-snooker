@@ -19,12 +19,39 @@ const WHATSAPP_FALLBACK = SITE_CONTACT.phoneDigits
  * For `card` payments, the last 4 digits are appended dynamically.
  */
 const PAYMENT_METHOD_LABELS: Record<string, { en: string; zh: string }> = {
-  alipay_hk:  { en: 'AlipayHK',   zh: '支付寶香港 AlipayHK' },
-  apple_pay:  { en: 'Apple Pay',  zh: 'Apple Pay' },
-  google_pay: { en: 'Google Pay', zh: 'Google Pay' },
-  card:       { en: 'Card',       zh: '信用卡' },
-  wechat_pay: { en: 'WeChat Pay', zh: '微信支付 WeChat Pay' },
-  free:       { en: 'Free (Test)',zh: '內部測試' },
+  card:        { en: 'Credit Card',  zh: '信用卡' },
+  fps:         { en: 'FPS',          zh: 'FPS 轉數快' },
+  payme:       { en: 'PayMe',        zh: 'PayMe' },
+  octopus:     { en: 'Octopus',      zh: '八達通' },
+  alipay:      { en: 'Alipay',       zh: '支付寶' },
+  alipayhk:    { en: 'AlipayHK',     zh: '支付寶香港' },
+  alipay_hk:   { en: 'AlipayHK',     zh: '支付寶香港' },
+  wechat:      { en: 'WeChat Pay',   zh: '微信支付' },
+  wechat_pay:  { en: 'WeChat Pay',   zh: '微信支付' },
+  unionpay_qp: { en: 'UnionPay QR',  zh: '雲閃付' },
+  apple_pay:   { en: 'Apple Pay',    zh: 'Apple Pay' },
+  google_pay:  { en: 'Google Pay',   zh: 'Google Pay' },
+  free:        { en: 'Free (Test)',  zh: '內部測試' },
+  test:        { en: 'Test',         zh: '測試' },
+}
+
+const PAYMENT_METHOD_ICONS: Record<string, string> = {
+  card:        'https://space8.com.hk/icons/payment/cnp-visa.png',
+  fps:         'https://space8.com.hk/icons/payment/fps.png',
+  payme:       'https://space8.com.hk/icons/payment/payme.png',
+  octopus:     'https://space8.com.hk/icons/payment/octopus-card.png',
+  alipay:      'https://space8.com.hk/icons/payment/alipaycn.png',
+  alipayhk:    'https://space8.com.hk/icons/payment/alipayhk.png',
+  alipay_hk:   'https://space8.com.hk/icons/payment/alipayhk.png',
+  wechat:      'https://space8.com.hk/icons/payment/wechat.png',
+  wechat_pay:  'https://space8.com.hk/icons/payment/wechat.png',
+  unionpay_qp: 'https://space8.com.hk/icons/payment/cnp-unionpay.png',
+  apple_pay:   'https://space8.com.hk/icons/payment/apple.png',
+  google_pay:  'https://space8.com.hk/icons/payment/google.png',
+}
+
+function getPaymentMethodIconUrl(method: string | null): string {
+  return PAYMENT_METHOD_ICONS[method ?? ''] ?? ''
 }
 
 /* ── Helpers ──────────────────────────────────────────────────────────────── */
@@ -180,11 +207,14 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
   const durationHours = Number(booking.duration_hours)
   const totalPrice = booking.total_price
 
-  // Payment method with last 4 digits if applicable
   const paymentMethodDisplay = await formatPaymentMethod(
     booking.payment_method,
     booking.stripe_payment_intent,
   )
+  const paymentMethodIconUrl = getPaymentMethodIconUrl(booking.payment_method)
+  const paymentMethodIconHtml = paymentMethodIconUrl
+    ? `<img src="${paymentMethodIconUrl}" alt="${paymentMethodDisplay}" width="32" height="32" style="display:inline-block;vertical-align:middle;margin-right:8px;border-radius:4px;" />`
+    : ''
 
   // QR code image — encodes the user's member_code so every QR is the universal
   // member identifier, not a booking-specific code.
@@ -259,6 +289,7 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     '{{qrCodeUrl}}': qrCodeUrl,
     '{{totalPrice}}': String(totalPrice),
     '{{paymentMethod}}': paymentMethodDisplay,
+    '{{paymentMethodIconHtml}}': paymentMethodIconHtml,
     '{{pointsEarned}}': String(pointsEarned),
     '{{whatsappNumber}}': whatsappNumber,
     '{{bookingDetailUrl}}': bookingDetailUrl,

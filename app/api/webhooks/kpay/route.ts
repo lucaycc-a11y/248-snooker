@@ -234,6 +234,25 @@ export async function POST(req: Request) {
 
   try {
     if (isSuccess) {
+      if (!booking.payment_method) {
+        const message = 'successful KPay webhook has no persisted payment_method'
+        console.error('[webhook/kpay] payment_method_missing', {
+          bookingId: booking.id,
+          outTradeNo,
+          orderNo,
+          eventId,
+        })
+        await markWebhookFailed(supabase, eventId, message)
+        await logSiteError('webhooks/kpay', 'error', message, {
+          bookingId: booking.id,
+          outTradeNo,
+          orderNo,
+          eventId,
+        })
+        // A later delivery can retry the failed event after the booking row has
+        // been reconciled. Never confirm under a guessed method.
+        return new NextResponse('Payment method missing', { status: 500 })
+      }
       await handleSucceeded(supabase, booking, orderNo, outTradeNo, status, eventId)
     } else if (isFailed) {
       await handleFailed(supabase, booking, eventId)
@@ -286,7 +305,7 @@ async function handleSucceeded(
   status: string,
   eventId: string,
 ) {
-  const paymentMethod = booking.payment_method ?? 'fps'
+  const paymentMethod = booking.payment_method
 
   // Grouped booking: confirm every row atomically
   if (booking.order_group_id) {

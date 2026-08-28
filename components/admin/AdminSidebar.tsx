@@ -17,6 +17,7 @@ import {
   KeyRound,
   Lock,
   CircleDot,
+  Star,
   type LucideIcon,
 } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
@@ -32,6 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/settings', label: 'Settings', icon: Settings },
   { href: '/admin/blog', label: 'Blog', icon: Newspaper },
   { href: '/admin/promos', label: 'Promotions', icon: Tag },
+  { href: '/admin/points-rules', label: 'Points Rules', icon: Star },
   { href: '/admin/ai-settings', label: 'AI Settings', icon: Bot },
   { href: '/admin/team', label: 'Team', icon: UsersRound, superAdminOnly: true },
   { href: '/admin/door', label: 'Door Lock', icon: KeyRound },
