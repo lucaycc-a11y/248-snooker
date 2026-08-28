@@ -22,7 +22,7 @@ const RESEND_COOLDOWN = 60
 const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type Phase = "methods" | "contact" | "otp" | "profile" | "password"
+type Phase = "methods" | "contact" | "otp" | "profile" | "password" | "signup" | "signupPhone" | "signupEmail"
 type OtpChannel = "sms" | "email"
 type OtpDeliveryChannel = "whatsapp" | "sms"
 type ContactTab = "phone" | "email"
@@ -55,6 +55,12 @@ export function AuthCard({
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [signupName, setSignupName] = useState("")
+  const [signupEmail, setSignupEmail] = useState("")
+  const [signupPhone, setSignupPhone] = useState("")
+  const [signupPassword, setSignupPassword] = useState("")
+  const [signupId, setSignupId] = useState("")
+  const [signupMessageId, setSignupMessageId] = useState("")
   const [otpChannel, setOtpChannel] = useState<OtpChannel>("sms")
   const [messageId, setMessageId] = useState("")
   const [otpDeliveryChannel, setOtpDeliveryChannel] = useState<OtpDeliveryChannel>("sms")
@@ -170,6 +176,67 @@ export function AuthCard({
     setPhase("profile")
   }, [onAuthComplete, t, phone])
 
+  const sendSignup = async () => {
+    const normalized = normalizeHkPhone(signupPhone)
+    if (!signupName.trim()) { setError(t("err_name")); return }
+    if (!signupEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupEmail.trim())) { setError(t("err_email")); return }
+    if (!normalized) { setError(t("err_phone")); return }
+    if (signupPassword && signupPassword.length < 6) { setError(t("err_password_min")); return }
+    setBusy(true); setError(null)
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: signupName, email: signupEmail, phone: normalized, password: signupPassword }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || j?.ok !== true) {
+        setError(j?.error === "email_exists" ? t("err_email_exists") : j?.error === "phone_exists" ? t("err_phone_exists") : t("err_send"))
+        setBusy(false); return
+      }
+      setSignupId(typeof j.signupId === "string" ? j.signupId : "")
+      setSignupMessageId(typeof j.messageId === "string" ? j.messageId : "")
+      setPhone(normalized); setMessageId(typeof j.messageId === "string" ? j.messageId : "")
+      setOtp([]); setOtpStatus("input"); setAttemptsLeft(MAX_OTP_ATTEMPTS); setCooldown(RESEND_COOLDOWN)
+      setOtpChannel("sms"); setOtpDeliveryChannel(j.channel === "whatsapp" ? "whatsapp" : "sms")
+      setPhase("signupPhone")
+    } catch { setError(t("err_network")) }
+    setBusy(false)
+  }
+
+  const verifySignupPhone = async (code: string) => {
+    if (!signupId || !signupMessageId) return
+    setBusy(true); setOtpStatus("verifying"); setError(null)
+    try {
+      const res = await fetch("/api/auth/signup/verify-phone", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signupId, phone: signupPhone, messageId: signupMessageId, code }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || j?.ok !== true) { setError(j?.error === "invalid_code" ? t("err_otp_wrong_generic") : t("err_generic")); setOtpStatus("failure"); setBusy(false); return }
+      setOtpStatus("input"); setOtp([]); setEmail(j.email || signupEmail); setPhase("signupEmail")
+    } catch { setError(t("err_network")); setOtpStatus("failure") }
+    setBusy(false)
+  }
+
+  const verifySignupEmail = async (code: string) => {
+    setBusy(true); setOtpStatus("verifying"); setError(null)
+    try {
+      const res = await fetch("/api/auth/signup/verify-email", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signupId, code }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || j?.ok !== true || typeof j.tokenHash !== "string") { setError(j?.error === "invalid_code" ? t("err_otp_wrong_generic") : t("err_generic")); setOtpStatus("failure"); setBusy(false); return }
+      const supabase = createClient()
+      const { error: sessionError } = await supabase.auth.verifyOtp({ token_hash: j.tokenHash, type: "magiclink" })
+      if (sessionError) { setError(t("err_generic")); setOtpStatus("failure"); setBusy(false); return }
+      setOtpStatus("success")
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 720))
+      onAuthComplete()
+    } catch { setError(t("err_network")); setOtpStatus("failure") }
+    setBusy(false)
+  }
+
   const sendOtp = async () => {
     const normalized = normalizeHkPhone(phone)
     if (!normalized) {
@@ -265,22 +332,25 @@ export function AuthCard({
   }
 
   const signInWithPassword = async () => {
-    const trimmed = email.trim()
-    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-      setError(t("err_email"))
+    const identifier = email.trim()
+    if (!identifier) {
+      setError(t("err_identifier"))
       return
     }
     if (!password) {
       setError(t("err_password"))
       return
     }
+    const normalizedPhone = normalizeHkPhone(identifier)
+    if (!normalizedPhone && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
+      setError(t("err_identifier"))
+      return
+    }
     setBusy(true)
     setError(null)
     const supabase = createClient()
-    const { error: signInErr } = await supabase.auth.signInWithPassword({
-      email: trimmed,
-      password,
-    })
+    const authInput = normalizedPhone ? { phone: normalizedPhone, password } : { email: identifier.toLowerCase(), password }
+    const { error: signInErr } = await supabase.auth.signInWithPassword(authInput)
     if (signInErr) {
       setError(t("err_password"))
       setBusy(false)
@@ -419,6 +489,36 @@ export function AuthCard({
     )
   }
 
+  // ── Signup details ──────────────────────────────────────────────────────────
+  if (phase === "signup") {
+    return (
+      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
+        <button type="button" onClick={() => { setPhase("methods"); setError(null) }} aria-label={t("back")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}><ChevronLeft size={16} /> {t("back")}</button>
+        <h2 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>{t("signup_title")}</h2>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>{t("signup_subtitle")}</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <input value={signupName} onChange={(e) => setSignupName(e.target.value)} placeholder={t("profile_name")} autoComplete="name" aria-label={t("profile_name")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
+          <input value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} placeholder={t("email_placeholder")} autoComplete="email" aria-label={t("email_placeholder")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
+          <input value={signupPhone} onChange={(e) => setSignupPhone(e.target.value)} placeholder={t("phone_placeholder")} inputMode="tel" autoComplete="tel" aria-label={t("phone_placeholder")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
+          <input value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} placeholder={t("password_optional")} type="password" autoComplete="new-password" aria-label={t("password_optional")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
+          <button type="button" onClick={sendSignup} disabled={busy} style={{ width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}>{busy ? t("sending") : t("signup_continue")}</button>
+        </div>
+        {error && <p role="alert" style={{ marginTop: 12, fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
+      </motion.div>
+    )
+  }
+
+  if (phase === "signupPhone" || phase === "signupEmail") {
+    const phoneStep = phase === "signupPhone"
+    return (
+      <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
+        <button type="button" onClick={() => { setPhase(phoneStep ? "signup" : "signupPhone"); setError(null); setOtpStatus("input") }} aria-label={t("back")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}><ChevronLeft size={16} /> {t("back")}</button>
+        <h2 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>{phoneStep ? t("signup_phone_title") : t("signup_email_title")}</h2>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>{phoneStep ? t("otp_subtitle", { phone: signupPhone }) : t("otp_subtitle_email", { email: signupEmail })}</p>
+        <OtpVerification length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={phoneStep ? verifySignupPhone : verifySignupEmail} status={otpStatus} error={error} onReset={() => { setOtp([]); setError(null); setOtpStatus("input") }} disabled={busy} />
+      </motion.div>
+    )
+  }
   // ── OTP entry ────────────────────────────────────────────────────────────────
   if (phase === "otp") {
     return (
@@ -485,10 +585,10 @@ export function AuthCard({
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={t("email_placeholder")}
+            placeholder={t("identifier_placeholder")}
             inputMode="email"
-            autoComplete="email"
-            aria-label={t("email_placeholder")}
+            autoComplete="username"
+            aria-label={t("identifier_placeholder")}
             style={{ height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
           />
           <input
@@ -662,7 +762,7 @@ export function AuthCard({
           errorLabel={t("err_generic")}
         />
 
-        {/* Phone / email — expands to a tabbed entry */}
+        {/* Phone / email sign-in — expands to a tabbed entry */}
         <button
           type="button"
           onClick={() => { setPhase("contact"); setError(null) }}
@@ -670,6 +770,16 @@ export function AuthCard({
           style={{ width: "100%", height: 52, border: "1px solid rgba(255,255,255,0.14)", borderRadius: 9999, background: "rgba(255,255,255,0.04)", color: "#fff", fontWeight: 600, fontSize: 16, cursor: "pointer", transition: "background 0.2s ease" }}
         >
           {t("contact_continue")}
+        </button>
+
+        {/* Explicit signup keeps registration distinct from existing-account login. */}
+        <button
+          type="button"
+          onClick={() => { setPhase("signup"); setError(null) }}
+          data-cms-key="auth.signup.start"
+          style={{ marginTop: 2, background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", textAlign: "center", textDecoration: "underline", textUnderlineOffset: 2 }}
+        >
+          {t("signup_start")}
         </button>
 
         {error && phase === "methods" && (

@@ -17,6 +17,7 @@ AS $$
 DECLARE
   v_expired integer;
   v_freed integer;
+  v_expired_ids uuid[];
 BEGIN
   -- Expire pending/failed bookings where the start time is past
   WITH expired AS (
@@ -27,31 +28,35 @@ BEGIN
            OR (date = current_date AND start_time < (LOCALTIME - interval '1 hour')))
     RETURNING id, slot_id
   )
-  SELECT count(*) INTO v_expired FROM expired;
+  SELECT count(*), coalesce(array_agg(id), '{}'::uuid[]) INTO v_expired, v_expired_ids FROM expired;
 
-  -- Free any stale slot locks held by those bookings
+  -- Free only the slots belonging to rows expired by this invocation. Looking
+  -- up every historical expired booking could release a newer lock that was
+  -- acquired after an old booking was expired.
   WITH freed AS (
-    UPDATE public.slots
+    UPDATE public.slots s
     SET status = 'available',
         locked_by = NULL,
         locked_until = NULL
-    WHERE id IN (
-      SELECT e.slot_id
-      FROM (SELECT slot_id FROM public.bookings WHERE status = 'expired') e
-      WHERE e.slot_id IS NOT NULL
+    WHERE s.id IN (
+      SELECT b.slot_id FROM public.bookings b WHERE b.id = ANY(v_expired_ids) AND b.slot_id IS NOT NULL
     )
-    AND status = 'locked'
+      AND s.status = 'locked'
+    RETURNING s.id
   )
   SELECT count(*) INTO v_freed FROM freed;
 
-  -- Insert notification for affected users (non-fatal)
+  -- Insert notifications only for rows expired by this invocation.
   INSERT INTO public.notification_log (user_id, type, message, meta)
   SELECT b.user_id, 'booking_expired',
          'Your booking ' || COALESCE(b.booking_reference, b.human_code, b.id::text) || ' has expired.',
          jsonb_build_object('booking_id', b.id, 'reason', 'stale')
   FROM public.bookings b
-  WHERE b.status = 'expired'
-    AND b.updated_at >= now() - interval '1 minute';
+  WHERE b.id = ANY(v_expired_ids)
+    AND NOT EXISTS (
+    SELECT 1 FROM public.notification_log n
+    WHERE n.booking_id = b.id AND n.type = 'booking_expired'
+  );
 
   expired_count := v_expired;
   freed_slots := v_freed;

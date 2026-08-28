@@ -6,6 +6,18 @@
     "google": "Continue with Google",
     "or": "or",
     "phone_placeholder": "Phone number",
+    "identifier_placeholder": "Email or phone number",
+    "signup_start": "Create an account",
+    "signup_title": "Create Your Account",
+    "signup_subtitle": "Verify your phone first, then your email.",
+    "signup_continue": "Send phone code",
+    "signup_phone_title": "Verify Your Phone",
+    "signup_email_title": "Verify Your Email",
+    "password_optional": "Password (optional)",
+    "err_identifier": "Enter a valid email or Hong Kong phone number.",
+    "err_password_min": "Password must be at least 6 characters.",
+    "err_email_exists": "This email is registered. Sign in to add a phone in Account Settings.",
+    "err_phone_exists": "This phone number is already linked to another account.",
     "phone_send_code": "Send code",
     "contact_continue": "Continue with phone or email",
     "contact_phone_tab": "Phone",
@@ -518,10 +530,10 @@
   },
   "hero": {
     "title": "SPACE8",
-    "tagline": "San Po Kong · Self-Service, Smoke-Free Chinese Eight-Ball",
+    "tagline": "Your Home Ground",
     "cta_book": "Book Now",
     "cta_learn": "Learn More",
-    "subline": "SPACE8 — a self-service, smoke-free Chinese eight-ball club. Two private 1T rooms, no distractions, your own home ground for the purest game."
+    "subline": "Space Pilot, SPACE8's smart assistant"
   },
   "how": {
     "title": "How It Works",
@@ -755,7 +767,10 @@
     "kpay_support_whatsapp": "Contact Us",
     "kpay_back_to_methods": "Back to payment methods",
     "kpay_choose_method": "Choose payment method",
-    "kpay_processing": "Processing⋯"
+    "kpay_processing": "Processing⋯",
+    "kpay_cancelled": "Payment Cancelled",
+    "kpay_cancelled_desc": "This booking was cancelled and its held slots were released.",
+    "kpay_cancel": "Cancel Booking"
   },
   "ticket": {
     "printer_aria": "Booking ticket printer",

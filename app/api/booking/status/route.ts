@@ -33,6 +33,7 @@ export async function GET(req: Request) {
       .select(columns)
       .eq('id', bookingId)
       .eq('user_id', user.id) // own booking only
+      .eq('status', 'confirmed')
       .maybeSingle()
     if (error) {
       console.error('booking_status_error', error.message)

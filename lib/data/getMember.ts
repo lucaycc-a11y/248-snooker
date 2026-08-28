@@ -185,6 +185,7 @@ export async function getMemberData(): Promise<MemberData | null> {
       .from('bookings')
       .select('*')
       .eq('user_id', user.id)
+      .eq('status', 'confirmed')
       .order('created_at', { ascending: false })
       .limit(50)
     if (Array.isArray(data)) bookings = data.map((r) => normalizeBooking(r as Row))
@@ -247,6 +248,7 @@ export async function getMemberTicket(bookingId: string): Promise<MemberTicket |
     )
     .eq('id', bookingId)
     .eq('user_id', user.id)
+    .eq('status', 'confirmed')
     .maybeSingle()
   if (error || !data) return null
 

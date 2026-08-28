@@ -63,7 +63,10 @@
     "kpay_back_to_methods": "返回選擇付款方式",
     "kpay_choose_method": "選擇付款方式",
     "kpay_processing": "處理中⋯",
-    "current_session_cutoff_passed": "此时段已开始超过 15 分钟，暂不接受预订"
+    "current_session_cutoff_passed": "此时段已开始超过 15 分钟，暂不接受预订",
+    "kpay_cancelled": "付款已取消",
+    "kpay_cancelled_desc": "此預訂已取消，已釋放時段。",
+    "kpay_cancel": "取消預訂"
   },
   "ticket": {
     "duration": "時長",

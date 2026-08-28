@@ -6,6 +6,18 @@
     "google": "使用 Google 继续",
     "or": "或",
     "phone_placeholder": "电话号码",
+    "identifier_placeholder": "邮箱或电话号码",
+    "signup_start": "创建账户",
+    "signup_title": "创建你的账户",
+    "signup_subtitle": "先验证电话，再验证邮箱。",
+    "signup_continue": "发送电话验证码",
+    "signup_phone_title": "验证电话",
+    "signup_email_title": "验证邮箱",
+    "password_optional": "密码（可选）",
+    "err_identifier": "请输入有效的邮箱或香港电话号码。",
+    "err_password_min": "密码至少需要 6 个字符。",
+    "err_email_exists": "此 email 已注册，请登录后在账户设置新增电话",
+    "err_phone_exists": "此电话号码已关联其他账户。",
     "phone_send_code": "发送验证码",
     "contact_continue": "用电话或电邮登录",
     "contact_phone_tab": "电话",
@@ -518,10 +530,10 @@
   },
   "hero": {
     "title": "SPACE8",
-    "tagline": "新蒲岗·自助无烟智能中式台球室",
+    "tagline": "属于你的主场",
     "cta_book": "立即预订",
     "cta_learn": "了解更多",
-    "subline": "SPACE8 - 自助无烟智能中式台球室。两间 1T 独立无烟球室，无多余干扰，为您打造属于你的主场，带给你最纯粹的台球体验。"
+    "subline": "Space Pilot，SPACE8 的智能小管家"
   },
   "how": {
     "title": "预订流程",
@@ -755,7 +767,10 @@
     "kpay_support_whatsapp": "联絡我們",
     "kpay_back_to_methods": "返回選擇付款方式",
     "kpay_choose_method": "選擇付款方式",
-    "kpay_processing": "處理中⋯"
+    "kpay_processing": "處理中⋯",
+    "kpay_cancelled": "付款已取消",
+    "kpay_cancelled_desc": "此预订已取消，已释放时段。",
+    "kpay_cancel": "取消预订"
   },
   "ticket": {
     "printer_aria": "订桌出票机",

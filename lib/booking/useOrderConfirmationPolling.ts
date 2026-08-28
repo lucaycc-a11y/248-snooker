@@ -2,10 +2,31 @@
 
 import { useEffect, useState } from "react"
 
-export type OrderConfirmationStatus = "pending" | "success" | "failed" | "timeout"
+export type OrderConfirmationStatus =
+  | "pending"
+  | "pending_confirmation"
+  | "success"
+  | "failed"
+  | "cancelled"
+  | "expired"
+  | "timeout"
+
+type CheckoutStatusResponse = {
+  status?: string
+  providerStatus?: string
+}
 
 const POLL_INTERVAL_MS = 3_000
 const TIMEOUT_MS = 60_000
+
+function parseStatusResponse(value: unknown): CheckoutStatusResponse {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {}
+  const record = value as Record<string, unknown>
+  return {
+    status: typeof record.status === "string" ? record.status : undefined,
+    providerStatus: typeof record.providerStatus === "string" ? record.providerStatus : undefined,
+  }
+}
 
 /** Poll the provider-aware checkout status after an external payment return. */
 export function useOrderConfirmationPolling(
@@ -37,19 +58,29 @@ export function useOrderConfirmationPolling(
           { cache: "no-store" },
         )
         const data: unknown = await response.json()
-        const result = data as { status?: unknown; providerStatus?: unknown }
+        const result = parseStatusResponse(data)
         const statusValue = result.status
         const providerStatus = result.providerStatus
 
-        if (statusValue === "confirmed" || providerStatus === "success") {
+        // Provider success only means KPay accepted the payment. The webhook
+        // still has to commit bookings.status = confirmed before this hook can
+        // advance to the ticket screen.
+        if (statusValue === "confirmed") {
           finish("success")
           return
         }
-        if (
+        if (statusValue === "pending_confirmation") {
+          finish("pending_confirmation")
+        } else if (statusValue === "expired" || providerStatus === "expired") {
+          finish("expired")
+          return
+        } else if (statusValue === "cancelled" || providerStatus === "cancelled") {
+          finish("cancelled")
+          return
+        } else if (
           statusValue === "failed" ||
-          statusValue === "cancelled" ||
+          statusValue === "payment_failed" ||
           providerStatus === "failed" ||
-          providerStatus === "cancelled" ||
           providerStatus === "closed"
         ) {
           finish("failed")

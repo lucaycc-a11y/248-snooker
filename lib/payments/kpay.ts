@@ -107,7 +107,7 @@ export class KPayProvider implements PaymentProvider {
     // Do NOT call /v1/order/add first: that registers outTradeNo with KPay, and
     // the QR call then collides with it and fails "商戶訂單號已存在". That was a
     // self-collision inside one request, not a concurrent double-submit.
-    const directReturnUrl = `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`
+    const directReturnUrl = `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
     const institution = this.getPaymentInstitution(method)
     const qrEndpoint = this.getQrEndpoint(method, mode)
 
@@ -183,7 +183,7 @@ export class KPayProvider implements PaymentProvider {
       payAmount: amount.toFixed(2),
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
-      returnUrl: `${baseUrl}/book?bookingId=${bookingId}&redirect_status=succeeded`,
+      returnUrl: `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`,
       ...(remark ? { orderRemark: remark } : {}),
     }
 
@@ -201,7 +201,7 @@ export class KPayProvider implements PaymentProvider {
     // Step 2: build signed H5 redirect URL for KPay's hosted card page
     const timestamp = Date.now().toString()
     const nonceStr = generateNonce()
-    const returnUrl = `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=succeeded`
+    const returnUrl = `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
     const h5Path = `/v1/h5?orderNo=${encodeURIComponent(orderNo)}&language=zh_HK&returnUrl=${encodeURIComponent(returnUrl)}&K-Merchant-Code=${encodeURIComponent(this.merchantCode)}&K-Nonce-Str=${encodeURIComponent(nonceStr)}&K-Timestamp=${encodeURIComponent(timestamp)}`
 
     const signText = buildSignText('GET', h5Path, timestamp, nonceStr, this.merchantCode, '')
@@ -251,6 +251,8 @@ export class KPayProvider implements PaymentProvider {
       providerOrderNo: res.data!.orderNo,
       status: this.mapKPayResult(result),
       rawStatus: String(result),
+      failureCode: this.extractFailureCode(res),
+      failureReason: this.extractFailureReason(res),
     }
   }
 
@@ -472,6 +474,23 @@ export class KPayProvider implements PaymentProvider {
     }
 
     return json
+  }
+
+  private extractFailureCode(res: KPayApiResponse<{ orderNo: string; outTradeNo: string; result: string | number }>): string | undefined {
+    if (res.data && typeof res.data === 'object') {
+      const value = (res.data as Record<string, unknown>).errorCode ?? (res.data as Record<string, unknown>).code
+      if (typeof value === 'string' || typeof value === 'number') return String(value)
+    }
+    return undefined
+  }
+
+  private extractFailureReason(res: KPayApiResponse<{ orderNo: string; outTradeNo: string; result: string | number }>): string | undefined {
+    if (typeof res.message === 'string' && res.message.trim()) return res.message.trim().slice(0, 240)
+    if (res.data && typeof res.data === 'object') {
+      const value = (res.data as Record<string, unknown>).errorMessage ?? (res.data as Record<string, unknown>).reason
+      if (typeof value === 'string' && value.trim()) return value.trim().slice(0, 240)
+    }
+    return undefined
   }
 
   private mapKPayResult(result: string | number): OrderStatus['status'] {

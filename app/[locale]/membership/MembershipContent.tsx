@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { useAnimeReveal } from "@/lib/anime-reveal";
 
 const GREEN = "#22C55E";
 const DARK = "#1D1D1F";
@@ -135,6 +136,12 @@ export default function MembershipContent() {
 /* ── Tab 1: Membership ─────────────────────────────────────────────────── */
 
 function TabMembership({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const revealRef = useAnimeReveal<HTMLElement>({
+    selector: "[data-anime-membership-item]",
+    delay: 85,
+    duration: 720,
+    distance: 20,
+  });
   const tiers = [
     {
       icon: <SparkleIcon color="#86EFAC" />,
@@ -166,13 +173,10 @@ function TabMembership({ t }: { t: ReturnType<typeof useTranslations> }) {
   const howItems = t.raw("how_items") as Array<{ icon: string; title: string; body: string }>;
 
   return (
-    <section style={{ padding: "clamp(40px, 8vw, 80px) 0" }}>
-      {/* Tier Header */}
+    <section ref={revealRef} style={{ padding: "clamp(40px, 8vw, 80px) 0" }}>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={VIEWPORT}
-        transition={{ duration: 0.6, ease: EASE }}
+        data-anime-membership-item
+        initial={{ opacity: 1, y: 0 }}
         style={{ textAlign: "center", marginBottom: "48px" }}
       >
         <h2 style={{ fontSize: "clamp(28px, 4.5vw, 44px)", fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", margin: "0 0 16px" }}>
@@ -208,11 +212,9 @@ function TabMembership({ t }: { t: ReturnType<typeof useTranslations> }) {
       >
         {tiers.map((tier, i) => (
           <motion.div
+            data-anime-membership-item
             key={tier.title}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={VIEWPORT}
-            transition={{ duration: 0.5, delay: i * 0.1, ease: EASE }}
+            initial={{ opacity: 1, y: 0 }}
             style={{
               background: DARK,
               border: `1px solid ${BORDER}`,
@@ -263,10 +265,8 @@ function TabMembership({ t }: { t: ReturnType<typeof useTranslations> }) {
 
       {/* How to Earn & Use */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={VIEWPORT}
-        transition={{ duration: 0.6, ease: EASE }}
+        data-anime-membership-item
+        initial={{ opacity: 1, y: 0 }}
         style={{ textAlign: "center", marginBottom: "32px" }}
       >
         <h3 style={{ fontSize: "clamp(22px, 3.5vw, 32px)", fontWeight: 700, color: "#fff", margin: 0 }}>
@@ -283,11 +283,9 @@ function TabMembership({ t }: { t: ReturnType<typeof useTranslations> }) {
       >
         {howItems.map((item, i) => (
           <motion.div
+            data-anime-membership-item
             key={item.title}
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={VIEWPORT}
-            transition={{ duration: 0.5, delay: i * 0.08, ease: EASE }}
+            initial={{ opacity: 1, y: 0 }}
             style={{
               border: `1px solid ${BORDER}`,
               borderRadius: "18px",
@@ -313,13 +311,15 @@ function TabMembership({ t }: { t: ReturnType<typeof useTranslations> }) {
 /* ── Tab 2: QR Code ────────────────────────────────────────────────────── */
 
 function TabQR({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const revealRef = useAnimeReveal<HTMLElement>({
+    selector: "[data-anime-membership-item]",
+    delay: 100,
+    duration: 720,
+    distance: 18,
+  });
   return (
-    <section style={{ padding: "clamp(40px, 8vw, 80px) 0", textAlign: "center" }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: EASE }}
-      >
+    <section ref={revealRef} style={{ padding: "clamp(40px, 8vw, 80px) 0", textAlign: "center" }}>
+      <motion.div data-anime-membership-item initial={{ opacity: 1, y: 0 }}>
         <h2 style={{ fontSize: "clamp(28px, 4.5vw, 44px)", fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", margin: "0 0 16px" }}>
           {t("qr_title")}
         </h2>
@@ -330,9 +330,8 @@ function TabQR({ t }: { t: ReturnType<typeof useTranslations> }) {
 
       {/* QR Illustration — static demo QR code */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.2, ease: EASE }}
+        data-anime-membership-item
+        initial={{ opacity: 1, scale: 1 }}
         style={{
           width: "min(80vw, 280px)",
           height: "min(80vw, 280px)",
@@ -383,17 +382,12 @@ function TabQR({ t }: { t: ReturnType<typeof useTranslations> }) {
 /* ── Tab 3: Smart Concierge ────────────────────────────────────────────── */
 
 function TabPilot({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const revealRef = useAnimeReveal<HTMLElement>({ selector: "[data-anime-membership-item]", delay: 70, duration: 700, distance: 16 });
   const features = t.raw("pilot_features") as Array<{ title: string; body: string }>;
 
   return (
-    <section style={{ padding: "clamp(40px, 8vw, 80px) 0" }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={VIEWPORT}
-        transition={{ duration: 0.6, ease: EASE }}
-        style={{ textAlign: "center", marginBottom: "48px" }}
-      >
+    <section ref={revealRef} style={{ padding: "clamp(40px, 8vw, 80px) 0" }}>
+      <motion.div data-anime-membership-item initial={{ opacity: 1, y: 0 }} style={{ textAlign: "center", marginBottom: "48px" }}>
         <h2 style={{ fontSize: "clamp(28px, 4.5vw, 44px)", fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", margin: "0 0 12px" }}>
           {t("pilot_title")}
         </h2>
@@ -402,11 +396,9 @@ function TabPilot({ t }: { t: ReturnType<typeof useTranslations> }) {
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
         {features.map((feature, i) => (
           <motion.div
+            data-anime-membership-item
             key={feature.title}
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={VIEWPORT}
-            transition={{ duration: 0.5, delay: i * 0.04, ease: EASE }}
+            initial={{ opacity: 1, y: 0 }}
             style={{
               border: `1px solid ${BORDER}`,
               borderRadius: "18px",
@@ -450,18 +442,13 @@ function TabPilot({ t }: { t: ReturnType<typeof useTranslations> }) {
 /* ── Tab 4: How to Play ────────────────────────────────────────────────── */
 
 function TabPlay({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const revealRef = useAnimeReveal<HTMLElement>({ selector: "[data-anime-membership-item]", delay: 80, duration: 700, distance: 18 });
   const playIcons = [<QrIcon />, <TrophyIcon color={GREEN} />, <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="28" height="28"><circle cx="12" cy="12" r="3" /><path d="M12 2v4" /><path d="M12 18v4" /><path d="M4.93 4.93l2.83 2.83" /><path d="M16.24 16.24l2.83 2.83" /><path d="M2 12h4" /><path d="M18 12h4" /></svg>, <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="28" height="28"><path d="M12 19V5" /><path d="M5 12l7-7 7 7" /></svg>];
   const playItems = t.raw("play_items") as Array<{ title: string; body: string }>;
 
   return (
-    <section style={{ padding: "clamp(40px, 8vw, 80px) 0" }}>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={VIEWPORT}
-        transition={{ duration: 0.6, ease: EASE }}
-        style={{ textAlign: "center", marginBottom: "48px" }}
-      >
+    <section ref={revealRef} style={{ padding: "clamp(40px, 8vw, 80px) 0" }}>
+      <motion.div data-anime-membership-item initial={{ opacity: 1, y: 0 }} style={{ textAlign: "center", marginBottom: "48px" }}>
         <h2 style={{ fontSize: "clamp(28px, 4.5vw, 44px)", fontWeight: 700, letterSpacing: "-0.02em", color: "#fff", margin: "0 0 12px" }}>
           {t("play_title")}
         </h2>
@@ -476,11 +463,9 @@ function TabPlay({ t }: { t: ReturnType<typeof useTranslations> }) {
       >
         {playItems.map((item, i) => (
           <motion.div
+            data-anime-membership-item
             key={item.title}
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={VIEWPORT}
-            transition={{ duration: 0.5, delay: i * 0.08, ease: EASE }}
+            initial={{ opacity: 1, y: 0 }}
             style={{
               border: `1px solid ${BORDER}`,
               borderRadius: "18px",

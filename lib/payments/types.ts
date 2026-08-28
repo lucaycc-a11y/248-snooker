@@ -91,6 +91,9 @@ export interface OrderStatus {
   status: 'pending' | 'success' | 'failed' | 'refunded' | 'cancelled' | 'closed'
   providerOrderNo: string
   rawStatus: string
+  /** Safe provider diagnostic; never includes request headers or signatures. */
+  failureCode?: string
+  failureReason?: string
 }
 
 export interface RefundParams {

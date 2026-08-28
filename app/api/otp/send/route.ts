@@ -58,12 +58,18 @@ export async function POST(req: NextRequest) {
       messageId: engagelabData.message_id,
       channel: engagelabData.send_channel,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[otp/send] error', error)
 
-    if (error?.code) {
-      const message = mapEngagelabError(error.code)
-      return NextResponse.json({ error: message }, { status: error.httpStatus || 400 })
+    if (error && typeof error === 'object' && 'code' in error) {
+      const code = (error as { code?: number }).code
+      if (typeof code === 'number') {
+        const message = mapEngagelabError(code)
+        const httpStatus = 'httpStatus' in error && typeof (error as { httpStatus?: number }).httpStatus === 'number'
+          ? (error as { httpStatus: number }).httpStatus
+          : 400
+        return NextResponse.json({ error: message }, { status: httpStatus })
+      }
     }
 
     return NextResponse.json({ error: '發送失敗，請重試' }, { status: 500 })

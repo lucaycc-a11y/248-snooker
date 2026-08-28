@@ -49,11 +49,11 @@ export async function GET(req: Request) {
       })
     }
 
-    if (booking.status === 'cancelled') {
+    if (booking.status === 'cancelled' || booking.status === 'expired' || booking.status === 'payment_failed') {
       return NextResponse.json({
         bookingId: booking.id,
-        status: 'cancelled',
-        providerStatus: 'cancelled',
+        status: booking.status,
+        providerStatus: booking.status === 'cancelled' ? 'cancelled' : booking.status,
       })
     }
 
@@ -61,7 +61,7 @@ export async function GET(req: Request) {
     if (!booking.provider_order_no || booking.payment_provider !== 'kpay') {
       return NextResponse.json({
         bookingId: booking.id,
-        status: booking.status,
+        status: booking.status === 'pending' ? 'pending' : 'failed',
         providerStatus: 'pending',
       })
     }
@@ -72,14 +72,19 @@ export async function GET(req: Request) {
     const provider = getPaymentProvider()
     const orderStatus = await provider.queryOrder(booking.provider_order_no)
 
-    // Map KPay order status to a UI-friendly status
+    // Provider success is not database confirmation. The webhook still needs to
+    // commit the booking transition and generate the booking credentials.
     let uiStatus: string
     switch (orderStatus.status) {
       case 'success':
-        uiStatus = 'confirmed' // will be confirmed by webhook imminently
+        uiStatus = 'pending_confirmation'
         break
       case 'failed':
+        uiStatus = 'failed'
+        break
       case 'cancelled':
+        uiStatus = 'cancelled'
+        break
       case 'closed':
         uiStatus = 'failed'
         break
@@ -95,6 +100,8 @@ export async function GET(req: Request) {
       status: uiStatus,
       providerStatus: orderStatus.status,
       rawStatus: orderStatus.rawStatus,
+      ...(orderStatus.failureCode ? { failureCode: orderStatus.failureCode } : {}),
+      ...(orderStatus.failureReason ? { failureReason: orderStatus.failureReason } : {}),
     })
   } catch (err) {
     const e = err as Error

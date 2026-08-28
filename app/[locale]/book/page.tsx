@@ -1975,13 +1975,16 @@ function Screen3({
                       help: t("kpay_help") || "需要幫助？",
                       support_whatsapp: t("kpay_support_whatsapp") || "WhatsApp 客服",
                       back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
+                      cancelled: t("kpay_cancelled") || "付款已取消",
+                      cancelled_desc: t("kpay_cancelled_desc") || "此預訂已取消，已釋放時段。",
+                      cancel: t("kpay_cancel") || "取消預訂",
                       processing: t("kpay_processing") || "處理中…",
                       terms_required: t("terms_required_hint"),
                     }}
                     onBackToMethods={() => setPaymentMethod(null)}
                     onSuccess={(returnedBookingId) => {
                       if (returnedBookingId) {
-                        window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
+                        window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=returned`
                       }
                     }}
                   />
@@ -2299,10 +2302,9 @@ type ConfirmedBooking = {
   holder_name?: string | null
 }
 
-// Shown after the Stripe redirect returns to /book while we poll the booking
-// status until the webhook flips it to 'confirmed'. `failed` covers a declined
-// redirect or a poll that timed out.
-function ConfirmingPayment({ failed, timeout, onViewOrder, onRetry }: { failed: boolean; timeout: boolean; onViewOrder: () => void; onRetry: () => void }) {
+  // Shown after an external payment return while the webhook commits the booking.
+  // Provider success alone remains a checking state; `success` means DB-confirmed.
+function ConfirmingPayment({ failed, timeout, outcome, onViewOrder, onRetry }: { failed: boolean; timeout: boolean; outcome: "failed" | "cancelled" | "expired" | null; onViewOrder: () => void; onRetry: () => void }) {
   const t = useTranslations("book")
   return (
     <div
@@ -2318,13 +2320,13 @@ function ConfirmingPayment({ failed, timeout, onViewOrder, onRetry }: { failed: 
         padding: "24px 20px",
       }}
     >
-      {failed ? (
+      {failed || outcome ? (
         <>
           <p data-cms-key="book.pay.confirm_failed" style={{ fontSize: 16, color: tokens.colors.text, maxWidth: 320 }}>
-            {t("confirm_failed")}
+            {outcome === "cancelled" ? t("kpay_cancelled_desc") : outcome === "expired" ? t("kpay_expired_desc") : t("confirm_failed")}
           </p>
           <button type="button" onClick={onRetry} data-cms-key="book.pay.confirm_retry" style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}>
-            {t("kpay_try_again")}
+            {outcome === "cancelled" || outcome === "expired" ? t("back_home") : t("kpay_try_again")}
           </button>
           <button type="button" onClick={() => (window.location.href = "/")} data-cms-key="book.pay.confirm_failed_home" style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}>
             {t("back_home")}
@@ -2397,7 +2399,8 @@ export default function BookPage() {
   const [confirmedBookings, setConfirmedBookings] = useState<ConfirmedBooking[]>([])
   const [confirmError, setConfirmError] = useState(false)
   const [confirmTimeout, setConfirmTimeout] = useState(false)
-  const confirmationStatus = useOrderConfirmationPolling(confirmBookingId, Boolean(confirmBookingId) && !confirmError)
+  const [confirmOutcome, setConfirmOutcome] = useState<"failed" | "cancelled" | "expired" | null>(null)
+  const confirmationStatus = useOrderConfirmationPolling(confirmBookingId, Boolean(confirmBookingId) && !confirmError && !confirmOutcome)
 
   const haptic = useHaptic()
 
@@ -2557,9 +2560,13 @@ export default function BookPage() {
     const bId = params.get("bookingId")
     if (!bId || !(params.get("redirect_status") || params.get("payment_intent"))) return
 
-    setConfirmBookingId(bId)
-    setScreen(3)
-    if (params.get("redirect_status") === "failed") setConfirmError(true)
+      // A KPay return is deliberately neutral: only the authenticated status
+      // endpoint can decide whether payment failed or the booking was confirmed.
+      setConfirmBookingId(bId)
+      setConfirmError(false)
+      setConfirmTimeout(false)
+      setConfirmOutcome(null)
+      setScreen(3)
   }, [])
 
   // Once the provider-aware poll sees success, load the existing confirmation
@@ -2586,6 +2593,7 @@ export default function BookPage() {
   useEffect(() => {
     if (confirmationStatus === "timeout") setConfirmTimeout(true)
     if (confirmationStatus === "failed") setConfirmError(true)
+    if (confirmationStatus === "cancelled" || confirmationStatus === "expired") setConfirmOutcome(confirmationStatus)
   }, [confirmationStatus])
 
   // Shared availability cache: prefetches today + 7 days so date-switching in
@@ -2890,6 +2898,7 @@ export default function BookPage() {
                   <ConfirmingPayment
                     failed={confirmError}
                     timeout={confirmTimeout}
+                    outcome={confirmOutcome}
                     onViewOrder={() => router.push(`/member/bookings/${encodeURIComponent(confirmBookingId)}`)}
                     onRetry={() => {
                       setConfirmError(false)
