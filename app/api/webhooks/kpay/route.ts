@@ -328,6 +328,13 @@ async function handleSucceeded(
       orderGroupId: booking.order_group_id,
       bookings: result?.booking_ids?.length,
     })
+
+    // Mark payment attempt succeeded (non-fatal).
+    await supabase.rpc('complete_payment_attempt', {
+      p_provider_order_no: providerOrderNo,
+      p_provider: 'kpay',
+    })
+
     return
   }
 
@@ -372,6 +379,12 @@ async function handleSucceeded(
       bookingId: result.booking_id,
     })
   }
+
+  // Mark payment attempt succeeded (non-fatal).
+  await supabase.rpc('complete_payment_attempt', {
+    p_provider_order_no: providerOrderNo,
+    p_provider: 'kpay',
+  })
 }
 
 async function handleFailed(

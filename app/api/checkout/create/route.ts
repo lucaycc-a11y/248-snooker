@@ -330,13 +330,11 @@ export async function POST(req: Request) {
 //
 // The ONLY place in this route that calls provider.createOrder. Both entry
 // modes (first order, resume/retry) converge here, so there is exactly one
-// create + stamp sequence and one duplicate guard.
+// create + stamp sequence.
 //
-// The guard is the conditional stamp (.is('provider_order_no', null)), not an
-// in-process lock: serverless instances share no memory, so a Map-based lock
-// cannot see a request handled by another instance. If a concurrent request
-// stamped first, this update matches 0 rows and we return THAT order rather
-// than handing back two different orders for one booking.
+// The duplicate-order guard is claim_payment_attempt, called BEFORE the external
+// provider call. A database row claim prevents two serverless instances from both
+// reaching KPay with different outTradeNo values for the same booking.
 type CreateAndStampArgs = {
   service: ReturnType<typeof getServiceSupabase>
   provider: ReturnType<typeof getPaymentProvider>
@@ -358,56 +356,112 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
     orderGroupId, totalAmount, paymentMethod, mode, origin, extra,
   } = args
 
-  const result = await provider.createOrder({
-    outTradeNo,
-    bookingId: primaryBookingId,
-    amount: totalAmount,
-    method: paymentMethod,
-    mode,
-    baseUrl: origin,
+  // ── 1. Claim payment attempt ───────────────────────────────────────────────
+  // This is the cross-instance lock: the unique active-booking index prevents
+  // two concurrent requests from both creating external orders.
+  const idempotencyKey = `${primaryBookingId}:${Date.now()}`
+  const { data: claimData, error: claimErr } = await service.rpc('claim_payment_attempt', {
+    p_booking_id: primaryBookingId,
+    p_user_id: userId,
+    p_provider: 'kpay',
+    p_idempotency_key: idempotencyKey,
   })
 
-  const { data: stamped, error: updateErr } = await service
+  if (claimErr) {
+    console.error('[checkout/create] claim_payment_attempt failed', {
+      primaryBookingId,
+      message: claimErr.message,
+    })
+    await logSiteError('checkout/create', 'error', 'claim_payment_attempt failed', {
+      bookingId: primaryBookingId,
+      message: claimErr.message,
+    })
+    return NextResponse.json({ error: 'Unable to create payment order' }, { status: 500 })
+  }
+
+  const claim = claimData as Record<string, unknown> | null
+  if (!claim || claim.success !== true) {
+    return NextResponse.json({ error: 'Unable to claim payment attempt' }, { status: 500 })
+  }
+
+  const attemptId = typeof claim.attempt_id === 'string' ? claim.attempt_id : null
+  const existingProviderOrderNo = typeof claim.provider_order_no === 'string' ? claim.provider_order_no : null
+  const isExisting = claim.existing === true
+
+  // ── 2. Return existing order if another request already created one ────────
+  if (isExisting && existingProviderOrderNo) {
+    console.log('[checkout/create] existing active attempt, returning its order', {
+      primaryBookingId,
+      attemptId,
+      providerOrderNo: existingProviderOrderNo,
+    })
+    // Load the existing payInfo from the provider
+    const orderStatus = await provider.queryOrder(existingProviderOrderNo)
+    return NextResponse.json({
+      bookingId: primaryBookingId,
+      providerOrderNo: existingProviderOrderNo,
+      existing: true,
+    })
+  }
+
+  if (!attemptId) {
+    return NextResponse.json({ error: 'Invalid attempt claim' }, { status: 500 })
+  }
+
+  // ── 3. Create order with external provider ─────────────────────────────────
+  let result: { providerOrderNo: string; payInfo: string; kind: string; expiresInSeconds: number }
+  try {
+    result = await provider.createOrder({
+      outTradeNo,
+      bookingId: primaryBookingId,
+      amount: totalAmount,
+      method: paymentMethod,
+      mode,
+      baseUrl: origin,
+    })
+  } catch (err) {
+    const e = err as Error
+    console.error('[checkout/create] provider.createOrder failed', {
+      primaryBookingId,
+      attemptId,
+      message: e.message,
+    })
+    await service.rpc('fail_payment_attempt', {
+      p_attempt_id: attemptId,
+      p_failure_code: null,
+      p_failure_reason: e.message.slice(0, 240),
+    })
+    throw err
+  }
+
+  // ── 4. Finalize attempt and stamp booking ──────────────────────────────────
+  const { error: finalizeErr } = await service.rpc('finalize_payment_attempt', {
+    p_attempt_id: attemptId,
+    p_provider_order_no: result.providerOrderNo,
+  })
+
+  if (finalizeErr) {
+    console.error('[checkout/create] finalize_payment_attempt failed', {
+      primaryBookingId,
+      attemptId,
+      providerOrderNo: result.providerOrderNo,
+      message: finalizeErr.message,
+    })
+  }
+
+  // Stamp the booking row for backward compatibility with existing queries.
+  const { error: stampErr } = await service
     .from('bookings')
     .update({ payment_provider: 'kpay', provider_order_no: result.providerOrderNo })
     .eq('id', primaryBookingId)
     .eq('user_id', userId)
-    .is('provider_order_no', null)
-    .select('id')
 
-  if (updateErr) {
-    console.error('[checkout/create] provider_order_no stamp failed', {
+  if (stampErr) {
+    console.error('[checkout/create] booking stamp failed', {
       primaryBookingId,
       providerOrderNo: result.providerOrderNo,
-      error: updateErr.message,
+      message: stampErr.message,
     })
-    await logSiteError('checkout/create', 'warning', 'provider_order_no stamp failed', {
-      bookingId: primaryBookingId,
-      providerOrderNo: result.providerOrderNo,
-      message: updateErr.message,
-    })
-  }
-
-  // Lost the race — surface the winning order instead of our orphan.
-  if (!updateErr && (!stamped || stamped.length === 0)) {
-    const { data: winner } = await service
-      .from('bookings')
-      .select('provider_order_no')
-      .eq('id', primaryBookingId)
-      .single()
-
-    if (winner?.provider_order_no && winner.provider_order_no !== result.providerOrderNo) {
-      console.warn('[checkout/create] concurrent stamp detected — returning existing order', {
-        primaryBookingId,
-        ours: result.providerOrderNo,
-        existing: winner.provider_order_no,
-      })
-      return NextResponse.json({
-        bookingId: primaryBookingId,
-        providerOrderNo: winner.provider_order_no,
-        existing: true,
-      })
-    }
   }
 
   // Siblings share the primary's provider order (grouped multi-slot checkout).
@@ -422,16 +476,17 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
       : await q.eq('order_group_id', orderGroupId!).neq('id', primaryBookingId)
 
     if (groupErr) {
-      console.error('[checkout/create] group provider_order_no stamp failed', {
+      console.error('[checkout/create] group stamp failed', {
         orderGroupId,
         providerOrderNo: result.providerOrderNo,
-        error: groupErr.message,
+        message: groupErr.message,
       })
     }
   }
 
   console.log('[checkout/create] success', {
     primaryBookingId,
+    attemptId,
     providerOrderNo: result.providerOrderNo,
     method: paymentMethod,
     mode,
