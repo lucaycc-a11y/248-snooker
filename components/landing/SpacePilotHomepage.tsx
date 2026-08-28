@@ -31,11 +31,7 @@ export default function SpacePilotHomepage() {
       className="bg-[#f5f5f5] px-6 py-[88px] text-[#1d1d1f] md:py-[116px]"
     >
       <div className="mx-auto max-w-[1120px]">
-        <motion.div
-          data-anime-pilot-item
-          initial={{ opacity: 1, y: 0 }}
-          className="mb-8 max-w-3xl md:mb-12"
-        >
+        <div data-anime-pilot-item className="mb-8 max-w-3xl md:mb-12">
           <p data-anime-pilot-item data-cms-key="spacePilot.eyebrow" className="mb-3 font-label text-[11px] font-bold tracking-[0.16em] text-[#1a9d5c]">
             {t("eyebrow")}
           </p>
@@ -45,16 +41,15 @@ export default function SpacePilotHomepage() {
           <p data-anime-pilot-item data-cms-key="spacePilot.intro" className="mt-5 max-w-2xl text-[16px] leading-[1.75] text-black/60 md:text-[18px]">
             {t("intro")}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           {features.map((feature, index) => {
             const Icon = ICONS[index] ?? BrainCircuit;
             return (
-              <motion.article
+              <article
                 data-anime-pilot-item
                 key={feature.title}
-                initial={{ opacity: 1, y: 0 }}
                 className="rounded-[20px] border border-black/10 bg-white p-6 transition-transform duration-300 hover:-translate-y-1 md:p-8"
               >
                 <Icon aria-hidden="true" size={30} strokeWidth={1.5} className="mb-6 text-[#1a9d5c]" />
@@ -64,14 +59,13 @@ export default function SpacePilotHomepage() {
                 <p data-cms-key={`spacePilot.features.${index}.body`} className="mt-3 text-[15px] leading-[1.75] text-black/60">
                   {feature.body}
                 </p>
-              </motion.article>
+              </article>
             );
           })}
         </div>
 
-        <motion.div
+        <div
           data-anime-pilot-item
-          initial={{ opacity: 1, y: 0 }}
           className="mt-8 rounded-[20px] border border-black/10 bg-[#e8e8e8] p-6 md:mt-10 md:p-8"
         >
           <h3 data-cms-key="spacePilot.space_title" className="m-0 text-[clamp(1.5rem,3vw,2.25rem)] font-bold tracking-[-0.03em]">
@@ -80,7 +74,7 @@ export default function SpacePilotHomepage() {
           <p data-cms-key="spacePilot.space_subtitle" className="mt-3 text-[15px] leading-[1.75] text-black/60 md:text-[17px]">
             {t("space_subtitle")}
           </p>
-        </motion.div>
+        </div>
 
         <motion.a
           initial={{ opacity: 0, y: 16 }}

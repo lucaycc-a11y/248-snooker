@@ -1,12 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Focus, MonitorSmartphone, Table2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAnimeReveal } from "@/lib/anime-reveal";
 
 const ICONS = [Focus, MonitorSmartphone, Table2] as const;
-const EASE = [0.16, 1, 0.3, 1] as const;
 
 type FocusItem = {
   title: string;
@@ -31,27 +29,22 @@ export default function HomeFocus() {
       className="bg-[#f5f5f7] px-6 py-[88px] text-[#1d1d1f] md:py-[116px]"
     >
       <div className="mx-auto max-w-[1120px]">
-        <motion.div
-          data-anime-focus-item
-          initial={{ opacity: 1, y: 0 }}
-          className="mb-8 max-w-2xl md:mb-12"
-        >
+        <div data-anime-focus-item className="mb-8 max-w-2xl md:mb-12">
           <p data-anime-focus-item data-cms-key="homeFocus.eyebrow" className="mb-3 font-label text-[12px] font-bold tracking-[0.14em] text-[#1a9d5c]">
             {t("eyebrow")}
           </p>
           <h2 data-anime-focus-item id="home-focus-title" data-cms-key="homeFocus.title" className="m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.04em]">
             {t("title")}
           </h2>
-        </motion.div>
+        </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           {items.map((item, index) => {
             const Icon = ICONS[index] ?? Focus;
             return (
-              <motion.article
+              <article
                 data-anime-focus-item
                 key={item.title}
-                initial={{ opacity: 1, y: 0 }}
                 className="rounded-[18px] border border-black/10 bg-white p-6 md:p-7"
               >
                 <Icon aria-hidden="true" size={28} strokeWidth={1.5} className="mb-6 text-[#1a9d5c]" />
@@ -61,7 +54,7 @@ export default function HomeFocus() {
                 <p data-cms-key={`homeFocus.items.${index}.body`} className="mt-3 text-[15px] leading-[1.75] text-black/60">
                   {item.body}
                 </p>
-              </motion.article>
+              </article>
             );
           })}
         </div>
