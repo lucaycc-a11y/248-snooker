@@ -2221,8 +2221,6 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
   }, [])
 
   const firstTicket = tickets[0]
-  const startTime = firstTicket ? padTime(firstTicket.startHour) : "—"
-  const endTime = firstTicket ? padTime(firstTicket.startHour + firstTicket.duration) : "—"
 
   return (
     <div className="screen-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: "calc(100dvh - 80px)", position: "relative", padding: "24px 20px" }}>
@@ -2237,15 +2235,14 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
         {firstTicket ? (
           <TicketPrinter
             date={firstTicket.date}
-            startTime={startTime}
-            endTime={endTime}
-            roomName={getTableName(firstTicket.tableNumber, locale)}
-            bookingCode={firstTicket.humanCode ?? firstTicket.bookingRef}
+            startHour={firstTicket.startHour}
+            duration={firstTicket.duration}
+            tableNumber={firstTicket.tableNumber}
+            bookingRef={firstTicket.bookingRef}
+            humanCode={firstTicket.humanCode}
             memberCode={firstTicket.memberCode}
             totalPrice={firstTicket.totalPrice}
-            holderName={firstTicket.holderName}
             paymentMethod={firstTicket.paymentMethod}
-            locale={locale}
           />
         ) : (
           <div style={{ height: 420 }} />

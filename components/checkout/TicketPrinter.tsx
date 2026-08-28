@@ -4,47 +4,18 @@ import { useEffect, useState } from "react"
 import { RotateCcw } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { tokens } from "@/app/styles/tokens"
-import { QRCode } from "@/components/shared/QRCode"
+import { TicketCard } from "@/components/booking/TicketCard"
 
 type TicketPrinterProps = {
   date: string
-  startTime: string
-  endTime: string
-  roomName: string
-  bookingCode: string
+  startHour: number
+  duration: number
+  tableNumber: number
+  bookingRef: string
+  humanCode?: string
   memberCode: string
   totalPrice: number
-  holderName: string | null
   paymentMethod?: string | null
-  locale: string
-}
-
-const PAYMENT_ICON_MAP: Record<string, string> = {
-  card: "/icons/payment/cnp-visa.png",
-  fps: "/icons/payment/fps.png",
-  payme: "/icons/payment/payme.png",
-  octopus: "/icons/payment/octopus-card.png",
-  alipay: "/icons/payment/alipaycn.png",
-  alipayhk: "/icons/payment/alipayhk.png",
-  wechat: "/icons/payment/wechat.png",
-  unionpay_qp: "/icons/payment/cloud.png",
-  apple_pay: "/icons/payment/apple.png",
-  google_pay: "/icons/payment/google.png",
-}
-
-function formatDate(date: string, locale: string): string {
-  const parsed = new Date(`${date}T00:00:00`)
-  if (Number.isNaN(parsed.getTime())) return date
-  return new Intl.DateTimeFormat(locale, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(parsed)
-}
-
-function paymentKey(method: string | null | undefined): string {
-  if (!method) return "card"
-  return method.replace(/-/g, "_").toLowerCase()
 }
 
 /**
@@ -54,22 +25,18 @@ function paymentKey(method: string | null | undefined): string {
  */
 export function TicketPrinter({
   date,
-  startTime,
-  endTime,
-  roomName,
-  bookingCode,
+  startHour,
+  duration,
+  tableNumber,
+  bookingRef,
+  humanCode,
   memberCode,
   totalPrice,
-  holderName,
   paymentMethod,
-  locale,
 }: TicketPrinterProps) {
   const t = useTranslations("ticket")
   const [replayKey, setReplayKey] = useState(0)
   const [printed, setPrinted] = useState(false)
-  const selectedPaymentKey = paymentKey(paymentMethod)
-  const paymentIcon = PAYMENT_ICON_MAP[selectedPaymentKey] ?? PAYMENT_ICON_MAP.card
-  const paymentLabel = t(`payment_${selectedPaymentKey}`)
 
   useEffect(() => {
     setPrinted(false)
@@ -97,80 +64,18 @@ export function TicketPrinter({
 
         <div className="ticket-printer-paper-viewport">
           <div key={replayKey} className="ticket-printer-paper-wrap">
-            <article className="ticket-printer-paper">
-            <div className="ticket-paper-header">
-              {/* The local SVG keeps the Space8 mark crisp on the white ticket. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                className="ticket-paper-logo"
-                src="/logos/logo-black-horizontal.svg"
-                alt="Space8"
-              />
-              <h2 data-cms-key="ticket.ticket_title">{t("ticket_title")}</h2>
-              <p data-cms-key="ticket.ticket_subtitle">{t("ticket_subtitle", { room: roomName })}</p>
-            </div>
-
-            <div className="ticket-paper-perforation" aria-hidden="true" />
-
-            <div className="ticket-paper-main-grid">
-              <div>
-                <span className="ticket-paper-label" data-cms-key="ticket.booking_pass">
-                  {t("booking_pass")}
-                </span>
-                <strong className="ticket-paper-code" data-cms-key="ticket.booking_code">
-                  {bookingCode}
-                </strong>
-              </div>
-              <div className="ticket-paper-amount-block">
-                <span className="ticket-paper-label" data-cms-key="ticket.amount">
-                  {t("amount")}
-                </span>
-                <strong className="ticket-paper-amount">HK${totalPrice.toFixed(2)}</strong>
-              </div>
-            </div>
-
-            <div className="ticket-paper-detail-grid">
-              <div>
-                <span className="ticket-paper-label" data-cms-key="ticket.date_time">
-                  {t("date_time")}
-                </span>
-                <strong>{formatDate(date, locale)}</strong>
-                <strong>{startTime} – {endTime}</strong>
-              </div>
-              <div className="ticket-paper-status-block">
-                <span className="ticket-paper-label" data-cms-key="ticket.status">
-                  {t("status")}
-                </span>
-                <strong className="ticket-paper-status" data-cms-key="ticket.confirmed">
-                  {t("confirmed")}
-                </strong>
-              </div>
-            </div>
-
-            <div className="ticket-paper-holder">
-              <span className="ticket-paper-holder-mark" aria-hidden="true">S8</span>
-              <div className="ticket-paper-holder-copy">
-                <strong>{holderName || t("holder_fallback")}</strong>
-                <span className="ticket-paper-payment">
-                  <img src={paymentIcon} alt="" aria-hidden="true" />
-                  <span>{paymentLabel}</span>
-                </span>
-              </div>
-            </div>
-
-            <div className="ticket-paper-qr-wrap">
-              <QRCode
-                data={memberCode}
-                size={140}
-                enlargeLabel={t("qr_tap_enlarge")}
-                closeLabel={t("close")}
-              />
-            </div>
-            <div className="ticket-paper-qr-caption" data-cms-key="ticket.qr_label">
-              {t("qr_label")}
-            </div>
-            <div className="ticket-paper-edge" aria-hidden="true" />
-            </article>
+            <TicketCard
+              date={date}
+              startHour={startHour}
+              duration={duration}
+              tableNumber={tableNumber}
+              bookingRef={bookingRef}
+              humanCode={humanCode}
+              memberCode={memberCode}
+              totalPrice={totalPrice}
+              paymentMethod={paymentMethod}
+              defaultExpanded
+            />
           </div>
         </div>
       </div>
@@ -327,216 +232,6 @@ export function TicketPrinter({
           transform-origin: top center;
           animation: ticket-paper-eject 2.5s steps(24, end) forwards;
           pointer-events: none;
-        }
-
-        .ticket-printer-paper {
-          position: relative;
-          min-height: 610px;
-          padding: 72px 26px 30px;
-          overflow: hidden;
-          color: #34383e;
-          background: #e8e9eb;
-          border: 1px solid rgba(255, 255, 255, 0.85);
-          border-radius: 2px;
-          box-shadow: 0 20px 35px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.16);
-          transform: rotateY(1deg);
-        }
-
-        .ticket-paper-header {
-          text-align: center;
-        }
-
-        .ticket-paper-logo {
-          display: block;
-          width: 116px;
-          height: auto;
-          margin: 0 auto 18px;
-        }
-
-        .ticket-paper-header h2 {
-          margin: 0;
-          color: #565b63;
-          font-size: 27px;
-          font-weight: 800;
-          letter-spacing: -0.045em;
-        }
-
-        .ticket-paper-header p {
-          max-width: 250px;
-          margin: 8px auto 0;
-          color: #a4b2c8;
-          font-size: 14px;
-          line-height: 1.35;
-        }
-
-        .ticket-paper-perforation {
-          position: relative;
-          height: 26px;
-          margin: 30px -26px 24px;
-          border-top: 1px dashed #cbd1d9;
-        }
-
-        .ticket-paper-perforation::before,
-        .ticket-paper-perforation::after {
-          content: "";
-          position: absolute;
-          top: -11px;
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          background: #18162f;
-        }
-
-        .ticket-paper-perforation::before { left: -11px; }
-        .ticket-paper-perforation::after { right: -11px; }
-
-        .ticket-paper-main-grid,
-        .ticket-paper-detail-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) auto;
-          gap: 22px;
-        }
-
-        .ticket-paper-detail-grid {
-          margin-top: 21px;
-        }
-
-        .ticket-paper-label {
-          display: block;
-          margin-bottom: 5px;
-          color: #7a8492;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-        }
-
-        .ticket-paper-code {
-          display: block;
-          color: #303841;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 16px;
-          letter-spacing: 0.035em;
-        }
-
-        .ticket-paper-amount-block,
-        .ticket-paper-status-block {
-          text-align: right;
-        }
-
-        .ticket-paper-amount {
-          display: block;
-          color: #303841;
-          font-size: 21px;
-          line-height: 1.1;
-          white-space: nowrap;
-        }
-
-        .ticket-paper-detail-grid strong {
-          display: block;
-          color: #303841;
-          font-size: 15px;
-          line-height: 1.45;
-        }
-
-        .ticket-paper-status {
-          display: inline-block !important;
-          padding: 3px 8px;
-          border-radius: 999px;
-          color: #168746 !important;
-          background: #e8faf0;
-          font-size: 10px !important;
-          white-space: nowrap;
-        }
-
-        .ticket-paper-holder {
-          display: flex;
-          align-items: center;
-          gap: 13px;
-          min-height: 60px;
-          margin-top: 21px;
-          padding: 12px 15px;
-          border: 1px solid #d9dee5;
-          border-radius: 14px;
-          background: #f3f4f6;
-        }
-
-        .ticket-paper-holder-mark {
-          display: inline-flex;
-          width: 28px;
-          height: 28px;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          color: #ffffff;
-          background: #29313b;
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: -0.08em;
-        }
-
-        .ticket-paper-holder-copy {
-          display: flex;
-          min-width: 0;
-          flex: 1;
-          flex-direction: column;
-          gap: 5px;
-        }
-
-        .ticket-paper-holder-copy > strong {
-          overflow: hidden;
-          color: #303841;
-          font-size: 13px;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .ticket-paper-payment {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          color: #98a6b8;
-          font-size: 11px;
-        }
-
-        .ticket-paper-payment img {
-          display: block;
-          width: auto;
-          height: 14px;
-          object-fit: contain;
-        }
-
-        .ticket-paper-qr-wrap {
-          display: flex;
-          width: fit-content;
-          margin: 22px auto 8px;
-          padding: 6px;
-          border: 1px solid #d5dce4;
-          border-radius: 9px;
-          background: #f8f9fa;
-          pointer-events: auto;
-        }
-
-        .ticket-paper-qr-wrap :global(button) {
-          pointer-events: auto;
-        }
-
-        .ticket-paper-qr-caption {
-          color: #7f8b9b;
-          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 9px;
-          letter-spacing: 0.16em;
-          text-align: center;
-          text-transform: uppercase;
-        }
-
-        .ticket-paper-edge {
-          position: absolute;
-          right: 0;
-          bottom: -3px;
-          left: 0;
-          height: 7px;
-          background: linear-gradient(135deg, transparent 4px, #e8e9eb 0) 0 0 / 10px 10px repeat-x;
         }
 
         .ticket-printer-caption {

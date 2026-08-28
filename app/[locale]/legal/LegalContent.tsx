@@ -51,7 +51,7 @@ export default function LegalContent({
   }
 
   return (
-    <div data-nav-theme="dark" style={{ background: "#fff", fontFamily: FONT_FAMILY }}>
+    <div data-nav-theme="light" style={{ background: "#fff", fontFamily: FONT_FAMILY }}>
       <section data-nav-theme="dark" style={{ background: "#000", color: "#fff", padding: "140px 24px 64px" }}>
         <div style={{ maxWidth: 820, margin: "0 auto" }}>
           <motion.h1
@@ -65,7 +65,7 @@ export default function LegalContent({
         </div>
       </section>
 
-      <section style={{ background: "#fff", borderBottom: `1px solid ${DIVIDER}`, position: "sticky", top: 0, zIndex: 10 }}>
+      <section data-nav-theme="light" style={{ background: "#fff", borderBottom: `1px solid ${DIVIDER}`, position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ maxWidth: 820, margin: "0 auto", display: "flex", gap: 8, padding: "0 24px", overflowX: "auto" }}>
           {tabs.map((tab) => {
             const active = activeDoc === tab.id

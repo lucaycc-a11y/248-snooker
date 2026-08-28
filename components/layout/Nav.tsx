@@ -56,12 +56,6 @@ export default function Nav() {
   const [sessionResolved, setSessionResolved] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [scrolled, setScrolled] = useState(false)
-  // The mobile bar is always a dark translucent surface (see .nav-bar CSS
-  // below), so its logo artwork + icon colours must stay light regardless of
-  // what section is scrolled behind it. Desktop keeps the scroll-detected
-  // theme. Without this, a light section behind the bar flips linkColor to
-  // near-black and loads the black wordmark — both invisible on the dark bar.
-  const [isMobile, setIsMobile] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const locale = useLocale()
@@ -153,14 +147,6 @@ export default function Nav() {
   }, [])
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    const update = () => setIsMobile(mq.matches)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
-
-  useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
     return () => {
       document.body.style.overflow = ''
@@ -199,10 +185,10 @@ export default function Nav() {
     }
   }, [pathname])
 
-  // On mobile the bar is a fixed dark translucent surface, so force the dark
-  // (light-artwork, white-icon) treatment there no matter what section is
-  // scrolled behind it. Desktop keeps the live scroll-detected theme.
-  const effectiveTheme: NavTheme = isMobile ? 'dark' : theme
+  // Mobile uses the same scroll-detected surface theme as desktop. The CSS
+  // switches the bar background and artwork together, so light legal content
+  // no longer stays trapped in the dark mobile treatment.
+  const effectiveTheme: NavTheme = menuOpen ? 'dark' : theme
   const linkColor = effectiveTheme === 'dark' ? '#FFFFFF' : '#1A1A1A'
   const memberLabel = loggedIn ? t('member') : t('login')
 
@@ -508,17 +494,20 @@ export default function Nav() {
             padding: 10px 14px !important;
             padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important;
             transform: none !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-            /* Frosted glass: translucent dark surface so nav is clearly legible
-               above any background content while still feeling "embedded" in it.
-               backdrop-filter blurs whatever is scrolled behind the bar. */
-            background: rgba(0, 0, 0, 0.72) !important;
             backdrop-filter: blur(20px) saturate(180%) !important;
             -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-            /* Solid bar must swallow taps on its own surface — with the
-               desktop 'none' value, content hidden under the bar would
-               still receive touches. */
+            /* The surface follows the same data-nav-surface theme as the
+               artwork and controls, so light legal content is not stuck in a
+               dark mobile bar. */
             pointer-events: auto !important;
+          }
+          .nav-bar[data-nav-surface='dark'] {
+            background: rgba(0, 0, 0, 0.72) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+          }
+          .nav-bar[data-nav-surface='light'] {
+            background: rgba(255, 255, 255, 0.86) !important;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.10) !important;
           }
           /* Mobile wordmark: keep the full "SPACE8" lockup but scale it down
              to ~34px tall (≈106px wide). Logo.tsx's 120px MIN_WIDTH clamp is a

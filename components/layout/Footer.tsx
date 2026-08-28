@@ -9,7 +9,7 @@ import { Logo } from '@/components/brand'
 import { SITE_CONTACT } from '@/lib/site/contact'
 
 const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
-const INSTAGRAM_URL = 'https://instagram.com/248snooker'
+const INSTAGRAM_URL = 'https://instagram.com/space8.com.hk'
 const MAP_QUERY = '泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong'
 const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(MAP_QUERY)}`
 

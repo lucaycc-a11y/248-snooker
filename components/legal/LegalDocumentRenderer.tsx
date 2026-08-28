@@ -105,14 +105,27 @@ export default function LegalDocumentRenderer({ document, locale, compact = fals
       </h2>
       {hasLead && (
         <div style={{
-          border: compact ? `1px solid rgba(255,255,255,0.12)` : `1px solid ${DIVIDER}`,
-          borderLeft: compact ? `3px solid ${GREEN}` : `3px solid ${GREEN}`,
-          borderRadius: 12,
-          padding: compact ? "16px 18px" : "20px 24px",
+          background: "transparent",
+          borderTop: compact ? `2px solid ${GREEN}` : `3px solid ${GREEN}`,
+          borderBottom: compact ? `1px solid rgba(255,255,255,0.12)` : `1px solid ${DIVIDER}`,
+          padding: compact ? "16px 0 18px" : "22px 0 24px",
           marginBottom: compact ? 32 : 56,
         }}>
           {noticeLabel && (
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.04em", color: GREEN, marginBottom: 8 }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              fontSize: 13,
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              color: compact ? "#fff" : DARK,
+              marginBottom: 12,
+            }}>
+              <span
+                aria-hidden="true"
+                style={{ width: 8, height: 8, borderRadius: "50%", background: GREEN, flexShrink: 0 }}
+              />
               {noticeLabel}
             </div>
           )}

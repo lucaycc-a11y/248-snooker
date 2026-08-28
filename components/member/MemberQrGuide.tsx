@@ -89,7 +89,7 @@ export default function MemberQrGuide({
           return (
             <motion.article key={key} whileHover={{ y: -3 }} transition={{ duration: 0.2, ease: EASE }} style={{ border: `1px solid ${BORDER}`, borderRadius: 18, background: SURFACE, padding: 22 }}>
               <Icon aria-hidden="true" size={24} color={GREEN} strokeWidth={1.7} />
-              <div style={{ color: GREEN, marginTop: 18, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em' }}>{t(`access_feature_${key}_label`)}</div>
+              <div className="font-label" style={{ color: GREEN, marginTop: 18, fontSize: 12, fontWeight: 700, letterSpacing: '0.1em' }}>{t(`access_feature_${key}_label`)}</div>
               <h3 style={{ margin: '8px 0 8px', fontSize: 20, lineHeight: 1.2 }}>{t(`access_feature_${key}_title`)}</h3>
               <p style={{ color: SUBTLE, lineHeight: 1.7, fontSize: 14, margin: 0 }}>{t(`access_feature_${key}_body`)}</p>
             </motion.article>
@@ -103,7 +103,7 @@ export default function MemberQrGuide({
           {STEP_ICONS.map((Icon, index) => (
             <div key={index} style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 18 }}>
               <Icon aria-hidden="true" size={20} color={GREEN} strokeWidth={1.7} />
-              <div style={{ color: GREEN, fontSize: 12, fontWeight: 700, marginTop: 14 }}>{String(index + 1).padStart(2, '0')}</div>
+              <div className="font-code" style={{ color: GREEN, fontSize: 12, fontWeight: 700, marginTop: 14 }}>{String(index + 1).padStart(2, '0')}</div>
               <h3 style={{ fontSize: 17, margin: '6px 0 6px' }}>{t(`access_step_${index + 1}_title`)}</h3>
               <p style={{ color: SUBTLE, lineHeight: 1.65, fontSize: 14, margin: 0 }}>{t(`access_step_${index + 1}_body`)}</p>
             </div>

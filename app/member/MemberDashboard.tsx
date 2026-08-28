@@ -283,9 +283,14 @@ export default function MemberDashboard({
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
   }} />
 
-      <div style={{ position: "relative", zIndex: 1, maxWidth: "760px", margin: "0 auto", padding: "16px 20px 96px" }}>
+      <div
+        className="member-dashboard-content"
+        style={{ position: "relative", zIndex: 1 }}
+      >
+        <div className="member-dashboard-hero-grid">
         {/* ── Membership card (club-card metaphor) ── */}
         <motion.div
+          className="member-dashboard-membership-card"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE }}
@@ -317,7 +322,7 @@ export default function MemberDashboard({
             </div>
             <div style={{ textAlign: "right" }}>
               <FieldLabel>{t("card_tier")}</FieldLabel>
-              <div className="font-label" style={{ fontFamily: DISPLAY, fontSize: "30px", color: accent, lineHeight: 1 }}>
+              <div className="font-label" style={{ fontSize: "30px", color: accent, lineHeight: 1 }}>
                 {TIER_TITLE[current.id] ?? current.id}
               </div>
             </div>
@@ -373,8 +378,10 @@ export default function MemberDashboard({
           </div>
         </motion.div>
 
-        {/* ── Points + tier progress ── */}
+        <div className="member-dashboard-hero-side">
+          {/* ── Points + tier progress ── */}
         <div
+          className="member-dashboard-points-panel"
           style={{
             marginTop: "24px",
             border: `1px solid ${BORDER}`,
@@ -395,7 +402,7 @@ export default function MemberDashboard({
           </div>
 
           <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", margin: "6px 0 20px" }}>
-            <span style={{ fontFamily: DISPLAY, fontSize: "52px", lineHeight: 0.9, color: accent }}>
+            <span className="font-code" style={{ fontSize: "52px", lineHeight: 0.9, color: accent }}>
               {user.points.toLocaleString()}
             </span>
             <span style={{ fontSize: "14px", color: SUBTLE, marginBottom: "6px", letterSpacing: "0.08em" }}>PTS</span>
@@ -442,10 +449,8 @@ export default function MemberDashboard({
             hairline divider between them, so the number itself is the hero.
             Glass surface (bg+blur) matches the member/points cards above. */}
         <div
+          className="member-dashboard-stats"
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            marginTop: "16px",
             border: `1px solid ${BORDER}`,
             borderRadius: "16px",
             padding: "18px 0",
@@ -456,6 +461,9 @@ export default function MemberDashboard({
         >
           <StatCard label={t("stat_bookings")} value={`${stats.bookings}`} unit={t("stat_bookings_unit")} />
           <StatCard label={t("stat_hours")} value={`${stats.hours}`} unit={t("stat_hours_unit")} last />
+        </div>
+
+        </div>
         </div>
 
         {/* Tabs — overflow container. Thin/auto scrollbar is a touch/mouse
@@ -855,7 +863,7 @@ function StatCard({ label, value, unit, last }: { label: string; value: string; 
         textAlign: "center",
       }}
     >
-      <div style={{ fontFamily: DISPLAY, fontSize: "30px", letterSpacing: "0.02em", color: INK, lineHeight: 1 }}>
+      <div className="font-code" style={{ fontSize: "30px", letterSpacing: "0.02em", color: INK, lineHeight: 1 }}>
         {value}
         {unit ? <span style={{ fontSize: "12px", color: SUBTLE, marginLeft: "3px", fontFamily: FONT_FAMILY, fontWeight: 400 }}>{unit}</span> : null}
       </div>
@@ -1350,7 +1358,7 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "16px" }}>
         <span style={{ fontSize: "14px", color: SUBTLE }} data-cms-key="member.points_running_total">{t("points_running_total")}</span>
-        <span style={{ fontFamily: DISPLAY, fontSize: "30px", color: INK, letterSpacing: "0.02em" }}>{balance.toLocaleString()} <span style={{ fontSize: "13px", color: SUBTLE, fontFamily: FONT_FAMILY }}>pts</span></span>
+        <span className="font-code" style={{ fontSize: "30px", color: INK, letterSpacing: "0.02em" }}>{balance.toLocaleString()} <span style={{ fontSize: "13px", color: SUBTLE, fontFamily: FONT_FAMILY }}>pts</span></span>
       </div>
 
       {points.length > 0 ? (

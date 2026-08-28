@@ -95,6 +95,13 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
                 </a>
               </div>
 
+              <!-- Member Access Link -->
+              <div style="text-align:center;margin-bottom:24px;">
+                <a href="{{memberEntryUrl}}" style="display:inline-block;background-color:transparent;color:#22c55e;border:1px solid #22c55e;font-size:14px;font-weight:600;text-decoration:none;padding:13px 32px;border-radius:12px;">
+                  會員入場 Member Access
+                </a>
+              </div>
+
               <!-- Venue Address -->
               <div style="background-color:rgba(255,255,255,0.04);border-radius:12px;padding:16px;margin-bottom:20px;">
                 <p style="color:#a3a3a3;font-size:12px;margin:0 0 6px;">

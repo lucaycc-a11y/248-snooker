@@ -243,7 +243,7 @@ function TabMembership({ t }: { t: ReturnType<typeof useTranslations> }) {
             <div style={{ width: "44px", height: "44px", color: tier.accent, marginBottom: "20px" }}>
               {tier.icon}
             </div>
-            <h3 style={{ fontSize: "24px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 4px", color: "#fff" }}>
+            <h3 className="font-label" style={{ fontSize: "24px", fontWeight: 700, letterSpacing: "-0.02em", margin: "0 0 4px", color: "#fff" }}>
               {tier.title}
             </h3>
             {tier.subtitle && (

@@ -239,6 +239,9 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
   // Booking detail URL — link to member dashboard
   const bookingDetailUrl = `https://space8.com.hk/member`
 
+  // Member access deep-link — open the access guide tab directly.
+  const memberEntryUrl = `https://space8.com.hk/member?tab=access`
+
   // WhatsApp number
   const whatsappNumber = await getWhatsAppNumber()
 
@@ -262,6 +265,7 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     '{{pointsEarned}}': String(pointsEarned),
     '{{whatsappNumber}}': whatsappNumber,
     '{{bookingDetailUrl}}': bookingDetailUrl,
+    '{{memberEntryUrl}}': memberEntryUrl,
     '{{venueAddress}}': VENUE_ADDRESS,
     '{{googleMapsUrl}}': GOOGLE_MAPS_URL,
     '{{currentYear}}': currentYear,

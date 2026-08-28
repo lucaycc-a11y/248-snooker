@@ -380,31 +380,27 @@ async function handleFailed(
   eventId: string,
 ) {
   if (booking.order_group_id) {
-    console.log('[webhook/kpay] group payment failed, releasing locks', {
+    console.log('[webhook/kpay] group payment failed, marking bookings failed', {
       orderGroupId: booking.order_group_id,
     })
-    const { data, error } = await supabase.rpc('release_group_locks', {
-      p_order_group_id: booking.order_group_id,
+    const { data, error } = await supabase.rpc('mark_kpay_payment_failed', {
+      p_booking_id: booking.id,
       p_event_id: eventId,
     })
-    if (error) throw new Error(`release_group_locks failed: ${error.message}`)
-    assertRpcSucceeded(data, 'release_group_locks')
+    if (error) throw new Error(`mark_kpay_payment_failed failed: ${error.message}`)
+    assertRpcSucceeded(data, 'mark_kpay_payment_failed')
     return
   }
 
-  if (!booking.slot_id) {
-    throw new Error('payment failed: booking has no slot_id')
-  }
-  console.log('[webhook/kpay] payment failed, releasing lock', {
-    slotId: booking.slot_id,
+  console.log('[webhook/kpay] payment failed, marking booking failed', {
     bookingId: booking.id,
   })
-  const { data, error } = await supabase.rpc('release_slot_lock', {
-    p_slot_id: booking.slot_id,
+  const { data, error } = await supabase.rpc('mark_kpay_payment_failed', {
+    p_booking_id: booking.id,
     p_event_id: eventId,
   })
-  if (error) throw new Error(`release_slot_lock failed: ${error.message}`)
-  assertRpcSucceeded(data, 'release_slot_lock')
+  if (error) throw new Error(`mark_kpay_payment_failed failed: ${error.message}`)
+  assertRpcSucceeded(data, 'mark_kpay_payment_failed')
 }
 
 async function handleRefunded(
