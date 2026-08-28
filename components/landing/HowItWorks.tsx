@@ -515,6 +515,20 @@ export default function HowItWorks() {
         ))}
       </div>
 
+      <p
+        data-cms-key="how.qr_hint"
+        style={{
+          maxWidth: "1100px",
+          margin: "28px auto 0",
+          padding: "0 24px",
+          color: "#6e6e73",
+          fontSize: isMobile ? "13px" : "14px",
+          lineHeight: 1.7,
+        }}
+      >
+        {t("qr_hint")}
+      </p>
+
       <Modal data={modal} onClose={() => setModal(null)} />
     </section>
   );

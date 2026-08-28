@@ -518,10 +518,10 @@
   },
   "hero": {
     "title": "SPACE8",
-    "tagline": "屬於你的空間",
+    "tagline": "新蒲崗·自助無煙智能中式桌球室",
     "cta_book": "立即預訂",
     "cta_learn": "了解更多",
-    "subline": "自助無煙中八獨立球室，無多餘干擾。"
+    "subline": "SPACE8 - 自助無煙智能中式桌球室。兩間 1T 獨立無煙球室，無多餘干擾，為您打造屬於你的主場，帶給你最純粹的桌球體驗。"
   },
   "how": {
     "title": "預訂流程",
@@ -543,28 +543,29 @@
     "step3_modal_label": "獎賞",
     "step3_modal_title": "累積積分",
     "step3_modal_body": "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 新星、鉑金、鑽石，解鎖不同專屬福利。",
-    "close": "關閉"
+    "close": "關閉",
+    "qr_hint": "提示：也可以用會員 QR code 進出場地，QR code 可以在登入後「我的帳戶」看到"
   },
   "member": {
     "title": "會員制度",
     "amateur_title": "新星會員",
-    "amateur_body": "HK$1 = 1 積分。註冊即送 50 積分。",
-    "amateur_highlight": "50 積分",
-    "amateur_modal_body": "新用戶自動加入新星會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。開始你的旅程，輕鬆累積。",
+    "amateur_body": "註冊即送積分，每一場都被記錄下來，從這裡開始累積屬於你的球場故事。",
+    "amateur_highlight": "積分",
+    "amateur_modal_body": "新用戶自動加入新星會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。",
     "century_title": "鉑金會員",
     "century_subtitle": "800 積分起",
-    "century_body": "貼心補給。積分 1.5 倍加速。",
-    "century_highlight1": "貼心補給",
-    "century_highlight2": "1.5 倍",
-    "century_modal_body": "累積 800 積分晉升鉑金會員等級。解鎖「專屬燈光歡迎詞」。每場預約均免費隨附優質瓶裝水 2 支。積分以 1.5 倍速度累積，升級更快。",
+    "century_body": "積分加速累積，解鎖高級會員專屬體驗",
+    "century_highlight1": "積分加速累積",
+    "century_highlight2": "高級會員專屬體驗",
+    "century_modal_body": "累積 800 積分晉升鉑金會員等級。解鎖專享年度個人戰績回顧報告。可用積分兌換時段折扣券，積分以 1.5 倍速度累積，升級更快。",
     "maximum_title": "鑽石會員",
     "maximum_subtitle": "6,000 積分起",
     "maximum_badge": "最高等級",
     "maximum_body": "極致玩家殿堂，積分雙倍，尊享特級禮遇。",
     "maximum_highlight1": "積分雙倍",
     "maximum_highlight2": "特級禮遇",
-    "maximum_highlight3": "教練時段",
-    "maximum_modal_body": "累積 6000 積分達到鑽石會員最高等級。尊享不定期 SPACE8 專屬品牌周邊饋贈。積分雙倍累積，並可以用以換購折扣劵，預約教練時段。為最投入的玩家而設。",
+    "maximum_highlight3": "最高等級",
+    "maximum_modal_body": "累積 6000 積分達到鑽石會員最高等級。尊享不定期 SPACE8 專屬品牌周邊饋贈。個人桿櫃優先分配。新場地／新功能優先試用權。積分雙倍累積，為最投入的玩家而設。",
     "modal_label": "會員等級",
     "cta_join": "立即加入",
     "cta_learn": "了解更多",
@@ -794,24 +795,24 @@
     "goto": "前往第 {n} 張",
     "slides": [
       {
-        "title": "專業中八桌球枱",
-        "subtitle": "精選星牌桌球枱，確保最佳手感。",
-        "alt": "SPACE8 中八桌球枱"
+        "title": "專業設備",
+        "subtitle": "精選星牌桌球台，特調比賽氛圍",
+        "alt": "SPACE8 專業星牌桌球台"
       },
       {
         "title": "掃碼即入場",
-        "subtitle": "網上預訂後即獲 QR Code，到場掃碼，快捷方便。",
-        "alt": "SPACE8 — 智能掃碼入場系統"
+        "subtitle": "全自助包廂。網上約訂，到場掃碼，快捷方便。",
+        "alt": "SPACE8 智能掃碼入場系統"
       },
       {
         "title": "私人獨立空間",
-        "subtitle": "整個場地屬於你，無需共用。",
-        "alt": "SPACE8 — 私人獨立桌球室"
+        "subtitle": "兩間1T獨立無煙球室，無需共用，隨時開局",
+        "alt": "SPACE8 私人獨立無煙球室"
       },
       {
-        "title": "頂級燈光設備",
-        "subtitle": "特調比賽燈光模式，專注於每一次出杆。",
-        "alt": "SPACE8 — 專業桌球燈光設備"
+        "title": "智能科技",
+        "subtitle": "Space Pilot 智能對戰小管家專屬為你服務。",
+        "alt": "SPACE8 Space Pilot 智能對戰系統"
       }
     ]
   },
@@ -946,7 +947,7 @@
   },
   "spacePilot": {
     "eyebrow": "SPACE8 智能小管家",
-    "title": "SPACE8 智能小管家",
+    "title": "Space Pilot, SPACE8 的智能小管家",
     "intro": "一套更聰明的自助體驗，讓每個球室、每場球局與每位會員都更流暢。",
     "scoreboard_kicker": "SPACE PILOT / 即時比分板",
     "scoreboard_title": "每一球，都與賽事同步。",
@@ -964,46 +965,24 @@
     "cta_qr": "了解會員 QR Code",
     "features": [
       {
-        "title": "無人自助也有專屬招待",
-        "body": "掃碼即報到，螢幕喊出你的名字、等級與總勝場，450 句歡迎詞隨時段變化，每次來訪都有新鮮感。"
-      },
-      {
-        "title": "AI 幫你排賽程",
-        "body": "人一多就不知道怎麼打？系統自動推薦最公平又打得完的賽制，五種玩法一鍵開賽，省去喬對戰表的麻煩。"
-      },
-      {
-        "title": "五種賽制任你挑",
-        "body": "單循環、瑞士制、雙敗淘汰、車輪戰、單淘汰，三五好友到八人團體都有最適合的玩法。"
-      },
-      {
-        "title": "戰績自動累積",
-        "body": "每一場勝負寫入個人總勝場，會員等級一路從新星、鉑金打上鑽石，打球從此有目標。"
-      },
-      {
-        "title": "朋友沒會員也能玩",
-        "body": "一鍵新增訪客球員，即時加入牌局，喜歡再加入會員保留戰績。"
+        "title": "AI對戰系統",
+        "body": "系統會推薦最適合公平的賽制，從雙人對戰到三五好友都有最適合的玩法"
       },
       {
         "title": "大螢幕即時比分",
-        "body": "紅藍雙方比分清晰醒目，隔著半個包廂也看得一清二楚。"
+        "body": "自帶計分，計時，紅藍對戰雙方清晰醒目，隔著半個包廂也看得一清二楚"
       },
       {
-        "title": "時間管理零糾紛",
-        "body": "10 分鐘、5 分鐘自動提醒，結束前禮貌告知，續約掃碼即可，全程不需人員介入。"
+        "title": "戰績自動累積",
+        "body": "每一場勝負寫入個人總勝場，紀錄你的勝利時刻！"
       },
       {
-        "title": "免打擾模式",
-        "body": "專心打球時螢幕只報時，不吵不亮，最後五分鐘才提醒，體驗與節能兼顧。"
-      },
-      {
-        "title": "三語介面",
-        "body": "繁中／簡中／英文即時切換，本地熟客與海外旅客都能輕鬆上手。"
-      },
-      {
-        "title": "雙包廂體驗",
-        "body": "Space Infinity 與 Space Eternity，兩種空間，同一套流暢體驗。"
+        "title": "高清入球回放（敬請期待）",
+        "body": "完整球局可以在對戰結束後回放，回看精彩入球"
       }
-    ]
+    ],
+    "space_title": "空間全開，由你主場",
+    "space_subtitle": "自助入場，無煙環境，專為桌球而設"
   },
   "membershipHub": {
     "tabs": [
@@ -1132,5 +1111,72 @@
     "cta_primary": "開始探索",
     "cta_secondary": "查看會員頁面",
     "tip": "在大門或智能小管家掃描此碼即可報到。"
+  },
+  "homeSlogan": {
+    "eyebrow": "SPACE8",
+    "title": "屬於你的主場",
+    "subtitle": "自助無煙智能中式桌球室，無多餘干擾。"
+  },
+  "homeVenue": {
+    "eyebrow": "SPACE8 場地",
+    "title": "場地設施",
+    "intro": "每個細節，都是為了讓你專注於桌球。",
+    "pagination_label": "場地設施分頁",
+    "pagination_item": "前往第 {n} 項",
+    "items": [
+      {
+        "title": "星牌中式桌球枱",
+        "body": "精選星牌桌球枱，確保最佳手感。"
+      },
+      {
+        "title": "專業設備",
+        "body": "特別裝修，特調專注比賽燈光和氛圍"
+      },
+      {
+        "title": "Space Pilot",
+        "body": "引入 AI 智能對戰小管家，將科技帶入傳統桌球室"
+      },
+      {
+        "title": "無煙區域",
+        "body": "場地全面禁煙，創造舒適環境"
+      },
+      {
+        "title": "自助入場",
+        "body": "預訂確認後獲發 QR 碼，到場掃描自動開門。"
+      }
+    ]
+  },
+  "homeRooms": {
+    "eyebrow": "獨立球室",
+    "title": "兩間 1T 獨立無煙球室",
+    "body": "好的中八球室不應有多餘干擾。SPACE8 自助無煙智能中式獨立球室。隨時隨地，一鍵預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。",
+    "items": [
+      {
+        "title": "Space Infinity",
+        "subtitle": "1T 獨立無煙球室"
+      },
+      {
+        "title": "Space Eternity",
+        "subtitle": "1T 獨立無煙球室"
+      }
+    ]
+  },
+  "homeFocus": {
+    "eyebrow": "專注於每一球",
+    "title": "零打擾，全專注，打造專屬桌球空間。",
+    "items": [
+      {
+        "title": "獨立空間",
+        "body": "自助，無煙，獨立球室，無多餘干擾。"
+      },
+      {
+        "title": "科技體驗",
+        "body": "掃碼全自助入場，配上智能對戰系統"
+      },
+      {
+        "title": "專業設備",
+        "body": "星牌中式球枱，特調比賽氛圍"
+      }
+    ]
   }
 }

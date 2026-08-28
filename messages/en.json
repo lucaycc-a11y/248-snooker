@@ -518,10 +518,10 @@
   },
   "hero": {
     "title": "SPACE8",
-    "tagline": "Your game, your space.",
+    "tagline": "San Po Kong · Self-Service, Smoke-Free Chinese Eight-Ball",
     "cta_book": "Book Now",
     "cta_learn": "Learn More",
-    "subline": "A private, self-service, smoke-free Chinese eight-ball room. No distractions."
+    "subline": "SPACE8 — a self-service, smoke-free Chinese eight-ball club. Two private 1T rooms, no distractions, your own home ground for the purest game."
   },
   "how": {
     "title": "How It Works",
@@ -543,28 +543,29 @@
     "step3_modal_label": "Rewards",
     "step3_modal_title": "Earn Points",
     "step3_modal_body": "Earn 1 point for every HK$1 spent and level up automatically. Three tiers — Nova, Platinum, Diamond — each unlocking exclusive benefits.",
-    "close": "Close"
+    "close": "Close",
+    "qr_hint": "Tip: You can also use your member QR code to enter and leave the venue. Find it under “My Account” after signing in."
   },
   "member": {
     "title": "Membership",
     "amateur_title": "Nova",
-    "amateur_body": "HK$1 = 1 point. 50 points free on sign-up.",
-    "amateur_highlight": "50 points",
-    "amateur_modal_body": "New users join the Nova tier automatically with 50 points as a welcome gift. Earn 1 point for every HK$1 spent — start your journey and build up with ease.",
+    "amateur_body": "Sign up and earn points from day one. Every match is recorded as your court story grows.",
+    "amateur_highlight": "points",
+    "amateur_modal_body": "New users join Nova automatically with 50 points. Earn 1 point for every HK$1 spent, unlock the full Space Pilot experience, and build your personal total wins from your first match.",
     "century_title": "Platinum",
     "century_subtitle": "From 800 points",
-    "century_body": "Thoughtful perks, points at 1.5x speed.",
-    "century_highlight1": "Perks",
-    "century_highlight2": "1.5x",
-    "century_modal_body": "Unlock a personalised light welcome, receive 2 complimentary bottles of premium water every session, and earn points at 1.5x.",
+    "century_body": "Accelerate your points and unlock an elevated member experience.",
+    "century_highlight1": "Accelerate",
+    "century_highlight2": "elevated member experience",
+    "century_modal_body": "Reach Platinum at 800 points. Unlock an annual personal performance review, redeem points for time-slot discount vouchers, and earn points at 1.5x speed.",
     "maximum_title": "Diamond",
     "maximum_subtitle": "From 6,000 points",
     "maximum_badge": "Top Tier",
-    "maximum_body": "The hall of dedicated players. Double points, premium privileges.",
-    "maximum_highlight1": "Double points",
-    "maximum_highlight2": "Privileges",
-    "maximum_highlight3": "Coach sessions",
-    "maximum_modal_body": "Occasional exclusive SPACE8 merchandise, double points on every booking, redeemable discount vouchers and bookable coaching sessions.",
+    "maximum_body": "The hall of dedicated players: double points and premium privileges.",
+    "maximum_highlight1": "double points",
+    "maximum_highlight2": "premium privileges",
+    "maximum_highlight3": "Top Tier",
+    "maximum_modal_body": "Reach Diamond at 6,000 points. Enjoy occasional exclusive SPACE8 merchandise, priority locker allocation, early access to new venues and features, and double points for every booking.",
     "modal_label": "Membership Tier",
     "cta_join": "Join Now",
     "cta_learn": "Learn More",
@@ -794,24 +795,24 @@
     "goto": "Go to slide {n}",
     "slides": [
       {
-        "title": "Star Chinese Eight-Ball Table",
-        "subtitle": "A hand-picked Star table for the truest feel.",
-        "alt": "SPACE8 Chinese eight-ball table"
+        "title": "Professional Equipment",
+        "subtitle": "A hand-picked Star table with match-tuned atmosphere.",
+        "alt": "SPACE8 professional Star Chinese eight-ball table"
       },
       {
         "title": "Scan to Enter",
-        "subtitle": "Book online, get your QR code, scan at the door.",
-        "alt": "SPACE8 — smart QR entry"
+        "subtitle": "A fully self-service room. Book online, scan on arrival, and play.",
+        "alt": "SPACE8 smart QR entry system"
       },
       {
-        "title": "Private Room",
-        "subtitle": "The whole venue is yours. No sharing.",
-        "alt": "SPACE8 — private pool room"
+        "title": "Private Space",
+        "subtitle": "Two private, smoke-free 1T rooms. No sharing, just play.",
+        "alt": "SPACE8 private smoke-free room"
       },
       {
-        "title": "Tournament Lighting",
-        "subtitle": "Match-tuned lighting for total focus on every shot.",
-        "alt": "SPACE8 — tournament lighting"
+        "title": "Smart Technology",
+        "subtitle": "Space Pilot, your dedicated smart match concierge.",
+        "alt": "SPACE8 Space Pilot smart match system"
       }
     ]
   },
@@ -946,7 +947,7 @@
   },
   "spacePilot": {
     "eyebrow": "SPACE8 SMART CONCIERGE",
-    "title": "SPACE8 Smart Concierge",
+    "title": "Space Pilot, SPACE8’s smart concierge",
     "intro": "A smarter self-service experience for every room, every match, and every member.",
     "scoreboard_kicker": "SPACE PILOT / LIVE SCOREBOARD",
     "scoreboard_title": "Every frame of the match, in sync.",
@@ -964,46 +965,24 @@
     "cta_qr": "Learn about member QR codes",
     "features": [
       {
-        "title": "Unstaffed, but never impersonal",
-        "body": "Scan in and the screen greets you by name, tier, and total wins, drawing from 450 welcome lines that shift with the time of day. Every visit feels fresh."
+        "title": "AI Match System",
+        "body": "The system recommends a fair format for every group, from head-to-head matches to games with three to five friends."
       },
       {
-        "title": "Let the AI run your tournament",
-        "body": "Not sure how to organise a big group? The system recommends the fairest format that actually fits your session, and starts it in one tap."
+        "title": "Live Score on the Big Screen",
+        "body": "Scoring and timing are built in. Red and blue stay clear and readable from anywhere in the room."
       },
       {
-        "title": "Five formats to choose from",
-        "body": "Round robin, Swiss, double elimination, king of the table, and single elimination — the right fit for anything from three friends to a group of eight."
+        "title": "Automatic Match Records",
+        "body": "Every result feeds your personal total wins, recording every winning moment."
       },
       {
-        "title": "Wins that stack up",
-        "body": "Every result feeds your personal total, taking you from Nova to Platinum to Diamond. Now there's something to play for."
-      },
-      {
-        "title": "Friends without memberships? No problem",
-        "body": "Add a guest player in one tap and they're in the match instantly. They can always join up later to keep their record."
-      },
-      {
-        "title": "Big-screen live scoring",
-        "body": "Red versus blue, bold and clear, readable from anywhere in the room."
-      },
-      {
-        "title": "Time management without the awkwardness",
-        "body": "Automatic alerts at 10 and 5 minutes, a polite wrap-up message, and renewal by QR code. No staff involvement needed at any point."
-      },
-      {
-        "title": "Do Not Disturb mode",
-        "body": "While you're focused on the table, the screen simply tells the time. It only speaks up in the last five minutes — better for the mood and the power bill."
-      },
-      {
-        "title": "Trilingual interface",
-        "body": "Instant switching between Traditional Chinese, Simplified Chinese, and English for regulars and visitors alike."
-      },
-      {
-        "title": "Two rooms, one experience",
-        "body": "Space Infinity and Space Eternity, both running the same seamless system."
+        "title": "HD Replay (Coming Soon)",
+        "body": "Replay the full match after it ends and revisit your best shots."
       }
-    ]
+    ],
+    "space_title": "Your space, fully open",
+    "space_subtitle": "Self-service entry, smoke-free surroundings, built entirely for the game."
   },
   "membershipHub": {
     "tabs": [
@@ -1132,5 +1111,72 @@
     "cta_primary": "Start Exploring",
     "cta_secondary": "View Member Page",
     "tip": "Scan this code at the door or with Space Pilot to check in."
+  },
+  "homeSlogan": {
+    "eyebrow": "SPACE8",
+    "title": "Your home ground",
+    "subtitle": "A self-service, smoke-free Chinese eight-ball room. No distractions."
+  },
+  "homeVenue": {
+    "eyebrow": "SPACE8 VENUE",
+    "title": "Facilities",
+    "intro": "Every detail is designed to keep you focused on the game.",
+    "pagination_label": "Facilities pagination",
+    "pagination_item": "Go to facility {n}",
+    "items": [
+      {
+        "title": "Star Chinese Eight-Ball Table",
+        "body": "A hand-picked Star table for the truest feel."
+      },
+      {
+        "title": "Professional Equipment",
+        "body": "Purpose-built interiors with match-tuned lighting and atmosphere."
+      },
+      {
+        "title": "Space Pilot",
+        "body": "An AI smart match concierge bringing technology into the traditional room."
+      },
+      {
+        "title": "Smoke-Free Zone",
+        "body": "The entire venue is smoke-free for a more comfortable game."
+      },
+      {
+        "title": "Self-Service Entry",
+        "body": "Receive a QR code after booking and scan to unlock the door on arrival."
+      }
+    ]
+  },
+  "homeRooms": {
+    "eyebrow": "PRIVATE ROOMS",
+    "title": "Two private 1T smoke-free rooms",
+    "body": "A great Chinese eight-ball room should have no distractions. SPACE8 is a self-service, smoke-free private room. Book your own table anytime, anywhere, in one tap. From booking and payment to entry, everything is self-service — no waiting.",
+    "items": [
+      {
+        "title": "Space Infinity",
+        "subtitle": "Private 1T smoke-free room"
+      },
+      {
+        "title": "Space Eternity",
+        "subtitle": "Private 1T smoke-free room"
+      }
+    ]
+  },
+  "homeFocus": {
+    "eyebrow": "FOCUS ON EVERY SHOT",
+    "title": "Zero distractions. Total focus. Your own space for Chinese eight-ball.",
+    "items": [
+      {
+        "title": "Private Space",
+        "body": "Self-service, smoke-free, private — no distractions."
+      },
+      {
+        "title": "Technology",
+        "body": "Scan for fully self-service entry, with a smart match system."
+      },
+      {
+        "title": "Professional Equipment",
+        "body": "A Star Chinese table with match-tuned atmosphere."
+      }
+    ]
   }
 }

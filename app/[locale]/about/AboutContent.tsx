@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { SITE_CONTACT } from "@/lib/site/contact";
@@ -14,8 +13,6 @@ import {
   MapPin,
   MessageCircle,
   Mail,
-  ChevronLeft,
-  ChevronRight,
   ArrowRight,
 } from "lucide-react";
 
@@ -36,39 +33,6 @@ const WHATSAPP_URL = SITE_CONTACT.whatsappUrl;
 const EMAIL = SITE_CONTACT.email;
 const PHONE = SITE_CONTACT.phone;
 
-/* ── CSS for facilities carousel ── */
-const FACILITIES_CSS = `
-.car-section { background: #e8e8e8; padding: 120px 0 130px; overflow: hidden; }
-.car-head { max-width: 1120px; margin: 0 auto 46px; padding: 0 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
-.car-title { font-family: 'Noto Sans TC', sans-serif; font-weight: 900; font-size: clamp(1.7rem, 3.6vw, 2.5rem); color: #111110; }
-.car-nav { display: flex; gap: 10px; flex-shrink: 0; }
-.car-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(17,17,16,0.20); background: transparent; color: #111110; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background .3s ease, border-color .3s ease, color .3s ease, transform .3s ease, opacity .3s ease; }
-.car-btn:hover:not(:disabled) { background: #111110; border-color: #111110; color: #ffffff; transform: translateY(-2px); }
-.car-btn:disabled { opacity: .32; cursor: default; }
-.car-btn svg { width: 17px; height: 17px; }
-.car-viewport { overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; cursor: grab; }
-.car-viewport::-webkit-scrollbar { display: none; }
-.car-viewport.is-drag { cursor: grabbing; scroll-snap-type: none; }
-.car-track { display: flex; gap: 22px; padding: 6px max(24px,calc((100vw - 1120px)/2)) 8px; width: max-content; }
-.car-slide { scroll-snap-align: center; flex: 0 0 auto; width: clamp(260px, 32vw, 352px); }
-.car-card { background: #ffffff; border: 1px solid rgba(17,17,16,0.10); border-radius: 18px; overflow: hidden; height: 100%; box-shadow: 0 2px 6px rgba(17,17,16,0.05); transition: transform .55s cubic-bezier(.2,.7,.3,1), box-shadow .45s ease, border-color .35s ease; }
-.car-slide.is-active .car-card { transform: translateY(-6px); box-shadow: 0 26px 50px -24px rgba(17,17,16,0.38); border-color: rgba(26,157,92,0.42); }
-.car-photo { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: #dcdcdc; }
-.car-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.02); transition: transform 1.1s cubic-bezier(.2,.7,.3,1); }
-.car-slide.is-active .car-photo img { transform: scale(1.07); }
-.car-content { padding: 26px 26px 30px; }
-.car-icon { width: 26px; height: 26px; color: #1a9d5c; margin-bottom: 18px; }
-.car-icon svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.car-content h3 { font-family: 'Noto Sans TC', sans-serif; font-weight: 700; font-size: 16.5px; color: #111110; margin-bottom: 10px; }
-.car-content p { font-family: 'Noto Sans TC', sans-serif; font-size: 13.8px; line-height: 1.8; color: rgba(17,17,16,0.58); }
-.car-dots { display: flex; justify-content: center; gap: 9px; margin-top: 34px; }
-.car-dot { width: 7px; height: 7px; border-radius: 50%; border: 0; padding: 0; background: rgba(17,17,16,0.22); cursor: pointer; transition: background .3s ease, transform .3s ease, width .3s ease; }
-.car-dot.is-on { background: #1a9d5c; width: 22px; border-radius: 99px; }
-@media (max-width: 860px) { .car-head { margin-bottom: 32px; } .car-nav { display: none; } .car-track { padding-left: 20px; padding-right: 20px; } .car-slide { width: clamp(240px, 74vw, 300px); } }
-@media (max-width: 560px) { .car-section { padding: 86px 0 96px; } }
-`;
-
-/* ── CSS for stats section ── */
 const STATS_CSS = `
 .stat-section { background: #ffffff; padding: 120px 24px 130px; }
 .stat-inner { max-width: 1120px; margin: 0 auto; }
@@ -92,14 +56,6 @@ const STATS_CSS = `
 @media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 34px 24px; } .stat-item + .stat-item { border-left: 0; padding-left: 0; } .stat-item:nth-child(even) { border-left: 1px solid rgba(17,17,16,0.12); padding-left: 24px; } }
 @media (max-width: 560px) { .stat-section { padding: 86px 20px 96px; } .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 30px 16px; } .stat-item { padding-right: 8px; } .stat-item:nth-child(even) { padding-left: 16px; } .stat-value { font-size: clamp(1.8rem, 9vw, 2.4rem); margin-bottom: 10px; } .stat-label { font-size: 13px; } .stat-live { font-size: 10.5px; margin-top: 8px; } }
 `;
-
-const VENUE_IMAGES = [
-  "/gallery/table-poster.jpg",
-  "/gallery/Space8_Door.PNG",
-  "/gallery/Space_Infinity.PNG",
-  "/gallery/Space8_Competition_Mode.PNG",
-  "/gallery/Space_Enternity.PNG",
-];
 
 type TitledItem = { title: string; body: string };
 type StatsItem = { value: string; unit: string; suffix: string; label: string; live: string };
@@ -127,54 +83,6 @@ const PhoneIcon2 = () => (
   </svg>
 );
 
-/* ── Facilities Carousel SVG Icons ── */
-const TableIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="car-icon-svg">
-    <rect className="ic-draw" x="4" y="6" width="16" height="12" rx="2" />
-    <circle className="ic-ring ic-r1" cx="12" cy="12" r="3" />
-    <circle className="ic-ring ic-r2" cx="12" cy="12" r="5.5" />
-    <circle className="ic-late" cx="19" cy="5" r="1.8" fill="currentColor" stroke="none" />
-  </svg>
-);
-const LightIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="car-icon-svg">
-    <path className="ic-rays" d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2" />
-    <path className="ic-merc" d="M12 7a5 5 0 0 0-5 5c0 2.5 2 5 5 7 3-2 5-4.5 5-7a5 5 0 0 0-5-5z" />
-    <circle className="ic-dot" cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
-  </svg>
-);
-const TempIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="car-icon-svg">
-    <path className="ic-wave ic-w1" d="M3 12h2" /><path className="ic-wave ic-w2" d="M7 9h2" /><path className="ic-wave ic-w3" d="M7 15h2" />
-    <path className="ic-draw" d="M13 6a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0v-6a4 4 0 0 0-4-4z" />
-    <circle className="ic-q ic-q1" cx="13" cy="10" r="1" fill="currentColor" stroke="none" />
-    <circle className="ic-q ic-q2" cx="13" cy="14" r="1" fill="currentColor" stroke="none" />
-    <circle className="ic-q ic-q3" cx="13" cy="18" r="1" fill="currentColor" stroke="none" />
-    <circle className="ic-q ic-q4" cx="13" cy="6" r="1" fill="currentColor" stroke="none" />
-  </svg>
-);
-const WifiIcon2 = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="car-icon-svg">
-    <path className="ic-wave ic-w1" d="M5 12.5a8 8 0 0 1 14 0" /><path className="ic-wave ic-w2" d="M8.5 9.5a5 5 0 0 1 7 0" /><path className="ic-wave ic-w3" d="M12 17.5a2 2 0 0 1 0 0" />
-    <circle className="ic-dot" cx="12" cy="18" r="1" fill="currentColor" stroke="none" />
-  </svg>
-);
-const DrinkIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="car-icon-svg">
-    <path className="ic-draw" d="M17 2H7l-1 8h12l-1-8z" /><path className="ic-smoke" d="M7 14a5 5 0 0 0 10 0" />
-    <circle className="ic-dot" cx="12" cy="14" r="2" fill="currentColor" stroke="none" />
-  </svg>
-);
-const QrIcon2 = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="car-icon-svg">
-    <rect className="ic-draw" x="3" y="3" width="7" height="7" rx="1.3" />
-    <rect className="ic-late" x="14" y="3" width="7" height="7" rx="1.3" />
-    <rect className="ic-late" x="3" y="14" width="7" height="7" rx="1.3" />
-    <path className="ic-merc" d="M14 14h3v3h-3z" /><path className="ic-merc" d="M20 14v3" /><path className="ic-merc" d="M14 20h3" />
-  </svg>
-);
-const FACILITY_ICONS = [TableIcon, LightIcon, TempIcon, WifiIcon2, DrinkIcon, QrIcon2];
-
 /* ── CTA step icons ── */
 const StepIcon1 = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -197,7 +105,6 @@ const STEP_ICONS = [StepIcon1, StepIcon2, StepIcon3];
 export default function AboutContent() {
   const t = useTranslations("aboutPage");
   const missionItems = t.raw("mission_items") as TitledItem[];
-  const facilitiesItems = t.raw("facilities_items") as TitledItem[];
   const statsItems = t.raw("stats_items") as StatsItem[];
   const ctaSteps = t.raw("cta_steps") as StepItem[];
 
@@ -205,11 +112,8 @@ export default function AboutContent() {
   const philRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const statRef = useRef<HTMLDivElement>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
 
-  const [activeSlide, setActiveSlide] = useState(0);
-  const totalSlides = facilitiesItems.length;
   const rotatingWords = t.raw("hero_rotating_words") as string[];
   const [wordIdx, setWordIdx] = useState(0);
 
@@ -334,67 +238,6 @@ export default function AboutContent() {
     return () => obs.disconnect();
   }, [reduceMotion]);
 
-  /* ── Carousel logic ── */
-  const goTo = useCallback(
-    (idx: number) => {
-      const vp = carouselRef.current;
-      if (!vp) return;
-      const slides = vp.querySelectorAll<HTMLElement>(".car-slide");
-      const clamped = Math.max(0, Math.min(idx, totalSlides - 1));
-      slides[clamped]?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    },
-    [totalSlides]
-  );
-
-  useEffect(() => {
-    const vp = carouselRef.current;
-    if (!vp) return;
-    const slides = Array.from(vp.querySelectorAll<HTMLElement>(".car-slide"));
-
-    function nearest() {
-      let best = 0, bestDist = Infinity;
-      slides.forEach((s, i) => {
-        const rect = s.getBoundingClientRect();
-        const center = rect.left + rect.width / 2;
-        const dist = Math.abs(center - window.innerWidth / 2);
-        if (dist < bestDist) { bestDist = dist; best = i; }
-      });
-      return best;
-    }
-
-    function setActive(idx: number) {
-      slides.forEach((s, i) => s.classList.toggle("is-active", i === idx));
-      setActiveSlide(idx);
-    }
-
-    const onScroll = () => setActive(nearest());
-    vp.addEventListener("scroll", onScroll, { passive: true });
-    setActive(0);
-    setTimeout(() => setActive(nearest()), 100);
-
-    let down = false, startX = 0, startLeft = 0, moved = false;
-    vp.addEventListener("mousedown", (e) => {
-      down = true; moved = false;
-      startX = e.pageX; startLeft = vp.scrollLeft;
-      vp.classList.add("is-drag");
-    });
-    window.addEventListener("mousemove", (e) => {
-      if (!down) return;
-      const dx = e.pageX - startX;
-      if (Math.abs(dx) > 3) moved = true;
-      vp.scrollLeft = startLeft - dx;
-    });
-    window.addEventListener("mouseup", () => {
-      if (!down) return;
-      down = false;
-      vp.classList.remove("is-drag");
-      if (moved) setActive(nearest());
-    });
-    vp.addEventListener("click", (e) => { if (moved) { e.preventDefault(); e.stopPropagation(); } }, true);
-
-    return () => { vp.removeEventListener("scroll", onScroll); };
-  }, [totalSlides]);
-
   /* ── Scroll-tied hero glow ── */
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -402,8 +245,6 @@ export default function AboutContent() {
   });
   const heroGlowOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.6], [1, 0.85]);
-
-  /* ── Philosophy icon animation CSS ── */
   const PHIL_CSS = `
     .phil-section .ic-ring { transform-box: fill-box; transform-origin: center; opacity: 0; transform: scale(.3); }
     .phil-section.is-in .ic-ring { animation: ringPop .62s cubic-bezier(.3,1.5,.45,1) forwards; }
@@ -433,55 +274,10 @@ export default function AboutContent() {
     @media (max-width: 560px) { .phil-section { padding: 86px 20px 96px; } .phil-title { margin-bottom: 44px; } }
   `;
 
-  /* ── Facilities carousel icon animation CSS ── */
-  const CAR_ICON_CSS = `
-    .car-icon .ic-ring, .car-icon .ic-dot, .car-icon .ic-late, .car-icon .ic-rays, .car-icon .ic-wave, .car-icon .ic-q { opacity: 1; transform: none; }
-    .car-icon .ic-draw, .car-icon .ic-merc { stroke-dashoffset: 0; }
-    .car-slide.is-active .ic-ring { animation: carRingPop .6s cubic-bezier(.3,1.5,.45,1) both; }
-    .car-slide.is-active .ic-r3 { animation-delay: .06s; }
-    .car-slide.is-active .ic-r2 { animation-delay: .18s; }
-    .car-slide.is-active .ic-r1 { animation: carRingPop .6s cubic-bezier(.3,1.5,.45,1) .30s both, carRingPulse 1.8s ease-in-out 1s infinite; }
-    .car-slide.is-active .ic-draw { animation: carDraw .85s cubic-bezier(.4,.1,.3,1) .05s both; }
-    .car-slide.is-active .ic-late { animation: carFade .45s ease .72s both; }
-    .car-icon .ic-rays { transform-box: fill-box; transform-origin: center; }
-    .car-slide.is-active .ic-rays { animation: carRayOut .55s cubic-bezier(.3,1.4,.45,1) .9s both, carRayGlow 2.2s ease-in-out 1.5s infinite; }
-    .car-slide.is-active .ic-merc { animation: carDrawShort .7s cubic-bezier(.35,.9,.4,1) .8s both, carMercRise 2.6s ease-in-out 1.6s infinite; }
-    .car-icon .ic-wave { transform-box: fill-box; transform-origin: 50% 100%; }
-    .car-slide.is-active .ic-wave { animation: carWaveOut .5s cubic-bezier(.3,1.4,.45,1) both; }
-    .car-slide.is-active .ic-w1 { animation-delay: .10s; }
-    .car-slide.is-active .ic-w2 { animation-delay: .24s; }
-    .car-slide.is-active .ic-w3 { animation-delay: .38s; }
-    .car-icon .ic-dot { transform-box: fill-box; transform-origin: center; }
-    .car-slide.is-active .ic-dot { animation: carDotPop .45s cubic-bezier(.3,1.5,.45,1) .55s both, carDotBlink 2.2s ease-in-out 1.2s infinite; }
-    .car-icon .ic-smoke { opacity: 0; }
-    .car-slide.is-active .ic-smoke { animation: carSmokeUp 2.6s ease-in-out .9s infinite; }
-    .car-icon .ic-q { transform-box: fill-box; transform-origin: center; }
-    .car-slide.is-active .ic-q { animation: carQPop .5s cubic-bezier(.3,1.5,.45,1) both; }
-    .car-slide.is-active .ic-q1 { animation-delay: .06s; }
-    .car-slide.is-active .ic-q2 { animation-delay: .18s; }
-    .car-slide.is-active .ic-q3 { animation-delay: .30s; }
-    .car-slide.is-active .ic-q4 { animation-delay: .42s; }
-    @keyframes carRingPop { from { opacity: 0; transform: scale(.3); } to { opacity: 1; transform: scale(1); } }
-    @keyframes carRingPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.35); } }
-    @keyframes carDraw { from { stroke-dasharray: 70; stroke-dashoffset: 70; } to { stroke-dasharray: 70; stroke-dashoffset: 0; } }
-    @keyframes carDrawShort { from { stroke-dasharray: 9; stroke-dashoffset: 9; } to { stroke-dasharray: 9; stroke-dashoffset: 0; } }
-    @keyframes carFade { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes carRayOut { from { opacity: 0; transform: scale(.75); } to { opacity: 1; transform: scale(1); } }
-    @keyframes carRayGlow { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
-    @keyframes carMercRise { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.6px); } }
-    @keyframes carWaveOut { from { opacity: 0; transform: scale(.55); } to { opacity: 1; transform: scale(1); } }
-    @keyframes carDotPop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
-    @keyframes carDotBlink { 0%,100% { opacity: 1; } 50% { opacity: .28; } }
-    @keyframes carSmokeUp { 0% { opacity: 0; transform: translateY(2px); } 35% { opacity: 1; } 100% { opacity: 0; transform: translateY(-3px); } }
-    @keyframes carQPop { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: scale(1); } }
-  `;
-
   return (
     <div style={{ fontFamily: FONT_FAMILY }}>
-      <style>{FACILITIES_CSS}</style>
       <style>{STATS_CSS}</style>
       <style>{PHIL_CSS}</style>
-      <style>{CAR_ICON_CSS}</style>
 
       {/* ── Section 1: Hero — 一個...的空間 CTA ── */}
       <section
@@ -755,49 +551,6 @@ export default function AboutContent() {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      {/* ── Section 4: 場地設施 ── */}
-      <section className="car-section" data-nav-theme="light">
-        <div className="car-head">
-          <h2 className="car-title">{t("facilities_title")}</h2>
-          <div className="car-nav">
-            <button className="car-btn" onClick={() => goTo(activeSlide - 1)} disabled={activeSlide === 0}>
-              <ChevronLeft size={17} />
-            </button>
-            <button className="car-btn" onClick={() => goTo(activeSlide + 1)} disabled={activeSlide === totalSlides - 1}>
-              <ChevronRight size={17} />
-            </button>
-          </div>
-        </div>
-
-        <div className="car-viewport" ref={carouselRef}>
-          <div className="car-track">
-            {facilitiesItems.map((item, i) => {
-              const Icon = FACILITY_ICONS[i] ?? TargetIcon;
-              return (
-                <div key={item.title} className="car-slide">
-                  <div className="car-card">
-                    <div className="car-photo">
-                      <Image src={VENUE_IMAGES[i % VENUE_IMAGES.length]} alt={item.title} fill sizes="(max-width: 768px) 74vw, 352px" style={{ objectFit: "cover" }} />
-                    </div>
-                    <div className="car-content">
-                      <div className="car-icon"><Icon /></div>
-                      <h3>{item.title}</h3>
-                      <p>{item.body}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="car-dots">
-          {facilitiesItems.map((_, i) => (
-            <button key={i} className={`car-dot${i === activeSlide ? " is-on" : ""}`} onClick={() => goTo(i)} aria-label={`Slide ${i + 1}`} />
-          ))}
         </div>
       </section>
 
