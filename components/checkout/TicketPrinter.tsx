@@ -73,7 +73,7 @@ export function TicketPrinter({
 
   useEffect(() => {
     setPrinted(false)
-    const timer = window.setTimeout(() => setPrinted(true), 1450)
+    const timer = window.setTimeout(() => setPrinted(true), 4000)
     return () => window.clearTimeout(timer)
   }, [replayKey])
 
@@ -201,9 +201,10 @@ export function TicketPrinter({
 
         .ticket-printer-scene {
           position: relative;
-          width: min(100%, 420px);
-          height: 606px;
+          width: min(100%, 460px);
+          height: 694px;
           margin: 0 auto;
+          overflow: hidden;
           perspective: 1200px;
           isolation: isolate;
         }
@@ -212,10 +213,8 @@ export function TicketPrinter({
           position: absolute;
           inset: 0;
           border-radius: ${tokens.radius.card};
-          background:
-            radial-gradient(circle at 50% 22%, rgba(111, 91, 183, 0.26), transparent 40%),
-            linear-gradient(155deg, #24203f 0%, #17152e 56%, #0b0b18 100%);
-          opacity: 0.82;
+          background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.045), transparent 38%);
+          pointer-events: none;
           z-index: -1;
         }
 
@@ -223,14 +222,14 @@ export function TicketPrinter({
           position: absolute;
           top: 24px;
           left: 50%;
-          width: min(380px, calc(100% - 24px));
-          height: 66px;
+          width: min(420px, calc(100% - 18px));
+          height: 76px;
           transform: translateX(-50%) rotateX(7deg) rotateY(-2deg);
           transform-style: preserve-3d;
-          border: 1px solid rgba(255, 255, 255, 0.22);
-          border-radius: 20px 20px 11px 11px;
-          background: linear-gradient(165deg, #3a4655 0%, #131b2c 24%, #050912 78%);
-          box-shadow: inset 0 8px 13px rgba(255, 255, 255, 0.12), 0 14px 18px rgba(0, 0, 0, 0.45);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 22px 22px 12px 12px;
+          background: linear-gradient(165deg, #5b6571 0%, #2c3541 25%, #111820 78%);
+          box-shadow: inset 0 9px 15px rgba(255, 255, 255, 0.14), 0 14px 18px rgba(0, 0, 0, 0.48);
           z-index: 4;
         }
 
@@ -238,21 +237,21 @@ export function TicketPrinter({
           content: "";
           position: absolute;
           right: -1px;
-          bottom: -13px;
+          bottom: -15px;
           left: -1px;
-          height: 15px;
-          border-radius: 0 0 16px 16px;
-          background: linear-gradient(180deg, #263041, #101625);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          height: 17px;
+          border-radius: 0 0 18px 18px;
+          background: linear-gradient(180deg, #3b4653, #18212d);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-top: 0;
         }
 
         .ticket-printer-lid {
           position: absolute;
-          inset: 6px 8px auto;
-          height: 29px;
-          border-radius: 14px 14px 6px 6px;
-          background: linear-gradient(180deg, rgba(106, 126, 145, 0.34), rgba(12, 18, 30, 0.1));
+          inset: 7px 9px auto;
+          height: 34px;
+          border-radius: 16px 16px 7px 7px;
+          background: linear-gradient(180deg, rgba(142, 154, 165, 0.35), rgba(16, 24, 34, 0.14));
           transform: translateZ(8px) rotateX(13deg);
           transform-origin: bottom;
         }
@@ -269,10 +268,10 @@ export function TicketPrinter({
 
         .ticket-printer-slot {
           position: absolute;
-          right: 38px;
-          bottom: 8px;
-          left: 38px;
-          height: 6px;
+          right: 44px;
+          bottom: 9px;
+          left: 44px;
+          height: 7px;
           border-radius: 2px;
           background: #02040a;
           box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9), 0 1px rgba(255, 255, 255, 0.65);
@@ -304,26 +303,27 @@ export function TicketPrinter({
 
         .ticket-printer-paper-wrap {
           position: absolute;
-          top: 52px;
+          top: 78px;
           left: 50%;
-          width: min(304px, calc(100% - 48px));
-          height: 530px;
-          transform: translateX(-50%) translateY(-450px) rotateX(-5deg) scaleY(0.82);
+          width: min(352px, calc(100% - 42px));
+          height: 610px;
+          transform: translateX(-50%) translateY(-600px) rotateX(-5deg) scaleY(0.72);
           transform-origin: top center;
           z-index: 2;
-          animation: ticket-paper-eject 1.45s ${tokens.easing.spring} forwards;
+          animation: ticket-paper-eject 4s steps(24, end) forwards;
           pointer-events: none;
         }
 
         .ticket-printer-paper {
           position: relative;
-          min-height: 530px;
-          padding: 62px 22px 26px;
+          min-height: 610px;
+          padding: 72px 26px 30px;
           overflow: hidden;
-          color: #182033;
-          background: #ffffff;
+          color: #34383e;
+          background: #e8e9eb;
+          border: 1px solid rgba(255, 255, 255, 0.85);
           border-radius: 2px;
-          box-shadow: 0 20px 35px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(255, 255, 255, 0.34);
+          box-shadow: 0 20px 35px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(255, 255, 255, 0.16);
           transform: rotateY(1deg);
         }
 
@@ -333,32 +333,32 @@ export function TicketPrinter({
 
         .ticket-paper-logo {
           display: block;
-          width: 104px;
+          width: 116px;
           height: auto;
-          margin: 0 auto 14px;
+          margin: 0 auto 18px;
         }
 
         .ticket-paper-header h2 {
           margin: 0;
-          color: #565d6d;
-          font-size: 23px;
+          color: #565b63;
+          font-size: 27px;
           font-weight: 800;
           letter-spacing: -0.045em;
         }
 
         .ticket-paper-header p {
-          max-width: 220px;
-          margin: 6px auto 0;
-          color: #9aaac5;
-          font-size: 13px;
+          max-width: 250px;
+          margin: 8px auto 0;
+          color: #a4b2c8;
+          font-size: 14px;
           line-height: 1.35;
         }
 
         .ticket-paper-perforation {
           position: relative;
-          height: 22px;
-          margin: 26px -22px 20px;
-          border-top: 1px dashed #d7dfed;
+          height: 26px;
+          margin: 30px -26px 24px;
+          border-top: 1px dashed #cbd1d9;
         }
 
         .ticket-paper-perforation::before,
@@ -379,18 +379,18 @@ export function TicketPrinter({
         .ticket-paper-detail-grid {
           display: grid;
           grid-template-columns: minmax(0, 1fr) auto;
-          gap: 18px;
+          gap: 22px;
         }
 
         .ticket-paper-detail-grid {
-          margin-top: 17px;
+          margin-top: 21px;
         }
 
         .ticket-paper-label {
           display: block;
-          margin-bottom: 4px;
-          color: #667490;
-          font-size: 10px;
+          margin-bottom: 5px;
+          color: #7a8492;
+          font-size: 11px;
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -398,9 +398,9 @@ export function TicketPrinter({
 
         .ticket-paper-code {
           display: block;
-          color: #172035;
+          color: #303841;
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 14px;
+          font-size: 16px;
           letter-spacing: 0.035em;
         }
 
@@ -411,17 +411,17 @@ export function TicketPrinter({
 
         .ticket-paper-amount {
           display: block;
-          color: #182033;
-          font-size: 18px;
+          color: #303841;
+          font-size: 21px;
           line-height: 1.1;
           white-space: nowrap;
         }
 
         .ticket-paper-detail-grid strong {
           display: block;
-          color: #172035;
-          font-size: 13px;
-          line-height: 1.4;
+          color: #303841;
+          font-size: 15px;
+          line-height: 1.45;
         }
 
         .ticket-paper-status {
@@ -437,25 +437,25 @@ export function TicketPrinter({
         .ticket-paper-holder {
           display: flex;
           align-items: center;
-          gap: 11px;
-          min-height: 52px;
-          margin-top: 17px;
-          padding: 10px 13px;
-          border: 1px solid #e8edf5;
-          border-radius: 12px;
-          background: #f7f9fc;
+          gap: 13px;
+          min-height: 60px;
+          margin-top: 21px;
+          padding: 12px 15px;
+          border: 1px solid #d9dee5;
+          border-radius: 14px;
+          background: #f3f4f6;
         }
 
         .ticket-paper-holder-mark {
           display: inline-flex;
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           align-items: center;
           justify-content: center;
           border-radius: 50%;
           color: #ffffff;
-          background: #182033;
-          font-size: 8px;
+          background: #29313b;
+          font-size: 9px;
           font-weight: 800;
           letter-spacing: -0.08em;
         }
@@ -465,13 +465,13 @@ export function TicketPrinter({
           min-width: 0;
           flex: 1;
           flex-direction: column;
-          gap: 4px;
+          gap: 5px;
         }
 
         .ticket-paper-holder-copy > strong {
           overflow: hidden;
-          color: #172035;
-          font-size: 12px;
+          color: #303841;
+          font-size: 13px;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
@@ -480,8 +480,8 @@ export function TicketPrinter({
           display: inline-flex;
           align-items: center;
           gap: 5px;
-          color: #94a3bd;
-          font-size: 10px;
+          color: #98a6b8;
+          font-size: 11px;
         }
 
         .ticket-paper-payment img {
@@ -494,11 +494,11 @@ export function TicketPrinter({
         .ticket-paper-qr-wrap {
           display: flex;
           width: fit-content;
-          margin: 18px auto 6px;
-          padding: 5px;
-          border: 1px solid #e0e7f1;
-          border-radius: 8px;
-          background: #ffffff;
+          margin: 22px auto 8px;
+          padding: 6px;
+          border: 1px solid #d5dce4;
+          border-radius: 9px;
+          background: #f8f9fa;
           pointer-events: auto;
         }
 
@@ -507,9 +507,9 @@ export function TicketPrinter({
         }
 
         .ticket-paper-qr-caption {
-          color: #6d7d99;
+          color: #7f8b9b;
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-          font-size: 8px;
+          font-size: 9px;
           letter-spacing: 0.16em;
           text-align: center;
           text-transform: uppercase;
@@ -521,7 +521,7 @@ export function TicketPrinter({
           bottom: -3px;
           left: 0;
           height: 7px;
-          background: linear-gradient(135deg, transparent 4px, #fff 0) 0 0 / 10px 10px repeat-x;
+          background: linear-gradient(135deg, transparent 4px, #e8e9eb 0) 0 0 / 10px 10px repeat-x;
         }
 
         .ticket-printer-caption {
@@ -577,9 +577,14 @@ export function TicketPrinter({
         }
 
         @keyframes ticket-paper-eject {
-          0% { opacity: 0; transform: translateX(-50%) translateY(-450px) rotateX(-12deg) scaleY(0.82); }
-          14% { opacity: 1; }
-          74% { transform: translateX(-50%) translateY(12px) rotateX(-2deg) scaleY(1.02); }
+          0% { opacity: 0; transform: translateX(-50%) translateY(-600px) rotateX(-13deg) scaleY(0.72); }
+          3% { opacity: 1; }
+          18% { transform: translateX(-50%) translateY(-600px) rotateX(-13deg) scaleY(0.72); }
+          25% { transform: translateX(-50%) translateY(-28px) rotateX(-8deg) scaleY(0.94); }
+          37% { transform: translateX(-50%) translateY(8px) rotateX(-3deg) scaleY(1.02); }
+          46% { transform: translateX(-50%) translateY(-4px) rotateX(-4deg) scaleY(0.995); }
+          55% { transform: translateX(-50%) translateY(3px) rotateX(-3deg) scaleY(1.005); }
+          64% { transform: translateX(-50%) translateY(0) rotateX(-3deg) scaleY(1); }
           100% { opacity: 1; transform: translateX(-50%) translateY(0) rotateX(-3deg) scaleY(1); }
         }
 
@@ -590,10 +595,10 @@ export function TicketPrinter({
 
         @media (max-width: 380px) {
           .ticket-printer-scene {
-            height: 566px;
+            height: 640px;
             transform: scale(0.91);
             transform-origin: top center;
-            margin-bottom: -34px;
+            margin-bottom: -38px;
           }
 
           .ticket-printer-caption { width: 100%; }
@@ -606,6 +611,12 @@ export function TicketPrinter({
           }
 
           .ticket-printer-status-light { animation: none; }
+        }
+
+        @media (prefers-reduced-motion: no-preference) {
+          .ticket-printer-paper-wrap {
+            clip-path: inset(0 0 0 0);
+          }
         }
       `}</style>
     </section>

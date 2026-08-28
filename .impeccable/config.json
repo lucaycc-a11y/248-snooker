@@ -291,6 +291,198 @@
         "rule": "design-system-color",
         "value": "#041108",
         "createdAt": "2026-08-27T15:39:04.675Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "22px",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.260Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "7px",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.305Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "4px",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.335Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#5b6571",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.365Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2c3541",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.397Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#111820",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.428Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3b4653",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.459Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#18212d",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.489Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(142, 154, 165, 0.35)",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.521Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(16, 24, 34, 0.14)",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.553Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#34383e",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.585Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8e9eb",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.615Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#565b63",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.649Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a4b2c8",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.681Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#cbd1d9",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.715Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7a8492",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.748Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#303841",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.782Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#d9dee5",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.815Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f3f4f6",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.848Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#29313b",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.882Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#98a6b8",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.936Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#d5dce4",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:53.968Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f8f9fa",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:54.000Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f8b9b",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-27T16:29:54.033Z"
       }
     ]
   }
