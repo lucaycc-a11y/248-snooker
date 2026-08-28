@@ -110,7 +110,7 @@ export function TicketPrinter({
           position: relative;
           width: min(100%, 460px);
           height: 716px;
-          margin: 0 auto;
+          margin: 0 auto -96px;
           overflow: hidden;
           perspective: 1200px;
           isolation: isolate;
