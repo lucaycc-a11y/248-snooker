@@ -507,6 +507,11 @@
           "components/checkout/TicketPrinter.tsx"
         ],
         "createdAt": "2026-08-28T02:38:52.107Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f87171",
+        "createdAt": "2026-08-28T09:58:13.417Z"
       }
     ]
   }
