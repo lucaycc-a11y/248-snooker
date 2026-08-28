@@ -35,7 +35,7 @@
     "semantic_hash": "ab9c3dfc1dfc1a407b73408b3779b1a6"
   },
   "app/[locale]/about/AboutContent.tsx": {
-    "mtime": 1787908068.9660194,
+    "mtime": 1787911193.8767905,
     "ast_hash": "10a07af6aadf857ca4d8f8a427bafac5",
     "semantic_hash": ""
   },
@@ -3015,8 +3015,8 @@
     "semantic_hash": ""
   },
   ".claude/settings.local.json": {
-    "mtime": 1787909123.5339775,
-    "ast_hash": "922042ee65d638666b60630dc8854fe4",
+    "mtime": 1787912754.1035151,
+    "ast_hash": "c5250b672876913d66ab1498413d62ad",
     "semantic_hash": ""
   },
   ".claude/skills/impeccable/scripts/command-metadata.json": {
@@ -3565,8 +3565,8 @@
     "semantic_hash": ""
   },
   ".impeccable/config.json": {
-    "mtime": 1787884732.1087546,
-    "ast_hash": "23da6dd1168f80d1910ec8e0299bfa8f",
+    "mtime": 1787911093.4202251,
+    "ast_hash": "e54562347d5f2f88585aca41e2450753",
     "semantic_hash": ""
   },
   ".impeccable/design.json": {
@@ -3630,8 +3630,8 @@
     "semantic_hash": ""
   },
   "app/api/checkout/create/route.ts": {
-    "mtime": 1787059929.3196738,
-    "ast_hash": "5fa232e624f8972f4f57dd2c07bd86ce",
+    "mtime": 1787912501.6216373,
+    "ast_hash": "1282d8916539ae1b5804078a59ce4bb9",
     "semantic_hash": ""
   },
   "app/api/checkout/status/route.ts": {
@@ -3645,8 +3645,8 @@
     "semantic_hash": ""
   },
   "app/api/webhooks/kpay/route.ts": {
-    "mtime": 1787905057.8143415,
-    "ast_hash": "78f8934e3eefa6a7d0d0d441e4eb32fd",
+    "mtime": 1787912549.825496,
+    "ast_hash": "687cd5acd9d9951463a881ac043614cd",
     "semantic_hash": ""
   },
   "components/admin/AdminInviteManager.tsx": {
@@ -4730,8 +4730,8 @@
     "semantic_hash": ""
   },
   "supabase/migrations/0039_kpay_failure_recovery.sql": {
-    "mtime": 1787904982.022395,
-    "ast_hash": "40dae5ad7c7b933906c912517236909c",
+    "mtime": 1787912599.2911296,
+    "ast_hash": "c47955eb7268c54c21f358a2da65c0ce",
     "semantic_hash": ""
   },
   "app/api/auth/signup/route.ts": {
@@ -4750,8 +4750,8 @@
     "semantic_hash": ""
   },
   "app/api/profile/contact-change/start/route.ts": {
-    "mtime": 1787910168.1083627,
-    "ast_hash": "4f644e7605e721a7590171a1a14893a6",
+    "mtime": 1787912308.6391304,
+    "ast_hash": "f04c4817ddf6714f8166af536a7e748a",
     "semantic_hash": ""
   },
   "app/api/profile/contact-change/verify-current/route.ts": {
@@ -4817,6 +4817,11 @@
   "supabase/migrations/20260828_kpay_payment_attempts.sql": {
     "mtime": 1787910520.479104,
     "ast_hash": "b79e26118859708648383197e27a21b2",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260828_payment_attempt_claim.sql": {
+    "mtime": 1787912453.3196566,
+    "ast_hash": "cfe1e1d2508c5d1a601eef1de5893469",
     "semantic_hash": ""
   }
 }

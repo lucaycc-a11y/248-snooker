@@ -27,6 +27,7 @@ AS $$
 DECLARE
   v_booking public.bookings%rowtype;
   v_count integer;
+  v_provider_order_no text;
 BEGIN
   SELECT * INTO v_booking
     FROM public.bookings
@@ -36,6 +37,8 @@ BEGIN
   IF NOT FOUND THEN
     RETURN jsonb_build_object('success', false, 'reason', 'booking_not_found');
   END IF;
+
+  v_provider_order_no := v_booking.provider_order_no;
 
   IF v_booking.order_group_id IS NOT NULL THEN
     UPDATE public.bookings
@@ -55,6 +58,15 @@ BEGIN
     UPDATE public.webhook_events
        SET status = 'processed', processed_at = now()
      WHERE id = p_event_id;
+  END IF;
+
+  -- Mark payment attempt failed (non-fatal).
+  IF v_provider_order_no IS NOT NULL THEN
+    UPDATE public.payment_attempts
+       SET status = 'failed', completed_at = now(), updated_at = now()
+     WHERE provider_order_no = v_provider_order_no
+       AND provider = 'kpay'
+       AND status = 'pending';
   END IF;
 
   RETURN jsonb_build_object(
@@ -195,6 +207,12 @@ BEGIN
     RETURNING s.id
   )
   SELECT count(*) INTO v_released FROM released;
+
+  -- Mark payment attempt cancelled (non-fatal).
+  UPDATE public.payment_attempts
+     SET status = 'cancelled', completed_at = now(), updated_at = now()
+   WHERE booking_id = p_booking_id
+     AND status IN ('claimed', 'pending');
 
   RETURN jsonb_build_object(
     'success', true,
