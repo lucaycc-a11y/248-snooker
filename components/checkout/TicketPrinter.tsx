@@ -73,7 +73,7 @@ export function TicketPrinter({
 
   useEffect(() => {
     setPrinted(false)
-    const timer = window.setTimeout(() => setPrinted(true), 4000)
+    const timer = window.setTimeout(() => setPrinted(true), 2500)
     return () => window.clearTimeout(timer)
   }, [replayKey])
 
@@ -95,8 +95,9 @@ export function TicketPrinter({
           <div className="ticket-printer-front" />
         </div>
 
-        <div key={replayKey} className="ticket-printer-paper-wrap">
-          <article className="ticket-printer-paper">
+        <div className="ticket-printer-paper-viewport">
+          <div key={replayKey} className="ticket-printer-paper-wrap">
+            <article className="ticket-printer-paper">
             <div className="ticket-paper-header">
               {/* The local SVG keeps the Space8 mark crisp on the white ticket. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -160,7 +161,7 @@ export function TicketPrinter({
             <div className="ticket-paper-qr-wrap">
               <QRCode
                 data={memberCode}
-                size={78}
+                size={140}
                 enlargeLabel={t("qr_tap_enlarge")}
                 closeLabel={t("close")}
               />
@@ -169,7 +170,8 @@ export function TicketPrinter({
               {t("qr_label")}
             </div>
             <div className="ticket-paper-edge" aria-hidden="true" />
-          </article>
+            </article>
+          </div>
         </div>
       </div>
 
@@ -202,7 +204,7 @@ export function TicketPrinter({
         .ticket-printer-scene {
           position: relative;
           width: min(100%, 460px);
-          height: 694px;
+          height: 716px;
           margin: 0 auto;
           overflow: hidden;
           perspective: 1200px;
@@ -230,7 +232,7 @@ export function TicketPrinter({
           border-radius: 22px 22px 12px 12px;
           background: linear-gradient(165deg, #5b6571 0%, #2c3541 25%, #111820 78%);
           box-shadow: inset 0 9px 15px rgba(255, 255, 255, 0.14), 0 14px 18px rgba(0, 0, 0, 0.48);
-          z-index: 4;
+          z-index: 7;
         }
 
         .ticket-printer-machine::after {
@@ -301,16 +303,29 @@ export function TicketPrinter({
           background: rgba(0, 0, 0, 0.55);
         }
 
-        .ticket-printer-paper-wrap {
+        .ticket-printer-paper-viewport {
           position: absolute;
-          top: 78px;
+          top: 91px;
           left: 50%;
           width: min(352px, calc(100% - 42px));
+          height: 616px;
+          padding-bottom: 20px;
+          overflow: visible;
+          clip-path: inset(0 -60px -2000px -60px);
+          transform: translateX(-50%);
+          perspective: 1200px;
+          perspective-origin: 50% 0%;
+          pointer-events: none;
+          z-index: 6;
+        }
+
+        .ticket-printer-paper-wrap {
+          position: relative;
+          width: 100%;
           height: 610px;
-          transform: translateX(-50%) translateY(-600px) rotateX(-5deg) scaleY(0.72);
+          transform: translateY(-600px) rotateX(-5deg) scaleY(0.72);
           transform-origin: top center;
-          z-index: 2;
-          animation: ticket-paper-eject 4s steps(24, end) forwards;
+          animation: ticket-paper-eject 2.5s steps(24, end) forwards;
           pointer-events: none;
         }
 
@@ -577,15 +592,13 @@ export function TicketPrinter({
         }
 
         @keyframes ticket-paper-eject {
-          0% { opacity: 0; transform: translateX(-50%) translateY(-600px) rotateX(-13deg) scaleY(0.72); }
-          3% { opacity: 1; }
-          18% { transform: translateX(-50%) translateY(-600px) rotateX(-13deg) scaleY(0.72); }
-          25% { transform: translateX(-50%) translateY(-28px) rotateX(-8deg) scaleY(0.94); }
-          37% { transform: translateX(-50%) translateY(8px) rotateX(-3deg) scaleY(1.02); }
-          46% { transform: translateX(-50%) translateY(-4px) rotateX(-4deg) scaleY(0.995); }
-          55% { transform: translateX(-50%) translateY(3px) rotateX(-3deg) scaleY(1.005); }
-          64% { transform: translateX(-50%) translateY(0) rotateX(-3deg) scaleY(1); }
-          100% { opacity: 1; transform: translateX(-50%) translateY(0) rotateX(-3deg) scaleY(1); }
+          0% { opacity: 0.6; transform: translateY(-96%) rotateX(-16deg) translateZ(-22px); }
+          15% { opacity: 0.85; transform: translateY(-76%) rotateX(-12deg) translateZ(14px); }
+          35% { opacity: 0.95; transform: translateY(-54%) rotateX(-8deg) translateZ(22px); }
+          60% { opacity: 1; transform: translateY(-28%) rotateX(-5deg) translateZ(16px); }
+          82% { transform: translateY(-6%) rotateX(-2deg) translateZ(8px); }
+          95% { transform: translateY(1.5%) rotateX(1deg) translateZ(2px); }
+          100% { opacity: 1; transform: translateY(0%) rotateX(0deg) translateZ(0); }
         }
 
         @keyframes ticket-printer-pulse {
@@ -607,7 +620,7 @@ export function TicketPrinter({
         @media (prefers-reduced-motion: reduce) {
           .ticket-printer-paper-wrap {
             animation: none;
-            transform: translateX(-50%) translateY(0) rotateX(-3deg) scaleY(1);
+            transform: translateY(0%) rotateX(0deg) translateZ(0);
           }
 
           .ticket-printer-status-light { animation: none; }
@@ -615,7 +628,7 @@ export function TicketPrinter({
 
         @media (prefers-reduced-motion: no-preference) {
           .ticket-printer-paper-wrap {
-            clip-path: inset(0 0 0 0);
+            animation-timing-function: ${tokens.easing.spring};
           }
         }
       `}</style>

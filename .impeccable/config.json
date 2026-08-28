@@ -483,6 +483,30 @@
           "components/checkout/TicketPrinter.tsx"
         ],
         "createdAt": "2026-08-27T16:29:54.033Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#18162f",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-28T02:38:52.025Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#168746",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-28T02:38:52.072Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8faf0",
+        "files": [
+          "components/checkout/TicketPrinter.tsx"
+        ],
+        "createdAt": "2026-08-28T02:38:52.107Z"
       }
     ]
   }
