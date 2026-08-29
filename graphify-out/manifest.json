@@ -75,8 +75,8 @@
     "semantic_hash": "093726ca0bcb4d8994f48c18db9894d9"
   },
   "app/[locale]/book/page.tsx": {
-    "mtime": 1787993254.3740098,
-    "ast_hash": "5c5d9796f6a2d8cf677536048639e3ae",
+    "mtime": 1787994424.801972,
+    "ast_hash": "0ec72004c234ab696bfe3d8d7fa2431f",
     "semantic_hash": ""
   },
   "app/[locale]/faq/page.tsx": {
@@ -125,8 +125,8 @@
     "semantic_hash": "ea7d6497a6809640fdbb81f23d743b73"
   },
   "app/[locale]/page.tsx": {
-    "mtime": 1787934656.697428,
-    "ast_hash": "6a0b1fa147ea70d26d0f47356242ca94",
+    "mtime": 1787994008.9309933,
+    "ast_hash": "5fd52dc84634c907174c3412996d9b10",
     "semantic_hash": ""
   },
   "app/[locale]/pricing/PricingContent.tsx": {
@@ -560,8 +560,8 @@
     "semantic_hash": "d92445a435de0b225af267c8ebbfb9b0"
   },
   "app/api/payment/create-intent/route.ts": {
-    "mtime": 1787993213.871406,
-    "ast_hash": "b170ffa0d36dcb26160751e8d5107152",
+    "mtime": 1787994691.7576263,
+    "ast_hash": "8926c29ad509ea55ca8063d3833c920e",
     "semantic_hash": ""
   },
   "app/api/points/route.ts": {
@@ -1540,18 +1540,18 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1787993213.8749385,
-    "ast_hash": "ed81f527e5e335be48ab940c22df0a26",
+    "mtime": 1787994500.0623837,
+    "ast_hash": "96a3f98ac853e8307ccfb1647b7adb2c",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1787993213.8755462,
-    "ast_hash": "3240a38fa6fb5846c66ee6b485e8706b",
+    "mtime": 1787994500.0601041,
+    "ast_hash": "7959230507a912b22970604c6142213d",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1787993213.8762233,
-    "ast_hash": "f4735afdbd1bc0da932e6719328f7fbb",
+    "mtime": 1787994500.0575745,
+    "ast_hash": "cd15ee53e89ce98bfee3f1f7c7fb50a3",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -1570,8 +1570,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1787930291.3744197,
-    "ast_hash": "18253468b958b375224117893109a8d1",
+    "mtime": 1787994618.054564,
+    "ast_hash": "3ebbc81ec03e0f2416d35009fc41d8a0",
     "semantic_hash": ""
   },
   "postcss.config.js": {
@@ -3630,13 +3630,13 @@
     "semantic_hash": ""
   },
   "app/api/checkout/create/route.ts": {
-    "mtime": 1787993420.6067126,
-    "ast_hash": "e84bd9cab2bdb0601714c689d2f47e9b",
+    "mtime": 1787994869.6056292,
+    "ast_hash": "8c6a1aa50e620a163bebfc552b7269ba",
     "semantic_hash": ""
   },
   "app/api/checkout/status/route.ts": {
-    "mtime": 1787934656.7010942,
-    "ast_hash": "8b4e472f15230a825de67bbb9e1bc498",
+    "mtime": 1787994164.9962447,
+    "ast_hash": "c97a145bc5d89467a0b9d19752a3c74c",
     "semantic_hash": ""
   },
   "app/api/member/notifications/route.ts": {
@@ -4380,8 +4380,8 @@
     "semantic_hash": ""
   },
   "lib/booking/useOrderConfirmationPolling.ts": {
-    "mtime": 1787934656.7847722,
-    "ast_hash": "4bf42028a439fe16782c2d7a635662a6",
+    "mtime": 1787994208.978006,
+    "ast_hash": "ca95a2d4c58ade96db55b515b61e3a98",
     "semantic_hash": ""
   },
   "public/icons/payment/octopus-card.png": {
@@ -4887,6 +4887,66 @@
   "public/gallery/S2/part3_table_wide_room.png": {
     "mtime": 1787992917.6172981,
     "ast_hash": "bb9ae51e9e1744853e301ce460b92065",
+    "semantic_hash": ""
+  },
+  "app/api/auth/signup/route.test.ts": {
+    "mtime": 1787994636.508802,
+    "ast_hash": "a5beeeb8cd3558578a1953270163cf4c",
+    "semantic_hash": ""
+  },
+  "components/checkout/PaymentRecoveryScreen.tsx": {
+    "mtime": 1787994271.0672643,
+    "ast_hash": "def781f068c88acd516ab2cbffc67158",
+    "semantic_hash": ""
+  },
+  "components/landing/Section2Value.tsx": {
+    "mtime": 1787994992.6666613,
+    "ast_hash": "7e21b7e834b96508cfd765570b982151",
+    "semantic_hash": ""
+  },
+  "lib/auth/require-complete-profile.test.ts": {
+    "mtime": 1787994888.6822648,
+    "ast_hash": "0145fb673a5f80a3e3c0a8cacfa7e0dd",
+    "semantic_hash": ""
+  },
+  "lib/auth/require-complete-profile.ts": {
+    "mtime": 1787994675.9570382,
+    "ast_hash": "80c17d3cd8b35689899e39accd738fe5",
+    "semantic_hash": ""
+  },
+  "scripts/verify-s2.mjs": {
+    "mtime": 1787994150.5785847,
+    "ast_hash": "9b6bb4e442d98686188515db9961aafa",
+    "semantic_hash": ""
+  },
+  "scripts/verify-s2b.mjs": {
+    "mtime": 1787994228.5562856,
+    "ast_hash": "902b2326d98067deae54806d66d83681",
+    "semantic_hash": ""
+  },
+  "scripts/verify-s2c.mjs": {
+    "mtime": 1787994566.2767048,
+    "ast_hash": "04c1c51e2cebf53548d4f64f4602469b",
+    "semantic_hash": ""
+  },
+  "scripts/verify-s2d.mjs": {
+    "mtime": 1787994660.0393016,
+    "ast_hash": "aba49e58fd25ecc70e20645f1e10c8f3",
+    "semantic_hash": ""
+  },
+  "scripts/verify-s2e.mjs": {
+    "mtime": 1787994840.715931,
+    "ast_hash": "b201ebb7043509c159d95292803c99c8",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260829_retry_hold_guard.sql": {
+    "mtime": 1787994124.6715958,
+    "ast_hash": "7cd27cc4ccaaeb1b1689bcce18b5baa7",
+    "semantic_hash": ""
+  },
+  "vitest.config.ts": {
+    "mtime": 1787994612.2069054,
+    "ast_hash": "9a483cb7d45676a571f317592c5d4d8f",
     "semantic_hash": ""
   }
 }

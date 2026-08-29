@@ -15,6 +15,7 @@ import Directions from "@/components/landing/Directions";
 import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
+import Section2Value from "@/components/landing/Section2Value";
 import SpacePilotHomepage from "@/components/landing/SpacePilotHomepage";
 import SpacePilotScrollDemo from "@/components/landing/SpacePilotScrollDemo";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
@@ -117,6 +118,7 @@ export default async function Home({
       <Nav />
       <Hero />
       <GalleryScroll />
+      <Section2Value />
       <HomeFacilities />
       <HomeRooms />
       <HomeFocus />

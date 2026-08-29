@@ -8,6 +8,8 @@
     "build": "node scripts/check-i18n-keys.js && next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "cms:audit": "node scripts/cms-audit.mjs",
     "check:i18n": "node scripts/check-i18n-keys.js",
     "cms:sync": "node scripts/cms-sync.mjs",
