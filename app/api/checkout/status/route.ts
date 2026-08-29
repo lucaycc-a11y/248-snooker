@@ -40,6 +40,28 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
+    // Slot-hold state drives the recovery screen: it decides whether "retry
+    // payment" is still possible (hold alive) or the user must pick new slots
+    // (hold gone), and supplies the countdown deadline. Only meaningful while
+    // the booking is unresolved, so it's skipped on terminal states below.
+    const holdState = async (): Promise<{ holdActive: boolean; holdExpiresAt: string | null }> => {
+      const { data, error } = await service.rpc('checkout_hold_expiry', {
+        p_booking_id: booking.id,
+        p_user_id: user.id,
+      })
+      if (error || !data || typeof data !== 'object' || Array.isArray(data)) {
+        // Unknown hold state must not imply an active hold — retry would then
+        // re-create an order against slots someone else may already hold.
+        if (error) console.error('[checkout/status] hold_expiry failed', { message: error.message })
+        return { holdActive: false, holdExpiresAt: null }
+      }
+      const record = data as Record<string, unknown>
+      return {
+        holdActive: record.hold_active === true,
+        holdExpiresAt: typeof record.expires_at === 'string' ? record.expires_at : null,
+      }
+    }
+
     // If the booking is already confirmed server-side (webhook fired), short-circuit
     if (booking.status === 'confirmed') {
       return NextResponse.json({
@@ -49,13 +71,30 @@ export async function GET(req: Request) {
       })
     }
 
-    if (booking.status === 'cancelled' || booking.status === 'expired' || booking.status === 'payment_failed') {
+    if (booking.status === 'cancelled' || booking.status === 'expired') {
       return NextResponse.json({
         bookingId: booking.id,
         status: booking.status,
         providerStatus: booking.status === 'cancelled' ? 'cancelled' : booking.status,
+        holdActive: false,
+        holdExpiresAt: null,
       })
     }
+
+    // payment_failed is recoverable, so it reports hold state — the UI needs it
+    // to decide between "retry payment" and "back to slot selection".
+    if (booking.status === 'payment_failed') {
+      const hold = await holdState()
+      return NextResponse.json({
+        bookingId: booking.id,
+        status: booking.status,
+        providerStatus: booking.status,
+        holdActive: hold.holdActive,
+        holdExpiresAt: hold.holdExpiresAt,
+      })
+    }
+
+    const hold = await holdState()
 
     // No provider order yet — the order hasn't been created
     if (!booking.provider_order_no || booking.payment_provider !== 'kpay') {
@@ -63,6 +102,8 @@ export async function GET(req: Request) {
         bookingId: booking.id,
         status: booking.status === 'pending' ? 'pending' : 'failed',
         providerStatus: 'pending',
+        holdActive: hold.holdActive,
+        holdExpiresAt: hold.holdExpiresAt,
       })
     }
 
@@ -99,6 +140,8 @@ export async function GET(req: Request) {
       bookingId: booking.id,
       status: uiStatus,
       providerStatus: orderStatus.status,
+      holdActive: hold.holdActive,
+      holdExpiresAt: hold.holdExpiresAt,
       rawStatus: orderStatus.rawStatus,
       ...(orderStatus.failureCode ? { failureCode: orderStatus.failureCode } : {}),
       ...(orderStatus.failureReason ? { failureReason: orderStatus.failureReason } : {}),

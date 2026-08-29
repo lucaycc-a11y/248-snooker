@@ -28,7 +28,8 @@ import { getTableName } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
-import { useOrderConfirmationPolling } from "@/lib/booking/useOrderConfirmationPolling"
+import { useOrderConfirmationPolling, type OrderHoldState } from "@/lib/booking/useOrderConfirmationPolling"
+import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
 import { useHaptic } from "@/lib/useHaptic"
@@ -2356,10 +2357,62 @@ type ConfirmedBooking = {
   holder_name?: string | null
 }
 
-  // Shown after an external payment return while the webhook commits the booking.
-  // Provider success alone remains a checking state; `success` means DB-confirmed.
-function ConfirmingPayment({ failed, timeout, outcome, onViewOrder, onRetry }: { failed: boolean; timeout: boolean; outcome: "failed" | "cancelled" | "expired" | null; onViewOrder: () => void; onRetry: () => void }) {
+// Shown after an external payment return while the webhook commits the booking.
+// Provider success alone remains a checking state; `success` means DB-confirmed.
+//
+// Every non-success outcome (failed / cancelled / timeout) renders the shared
+// PaymentRecoveryScreen, so the customer gets one consistent screen with real
+// actions instead of three different dead ends. Timeout notably does NOT offer
+// "view order" any more: an unknown provider result must not be presented as a
+// completed booking, so the user stays here until they choose.
+function ConfirmingPayment({
+  reason,
+  hold,
+  retrying,
+  retryError,
+  onRetry,
+  onBackToSlots,
+}: {
+  reason: PaymentRecoveryReason | null
+  hold: OrderHoldState
+  retrying: boolean
+  retryError: string | null
+  onRetry: () => void
+  onBackToSlots: () => void
+}) {
   const t = useTranslations("book")
+
+  if (reason) {
+    return (
+      <PaymentRecoveryScreen
+        reason={reason}
+        holdActive={hold.active}
+        holdExpiresAt={hold.expiresAt}
+        retrying={retrying}
+        error={retryError}
+        onRetry={onRetry}
+        onBackToSlots={onBackToSlots}
+        supportPhone={t("support_phone")}
+        supportEmail={t("support_email")}
+        labels={{
+          title: t("recovery_title"),
+          reasonFailed: t("recovery_reason_failed"),
+          reasonCancelled: t("recovery_reason_cancelled"),
+          reasonTimeout: t("recovery_reason_timeout"),
+          timeoutDoubleChargeWarning: t("recovery_timeout_warning"),
+          holdActive: t("recovery_hold_active"),
+          holdActiveWithTime: t("recovery_hold_active_time"),
+          holdExpired: t("recovery_hold_expired"),
+          retry: t("recovery_retry"),
+          retryBusy: t("recovery_retry_busy"),
+          backToSlots: t("recovery_back_to_slots"),
+          supportPhone: t("recovery_support_phone"),
+          supportEmail: t("recovery_support_email"),
+        }}
+      />
+    )
+  }
+
   return (
     <div
       className="screen-content"
@@ -2374,36 +2427,76 @@ function ConfirmingPayment({ failed, timeout, outcome, onViewOrder, onRetry }: {
         padding: "24px 20px",
       }}
     >
-      {failed || outcome ? (
-        <>
-          <p data-cms-key="book.pay.confirm_failed" style={{ fontSize: 16, color: tokens.colors.text, maxWidth: 320 }}>
-            {outcome === "cancelled" ? t("kpay_cancelled_desc") : outcome === "expired" ? t("kpay_expired_desc") : t("confirm_failed")}
-          </p>
-          <button type="button" onClick={onRetry} data-cms-key="book.pay.confirm_retry" style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}>
-            {outcome === "cancelled" || outcome === "expired" ? t("back_home") : t("kpay_try_again")}
-          </button>
-          <button type="button" onClick={() => (window.location.href = "/")} data-cms-key="book.pay.confirm_failed_home" style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}>
-            {t("back_home")}
-          </button>
-        </>
-      ) : timeout ? (
-        <>
-          <p data-cms-key="book.pay.confirm_timeout" style={{ fontSize: 16, color: tokens.colors.text, maxWidth: 320 }}>
-            {t("confirm_timeout")}
-          </p>
-          <button type="button" onClick={onViewOrder} data-cms-key="book.pay.confirm_view_order" style={{ background: "none", border: "none", color: tokens.colors.brand, fontSize: 15, cursor: "pointer" }}>
-            {t("confirm_view_order")}
-          </button>
-        </>
-      ) : (
-        <>
-          <LoadingGif />
-          <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
-            {t("confirming")}
-          </p>
-        </>
-      )}
+      <LoadingGif />
+      <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
+        {t("confirming")}
+      </p>
     </div>
+  )
+}
+
+/**
+ * Stateful wrapper that owns the retry lifecycle so the BookPage root doesn't
+ * carry ephemeral retry/retrying state. The retry endpoint calls the DB RPC
+ * `retry_payment_failed_booking` and then re-creates the KPay order by
+ * redirecting back to /book with the same booking.
+ */
+function ConfirmingPaymentContainer({
+  bookingId,
+  reason,
+  hold,
+  onBackToSlots,
+}: {
+  bookingId: string
+  reason: PaymentRecoveryReason | null
+  hold: OrderHoldState
+  onBackToSlots: () => void
+}) {
+  const [retrying, setRetrying] = useState(false)
+  const [retryError, setRetryError] = useState<string | null>(null)
+
+  const handleRetry = useCallback(async () => {
+    if (retrying) return
+    setRetrying(true)
+    setRetryError(null)
+
+    try {
+      const res = await fetch("/api/checkout/retry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      })
+      const payload: unknown = await res.json().catch(() => null)
+      if (!res.ok) {
+        const message =
+          payload && typeof payload === "object" && !Array.isArray(payload)
+            ? (payload as Record<string, unknown>).error
+            : undefined
+        setRetryError(typeof message === "string" ? message : "Unable to retry payment")
+        return
+      }
+
+      // RPC succeeded — the booking is reset to `pending` with no provider
+      // order. Redirect to /book with the booking ID so the checkout flow
+      // picks it up in Mode B (existing bookingId) and creates a fresh KPay
+      // order. This full-page nav clears stale component state cleanly.
+      window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=retry`
+    } catch {
+      setRetryError("Network error — please try again")
+    } finally {
+      setRetrying(false)
+    }
+  }, [bookingId, retrying])
+
+  return (
+    <ConfirmingPayment
+      reason={reason}
+      hold={hold}
+      retrying={retrying}
+      retryError={retryError}
+      onRetry={handleRetry}
+      onBackToSlots={onBackToSlots}
+    />
   )
 }
 
@@ -2452,9 +2545,8 @@ export default function BookPage() {
   // single-booking order is just a 1-element array (Task 8).
   const [confirmedBookings, setConfirmedBookings] = useState<ConfirmedBooking[]>([])
   const [confirmError, setConfirmError] = useState(false)
-  const [confirmTimeout, setConfirmTimeout] = useState(false)
-  const [confirmOutcome, setConfirmOutcome] = useState<"failed" | "cancelled" | "expired" | null>(null)
-  const confirmationStatus = useOrderConfirmationPolling(confirmBookingId, Boolean(confirmBookingId) && !confirmError && !confirmOutcome)
+  const [confirmRecoveryReason, setConfirmRecoveryReason] = useState<PaymentRecoveryReason | null>(null)
+  const confirmResult = useOrderConfirmationPolling(confirmBookingId, Boolean(confirmBookingId) && !confirmError && !confirmRecoveryReason)
 
   const haptic = useHaptic()
 
@@ -2618,15 +2710,14 @@ export default function BookPage() {
       // endpoint can decide whether payment failed or the booking was confirmed.
       setConfirmBookingId(bId)
       setConfirmError(false)
-      setConfirmTimeout(false)
-      setConfirmOutcome(null)
+      setConfirmRecoveryReason(null)
       setScreen(3)
   }, [])
 
   // Once the provider-aware poll sees success, load the existing confirmation
   // payload so Screen4 can reuse the established ticket/printer animation.
   useEffect(() => {
-    if (!confirmBookingId || confirmationStatus !== "success") return
+    if (!confirmBookingId || confirmResult.status !== "success") return
     let cancelled = false
     const loadConfirmation = async () => {
       try {
@@ -2642,13 +2733,17 @@ export default function BookPage() {
     }
     void loadConfirmation()
     return () => { cancelled = true }
-  }, [confirmBookingId, confirmationStatus])
+  }, [confirmBookingId, confirmResult.status])
 
   useEffect(() => {
-    if (confirmationStatus === "timeout") setConfirmTimeout(true)
-    if (confirmationStatus === "failed") setConfirmError(true)
-    if (confirmationStatus === "cancelled" || confirmationStatus === "expired") setConfirmOutcome(confirmationStatus)
-  }, [confirmationStatus])
+    const { status } = confirmResult
+    if (status === "timeout") setConfirmRecoveryReason("timeout")
+    if (status === "failed") setConfirmRecoveryReason("payment_failed")
+    if (status === "cancelled") setConfirmRecoveryReason("cancelled")
+    // An "expired" provider status maps to the same recovery as "failed" — the
+    // QR or redirect session expired, not the slot hold.
+    if (status === "expired") setConfirmRecoveryReason("payment_failed")
+  }, [confirmResult])
 
   // Shared availability cache: prefetches today + 7 days so date-switching in
   // Screen1 is instant, and exposes invalidate() for post-payment refresh (Task 4).
@@ -2949,16 +3044,16 @@ export default function BookPage() {
                 transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
               >
                 {confirmBookingId && !confirmedBooking ? (
-                  <ConfirmingPayment
-                    failed={confirmError}
-                    timeout={confirmTimeout}
-                    outcome={confirmOutcome}
-                    onViewOrder={() => router.push(`/member/bookings/${encodeURIComponent(confirmBookingId)}`)}
-                    onRetry={() => {
-                      setConfirmError(false)
-                      setConfirmTimeout(false)
+                  <ConfirmingPaymentContainer
+                    bookingId={confirmBookingId}
+                    reason={confirmRecoveryReason}
+                    hold={confirmResult.hold}
+                    onBackToSlots={() => {
                       setConfirmBookingId(null)
-                      window.location.href = "/book"
+                      setConfirmRecoveryReason(null)
+                      setConfirmError(false)
+                      direction.current = -1
+                      setScreen(0)
                     }}
                   />
                 ) : confirmedBooking ? (

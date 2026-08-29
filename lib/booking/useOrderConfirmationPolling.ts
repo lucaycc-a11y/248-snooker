@@ -14,10 +14,41 @@ export type OrderConfirmationStatus =
 type CheckoutStatusResponse = {
   status?: string
   providerStatus?: string
+  holdActive?: boolean
+  holdExpiresAt?: string | null
+}
+
+/** Slot-hold state reported alongside the payment status. */
+export type OrderHoldState = {
+  /** True while every slot in the order is still held by this user. */
+  active: boolean
+  /** ISO deadline of the earliest hold, for the recovery-screen countdown. */
+  expiresAt: string | null
+}
+
+export type OrderConfirmationResult = {
+  status: OrderConfirmationStatus
+  hold: OrderHoldState
 }
 
 const POLL_INTERVAL_MS = 3_000
-const TIMEOUT_MS = 60_000
+const DEFAULT_TIMEOUT_MS = 60_000
+
+/**
+ * Timeout override for manual testing (e.g. `?confirmTimeoutMs=3000` to watch
+ * the timeout screen without waiting a minute). Clamped, and ignored in
+ * production so a crafted URL can't shorten a real customer's confirmation
+ * window into a false timeout.
+ */
+function resolveTimeoutMs(): number {
+  if (typeof window === "undefined") return DEFAULT_TIMEOUT_MS
+  if (process.env.NODE_ENV === "production") return DEFAULT_TIMEOUT_MS
+  const raw = new URLSearchParams(window.location.search).get("confirmTimeoutMs")
+  if (!raw) return DEFAULT_TIMEOUT_MS
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed)) return DEFAULT_TIMEOUT_MS
+  return Math.min(Math.max(parsed, 1_000), DEFAULT_TIMEOUT_MS)
+}
 
 function parseStatusResponse(value: unknown): CheckoutStatusResponse {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {}
@@ -25,6 +56,8 @@ function parseStatusResponse(value: unknown): CheckoutStatusResponse {
   return {
     status: typeof record.status === "string" ? record.status : undefined,
     providerStatus: typeof record.providerStatus === "string" ? record.providerStatus : undefined,
+    holdActive: typeof record.holdActive === "boolean" ? record.holdActive : undefined,
+    holdExpiresAt: typeof record.holdExpiresAt === "string" ? record.holdExpiresAt : null,
   }
 }
 
@@ -32,8 +65,9 @@ function parseStatusResponse(value: unknown): CheckoutStatusResponse {
 export function useOrderConfirmationPolling(
   bookingId: string | null,
   enabled = true,
-): OrderConfirmationStatus {
+): OrderConfirmationResult {
   const [status, setStatus] = useState<OrderConfirmationStatus>("pending")
+  const [hold, setHold] = useState<OrderHoldState>({ active: false, expiresAt: null })
 
   useEffect(() => {
     if (!enabled || !bookingId) {
@@ -43,6 +77,7 @@ export function useOrderConfirmationPolling(
 
     let cancelled = false
     const startedAt = Date.now()
+    const timeoutMs = resolveTimeoutMs()
     let timer: ReturnType<typeof setTimeout> | null = null
 
     const finish = (next: OrderConfirmationStatus) => {
@@ -61,6 +96,10 @@ export function useOrderConfirmationPolling(
         const result = parseStatusResponse(data)
         const statusValue = result.status
         const providerStatus = result.providerStatus
+
+        if (!cancelled && result.holdActive !== undefined) {
+          setHold({ active: result.holdActive, expiresAt: result.holdExpiresAt ?? null })
+        }
 
         // Provider success only means KPay accepted the payment. The webhook
         // still has to commit bookings.status = confirmed before this hook can
@@ -91,7 +130,10 @@ export function useOrderConfirmationPolling(
       }
 
       if (cancelled) return
-      if (Date.now() - startedAt >= TIMEOUT_MS) {
+      if (Date.now() - startedAt >= timeoutMs) {
+        // Timeout means "no definitive answer", never "paid" or "not paid".
+        // The caller must park the user on the recovery screen and let them
+        // choose; it must not fall through to a success view or /member.
         finish("timeout")
         return
       }
@@ -107,5 +149,5 @@ export function useOrderConfirmationPolling(
     }
   }, [bookingId, enabled])
 
-  return status
+  return { status, hold }
 }

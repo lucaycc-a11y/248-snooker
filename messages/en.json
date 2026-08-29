@@ -789,7 +789,22 @@
     "kpay_processing": "Processing⋯",
     "kpay_cancelled": "Payment Cancelled",
     "kpay_cancelled_desc": "This booking was cancelled and its held slots were released.",
-    "kpay_cancel": "Cancel Booking"
+    "kpay_cancel": "Cancel Booking",
+    "recovery_title": "Payment incomplete",
+    "recovery_reason_failed": "Payment could not be completed. Please try again.",
+    "recovery_reason_cancelled": "Payment was cancelled.",
+    "recovery_reason_timeout": "We could not confirm your payment result in time.",
+    "recovery_timeout_warning": "If you already completed payment but see this screen, do not pay again. Contact support to verify your order status.",
+    "recovery_hold_active": "Your time slot is still reserved.",
+    "recovery_hold_active_time": "Reserved until {time} ({remaining} left)",
+    "recovery_hold_expired": "Your time slot reservation has expired. Please select a new one.",
+    "recovery_retry": "Retry payment",
+    "recovery_retry_busy": "Processing…",
+    "recovery_back_to_slots": "Back to time slots",
+    "recovery_support_phone": "Call {phone}",
+    "recovery_support_email": "Email {email}",
+    "support_phone": "+852 6180 8022",
+    "support_email": "Admin@space8.com.hk"
   },
   "ticket": {
     "printer_aria": "Booking ticket printer",
@@ -1212,5 +1227,13 @@
         "body": "A Star Chinese table with match-tuned atmosphere."
       }
     ]
+  },
+  "homeValue": {
+    "eyebrow": "SPACE8 VALUE",
+    "part1_before": "Book online and get your ",
+    "part1_highlight": "QR Code",
+    "part1_after": " for instant entry.",
+    "part2_line": "A pro Chinese table with narrow, honest pockets.",
+    "part3_line": "One private room, one table, zero distractions."
   }
 }

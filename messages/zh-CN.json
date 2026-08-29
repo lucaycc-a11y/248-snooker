@@ -789,7 +789,22 @@
     "kpay_processing": "處理中⋯",
     "kpay_cancelled": "付款已取消",
     "kpay_cancelled_desc": "此预订已取消，已释放时段。",
-    "kpay_cancel": "取消预订"
+    "kpay_cancel": "取消预订",
+    "recovery_title": "付款未完成",
+    "recovery_reason_failed": "付款未能完成，请重新尝试",
+    "recovery_reason_cancelled": "付款已取消",
+    "recovery_reason_timeout": "处理时间较长，未能确认付款结果",
+    "recovery_timeout_warning": "如果你已经完成付款但看到这个画面，请勿重复付款，可以联络客服核实订单状态",
+    "recovery_hold_active": "你的时段仍然保留中",
+    "recovery_hold_active_time": "时段保留至 {time}（剩余 {remaining}）",
+    "recovery_hold_expired": "时段保留已过期，请重新选择",
+    "recovery_retry": "重新付款",
+    "recovery_retry_busy": "处理中⋯",
+    "recovery_back_to_slots": "返回选择时段",
+    "recovery_support_phone": "致电客服 {phone}",
+    "recovery_support_email": "邮箱 {email}",
+    "support_phone": "+852 6180 8022",
+    "support_email": "Admin@space8.com.hk"
   },
   "ticket": {
     "printer_aria": "订桌出票机",
@@ -1212,5 +1227,13 @@
         "body": "星牌中式球台，特调比赛氛围"
       }
     ]
+  },
+  "homeValue": {
+    "eyebrow": "SPACE8 VALUE",
+    "part1_before": "数码即入场，网上预订后获得 ",
+    "part1_highlight": "QR Code",
+    "part1_after": "",
+    "part2_line": "专业中式球台，窄袋真实手感",
+    "part3_line": "独立球室，一房一台，零打扰"
   }
 }
