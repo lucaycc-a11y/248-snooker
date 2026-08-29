@@ -131,6 +131,9 @@ type Props = Labels & {
   /** Promo code state — managed by the parent so it survives re-renders. */
   promoCode: PromoResult | null
   onPromoChange: (promo: PromoResult | null) => void
+  /** Member points to redeem, 0 = none. Mutually exclusive with promoCode; the
+   * intent amount is recalculated by prepare_checkout server-side. */
+  pointsAmount?: number
   /** Active next-intl locale — drives the Payment Element's own copy (Stripe's
    * "Pay", card-field labels, decline messages, etc.), not just our labels. */
   locale: 'zh-HK' | 'zh-CN' | 'en'
@@ -416,6 +419,7 @@ export default function StripePayment(props: Props) {
   const countdown = useCountdown(lockedUntil)
 
   const promoCode = props.promoCode
+  const pointsAmount = props.pointsAmount ?? 0
   const displayTotal = promoCode ? promoCode.final_amount : props.total
 
   // Grouped when more than one block was selected (Task 3).
@@ -462,6 +466,9 @@ export default function StripePayment(props: Props) {
           : { slotId: lockJson.slotId }
         if (promoCode) {
           intentBody.promoCode = promoCode.code
+        } else if (pointsAmount > 0) {
+          // Never both: prepare_checkout rejects the combination outright.
+          intentBody.pointsAmount = pointsAmount
         }
         const intentRes = await fetch("/api/payment/create-intent", {
           method: "POST",

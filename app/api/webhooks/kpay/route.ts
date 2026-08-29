@@ -286,7 +286,19 @@ async function handleSucceeded(
   status: string,
   eventId: string,
 ) {
-  const paymentMethod = booking.payment_method ?? 'fps'
+  // The rail is persisted by checkout/create before the order reaches KPay, and
+  // KPay's callback does not carry it. Defaulting to 'fps' here would silently
+  // mislabel every Alipay/PayMe/Octopus booking, so a missing value raises instead.
+  // The caller marks the event failed and writes to site_errors — it does NOT
+  // auto-retry (that handler returns 200), so this needs manual reconciliation.
+  // Only pre-existing pending rows created before the method was persisted can
+  // reach this branch.
+  const paymentMethod = booking.payment_method
+  if (!paymentMethod) {
+    throw new Error(
+      `booking ${booking.id} has no persisted payment_method; refusing to guess a rail`,
+    )
+  }
 
   // Grouped booking: confirm every row atomically
   if (booking.order_group_id) {

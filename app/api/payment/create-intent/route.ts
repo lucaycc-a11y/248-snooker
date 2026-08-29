@@ -14,6 +14,7 @@ import {
 } from '@/lib/booking/server'
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
+import { prepareCheckout, prepareFailureStatus } from '@/lib/checkout/prepare'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 
 export const runtime = 'nodejs'
@@ -127,6 +128,9 @@ export async function POST(req: Request) {
             duration_hours: slot.duration_hours,
             period,
             total_price: quote.total,
+            // Pre-discount snapshot prepare_checkout re-derives from.
+            base_price: quote.total,
+            subtotal: quote.total,
             status: 'pending',
             table_number: slot.table_number,
             is_free_booking: false, // self-serve bookings are always paid; comps are admin-flagged
@@ -167,6 +171,10 @@ export async function POST(req: Request) {
             duration_hours: slot.duration_hours,
             period,
             total_price: quote.total,
+            // Re-baseline the pre-discount snapshot too, or prepare_checkout would
+            // restore the price from the abandoned attempt's window.
+            base_price: quote.total,
+            subtotal: quote.total,
             table_number: slot.table_number,
             order_group_id: orderGroupId,
           })
@@ -185,25 +193,64 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Could not resolve booking' }, { status: 500 })
     }
 
-    // ── Promotion code validation (server-side, never trust the client) ────────
-    let discountCents = 0
-    let promoCode: string | null = null
-    if (typeof body?.promoCode === 'string' && body.promoCode.trim()) {
-      const code = body.promoCode.trim().toUpperCase()
-      const { data: promoResult, error: promoErr } = await service.rpc(
-        'validate_promotion_code',
-        { p_code: code, p_cart_amount: amountInCents / 100 }
+    // ── Discount reservation (server-side, never trust the client) ─────────────
+    //
+    // prepare_checkout both validates AND reserves: it holds the promo usage or
+    // the points and writes the discounted amount onto every booking row. That
+    // write matters — the webhook asserts paymentIntent.amount === total_price*100,
+    // so discounting only the intent (as an earlier version did) made every
+    // discounted payment fail confirmation.
+    const requestedPromo = typeof body?.promoCode === 'string' ? body.promoCode : null
+    const rawPoints = body?.pointsAmount
+    const pointsAmount = typeof rawPoints === 'number' ? rawPoints : Number(rawPoints ?? 0)
+    if (!Number.isInteger(pointsAmount) || pointsAmount < 0) {
+      return NextResponse.json({ error: 'Invalid pointsAmount' }, { status: 400 })
+    }
+
+    const outcome = await prepareCheckout(service, {
+      bookingId: primaryBookingId,
+      userId: user.id,
+      promoCode: requestedPromo,
+      points: pointsAmount,
+    })
+    if (!outcome.ok) {
+      const { reason, availablePoints } = outcome.failure
+      console.log('[payment/create-intent] prepare_checkout rejected', {
+        bookingId: primaryBookingId,
+        reason,
+      })
+      return NextResponse.json(
+        { error: reason, ...(availablePoints !== undefined ? { availablePoints } : {}) },
+        { status: prepareFailureStatus(reason) },
       )
-      if (promoErr || !promoResult || !promoResult.valid) {
-        console.log('[payment/create-intent] promo rejected', { code, error: promoErr?.message, result: promoResult })
-        return NextResponse.json({ error: 'Promo code is no longer valid' }, { status: 400 })
-      }
-      const discountAmount = Number(promoResult.discount_amount)
-      discountCents = Math.round(discountAmount * 100)
-      amountInCents = Math.max(0, amountInCents - discountCents)
-      promoCode = code
-      console.log('[payment/create-intent] promo applied', {
-        code, discountAmount, finalAmountCents: amountInCents,
+    }
+
+    const prepared = outcome.prepared
+    const promoCode = prepared.kind === 'promo' ? prepared.code : null
+    const discountCents = Math.round(prepared.discountAmount * 100)
+    amountInCents = Math.round(prepared.total * 100)
+
+    // Stripe rejects zero-amount intents, so a fully-discounted booking cannot be
+    // completed through this path. The reservation is left in place: the row is
+    // still pending and expire_stale_bookings releases it.
+    if (amountInCents <= 0) {
+      console.warn('[payment/create-intent] non_positive_total_after_discount', {
+        bookingId: primaryBookingId,
+        discount: prepared.discountAmount,
+      })
+      return NextResponse.json(
+        { error: 'Zero-amount bookings are not supported' },
+        { status: 400 },
+      )
+    }
+
+    if (prepared.discountAmount > 0) {
+      console.log('[payment/create-intent] discount applied', {
+        kind: prepared.kind,
+        code: promoCode,
+        points: prepared.points,
+        discount: prepared.discountAmount,
+        finalAmountCents: amountInCents,
       })
     }
 
@@ -236,6 +283,9 @@ export async function POST(req: Request) {
             slot_id: slotIds.length === 1 ? slotIds[0] : '',
             user_id: user.id,
             ...(promoCode ? { promo_code: promoCode, discount_cents: String(discountCents) } : {}),
+            ...(prepared.points > 0
+              ? { points_redeemed: String(prepared.points), discount_cents: String(discountCents) }
+              : {}),
           },
         },
         { idempotencyKey },

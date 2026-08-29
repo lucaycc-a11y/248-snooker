@@ -62,6 +62,10 @@ type Props = {
   mode: KPayMode
   labels: KPayLabels
   agreedToTerms: boolean
+  /** Member points to redeem, 0 = none. Re-validated and reserved server-side by
+   * prepare_checkout; the amount KPay charges comes back from that RPC, never
+   * from this component. */
+  pointsAmount?: number
   onBackToMethods: () => void
   onSuccess: (bookingId?: string) => void
 }
@@ -159,6 +163,7 @@ const EASE_STANDARD = 'cubic-bezier(.2,.7,.3,1)'
 
 export default function KPayPayment(props: Props) {
   const { blocks, bookingId, orderGroupId, method, mode, labels, agreedToTerms, onBackToMethods, onSuccess } = props
+  const pointsAmount = props.pointsAmount ?? 0
 
   const [state, setState] = useState<KPayState>('idle')
   const [payInfo, setPayInfo] = useState<string | null>(null)
@@ -200,6 +205,9 @@ export default function KPayPayment(props: Props) {
         method,
         mode,
         agreedToTerms,
+      }
+      if (pointsAmount > 0) {
+        body.pointsAmount = pointsAmount
       }
 
       // Mode A: blocks[] — the KPay path creates bookings server-side
@@ -276,7 +284,7 @@ export default function KPayPayment(props: Props) {
       creatingRef.current = false
       setCreating(false)
     }
-  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode])
+  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode, pointsAmount])
 
   const cancelBooking = useCallback(async () => {
     if (actionBusy) return

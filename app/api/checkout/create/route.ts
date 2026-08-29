@@ -14,6 +14,7 @@ import {
 } from '@/lib/booking/server'
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
+import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import type { PaymentMethod } from '@/lib/payments/types'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 
@@ -92,6 +93,15 @@ export async function POST(req: Request) {
     }
 
     const paymentMethod = method as PaymentMethod
+
+    // Discount selection. Promo code and points are mutually exclusive —
+    // prepare_checkout rejects the combination rather than silently dropping one.
+    const promoCode = typeof body?.promoCode === 'string' ? body.promoCode : null
+    const rawPoints = body?.pointsAmount
+    const pointsAmount = typeof rawPoints === 'number' ? rawPoints : Number(rawPoints ?? 0)
+    if (!Number.isInteger(pointsAmount) || pointsAmount < 0) {
+      return NextResponse.json({ error: 'Invalid pointsAmount' }, { status: 400 })
+    }
 
     // ── Check payment method is enabled in settings ────────────────────────
     const settings = await getPaymentMethodSettings(paymentMethod)
@@ -205,11 +215,18 @@ export async function POST(req: Request) {
           duration_hours: slot.duration_hours,
           period,
           total_price: quote.total,
+          // base_price/subtotal are the pre-discount snapshot prepare_checkout
+          // re-derives from, so a re-prepare can restore the undiscounted total.
+          base_price: quote.total,
+          subtotal: quote.total,
           status: 'pending',
           table_number: slot.table_number,
           is_free_booking: false,
           order_group_id: orderGroupId,
           human_code: humanReadableCode(newId),
+          // The customer-selected rail, persisted BEFORE payment succeeds. The
+          // webhook confirms with this value rather than inferring one.
+          payment_method: paymentMethod,
         })
         if (insErr) {
           console.error('[checkout/create] pending_booking_insert_error', {
@@ -230,6 +247,19 @@ export async function POST(req: Request) {
         totalAmount += quote.total
       }
 
+      // Reserve the discount and take the authoritative total from the database.
+      // prepare_checkout writes the discounted total onto every row in the group,
+      // so the provider amount and the booking rows cannot disagree.
+      const prepared = await prepareForCheckout({
+        service,
+        bookingId: bookingIds[0],
+        userId: user.id,
+        promoCode,
+        pointsAmount,
+        quotedTotal: totalAmount,
+      })
+      if ('error' in prepared) return prepared.error
+
       // Converge on the shared path — Mode A does not create the order itself.
       return await createAndStamp({
         service,
@@ -239,7 +269,7 @@ export async function POST(req: Request) {
         outTradeNo: humanReadableCode(bookingIds[0]),
         siblingIds: bookingIds.slice(1),
         orderGroupId,
-        totalAmount,
+        totalAmount: prepared.total,
         paymentMethod,
         mode,
         origin: new URL(req.url).origin,
@@ -258,7 +288,7 @@ export async function POST(req: Request) {
     // ── Load the primary booking ───────────────────────────────────────────
     const { data: booking, error: bookingErr } = await service
       .from('bookings')
-      .select('id, status, total_price, human_code, order_group_id, payment_provider, provider_order_no')
+      .select('id, status, total_price, human_code, order_group_id, payment_provider, provider_order_no, payment_method')
       .eq('id', bookingId)
       .eq('user_id', user.id)
       .single()
@@ -282,18 +312,40 @@ export async function POST(req: Request) {
       })
     }
 
-    // ── Calculate total for the group (or single booking) ──────────────────
-    let totalAmount = booking.total_price
-    if (orderGroupId) {
-      const { data: groupRows } = await service
+    // The row is still pending and unclaimed (the finalized-order guard above
+    // already returned), so the customer may switch rails on a retry. Trust the
+    // stored group id rather than the client-supplied one.
+    const groupId = booking.order_group_id ?? null
+    if (booking.payment_method !== paymentMethod) {
+      const methodQuery = service
         .from('bookings')
-        .select('total_price')
-        .eq('order_group_id', orderGroupId)
+        .update({ payment_method: paymentMethod })
         .eq('user_id', user.id)
-      if (groupRows && groupRows.length > 0) {
-        totalAmount = groupRows.reduce((sum, r) => sum + r.total_price, 0)
+        .eq('status', 'pending')
+        .is('provider_order_no', null)
+      const { error: methodErr } = groupId
+        ? await methodQuery.eq('order_group_id', groupId)
+        : await methodQuery.eq('id', bookingId)
+      if (methodErr) {
+        console.error('[checkout/create] payment_method update failed', {
+          bookingId,
+          groupId,
+          message: methodErr.message,
+        })
+        return NextResponse.json({ error: 'Could not update payment method' }, { status: 500 })
       }
     }
+
+    // Authoritative total for the booking or the whole group.
+    const prepared = await prepareForCheckout({
+      service,
+      bookingId,
+      userId: user.id,
+      promoCode,
+      pointsAmount,
+      quotedTotal: booking.total_price,
+    })
+    if ('error' in prepared) return prepared.error
 
     // Same shared path as Mode A — one place calls createOrder, one place stamps.
     return await createAndStamp({
@@ -303,8 +355,8 @@ export async function POST(req: Request) {
       primaryBookingId: bookingId,
       outTradeNo: booking.human_code,
       siblingIds: [],
-      orderGroupId: orderGroupId ?? null,
-      totalAmount,
+      orderGroupId: groupId,
+      totalAmount: prepared.total,
       paymentMethod,
       mode,
       origin: new URL(req.url).origin,
@@ -324,6 +376,62 @@ export async function POST(req: Request) {
     await logSiteError('checkout/create', 'error', 'unhandled exception', { message: e.message, stack: e.stack })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
+}
+
+// Reserves the discount and returns the amount KPay should charge. Returns an
+// error response instead of throwing so both entry modes can return it directly.
+//
+// A non-positive prepared total means a discount covered the whole booking; KPay
+// cannot create a zero-amount order, so the reservation is released rather than
+// left holding the customer's points against an order that was never created.
+async function prepareForCheckout(args: {
+  service: ReturnType<typeof getServiceSupabase>
+  bookingId: string
+  userId: string
+  promoCode: string | null
+  pointsAmount: number
+  quotedTotal: number
+}): Promise<{ total: number } | { error: Response }> {
+  const { service, bookingId, userId, promoCode, pointsAmount, quotedTotal } = args
+
+  const outcome = await prepareCheckout(service, {
+    bookingId,
+    userId,
+    promoCode,
+    points: pointsAmount,
+  })
+
+  if (!outcome.ok) {
+    const { reason, availablePoints } = outcome.failure
+    console.log('[checkout/create] prepare_checkout rejected', { bookingId, reason })
+    return {
+      error: NextResponse.json(
+        {
+          error: reason,
+          ...(availablePoints !== undefined ? { availablePoints } : {}),
+        },
+        { status: prepareFailureStatus(reason) },
+      ),
+    }
+  }
+
+  const { prepared } = outcome
+  if (prepared.total <= 0) {
+    await releaseCheckoutHolds(service, { bookingId, orderGroupId: null })
+    console.warn('[checkout/create] non_positive_total_after_discount', {
+      bookingId,
+      quotedTotal,
+      discount: prepared.discountAmount,
+    })
+    return {
+      error: NextResponse.json(
+        { error: 'Zero-amount bookings are not supported' },
+        { status: 400 },
+      ),
+    }
+  }
+
+  return { total: prepared.total }
 }
 
 // ── Single order-creation path ───────────────────────────────────────────────
@@ -431,6 +539,9 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
       p_failure_code: null,
       p_failure_reason: e.message.slice(0, 240),
     })
+    // No provider order exists, so the reservation must not keep the customer's
+    // points locked while they retry with a different rail.
+    await releaseCheckoutHolds(service, { bookingId: primaryBookingId, orderGroupId })
     throw err
   }
 
@@ -452,7 +563,11 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
   // Stamp the booking row for backward compatibility with existing queries.
   const { error: stampErr } = await service
     .from('bookings')
-    .update({ payment_provider: 'kpay', provider_order_no: result.providerOrderNo })
+    .update({
+      payment_provider: 'kpay',
+      provider_order_no: result.providerOrderNo,
+      payment_method: paymentMethod,
+    })
     .eq('id', primaryBookingId)
     .eq('user_id', userId)
 
@@ -469,7 +584,11 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
   if (groupTargets || orderGroupId) {
     const q = service
       .from('bookings')
-      .update({ payment_provider: 'kpay', provider_order_no: result.providerOrderNo })
+      .update({
+        payment_provider: 'kpay',
+        provider_order_no: result.providerOrderNo,
+        payment_method: paymentMethod,
+      })
       .eq('user_id', userId)
     const { error: groupErr } = groupTargets
       ? await q.in('id', groupTargets)

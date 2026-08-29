@@ -17,6 +17,7 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import KPayPayment from "@/components/checkout/KPayPayment"
+import PointsRedemption from "@/components/checkout/PointsRedemption"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
@@ -1612,6 +1613,17 @@ function Screen3({
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
 
+  // Member points redemption. Held here (not inside the payment components) so
+  // the selection survives switching between rails. It is submitted with the
+  // payment-creation call — prepare_checkout reserves the points at that point
+  // and re-derives the discount, so these values are display-only.
+  const [pointsAmount, setPointsAmount] = useState(0)
+  const [pointsDiscount, setPointsDiscount] = useState(0)
+  const handlePointsSelect = useCallback((points: number, discount: number) => {
+    setPointsAmount(points)
+    setPointsDiscount(discount)
+  }, [])
+
   // KPay payment method selection
   const [kpayMethod, setKpayMethod] = useState<KPayMethod | null>(null)
   const [kpayMode, setKpayMode] = useState<KPayMode>('qr')
@@ -1648,6 +1660,12 @@ function Screen3({
     (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
     0,
   )
+
+  // Provisional points discount, clamped the same way prepare_checkout clamps it
+  // (never more than the order). The server recalculates both values before the
+  // order is created — this only keeps the summary honest while the customer picks.
+  const appliedPointsDiscount = Math.min(pointsDiscount, total)
+  const payableTotal = Math.max(0, total - appliedPointsDiscount)
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
   useEffect(() => {
@@ -1854,16 +1872,23 @@ function Screen3({
                 <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
               </div>
             )}
-            {/* Points earned row */}
+            {appliedPointsDiscount > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
+                <span data-cms-key="book.pay.points_discount">{t("redeem_points_row")}</span>
+                <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${appliedPointsDiscount}</span>
+              </div>
+            )}
+            {/* Points earned row — confirm_booking awards on the post-discount
+                price, so this mirrors the discounted total, not the subtotal. */}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.points_earned_label">{t("points_earned_label")}</span>
-              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>+{total} {t("points")}</span>
+              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>+{payableTotal} {t("points")}</span>
             </div>
             <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
               <span style={{ fontFamily: BEBAS, fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
-                <span style={{ fontSize: 16, opacity: 0.7, marginRight: 2 }}>HK$</span>{total}
+                <span style={{ fontSize: 16, opacity: 0.7, marginRight: 2 }}>HK$</span>{payableTotal}
               </span>
             </div>
           </div>
@@ -1926,6 +1951,29 @@ function Screen3({
             </div>
           )}
 
+          {/* Points redemption — only while no rail is chosen. Once a payment
+              method is selected the amount is already committed to a Stripe
+              intent or a KPay order, and changing it would strand that order. */}
+          {!testMode && paymentMethod === null && (
+            <PointsRedemption
+              subtotal={total}
+              selected={pointsAmount}
+              onSelect={handlePointsSelect}
+              disabled={promoCode !== null}
+              /* next-intl resolves ICU placeholders at the call site, so the
+                 parameterised strings are passed as formatters rather than as
+                 raw templates for the child to string-replace. */
+              labels={{
+                title: t("redeem_points_title"),
+                balance: (points) => t("redeem_points_balance", { points }),
+                select: (points, amount) => t("redeem_points_select", { points, amount }),
+                applied: (points, amount) => t("redeem_points_applied", { points, amount }),
+                remove: t("redeem_points_remove"),
+                insufficient: t("redeem_points_insufficient"),
+              }}
+            />
+          )}
+
           {/* Payment method selection — hidden when test mode is active */}
           {!testMode && (
             <>
@@ -1957,6 +2005,7 @@ function Screen3({
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
                     agreedToTerms={agreedToTerms}
+                    pointsAmount={pointsAmount}
                     labels={{
                       title: t("kpay_title"),
                       pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : kpayMethod === "card" ? "信用卡" : "雲閃付"} 掃描以下二維碼`,
