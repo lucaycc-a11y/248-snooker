@@ -17,10 +17,10 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import KPayPayment from "@/components/checkout/KPayPayment"
-import PointsRedemption from "@/components/checkout/PointsRedemption"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
+import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
 import type { PromoResult } from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
@@ -1613,24 +1613,27 @@ function Screen3({
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
 
-  // Member points redemption. Held here (not inside the payment components) so
-  // the selection survives switching between rails. It is submitted with the
-  // payment-creation call — prepare_checkout reserves the points at that point
-  // and re-derives the discount, so these values are display-only.
-  const [pointsAmount, setPointsAmount] = useState(0)
-  const [pointsDiscount, setPointsDiscount] = useState(0)
-  const handlePointsSelect = useCallback((points: number, discount: number) => {
-    setPointsAmount(points)
-    setPointsDiscount(discount)
-  }, [])
-
   // KPay payment method selection
   const [kpayMethod, setKpayMethod] = useState<KPayMethod | null>(null)
   const [kpayMode, setKpayMode] = useState<KPayMode>('qr')
   const [showKpayMethods, setShowKpayMethods] = useState(false)
-  // Which payment method the user selected — null = choose
+  // Two-step rail choice. `paymentMethod` is the highlighted card; `confirmed`
+  // is the commitment that actually creates the order. Tapping a card used to
+  // fire the payment immediately, which gave no chance to check the amount or
+  // switch rails — the CTA at the bottom is now the only thing that charges.
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null)
+  const [confirmed, setConfirmed] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+
+  const handleConfirmPay = useCallback(() => {
+    if (!agreedToTerms) {
+      flagTermsRequired()
+      return
+    }
+    if (!paymentMethod) return
+    setPaymentError(null)
+    setConfirmed(true)
+  }, [agreedToTerms, flagTermsRequired, paymentMethod])
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -1660,12 +1663,6 @@ function Screen3({
     (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
     0,
   )
-
-  // Provisional points discount, clamped the same way prepare_checkout clamps it
-  // (never more than the order). The server recalculates both values before the
-  // order is created — this only keeps the summary honest while the customer picks.
-  const appliedPointsDiscount = Math.min(pointsDiscount, total)
-  const payableTotal = Math.max(0, total - appliedPointsDiscount)
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
   useEffect(() => {
@@ -1723,7 +1720,7 @@ function Screen3({
   }, [blocks, dateStr, startHour, duration, tableNumber, agreedToTerms, flagTermsRequired])
 
   return (
-    <div className="screen-content">
+    <div className={`screen-content${!testMode && !confirmed ? " pay-screen" : ""}`}>
       {/* Back button */}
       {onBackToSlots && (
         <button
@@ -1872,23 +1869,16 @@ function Screen3({
                 <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
               </div>
             )}
-            {appliedPointsDiscount > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
-                <span data-cms-key="book.pay.points_discount">{t("redeem_points_row")}</span>
-                <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${appliedPointsDiscount}</span>
-              </div>
-            )}
-            {/* Points earned row — confirm_booking awards on the post-discount
-                price, so this mirrors the discounted total, not the subtotal. */}
+            {/* Points earned row */}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.points_earned_label">{t("points_earned_label")}</span>
-              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>+{payableTotal} {t("points")}</span>
+              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>+{total} {t("points")}</span>
             </div>
             <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
               <span style={{ fontFamily: BEBAS, fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
-                <span style={{ fontSize: 16, opacity: 0.7, marginRight: 2 }}>HK$</span>{payableTotal}
+                <span style={{ fontSize: 16, opacity: 0.7, marginRight: 2 }}>HK$</span>{total}
               </span>
             </div>
           </div>
@@ -1951,40 +1941,17 @@ function Screen3({
             </div>
           )}
 
-          {/* Points redemption — only while no rail is chosen. Once a payment
-              method is selected the amount is already committed to a Stripe
-              intent or a KPay order, and changing it would strand that order. */}
-          {!testMode && paymentMethod === null && (
-            <PointsRedemption
-              subtotal={total}
-              selected={pointsAmount}
-              onSelect={handlePointsSelect}
-              disabled={promoCode !== null}
-              /* next-intl resolves ICU placeholders at the call site, so the
-                 parameterised strings are passed as formatters rather than as
-                 raw templates for the child to string-replace. */
-              labels={{
-                title: t("redeem_points_title"),
-                balance: (points) => t("redeem_points_balance", { points }),
-                select: (points, amount) => t("redeem_points_select", { points, amount }),
-                applied: (points, amount) => t("redeem_points_applied", { points, amount }),
-                remove: t("redeem_points_remove"),
-                insufficient: t("redeem_points_insufficient"),
-              }}
-            />
-          )}
-
           {/* Payment method selection — hidden when test mode is active */}
           {!testMode && (
             <>
-              {paymentMethod === null ? (
+              {!confirmed ? (
                 /* ── PaymentMethodList (full method selector) ── */
+                /* Selecting only highlights. The bottom CTA commits. */
                 <PaymentMethodList
                   selected={paymentMethod}
                   onSelect={(method) => {
                     setPaymentError(null)
                     setPaymentMethod(method)
-                    if (!agreedToTerms) flagTermsRequired()
                     const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
                     if (kpayMethods.includes(method as KPayMethod)) {
                       setKpayMethod(method as KPayMethod)
@@ -1992,7 +1959,7 @@ function Screen3({
                     }
                   }}
                 />
-              ) : (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
+              ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
                 /* ── KPay payment (card via CNP Hosted + all direct-connect methods) ── */
                 <>
                   <KPayPayment
@@ -2005,7 +1972,6 @@ function Screen3({
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
                     agreedToTerms={agreedToTerms}
-                    pointsAmount={pointsAmount}
                     labels={{
                       title: t("kpay_title"),
                       pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : kpayMethod === "card" ? "信用卡" : "雲閃付"} 掃描以下二維碼`,
@@ -2030,7 +1996,12 @@ function Screen3({
                       processing: t("kpay_processing") || "處理中…",
                       terms_required: t("terms_required_hint"),
                     }}
-                    onBackToMethods={() => setPaymentMethod(null)}
+                    onBackToMethods={() => {
+                      // Drop the commitment too, or the list would re-confirm
+                      // and charge again on the next render.
+                      setConfirmed(false)
+                      setPaymentMethod(null)
+                    }}
                     onSuccess={(returnedBookingId) => {
                       if (returnedBookingId) {
                         window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=returned`
@@ -2211,6 +2182,40 @@ function Screen3({
 
         </div>
       </div>
+
+      {/* ── Sticky confirm-pay CTA ──────────────────────────────────────────
+          The final commitment, named after the chosen rail ("以 AlipayHK 付款")
+          so the customer sees what they are about to be charged with. Pinned to
+          the bottom on phone AND desktop, mirroring the slot-picker's continue
+          bar. Hidden once confirmed — from then on the payment component owns
+          the screen and has its own actions. */}
+      {!testMode && !confirmed && (
+        <div className="pay-cta">
+          <div className="pay-cta-inner">
+            <button
+              type="button"
+              onClick={handleConfirmPay}
+              disabled={!paymentMethod}
+              style={{
+                width: "100%",
+                height: 54,
+                border: "none",
+                borderRadius: 14,
+                background: !paymentMethod ? "rgba(255,255,255,0.15)" : tokens.colors.link,
+                color: !paymentMethod ? tokens.colors.textMuted : "#000",
+                fontWeight: 700,
+                fontSize: 17,
+                cursor: !paymentMethod ? "not-allowed" : "pointer",
+                transition: `background ${tokens.duration.fast}`,
+              }}
+            >
+              {paymentMethod
+                ? `${t("pay_with", { method: paymentMethodLabel(paymentMethod) })} · HK$${total}`
+                : t("select_payment_method")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -3104,6 +3109,32 @@ export default function BookPage() {
           -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
           z-index: 40;
+        }
+
+        /* Confirm-pay bar. Same treatment as .mobile-cta but NOT hidden on
+           desktop — the commit action stays reachable at the bottom on both,
+           so the gesture is identical whichever device the customer books on. */
+        .pay-cta {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+          background: rgba(0,0,0,0.92);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-top: 1px solid rgba(255,255,255,0.08);
+          z-index: 40;
+        }
+        .pay-cta-inner {
+          max-width: 480px;
+          margin: 0 auto;
+        }
+        /* Clear the fixed bar so the trust strip and legal links stay reachable
+           rather than sitting under it. Mobile's .screen-content already
+           reserves 110px; desktop only reserves 48px, so it needs the offset. */
+        .pay-screen {
+          padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
         }
 
         .otp-input:focus {

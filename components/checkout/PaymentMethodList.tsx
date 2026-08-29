@@ -121,6 +121,12 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
   },
 ]
 
+/** Display name for a rail, for the "pay with …" confirm button. Single source
+ * of truth — the CTA must never drift from the card the customer tapped. */
+export function paymentMethodLabel(id: PaymentMethodId): string {
+  return PAYMENT_METHODS.find((m) => m.id === id)?.label ?? id
+}
+
 // ── Props ──────────────────────────────────────────────────────
 
 type Props = {
