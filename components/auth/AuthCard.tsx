@@ -6,7 +6,9 @@ import { ChevronLeft } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
 import { normalizeHkPhone } from "@/lib/auth/profile"
+import { validatePassword } from "@/lib/auth/password"
 import { LoadingGif } from "@/components/ui/LoadingGif"
+import PasswordStrength from "./PasswordStrength"
 import { GoogleSignInButton } from "./GoogleSignInButton"
 import { AppleSignInButton } from "./AppleSignInButton"
 import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
@@ -176,12 +178,15 @@ export function AuthCard({
     setPhase("profile")
   }, [onAuthComplete, t, phone])
 
+  // Registration is email-first: /api/auth/signup emails a code, verify-email
+  // then triggers the SMS, and verify-phone creates the account once both
+  // contacts are proven. Keep this order in step with lib/auth/signup-state.ts.
   const sendSignup = async () => {
     const normalized = normalizeHkPhone(signupPhone)
     if (!signupName.trim()) { setError(t("err_name")); return }
     if (!signupEmail.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupEmail.trim())) { setError(t("err_email")); return }
     if (!normalized) { setError(t("err_phone")); return }
-    if (signupPassword && signupPassword.length < 6) { setError(t("err_password_min")); return }
+    if (!validatePassword(signupPassword).ok) { setError(t("err_password_weak")); return }
     setBusy(true); setError(null)
     try {
       const res = await fetch("/api/auth/signup", {
@@ -190,19 +195,48 @@ export function AuthCard({
       })
       const j = await res.json().catch(() => ({}))
       if (!res.ok || j?.ok !== true) {
-        setError(j?.error === "email_exists" ? t("err_email_exists") : j?.error === "phone_exists" ? t("err_phone_exists") : t("err_send"))
+        setError(j?.error === "email_exists" ? t("err_email_exists") : j?.error === "phone_exists" || j?.error === "identity_in_use" ? t("err_phone_exists") : j?.error === "weak_password" ? t("err_password_weak") : j?.error === "rate_limited" ? t("err_rate_limited") : t("err_send"))
         setBusy(false); return
       }
       setSignupId(typeof j.signupId === "string" ? j.signupId : "")
-      setSignupMessageId(typeof j.messageId === "string" ? j.messageId : "")
-      setPhone(normalized); setMessageId(typeof j.messageId === "string" ? j.messageId : "")
+      setPhone(normalized); setEmail(signupEmail.trim())
       setOtp([]); setOtpStatus("input"); setAttemptsLeft(MAX_OTP_ATTEMPTS); setCooldown(RESEND_COOLDOWN)
-      setOtpChannel("sms"); setOtpDeliveryChannel(j.channel === "whatsapp" ? "whatsapp" : "sms")
-      setPhase("signupPhone")
+      setOtpChannel("email")
+      setPhase("signupEmail")
     } catch { setError(t("err_network")) }
     setBusy(false)
   }
 
+  // Step 1: redeem the email code; the response carries the SMS message id.
+  const verifySignupEmail = async (code: string) => {
+    if (!signupId) return
+    setBusy(true); setOtpStatus("verifying"); setError(null)
+    try {
+      const res = await fetch("/api/auth/signup/verify-email", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signupId, code }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok || j?.ok !== true || typeof j.messageId !== "string") {
+        // signup_expired / send_failed kill the attempt server-side, so keeping
+        // the user on the code screen would be a dead end — send them back to
+        // the form instead of showing an error they cannot act on.
+        if (j?.error === "signup_expired" || j?.error === "send_failed") {
+          setError(t("err_signup_expired")); setOtpStatus("input"); setOtp([]); setSignupId(""); setPhase("signup"); setBusy(false); return
+        }
+        setError(j?.error === "invalid_code" ? t("err_otp_wrong_generic") : j?.error === "too_many_attempts" ? t("err_otp_locked") : t("err_generic"))
+        setOtpStatus("failure"); setBusy(false); return
+      }
+      setSignupMessageId(j.messageId); setMessageId(j.messageId)
+      setOtpStatus("input"); setOtp([]); setCooldown(RESEND_COOLDOWN)
+      setOtpChannel("sms"); setOtpDeliveryChannel(j.channel === "whatsapp" ? "whatsapp" : "sms")
+      setPhase("signupPhone")
+    } catch { setError(t("err_network")); setOtpStatus("failure") }
+    setBusy(false)
+  }
+
+  // Step 2: redeem the SMS code. The account is created server-side and we
+  // exchange the returned token hash through Supabase's own verifyOtp.
   const verifySignupPhone = async (code: string) => {
     if (!signupId || !signupMessageId) return
     setBusy(true); setOtpStatus("verifying"); setError(null)
@@ -212,21 +246,13 @@ export function AuthCard({
         body: JSON.stringify({ signupId, phone: signupPhone, messageId: signupMessageId, code }),
       })
       const j = await res.json().catch(() => ({}))
-      if (!res.ok || j?.ok !== true) { setError(j?.error === "invalid_code" ? t("err_otp_wrong_generic") : t("err_generic")); setOtpStatus("failure"); setBusy(false); return }
-      setOtpStatus("input"); setOtp([]); setEmail(j.email || signupEmail); setPhase("signupEmail")
-    } catch { setError(t("err_network")); setOtpStatus("failure") }
-    setBusy(false)
-  }
-
-  const verifySignupEmail = async (code: string) => {
-    setBusy(true); setOtpStatus("verifying"); setError(null)
-    try {
-      const res = await fetch("/api/auth/signup/verify-email", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signupId, code }),
-      })
-      const j = await res.json().catch(() => ({}))
-      if (!res.ok || j?.ok !== true || typeof j.tokenHash !== "string") { setError(j?.error === "invalid_code" ? t("err_otp_wrong_generic") : t("err_generic")); setOtpStatus("failure"); setBusy(false); return }
+      if (!res.ok || j?.ok !== true || typeof j.tokenHash !== "string") {
+        if (j?.error === "signup_expired") {
+          setError(t("err_signup_expired")); setOtpStatus("input"); setOtp([]); setSignupId(""); setSignupMessageId(""); setPhase("signup"); setBusy(false); return
+        }
+        setError(j?.error === "invalid_code" ? t("err_otp_wrong_generic") : j?.error === "email_exists" ? t("err_email_exists") : j?.error === "identity_in_use" ? t("err_phone_exists") : t("err_generic"))
+        setOtpStatus("failure"); setBusy(false); return
+      }
       const supabase = createClient()
       const { error: sessionError } = await supabase.auth.verifyOtp({ token_hash: j.tokenHash, type: "magiclink" })
       if (sessionError) { setError(t("err_generic")); setOtpStatus("failure"); setBusy(false); return }
@@ -500,7 +526,8 @@ export function AuthCard({
           <input value={signupName} onChange={(e) => setSignupName(e.target.value)} placeholder={t("profile_name")} autoComplete="name" aria-label={t("profile_name")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
           <input value={signupEmail} onChange={(e) => setSignupEmail(e.target.value)} placeholder={t("email_placeholder")} autoComplete="email" aria-label={t("email_placeholder")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
           <input value={signupPhone} onChange={(e) => setSignupPhone(e.target.value)} placeholder={t("phone_placeholder")} inputMode="tel" autoComplete="tel" aria-label={t("phone_placeholder")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
-          <input value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} placeholder={t("password_optional")} type="password" autoComplete="new-password" aria-label={t("password_optional")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
+          <input value={signupPassword} onChange={(e) => setSignupPassword(e.target.value)} placeholder={t("password_required")} type="password" autoComplete="new-password" aria-label={t("password_required")} style={{ height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }} />
+          <PasswordStrength value={signupPassword} />
           <button type="button" onClick={sendSignup} disabled={busy} style={{ width: "100%", height: 52, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer" }}>{busy ? t("sending") : t("signup_continue")}</button>
         </div>
         {error && <p role="alert" style={{ marginTop: 12, fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
@@ -512,9 +539,12 @@ export function AuthCard({
     const phoneStep = phase === "signupPhone"
     return (
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
-        <button type="button" onClick={() => { setPhase(phoneStep ? "signup" : "signupPhone"); setError(null); setOtpStatus("input") }} aria-label={t("back")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}><ChevronLeft size={16} /> {t("back")}</button>
+        {/* The email step can return to the form, but once the email code is
+            consumed the attempt has advanced server-side, so the phone step
+            abandons to the method picker rather than offering a dead-end back. */}
+        <button type="button" onClick={() => { setPhase(phoneStep ? "methods" : "signup"); setError(null); setOtpStatus("input") }} aria-label={t("back")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}><ChevronLeft size={16} /> {t("back")}</button>
         <h2 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>{phoneStep ? t("signup_phone_title") : t("signup_email_title")}</h2>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>{phoneStep ? t("otp_subtitle", { phone: signupPhone }) : t("otp_subtitle_email", { email: signupEmail })}</p>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>{phoneStep ? t(otpDeliveryChannel === "whatsapp" ? "otp_subtitle_whatsapp" : "otp_subtitle", { phone: signupPhone }) : t("otp_subtitle_email", { email: signupEmail })}</p>
         <OtpVerification length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={phoneStep ? verifySignupPhone : verifySignupEmail} status={otpStatus} error={error} onReset={() => { setOtp([]); setError(null); setOtpStatus("input") }} disabled={busy} />
       </motion.div>
     )

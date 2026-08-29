@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 import { normalizeHkPhone } from '@/lib/auth/profile'
-import { sendEngagelabOtp } from '@/lib/engagelab/otp'
+import { validatePassword } from '@/lib/auth/password'
+import { createVerificationCode, sendEmailVerificationCode } from '@/lib/auth/verification'
 import { setSignupSecretCookie } from '@/lib/auth/signup-secret'
 
 export const runtime = 'nodejs'
@@ -27,8 +28,16 @@ export async function POST(request: Request) {
     const phone = normalizeHkPhone(typeof body?.phone === 'string' ? body.phone : '')
     const password = typeof body?.password === 'string' ? body.password : ''
 
-    if (!name || name.length > 100 || !email || !phone || (password && password.length < 6)) {
+    if (!name || name.length > 100 || !email || !phone) {
       return NextResponse.json({ error: 'invalid_input' }, { status: 422 })
+    }
+
+    // A password is mandatory for email/phone registration (OAuth users never
+    // reach this route). Revalidated server-side so a tampered client cannot
+    // bypass the strength meter.
+    const passwordCheck = validatePassword(password)
+    if (!passwordCheck.ok) {
+      return NextResponse.json({ error: 'weak_password', reasons: passwordCheck.reasons }, { status: 422 })
     }
 
     const okIp = await rateLimit('auth_signup_ip', `ip:${clientIp(request)}`, 10, 15 * 60)
@@ -43,9 +52,20 @@ export async function POST(request: Request) {
     if (emailOwner) return NextResponse.json({ error: 'email_exists' }, { status: 409 })
     if (phoneOwner) return NextResponse.json({ error: 'phone_exists' }, { status: 409 })
 
+    // Email is proven first: the hashed code is stored on the attempt, and the
+    // phone challenge is only issued once that code is redeemed.
+    const emailCode = createVerificationCode()
     const { data: attempt, error: attemptError } = await service
       .from('auth_signup_attempts')
-      .insert({ display_name: name, email, phone, status: 'pending' })
+      .insert({
+        display_name: name,
+        email,
+        phone,
+        method: 'email',
+        status: 'pending',
+        email_code_hash: emailCode.hash,
+        email_code_expires_at: emailCode.expiresAt,
+      })
       .select('id')
       .single<{ id: string }>()
     if (attemptError || !attempt) {
@@ -56,13 +76,8 @@ export async function POST(request: Request) {
     }
 
     try {
-      const sms = await sendEngagelabOtp(phone, 'zh_HK')
-      const { error: updateError } = await service
-        .from('auth_signup_attempts')
-        .update({ sms_message_id: sms.message_id })
-        .eq('id', attempt.id)
-      if (updateError) throw updateError
-      const response = NextResponse.json({ ok: true, signupId: attempt.id, messageId: sms.message_id, channel: sms.send_channel })
+      await sendEmailVerificationCode({ to: email, code: emailCode.code, purpose: 'signup' })
+      const response = NextResponse.json({ ok: true, signupId: attempt.id, step: 'email' })
       setSignupSecretCookie(response, { signupId: attempt.id, password })
       return response
     } catch (error) {

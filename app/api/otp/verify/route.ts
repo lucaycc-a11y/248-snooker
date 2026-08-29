@@ -36,6 +36,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Query public.users FIRST — never attempt createUser for a login flow.
+    // Phone numbers do not bootstrap accounts: registration is email-first (see
+    // lib/auth/signup-state.ts), so an unproven phone gets not_found, never a new
+    // identity. Do not "helpfully" create a user here.
     const userId = await findUserByPhone(phone)
     if (!userId) {
       return NextResponse.json({ status: 'not_found' }, { status: 404 })
