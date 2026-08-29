@@ -815,8 +815,8 @@
     "semantic_hash": "73405a2adabcf020c334d9b1f29005d8"
   },
   "components/auth/AuthCard.tsx": {
-    "mtime": 1787991858.8928168,
-    "ast_hash": "aa61a9e5f02db423607cc994eabfba4f",
+    "mtime": 1787934656.7058344,
+    "ast_hash": "d83dcd735dc06e5b9d22cfd748d8de6f",
     "semantic_hash": ""
   },
   "components/auth/AuthModal.tsx": {
@@ -1540,18 +1540,18 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1787991655.4962525,
-    "ast_hash": "2437b8b384e64756689ddb2f391648c1",
+    "mtime": 1787991334.027106,
+    "ast_hash": "86175dfbe14765ec46b89feda54c6f88",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1787991670.7576544,
-    "ast_hash": "2f5cf7cacfbf7ca96719b0bbfd8aa7ea",
+    "mtime": 1787991347.472493,
+    "ast_hash": "0f84bd33c542f2e41633fd8a9a7a5951",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1787991639.8287885,
-    "ast_hash": "1feda600932d9e966839f22aa909d399",
+    "mtime": 1787991341.3908024,
+    "ast_hash": "d274f2db3b63665c431f0697f6568e3f",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -4872,11 +4872,6 @@
   "components/checkout/PointsRedemption.tsx": {
     "mtime": 1787991378.7187424,
     "ast_hash": "94bebc7354cf849392ef0329bf44bafe",
-    "semantic_hash": ""
-  },
-  "components/auth/PasswordStrength.tsx": {
-    "mtime": 1787991715.888696,
-    "ast_hash": "918a2f63716c2afea286ad0f72a26504",
     "semantic_hash": ""
   }
 }
