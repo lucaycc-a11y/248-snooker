@@ -133,7 +133,8 @@ export async function POST(req: Request) {
             subtotal: quote.total,
             status: 'pending',
             table_number: slot.table_number,
-            is_free_booking: false, // self-serve bookings are always paid; comps are admin-flagged
+            is_free_booking: false,
+            payment_method: 'card',
             order_group_id: orderGroupId,
             human_code: humanReadableCode(newId),
           })
@@ -177,6 +178,7 @@ export async function POST(req: Request) {
             subtotal: quote.total,
             table_number: slot.table_number,
             order_group_id: orderGroupId,
+            payment_method: 'card',
           })
           .eq('id', bookingId)
       }

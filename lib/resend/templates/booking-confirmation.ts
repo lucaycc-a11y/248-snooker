@@ -84,9 +84,9 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
               </div>
 
               <!-- Payment Method -->
-              <p style="color:#525252;font-size:13px;margin:0 0 20px;">
-                付款方式 Payment：{{paymentMethod}}
-              </p>
+              <div style="margin:0 0 20px;">
+                {{paymentMethodIconHtml}}<span style="color:#525252;font-size:13px;vertical-align:middle;">付款方式 Payment：{{paymentMethod}}</span>
+              </div>
 
               <!-- Booking Detail Link -->
               <div style="text-align:center;margin-bottom:24px;">

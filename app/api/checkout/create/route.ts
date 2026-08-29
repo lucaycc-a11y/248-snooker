@@ -304,6 +304,8 @@ export async function POST(req: Request) {
     }
 
     // ── Idempotency: if already has a provider order, return it ────────────
+    // A finalized external order owns its original payment rail; never rewrite
+    // payment_method on this path.
     if (booking.payment_provider === 'kpay' && booking.provider_order_no) {
       return NextResponse.json({
         bookingId: booking.id,
@@ -323,7 +325,8 @@ export async function POST(req: Request) {
         .eq('user_id', user.id)
         .eq('status', 'pending')
         .is('provider_order_no', null)
-      const { error: methodErr } = groupId
+        .select('id')
+      const { data: stamped, error: methodErr } = groupId
         ? await methodQuery.eq('order_group_id', groupId)
         : await methodQuery.eq('id', bookingId)
       if (methodErr) {
@@ -333,6 +336,15 @@ export async function POST(req: Request) {
           message: methodErr.message,
         })
         return NextResponse.json({ error: 'Could not update payment method' }, { status: 500 })
+      }
+      // Zero rows means the booking was claimed or confirmed between the guard
+      // above and this update — a concurrent attempt won, so do not create a
+      // second provider order for it.
+      if (!stamped || stamped.length === 0) {
+        return NextResponse.json(
+          { error: 'Booking is no longer available for payment' },
+          { status: 409 },
+        )
       }
     }
 
