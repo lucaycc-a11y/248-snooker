@@ -29,6 +29,7 @@
     "err_signup_expired": "Sign-up timed out. Please start again.",
     "err_email_exists": "This email is registered. Sign in to add a phone in Account Settings.",
     "err_phone_exists": "This phone number is already linked to another account.",
+    "err_phone_change_in_progress": "A phone change is already in progress. Please finish it first.",
     "phone_send_code": "Send code",
     "contact_continue": "Continue with phone or email",
     "contact_phone_tab": "Phone",
@@ -512,6 +513,8 @@
     "settings_err_name": "Please enter your name.",
     "settings_err_phone": "Enter a valid Hong Kong phone number.",
     "settings_err_generic": "Couldn't save. Please try again.",
+    "settings_verify_phone_title": "Verify your phone change",
+    "settings_verify_cancel": "Cancel",
     "qr_modal_title": "Booking QR Code",
     "qr_reference": "Booking reference",
     "qr_tap_enlarge": "Tap to enlarge QR code",
@@ -785,6 +788,7 @@
     "kpay_help": "Need help? Contact us",
     "kpay_support_whatsapp": "Contact Us",
     "kpay_back_to_methods": "Back to payment methods",
+    "kpay_waited": "Waited {seconds}s",
     "kpay_choose_method": "Choose payment method",
     "kpay_processing": "Processing⋯",
     "kpay_cancelled": "Payment Cancelled",
@@ -1186,12 +1190,28 @@
         "body": "An AI smart match concierge bringing technology into the traditional room."
       },
       {
+        "title": "Self-Service Entry",
+        "body": "Receive a QR code after booking and scan to unlock the door on arrival."
+      },
+      {
         "title": "Smoke-Free Zone",
         "body": "The entire venue is smoke-free for a more comfortable game."
       },
       {
-        "title": "Self-Service Entry",
-        "body": "Receive a QR code after booking and scan to unlock the door on arrival."
+        "title": "Professional Cues",
+        "body": "Quality pro cues for a truer stroke and feel."
+      },
+      {
+        "title": "Lounge Area",
+        "body": "Comfortable sofas to relax between matches."
+      },
+      {
+        "title": "Charging Station",
+        "body": "USB charging points to keep your devices powered."
+      },
+      {
+        "title": "Secure Storage",
+        "body": "Safe storage for your belongings while you play."
       }
     ]
   },
@@ -1230,10 +1250,23 @@
   },
   "homeValue": {
     "eyebrow": "SPACE8 VALUE",
-    "part1_before": "Book online and get your ",
-    "part1_highlight": "QR Code",
-    "part1_after": " for instant entry.",
-    "part2_line": "A pro Chinese table with narrow, honest pockets.",
-    "part3_line": "One private room, one table, zero distractions."
+    "part1_kicker": "Equipment",
+    "part1_heading": "Pro tables, played seriously",
+    "part1_highlight": "Pro tables",
+    "part1_after": ", played seriously",
+    "part1_footer": "Hand-picked Star tables, tuned for match atmosphere.",
+    "part2_kicker": "Quick",
+    "part2_heading": "Scan in, simple and direct",
+    "part2_highlight": "Scan in",
+    "part2_after": ", simple and direct",
+    "part2_footer_before": "Book online, get your ",
+    "part2_footer_qr": "QR Code",
+    "part2_footer_after": ", and scan to enter on arrival",
+    "part2_footer": "Book online, get your QR Code, and scan to enter on arrival.",
+    "part3_kicker": "Private",
+    "part3_heading": "One room, one table, private space",
+    "part3_highlight": "One room, one table",
+    "part3_after": ", private space",
+    "part3_footer": "Two private smoke-free rooms — no sharing, play anytime."
   }
 }

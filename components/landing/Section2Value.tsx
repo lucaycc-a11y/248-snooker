@@ -153,26 +153,62 @@ export default function Section2Value() {
 
         {/* Copy in normal flow, scrolling up over the pinned background. */}
         <div ref={panelsRef} className="s2-copy">
+          {/* Part 1 — 設備 */}
           <div data-value-copy className="s2-beat">
-            <p className="s2-line" data-cms-key="homeValue.part1_before">
-              {t("part1_before")}
-              <span className="font-code s2-kw" data-cms-key="homeValue.part1_highlight">
-                {t("part1_highlight")}
-              </span>
-              {t("part1_after")}
-            </p>
+            <div className="s2-content">
+              <p className="s2-kicker" data-cms-key="homeValue.part1_kicker">
+                {t("part1_kicker")}
+              </p>
+              <p className="s2-line" data-cms-key="homeValue.part1_heading">
+                <span className="s2-kw" data-cms-key="homeValue.part1_highlight">
+                  {t("part1_highlight")}
+                </span>
+                {t("part1_after")}
+              </p>
+              <p className="s2-footer" data-cms-key="homeValue.part1_footer">
+                {t("part1_footer")}
+              </p>
+            </div>
           </div>
 
+          {/* Part 2 — 快捷 */}
           <div data-value-copy className="s2-beat">
-            <p className="s2-line" data-cms-key="homeValue.part2_line">
-              {t("part2_line")}
-            </p>
+            <div className="s2-content">
+              <p className="s2-kicker" data-cms-key="homeValue.part2_kicker">
+                {t("part2_kicker")}
+              </p>
+              <p className="s2-line" data-cms-key="homeValue.part2_heading">
+                <span className="s2-kw" data-cms-key="homeValue.part2_highlight">
+                  {t("part2_highlight")}
+                </span>
+                {t("part2_after")}
+              </p>
+              <p className="s2-footer" data-cms-key="homeValue.part2_footer">
+                {t("part2_footer_before")}
+                <span className="font-code" data-cms-key="homeValue.part2_footer_qr">
+                  {t("part2_footer_qr")}
+                </span>
+                {t("part2_footer_after")}
+              </p>
+            </div>
           </div>
 
+          {/* Part 3 — 獨立 */}
           <div data-value-copy className="s2-beat">
-            <p className="s2-line" data-cms-key="homeValue.part3_line">
-              {t("part3_line")}
-            </p>
+            <div className="s2-content">
+              <p className="s2-kicker" data-cms-key="homeValue.part3_kicker">
+                {t("part3_kicker")}
+              </p>
+              <p className="s2-line" data-cms-key="homeValue.part3_heading">
+                <span className="s2-kw" data-cms-key="homeValue.part3_highlight">
+                  {t("part3_highlight")}
+                </span>
+                {t("part3_after")}
+              </p>
+              <p className="s2-footer" data-cms-key="homeValue.part3_footer">
+                {t("part3_footer")}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -225,39 +261,70 @@ export default function Section2Value() {
           padding: 0 24px;
           opacity: var(--t, 1);
         }
+        /* Three-layer content wrapper: stacks kicker → heading → footer vertically
+           and gives footer a fixed bottom position so it never competes with heading. */
+        .s2-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          max-width: 720px;
+        }
+        /* Kicker — small label above heading, 15–16px medium weight. */
+        .s2-kicker {
+          margin: 0 0 10px;
+          font-family: "Noto Sans TC", var(--font-sans);
+          font-size: 15px;
+          font-weight: 500;
+          letter-spacing: 0.02em;
+          color: rgba(255, 255, 255, 0.6);
+        }
         .s2-line {
           margin: 0;
-          /* One line is the design intent, so the type is sized off viewport
-             width rather than a fixed ramp: 3.1vw keeps the longest beat
-             (21 chars, incl. the wider Good Times "QR Code") on a single line
-             from 375px up, and the nowrap makes any future regression visible
-             as overflow instead of a silent second line. */
+          /* One line is the design intent for the CJK copy, so the type is
+             sized off viewport width rather than a fixed ramp: 4.5vw keeps
+             every zh-HK/zh-CN beat (the longest, Part 1, needs 304px of its
+             327px budget at 375px) on a single line, while the English beats
+             (48 chars) are free to wrap — fitting those on one line at 375px
+             would shrink the type to ~14px, which is not legible. Measured in
+             scripts/verify-s2h.mjs. */
           max-width: 96vw;
           text-align: center;
           text-wrap: balance;
           font-family: "Noto Sans TC", var(--font-sans);
-          font-weight: 800;
-          font-size: clamp(1rem, 4.5vw, 2.6rem);
-          line-height: 1.3;
+          font-weight: 700;
+          font-size: clamp(1.6rem, 5vw, 3rem);
+          line-height: 1.12;
           letter-spacing: -0.02em;
           color: #ffffff;
           text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
         }
-        /* Good Times, scoped to the Latin keyword only — the house rule is that
-           font-code/font-label never wrap Chinese text or full sentences. */
+        /* Footer — subtle caption at the bottom of each beat. */
+        .s2-footer {
+          margin: 14px 0 0;
+          font-family: "Noto Sans TC", var(--font-sans);
+          font-size: 13px;
+          font-weight: 400;
+          color: rgba(255, 255, 255, 0.5);
+          text-align: center;
+        }
+        /* Green keyword highlight — same size and weight as the heading line,
+           only the colour changes. white-space: nowrap keeps a multi-character
+           CJK keyword (e.g. 專業球枱) from breaking across lines. Good Times is
+           applied separately via .font-code only where the keyword is Latin
+           (Part 2's footer "QR Code"), never on Chinese text. */
         .s2-kw {
           color: var(--brand);
-          font-size: 0.86em;
           white-space: nowrap;
         }
         .s2-stage[data-reduced="true"] .s2-beat {
           opacity: 1;
         }
-        @media (min-width: 861px) {
-          .s2-line {
-            max-width: 24ch;
-          }
-        }
+        /* No desktop max-width override: 96vw already constrains the line at
+           every width. A fixed ch-based cap caused Part 1 to wrap at desktop
+           because ch tracks the "0" glyph width, which at 41.6px Noto Sans
+           800 is ~24px — 24ch ≈ 576px, too narrow for the 750px Part 1 string.
+           Without the override, Part 1 renders at ~52vw (750px / 1440px),
+           comfortably centred on the full-bleed photo. */
       `}</style>
     </section>
   );

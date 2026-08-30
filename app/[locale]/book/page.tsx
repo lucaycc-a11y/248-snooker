@@ -24,7 +24,7 @@ import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
 import type { PromoResult } from "@/components/checkout/StripePayment"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
-import { getTableName } from "@/lib/booking/constants"
+import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
@@ -360,8 +360,22 @@ function DualTableGrid({
   onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
 }) {
   const t = useTranslations("book")
+  const locale = useLocale()
   const haptic = useHaptic()
   const [showToast, setShowToast] = useState(false)
+
+  // Room name formatter: "Space Infinity（無限空間球室）" style
+  const formatRoomName = useCallback(
+    (tableNumber: number) => {
+      const names = TABLE_NAMES[tableNumber as 1 | 2]
+      if (!names) return `${t("table_label")} ${tableNumber}`
+      const enName = names["en"] ?? `Table ${tableNumber}`
+      const zhName =
+        names[locale] ?? names["zh-HK"] ?? names["zh-CN"] ?? `球室${tableNumber}`
+      return `${enName}（${zhName}）`
+    },
+    [locale, t],
+  )
 
   const dateStr = useMemo(() => fmtYMD(selectedDate), [selectedDate])
 
@@ -570,6 +584,7 @@ function DualTableGrid({
 
       <div
         style={{
+          background: tokens.colors.depth.flat,
           border: `1px solid ${tokens.colors.border}`,
           borderRadius: tokens.radius.card,
           overflow: "hidden",
@@ -590,8 +605,16 @@ function DualTableGrid({
                     marginBottom: 8,
                   }}
                 >
-                  <span style={{ fontSize: 14, fontWeight: 600 }}>
-                    {t("table_label")} {tn}
+                  <span
+                    data-cms-key={`book.room_name_${tn}`}
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      fontFamily: "'Good Times', sans-serif",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    {formatRoomName(tn)}
                   </span>
                   <span style={{ fontSize: 12, color: tokens.colors.textMuted }}>
                     <b style={{ color: tokens.colors.link, fontWeight: 600 }}>{stat.free}</b>
@@ -625,7 +648,7 @@ function DualTableGrid({
                 padding: "10px 12px 6px",
                 fontSize: 11,
                 color: tokens.colors.textMuted,
-                background: "rgba(255,255,255,0.03)",
+                background: tokens.colors.depth.recessed,
                 borderTop: `1px solid ${tokens.colors.border}`,
                 borderBottom: `1px solid ${tokens.colors.border}`,
               }}
@@ -704,6 +727,7 @@ function SelectedPicksCard({
   return (
     <div
       style={{
+        background: tokens.colors.depth.raised,
         border: `1px solid ${tokens.colors.border}`,
         borderRadius: tokens.radius.card,
         padding: "18px 18px 12px",
@@ -1394,6 +1418,7 @@ function Screen1({
           {/* Date */}
           <div
             style={{
+              background: tokens.colors.depth.recessed,
               border: `1px solid ${tokens.colors.border}`,
               borderRadius: tokens.radius.card,
               padding: "16px 18px 18px",
@@ -1770,7 +1795,7 @@ function Screen3({
           {/* Booked slots */}
           <div
             style={{
-              background: tokens.colors.surface,
+              background: tokens.colors.depth.flat,
               border: `1px solid ${tokens.colors.border}`,
               borderRadius: tokens.radius.card,
               padding: 24,
@@ -1820,7 +1845,7 @@ function Screen3({
           {profile && (profile.name || profile.email || profile.phone) && (
             <div
               style={{
-                background: tokens.colors.surface,
+                background: tokens.colors.depth.flat,
                 border: `1px solid ${tokens.colors.border}`,
                 borderRadius: tokens.radius.card,
                 padding: 20,
@@ -1854,7 +1879,7 @@ function Screen3({
           {/* Price breakdown — NO service fee row */}
           <div
             style={{
-              background: tokens.colors.surface,
+              background: tokens.colors.depth.flat,
               border: `1px solid ${tokens.colors.border}`,
               borderRadius: tokens.radius.card,
               padding: 24,
@@ -1991,6 +2016,7 @@ function Screen3({
                       help: t("kpay_help") || "需要幫助？",
                       support_whatsapp: t("kpay_support_whatsapp") || "WhatsApp 客服",
                       back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
+                      waited: t("kpay_waited") || "已等待 {seconds} 秒",
                       cancelled: t("kpay_cancelled") || "付款已取消",
                       cancelled_desc: t("kpay_cancelled_desc") || "此預訂已取消，已釋放時段。",
                       cancel: t("kpay_cancel") || "取消預訂",

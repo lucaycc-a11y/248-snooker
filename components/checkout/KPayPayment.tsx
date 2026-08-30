@@ -45,6 +45,7 @@ export type KPayLabels = {
   help: string
   support_whatsapp: string
   back_to_methods: string
+  waited: string
   cancelled: string
   cancelled_desc: string
   cancel: string
@@ -159,6 +160,13 @@ const DANGER = '#FF453A'
 const EASE_SPRING = 'cubic-bezier(.34,1.56,.64,1)'
 const EASE_STANDARD = 'cubic-bezier(.2,.7,.3,1)'
 
+// ── Polling cadence (mirrors useOrderConfirmationPolling) ────────────────────
+// Fast 2 s for the first 30 s (webhooks are near-instant), then back off to 5 s
+// until the component unmounts or the booking resolves.
+const KPAY_POLL_FAST_MS = 2_000
+const KPAY_POLL_SLOW_MS = 5_000
+const KPAY_POLL_FAST_PHASE_MS = 30_000
+
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function KPayPayment(props: Props) {
@@ -180,11 +188,12 @@ export default function KPayPayment(props: Props) {
   const [failureReason, setFailureReason] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [actionBusy, setActionBusy] = useState(false)
+  const [elapsedSec, setElapsedSec] = useState(0)
 
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const creatingRef = useRef(false)
   const attemptRef = useRef(0)
+  const pollStartRef = useRef(Date.now())
 
   // ── Create order (idempotent) ──────────────────────────────────────────────
 
@@ -309,7 +318,6 @@ export default function KPayPayment(props: Props) {
         return
       }
       attemptRef.current += 1
-      if (pollRef.current) clearInterval(pollRef.current)
       if (countdownRef.current) clearInterval(countdownRef.current)
       setState('cancelled')
     } catch {
@@ -343,15 +351,23 @@ export default function KPayPayment(props: Props) {
       setKind(null)
       setProviderOrderNo(null)
       setCountdown(0)
-      setState('idle')
-      await createOrder()
+      setElapsedSec(0)
+      // Part 2: after resetting the failed booking, return to the payment-method
+      // picker so the user can re-select a method — the fresh selection triggers
+      // a new KPay session (createOrder on mount) instead of silently re-using
+      // the same method.
+      console.log('[KPay] userRetried', {
+        bookingId: localBookingId,
+        elapsedMs: Date.now() - pollStartRef.current,
+      })
+      onBackToMethods()
     } catch {
       setError(labels.failed_desc)
       setState('failed')
     } finally {
       setActionBusy(false)
     }
-  }, [actionBusy, createOrder, labels.failed_desc, localBookingId])
+  }, [actionBusy, labels.failed_desc, localBookingId, onBackToMethods])
 
   // ── Create order on mount ─────────────────────────────────────────────────
 
@@ -392,51 +408,86 @@ export default function KPayPayment(props: Props) {
 
   useEffect(() => {
     if (state !== 'pending' && state !== 'pending_confirmation') {
-      if (pollRef.current) clearInterval(pollRef.current)
       return
     }
 
     if (!localBookingId) return
 
-    if (pollRef.current) clearInterval(pollRef.current)
-      pollRef.current = setInterval(async () => {
-        const attempt = attemptRef.current
-        try {
-          const res = await fetch(`/api/checkout/status?bookingId=${encodeURIComponent(localBookingId)}`, { cache: 'no-store' })
-          const raw: unknown = await res.json()
-          if (!res.ok || attempt !== attemptRef.current) return
-          const json = raw && typeof raw === 'object' && !Array.isArray(raw)
-            ? raw as Record<string, unknown>
-            : {}
-          const status = typeof json.status === 'string' ? json.status : undefined
-          const providerStatus = typeof json.providerStatus === 'string' ? json.providerStatus : undefined
-          const reason = typeof json.failureReason === 'string' ? json.failureReason : undefined
-          const code = typeof json.failureCode === 'string' ? json.failureCode : undefined
+    pollStartRef.current = Date.now()
+    console.log('[KPay] pollStart', { bookingId: localBookingId })
 
-          if (reason || code) setFailureReason([code, reason].filter(Boolean).join(' · '))
-          if (status === 'confirmed') {
-            if (pollRef.current) clearInterval(pollRef.current)
-            setState('success')
-            onSuccess(localBookingId)
-          } else if (status === 'pending_confirmation' || providerStatus === 'success') {
-            setState('pending_confirmation')
-          } else if (status === 'expired' || providerStatus === 'expired') {
-            if (pollRef.current) clearInterval(pollRef.current)
-            setState('expired')
-          } else if (status === 'cancelled' || providerStatus === 'cancelled') {
-            if (pollRef.current) clearInterval(pollRef.current)
-            setState('cancelled')
-          } else if (status === 'failed' || status === 'payment_failed' || providerStatus === 'failed' || providerStatus === 'closed') {
-            if (pollRef.current) clearInterval(pollRef.current)
-            setState('failed')
-          }
-        } catch {
-          // Network error — retry on the next interval.
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | null = null
+    let elapsedTimer: ReturnType<typeof setInterval> | null = null
+
+    // Smooth per-second "已等待 XX 秒" counter, independent of poll cadence.
+    elapsedTimer = setInterval(() => {
+      if (cancelled) return
+      setElapsedSec(Math.floor((Date.now() - pollStartRef.current) / 1000))
+    }, 1_000)
+
+    const poll = async () => {
+      if (cancelled) return
+      const attempt = attemptRef.current
+      const elapsedMs = Date.now() - pollStartRef.current
+
+      try {
+        const res = await fetch(`/api/checkout/status?bookingId=${encodeURIComponent(localBookingId)}`, { cache: 'no-store' })
+        const raw: unknown = await res.json()
+        if (!res.ok || attempt !== attemptRef.current) return
+        const json = raw && typeof raw === 'object' && !Array.isArray(raw)
+          ? raw as Record<string, unknown>
+          : {}
+        const status = typeof json.status === 'string' ? json.status : undefined
+        const providerStatus = typeof json.providerStatus === 'string' ? json.providerStatus : undefined
+        const reason = typeof json.failureReason === 'string' ? json.failureReason : undefined
+        const code = typeof json.failureCode === 'string' ? json.failureCode : undefined
+
+        console.log('[KPay] pollResult', {
+          bookingId: localBookingId,
+          elapsedMs,
+          status,
+          providerStatus,
+        })
+
+        if (reason || code) setFailureReason([code, reason].filter(Boolean).join(' · '))
+        if (status === 'confirmed') {
+          console.log('[KPay] pollResult confirmed', { bookingId: localBookingId, elapsedMs })
+          setState('success')
+          onSuccess(localBookingId)
+          return
         }
-      }, 3000)
+        if (status === 'pending_confirmation' || providerStatus === 'success') {
+          setState('pending_confirmation')
+        } else if (status === 'expired' || providerStatus === 'expired') {
+          console.log('[KPay] pollResult expired', { bookingId: localBookingId, elapsedMs })
+          setState('expired')
+          return
+        } else if (status === 'cancelled' || providerStatus === 'cancelled') {
+          console.log('[KPay] pollResult cancelled', { bookingId: localBookingId, elapsedMs })
+          setState('cancelled')
+          return
+        } else if (status === 'failed' || status === 'payment_failed' || providerStatus === 'failed' || providerStatus === 'closed') {
+          console.log('[KPay] pollResult failed', { bookingId: localBookingId, elapsedMs, status, providerStatus })
+          setState('failed')
+          return
+        }
+      } catch {
+        // Network error — retry on the next interval.
+      }
+
+      if (cancelled) return
+      // Fast 2 s for the first 30 s (webhooks are near-instant), then back off.
+      const interval = Date.now() - pollStartRef.current < KPAY_POLL_FAST_PHASE_MS ? KPAY_POLL_FAST_MS : KPAY_POLL_SLOW_MS
+      timer = setTimeout(poll, interval)
+    }
+
+    void poll()
 
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current)
+      cancelled = true
+      if (timer) clearTimeout(timer)
+      if (elapsedTimer) clearInterval(elapsedTimer)
     }
   }, [localBookingId, onSuccess, state])
 
@@ -499,7 +550,10 @@ export default function KPayPayment(props: Props) {
         <button type="button" onClick={retryPayment} disabled={actionBusy} style={styles.primaryButton}>
           {actionBusy ? labels.processing : labels.try_again}
         </button>
-        <button type="button" onClick={cancelBooking} disabled={actionBusy} style={styles.secondaryButton}>
+        <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+          {labels.back_to_methods}
+        </button>
+        <button type="button" onClick={cancelBooking} disabled={actionBusy} style={styles.tertiaryButton}>
           {labels.cancel}
         </button>
       </div>
@@ -532,11 +586,14 @@ export default function KPayPayment(props: Props) {
         <button type="button" onClick={retryPayment} disabled={actionBusy} style={styles.primaryButton}>
           {actionBusy ? labels.processing : labels.regenerate}
         </button>
+        <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+          {labels.back_to_methods}
+        </button>
         <button
           type="button"
           onClick={cancelBooking}
           disabled={actionBusy}
-          style={styles.secondaryButton}
+          style={styles.tertiaryButton}
         >
           {labels.cancel}
         </button>
@@ -580,6 +637,12 @@ export default function KPayPayment(props: Props) {
           {labels.countdown.replace('{time}', formatCountdown(countdown))}
         </p>
 
+        {elapsedSec > 0 && (
+          <p style={styles.elapsedText}>
+            {labels.waited.replace('{seconds}', String(elapsedSec))}
+          </p>
+        )}
+
         {/* Countdown bar */}
         <div style={styles.countdownBarBg}>
           <div
@@ -609,11 +672,15 @@ export default function KPayPayment(props: Props) {
           </a>
         </p>
 
+        <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+          {labels.back_to_methods}
+        </button>
+
         <button
           type="button"
           onClick={cancelBooking}
           disabled={actionBusy}
-          style={styles.secondaryButton}
+          style={styles.tertiaryButton}
         >
           {labels.cancel}
         </button>
@@ -704,6 +771,12 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '8px 0 0',
     fontVariantNumeric: 'tabular-nums',
   },
+  elapsedText: {
+    fontSize: 12,
+    color: TEXT_FAINT,
+    margin: '4px 0 0',
+    fontVariantNumeric: 'tabular-nums',
+  },
   countdownBarBg: {
     width: 240,
     height: 4,
@@ -752,6 +825,19 @@ const styles: Record<string, React.CSSProperties> = {
     color: TEXT_MUTED,
     fontWeight: 600,
     fontSize: 14,
+    cursor: 'pointer',
+    width: '100%',
+    maxWidth: 280,
+  },
+  tertiaryButton: {
+    minHeight: 44,
+    padding: '0 28px',
+    border: 'none',
+    borderRadius: 14,
+    background: 'transparent',
+    color: TEXT_FAINT,
+    fontWeight: 500,
+    fontSize: 13,
     cursor: 'pointer',
     width: '100%',
     maxWidth: 280,

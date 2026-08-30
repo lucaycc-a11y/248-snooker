@@ -29,6 +29,7 @@
     "err_signup_expired": "註冊已逾時，請重新開始。",
     "err_email_exists": "此 email 已註冊，請登入後在帳戶設定新增電話",
     "err_phone_exists": "此電話號碼已連結至其他帳戶。",
+    "err_phone_change_in_progress": "電話號碼更改進行中，請先完成。",
     "phone_send_code": "發送驗證碼",
     "contact_continue": "用電話或電郵登入",
     "contact_phone_tab": "電話",
@@ -512,6 +513,8 @@
     "settings_err_name": "請輸入你的姓名。",
     "settings_err_phone": "請輸入有效的香港電話號碼。",
     "settings_err_generic": "未能儲存，請再試一次。",
+    "settings_verify_phone_title": "驗證電話號碼更改",
+    "settings_verify_cancel": "取消",
     "qr_modal_title": "預訂 QR 碼",
     "qr_reference": "預訂編號",
     "qr_tap_enlarge": "輕觸放大 QR 碼",
@@ -785,6 +788,7 @@
     "kpay_help": "如有疑問，請聯絡客服",
     "kpay_support_whatsapp": "聯絡我們",
     "kpay_back_to_methods": "返回選擇付款方式",
+    "kpay_waited": "已等待 {seconds} 秒",
     "kpay_choose_method": "選擇付款方式",
     "kpay_processing": "處理中⋯",
     "kpay_cancelled": "付款已取消",
@@ -1186,12 +1190,28 @@
         "body": "引入 AI 智能對戰小管家，將科技帶入傳統桌球室"
       },
       {
+        "title": "自助入場",
+        "body": "預訂確認後獲發 QR 碼，到場掃描自動開門。"
+      },
+      {
         "title": "無煙區域",
         "body": "場地全面禁煙，創造舒適環境"
       },
       {
-        "title": "自助入場",
-        "body": "預訂確認後獲發 QR 碼，到場掃描自動開門。"
+        "title": "專業桌球杆",
+        "body": "提供優質專業桌球杆，提升擊球手感"
+      },
+      {
+        "title": "沙發休息區",
+        "body": "舒適沙發休息區，比賽之餘盡享放鬆"
+      },
+      {
+        "title": "充電區",
+        "body": "設有 USB 充電插座，隨時為設備補充電力"
+      },
+      {
+        "title": "隨身物品存放",
+        "body": "安全存放隨身物品，安心打球無後顧之憂"
       }
     ]
   },
@@ -1230,10 +1250,23 @@
   },
   "homeValue": {
     "eyebrow": "SPACE8 VALUE",
-    "part1_before": "數碼即入場，網上預訂後獲得 ",
-    "part1_highlight": "QR Code",
-    "part1_after": "",
-    "part2_line": "專業中式球枱，窄袋真實手感",
-    "part3_line": "獨立球室，一房一枱，零打擾"
+    "part1_kicker": "設備",
+    "part1_heading": "專業球枱，認真對待",
+    "part1_highlight": "專業球枱",
+    "part1_after": "，認真對待",
+    "part1_footer": "精選星牌桌球枱，特調比賽氛圍",
+    "part2_kicker": "快捷",
+    "part2_heading": "掃碼即入，簡單直接",
+    "part2_highlight": "掃碼即入",
+    "part2_after": "，簡單直接",
+    "part2_footer_before": "網上預訂後獲發 ",
+    "part2_footer_qr": "QR Code",
+    "part2_footer_after": "，到場掃描即可入場",
+    "part2_footer": "網上預訂後獲發 QR Code，到場掃描即可入場",
+    "part3_kicker": "獨立",
+    "part3_heading": "一房一枱，獨享空間",
+    "part3_highlight": "一房一枱",
+    "part3_after": "，獨享空間",
+    "part3_footer": "兩間獨立無煙球室，無需共用，隨時開局"
   }
 }

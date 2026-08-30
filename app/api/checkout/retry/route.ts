@@ -35,20 +35,45 @@ export async function POST(req: Request) {
       : null
     if (!isUuid(bookingId)) return NextResponse.json({ error: 'Invalid bookingId' }, { status: 400 })
 
+    // Pre-check: if the booking is already confirmed, block a new KPay order.
+    // The RPC would also reject this, but short-circuiting here saves a round-trip
+    // and returns a clear 409 for the UI to show a dedicated message.
+    const { data: existing, error: lookupErr } = await getServiceSupabase()
+      .from('bookings')
+      .select('id, status')
+      .eq('id', bookingId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (lookupErr || !existing) {
+      console.log('[KPay] retry pre-check: booking_not_found', { bookingId, userId: user.id })
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+    }
+
+    if (existing.status === 'confirmed') {
+      console.log('[KPay] retry pre-check: already_confirmed', { bookingId, userId: user.id, status: existing.status })
+      return NextResponse.json({ error: 'booking_already_confirmed' }, { status: 409 })
+    }
+
+    console.log('[KPay] retry request', { bookingId, userId: user.id, currentStatus: existing.status })
+
     const { data, error } = await getServiceSupabase().rpc('retry_payment_failed_booking', {
       p_booking_id: bookingId,
       p_user_id: user.id,
     })
     if (error) {
-      console.error('[checkout/retry] rpc_error', { message: error.message, userId: user.id, bookingId })
+      console.error('[KPay] retry rpc_error', { message: error.message, userId: user.id, bookingId })
       return NextResponse.json({ error: 'Unable to retry payment' }, { status: 500 })
     }
 
     const result = rpcResult(data)
     if (!result.success) {
       const status = result.reason === 'booking_not_found' ? 404 : result.reason === 'hold_expired' ? 409 : 400
+      console.log('[KPay] retry rejected', { bookingId, reason: result.reason, httpStatus: status })
       return NextResponse.json({ error: result.reason ?? 'Booking is not retryable' }, { status })
     }
+
+    console.log('[KPay] retry accepted', { bookingId, newBookingId: result.bookingId, orderGroupId: result.orderGroupId })
 
     return NextResponse.json({
       success: true,
@@ -56,7 +81,7 @@ export async function POST(req: Request) {
       orderGroupId: result.orderGroupId,
     })
   } catch (error) {
-    console.error('[checkout/retry] error', { message: (error as Error).message })
+    console.error('[KPay] retry error', { message: (error as Error).message })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }

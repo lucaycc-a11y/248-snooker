@@ -61,6 +61,7 @@
     "kpay_help": "如有疑問，请联絡客服",
     "kpay_support_whatsapp": "联絡我們",
     "kpay_back_to_methods": "返回選擇付款方式",
+    "kpay_waited": "已等待 {seconds} 秒",
     "kpay_choose_method": "選擇付款方式",
     "kpay_processing": "處理中⋯",
     "current_session_cutoff_passed": "此时段已开始超过 15 分钟，暂不接受预订",

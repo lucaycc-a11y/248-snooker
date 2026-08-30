@@ -37,7 +37,13 @@ export async function GET(req: Request) {
       .single()
 
     if (bookingErr || !booking) {
+      console.log('[KPay] status: booking_not_found', { bookingId, userId: user.id })
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+    }
+
+    const startedAt = Date.now()
+    const logResult = (payload: Record<string, unknown>) => {
+      console.log('[KPay] pollResult', { bookingId, elapsedMs: Date.now() - startedAt, ...payload })
     }
 
     // Slot-hold state drives the recovery screen: it decides whether "retry
@@ -52,7 +58,7 @@ export async function GET(req: Request) {
       if (error || !data || typeof data !== 'object' || Array.isArray(data)) {
         // Unknown hold state must not imply an active hold — retry would then
         // re-create an order against slots someone else may already hold.
-        if (error) console.error('[checkout/status] hold_expiry failed', { message: error.message })
+        if (error) console.error('[KPay] pollResult hold_expiry_failed', { message: error.message })
         return { holdActive: false, holdExpiresAt: null }
       }
       const record = data as Record<string, unknown>
@@ -64,6 +70,7 @@ export async function GET(req: Request) {
 
     // If the booking is already confirmed server-side (webhook fired), short-circuit
     if (booking.status === 'confirmed') {
+      logResult({ status: 'confirmed', providerStatus: 'success' })
       return NextResponse.json({
         bookingId: booking.id,
         status: 'confirmed',
@@ -72,6 +79,7 @@ export async function GET(req: Request) {
     }
 
     if (booking.status === 'cancelled' || booking.status === 'expired') {
+      logResult({ status: booking.status, providerStatus: booking.status })
       return NextResponse.json({
         bookingId: booking.id,
         status: booking.status,
@@ -85,6 +93,7 @@ export async function GET(req: Request) {
     // to decide between "retry payment" and "back to slot selection".
     if (booking.status === 'payment_failed') {
       const hold = await holdState()
+      logResult({ status: booking.status, providerStatus: booking.status, holdActive: hold.holdActive })
       return NextResponse.json({
         bookingId: booking.id,
         status: booking.status,
@@ -98,6 +107,7 @@ export async function GET(req: Request) {
 
     // No provider order yet — the order hasn't been created
     if (!booking.provider_order_no || booking.payment_provider !== 'kpay') {
+      logResult({ status: booking.status === 'pending' ? 'pending' : 'failed', providerStatus: 'pending', holdActive: hold.holdActive })
       return NextResponse.json({
         bookingId: booking.id,
         status: booking.status === 'pending' ? 'pending' : 'failed',
@@ -136,6 +146,8 @@ export async function GET(req: Request) {
         uiStatus = 'pending'
     }
 
+    logResult({ status: uiStatus, providerStatus: orderStatus.status })
+
     return NextResponse.json({
       bookingId: booking.id,
       status: uiStatus,
@@ -148,7 +160,7 @@ export async function GET(req: Request) {
     })
   } catch (err) {
     const e = err as Error
-    console.error('[checkout/status] error', { message: e.message, stack: e.stack })
+    console.error('[KPay] pollResult error', { message: e.message, stack: e.stack })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }

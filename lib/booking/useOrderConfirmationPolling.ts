@@ -29,9 +29,16 @@ export type OrderHoldState = {
 export type OrderConfirmationResult = {
   status: OrderConfirmationStatus
   hold: OrderHoldState
+  /** Wall-clock seconds since polling started — the UI can display "已等待 XX 秒". */
+  elapsedSec: number
 }
 
-const POLL_INTERVAL_MS = 3_000
+// Fast phase: poll every 2s for the first 30s (KPay webhooks are near-instant).
+// Slow phase: 5s intervals until the 60s timeout — avoids hammering the API
+// while still catching delayed KPay status transitions.
+const FAST_POLL_MS = 2_000
+const FAST_PHASE_MS = 30_000
+const SLOW_POLL_MS = 5_000
 const DEFAULT_TIMEOUT_MS = 60_000
 
 /**
@@ -68,10 +75,12 @@ export function useOrderConfirmationPolling(
 ): OrderConfirmationResult {
   const [status, setStatus] = useState<OrderConfirmationStatus>("pending")
   const [hold, setHold] = useState<OrderHoldState>({ active: false, expiresAt: null })
+  const [elapsedSec, setElapsedSec] = useState(0)
 
   useEffect(() => {
     if (!enabled || !bookingId) {
       setStatus("pending")
+      setElapsedSec(0)
       return
     }
 
@@ -79,6 +88,15 @@ export function useOrderConfirmationPolling(
     const startedAt = Date.now()
     const timeoutMs = resolveTimeoutMs()
     let timer: ReturnType<typeof setTimeout> | null = null
+    let elapsedTimer: ReturnType<typeof setInterval> | null = null
+
+    const elapsedMs = () => Date.now() - startedAt
+
+    // Smooth per-second "已等待 XX 秒" counter, independent of poll cadence.
+    elapsedTimer = setInterval(() => {
+      if (cancelled) return
+      setElapsedSec(Math.min(Math.floor(elapsedMs() / 1000), Math.floor(timeoutMs / 1000)))
+    }, 1_000)
 
     const finish = (next: OrderConfirmationStatus) => {
       if (!cancelled) setStatus(next)
@@ -96,6 +114,13 @@ export function useOrderConfirmationPolling(
         const result = parseStatusResponse(data)
         const statusValue = result.status
         const providerStatus = result.providerStatus
+
+        console.log("[KPay] pollResult", {
+          bookingId,
+          elapsedMs: elapsedMs(),
+          status: statusValue,
+          providerStatus,
+        })
 
         if (!cancelled && result.holdActive !== undefined) {
           setHold({ active: result.holdActive, expiresAt: result.holdExpiresAt ?? null })
@@ -126,28 +151,34 @@ export function useOrderConfirmationPolling(
           return
         }
       } catch (error) {
-        console.error("[checkout polling] status check failed", error)
+        console.error("[KPay] pollResult error", { bookingId, elapsedMs: elapsedMs(), error })
       }
 
       if (cancelled) return
-      if (Date.now() - startedAt >= timeoutMs) {
+      if (elapsedMs() >= timeoutMs) {
         // Timeout means "no definitive answer", never "paid" or "not paid".
         // The caller must park the user on the recovery screen and let them
         // choose; it must not fall through to a success view or /member.
+        console.log("[KPay] pollTimeout", { bookingId, elapsedMs: elapsedMs(), timeoutMs })
         finish("timeout")
         return
       }
-      timer = setTimeout(poll, POLL_INTERVAL_MS)
+      // Fast phase for the first 30s (webhooks are near-instant), then back off.
+      const interval = elapsedMs() < FAST_PHASE_MS ? FAST_POLL_MS : SLOW_POLL_MS
+      timer = setTimeout(poll, interval)
     }
 
+    console.log("[KPay] pollStart", { bookingId, timeoutMs })
     setStatus("pending")
+    setElapsedSec(0)
     void poll()
 
     return () => {
       cancelled = true
       if (timer) clearTimeout(timer)
+      if (elapsedTimer) clearInterval(elapsedTimer)
     }
   }, [bookingId, enabled])
 
-  return { status, hold }
+  return { status, hold, elapsedSec }
 }
