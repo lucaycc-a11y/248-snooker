@@ -1,8 +1,3 @@
 {
-  "crons": [
-    {
-      "path": "/api/booking/expire-stale",
-      "schedule": "13 */1 * * *"
-    }
-  ]
+  "crons": []
 }
