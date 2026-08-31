@@ -1,8 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { CalendarPlus, Share2, ChevronDown } from "lucide-react"
+import { CalendarPlus, Share2, ChevronDown, Download, QrCode, FileText } from "lucide-react"
+import { toPng } from "html-to-image"
+import QRCodeLib from "qrcode"
 import { useTranslations, useLocale } from "next-intl"
 import { tokens } from "@/app/styles/tokens"
 import { Starfield } from "@/app/[locale]/Starfield"
@@ -79,6 +81,10 @@ export function TicketCard({
   const t_ticket = useTranslations("ticket")
   const locale = useLocale()
   const [expanded, setExpanded] = useState(defaultExpanded)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareBusy, setShareBusy] = useState(false)
+  const [shareError, setShareError] = useState<string | null>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
 
   const endHour = startHour + duration
   const crossDay = endHour >= 24
@@ -116,21 +122,226 @@ export function TicketCard({
     URL.revokeObjectURL(url)
   }
 
-  const handleShare = async () => {
-    const text = `我的 Space8 預訂 · ${tableName} · 編號 ${displayCode}`
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Space8", text })
-      } catch {
-        /* user cancelled */
-      }
-    } else if (navigator.clipboard) {
-      await navigator.clipboard.writeText(text)
+  const filePrefix = `SPACE8-${displayCode}`
+  // Short, human-readable label for the payment method used — the same brand
+  // shown via PaymentMark, falling back to the generic card label.
+  const paymentLabel = (() => {
+    switch (paymentMethod) {
+      case "fps": return t_ticket("payment_fps")
+      case "payme": return t_ticket("payment_payme")
+      case "octopus": return t_ticket("payment_octopus")
+      case "alipay": return t_ticket("payment_alipay")
+      case "alipayhk": case "alipay_hk": return t_ticket("payment_alipayhk")
+      case "wechat": case "wechat_pay": return t_ticket("payment_wechat")
+      case "unionpay_qp": return t_ticket("payment_unionpay_qp")
+      case "apple_pay": return t_ticket("payment_apple_pay")
+      case "google_pay": return t_ticket("payment_google_pay")
+      default: return t_ticket("payment_card")
     }
+  })()
+
+  const shareText = () =>
+    `${t("share_caption")}\n${tableName}\n${dateStr} · ${padTime(startHour)} – ${padTime(endHour)}\n${t_ticket("paid")}: HK$${totalPrice}\n${t_ticket("payment")}: ${paymentLabel}\n${t("share_ref_label")}: ${displayCode}`
+
+  // A single source of truth for the "ticket share" blobs — the QR here is
+  // always the memberCode (the actual door-scan credential), never humanCode.
+  const buildShareBlob = async (): Promise<Blob> => {
+    const qrUrl = await QRCodeLib.toDataURL(memberCode, {
+      margin: 2,
+      width: 256,
+      errorCorrectionLevel: "M",
+      color: { dark: "#0a0a0a", light: "#ffffff" },
+    })
+    const canvas = document.createElement("canvas")
+    canvas.width = 560
+    canvas.height = 720
+    const ctx = canvas.getContext("2d")
+    if (!ctx) throw new Error("canvas 2d unavailable")
+    // Background is intentionally opaque — shared images land on white chat
+    // backgrounds and light-mode apps, where the site's pure-black glass card
+    // would otherwise look like a broken/invisible block.
+    ctx.fillStyle = "#0a0a0a"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // Ambient dot texture to echo the on-screen starfield, so the share image
+    // reads as "Space8" rather than a flat black slab.
+    const star = (x: number, y: number, r: number, a: number) => {
+      ctx.beginPath()
+      ctx.arc(x, y, r, 0, Math.PI * 2)
+      ctx.fillStyle = `rgba(255,255,255,${a})`
+      ctx.fill()
+    }
+    for (let i = 0; i < 28; i++) {
+      star(Math.random() * 560, Math.random() * 720, Math.random() * 1.1 + 0.3, Math.random() * 0.35 + 0.15)
+    }
+
+    const drawImage = (src: string, x: number, y: number, w: number, h: number) => {
+      const img = new Image()
+      img.src = src
+      return new Promise<void>((resolve) => {
+        img.onload = () => {
+          ctx.drawImage(img, x, y, w, h)
+          resolve()
+        }
+        img.onerror = () => resolve()
+      })
+    }
+    ctx.textAlign = "center"
+    ctx.textBaseline = "middle"
+
+    ctx.font = "700 26px system-ui, -apple-system, sans-serif"
+    ctx.fillStyle = "#ffffff"
+    ctx.fillText("Space8", 280, 46)
+
+    ctx.font = "600 18px system-ui, -apple-system, sans-serif"
+    ctx.fillStyle = "#25D366"
+    ctx.fillText(`${tableName}`, 280, 78)
+
+    ctx.font = "500 15px system-ui, -apple-system, sans-serif"
+    ctx.fillStyle = "rgba(255,255,255,0.85)"
+    ctx.fillText(`${dateStr} · ${padTime(startHour)} – ${padTime(endHour)}`, 280, 108)
+
+    ctx.fillStyle = "rgba(255,255,255,0.55)"
+    ctx.font = "500 14px system-ui, -apple-system, sans-serif"
+    ctx.fillText(`${t_ticket("paid")}: HK$${totalPrice}`, 280, 140)
+    ctx.fillText(`${t_ticket("payment")}: ${paymentLabel}`, 280, 164)
+
+    // Separator — single thin line, above the QR.
+    ctx.strokeStyle = "rgba(255,255,255,0.15)"
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(40, 194)
+    ctx.lineTo(520, 194)
+    ctx.stroke()
+
+    const qrImg = new Image()
+    qrImg.src = qrUrl
+    await new Promise<void>((resolve) => {
+      qrImg.onload = () => {
+        const qrW = 180
+        const qrH = 180
+        ctx.drawImage(qrImg, 190, 250, qrW, qrH)
+        resolve()
+      }
+      qrImg.onerror = () => resolve()
+    })
+
+    // Payment brand icon above the ref code, small — reinforces the method
+    // without letting the image become a wall of text.
+    const brandSrc = (paymentMethod && PAYMENT_ICON_MAP[paymentMethod]) ?? '/icons/payment/cnp-visa.png'
+    await drawImage(brandSrc, 250, 474, 60, 20)
+
+    ctx.fillStyle = "rgba(255,255,255,0.85)"
+    ctx.font = "600 15px 'SF Mono', Menlo, monospace"
+    ctx.fillText(`${displayCode}`, 280, 518)
+
+    ctx.fillStyle = "rgba(255,255,255,0.45)"
+    ctx.font = "500 12px system-ui, -apple-system, sans-serif"
+    ctx.fillText(`${t("share_caption")}`, 280, 546)
+
+    ctx.fillStyle = "rgba(255,255,255,0.3)"
+    ctx.font = "400 11px system-ui, -apple-system, sans-serif"
+    ctx.fillText(`${t("qr_hint")}`, 280, 584)
+
+    return await new Promise<Blob>((resolve) => canvas.toBlob((blob) => resolve(blob!), "image/png"))
+  }
+
+  const captureCard = async (): Promise<Blob> => {
+    const node = cardRef.current
+    if (!node) throw new Error("ticket card not mounted")
+    return await toPng(node, {
+      pixelRatio: 2,
+      backgroundColor: "#000000",
+      cacheBust: true,
+    }).then((dataUrl) => {
+      const bin = atob(dataUrl.split(",")[1])
+      const bytes = new Uint8Array(bin.length)
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+      return new Blob([bytes], { type: "image/png" })
+    })
+  }
+
+  // Image share path — Web Share API with an attached PNG, falling back to a
+  // PNG download. This is the "share the ticket as a picture" action.
+  const shareCardImage = async () => {
+    setShareError(null)
+    setShareBusy(true)
+    try {
+      const blob = await captureCard()
+      const file = new File([blob], `${filePrefix}.png`, { type: "image/png" })
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: `Space8 · ${tableName}`, text: shareText(), files: [file] })
+      } else {
+        downloadBlob(blob, `${filePrefix}.png`)
+      }
+    } catch (e) {
+      if (e instanceof DOMException && (e.name === "AbortError" || e.name === "NotAllowedError")) {
+        /* user cancelled the native share sheet — not an error */
+      } else {
+        setShareError(t("share_error"))
+        console.error("[TicketCard] image share failed", e)
+      }
+    } finally {
+      setShareBusy(false)
+    }
+  }
+
+  // QR-only share — a small PNG of just the door-scan QR code, same credential
+  // semantics as the full ticket image but with no booking details on it.
+  const shareQrOnly = async () => {
+    setShareError(null)
+    setShareBusy(true)
+    try {
+      const qrUrl = await QRCodeLib.toDataURL(memberCode, {
+        margin: 2,
+        width: 512,
+        errorCorrectionLevel: "M",
+        color: { dark: "#0a0a0a", light: "#ffffff" },
+      })
+      const blob = await (await fetch(qrUrl)).blob()
+      const file = new File([blob], `${filePrefix}-qr.png`, { type: "image/png" })
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: `Space8 · ${tableName}`, text: shareText(), files: [file] })
+      } else {
+        downloadBlob(blob, `${filePrefix}-qr.png`)
+      }
+    } catch (e) {
+      if (e instanceof DOMException && (e.name === "AbortError" || e.name === "NotAllowedError")) {
+        /* user cancelled the native share sheet — not an error */
+      } else {
+        setShareError(t("share_error"))
+        console.error("[TicketCard] QR share failed", e)
+      }
+    } finally {
+      setShareBusy(false)
+    }
+  }
+
+  // Text fallback — for browsers that support neither native share nor file
+  // download of generated images. Last resort only.
+  const shareTextFallback = async () => {
+    if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareText())
+      } catch {
+        /* clipboard unavailable */
+      }
+    }
+  }
+
+  const downloadBlob = (blob: Blob, name: string) => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = name
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
     <motion.div
+      ref={cardRef}
+      data-ticket-card
       layout
       style={{
         background: `${tokens.glassBg.dark}`,
@@ -300,7 +511,7 @@ export function TicketCard({
                 {t("qr_hint")}
               </div>
 
-              <div style={{ display: "flex", gap: 12 }}>
+              <div style={{ display: "flex", gap: 12, position: "relative" }}>
                 <button
                   type="button"
                   onClick={handleAddCalendar}
@@ -326,8 +537,11 @@ export function TicketCard({
                 </button>
                 <button
                   type="button"
-                  onClick={handleShare}
+                  onClick={() => { setShareOpen((o) => !o); setShareError(null) }}
                   data-cms-key="book.ticket.share"
+                  disabled={shareBusy}
+                  aria-haspopup="menu"
+                  aria-expanded={shareOpen}
                   style={{
                     flex: 1,
                     height: 44,
@@ -341,13 +555,110 @@ export function TicketCard({
                     color: tokens.colors.text,
                     fontSize: 14,
                     fontWeight: 500,
-                    cursor: "pointer",
+                    cursor: shareBusy ? "not-allowed" : "pointer",
+                    opacity: shareBusy ? 0.55 : 1,
                   }}
                 >
                   <Share2 size={15} />
-                  {t("share")}
+                  {shareBusy ? t("share_loading") : t("share")}
                 </button>
+
+                <AnimatePresence>
+                  {shareOpen && (
+                    <motion.div
+                      role="menu"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 4 }}
+                      transition={{ duration: 0.12 }}
+                      style={{
+                        position: "absolute",
+                        bottom: 52,
+                        right: 0,
+                        width: 192,
+                        background: "#141414",
+                        border: "1px solid rgba(255,255,255,0.18)",
+                        borderRadius: 12,
+                        padding: "6px 0",
+                        zIndex: 50,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => { setShareOpen(false); shareCardImage() }}
+                        disabled={shareBusy}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "10px 14px",
+                          background: "none",
+                          border: "none",
+                          color: tokens.colors.text,
+                          fontSize: 13,
+                          cursor: shareBusy ? "not-allowed" : "pointer",
+                          textAlign: "left",
+                          width: "100%",
+                        }}
+                      >
+                        <Download size={15} />
+                        {t("share_ticket_image")}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => { setShareOpen(false); shareQrOnly() }}
+                        disabled={shareBusy}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "10px 14px",
+                          background: "none",
+                          border: "none",
+                          color: tokens.colors.text,
+                          fontSize: 13,
+                          cursor: shareBusy ? "not-allowed" : "pointer",
+                          textAlign: "left",
+                          width: "100%",
+                        }}
+                      >
+                        <QrCode size={15} />
+                        {t("share_qr_image")}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => { setShareOpen(false); shareTextFallback() }}
+                        disabled={shareBusy}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "10px 14px",
+                          background: "none",
+                          border: "none",
+                          color: tokens.colors.text,
+                          fontSize: 13,
+                          cursor: shareBusy ? "not-allowed" : "pointer",
+                          textAlign: "left",
+                          width: "100%",
+                        }}
+                      >
+                        <FileText size={15} />
+                        {t("share_copy")}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
+
+              {shareError && (
+                <div style={{ fontSize: 12, color: tokens.colors.danger, textAlign: "center", marginTop: 10 }}>{shareError}</div>
+              )}
             </div>
           </motion.div>
         )}
