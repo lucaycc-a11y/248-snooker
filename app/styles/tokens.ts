@@ -18,6 +18,28 @@ export const tokens = {
     brandText: '#000000',
     link: '#22c55e',
     danger: '#FF453A',
+
+    /**
+     * Tonal depth system — lighter = raised, darker = recessed.
+     * Use these instead of shadows for visual hierarchy on dark backgrounds.
+     * Each step is a ~3% white overlay on pure black.
+     */
+    depth: {
+      /** Page background / deepest recess — pure black */
+      base: 'rgba(0,0,0,1)',
+      /** Recessed surface — sunken inputs, grouped cells */
+      recessed: 'rgba(255,255,255,0.02)',
+      /** Default surface — standard containers */
+      flat: 'rgba(255,255,255,0.035)',
+      /** Raised surface — cards, sidebars */
+      raised: 'rgba(255,255,255,0.05)',
+      /** Elevated surface — active/focused cards */
+      elevated: 'rgba(255,255,255,0.06)',
+      /** Overlay surface — modals, popups */
+      overlay: 'rgba(255,255,255,0.07)',
+      /** Top layer — toast, dropdown */
+      top: 'rgba(255,255,255,0.08)',
+    },
   },
   radius: {
     input: '12px',

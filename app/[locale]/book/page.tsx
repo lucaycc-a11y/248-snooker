@@ -363,6 +363,57 @@ function DualTableGrid({
   const locale = useLocale()
   const haptic = useHaptic()
   const [showToast, setShowToast] = useState(false)
+  const [galleryRoom, setGalleryRoom] = useState<number | null>(null)
+  const galleryTrackRef = useRef<HTMLDivElement>(null)
+  const [galleryIdx, setGalleryIdx] = useState(0)
+
+  // Room gallery images — per-room photo sets from /public/gallery/
+  const roomGalleryImages = useMemo(
+    () =>
+      ({
+        1: [
+          { src: "/gallery/Space_Infinity.PNG", alt: "Space Infinity — interior view" },
+          { src: "/gallery/S2/part3_table_wide_room.png", alt: "Space Infinity — wide angle" },
+          { src: "/gallery/S2/part2_table_closeup.png", alt: "Space Infinity — table closeup" },
+        ],
+        2: [
+          { src: "/gallery/Space_Enternity.PNG", alt: "Space Eternity — interior view" },
+          { src: "/gallery/Space_Infinity.PNG", alt: "Space Eternity — alternate angle" },
+          { src: "/gallery/S2/part1_tap_to_enter.png", alt: "Space Eternity — entrance" },
+        ],
+      } as const),
+    [],
+  )
+
+  const galleryImages = galleryRoom ? (roomGalleryImages[galleryRoom as 1 | 2] ?? []) : []
+
+  // Track gallery scroll position for dot indicators
+  const onGalleryScroll = useCallback(() => {
+    const el = galleryTrackRef.current
+    if (!el || galleryImages.length === 0) return
+    const cardWidth = el.scrollWidth / galleryImages.length
+    setGalleryIdx(Math.round(el.scrollLeft / cardWidth))
+  }, [galleryImages.length])
+
+  const scrollToGalleryCard = useCallback(
+    (i: number) => {
+      const el = galleryTrackRef.current
+      if (!el || galleryImages.length === 0) return
+      const cardWidth = el.scrollWidth / galleryImages.length
+      el.scrollTo({ left: i * cardWidth, behavior: "smooth" })
+    },
+    [galleryImages.length],
+  )
+
+  // Close gallery on ESC key
+  useEffect(() => {
+    if (galleryRoom === null) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setGalleryRoom(null)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [galleryRoom])
 
   // Room name formatter: "Space Infinity（無限空間球室）" style
   const formatRoomName = useCallback(
@@ -605,17 +656,28 @@ function DualTableGrid({
                     marginBottom: 8,
                   }}
                 >
-                  <span
+                  <button
+                    type="button"
                     data-cms-key={`book.room_name_${tn}`}
+                    aria-label={`View photos of ${formatRoomName(tn)}`}
+                    onClick={() => setGalleryRoom(tn)}
                     style={{
                       fontSize: 14,
                       fontWeight: 600,
                       fontFamily: "'Good Times', sans-serif",
                       letterSpacing: "0.02em",
+                      color: tokens.colors.text,
+                      background: "transparent",
+                      border: "none",
+                      padding: 0,
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                      textUnderlineOffset: 3,
+                      textDecorationColor: "rgba(255,255,255,0.25)",
                     }}
                   >
                     {formatRoomName(tn)}
-                  </span>
+                  </button>
                   <span style={{ fontSize: 12, color: tokens.colors.textMuted }}>
                     <b style={{ color: tokens.colors.link, fontWeight: 600 }}>{stat.free}</b>
                     {` / ${stat.cells.length} `}
@@ -701,6 +763,90 @@ function DualTableGrid({
             }}
           >
             {t("max_hours_reached")}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Room gallery popup — swipeable photos, dismiss on outside tap / ESC / close */}
+      <AnimatePresence>
+        {galleryRoom !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={modalOverlayStyle}
+            onClick={() => setGalleryRoom(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              style={modalStyle}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={modalHeaderStyle}>
+                <span
+                  className="font-label"
+                  style={{ fontSize: 12, color: tokens.colors.textMuted }}
+                >
+                  {formatRoomName(galleryRoom)}
+                </span>
+                <button
+                  type="button"
+                  aria-label={t("close")}
+                  onClick={() => setGalleryRoom(null)}
+                  style={modalCloseStyle}
+                >
+                  ×
+                </button>
+              </div>
+
+              <div
+                ref={galleryTrackRef}
+                onScroll={onGalleryScroll}
+                className="gallery-track"
+              >
+                {galleryImages.map((img, i) => (
+                  <div key={img.src} className="gallery-slide">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.src}
+                      alt={img.alt}
+                      draggable={false}
+                      loading="lazy"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {galleryImages.length > 1 && (
+                <div className="gallery-dots">
+                  {galleryImages.map((img, i) => (
+                    <button
+                      key={img.src}
+                      type="button"
+                      aria-label={`Photo ${i + 1}`}
+                      aria-current={i === galleryIdx ? "true" : undefined}
+                      onClick={() => scrollToGalleryCard(i)}
+                      className="gallery-dot"
+                      style={{ background: i === galleryIdx ? tokens.colors.text : tokens.colors.border }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                data-cms-key="book.close"
+                onClick={() => setGalleryRoom(null)}
+                style={modalBottomCloseStyle}
+              >
+                {t("close")}
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1226,7 +1372,7 @@ function SummaryCard({
             color: tokens.colors.link,
           }}
         >
-          {ready ? `HK$${total}` : "HK$—"}
+          {ready ? `HK$${total}` : ""}
         </div>
         {ready && totalSaved > 0 && (
           <div
@@ -1974,6 +2120,7 @@ function Screen3({
                 /* ── PaymentMethodList (full method selector) ── */
                 /* Selecting only highlights. The bottom CTA commits. */
                 <PaymentMethodList
+                  collapsed
                   selected={paymentMethod}
                   onSelect={(method) => {
                     setPaymentError(null)
@@ -3321,6 +3468,48 @@ export default function BookPage() {
           .mobile-cta {
             display: none;
           }
+        }
+
+        /* ── Room gallery popup ── */
+        .gallery-track {
+          display: flex;
+          flex-direction: row;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          background: #000;
+          flex: 1;
+          min-height: 0;
+        }
+        .gallery-track::-webkit-scrollbar {
+          display: none;
+        }
+        .gallery-slide {
+          flex: 0 0 100%;
+          scroll-snap-align: start;
+          aspect-ratio: 16 / 11;
+          position: relative;
+          overflow: hidden;
+        }
+        .gallery-dots {
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+          gap: 8px;
+          padding: 14px 20px 4px;
+          flex-shrink: 0;
+        }
+        .gallery-dot {
+          width: 8px;
+          height: 8px;
+          min-width: 8px;
+          min-height: 8px;
+          border: none;
+          border-radius: 999px;
+          padding: 0;
+          cursor: pointer;
+          transition: background 0.2s;
         }
       `}</style>
     </main>

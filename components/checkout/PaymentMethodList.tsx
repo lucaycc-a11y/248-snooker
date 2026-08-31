@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 // ────────────────────────────────────────────────────────────────
 // PaymentMethodList — full payment method selector for the Space8
 // checkout flow. Eight methods, each with a label, sublabel, and
@@ -132,11 +134,23 @@ export function paymentMethodLabel(id: PaymentMethodId): string {
 type Props = {
   selected: PaymentMethodId | null
   onSelect: (method: PaymentMethodId) => void
+  /** When true, collapse non-essential methods behind a "more" toggle. */
+  collapsed?: boolean
 }
 
 // ── Component ──────────────────────────────────────────────────
 
-export default function PaymentMethodList({ selected, onSelect }: Props) {
+const FEATURED_METHODS: PaymentMethodId[] = ['card', 'alipay', 'fps']
+
+export default function PaymentMethodList({ selected, onSelect, collapsed }: Props) {
+  const [expanded, setExpanded] = useState(false)
+
+  // Nothing selected or expanded — show all; collapsed mode shows only featured
+  const visibleMethods =
+    collapsed && !expanded
+      ? PAYMENT_METHODS.filter((m) => FEATURED_METHODS.includes(m.id))
+      : PAYMENT_METHODS
+
   return (
     <div
       style={{
@@ -150,7 +164,7 @@ export default function PaymentMethodList({ selected, onSelect }: Props) {
         gap: 10,
       }}
     >
-      {PAYMENT_METHODS.map((method) => (
+      {visibleMethods.map((method) => (
         <PaymentMethodCard
           key={method.id}
           method={method.id}
@@ -163,6 +177,26 @@ export default function PaymentMethodList({ selected, onSelect }: Props) {
           onSelect={(method) => onSelect(method as PaymentMethodId)}
         />
       ))}
+      {collapsed && !expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          style={{
+            background: "transparent",
+            border: `1px solid ${tokens.colors.border}`,
+            borderRadius: tokens.radius.button,
+            padding: "12px 16px",
+            color: tokens.colors.textMuted,
+            fontSize: 13,
+            fontWeight: 500,
+            cursor: "pointer",
+            marginTop: 4,
+            transition: "border-color 0.2s",
+          }}
+        >
+          更多付款方式
+        </button>
+      )}
     </div>
   )
 }
