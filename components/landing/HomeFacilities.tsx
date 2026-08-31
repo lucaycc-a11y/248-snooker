@@ -88,7 +88,12 @@ export default function HomeFacilities() {
         </motion.div>
       </div>
 
-      <div ref={trackRef} className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 md:mx-auto md:grid md:max-w-[1120px] md:grid-cols-3 md:gap-4 md:overflow-visible md:px-6">
+      {/* Horizontal scroll gallery — snap-x on every breakpoint, no grid override. */}
+      <div
+        ref={trackRef}
+        className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2"
+        style={{ touchAction: "pan-x" }}
+      >
         {facilities.map((facility, index) => {
           const Icon = FACILITY_ICONS[index] ?? Table2;
           return (
@@ -99,15 +104,33 @@ export default function HomeFacilities() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.6, delay: index * 0.05, ease: EASE }}
-              className="w-[78vw] shrink-0 snap-center overflow-hidden rounded-[18px] border border-black/10 bg-white md:w-auto"
+              className="s2f-card"
             >
-              <div className="relative aspect-[3/2] overflow-hidden bg-[#dcdcdc]">
-                <Image src={FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0]} alt={facility.title} fill sizes="(max-width: 767px) 78vw, 360px" className="object-cover" />
+              {/* Image block — flex-[4] ≈ 80% of card height */}
+              <div className="relative flex-[4] min-h-0 overflow-hidden bg-[#dcdcdc]">
+                <Image
+                  src={FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0]}
+                  alt={facility.title}
+                  fill
+                  sizes="(max-width: 767px) 78vw, 340px"
+                  className="object-cover"
+                />
               </div>
-              <div className="p-5 md:p-4 lg:p-5">
-                <Icon aria-hidden="true" size={24} strokeWidth={1.6} className="mb-4 text-[#1a9d5c]" />
-                <h3 data-cms-key={`homeVenue.items.${index}.title`} className="m-0 text-[16px] font-bold leading-[1.4] text-[#111110]">{facility.title}</h3>
-                <p data-cms-key={`homeVenue.items.${index}.body`} className="mt-2 text-[13.5px] leading-[1.75] text-[rgba(17,17,16,0.6)]">{facility.body}</p>
+              {/* Text block — flex-1 ≈ 20% of card height, tightly packed */}
+              <div className="flex flex-[1] min-h-0 flex-col justify-center px-4 py-3">
+                <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="mb-1.5 text-[#1a9d5c]" />
+                <h3
+                  data-cms-key={`homeVenue.items.${index}.title`}
+                  className="m-0 text-[15px] font-semibold leading-[1.3] text-[#111110]"
+                >
+                  {facility.title}
+                </h3>
+                <p
+                  data-cms-key={`homeVenue.items.${index}.body`}
+                  className="mt-1 text-[13px] leading-[1.55] text-[rgba(17,17,16,0.6)]"
+                >
+                  {facility.body}
+                </p>
               </div>
             </motion.article>
           );
@@ -126,6 +149,34 @@ export default function HomeFacilities() {
           />
         ))}
       </div>
+      <style jsx>{`
+        /*
+         * Card: vertical flex column — image takes flex-[4] (≈80%), text flex-1 (≈20%).
+         * Fixed 280px height on mobile gives a compact swipeable card; on desktop
+         * the card stretches to 440px tall so the image area (≈352px) shows real
+         * detail.  snap-start aligns the card to the left edge of the viewport.
+         */
+        .s2f-card {
+          display: flex;
+          flex-direction: column;
+          flex-shrink: 0;
+          width: 78vw;
+          max-width: 340px;
+          height: 280px;
+          scroll-snap-align: start;
+          overflow: hidden;
+          border-radius: 18px;
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          background: #ffffff;
+        }
+        @media (min-width: 768px) {
+          .s2f-card {
+            width: 300px;
+            max-width: 340px;
+            height: 440px;
+          }
+        }
+      `}</style>
     </section>
   );
 }
