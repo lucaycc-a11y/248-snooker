@@ -6,7 +6,7 @@ const run = async () => {
 
   for (const vp of [
     { label: 'desktop', opts: { viewport: { width: 1440, height: 900 } } },
-    { label: 'mobile-375', opts: { ...devices['iPhone SE'] } },
+    { label: 'mobile-375', opts: { viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } },
   ]) {
     const ctx = await browser.newContext(vp.opts)
     const page = await ctx.newPage()
@@ -16,7 +16,7 @@ const run = async () => {
     })
     page.on('pageerror', (e) => errors.push(`[pageerror] ${String(e).slice(0, 220)}`))
 
-    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle', timeout: 60000 })
+    await page.goto('http://localhost:3100/', { waitUntil: 'networkidle', timeout: 60000 })
     await page.locator('.s2-stage').scrollIntoViewIfNeeded()
     await page.waitForTimeout(800)
 

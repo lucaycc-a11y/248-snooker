@@ -81,7 +81,12 @@ export async function POST(req: Request) {
 
   const orderNo = String(payload.orderNo ?? payload.order_no ?? '')
   const outTradeNo = String(payload.outTradeNo ?? payload.out_trade_no ?? '')
-  const status = String(payload.status ?? payload.tradeStatus ?? '')
+  // KPay's "訂單狀態更新通知" payload carries the order state in `result`
+  // (values 1–6), NOT `status` / `tradeStatus` — those are absent/empty in real
+  // callbacks.  `status`/`tradeStatus` are kept only as a fallback for any
+  // proxy or future format that still uses them.  See `mapKPayResult` in
+  // lib/payments/kpay.ts for the canonical mapping.
+  const result = String(payload.result ?? payload.status ?? payload.tradeStatus ?? '')
   const eventType = String(payload.eventType ?? 'payment.update')
 
   if (!orderNo || !outTradeNo) {
@@ -89,19 +94,22 @@ export async function POST(req: Request) {
     return new NextResponse('Missing order reference', { status: 400 })
   }
 
-  console.log('[webhook/kpay] received', { orderNo, outTradeNo, status, eventType })
+  console.log('[webhook/kpay] received', { orderNo, outTradeNo, result, eventType })
 
   // ── Map status to business action ──────────────────────────────────────
-  const isSuccess = status === 'SUCCESS' || status === '2'
-  const isFailed = status === 'FAIL' || status === '3'
-  const isRefunded = status === '4' || status === 'REFUND'
+  // KPay `result` values: '1'=pending, '2'=success, '3'=failed, '4'=refunded,
+  // '5'=cancelled, '6'=closed.  Unknown/empty values never map to success —
+  // they fall through to the idempotent no-op branch instead of confirming.
+  const isSuccess = result === '2' || result === 'SUCCESS'
+  const isFailed = result === '3' || result === 'FAIL'
+  const isRefunded = result === '4' || result === 'REFUND'
 
   const supabase = getServiceSupabase()
 
   // ── Idempotency claim ─────────────────────────────────────────────────
   // KPay has no Stripe-style event id, so we construct one from the order
   // reference and status — each status transition is processed exactly once.
-  const eventId = `kpay:${orderNo}:${status}`
+  const eventId = `kpay:${orderNo}:${result}`
 
   const { error: claimErr } = await supabase
     .from('webhook_events')
@@ -145,7 +153,11 @@ export async function POST(req: Request) {
     .maybeSingle()
 
   if (renewalLookupErr) {
-    console.error('[webhook/kpay] renewal_order_lookup_failed', { outTradeNo, message: renewalLookupErr.message })
+    // Graceful degradation: if the renewal_orders table doesn't exist yet
+    // (migration not applied), log at info level instead of error.
+    const isMissingTable = (renewalLookupErr as { code?: string }).code === '42P01'
+    const log = isMissingTable ? console.info : console.error
+    log('[webhook/kpay] renewal_order_lookup_failed', { outTradeNo, code: (renewalLookupErr as { code?: string }).code, message: renewalLookupErr.message })
     // Non-fatal — fall through to ordinary booking path.
   }
 
@@ -193,7 +205,7 @@ export async function POST(req: Request) {
       }
 
       await markWebhookProcessed(supabase, eventId)
-      console.log('[webhook/kpay] renewal_processed', { renewalOrderId: renewalOrder.id, status })
+      console.log('[webhook/kpay] renewal_processed', { renewalOrderId: renewalOrder.id, result })
     } catch (err) {
       const msg = (err as Error).message
       console.error('[webhook/kpay] renewal_handler_error', { renewalOrderId: renewalOrder.id, message: msg })
@@ -253,7 +265,7 @@ export async function POST(req: Request) {
         // been reconciled. Never confirm under a guessed method.
         return new NextResponse('Payment method missing', { status: 500 })
       }
-      await handleSucceeded(supabase, booking, orderNo, outTradeNo, status, eventId)
+      await handleSucceeded(supabase, booking, orderNo, outTradeNo, eventId)
     } else if (isFailed) {
       await handleFailed(supabase, booking, eventId)
     } else if (isRefunded) {
@@ -263,14 +275,14 @@ export async function POST(req: Request) {
       await markWebhookProcessed(supabase, eventId)
     }
 
-    console.log('[webhook/kpay] success', { eventId, orderNo, status })
+    console.log('[webhook/kpay] success', { eventId, orderNo, result })
     return new NextResponse('OK', { status: 200 })
   } catch (err) {
     const msg = (err as Error).message
     console.error('[webhook/kpay] handler_error', {
       eventId,
       orderNo,
-      status,
+      result,
       message: msg,
       stack: (err as Error).stack,
     })
@@ -279,7 +291,7 @@ export async function POST(req: Request) {
       message: msg,
       eventId,
       orderNo,
-      status,
+      result,
     })
     return new NextResponse('OK', { status: 200 })
   }
@@ -302,7 +314,6 @@ async function handleSucceeded(
   booking: BookingSummary,
   providerOrderNo: string,
   outTradeNo: string,
-  status: string,
   eventId: string,
 ) {
   // The rail is persisted by checkout/create before the order reaches KPay, and

@@ -53,7 +53,9 @@ const run = async () => {
       const ctx = await browser.newContext(vp.opts)
       const page = await ctx.newPage()
       await page.goto(`http://localhost:3100${path}`, { waitUntil: 'domcontentloaded', timeout: 90000 })
-      await page.waitForSelector('.s2-stage', { timeout: 90000 })
+      // attached (not visible): the section sits below the fold, so "visible"
+      // would time out even though the node is in the DOM.
+      await page.waitForSelector('.s2-stage', { state: 'attached', timeout: 90000 })
       await page.evaluate(() => document.fonts.ready)
       await page.locator('.s2-stage').scrollIntoViewIfNeeded({ timeout: 90000 })
       await page.waitForTimeout(700)

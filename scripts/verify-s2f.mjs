@@ -8,11 +8,11 @@ const run = async () => {
     { label: 'desktop-1440', opts: { viewport: { width: 1440, height: 900 } } },
     { label: 'laptop-1024', opts: { viewport: { width: 1024, height: 768 } } },
     { label: 'mobile-390', opts: { ...devices['iPhone 12'] } },
-    { label: 'mobile-375', opts: { ...devices['iPhone SE'] } },
+    { label: 'mobile-375', opts: { viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 } },
   ]) {
     const ctx = await browser.newContext(vp.opts)
     const page = await ctx.newPage()
-    await page.goto('http://localhost:3000/', { waitUntil: 'networkidle', timeout: 60000 })
+    await page.goto('http://localhost:3100/', { waitUntil: 'networkidle', timeout: 60000 })
     await page.locator('.s2-stage').scrollIntoViewIfNeeded()
     await page.waitForTimeout(700)
 
