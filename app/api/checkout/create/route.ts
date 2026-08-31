@@ -109,6 +109,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid pointsAmount' }, { status: 400 })
     }
 
+    // ── UAT-ONLY PayMe test simulation selector ─────────────────────────────
+    // Read from request body: "success" or "fail". Only meaningful for PayMe
+    // in UAT (KPAY_ENV !== 'prod'). kpay.ts enforces the prod guard.
+    const rawUatPayme = body?.uat_payme as string | undefined
+    const uatPaymeSimulation: 'success' | 'fail' | undefined =
+      rawUatPayme === 'success' || rawUatPayme === 'fail' ? rawUatPayme : undefined
+    if (uatPaymeSimulation) {
+      console.log('[checkout/create] UAT PayMe test simulation:', uatPaymeSimulation)
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     // ── Check payment method is enabled in settings ────────────────────────
     const settings = await getPaymentMethodSettings(paymentMethod)
     if (!settings || !settings.enabled) {
@@ -280,6 +291,7 @@ export async function POST(req: Request) {
         mode,
         origin: new URL(req.url).origin,
         extra: { orderGroupId, bookingIds },
+        ...(uatPaymeSimulation ? { uatPaymeSimulation } : {}),
       })
     }
 
@@ -378,6 +390,7 @@ export async function POST(req: Request) {
       paymentMethod,
       mode,
       origin: new URL(req.url).origin,
+      ...(uatPaymeSimulation ? { uatPaymeSimulation } : {}),
     })
   } catch (err) {
     const e = err as Error
@@ -474,12 +487,15 @@ type CreateAndStampArgs = {
   mode: 'qr' | 'h5'
   origin: string
   extra?: Record<string, unknown>
+  /** UAT-ONLY: PayMe test-amount simulation selector. */
+  uatPaymeSimulation?: 'success' | 'fail'
 }
 
 async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
   const {
     service, provider, userId, primaryBookingId, outTradeNo, siblingIds,
     orderGroupId, totalAmount, paymentMethod, mode, origin, extra,
+    uatPaymeSimulation,
   } = args
 
   // ── 1. Claim payment attempt ───────────────────────────────────────────────
@@ -544,6 +560,7 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
       method: paymentMethod,
       mode,
       baseUrl: origin,
+      ...(uatPaymeSimulation ? { uatPaymeSimulation } : {}),
     })
   } catch (err) {
     const e = err as Error

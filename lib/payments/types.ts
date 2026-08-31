@@ -23,6 +23,13 @@ export type PayInfoKind = 'qr' | 'link' | 'redirect' | 'form-post'
 /** Gateway-imposed floor, not a pricing rule — UAT rejects smaller with 1047 無效金額. */
 export const KPAY_MIN_AMOUNT_HKD = 1.5
 
+// ── PayMe UAT test-amount constants ──────────────────────────────────────────
+// KPay's PayMe test protocol: .81 ending = simulate success, .82 = simulate failure.
+// These are ONLY used in UAT (KPAY_ENV !== 'prod') — never in production.
+// Reference: KPay test cases 24/26/27/28
+export const PAYME_UAT_SUCCESS_AMOUNT = '8.81'
+export const PAYME_UAT_FAIL_AMOUNT = '8.82'
+
 export type KPayOrderType =
   | 'FPS_SALE_QR'
   | 'FPS_SALE_H5'
@@ -74,6 +81,12 @@ export interface CreateOrderParams {
   remark?: string
   /** Base URL for the webhook + return URLs. */
   baseUrl: string
+  /**
+   * UAT-ONLY: when set on a PayMe order, overrides the payAmount sent to KPay
+   * with the corresponding test constant (8.81 = success, 8.82 = fail).
+   * Ignored in production (KPAY_ENV === 'prod') and for non-PayMe methods.
+   */
+  uatPaymeSimulation?: 'success' | 'fail'
 }
 
 export interface CreateOrderResult {

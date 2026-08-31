@@ -227,6 +227,17 @@ export default function KPayPayment(props: Props) {
   } = props
   const pointsAmount = props.pointsAmount ?? 0
 
+  // ── UAT-ONLY PayMe test simulation selector ───────────────────────────────
+  // Read `?uat_payme=success` or `?uat_payme=fail` from the URL.
+  // Only meaningful in UAT (KPAY_ENV !== 'prod'); production ignores it server-side.
+  const uatPaymeSimulation = (() => {
+    try {
+      const v = new URLSearchParams(window.location.search).get('uat_payme')
+      return v === 'success' || v === 'fail' ? v : undefined
+    } catch { return undefined }
+  })()
+  // ──────────────────────────────────────────────────────────────────────────
+
   // Resume mode: when resumeBookingId is provided, the component restores an
   // in-progress payment instead of creating a new order. This survives page
   // refresh because book/page.tsx persists the KPay state to sessionStorage.
@@ -285,6 +296,10 @@ export default function KPayPayment(props: Props) {
       }
       if (pointsAmount > 0) {
         body.pointsAmount = pointsAmount
+      }
+      // UAT-ONLY: include PayMe test simulation selector when present in URL
+      if (uatPaymeSimulation) {
+        body.uat_payme = uatPaymeSimulation
       }
 
       // Mode A: blocks[] — the KPay path creates bookings server-side
@@ -535,6 +550,8 @@ export default function KPayPayment(props: Props) {
           orderGroupId: resumeOrderNo ? undefined : localOrderGroupId,
         }
         if (pointsAmount > 0) body.pointsAmount = pointsAmount
+        // UAT-ONLY: include PayMe test simulation selector when present in URL
+        if (uatPaymeSimulation) body.uat_payme = uatPaymeSimulation
 
         const createRes = await fetch('/api/checkout/create', {
           method: 'POST',

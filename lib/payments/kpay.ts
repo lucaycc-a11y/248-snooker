@@ -16,7 +16,7 @@ import type {
   WebhookEvent,
 } from './types'
 import { buildSignText, signKpay, generateNonce, toPem } from './kpay-sign'
-import { kpayErrorMessage, KPAY_MIN_AMOUNT_HKD } from './types'
+import { kpayErrorMessage, KPAY_MIN_AMOUNT_HKD, PAYME_UAT_SUCCESS_AMOUNT, PAYME_UAT_FAIL_AMOUNT } from './types'
 
 // ── Env accessors (throw early on missing config) ─────────────
 
@@ -123,6 +123,28 @@ export class KPayProvider implements PaymentProvider {
       ...(institution ? { paymentInstitution: institution } : {}),
       ...(remark ? { orderRemark: remark } : {}),
     }
+
+    // ── UAT-ONLY PayMe test-amount override ─────────────────────────────────
+    // KPay test protocol: .81 ending → simulate success, .82 → simulate failure.
+    // Only active in UAT (KPAY_ENV !== 'prod'). DB total_price is never touched.
+    if (
+      method === 'payme' &&
+      process.env.KPAY_ENV !== 'prod' &&
+      params.uatPaymeSimulation
+    ) {
+      const overrideAmount =
+        params.uatPaymeSimulation === 'success'
+          ? PAYME_UAT_SUCCESS_AMOUNT
+          : PAYME_UAT_FAIL_AMOUNT
+      console.log(
+        '[KPay] ⚠️  UAT PayMe test override:',
+        '| original payAmount:', qrBody.payAmount as string,
+        '| overridden:', overrideAmount,
+        '| mode:', params.uatPaymeSimulation,
+      )
+      qrBody.payAmount = overrideAmount
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     const qrRes = await this.apiPost<KPayApiResponse<{ orderNo: string; payInfo: string }>>(
       qrEndpoint,
@@ -368,18 +390,22 @@ export class KPayProvider implements PaymentProvider {
     const payload = JSON.parse(rawBody) as Record<string, unknown>
     const orderNo = String(payload.orderNo ?? payload.order_no ?? '')
     const outTradeNo = String(payload.outTradeNo ?? payload.out_trade_no ?? '')
-    const status = String(payload.status ?? payload.tradeStatus ?? '')
+    // KPay's "訂單狀態更新通知" payload uses the `result` field (values 1–6),
+    // same as the queryOrder API (`/v1/order/sales/result`).  The legacy field
+    // names `status` / `tradeStatus` are empty in real payloads — never rely on
+    // them.  See `mapKPayResult` below for the canonical value mapping.
+    const result = String(payload.result ?? payload.status ?? payload.tradeStatus ?? '')
     const eventType = String(payload.eventType ?? payload.event_type ?? 'payment.update')
 
     let mappedStatus: WebhookEvent['status']
-    if (status === 'SUCCESS' || status === '2') {
-      mappedStatus = 'succeeded'
-    } else if (status === 'FAIL' || status === '3') {
-      mappedStatus = 'failed'
-    } else if (status === '4' || status === 'REFUND') {
-      mappedStatus = 'refunded'
-    } else {
-      mappedStatus = 'succeeded'
+    switch (result) {
+      case '2':       mappedStatus = 'succeeded'; break          // paid
+      case '3':       mappedStatus = 'failed';    break          // payment failed
+      case '4':       mappedStatus = 'refunded';  break          // refunded
+      case '5':       mappedStatus = 'failed';    break          // cancelled
+      case '6':       mappedStatus = 'failed';    break          // closed
+      case '1':       mappedStatus = 'succeeded'; break          // pending → treat as succeeded (queryOrder will confirm)
+      default:        mappedStatus = 'succeeded'; break          // unknown → let downstream idempotent RPC decide
     }
 
     return {
