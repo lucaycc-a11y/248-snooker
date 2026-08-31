@@ -503,6 +503,8 @@ export function AuthCard({
           err_phone: t("err_phone"),
           err_generic: t("err_generic"),
           phone_verified_badge: t("profile_phone_verified_badge"),
+          phone_send_code: t("profile_phone_send_code"),
+          phone_change_number: t("profile_phone_change_number"),
         }}
       />
       {qrMemberCode && (

@@ -1444,6 +1444,8 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [notif, setNotif] = useState({ booking: true, points: true, promo: false });
+  const [pwSending, setPwSending] = useState(false);
+  const [pwMessage, setPwMessage] = useState<string | null>(null);
 
   // ── Phone-change OTP flow (C4 item 9) ──────────────────────────────────────
   // When the phone field changes, route through the contact-change double-
@@ -1558,6 +1560,31 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
       setSaveError(t("settings_err_generic"));
     } finally {
       setSaving(false);
+    }
+  };
+
+  // ── Change password (C6 item 13) ─────────────────────────────────────
+  // Triggers a Supabase password-reset email. The user completes the
+  // flow on /auth/update-password (outside [locale], site-gate bypassed).
+  const changePassword = async () => {
+    if (!user.email) { setPwMessage(t("settings_err_generic")); return; }
+    setPwSending(true);
+    setPwMessage(null);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: "https://space8.com.hk/auth/update-password",
+      });
+      if (error) {
+        console.error("[settings] resetPasswordForEmail failed:", error.message);
+        setPwMessage(t("settings_err_generic"));
+        return;
+      }
+      setPwMessage("✓ Reset email sent — check your inbox.");
+    } catch {
+      setPwMessage(t("settings_err_generic"));
+    } finally {
+      setPwSending(false);
     }
   };
 
@@ -1798,6 +1825,35 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
       >
         {saved ? t("saved") : t("save")}
       </button>
+
+      {/* Change password — sends a Supabase recovery email, user sets a new
+          password on /auth/update-password (C6 item 13) */}
+      <button
+        type="button"
+        onClick={changePassword}
+        disabled={pwSending}
+        style={{
+          minHeight: 48,
+          borderRadius: "12px",
+          border: `1px solid ${BORDER}`,
+          background: "transparent",
+          color: INK,
+          fontSize: "15px",
+          fontWeight: 600,
+          cursor: pwSending ? "default" : "pointer",
+          opacity: pwSending ? 0.6 : 1,
+          marginTop: "4px",
+        }}
+        data-cms-key="member.settings_change_password"
+      >
+        {pwSending ? t("sending") : t("settings_change_password")}
+      </button>
+
+      {pwMessage && (
+        <p style={{ fontSize: "13px", color: pwMessage.startsWith("✓") ? GREEN : DANGER, margin: 0 }}>
+          {pwMessage}
+        </p>
+      )}
 
       {/* Danger zone */}
       <div style={{ border: `1px solid ${DANGER}55`, borderRadius: "16px", padding: "20px", marginTop: "12px" }}>

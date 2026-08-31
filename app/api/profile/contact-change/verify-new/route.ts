@@ -76,6 +76,52 @@ export async function POST(request: Request) {
       if (revokeError) console.error('[profile/contact-change/verify-new] session invalidation failed', revokeError)
     }
 
+    // C4 item 10: notify the old email when phone changes, so the user knows
+    // their account was updated. This is a security notification, not optional.
+    if (change.kind === 'phone') {
+      try {
+        const { data: profile } = await service
+          .from('users')
+          .select('email')
+          .eq('id', user.id)
+          .maybeSingle<{ email: string | null }>()
+        const notifyEmail = profile?.email ?? user.email
+        if (notifyEmail) {
+          const { getResend } = await import('@/lib/resend/client')
+          const resend = getResend()
+          const ts = new Date().toLocaleString('en-HK', { timeZone: 'Asia/Hong_Kong', dateStyle: 'medium', timeStyle: 'short' })
+          await resend.emails.send({
+            from: 'Space8 <no-reply@space8.com.hk>',
+            to: notifyEmail,
+            subject: 'Your Space8 phone number was changed',
+            html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;max-width:600px;margin:0 auto;padding:48px 24px;background:#000;color:#fff;">
+  <div style="text-align:center;padding-bottom:32px;">
+    <img src="https://space8.com.hk/logos/space8-logo-email.png" alt="Space8" width="280" style="max-width:100%;height:auto;" />
+  </div>
+  <div style="background:#0a0a0a;border-radius:24px;padding:40px;border:1px solid rgba(34,197,94,0.2);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="display:inline-block;background:rgba(34,197,94,0.15);border-radius:50%;width:56px;height:56px;line-height:56px;">
+        <span style="color:#22c55e;font-size:28px;">✓</span>
+      </div>
+    </div>
+    <h2 style="color:#fff;font-size:22px;font-weight:600;margin:0 0 12px;text-align:center;">Phone Number Changed</h2>
+    <p style="color:#a3a3a3;font-size:15px;line-height:1.6;margin:0 0 28px;text-align:center;">Your Space8 account phone number was changed successfully.</p>
+    <div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:20px;margin-bottom:28px;">
+      <p style="color:#a3a3a3;font-size:13px;margin:0 0 8px;"><strong style="color:#fff;">New Phone:</strong> ${change.new_value}</p>
+      <p style="color:#a3a3a3;font-size:13px;margin:0;"><strong style="color:#fff;">Time:</strong> ${ts}</p>
+    </div>
+    <p style="color:#737373;font-size:14px;line-height:1.6;text-align:center;margin:0;">If you didn't make this change, please contact support immediately to secure your account.</p>
+  </div>
+  <p style="color:#525252;font-size:12px;text-align:center;margin:32px 0 0;">Space8 · Hong Kong</p>
+</div>`,
+          })
+        }
+      } catch (notifyErr) {
+        // Best-effort — do not fail the main flow for a notification failure
+        console.error('[profile/contact-change/verify-new] old-email notification failed', notifyErr)
+      }
+    }
+
     return NextResponse.json({ ok: true, kind: change.kind, value: change.new_value })
   } catch (error) {
     console.error('[profile/contact-change/verify-new] error', error)

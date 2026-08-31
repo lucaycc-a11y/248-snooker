@@ -57,31 +57,71 @@ export async function POST(req: Request) {
       )
     }
 
-    // Service-role UPSERT (not update): a brand-new SMS user verifies OTP
-    // client-side without passing through /auth/callback, so they may have no
-    // users row yet — an update would silently affect 0 rows. Service-role also
-    // bypasses RLS, so the UPSERT never needs a matching INSERT *and* UPDATE
-    // policy to line up (a subtle way a cookie-bound client fails on new rows).
-    // Phone is written as-submitted (format-validated above only) — it is NOT
-    // cross-checked against auth.users.phone. Only SMS-login users have a
-    // Supabase-verified phone there; Apple/Google/Email users never do, so this
-    // column intentionally holds an unverified, format-checked number for them.
-    // NOTE: this write can only 500 — auth is fully settled above, so a 401 can
-    // never originate from here regardless of which client performs the write.
-
     const service = getServiceSupabase()
+
+    // Verified-contact authority. The users_profile_complete_verified_chk
+    // constraint (migration 20260829) makes "profile_complete = true" MEAN
+    // "both contacts verified": the write below must carry non-null
+    // email_verified_at and phone_verified_at or the upsert 500s. Those two
+    // stamps must come from genuine verification, never from the submitted form:
+    //
+    //   email — the session email is the only trustable one. Every path that
+    //   reaches this gate holds a Supabase session for a confirmed email (OAuth
+    //   emails are auto-confirmed, the email-first signup stamps its own
+    //   email_verified_at, SMS-recovered accounts were created email-first); an
+    //   email in the form that differs from the session email is unverified by
+    //   definition and must be rejected, not stamped.
+    //
+    //   phone — two honest sources only: (a) public.users.phone_verified_at
+    //   already set for THIS phone by /api/otp/verify-binding (the new Google /
+    //   Apple / typed-phone OTP step), or (b) auth.users.phone matching (a
+    //   genuinely Supabase-SMS-verified number). Anything else — a bare typed
+    //   phone with no OTP proof — gets a 422 phone_not_verified: this is the
+    //   server-side half of C2 item 6, a direct POST here must never bypass the
+    //   phone verification step.
+    const { data: existing } = await service
+      .from('users')
+      .select('member_code, phone, phone_verified_at')
+      .eq('id', user.id)
+      .maybeSingle<{
+        member_code: string | null
+        phone: string | null
+        phone_verified_at: string | null
+      }>()
+
+    const submittedEmail = result.value.email
+    const sessionEmail = (user.email ?? '').toLowerCase()
+    const emailMatchesSession = submittedEmail === sessionEmail
+    if (!emailMatchesSession) {
+      return NextResponse.json(
+        { error: 'email_not_verified', field: 'email' },
+        { status: 422 },
+      )
+    }
+    const emailVerifiedAt = (user as { email_confirmed_at?: string | null }).email_confirmed_at
+      ?? new Date().toISOString()
+
+    const phone = result.value.phone
+    const rowAlreadyVerified =
+      existing?.phone_verified_at != null && existing.phone === phone
+    const authPhoneVerified = user.phone === phone
+    const phoneVerifiedAt = rowAlreadyVerified
+      ? existing.phone_verified_at
+      : authPhoneVerified
+        ? new Date().toISOString()
+        : null
+    if (!phoneVerifiedAt) {
+      return NextResponse.json(
+        { error: 'phone_not_verified', field: 'phone' },
+        { status: 422 },
+      )
+    }
 
     // Member code: SPACE8-{TIER}-{4chars}-{check}. New signups always start at
     // the Amateur tier (→ AMA). Codes are random, so this is idempotent by reuse:
     // if the user already has one, keep it — never reissue on a profile re-submit.
     // Only mint a new code for a first-time completion, retrying on the (tiny)
     // chance of a collision against an existing users.member_code.
-    const { data: existing } = await service
-      .from('users')
-      .select('member_code')
-      .eq('id', user.id)
-      .maybeSingle()
-
     let memberCode = existing?.member_code ?? null
     if (!memberCode) {
       for (let attempt = 0; attempt < 5 && !memberCode; attempt++) {
@@ -108,8 +148,10 @@ export async function POST(req: Request) {
           id: user.id,
           display_name: result.value.display_name,
           email: result.value.email,
-          phone: result.value.phone,
+          phone,
           member_code: memberCode,
+          email_verified_at: emailVerifiedAt,
+          phone_verified_at: phoneVerifiedAt,
           profile_complete: true,
           updated_at: new Date().toISOString(),
         },

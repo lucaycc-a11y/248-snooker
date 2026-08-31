@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
+import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
 
 // Matches the GREEN constant duplicated across every other auth-flow file
 // (AuthCard.tsx, AuthModal.tsx, AccountMenu.tsx, OtpInput.tsx,
@@ -14,6 +16,18 @@ import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib
 // matching that (not the shared Button component's token) is what keeps
 // this button visually consistent with its siblings.
 const GREEN = "#22c55e"
+const OTP_LENGTH = 6
+const RESEND_COOLDOWN = 60
+
+type Grecaptcha = {
+  execute: (siteKey: string, options: { action: string }) => Promise<string>
+}
+
+function isGrecaptcha(value: unknown): value is Grecaptcha {
+  if (!value || typeof value !== "object") return false
+  const candidate = value as { execute?: unknown }
+  return typeof candidate.execute === "function"
+}
 
 function localHkPhoneValue(value: string): string {
   const normalized = normalizeHkPhone(value)
@@ -27,11 +41,14 @@ function localHkPhoneValue(value: string): string {
 // the parent renders it as a blocking step and only advances on the onComplete
 // callback.
 //
-// Phone is format-checked only (8 digits) — NOT SMS-verified — for Apple/Google/
-// Email users; it's written straight to public.users.phone, never through
-// supabase.auth.updateUser/verifyOtp (those touch auth.users.phone, which is
-// reserved for actually-SMS-verified numbers). Existing SMS-login users keep
-// their pre-verified phone locked via isPhoneVerified, unaffected by this.
+// Phone verification (C2): a phone that is NOT already Supabase-SMS-verified is
+// NOT accepted on the form alone. The submit button becomes "send verification
+// code" — it runs reCAPTCHA, POSTs /api/otp/send (Engagelab issues the SMS),
+// then /api/otp/verify-binding proves possession of the number BEFORE
+// /api/profile/complete is allowed to run. The backend enforces the same rule
+// (profile/complete returns 422 phone_not_verified for any unproven phone), so a
+// direct API POST cannot skip this step (C2 item 6). SMS-login users keep their
+// pre-verified phone locked via isPhoneVerified and skip straight to submit.
 //
 // This step does NOT set a password. Email/phone registrants already set one
 // during signup (validated by lib/auth/password.ts), OAuth users don't need one,
@@ -64,8 +81,13 @@ export function ProfileCompletion({
     err_generic: string
     /** Shown when phone was already verified via SMS sign-in, e.g. "Verified". */
     phone_verified_badge: string
+    /** Label for the send-code button when the phone still needs OTP proof. */
+    phone_send_code: string
+    /** Link back to editing the number from the OTP sub-step, e.g. "Change number". */
+    phone_change_number: string
   }
 }) {
+  const t = useTranslations("auth")
   const [name, setName] = useState(initialName)
   const [email, setEmail] = useState(initialEmail)
   const [phone, setPhone] = useState(() => localHkPhoneValue(initialPhone))
@@ -73,10 +95,21 @@ export function ProfileCompletion({
   const [errField, setErrField] = useState<"name" | "email" | "phone" | null>(null)
   const [errMsg, setErrMsg] = useState<string | null>(null)
 
+  // Phone verification sub-step. True when an OTP was successfully redeemed via
+  // /api/otp/verify-binding for this component's phone number.
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [verifyMode, setVerifyMode] = useState<"form" | "phoneOtp">("form")
+  const [messageId, setMessageId] = useState("")
+  const [otp, setOtp] = useState<string[]>(() => Array.from({ length: OTP_LENGTH }, () => ""))
+  const [otpStatus, setOtpStatus] = useState<OtpVerificationStatus>("input")
+  const [otpChannel, setOtpChannel] = useState<"whatsapp" | "sms">("sms")
+  const [cooldown, setCooldown] = useState(0)
+
   // isPhoneVerified means the user already signed in via SMS — that number is
-  // genuinely Supabase-verified, so keep it locked. Every other user (Apple/
-  // Google/Email) just needs a format-valid number; no verification step.
-  const phoneConfirmed = isPhoneVerified
+  // genuinely Supabase-verified, so keep it locked and skip the OTP sub-step.
+  // Every other user (Apple/Google/Email) must prove the number with an OTP
+  // before the profile can be completed.
+  const phoneConfirmed = isPhoneVerified || phoneVerified
   const validation = validateProfile({ name, email, phone })
   const canSubmit = validation.ok && !saving
 
@@ -85,6 +118,10 @@ export function ProfileCompletion({
     return v.field === "name" ? labels.err_name : v.field === "email" ? labels.err_email : labels.err_phone
   }
 
+  // Authoritative finalize. Only runs once the phone has genuine proof (SMS
+  // sign-in, or an OTP just redeemed by verifyPhone). The server stamps
+  // email_verified_at / phone_verified_at so the users_profile_complete_verified_chk
+  // constraint holds — and independently rejects (422) any unproven phone.
   const submit = async () => {
     const v = validateProfile({ name, email, phone })
     if (!v.ok) {
@@ -123,6 +160,96 @@ export function ProfileCompletion({
     }
   }
 
+  // Step 1 of the OTP sub-step: prove the human isn't a bot (reCAPTCHA), then
+  // have Engagelab send a 6-digit code to the entered number.
+  const sendPhoneCode = async () => {
+    const v = validateProfile({ name, email, phone })
+    if (!v.ok) {
+      setErrField(v.field)
+      setErrMsg(errorFor(v))
+      return
+    }
+    setErrField(null)
+    setErrMsg(null)
+    setSaving(true)
+    try {
+      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+      const grecaptchaValue: unknown = typeof window === "undefined" ? undefined : window.grecaptcha
+      if (!siteKey || !isGrecaptcha(grecaptchaValue)) {
+        setErrMsg(labels.err_generic)
+        setSaving(false)
+        return
+      }
+      const recaptchaToken = await grecaptchaValue.execute(siteKey, { action: "send_otp" })
+      const res = await fetch("/api/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: v.value.phone, recaptchaToken }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!j?.success) {
+        setErrMsg(j?.error === "rate_limited" ? t("err_rate_limited") : j?.error || t("err_send"))
+        setSaving(false)
+        return
+      }
+      setMessageId(typeof j.messageId === "string" ? j.messageId : "")
+      setOtpChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
+      setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+      setOtpStatus("input")
+      setCooldown(RESEND_COOLDOWN)
+      setVerifyMode("phoneOtp")
+    } catch {
+      setErrMsg(t("err_network"))
+    }
+    setSaving(false)
+  }
+
+  // Step 2: redeem the OTP and BIND the phone to the account
+  // (/api/otp/verify-binding writes phone + phone_verified_at), then finalize the
+  // profile now that the server can stamp a genuine phone_verified_at.
+  const verifyPhone = async (code: string) => {
+    const v = validateProfile({ name, email, phone })
+    if (!v.ok) return
+    if (!messageId) {
+      setErrMsg(t("err_send"))
+      setOtpStatus("failure")
+      return
+    }
+    setSaving(true)
+    setOtpStatus("verifying")
+    setErrMsg(null)
+    try {
+      const res = await fetch("/api/otp/verify-binding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: v.value.phone, messageId, code }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (res.status === 409 && j?.status === "phone_taken") {
+        setErrMsg(t("err_phone_exists"))
+        setOtpStatus("failure")
+        setSaving(false)
+        return
+      }
+      if (!res.ok || j?.success !== true) {
+        setErrMsg(j?.error === "rate_limited" ? t("err_rate_limited") : t("err_otp_wrong_generic"))
+        setOtpStatus("failure")
+        setSaving(false)
+        return
+      }
+      setPhoneVerified(true)
+      setOtpStatus("success")
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 720))
+      // submit() re-reads the phone state, which is unchanged and now proven;
+      // on failure it drops back to the form where the verified badge shows.
+      await submit()
+    } catch {
+      setErrMsg(t("err_network"))
+      setOtpStatus("failure")
+      setSaving(false)
+    }
+  }
+
   const fieldStyle = (field: "name" | "email" | "phone") => ({
     width: "100%",
     height: 52,
@@ -134,6 +261,68 @@ export function ProfileCompletion({
     fontSize: 16,
     outline: "none",
   })
+
+  const submitLabel = phoneConfirmed ? labels.submit : labels.phone_send_code
+
+  // ── OTP sub-step ───────────────────────────────────────────────────────────
+  // Shown only when the phone needs proving. The number is displayed read-only
+  // (with a "change number" escape hatch back to the form); the verified badge
+  // appears once the code is redeemed, right before the profile finalizes.
+  if (verifyMode === "phoneOtp" && !phoneConfirmed) {
+    return (
+      <div>
+        <h2
+          data-cms-key="auth.profile.title"
+          style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, letterSpacing: "0.02em", color: "#fff", marginBottom: 6 }}
+        >
+          {labels.title}
+        </h2>
+        <p data-cms-key="auth.profile.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
+          {otpChannel === "whatsapp"
+            ? t("otp_subtitle_whatsapp", { phone })
+            : t("otp_subtitle", { phone })}
+        </p>
+
+        <OtpVerification
+          length={OTP_LENGTH}
+          value={otp}
+          onChange={setOtp}
+          onComplete={verifyPhone}
+          status={otpStatus}
+          error={errMsg}
+          onReset={() => {
+            setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+            setErrMsg(null)
+            setOtpStatus("input")
+          }}
+          disabled={saving}
+        />
+
+        <button
+          type="button"
+          onClick={sendPhoneCode}
+          disabled={cooldown > 0 || saving}
+          data-cms-key="auth.otp.resend"
+          style={{ marginTop: 20, width: "100%", background: "none", border: "none", color: cooldown > 0 ? "rgba(255,255,255,0.35)" : GREEN, fontSize: 14, cursor: cooldown > 0 ? "default" : "pointer" }}
+        >
+          {cooldown > 0 ? t("resend_in", { seconds: cooldown }) : t("resend")}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setVerifyMode("form")
+            setErrMsg(null)
+            setOtpStatus("input")
+          }}
+          data-cms-key="auth.profile.phone_change_number"
+          style={{ marginTop: 8, width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", textAlign: "center", textDecoration: "underline", textUnderlineOffset: 2 }}
+        >
+          {labels.phone_change_number}
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -209,7 +398,7 @@ export function ProfileCompletion({
 
       <button
         type="button"
-        onClick={submit}
+        onClick={phoneConfirmed ? submit : sendPhoneCode}
         disabled={!canSubmit}
         data-cms-key="auth.profile.submit"
         style={{
@@ -225,7 +414,7 @@ export function ProfileCompletion({
           cursor: canSubmit ? "pointer" : "not-allowed",
         }}
       >
-        {saving ? labels.saving : labels.submit}
+        {saving ? labels.saving : submitLabel}
       </button>
     </div>
   )
