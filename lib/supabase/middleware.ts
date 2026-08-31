@@ -40,7 +40,26 @@ export async function updateSession(request: NextRequest) {
 
   // IMPORTANT: do NOT put logic between createServerClient and getUser(). getUser()
   // is what triggers the token refresh + rotation exactly once for this request.
-  await supabase.auth.getUser()
+  //
+  // getUser() talks to the Auth server over the network — it can throw on a
+  // transient outage, a network timeout, or when a concurrent request already
+  // spent the single-use refresh token. If it throws here, letting it bubble up
+  // turns every /api/* call into a 500 *before* the route handler ever runs
+  // (e.g. /api/otp/verify-binding wrote zero rows because its handler never ran).
+  //
+  // Swallowing this is safe: it only skips the session *refresh*, not
+  // authentication itself. The route handler (e.g. route.ts L17) re-runs its own
+  // getUser() with the cookies carried on the request and will 401 there if the
+  // user is genuinely signed out. We just must not let a refresh hiccup nuke the
+  // whole request.
+  try {
+    await supabase.auth.getUser()
+  } catch (err) {
+    // Prefix `[supabase/middleware]` distinguishes this from route-handler errors
+    // (`[otp/verify-binding]`), so the next 500 can be traced to the right layer
+    // at a glance instead of re-deriving it from scratch.
+    console.error('[supabase/middleware] getUser failed, continuing without session refresh', err)
+  }
 
   // IMPORTANT: return supabaseResponse as-is — its cookies carry the refreshed
   // session. If a caller needs a different response, it must copy these cookies
