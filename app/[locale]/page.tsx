@@ -117,7 +117,7 @@ export default async function Home({
       <AmbientGlow />
       <Nav />
       <Hero />
-      <GalleryScroll />
+      {/* <GalleryScroll /> — temporarily hidden */}
       <Section2Value />
       <HomeFacilities />
       <HomeRooms />
