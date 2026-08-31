@@ -67,8 +67,55 @@ type Props = {
    * prepare_checkout; the amount KPay charges comes back from that RPC, never
    * from this component. */
   pointsAmount?: number
+  /** Resume an in-progress payment after page refresh — skip order creation and
+   * restore the existing bookingId/orderNo directly. */
+  resumeBookingId?: string
+  resumeOrderNo?: string
   onBackToMethods: () => void
   onSuccess: (bookingId?: string) => void
+}
+
+// ── SessionStorage key for refresh recovery ─────────────────────────────────
+const KPAY_SESSION_KEY = 'kpayPayment'
+
+type KPayPersistedState = {
+  bookingId: string
+  providerOrderNo: string
+  method: KPayMethod
+  mode: KPayMode
+  orderGroupId?: string
+  agreedToTerms: boolean
+  /** Timestamp to expire stale entries (30 min) */
+  savedAt: number
+}
+
+function persistKPayState(data: KPayPersistedState) {
+  try {
+    sessionStorage.setItem(KPAY_SESSION_KEY, JSON.stringify(data))
+  } catch { /* quota or private browsing — non-fatal */ }
+}
+
+export function readKPayPersistedState(): KPayPersistedState | null {
+  try {
+    const raw = sessionStorage.getItem(KPAY_SESSION_KEY)
+    if (!raw) return null
+    const parsed: unknown = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+    const s = parsed as Record<string, unknown>
+    if (typeof s.bookingId !== 'string' || typeof s.providerOrderNo !== 'string') return null
+    // Expire after 30 minutes — stale entries should not block new orders
+    if (typeof s.savedAt === 'number' && Date.now() - s.savedAt > 30 * 60_000) {
+      sessionStorage.removeItem(KPAY_SESSION_KEY)
+      return null
+    }
+    return s as unknown as KPayPersistedState
+  } catch {
+    return null
+  }
+}
+
+export function clearKPayPersistedState() {
+  try { sessionStorage.removeItem(KPAY_SESSION_KEY) } catch {}
 }
 
 // ── Gateway form POST (Alipay H5) ────────────────────────────────────────────
@@ -166,21 +213,33 @@ const EASE_STANDARD = 'cubic-bezier(.2,.7,.3,1)'
 const KPAY_POLL_FAST_MS = 2_000
 const KPAY_POLL_SLOW_MS = 5_000
 const KPAY_POLL_FAST_PHASE_MS = 30_000
+/** Hard ceiling: if polling has been running this long without resolution, stop
+ *  and show the user a clear "we're still checking" state instead of polling
+ *  forever. Matches useOrderConfirmationPolling's DEFAULT_TIMEOUT_MS. */
+const KPAY_POLL_TIMEOUT_MS = 60_000
 
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function KPayPayment(props: Props) {
-  const { blocks, bookingId, orderGroupId, method, mode, labels, agreedToTerms, onBackToMethods, onSuccess } = props
+  const {
+    blocks, bookingId, orderGroupId, method, mode, labels, agreedToTerms,
+    resumeBookingId, resumeOrderNo, onBackToMethods, onSuccess,
+  } = props
   const pointsAmount = props.pointsAmount ?? 0
 
-  const [state, setState] = useState<KPayState>('idle')
+  // Resume mode: when resumeBookingId is provided, the component restores an
+  // in-progress payment instead of creating a new order. This survives page
+  // refresh because book/page.tsx persists the KPay state to sessionStorage.
+  const resuming = Boolean(resumeBookingId)
+
+  const [state, setState] = useState<KPayState>(resuming ? 'pending' : 'idle')
   const [payInfo, setPayInfo] = useState<string | null>(null)
   // Server-decided payInfo shape (see getPayInfoKind in lib/payments/kpay.ts) —
   // authoritative over the `mode` prop, since e.g. unionpay_qp has no real H5
   // variant and always comes back as 'qr' regardless of the requested mode.
   const [kind, setKind] = useState<string | null>(null)
-  const [providerOrderNo, setProviderOrderNo] = useState<string | null>(null)
-  const [localBookingId, setLocalBookingId] = useState<string | undefined>(bookingId)
+  const [providerOrderNo, setProviderOrderNo] = useState<string | null>(resumeOrderNo ?? null)
+  const [localBookingId, setLocalBookingId] = useState<string | undefined>(resumeBookingId ?? bookingId)
   const [localOrderGroupId, setLocalOrderGroupId] = useState<string | undefined>(orderGroupId)
   const [expiresIn, setExpiresIn] = useState<number>(0)
   const [countdown, setCountdown] = useState<number>(0)
@@ -194,6 +253,15 @@ export default function KPayPayment(props: Props) {
   const creatingRef = useRef(false)
   const attemptRef = useRef(0)
   const pollStartRef = useRef(Date.now())
+  const resumingRef = useRef(resuming)
+  // Stale-closure guards: keep refs in sync so the polling useEffect can have
+  // a stable dependency array and avoid re-launching on every state/prop change.
+  const stateRef = useRef<KPayState>(state)
+  const onSuccessRef = useRef(onSuccess)
+
+  // Keep refs current without re-triggering the polling effect.
+  useEffect(() => { stateRef.current = state }, [state])
+  useEffect(() => { onSuccessRef.current = onSuccess }, [onSuccess])
 
   // ── Create order (idempotent) ──────────────────────────────────────────────
 
@@ -276,6 +344,17 @@ export default function KPayPayment(props: Props) {
       if (json.bookingId) setLocalBookingId(String(json.bookingId))
       if (json.orderGroupId) setLocalOrderGroupId(String(json.orderGroupId))
       setState('pending')
+
+      // Persist to sessionStorage so a page refresh can resume this payment
+      // instead of creating a duplicate order.
+      persistKPayState({
+        bookingId: String(json.bookingId ?? localBookingId),
+        providerOrderNo: json.providerOrderNo,
+        method,
+        mode,
+        agreedToTerms: true,
+        savedAt: Date.now(),
+      })
 
       // 'form-post' payInfo is a JSON field map, not a URL — it must be POSTed
       // as a form instead of assigned to location.href.
@@ -372,12 +451,157 @@ export default function KPayPayment(props: Props) {
   // ── Create order on mount ─────────────────────────────────────────────────
 
   useEffect(() => {
+    // When resuming (page refresh), skip createOrder — the resume effect below
+    // handles restoring state from the persisted bookingId/orderNo.
+    if (resumingRef.current) {
+      resumingRef.current = false
+      return
+    }
     if (agreedToTerms) createOrder()
     return () => {
       creatingRef.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreedToTerms])
+
+  // ── Resume payment after page refresh ─────────────────────────────────────
+  // When the component mounts with resumeBookingId (persisted via sessionStorage),
+  // we poll the booking status immediately to pick up where the user left off.
+  // If the order already has a provider_order_no, the status endpoint will return
+  // the current state (pending / pending_confirmation / success / etc.).
+  // If not, we trigger a Mode B createOrder to re-create the KPay order against
+  // the existing booking.
+  useEffect(() => {
+    if (!resumeBookingId) return
+    let cancelled = false
+
+    const resumePayment = async () => {
+      try {
+        // First: poll status to see where the booking stands
+        const statusRes = await fetch(`/api/checkout/status?bookingId=${resumeBookingId}`)
+        if (!statusRes.ok || cancelled) return
+        const status = await statusRes.json() as Record<string, unknown>
+
+        if (cancelled) return
+
+        const uiStatus = status.status as string | undefined
+        const providerOrderNoVal = status.providerOrderNo as string | undefined
+
+        // Booking is already confirmed — nothing to do, onSuccess will fire from the polling effect
+        if (uiStatus === 'confirmed') {
+          setState('success')
+          return
+        }
+
+        // Booking terminal state (cancelled, expired, payment_failed)
+        if (uiStatus === 'cancelled' || uiStatus === 'expired') {
+          setState(uiStatus as KPayState)
+          return
+        }
+
+        if (uiStatus === 'payment_failed') {
+          const holdActive = status.holdActive as boolean | undefined
+          setFailureReason(null)
+          setState(holdActive ? 'failed' : 'cancelled')
+          return
+        }
+
+        // If the order already has a provider_order_no, the existing polling
+        // effect will pick up the status transitions — we just need to set
+        // the providerOrderNo so the UI can show the QR code or pending screen.
+        if (providerOrderNoVal) {
+          setProviderOrderNo(providerOrderNoVal)
+          setPayInfo((status.payInfo as string) ?? null)
+          setKind((status.kind as string) ?? null)
+          setExpiresIn((status.expiresInSeconds as number) ?? 0)
+          setCountdown((status.expiresInSeconds as number) ?? 0)
+          setState(uiStatus === 'pending_confirmation' ? 'pending_confirmation' : 'pending')
+          return
+        }
+
+        // No provider order yet — create one via Mode B (existing bookingId)
+        if (!agreedToTerms) return
+        if (creatingRef.current) return
+        creatingRef.current = true
+        setCreating(true)
+        setError(null)
+        setFailureReason(null)
+
+        const body: Record<string, unknown> = {
+          method,
+          mode,
+          agreedToTerms,
+          bookingId: resumeBookingId,
+          orderGroupId: resumeOrderNo ? undefined : localOrderGroupId,
+        }
+        if (pointsAmount > 0) body.pointsAmount = pointsAmount
+
+        const createRes = await fetch('/api/checkout/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+
+        if (!createRes.ok || cancelled) {
+          const errBody = await createRes.json().catch(() => null) as Record<string, unknown> | null
+          setError((errBody?.error as string) ?? '付款初始化失敗，請重試')
+          setState('failed')
+          return
+        }
+
+        const json = await createRes.json() as Record<string, unknown>
+
+        // Redirect responses — same as createOrder
+        if ((json.kind === 'redirect' || json.kind === 'link') && json.payInfo) {
+          if (/^(https?:\/\/|[a-z][a-z0-9+.-]*:)/i.test(String(json.payInfo).trim())) {
+            window.location.href = String(json.payInfo)
+            return
+          }
+          setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
+          setState('failed')
+          return
+        }
+
+        setProviderOrderNo(json.providerOrderNo as string)
+        setPayInfo(json.payInfo as string)
+        setKind(json.kind as string)
+        setExpiresIn(json.expiresInSeconds as number)
+        setCountdown(json.expiresInSeconds as number)
+        if (json.bookingId) setLocalBookingId(String(json.bookingId))
+        if (json.orderGroupId) setLocalOrderGroupId(String(json.orderGroupId))
+        setState('pending')
+
+        // Persist for future refreshes
+        persistKPayState({
+          bookingId: String(json.bookingId ?? resumeBookingId),
+          providerOrderNo: json.providerOrderNo as string,
+          method,
+          mode,
+          agreedToTerms: true,
+          savedAt: Date.now(),
+        })
+
+        if (json.kind === 'form-post') {
+          if (!submitGatewayForm(json.payInfo as string)) {
+            setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
+            setState('failed')
+          }
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setError((e as Error).message)
+          setState('failed')
+        }
+      } finally {
+        creatingRef.current = false
+        setCreating(false)
+      }
+    }
+
+    resumePayment()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeBookingId])
 
   // ── Countdown timer ────────────────────────────────────────────────────────
 
@@ -407,7 +631,7 @@ export default function KPayPayment(props: Props) {
   // ── Poll for status ────────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (state !== 'pending' && state !== 'pending_confirmation') {
+    if (stateRef.current !== 'pending' && stateRef.current !== 'pending_confirmation') {
       return
     }
 
@@ -453,18 +677,21 @@ export default function KPayPayment(props: Props) {
         if (reason || code) setFailureReason([code, reason].filter(Boolean).join(' · '))
         if (status === 'confirmed') {
           console.log('[KPay] pollResult confirmed', { bookingId: localBookingId, elapsedMs })
+          clearKPayPersistedState()
           setState('success')
-          onSuccess(localBookingId)
+          onSuccessRef.current(localBookingId)
           return
         }
         if (status === 'pending_confirmation' || providerStatus === 'success') {
           setState('pending_confirmation')
         } else if (status === 'expired' || providerStatus === 'expired') {
           console.log('[KPay] pollResult expired', { bookingId: localBookingId, elapsedMs })
+          clearKPayPersistedState()
           setState('expired')
           return
         } else if (status === 'cancelled' || providerStatus === 'cancelled') {
           console.log('[KPay] pollResult cancelled', { bookingId: localBookingId, elapsedMs })
+          clearKPayPersistedState()
           setState('cancelled')
           return
         } else if (status === 'failed' || status === 'payment_failed' || providerStatus === 'failed' || providerStatus === 'closed') {
@@ -477,8 +704,25 @@ export default function KPayPayment(props: Props) {
       }
 
       if (cancelled) return
+      // Timeout fallback: if we've been polling longer than KPAY_POLL_TIMEOUT_MS,
+      // stop and transition to a terminal state so the UI isn't stuck forever.
+      if (elapsedMs >= KPAY_POLL_TIMEOUT_MS) {
+        console.log('[KPay] pollTimeout', { bookingId: localBookingId, elapsedMs })
+        // If the last response showed provider success but DB isn't confirmed
+        // yet, stay on pending_confirmation (the status endpoint is proactively
+        // confirming — one more poll will likely resolve it). Otherwise, treat
+        // as a failure so the user can take action.
+        if (stateRef.current === 'pending_confirmation') {
+          // Keep polling slowly — proactive confirmation may still be in progress
+          timer = setTimeout(poll, KPAY_POLL_SLOW_MS)
+          return
+        }
+        clearKPayPersistedState()
+        setState('failed')
+        return
+      }
       // Fast 2 s for the first 30 s (webhooks are near-instant), then back off.
-      const interval = Date.now() - pollStartRef.current < KPAY_POLL_FAST_PHASE_MS ? KPAY_POLL_FAST_MS : KPAY_POLL_SLOW_MS
+      const interval = elapsedMs < KPAY_POLL_FAST_PHASE_MS ? KPAY_POLL_FAST_MS : KPAY_POLL_SLOW_MS
       timer = setTimeout(poll, interval)
     }
 
@@ -489,7 +733,7 @@ export default function KPayPayment(props: Props) {
       if (timer) clearTimeout(timer)
       if (elapsedTimer) clearInterval(elapsedTimer)
     }
-  }, [localBookingId, onSuccess, state])
+  }, [localBookingId])
 
   // ── Retry the current booking after an expired or failed provider attempt ──
 
@@ -532,6 +776,9 @@ export default function KPayPayment(props: Props) {
         <div style={styles.spinner} />
         <p style={styles.stateTitle}>{labels.pending_confirmation}</p>
         <p style={styles.stateDesc}>{labels.pending_confirmation_desc}</p>
+        {elapsedSec > 0 && (
+          <p style={styles.elapsedText}>{labels.waited.replace('{seconds}', String(elapsedSec))}</p>
+        )}
       </div>
     )
   }

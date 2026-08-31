@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getPaymentProvider } from '@/lib/payments'
+import { humanReadableCode } from '@/lib/qr/jwt'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -31,7 +32,7 @@ export async function GET(req: Request) {
 
     const { data: booking, error: bookingErr } = await service
       .from('bookings')
-      .select('id, status, payment_provider, provider_order_no, payment_method')
+      .select('id, status, payment_provider, provider_order_no, payment_method, order_group_id, human_code, total_price, user_id')
       .eq('id', bookingId)
       .eq('user_id', user.id)
       .single()
@@ -125,9 +126,104 @@ export async function GET(req: Request) {
 
     // Provider success is not database confirmation. The webhook still needs to
     // commit the booking transition and generate the booking credentials.
+    // PROACTIVE CONFIRMATION: When the provider reports success but the DB
+    // booking isn't confirmed yet, call confirm_booking/confirm_booking_group
+    // directly. This makes polling self-healing — if the webhook is delayed or
+    // never arrives, the booking still gets finalized. The RPC is idempotent,
+    // so a concurrent webhook call is safe.
     let uiStatus: string
     switch (orderStatus.status) {
       case 'success':
+        if (booking.status !== 'confirmed') {
+          try {
+            if (booking.order_group_id) {
+              // Grouped booking: confirm every row atomically
+              const { data: rows, error: rowsErr } = await service
+                .from('bookings')
+                .select('id, total_price')
+                .eq('order_group_id', booking.order_group_id)
+
+              if (!rowsErr && rows && rows.length > 0) {
+                const qrCodes: Record<string, string> = {}
+                for (const r of rows) {
+                  qrCodes[r.id] = humanReadableCode(r.id)
+                }
+                console.log('[KPay] proactive confirm_booking_group', {
+                  orderGroupId: booking.order_group_id,
+                  bookings: rows.length,
+                  providerOrderNo: booking.provider_order_no,
+                })
+                await service.rpc('confirm_booking_group', {
+                  p_order_group_id: booking.order_group_id,
+                  p_payment_intent_id: booking.provider_order_no,
+                  p_payment_method: booking.payment_method,
+                  p_qr_codes: qrCodes,
+                  p_event_id: null,
+                })
+              }
+            } else {
+              // Single booking
+              const humanCode = booking.human_code ?? humanReadableCode(booking.id)
+              console.log('[KPay] proactive confirm_booking', {
+                bookingId: booking.id,
+                providerOrderNo: booking.provider_order_no,
+              })
+              await service.rpc('confirm_booking', {
+                p_booking_id: booking.id,
+                p_payment_intent_id: booking.provider_order_no,
+                p_payment_method: booking.payment_method,
+                p_qr_code: humanCode,
+                p_event_id: null,
+              })
+            }
+            // Re-read the booking to return the now-confirmed status
+            const { data: refreshed } = await service
+              .from('bookings')
+              .select('status')
+              .eq('id', booking.id)
+              .single()
+            if (refreshed?.status === 'confirmed') {
+              // Send confirmation notification (non-fatal, same as webhook).
+              // The webhook may also fire and send a duplicate — that's
+              // acceptable; a missed notification is worse than a double email.
+              try {
+                const { sendBookingConfirmation } = await import('@/lib/resend/template-send')
+                await sendBookingConfirmation(booking.id)
+                await service.from('notification_log').insert([
+                  { user_id: booking.user_id, booking_id: booking.id, channel: 'email', type: 'booking_confirmed', status: 'sent' },
+                  { user_id: booking.user_id, booking_id: booking.id, channel: 'whatsapp', type: 'booking_confirmed', status: 'pending' },
+                ])
+              } catch (e) {
+                console.error('[KPay] proactive confirmation notification_failed', {
+                  bookingId: booking.id,
+                  message: (e as Error).message,
+                })
+              }
+              // Mark payment attempt succeeded (non-fatal).
+              try {
+                await service.rpc('complete_payment_attempt', {
+                  p_provider_order_no: booking.provider_order_no,
+                  p_provider: 'kpay',
+                })
+              } catch {
+                // non-fatal
+              }
+              logResult({ status: 'confirmed', providerStatus: 'success' })
+              return NextResponse.json({
+                bookingId: booking.id,
+                status: 'confirmed',
+                providerStatus: 'success',
+              })
+            }
+          } catch (e) {
+            // Proactive confirmation failed — fall through to pending_confirmation
+            // and let the webhook retry. Log the error for debugging.
+            console.error('[KPay] proactive confirmation failed', {
+              bookingId: booking.id,
+              error: (e as Error).message,
+            })
+          }
+        }
         uiStatus = 'pending_confirmation'
         break
       case 'failed':
