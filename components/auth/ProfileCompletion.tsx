@@ -59,6 +59,9 @@ export function ProfileCompletion({
   initialEmail = "",
   initialPhone = "",
   isPhoneVerified = false,
+  verifiedEmail,
+  verifiedPhone,
+  missingContact,
   onComplete,
   labels,
 }: {
@@ -66,6 +69,13 @@ export function ProfileCompletion({
   initialEmail?: string
   initialPhone?: string
   isPhoneVerified?: boolean
+  /** Already-verified email from auth_identities — hides the email field. */
+  verifiedEmail?: string
+  /** Already-verified phone from auth_identities — hides the phone field. */
+  verifiedPhone?: string
+  /** Which contact method the user still needs to provide. When set, only that
+   *  field is shown. Undefined = show all fields (legacy fallback). */
+  missingContact?: "phone" | "email"
   onComplete: (memberCode?: string) => void
   labels: {
     title: string
@@ -110,7 +120,20 @@ export function ProfileCompletion({
   // Every other user (Apple/Google/Email) must prove the number with an OTP
   // before the profile can be completed.
   const phoneConfirmed = isPhoneVerified || phoneVerified
-  const validation = validateProfile({ name, email, phone })
+
+  // When missingContact is set, only validate the required field. Name is always
+  // optional in this mode since the user's identity is already established via auth.
+  const showEmail = missingContact !== "phone" && !verifiedEmail
+  const showPhone = missingContact !== "email" && !verifiedPhone
+  const showName = !missingContact // name only required in legacy (full-profile) mode
+
+  const effectiveEmail = showEmail ? email : (verifiedEmail ?? initialEmail)
+  const effectivePhone = showPhone ? phone : (verifiedPhone ?? initialPhone)
+  const validation = showName
+    ? validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
+    : missingContact === "phone"
+      ? validateProfile({ name: name || " ", email: "x@x.com", phone: effectivePhone })
+      : validateProfile({ name: name || " ", email: effectiveEmail, phone: "12345678" })
   const canSubmit = validation.ok && !saving
 
   const errorFor = (v: ProfileValidation): string => {
@@ -123,7 +146,7 @@ export function ProfileCompletion({
   // email_verified_at / phone_verified_at so the users_profile_complete_verified_chk
   // constraint holds — and independently rejects (422) any unproven phone.
   const submit = async () => {
-    const v = validateProfile({ name, email, phone })
+    const v = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
     if (!v.ok) {
       setErrField(v.field)
       setErrMsg(errorFor(v))
@@ -136,7 +159,7 @@ export function ProfileCompletion({
       const res = await fetch("/api/profile/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone: v.value.phone }),
+        body: JSON.stringify({ name, email: v.value.email, phone: v.value.phone }),
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
@@ -163,7 +186,7 @@ export function ProfileCompletion({
   // Step 1 of the OTP sub-step: prove the human isn't a bot (reCAPTCHA), then
   // have Engagelab send a 6-digit code to the entered number.
   const sendPhoneCode = async () => {
-    const v = validateProfile({ name, email, phone })
+    const v = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
     if (!v.ok) {
       setErrField(v.field)
       setErrMsg(errorFor(v))
@@ -208,7 +231,7 @@ export function ProfileCompletion({
   // (/api/otp/verify-binding writes phone + phone_verified_at), then finalize the
   // profile now that the server can stamp a genuine phone_verified_at.
   const verifyPhone = async (code: string) => {
-    const v = validateProfile({ name, email, phone })
+    const v = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
     if (!v.ok) return
     if (!messageId) {
       setErrMsg(t("err_send"))
@@ -337,55 +360,63 @@ export function ProfileCompletion({
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={labels.name}
-          autoComplete="name"
-          aria-label={labels.name}
-          style={fieldStyle("name")}
-        />
-        <input
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder={labels.email}
-          autoComplete="email"
-          inputMode="email"
-          aria-label={labels.email}
-          style={fieldStyle("email")}
-        />
-        <div style={{ display: "flex", gap: 8 }}>
-          <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, color: "#fff", fontSize: 16 }}>
-            +852
-          </span>
+        {showName && (
           <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 8))}
-            placeholder={labels.phone}
-            autoComplete="tel-national"
-            inputMode="numeric"
-            pattern="[0-9]{8}"
-            maxLength={8}
-            required
-            disabled={phoneConfirmed}
-            aria-label={labels.phone}
-            aria-invalid={errField === "phone" || (!validation.ok && validation.field === "phone")}
-            style={{
-              ...fieldStyle("phone"),
-              flex: 1,
-              opacity: phoneConfirmed ? 0.65 : 1,
-              cursor: phoneConfirmed ? "not-allowed" : "text",
-            }}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={labels.name}
+            autoComplete="name"
+            aria-label={labels.name}
+            style={fieldStyle("name")}
           />
-        </div>
+        )}
+        {showEmail && (
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={labels.email}
+            autoComplete="email"
+            inputMode="email"
+            aria-label={labels.email}
+            style={fieldStyle("email")}
+          />
+        )}
+        {showPhone && (
+          <>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 52, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, color: "#fff", fontSize: 16 }}>
+                +852
+              </span>
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                placeholder={labels.phone}
+                autoComplete="tel-national"
+                inputMode="numeric"
+                pattern="[0-9]{8}"
+                maxLength={8}
+                required
+                disabled={phoneConfirmed}
+                aria-label={labels.phone}
+                aria-invalid={errField === "phone" || (!validation.ok && validation.field === "phone")}
+                style={{
+                  ...fieldStyle("phone"),
+                  flex: 1,
+                  opacity: phoneConfirmed ? 0.65 : 1,
+                  cursor: phoneConfirmed ? "not-allowed" : "text",
+                }}
+              />
+            </div>
 
-        {phoneConfirmed && (
-          <div
-            data-cms-key="auth.profile.phone_verified_badge"
-            style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#22c55e" }}
-          >
-            ✓ {labels.phone_verified_badge}
-          </div>
+            {phoneConfirmed && (
+              <div
+                data-cms-key="auth.profile.phone_verified_badge"
+                style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#22c55e" }}
+              >
+                ✓ {labels.phone_verified_badge}
+              </div>
+            )}
+          </>
         )}
 
       </div>

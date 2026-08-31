@@ -153,6 +153,7 @@ export async function POST(req: Request) {
           email_verified_at: emailVerifiedAt,
           phone_verified_at: phoneVerifiedAt,
           profile_complete: true,
+          onboarding_status: 'complete',
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'id' },

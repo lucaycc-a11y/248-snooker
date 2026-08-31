@@ -120,6 +120,7 @@ export async function POST(request: Request) {
         email_verified_at: advanced.email_verified_at,
         phone_verified_at: advanced.phone_verified_at,
         profile_complete: true,
+        onboarding_status: 'complete',
         updated_at: verifiedAt,
       },
       { onConflict: 'id' },

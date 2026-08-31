@@ -80,6 +80,13 @@ export function AuthCard({
   // QR guide modal — shown after first profile completion (new registration).
   const [qrMemberCode, setQrMemberCode] = useState<string | null>(null)
 
+  // Onboarding-aware identity context. When a user reaches the profile gate,
+  // these tell ProfileCompletion which contact is already verified and which
+  // still needs to be provided — so only the missing field is shown.
+  const [verifiedEmail, setVerifiedEmail] = useState<string | undefined>(undefined)
+  const [verifiedPhone, setVerifiedPhone] = useState<string | undefined>(undefined)
+  const [missingContact, setMissingContact] = useState<"phone" | "email" | undefined>(undefined)
+
   // Resend cooldown ticker.
   useEffect(() => {
     if (cooldown <= 0) return
@@ -110,14 +117,28 @@ export function AuthCard({
       }
       const { data } = await supabase
         .from("users")
-        .select("display_name, email, phone, profile_complete")
+        .select("display_name, email, phone, profile_complete, onboarding_status")
         .eq("id", user.id)
         .maybeSingle()
       if (cancelled) return
-      if (data?.profile_complete === true) {
+      if (data?.onboarding_status === "complete" || data?.profile_complete === true) {
         onAuthComplete()
         return
       }
+
+      // Query auth_identities to determine which contact is already verified
+      const { data: identities } = await supabase
+        .from("auth_identities")
+        .select("provider, identifier, verified")
+        .eq("user_id", user.id)
+        .eq("verified", true)
+      if (cancelled) return
+
+      const hasEmail = identities?.some(i => i.provider === "email" || i.provider === "google" || i.provider === "apple") ?? false
+      const hasPhone = identities?.some(i => i.provider === "phone") ?? false
+      const idEmail = identities?.find(i => i.provider === "email")?.identifier
+      const idPhone = identities?.find(i => i.provider === "phone")?.identifier
+
       const verifiedPhone = user.phone ?? ""
       setPrefill({
         name:
@@ -129,6 +150,9 @@ export function AuthCard({
         phone: data?.phone ?? verifiedPhone,
         phoneVerified: verifiedPhone.length > 0,
       })
+      setVerifiedEmail(idEmail ?? data?.email ?? user.email ?? undefined)
+      setVerifiedPhone(idPhone ?? (verifiedPhone || undefined))
+      setMissingContact(hasEmail && !hasPhone ? "phone" : hasPhone && !hasEmail ? "email" : undefined)
       setPhase("profile")
       setInitializing(false)
     })()
@@ -155,14 +179,28 @@ export function AuthCard({
     }
     const { data } = await supabase
       .from("users")
-      .select("display_name, email, phone, profile_complete")
+      .select("display_name, email, phone, profile_complete, onboarding_status")
       .eq("id", user.id)
       .maybeSingle()
 
-    if (data?.profile_complete === true) {
+    // Canonical gate: onboarding_status is the primary check, profile_complete is legacy fallback
+    if (data?.onboarding_status === "complete" || data?.profile_complete === true) {
       onAuthComplete()
       return
     }
+
+    // Query auth_identities to determine which contact is already verified
+    const { data: identities } = await supabase
+      .from("auth_identities")
+      .select("provider, identifier, verified")
+      .eq("user_id", user.id)
+      .eq("verified", true)
+
+    const hasEmail = identities?.some(i => i.provider === "email" || i.provider === "google" || i.provider === "apple") ?? false
+    const hasPhone = identities?.some(i => i.provider === "phone") ?? false
+    const idEmail = identities?.find(i => i.provider === "email")?.identifier
+    const idPhone = identities?.find(i => i.provider === "phone")?.identifier
+
     const verifiedPhone = user.phone ?? ""
     setPrefill({
       name:
@@ -174,6 +212,9 @@ export function AuthCard({
       phone: data?.phone ?? (verifiedPhone || (phone ? normalizeHkPhone(phone) ?? "" : "")),
       phoneVerified: verifiedPhone.length > 0,
     })
+    setVerifiedEmail(idEmail ?? data?.email ?? user.email ?? undefined)
+    setVerifiedPhone(idPhone ?? (verifiedPhone || undefined))
+    setMissingContact(hasEmail && !hasPhone ? "phone" : hasPhone && !hasEmail ? "email" : undefined)
     setBusy(false)
     setPhase("profile")
   }, [onAuthComplete, t, phone])
@@ -483,6 +524,9 @@ export function AuthCard({
         initialEmail={prefill.email}
         initialPhone={prefill.phone}
         isPhoneVerified={prefill.phoneVerified}
+        verifiedEmail={verifiedEmail}
+        verifiedPhone={verifiedPhone}
+        missingContact={missingContact}
         onComplete={(memberCode) => {
           if (memberCode) {
             setQrMemberCode(memberCode)
