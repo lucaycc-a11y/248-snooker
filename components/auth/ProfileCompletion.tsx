@@ -254,12 +254,23 @@ export function ProfileCompletion({
         setSaving(false)
         return
       }
+      // db_error: the code was CORRECT but the server failed to bind the phone
+      // (transient DB/constraint issue). Never conflate with a wrong code.
+      if (j?.error === "db_error") {
+        setErrMsg(t("err_binding_failed_retry"))
+        setOtpStatus("failure")
+        setSaving(false)
+        return
+      }
       if (!res.ok || j?.success !== true) {
         setErrMsg(j?.error === "rate_limited" ? t("err_rate_limited") : t("err_otp_wrong_generic"))
         setOtpStatus("failure")
         setSaving(false)
         return
       }
+      // j.alreadyVerified === true also lands here (res.ok, success: true): the
+      // OTP was correct and the phone was already bound to this same account,
+      // which is a success — fall through, finalize the profile.
       setPhoneVerified(true)
       setOtpStatus("success")
       await new Promise<void>((resolve) => window.setTimeout(resolve, 720))

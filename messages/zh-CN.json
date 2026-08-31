@@ -68,6 +68,7 @@
     "otp_digit": "第 {number} 位数字",
     "otp_instruction": "请输入 {length} 位数验证码。",
     "err_otp_wrong_generic": "验证码不正确，请重新输入。",
+    "err_binding_failed_retry": "绑定失败，请重试。",
     "err_otp_not_found": "此电话号码未关联账户。",
     "profile_phone_send_code": "传送验证码",
     "profile_phone_verified_badge": "电话已验证",

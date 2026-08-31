@@ -68,6 +68,7 @@
     "otp_digit": "Digit {number}",
     "otp_instruction": "Enter the {length}-digit verification code.",
     "err_otp_wrong_generic": "The code is incorrect. Please try again.",
+    "err_binding_failed_retry": "Binding failed. Please try again.",
     "err_otp_not_found": "This phone number is not linked to an account.",
     "profile_phone_send_code": "Send code",
     "profile_phone_verified_badge": "Phone verified",

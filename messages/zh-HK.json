@@ -68,6 +68,7 @@
     "otp_digit": "第 {number} 位數字",
     "otp_instruction": "請輸入 {length} 位數驗證碼。",
     "err_otp_wrong_generic": "驗證碼不正確，請重新輸入。",
+    "err_binding_failed_retry": "綁定失敗，請重試。",
     "err_otp_not_found": "此電話號碼未連結至帳戶。",
     "profile_phone_send_code": "傳送驗證碼",
     "profile_phone_verified_badge": "電話已驗證",

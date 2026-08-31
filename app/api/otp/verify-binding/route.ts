@@ -47,17 +47,31 @@ export async function POST(req: NextRequest) {
       if (result.error === 'phone_invalid') {
         return NextResponse.json({ error: '電話號碼格式不正確' }, { status: 400 })
       }
-      return NextResponse.json({ error: '綁定失敗，請重試' }, { status: 500 })
+      // db_error: transient failure or a constraint we couldn't classify — a
+      // distinct response lets the client show a "retry" message instead of
+      // misreporting it as a wrong code.
+      return NextResponse.json({ error: 'db_error' }, { status: 500 })
     }
 
+    // alreadyVerified: the OTP was correct, but this phone was already bound to
+    // this same account (e.g. re-verifying). Treat as success, not an error.
+    if (result.alreadyVerified) {
+      return NextResponse.json({ success: true, alreadyVerified: true })
+    }
     return NextResponse.json({ success: true })
   } catch (error) {
-    const err = error as { code?: number; httpStatus?: number; message?: string }
-    console.error('[otp/verify-binding] error', err)
+    // Log full error object so transient failures are diagnosable — the previous
+    // destructuring only captured code/httpStatus/message, losing the cause.
+    console.error('[otp/verify-binding] error', {
+      error,
+      code: (error as { code?: number }).code,
+      httpStatus: (error as { httpStatus?: number }).httpStatus,
+      message: (error as { message?: string }).message,
+    })
 
-    if (err?.code) {
-      const message = mapEngagelabError(err.code)
-      return NextResponse.json({ error: message }, { status: err.httpStatus || 400 })
+    if ((error as { code?: number }).code) {
+      const message = mapEngagelabError((error as { code: number }).code)
+      return NextResponse.json({ error: message }, { status: (error as { httpStatus?: number }).httpStatus || 400 })
     }
 
     return NextResponse.json({ error: '驗證失敗，請重試' }, { status: 500 })
