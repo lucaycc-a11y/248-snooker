@@ -1,7 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { RotateCcw } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { tokens } from "@/app/styles/tokens"
 import { TicketCard } from "@/components/booking/TicketCard"
@@ -35,18 +33,10 @@ export function TicketPrinter({
   paymentMethod,
 }: TicketPrinterProps) {
   const t = useTranslations("ticket")
-  const [replayKey, setReplayKey] = useState(0)
-  const [printed, setPrinted] = useState(false)
-
-  useEffect(() => {
-    setPrinted(false)
-    const timer = window.setTimeout(() => setPrinted(true), 2500)
-    return () => window.clearTimeout(timer)
-  }, [replayKey])
 
   return (
     <section
-      className={`ticket-printer-stage${printed ? " is-printed" : ""}`}
+      className="ticket-printer-stage"
       aria-label={t("printer_aria")}
       aria-live="polite"
     >
@@ -63,7 +53,7 @@ export function TicketPrinter({
         </div>
 
         <div className="ticket-printer-paper-viewport">
-          <div key={replayKey} className="ticket-printer-paper-wrap">
+          <div className="ticket-printer-paper-wrap">
             <TicketCard
               date={date}
               startHour={startHour}
@@ -78,25 +68,6 @@ export function TicketPrinter({
             />
           </div>
         </div>
-      </div>
-
-      <div className="ticket-printer-caption">
-        <div className="ticket-printer-confirmed">
-          <span className="ticket-printer-check" aria-hidden="true">✓</span>
-          <span data-cms-key="ticket.print_complete">
-            {printed ? t("print_complete") : t("printing")}
-          </span>
-        </div>
-        <button
-          type="button"
-          className="ticket-printer-replay"
-          onClick={() => setReplayKey((key) => key + 1)}
-          aria-label={t("reprint")}
-          data-cms-key="ticket.reprint"
-        >
-          <RotateCcw size={14} aria-hidden="true" />
-          {t("reprint")}
-        </button>
       </div>
 
       <style jsx>{`
@@ -238,58 +209,6 @@ export function TicketPrinter({
           pointer-events: auto;
         }
 
-        .ticket-printer-caption {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          width: min(100%, 420px);
-          margin: 12px auto 0;
-        }
-
-        .ticket-printer-confirmed {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          color: ${tokens.colors.textMuted};
-          font-size: 12px;
-        }
-
-        .ticket-printer-check {
-          display: inline-flex;
-          width: 20px;
-          height: 20px;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          color: #000;
-          background: ${tokens.colors.brand};
-          font-size: 13px;
-          font-weight: 900;
-        }
-
-        .ticket-printer-replay {
-          display: inline-flex;
-          min-height: 36px;
-          align-items: center;
-          gap: 6px;
-          padding: 0 11px;
-          border: 1px solid ${tokens.colors.borderStrong};
-          border-radius: ${tokens.radius.input};
-          color: ${tokens.colors.textMuted};
-          background: transparent;
-          cursor: pointer;
-          font: inherit;
-          font-size: 12px;
-        }
-
-        .ticket-printer-replay:hover,
-        .ticket-printer-replay:focus-visible {
-          border-color: ${tokens.colors.brand};
-          color: ${tokens.colors.brand};
-          outline: none;
-        }
-
         @keyframes ticket-paper-eject {
           0% { opacity: 0.6; transform: translateY(-96%) rotateX(-16deg) translateZ(-22px); }
           15% { opacity: 0.85; transform: translateY(-76%) rotateX(-12deg) translateZ(14px); }
@@ -312,8 +231,6 @@ export function TicketPrinter({
             transform-origin: top center;
             margin-bottom: -38px;
           }
-
-          .ticket-printer-caption { width: 100%; }
         }
 
         @media (prefers-reduced-motion: reduce) {
