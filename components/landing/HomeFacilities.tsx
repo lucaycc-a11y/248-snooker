@@ -3,18 +3,22 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Bot, DoorOpen, Lightbulb, QrCode, Table2 } from "lucide-react";
+import { Armchair, BatteryCharging, Bot, Briefcase, DoorOpen, Lightbulb, QrCode, Sword, Table2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 const FACILITY_IMAGES = [
   "/gallery/table-poster.jpg",
   "/gallery/Space8_Competition_Mode.PNG",
   "/gallery/Space_Infinity.PNG",
-  "/gallery/Space_Enternity.PNG",
   "/gallery/Space8_Door.PNG",
+  "/gallery/Space_Enternity.PNG",
+  "/gallery/Space8_Competition_Mode.PNG", // placeholder: 專業桌球杆
+  "/gallery/Space_Infinity.PNG",          // placeholder: 沙發休息區
+  "/gallery/Space_Enternity.PNG",         // placeholder: 充電區
+  "/gallery/Space8_Door.PNG",             // placeholder: 隨身物品存放
 ] as const;
 
-const FACILITY_ICONS = [Table2, Lightbulb, Bot, DoorOpen, QrCode] as const;
+const FACILITY_ICONS = [Table2, Lightbulb, Bot, DoorOpen, QrCode, Sword, Armchair, BatteryCharging, Briefcase] as const;
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 type Facility = {
@@ -84,7 +88,7 @@ export default function HomeFacilities() {
         </motion.div>
       </div>
 
-      <div ref={trackRef} className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 md:mx-auto md:grid md:max-w-[1120px] md:grid-cols-5 md:gap-4 md:overflow-visible md:px-6">
+      <div ref={trackRef} className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2 md:mx-auto md:grid md:max-w-[1120px] md:grid-cols-3 md:gap-4 md:overflow-visible md:px-6">
         {facilities.map((facility, index) => {
           const Icon = FACILITY_ICONS[index] ?? Table2;
           return (
@@ -97,8 +101,8 @@ export default function HomeFacilities() {
               transition={{ duration: 0.6, delay: index * 0.05, ease: EASE }}
               className="w-[78vw] shrink-0 snap-center overflow-hidden rounded-[18px] border border-black/10 bg-white md:w-auto"
             >
-              <div className="relative aspect-[4/3] overflow-hidden bg-[#dcdcdc]">
-                <Image src={FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0]} alt={facility.title} fill sizes="(max-width: 767px) 78vw, 220px" className="object-cover" />
+              <div className="relative aspect-[3/2] overflow-hidden bg-[#dcdcdc]">
+                <Image src={FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0]} alt={facility.title} fill sizes="(max-width: 767px) 78vw, 360px" className="object-cover" />
               </div>
               <div className="p-5 md:p-4 lg:p-5">
                 <Icon aria-hidden="true" size={24} strokeWidth={1.6} className="mb-4 text-[#1a9d5c]" />
