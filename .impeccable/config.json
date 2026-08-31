@@ -635,6 +635,35 @@
         "rule": "design-system-color",
         "value": "#ff5252 app/[locale]/book/page.tsx",
         "createdAt": "2026-08-31T11:27:43.518Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "3px",
+        "files": [
+          "app/styles/admin-theme.css"
+        ],
+        "createdAt": "2026-08-31T12:17:39.967Z",
+        "reason": "Functional webkit scrollbar thumb radius — standard thin-scrollbar convention, not a design surface"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0, 200, 83, 0.08)",
+        "createdAt": "2026-08-31T13:06:00.986Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#00c853",
+        "createdAt": "2026-08-31T13:06:01.032Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255, 82, 82, 0.08)",
+        "createdAt": "2026-08-31T13:06:01.064Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ff5252",
+        "createdAt": "2026-08-31T13:06:01.096Z"
       }
     ]
   }

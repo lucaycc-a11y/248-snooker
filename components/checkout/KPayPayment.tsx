@@ -311,6 +311,7 @@ export default function KPayPayment(props: Props) {
       // UAT-ONLY: include PayMe test simulation selector when present in URL
       if (uatPaymeSimulation) {
         body.uat_payme = uatPaymeSimulation
+        console.log('[KPay] createOrder sending uat_payme:', uatPaymeSimulation, '| amount before server adjust:', body.amount)
       }
 
       // Mode A: blocks[] — the KPay path creates bookings server-side
@@ -562,7 +563,10 @@ export default function KPayPayment(props: Props) {
         }
         if (pointsAmount > 0) body.pointsAmount = pointsAmount
         // UAT-ONLY: include PayMe test simulation selector when present in URL
-        if (uatPaymeSimulation) body.uat_payme = uatPaymeSimulation
+        if (uatPaymeSimulation) {
+          body.uat_payme = uatPaymeSimulation
+          console.log('[KPay] createOrder (Mode B) sending uat_payme:', uatPaymeSimulation)
+        }
 
         const createRes = await fetch('/api/checkout/create', {
           method: 'POST',

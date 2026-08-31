@@ -1869,10 +1869,12 @@ function Screen3({
     setPaymentError(null)
 
     // UAT-only PayMe simulation pop-up before checkout
+    // Uses NEXT_PUBLIC_KPAY_ENV (not NODE_ENV — Vercel always sets NODE_ENV='production').
     if (
       paymentMethod === 'payme' &&
-      process.env.NODE_ENV !== 'production'
+      process.env.NEXT_PUBLIC_KPAY_ENV !== 'prod'
     ) {
+      console.log('[book/page] UAT PayMe modal triggered — NEXT_PUBLIC_KPAY_ENV:', process.env.NEXT_PUBLIC_KPAY_ENV)
       setShowPaymeUatModal(true)
       return
     }
@@ -2467,6 +2469,7 @@ function Screen3({
                     <button
                       type="button"
                       onClick={() => {
+                        console.log('[book/page] UAT PayMe sim selected: success')
                         setPaymeUatSim('success')
                         setShowPaymeUatModal(false)
                         setConfirmed(true)
@@ -2488,6 +2491,7 @@ function Screen3({
                     <button
                       type="button"
                       onClick={() => {
+                        console.log('[book/page] UAT PayMe sim selected: fail')
                         setPaymeUatSim('fail')
                         setShowPaymeUatModal(false)
                         setConfirmed(true)
@@ -2509,6 +2513,7 @@ function Screen3({
                     <button
                       type="button"
                       onClick={() => {
+                        console.log('[book/page] UAT PayMe sim dismissed (normal amount)')
                         setPaymeUatSim(undefined)
                         setShowPaymeUatModal(false)
                         setConfirmed(true)
