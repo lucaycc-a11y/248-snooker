@@ -1,9 +1,8 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CalendarPlus, Share2, ChevronDown, Download, QrCode, FileText } from "lucide-react"
-import { toPng } from "html-to-image"
 import QRCodeLib from "qrcode"
 import { useTranslations, useLocale } from "next-intl"
 import { tokens } from "@/app/styles/tokens"
@@ -84,7 +83,6 @@ export function TicketCard({
   const [shareOpen, setShareOpen] = useState(false)
   const [shareBusy, setShareBusy] = useState(false)
   const [shareError, setShareError] = useState<string | null>(null)
-  const cardRef = useRef<HTMLDivElement>(null)
 
   const endHour = startHour + duration
   const crossDay = endHour >= 24
@@ -246,28 +244,13 @@ export function TicketCard({
     return await new Promise<Blob>((resolve) => canvas.toBlob((blob) => resolve(blob!), "image/png"))
   }
 
-  const captureCard = async (): Promise<Blob> => {
-    const node = cardRef.current
-    if (!node) throw new Error("ticket card not mounted")
-    return await toPng(node, {
-      pixelRatio: 2,
-      backgroundColor: "#000000",
-      cacheBust: true,
-    }).then((dataUrl) => {
-      const bin = atob(dataUrl.split(",")[1])
-      const bytes = new Uint8Array(bin.length)
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
-      return new Blob([bytes], { type: "image/png" })
-    })
-  }
-
   // Image share path — Web Share API with an attached PNG, falling back to a
   // PNG download. This is the "share the ticket as a picture" action.
   const shareCardImage = async () => {
     setShareError(null)
     setShareBusy(true)
     try {
-      const blob = await captureCard()
+      const blob = await buildShareBlob()
       const file = new File([blob], `${filePrefix}.png`, { type: "image/png" })
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ title: `Space8 · ${tableName}`, text: shareText(), files: [file] })
@@ -340,7 +323,6 @@ export function TicketCard({
 
   return (
     <motion.div
-      ref={cardRef}
       data-ticket-card
       layout
       style={{
