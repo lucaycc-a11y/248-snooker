@@ -12,7 +12,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { requireCompleteProfile } from './require-complete-profile'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-type Row = { profile_complete: boolean | null }
+type Row = { onboarding_status: string | null; profile_complete: boolean | null }
 
 // Minimal stand-in for the from().select().eq().maybeSingle() chain the guard
 // uses. Returned as SupabaseClient because the guard only touches .from().
@@ -30,19 +30,29 @@ function clientReturning(result: {
 const USER_ID = '00000000-0000-4000-8000-000000000001'
 
 describe('requireCompleteProfile', () => {
-  it('allows a user whose profile is complete', async () => {
+  it('allows a user whose onboarding is complete', async () => {
     const result = await requireCompleteProfile(
-      clientReturning({ data: { profile_complete: true }, error: null }),
+      clientReturning({ data: { onboarding_status: 'complete', profile_complete: null }, error: null }),
+      USER_ID,
+    )
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('allows a legacy user with profile_complete = true (no onboarding_status)', async () => {
+    const result = await requireCompleteProfile(
+      clientReturning({ data: { onboarding_status: null, profile_complete: true }, error: null }),
       USER_ID,
     )
     expect(result).toEqual({ ok: true })
   })
 
   it.each([
-    ['explicitly incomplete', { profile_complete: false } as Row],
-    ['null (never completed)', { profile_complete: null } as Row],
+    ['pending_second_identity', { onboarding_status: 'pending_second_identity', profile_complete: null } as Row],
+    ['pending_first_identity', { onboarding_status: 'pending_first_identity', profile_complete: null } as Row],
+    ['null status, incomplete profile', { onboarding_status: null, profile_complete: false } as Row],
+    ['null status, null profile', { onboarding_status: null, profile_complete: null } as Row],
     ['missing row entirely', null],
-  ])('blocks with 403 profile_incomplete when the profile is %s', async (_label, data) => {
+  ])('blocks with 403 profile_incomplete when %s', async (_label, data) => {
     const result = await requireCompleteProfile(clientReturning({ data, error: null }), USER_ID)
     expect(result).toEqual({ ok: false, status: 403, error: 'profile_incomplete' })
   })
@@ -55,14 +65,17 @@ describe('requireCompleteProfile', () => {
     expect(result).toEqual({ ok: false, status: 503, error: 'profile_check_unavailable' })
   })
 
-  it('reads profile_complete for the given user from the users table', async () => {
-    const maybeSingle = vi.fn().mockResolvedValue({ data: { profile_complete: true }, error: null })
+  it('reads onboarding_status and profile_complete for the given user', async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { onboarding_status: 'complete', profile_complete: true },
+      error: null,
+    })
     const eq = vi.fn(() => ({ maybeSingle }))
     const select = vi.fn(() => ({ eq }))
     const from = vi.fn(() => ({ select }))
     await requireCompleteProfile({ from } as unknown as SupabaseClient, USER_ID)
     expect(from).toHaveBeenCalledWith('users')
-    expect(select).toHaveBeenCalledWith('profile_complete')
+    expect(select).toHaveBeenCalledWith('onboarding_status, profile_complete')
     expect(eq).toHaveBeenCalledWith('id', USER_ID)
   })
 })

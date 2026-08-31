@@ -13,8 +13,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 type SignupBody = { name?: unknown; email?: unknown; phone?: unknown; password?: unknown }
 
-type ExistingRow = { id: string }
-
 function normalizedEmail(value: unknown): string | null {
   const email = typeof value === 'string' ? value.trim().toLowerCase() : ''
   return email && email.length <= 254 && EMAIL_RE.test(email) ? email : null
@@ -44,13 +42,57 @@ export async function POST(request: Request) {
     if (!okIp) return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
 
     const service = getServiceSupabase()
-    const [{ data: emailOwner, error: emailError }, { data: phoneOwner, error: phoneError }] = await Promise.all([
-      service.from('users').select('id').eq('email', email).maybeSingle<ExistingRow>(),
-      service.from('users').select('id').eq('phone', phone).maybeSingle<ExistingRow>(),
-    ])
-    if (emailError || phoneError) return NextResponse.json({ error: 'internal_error' }, { status: 500 })
-    if (emailOwner) return NextResponse.json({ error: 'email_exists' }, { status: 409 })
-    if (phoneOwner) return NextResponse.json({ error: 'phone_exists' }, { status: 409 })
+
+    // ── Duplicate-check against auth_identities (the canonical identity ledger).
+    // Only `verified = true` rows block registration — unverified rows from
+    // prior migration or abandoned OTP attempts are ignored.
+    const [{ data: emailRow, error: emailErr }, { data: phoneRow, error: phoneErr }] =
+      await Promise.all([
+        service
+          .from('auth_identities')
+          .select('user_id')
+          .eq('provider', 'email')
+          .eq('identifier', email)
+          .eq('verified', true)
+          .maybeSingle<{ user_id: string }>(),
+        service
+          .from('auth_identities')
+          .select('user_id')
+          .eq('provider', 'phone')
+          .eq('identifier', phone)
+          .eq('verified', true)
+          .maybeSingle<{ user_id: string }>(),
+      ])
+
+    if (emailErr || phoneErr) {
+      console.error('[auth/signup] auth_identities lookup failed', { emailErr, phoneErr })
+      return NextResponse.json({ error: 'internal_error' }, { status: 500 })
+    }
+
+    if (emailRow) return NextResponse.json({ error: 'email_exists' }, { status: 409 })
+
+    // Fallback: also check public.users.phone for accounts not yet migrated
+    // to auth_identities (transition period safety net).
+    if (!phoneRow) {
+      const { data: legacyPhoneOwner } = await service
+        .from('users')
+        .select('id')
+        .eq('phone', phone)
+        .maybeSingle<{ id: string }>()
+      if (legacyPhoneOwner) {
+        return NextResponse.json({ error: 'phone_exists' }, { status: 409 })
+      }
+    } else {
+      // auth_identities has a verified phone — block if owned by another user
+      const { data: phoneOwner } = await service
+        .from('users')
+        .select('id')
+        .eq('id', phoneRow.user_id)
+        .maybeSingle<{ id: string }>()
+      if (phoneOwner) {
+        return NextResponse.json({ error: 'phone_exists' }, { status: 409 })
+      }
+    }
 
     // Email is proven first: the hashed code is stored on the attempt, and the
     // phone challenge is only issued once that code is redeemed.
