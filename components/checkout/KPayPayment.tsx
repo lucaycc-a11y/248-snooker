@@ -228,14 +228,17 @@ export default function KPayPayment(props: Props) {
   const pointsAmount = props.pointsAmount ?? 0
 
   // ── UAT-ONLY PayMe test simulation selector ───────────────────────────────
-  // Read `?uat_payme=success` or `?uat_payme=fail` from the URL.
-  // Only meaningful in UAT (KPAY_ENV !== 'prod'); production ignores it server-side.
-  const uatPaymeSimulation = (() => {
+  // Read `?uat_payme=success` or `?uat_payme=fail` from the URL once on mount.
+  // The toggle UI lets the tester switch modes without editing the URL.
+  // Server-side: only applies when KPAY_ENV !== 'prod' AND method === 'payme'.
+  const [uatPaymeSimulation, setUatPaymeSimulation] = useState<'success' | 'fail' | undefined>(() => {
     try {
       const v = new URLSearchParams(window.location.search).get('uat_payme')
       return v === 'success' || v === 'fail' ? v : undefined
     } catch { return undefined }
-  })()
+  })
+  const uatPaymeSimRef = useRef(uatPaymeSimulation)
+  useEffect(() => { uatPaymeSimRef.current = uatPaymeSimulation }, [uatPaymeSimulation])
   // ──────────────────────────────────────────────────────────────────────────
 
   // Resume mode: when resumeBookingId is provided, the component restores an
@@ -387,7 +390,7 @@ export default function KPayPayment(props: Props) {
       creatingRef.current = false
       setCreating(false)
     }
-  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode, pointsAmount])
+  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode, pointsAmount, uatPaymeSimulation])
 
   const cancelBooking = useCallback(async () => {
     if (actionBusy) return
@@ -923,6 +926,38 @@ export default function KPayPayment(props: Props) {
           {labels.pending_desc.replace('{time}', formatCountdown(countdown))}
         </p>
 
+        {/* ── UAT-ONLY: PayMe simulation toggle ──────────────────────────── */}
+        {method === 'payme' && (
+          <div style={styles.uatToggleWrap}>
+            <span style={styles.uatLabel}>UAT 模擬</span>
+            <div style={styles.uatToggle}>
+              <button
+                type="button"
+                onClick={() => setUatPaymeSimulation('success')}
+                style={{
+                  ...styles.uatToggleBtn,
+                  ...(uatPaymeSimulation === 'success' || (!uatPaymeSimulation && true)
+                    ? styles.uatToggleBtnActiveSuccess
+                    : {}),
+                }}
+              >
+                成功 8.81
+              </button>
+              <button
+                type="button"
+                onClick={() => setUatPaymeSimulation('fail')}
+                style={{
+                  ...styles.uatToggleBtn,
+                  ...(uatPaymeSimulation === 'fail' ? styles.uatToggleBtnActiveFail : {}),
+                }}
+              >
+                失敗 8.82
+              </button>
+            </div>
+          </div>
+        )}
+        {/* ───────────────────────────────────────────────────────────────── */}
+
         <p style={styles.helpText}>
           {labels.help}
           {' · '}
@@ -1114,5 +1149,46 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
     marginBottom: 8,
+  },
+
+  // ── UAT-ONLY PayMe simulation toggle ──────────────────────────────────────
+  uatToggleWrap: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  uatLabel: {
+    fontSize: 11,
+    color: '#888',
+    fontWeight: 600,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase' as const,
+  },
+  uatToggle: {
+    display: 'flex',
+    borderRadius: 6,
+    overflow: 'hidden',
+    border: `1px solid ${BORDER}`,
+  },
+  uatToggleBtn: {
+    padding: '5px 12px',
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    background: '#1a1a1a',
+    color: '#666',
+    border: 'none',
+    transition: 'all 0.15s ease',
+  },
+  uatToggleBtnActiveSuccess: {
+    background: GREEN_BRIGHT,
+    color: '#000',
+  },
+  uatToggleBtnActiveFail: {
+    background: '#e74c3c',
+    color: '#fff',
   },
 }

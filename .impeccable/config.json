@@ -511,7 +511,8 @@
       {
         "rule": "design-system-color",
         "value": "#f87171",
-        "createdAt": "2026-08-28T09:58:13.417Z"
+        "createdAt": "2026-08-28T15:51:15.666Z",
+        "reason": "Standard danger/error semantic color used consistently across Space8 admin components"
       },
       {
         "rule": "design-system-font",
@@ -563,12 +564,6 @@
       },
       {
         "rule": "design-system-color",
-        "value": "#f87171",
-        "createdAt": "2026-08-28T15:51:15.666Z",
-        "reason": "Standard danger/error semantic color used consistently across Space8 admin components"
-      },
-      {
-        "rule": "design-system-color",
         "value": "rgba(248,113,113,0.12)",
         "createdAt": "2026-08-28T15:51:15.697Z",
         "reason": "Danger tint for destructive action button backgrounds, paired with #f87171 text"
@@ -584,6 +579,42 @@
         "value": "#ec4899",
         "createdAt": "2026-08-28T15:52:05.451Z",
         "reason": "Pre-existing AdminSidebar super-admin gradient — not introduced in this session"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#737373",
+        "files": [
+          "app/api/profile/contact-change/verify-new/route.ts"
+        ],
+        "createdAt": "2026-08-30T16:01:35.458Z",
+        "reason": "sanctioned: inline Resend email HTML, not app UI; matches existing phone-changed.html template"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#888",
+        "files": [
+          "components/checkout/KPayPayment.tsx"
+        ],
+        "createdAt": "2026-08-31T07:01:26.828Z",
+        "reason": "UAT-only dev toggle label — developer-only UI, not user-facing"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#666",
+        "files": [
+          "components/checkout/KPayPayment.tsx"
+        ],
+        "createdAt": "2026-08-31T07:02:02.721Z",
+        "reason": "UAT-only dev toggle inactive text — developer-only UI, not user-facing"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e74c3c",
+        "files": [
+          "components/checkout/KPayPayment.tsx"
+        ],
+        "createdAt": "2026-08-31T07:02:36.049Z",
+        "reason": "UAT-only dev toggle failure state red — developer-only UI, not user-facing"
       }
     ]
   }
