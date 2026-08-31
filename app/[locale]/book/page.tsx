@@ -17,6 +17,7 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
 import KPayPayment from "@/components/checkout/KPayPayment"
+import { readKPayPersistedState, clearKPayPersistedState } from "@/components/checkout/KPayPayment"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
@@ -428,6 +429,18 @@ function DualTableGrid({
     [locale, t],
   )
 
+  // Split room name into English + Chinese parts for two-line display
+  const getRoomNameParts = useCallback(
+    (tableNumber: number): { en: string; zh: string } => {
+      const names = TABLE_NAMES[tableNumber as 1 | 2]
+      if (!names) return { en: `Table ${tableNumber}`, zh: "" }
+      const en = names["en"] ?? `Table ${tableNumber}`
+      const zh = names[locale] ?? names["zh-HK"] ?? names["zh-CN"] ?? ""
+      return { en, zh }
+    },
+    [locale],
+  )
+
   const dateStr = useMemo(() => fmtYMD(selectedDate), [selectedDate])
 
   // All time comparisons use Hong Kong venue time, not the browser's clock.
@@ -584,7 +597,7 @@ function DualTableGrid({
             ? tokens.colors.link
             : booked
               ? "rgba(255,69,58,0.08)"
-              : "transparent",
+              : tokens.colors.depth.recessed,
           color: selected
             ? "#000"
             : booked
@@ -620,7 +633,7 @@ function DualTableGrid({
       {/* Legend */}
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 14 }}>
         {[
-          { key: "legend_available", swatch: { background: "transparent", border: `1.5px solid ${tokens.colors.border}` } },
+          { key: "legend_available", swatch: { background: tokens.colors.depth.recessed, border: `1.5px solid ${tokens.colors.border}` } },
           { key: "legend_selected", swatch: { background: tokens.colors.link } },
           { key: "legend_booked", swatch: { background: "rgba(255,69,58,0.15)", border: "1.5px solid rgba(255,69,58,0.4)" } },
         ].map(({ key, swatch }) => (
@@ -674,9 +687,25 @@ function DualTableGrid({
                       textDecoration: "underline",
                       textUnderlineOffset: 3,
                       textDecorationColor: "rgba(255,255,255,0.25)",
+                      textAlign: "left",
+                      lineHeight: 1.3,
                     }}
                   >
-                    {formatRoomName(tn)}
+                    <span style={{ display: "block" }}>
+                      {getRoomNameParts(tn).en}
+                    </span>
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: 12,
+                        fontFamily: "system-ui, -apple-system, sans-serif",
+                        fontWeight: 400,
+                        color: tokens.colors.textMuted,
+                        letterSpacing: "0.01em",
+                      }}
+                    >
+                      {getRoomNameParts(tn).zh}
+                    </span>
                   </button>
                   <span style={{ fontSize: 12, color: tokens.colors.textMuted }}>
                     <b style={{ color: tokens.colors.link, fontWeight: 600 }}>{stat.free}</b>
@@ -1278,7 +1307,10 @@ function SummaryCard({
   )
 
   return (
-    <Card variant="elevated">
+    <Card
+      variant="elevated"
+      style={{ backgroundColor: tokens.colors.depth.elevated }}
+    >
         <div
           data-cms-key="book.card.title"
           className="font-label"
@@ -1302,7 +1334,7 @@ function SummaryCard({
             <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
               {t("date")}
             </span>
-            <span style={{ fontSize: 15, fontWeight: 500 }}>
+            <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
               {ready
                 ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`
                 : dash}
@@ -1314,7 +1346,7 @@ function SummaryCard({
                 <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
                   {t("time_slot")}
                 </span>
-                <span style={{ fontSize: 15, fontWeight: 500 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
                   {ready
                     ? `${padTime(single.startHour)} – ${padTime(endHour)}${crossDay ? " +1日" : ""}`
                     : dash}
@@ -1324,7 +1356,7 @@ function SummaryCard({
                 <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
                   {t("duration")}
                 </span>
-                <span style={{ fontSize: 15, fontWeight: 500 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
                   {ready ? `${single.duration}${t("hours")}` : dash}
                 </span>
               </div>
@@ -1334,7 +1366,7 @@ function SummaryCard({
               <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
                 {t("time_slot")}
               </span>
-              <span style={{ fontSize: 15, fontWeight: 500 }}>
+              <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
                 {ready ? t("slots_selected", { count: runs.length }) + ` · ${totalHours}${t("hours")}` : dash}
               </span>
             </div>
@@ -1748,12 +1780,16 @@ function Screen3({
   periods,
   promoCode,
   onPromoChange,
+  resumeBookingId,
+  resumeOrderNo,
 }: {
   blocks: SelectedBlock[]
   onBackToSlots?: () => void
   periods: PricingPeriod[]
   promoCode: PromoResult | null
   onPromoChange: (p: PromoResult | null) => void
+  resumeBookingId?: string
+  resumeOrderNo?: string
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
@@ -1796,6 +1832,25 @@ function Screen3({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+
+  // ── KPay resume: restore Screen3's internal payment state when the page
+  // was refreshed mid-payment. BookPage detected the persisted session and
+  // passed the resume identifiers; here we hydrate the payment method state
+  // so KPayPayment receives its resume props on first render.
+  const resumeHandled = useRef(false)
+  useEffect(() => {
+    if (!resumeBookingId || resumeHandled.current) return
+    resumeHandled.current = true
+    try {
+      const persisted = readKPayPersistedState()
+      if (!persisted) return
+      setConfirmed(true)
+      setPaymentMethod(persisted.method as PaymentMethodId)
+      setKpayMethod(persisted.method as KPayMethod)
+      setKpayMode(persisted.mode)
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeBookingId])
 
   const handleConfirmPay = useCallback(() => {
     if (!agreedToTerms) {
@@ -2145,6 +2200,8 @@ function Screen3({
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
                     agreedToTerms={agreedToTerms}
+                    resumeBookingId={resumeBookingId}
+                    resumeOrderNo={resumeOrderNo}
                     labels={{
                       title: t("kpay_title"),
                       pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : kpayMethod === "card" ? "信用卡" : "雲閃付"} 掃描以下二維碼`,
@@ -2265,13 +2322,14 @@ function Screen3({
                 display: "flex",
                 alignItems: "flex-start",
                 gap: 10,
-                cursor: "pointer",
+                cursor: confirmed ? "default" : "pointer",
                 minHeight: 44,
               }}
             >
               <input
                 type="checkbox"
                 checked={agreedToTerms}
+                disabled={confirmed}
                 onChange={(e) => {
                   setAgreedToTerms(e.target.checked)
                   if (e.target.checked) setTermsError(false)
@@ -2282,7 +2340,8 @@ function Screen3({
                   marginTop: 1,
                   flexShrink: 0,
                   accentColor: tokens.colors.link,
-                  cursor: "pointer",
+                  cursor: confirmed ? "default" : "pointer",
+                  opacity: confirmed ? 0.7 : 1,
                 }}
               />
               <span
@@ -2653,6 +2712,16 @@ function ConfirmingPaymentContainer({
       // order. Redirect to /book with the booking ID so the checkout flow
       // picks it up in Mode B (existing bookingId) and creates a fresh KPay
       // order. This full-page nav clears stale component state cleanly.
+      const orderGroupId =
+        payload && typeof payload === "object" && !Array.isArray(payload)
+          ? (payload as Record<string, unknown>).orderGroupId
+          : undefined
+      try {
+        sessionStorage.setItem(
+          "kpayRetry",
+          JSON.stringify({ bookingId, orderGroupId: orderGroupId ?? null }),
+        )
+      } catch {}
       window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=retry`
     } catch {
       setRetryError("Network error — please try again")
@@ -2841,6 +2910,33 @@ export default function BookPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // ── KPay refresh recovery ─────────────────────────────────────────────────
+  // On mount, check if there's a persisted KPay session (from a page refresh
+  // mid-payment). If found, jump to the payment screen. The actual state
+  // restoration (kpayMethod, kpayMode, etc.) happens inside Screen3, which
+  // owns that state — here we only handle the screen transition and pass the
+  // resume identifiers down.
+  const [kpayResumeData, setKpayResumeData] = useState<{ bookingId: string; orderNo: string } | null>(null)
+  const kpayRestoreHandled = useRef(false)
+  useEffect(() => {
+    if (typeof window === "undefined" || kpayRestoreHandled.current) return
+    kpayRestoreHandled.current = true
+    try {
+      const persisted = readKPayPersistedState()
+      if (!persisted) return
+      setScreen(2)
+      setKpayResumeData({
+        bookingId: persisted.bookingId,
+        orderNo: persisted.providerOrderNo,
+      })
+      console.log('[Book] KPay session restored from sessionStorage', {
+        bookingId: persisted.bookingId,
+        method: persisted.method,
+      })
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Persist selection whenever there's a real order in progress.
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -2867,6 +2963,7 @@ export default function BookPage() {
       try {
         sessionStorage.removeItem("bookingSelection")
         sessionStorage.removeItem("pendingBooking")
+        clearKPayPersistedState()
       } catch {}
     }
   }, [confirmedBooking])
@@ -2879,12 +2976,38 @@ export default function BookPage() {
     const bId = params.get("bookingId")
     if (!bId || !(params.get("redirect_status") || params.get("payment_intent"))) return
 
-      // A KPay return is deliberately neutral: only the authenticated status
-      // endpoint can decide whether payment failed or the booking was confirmed.
+    // Retry path: the user clicked "選擇付款方式" on the recovery screen.
+    // handleRetry stored bookingId + orderGroupId in sessionStorage before
+    // redirecting. We restore them into kpayResumeData so KPayPayment picks
+    // up the existing booking in Mode B and generates a fresh KPay order.
+    if (params.get("redirect_status") === "retry") {
+      try {
+        const raw = sessionStorage.getItem("kpayRetry")
+        if (raw) {
+          const parsed = JSON.parse(raw) as { bookingId?: string; orderGroupId?: string | null }
+          if (parsed.bookingId === bId) {
+            setKpayResumeData({
+              bookingId: bId,
+              orderNo: parsed.orderGroupId ?? "",
+            })
+            sessionStorage.removeItem("kpayRetry")
+          }
+        }
+      } catch {}
       setConfirmBookingId(bId)
       setConfirmError(false)
       setConfirmRecoveryReason(null)
-      setScreen(3)
+      direction.current = 1
+      setScreen(2)
+      return
+    }
+
+    // A KPay return is deliberately neutral: only the authenticated status
+    // endpoint can decide whether payment failed or the booking was confirmed.
+    setConfirmBookingId(bId)
+    setConfirmError(false)
+    setConfirmRecoveryReason(null)
+    setScreen(3)
   }, [])
 
   // Once the provider-aware poll sees success, load the existing confirmation
@@ -3195,6 +3318,8 @@ export default function BookPage() {
                   periods={periods}
                   promoCode={promoCode}
                   onPromoChange={setPromoCode}
+                  resumeBookingId={kpayResumeData?.bookingId}
+                  resumeOrderNo={kpayResumeData?.orderNo}
                   onBackToSlots={() => {
                     // Refresh availability (the lock may have changed while on
                     // the payment step) but keep the user's selection intact —
