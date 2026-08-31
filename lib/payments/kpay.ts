@@ -16,7 +16,7 @@ import type {
   WebhookEvent,
 } from './types'
 import { buildSignText, signKpay, generateNonce, toPem } from './kpay-sign'
-import { kpayErrorMessage, KPAY_MIN_AMOUNT_HKD, PAYME_UAT_SUCCESS_AMOUNT, PAYME_UAT_FAIL_AMOUNT } from './types'
+import { kpayErrorMessage, KPAY_MIN_AMOUNT_HKD } from './types'
 
 // ── Env accessors (throw early on missing config) ─────────────
 
@@ -123,28 +123,6 @@ export class KPayProvider implements PaymentProvider {
       ...(institution ? { paymentInstitution: institution } : {}),
       ...(remark ? { orderRemark: remark } : {}),
     }
-
-    // ── UAT-ONLY PayMe test-amount override ─────────────────────────────────
-    // KPay test protocol: .81 ending → simulate success, .82 → simulate failure.
-    // Only active in UAT (KPAY_ENV !== 'prod'). DB total_price is never touched.
-    if (
-      method === 'payme' &&
-      process.env.KPAY_ENV !== 'prod' &&
-      params.uatPaymeSimulation
-    ) {
-      const overrideAmount =
-        params.uatPaymeSimulation === 'success'
-          ? PAYME_UAT_SUCCESS_AMOUNT
-          : PAYME_UAT_FAIL_AMOUNT
-      console.log(
-        '[KPay] ⚠️  UAT PayMe test override:',
-        '| original payAmount:', qrBody.payAmount as string,
-        '| overridden:', overrideAmount,
-        '| mode:', params.uatPaymeSimulation,
-      )
-      qrBody.payAmount = overrideAmount
-    }
-    // ────────────────────────────────────────────────────────────────────────
 
     const qrRes = await this.apiPost<KPayApiResponse<{ orderNo: string; payInfo: string }>>(
       qrEndpoint,

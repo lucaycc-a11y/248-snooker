@@ -222,6 +222,14 @@ export async function POST(req: Request) {
         const period = periodForStart(startHour, isWeekend, periods)
         const newId = randomUUID()
 
+        // ── UAT PayMe test: adjust base_price to carry .81/.82 decimal ──
+        // prepare_checkout copies base_price → total_price, so the decimal
+        // flows naturally to KPay without any client-side override.
+        const uatDecimal =
+          paymentMethod === 'payme' && uatPaymeSimulation
+            ? (uatPaymeSimulation === 'success' ? 0.81 : 0.82)
+            : 0
+
         const { error: insErr } = await service.from('bookings').insert({
           id: newId,
           user_id: user.id,
@@ -231,11 +239,11 @@ export async function POST(req: Request) {
           end_time: slot.end_time,
           duration_hours: slot.duration_hours,
           period,
-          total_price: quote.total,
+          total_price: quote.total + uatDecimal,
           // base_price/subtotal are the pre-discount snapshot prepare_checkout
           // re-derives from, so a re-prepare can restore the undiscounted total.
-          base_price: quote.total,
-          subtotal: quote.total,
+          base_price: quote.total + uatDecimal,
+          subtotal: quote.total + uatDecimal,
           status: 'pending',
           table_number: slot.table_number,
           is_free_booking: false,
@@ -363,6 +371,33 @@ export async function POST(req: Request) {
           { error: 'Booking is no longer available for payment' },
           { status: 409 },
         )
+      }
+    }
+
+    // ── UAT PayMe test: adjust base_price on existing booking ─────────────
+    // Same approach as Mode A — update base_price before prepare_checkout
+    // so the decimal flows through to KPay naturally.
+    if (
+      paymentMethod === 'payme' &&
+      uatPaymeSimulation &&
+      process.env.KPAY_ENV !== 'prod'
+    ) {
+      const uatDecimal = uatPaymeSimulation === 'success' ? 0.81 : 0.82
+      const baseVal = Math.floor(booking.total_price) + uatDecimal
+      const groupId = booking.order_group_id ?? null
+      const updateQuery = service
+        .from('bookings')
+        .update({ base_price: baseVal, total_price: baseVal, subtotal: baseVal })
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
+        .is('provider_order_no', null)
+      const { error: uatErr } = groupId
+        ? await updateQuery.eq('order_group_id', groupId)
+        : await updateQuery.eq('id', bookingId)
+      if (uatErr) {
+        console.error('[checkout/create] UAT PayMe base_price update failed', uatErr)
+      } else {
+        console.log('[checkout/create] UAT PayMe base_price adjusted:', baseVal)
       }
     }
 

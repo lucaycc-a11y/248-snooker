@@ -1833,6 +1833,11 @@ function Screen3({
   const [confirmed, setConfirmed] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
 
+  // ── UAT-only PayMe simulation modal ──────────────────────────────────────
+  // Pop-up before checkout to select .81 (success) / .82 (fail) / normal.
+  // Only appears for PayMe method — other methods are unaffected.
+  const [showPaymeUatModal, setShowPaymeUatModal] = useState(false)
+
   // ── KPay resume: restore Screen3's internal payment state when the page
   // was refreshed mid-payment. BookPage detected the persisted session and
   // passed the resume identifiers; here we hydrate the payment method state
@@ -1852,6 +1857,9 @@ function Screen3({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeBookingId])
 
+  // UAT-only: track which PayMe simulation mode was selected (.81/.82/undefined)
+  const [paymeUatSim, setPaymeUatSim] = useState<'success' | 'fail' | undefined>(undefined)
+
   const handleConfirmPay = useCallback(() => {
     if (!agreedToTerms) {
       flagTermsRequired()
@@ -1859,6 +1867,16 @@ function Screen3({
     }
     if (!paymentMethod) return
     setPaymentError(null)
+
+    // UAT-only PayMe simulation pop-up before checkout
+    if (
+      paymentMethod === 'payme' &&
+      process.env.NODE_ENV !== 'production'
+    ) {
+      setShowPaymeUatModal(true)
+      return
+    }
+
     setConfirmed(true)
   }, [agreedToTerms, flagTermsRequired, paymentMethod])
   useEffect(() => {
@@ -2200,6 +2218,7 @@ function Screen3({
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
                     agreedToTerms={agreedToTerms}
+                    uatPaymeSimulation={paymeUatSim}
                     resumeBookingId={resumeBookingId}
                     resumeOrderNo={resumeOrderNo}
                     labels={{
@@ -2407,6 +2426,110 @@ function Screen3({
                   />
                 </div>
                 <button type="button" onClick={() => setOpenModal(null)} style={modalBottomCloseStyle}>
+                  {t("legal_modal_close")}
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* ── UAT-only PayMe simulation modal ─────────────────────────── */}
+          {showPaymeUatModal && (
+            <motion.div
+              role="presentation"
+              onClick={() => setShowPaymeUatModal(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={modalOverlayStyle}
+            >
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="payme-uat-modal-title"
+                onClick={(event) => event.stopPropagation()}
+                initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 12 }}
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                style={{ ...modalStyle, maxHeight: "min(80vh, 520px)" }}
+              >
+                <div style={modalHeaderStyle}>
+                  <h2 id="payme-uat-modal-title" style={{ margin: 0, fontSize: 19, fontWeight: 700 }}>
+                    UAT PayMe 模擬
+                  </h2>
+                  <button type="button" aria-label="Close" onClick={() => setShowPaymeUatModal(false)} style={modalCloseStyle}>×</button>
+                </div>
+                <div style={{ ...modalContentStyle, padding: "24px 20px 0" }}>
+                  <p style={{ color: tokens.colors.textMuted, fontSize: 14, marginBottom: 20 }}>
+                    選擇模擬付款結果（僅限測試環境，正式版不受影響）：
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymeUatSim('success')
+                        setShowPaymeUatModal(false)
+                        setConfirmed(true)
+                      }}
+                      style={{
+                        padding: "14px 16px",
+                        borderRadius: tokens.radius.button,
+                        border: `1px solid ${tokens.colors.borderStrong}`,
+                        background: "rgba(0, 200, 83, 0.08)",
+                        color: "#00c853",
+                        fontWeight: 600,
+                        fontSize: 15,
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      ✓ 模擬付款成功（金額尾數 .81）
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymeUatSim('fail')
+                        setShowPaymeUatModal(false)
+                        setConfirmed(true)
+                      }}
+                      style={{
+                        padding: "14px 16px",
+                        borderRadius: tokens.radius.button,
+                        border: `1px solid ${tokens.colors.borderStrong}`,
+                        background: "rgba(255, 82, 82, 0.08)",
+                        color: "#ff5252",
+                        fontWeight: 600,
+                        fontSize: 15,
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      ✗ 模擬付款失敗（金額尾數 .82）
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPaymeUatSim(undefined)
+                        setShowPaymeUatModal(false)
+                        setConfirmed(true)
+                      }}
+                      style={{
+                        padding: "14px 16px",
+                        borderRadius: tokens.radius.button,
+                        border: `1px solid ${tokens.colors.borderStrong}`,
+                        background: "transparent",
+                        color: tokens.colors.text,
+                        fontWeight: 600,
+                        fontSize: 15,
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      唔使模擬，用正常金額
+                    </button>
+                  </div>
+                </div>
+                <button type="button" onClick={() => setShowPaymeUatModal(false)} style={modalBottomCloseStyle}>
                   {t("legal_modal_close")}
                 </button>
               </motion.div>

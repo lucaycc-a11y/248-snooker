@@ -615,6 +615,26 @@
         ],
         "createdAt": "2026-08-31T07:02:36.049Z",
         "reason": "UAT-only dev toggle failure state red — developer-only UI, not user-facing"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0, 200, 83, 0.08) app/[locale]/book/page.tsx",
+        "createdAt": "2026-08-31T11:27:43.133Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#00c853 app/[locale]/book/page.tsx",
+        "createdAt": "2026-08-31T11:27:43.260Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255, 82, 82, 0.08) app/[locale]/book/page.tsx",
+        "createdAt": "2026-08-31T11:27:43.390Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ff5252 app/[locale]/book/page.tsx",
+        "createdAt": "2026-08-31T11:27:43.518Z"
       }
     ]
   }

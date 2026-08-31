@@ -71,6 +71,11 @@ type Props = {
    * restore the existing bookingId/orderNo directly. */
   resumeBookingId?: string
   resumeOrderNo?: string
+  /**
+   * UAT-only PayMe simulation mode, set by the parent pre-checkout modal.
+   * When provided, overrides the URL-param fallback.
+   */
+  uatPaymeSimulation?: 'success' | 'fail'
   onBackToMethods: () => void
   onSuccess: (bookingId?: string) => void
 }
@@ -228,10 +233,13 @@ export default function KPayPayment(props: Props) {
   const pointsAmount = props.pointsAmount ?? 0
 
   // ── UAT-ONLY PayMe test simulation selector ───────────────────────────────
-  // Read `?uat_payme=success` or `?uat_payme=fail` from the URL once on mount.
+  // Prefer the parent prop (from pre-checkout modal); fall back to URL param.
   // The toggle UI lets the tester switch modes without editing the URL.
   // Server-side: only applies when KPAY_ENV !== 'prod' AND method === 'payme'.
   const [uatPaymeSimulation, setUatPaymeSimulation] = useState<'success' | 'fail' | undefined>(() => {
+    // Parent prop takes priority
+    if (props.uatPaymeSimulation) return props.uatPaymeSimulation
+    // URL param fallback
     try {
       const v = new URLSearchParams(window.location.search).get('uat_payme')
       return v === 'success' || v === 'fail' ? v : undefined
