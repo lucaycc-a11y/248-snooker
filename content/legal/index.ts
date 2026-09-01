@@ -18,6 +18,9 @@ import { refundPolicyEn } from './refund-policy.en'
 import { deliveryPolicyZhHK } from './delivery-policy.zh-HK'
 import { deliveryPolicyZhCN } from './delivery-policy.zh-CN'
 import { deliveryPolicyEn } from './delivery-policy.en'
+import { brandStatementZhHK } from './brand-statement.zh-HK'
+import { brandStatementZhCN } from './brand-statement.zh-CN'
+import { brandStatementEn } from './brand-statement.en'
 
 // Registry of the 6 legal documents × 3 locales = 18 static files. zh-HK is
 // the canonical source; zh-CN and en are faithful 1:1 translations (same
@@ -28,7 +31,7 @@ import { deliveryPolicyEn } from './delivery-policy.en'
 // content/legal/verify-section-counts.ts for the structural parity check
 // that must pass across all 3 locales for each document.
 
-export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy'
+export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy' | 'brand_statement'
 
 const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
   terms: {
@@ -61,6 +64,11 @@ const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
     'zh-CN': deliveryPolicyZhCN,
     en: deliveryPolicyEn,
   },
+  brand_statement: {
+    'zh-HK': brandStatementZhHK,
+    'zh-CN': brandStatementZhCN,
+    en: brandStatementEn,
+  },
 }
 
 export function getLegalDocument(docId: LegalDocId, locale: Locale): LegalDocument {
@@ -75,5 +83,6 @@ export function getAllLegalDocuments(locale: Locale): Record<LegalDocId, LegalDo
     accessibility: getLegalDocument('accessibility', locale),
     refund_policy: getLegalDocument('refund_policy', locale),
     delivery_policy: getLegalDocument('delivery_policy', locale),
+    brand_statement: getLegalDocument('brand_statement', locale),
   }
 }
