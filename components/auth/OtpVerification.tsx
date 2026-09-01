@@ -112,25 +112,8 @@ export function OtpVerification({
       aria-label={status === "success" ? t("otp_verified") : t("otp_verifying")}
       tabIndex={-1}
     >
-      <div className="otp-orbit-stage" aria-hidden="true">
-        <div className="otp-orbit-ring" />
-        <div className="otp-orbit-spinner">
-          {digits.map((digit, index) => {
-            const angle = (360 / length) * index
-            const slotStyle = {
-              "--otp-orbit-angle": `${angle}deg`,
-            } as CSSProperties
-
-            return (
-              <div className="otp-orbit-card-slot" style={slotStyle} key={`${digit}-${index}`}>
-                <div className="otp-orbit-card-counter">
-                  <div className="otp-orbit-card">{digit}</div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
+      <div className="otp-spinner-container" aria-hidden="true">
+        <div className="otp-spinner" />
         {status === "success" && (
           <div className="otp-success-badge">
             <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">

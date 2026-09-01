@@ -53,6 +53,7 @@
     "err_name": "Please enter your name.",
     "err_email": "Enter a valid email address.",
     "err_send": "Couldn't send the code. Please try again.",
+    "err_missing_param": "Request parameters are incomplete. Please try again.",
     "err_network": "Connection issue. Please try again.",
     "err_rate_limited": "Too many attempts. Please wait a few minutes.",
     "err_otp_expired": "Code expired. Request a new one.",

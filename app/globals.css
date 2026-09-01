@@ -432,6 +432,26 @@ body {
 .otp-verification-status { margin: 8px 0 0; color: #fff; font-size: 15px; font-weight: 600; }
 .otp-verification-success .otp-verification-status { color: #4ade80; }
 
+/* OTP spinner — minimalist loading indicator */
+@keyframes otp-spin { to { transform: rotate(360deg); } }
+
+.otp-spinner-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.otp-spinner {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid #22b86b;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: otp-spin 0.7s linear infinite;
+}
+
 @keyframes otp-orbit-spin { to { transform: rotate(360deg); } }
 @keyframes otp-orbit-success-out { to { opacity: 0; transform: scale(.72); } }
 @keyframes otp-success-pop { from { opacity: 0; transform: scale(.35); } to { opacity: 1; transform: scale(1); } }

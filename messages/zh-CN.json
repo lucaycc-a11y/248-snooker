@@ -53,6 +53,7 @@
     "err_name": "请输入你的姓名。",
     "err_email": "请输入有效的电子邮箱。",
     "err_send": "无法发送验证码，请重试。",
+    "err_missing_param": "请求参数不完整，请重试。",
     "err_network": "连接出现问题，请重试。",
     "err_rate_limited": "尝试次数过多，请稍候几分钟。",
     "err_otp_expired": "验证码已过期，请重新获取。",

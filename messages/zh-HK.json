@@ -53,6 +53,7 @@
     "err_name": "請輸入你的姓名。",
     "err_email": "請輸入有效的電郵地址。",
     "err_send": "未能傳送驗證碼，請再試一次。",
+    "err_missing_param": "請求參數不完整，請重試。",
     "err_network": "連線出現問題，請再試一次。",
     "err_rate_limited": "嘗試次數過多，請稍候數分鐘。",
     "err_otp_expired": "驗證碼已過期，請重新索取。",

@@ -211,7 +211,12 @@ export function ProfileCompletion({
       })
       const j = await res.json().catch(() => ({}))
       if (!j?.success) {
-        setErrMsg(j?.error === "rate_limited" ? t("err_rate_limited") : j?.error || t("err_send"))
+        setErrMsg(
+          j?.error === "rate_limited" ? t("err_rate_limited")
+          : (j?.error === "缺少必要參數" || j?.error === "missing_parameter") ? t("err_missing_param")
+          : (j?.error === "發送失敗，請重試" || j?.error === "send_failed") ? t("err_send")
+          : t("err_send")
+        )
         setSaving(false)
         return
       }

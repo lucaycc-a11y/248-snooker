@@ -339,8 +339,12 @@ export function AuthCard({
       if (!j?.success) {
         if (j?.error === "rate_limited") {
           setError(t("err_rate_limited"))
+        } else if (j?.error === "缺少必要參數" || j?.error === "missing_parameter") {
+          setError(t("err_missing_param"))
+        } else if (j?.error === "發送失敗，請重試" || j?.error === "send_failed") {
+          setError(t("err_send"))
         } else {
-          setError(j?.error || t("err_send"))
+          setError(t("err_send"))
         }
         setBusy(false)
         return
@@ -744,10 +748,12 @@ export function AuthCard({
               <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 50, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 16 }}>+852</span>
               <input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 8))}
                 placeholder={t("phone_placeholder")}
-                inputMode="tel"
-                autoComplete="tel"
+                inputMode="numeric"
+                pattern="[0-9]{8}"
+                maxLength={8}
+                autoComplete="tel-national"
                 aria-label={t("phone_placeholder")}
                 style={{ flex: 1, height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
               />
@@ -848,15 +854,6 @@ export function AuthCard({
           {t("contact_continue")}
         </button>
 
-        {/* Explicit signup keeps registration distinct from existing-account login. */}
-        <button
-          type="button"
-          onClick={() => { setPhase("signup"); setError(null) }}
-          data-cms-key="auth.signup.start"
-          style={{ marginTop: 2, background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", textAlign: "center", textDecoration: "underline", textUnderlineOffset: 2 }}
-        >
-          {t("signup_start")}
-        </button>
 
         {error && phase === "methods" && (
           <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center", margin: 0 }}>{error}</p>
