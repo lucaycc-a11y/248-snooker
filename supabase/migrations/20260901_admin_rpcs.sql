@@ -124,7 +124,9 @@ END $$;
 -- DROP first: PostgreSQL cannot change return type via CREATE OR REPLACE.
 -- ============================================================
 DO $$ BEGIN
-  DROP FUNCTION IF EXISTS public.generate_ai_daily_insights();
+  DROP FUNCTION IF EXISTS public.generate_ai_daily_insights() CASCADE;
+  DROP FUNCTION IF EXISTS public.generate_ai_daily_insights(text) CASCADE;
+  DROP FUNCTION IF EXISTS public.generate_ai_daily_insights(jsonb) CASCADE;
 
   CREATE OR REPLACE FUNCTION public.generate_ai_daily_insights()
   RETURNS jsonb

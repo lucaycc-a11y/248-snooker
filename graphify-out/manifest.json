@@ -180,9 +180,9 @@
     "semantic_hash": "019c47c153f9493ea534f4b6491862a9"
   },
   "app/admin/audit/page.tsx": {
-    "mtime": 1785406307.0,
-    "ast_hash": "e34d13c610f12a4f476964ece374b78a",
-    "semantic_hash": "e34d13c610f12a4f476964ece374b78a"
+    "mtime": 1788248629.2376778,
+    "ast_hash": "fb3e5e0b70eaf37cad35db8a2e83e6e7",
+    "semantic_hash": ""
   },
   "app/admin/blog/[id]/page.tsx": {
     "mtime": 1785406307.0,
@@ -815,8 +815,8 @@
     "semantic_hash": "73405a2adabcf020c334d9b1f29005d8"
   },
   "components/auth/AuthCard.tsx": {
-    "mtime": 1788169219.6095428,
-    "ast_hash": "861f0c1ff1038ff8f1bca6aa6112126c",
+    "mtime": 1788253853.7732937,
+    "ast_hash": "9d5791a0a3f91f0151c6f38c51900b3b",
     "semantic_hash": ""
   },
   "components/auth/AuthModal.tsx": {
@@ -845,8 +845,8 @@
     "semantic_hash": ""
   },
   "components/auth/ProfileCompletion.tsx": {
-    "mtime": 1788175272.7165678,
-    "ast_hash": "c594bfb8bdc3fde0f64f7f2c2702cf03",
+    "mtime": 1788253852.698527,
+    "ast_hash": "51781f202f2eee3e41a70a231d20a198",
     "semantic_hash": ""
   },
   "components/booking/BookingSummary.tsx": {
@@ -1540,18 +1540,18 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1788247078.1630957,
-    "ast_hash": "c858b7f126dbfb2806d3247032436c4f",
+    "mtime": 1788253924.633765,
+    "ast_hash": "d293b7dff8c3972a20271b19edcf318e",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1788247684.3824105,
-    "ast_hash": "352a6c58367662947f3dfe6c77e76c6a",
+    "mtime": 1788253925.715515,
+    "ast_hash": "8a73985da31cceede06139c0c5c76ec5",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1788247683.3123174,
-    "ast_hash": "88af5a31e451a9bcd6cde45fb0f8f461",
+    "mtime": 1788253910.036986,
+    "ast_hash": "18a80e0dd15c8966a83cf275463a2cfd",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -4705,8 +4705,8 @@
     "semantic_hash": ""
   },
   "components/auth/OtpVerification.tsx": {
-    "mtime": 1787884674.4644647,
-    "ast_hash": "9906f31c82c931825e08c2a9b8fe42de",
+    "mtime": 1788253908.9834297,
+    "ast_hash": "465c44a7e7f3397556810d4126d77bd3",
     "semantic_hash": ""
   },
   "components/checkout/TicketPrinter.tsx": {
@@ -5235,8 +5235,8 @@
     "semantic_hash": ""
   },
   "app/admin/notifications/page.tsx": {
-    "mtime": 1788219350.5098555,
-    "ast_hash": "9f436db9df8e50b9e7a738891d17dabb",
+    "mtime": 1788251020.0487258,
+    "ast_hash": "ba8d1acf6daa240ccb80bd213d658a87",
     "semantic_hash": ""
   },
   "app/api/admin/actions/confirm/route.ts": {
@@ -5340,8 +5340,8 @@
     "semantic_hash": ""
   },
   "lib/admin/actionExecutor.ts": {
-    "mtime": 1788220880.7959511,
-    "ast_hash": "c77c0da74e950a98767bc1caa967460f",
+    "mtime": 1788255576.6778088,
+    "ast_hash": "14213faf6a299ffa8592ee65fcd442cd",
     "semantic_hash": ""
   },
   "lib/admin/aiSchema.ts": {
@@ -5567,6 +5567,61 @@
   "supabase/migrations/20260901_ai_daily_insights_cron.sql": {
     "mtime": 1788241344.6593244,
     "ast_hash": "7b14907becddc2db07ba1c8b33bccd83",
+    "semantic_hash": ""
+  },
+  "app/admin/lockers/page.tsx": {
+    "mtime": 1788254121.0712175,
+    "ast_hash": "77959767d52407530185a290a5e24e0c",
+    "semantic_hash": ""
+  },
+  "app/admin/maintenance/page.tsx": {
+    "mtime": 1788253654.644469,
+    "ast_hash": "46e679b478ee201199a0279e4f5130ff",
+    "semantic_hash": ""
+  },
+  "app/admin/qr-generator/page.tsx": {
+    "mtime": 1788249480.8009305,
+    "ast_hash": "9ecdff9db4d3fcf79e122c5762c14ab3",
+    "semantic_hash": ""
+  },
+  "app/admin/sales-report/page.tsx": {
+    "mtime": 1788250058.364086,
+    "ast_hash": "2dbc36c69a346188db1f037e6187a13b",
+    "semantic_hash": ""
+  },
+  "app/api/admin/health/route.ts": {
+    "mtime": 1788251171.8050756,
+    "ast_hash": "aeefdb671faa28eb98b2502322c07b84",
+    "semantic_hash": ""
+  },
+  "app/api/admin/lockers/route.ts": {
+    "mtime": 1788254051.7944832,
+    "ast_hash": "5d151be89e13cb1875bf5e74cee1e502",
+    "semantic_hash": ""
+  },
+  "app/api/admin/notifications/route.ts": {
+    "mtime": 1788250925.4281924,
+    "ast_hash": "43e5ff1e935a4e952d287be64af368f0",
+    "semantic_hash": ""
+  },
+  "app/api/admin/qr-lookup/route.ts": {
+    "mtime": 1788249664.9825087,
+    "ast_hash": "6dd7273ab1c0598a24777574c86e8105",
+    "semantic_hash": ""
+  },
+  "app/api/admin/sales-report/route.ts": {
+    "mtime": 1788250471.337274,
+    "ast_hash": "9dbf6af918964bbce6d4c41630130015",
+    "semantic_hash": ""
+  },
+  "app/api/admin/venue/route.ts": {
+    "mtime": 1788251446.4723063,
+    "ast_hash": "9b95278c057552c1988ec434fa3a74a7",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/20260901_admin_rpcs.sql": {
+    "mtime": 1788255520.264451,
+    "ast_hash": "1cdb26b31b84a0980e66e65d3a69cfa8",
     "semantic_hash": ""
   }
 }

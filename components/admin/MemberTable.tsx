@@ -70,11 +70,11 @@ export default function MemberTable({ initial }: { initial: ApiResponse }) {
                 {m.displayName ?? m.email ?? m.memberCode ?? m.id.slice(0, 8)}
               </div>
               <div style={{ color: tokens.colors.textMuted, fontSize: 13 }}>
-                {m.memberCode ?? '—'} · {m.tier ?? 'amateur'} · {m.totalBookings} bookings
+                {m.memberCode ?? '—'} · {m.tier ?? 'amateur'} · {m.bookingCount} bookings
               </div>
             </div>
             <div style={{ textAlign: 'right', color: tokens.colors.text, fontSize: 15, fontWeight: 600 }}>
-              HK${m.totalSpent}
+              HK${m.totalSpend}
             </div>
           </Link>
         ))}

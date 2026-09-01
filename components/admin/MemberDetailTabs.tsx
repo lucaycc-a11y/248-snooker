@@ -33,7 +33,7 @@ type ActivityEntry = {
   actionType: string
   before: Record<string, unknown> | null
   after: Record<string, unknown> | null
-  createdAt: string
+  createdAt: string | null
 }
 
 type MemberData = {

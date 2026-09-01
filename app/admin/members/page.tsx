@@ -72,7 +72,7 @@ export default async function AdminMembersPage() {
       <MemberCardGrid members={result.members} />
 
       {/* Pagination placeholder */}
-      {result.hasMore && (
+      {result.total > result.page * result.pageSize && (
         <div
           className="text-center text-sm"
           style={{ color: 'var(--admin-text-muted)' }}
