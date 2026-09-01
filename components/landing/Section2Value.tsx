@@ -35,9 +35,12 @@ type Panel = {
 };
 
 const PANELS: readonly Panel[] = [
+  /* 0 — 快捷/掃碼即入: TAP TO ENTER */
   { src: "/gallery/S2/part1_tap_to_enter.png", position: "50% 50%" },
-  { src: "/gallery/S2/part2_table_closeup.png", position: "50% 50%" },
+  /* 1 — 獨立/一房一枱: wide room */
   { src: "/gallery/S2/part3_table_wide_room.png", position: "50% 42%" },
+  /* 2 — 設備/專業球枱: table closeup */
+  { src: "/gallery/S2/part2_table_closeup.png", position: "50% 50%" },
 ];
 
 /** Distance between adjacent crossfade peaks in progress units. */
@@ -153,25 +156,7 @@ export default function Section2Value() {
 
         {/* Copy in normal flow, scrolling up over the pinned background. */}
         <div ref={panelsRef} className="s2-copy">
-          {/* Part 1 — 設備 */}
-          <div data-value-copy className="s2-beat">
-            <div className="s2-content">
-              <p className="s2-kicker" data-cms-key="homeValue.part1_kicker">
-                {t("part1_kicker")}
-              </p>
-              <p className="s2-line" data-cms-key="homeValue.part1_heading">
-                <span className="s2-kw" data-cms-key="homeValue.part1_highlight">
-                  {t("part1_highlight")}
-                </span>
-                {t("part1_after")}
-              </p>
-              <p className="s2-footer" data-cms-key="homeValue.part1_footer">
-                {t("part1_footer")}
-              </p>
-            </div>
-          </div>
-
-          {/* Part 2 — 快捷 */}
+          {/* Beat 1 — 快捷/掃碼即入 (panel 0: tap-to-enter) */}
           <div data-value-copy className="s2-beat">
             <div className="s2-content">
               <p className="s2-kicker" data-cms-key="homeValue.part2_kicker">
@@ -193,7 +178,7 @@ export default function Section2Value() {
             </div>
           </div>
 
-          {/* Part 3 — 獨立 */}
+          {/* Beat 2 — 獨立/一房一枱 (panel 1: wide room) */}
           <div data-value-copy className="s2-beat">
             <div className="s2-content">
               <p className="s2-kicker" data-cms-key="homeValue.part3_kicker">
@@ -207,6 +192,24 @@ export default function Section2Value() {
               </p>
               <p className="s2-footer" data-cms-key="homeValue.part3_footer">
                 {t("part3_footer")}
+              </p>
+            </div>
+          </div>
+
+          {/* Beat 3 — 設備/專業球枱 (panel 2: table closeup) */}
+          <div data-value-copy className="s2-beat">
+            <div className="s2-content">
+              <p className="s2-kicker" data-cms-key="homeValue.part1_kicker">
+                {t("part1_kicker")}
+              </p>
+              <p className="s2-line" data-cms-key="homeValue.part1_heading">
+                <span className="s2-kw" data-cms-key="homeValue.part1_highlight">
+                  {t("part1_highlight")}
+                </span>
+                {t("part1_after")}
+              </p>
+              <p className="s2-footer" data-cms-key="homeValue.part1_footer">
+                {t("part1_footer")}
               </p>
             </div>
           </div>
