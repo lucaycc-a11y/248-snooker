@@ -1,57 +1,97 @@
-import { DollarSign, Calendar, Gauge, UserPlus } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
-import { tokens } from '@/app/styles/tokens'
-import { getAdminStats, getRevenueSeries, getLiveOccupancy } from '@/lib/data/getAdminStats'
-import QuickActions from '@/components/admin/QuickActions'
-import LiveOccupancy from '@/components/admin/LiveOccupancy'
-import RevenueChart from '@/components/admin/RevenueChart'
-import DashboardSummary from '@/components/admin/DashboardSummary'
-import StatCard from '@/components/admin/StatCard'
+import { Suspense } from 'react'
+import { getAdminData } from '@/lib/data/getAdmin'
+import { getAdminStats } from '@/lib/data/getAdminStats'
+import { getServiceSupabase } from '@/lib/supabase/service'
+import { DEFAULT_LAYOUT } from '@/lib/admin/widgetMeta'
+import type { LayoutItem } from '@/lib/admin/widgetMeta'
+import DashboardGrid from '@/components/admin/DashboardGrid'
 
-function money(n: number): string {
-  return `HK$${n.toLocaleString()}`
+/**
+ * Admin Dashboard — §3.
+ *
+ * Server Component that fetches admin role + saved layout, then passes
+ * both to the client-side DashboardGrid which handles dnd-kit interactivity.
+ */
+
+function isLayoutArray(value: unknown): value is LayoutItem[] {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every(
+      (item) =>
+        typeof item === 'object' &&
+        item !== null &&
+        typeof (item as Record<string, unknown>).id === 'string' &&
+        typeof (item as Record<string, unknown>).size === 'string'
+    )
+  )
 }
 
 export default async function AdminDashboardPage() {
-  const [stats, revenueSeries, occupancy] = await Promise.all([
-    getAdminStats(),
-    getRevenueSeries(30),
-    getLiveOccupancy(),
-  ])
+  const admin = await getAdminData()
+  const isAdmin = admin?.role === 'super_admin' || admin?.role === 'admin'
+
+  // Fetch saved layout (best-effort; falls back to DEFAULT_LAYOUT)
+  let layout: LayoutItem[] = DEFAULT_LAYOUT
+  try {
+    if (admin?.userId) {
+      const service = getServiceSupabase()
+      const { data } = await service
+        .from('admin_dashboard_config')
+        .select('layout')
+        .eq('admin_id', admin.userId)
+        .maybeSingle()
+
+      if (data?.layout && isLayoutArray(data.layout)) {
+        layout = data.layout
+      }
+    }
+  } catch {
+    // Table may not exist — use default layout
+  }
 
   return (
-    <main style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.text, marginBottom: 24 }}>Dashboard</h1>
-
-      <DashboardSummary />
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-          gap: tokens.spacing.md,
-          marginBottom: tokens.spacing.lg,
-        }}
-      >
-        <StatCard label="Revenue today" value={money(stats.revenue.today)} icon={DollarSign} trend={stats.revenueTrend.today} />
-        <StatCard label="Revenue this week" value={money(stats.revenue.week)} icon={DollarSign} trend={stats.revenueTrend.week} />
-        <StatCard label="Revenue this month" value={money(stats.revenue.month)} icon={DollarSign} trend={stats.revenueTrend.month} />
-        <StatCard label="Bookings today" value={String(stats.bookingsCount.today)} icon={Calendar} />
-        <StatCard label="Table utilization" value={`${Math.round(stats.tableUtilization * 100)}%`} icon={Gauge} />
-        <StatCard label="New members this week" value={String(stats.newMembers.week)} icon={UserPlus} />
-        <Card variant="gradient">
-          <LiveOccupancy initial={occupancy} />
-        </Card>
+    <main className="max-w-[1400px] mx-auto px-4 py-8 lg:px-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1
+          className="text-2xl font-bold text-[var(--admin-text)] tracking-tight"
+          data-cms-key="admin_dashboard_title"
+        >
+          Dashboard
+        </h1>
+        <p className="text-sm text-[var(--admin-text-muted)] mt-1">
+          Welcome back, {admin?.displayName ?? admin?.email ?? 'Admin'}
+        </p>
       </div>
 
-      <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text, marginBottom: tokens.spacing.md }}>
-          Revenue (last 30 days)
-        </div>
-        <RevenueChart data={revenueSeries} />
-      </Card>
-
-      <QuickActions />
+      {/* Widget grid — client-side dnd-kit */}
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardGrid initialLayout={layout} isAdmin={isAdmin} />
+      </Suspense>
     </main>
+  )
+}
+
+// ── Loading skeleton ────────────────────────────────────────────────────────
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 7 }).map((_, i) => (
+        <div
+          key={i}
+          className={`min-h-[160px] rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)]/60 backdrop-blur-xl animate-pulse ${
+            i % 3 === 0 ? 'md:col-span-2' : ''
+          }`}
+        >
+          <div className="p-4 space-y-3">
+            <div className="h-3 bg-[var(--admin-surface)] rounded w-1/3" />
+            <div className="h-8 bg-[var(--admin-surface)] rounded w-1/2" />
+            <div className="h-3 bg-[var(--admin-surface)] rounded w-2/3" />
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }

@@ -19,6 +19,21 @@ export const tokens = {
     link: '#22c55e',
     danger: '#FF453A',
 
+    /** Admin green palette — §1.1 spec (NO blue anywhere). */
+    green: {
+      50: '#f0fdf4',
+      100: '#dcfce7',
+      200: '#bbf7d0',
+      300: '#86efac',
+      400: '#4ade80',
+      500: '#22c55e',
+      600: '#16a34a',
+      700: '#15803d',
+      800: '#166534',
+      900: '#14532d',
+      950: '#052e16',
+    } as const,
+
     /**
      * Tonal depth system — lighter = raised, darker = recessed.
      * Use these instead of shadows for visual hierarchy on dark backgrounds.
@@ -60,7 +75,7 @@ export const tokens = {
   },
   font: {
     sans: 'system-ui, -apple-system, "SF Pro Text", sans-serif',
-    display: '"Bebas Neue", sans-serif',
+    display: '"Good Times", "Bebas Neue", sans-serif',
   },
   easing: {
     spring: 'cubic-bezier(0.16,1,0.3,1)',

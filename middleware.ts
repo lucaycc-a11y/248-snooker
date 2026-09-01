@@ -30,6 +30,10 @@ function clientIp(request: NextRequest): string {
 async function checkSiteGate(request: NextRequest): Promise<NextResponse | null> {
   if (GATE_BYPASS_PREFIXES.some((p) => request.nextUrl.pathname.startsWith(p))) return null
 
+  // Local-dev escape hatch: set DISABLE_SITE_GATE=1 in .env.local to skip the
+  // gate. Only ever set this locally — production must never define it.
+  if (process.env.DISABLE_SITE_GATE === '1') return null
+
   const { config, whitelist } = await getSiteGate()
   if (!config.enabled) return null
 

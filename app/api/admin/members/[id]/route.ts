@@ -76,14 +76,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: 'Internal error' }, { status: 500 })
     }
 
-    await service.from('audit_log').insert({
+    await service.from('admin_action_log').insert({
       admin_user_id: admin.userId,
       admin_email: admin.email,
-      action,
+      action_type: action,
       target_table: 'users',
       target_id: id,
-      before_value: beforeValue,
-      after_value: afterValue,
+      before_jsonb: beforeValue,
+      after_jsonb: afterValue,
+      risk_level: 'medium',
     })
 
     return NextResponse.json({ success: true })

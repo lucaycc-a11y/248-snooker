@@ -13,9 +13,13 @@ export type AdminMemberRow = {
   memberCode: string | null
   email: string | null
   displayName: string | null
+  phone: string | null
   tier: string | null
-  totalSpent: number
-  totalBookings: number
+  points: number
+  totalSpend: number
+  bookingCount: number
+  lastActiveAt: string | null
+  isBlacklisted: boolean
   createdAt: string | null
 }
 
@@ -32,7 +36,7 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
   try {
     let q = service
       .from('users')
-      .select('id, member_code, email, display_name, phone, tier, created_at', { count: 'exact' })
+      .select('id, member_code, email, display_name, phone, tier, points, last_active_at, is_blacklisted, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(from, to)
     if (search) {
@@ -73,9 +77,13 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
         memberCode: str(r, ['member_code']),
         email: str(r, ['email']),
         displayName: str(r, ['display_name']),
+        phone: str(r, ['phone']),
         tier: str(r, ['tier']),
-        totalSpent: agg?.total ?? 0,
-        totalBookings: agg?.count ?? 0,
+        points: num(r, ['points'], 0),
+        totalSpend: agg?.total ?? 0,
+        bookingCount: agg?.count ?? 0,
+        lastActiveAt: str(r, ['last_active_at']),
+        isBlacklisted: r.is_blacklisted === true,
         createdAt: str(r, ['created_at']),
       }
     })

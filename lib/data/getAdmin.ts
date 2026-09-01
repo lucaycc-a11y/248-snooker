@@ -8,14 +8,17 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 
 export type AdminRole = 'super_admin' | 'admin'
 
+export type AdminThemePreference = 'dark' | 'light' | 'system'
+
 export type AdminData = {
   userId: string
   email: string
   role: AdminRole
   displayName: string | null
+  themePreference: AdminThemePreference
 }
 
-type Row = { email: string; role: string; invite_status: string }
+type Row = { email: string; role: string; invite_status: string; theme_preference: string | null }
 
 export async function getAdminData(): Promise<AdminData | null> {
   const supabase = await createClient()
@@ -28,7 +31,7 @@ export async function getAdminData(): Promise<AdminData | null> {
 
   const { data: byUserId } = await service
     .from('admin_users')
-    .select('email, role, invite_status')
+    .select('email, role, invite_status, theme_preference')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -41,7 +44,7 @@ export async function getAdminData(): Promise<AdminData | null> {
   if (!row && user.email) {
     const { data: byEmail } = await service
       .from('admin_users')
-      .select('email, role, invite_status')
+      .select('email, role, invite_status, theme_preference')
       .eq('email', user.email)
       .is('user_id', null)
       .maybeSingle()
@@ -64,5 +67,9 @@ export async function getAdminData(): Promise<AdminData | null> {
     email: row.email,
     role: row.role as AdminRole,
     displayName: (profile?.display_name as string | undefined) ?? null,
+    themePreference:
+      row.theme_preference === 'light' || row.theme_preference === 'system'
+        ? row.theme_preference
+        : 'dark',
   }
 }
