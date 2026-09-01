@@ -13,6 +13,57 @@ const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURICom
 )}`;
 const EMBED_URL = "https://maps.google.com/maps?q=%E9%A6%99%E6%B8%AF%E6%96%B0%E8%92%B2%E5%B4%97%E5%A4%A7%E6%9C%89%E8%A1%9732%E8%99%9F%E6%B3%B0%E5%8A%9B%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83&t=&z=17&ie=UTF8&iwloc=&output=embed";
 
+const DIR_CSS = `
+.dir-section.is-in .dir-card { opacity: 1 !important; transform: none !important; }
+.dir-section.is-in .dir-map { opacity: 1 !important; transform: none !important; }
+
+.dir-notes li::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 0.72em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #1a9d5c;
+}
+
+/* Pin icon animation: body pulses, dot bounces */
+.pi-pin-body { transform-box: fill-box; transform-origin: center;
+  animation: pinBreathe 3s ease-in-out infinite; }
+.pi-pin-dot { transform-box: fill-box; transform-origin: center;
+  animation: pinBounce 2.4s ease-in-out infinite; }
+@keyframes pinBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes pinBounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-2px); }
+  60% { transform: translateY(0.5px); }
+}
+
+@media (max-width: 880px) {
+  .dir-layout { grid-template-columns: 1fr !important; gap: 24px !important; }
+  .dir-card { padding: 34px 28px 36px !important; }
+  .dir-map { aspect-ratio: 4 / 3; min-height: 0 !important; }
+}
+@media (max-width: 560px) {
+  .dir-section { padding: 80px 24px 96px !important; }
+  .dir-card { padding: 24px !important; border-radius: 18px !important; }
+  .dir-header { gap: 12px !important; margin-bottom: 20px !important; }
+  .dir-pin { width: 30px !important; height: 30px !important; }
+  .dir-map { border-radius: 16px !important; }
+  .dir-actions { gap: 10px !important; flex-direction: column !important; }
+  .dir-btn { padding: 13px 20px !important; font-size: 13.5px !important; width: 100% !important; justify-content: center !important; min-height: 48px !important; }
+  .dir-notes { margin-bottom: 24px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dir-card, .dir-map { opacity: 1 !important; transform: none !important; }
+  .pi-pin-body, .pi-pin-dot { animation: none !important; }
+}
+`;
+
 export default function Directions() {
   const t = useTranslations("venuePage");
   const secRef = useRef<HTMLElement>(null);
@@ -241,56 +292,7 @@ export default function Directions() {
         </div>
       </div>
 
-      <style>{`
-        .dir-section.is-in .dir-card { opacity: 1 !important; transform: none !important; }
-        .dir-section.is-in .dir-map { opacity: 1 !important; transform: none !important; }
-
-        .dir-notes li::before {
-          content: "";
-          position: absolute;
-          left: 1px;
-          top: 0.72em;
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          background: #1a9d5c;
-        }
-
-        /* Pin icon animation: body pulses, dot bounces */
-        .pi-pin-body { transform-box: fill-box; transform-origin: center;
-          animation: pinBreathe 3s ease-in-out infinite; }
-        .pi-pin-dot { transform-box: fill-box; transform-origin: center;
-          animation: pinBounce 2.4s ease-in-out infinite; }
-        @keyframes pinBreathe {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.06); }
-        }
-        @keyframes pinBounce {
-          0%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-2px); }
-          60% { transform: translateY(0.5px); }
-        }
-
-        @media (max-width: 880px) {
-          .dir-layout { grid-template-columns: 1fr !important; gap: 24px !important; }
-          .dir-card { padding: 34px 28px 36px !important; }
-          .dir-map { aspect-ratio: 4 / 3; min-height: 0 !important; }
-        }
-        @media (max-width: 560px) {
-          .dir-section { padding: 80px 24px 96px !important; }
-          .dir-card { padding: 24px !important; border-radius: 18px !important; }
-          .dir-header { gap: 12px !important; margin-bottom: 20px !important; }
-          .dir-pin { width: 30px !important; height: 30px !important; }
-          .dir-map { border-radius: 16px !important; }
-          .dir-actions { gap: 10px !important; flex-direction: column !important; }
-          .dir-btn { padding: 13px 20px !important; font-size: 13.5px !important; width: 100% !important; justify-content: center !important; min-height: 48px !important; }
-          .dir-notes { margin-bottom: 24px !important; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .dir-card, .dir-map { opacity: 1 !important; transform: none !important; }
-          .pi-pin-body, .pi-pin-dot { animation: none !important; }
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{ __html: DIR_CSS }} />
     </section>
   );
 }

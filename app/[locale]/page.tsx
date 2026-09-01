@@ -113,7 +113,10 @@ export default async function Home({
   return (
     <main className="relative bg-black" style={{ isolation: "isolate" }}>
       {/* SEO-only venue description: keep detailed search copy out of the visible hero. */}
-      <script type="application/ld+json">{safeJsonLd(sportsClubJsonLd)}</script>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(sportsClubJsonLd) }}
+      />
       <AmbientGlow />
       <Nav />
       <Hero />

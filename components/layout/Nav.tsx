@@ -154,6 +154,9 @@ export default function Nav() {
   }, [menuOpen])
 
   useEffect(() => {
+    let ticking = false
+    let frame = 0
+
     const updateNavTheme = () => {
       const probeX = window.innerWidth / 2
       const probeY = window.innerWidth >= 768 ? 92 : 118
@@ -176,12 +179,25 @@ export default function Nav() {
       setTheme(lum < 128 ? 'dark' : 'light')
     }
 
-    updateNavTheme()
-    window.addEventListener('scroll', updateNavTheme, { passive: true })
-    window.addEventListener('resize', updateNavTheme, { passive: true })
+    // Throttle to one probe per frame — `elementFromPoint` + getComputedStyle
+    // are expensive and fire on every scroll/resize tick otherwise.
+    const onFrame = () => {
+      updateNavTheme()
+      ticking = false
+    }
+    const requestProbe = () => {
+      if (ticking) return
+      ticking = true
+      frame = requestAnimationFrame(onFrame)
+    }
+
+    requestProbe()
+    window.addEventListener('scroll', requestProbe, { passive: true })
+    window.addEventListener('resize', requestProbe, { passive: true })
     return () => {
-      window.removeEventListener('scroll', updateNavTheme)
-      window.removeEventListener('resize', updateNavTheme)
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', requestProbe)
+      window.removeEventListener('resize', requestProbe)
     }
   }, [pathname])
 

@@ -63,7 +63,7 @@ export function useAnimeReveal<T extends HTMLElement>(
     });
 
     return () => {
-      animation.revert();
+      animation.cancel(); // cancel() stops without reverting — leaves current values intact
       observer.revert();
     };
   }, [options.delay, options.distance, options.duration, options.selector]);
@@ -99,7 +99,7 @@ export function useAnimeEntrance<T extends HTMLElement>(
     });
 
     return () => {
-      animation.revert();
+      animation.cancel(); // cancel() stops without reverting — leaves current values intact
     };
   }, [options.delay, options.distance, options.duration, options.selector]);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -32,7 +32,7 @@ export default function Hero() {
     <section
       data-nav-theme="dark"
       className="relative overflow-hidden bg-black"
-      style={{ width: "100%", height: "100dvh" }}
+      style={{ width: "100%", height: "100svh", minHeight: "100svh" }}
     >
       {/* Video background — full-screen on mobile, square anchored bottom on desktop */}
       {/* TODO: 需要 Luca 提供正確素材 — 中式桌球枱 hero 影片/照片（現有片為英式枱，暫用佔位） */}
