@@ -121,8 +121,11 @@ END $$;
 -- ============================================================
 -- 2. generate_ai_daily_insights
 -- Reads previous day's data, generates insights, stores in ai_daily_insights.
+-- DROP first: PostgreSQL cannot change return type via CREATE OR REPLACE.
 -- ============================================================
 DO $$ BEGIN
+  DROP FUNCTION IF EXISTS public.generate_ai_daily_insights();
+
   CREATE OR REPLACE FUNCTION public.generate_ai_daily_insights()
   RETURNS jsonb
   LANGUAGE plpgsql

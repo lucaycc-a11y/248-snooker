@@ -26,7 +26,7 @@ type PointEntry = {
   points: number
   type: string
   note: string | null
-  createdAt: string
+  createdAt: string | null
 }
 
 type ActivityEntry = {
