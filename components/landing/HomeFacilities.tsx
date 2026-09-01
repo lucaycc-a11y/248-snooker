@@ -88,11 +88,13 @@ export default function HomeFacilities() {
         </motion.div>
       </div>
 
-      {/* Horizontal scroll gallery — snap-x on every breakpoint, no grid override. */}
+      {/* Horizontal scroll gallery — each card is narrower than the viewport
+          so the next card naturally peeks from the right edge, signalling
+          more content is available to swipe. Image container has inset
+          padding + rounded corners (Apple-style inset card). */}
       <div
         ref={trackRef}
-        className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2"
-        style={{ touchAction: "pan-x" }}
+        className="no-scrollbar hscroll-track flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:px-6"
       >
         {facilities.map((facility, index) => {
           const Icon = FACILITY_ICONS[index] ?? Table2;
@@ -106,18 +108,20 @@ export default function HomeFacilities() {
               transition={{ duration: 0.6, delay: index * 0.05, ease: EASE }}
               className="s2f-card"
             >
-              {/* Image block — flex-[4] ≈ 80% of card height */}
-              <div className="relative flex-[4] min-h-0 overflow-hidden bg-[#dcdcdc]">
+              {/* Image block — flex-[4] ≈ 80% of card height, with inset
+                  padding + rounded corners so the image sits inside the card
+                  with breathing room on all sides. */}
+              <div className="s2f-img">
                 <Image
                   src={FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0]}
                   alt={facility.title}
                   fill
-                  sizes="(max-width: 767px) 78vw, 340px"
+                  sizes="(max-width: 767px) 85vw, 380px"
                   className="object-cover"
                 />
               </div>
               {/* Text block — flex-1 ≈ 20% of card height, tightly packed */}
-              <div className="flex flex-[1] min-h-0 flex-col justify-center px-4 py-3">
+              <div className="flex flex-[1] min-h-0 flex-col justify-center px-5 py-3">
                 <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="mb-1.5 text-[#1a9d5c]" />
                 <h3
                   data-cms-key={`homeVenue.items.${index}.title`}
@@ -152,28 +156,42 @@ export default function HomeFacilities() {
       <style jsx>{`
         /*
          * Card: vertical flex column — image takes flex-[4] (≈80%), text flex-1 (≈20%).
-         * Fixed 280px height on mobile gives a compact swipeable card; on desktop
-         * the card stretches to 440px tall so the image area (≈352px) shows real
-         * detail.  snap-start aligns the card to the left edge of the viewport.
+         * Image container has inset padding + rounded corners for an Apple-style
+         * inset card aesthetic. Card width is slightly narrower than the viewport
+         * so the next card peeks from the right edge on every breakpoint.
          */
         .s2f-card {
           display: flex;
           flex-direction: column;
           flex-shrink: 0;
-          width: 78vw;
-          max-width: 340px;
+          width: 85vw;
+          max-width: 380px;
           height: 280px;
           scroll-snap-align: start;
           overflow: hidden;
-          border-radius: 18px;
+          border-radius: 16px;
           border: 1px solid rgba(0, 0, 0, 0.08);
           background: #ffffff;
         }
+        /* Image container — inset with padding, rounded corners, 80% of card height. */
+        .s2f-img {
+          position: relative;
+          flex: 4;
+          min-height: 0;
+          margin: 8px;
+          border-radius: 12px;
+          overflow: hidden;
+          background: #dcdcdc;
+        }
         @media (min-width: 768px) {
           .s2f-card {
-            width: 300px;
-            max-width: 340px;
-            height: 440px;
+            width: 84vw;
+            max-width: 380px;
+            height: 480px;
+          }
+          .s2f-img {
+            margin: 10px;
+            border-radius: 14px;
           }
         }
       `}</style>
