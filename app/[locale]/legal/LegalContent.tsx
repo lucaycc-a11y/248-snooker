@@ -42,6 +42,8 @@ export default function LegalContent({
     { id: "website_terms", label: nav.website_terms },
     { id: "privacy", label: nav.privacy },
     { id: "accessibility", label: nav.accessibility },
+    { id: "refund_policy", label: nav.refund_policy },
+    { id: "delivery_policy", label: nav.delivery_policy },
   ]
 
   const selectDoc = (docId: LegalDocId) => {

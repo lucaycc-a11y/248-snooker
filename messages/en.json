@@ -140,7 +140,9 @@
       "terms": "Venue Rules",
       "website_terms": "Website Terms",
       "privacy": "Privacy Policy",
-      "accessibility": "Accessibility Statement"
+      "accessibility": "Accessibility Statement",
+    "refund_policy": "Returns & Refunds",
+    "delivery_policy": "Delivery Policy"
     }
   },
   "pricingPage": {

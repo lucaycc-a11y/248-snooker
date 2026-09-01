@@ -12,8 +12,14 @@ import { privacyEn } from './privacy.en'
 import { accessibilityZhHK } from './accessibility.zh-HK'
 import { accessibilityZhCN } from './accessibility.zh-CN'
 import { accessibilityEn } from './accessibility.en'
+import { refundPolicyZhHK } from './refund-policy.zh-HK'
+import { refundPolicyZhCN } from './refund-policy.zh-CN'
+import { refundPolicyEn } from './refund-policy.en'
+import { deliveryPolicyZhHK } from './delivery-policy.zh-HK'
+import { deliveryPolicyZhCN } from './delivery-policy.zh-CN'
+import { deliveryPolicyEn } from './delivery-policy.en'
 
-// Registry of the 3 legal documents × 3 locales = 9 static files. zh-HK is
+// Registry of the 6 legal documents × 3 locales = 18 static files. zh-HK is
 // the canonical source; zh-CN and en are faithful 1:1 translations (same
 // section count/structure, translated by a human-reviewed pass — never
 // machine-summarized). No ja variant exists (ja was dropped site-wide).
@@ -22,7 +28,7 @@ import { accessibilityEn } from './accessibility.en'
 // content/legal/verify-section-counts.ts for the structural parity check
 // that must pass across all 3 locales for each document.
 
-export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility'
+export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy'
 
 const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
   terms: {
@@ -45,6 +51,16 @@ const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
     'zh-CN': accessibilityZhCN,
     en: accessibilityEn,
   },
+  refund_policy: {
+    'zh-HK': refundPolicyZhHK,
+    'zh-CN': refundPolicyZhCN,
+    en: refundPolicyEn,
+  },
+  delivery_policy: {
+    'zh-HK': deliveryPolicyZhHK,
+    'zh-CN': deliveryPolicyZhCN,
+    en: deliveryPolicyEn,
+  },
 }
 
 export function getLegalDocument(docId: LegalDocId, locale: Locale): LegalDocument {
@@ -57,5 +73,7 @@ export function getAllLegalDocuments(locale: Locale): Record<LegalDocId, LegalDo
     website_terms: getLegalDocument('website_terms', locale),
     privacy: getLegalDocument('privacy', locale),
     accessibility: getLegalDocument('accessibility', locale),
+    refund_policy: getLegalDocument('refund_policy', locale),
+    delivery_policy: getLegalDocument('delivery_policy', locale),
   }
 }

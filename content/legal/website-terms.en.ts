@@ -15,7 +15,7 @@ export const websiteTermsEn: LegalDocument = {
     },
     {
       title: "Booking and Payment",
-      body: "1. All bookings must be completed via online payment through this Website or a designated system, at the price displayed on the Website at the time of order.\n2. Payments are processed by third-party licensed payment service providers; the Company does not store your complete credit card information.\n3. Refund, rescheduling, and cancellation arrangements are governed by the provisions set out in the Venue Rules and Terms.",
+      body: "1. All bookings must be completed via online payment through this Website or a designated system, at the price displayed on the Website at the time of order.\n2. Payments are processed by third-party licensed payment service providers; the Company does not store your complete credit card information.\n3. Refund, rescheduling, and cancellation arrangements are governed by the Returns & Refunds Policy and the Venue Rules and Terms.",
     },
     {
       title: "Intellectual Property",
