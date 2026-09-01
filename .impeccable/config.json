@@ -664,6 +664,30 @@
         "rule": "design-system-color",
         "value": "#ff5252",
         "createdAt": "2026-08-31T13:06:01.096Z"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "jetbrains mono",
+        "files": [
+          "app/admin/layout.tsx"
+        ],
+        "createdAt": "2026-08-31T13:09:29.315Z",
+        "reason": "Existing codebase font, used in globals.css .font-code and tokens.font.mono — spec §1.3 mandates JetBrains Mono for codes/IDs"
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "files": [
+          "app/admin/layout.tsx"
+        ],
+        "createdAt": "2026-08-31T13:15:41.705Z",
+        "reason": "Spec §1.3 explicitly mandates Inter for Latin body text — sanctioned brand exception, not a default choice"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#dcdcdc",
+        "createdAt": "2026-09-01T06:46:48.189Z",
+        "reason": "Loading placeholder background for image container — standard skeleton/loading pattern, not a brand color"
       }
     ]
   }
