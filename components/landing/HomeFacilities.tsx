@@ -1,21 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Armchair, BatteryCharging, Bot, Briefcase, DoorOpen, Lightbulb, QrCode, Sword, Table2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+/* ── Image paths (public/gallery/) ── */
 const FACILITY_IMAGES = [
-  "/gallery/table-poster.jpg",             // 星牌中式桌球枱 — table close-up
-  "/gallery/Space8_Competition_Mode.PNG",  // 專業設備 — competition lighting & atmosphere
-  "/gallery/space-pilot-scoreboard.png",   // Space Pilot — AI scoreboard interface
-  "/gallery/Space8_Door.PNG",              // 自助入場 — door + QR entry
-  "/gallery/Space_Infinity.PNG",           // 無煙區域 — clean Infinity room environment
-  "/gallery/Space_Enternity.PNG",          // 專業桌球杆 — cue sticks in Eternity room
-  "/gallery/space-pilot-scoreboard.png",   // 沙發休息區 — Space Pilot interface (reused)
-  "/gallery/Space_Infinity.PNG",           // 充電區 — Infinity room charging zone (reused)
-  "/gallery/Space_Enternity.PNG",          // 隨身物品存放 — Eternity room secure area (reused)
+  "/gallery/table-poster.jpg",
+  "/gallery/Space8_Competition_Mode.PNG",
+  "/gallery/space-pilot-scoreboard.png",
+  "/gallery/Space8_Door.PNG",
+  "/gallery/Space_Infinity.PNG",
+  "/gallery/Space_Enternity.PNG",
+  "/gallery/space-pilot-scoreboard.png",
+  "/gallery/Space_Infinity.PNG",
+  "/gallery/Space_Enternity.PNG",
 ] as const;
 
 const FACILITY_ICONS = [Table2, Lightbulb, Bot, DoorOpen, QrCode, Sword, Armchair, BatteryCharging, Briefcase] as const;
@@ -58,7 +58,7 @@ export default function HomeFacilities() {
 
   const scrollTo = (index: number) => {
     const track = trackRef.current;
-    const card = track?.querySelector<HTMLElement>(`[data-facility-card=\"${index}\"]`);
+    const card = track?.querySelector<HTMLElement>(`[data-facility-card="${index}"]`);
     card?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
   };
 
@@ -68,13 +68,13 @@ export default function HomeFacilities() {
       data-nav-theme="light"
       className="overflow-hidden bg-[#e8e8e8] px-0 py-[88px] md:py-[116px]"
     >
-      <div className="mx-auto max-w-[1120px] px-6">
+      {/* ── Header ── */}
+      <div className="px-6 md:px-16 mb-10">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.7, ease: EASE }}
-          className="mb-8 max-w-2xl md:mb-12"
         >
           <p data-cms-key="homeVenue.eyebrow" className="mb-3 font-label text-[12px] font-bold tracking-[0.12em] text-[#1a9d5c]">
             {t("eyebrow")}
@@ -88,13 +88,10 @@ export default function HomeFacilities() {
         </motion.div>
       </div>
 
-      {/* Horizontal scroll gallery — each card is narrower than the viewport
-          so the next card naturally peeks from the right edge, signalling
-          more content is available to swipe. Image container has inset
-          padding + rounded corners (Apple-style inset card). */}
+      {/* ── Horizontal scroll gallery ── */}
       <div
         ref={trackRef}
-        className="no-scrollbar hscroll-track flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:px-6"
+        className="overflow-x-scroll snap-x snap-mandatory flex gap-4 px-6 md:px-16 pb-4 no-scrollbar"
       >
         {facilities.map((facility, index) => {
           const Icon = FACILITY_ICONS[index] ?? Table2;
@@ -106,26 +103,24 @@ export default function HomeFacilities() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.6, delay: index * 0.05, ease: EASE }}
-              className="s2f-card"
+              className="snap-start shrink-0 flex flex-col"
+              style={{ width: "85vw", maxWidth: "420px" }}
             >
-              {/* Image block — flex-[4] ≈ 80% of card height, with inset
-                  padding + rounded corners so the image sits inside the card
-                  with breathing room on all sides. */}
-              <div className="s2f-img">
-                <Image
+              {/* ── Image block: ~76% of card ── */}
+              <div className="rounded-2xl overflow-hidden" style={{ height: "320px" }}>
+                <img
                   src={FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0]}
                   alt={facility.title}
-                  fill
-                  sizes="(max-width: 767px) 85vw, 380px"
-                  className="object-cover"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              {/* Text block — flex-1 ≈ 20% of card height, tightly packed */}
-              <div className="flex flex-[1] min-h-0 flex-col justify-center px-5 py-3">
-                <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="mb-1.5 text-[#1a9d5c]" />
+
+              {/* ── Text block: ~24% of card ── */}
+              <div className="pt-4" style={{ minHeight: "100px" }}>
+                <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="mb-2 text-[#1a9d5c]" />
                 <h3
                   data-cms-key={`homeVenue.items.${index}.title`}
-                  className="m-0 text-[15px] font-semibold leading-[1.3] text-[#111110]"
+                  className="m-0 text-[16px] font-semibold leading-[1.3] text-[#111110]"
                 >
                   {facility.title}
                 </h3>
@@ -141,6 +136,7 @@ export default function HomeFacilities() {
         })}
       </div>
 
+      {/* ── Dot pagination (mobile) ── */}
       <div className="mt-7 flex justify-center gap-2 md:hidden" aria-label={t("pagination_label")}>
         {facilities.map((facility, index) => (
           <button
@@ -153,48 +149,6 @@ export default function HomeFacilities() {
           />
         ))}
       </div>
-      <style jsx>{`
-        /*
-         * Card: vertical flex column — image takes flex-[4] (≈80%), text flex-1 (≈20%).
-         * Image container has inset padding + rounded corners for an Apple-style
-         * inset card aesthetic. Card width is slightly narrower than the viewport
-         * so the next card peeks from the right edge on every breakpoint.
-         */
-        .s2f-card {
-          display: flex;
-          flex-direction: column;
-          flex-shrink: 0;
-          width: 85vw;
-          max-width: 380px;
-          height: 280px;
-          scroll-snap-align: start;
-          overflow: hidden;
-          border-radius: 16px;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          background: #ffffff;
-        }
-        /* Image container — inset with padding, rounded corners, 80% of card height. */
-        .s2f-img {
-          position: relative;
-          flex: 4;
-          min-height: 0;
-          margin: 8px;
-          border-radius: 12px;
-          overflow: hidden;
-          background: #dcdcdc;
-        }
-        @media (min-width: 768px) {
-          .s2f-card {
-            width: 84vw;
-            max-width: 380px;
-            height: 480px;
-          }
-          .s2f-img {
-            margin: 10px;
-            border-radius: 14px;
-          }
-        }
-      `}</style>
     </section>
   );
 }
