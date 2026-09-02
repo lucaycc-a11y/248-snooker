@@ -3,261 +3,94 @@
 import { useEffect, useRef, useState } from "react"
 
 /**
- * Section 4 — Table 展示 (Canvas Image-Sequence Scrubbing)
+ * Section 4 — Table 展示 (Simplified CSS crossfade)
  *
- * V1 placeholder: 120 frames rendered programmatically via Canvas API.
- *   Frames  0–29  : Table 1 (Space Infinity) sharp
- *   Frames 30–59  : Table 1 blurs + darkens + "Space Infinity" text appears
- *   Frames 60–79  : "or Space Eternity" fades in below
- *   Frames 80–119 : Text fades out, Table 2 (Space Eternity) fades in
+ * Two static images with a one-time IntersectionObserver-triggered crossfade.
+ * Table 1 (Space Infinity) starts fully visible; when the section scrolls into
+ * view (30% threshold), a 1.5s CSS transition crossfades to Table 2 (Space
+ * Eternity) with text overlay.
  *
- * Swap in hand-crafted frame sequences (WebP @ 1920×1080) by replacing the
- * `generateFrames` function with a loader that reads from `/section4-frames/`.
- *
- * Uses `position: sticky` (not GSAP ScrollTrigger — see Section2Value.tsx
- * comment for why: mobile Safari pin-spacing / address-bar resize bugs).
- *
- * Placeholder images — replace with real room photos when available:
+ * Placeholder images — replace with real room panoramas when available:
  *   Table 1: /gallery/S2/part3_table_wide_room.png
  *   Table 2: /gallery/Space_Enternity.PNG
  */
 
-const FRAME_COUNT = 120
-const CW = 1920
-const CH = 1080
-
-/* ─── helpers ─────────────────────────────────────────────────────────── */
-
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v
+const GOOD_TIMES: React.CSSProperties = {
+  fontFamily: '"Good Times", "Bebas Neue", sans-serif',
 }
-
-function smoothstep(x: number, a: number, b: number, c: number, d: number): number {
-  if (x <= a) return 0
-  if (x >= d) return 0
-  if (x >= b && x <= c) return 1
-  if (x < b) return (x - a) / (b - a)
-  return (d - x) / (d - c)
-}
-
-/** Draw an image to cover a canvas (object-fit: cover behaviour). */
-function drawCover(
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  cw: number,
-  ch: number,
-): void {
-  const ratio = Math.max(cw / img.width, ch / img.height)
-  const w = img.width * ratio
-  const h = img.height * ratio
-  ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h)
-}
-
-/* ─── frame generation ────────────────────────────────────────────────── */
-
-function renderFrame(
-  ctx: CanvasRenderingContext2D,
-  index: number,
-  t1: HTMLImageElement,
-  t2: HTMLImageElement,
-): void {
-  const p = index / (FRAME_COUNT - 1)
-
-  // Per-channel animation curves
-  const t1Opacity = smoothstep(p, 0.0, 0.0, 0.62, 0.78)
-  const t2Opacity = smoothstep(p, 0.72, 0.85, 1.0, 1.0)
-  const scrim = smoothstep(p, 0.22, 0.35, 0.68, 0.80) * 0.6
-  const titleOp = smoothstep(p, 0.25, 0.35, 0.68, 0.78)
-  const subOp = smoothstep(p, 0.48, 0.58, 0.68, 0.78)
-
-  // Layer 0 — Table 1 (sharp)
-  ctx.globalAlpha = t1Opacity
-  ctx.globalCompositeOperation = "source-over"
-  drawCover(ctx, t1, CW, CH)
-
-  // Layer 2 — Table 2 (sharp, fading in)
-  ctx.globalAlpha = t2Opacity
-  drawCover(ctx, t2, CW, CH)
-
-  // Layer 3 — dark scrim for text readability
-  ctx.globalAlpha = scrim
-  ctx.fillStyle = "#000"
-  ctx.fillRect(0, 0, CW, CH)
-
-  // Layer 4 — text overlays
-  ctx.globalAlpha = 1
-  ctx.textAlign = "center"
-  ctx.textBaseline = "middle"
-
-  // "Space Infinity"
-  ctx.globalAlpha = titleOp
-  ctx.fillStyle = "#fff"
-  ctx.font = '800 120px "Good Times", "Bebas Neue", sans-serif'
-  ctx.letterSpacing = "12px"
-  ctx.fillText("Space Infinity", CW / 2, CH / 2 - 40)
-  ctx.letterSpacing = "0px"
-
-  // "or Space Eternity"
-  ctx.globalAlpha = subOp
-  ctx.fillStyle = "rgba(255,255,255,0.7)"
-  ctx.font = '400 52px "Good Times", "Bebas Neue", sans-serif'
-  ctx.letterSpacing = "8px"
-  ctx.fillText("or Space Eternity", CW / 2, CH / 2 + 60)
-  ctx.letterSpacing = "0px"
-
-  // Reset
-  ctx.globalAlpha = 1
-}
-
-function loadImg(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.crossOrigin = "anonymous"
-    img.onload = () => resolve(img)
-    img.onerror = () => reject(new Error(`Failed to load: ${src}`))
-    img.src = src
-  })
-}
-
-/* ─── component ───────────────────────────────────────────────────────── */
 
 export default function Section4TableTransition() {
-  const stageRef = useRef<HTMLDivElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const framesRef = useRef<HTMLCanvasElement[]>([])
-  const currentFrame = useRef(-1)
-  const ticking = useRef(false)
-  const [loaded, setLoaded] = useState(false)
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const triggered = useRef(false)
+  const [inView, setInView] = useState(false)
 
-  // 1. Load source images, pre-render all frames to offscreen canvases
   useEffect(() => {
-    let cancelled = false
+    const el = sectionRef.current
+    if (!el) return
 
-    ;(async () => {
-      try {
-        const [t1, t2] = await Promise.all([
-          loadImg("/gallery/S2/part3_table_wide_room.png"),
-          loadImg("/gallery/Space_Enternity.PNG"),
-        ])
-        if (cancelled) return
-
-        // Pre-render every frame to its own offscreen canvas
-        const frames: HTMLCanvasElement[] = []
-        for (let i = 0; i < FRAME_COUNT; i++) {
-          const c = document.createElement("canvas")
-          c.width = CW
-          c.height = CH
-          const ctx = c.getContext("2d")
-          if (ctx) renderFrame(ctx, i, t1, t2)
-          frames.push(c)
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !triggered.current) {
+          triggered.current = true
+          setInView(true)
         }
-        framesRef.current = frames
+      },
+      { threshold: 0.3 },
+    )
 
-        // Draw first frame immediately
-        const mainCanvas = canvasRef.current
-        if (mainCanvas) {
-          const ctx = mainCanvas.getContext("2d")
-          if (ctx && frames[0]) {
-            ctx.drawImage(frames[0], 0, 0, mainCanvas.width, mainCanvas.height)
-          }
-        }
-        currentFrame.current = 0
-        setLoaded(true)
-      } catch (err) {
-        console.error("[Section4] frame generation failed:", err)
-        setLoaded(true) // still mark loaded so scroll works (shows black)
-      }
-    })()
-
-    return () => { cancelled = true }
+    observer.observe(el)
+    return () => observer.disconnect()
   }, [])
-
-  // 2. Scroll → frame scrubbing
-  useEffect(() => {
-    if (!loaded) return
-
-    const stage = stageRef.current
-    if (!stage) return
-
-    const draw = (index: number): void => {
-      const canvas = canvasRef.current
-      const frame = framesRef.current[index]
-      if (!canvas || !frame) return
-      const ctx = canvas.getContext("2d")
-      if (!ctx) return
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.drawImage(frame, 0, 0, canvas.width, canvas.height)
-    }
-
-    const update = (): void => {
-      ticking.current = false
-      const rect = stage.getBoundingClientRect()
-      const total = stage.offsetHeight - window.innerHeight
-      if (total <= 0) return
-
-      const scrolled = clamp01(-rect.top / total)
-      const idx = Math.min(FRAME_COUNT - 1, Math.floor(scrolled * FRAME_COUNT))
-
-      if (idx !== currentFrame.current) {
-        currentFrame.current = idx
-        draw(idx)
-      }
-    }
-
-    const onScroll = (): void => {
-      if (!ticking.current) {
-        ticking.current = true
-        requestAnimationFrame(update)
-      }
-    }
-
-    // Resize canvas to match CSS layout size
-    const resize = (): void => {
-      const canvas = canvasRef.current
-      if (!canvas) return
-      canvas.width = canvas.clientWidth * devicePixelRatio
-      canvas.height = canvas.clientHeight * devicePixelRatio
-      // Re-draw current frame at new resolution
-      if (currentFrame.current >= 0) draw(currentFrame.current)
-    }
-
-    resize()
-    update()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    window.addEventListener("resize", resize, { passive: true })
-
-    return () => {
-      window.removeEventListener("scroll", onScroll)
-      window.removeEventListener("resize", resize)
-    }
-  }, [loaded])
 
   return (
     <section
+      ref={sectionRef}
       aria-label="Table showcase — Space Infinity and Space Eternity rooms"
-      className="relative bg-black"
-      style={{ height: "400vh" }}
+      className="relative h-screen overflow-hidden bg-black"
     >
-      <div
-        ref={stageRef}
-        className="sticky top-0 h-screen w-full overflow-hidden"
-      >
-        <canvas
-          ref={canvasRef}
-          className="h-full w-full object-cover"
-          aria-hidden="true"
-        />
+      {/* Table 1 — starts fully visible, fades out on trigger */}
+      {/* TODO: Replace with real Table 1 panorama photo */}
+      <img
+        src="/gallery/S2/part3_table_wide_room.png"
+        alt="Space Infinity room"
+        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1500ms]"
+        style={{ opacity: inView ? 0 : 1 }}
+      />
 
-        {/* Loading overlay — visible until all frames are pre-rendered */}
-        {!loaded && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black text-white">
-            <span className="font-label text-lg tracking-[0.12em] text-white/60"
-              style={{ fontFamily: '"Good Times", "Bebas Neue", sans-serif' }}
-            >
-              Loading…
-            </span>
-          </div>
-        )}
+      {/* Table 2 — starts hidden, fades in on trigger */}
+      {/* TODO: Replace with real Table 2 panorama photo */}
+      <img
+        src="/gallery/Space_Enternity.PNG"
+        alt="Space Eternity room"
+        className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1500ms]"
+        style={{ opacity: inView ? 1 : 0 }}
+      />
+
+      {/* Dark scrim for text readability */}
+      <div
+        className="absolute inset-0 bg-black transition-opacity duration-[1500ms]"
+        style={{ opacity: inView ? 0.4 : 0 }}
+      />
+
+      {/* Text overlay */}
+      <div
+        className="relative z-10 text-center transition-opacity duration-[1500ms]"
+        style={{ opacity: inView ? 1 : 0 }}
+      >
+        <h2
+          className="text-6xl font-bold text-white md:text-8xl"
+          style={GOOD_TIMES}
+          data-cms-key="section4.title"
+        >
+          Space Infinity
+        </h2>
+        <h3
+          className="mt-4 text-3xl text-white/80 md:text-5xl"
+          style={GOOD_TIMES}
+          data-cms-key="section4.subtitle"
+        >
+          or Space Eternity
+        </h3>
       </div>
     </section>
   )
