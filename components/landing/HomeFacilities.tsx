@@ -104,7 +104,7 @@ export default function HomeFacilities() {
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.6, delay: index * 0.05, ease: EASE }}
               className="snap-start shrink-0 flex flex-col"
-              style={{ width: "90vw", maxWidth: "480px" }}
+              style={{ width: "90vw", maxWidth: "480px", touchAction: "pan-x" }}
             >
               {/* ── Image block: ~76% of card ── */}
               <div className="rounded-2xl overflow-hidden" style={{ height: "420px" }}>
