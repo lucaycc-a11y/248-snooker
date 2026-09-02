@@ -46,6 +46,10 @@ const GRADIENT_METALLIC =
 const GRADIENT_OR =
   "linear-gradient(90.13deg, rgb(124,120,120) 2.6068%, rgba(57,255,43,0.5) 9.5794%, rgb(221,221,221) 41.449%, rgb(210,210,210) 62.509%, rgb(124,120,120) 99.947%)"
 
+/* ── Shared font (not in Tailwind config, so inline) ───────────── */
+
+const FONT_FAMILY = "'Good Times', sans-serif"
+
 const TEXT_CLASS =
   "absolute inset-0 flex items-center justify-center select-none pointer-events-none"
 
@@ -89,7 +93,7 @@ export default function Section4TableTransition() {
       progress = clamp(scrolled / Math.max(scrollRange, 1), 0, 1)
     }
 
-    /* ── State calculations ──────────────────────────────────── */
+    /* ── State calculations (opacity + scale) ──────────────────── */
 
     // State 1→2: Table 1 fades out (0.00–0.10)
     const table1Opacity =
@@ -106,6 +110,15 @@ export default function Section4TableTransition() {
             : progress < 0.38 ? lerp(1, 0, (progress - 0.32) / 0.06)
               : 0
 
+    // Mask Text 1 SCALE: 18→1 over 0.03–0.32
+    // At scale 18: letterforms are huge → abstract texture through tiny letter edges
+    // At scale 3: text becoming recognizable (state 3)
+    // At scale 1: full readable text with image inside (state 4)
+    const mask1Scale =
+      progress < 0.03 ? 18
+        : progress < 0.32 ? lerp(18, 1, (progress - 0.03) / 0.29)
+          : 1
+
     // Solid gradient text
     // Fades in 0.28–0.35, visible 0.35–0.56, fades out 0.56–0.62
     const solidOpacity =
@@ -119,18 +132,18 @@ export default function Section4TableTransition() {
     // Fades in 0.38–0.44, visible 0.44–0.54, fades out 0.54–0.60
     const orOpacity =
       progress < 0.38 ? 0
-        : progress < 0.44 ? lerp(0, 1, (progress - 0.38) / 0.06)
-          : progress < 0.54 ? 1
-            : progress < 0.60 ? lerp(1, 0, (progress - 0.54) / 0.06)
+        : progress < 0.44 ? lerp(0, 0.5, (progress - 0.38) / 0.06)
+          : progress < 0.54 ? 0.5
+            : progress < 0.60 ? lerp(0.5, 0, (progress - 0.54) / 0.06)
               : 0
 
     // "Space Eternity" text (0.5 opacity, metallic gradient)
     // Fades in 0.40–0.46, visible 0.46–0.54, fades out 0.54–0.60
     const eternityOpacity =
       progress < 0.40 ? 0
-        : progress < 0.46 ? lerp(0, 1, (progress - 0.40) / 0.06)
-          : progress < 0.54 ? 1
-            : progress < 0.60 ? lerp(1, 0, (progress - 0.54) / 0.06)
+        : progress < 0.46 ? lerp(0, 0.5, (progress - 0.40) / 0.06)
+          : progress < 0.54 ? 0.5
+            : progress < 0.60 ? lerp(0.5, 0, (progress - 0.54) / 0.06)
               : 0
 
     // Mask Text 2 (Table 2 texture through text)
@@ -141,6 +154,13 @@ export default function Section4TableTransition() {
           : progress < 0.90 ? 1
             : progress < 0.95 ? lerp(1, 0, (progress - 0.90) / 0.05)
               : 0
+
+    // Mask Text 2 SCALE: 1→18 over 0.56–0.95
+    // Reverse zoom: text readable at scale 1, scales up to 18→abstract→black
+    const mask2Scale =
+      progress < 0.56 ? 1
+        : progress < 0.95 ? lerp(1, 18, (progress - 0.56) / 0.39)
+          : 18
 
     // Table 2 full image
     // Fades in 0.90–0.97
@@ -168,9 +188,10 @@ export default function Section4TableTransition() {
       opacity: String(table2Opacity),
     })
 
-    // Mask Text 1: text-as-viewport with Table 1 image
+    // Mask Text 1: text-as-viewport with Table 1 image, SCALE 18→1
     s(maskText1Ref.current, {
       opacity: String(mask1Opacity),
+      transform: `scale(${mask1Scale})`,
     })
 
     // Solid gradient text: replaces mask text at state 4
@@ -180,17 +201,18 @@ export default function Section4TableTransition() {
 
     // "or" text: green accent gradient, 0.5 opacity
     s(orTextRef.current, {
-      opacity: String(orOpacity * 0.5),
+      opacity: String(orOpacity),
     })
 
     // "Space Eternity" text: metallic gradient, 0.5 opacity
     s(eternityTextRef.current, {
-      opacity: String(eternityOpacity * 0.5),
+      opacity: String(eternityOpacity),
     })
 
-    // Mask Text 2: text-as-viewport with Table 2 image
+    // Mask Text 2: text-as-viewport with Table 2 image, SCALE 1→18
     s(maskText2Ref.current, {
       opacity: String(mask2Opacity),
+      transform: `scale(${mask2Scale})`,
     })
 
     rafId.current = requestAnimationFrame(animate)
@@ -270,20 +292,24 @@ export default function Section4TableTransition() {
         />
 
         {/* ── Layer 2: Mask Text 1 — Table 1 image through text letterforms ──
-            Text stays at scale 1. At scale 1 the letterforms are readable
-            with the image visible inside. The "zoom" effect comes from
-            the text fading in/out, not from CSS scale. */}
+            Starts at scale 18 (abstract texture), zooms to scale 1 (readable).
+            The zoom IS the CSS transform: scale(). At 18x the letterforms are
+            so large only tiny fragments of the background image are visible,
+            creating an abstract texture. As scale decreases, letterforms
+            become recognizable with the image visible inside them. */}
         <div
           ref={maskText1Ref}
-          className={`${TEXT_CLASS} font-good-times text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider`}
+          className={`${TEXT_CLASS} text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider whitespace-nowrap`}
           style={{
             opacity: 0,
+            fontFamily: FONT_FAMILY,
             backgroundSize: "cover",
             backgroundPosition: "center",
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             color: "transparent",
             backgroundImage: "url('/gallery/Space_Infinity.PNG')",
+            transformOrigin: "center center",
           }}
           data-cms-key="section4.space-infinity"
         >
@@ -293,9 +319,10 @@ export default function Section4TableTransition() {
         {/* ── Layer 3: Solid gradient text — State 4 pure text stage ── */}
         <div
           ref={solidTextRef}
-          className={`${TEXT_CLASS} font-good-times text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider`}
+          className={`${TEXT_CLASS} text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider whitespace-nowrap`}
           style={{
             opacity: 0,
+            fontFamily: FONT_FAMILY,
             backgroundImage: GRADIENT_METALLIC,
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
@@ -309,9 +336,10 @@ export default function Section4TableTransition() {
         {/* ── Layer 4: "or" text — State 5, green accent gradient, 0.5 opacity ── */}
         <div
           ref={orTextRef}
-          className={`${TEXT_CLASS} flex-col font-good-times text-[clamp(1.8rem,5vw,4rem)] uppercase tracking-wider`}
+          className={`${TEXT_CLASS} flex-col text-[clamp(1.8rem,5vw,4rem)] uppercase tracking-wider whitespace-nowrap`}
           style={{
             opacity: 0,
+            fontFamily: FONT_FAMILY,
             backgroundImage: GRADIENT_OR,
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
@@ -325,9 +353,10 @@ export default function Section4TableTransition() {
         {/* ── Layer 5: "Space Eternity" text — State 5, metallic gradient, 0.5 opacity ── */}
         <div
           ref={eternityTextRef}
-          className={`${TEXT_CLASS} flex-col font-good-times text-[clamp(3rem,10vw,8rem)] uppercase tracking-wider`}
+          className={`${TEXT_CLASS} flex-col text-[clamp(3rem,10vw,8rem)] uppercase tracking-wider whitespace-nowrap`}
           style={{
             opacity: 0,
+            fontFamily: FONT_FAMILY,
             backgroundImage: GRADIENT_METALLIC,
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
@@ -338,18 +367,23 @@ export default function Section4TableTransition() {
           Space Eternity
         </div>
 
-        {/* ── Layer 6: Mask Text 2 — Table 2 image through text letterforms ── */}
+        {/* ── Layer 6: Mask Text 2 — Table 2 image through text letterforms ──
+            REVERSE zoom: starts at scale 1 (readable), zooms to scale 18 (abstract).
+            At scale 1, full letterforms readable with Table 2 image inside.
+            At scale 18, letterforms are enormous → abstract → nearly all black. */}
         <div
           ref={maskText2Ref}
-          className={`${TEXT_CLASS} font-good-times text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider`}
+          className={`${TEXT_CLASS} text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider whitespace-nowrap`}
           style={{
             opacity: 0,
+            fontFamily: FONT_FAMILY,
             backgroundSize: "cover",
             backgroundPosition: "center",
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             color: "transparent",
             backgroundImage: "url('/gallery/Space_Enternity.PNG')",
+            transformOrigin: "center center",
           }}
           data-cms-key="section4.space-eternity-mask"
         >
