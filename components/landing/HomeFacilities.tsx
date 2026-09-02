@@ -7,15 +7,15 @@ import { Armchair, BatteryCharging, Bot, Briefcase, DoorOpen, Lightbulb, QrCode,
 import { useTranslations } from "next-intl";
 
 const FACILITY_IMAGES = [
-  "/gallery/table-poster.jpg",
-  "/gallery/Space8_Competition_Mode.PNG",
-  "/gallery/Space_Infinity.PNG",
-  "/gallery/Space8_Door.PNG",
-  "/gallery/Space_Enternity.PNG",
-  "/gallery/Space8_Competition_Mode.PNG", // placeholder: 專業桌球杆
-  "/gallery/Space_Infinity.PNG",          // placeholder: 沙發休息區
-  "/gallery/Space_Enternity.PNG",         // placeholder: 充電區
-  "/gallery/Space8_Door.PNG",             // placeholder: 隨身物品存放
+  "/gallery/table-poster.jpg",             // 星牌中式桌球枱 — table close-up
+  "/gallery/Space8_Competition_Mode.PNG",  // 專業設備 — competition lighting & atmosphere
+  "/gallery/space-pilot-scoreboard.png",   // Space Pilot — AI scoreboard interface
+  "/gallery/Space8_Door.PNG",              // 自助入場 — door + QR entry
+  "/gallery/Space_Infinity.PNG",           // 無煙區域 — clean Infinity room environment
+  "/gallery/Space_Enternity.PNG",          // 專業桌球杆 — cue sticks in Eternity room
+  "/gallery/space-pilot-scoreboard.png",   // 沙發休息區 — Space Pilot interface (reused)
+  "/gallery/Space_Infinity.PNG",           // 充電區 — Infinity room charging zone (reused)
+  "/gallery/Space_Enternity.PNG",          // 隨身物品存放 — Eternity room secure area (reused)
 ] as const;
 
 const FACILITY_ICONS = [Table2, Lightbulb, Bot, DoorOpen, QrCode, Sword, Armchair, BatteryCharging, Briefcase] as const;
