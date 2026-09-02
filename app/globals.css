@@ -114,7 +114,7 @@ body {
    horizontal touch scrolling entirely. overscroll-behavior-x keeps an
    end-of-strip swipe from triggering browser back/forward navigation. */
 .hscroll-track {
-  touch-action: pan-x pan-y;
+  touch-action: pan-x;
   overscroll-behavior-x: contain;
 }
 

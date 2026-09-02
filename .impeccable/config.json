@@ -95,7 +95,7 @@
         "rule": "side-tab",
         "value": "3px solid #22c55e",
         "createdAt": "2026-08-21T07:32:18.340Z",
-        "reason": "Standard blockquote left-border in .blog-prose — a typographic treatment, not a card side-tab accent"
+        "reason": "false-positive: this is a .blog-prose blockquote left-border, a universal blockquote convention, not a card side-tab accent"
       },
       {
         "rule": "design-system-font",
@@ -688,6 +688,11 @@
         "value": "#dcdcdc",
         "createdAt": "2026-09-01T06:46:48.189Z",
         "reason": "Loading placeholder background for image container — standard skeleton/loading pattern, not a brand color"
+      },
+      {
+        "rule": "globals.css",
+        "value": "l205 blockquote border-left is standard prose styling, not a side-tab accent",
+        "createdAt": "2026-09-02T00:34:00.140Z"
       }
     ]
   }
