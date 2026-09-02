@@ -1,6 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger)
+}
 
 /**
  * Section 4 — Table 展示 (scroll-linked zoom animation)
@@ -10,11 +16,10 @@ import { useCallback, useEffect, useRef, useState } from "react"
  * letter edges, then transitions to solid gradient text, shows
  * "or / Space Eternity", and reverses with a second table image.
  *
- * v3 fixes:
- *   - Text overlap: solid/or/eternity now in a single flex-col group
- *   - Green band artifact: gradient widened 3× on "or" text
- *   - Zoom-in speed: compressed from 29% to 12% of scroll distance
- *   - Overflow clipping: removed overflow-hidden so text extends naturally
+ * v4: GSAP ScrollTrigger + scrub-based crossfade
+ *   - "Space Infinity" fades to 0.18 (stays faintly visible)
+ *   - "Or Space Eternity" fades 0→1 scrub-driven
+ *   - Replaces IntersectionObserver + rAF with single GSAP timeline
  *
  * Gradient values per Figma spec:
  *   Space Infinity: linear-gradient(90.13deg, #7C7878 2.61%, #DDDDDD 41.45%, #D2D2D2 62.51%, #7C7878 99.95%)
@@ -52,175 +57,101 @@ export default function Section4TableTransition() {
   const table1ImgRef = useRef<HTMLDivElement>(null)
   const table2ImgRef = useRef<HTMLDivElement>(null)
   const maskText1Ref = useRef<HTMLDivElement>(null)
-  const solidGroupRef = useRef<HTMLDivElement>(null)
+  const spaceInfinityRef = useRef<HTMLDivElement>(null)
   const orTextRef = useRef<HTMLDivElement>(null)
   const eternityTextRef = useRef<HTMLDivElement>(null)
   const maskText2Ref = useRef<HTMLDivElement>(null)
 
-  const inView = useRef(false)
-  const rafId = useRef(0)
-  const [, setTick] = useState(0)
+  /* ── GSAP ScrollTrigger setup ───────────────────────────────── */
 
-  /* ── Animation tick ──────────────────────────────────────────── */
-
-  const animate = useCallback(() => {
+  useEffect(() => {
     const spacer = spacerRef.current
-    if (!spacer) return
+    const section = sectionRef.current
+    if (!spacer || !section) return
 
-    const rect = spacer.getBoundingClientRect()
-    const vh = window.innerHeight
+    // Clear initial inline opacity values so GSAP can take full control
+    gsap.set(section, { clearProps: "opacity" })
+    gsap.set(spaceInfinityRef.current, { clearProps: "opacity" })
+    gsap.set(orTextRef.current, { clearProps: "opacity" })
+    gsap.set(eternityTextRef.current, { clearProps: "opacity" })
 
-    let progress = 0
-    if (rect.top <= 0) {
-      const scrolled = -rect.top
-      const scrollRange = spacer.offsetHeight - vh
-      progress = clamp(scrolled / Math.max(scrollRange, 1), 0, 1)
-    }
+    // Build the master timeline pinned to scroll
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: spacer,
+        start: "top top",
+        end: "bottom bottom",
+        pin: section,
+        scrub: true,
+      },
+    })
 
-    /* ── Phase 1: Zoom In (0.00 → 0.19) ─────────────────────── */
+    /* ── Phase 1: Zoom In (0 → 0.19) ─────────────────────────── */
 
-    // Table 1: full image, fades out 0.02–0.06
-    const table1Opacity =
-      progress < 0.02 ? 1
-        : progress < 0.06 ? lerp(1, 0, (progress - 0.02) / 0.04)
-          : 0
+    // Table 1 full image: fades out 0.00–0.03
+    tl.to(table1ImgRef.current, { opacity: 0, duration: 0.03 }, 0)
 
-    // Mask 1: fades in 0.02–0.05, scale 18→1 over 0.05–0.17, fades out 0.15–0.19
-    const mask1Opacity =
-      progress < 0.02 ? 0
-        : progress < 0.05 ? lerp(0, 1, (progress - 0.02) / 0.03)
-          : progress < 0.15 ? 1
-            : progress < 0.19 ? lerp(1, 0, (progress - 0.15) / 0.04)
-              : 0
+    // Mask 1: fades in 0.00–0.03, scale 18→1 over 0.05–0.17 (12% of scroll — fast zoom-in)
+    tl.to(maskText1Ref.current, { opacity: 1, duration: 0.03 }, 0)
+    tl.to(maskText1Ref.current, { scale: 1, duration: 0.12, ease: "none" }, 0.05)
 
-    // Mask 1 SCALE: 18→1 over 0.05–0.17 (12% of scroll — fast zoom-in)
-    const mask1Scale =
-      progress < 0.05 ? 18
-        : progress < 0.17 ? lerp(18, 1, (progress - 0.05) / 0.12)
-          : 1
-
-    /* ── Phase 2: Solid Text (0.15 → 0.45) ───────────────────── */
-
-    // Solid group: fades in 0.15–0.19, visible, fades out 0.41–0.45
-    const solidGroupOpacity =
-      progress < 0.15 ? 0
-        : progress < 0.19 ? lerp(0, 1, (progress - 0.15) / 0.04)
-          : progress < 0.41 ? 1
-            : progress < 0.45 ? lerp(1, 0, (progress - 0.41) / 0.04)
-              : 0
-
-    // "or" line: fades in 0.24–0.30, visible, fades out 0.41–0.45
-    const orLineOpacity =
-      progress < 0.24 ? 0
-        : progress < 0.30 ? lerp(0, 1, (progress - 0.24) / 0.06)
-          : progress < 0.41 ? 1
-            : progress < 0.45 ? lerp(1, 0, (progress - 0.41) / 0.04)
-              : 0
-
-    // "Space Eternity" line: fades in 0.26–0.32, visible, fades out 0.41–0.45
-    const eternityLineOpacity =
-      progress < 0.26 ? 0
-        : progress < 0.32 ? lerp(0, 1, (progress - 0.26) / 0.06)
-          : progress < 0.41 ? 1
-            : progress < 0.45 ? lerp(1, 0, (progress - 0.41) / 0.04)
-              : 0
+    // Mask 1: fades out 0.15–0.19
+    tl.to(maskText1Ref.current, { opacity: 0, duration: 0.04 }, 0.15)
 
     /* ── Phase 3: Zoom Out (0.43 → 0.93) ─────────────────────── */
 
-    // Mask 2: fades in 0.43–0.47, scale 1→18 over 0.47–0.90, fades out 0.90–0.93
-    const mask2Opacity =
-      progress < 0.43 ? 0
-        : progress < 0.47 ? lerp(0, 1, (progress - 0.43) / 0.04)
-          : progress < 0.90 ? 1
-            : progress < 0.93 ? lerp(1, 0, (progress - 0.90) / 0.03)
-              : 0
+    // Mask 2: fades in 0.43–0.47
+    tl.to(maskText2Ref.current, { opacity: 1, duration: 0.04 }, 0.43)
 
-    // Mask 2 SCALE: 1→18 over 0.47–0.90
-    const mask2Scale =
-      progress < 0.47 ? 1
-        : progress < 0.90 ? lerp(1, 18, (progress - 0.47) / 0.43)
-          : 18
+    // Mask 2: scale 1→18 over 0.47–0.90
+    tl.to(maskText2Ref.current, { scale: 18, duration: 0.43, ease: "none" }, 0.47)
+
+    // Mask 2: fades out 0.90–0.93
+    tl.to(maskText2Ref.current, { opacity: 0, duration: 0.03 }, 0.90)
 
     /* ── Phase 4: End (0.90 → 1.00) ──────────────────────────── */
 
-    // Table 2: full image, fades in 0.90–0.96
-    const table2Opacity =
-      progress < 0.90 ? 0
-        : progress < 0.96 ? lerp(0, 1, (progress - 0.90) / 0.06)
-          : 1
+    // Table 2: full image fades in 0.90–0.96
+    tl.to(table2ImgRef.current, { opacity: 1, duration: 0.06 }, 0.90)
 
-    /* ── Apply styles ────────────────────────────────────────── */
+    /* ─── SCRUB-BASED OPACITY (Apple HomePod-style scroll reveal) ─── */
+    // Space Infinity fades to 0.18, Or+Space Eternity fade 0→1
+    // Both driven by scroll position — speed follows scroll exactly
 
-    const s = (el: HTMLElement | null, styles: Record<string, string>) => {
-      if (!el) return
-      for (const [k, v] of Object.entries(styles)) {
-        el.style.setProperty(k, v)
+    tl.eventCallback("onUpdate", () => {
+      const p = tl.progress()
+
+      // Space Infinity: 1 → 0.18 (0.15→0.30), hold at 0.18 (0.30→0.43), fade to 0 (0.43→0.47)
+      const infinityOpacity =
+        p < 0.15 ? 0
+          : p < 0.30 ? lerp(1, 0.18, (p - 0.15) / 0.15)
+            : p < 0.43 ? 0.18
+              : p < 0.47 ? lerp(0.18, 0, (p - 0.43) / 0.04)
+                : 0
+      if (spaceInfinityRef.current) {
+        spaceInfinityRef.current.style.opacity = String(infinityOpacity)
       }
-    }
 
-    s(table1ImgRef.current, { opacity: String(table1Opacity) })
-    s(table2ImgRef.current, { opacity: String(table2Opacity) })
-
-    s(maskText1Ref.current, {
-      opacity: String(mask1Opacity),
-      transform: `scale(${mask1Scale})`,
+      // Or + Space Eternity: 0→1 scrub (0.15→0.30), hold (0.30→0.41), 1→0 (0.41→0.47)
+      const crossfadeOpacity =
+        p < 0.15 ? 0
+          : p < 0.30 ? lerp(0, 1, (p - 0.15) / 0.15)
+            : p < 0.41 ? 1
+              : p < 0.47 ? lerp(1, 0, (p - 0.41) / 0.06)
+                : 0
+      if (orTextRef.current) {
+        orTextRef.current.style.opacity = String(crossfadeOpacity)
+      }
+      if (eternityTextRef.current) {
+        eternityTextRef.current.style.opacity = String(crossfadeOpacity)
+      }
     })
 
-    // Solid group: overall opacity for crossfade with mask layers
-    s(solidGroupRef.current, { opacity: String(solidGroupOpacity) })
-    // Individual line opacity for staggered appearance within the group
-    s(orTextRef.current, { opacity: String(orLineOpacity) })
-    s(eternityTextRef.current, { opacity: String(eternityLineOpacity) })
-
-    s(maskText2Ref.current, {
-      opacity: String(mask2Opacity),
-      transform: `scale(${mask2Scale})`,
-    })
-
-    rafId.current = requestAnimationFrame(animate)
-  }, [])
-
-  /* ── Scroll observer ─────────────────────────────────────────── */
-
-  useEffect(() => {
-    const section = sectionRef.current
-    const spacer = spacerRef.current
-    if (!section || !spacer) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const nowVisible = entry.isIntersecting && entry.intersectionRatio > 0.01
-
-        if (nowVisible && !inView.current) {
-          inView.current = true
-          section.style.position = "fixed"
-          section.style.top = "0"
-          section.style.left = "0"
-          section.style.width = "100%"
-          section.style.height = "100vh"
-          section.style.zIndex = "40"
-          rafId.current = requestAnimationFrame(animate)
-        } else if (!nowVisible && inView.current) {
-          inView.current = false
-          section.style.position = ""
-          section.style.top = ""
-          section.style.left = ""
-          section.style.width = ""
-          section.style.height = ""
-          section.style.zIndex = ""
-          cancelAnimationFrame(rafId.current)
-          setTick((t) => t + 1)
-        }
-      },
-      { threshold: [0, 0.01, 0.05] },
-    )
-
-    observer.observe(spacer)
     return () => {
-      observer.disconnect()
-      cancelAnimationFrame(rafId.current)
+      tl.scrollTrigger?.kill()
+      tl.kill()
     }
-  }, [animate])
+  }, [])
 
   return (
     <>
@@ -277,12 +208,12 @@ export default function Section4TableTransition() {
             FIX: single flex-col container eliminates overlap between
             "Space Infinity", "or", and "Space Eternity" lines. */}
         <div
-          ref={solidGroupRef}
           className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none gap-1"
-          style={{ opacity: 0 }}
         >
-          {/* Line 1: Space Infinity — metallic gradient */}
+          {/* Line 1: Space Infinity — metallic gradient
+              GSAP controls opacity via spaceInfinityRef (1→0.18 scrub) */}
           <div
+            ref={spaceInfinityRef}
             className="text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider whitespace-nowrap"
             style={{
               fontFamily: FONT_FAMILY,
@@ -299,12 +230,12 @@ export default function Section4TableTransition() {
           {/* Line 2: or — green accent gradient
               FIX: background-size 300% widens the gradient across 3× the element
               width, preventing the green color stop from appearing as a sharp
-              vertical band on the short "or" text. */}
+              vertical band on the short "or" text.
+              GSAP controls opacity via orTextRef (0→1 scrub crossfade) */}
           <div
             ref={orTextRef}
             className="text-[clamp(1.5rem,4vw,3rem)] uppercase tracking-wider whitespace-nowrap"
             style={{
-              opacity: 0,
               fontFamily: FONT_FAMILY,
               backgroundImage: GRADIENT_OR,
               WebkitBackgroundClip: "text",
@@ -318,12 +249,12 @@ export default function Section4TableTransition() {
             or
           </div>
 
-          {/* Line 3: Space Eternity — metallic gradient */}
+          {/* Line 3: Space Eternity — metallic gradient
+              GSAP controls opacity via eternityTextRef (0→1 scrub crossfade) */}
           <div
             ref={eternityTextRef}
             className="text-[clamp(2.5rem,8vw,7rem)] uppercase tracking-wider whitespace-nowrap"
             style={{
-              opacity: 0,
               fontFamily: FONT_FAMILY,
               backgroundImage: GRADIENT_METALLIC,
               WebkitBackgroundClip: "text",
