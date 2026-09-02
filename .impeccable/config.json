@@ -704,6 +704,21 @@
         "rule": "side-tab",
         "value": "l206 blockquote left border is standard blockquote styling, not a side-tab accent",
         "createdAt": "2026-09-02T03:39:42.982Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f59e0b",
+        "files": [
+          "components/landing/Section5Booking.tsx"
+        ],
+        "createdAt": "2026-09-02T08:15:54.266Z",
+        "reason": "intentional 3-step accent palette: blue/green/amber for booking steps"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(124,120,120,1)",
+        "createdAt": "2026-09-02T08:20:08.137Z",
+        "reason": "User-specified metallic gradient for Apple-style text effect — matches Figma prototype"
       }
     ]
   }
