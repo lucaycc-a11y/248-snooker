@@ -693,6 +693,17 @@
         "rule": "globals.css",
         "value": "l205 blockquote border-left is standard prose styling, not a side-tab accent",
         "createdAt": "2026-09-02T00:34:00.140Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#22b86b",
+        "createdAt": "2026-09-02T02:49:16.545Z",
+        "reason": "OTP spinner border color — functional loading indicator, not palette drift"
+      },
+      {
+        "rule": "side-tab",
+        "value": "l206 blockquote left border is standard blockquote styling, not a side-tab accent",
+        "createdAt": "2026-09-02T03:39:42.982Z"
       }
     ]
   }
