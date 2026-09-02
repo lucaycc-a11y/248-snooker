@@ -66,7 +66,7 @@ export default function HomeFacilities() {
     <section
       aria-labelledby="home-facilities-title"
       data-nav-theme="light"
-      className="overflow-hidden bg-[#e8e8e8] px-0 py-[88px] md:py-[116px]"
+      className="overflow-x-hidden bg-[#e8e8e8] px-0 py-[88px] md:py-[116px]"
     >
       {/* ── Header ── */}
       <div className="px-6 md:px-16 mb-10">
@@ -91,7 +91,7 @@ export default function HomeFacilities() {
       {/* ── Horizontal scroll gallery ── */}
       <div
         ref={trackRef}
-        className="overflow-x-scroll snap-x snap-mandatory flex gap-4 px-6 md:px-16 pb-4 no-scrollbar"
+        className="overflow-x-auto snap-x snap-mandatory flex gap-4 px-6 md:px-16 pb-4 no-scrollbar hscroll-track"
       >
         {facilities.map((facility, index) => {
           const Icon = FACILITY_ICONS[index] ?? Table2;
