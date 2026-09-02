@@ -6,6 +6,7 @@ import GalleryScroll from "@/components/landing/GalleryScroll";
 import HomeFacilities from "@/components/landing/HomeFacilities";
 import HomeRooms from "@/components/landing/HomeRooms";
 import HomeFocus from "@/components/landing/HomeFocus";
+import Section4TableTransition from "@/components/landing/Section4TableTransition";
 import HowItWorks from "@/components/landing/HowItWorks";
 import HomePricing from "@/components/landing/HomePricing";
 import { getConfig } from "@/lib/data/getConfig";
@@ -125,6 +126,7 @@ export default async function Home({
       <HomeFacilities />
       <HomeRooms />
       <HomeFocus />
+      <Section4TableTransition />
       <HowItWorks />
       <HomePricing periods={config.periods} />
 
