@@ -3,55 +3,77 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 
 /**
- * Section 4 — Table 展示 (Text mask + scroll zoom)
+ * Section 4 — Table 展示 (11-state Figma-accurate scroll animation)
  *
- * Apple-style texture-to-text zoom: a background image scales behind a
- * fixed text mask, transitioning from abstract texture to readable text.
+ * Apple-style text-mask zoom: a black overlay with text-shaped cutouts
+ * scales from ~18x down to 1x, revealing abstract image texture through
+ * letter edges, then transitions to solid gradient text, shows
+ * "or / Space Eternity", and reverses with a second table image.
  *
- * Two-layer architecture:
- *   • Background layer: image that scales 1→18 (zoom in) or 18→1 (zoom out)
- *   • Text layer: stays at scale 1, acts as mask via `background-clip: text`
+ * 11 animation states (scroll progress 0→1):
+ *   1  (0.00) — Table 1 full panorama visible
+ *   2  (0.05) — Mask fades in at scale 18, abstract texture through letters
+ *   3  (0.20) — Mask scales to ~3x, text becoming recognizable
+ *   4  (0.32) — Mask reaches scale 1, crossfades to solid gradient text on black
+ *   5  (0.42) — "or / Space Eternity" appear with gradient fills at 0.5 opacity
+ *   6  (0.50) — All three text lines repositioned compactly
+ *   7  (0.58) — Reverse mask fades in at scale 1 with Table 2 texture
+ *   8  (0.68) — Reverse mask scales to ~5x, Table 2 texture abstract
+ *   9  (0.78) — Reverse mask scales to ~10x, mostly black
+ *  10  (0.88) — Reverse mask at ~18x, nearly all black
+ *  11  (1.00) — Table 2 full panorama visible
  *
- * Animation phases (scroll progress 0→1):
- *   0.00–0.10  Table 1 visible, no text
- *   0.10–0.30  Zoom text fades in, background scales 18→1
- *   0.30–0.45  Pure text stage: gradient crossfades in, image fades out
- *   0.45–0.55  "OR SPACE ETERNITY" appears
- *   0.55–0.65  Gradient crossfades out, zoom text fades back in (with Table 2)
- *   0.65–0.85  Reverse zoom: background scales 1→18, zoom text fades out
- *   0.85–1.00  Table 2 visible, no text
+ * Technique: text stays at CSS scale 1, acts as viewport mask via
+ * `background-clip: text`. The image fills the section behind the text.
+ * At scale 18, letter fragments are tiny → abstract texture. At scale 1,
+ * full letterforms are readable with image visible inside.
+ *
+ * Gradient values per Figma spec:
+ *   Space Infinity: linear-gradient(90.13deg, #7C7878 2.61%, #DDDDDD 41.45%, #D2D2D2 62.51%, #7C7878 99.95%)
+ *   or:             linear-gradient(90.13deg, #7C7878 2.61%, rgba(57,255,43,0.5) 9.58%, #DDDDDD 41.45%, #D2D2D2 62.51%, #7C7878 99.95%)
+ *   Space Eternity: linear-gradient(90.13deg, #7C7878 2.61%, #DDDDDD 41.45%, #D2D2D2 62.51%, #7C7878 99.95%)
  *
  * Placeholder images — replace with real room panoramas:
  *   Table 1: /gallery/Space_Infinity.PNG
  *   Table 2: /gallery/Space_Enternity.PNG
  */
 
-const GRADIENT_BG =
-  "linear-gradient(90deg, rgba(124,120,120,1) 2.6%, rgba(221,221,221,1) 41.4%, rgba(210,210,210,1) 62.5%, rgba(124,120,120,1) 99.9%)"
+/* ── Figma-accurate gradients ─────────────────────────────────── */
+
+const GRADIENT_METALLIC =
+  "linear-gradient(90.13deg, rgb(124,120,120) 2.6068%, rgb(221,221,221) 41.449%, rgb(210,210,210) 62.509%, rgb(124,120,120) 99.947%)"
+
+const GRADIENT_OR =
+  "linear-gradient(90.13deg, rgb(124,120,120) 2.6068%, rgba(57,255,43,0.5) 9.5794%, rgb(221,221,221) 41.449%, rgb(210,210,210) 62.509%, rgb(124,120,120) 99.947%)"
 
 const TEXT_CLASS =
   "absolute inset-0 flex items-center justify-center select-none pointer-events-none"
 
+/* ── Helpers ──────────────────────────────────────────────────── */
+
+const clamp = (v: number, lo: number, hi: number) =>
+  Math.min(hi, Math.max(lo, v))
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+
 export default function Section4TableTransition() {
   const sectionRef = useRef<HTMLElement>(null)
   const spacerRef = useRef<HTMLDivElement>(null)
-  const bgLayer1Ref = useRef<HTMLDivElement>(null)
-  const bgLayer2Ref = useRef<HTMLDivElement>(null)
-  const zoomTextRef = useRef<HTMLDivElement>(null)
-  const gradTextRef = useRef<HTMLDivElement>(null)
+
+  /* Layer refs */
+  const table1ImgRef = useRef<HTMLDivElement>(null)
+  const table2ImgRef = useRef<HTMLDivElement>(null)
+  const maskText1Ref = useRef<HTMLDivElement>(null)
+  const solidTextRef = useRef<HTMLDivElement>(null)
   const orTextRef = useRef<HTMLDivElement>(null)
+  const eternityTextRef = useRef<HTMLDivElement>(null)
+  const maskText2Ref = useRef<HTMLDivElement>(null)
+
   const inView = useRef(false)
   const rafId = useRef(0)
   const [, setTick] = useState(0)
 
-  /* ── helpers ─────────────────────────────────────────────────── */
-
-  const clamp = (v: number, lo: number, hi: number) =>
-    Math.min(hi, Math.max(lo, v))
-
-  const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-
-  /* ── animation tick ──────────────────────────────────────────── */
+  /* ── Animation tick ──────────────────────────────────────────── */
 
   const animate = useCallback(() => {
     const spacer = spacerRef.current
@@ -60,116 +82,75 @@ export default function Section4TableTransition() {
     const rect = spacer.getBoundingClientRect()
     const vh = window.innerHeight
 
-    // Spacer's top relative to viewport
-    const spacerTop = rect.top
-
-    // Calculate progress (0→1) through the scroll range
-    // Section becomes fixed when spacerTop ≤ 0
-    // Section unpins when spacer bottom reaches viewport bottom
     let progress = 0
-    if (spacerTop <= 0) {
-      // scrollDistance = spacerHeight - viewportHeight (the scroll range)
-      const scrolled = -spacerTop
+    if (rect.top <= 0) {
+      const scrolled = -rect.top
       const scrollRange = spacer.offsetHeight - vh
       progress = clamp(scrolled / Math.max(scrollRange, 1), 0, 1)
     }
 
-    // ── Layer 1: Table 1 background (full image) ──
-    const t1Opacity = progress <= 0.05 ? 1 : progress <= 0.15 ? lerp(1, 0, (progress - 0.05) / 0.1) : 0
+    /* ── State calculations ──────────────────────────────────── */
 
-    // ── Layer 2: Table 2 background (full image) ──
-    const t2Opacity = progress >= 0.95 ? 1 : progress >= 0.85 ? lerp(0, 1, (progress - 0.85) / 0.1) : 0
+    // State 1→2: Table 1 fades out (0.00–0.10)
+    const table1Opacity =
+      progress < 0.03 ? 1
+        : progress < 0.10 ? lerp(1, 0, (progress - 0.03) / 0.07)
+          : 0
 
-    // ── Background layer 1 (for zoom text, Table 1 texture) ──
-    // Visible during forward zoom (0→0.35) and reverse zoom (0.60→1.0)
-    const bg1Opacity =
-      progress < 0.05
-        ? 0
-        : progress < 0.1
-          ? lerp(0, 1, (progress - 0.05) / 0.05)
-          : progress < 0.3
-            ? 1
-            : progress < 0.4
-              ? lerp(1, 0, (progress - 0.3) / 0.1)
+    // Mask Text 1 (Table 1 texture through text)
+    // Fades in 0.03–0.08, visible 0.08–0.32, fades out 0.32–0.38
+    const mask1Opacity =
+      progress < 0.03 ? 0
+        : progress < 0.08 ? lerp(0, 1, (progress - 0.03) / 0.05)
+          : progress < 0.32 ? 1
+            : progress < 0.38 ? lerp(1, 0, (progress - 0.32) / 0.06)
               : 0
 
-    // Scale: 18→1 during forward zoom (0.05→0.30)
-    const bg1Scale =
-      progress < 0.05
-        ? 18
-        : progress < 0.3
-          ? lerp(18, 1, (progress - 0.05) / 0.25)
+    // Solid gradient text
+    // Fades in 0.28–0.35, visible 0.35–0.56, fades out 0.56–0.62
+    const solidOpacity =
+      progress < 0.28 ? 0
+        : progress < 0.35 ? lerp(0, 1, (progress - 0.28) / 0.07)
+          : progress < 0.56 ? 1
+            : progress < 0.62 ? lerp(1, 0, (progress - 0.56) / 0.06)
+              : 0
+
+    // "or" text (0.5 opacity, green accent gradient)
+    // Fades in 0.38–0.44, visible 0.44–0.54, fades out 0.54–0.60
+    const orOpacity =
+      progress < 0.38 ? 0
+        : progress < 0.44 ? lerp(0, 1, (progress - 0.38) / 0.06)
+          : progress < 0.54 ? 1
+            : progress < 0.60 ? lerp(1, 0, (progress - 0.54) / 0.06)
+              : 0
+
+    // "Space Eternity" text (0.5 opacity, metallic gradient)
+    // Fades in 0.40–0.46, visible 0.46–0.54, fades out 0.54–0.60
+    const eternityOpacity =
+      progress < 0.40 ? 0
+        : progress < 0.46 ? lerp(0, 1, (progress - 0.40) / 0.06)
+          : progress < 0.54 ? 1
+            : progress < 0.60 ? lerp(1, 0, (progress - 0.54) / 0.06)
+              : 0
+
+    // Mask Text 2 (Table 2 texture through text)
+    // Fades in 0.56–0.62, visible 0.62–0.90, fades out 0.90–0.95
+    const mask2Opacity =
+      progress < 0.56 ? 0
+        : progress < 0.62 ? lerp(0, 1, (progress - 0.56) / 0.06)
+          : progress < 0.90 ? 1
+            : progress < 0.95 ? lerp(1, 0, (progress - 0.90) / 0.05)
+              : 0
+
+    // Table 2 full image
+    // Fades in 0.90–0.97
+    const table2Opacity =
+      progress < 0.90 ? 0
+        : progress < 0.97 ? lerp(0, 1, (progress - 0.90) / 0.07)
           : 1
 
-    // ── Background layer 2 (for zoom text, Table 2 texture) ──
-    // Visible during reverse zoom (0.60→0.95)
-    const bg2Opacity =
-      progress < 0.6
-        ? 0
-        : progress < 0.7
-          ? lerp(0, 1, (progress - 0.6) / 0.1)
-          : progress < 0.9
-            ? 1
-            : progress < 0.95
-              ? lerp(1, 0, (progress - 0.9) / 0.05)
-              : 0
+    /* ── Apply styles ────────────────────────────────────────── */
 
-    // Scale: 1→18 during reverse zoom (0.65→0.90)
-    const bg2Scale =
-      progress < 0.65
-        ? 1
-        : progress < 0.9
-          ? lerp(1, 18, (progress - 0.65) / 0.25)
-          : 18
-
-    // ── Zoom text (text mask, stays at scale 1) ──
-    // Visible: 0.05–0.40 (forward) and 0.60–0.90 (reverse)
-    const zoomOpacity =
-      progress < 0.05
-        ? 0
-        : progress < 0.12
-          ? lerp(0, 1, (progress - 0.05) / 0.07)
-          : progress < 0.3
-            ? 1
-            : progress < 0.4
-              ? lerp(1, 0, (progress - 0.3) / 0.1)
-              : progress < 0.6
-                ? 0
-                : progress < 0.68
-                  ? lerp(0, 1, (progress - 0.6) / 0.08)
-                  : progress < 0.82
-                    ? 1
-                    : progress < 0.92
-                      ? lerp(1, 0, (progress - 0.82) / 0.1)
-                      : 0
-
-    // ── Gradient text (pure color stage) ──
-    // Visible: 0.30–0.70
-    const gradOpacity =
-      progress < 0.3
-        ? 0
-        : progress < 0.4
-          ? lerp(0, 1, (progress - 0.3) / 0.1)
-          : progress < 0.58
-            ? 1
-            : progress < 0.68
-              ? lerp(1, 0, (progress - 0.58) / 0.1)
-              : 0
-
-    // ── OR text ──
-    // Visible: 0.42–0.60
-    const orOpacity =
-      progress < 0.42
-        ? 0
-        : progress < 0.5
-          ? lerp(0, 1, (progress - 0.42) / 0.08)
-          : progress < 0.52
-            ? 1
-            : progress < 0.6
-              ? lerp(1, 0, (progress - 0.52) / 0.08)
-              : 0
-
-    // ── Apply styles ──
     const s = (el: HTMLElement | null, styles: Record<string, string>) => {
       if (!el) return
       for (const [k, v] of Object.entries(styles)) {
@@ -177,38 +158,45 @@ export default function Section4TableTransition() {
       }
     }
 
-    // Table 1
-    s(bgLayer1Ref.current, {
-      opacity: String(t1Opacity),
-      transform: `scale(${bg1Scale})`,
+    // Table 1: full image, fades out at start
+    s(table1ImgRef.current, {
+      opacity: String(table1Opacity),
     })
 
-    // Table 2
-    s(bgLayer2Ref.current, {
-      opacity: String(t2Opacity),
-      transform: `scale(${bg2Scale})`,
+    // Table 2: full image, fades in at end
+    s(table2ImgRef.current, {
+      opacity: String(table2Opacity),
     })
 
-    // Zoom text
-    s(zoomTextRef.current, {
-      opacity: String(zoomOpacity),
-      backgroundImage:
-        bg1Opacity > bg2Opacity
-          ? "url('/gallery/Space_Infinity.PNG')"
-          : "url('/gallery/Space_Enternity.PNG')",
+    // Mask Text 1: text-as-viewport with Table 1 image
+    s(maskText1Ref.current, {
+      opacity: String(mask1Opacity),
     })
 
-    // Gradient text
-    s(gradTextRef.current, { opacity: String(gradOpacity) })
+    // Solid gradient text: replaces mask text at state 4
+    s(solidTextRef.current, {
+      opacity: String(solidOpacity),
+    })
 
-    // OR text
-    s(orTextRef.current, { opacity: String(orOpacity) })
+    // "or" text: green accent gradient, 0.5 opacity
+    s(orTextRef.current, {
+      opacity: String(orOpacity * 0.5),
+    })
 
-    // Schedule next frame
+    // "Space Eternity" text: metallic gradient, 0.5 opacity
+    s(eternityTextRef.current, {
+      opacity: String(eternityOpacity * 0.5),
+    })
+
+    // Mask Text 2: text-as-viewport with Table 2 image
+    s(maskText2Ref.current, {
+      opacity: String(mask2Opacity),
+    })
+
     rafId.current = requestAnimationFrame(animate)
   }, [])
 
-  /* ── scroll observer ─────────────────────────────────────────── */
+  /* ── Scroll observer ─────────────────────────────────────────── */
 
   useEffect(() => {
     const section = sectionRef.current
@@ -237,7 +225,7 @@ export default function Section4TableTransition() {
           section.style.height = ""
           section.style.zIndex = ""
           cancelAnimationFrame(rafId.current)
-          setTick((t) => t + 1) // force final state render
+          setTick((t) => t + 1)
         }
       },
       { threshold: [0, 0.01, 0.05] },
@@ -252,9 +240,8 @@ export default function Section4TableTransition() {
 
   return (
     <>
-      {/* Spacer: creates the scroll distance for the pinned animation.
-          Desktop: 4x viewport height; Mobile: 2.5x via Tailwind. */}
-      <div ref={spacerRef} className="h-[400vh] max-md:h-[250vh]" aria-hidden="true" />
+      {/* Spacer: 500vh for 11 states, ~45vh per state */}
+      <div ref={spacerRef} className="h-[500vh] max-md:h-[300vh]" aria-hidden="true" />
 
       <section
         ref={sectionRef}
@@ -262,61 +249,32 @@ export default function Section4TableTransition() {
         className="relative h-screen overflow-hidden bg-black"
         data-cms-key="section4.table-transition"
       >
-        {/* ── Table 1: Full image ── */}
-        <img
-          src="/gallery/Space_Infinity.PNG"
-          alt="Space Infinity room"
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ opacity: 1 }}
+        {/* ── Layer 0: Table 1 full panorama (State 1) ── */}
+        <div
+          ref={table1ImgRef}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "url('/gallery/Space_Infinity.PNG')",
+            opacity: 1,
+          }}
         />
 
-        {/* ── Table 2: Full image ── */}
-        <img
-          src="/gallery/Space_Enternity.PNG"
-          alt="Space Eternity room"
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ opacity: 0 }}
+        {/* ── Layer 1: Table 2 full panorama (State 11) ── */}
+        <div
+          ref={table2ImgRef}
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "url('/gallery/Space_Enternity.PNG')",
+            opacity: 0,
+          }}
         />
 
-        {/* ── Background layer 1: Scales behind zoom text (Table 1 texture) ── */}
+        {/* ── Layer 2: Mask Text 1 — Table 1 image through text letterforms ──
+            Text stays at scale 1. At scale 1 the letterforms are readable
+            with the image visible inside. The "zoom" effect comes from
+            the text fading in/out, not from CSS scale. */}
         <div
-          ref={bgLayer1Ref}
-          className="absolute inset-0 overflow-hidden"
-          style={{
-            opacity: 0,
-            transform: "scale(18)",
-            transformOrigin: "center center",
-          }}
-        >
-          <img
-            src="/gallery/Space_Infinity.PNG"
-            alt=""
-            aria-hidden="true"
-            className="h-full w-full object-cover"
-          />
-        </div>
-
-        {/* ── Background layer 2: Scales behind zoom text (Table 2 texture) ── */}
-        <div
-          ref={bgLayer2Ref}
-          className="absolute inset-0 overflow-hidden"
-          style={{
-            opacity: 0,
-            transform: "scale(1)",
-            transformOrigin: "center center",
-          }}
-        >
-          <img
-            src="/gallery/Space_Enternity.PNG"
-            alt=""
-            aria-hidden="true"
-            className="h-full w-full object-cover"
-          />
-        </div>
-
-        {/* ── Zoom text: background-clip text mask, stays at scale 1 ── */}
-        <div
-          ref={zoomTextRef}
+          ref={maskText1Ref}
           className={`${TEXT_CLASS} font-good-times text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider`}
           style={{
             opacity: 0,
@@ -332,37 +290,70 @@ export default function Section4TableTransition() {
           Space Infinity
         </div>
 
-        {/* ── Gradient text: pure metallic gradient (no image) ── */}
+        {/* ── Layer 3: Solid gradient text — State 4 pure text stage ── */}
         <div
-          ref={gradTextRef}
-          className={`${TEXT_CLASS} flex-col gap-2 font-good-times text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider`}
+          ref={solidTextRef}
+          className={`${TEXT_CLASS} font-good-times text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider`}
           style={{
             opacity: 0,
-            backgroundImage: GRADIENT_BG,
+            backgroundImage: GRADIENT_METALLIC,
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             color: "transparent",
           }}
           data-cms-key="section4.space-infinity-gradient"
         >
-          <span>Space Infinity</span>
+          Space Infinity
         </div>
 
-        {/* ── OR text ── */}
+        {/* ── Layer 4: "or" text — State 5, green accent gradient, 0.5 opacity ── */}
         <div
           ref={orTextRef}
-          className={`${TEXT_CLASS} flex-col gap-2 font-good-times text-[clamp(1.8rem,5vw,4rem)] uppercase tracking-wider`}
+          className={`${TEXT_CLASS} flex-col font-good-times text-[clamp(1.8rem,5vw,4rem)] uppercase tracking-wider`}
           style={{
             opacity: 0,
-            backgroundImage: GRADIENT_BG,
+            backgroundImage: GRADIENT_OR,
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             color: "transparent",
           }}
-          data-cms-key="section4.or-space-eternity"
+          data-cms-key="section4.or-text"
         >
-          <span>or</span>
-          <span className="text-[clamp(3rem,10vw,8rem)]">Space Eternity</span>
+          or
+        </div>
+
+        {/* ── Layer 5: "Space Eternity" text — State 5, metallic gradient, 0.5 opacity ── */}
+        <div
+          ref={eternityTextRef}
+          className={`${TEXT_CLASS} flex-col font-good-times text-[clamp(3rem,10vw,8rem)] uppercase tracking-wider`}
+          style={{
+            opacity: 0,
+            backgroundImage: GRADIENT_METALLIC,
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            color: "transparent",
+          }}
+          data-cms-key="section4.space-eternity"
+        >
+          Space Eternity
+        </div>
+
+        {/* ── Layer 6: Mask Text 2 — Table 2 image through text letterforms ── */}
+        <div
+          ref={maskText2Ref}
+          className={`${TEXT_CLASS} font-good-times text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider`}
+          style={{
+            opacity: 0,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            color: "transparent",
+            backgroundImage: "url('/gallery/Space_Enternity.PNG')",
+          }}
+          data-cms-key="section4.space-eternity-mask"
+        >
+          Space Eternity
         </div>
       </section>
     </>
