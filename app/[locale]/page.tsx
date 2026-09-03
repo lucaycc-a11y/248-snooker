@@ -16,8 +16,10 @@ import Directions from "@/components/landing/Directions";
 import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
+import Section2Value from "@/components/landing/Section2Value";
 import SpacePilotScrollDemo from "@/components/landing/SpacePilotScrollDemo";
-import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
+import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
+import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 
 export async function generateMetadata({
   params,
