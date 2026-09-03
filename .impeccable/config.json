@@ -719,6 +719,24 @@
         "value": "rgba(124,120,120,1)",
         "createdAt": "2026-09-02T08:20:08.137Z",
         "reason": "User-specified metallic gradient for Apple-style text effect — matches Figma prototype"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#15803d",
+        "files": [
+          "components/landing/Section6Pricing.tsx"
+        ],
+        "createdAt": "2026-09-03T00:41:25.651Z",
+        "reason": "darker green for AA contrast on white card bg, replaces #4ade80"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#166534",
+        "files": [
+          "components/landing/Section6Pricing.tsx"
+        ],
+        "createdAt": "2026-09-03T00:41:34.185Z",
+        "reason": "darker green strong for AA contrast on white card bg, replaces #86efac"
       }
     ]
   }
