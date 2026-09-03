@@ -299,8 +299,9 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
       <style jsx global>{`
         .s6-card {
           position: relative;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          /* White cards on the black section — per redesign request. */
+          background: #ffffff;
+          border: 1px solid rgba(0, 0, 0, 0.08);
           border-radius: 20px;
           padding: 40px 28px 36px;
           text-align: center;
@@ -320,8 +321,8 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
           transform: none;
         }
         .s6-card:hover {
-          border-color: rgba(255, 255, 255, 0.18);
-          box-shadow: 0 24px 56px -20px rgba(0, 0, 0, 0.5);
+          border-color: rgba(0, 0, 0, 0.16);
+          box-shadow: 0 24px 56px -20px rgba(0, 0, 0, 0.65);
         }
         .s6-badge {
           position: absolute;
@@ -345,13 +346,13 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
           font-family: ${FONT_FAMILY};
           font-weight: 700;
           font-size: 18px;
-          color: #ffffff;
+          color: #1d1d1f;
           margin: 0 0 6px;
         }
         .s6-card-time {
           font-family: ${FONT_FAMILY};
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.4);
+          color: rgba(0, 0, 0, 0.5);
           margin: 0 0 28px;
         }
         .s6-price {
@@ -366,18 +367,20 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
           font-weight: 600;
           font-size: clamp(2rem, 4vw, 2.6rem);
           letter-spacing: -0.02em;
-          color: #ffffff;
+          color: #1d1d1f;
           line-height: 1;
         }
         .s6-price-unit {
           font-family: ${FONT_FAMILY};
           font-size: 13px;
-          color: rgba(255, 255, 255, 0.4);
+          color: rgba(0, 0, 0, 0.5);
         }
         .s6-deal {
           display: inline-block;
+          /* Green accent kept on the member-rate pill; darkened for AA
+             contrast against the white card. */
           background: rgba(34, 197, 94, 0.12);
-          color: #4ade80;
+          color: #15803d;
           font-family: ${FONT_FAMILY};
           font-size: 12.5px;
           font-weight: 500;
@@ -387,7 +390,7 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
         }
         .s6-deal strong {
           font-weight: 700;
-          color: #86efac;
+          color: #166534;
         }
         .s6-spacer {
           height: 33px;
@@ -398,8 +401,8 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: #ffffff;
-          color: #000000;
+          background: #000000;
+          color: #ffffff;
           font-family: ${FONT_FAMILY};
           font-size: 14.5px;
           font-weight: 600;
@@ -411,7 +414,7 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
           width: 100%;
         }
         .s6-cta:hover {
-          background: rgba(255, 255, 255, 0.88);
+          background: rgba(0, 0, 0, 0.85);
           transform: scale(1.02);
         }
         .s6-cta:active {

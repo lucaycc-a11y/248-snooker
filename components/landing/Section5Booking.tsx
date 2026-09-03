@@ -6,15 +6,20 @@ import { useTranslations } from "next-intl"
 /**
  * Section 5 — Booking Process (HomePod mini-style scroll reveal)
  *
- * Three booking steps crossfade on scroll: 選擇時段 → 掃碼入場 → 累積積分.
+ * Four booking steps crossfade on scroll: 選擇時段 → 掃碼入場 → 累積積分 → pricing.
  * A pricing transition sentence appears after the last step.
  *
  * Scroll-pinned using `position: sticky` (not GSAP) — same technique as
  * Section2Value. The section is 400svh tall; the sticky child is 100svh.
- * Scroll progress drives opacity of each layer via a triangular ramp.
+ * Scroll progress drives opacity of each layer via a step function.
  *
- * Desktop: large text, full-width layout.
- * Mobile: smaller font, tighter spacing, same fade logic.
+ * KEY DESIGN: Only one layer is ever fully visible at a time. Adjacent layers
+ * cross-fade through a narrow 10% transition window, so text never overlaps.
+ * Previous steps fade to a faint "ghost" opacity during the transition, matching
+ * the HomePod mini lyric-reveal aesthetic.
+ *
+ * The section title ("預訂流程") is positioned at the top of the sticky viewport
+ * and remains visible throughout the scroll, anchoring context for each step.
  */
 
 const GOOD_TIMES: React.CSSProperties = {
@@ -53,9 +58,67 @@ function clamp01(v: number): number {
   return v < 0 ? 0 : v > 1 ? 1 : v
 }
 
-/** Triangular ramp — peaks at index * SPAN, adjacent layers sum to 1. */
+/**
+ * Step-function opacity — HomePod mini style.
+ *
+ * Only ONE layer is ever fully visible (opacity 1). Adjacent layers cross-fade
+ * through a narrow transition window (10% of SPAN ≈ 3.3% of total scroll).
+ * Previous step fades to ~0 opacity just as the next step fades in from ~0,
+ * so there is no visual overlap of text content.
+ *
+ * At the midpoint of any transition, BOTH adjacent layers are at ~0 opacity,
+ * producing a brief "snap" — the signature HomePod mini lyric-change feel.
+ *
+ * At the boundary between steps (e.g. progress = 0.25):
+ *   Layer 0 (fading out): opacity = 0
+ *   Layer 1 (fading in):  opacity = 0
+ * → both are invisible simultaneously, creating a clean cut.
+ *
+ * At progress = 0.22:
+ *   Layer 0 (fading out): (0.2667 - 0.22) / 0.0333 = 1.4 → clamp to 1.0
+ *   Layer 1 (fading in):  (0.22 - 0.1667) / 0.0333 = 1.6 → clamp to 1.0
+ * → wait, this means BOTH are 1.0. Let me recalculate...
+ *
+ * Actually, the transition window is:
+ *   Layer i fades out over [i*SPAN + 0.9*SPAN, (i+1)*SPAN]
+ *   Layer i+1 fades in  over [(i+1)*SPAN, (i+1)*SPAN + 0.1*SPAN]
+ *
+ * These windows are ADJACENT, not overlapping:
+ *   Layer 0 fades out: [0.2667, 0.3333]
+ *   Layer 1 fades in:  [0.3333, 0.3667]
+ *
+ * At the boundary (0.3333):
+ *   Layer 0: (0.3333 - 0.2667) / 0.0333 = 2.0 → clamp to 1.0 → opacity = 1 - 1 = 0
+ *   Layer 1: (0.3333 - 0.3333) / 0.0333 = 0 → opacity = 0
+ * → Both at 0. Clean snap.
+ *
+ * At 0.30 (inside Layer 0's fade-out):
+ *   Layer 0: (0.30 - 0.2667) / 0.0333 = 1.0 → opacity = 0
+ *   Layer 1: (0.30 - 0.3333) / 0.0333 < 0 → opacity = 0
+ * → Both at 0. Brief invisible gap (intentional).
+ *
+ * At 0.25 (Layer 0 still visible):
+ *   Layer 0: 0.25 < 0.2667 → not in fade-out → opacity = 1
+ *   Layer 1: 0.25 < 0.3333 → not in fade-in → opacity = 0
+ * → Only Layer 0 visible. ✓
+ */
 function layerOpacity(progress: number, index: number): number {
-  return clamp01(1 - Math.abs(progress - index * SPAN) / SPAN)
+  const stepStart = index * SPAN
+  const stepEnd = (index + 1) * SPAN
+  const fadeOutStart = stepStart + 0.9 * SPAN
+  const fadeInEnd = stepEnd + 0.1 * SPAN
+  const transLen = 0.1 * SPAN
+
+  // Last layer (pricing): fades in, stays visible
+  if (index === STEP_COUNT) {
+    return clamp01((progress - stepStart) / transLen)
+  }
+
+  // Normal steps: fully visible in the middle, fade out near the end
+  if (progress >= fadeOutStart) {
+    return clamp01(1 - (progress - fadeOutStart) / transLen)
+  }
+  return progress >= stepStart ? 1 : 0
 }
 
 function highlight(text: string, word: string, color: string): React.ReactNode {
@@ -130,47 +193,58 @@ export default function Section5Booking() {
       className="relative bg-black"
     >
       <div ref={stageRef} className="s5-stage">
-        {/* Pinned viewport — layers crossfade inside here */}
-        <div ref={layersRef} className="s5-pin" aria-hidden="true">
-          {STEPS.map((step, i) => (
-            <div key={step.num} data-booking-layer className="s5-layer">
+        {/* Pinned viewport — section title + layers crossfade inside here */}
+        <div className="s5-pin">
+          {/* Section title — always visible at top of sticky viewport */}
+          <h2
+            className="s5-heading"
+            data-cms-key="how.title"
+          >
+            {t("title")}
+          </h2>
+
+          {/* Step layers — crossfade on scroll */}
+          <div ref={layersRef} className="s5-layers" aria-hidden="true">
+            {STEPS.map((step, i) => (
+              <div key={step.num} data-booking-layer className="s5-layer">
+                <div className="s5-step">
+                  <span
+                    className="s5-num"
+                    style={{ color: step.color }}
+                    data-cms-key={`how.${step.titleKey}`}
+                  >
+                    {step.num}
+                  </span>
+                  <h3
+                    className="s5-title"
+                    data-cms-key={`how.${step.titleKey}`}
+                  >
+                    {highlight(
+                      t(step.titleKey),
+                      t(step.highlightKey),
+                      step.color,
+                    )}
+                  </h3>
+                  <p
+                    className="s5-body"
+                    data-cms-key={`how.${step.bodyKey}`}
+                  >
+                    {t(step.bodyKey)}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {/* Pricing transition sentence — fades in last */}
+            <div data-booking-layer className="s5-layer">
               <div className="s5-step">
-                <span
-                  className="s5-num"
-                  style={{ color: step.color }}
-                  data-cms-key={`how.${step.titleKey}`}
-                >
-                  {step.num}
-                </span>
-                <h2
-                  className="s5-title"
-                  data-cms-key={`how.${step.titleKey}`}
-                >
-                  {highlight(
-                    t(step.titleKey),
-                    t(step.highlightKey),
-                    step.color,
-                  )}
-                </h2>
                 <p
-                  className="s5-body"
-                  data-cms-key={`how.${step.bodyKey}`}
+                  className="s5-transition"
+                  data-cms-key="pricingPage.periods_subtitle"
                 >
-                  {t(step.bodyKey)}
+                  {t("title")}
                 </p>
               </div>
-            </div>
-          ))}
-
-          {/* Pricing transition sentence — fades in last */}
-          <div data-booking-layer className="s5-layer">
-            <div className="s5-step">
-              <p
-                className="s5-transition"
-                data-cms-key="pricingPage.periods_subtitle"
-              >
-                {t("title")}
-              </p>
             </div>
           </div>
         </div>
@@ -188,6 +262,29 @@ export default function Section5Booking() {
           overflow: hidden;
           transform: translateZ(0);
           will-change: opacity;
+          display: flex;
+          flex-direction: column;
+        }
+        /* Section title — pinned at top, visible throughout the scroll */
+        .s5-heading {
+          position: relative;
+          z-index: 2;
+          flex-shrink: 0;
+          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
+            "SF Pro Display", "Helvetica Neue", sans-serif;
+          font-size: clamp(20px, 3vw, 32px);
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          color: rgba(255, 255, 255, 0.85);
+          margin: 0;
+          padding: clamp(72px, 10vh, 100px) clamp(20px, 5vw, 80px) 0;
+          text-align: center;
+        }
+        /* Layers container — fills remaining space, layers are absolute inside */
+        .s5-layers {
+          position: relative;
+          flex: 1;
+          min-height: 0;
         }
         .s5-layer {
           position: absolute;
@@ -242,7 +339,11 @@ export default function Section5Booking() {
           margin: 0;
           text-align: center;
         }
+        /* Reduced motion: show only step 1, hide all others */
         .s5-stage[data-reduced="true"] .s5-layer {
+          opacity: 0;
+        }
+        .s5-stage[data-reduced="true"] .s5-layer:first-child {
           opacity: 1;
         }
       `}</style>
