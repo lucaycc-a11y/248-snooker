@@ -737,6 +737,53 @@
         ],
         "createdAt": "2026-09-03T00:41:34.185Z",
         "reason": "darker green strong for AA contrast on white card bg, replaces #86efac"
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-09-03T12:34:24.670Z"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "jetbrains mono",
+        "createdAt": "2026-09-03T12:53:12.326Z",
+        "reason": "Style-guide mono labels intentionally use JetBrains Mono for data-oriented UI."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "11px",
+        "createdAt": "2026-09-03T12:53:12.380Z",
+        "reason": "Style-guide compact navigation controls intentionally use 11px radius."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "10px",
+        "createdAt": "2026-09-03T12:53:12.436Z",
+        "reason": "Style-guide compact pill controls intentionally use 10px radius."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "5px",
+        "createdAt": "2026-09-03T12:53:12.492Z",
+        "reason": "Style-guide chart callouts and bars intentionally use 5px radius."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(15,120,69,.22)",
+        "createdAt": "2026-09-03T12:53:58.518Z",
+        "reason": "AI insight glass gradient uses a deliberate translucent green tonal layer."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "7px",
+        "createdAt": "2026-09-03T12:53:58.567Z",
+        "reason": "Compact attachment and suggestion controls intentionally use 7px radius."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "17px",
+        "createdAt": "2026-09-03T12:53:58.604Z",
+        "reason": "Composer surface intentionally uses a slightly tighter radius than cards."
       }
     ]
   }
