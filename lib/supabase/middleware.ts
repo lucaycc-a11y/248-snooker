@@ -13,6 +13,11 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Running the refresh ONCE here, before any handler, means downstream getUser()
 // calls always see a fresh token and never initiate a competing rotation.
 export async function updateSession(request: NextRequest) {
+  console.log('[mw] updateSession start', {
+    path: request.nextUrl.pathname,
+    ts: Date.now(),
+  })
+
   // Carries the request through unchanged unless we need to write refreshed cookies.
   let supabaseResponse = NextResponse.next({ request })
 
@@ -53,13 +58,25 @@ export async function updateSession(request: NextRequest) {
   // user is genuinely signed out. We just must not let a refresh hiccup nuke the
   // whole request.
   try {
-    await supabase.auth.getUser()
+    const { data, error } = await supabase.auth.getUser()
+    console.log('[mw] getUser result', {
+      hasUser: !!data?.user,
+      userId: data?.user?.id ?? null,
+      error: error?.message ?? null,
+      ts: Date.now(),
+    })
   } catch (err) {
-    // Prefix `[supabase/middleware]` distinguishes this from route-handler errors
-    // (`[otp/verify-binding]`), so the next 500 can be traced to the right layer
-    // at a glance instead of re-deriving it from scratch.
-    console.error('[supabase/middleware] getUser failed, continuing without session refresh', err)
+    console.error('[mw] getUser THREW', {
+      errName: err instanceof Error ? err.name : typeof err,
+      errMessage: err instanceof Error ? err.message : String(err),
+      errStack: err instanceof Error ? err.stack : undefined,
+      ts: Date.now(),
+    })
+    // Logging-only instrumentation: do NOT change behaviour here — the next
+    // round decides how to handle this once we've seen real failure logs.
   }
+
+  console.log('[mw] updateSession end', { ts: Date.now() })
 
   // IMPORTANT: return supabaseResponse as-is — its cookies carry the refreshed
   // session. If a caller needs a different response, it must copy these cookies

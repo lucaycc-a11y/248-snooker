@@ -36,10 +36,21 @@ export async function bindVerifiedPhone(
   userId: string,
   rawPhone: string,
 ): Promise<PhoneBindingResult> {
+  console.log('[bindVerifiedPhone] start', {
+    userId,
+    phoneTail: rawPhone.slice(-3),
+    ts: Date.now(),
+  })
+
   const e164 = normalizePhone(rawPhone)
-  if (!e164) return { ok: false, error: 'phone_invalid' }
+  console.log('[bindVerifiedPhone] normalized', { e164: e164 || null, ts: Date.now() })
+  if (!e164) {
+    console.warn('[bindVerifiedPhone] normalize failed', { ts: Date.now() })
+    return { ok: false, error: 'phone_invalid' }
+  }
 
   const sb = getServiceSupabase()
+  console.log('[bindVerifiedPhone] service client created', { ts: Date.now() })
 
   // Check uniqueness in auth_identities before writing — cleaner error than a
   // constraint violation. Only verified identities block registration.
@@ -52,7 +63,23 @@ export async function bindVerifiedPhone(
     .neq('user_id', userId)
     .maybeSingle<{ user_id: string }>()
 
-  if (lookupErr) return { ok: false, error: 'db_error' }
+  console.log('[bindVerifiedPhone] lookup existing (other users)', {
+    hasExisting: !!existing,
+    existingUserId: existing?.user_id ?? null,
+    error: lookupErr?.message ?? null,
+    errorCode: lookupErr?.code ?? null,
+    errorDetails: lookupErr?.details ?? null,
+    errorHint: lookupErr?.hint ?? null,
+    ts: Date.now(),
+  })
+
+  if (lookupErr) {
+    console.error('[bindVerifiedPhone] lookup DB error, returning db_error', {
+      fullError: lookupErr,
+      ts: Date.now(),
+    })
+    return { ok: false, error: 'db_error' }
+  }
   if (existing) return { ok: false, error: 'phone_taken' }
 
   // Same user re-verifying their own already-bound phone: the upsert below is
@@ -67,10 +94,24 @@ export async function bindVerifiedPhone(
     .eq('verified', true)
     .maybeSingle<{ id: string }>()
 
-  if (!ownErr && own) return { ok: true, alreadyVerified: true }
+  console.log('[bindVerifiedPhone] lookup own row', {
+    hasOwn: !!own,
+    error: ownErr?.message ?? null,
+    errorCode: ownErr?.code ?? null,
+    errorDetails: ownErr?.details ?? null,
+    errorHint: ownErr?.hint ?? null,
+    ts: Date.now(),
+  })
+
+  if (!ownErr && own) {
+    console.log('[bindVerifiedPhone] already verified for this user', { ts: Date.now() })
+    return { ok: true, alreadyVerified: true }
+  }
 
   // Upsert into auth_identities (mark as verified)
-  const { error: upsertErr } = await sb
+  console.log('[bindVerifiedPhone] about to upsert', { userId, e164, ts: Date.now() })
+
+  const { data: upsertData, error: upsertErr } = await sb
     .from('auth_identities')
     .upsert(
       {
@@ -83,11 +124,27 @@ export async function bindVerifiedPhone(
       },
       { onConflict: 'user_id,provider,identifier' },
     )
+    .select()
+
+  console.log('[bindVerifiedPhone] upsert result', {
+    success: !upsertErr,
+    data: upsertData ?? null,
+    error: upsertErr?.message ?? null,
+    errorCode: upsertErr?.code ?? null,
+    errorDetails: upsertErr?.details ?? null,
+    errorHint: upsertErr?.hint ?? null,
+    ts: Date.now(),
+  })
 
   if (upsertErr) {
     // 23505 = unique_violation. The pre-checks above cover the common paths, so
     // a 23505 here means a concurrent request won the race. Re-check who now owns
     // the verified row so we never misreport a constraint hit as a transient 500.
+    console.error('[bindVerifiedPhone] upsert failed', {
+      fullError: upsertErr,
+      ts: Date.now(),
+    })
+
     if ((upsertErr as { code?: string }).code === '23505') {
       const { data: winner } = await sb
         .from('auth_identities')
@@ -97,10 +154,17 @@ export async function bindVerifiedPhone(
         .eq('verified', true)
         .maybeSingle<{ user_id: string }>()
 
+      console.log('[bindVerifiedPhone] 23505 race re-check', {
+        winnerUserId: winner?.user_id ?? null,
+        isSelf: winner?.user_id === userId,
+        ts: Date.now(),
+      })
+
       if (winner?.user_id === userId) return { ok: true, alreadyVerified: true }
       if (winner) return { ok: false, error: 'phone_taken' }
     }
     return { ok: false, error: 'db_error' }
   }
+  console.log('[bindVerifiedPhone] success', { ts: Date.now() })
   return { ok: true }
 }
