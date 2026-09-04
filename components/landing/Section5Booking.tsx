@@ -2,36 +2,18 @@
 
 import { useEffect, useRef } from "react"
 import { useTranslations } from "next-intl"
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger)
-}
 
 /**
- * Section 5 — Booking Process (HomePod mini-style scroll reveal)
+ * Section 5 — Booking Process (left-steps + right-image layout)
  *
- * Four booking layers (3 steps + pricing slogan) reveal on scroll, each
- * driven by GSAP ScrollTrigger with `scrub: true` — the section's progress
- * is tied directly to the scroll position so opacity tracks the user's
- * hand exactly.
+ * Replaced GSAP pin+scrub with normal scroll + parallax depth.
+ * Steps reveal on scroll via IntersectionObserver. Background moves
+ * at a slower rate than foreground for parallax depth effect.
  *
- * Opacity profile (HomePod lyric-stack feel):
- *   - Active panel:    1.0
- *   - Adjacent panels: fade to a faint GHOST (0.13) instead of 0,
- *     producing a visible "stack" of muted green outlines around the
- *     active title. This is what gives the section its depth — the
- *     previous line never fully disappears.
- *
- * Per-panel window is a triangle over its `1/N` slice of timeline progress:
- *   sliceStart = i/N, sliceMid = (i+0.5)/N, sliceEnd = (i+1)/N
- *   before sliceStart → GHOST; sliceStart→sliceMid → lerp(GHOST, 1);
- *   sliceMid→sliceEnd → lerp(1, GHOST); after sliceEnd → GHOST.
- * Last panel (slogan) holds at 1 after its midpoint (no fade-out).
- *
- * Section title (`預訂流程`) is positioned at the top of the sticky viewport
- * and remains visible throughout the scroll, anchoring context.
+ * Layout (matches reference 主頁web_final.html):
+ *   - Desktop: grid 1fr 1.05fr (steps left, image right)
+ *   - Mobile: stacked (image top, steps below)
+ *   - No scroll-jacking — section scrolls naturally with the page
  */
 
 const STEPS = [
@@ -58,44 +40,11 @@ const STEPS = [
   },
 ] as const
 
-const STEP_COUNT = STEPS.length
-const TOTAL_PANELS = STEP_COUNT + 1 // steps + pricing slogan
-const GHOST = 0.13 // "stack" opacity for non-active panels
-
-function lerp(a: number, b: number, t: number): number {
-  return a + (b - a) * t
-}
-
-/**
- * Triangle-window opacity per panel.
- *
- * For each panel `i`, draw a triangle over its slice [i/N, (i+1)/N]:
- *   - below sliceStart  → GHOST
- *   - sliceStart→mid    → lerp(GHOST, 1)
- *   - mid→sliceEnd      → lerp(1, GHOST)
- *   - above sliceEnd    → GHOST
- *
- * The last panel (index === TOTAL_PANELS - 1, the pricing slogan) holds at
- * 1 once it reaches the midpoint of its slice — no fade-out, so it stays
- * visible when the user scrolls into Section 6.
- */
-function panelOpacity(progress: number, index: number): number {
-  const N = TOTAL_PANELS
-  const clamped = Math.max(0, Math.min(1, progress))
-  const sliceStart = index / N
-  const sliceMid = (index + 0.5) / N
-  const sliceEnd = (index + 1) / N
-
-  if (clamped <= sliceStart) return GHOST
-  if (clamped >= sliceEnd) return index === N - 1 ? 1 : GHOST
-
-  if (clamped < sliceMid) {
-    return lerp(GHOST, 1, (clamped - sliceStart) / (sliceMid - sliceStart))
-  }
-  // progress in [sliceMid, sliceEnd)
-  if (index === N - 1) return 1
-  return lerp(1, GHOST, (clamped - sliceMid) / (sliceEnd - sliceMid))
-}
+const STEP_IMAGES = [
+  "/gallery/Space8_Competition_Mode.PNG",
+  "/gallery/Space8_Door.PNG",
+  "/gallery/space-pilot-scoreboard.png",
+] as const
 
 function highlight(text: string, word: string, color: string): React.ReactNode {
   if (!word) return text
@@ -103,7 +52,7 @@ function highlight(text: string, word: string, color: string): React.ReactNode {
   const parts = text.split(new RegExp(`(${escaped})`, "g"))
   return parts.map((part, i) =>
     part === word ? (
-      <span key={i} style={{ color, fontWeight: 600 }}>
+      <span key={i} style={{ color, fontWeight: 700 }}>
         {part}
       </span>
     ) : (
@@ -114,56 +63,71 @@ function highlight(text: string, word: string, color: string): React.ReactNode {
 
 export default function Section5Booking() {
   const tHow = useTranslations("how")
-  const tPricing = useTranslations("pricingPage")
-  const stageRef = useRef<HTMLDivElement>(null)
-  const layersRef = useRef<HTMLDivElement>(null)
+  const stepsRef = useRef<HTMLDivElement>(null)
+  const bgRef = useRef<HTMLDivElement>(null)
+  const titleRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const stage = stageRef.current
-    const layerHost = layersRef.current
-    if (!stage || !layerHost) return
-
-    const layers = Array.from(
-      layerHost.querySelectorAll<HTMLElement>("[data-booking-layer]"),
-    )
+    const steps = stepsRef.current
+    const bg = bgRef.current
+    const title = titleRef.current
+    if (!steps) return
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (reduce) {
-      stage.dataset.reduced = "true"
+      steps.querySelectorAll<HTMLElement>("[data-step]").forEach((el) => {
+        el.style.opacity = "1"
+        el.style.transform = "none"
+      })
       return
     }
 
-    // GSAP ScrollTrigger — scrub-driven progress for the whole section.
-    // The 400svh stage owns the scroll range; opacity updates per frame in onUpdate.
-    // The dummy tween gives the (otherwise empty) timeline a 1-unit duration for
-    // scrub to drive — without it, totalDuration() is 0 and progress stays 0.
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: stage,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: true,
+    /* ── Step reveal via IntersectionObserver ── */
+    const stepEls = Array.from(steps.querySelectorAll<HTMLElement>("[data-step]"))
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const el = entry.target as HTMLElement
+            const idx = Number(el.getAttribute("data-step"))
+            el.style.transitionDelay = `${idx * 0.15}s`
+            el.classList.add("is-shown")
+            observer.unobserve(el)
+          }
+        })
       },
-    })
-    tl.to({}, { duration: 1, ease: "none" })
+      { threshold: 0.2, rootMargin: "0px 0px -60px 0px" },
+    )
+    stepEls.forEach((el) => observer.observe(el))
 
-    tl.eventCallback("onUpdate", () => {
-      const p = tl.progress()
-      layers.forEach((layer, i) => {
-        layer.style.opacity = panelOpacity(p, i).toFixed(4)
+    /* ── Parallax depth — background moves slower than scroll ── */
+    let raf: number
+    const onScroll = () => {
+      raf = requestAnimationFrame(() => {
+        const rect = steps.getBoundingClientRect()
+        const viewH = window.innerHeight
+        if (rect.bottom < 0 || rect.top > viewH) return
+
+        // Progress: 0 when section top enters viewport, 1 when bottom leaves
+        const progress = 1 - rect.top / (rect.height + viewH)
+
+        // Parallax transforms at different rates
+        if (bg) {
+          bg.style.transform = `translateY(${progress * 60}px)`
+        }
+        if (title) {
+          title.style.transform = `translateY(${progress * -25}px)`
+        }
       })
-    })
+    }
 
-    // Initial sync (handles the case where section is already in view on mount)
-    layers.forEach((layer, i) => {
-      layer.style.opacity = panelOpacity(tl.progress(), i).toFixed(4)
-    })
+    window.addEventListener("scroll", onScroll, { passive: true })
+    onScroll()
 
     return () => {
-      // Clear GSAP-injected inline opacity so CSS default (opacity: 0) takes over
-      layers.forEach((l) => l.style.removeProperty("opacity"))
-      tl.scrollTrigger?.kill()
-      tl.kill()
+      window.removeEventListener("scroll", onScroll)
+      cancelAnimationFrame(raf)
+      observer.disconnect()
     }
   }, [])
 
@@ -173,31 +137,35 @@ export default function Section5Booking() {
       aria-label="Booking process — three steps to play"
       className="relative bg-black"
     >
-      <div ref={stageRef} className="s5-stage">
-        {/* Pinned viewport — section title + layers crossfade inside here */}
-        <div className="s5-pin">
-          {/* Section title — always visible at top of sticky viewport */}
+      <div className="s5-wrapper">
+        {/* ── Parallax background layer (moves slower) ── */}
+        <div ref={bgRef} className="s5-bg" />
+
+        {/* ── Title ── */}
+        <div ref={titleRef} className="s5-title-block">
           <h2
-            className="s5-heading"
+            className="s5-title"
             data-cms-key="how.title"
           >
             {tHow("title")}
           </h2>
+        </div>
 
-          {/* Step layers — crossfade on scroll */}
-          <div ref={layersRef} className="s5-layers" aria-hidden="true">
+        {/* ── Grid: steps left, image right ── */}
+        <div ref={stepsRef} className="s5-grid">
+          <div className="s5-steps">
             {STEPS.map((step, i) => (
-              <div key={step.num} data-booking-layer className="s5-layer">
-                <div className="s5-step">
-                  <span
-                    className="s5-num"
-                    style={{ color: step.color }}
-                    data-cms-key={`how.${step.titleKey}`}
-                  >
-                    {step.num}
-                  </span>
+              <div
+                key={step.num}
+                data-step={i}
+                className="s5-step"
+              >
+                <div className="s5-marker">
+                  <span className="s5-num">{step.num}</span>
+                </div>
+                <div className="s5-text">
                   <h3
-                    className="s5-title"
+                    className="s5-step-title"
                     data-cms-key={`how.${step.titleKey}`}
                   >
                     {highlight(
@@ -207,7 +175,7 @@ export default function Section5Booking() {
                     )}
                   </h3>
                   <p
-                    className="s5-body"
+                    className="s5-step-body"
                     data-cms-key={`how.${step.bodyKey}`}
                   >
                     {tHow(step.bodyKey)}
@@ -215,126 +183,234 @@ export default function Section5Booking() {
                 </div>
               </div>
             ))}
+          </div>
 
-            {/* Pricing transition sentence — fades in last */}
-            <div data-booking-layer className="s5-layer">
-              <div className="s5-step">
-                <p
-                  className="s5-transition"
-                  data-cms-key="pricingPage.periods_subtitle"
-                >
-                  {tPricing("periods_subtitle")}
-                </p>
-              </div>
-            </div>
+          <div className="s5-image-wrap">
+            {STEP_IMAGES.map((src, i) => (
+              <img
+                key={src}
+                src={src}
+                alt={tHow(STEPS[i].titleKey)}
+                className="s5-image"
+                loading={i === 0 ? "eager" : "lazy"}
+              />
+            ))}
+            {/* Stacked images — opacity controlled by CSS :has() on step hover/focus */}
           </div>
         </div>
       </div>
 
       <style jsx>{`
-        .s5-stage {
+        .s5-wrapper {
           position: relative;
-          height: ${TOTAL_PANELS * 100}svh;
-        }
-        .s5-pin {
-          position: sticky;
-          top: 0;
-          height: 100svh;
+          max-width: 1080px;
+          margin: 0 auto;
+          padding: clamp(72px, 10vh, 120px) clamp(20px, 5vw, 48px) clamp(64px, 8vh, 96px);
           overflow: hidden;
-          transform: translateZ(0);
-          will-change: opacity;
-          display: flex;
-          flex-direction: column;
         }
-        /* Section title — pinned at top, visible throughout the scroll */
-        .s5-heading {
-          position: relative;
-          z-index: 2;
-          flex-shrink: 0;
-          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
-            "SF Pro Display", "Helvetica Neue", sans-serif;
-          font-size: clamp(20px, 3vw, 32px);
-          font-weight: 700;
-          letter-spacing: -0.02em;
-          color: rgba(255, 255, 255, 0.85);
-          margin: 0;
-          padding: clamp(72px, 10vh, 100px) clamp(20px, 5vw, 80px) 0;
-          text-align: center;
-        }
-        /* Layers container — fills remaining space, layers are absolute inside */
-        .s5-layers {
-          position: relative;
-          flex: 1;
-          min-height: 0;
-        }
-        .s5-layer {
+
+        /* ── Parallax background ── */
+        .s5-bg {
           position: absolute;
           inset: 0;
-          /* GSAP sets opacity per-frame via style.opacity; default hidden. */
-          opacity: 0;
+          background: radial-gradient(
+            ellipse 60% 50% at 70% 50%,
+            rgba(26, 157, 92, 0.06) 0%,
+            transparent 70%
+          );
+          pointer-events: none;
+          will-change: transform;
+          transform: translateY(0);
         }
-        .s5-step {
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 0 clamp(20px, 5vw, 80px);
+
+        /* ── Title ── */
+        .s5-title-block {
           text-align: center;
-        }
-        .s5-num {
-          font-family: "Good Times", "Bebas Neue", sans-serif;
-          font-size: clamp(80px, 14vw, 200px);
-          font-weight: 400;
-          line-height: 1;
-          letter-spacing: -0.02em;
-          margin-bottom: clamp(12px, 2vw, 24px);
+          margin-bottom: clamp(32px, 5vw, 48px);
+          position: relative;
+          z-index: 2;
+          will-change: transform;
+          transform: translateY(0);
         }
         .s5-title {
           font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
             "SF Pro Display", "Helvetica Neue", sans-serif;
-          font-size: clamp(28px, 5vw, 56px);
-          font-weight: 800;
-          letter-spacing: -0.03em;
-          line-height: 1.1;
-          /* Brand gradient — green → bright green (background-clip: text). */
-          color: transparent;
-          background-image: linear-gradient(180deg, #1a9d5c 0%, #22b86b 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          margin: 0 0 clamp(12px, 2vw, 20px);
-          white-space: nowrap;
-          max-width: 100%;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .s5-body {
-          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
-            "SF Pro Display", "Helvetica Neue", sans-serif;
-          font-size: clamp(15px, 2vw, 20px);
-          line-height: 1.6;
-          color: rgba(255, 255, 255, 0.6);
-          max-width: 520px;
-          margin: 0;
-        }
-        .s5-transition {
-          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
-            "SF Pro Display", "Helvetica Neue", sans-serif;
-          font-size: clamp(20px, 3.5vw, 36px);
-          font-weight: 700;
+          font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+          font-weight: 900;
           letter-spacing: -0.02em;
-          line-height: 1.3;
-          color: rgba(255, 255, 255, 0.85);
-          max-width: 640px;
+          color: #ffffff;
           margin: 0;
-          text-align: center;
+          line-height: 1.2;
         }
-        /* Reduced motion: show only step 1, hide all others */
-        .s5-stage[data-reduced="true"] .s5-layer {
+
+        /* ── Grid layout ── */
+        .s5-grid {
+          display: grid;
+          grid-template-columns: 1fr 1.05fr;
+          gap: 44px;
+          align-items: center;
+          position: relative;
+          z-index: 2;
+        }
+
+        /* ── Steps list ── */
+        .s5-steps {
+          display: flex;
+          flex-direction: column;
+          gap: 30px;
+        }
+        .s5-step {
+          display: flex;
+          gap: 20px;
+          align-items: flex-start;
+          text-align: left;
           opacity: 0;
+          transform: translateY(16px);
+          transition:
+            opacity 0.6s cubic-bezier(0.2, 0.7, 0.3, 1),
+            transform 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
         }
-        .s5-stage[data-reduced="true"] .s5-layer:first-child {
+        :global(.s5-step.is-shown) {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+
+        /* ── Step marker (circle) ── */
+        .s5-marker {
+          flex-shrink: 0;
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(255, 255, 255, 0.72);
+          transition:
+            background 0.45s ease,
+            border-color 0.45s ease,
+            color 0.45s ease,
+            transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
+          margin-top: 2px;
+        }
+        .s5-step:hover .s5-marker,
+        .s5-step:focus-within .s5-marker {
+          background: #22C55E;
+          border-color: #22C55E;
+          color: #ffffff;
+          transform: scale(1.06);
+        }
+        .s5-num {
+          font-family: "Inter", -apple-system, sans-serif;
+          font-size: 14px;
+          font-weight: 500;
+        }
+
+        /* ── Step text ── */
+        .s5-text {
+          display: block;
+        }
+        .s5-step-title {
+          display: block;
+          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
+            "SF Pro Display", "Helvetica Neue", sans-serif;
+          font-weight: 700;
+          font-size: clamp(17px, 2vw, 20px);
+          color: rgba(255, 255, 255, 0.72);
+          margin: 0 0 8px;
+          transition: color 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
+          line-height: 1.3;
+        }
+        .s5-step:hover .s5-step-title,
+        .s5-step:focus-within .s5-step-title {
+          color: #ffffff;
+          transform: translateX(3px);
+        }
+        .s5-step-body {
+          display: block;
+          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
+            "SF Pro Display", "Helvetica Neue", sans-serif;
+          font-size: 14.5px;
+          line-height: 1.8;
+          color: rgba(255, 255, 255, 0.52);
+          max-width: 34ch;
+          margin: 0;
+          transition: color 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
+        }
+        .s5-step:hover .s5-step-body,
+        .s5-step:focus-within .s5-step-body {
+          color: rgba(255, 255, 255, 0.72);
+          transform: translateX(3px);
+        }
+
+        /* ── Right image column ── */
+        .s5-image-wrap {
+          position: relative;
+          border-radius: 18px;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #0b0b0d;
+          aspect-ratio: 4 / 3;
+        }
+        .s5-image {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          opacity: 0;
+          transform: scale(1.05);
+          transition: opacity 0.75s ease, transform 1.2s cubic-bezier(0.2, 0.7, 0.3, 1);
+        }
+        .s5-image:nth-child(1) {
           opacity: 1;
+          transform: scale(1);
+        }
+        /* Show image on step hover — sibling selector via :has */
+        .s5-steps:has(.s5-step:nth-child(1):hover) .s5-image:nth-child(1),
+        .s5-steps:has(.s5-step:nth-child(1):focus-within) .s5-image:nth-child(1) {
+          opacity: 1;
+          transform: scale(1);
+        }
+        .s5-steps:has(.s5-step:nth-child(2):hover) .s5-image:nth-child(2),
+        .s5-steps:has(.s5-step:nth-child(2):focus-within) .s5-image:nth-child(2) {
+          opacity: 1;
+          transform: scale(1);
+        }
+        .s5-steps:has(.s5-step:nth-child(3):hover) .s5-image:nth-child(3),
+        .s5-steps:has(.s5-step:nth-child(3):focus-within) .s5-image:nth-child(3) {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 860px) {
+          .s5-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+          }
+          .s5-image-wrap {
+            order: -1;
+          }
+          .s5-steps {
+            gap: 24px;
+          }
+          .s5-wrapper {
+            padding: 72px 20px 64px;
+          }
+        }
+        @media (max-width: 560px) {
+          .s5-marker {
+            width: 36px;
+            height: 36px;
+          }
+          .s5-step {
+            gap: 15px;
+          }
+          .s5-step-body {
+            font-size: 13.5px;
+          }
         }
       `}</style>
     </section>

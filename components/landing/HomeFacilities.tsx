@@ -79,7 +79,7 @@ export default function HomeFacilities() {
           <p data-cms-key="homeVenue.eyebrow" className="mb-3 font-label text-[12px] font-bold tracking-[0.12em] text-[#1a9d5c]">
             {t("eyebrow")}
           </p>
-          <h2 id="home-facilities-title" data-cms-key="homeVenue.title" className="m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold tracking-[-0.04em] text-[#111110]">
+          <h2 id="home-facilities-title" data-cms-key="homeVenue.title" className="m-0 text-[clamp(1.7rem,3.4vw,2.4rem)] font-black tracking-[-0.04em] text-[#111110]">
             {t("title")}
           </h2>
           <p data-cms-key="homeVenue.intro" className="mt-4 max-w-xl text-[15px] leading-[1.75] text-[rgba(17,17,16,0.6)] md:text-[17px]">
@@ -121,13 +121,13 @@ export default function HomeFacilities() {
                 <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="mb-2 text-[#1a9d5c]" />
                 <h3
                   data-cms-key={`homeVenue.items.${index}.title`}
-                  className="m-0 text-[16px] font-semibold leading-[1.3] text-[#111110]"
+                  className="m-0 mb-[10px] text-[16.5px] font-bold leading-[1.3] text-[#111110]"
                 >
                   {facility.title}
                 </h3>
                 <p
                   data-cms-key={`homeVenue.items.${index}.body`}
-                  className="mt-1 text-[13px] leading-[1.55] text-[rgba(17,17,16,0.6)]"
+                  className="text-[13.5px] leading-[1.7] text-[rgba(17,17,16,0.6)]"
                 >
                   {facility.body}
                 </p>
