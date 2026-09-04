@@ -106,10 +106,13 @@ export default function Hero() {
         }}
       />
 
-      {/* Content — lifted towards the top to leave the snooker table and balls unobstructed */}
-      <div ref={heroContentRef} className="absolute left-1/2 top-[13%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[12%]">
+      {/* Content — flex-centered with responsive bottom guard-rail to prevent overlap with the pool-table graphic */}
+      <div
+        ref={heroContentRef}
+        className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center pb-[clamp(60px,18svh,180px)] md:pb-[clamp(80px,20svh,200px)]"
+      >
         {/* Space8 wordmark — official SVG artwork, not a text simulation */}
-        <div data-anime-hero-item style={{ marginBottom: "10px" }}>
+        <div data-anime-hero-item style={{ marginBottom: "6px" }}>
           <Logo variant="full" theme="dark" size={32} />
         </div>
 
@@ -134,7 +137,7 @@ export default function Hero() {
         {/* Sub copy */}
         <p
           data-anime-hero-item
-          className="mt-3.5 text-[14px] md:mt-4 md:text-[17px]"
+          className="mt-3 text-[14px] md:mt-3.5 md:text-[17px]"
           style={{
             color: "rgba(255,255,255,0.72)",
             fontWeight: 400,
@@ -146,8 +149,8 @@ export default function Hero() {
           {t("subline")}
         </p>
 
-        {/* CTA buttons — kept immediately available; the entrance is decorative only. */}
-        <div data-anime-hero-item className="mt-6 md:mt-8">
+        {/* CTA buttons — tightened gap from subtitle for better composition. */}
+        <div data-anime-hero-item className="mt-4 md:mt-5">
           <div className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center gap-3 rounded-full px-3 py-2.5 sm:px-4 sm:py-3">
             <Link
               href="/book"

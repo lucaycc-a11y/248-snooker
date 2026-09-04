@@ -50,8 +50,6 @@ const CONFIG = {
   closeHour: 24, // Last slot starts 23:00, ends 00:00
 }
 
-const BEBAS = "'Bebas Neue', system-ui, sans-serif"
-
 const legalLinkStyle: React.CSSProperties = {
   appearance: "none",
   border: "none",
