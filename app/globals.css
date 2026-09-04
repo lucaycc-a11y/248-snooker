@@ -291,6 +291,11 @@ body {
 
 /* ── OTP orbit verification ─────────────────────────────────────────────── */
 .otp-verification {
+  /* Keep the frame size identical in every status: the 6-digit input row is
+     width: min(100%, 304px), and the verifying/success tree must occupy the
+     same footprint — otherwise the container collapses to the 14px spinner
+     width and the glass card shows a giant empty box between states. */
+  width: min(100%, 304px);
   min-height: 218px;
   display: flex;
   flex-direction: column;
@@ -437,6 +442,8 @@ body {
 @keyframes otp-spin { to { transform: rotate(360deg); } }
 
 .otp-spinner-container {
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
