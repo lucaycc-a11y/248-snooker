@@ -793,6 +793,99 @@
         ],
         "createdAt": "2026-09-04T10:57:37.058Z",
         "reason": "user-confirmed: original brief specified brand green gradient (#1a9d5c→#22b86b) via background-clip:text as core design requirement"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3d1a08",
+        "createdAt": "2026-09-04T16:59:33.918Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#6b3015",
+        "createdAt": "2026-09-04T16:59:34.096Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8b4513",
+        "createdAt": "2026-09-04T16:59:34.220Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a0522d",
+        "createdAt": "2026-09-04T16:59:34.416Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#c87941",
+        "createdAt": "2026-09-04T16:59:34.517Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#deb887",
+        "createdAt": "2026-09-04T16:59:34.603Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f5deb3",
+        "createdAt": "2026-09-04T16:59:34.703Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8f5e0",
+        "createdAt": "2026-09-04T16:59:34.769Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a8d5a2",
+        "createdAt": "2026-09-04T16:59:34.845Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#6bbf6b",
+        "createdAt": "2026-09-04T16:59:34.903Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3d8b3d",
+        "createdAt": "2026-09-04T16:59:34.957Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1f5c1f",
+        "createdAt": "2026-09-04T16:59:35.002Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0d3d0d",
+        "createdAt": "2026-09-04T16:59:35.060Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#071f07",
+        "createdAt": "2026-09-04T16:59:35.110Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-04T17:17:42.639Z",
+        "reason": "agent: L207 is .blog-prose blockquote, not a card — a left border on blockquotes is canonical editorial typography (GitHub/Medium/Tailwind prose convention), domain-appropriate styling rather than the AI card-accent tell the rule targets"
       }
     ]
   }

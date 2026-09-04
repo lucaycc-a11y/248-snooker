@@ -21,9 +21,10 @@
 }
 
 :root {
-  --bg: #000000;
-  --surface: #111111;
-  --surface-elevated: #1A1A1A;
+  /* Mirrors tokens.colors — keep in sync (see app/styles/tokens.ts) */
+  --bg: #14161A;
+  --surface: #1A1C20;
+  --surface-elevated: #1F2126;
   --border: rgba(255,255,255,0.1);
   --border-strong: rgba(255,255,255,0.18);
   --text: #FFFFFF;

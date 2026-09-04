@@ -78,7 +78,7 @@ const modalStyle: React.CSSProperties = {
   maxHeight: "min(88vh, 760px)",
   display: "flex",
   flexDirection: "column",
-  background: "#000",
+  background: tokens.colors.bg,
   border: `1px solid ${tokens.colors.borderStrong}`,
   borderRadius: 20,
   overflow: "hidden",
@@ -3751,7 +3751,7 @@ export default function BookPage() {
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
-          background: #000;
+          background: ${tokens.colors.bg};
           flex: 1;
           min-height: 0;
         }

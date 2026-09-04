@@ -106,10 +106,11 @@ export default function Hero() {
         }}
       />
 
-      {/* Content — flex-centered with responsive bottom guard-rail to prevent overlap with the pool-table graphic */}
+      {/* Content — flex-centered with responsive bottom guard-rail to prevent overlap with the pool-table graphic.
+          pointer-events-none lets the table's hover effect work through the full-bleed container. */}
       <div
         ref={heroContentRef}
-        className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center pb-[clamp(60px,18svh,180px)] md:pb-[clamp(80px,20svh,200px)]"
+        className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center pb-[clamp(60px,18svh,180px)] md:pb-[clamp(80px,20svh,200px)]"
       >
         {/* Space8 wordmark — official SVG artwork, not a text simulation */}
         <div data-anime-hero-item style={{ marginBottom: "6px" }}>
@@ -149,8 +150,9 @@ export default function Hero() {
           {t("subline")}
         </p>
 
-        {/* CTA buttons — tightened gap from subtitle for better composition. */}
-        <div data-anime-hero-item className="mt-4 md:mt-5">
+        {/* CTA buttons — tightened gap from subtitle for better composition.
+            pointer-events-auto re-enables clicks suppressed by the overlay container. */}
+        <div data-anime-hero-item className="pointer-events-auto mt-4 md:mt-5">
           <div className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center gap-3 rounded-full px-3 py-2.5 sm:px-4 sm:py-3">
             <Link
               href="/book"
