@@ -686,7 +686,7 @@ function Detail({
   className,
 }: {
   label: string
-  value: string
+  value: React.ReactNode
   mono?: boolean
   className?: string
 }) {

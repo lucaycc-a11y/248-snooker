@@ -107,12 +107,20 @@ async function fetchTier2Anomalies(service: ReturnType<typeof getServiceSupabase
     const on = str(w.payload as Row, ['orderNo'])
     if (on && matchedOrderNos.has(on)) continue // has a payment_attempt → not Tier 2
     const bk = ot ? bkByCode.get(ot) : null
+    const payload = (w.payload ?? {}) as Row
+    const payAmountRaw = payload.payAmount
+    const amount =
+      typeof payAmountRaw === 'number'
+        ? payAmountRaw
+        : typeof payAmountRaw === 'string' && payAmountRaw !== ''
+          ? Number(payAmountRaw)
+          : null
     tier2.push({
       outTradeNo: ot,
       orderNo: on,
       bookingId: bk?.id ?? null,
       bookingStatus: bk?.status ?? null,
-      amount: typeof w.payload?.payAmount === 'number' ? (w.payload.payAmount as number) : null,
+      amount: Number.isFinite(amount) ? amount : null,
       receivedAt: str(w, ['received_at']),
     })
   }
@@ -217,11 +225,19 @@ export async function GET(req: Request) {
         .eq('status', 'processed')
         .in('payload->>orderNo', orphanOrderNos)
       for (const w of (whRows ?? []) as Row[]) {
-        const p = w.payload as Row | undefined
-        const on = str(p ?? {}, ['orderNo'])
-        const amt = typeof p?.payAmount === 'number' ? (p.payAmount as number) : null
-        const ot = str(p ?? {}, ['outTradeNo'])
-        if (on && amt !== null) webhookAmountByOrderNo.set(on, { amount: amt, outTradeNo: ot })
+        const p = (w.payload ?? {}) as Row
+        const on = str(p, ['orderNo'])
+        const amtRaw = p.payAmount
+        const amt =
+          typeof amtRaw === 'number'
+            ? amtRaw
+            : typeof amtRaw === 'string' && amtRaw !== ''
+              ? Number(amtRaw)
+              : null
+        const ot = str(p, ['outTradeNo'])
+        if (on && amt !== null && Number.isFinite(amt)) {
+          webhookAmountByOrderNo.set(on, { amount: amt, outTradeNo: ot })
+        }
       }
     }
 
