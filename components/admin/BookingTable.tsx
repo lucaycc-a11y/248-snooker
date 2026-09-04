@@ -263,7 +263,7 @@ export default function BookingTable({
 
                   {/* Amount */}
                   <td className="px-4 py-3 text-right">
-                    <span className="font-mono text-sm font-semibold text-[var(--admin-text)] tabular-nums">
+                    <span className="font-code text-sm font-semibold text-[var(--admin-text)] tabular-nums">
                       ${b.price.toLocaleString('en-HK')}
                     </span>
                     <span className="text-xs text-[var(--admin-text-muted)] ml-0.5">HKD</span>

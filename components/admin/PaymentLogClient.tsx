@@ -29,6 +29,8 @@ import {
 
 // ── Types ──────────────────────────────────────────────────────────────
 
+type AmountSource = 'booking' | 'webhook' | null
+
 type PaymentEntry = {
   id: string
   bookingId: string
@@ -37,10 +39,22 @@ type PaymentEntry = {
   status: string
   failureCode: string | null
   failureReason: string | null
-  amount: number
+  amount: number | null
+  amountSource: AmountSource
   createdAt: string
   completedAt: string | null
   anomaly: 'orphaned' | 'no_match' | 'unconfirmed' | null
+}
+
+// Tier 2 = kpay confirmed a sale (eventType=SALES, transactionState=2) but
+// no matching payment_attempts row was created. Surfaced as a separate card.
+type Tier2Entry = {
+  outTradeNo: string | null
+  orderNo: string | null
+  bookingId: string | null
+  bookingStatus: string | null
+  amount: number | null
+  receivedAt: string | null
 }
 
 type ApiResponse = {
@@ -48,12 +62,17 @@ type ApiResponse = {
   total: number
   page: number
   pageSize: number
+  tier2Anomalies?: Tier2Entry[]
+  tier2Total?: number
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-function formatHKD(cents: number): string {
-  return `HK$${(cents / 100).toFixed(2)}`
+// Real amounts in DB are HKD dollars (e.g. 4, 24, 100), not cents. The legacy
+// helper was written assuming Stripe cents and produced "HK$0.04" for $4.
+function formatHKD(hkd: number | null): string {
+  if (hkd === null || Number.isNaN(hkd)) return '—'
+  return `HK$${hkd.toLocaleString('en-HK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
 }
 
 function formatDate(iso: string): string {
@@ -72,6 +91,7 @@ function formatDate(iso: string): string {
 
 function statusColor(s: string): string {
   switch (s) {
+    case 'succeeded':
     case 'completed':
       return 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30'
     case 'pending':
@@ -280,7 +300,7 @@ function ReconcileModal({
 
 // ── Main Component ─────────────────────────────────────────────────────
 
-const STATUS_OPTIONS = ['completed', 'pending', 'failed', 'cancelled'] as const
+const STATUS_OPTIONS = ['succeeded', 'pending'] as const
 
 export default function PaymentLogClient() {
   const [payments, setPayments] = useState<PaymentEntry[]>([])
@@ -293,6 +313,7 @@ export default function PaymentLogClient() {
   const [loading, setLoading] = useState(true)
   const [reconcileTarget, setReconcileTarget] = useState<PaymentEntry | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [tier2, setTier2] = useState<Tier2Entry[]>([])
 
   const pageSize = 30
   const totalPages = Math.ceil(total / pageSize)
@@ -308,11 +329,13 @@ export default function PaymentLogClient() {
 
       const res = await fetch(`/api/admin/payment-log?${params}`)
       const data: ApiResponse = await res.json()
-      setPayments(data.payments)
+      setPayments(data.payments ?? [])
       setTotal(data.total)
+      setTier2(data.tier2Anomalies ?? [])
     } catch {
       setPayments([])
       setTotal(0)
+      setTier2([])
     } finally {
       setLoading(false)
     }
@@ -331,6 +354,56 @@ export default function PaymentLogClient() {
 
   return (
     <>
+      {/* ── Tier 2 Anomalies Card ───────────────────────────────────── */}
+      {/* kpay confirmed a sale but payment_attempts has no row — strongest
+          signal of a lost booking attempt. Shown above the list, prominent. */}
+      {tier2.length > 0 && (
+        <div className="mb-6 rounded-2xl border-2 border-red-500/40 bg-red-500/5 p-4 shadow-[0_0_0_4px_rgba(239,68,68,0.08)]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-red-400" />
+              <h3 className="text-sm font-semibold text-red-300">
+                Tier 2 Anomalies — kpay 已收款但系統無對應 payment_attempt
+              </h3>
+              <span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 text-xs font-mono">
+                {tier2.length}
+              </span>
+            </div>
+            <span className="text-xs text-red-300/70 font-mono">
+              金額來源:原始回調記錄
+            </span>
+          </div>
+          <div className="space-y-1.5 max-h-72 overflow-y-auto">
+            {tier2.map((t, i) => (
+              <div
+                key={`${t.orderNo ?? 'unknown'}-${i}`}
+                className="flex items-center justify-between rounded-xl bg-red-500/5 border border-red-500/20 px-3 py-2 text-xs"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="font-mono text-red-200 truncate">
+                    {t.outTradeNo ?? t.orderNo ?? '—'}
+                  </span>
+                  <span className="text-red-300/60">·</span>
+                  <span className="font-mono text-red-200/80">
+                    {t.orderNo ?? '—'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  {t.bookingStatus && (
+                    <span className="px-1.5 py-0.5 rounded bg-red-500/15 text-red-200 text-[10px] uppercase tracking-wider">
+                      booking: {t.bookingStatus}
+                    </span>
+                  )}
+                  <span className="font-mono font-semibold text-red-100 tabular-nums">
+                    {formatHKD(t.amount)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── Filter Bar ─────────────────────────────────────────────── */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         {/* Status chips */}
@@ -429,7 +502,7 @@ export default function PaymentLogClient() {
                   {/* Status dot */}
                   <div
                     className={`h-2.5 w-2.5 rounded-full flex-shrink-0 ${
-                      p.status === 'completed'
+                      p.status === 'succeeded' || p.status === 'completed'
                         ? 'bg-emerald-400'
                         : p.status === 'failed'
                           ? 'bg-red-400'
@@ -445,9 +518,14 @@ export default function PaymentLogClient() {
                       <span className="text-sm font-medium text-[var(--admin-text)] capitalize">
                         {p.provider}
                       </span>
-                      <span className="font-mono text-sm text-[var(--admin-text)]">
+                      <span className="font-mono text-sm text-[var(--admin-text)] tabular-nums">
                         {formatHKD(p.amount)}
                       </span>
+                      {p.amountSource === 'webhook' && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/30 uppercase tracking-wider">
+                          原始回調
+                        </span>
+                      )}
                     </div>
                     <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--admin-text-muted)]">
                       <span className="font-mono">{p.id.slice(0, 8)}…</span>
@@ -492,6 +570,19 @@ export default function PaymentLogClient() {
                           <Detail label="Provider Order" value={p.providerOrderNo ?? '—'} mono />
                           <Detail label="Booking ID" value={p.bookingId ? `${p.bookingId.slice(0, 8)}…` : '—'} mono />
                           <Detail label="Completed" value={p.completedAt ? formatDate(p.completedAt) : '—'} />
+                          <Detail
+                            label="Amount"
+                            value={
+                              <span className="font-mono tabular-nums">
+                                {formatHKD(p.amount)}
+                                {p.amountSource === 'webhook' && (
+                                  <span className="ml-2 text-[10px] text-amber-300 uppercase tracking-wider">
+                                    原始回調
+                                  </span>
+                                )}
+                              </span>
+                            }
+                          />
                           {p.failureCode && (
                             <Detail label="Failure Code" value={p.failureCode} />
                           )}
