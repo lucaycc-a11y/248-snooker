@@ -81,19 +81,20 @@ function lerp(a: number, b: number, t: number): number {
  */
 function panelOpacity(progress: number, index: number): number {
   const N = TOTAL_PANELS
+  const clamped = Math.max(0, Math.min(1, progress))
   const sliceStart = index / N
   const sliceMid = (index + 0.5) / N
   const sliceEnd = (index + 1) / N
 
-  if (progress <= sliceStart) return GHOST
-  if (progress >= sliceEnd) return index === N - 1 ? 1 : GHOST
+  if (clamped <= sliceStart) return GHOST
+  if (clamped >= sliceEnd) return index === N - 1 ? 1 : GHOST
 
-  if (progress < sliceMid) {
-    return lerp(GHOST, 1, (progress - sliceStart) / (sliceMid - sliceStart))
+  if (clamped < sliceMid) {
+    return lerp(GHOST, 1, (clamped - sliceStart) / (sliceMid - sliceStart))
   }
   // progress in [sliceMid, sliceEnd)
   if (index === N - 1) return 1
-  return lerp(1, GHOST, (progress - sliceMid) / (sliceEnd - sliceMid))
+  return lerp(1, GHOST, (clamped - sliceMid) / (sliceEnd - sliceMid))
 }
 
 function highlight(text: string, word: string, color: string): React.ReactNode {
@@ -159,6 +160,8 @@ export default function Section5Booking() {
     })
 
     return () => {
+      // Clear GSAP-injected inline opacity so CSS default (opacity: 0) takes over
+      layers.forEach((l) => l.style.removeProperty("opacity"))
       tl.scrollTrigger?.kill()
       tl.kill()
     }

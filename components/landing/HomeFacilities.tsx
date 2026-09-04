@@ -91,7 +91,8 @@ export default function HomeFacilities() {
       {/* ── Horizontal scroll gallery ── */}
       <div
         ref={trackRef}
-        className="overflow-x-auto snap-x snap-mandatory flex gap-8 px-6 md:px-16 pb-4 no-scrollbar hscroll-track"
+        className="overflow-x-auto overflow-y-hidden snap-x snap-mandatory flex gap-8 px-6 md:px-16 pb-4 no-scrollbar hscroll-track"
+        style={{ overscrollBehaviorY: "contain" }}
       >
         {facilities.map((facility, index) => {
           const Icon = FACILITY_ICONS[index] ?? Table2;
@@ -104,7 +105,7 @@ export default function HomeFacilities() {
               viewport={{ once: true, amount: 0.15 }}
               transition={{ duration: 0.6, delay: index * 0.05, ease: EASE }}
               className="snap-start shrink-0 flex flex-col"
-              style={{ width: "90vw", maxWidth: "480px", touchAction: "pan-x" }}
+              style={{ width: "90vw", maxWidth: "480px" }}
             >
               {/* ── Image block: ~76% of card ── */}
               <div className="rounded-2xl overflow-hidden" style={{ height: "420px" }}>
