@@ -2,29 +2,37 @@
 
 import { useEffect, useRef } from "react"
 import { useTranslations } from "next-intl"
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger)
+}
 
 /**
  * Section 5 — Booking Process (HomePod mini-style scroll reveal)
  *
- * Four booking steps crossfade on scroll: 選擇時段 → 掃碼入場 → 累積積分 → pricing.
- * A pricing transition sentence appears after the last step.
+ * Four booking layers (3 steps + pricing slogan) reveal on scroll, each
+ * driven by GSAP ScrollTrigger with `scrub: true` — the section's progress
+ * is tied directly to the scroll position so opacity tracks the user's
+ * hand exactly.
  *
- * Scroll-pinned using `position: sticky` (not GSAP) — same technique as
- * Section2Value. The section is 400svh tall; the sticky child is 100svh.
- * Scroll progress drives opacity of each layer via a step function.
+ * Opacity profile (HomePod lyric-stack feel):
+ *   - Active panel:    1.0
+ *   - Adjacent panels: fade to a faint GHOST (0.13) instead of 0,
+ *     producing a visible "stack" of muted green outlines around the
+ *     active title. This is what gives the section its depth — the
+ *     previous line never fully disappears.
  *
- * KEY DESIGN: Only one layer is ever fully visible at a time. Adjacent layers
- * cross-fade through a narrow 10% transition window, so text never overlaps.
- * Previous steps fade to a faint "ghost" opacity during the transition, matching
- * the HomePod mini lyric-reveal aesthetic.
+ * Per-panel window is a triangle over its `1/N` slice of timeline progress:
+ *   sliceStart = i/N, sliceMid = (i+0.5)/N, sliceEnd = (i+1)/N
+ *   before sliceStart → GHOST; sliceStart→sliceMid → lerp(GHOST, 1);
+ *   sliceMid→sliceEnd → lerp(1, GHOST); after sliceEnd → GHOST.
+ * Last panel (slogan) holds at 1 after its midpoint (no fade-out).
  *
- * The section title ("預訂流程") is positioned at the top of the sticky viewport
- * and remains visible throughout the scroll, anchoring context for each step.
+ * Section title (`預訂流程`) is positioned at the top of the sticky viewport
+ * and remains visible throughout the scroll, anchoring context.
  */
-
-const GOOD_TIMES: React.CSSProperties = {
-  fontFamily: '"Good Times", "Bebas Neue", sans-serif',
-}
 
 const STEPS = [
   {
@@ -51,74 +59,41 @@ const STEPS = [
 ] as const
 
 const STEP_COUNT = STEPS.length
-const TOTAL_PANELS = STEP_COUNT + 1 // steps + pricing sentence
-const SPAN = 1 / (TOTAL_PANELS - 1)
+const TOTAL_PANELS = STEP_COUNT + 1 // steps + pricing slogan
+const GHOST = 0.13 // "stack" opacity for non-active panels
 
-function clamp01(v: number): number {
-  return v < 0 ? 0 : v > 1 ? 1 : v
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t
 }
 
 /**
- * Step-function opacity — HomePod mini style.
+ * Triangle-window opacity per panel.
  *
- * Only ONE layer is ever fully visible (opacity 1). Adjacent layers cross-fade
- * through a narrow transition window (10% of SPAN ≈ 3.3% of total scroll).
- * Previous step fades to ~0 opacity just as the next step fades in from ~0,
- * so there is no visual overlap of text content.
+ * For each panel `i`, draw a triangle over its slice [i/N, (i+1)/N]:
+ *   - below sliceStart  → GHOST
+ *   - sliceStart→mid    → lerp(GHOST, 1)
+ *   - mid→sliceEnd      → lerp(1, GHOST)
+ *   - above sliceEnd    → GHOST
  *
- * At the midpoint of any transition, BOTH adjacent layers are at ~0 opacity,
- * producing a brief "snap" — the signature HomePod mini lyric-change feel.
- *
- * At the boundary between steps (e.g. progress = 0.25):
- *   Layer 0 (fading out): opacity = 0
- *   Layer 1 (fading in):  opacity = 0
- * → both are invisible simultaneously, creating a clean cut.
- *
- * At progress = 0.22:
- *   Layer 0 (fading out): (0.2667 - 0.22) / 0.0333 = 1.4 → clamp to 1.0
- *   Layer 1 (fading in):  (0.22 - 0.1667) / 0.0333 = 1.6 → clamp to 1.0
- * → wait, this means BOTH are 1.0. Let me recalculate...
- *
- * Actually, the transition window is:
- *   Layer i fades out over [i*SPAN + 0.9*SPAN, (i+1)*SPAN]
- *   Layer i+1 fades in  over [(i+1)*SPAN, (i+1)*SPAN + 0.1*SPAN]
- *
- * These windows are ADJACENT, not overlapping:
- *   Layer 0 fades out: [0.2667, 0.3333]
- *   Layer 1 fades in:  [0.3333, 0.3667]
- *
- * At the boundary (0.3333):
- *   Layer 0: (0.3333 - 0.2667) / 0.0333 = 2.0 → clamp to 1.0 → opacity = 1 - 1 = 0
- *   Layer 1: (0.3333 - 0.3333) / 0.0333 = 0 → opacity = 0
- * → Both at 0. Clean snap.
- *
- * At 0.30 (inside Layer 0's fade-out):
- *   Layer 0: (0.30 - 0.2667) / 0.0333 = 1.0 → opacity = 0
- *   Layer 1: (0.30 - 0.3333) / 0.0333 < 0 → opacity = 0
- * → Both at 0. Brief invisible gap (intentional).
- *
- * At 0.25 (Layer 0 still visible):
- *   Layer 0: 0.25 < 0.2667 → not in fade-out → opacity = 1
- *   Layer 1: 0.25 < 0.3333 → not in fade-in → opacity = 0
- * → Only Layer 0 visible. ✓
+ * The last panel (index === TOTAL_PANELS - 1, the pricing slogan) holds at
+ * 1 once it reaches the midpoint of its slice — no fade-out, so it stays
+ * visible when the user scrolls into Section 6.
  */
-function layerOpacity(progress: number, index: number): number {
-  const stepStart = index * SPAN
-  const stepEnd = (index + 1) * SPAN
-  const fadeOutStart = stepStart + 0.9 * SPAN
-  const fadeInEnd = stepEnd + 0.1 * SPAN
-  const transLen = 0.1 * SPAN
+function panelOpacity(progress: number, index: number): number {
+  const N = TOTAL_PANELS
+  const sliceStart = index / N
+  const sliceMid = (index + 0.5) / N
+  const sliceEnd = (index + 1) / N
 
-  // Last layer (pricing): fades in, stays visible
-  if (index === STEP_COUNT) {
-    return clamp01((progress - stepStart) / transLen)
-  }
+  if (progress <= sliceStart) return GHOST
+  if (progress >= sliceEnd) return index === N - 1 ? 1 : GHOST
 
-  // Normal steps: fully visible in the middle, fade out near the end
-  if (progress >= fadeOutStart) {
-    return clamp01(1 - (progress - fadeOutStart) / transLen)
+  if (progress < sliceMid) {
+    return lerp(GHOST, 1, (progress - sliceStart) / (sliceMid - sliceStart))
   }
-  return progress >= stepStart ? 1 : 0
+  // progress in [sliceMid, sliceEnd)
+  if (index === N - 1) return 1
+  return lerp(1, GHOST, (progress - sliceMid) / (sliceEnd - sliceMid))
 }
 
 function highlight(text: string, word: string, color: string): React.ReactNode {
@@ -137,7 +112,8 @@ function highlight(text: string, word: string, color: string): React.ReactNode {
 }
 
 export default function Section5Booking() {
-  const t = useTranslations("how")
+  const tHow = useTranslations("how")
+  const tPricing = useTranslations("pricingPage")
   const stageRef = useRef<HTMLDivElement>(null)
   const layersRef = useRef<HTMLDivElement>(null)
 
@@ -151,38 +127,40 @@ export default function Section5Booking() {
     )
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (reduce) stage.dataset.reduced = "true"
+    if (reduce) {
+      stage.dataset.reduced = "true"
+      return
+    }
 
-    let ticking = false
+    // GSAP ScrollTrigger — scrub-driven progress for the whole section.
+    // The 400svh stage owns the scroll range; opacity updates per frame in onUpdate.
+    // The dummy tween gives the (otherwise empty) timeline a 1-unit duration for
+    // scrub to drive — without it, totalDuration() is 0 and progress stays 0.
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: stage,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: true,
+      },
+    })
+    tl.to({}, { duration: 1, ease: "none" })
 
-    const update = (): void => {
-      ticking = false
-      const rect = stage.getBoundingClientRect()
-      const total = stage.offsetHeight - window.innerHeight
-      if (total <= 0) return
-
-      const scrolled = Math.max(0, Math.min(total, -rect.top))
-      const progress = scrolled / total
-
+    tl.eventCallback("onUpdate", () => {
+      const p = tl.progress()
       layers.forEach((layer, i) => {
-        layer.style.setProperty("--o", layerOpacity(progress, i).toFixed(4))
+        layer.style.opacity = panelOpacity(p, i).toFixed(4)
       })
-    }
+    })
 
-    const onScroll = (): void => {
-      if (!ticking) {
-        ticking = true
-        window.requestAnimationFrame(update)
-      }
-    }
-
-    update()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    window.addEventListener("resize", onScroll, { passive: true })
+    // Initial sync (handles the case where section is already in view on mount)
+    layers.forEach((layer, i) => {
+      layer.style.opacity = panelOpacity(tl.progress(), i).toFixed(4)
+    })
 
     return () => {
-      window.removeEventListener("scroll", onScroll)
-      window.removeEventListener("resize", onScroll)
+      tl.scrollTrigger?.kill()
+      tl.kill()
     }
   }, [])
 
@@ -200,7 +178,7 @@ export default function Section5Booking() {
             className="s5-heading"
             data-cms-key="how.title"
           >
-            {t("title")}
+            {tHow("title")}
           </h2>
 
           {/* Step layers — crossfade on scroll */}
@@ -220,8 +198,8 @@ export default function Section5Booking() {
                     data-cms-key={`how.${step.titleKey}`}
                   >
                     {highlight(
-                      t(step.titleKey),
-                      t(step.highlightKey),
+                      tHow(step.titleKey),
+                      tHow(step.highlightKey),
                       step.color,
                     )}
                   </h3>
@@ -229,7 +207,7 @@ export default function Section5Booking() {
                     className="s5-body"
                     data-cms-key={`how.${step.bodyKey}`}
                   >
-                    {t(step.bodyKey)}
+                    {tHow(step.bodyKey)}
                   </p>
                 </div>
               </div>
@@ -242,7 +220,7 @@ export default function Section5Booking() {
                   className="s5-transition"
                   data-cms-key="pricingPage.periods_subtitle"
                 >
-                  {t("title")}
+                  {tPricing("periods_subtitle")}
                 </p>
               </div>
             </div>
@@ -289,7 +267,8 @@ export default function Section5Booking() {
         .s5-layer {
           position: absolute;
           inset: 0;
-          opacity: var(--o, 0);
+          /* GSAP sets opacity per-frame via style.opacity; default hidden. */
+          opacity: 0;
         }
         .s5-step {
           height: 100%;
@@ -315,8 +294,16 @@ export default function Section5Booking() {
           font-weight: 800;
           letter-spacing: -0.03em;
           line-height: 1.1;
-          color: #ffffff;
+          /* Brand gradient — green → bright green (background-clip: text). */
+          color: transparent;
+          background-image: linear-gradient(180deg, #1a9d5c 0%, #22b86b 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
           margin: 0 0 clamp(12px, 2vw, 20px);
+          white-space: nowrap;
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .s5-body {
           font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
