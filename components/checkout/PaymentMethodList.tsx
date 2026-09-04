@@ -152,12 +152,11 @@ export default function PaymentMethodList({ selected, onSelect, collapsed }: Pro
       : PAYMENT_METHODS
 
   return (
+    // Container is a quiet grouping wrapper — no own fill/border — so the
+    // interactive PaymentMethodCards are the only elevated surfaces here.
     <div
       style={{
-        background: tokens.colors.surface,
-        border: `1px solid ${tokens.colors.border}`,
-        borderRadius: tokens.radius.card,
-        padding: 24,
+        padding: 0,
         marginBottom: 20,
         display: "flex",
         flexDirection: "column",

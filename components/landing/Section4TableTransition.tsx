@@ -16,10 +16,11 @@ if (typeof window !== "undefined") {
  * letter edges, then transitions to solid gradient text, shows
  * "or / Space Eternity", and reverses with a second table image.
  *
- * v4: GSAP ScrollTrigger + scrub-based crossfade
- *   - "Space Infinity" fades to 0.18 (stays faintly visible)
- *   - "Or Space Eternity" fades 0→1 scrub-driven
- *   - Replaces IntersectionObserver + rAF with single GSAP timeline
+ * v5: CSS `position: sticky` + GSAP ScrollTrigger scrub (no pin).
+ *   - Replaced GSAP `pin: section` with CSS sticky (proven in Section 5).
+ *   - The old GSAP pin set `top: 3999px` instead of `top: 0`, pushing the
+ *     section below the viewport and making it invisible.
+ *   - CSS sticky is layout-native, deterministic, and avoids GSAP pin bugs.
  *
  * Gradient values per Figma spec:
  *   Space Infinity: linear-gradient(90.13deg, #7C7878 2.61%, #DDDDDD 41.45%, #D2D2D2 62.51%, #7C7878 99.95%)
@@ -44,14 +45,10 @@ const MASK_CLASS =
 
 /* ── Helpers ──────────────────────────────────────────────────── */
 
-const clamp = (v: number, lo: number, hi: number) =>
-  Math.min(hi, Math.max(lo, v))
-
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
 export default function Section4TableTransition() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const spacerRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
 
   /* Layer refs */
   const table1ImgRef = useRef<HTMLDivElement>(null)
@@ -62,29 +59,27 @@ export default function Section4TableTransition() {
   const eternityTextRef = useRef<HTMLDivElement>(null)
   const maskText2Ref = useRef<HTMLDivElement>(null)
 
-  /* ── GSAP ScrollTrigger setup ───────────────────────────────── */
+  /* ── GSAP ScrollTrigger setup (no pin — CSS sticky handles visibility) ── */
 
   useEffect(() => {
-    const spacer = spacerRef.current
-    const section = sectionRef.current
-    if (!spacer || !section) return
+    const stage = stageRef.current
+    if (!stage) return
 
-    // Clear initial inline opacity values so GSAP can take full control
-    gsap.set(section, { clearProps: "opacity" })
-    gsap.set(spaceInfinityRef.current, { clearProps: "opacity" })
-    gsap.set(orTextRef.current, { clearProps: "opacity" })
-    gsap.set(eternityTextRef.current, { clearProps: "opacity" })
-
-    // Build the master timeline pinned to scroll
+    // GSAP timeline scrub — NO pin. CSS position:sticky on .s4-pin keeps the
+    // section visible while the user scrolls through the 500vh stage.
+    // This matches the proven pattern from Section 5 (HomePod-style).
     const tl = gsap.timeline({
       scrollTrigger: {
-        trigger: spacer,
+        trigger: stage,
         start: "top top",
         end: "bottom bottom",
-        pin: section,
         scrub: true,
       },
     })
+
+    // Dummy tween — gives the timeline a 1-unit duration for scrub to drive.
+    // Without this, totalDuration() === 0 and progress stays at 0.
+    tl.to({}, { duration: 1, ease: "none" })
 
     /* ── Phase 1: Zoom In (0 → 0.19) ─────────────────────────── */
 
@@ -154,16 +149,14 @@ export default function Section4TableTransition() {
   }, [])
 
   return (
-    <>
-      {/* Spacer: scroll distance for animation */}
-      <div ref={spacerRef} className="h-[500vh] max-md:h-[300vh]" aria-hidden="true" />
-
-      <section
-        ref={sectionRef}
-        aria-label="Table showcase — Space Infinity and Space Eternity rooms"
-        className="relative h-screen bg-black"
-        data-cms-key="section4.table-transition"
-      >
+    <section
+      ref={stageRef}
+      aria-label="Table showcase — Space Infinity and Space Eternity rooms"
+      data-cms-key="section4.table-transition"
+      className="s4-stage"
+    >
+      {/* Pinned viewport — CSS sticky keeps this on screen while stage scrolls */}
+      <div className="s4-pin">
         {/* Layer 0: Table 1 full panorama */}
         <div
           ref={table1ImgRef}
@@ -204,9 +197,7 @@ export default function Section4TableTransition() {
           Space Infinity
         </div>
 
-        {/* Layer 3: Solid text group — gradient text stacked vertically
-            FIX: single flex-col container eliminates overlap between
-            "Space Infinity", "or", and "Space Eternity" lines. */}
+        {/* Layer 3: Solid text group — gradient text stacked vertically */}
         <div
           className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none gap-1"
         >
@@ -227,11 +218,7 @@ export default function Section4TableTransition() {
             Space Infinity
           </div>
 
-          {/* Line 2: or — green accent gradient
-              FIX: background-size 300% widens the gradient across 3× the element
-              width, preventing the green color stop from appearing as a sharp
-              vertical band on the short "or" text.
-              GSAP controls opacity via orTextRef (0→1 scrub crossfade) */}
+          {/* Line 2: or — green accent gradient */}
           <div
             ref={orTextRef}
             className="text-[clamp(1.5rem,4vw,3rem)] uppercase tracking-wider whitespace-nowrap"
@@ -286,7 +273,24 @@ export default function Section4TableTransition() {
         >
           Space Eternity
         </div>
-      </section>
-    </>
+      </div>
+
+      <style jsx>{`
+        .s4-stage {
+          position: relative;
+          height: 500svh;
+        }
+        @media (max-width: 768px) {
+          .s4-stage { height: 300svh; }
+        }
+        .s4-pin {
+          position: sticky;
+          top: 0;
+          height: 100svh;
+          overflow: hidden;
+          background: black;
+        }
+      `}</style>
+    </section>
   )
 }

@@ -4,13 +4,13 @@
  * MobileTabBar — bottom navigation for admin panel on mobile (<768px).
  *
  * §2 spec: replaces sidebar entirely on mobile.
- * 5 tabs: Dashboard, Bookings, Users, Notifications, More
- * Active: green icon + label; Inactive: muted icon.
+ * 5 tabs: Dashboard, Bookings, Users, Alerts, More
+ * Payment Log accessible via "More".
+ * Uses extracted NavItem with vertical prop for consistent active state.
  * data-cms-key on every label for CMS sync.
  * Hidden on tablet/desktop via `hidden` + `lg:hidden`.
  */
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -19,12 +19,14 @@ import {
   Bell,
   MoreHorizontal,
 } from 'lucide-react'
+import NavItem from './ui/NavItem'
+import type { LucideIcon } from 'lucide-react'
 
 type Tab = {
   href: string
   label: string
   cmsKey: string
-  icon: React.ElementType
+  icon: LucideIcon
   matchExact?: boolean
 }
 
@@ -46,25 +48,19 @@ export default function MobileTabBar() {
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 flex lg:hidden items-center justify-around
         h-[68px] px-2 pb-[env(safe-area-inset-bottom)]
-        bg-[var(--admin-glass-bg)] backdrop-blur-[var(--admin-glass-blur)]
-        border-t border-[var(--admin-border)]"
+        bg-[var(--surface-primary)] border-t border-[var(--border-subtle)]"
     >
-      {TABS.map((tab) => {
-        const active = isActive(tab)
-        const Icon = tab.icon
-        return (
-          <Link
-            key={tab.href}
-            href={tab.href}
-            data-cms-key={tab.cmsKey}
-            className={`flex flex-col items-center justify-center gap-0.5 w-16 no-underline
-              ${active ? 'text-[var(--admin-brand)]' : 'text-[var(--admin-text-muted)]'}`}
-          >
-            <Icon size={20} strokeWidth={1.5} />
-            <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
-          </Link>
-        )
-      })}
+      {TABS.map((tab) => (
+        <NavItem
+          key={tab.href}
+          href={tab.href}
+          label={tab.label}
+          cmsKey={tab.cmsKey}
+          icon={tab.icon}
+          active={isActive(tab)}
+          vertical
+        />
+      ))}
     </nav>
   )
 }

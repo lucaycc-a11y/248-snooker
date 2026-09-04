@@ -784,6 +784,15 @@
         "value": "17px",
         "createdAt": "2026-09-03T12:53:58.604Z",
         "reason": "Composer surface intentionally uses a slightly tighter radius than cards."
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "components/landing/Section5Booking.tsx"
+        ],
+        "createdAt": "2026-09-04T10:57:37.058Z",
+        "reason": "user-confirmed: original brief specified brand green gradient (#1a9d5c→#22b86b) via background-clip:text as core design requirement"
       }
     ]
   }

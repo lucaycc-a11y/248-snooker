@@ -1,14 +1,15 @@
 'use client'
 
 type LogoProps = {
+  href?: string
   className?: string
 }
 
-export default function Logo({ className }: LogoProps) {
+export default function Logo({ href = '/admin', className }: LogoProps) {
   return (
     <a
-      href="/admin/style-guide"
-      aria-label="SPACE8 style guide"
+      href={href}
+      aria-label="SPACE8"
       className={`inline-flex min-h-11 min-w-11 items-center gap-2 text-[var(--text-primary)] ${className ?? ''}`}
     >
       <svg viewBox="0 0 196 42" role="img" aria-hidden="true" className="h-7 w-auto">
