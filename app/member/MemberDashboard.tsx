@@ -36,7 +36,7 @@ import ReschedulePicker from "@/components/member/ReschedulePicker";
 import MemberQrGuide from "@/components/member/MemberQrGuide";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
-import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
+import { Logo } from "@/components/brand";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -315,9 +315,7 @@ export default function MemberDashboard({
           {/* Top: wordmark + tier */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div style={{ fontFamily: DISPLAY, fontSize: "24px", letterSpacing: "0.12em", color: INK, lineHeight: 1 }}>
-                SPACE8
-              </div>
+              <Logo variant="full" theme="dark" size={24} />
               <div data-cms-key="member.card_label" className="font-label" style={{ fontSize: "10px", color: SUBTLE, marginTop: "6px" }}>
                 {t("card_label")}
               </div>
@@ -1002,9 +1000,6 @@ function OverviewTab({
           />
         </div>
       </div>
-
-      {/* Space Pilot scoreboard — a compact authenticated view of the live match experience. */}
-      <SpacePilotScoreboardExperience compact />
 
       {/* 暫時停用，等 Apple PEM 格式問題同 Google service account 設定好返先重開，相關 prompt：wallet-pass-refined-prompt.md */}
       {false && (

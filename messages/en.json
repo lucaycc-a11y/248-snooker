@@ -541,7 +541,9 @@
     "close": "Close",
     "loading": "Loading…",
     "back": "Back",
-    "greeting": "Hello"
+    "greeting": "Hello",
+    "quick_view_details": "View details",
+    "sending": "Sending…"
   },
   "nav": {
     "home": "Home",

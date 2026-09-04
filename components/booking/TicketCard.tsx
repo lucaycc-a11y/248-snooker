@@ -187,13 +187,14 @@ export function TicketCard({
     ctx.textAlign = "center"
     ctx.textBaseline = "middle"
 
-    ctx.font = "700 26px system-ui, -apple-system, sans-serif"
-    ctx.fillStyle = "#ffffff"
-    ctx.fillText("Space8", 280, 46)
+    // Official Space8 horizontal logo — drawn crisp on canvas (aspect ratio 3.12:1)
+    const logoW = 140
+    const logoH = Math.round(logoW / 3.12) // ~45px
+    await drawImage("/logos/logo-white-horizontal.svg", (canvas.width - logoW) / 2, 24, logoW, logoH)
 
     ctx.font = "600 18px system-ui, -apple-system, sans-serif"
     ctx.fillStyle = "#25D366"
-    ctx.fillText(`${tableName}`, 280, 78)
+    ctx.fillText(`${tableName}`, 280, 84)
 
     ctx.font = "500 15px system-ui, -apple-system, sans-serif"
     ctx.fillStyle = "rgba(255,255,255,0.85)"
