@@ -82,20 +82,23 @@ export async function bindVerifiedPhone(
   }
   if (existing) return { ok: false, error: 'phone_taken' }
 
-  // Same user re-verifying their own already-bound phone: the upsert below is
-  // idempotent for this case, but detect it explicitly so the route can return
-  // 200 instead of surfacing a constraint error as a transient 500.
+  // If this user already has a row for this phone, branch: already-verified
+  // is a no-op success; unverified gets UPDATE'd; no row means fresh INSERT.
+  // This avoids upsert / ON CONFLICT entirely — the partial unique index
+  // auth_identities_verified_unique (WHERE verified=true) is incompatible with
+  // supabase-js .upsert(), which cannot supply the required WHERE predicate
+  // and therefore always triggers 42P10.
   const { data: own, error: ownErr } = await sb
     .from('auth_identities')
-    .select('id')
+    .select('id, verified')
     .eq('user_id', userId)
     .eq('provider', 'phone')
     .eq('identifier', e164)
-    .eq('verified', true)
-    .maybeSingle<{ id: string }>()
+    .maybeSingle<{ id: string; verified: boolean }>()
 
   console.log('[bindVerifiedPhone] lookup own row', {
     hasOwn: !!own,
+    alreadyVerified: own?.verified ?? null,
     error: ownErr?.message ?? null,
     errorCode: ownErr?.code ?? null,
     errorDetails: ownErr?.details ?? null,
@@ -103,68 +106,76 @@ export async function bindVerifiedPhone(
     ts: Date.now(),
   })
 
-  if (!ownErr && own) {
+  if (!ownErr && own?.verified) {
+    // Same user re-verifying their own already-bound phone: treat as success.
     console.log('[bindVerifiedPhone] already verified for this user', { ts: Date.now() })
     return { ok: true, alreadyVerified: true }
   }
 
-  // Upsert into auth_identities (mark as verified)
-  console.log('[bindVerifiedPhone] about to upsert', { userId, e164, ts: Date.now() })
-
-  const { data: upsertData, error: upsertErr } = await sb
-    .from('auth_identities')
-    .upsert(
-      {
-        user_id: userId,
-        provider: 'phone',
-        identifier: e164,
+  if (!ownErr && own) {
+    // User has an unverified row for this phone — flip it to verified.
+    console.log('[bindVerifiedPhone] updating own unverified row', { rowId: own.id, ts: Date.now() })
+    const { data: updateData, error: updateErr } = await sb
+      .from('auth_identities')
+      .update({
         verified: true,
         verified_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id,provider,identifier' },
-    )
-    .select()
+      })
+      .eq('id', own.id)
+      .select()
 
-  console.log('[bindVerifiedPhone] upsert result', {
-    success: !upsertErr,
-    data: upsertData ?? null,
-    error: upsertErr?.message ?? null,
-    errorCode: upsertErr?.code ?? null,
-    errorDetails: upsertErr?.details ?? null,
-    errorHint: upsertErr?.hint ?? null,
-    ts: Date.now(),
-  })
-
-  if (upsertErr) {
-    // 23505 = unique_violation. The pre-checks above cover the common paths, so
-    // a 23505 here means a concurrent request won the race. Re-check who now owns
-    // the verified row so we never misreport a constraint hit as a transient 500.
-    console.error('[bindVerifiedPhone] upsert failed', {
-      fullError: upsertErr,
+    console.log('[bindVerifiedPhone] update result', {
+      success: !updateErr,
+      data: updateData ?? null,
+      error: updateErr?.message ?? null,
+      errorCode: updateErr?.code ?? null,
+      errorDetails: updateErr?.details ?? null,
       ts: Date.now(),
     })
 
-    if ((upsertErr as { code?: string }).code === '23505') {
-      const { data: winner } = await sb
-        .from('auth_identities')
-        .select('user_id')
-        .eq('provider', 'phone')
-        .eq('identifier', e164)
-        .eq('verified', true)
-        .maybeSingle<{ user_id: string }>()
-
-      console.log('[bindVerifiedPhone] 23505 race re-check', {
-        winnerUserId: winner?.user_id ?? null,
-        isSelf: winner?.user_id === userId,
-        ts: Date.now(),
-      })
-
-      if (winner?.user_id === userId) return { ok: true, alreadyVerified: true }
-      if (winner) return { ok: false, error: 'phone_taken' }
+    if (updateErr) {
+      console.error('[bindVerifiedPhone] update failed', { fullError: updateErr, ts: Date.now() })
+      return { ok: false, error: 'db_error' }
     }
+    console.log('[bindVerifiedPhone] success via update', { ts: Date.now() })
+    return { ok: true }
+  }
+
+  // No existing row for this user + phone — insert fresh.
+  console.log('[bindVerifiedPhone] inserting new row', { userId, e164, ts: Date.now() })
+  const { data: insertData, error: insertErr } = await sb
+    .from('auth_identities')
+    .insert({
+      user_id: userId,
+      provider: 'phone',
+      identifier: e164,
+      verified: true,
+      verified_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+
+  console.log('[bindVerifiedPhone] insert result', {
+    success: !insertErr,
+    data: insertData ?? null,
+    error: insertErr?.message ?? null,
+    errorCode: insertErr?.code ?? null,
+    errorDetails: insertErr?.details ?? null,
+    errorHint: insertErr?.hint ?? null,
+    ts: Date.now(),
+  })
+
+  if (insertErr) {
+    // 23505 = unique_violation — a concurrent request won the race.
+    // Treat as phone_taken so the user sees a clear message, not a 500.
+    if (insertErr.code === '23505') {
+      console.warn('[bindVerifiedPhone] insert race-condition unique violation', { ts: Date.now() })
+      return { ok: false, error: 'phone_taken' }
+    }
+    console.error('[bindVerifiedPhone] insert failed', { fullError: insertErr, ts: Date.now() })
     return { ok: false, error: 'db_error' }
   }
-  console.log('[bindVerifiedPhone] success', { ts: Date.now() })
+  console.log('[bindVerifiedPhone] success via insert', { ts: Date.now() })
   return { ok: true }
 }
