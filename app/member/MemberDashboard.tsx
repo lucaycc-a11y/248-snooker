@@ -4,6 +4,7 @@ import { SITE_CONTACT } from "@/lib/site/contact";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
+import { tierLabel } from "@/lib/member/tierDisplay";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CalendarPlus,
@@ -72,13 +73,8 @@ const TIER_GLOW: Record<string, string> = {
   maximum: "radial-gradient(120% 120% at 100% 0%, rgba(167,139,250,0.16), transparent 55%)",
 };
 
-// Display names for tier IDs — used wherever the raw ID would leak to the UI.
-// Short English label matches the .font-label (Good Times, uppercase) style.
-const TIER_TITLE: Record<string, string> = {
-  amateur: "NOVA",
-  century: "PLATINUM",
-  maximum: "DIAMOND",
-};
+// Display names for tier IDs — see lib/member/tierDisplay.ts (single source
+// of truth). This module renders localized long-form names via tierLabel().
 
 type TabId = "overview" | "bookings" | "points" | "settings" | "access";
 
@@ -323,7 +319,7 @@ export default function MemberDashboard({
             <div style={{ textAlign: "right" }}>
               <FieldLabel>{t("card_tier")}</FieldLabel>
               <div className="font-label" style={{ fontSize: "30px", color: accent, lineHeight: 1 }}>
-                {TIER_TITLE[current.id] ?? current.id}
+                {tierLabel(current.id, locale)}
               </div>
             </div>
           </div>
@@ -439,9 +435,9 @@ export default function MemberDashboard({
             />
           </div>
           <div className="font-label" style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE }}>
-            <span>{TIER_TITLE[current.id] ?? current.id}</span>
+            <span>{tierLabel(current.id, locale)}</span>
             <span>{next ? t("points_to_next", { pts: pointsToNext.toLocaleString() }) : t("max_tier_reached")}</span>
-            {next && <span>{TIER_TITLE[next.id] ?? next.id}</span>}
+            {next && <span>{tierLabel(next.id, locale)}</span>}
           </div>
         </div>
 
@@ -949,6 +945,7 @@ function OverviewTab({
   onSwitchTab: (tab: TabId) => void;
 }) {
   const t = useTranslations('memberPage');
+  const locale = useLocale();
 
   return (
     <motion.div
@@ -983,7 +980,7 @@ function OverviewTab({
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <span className="font-code" style={{ fontSize: 13, fontWeight: 600, color: accent }}>
-            {TIER_TITLE[tierId] ?? tierId}
+            {tierLabel(tierId, locale)}
           </span>
           {next && (
             <span style={{ fontSize: 11, color: SUBTLE }}>
