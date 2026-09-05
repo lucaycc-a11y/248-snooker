@@ -6,29 +6,88 @@ import { Link } from "@/i18n/navigation"
 import type { PricingPeriod } from "@/lib/data/pricing"
 
 /**
- * Section 6 — Pricing (Apple One-style centered cards)
+ * Section 6 — Pricing (Apple subscription-style centered cards)
  *
- * Desktop: CSS Grid 3-column card layout.
- * Mobile: horizontal scroll-snap carousel with dot indicators.
+ * Visual language: gray (#f5f5f7) section background, white cards with subtle
+ * shadow/border for depth. Three cards identical height — badge positioned
+ * absolute so it never expands a card.
  *
- * Data comes exclusively from the `config` table via the `periods` prop.
- * Pricing logic (rateFrom2h, best-value detection) mirrors HomePricing.
+ * Tier colors:
+ *   morning  → warm neutral (gray family)
+ *   afternoon → green (brand)
+ *   evening  → purple (peak atmosphere)
  *
- * Placeholder: no placeholder images needed — this section is typographic.
+ * Price digits use "Good Times" display font; dollar sign uses system font.
+ * Mobile: vertical stacked cards (no carousel).
+ *
+ * Data flows exclusively from the `config` table via the `periods` prop.
  */
+
+/* ── Fonts ──────────────────────────────────────────────────────── */
 
 const FONT_FAMILY =
   '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Noto Sans TC", "Helvetica Neue", Helvetica, Arial, sans-serif'
 
-function fmt(value: number): string {
-  return `HK$${Math.round(value)}`
+const FONT_DISPLAY = '"Good Times", "Bebas Neue", sans-serif'
+
+/* ── Tier configuration ─────────────────────────────────────────── */
+
+type TierId = "morning" | "afternoon" | "evening"
+
+const TIER_CONFIG: Record<
+  TierId,
+  {
+    accent: string
+    accentHover: string
+    accentBg: string
+    iconBg: string
+    badge: string
+    taglineKey: "period_morning_tagline" | "period_afternoon_tagline" | "period_evening_tagline"
+  }
+> = {
+  morning: {
+    accent: "#6b7280",
+    accentHover: "#4b5563",
+    accentBg: "rgba(107,114,128,0.08)",
+    iconBg: "rgba(107,114,128,0.10)",
+    badge: "最佳時段",
+    taglineKey: "period_morning_tagline",
+  },
+  afternoon: {
+    accent: "#16a34a",
+    accentHover: "#15803d",
+    accentBg: "rgba(22,163,74,0.08)",
+    iconBg: "rgba(22,163,74,0.10)",
+    badge: "人氣之選",
+    taglineKey: "period_afternoon_tagline",
+  },
+  evening: {
+    accent: "#9333ea",
+    accentHover: "#7e22ce",
+    accentBg: "rgba(147,51,234,0.08)",
+    iconBg: "rgba(147,51,234,0.10)",
+    badge: "氣氛首選",
+    taglineKey: "period_evening_tagline",
+  },
 }
 
-/* ── Period icons (reused from HomePricing) ──────────────────────── */
+function getTierConfig(id: string): (typeof TIER_CONFIG)[TierId] {
+  return TIER_CONFIG[id as TierId] ?? TIER_CONFIG.morning
+}
 
-function SunIcon({ className }: { className?: string }) {
+/* ── Period icons ───────────────────────────────────────────────── */
+
+function SunIcon({ color }: { color: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: 28, height: 28, color: "var(--brand)", display: "block" }}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ width: 28, height: 28, display: "block" }}
+    >
       <circle cx="12" cy="12" r="4.1" />
       <line x1="12" y1="1.6" x2="12" y2="3.8" />
       <line x1="12" y1="20.2" x2="12" y2="22.4" />
@@ -42,45 +101,76 @@ function SunIcon({ className }: { className?: string }) {
   )
 }
 
-function BoltIcon({ className }: { className?: string }) {
+function BoltIcon({ color }: { color: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: 28, height: 28, color: "var(--brand)", display: "block" }}>
-      <circle cx="12" cy="12" r="7" fill="currentColor" stroke="none" />
-      <path d="M14.6 2.6 6.4 13.4h5.2l-2.2 8 8.2-10.8h-5.2z" />
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      style={{ width: 28, height: 28, display: "block" }}
+    >
+      <circle cx="12" cy="12" r="7" fill={color} />
+      <path
+        d="M14.6 2.6 6.4 13.4h5.2l-2.2 8 8.2-10.8h-5.2z"
+        fill="#fff"
+        stroke="none"
+      />
     </svg>
   )
 }
 
-function MoonIcon({ className }: { className?: string }) {
+function MoonIcon({ color }: { color: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} style={{ width: 28, height: 28, color: "var(--brand)", display: "block" }}>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ width: 28, height: 28, display: "block" }}
+    >
       <path d="M20.4 14.6A8.6 8.6 0 0 1 9.4 3.6a8.6 8.6 0 1 0 11 11z" />
-      <circle cx="17.6" cy="5.2" r="1" fill="currentColor" stroke="none" />
-      <circle cx="20.4" cy="9.4" r="0.8" fill="currentColor" stroke="none" />
+      <circle cx="17.6" cy="5.2" r="1" fill={color} stroke="none" />
+      <circle cx="20.4" cy="9.4" r="0.8" fill={color} stroke="none" />
     </svg>
   )
 }
 
-function getIcon(id: string) {
-  if (id === "morning") return <SunIcon />
-  if (id === "afternoon") return <BoltIcon />
-  return <MoonIcon />
+function getIcon(id: string, color: string) {
+  if (id === "morning") return <SunIcon color={color} />
+  if (id === "afternoon") return <BoltIcon color={color} />
+  return <MoonIcon color={color} />
 }
 
-/* ── Component ───────────────────────────────────────────────────── */
+/* ── Price formatter: split $ from digits for Good Times font ─── */
 
-export default function Section6Pricing({ periods }: { periods: PricingPeriod[] }) {
+function PriceDisplay({
+  value,
+  unit,
+}: {
+  value: number
+  unit: string
+}) {
+  const rounded = Math.round(value)
+  return (
+    <div className="s6-price">
+      <span className="s6-price-currency">$</span>
+      <span className="s6-price-digits">{rounded}</span>
+      <span className="s6-price-unit">{unit}</span>
+    </div>
+  )
+}
+
+/* ── Main component ─────────────────────────────────────────────── */
+
+export default function Section6Pricing({
+  periods,
+}: {
+  periods: PricingPeriod[]
+}) {
   const t = useTranslations("pricingPage")
   const secRef = useRef<HTMLElement>(null)
   const [entered, setEntered] = useState(false)
-  const [activeIdx, setActiveIdx] = useState(0)
-  const carouselRef = useRef<HTMLDivElement>(null)
-
-  const effectiveRate = (p: PricingPeriod) => p.rateFrom2h ?? p.rate
-  const bestValueId = periods.reduce(
-    (best, p) => (effectiveRate(p) < effectiveRate(best) ? p : best),
-    periods[0],
-  )?.id
 
   /* ── IntersectionObserver entrance ──────────────────────────────── */
 
@@ -107,32 +197,23 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
     return () => obs.disconnect()
   }, [])
 
-  /* ── Mobile carousel scroll tracking ────────────────────────────── */
+  /* ── Best value detection (from config, not hardcoded) ────────── */
 
-  useEffect(() => {
-    const carousel = carouselRef.current
-    if (!carousel) return
-
-    const onScroll = () => {
-      const { scrollLeft, clientWidth } = carousel
-      const idx = Math.round(scrollLeft / clientWidth)
-      setActiveIdx(Math.max(0, Math.min(periods.length - 1, idx)))
-    }
-
-    carousel.addEventListener("scroll", onScroll, { passive: true })
-    return () => carousel.removeEventListener("scroll", onScroll)
-  }, [periods.length])
+  const effectiveRate = (p: PricingPeriod) => p.rateFrom2h ?? p.rate
+  const bestValueId = periods.reduce(
+    (best, p) => (effectiveRate(p) < effectiveRate(best) ? p : best),
+    periods[0],
+  )?.id
 
   return (
     <section
       ref={secRef}
-      data-nav-theme="dark"
+      data-nav-theme="light"
       aria-labelledby="s6-title"
       className="s6-section"
-      data-cms-key="pricingPage.periods_title"
     >
       <div className="s6-inner">
-        {/* ── Header ── */}
+        {/* ── Header ──────────────────────────────────────────── */}
         <p
           className="s6-eyebrow"
           data-cms-key="pricingPage.hero_eyebrow"
@@ -153,50 +234,25 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
           {t("periods_subtitle")}
         </p>
 
-        {/* ── Desktop: CSS Grid ── */}
-        <div className="s6-grid" aria-label="Pricing periods">
+        {/* ── Card grid (desktop 3-col / mobile vertical stack) ── */}
+        <div className="s6-grid" role="list" aria-label="Pricing periods">
           {periods.map((period, i) => (
             <PricingCard
               key={period.id}
               period={period}
               isBestValue={period.id === bestValueId}
               t={t}
-              delay={i * 0.12}
+              delay={i * 0.15}
               entered={entered}
-            />
-          ))}
-        </div>
-
-        {/* ── Mobile: Scroll-snap carousel ── */}
-        <div ref={carouselRef} className="s6-carousel" aria-label="Pricing periods">
-          {periods.map((period, i) => (
-            <div key={period.id} className="s6-slide">
-              <PricingCard
-                period={period}
-                isBestValue={period.id === bestValueId}
-                t={t}
-                delay={0}
-                entered={entered}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* ── Dot indicators (mobile only) ── */}
-        <div className="s6-dots" aria-hidden="true">
-          {periods.map((period, i) => (
-            <span
-              key={period.id}
-              className={`s6-dot ${i === activeIdx ? "s6-dot--active" : ""}`}
             />
           ))}
         </div>
       </div>
 
-      {/* Section layout styles */}
+      {/* ── Section layout styles ───────────────────────────────── */}
       <style jsx>{`
         .s6-section {
-          background: #000000;
+          background: #f5f5f7;
           padding: clamp(80px, 12vh, 140px) 24px;
           overflow: hidden;
         }
@@ -204,13 +260,15 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
           max-width: 1100px;
           margin: 0 auto;
         }
+
+        /* ── Header ── */
         .s6-eyebrow {
           font-family: ${FONT_FAMILY};
           font-size: 14px;
           font-weight: 600;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--brand);
+          color: #86868b;
           margin: 0 0 12px;
           text-align: center;
         }
@@ -220,169 +278,176 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
           font-weight: 800;
           letter-spacing: -0.03em;
           line-height: 1.1;
-          color: #ffffff;
+          color: #1d1d1f;
           margin: 0 0 16px;
           text-align: center;
         }
         .s6-subtitle {
           font-family: ${FONT_FAMILY};
           font-size: clamp(14px, 1.6vw, 17px);
-          color: rgba(255, 255, 255, 0.5);
+          color: #6e6e73;
           margin: 0 0 clamp(40px, 6vw, 72px);
           text-align: center;
           max-width: 480px;
           margin-left: auto;
           margin-right: auto;
         }
+
+        /* ── Card grid ── */
         .s6-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 24px;
           align-items: stretch;
         }
-        .s6-carousel {
-          display: none;
-        }
-        .s6-dots {
-          display: none;
-          justify-content: center;
-          gap: 8px;
-          margin-top: 24px;
-        }
-        .s6-dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.25);
-          transition: background 0.3s, transform 0.3s;
-        }
-        .s6-dot--active {
-          background: #ffffff;
-          transform: scale(1.25);
-        }
         @media (max-width: 768px) {
           .s6-grid {
-            display: none;
-          }
-          .s6-carousel {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            touch-action: pan-x pan-y;
-            gap: 16px;
-            padding: 0 16px;
-            scroll-padding: 0 16px;
-          }
-          .s6-carousel::-webkit-scrollbar {
-            display: none;
-          }
-          .s6-slide {
-            flex: 0 0 88vw;
-            max-width: 440px;
-            scroll-snap-align: center;
-          }
-          .s6-dots {
-            display: flex;
-          }
-        }
-        @media (max-width: 400px) {
-          .s6-slide {
-            flex: 0 0 88vw;
-          }
-          .s6-carousel {
-            padding: 0 16px;
-            scroll-padding: 0 16px;
+            grid-template-columns: 1fr;
+            gap: 20px;
           }
         }
       `}</style>
 
-      {/* Card styles — global because PricingCard is a separate function component */}
+      {/* ── Card styles ────────────────────────────────────────── */}
       <style jsx global>{`
         .s6-card {
           position: relative;
-          /* White cards on the black section — per redesign request. */
           background: #ffffff;
-          border: 1px solid rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(0, 0, 0, 0.06);
           border-radius: 20px;
-          padding: 40px 28px 36px;
+          padding: 44px 28px 36px;
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
+          /* Entrance animation */
           opacity: 0;
-          transform: translateY(20px) scale(0.96);
+          transform: translateY(32px) scale(0.97);
           transition:
-            opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-            transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-            border-color 0.3s ease,
-            box-shadow 0.3s ease;
+            opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+            transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+            box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+            border-color 0.3s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+          will-change: transform, opacity;
+          /* Prevent badge from expanding card */
+          overflow: visible;
         }
         .s6-card--in {
           opacity: 1;
           transform: none;
         }
+        /* Hover lift effect */
         .s6-card:hover {
-          border-color: rgba(0, 0, 0, 0.16);
-          box-shadow: 0 24px 56px -20px rgba(0, 0, 0, 0.65);
+          transform: translateY(-6px) scale(1.01);
+          box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12),
+                      0 8px 16px -4px rgba(0, 0, 0, 0.06);
+          border-color: rgba(0, 0, 0, 0.1);
         }
+        .s6-card--in:hover {
+          transform: translateY(-6px) scale(1.01);
+        }
+        /* Touch feedback for mobile */
+        .s6-card:active {
+          transform: translateY(-2px) scale(0.99);
+          transition-duration: 0.1s;
+        }
+
+        /* ── Best value badge (absolute — never expands card) ── */
         .s6-badge {
           position: absolute;
-          top: -12px;
+          top: -13px;
           left: 50%;
           transform: translateX(-50%);
-          background: var(--brand);
-          color: #000;
+          color: #ffffff;
           font-family: ${FONT_FAMILY};
           font-size: 11px;
           font-weight: 700;
           padding: 5px 14px;
           border-radius: 999px;
           white-space: nowrap;
-          letter-spacing: 0.02em;
+          letter-spacing: 0.03em;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+          z-index: 1;
         }
-        .s6-icon {
+
+        /* ── Icon container ── */
+        .s6-icon-wrap {
+          width: 52px;
+          height: 52px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           margin-bottom: 20px;
         }
+
+        /* ── Card title ── */
         .s6-card-title {
           font-family: ${FONT_FAMILY};
           font-weight: 700;
-          font-size: 18px;
+          font-size: 20px;
           color: #1d1d1f;
           margin: 0 0 6px;
+          letter-spacing: -0.01em;
         }
+
+        /* ── Card tagline ── */
+        .s6-card-tagline {
+          font-family: ${FONT_FAMILY};
+          font-size: 13px;
+          color: #86868b;
+          margin: 0 0 6px;
+          font-style: italic;
+        }
+
+        /* ── Time range ── */
         .s6-card-time {
           font-family: ${FONT_FAMILY};
           font-size: 13px;
-          color: rgba(0, 0, 0, 0.5);
+          color: #aeaeb2;
           margin: 0 0 28px;
         }
+
+        /* ── Price display ── */
         .s6-price {
           display: flex;
           align-items: baseline;
           justify-content: center;
-          gap: 4px;
+          gap: 2px;
           margin-bottom: 16px;
+          line-height: 1;
         }
-        .s6-price-amount {
+        .s6-price-currency {
           font-family: ${FONT_FAMILY};
           font-weight: 600;
-          font-size: clamp(2rem, 4vw, 2.6rem);
-          letter-spacing: -0.02em;
+          font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+          color: #1d1d1f;
+          align-self: flex-start;
+          margin-top: 6px;
+        }
+        .s6-price-digits {
+          font-family: ${FONT_DISPLAY};
+          font-weight: 400;
+          font-size: clamp(2.8rem, 5vw, 3.6rem);
+          letter-spacing: 0.02em;
           color: #1d1d1f;
           line-height: 1;
         }
         .s6-price-unit {
           font-family: ${FONT_FAMILY};
           font-size: 13px;
-          color: rgba(0, 0, 0, 0.5);
+          color: #86868b;
+          margin-left: 4px;
+          align-self: flex-end;
+          margin-bottom: 4px;
         }
+
+        /* ── Member rate pill ── */
         .s6-deal {
-          display: inline-block;
-          /* Green accent kept on the member-rate pill; darkened for AA
-             contrast against the white card. */
-          background: rgba(34, 197, 94, 0.12);
-          color: #15803d;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
           font-family: ${FONT_FAMILY};
           font-size: 12.5px;
           font-weight: 500;
@@ -392,44 +457,67 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
         }
         .s6-deal strong {
           font-weight: 700;
-          color: #166534;
         }
+
+        /* ── Spacer for cards without member rate ── */
         .s6-spacer {
-          height: 33px;
+          height: 37px;
           margin-bottom: 24px;
         }
+
+        /* ── CTA button ── */
         .s6-cta {
           margin-top: auto;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          background: #000000;
-          color: #ffffff;
           font-family: ${FONT_FAMILY};
-          font-size: 14.5px;
+          font-size: 15px;
           font-weight: 600;
-          padding: 13px 34px;
+          padding: 0 28px;
           border-radius: 999px;
           text-decoration: none;
-          transition: background 0.2s, transform 0.15s;
-          min-height: 44px;
+          min-height: 48px;
           width: 100%;
+          transition:
+            background 0.2s ease,
+            transform 0.15s ease,
+            box-shadow 0.2s ease;
+          letter-spacing: -0.01em;
         }
         .s6-cta:hover {
-          background: rgba(0, 0, 0, 0.85);
-          transform: scale(1.02);
+          transform: scale(1.03);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .s6-cta:active {
           transform: scale(0.97);
+          box-shadow: none;
         }
+
+        /* ── Mobile adjustments ── */
         @media (max-width: 768px) {
           .s6-card {
-            padding: 36px 24px 32px;
+            padding: 40px 24px 32px;
+          }
+          .s6-card-title {
+            font-size: 22px;
+          }
+          .s6-price-digits {
+            font-size: 3.2rem;
           }
         }
+
+        /* ── Reduced motion ── */
         @media (prefers-reduced-motion: reduce) {
           .s6-card {
             opacity: 1;
+            transform: none;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+          }
+          .s6-card:hover {
+            transform: none;
+          }
+          .s6-cta:hover {
             transform: none;
           }
         }
@@ -438,7 +526,7 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
   )
 }
 
-/* ── Pricing Card sub-component ───────────────────────────────────── */
+/* ── Pricing Card sub-component ─────────────────────────────────── */
 
 function PricingCard({
   period,
@@ -453,23 +541,35 @@ function PricingCard({
   delay: number
   entered: boolean
 }) {
+  const tier = getTierConfig(period.id)
+  const iconColor = tier.accent
+
   return (
     <div
       className={`s6-card ${entered ? "s6-card--in" : ""}`}
+      role="listitem"
       style={{
-        transitionDelay: `${delay}s`,
-        borderColor: isBestValue ? "rgba(34,197,94,0.4)" : undefined,
+        transitionDelay: entered ? "0s" : `${delay}s`,
       }}
     >
-      {/* Best value badge */}
+      {/* Best value badge — absolute positioned, never expands card */}
       {isBestValue && (
-        <span className="s6-badge" data-cms-key="pricingPage.badge_best_value">
+        <span
+          className="s6-badge"
+          style={{ background: tier.accent }}
+          data-cms-key="pricingPage.badge_best_value"
+        >
           {t("badge_best_value")}
         </span>
       )}
 
-      {/* Icon */}
-      <div className="s6-icon">{getIcon(period.id)}</div>
+      {/* Icon in colored container */}
+      <div
+        className="s6-icon-wrap"
+        style={{ background: tier.iconBg }}
+      >
+        {getIcon(period.id, iconColor)}
+      </div>
 
       {/* Title */}
       <h3
@@ -479,7 +579,15 @@ function PricingCard({
         {t(`period_${period.id}_title`)}
       </h3>
 
-      {/* Time */}
+      {/* Emotional tagline */}
+      <p
+        className="s6-card-tagline"
+        data-cms-key={`pricingPage.${tier.taglineKey}`}
+      >
+        {t(tier.taglineKey)}
+      </p>
+
+      {/* Time range */}
       <p
         className="s6-card-time"
         data-cms-key={`pricingPage.period_${period.id}_time`}
@@ -487,25 +595,34 @@ function PricingCard({
         {t(`period_${period.id}_time`)}
       </p>
 
-      {/* Price */}
-      <div className="s6-price">
-        <span className="s6-price-amount">{fmt(period.rate)}</span>
-        <span className="s6-price-unit">{t("per_hour")}</span>
-      </div>
+      {/* Price with Good Times font for digits */}
+      <PriceDisplay value={period.rate} unit={t("per_hour")} />
 
-      {/* Member rate pill */}
+      {/* Member rate pill — tier-colored background */}
       {period.rateFrom2h !== undefined ? (
-        <span className="s6-deal" data-cms-key="pricingPage.member_price_prefix">
-          {t("member_price_prefix")} <strong>{fmt(period.rateFrom2h)}</strong>
+        <span
+          className="s6-deal"
+          style={{
+            background: tier.accentBg,
+            color: tier.accent,
+          }}
+          data-cms-key="pricingPage.member_price_prefix"
+        >
+          {t("member_price_prefix")}{" "}
+          <strong>{`$${Math.round(period.rateFrom2h)}`}</strong>
         </span>
       ) : (
         <div className="s6-spacer" />
       )}
 
-      {/* CTA */}
+      {/* CTA button — tier accent color */}
       <Link
         href="/book"
         className="s6-cta"
+        style={{
+          background: tier.accent,
+          color: "#ffffff",
+        }}
         data-cms-key="pricingPage.cta_book"
       >
         {t("cta_book")}

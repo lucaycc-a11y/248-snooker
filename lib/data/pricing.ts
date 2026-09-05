@@ -20,12 +20,21 @@ export type PricingPeriod = {
 
 /** Shape of the `pricing_rates` config key — the single source of truth for
  * per-period rates (base = 1h rate, discount = 2h+ rate). */
-export type PricingRates = Record<string, { base: number; discount: number; timeRange: string }>
+export type PricingRate = { base: number; discount: number; timeRange: string }
+
+export type PricingRates = Record<string, PricingRate> & {
+  season?: 'high' | 'low'
+  highSeason?: Record<string, PricingRate>
+  lowSeason?: Record<string, PricingRate>
+}
 
 /** Convert a `pricing_rates` value to the `PricingPeriod[]` array the rest of
  * the codebase uses. */
 export function pricingRatesToPeriods(rates: PricingRates): PricingPeriod[] {
-  return Object.entries(rates).map(([id, r]) => {
+  const activeRates = rates[rates.season === 'high' ? 'highSeason' : 'lowSeason']
+  const source = activeRates && typeof activeRates === 'object' ? activeRates : rates
+
+  return Object.entries(source).filter(([id]) => !['season', 'highSeason', 'lowSeason'].includes(id)).map(([id, r]) => {
     const [start, end] = r.timeRange.split('-')
     const period: PricingPeriod = {
       id: id as PricingPeriod['id'],
