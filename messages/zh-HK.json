@@ -1206,6 +1206,13 @@
   "homeVenue": {
     "eyebrow": "SPACE8 場地",
     "title": "場地設施",
+    "categories": {
+      "equipment": "設備",
+      "ambience": "氛圍",
+      "smart_system": "智能系統",
+      "entry": "入場",
+      "amenities": "配套"
+    },
     "intro": "每個細節，都讓你專注於桌球。",
     "pagination_label": "場地設施分頁",
     "pagination_item": "前往第 {n} 項",

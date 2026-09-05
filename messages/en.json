@@ -1206,6 +1206,13 @@
   "homeVenue": {
     "eyebrow": "SPACE8 VENUE",
     "title": "Facilities",
+    "categories": {
+      "equipment": "Equipment",
+      "ambience": "Atmosphere",
+      "smart_system": "Smart system",
+      "entry": "Entry",
+      "amenities": "Amenities"
+    },
     "intro": "Every detail, focused on the game.",
     "pagination_label": "Facilities pagination",
     "pagination_item": "Go to facility {n}",

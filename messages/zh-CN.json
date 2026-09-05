@@ -1206,6 +1206,13 @@
   "homeVenue": {
     "eyebrow": "SPACE8 场地",
     "title": "场地设施",
+    "categories": {
+      "equipment": "设备",
+      "ambience": "氛围",
+      "smart_system": "智能系统",
+      "entry": "入场",
+      "amenities": "配套"
+    },
     "intro": "每个细节，都让你专注于台球。",
     "pagination_label": "场地设施分页",
     "pagination_item": "前往第 {n} 项",
