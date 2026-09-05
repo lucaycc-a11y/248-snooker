@@ -4,6 +4,7 @@ import { SITE_CONTACT } from "@/lib/site/contact";
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
+import { tierLabel } from "@/lib/member/tierDisplay";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CalendarPlus,
@@ -36,7 +37,7 @@ import ReschedulePicker from "@/components/member/ReschedulePicker";
 import MemberQrGuide from "@/components/member/MemberQrGuide";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
-import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
+import { Logo } from "@/components/brand";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -72,13 +73,8 @@ const TIER_GLOW: Record<string, string> = {
   maximum: "radial-gradient(120% 120% at 100% 0%, rgba(167,139,250,0.16), transparent 55%)",
 };
 
-// Display names for tier IDs — used wherever the raw ID would leak to the UI.
-// Short English label matches the .font-label (Good Times, uppercase) style.
-const TIER_TITLE: Record<string, string> = {
-  amateur: "NOVA",
-  century: "PLATINUM",
-  maximum: "DIAMOND",
-};
+// Display names for tier IDs — see lib/member/tierDisplay.ts (single source
+// of truth). This module renders localized long-form names via tierLabel().
 
 type TabId = "overview" | "bookings" | "points" | "settings" | "access";
 
@@ -315,9 +311,7 @@ export default function MemberDashboard({
           {/* Top: wordmark + tier */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
-              <div style={{ fontFamily: DISPLAY, fontSize: "24px", letterSpacing: "0.12em", color: INK, lineHeight: 1 }}>
-                SPACE8
-              </div>
+              <Logo variant="full" theme="dark" size={24} />
               <div data-cms-key="member.card_label" className="font-label" style={{ fontSize: "10px", color: SUBTLE, marginTop: "6px" }}>
                 {t("card_label")}
               </div>
@@ -325,7 +319,7 @@ export default function MemberDashboard({
             <div style={{ textAlign: "right" }}>
               <FieldLabel>{t("card_tier")}</FieldLabel>
               <div className="font-label" style={{ fontSize: "30px", color: accent, lineHeight: 1 }}>
-                {TIER_TITLE[current.id] ?? current.id}
+                {tierLabel(current.id, locale)}
               </div>
             </div>
           </div>
@@ -441,9 +435,9 @@ export default function MemberDashboard({
             />
           </div>
           <div className="font-label" style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "12px", color: SUBTLE }}>
-            <span>{TIER_TITLE[current.id] ?? current.id}</span>
+            <span>{tierLabel(current.id, locale)}</span>
             <span>{next ? t("points_to_next", { pts: pointsToNext.toLocaleString() }) : t("max_tier_reached")}</span>
-            {next && <span>{TIER_TITLE[next.id] ?? next.id}</span>}
+            {next && <span>{tierLabel(next.id, locale)}</span>}
           </div>
         </div>
 
@@ -951,6 +945,7 @@ function OverviewTab({
   onSwitchTab: (tab: TabId) => void;
 }) {
   const t = useTranslations('memberPage');
+  const locale = useLocale();
 
   return (
     <motion.div
@@ -985,7 +980,7 @@ function OverviewTab({
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <span className="font-code" style={{ fontSize: 13, fontWeight: 600, color: accent }}>
-            {TIER_TITLE[tierId] ?? tierId}
+            {tierLabel(tierId, locale)}
           </span>
           {next && (
             <span style={{ fontSize: 11, color: SUBTLE }}>
@@ -1002,9 +997,6 @@ function OverviewTab({
           />
         </div>
       </div>
-
-      {/* Space Pilot scoreboard — a compact authenticated view of the live match experience. */}
-      <SpacePilotScoreboardExperience compact />
 
       {/* 暫時停用，等 Apple PEM 格式問題同 Google service account 設定好返先重開，相關 prompt：wallet-pass-refined-prompt.md */}
       {false && (

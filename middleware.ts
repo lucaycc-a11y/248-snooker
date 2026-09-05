@@ -13,13 +13,13 @@ const intlMiddleware = createMiddleware(routing)
 const LOCALIZED_ROOTS = ['book', 'pricing', 'about', 'faq', 'legal', 'terms', 'privacy', 'blog', 'venue', 'membership', 'credits']
 
 // Routes that must never be rewritten by intl middleware.
-const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/maintenance', '/coming-soon']
+const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/maintenance', '/coming-soon', '/style-guide-preview']
 
 // Routes the site gate never blocks: admin (needs to reach the toggle even
 // while gated), the API (the gate's own verify/waitlist endpoints live here,
 // plus webhooks/auth callbacks that must always work), and the gate's own
 // coming-soon page (blocking it would redirect-loop).
-const GATE_BYPASS_PREFIXES = ['/api', '/admin', '/auth', '/coming-soon']
+const GATE_BYPASS_PREFIXES = ['/api', '/admin', '/auth', '/coming-soon', '/style-guide-preview']
 
 function clientIp(request: NextRequest): string {
   const fwd = request.headers.get('x-forwarded-for')
@@ -71,6 +71,12 @@ function isLocalized(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
+  // The style-guide is a mock-only acceptance surface and intentionally does
+  // not require an authenticated admin session.
+  if (request.nextUrl.pathname === '/admin/style-guide') {
+    return NextResponse.rewrite(new URL('/style-guide-preview', request.url))
+  }
+
   const gateRedirect = await checkSiteGate(request)
   if (gateRedirect) return gateRedirect
 

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { tokens } from '@/app/styles/tokens'
 import type { AdminMemberRow } from '@/lib/data/getAdminMembers'
+import { tierShortLabel } from '@/lib/member/tierDisplay'
 
 type ApiResponse = { members: AdminMemberRow[]; total: number; page: number; pageSize: number }
 
@@ -70,7 +71,7 @@ export default function MemberTable({ initial }: { initial: ApiResponse }) {
                 {m.displayName ?? m.email ?? m.memberCode ?? m.id.slice(0, 8)}
               </div>
               <div style={{ color: tokens.colors.textMuted, fontSize: 13 }}>
-                {m.memberCode ?? '—'} · {m.tier ?? 'amateur'} · {m.bookingCount} bookings
+                {m.memberCode ?? '—'} · {tierShortLabel(m.tier)} · {m.bookingCount} bookings
               </div>
             </div>
             <div style={{ textAlign: 'right', color: tokens.colors.text, fontSize: 15, fontWeight: 600 }}>

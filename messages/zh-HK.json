@@ -541,7 +541,9 @@
     "close": "關閉",
     "loading": "載入中…",
     "back": "返回",
-    "greeting": "你好"
+    "greeting": "你好",
+    "quick_view_details": "查看詳情",
+    "sending": "傳送中…"
   },
   "nav": {
     "home": "主頁",

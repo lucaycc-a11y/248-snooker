@@ -15,14 +15,9 @@
 
 import { useRouter } from 'next/navigation'
 import { type AdminMemberRow } from '@/lib/data/getAdminMembers'
+import { tierShortLabel } from '@/lib/member/tierDisplay'
 
-/* ── Tier display mapping ─────────────────────── */
-const TIER_LABEL: Record<string, string> = {
-  amateur: 'Nova',
-  century: 'Platinum',
-  maximum: 'Diamond',
-}
-
+/* ── Tier colors ──────────────────────────── */
 const TIER_COLOR_VAR: Record<string, string> = {
   amateur: 'var(--admin-tier-nova)',
   century: 'var(--admin-tier-platinum)',
@@ -163,7 +158,7 @@ export default function MemberCardGrid({ members }: Props) {
                     background: TIER_BG_VAR[tier] ?? TIER_BG_VAR.amateur,
                   }}
                 >
-                  {TIER_LABEL[tier] ?? 'Nova'}
+                  {tierShortLabel(tier)}
                 </span>
                 <span
                   className="text-xs"

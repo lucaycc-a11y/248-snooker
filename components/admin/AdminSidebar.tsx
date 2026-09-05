@@ -4,16 +4,16 @@
  * AdminSidebar — responsive navigation sidebar.
  *
  * §2 spec breakpoints:
- *  - Desktop ≥1024px: full 240px sidebar with labels
- *  - iPad 768–1023px: collapsed 64px icon-only sidebar (click to overlay-expand)
+ *  - Desktop ≥1024px: full sidebar with labels (via extracted Sidebar)
+ *  - iPad 768–1023px: collapsed icon-only sidebar using NavItem
  *  - Mobile <768px: hidden — replaced by MobileTabBar
  *
- * All inline styles replaced with Tailwind + CSS variable tokens.
+ * Uses extracted Sidebar, NavItem, Logo from components/admin/ui/.
+ * All legacy --admin-* tokens removed; uses new design tokens.
  * data-cms-key on every user-visible label for CMS sync.
  */
 
 import { useEffect, useState, useCallback } from 'react'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard,
@@ -24,8 +24,7 @@ import {
   Bot,
   Newspaper,
   Tag,
-  PanelLeftClose,
-  PanelLeftOpen,
+  Receipt,
   KeyRound,
   Lock,
   CreditCard,
@@ -36,10 +35,12 @@ import {
   ShieldCheck,
   type LucideIcon,
 } from 'lucide-react'
-import { Logo, LogoMark } from '@/components/ui/Logo'
+import Sidebar from './ui/Sidebar'
+import NavItem from './ui/NavItem'
+import Logo from './ui/Logo'
 import { useAdmin } from '@/lib/admin/AdminContext'
 
-type NavItem = {
+type NavItemData = {
   href: string
   label: string
   cmsKey: string
@@ -47,9 +48,10 @@ type NavItem = {
   superAdminOnly?: boolean
 }
 
-const NAV_ITEMS: NavItem[] = [
+const NAV_ITEMS: NavItemData[] = [
   { href: '/admin', label: 'Dashboard', cmsKey: 'nav_dashboard', icon: LayoutDashboard },
   { href: '/admin/bookings', label: 'Bookings', cmsKey: 'nav_bookings', icon: CalendarDays },
+  { href: '/admin/payment-log', label: 'Payment Log', cmsKey: 'nav_payment_log', icon: Receipt },
   { href: '/admin/members', label: 'Users', cmsKey: 'nav_users', icon: Users },
   { href: '/admin/promos', label: 'Promos', cmsKey: 'nav_promos', icon: Tag },
   { href: '/admin/audit', label: 'System Logs', cmsKey: 'nav_audit', icon: FileSearch },
@@ -74,7 +76,6 @@ export default function AdminSidebar() {
 
   const [collapsed, setCollapsed] = useState(false)
   const [hydrated, setHydrated] = useState(false)
-  const [mobileExpanded, setMobileExpanded] = useState(false)
 
   useEffect(() => {
     setCollapsed(localStorage.getItem(COLLAPSE_KEY) === '1')
@@ -93,142 +94,56 @@ export default function AdminSidebar() {
     (item) => !item.superAdminOnly || admin.role === 'super_admin'
   )
 
-  const isActive = (href: string) =>
-    href === '/admin' ? pathname === '/admin' : pathname?.startsWith(href) ?? false
+  const activeHref = pathname ?? '/admin'
+
+  const adminInitial = (admin.displayName ?? admin.email).charAt(0).toUpperCase()
+  const adminName = admin.displayName ?? admin.email
+  const adminRole = admin.role
 
   return (
     <>
-      {/* Desktop sidebar (≥1024px) */}
-      <aside
-        className={`
-          hidden lg:flex flex-col shrink-0 min-h-screen
-          bg-[var(--admin-glass-bg)] backdrop-blur-[var(--admin-glass-blur)]
-          border-r border-[var(--admin-border)]
-          p-4 gap-1
-          ${hydrated && collapsed ? 'w-[72px]' : 'w-[220px]'}
-          ${hydrated ? 'transition-[width] duration-200 ease-[var(--ease-standard)]' : ''}
-          overflow-hidden
-        `}
-      >
-        {/* Header: logo + collapse toggle */}
-        <div
-          className={`flex items-center mb-6 px-1 ${
-            collapsed ? 'justify-center' : 'justify-between'
-          }`}
-        >
-          {!collapsed ? (
-            <Logo variant="horizontal" className="h-6 w-auto" />
-          ) : (
-            <LogoMark size={24} />
-          )}
-          <button
-            type="button"
-            onClick={toggleCollapsed}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="flex items-center justify-center w-7 h-7 text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] bg-transparent border-none cursor-pointer"
-          >
-            {collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
-          </button>
-        </div>
+      {/* Desktop sidebar (≥1024px) — uses extracted Sidebar */}
+      <Sidebar
+        items={filteredItems}
+        activeHref={activeHref}
+        collapsed={hydrated && collapsed}
+        onToggleCollapse={toggleCollapsed}
+        adminInitial={adminInitial}
+        adminName={adminName}
+        adminRole={adminRole}
+      />
 
-        {/* Nav links */}
-        <nav className="flex flex-col gap-0.5 flex-1">
-          {filteredItems.map((item) => {
-            const active = isActive(item.href)
-            const Icon = item.icon
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                data-cms-key={item.cmsKey}
-                title={collapsed ? item.label : undefined}
-                className={`
-                  flex items-center gap-2 no-underline text-sm font-medium
-                  whitespace-nowrap
-                  ${collapsed ? 'justify-center px-0 py-[10px]' : 'justify-start px-2 py-[10px]'}
-                  rounded-[var(--radius-button)]
-                  ${
-                    active
-                      ? 'bg-[var(--admin-brand-dim)] text-[var(--admin-text)] font-semibold border-l-2 border-l-[var(--admin-brand)]'
-                      : 'bg-transparent text-[var(--admin-text-muted)] border-l-2 border-l-transparent'
-                  }
-                `}
-              >
-                <Icon size={17} className="shrink-0" />
-                {!collapsed && item.label}
-              </Link>
-            )
-          })}
-        </nav>
-
-        {/* Admin identity */}
-        <div
-          className={`flex items-center gap-2 px-2 py-[10px] mt-2 border-t border-[var(--admin-border)] ${
-            collapsed ? 'justify-center' : 'justify-start'
-          }`}
-          title={collapsed ? (admin.displayName ?? admin.email) : undefined}
-        >
-          <div
-            aria-hidden="true"
-            className="flex items-center justify-center w-7 h-7 rounded-full shrink-0 bg-[var(--admin-brand)] text-[var(--admin-brand-text)] text-xs font-bold"
-          >
-            {(admin.displayName ?? admin.email).charAt(0).toUpperCase()}
-          </div>
-          {!collapsed && (
-            <div className="min-w-0 overflow-hidden">
-              <div
-                className="text-[13px] font-semibold text-[var(--admin-text)] truncate"
-                data-cms-key="sidebar_admin_name"
-              >
-                {admin.displayName ?? admin.email}
-              </div>
-              <div
-                className="text-[11px] text-[var(--admin-text-muted)] capitalize"
-                data-cms-key="sidebar_admin_role"
-              >
-                {admin.role.replace('_', ' ')}
-              </div>
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* iPad sidebar (768–1023px): icon-only, click to expand overlay */}
+      {/* iPad sidebar (768–1023px): icon-only, collapsed NavItem */}
       <aside
         className={`
           hidden md:flex lg:hidden flex-col shrink-0 min-h-screen
-          bg-[var(--admin-glass-bg)] backdrop-blur-[var(--admin-glass-blur)]
-          border-r border-[var(--admin-border)]
+          bg-[var(--surface-primary)] border-r border-[var(--border-subtle)]
           p-3 gap-1 w-[64px] items-center
         `}
       >
-        <LogoMark size={24} className="mb-4" />
+        <Logo className="h-6 w-auto mb-4" />
         <nav className="flex flex-col gap-0.5 flex-1 w-full items-center">
-          {filteredItems.map((item) => {
-            const active = isActive(item.href)
-            const Icon = item.icon
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                data-cms-key={item.cmsKey}
-                className={`
-                  flex items-center justify-center w-10 h-10 no-underline rounded-[var(--radius-button)]
-                  ${
-                    active
-                      ? 'bg-[var(--admin-brand-dim)] text-[var(--admin-brand)]'
-                      : 'text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
-                  }
-                `}
-                title={item.label}
-              >
-                <Icon size={18} />
-              </Link>
-            )
-          })}
+          {filteredItems.map((item) => (
+            <NavItem
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              cmsKey={item.cmsKey}
+              icon={item.icon}
+              active={
+                item.href === '/admin'
+                  ? activeHref === '/admin'
+                  : activeHref?.startsWith(item.href) ?? false
+              }
+              collapsed
+            />
+          ))}
         </nav>
-        <div className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--admin-brand)] text-[var(--admin-brand-text)] text-xs font-bold mt-2">
-          {(admin.displayName ?? admin.email).charAt(0).toUpperCase()}
+        <div
+          aria-hidden="true"
+          className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--green-bright)] text-[var(--surface-primary)] text-xs font-bold mt-2"
+        >
+          {adminInitial}
         </div>
       </aside>
 

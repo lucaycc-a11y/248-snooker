@@ -50,8 +50,6 @@ const CONFIG = {
   closeHour: 24, // Last slot starts 23:00, ends 00:00
 }
 
-const BEBAS = "'Bebas Neue', system-ui, sans-serif"
-
 const legalLinkStyle: React.CSSProperties = {
   appearance: "none",
   border: "none",
@@ -80,7 +78,7 @@ const modalStyle: React.CSSProperties = {
   maxHeight: "min(88vh, 760px)",
   display: "flex",
   flexDirection: "column",
-  background: "#000",
+  background: tokens.colors.bg,
   border: `1px solid ${tokens.colors.borderStrong}`,
   borderRadius: 20,
   overflow: "hidden",
@@ -325,6 +323,25 @@ function scrollToRef(ref: React.RefObject<HTMLElement>) {
   setTimeout(() => {
     if (!ref.current) return
     const y = ref.current.getBoundingClientRect().top + window.scrollY - 80
+    window.scrollTo({ top: y, behavior: "smooth" })
+  }, 150)
+}
+
+// Scroll an element into view only if it isn't already visible in the
+// viewport. Uses the same smooth-scroll + delay pattern as scrollToRef.
+// Elements hidden via display:none return a zero-size rect — skip those
+// (e.g. .mobile-picks is hidden on desktop where the sidebar is always
+// visible, so no scroll is needed).
+function scrollIntoViewIfNeeded(ref: React.RefObject<HTMLElement>, offset = 80) {
+  if (typeof window === "undefined") return
+  setTimeout(() => {
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    // Zero-size rect means the element is hidden (display:none) — nothing to scroll to.
+    if (rect.width === 0 && rect.height === 0) return
+    const inView = rect.top < window.innerHeight && rect.bottom > 0
+    if (inView) return
+    const y = rect.top + window.scrollY - offset
     window.scrollTo({ top: y, behavior: "smooth" })
   }, 150)
 }
@@ -630,16 +647,16 @@ function DualTableGrid({
 
   return (
     <>
-      {/* Legend */}
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 14 }}>
+      {/* Legend — intentionally subdued so it doesn't compete with room headers */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
         {[
-          { key: "legend_available", swatch: { background: tokens.colors.depth.recessed, border: `1.5px solid ${tokens.colors.border}` } },
+          { key: "legend_available", swatch: { background: tokens.colors.depth.recessed, border: `1px solid ${tokens.colors.border}` } },
           { key: "legend_selected", swatch: { background: tokens.colors.link } },
-          { key: "legend_booked", swatch: { background: "rgba(255,69,58,0.15)", border: "1.5px solid rgba(255,69,58,0.4)" } },
+          { key: "legend_booked", swatch: { background: "rgba(255,69,58,0.15)", border: "1px solid rgba(255,69,58,0.35)" } },
         ].map(({ key, swatch }) => (
-          <div key={key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, flex: "none", ...swatch }} />
-            <span data-cms-key={`book.${key}`} style={{ fontSize: 12, color: tokens.colors.textMuted }}>
+          <div key={key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, flex: "none", ...swatch }} />
+            <span data-cms-key={`book.${key}`} style={{ fontSize: 11, color: tokens.colors.textFaint, letterSpacing: 0.3 }}>
               {t(key)}
             </span>
           </div>
@@ -1385,7 +1402,7 @@ function SummaryCard({
           <div style={{ textAlign: "center", marginBottom: 6 }}>
             <s
               style={{
-                fontFamily: BEBAS,
+                fontFamily: tokens.font.display,
                 fontSize: 22,
                 color: tokens.colors.textFaint,
                 fontVariantNumeric: "tabular-nums",
@@ -1397,7 +1414,7 @@ function SummaryCard({
         )}
         <div
           style={{
-            fontFamily: BEBAS,
+            fontFamily: tokens.font.display,
             fontSize: 40,
             textAlign: "center",
             marginBottom: ready && totalSaved > 0 ? 10 : 28,
@@ -1509,6 +1526,7 @@ function Screen1({
 }) {
   const dateStr = useMemo(() => fmtYMD(selectedDate), [selectedDate])
   const timeRef = useRef<HTMLDivElement>(null)
+  const summaryRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
 
   // Read the day's slots from the shared prefetch cache. If the date is cached
@@ -1633,14 +1651,14 @@ function Screen1({
               dayLoading={dayLoading}
               slotsForDate={slotsForDate}
               totalSelectedHours={totalSelectedHours}
-              onToggle={(table, hour) => onToggleSlot(dateStr, table, hour)}
+              onToggle={(table, hour) => { onToggleSlot(dateStr, table, hour); scrollIntoViewIfNeeded(summaryRef) }}
               onResumeLocked={onResumeLocked}
             />
           </div>
 
           {/* Selected picks — mobile/inline position (desktop shows the same
               card inside the sticky sidebar instead). */}
-          <div className="mobile-picks" style={{ marginBottom: 16 }}>
+          <div ref={summaryRef} className="mobile-picks" style={{ marginBottom: 16 }}>
             <SelectedPicksCard runs={runs} removeRun={removeRun} periods={periods} />
           </div>
 
@@ -1832,6 +1850,7 @@ function Screen3({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+  const payCtaRef = useRef<HTMLDivElement>(null)
 
   // ── UAT-only PayMe simulation modal ──────────────────────────────────────
   // Pop-up before checkout to select .81 (success) / .82 (fail) / normal.
@@ -2124,7 +2143,7 @@ function Screen3({
             <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
-              <span style={{ fontFamily: BEBAS, fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
+              <span style={{ fontFamily: tokens.font.display, fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
                 <span style={{ fontSize: 16, opacity: 0.7, marginRight: 2 }}>HK$</span>{total}
               </span>
             </div>
@@ -2200,6 +2219,7 @@ function Screen3({
                   onSelect={(method) => {
                     setPaymentError(null)
                     setPaymentMethod(method)
+                    scrollIntoViewIfNeeded(payCtaRef)
                     const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
                     if (kpayMethods.includes(method as KPayMethod)) {
                       setKpayMethod(method as KPayMethod)
@@ -2324,7 +2344,7 @@ function Screen3({
             </div>
           )}
 
-          {/* Terms agreement */}
+          {/* Terms — visually quieter than payment method cards */}
           <motion.div
             key={termsShake}
             ref={termsRef}
@@ -2333,7 +2353,7 @@ function Screen3({
             style={{
               border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : "transparent"}`,
               borderRadius: tokens.radius.input,
-              padding: "8px 10px",
+              padding: "6px 8px",
               transition: "border-color 0.2s ease",
               marginBottom: 16,
             }}
@@ -2344,7 +2364,7 @@ function Screen3({
                 alignItems: "flex-start",
                 gap: 10,
                 cursor: confirmed ? "default" : "pointer",
-                minHeight: 44,
+                minHeight: 40,
               }}
             >
               <input
@@ -2356,18 +2376,18 @@ function Screen3({
                   if (e.target.checked) setTermsError(false)
                 }}
                 style={{
-                  width: 18,
-                  height: 18,
+                  width: 16,
+                  height: 16,
                   marginTop: 1,
                   flexShrink: 0,
                   accentColor: tokens.colors.link,
                   cursor: confirmed ? "default" : "pointer",
-                  opacity: confirmed ? 0.7 : 1,
+                  opacity: confirmed ? 0.6 : 1,
                 }}
               />
               <span
                 data-cms-key="book.terms_agree"
-                style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}
+                style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}
               >
                 {t("terms_agree_prefix")}{" "}
                 <button type="button" onClick={() => setOpenModal("venue-rules")} style={legalLinkStyle}>
@@ -2551,7 +2571,7 @@ function Screen3({
           bar. Hidden once confirmed — from then on the payment component owns
           the screen and has its own actions. */}
       {!testMode && !confirmed && (
-        <div className="pay-cta">
+        <div ref={payCtaRef} className="pay-cta">
           <div className="pay-cta-inner">
             <button
               type="button"
@@ -3731,7 +3751,7 @@ export default function BookPage() {
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
-          background: #000;
+          background: ${tokens.colors.bg};
           flex: 1;
           min-height: 0;
         }

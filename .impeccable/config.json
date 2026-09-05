@@ -704,6 +704,188 @@
         "rule": "side-tab",
         "value": "l206 blockquote left border is standard blockquote styling, not a side-tab accent",
         "createdAt": "2026-09-02T03:39:42.982Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f59e0b",
+        "files": [
+          "components/landing/Section5Booking.tsx"
+        ],
+        "createdAt": "2026-09-02T08:15:54.266Z",
+        "reason": "intentional 3-step accent palette: blue/green/amber for booking steps"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(124,120,120,1)",
+        "createdAt": "2026-09-02T08:20:08.137Z",
+        "reason": "User-specified metallic gradient for Apple-style text effect — matches Figma prototype"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#15803d",
+        "files": [
+          "components/landing/Section6Pricing.tsx"
+        ],
+        "createdAt": "2026-09-03T00:41:25.651Z",
+        "reason": "darker green for AA contrast on white card bg, replaces #4ade80"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#166534",
+        "files": [
+          "components/landing/Section6Pricing.tsx"
+        ],
+        "createdAt": "2026-09-03T00:41:34.185Z",
+        "reason": "darker green strong for AA contrast on white card bg, replaces #86efac"
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-09-03T12:34:24.670Z"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "jetbrains mono",
+        "createdAt": "2026-09-03T12:53:12.326Z",
+        "reason": "Style-guide mono labels intentionally use JetBrains Mono for data-oriented UI."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "11px",
+        "createdAt": "2026-09-03T12:53:12.380Z",
+        "reason": "Style-guide compact navigation controls intentionally use 11px radius."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "10px",
+        "createdAt": "2026-09-03T12:53:12.436Z",
+        "reason": "Style-guide compact pill controls intentionally use 10px radius."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "5px",
+        "createdAt": "2026-09-03T12:53:12.492Z",
+        "reason": "Style-guide chart callouts and bars intentionally use 5px radius."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(15,120,69,.22)",
+        "createdAt": "2026-09-03T12:53:58.518Z",
+        "reason": "AI insight glass gradient uses a deliberate translucent green tonal layer."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "7px",
+        "createdAt": "2026-09-03T12:53:58.567Z",
+        "reason": "Compact attachment and suggestion controls intentionally use 7px radius."
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "17px",
+        "createdAt": "2026-09-03T12:53:58.604Z",
+        "reason": "Composer surface intentionally uses a slightly tighter radius than cards."
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "components/landing/Section5Booking.tsx"
+        ],
+        "createdAt": "2026-09-04T10:57:37.058Z",
+        "reason": "user-confirmed: original brief specified brand green gradient (#1a9d5c→#22b86b) via background-clip:text as core design requirement"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3d1a08",
+        "createdAt": "2026-09-04T16:59:33.918Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#6b3015",
+        "createdAt": "2026-09-04T16:59:34.096Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8b4513",
+        "createdAt": "2026-09-04T16:59:34.220Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a0522d",
+        "createdAt": "2026-09-04T16:59:34.416Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#c87941",
+        "createdAt": "2026-09-04T16:59:34.517Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#deb887",
+        "createdAt": "2026-09-04T16:59:34.603Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f5deb3",
+        "createdAt": "2026-09-04T16:59:34.703Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8f5e0",
+        "createdAt": "2026-09-04T16:59:34.769Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a8d5a2",
+        "createdAt": "2026-09-04T16:59:34.845Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#6bbf6b",
+        "createdAt": "2026-09-04T16:59:34.903Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3d8b3d",
+        "createdAt": "2026-09-04T16:59:34.957Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1f5c1f",
+        "createdAt": "2026-09-04T16:59:35.002Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0d3d0d",
+        "createdAt": "2026-09-04T16:59:35.060Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#071f07",
+        "createdAt": "2026-09-04T16:59:35.110Z",
+        "reason": "maintainer design: pre-existing committed HEADLINE_GRADIENT in Hero.tsx (wood-to-green brand gradient), unchanged by this edit"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "app/globals.css"
+        ],
+        "createdAt": "2026-09-04T17:17:42.639Z",
+        "reason": "agent: L207 is .blog-prose blockquote, not a card — a left border on blockquotes is canonical editorial typography (GitHub/Medium/Tailwind prose convention), domain-appropriate styling rather than the AI card-accent tell the rule targets"
       }
     ]
   }

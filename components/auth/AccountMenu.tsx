@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from "re
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import { User, LogOut, UserCircle, Settings, ShieldCheck } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/client"
+import { tierLabel } from "@/lib/member/tierDisplay"
 
 const GREEN = "#22c55e"
 // Dark-glass surface for floating menus (readable over arbitrary content),
@@ -52,6 +53,7 @@ export function AccountMenu({
   linkColor?: string
 }) {
   const t = useTranslations("nav")
+  const locale = useLocale()
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -165,7 +167,7 @@ export function AccountMenu({
               color: tierAccent,
             }}
           >
-            {profile.tier}
+            {tierLabel(profile.tier, locale)}
           </div>
         )}
       </div>

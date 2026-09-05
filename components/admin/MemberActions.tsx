@@ -13,6 +13,7 @@
  */
 
 import { useState, useCallback } from 'react'
+import { tierShortLabel } from '@/lib/member/tierDisplay'
 
 type Props = {
   userId: string
@@ -24,11 +25,6 @@ type Props = {
 type SheetMode = 'points' | 'tier' | 'blacklist' | null
 
 const VALID_TIERS = ['amateur', 'century', 'maximum'] as const
-const TIER_LABELS: Record<string, string> = {
-  amateur: 'Nova',
-  century: 'Platinum',
-  maximum: 'Diamond',
-}
 
 export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }: Props) {
   const [sheet, setSheet] = useState<SheetMode>(null)
@@ -271,7 +267,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
                       : '1px solid var(--admin-border)',
                 }}
               >
-                {TIER_LABELS[t] ?? t}
+                {tierShortLabel(t)}
               </button>
             ))}
           </div>
