@@ -12,8 +12,6 @@ export const runtime = 'nodejs'
 
 // A single non-contiguous booking may not exceed this many blocks — a sane cap
 // so one request can't lock the whole board.
-const MAX_BLOCKS = 6
-
 type Block = { date: string; startHour: number; duration: number; tableNumber: 1 | 2 }
 
 function isValidBlock(b: unknown): b is Block {
@@ -57,7 +55,7 @@ export async function POST(req: Request) {
     // ── Multi-block (non-contiguous) path ──────────────────────────────
     if (Array.isArray(body?.blocks)) {
       const blocks: unknown[] = body.blocks
-      if (blocks.length === 0 || blocks.length > MAX_BLOCKS || !blocks.every(isValidBlock)) {
+      if (blocks.length === 0 || !blocks.every(isValidBlock)) {
         return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
       }
       const validBlocks = blocks as Block[]

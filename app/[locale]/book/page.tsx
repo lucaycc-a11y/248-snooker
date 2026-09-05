@@ -54,7 +54,6 @@ function BookingPrice({ amount }: { amount: number }) {
 /* ─────────────────────────  Config  ───────────────────────── */
 const CONFIG = {
   currency: "HKD",
-  maxHours: 6,
   openHour: 6,  // Venue opens 06:00
   closeHour: 24, // Last slot starts 23:00, ends 00:00
 }
@@ -391,7 +390,6 @@ function DualTableGrid({
   const t = useTranslations("book")
   const locale = useLocale()
   const haptic = useHaptic()
-  const [showToast, setShowToast] = useState(false)
   const [galleryRoom, setGalleryRoom] = useState<number | null>(null)
   const galleryTrackRef = useRef<HTMLDivElement>(null)
   const [galleryIdx, setGalleryIdx] = useState(0)
@@ -548,15 +546,9 @@ function DualTableGrid({
         }
       }
       haptic.vibrate(8)
-      const willAdd = !slotsForDate.has(slotKey(tn, h))
-      if (willAdd && totalSelectedHours >= CONFIG.maxHours) {
-        setShowToast(true)
-        setTimeout(() => setShowToast(false), 2000)
-        return
-      }
       onToggle(tn, h)
     },
-    [cellStates, daySlots, slotsForDate, totalSelectedHours, haptic, onToggle, onResumeLocked],
+    [cellStates, daySlots, slotsForDate, haptic, onToggle, onResumeLocked],
   )
 
   // Skeleton laid out as the real dual-column rows.
@@ -807,35 +799,6 @@ function DualTableGrid({
           </div>
         ))}
       </div>
-
-      {/* Toast for the max-hours-per-order cap */}
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            data-cms-key="book.max_hours_reached"
-            style={{
-              position: "fixed",
-              top: 100,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: tokens.colors.surfaceElevated,
-              border: `1px solid ${tokens.colors.borderStrong}`,
-              borderRadius: tokens.radius.button,
-              padding: "12px 20px",
-              fontSize: 14,
-              color: tokens.colors.text,
-              zIndex: 100,
-              pointerEvents: "none",
-            }}
-          >
-            {t("max_hours_reached")}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Room gallery popup — swipeable photos, dismiss on outside tap / ESC / close */}
       <AnimatePresence>
@@ -3081,7 +3044,7 @@ export default function BookPage() {
     const duration = Number(durationParam ?? "1")
     const table = Number(tableParam)
     if (!Number.isInteger(start) || start < CONFIG.openHour || start >= CONFIG.closeHour) return
-    if (!Number.isInteger(duration) || duration < 1 || duration > CONFIG.maxHours) return
+    if (!Number.isInteger(duration) || duration < 1) return
     if (start + duration > CONFIG.closeHour) return
 
     const hours = new Set<string>()
