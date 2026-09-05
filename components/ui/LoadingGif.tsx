@@ -1,21 +1,11 @@
-/**
- * Loading indicator using the branded loading.gif animation.
- * Per user instruction, ALL loading states site-wide now use this GIF at
- * 120-160px size (even inline indicators), replacing the previous Space8Loader
- * spinning icon and Spinner component.
- *
- * ⚠️ Note: The GIF file is 4.9MB. Using it for small inline indicators
- * (e.g. "Thinking..." text, chat widget, button states) will:
- * - Load 4.9MB per indicator instance
- * - Force 120-160px display size in contexts that previously used 18-32px,
- *   potentially breaking layout/causing reflow
- *
- * This implementation follows the user's explicit choice to enforce 120-160px
- * across ALL loading states.
- */
+'use client'
+
+import { useState } from 'react'
+
+/** Branded loading animation shared by route, booking, and auth loading states. */
 export function LoadingGif({ size = 140 }: { size?: number }) {
-  // Clamp to the user-specified 120-160px range
   const clampedSize = Math.max(120, Math.min(160, size))
+  const [videoFailed, setVideoFailed] = useState(false)
 
   return (
     <div
@@ -29,18 +19,31 @@ export function LoadingGif({ size = 140 }: { size?: number }) {
         justifyContent: 'center',
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/video/Loading/loading.gif"
-        alt=""
-        width={clampedSize}
-        height={clampedSize}
-        // The GIF's canvas is opaque black (no alpha channel) — screen blending
-        // makes its black pixels transparent against any backdrop, so it only
-        // ever paints its bright animation content instead of a visible black
-        // square on non-black containers (gray tooltips, glass panels, etc.).
-        style={{ width: clampedSize, height: clampedSize, objectFit: 'contain', mixBlendMode: 'screen' }}
-      />
+      {videoFailed ? (
+        <span
+          aria-hidden="true"
+          style={{
+            width: clampedSize * 0.42,
+            height: clampedSize * 0.42,
+            border: `${Math.max(2, clampedSize / 28)}px solid rgba(255,255,255,0.25)`,
+            borderTopColor: '#ffffff',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }}
+        />
+      ) : (
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-label="Loading"
+          onError={() => setVideoFailed(true)}
+          style={{ width: clampedSize, height: clampedSize, objectFit: 'contain' }}
+        >
+          <source src="/video/Loading/space8_loading_transparent.webm" type="video/webm" />
+        </video>
+      )}
     </div>
   )
 }
