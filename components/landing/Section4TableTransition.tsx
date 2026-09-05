@@ -8,288 +8,142 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger)
 }
 
-/**
- * Section 4 — Table 展示 (scroll-linked zoom animation)
- *
- * Apple-style text-mask zoom: a black overlay with text-shaped cutouts
- * scales from ~18x down to 1x, revealing abstract image texture through
- * letter edges, then transitions to solid gradient text, shows
- * "or / Space Eternity", and reverses with a second table image.
- *
- * v5: CSS `position: sticky` + GSAP ScrollTrigger scrub (no pin).
- *   - Replaced GSAP `pin: section` with CSS sticky (proven in Section 5).
- *   - The old GSAP pin set `top: 3999px` instead of `top: 0`, pushing the
- *     section below the viewport and making it invisible.
- *   - CSS sticky is layout-native, deterministic, and avoids GSAP pin bugs.
- *
- * Gradient values per Figma spec:
- *   Space Infinity: linear-gradient(90.13deg, #7C7878 2.61%, #DDDDDD 41.45%, #D2D2D2 62.51%, #7C7878 99.95%)
- *   or:             linear-gradient(90.13deg, #7C7878 2.61%, rgba(57,255,43,0.5) 9.58%, #DDDDDD 41.45%, #D2D2D2 62.51%, #7C7878 99.95%)
- *   Space Eternity: linear-gradient(90.13deg, #7C7878 2.61%, #DDDDDD 41.45%, #D2D2D2 62.51%, #7C7878 99.95%)
- */
+const SECTION4_CONFIG = {
+  designWidth: 1512,
+  designHeight: 1123,
+  font: {
+    family: "'Good Times', sans-serif",
+    weight: 400,
+    sizeAtDesignWidth: 128,
+  },
+  metallicGradient:
+    "linear-gradient(90.128deg, rgb(124, 120, 120) 2.6068%, rgb(221, 221, 221) 41.449%, rgb(210, 210, 210) 62.509%, rgb(124, 120, 120) 99.947%)",
+  orGradient:
+    "linear-gradient(90.128deg, rgba(124, 120, 120, 1) 2.6068%, rgba(57, 255, 43, 0) 9.5794%, rgba(124, 120, 120, 1) 18.65%, rgba(221, 221, 221, 1) 39.998%, rgba(210, 210, 210, 1) 62.509%)",
+  part2ZoomStart: 198,
+  part2ZoomEnd: 1,
+  part4ZoomStart: 1,
+  part4ZoomEnd: 794,
+} as const
 
-/* ── Figma-accurate gradients ─────────────────────────────────── */
+const FONT_STYLE = {
+  fontFamily: SECTION4_CONFIG.font.family,
+  fontWeight: SECTION4_CONFIG.font.weight,
+  fontSize: "clamp(2.5rem, 8.4656vw, 8rem)",
+  lineHeight: "normal",
+  letterSpacing: "normal",
+  textTransform: "uppercase" as const,
+}
 
-const GRADIENT_METALLIC =
-  "linear-gradient(90.13deg, rgb(124,120,120) 2.6068%, rgb(221,221,221) 41.449%, rgb(210,210,210) 62.509%, rgb(124,120,120) 99.947%)"
-
-const GRADIENT_OR =
-  "linear-gradient(90.13deg, rgb(124,120,120) 2.6068%, rgba(57,255,43,0.5) 9.5794%, rgb(221,221,221) 41.449%, rgb(210,210,210) 62.509%, rgb(124,120,120) 99.947%)"
-
-/* ── Shared font ─────────────────────────────────────────────── */
-
-const FONT_FAMILY = "'Good Times', sans-serif"
-
-const MASK_CLASS =
-  "absolute inset-0 flex items-center justify-center select-none pointer-events-none"
-
-/* ── Helpers ──────────────────────────────────────────────────── */
-
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+const getMask = (text: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SECTION4_CONFIG.designWidth} ${SECTION4_CONFIG.designHeight}"><rect width="100%" height="100%" fill="white"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-family="Good Times" font-size="128" font-weight="400" fill="black">${text}</text></svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
+}
 
 export default function Section4TableTransition() {
-  const stageRef = useRef<HTMLDivElement>(null)
-
-  /* Layer refs */
-  const table1ImgRef = useRef<HTMLDivElement>(null)
-  const table2ImgRef = useRef<HTMLDivElement>(null)
-  const maskText1Ref = useRef<HTMLDivElement>(null)
-  const spaceInfinityRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLElement>(null)
+  const infinityMaskRef = useRef<HTMLDivElement>(null)
+  const eternityMaskRef = useRef<HTMLDivElement>(null)
+  const table1Ref = useRef<HTMLDivElement>(null)
+  const table2Ref = useRef<HTMLDivElement>(null)
+  const infinityTextRef = useRef<HTMLDivElement>(null)
   const orTextRef = useRef<HTMLDivElement>(null)
   const eternityTextRef = useRef<HTMLDivElement>(null)
-  const maskText2Ref = useRef<HTMLDivElement>(null)
-
-  /* ── GSAP ScrollTrigger setup (no pin — CSS sticky handles visibility) ── */
 
   useEffect(() => {
     const stage = stageRef.current
     if (!stage) return
 
-    // GSAP timeline scrub — NO pin. CSS position:sticky on .s4-pin keeps the
-    // section visible while the user scrolls through the 500vh stage.
-    // This matches the proven pattern from Section 5 (HomePod-style).
-    const tl = gsap.timeline({
-      scrollTrigger: {
+    const ctx = gsap.context(() => {
+      const setState = (progress: number) => {
+        const part2 = gsap.utils.clamp(0, 1, (progress - 0.08) / 0.22)
+        const part3 = gsap.utils.clamp(0, 1, (progress - 0.30) / 0.12)
+        const part4 = gsap.utils.clamp(0, 1, (progress - 0.46) / 0.24)
+        const part5 = gsap.utils.clamp(0, 1, (progress - 0.70) / 0.16)
+
+        gsap.set(infinityMaskRef.current, {
+          scale: SECTION4_CONFIG.part2ZoomStart + (SECTION4_CONFIG.part2ZoomEnd - SECTION4_CONFIG.part2ZoomStart) * part2,
+          opacity: part2 * (1 - part3),
+        })
+        gsap.set(table1Ref.current, { opacity: 1 - part5 })
+        gsap.set(infinityTextRef.current, { opacity: 1 - part3, yPercent: -part4 * 20 })
+        gsap.set(orTextRef.current, { opacity: part4 })
+        gsap.set(eternityTextRef.current, { opacity: part4 * (1 - part5), yPercent: -part4 * 20 })
+        gsap.set(eternityMaskRef.current, {
+          scale: SECTION4_CONFIG.part4ZoomStart + (SECTION4_CONFIG.part4ZoomEnd - SECTION4_CONFIG.part4ZoomStart) * part5,
+          opacity: part5,
+        })
+        gsap.set(table2Ref.current, { opacity: part5 })
+      }
+
+      const trigger = ScrollTrigger.create({
         trigger: stage,
         start: "top top",
         end: "bottom bottom",
-        scrub: true,
-      },
-    })
+        scrub: 1,
+        onUpdate: (self) => setState(self.progress),
+      })
 
-    // Dummy tween — gives the timeline a 1-unit duration for scrub to drive.
-    // Without this, totalDuration() === 0 and progress stays at 0.
-    tl.to({}, { duration: 1, ease: "none" })
+      setState(0)
+      return () => trigger.kill()
+    }, stage)
 
-    /* ── Phase 1: Zoom In (0 → 0.19) ─────────────────────────── */
-
-    // Table 1 full image: fades out 0.00–0.03
-    tl.to(table1ImgRef.current, { opacity: 0, duration: 0.03 }, 0)
-
-    // Mask 1: fades in 0.00–0.03, scale 18→1 over 0.05–0.17 (12% of scroll — fast zoom-in)
-    tl.to(maskText1Ref.current, { opacity: 1, duration: 0.03 }, 0)
-    tl.to(maskText1Ref.current, { scale: 1, duration: 0.12, ease: "none" }, 0.05)
-
-    // Mask 1: fades out 0.15–0.19
-    tl.to(maskText1Ref.current, { opacity: 0, duration: 0.04 }, 0.15)
-
-    /* ── Phase 3: Zoom Out (0.43 → 0.93) ─────────────────────── */
-
-    // Mask 2: fades in 0.43–0.47
-    tl.to(maskText2Ref.current, { opacity: 1, duration: 0.04 }, 0.43)
-
-    // Mask 2: scale 1→18 over 0.47–0.90
-    tl.to(maskText2Ref.current, { scale: 18, duration: 0.43, ease: "none" }, 0.47)
-
-    // Mask 2: fades out 0.90–0.93
-    tl.to(maskText2Ref.current, { opacity: 0, duration: 0.03 }, 0.90)
-
-    /* ── Phase 4: End (0.90 → 1.00) ──────────────────────────── */
-
-    // Table 2: full image fades in 0.90–0.96
-    tl.to(table2ImgRef.current, { opacity: 1, duration: 0.06 }, 0.90)
-
-    /* ─── SCRUB-BASED OPACITY (Apple HomePod-style scroll reveal) ─── */
-    // Space Infinity fades to 0.18, Or+Space Eternity fade 0→1
-    // Both driven by scroll position — speed follows scroll exactly
-
-    tl.eventCallback("onUpdate", () => {
-      const p = tl.progress()
-
-      // Space Infinity: 1 → 0.18 (0.15→0.30), hold at 0.18 (0.30→0.43), fade to 0 (0.43→0.47)
-      const infinityOpacity =
-        p < 0.15 ? 0
-          : p < 0.30 ? lerp(1, 0.18, (p - 0.15) / 0.15)
-            : p < 0.43 ? 0.18
-              : p < 0.47 ? lerp(0.18, 0, (p - 0.43) / 0.04)
-                : 0
-      if (spaceInfinityRef.current) {
-        spaceInfinityRef.current.style.opacity = String(infinityOpacity)
-      }
-
-      // Or + Space Eternity: 0→1 scrub (0.15→0.30), hold (0.30→0.41), 1→0 (0.41→0.47)
-      const crossfadeOpacity =
-        p < 0.15 ? 0
-          : p < 0.30 ? lerp(0, 1, (p - 0.15) / 0.15)
-            : p < 0.41 ? 1
-              : p < 0.47 ? lerp(1, 0, (p - 0.41) / 0.06)
-                : 0
-      if (orTextRef.current) {
-        orTextRef.current.style.opacity = String(crossfadeOpacity)
-      }
-      if (eternityTextRef.current) {
-        eternityTextRef.current.style.opacity = String(crossfadeOpacity)
-      }
-    })
-
-    return () => {
-      tl.scrollTrigger?.kill()
-      tl.kill()
-    }
+    return () => ctx.revert()
   }, [])
 
   return (
     <section
       ref={stageRef}
-      aria-label="Table showcase — Space Infinity and Space Eternity rooms"
+      aria-label="Table showcase: Space Infinity and Space Eternity rooms"
       data-cms-key="section4.table-transition"
       className="s4-stage"
     >
-      {/* Pinned viewport — CSS sticky keeps this on screen while stage scrolls */}
-      <div className="s4-pin">
-        {/* Layer 0: Table 1 full panorama */}
+      <div className="s4-viewport">
+        <div ref={table1Ref} className="s4-image" style={{ backgroundImage: "url('/gallery/Space_Infinity.PNG')" }} />
+        <div ref={table2Ref} className="s4-image" style={{ backgroundImage: "url('/gallery/Space_Enternity.PNG')", opacity: 0 }} />
+
         <div
-          ref={table1ImgRef}
-          className="absolute inset-0 bg-cover bg-center"
+          ref={infinityMaskRef}
+          className="s4-mask"
           style={{
-            backgroundImage: "url('/gallery/Space_Infinity.PNG')",
-            opacity: 1,
+            backgroundColor: "#000",
+            maskImage: getMask("SPACE INFINITY"),
+            WebkitMaskImage: getMask("SPACE INFINITY"),
           }}
         />
 
-        {/* Layer 1: Table 2 full panorama */}
+        <div className="s4-copy s4-copy-single">
+          <div ref={infinityTextRef} className="s4-title" data-cms-key="section4.space-infinity-gradient" style={{ ...FONT_STYLE, backgroundImage: SECTION4_CONFIG.metallicGradient }}>Space Infinity</div>
+        </div>
+
+        <div className="s4-copy s4-copy-double">
+          <div ref={orTextRef} className="s4-or" data-cms-key="section4.or-text" style={{ ...FONT_STYLE, backgroundImage: SECTION4_CONFIG.orGradient }}>or</div>
+          <div ref={eternityTextRef} className="s4-title" data-cms-key="section4.space-eternity" style={{ ...FONT_STYLE, backgroundImage: SECTION4_CONFIG.metallicGradient }}>Space Eternity</div>
+        </div>
+
         <div
-          ref={table2ImgRef}
-          className="absolute inset-0 bg-cover bg-center"
+          ref={eternityMaskRef}
+          className="s4-mask"
           style={{
-            backgroundImage: "url('/gallery/Space_Enternity.PNG')",
+            backgroundColor: "#000",
+            maskImage: getMask("SPACE ETERNITY"),
+            WebkitMaskImage: getMask("SPACE ETERNITY"),
             opacity: 0,
           }}
         />
-
-        {/* Layer 2: Mask Text 1 — Table 1 image through text letterforms (scale 18→1) */}
-        <div
-          ref={maskText1Ref}
-          className={`${MASK_CLASS} text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider whitespace-nowrap`}
-          style={{
-            opacity: 0,
-            fontFamily: FONT_FAMILY,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            color: "transparent",
-            backgroundImage: "url('/gallery/Space_Infinity.PNG')",
-            transformOrigin: "center center",
-          }}
-          data-cms-key="section4.space-infinity"
-        >
-          Space Infinity
-        </div>
-
-        {/* Layer 3: Solid text group — gradient text stacked vertically */}
-        <div
-          className="absolute inset-0 flex flex-col items-center justify-center select-none pointer-events-none gap-1"
-        >
-          {/* Line 1: Space Infinity — metallic gradient
-              GSAP controls opacity via spaceInfinityRef (1→0.18 scrub) */}
-          <div
-            ref={spaceInfinityRef}
-            className="text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider whitespace-nowrap"
-            style={{
-              fontFamily: FONT_FAMILY,
-              backgroundImage: GRADIENT_METALLIC,
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-            }}
-            data-cms-key="section4.space-infinity-gradient"
-          >
-            Space Infinity
-          </div>
-
-          {/* Line 2: or — green accent gradient */}
-          <div
-            ref={orTextRef}
-            className="text-[clamp(1.5rem,4vw,3rem)] uppercase tracking-wider whitespace-nowrap"
-            style={{
-              fontFamily: FONT_FAMILY,
-              backgroundImage: GRADIENT_OR,
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-              backgroundSize: "300% 100%",
-              backgroundPosition: "center center",
-            }}
-            data-cms-key="section4.or-text"
-          >
-            or
-          </div>
-
-          {/* Line 3: Space Eternity — metallic gradient
-              GSAP controls opacity via eternityTextRef (0→1 scrub crossfade) */}
-          <div
-            ref={eternityTextRef}
-            className="text-[clamp(2.5rem,8vw,7rem)] uppercase tracking-wider whitespace-nowrap"
-            style={{
-              fontFamily: FONT_FAMILY,
-              backgroundImage: GRADIENT_METALLIC,
-              WebkitBackgroundClip: "text",
-              backgroundClip: "text",
-              color: "transparent",
-            }}
-            data-cms-key="section4.space-eternity"
-          >
-            Space Eternity
-          </div>
-        </div>
-
-        {/* Layer 4: Mask Text 2 — Table 2 image through text letterforms (scale 1→18) */}
-        <div
-          ref={maskText2Ref}
-          className={`${MASK_CLASS} text-[clamp(3rem,12vw,9rem)] uppercase tracking-wider whitespace-nowrap`}
-          style={{
-            opacity: 0,
-            fontFamily: FONT_FAMILY,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            color: "transparent",
-            backgroundImage: "url('/gallery/Space_Enternity.PNG')",
-            transformOrigin: "center center",
-          }}
-          data-cms-key="section4.space-eternity-mask"
-        >
-          Space Eternity
-        </div>
       </div>
-
       <style jsx>{`
-        .s4-stage {
-          position: relative;
-          height: 500svh;
-        }
-        @media (max-width: 768px) {
-          .s4-stage { height: 300svh; }
-        }
-        .s4-pin {
-          position: sticky;
-          top: 0;
-          height: 100svh;
-          overflow: hidden;
-          background: black;
-        }
+        .s4-stage { position: relative; height: 500svh; background: #000; }
+        .s4-viewport { position: sticky; top: 0; height: 100svh; overflow: hidden; background: #000; }
+        .s4-image, .s4-mask { position: absolute; inset: 0; background-position: center; background-size: cover; }
+        .s4-mask { background-color: #000; mask-repeat: no-repeat; mask-position: center; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: 100% 100%; transform-origin: 50% 50%; }
+        .s4-copy { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; user-select: none; }
+        .s4-copy-double { flex-direction: column; gap: 0; }
+        .s4-title, .s4-or { display: inline-block; color: transparent; background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; white-space: nowrap; }
+        .s4-title { width: min(85.4vw, 1291px); }
+        .s4-or { width: min(80.9vw, 1223px); font-size: clamp(1.75rem, 5.2vw, 5rem); }
+        @media (prefers-reduced-motion: reduce) { .s4-stage { height: 100svh; } .s4-viewport { position: relative; } .s4-mask, .s4-copy-double { display: none; } }
+        @media (max-width: 768px) { .s4-stage { height: 360svh; } .s4-title { width: 94vw; } .s4-or { width: 88vw; } }
       `}</style>
     </section>
   )
