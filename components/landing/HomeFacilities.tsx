@@ -66,7 +66,7 @@ export default function HomeFacilities() {
     <section
       aria-labelledby="home-facilities-title"
       data-nav-theme="light"
-      className="overflow-x-hidden bg-[#e8e8e8] px-0 py-[88px] md:py-[116px]"
+      className="overflow-x-clip bg-[#f5f5f7] px-0 py-20 md:py-28"
     >
       {/* ── Header ── */}
       <div className="px-6 md:px-16 mb-10">
@@ -82,7 +82,7 @@ export default function HomeFacilities() {
           <h2 id="home-facilities-title" data-cms-key="homeVenue.title" className="m-0 text-[clamp(1.7rem,3.4vw,2.4rem)] font-black tracking-[-0.04em] text-[#111110]">
             {t("title")}
           </h2>
-          <p data-cms-key="homeVenue.intro" className="mt-4 max-w-xl text-[15px] leading-[1.75] text-[rgba(17,17,16,0.6)] md:text-[17px]">
+          <p data-cms-key="homeVenue.intro" className="mt-4 max-w-3xl text-[clamp(2rem,5vw,4rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-[#111110]">
             {t("intro")}
           </p>
         </motion.div>
@@ -91,7 +91,7 @@ export default function HomeFacilities() {
       {/* ── Horizontal scroll gallery ── */}
       <div
         ref={trackRef}
-        className="overflow-x-auto snap-x snap-mandatory flex gap-4 px-6 md:px-16 pb-4 no-scrollbar hscroll-track"
+        className="facilities-scroll-track overflow-x-auto snap-x snap-mandatory flex gap-4 px-6 md:px-16 pb-4 no-scrollbar"
       >
         {facilities.map((facility, index) => {
           const Icon = FACILITY_ICONS[index] ?? Table2;
@@ -107,7 +107,7 @@ export default function HomeFacilities() {
               style={{ width: "88vw", maxWidth: "440px" }}
             >
               {/* ── Image block: ~76% of card ── */}
-              <div className="rounded-[20px] overflow-hidden" style={{ height: "480px" }}>
+              <div className="aspect-[4/5] rounded-[20px] overflow-hidden">
                 <img
                   src={FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0]}
                   alt={facility.title}
@@ -116,13 +116,10 @@ export default function HomeFacilities() {
               </div>
 
               {/* ── Text block: ~24% of card ── */}
-              <div className="pt-4" style={{ minHeight: "120px" }}>
-                <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="mb-2 text-[#1a9d5c]" />
-                <h3
-                  data-cms-key={`homeVenue.items.${index}.title`}
-                  className="m-0 mb-[10px] text-[16.5px] font-bold leading-[1.3] text-[#111110]"
-                >
-                  {facility.title}
+              <div className="min-h-[120px] pt-4">
+                <h3 data-cms-key={`homeVenue.items.${index}.title`} className="m-0 mb-[10px] flex items-center gap-2 text-[16.5px] font-bold leading-[1.3] text-[#111110]">
+                  <Icon aria-hidden="true" size={20} strokeWidth={1.6} className="shrink-0 text-[#1a9d5c]" />
+                  <span>{facility.title}</span>
                 </h3>
                 <p
                   data-cms-key={`homeVenue.items.${index}.body`}
