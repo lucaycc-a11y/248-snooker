@@ -42,6 +42,15 @@ import { getLegalDocument } from "@/content/legal"
 // @ts-ignore
 import confetti from "canvas-confetti"
 
+function BookingPrice({ amount }: { amount: number }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "baseline", gap: "0.12em", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+      <span style={{ fontFamily: tokens.font.sans }}>HK$</span>
+      <span style={{ fontFamily: tokens.font.display }}>{amount}</span>
+    </span>
+  )
+}
+
 /* ─────────────────────────  Config  ───────────────────────── */
 const CONFIG = {
   currency: "HKD",
@@ -368,6 +377,7 @@ function DualTableGrid({
   totalSelectedHours,
   onToggle,
   onResumeLocked,
+  firstAvailableSlotRef,
 }: {
   selectedDate: Date
   daySlots: DaySlot[] | null
@@ -376,6 +386,7 @@ function DualTableGrid({
   totalSelectedHours: number
   onToggle: (table: number, hour: number) => void
   onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
+  firstAvailableSlotRef: React.RefObject<HTMLButtonElement>
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
@@ -506,6 +517,17 @@ function DualTableGrid({
     return stats
   }, [bookableHours, cellStates])
 
+  const firstAvailableSlotKey = useMemo(() => {
+    for (const h of bookableHours) {
+      for (const tn of ALL_TABLES) {
+        const key = slotKey(tn, h)
+        const cell = cellStates.get(key)
+        if (cell && !cell.disabled && !slotsForDate.has(key)) return key
+      }
+    }
+    return null
+  }, [bookableHours, cellStates, slotsForDate])
+
   // Is the entire day unusable?
   const fullyBooked = useMemo(() => {
     if (daySlots === null) return false
@@ -597,6 +619,7 @@ function DualTableGrid({
         type="button"
         disabled={disabled}
         onClick={() => toggle(tn, h)}
+        ref={slotKey(tn, h) === firstAvailableSlotKey ? firstAvailableSlotRef : undefined}
         aria-label={`${t("table_label")} ${tn} ${padTime(h)}`}
         title={lockedByYou ? t("table_locked_by_you") : locked ? t("table_locked") : undefined}
         style={{
@@ -618,7 +641,7 @@ function DualTableGrid({
           color: selected
             ? "#000"
             : booked
-              ? "rgba(255,99,89,0.85)"
+              ? "#FF8A80"
               : past || locked
                 ? tokens.colors.textFaint
                 : lockedByYou
@@ -668,11 +691,11 @@ function DualTableGrid({
           background: tokens.colors.depth.flat,
           border: `1px solid ${tokens.colors.border}`,
           borderRadius: tokens.radius.card,
-          overflow: "hidden",
+          overflow: "visible",
         }}
       >
         {/* Table heads: name + free-count + mini availability rail */}
-        <div className="dual-row" style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
+        <div className="dual-row room-grid-header" style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
           <div />
           {ALL_TABLES.map((tn) => {
             const stat = tableStats.get(tn)!
@@ -699,7 +722,8 @@ function DualTableGrid({
                       color: tokens.colors.text,
                       background: "transparent",
                       border: "none",
-                      padding: 0,
+                      minHeight: 44,
+                      padding: "8px 0",
                       cursor: "pointer",
                       textDecoration: "underline",
                       textUnderlineOffset: 3,
@@ -977,11 +1001,11 @@ function SelectedPicksCard({
                   {getTableName(r.tableNumber, locale)} ·{" "}
                   {detail.saved > 0 && (
                     <s style={{ color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
-                      HK${detail.baseTotal}
+                      <BookingPrice amount={detail.baseTotal} />
                     </s>
                   )}{detail.saved > 0 && " "}
                   <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                    HK${detail.total}
+                    <BookingPrice amount={detail.total} />
                   </span>
                 </div>
                 {detail.saved > 0 && (
@@ -1099,7 +1123,7 @@ function Calendar({
         background: tokens.colors.surface,
         border: `1px solid ${tokens.colors.border}`,
         borderRadius: tokens.radius.card,
-        padding: 20,
+        padding: "12px 4px 16px",
       }}
     >
       {/* Header — month/year + prev/next arrows, inside the unified card */}
@@ -1117,8 +1141,8 @@ function Calendar({
           disabled={!canGoPrev}
           onClick={() => shiftMonth(-1)}
           style={{
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1157,8 +1181,8 @@ function Calendar({
           aria-label="下一個月"
           onClick={() => shiftMonth(1)}
           style={{
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1212,8 +1236,8 @@ function Calendar({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 4,
+          gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+          gap: 0,
         }}
       >
         {cells.map((date, i) => {
@@ -1241,7 +1265,7 @@ function Calendar({
                 style={{
                   width: "100%",
                   height: "100%",
-                  minHeight: 40,
+                  minHeight: 44,
                   padding: 0,
                   border: "none",
                   background: "transparent",
@@ -1350,7 +1374,7 @@ function SummaryCard({
   total: number
   canContinue: boolean
   onContinue: () => void
-  ctaLabel: string
+  ctaLabel: React.ReactNode
   loading?: boolean
   ready?: boolean
   periods: PricingPeriod[]
@@ -1449,26 +1473,25 @@ function SummaryCard({
           <div style={{ textAlign: "center", marginBottom: 6 }}>
             <s
               style={{
-                fontFamily: tokens.font.display,
                 fontSize: 22,
                 color: tokens.colors.textFaint,
                 fontVariantNumeric: "tabular-nums",
               }}
             >
-              HK${total + totalSaved}
+              <BookingPrice amount={total + totalSaved} />
             </s>
           </div>
         )}
         <div
           style={{
-            fontFamily: tokens.font.display,
+            fontFamily: tokens.font.sans,
             fontSize: 48,
             textAlign: "center",
             marginBottom: ready && totalSaved > 0 ? 10 : 28,
             color: tokens.colors.link,
           }}
         >
-          {ready ? `HK$${total}` : ""}
+          {ready && <BookingPrice amount={total} />}
         </div>
         {ready && totalSaved > 0 && (
           <div
@@ -1506,7 +1529,7 @@ function MobilePriceBar({
   canContinue,
   loading,
 }: {
-  ctaLabel: string
+  ctaLabel: React.ReactNode
   onContinue: () => void
   canContinue: boolean
   loading?: boolean
@@ -1573,6 +1596,7 @@ function Screen1({
 }) {
   const dateStr = useMemo(() => fmtYMD(selectedDate), [selectedDate])
   const timeRef = useRef<HTMLDivElement>(null)
+  const firstAvailableSlotRef = useRef<HTMLButtonElement>(null)
   const summaryRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
 
@@ -1603,6 +1627,24 @@ function Screen1({
   }, [selectedSlotsByDate, dateStr, availability])
 
   const dayLoading = daySlots === null && availability.loadingDate === dateStr
+  const [scrollRequested, setScrollRequested] = useState(false)
+
+  useEffect(() => {
+    if (!scrollRequested || dayLoading || daySlots === null) return
+    setScrollRequested(false)
+    const target = firstAvailableSlotRef.current
+    if (!target) return
+    const header = timeRef.current?.querySelector<HTMLElement>(".room-grid-header")
+    const offset = 80 + (header?.getBoundingClientRect().height ?? 0) + 12
+    const rect = target.getBoundingClientRect()
+    const bottomBar = document.querySelector<HTMLElement>(".mobile-cta")
+    const bottom = window.innerHeight - (bottomBar?.getBoundingClientRect().height ?? 0)
+    if (rect.top >= offset && rect.bottom <= bottom) return
+    window.scrollTo({
+      top: Math.max(0, rect.top + window.scrollY - offset),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    })
+  }, [scrollRequested, dateStr, dayLoading, daySlots])
 
   const [cutoffTick, setCutoffTick] = useState(0)
   useEffect(() => {
@@ -1661,10 +1703,6 @@ function Screen1({
           {/* Date */}
           <div
             style={{
-              background: tokens.colors.depth.recessed,
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: tokens.radius.card,
-              padding: "16px 18px 18px",
               marginBottom: 24,
             }}
           >
@@ -1673,7 +1711,7 @@ function Screen1({
               selected={selectedDate}
               onSelect={(d) => {
                 setSelectedDate(d)
-                scrollToRef(timeRef)
+                setScrollRequested(true)
                 // Deliberately NOT clearing selectedSlotsByDate here —
                 // cross-date orders must survive a calendar switch.
               }}
@@ -1700,6 +1738,7 @@ function Screen1({
               totalSelectedHours={totalSelectedHours}
               onToggle={(table, hour) => { onToggleSlot(dateStr, table, hour); scrollIntoViewIfNeeded(summaryRef) }}
               onResumeLocked={onResumeLocked}
+              firstAvailableSlotRef={firstAvailableSlotRef}
             />
           </div>
 
@@ -1747,7 +1786,11 @@ function Screen1({
 
       {/* Mobile sticky price bar */}
       <MobilePriceBar
-        ctaLabel={ready ? `${t("continue")} · HK$${orderTotal}` : t("continue")}
+        ctaLabel={
+          ready ? (
+            <>{t("continue")} · <BookingPrice amount={orderTotal} /></>
+          ) : t("continue")
+        }
         onContinue={onContinue}
         canContinue={canContinue}
       />
@@ -2123,9 +2166,9 @@ function Screen3({
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
                     {detail.saved > 0 && (
-                      <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}>HK${detail.baseTotal}</s>
+                      <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
                     )}
-                    HK${detail.total}
+                    <BookingPrice amount={detail.total} />
                   </div>
                 </div>
               )
@@ -2178,12 +2221,12 @@ function Screen3({
           >
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.pay.subtotal">{t("subtotal")}</span>
-              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>HK${total + totalSaved}</span>
+              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}><BookingPrice amount={total + totalSaved} /></span>
             </div>
             {totalSaved > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
                 <span data-cms-key="book.pay.discount">{t("discount_label")}</span>
-                <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
+                <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−<BookingPrice amount={totalSaved} /></span>
               </div>
             )}
             {/* Points earned row */}
@@ -2194,8 +2237,9 @@ function Screen3({
             <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
-              <span style={{ fontFamily: tokens.font.display, fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
-                <span style={{ fontSize: 16, opacity: 0.7, marginRight: 2 }}>HK$</span>{total}
+              <span style={{ display: "inline-flex", alignItems: "baseline", gap: 4, whiteSpace: "nowrap", fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
+                <span style={{ fontFamily: tokens.font.sans, fontSize: 16 }}>HK$</span>
+                <span style={{ fontFamily: tokens.font.display }}>{total}</span>
               </span>
             </div>
           </div>
@@ -2389,7 +2433,7 @@ function Screen3({
                 {testConfirming ? (
                   <>{t("processing")}</>
                 ) : (
-                  <>{t("confirm_test_booking") || "TEST 確認訂單"} · HK${total}</>
+                  <>{t("confirm_test_booking") || "TEST 確認訂單"} · <BookingPrice amount={total} /></>
                 )}
               </button>
             </div>
@@ -2641,9 +2685,9 @@ function Screen3({
                 transition: `background ${tokens.duration.fast}`,
               }}
             >
-              {paymentMethod
-                ? `${t("pay_with", { method: paymentMethodLabel(paymentMethod) })} · HK$${total}`
-                : t("select_payment_method")}
+              {paymentMethod ? (
+                <>{t("pay_with", { method: paymentMethodLabel(paymentMethod) })} · <BookingPrice amount={total} /></>
+              ) : t("select_payment_method")}
             </button>
           </div>
         </div>
@@ -3639,6 +3683,16 @@ export default function BookPage() {
           grid-template-columns: 52px 1fr 1fr;
           gap: 4px;
         }
+        .room-grid-header {
+          position: sticky;
+          top: 80px;
+          z-index: 3;
+          border-radius: ${tokens.radius.card} ${tokens.radius.card} 0 0;
+          background: ${tokens.colors.surface};
+        }
+        .room-grid-header > div { min-width: 0; }
+        .room-grid-header > div > div:first-child { flex-wrap: wrap; }
+        .room-grid-header button { overflow-wrap: anywhere; }
         .skeleton-pulse {
           animation: skeleton-pulse 1.4s ease-in-out infinite;
         }
