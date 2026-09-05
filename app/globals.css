@@ -119,13 +119,6 @@ body {
   overscroll-behavior-x: contain;
 }
 
-/* Facilities owns its horizontal snap behavior while allowing vertical page scroll chaining. */
-.facilities-scroll-track {
-  touch-action: pan-x pan-y;
-  overscroll-behavior-x: contain;
-  overscroll-behavior-y: auto;
-}
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -717,6 +710,26 @@ body {
 .pbtn-ghost:hover::before {
   opacity: .08;
   transform: scaleX(1);
+}
+
+/* ──── Paint-stable animation reveals ────
+   The initial state is present at first paint; JS only reveals targets.
+   Text remains rasterized without a transform-owning compositing layer. */
+.anime-reveal-wrapper,
+.anime-reveal-target,
+[data-anime-hero-item],
+[data-anime-focus-item],
+[data-anime-pilot-item],
+[data-anime-membership-item] {
+  opacity: 0;
+  transform: translateY(22px);
+}
+html.no-js .anime-reveal-target,
+html.no-js .scroll-reveal,
+html.no-js .pi-card,
+html.no-js .pi-actions {
+  opacity: 1;
+  transform: none;
 }
 
 /* ──── Scroll-reveal via IntersectionObserver ──── */
