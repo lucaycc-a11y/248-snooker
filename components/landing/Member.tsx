@@ -467,15 +467,17 @@ export default function Member() {
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
-            gap: 28px;
-            padding: 8px 24px;
-            scroll-padding-left: 24px;
+            touch-action: pan-x pan-y;
+            gap: 16px;
+            padding: 8px 16px;
+            scroll-padding-left: 16px;
           }
           .s7-carousel::-webkit-scrollbar {
             display: none;
           }
           .s7-slide {
-            flex: 0 0 min(85vw, 360px);
+            flex: 0 0 88vw;
+            max-width: 440px;
             scroll-snap-align: start;
             scroll-snap-stop: always;
           }

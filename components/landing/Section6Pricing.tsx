@@ -269,15 +269,17 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
             overflow-x: auto;
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
+            touch-action: pan-x pan-y;
             gap: 16px;
-            padding: 0 calc(50vw - 160px);
-            scroll-padding: 0 calc(50vw - 160px);
+            padding: 0 16px;
+            scroll-padding: 0 16px;
           }
           .s6-carousel::-webkit-scrollbar {
             display: none;
           }
           .s6-slide {
-            flex: 0 0 320px;
+            flex: 0 0 88vw;
+            max-width: 440px;
             scroll-snap-align: center;
           }
           .s6-dots {
@@ -286,11 +288,11 @@ export default function Section6Pricing({ periods }: { periods: PricingPeriod[] 
         }
         @media (max-width: 400px) {
           .s6-slide {
-            flex: 0 0 280px;
+            flex: 0 0 88vw;
           }
           .s6-carousel {
-            padding: 0 calc(50vw - 140px);
-            scroll-padding: 0 calc(50vw - 140px);
+            padding: 0 16px;
+            scroll-padding: 0 16px;
           }
         }
       `}</style>
