@@ -766,6 +766,7 @@
     "venue_rules_label": "《場地使用守則》",
     "terms_label": "《條款與細則》",
     "legal_modal_close": "關閉",
+    "legal_modal_agree": "同意並關閉",
     "terms_required_hint": "* 必須同意條款先可以繼續付款",
     "terms_required_error": "請先閱讀並同意場地使用守則",
     "legend_available": "可預約",
@@ -1205,7 +1206,7 @@
   "homeVenue": {
     "eyebrow": "SPACE8 場地",
     "title": "場地設施",
-    "intro": "每個細節，都是為了讓你專注於桌球。",
+    "intro": "每個細節，都讓你專注於桌球。",
     "pagination_label": "場地設施分頁",
     "pagination_item": "前往第 {n} 項",
     "items": [

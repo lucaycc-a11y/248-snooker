@@ -766,6 +766,7 @@
     "venue_rules_label": "Venue Rules",
     "terms_label": "Terms & Conditions",
     "legal_modal_close": "Close",
+    "legal_modal_agree": "Agree and close",
     "terms_required_hint": "* You must agree to the terms before paying",
     "terms_required_error": "Please read and agree to the Venue Rules first",
     "legend_available": "Available",
@@ -1205,7 +1206,7 @@
   "homeVenue": {
     "eyebrow": "SPACE8 VENUE",
     "title": "Facilities",
-    "intro": "Every detail is designed to keep you focused on the game.",
+    "intro": "Every detail, focused on the game.",
     "pagination_label": "Facilities pagination",
     "pagination_item": "Go to facility {n}",
     "items": [

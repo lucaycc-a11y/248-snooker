@@ -788,7 +788,7 @@ function DualTableGrid({
               {t(`slot_group_${group.key}`)}
             </div>
             {group.hours.map((h) => (
-              <div key={h} className="dual-row" style={{ padding: "3px 6px" }}>
+              <div key={h} className="dual-row" style={{ padding: "6px 6px" }}>
                 <div
                   style={{
                     display: "flex",
@@ -984,8 +984,8 @@ function SelectedPicksCard({
                 alignItems: "center",
                 justifyContent: "space-between",
                 gap: 10,
-                border: `1px solid ${tokens.colors.link}`,
-                background: "rgba(34,197,94,0.08)",
+                border: "none",
+                background: tokens.colors.depth.raised,
                 borderRadius: tokens.radius.input,
                 padding: "10px 12px",
                 marginBottom: 10,
@@ -1778,7 +1778,7 @@ function Screen1({
               periods={periods}
             />
           </div>
-          <div style={{ marginTop: -10, position: "relative", zIndex: 1 }}>
+          <div style={{ marginTop: 24, position: "relative" }}>
             <SelectedPicksCard runs={runs} removeRun={removeRun} periods={periods} />
           </div>
         </div>
@@ -1912,6 +1912,13 @@ function Screen3({
   const [termsShake, setTermsShake] = useState(0)
   const [openModal, setOpenModal] = useState<'venue-rules' | 'terms' | null>(null)
   const termsRef = useRef<HTMLDivElement>(null)
+  const agreementButtonRef = useRef<HTMLButtonElement>(null)
+  const modalCloseRef = useRef<HTMLButtonElement>(null)
+  const shouldRestoreAgreementFocus = useRef(false)
+  const openTermsModal = useCallback(() => {
+    shouldRestoreAgreementFocus.current = true
+    setOpenModal("terms")
+  }, [])
   const flagTermsRequired = useCallback(() => {
     setTermsError(true)
     setTermsShake((n) => n + 1)
@@ -1920,11 +1927,18 @@ function Screen3({
 
   useEffect(() => {
     if (!openModal) return
+    modalCloseRef.current?.focus()
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpenModal(null)
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
+  }, [openModal])
+
+  useEffect(() => {
+    if (openModal || !shouldRestoreAgreementFocus.current) return
+    shouldRestoreAgreementFocus.current = false
+    agreementButtonRef.current?.focus()
   }, [openModal])
 
   // Admin test mode
@@ -2453,47 +2467,52 @@ function Screen3({
               marginBottom: 16,
             }}
           >
-            <label
+            <button
+              ref={agreementButtonRef}
+              type="button"
+              disabled={confirmed}
+              onClick={openTermsModal}
+              aria-pressed={agreedToTerms}
               style={{
+                width: "100%",
                 display: "flex",
                 alignItems: "flex-start",
                 gap: 10,
+                minHeight: 44,
+                padding: 0,
+                border: "none",
+                background: "transparent",
+                textAlign: "left",
+                color: "inherit",
                 cursor: confirmed ? "default" : "pointer",
-                minHeight: 40,
               }}
             >
-              <input
-                type="checkbox"
-                checked={agreedToTerms}
-                disabled={confirmed}
-                onChange={(e) => {
-                  setAgreedToTerms(e.target.checked)
-                  if (e.target.checked) setTermsError(false)
-                }}
+              <span
+                aria-hidden="true"
                 style={{
-                  width: 16,
-                  height: 16,
+                  width: 18,
+                  height: 18,
                   marginTop: 1,
                   flexShrink: 0,
-                  accentColor: tokens.colors.link,
-                  cursor: confirmed ? "default" : "pointer",
-                  opacity: confirmed ? 0.6 : 1,
+                  border: `1px solid ${agreedToTerms ? tokens.colors.link : tokens.colors.borderStrong}`,
+                  borderRadius: 4,
+                  background: agreedToTerms ? tokens.colors.link : "transparent",
+                  color: tokens.colors.brandText,
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 13,
+                  fontWeight: 700,
                 }}
-              />
+              >
+                {agreedToTerms ? "✓" : ""}
+              </span>
               <span
                 data-cms-key="book.terms_agree"
-                style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.5 }}
+                style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}
               >
-                {t("terms_agree_prefix")}{" "}
-                <button type="button" onClick={() => setOpenModal("venue-rules")} style={legalLinkStyle}>
-                  {t("venue_rules_label")}
-                </button>
-                {" "}{t("terms_agree_connector")}{" "}
-                <button type="button" onClick={() => setOpenModal("terms")} style={legalLinkStyle}>
-                  {t("terms_label")}
-                </button>
+                {t("terms_agree_prefix")} {t("venue_rules_label")} {t("terms_agree_connector")} {t("terms_label")}
               </span>
-            </label>
+            </button>
             <div
               data-cms-key={termsError && !agreedToTerms ? "book.terms_required_error" : "book.terms_required_hint"}
               role={termsError && !agreedToTerms ? "alert" : undefined}
@@ -2533,7 +2552,7 @@ function Screen3({
                   <h2 id="checkout-legal-modal-title" style={{ margin: 0, fontSize: 19, fontWeight: 700 }}>
                     {openModal === "venue-rules" ? t("venue_rules_label") : t("terms_label")}
                   </h2>
-                  <button type="button" aria-label={t("legal_modal_close")} onClick={() => setOpenModal(null)} style={modalCloseStyle}>×</button>
+                  <button ref={modalCloseRef} type="button" aria-label={t("legal_modal_close")} onClick={() => setOpenModal(null)} style={modalCloseStyle}>×</button>
                 </div>
                 <div style={modalContentStyle}>
                   <LegalDocumentRenderer
@@ -2542,8 +2561,16 @@ function Screen3({
                     compact
                   />
                 </div>
-                <button type="button" onClick={() => setOpenModal(null)} style={modalBottomCloseStyle}>
-                  {t("legal_modal_close")}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAgreedToTerms(true)
+                    setTermsError(false)
+                    setOpenModal(null)
+                  }}
+                  style={modalBottomCloseStyle}
+                >
+                  {t("legal_modal_agree")}
                 </button>
               </motion.div>
             </motion.div>
@@ -2677,8 +2704,8 @@ function Screen3({
                 height: 54,
                 border: "none",
                 borderRadius: 14,
-                background: !paymentMethod ? "rgba(255,255,255,0.15)" : tokens.colors.link,
-                color: !paymentMethod ? tokens.colors.textMuted : "#000",
+                background: paymentMethod && agreedToTerms ? tokens.colors.link : "rgba(255,255,255,0.12)",
+                color: paymentMethod && agreedToTerms ? "#000" : tokens.colors.textMuted,
                 fontWeight: 700,
                 fontSize: 17,
                 cursor: !paymentMethod ? "not-allowed" : "pointer",
@@ -3685,10 +3712,11 @@ export default function BookPage() {
         }
         .room-grid-header {
           position: sticky;
-          top: 80px;
-          z-index: 3;
-          border-radius: ${tokens.radius.card} ${tokens.radius.card} 0 0;
+          top: 76px;
+          z-index: 4;
+          border-radius: 0;
           background: ${tokens.colors.surface};
+          box-shadow: 0 -1px 0 ${tokens.colors.surface}, 0 1px 0 ${tokens.colors.border};
         }
         .room-grid-header > div { min-width: 0; }
         .room-grid-header > div > div:first-child { flex-wrap: wrap; }
@@ -3718,6 +3746,9 @@ export default function BookPage() {
           flex: 1;
         }
         @media (min-width: 768px) {
+          .room-grid-header {
+            top: 0;
+          }
           .checkout-layout {
             display: grid;
             grid-template-columns: 1fr 440px;
@@ -3750,7 +3781,7 @@ export default function BookPage() {
           left: 0;
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-          background: rgba(0,0,0,0.92);
+          background: ${tokens.colors.depth.elevated};
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
@@ -3766,7 +3797,7 @@ export default function BookPage() {
           left: 0;
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-          background: rgba(0,0,0,0.92);
+          background: ${tokens.colors.depth.elevated};
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
@@ -3839,10 +3870,7 @@ export default function BookPage() {
             top: 88px;
             align-self: start;
             height: fit-content;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px;
-            padding: 10px;
+            padding: 0;
           }
           .mobile-picks {
             display: none;
