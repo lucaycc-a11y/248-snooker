@@ -3,7 +3,6 @@ import { Bebas_Neue } from "next/font/google";
 import { getLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import Script from "next/script";
-import SmoothScroll from "@/components/providers/smooth-scroll";
 import "./globals.css";
 
 const bebasNeue = Bebas_Neue({
@@ -84,7 +83,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${bebasNeue.variable} no-js`}>
       <body className="min-h-screen bg-black text-white antialiased">
-        <SmoothScroll>{children}</SmoothScroll>
+        {children}
       </body>
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
