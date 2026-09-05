@@ -81,7 +81,7 @@ export default async function RootLayout({
   const locale = await getLocale().catch(() => routing.defaultLocale);
 
   return (
-    <html lang={locale} className={bebasNeue.variable}>
+    <html lang={locale} className={`${bebasNeue.variable} no-js`}>
       <body className="min-h-screen bg-black text-white antialiased">
         {children}
       </body>

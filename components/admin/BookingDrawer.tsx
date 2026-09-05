@@ -425,7 +425,7 @@ function DetailsTab({
           <DetailRow label="Table" value={`Table ${booking.tableNumber}`} />
           <DetailRow label="Date" value={booking.date ?? '—'} />
           <DetailRow label="Time" value={booking.startTime && booking.endTime ? `${booking.startTime} – ${booking.endTime}` : booking.startTime ?? '—'} />
-          <DetailRow label="Amount" value={`${formatCurrency(booking.price)} HKD`} mono />
+          <DetailRow label="Amount" value={<span className="font-code">{formatCurrency(booking.price)} HKD</span>} mono />
           <DetailRow label="Payment" value={booking.paymentMethod ?? '—'} />
           <DetailRow label="Code" value={booking.humanCode ?? booking.bookingReference ?? '—'} mono />
           {booking.isTest && (
@@ -540,9 +540,18 @@ function PaymentsTab({
 
   if (payments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-[var(--admin-text-muted)]">
-        <CreditCard size={32} className="mb-3 opacity-40" />
-        <span className="text-sm">No payment attempts found</span>
+      <div className="m-5 rounded-2xl border-2 border-red-500/40 bg-red-500/10 p-5 shadow-[0_0_0_4px_rgba(239,68,68,0.08)]">
+        <div className="flex items-start gap-3">
+          <AlertTriangle size={20} className="text-red-400 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h4 className="text-sm font-semibold text-red-300" data-cms-key="admin_booking_payment_empty_title">
+              此訂單無任何付款記錄
+            </h4>
+            <p className="mt-1 text-xs text-red-300/80 leading-relaxed">
+              資料庫未找到任何 payment_attempts 紀錄與此訂單對應。請檢查 webhook 回調是否成功、客戶是否透過其他渠道付款、或是否需要手動建立對應記錄。
+            </p>
+          </div>
+        </div>
       </div>
     )
   }

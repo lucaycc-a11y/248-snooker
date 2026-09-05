@@ -39,8 +39,19 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => null)
     console.log('[profile/complete] attempt', { userId: user.id })
+    console.log('[profile/complete] received body', {
+      keys: Object.keys(body ?? {}),
+      name: body?.name ? (body.name as string).slice(0, 2) + '***' : undefined,
+      email: body?.email ? `***@${(body.email as string).split('@')[1]}` : undefined,
+      phone: body?.phone ? `***${(body.phone as string).slice(-3)}` : undefined,
+      bodyType: typeof body,
+    })
 
     if (!normalizeHkPhone(body?.phone ?? '')) {
+      console.warn('[profile/complete] 400 phone_invalid', {
+        rawPhone: body?.phone ?? '(empty)',
+        phoneType: typeof body?.phone,
+      })
       return NextResponse.json({ error: '請提供有效的電話號碼' }, { status: 400 })
     }
 
@@ -51,11 +62,24 @@ export async function POST(req: Request) {
     })
     if (!result.ok) {
       // 422: well-formed request, failed validation — client highlights `field`.
+      console.warn('[profile/complete] 422 validation failed', {
+        field: result.field,
+        error: result.error,
+        submittedName: body?.name ? (body.name as string).slice(0, 2) + '***' : '(empty)',
+        submittedEmail: body?.email ? `***@${(body.email as string).split('@')[1]}` : '(empty)',
+        submittedPhone: body?.phone ? `***${(body.phone as string).slice(-3)}` : '(empty)',
+      })
       return NextResponse.json(
         { error: result.error, field: result.field },
         { status: 422 },
       )
     }
+
+    console.log('[profile/complete] validation passed', {
+      displayName: result.value.display_name.slice(0, 2) + '***',
+      email: `***@${result.value.email.split('@')[1]}`,
+      phone: `***${result.value.phone.slice(-3)}`,
+    })
 
     const service = getServiceSupabase()
 
@@ -93,6 +117,11 @@ export async function POST(req: Request) {
     const sessionEmail = (user.email ?? '').toLowerCase()
     const emailMatchesSession = submittedEmail === sessionEmail
     if (!emailMatchesSession) {
+      console.warn('[profile/complete] 422 email_not_verified', {
+        submittedEmail: `***@${submittedEmail.split('@')[1]}`,
+        sessionEmail: sessionEmail ? `***@${sessionEmail.split('@')[1]}` : '(empty)',
+        userId: user.id,
+      })
       return NextResponse.json(
         { error: 'email_not_verified', field: 'email' },
         { status: 422 },
@@ -111,6 +140,15 @@ export async function POST(req: Request) {
         ? new Date().toISOString()
         : null
     if (!phoneVerifiedAt) {
+      console.warn('[profile/complete] 422 phone_not_verified', {
+        submittedPhone: `***${phone.slice(-3)}`,
+        existingPhone: existing?.phone ? `***${existing.phone.slice(-3)}` : '(none)',
+        existingPhoneVerified: existing?.phone_verified_at ?? '(null)',
+        authUserPhone: user.phone ? `***${user.phone.slice(-3)}` : '(none)',
+        rowAlreadyVerified,
+        authPhoneVerified,
+        userId: user.id,
+      })
       return NextResponse.json(
         { error: 'phone_not_verified', field: 'phone' },
         { status: 422 },

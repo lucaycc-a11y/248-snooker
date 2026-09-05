@@ -67,7 +67,7 @@ export default function RevenueWidget({ size }: WidgetProps) {
       <div className="flex items-end justify-between">
         {/* Main number */}
         <div>
-          <span className="text-3xl font-bold text-[var(--admin-brand)] tabular-nums">
+          <span className="font-code text-3xl font-bold text-[var(--admin-brand)] tabular-nums">
             {loading ? '—' : `$${amount.toLocaleString('en-HK')}`}
           </span>
           {!loading && (

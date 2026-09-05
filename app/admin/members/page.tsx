@@ -7,6 +7,7 @@
  */
 
 import { getAdminMembers } from '@/lib/data/getAdminMembers'
+import { tierShortLabel } from '@/lib/member/tierDisplay'
 import MemberCardGrid from '@/components/admin/MemberCardGrid'
 
 export default async function AdminMembersPage() {
@@ -52,19 +53,19 @@ export default async function AdminMembersPage() {
           <strong style={{ color: 'var(--admin-brand)' }}>
             {result.members.filter((m) => m.tier === 'maximum').length}
           </strong>{' '}
-          Diamond
+          {tierShortLabel('maximum')}
         </span>
         <span>
           <strong style={{ color: 'var(--admin-tier-platinum)' }}>
             {result.members.filter((m) => m.tier === 'century').length}
           </strong>{' '}
-          Platinum
+          {tierShortLabel('century')}
         </span>
         <span>
           <strong style={{ color: 'var(--admin-tier-nova)' }}>
             {result.members.filter((m) => m.tier === 'amateur').length}
           </strong>{' '}
-          Nova
+          {tierShortLabel('amateur')}
         </span>
       </div>
 

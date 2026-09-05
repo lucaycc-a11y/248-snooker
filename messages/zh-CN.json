@@ -156,7 +156,10 @@
     "hero_subtitle": "按需预订，无隐藏费用。",
     "per_hour": "／小时",
     "period_afternoon_title": "下午时段",
+    "period_afternoon_tagline": "午后慢慢打，让节奏留给自己。",
     "period_afternoon_time": "每日 12:00–16:00",
+    "period_morning_tagline": "清醒开局，第一杆更专注。",
+    "period_evening_tagline": "灯光亮起，今晚适合一起上场。",
     "period_evening_title": "黄金时段",
     "period_evening_time": "每日 16:00–00:00",
     "period_latenight_title": "深夜时段",
@@ -541,7 +544,9 @@
     "close": "关闭",
     "loading": "加载中…",
     "back": "返回",
-    "greeting": "你好"
+    "greeting": "你好",
+    "quick_view_details": "查看详情",
+    "sending": "发送中…"
   },
   "nav": {
     "home": "主页",
@@ -761,6 +766,7 @@
     "venue_rules_label": "《场地使用守则》",
     "terms_label": "《条款与细则》",
     "legal_modal_close": "关闭",
+    "legal_modal_agree": "同意并关闭",
     "terms_required_hint": "* 必须同意条款方可继续付款",
     "terms_required_error": "请先阅读并同意场地使用守则",
     "legend_available": "可预约",
@@ -1200,7 +1206,14 @@
   "homeVenue": {
     "eyebrow": "SPACE8 场地",
     "title": "场地设施",
-    "intro": "每个细节，都是为了让你专注于台球。",
+    "categories": {
+      "equipment": "设备",
+      "ambience": "氛围",
+      "smart_system": "智能系统",
+      "entry": "入场",
+      "amenities": "配套"
+    },
+    "intro": "每个细节，都让你专注于台球。",
     "pagination_label": "场地设施分页",
     "pagination_item": "前往第 {n} 项",
     "items": [

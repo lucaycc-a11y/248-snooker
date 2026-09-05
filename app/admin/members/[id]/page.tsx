@@ -14,14 +14,9 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 import MemberActions from '@/components/admin/MemberActions'
 import MemberDetailTabs from '@/components/admin/MemberDetailTabs'
+import { tierShortLabel } from '@/lib/member/tierDisplay'
 
 /* ── Tier display ─────────────────────────────────────── */
-const TIER_LABELS: Record<string, string> = {
-  amateur: 'Nova',
-  century: 'Platinum',
-  maximum: 'Diamond',
-}
-
 const TIER_COLOR_VAR: Record<string, string> = {
   amateur: 'var(--admin-tier-nova)',
   century: 'var(--admin-tier-platinum)',
@@ -130,7 +125,7 @@ export default async function AdminMemberDetailPage({
 
   const { user, bookings, pointsLedger, activity, riskStats } = result
   const tier = str(user, ['tier']) ?? 'amateur'
-  const tierLabel = TIER_LABELS[tier] ?? 'Nova'
+  const tierLabel = tierShortLabel(tier)
   const displayName = str(user, ['display_name']) ?? str(user, ['email']) ?? id.slice(0, 8)
 
   // Format the member data for the client tab component

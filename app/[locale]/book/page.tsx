@@ -42,15 +42,21 @@ import { getLegalDocument } from "@/content/legal"
 // @ts-ignore
 import confetti from "canvas-confetti"
 
+function BookingPrice({ amount }: { amount: number }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "baseline", gap: "0.12em", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+      <span style={{ fontFamily: tokens.font.sans }}>HK$</span>
+      <span style={{ fontFamily: tokens.font.display }}>{amount}</span>
+    </span>
+  )
+}
+
 /* ─────────────────────────  Config  ───────────────────────── */
 const CONFIG = {
   currency: "HKD",
-  maxHours: 6,
   openHour: 6,  // Venue opens 06:00
   closeHour: 24, // Last slot starts 23:00, ends 00:00
 }
-
-const BEBAS = "'Bebas Neue', system-ui, sans-serif"
 
 const legalLinkStyle: React.CSSProperties = {
   appearance: "none",
@@ -80,7 +86,7 @@ const modalStyle: React.CSSProperties = {
   maxHeight: "min(88vh, 760px)",
   display: "flex",
   flexDirection: "column",
-  background: "#000",
+  background: tokens.colors.bg,
   border: `1px solid ${tokens.colors.borderStrong}`,
   borderRadius: 20,
   overflow: "hidden",
@@ -329,6 +335,25 @@ function scrollToRef(ref: React.RefObject<HTMLElement>) {
   }, 150)
 }
 
+// Scroll an element into view only if it isn't already visible in the
+// viewport. Uses the same smooth-scroll + delay pattern as scrollToRef.
+// Elements hidden via display:none return a zero-size rect — skip those
+// (e.g. .mobile-picks is hidden on desktop where the sidebar is always
+// visible, so no scroll is needed).
+function scrollIntoViewIfNeeded(ref: React.RefObject<HTMLElement>, offset = 80) {
+  if (typeof window === "undefined") return
+  setTimeout(() => {
+    if (!ref.current) return
+    const rect = ref.current.getBoundingClientRect()
+    // Zero-size rect means the element is hidden (display:none) — nothing to scroll to.
+    if (rect.width === 0 && rect.height === 0) return
+    const inView = rect.top < window.innerHeight && rect.bottom > 0
+    if (inView) return
+    const y = rect.top + window.scrollY - offset
+    window.scrollTo({ top: y, behavior: "smooth" })
+  }, 150)
+}
+
 /* ─────────────────────────  Dual-Table Slot Grid  ───────────────────────── */
 // Both tables' availability side by side — no tab switching. One row per hour
 // (grouped under the 上午/下午/晚上 period labels), one cell per table. A cell
@@ -351,6 +376,7 @@ function DualTableGrid({
   totalSelectedHours,
   onToggle,
   onResumeLocked,
+  firstAvailableSlotRef,
 }: {
   selectedDate: Date
   daySlots: DaySlot[] | null
@@ -359,11 +385,11 @@ function DualTableGrid({
   totalSelectedHours: number
   onToggle: (table: number, hour: number) => void
   onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
+  firstAvailableSlotRef: React.RefObject<HTMLButtonElement>
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
   const haptic = useHaptic()
-  const [showToast, setShowToast] = useState(false)
   const [galleryRoom, setGalleryRoom] = useState<number | null>(null)
   const galleryTrackRef = useRef<HTMLDivElement>(null)
   const [galleryIdx, setGalleryIdx] = useState(0)
@@ -489,6 +515,17 @@ function DualTableGrid({
     return stats
   }, [bookableHours, cellStates])
 
+  const firstAvailableSlotKey = useMemo(() => {
+    for (const h of bookableHours) {
+      for (const tn of ALL_TABLES) {
+        const key = slotKey(tn, h)
+        const cell = cellStates.get(key)
+        if (cell && !cell.disabled && !slotsForDate.has(key)) return key
+      }
+    }
+    return null
+  }, [bookableHours, cellStates, slotsForDate])
+
   // Is the entire day unusable?
   const fullyBooked = useMemo(() => {
     if (daySlots === null) return false
@@ -509,15 +546,9 @@ function DualTableGrid({
         }
       }
       haptic.vibrate(8)
-      const willAdd = !slotsForDate.has(slotKey(tn, h))
-      if (willAdd && totalSelectedHours >= CONFIG.maxHours) {
-        setShowToast(true)
-        setTimeout(() => setShowToast(false), 2000)
-        return
-      }
       onToggle(tn, h)
     },
-    [cellStates, daySlots, slotsForDate, totalSelectedHours, haptic, onToggle, onResumeLocked],
+    [cellStates, daySlots, slotsForDate, haptic, onToggle, onResumeLocked],
   )
 
   // Skeleton laid out as the real dual-column rows.
@@ -580,6 +611,7 @@ function DualTableGrid({
         type="button"
         disabled={disabled}
         onClick={() => toggle(tn, h)}
+        ref={slotKey(tn, h) === firstAvailableSlotKey ? firstAvailableSlotRef : undefined}
         aria-label={`${t("table_label")} ${tn} ${padTime(h)}`}
         title={lockedByYou ? t("table_locked_by_you") : locked ? t("table_locked") : undefined}
         style={{
@@ -601,7 +633,7 @@ function DualTableGrid({
           color: selected
             ? "#000"
             : booked
-              ? "rgba(255,99,89,0.85)"
+              ? "#FF8A80"
               : past || locked
                 ? tokens.colors.textFaint
                 : lockedByYou
@@ -630,16 +662,16 @@ function DualTableGrid({
 
   return (
     <>
-      {/* Legend */}
-      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 14 }}>
+      {/* Legend — intentionally subdued so it doesn't compete with room headers */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
         {[
-          { key: "legend_available", swatch: { background: tokens.colors.depth.recessed, border: `1.5px solid ${tokens.colors.border}` } },
+          { key: "legend_available", swatch: { background: tokens.colors.depth.recessed, border: `1px solid ${tokens.colors.border}` } },
           { key: "legend_selected", swatch: { background: tokens.colors.link } },
-          { key: "legend_booked", swatch: { background: "rgba(255,69,58,0.15)", border: "1.5px solid rgba(255,69,58,0.4)" } },
+          { key: "legend_booked", swatch: { background: "rgba(255,69,58,0.15)", border: "1px solid rgba(255,69,58,0.35)" } },
         ].map(({ key, swatch }) => (
-          <div key={key} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ width: 12, height: 12, borderRadius: 3, flex: "none", ...swatch }} />
-            <span data-cms-key={`book.${key}`} style={{ fontSize: 12, color: tokens.colors.textMuted }}>
+          <div key={key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ width: 10, height: 10, borderRadius: 3, flex: "none", ...swatch }} />
+            <span data-cms-key={`book.${key}`} style={{ fontSize: 11, color: tokens.colors.textFaint, letterSpacing: 0.3 }}>
               {t(key)}
             </span>
           </div>
@@ -651,11 +683,11 @@ function DualTableGrid({
           background: tokens.colors.depth.flat,
           border: `1px solid ${tokens.colors.border}`,
           borderRadius: tokens.radius.card,
-          overflow: "hidden",
+          overflow: "visible",
         }}
       >
         {/* Table heads: name + free-count + mini availability rail */}
-        <div className="dual-row" style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
+        <div className="dual-row room-grid-header" style={{ borderBottom: `1px solid ${tokens.colors.border}` }}>
           <div />
           {ALL_TABLES.map((tn) => {
             const stat = tableStats.get(tn)!
@@ -682,7 +714,8 @@ function DualTableGrid({
                       color: tokens.colors.text,
                       background: "transparent",
                       border: "none",
-                      padding: 0,
+                      minHeight: 44,
+                      padding: "8px 0",
                       cursor: "pointer",
                       textDecoration: "underline",
                       textUnderlineOffset: 3,
@@ -747,7 +780,7 @@ function DualTableGrid({
               {t(`slot_group_${group.key}`)}
             </div>
             {group.hours.map((h) => (
-              <div key={h} className="dual-row" style={{ padding: "3px 6px" }}>
+              <div key={h} className="dual-row" style={{ padding: "6px 6px" }}>
                 <div
                   style={{
                     display: "flex",
@@ -766,35 +799,6 @@ function DualTableGrid({
           </div>
         ))}
       </div>
-
-      {/* Toast for the max-hours-per-order cap */}
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            data-cms-key="book.max_hours_reached"
-            style={{
-              position: "fixed",
-              top: 100,
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: tokens.colors.surfaceElevated,
-              border: `1px solid ${tokens.colors.borderStrong}`,
-              borderRadius: tokens.radius.button,
-              padding: "12px 20px",
-              fontSize: 14,
-              color: tokens.colors.text,
-              zIndex: 100,
-              pointerEvents: "none",
-            }}
-          >
-            {t("max_hours_reached")}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Room gallery popup — swipeable photos, dismiss on outside tap / ESC / close */}
       <AnimatePresence>
@@ -905,16 +909,17 @@ function SelectedPicksCard({
         background: tokens.colors.depth.raised,
         border: `1px solid ${tokens.colors.border}`,
         borderRadius: tokens.radius.card,
-        padding: "18px 18px 12px",
+        padding: "20px 20px 16px",
       }}
     >
       <div
         data-cms-key="book.selected_slots_title"
         className="font-label"
         style={{
-          fontSize: 12,
-          color: tokens.colors.textMuted,
-          marginBottom: 12,
+          fontSize: 11,
+          color: tokens.colors.textFaint,
+          letterSpacing: "0.04em",
+          marginBottom: 14,
         }}
       >
         {t("selected_slots_title")}
@@ -942,8 +947,8 @@ function SelectedPicksCard({
                 alignItems: "center",
                 justifyContent: "space-between",
                 gap: 10,
-                border: `1px solid ${tokens.colors.link}`,
-                background: "rgba(34,197,94,0.08)",
+                border: "none",
+                background: tokens.colors.depth.raised,
                 borderRadius: tokens.radius.input,
                 padding: "10px 12px",
                 marginBottom: 10,
@@ -955,21 +960,21 @@ function SelectedPicksCard({
                   {dateLabel}
                   {padTime(r.startHour)} – {padTime(r.startHour + r.duration)}
                 </div>
-                <div style={{ color: tokens.colors.textMuted, fontSize: 12, marginTop: 2 }}>
+                <div style={{ color: tokens.colors.textFaint, fontSize: 12, marginTop: 3 }}>
                   {getTableName(r.tableNumber, locale)} ·{" "}
                   {detail.saved > 0 && (
                     <s style={{ color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
-                      HK${detail.baseTotal}
+                      <BookingPrice amount={detail.baseTotal} />
                     </s>
                   )}{detail.saved > 0 && " "}
                   <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                    HK${detail.total}
+                    <BookingPrice amount={detail.total} />
                   </span>
                 </div>
                 {detail.saved > 0 && (
                   <div
                     data-cms-key="book.block_saved_badge"
-                    style={{ color: tokens.colors.textMuted, fontSize: 12, marginTop: 2 }}
+                    style={{ color: tokens.colors.textFaint, fontSize: 12, marginTop: 2 }}
                   >
                     {t("block_saved_badge", { hours: r.duration, saved: detail.saved })}
                   </div>
@@ -1076,14 +1081,21 @@ function Calendar({
     })
 
   return (
-    <div>
-      {/* Header */}
+    <div
+      style={{
+        background: tokens.colors.surface,
+        border: `1px solid ${tokens.colors.border}`,
+        borderRadius: tokens.radius.card,
+        padding: "12px 4px 16px",
+      }}
+    >
+      {/* Header — month/year + prev/next arrows, inside the unified card */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 14,
+          marginBottom: 16,
         }}
       >
         <button
@@ -1097,15 +1109,34 @@ function Calendar({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "none",
-            border: "none",
+            background: canGoPrev ? "rgba(255,255,255,0.04)" : "transparent",
+            border: `1px solid ${canGoPrev ? "rgba(255,255,255,0.08)" : "transparent"}`,
+            borderRadius: 10,
             color: canGoPrev ? tokens.colors.text : tokens.colors.textFaint,
             cursor: canGoPrev ? "pointer" : "not-allowed",
+            transition: `background ${tokens.duration.fast} ${tokens.easing.standard}`,
+          }}
+          onMouseEnter={(e) => {
+            if (!canGoPrev) return
+            ;(e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.08)"
+          }}
+          onMouseLeave={(e) => {
+            if (!canGoPrev) return
+            ;(e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.04)"
           }}
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={18} />
         </button>
-        <span style={{ fontSize: 16, fontWeight: 600 }}>
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            letterSpacing: "0.01em",
+            color: tokens.colors.text,
+          }}
+        >
           {year}年{month + 1}月
         </span>
         <button
@@ -1118,22 +1149,32 @@ function Calendar({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "none",
-            border: "none",
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 10,
             color: tokens.colors.text,
             cursor: "pointer",
+            transition: `background ${tokens.duration.fast} ${tokens.easing.standard}`,
+          }}
+          onMouseEnter={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.08)"
+          }}
+          onMouseLeave={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.04)"
           }}
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={18} />
         </button>
       </div>
 
-      {/* Weekday row */}
+      {/* Weekday row — quiet muted text, centered inside the card */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(7, 1fr)",
-          marginBottom: 4,
+          marginBottom: 8,
         }}
       >
         {DAY_NAMES.map((d) => (
@@ -1141,9 +1182,12 @@ function Calendar({
             key={d}
             style={{
               textAlign: "center",
-              fontSize: 12,
-              color: tokens.colors.textMuted,
-              padding: "4px 0",
+              fontSize: 11,
+              fontWeight: 500,
+              color: tokens.colors.textFaint,
+              padding: "6px 0",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase" as const,
             }}
           >
             {d}
@@ -1151,12 +1195,12 @@ function Calendar({
         ))}
       </div>
 
-      {/* Date grid */}
+      {/* Date grid — no per-cell border, numbers on shared card surface */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 2,
+          gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+          gap: 0,
         }}
       >
         {cells.map((date, i) => {
@@ -1182,11 +1226,9 @@ function Calendar({
                 aria-current={isSelected ? "date" : undefined}
                 onClick={() => !isPast && !booked && onSelect(date)}
                 style={{
-                  // Tap target fills the whole grid cell (maximised to ~44px+);
-                  // the visual circle inside stays 40px.
                   width: "100%",
                   height: "100%",
-                  minHeight: 40,
+                  minHeight: 44,
                   padding: 0,
                   border: "none",
                   background: "transparent",
@@ -1195,43 +1237,53 @@ function Calendar({
                   justifyContent: "center",
                   cursor: isPast || booked ? "default" : "pointer",
                   opacity: isPast || booked ? 0.3 : 1,
+                  borderRadius: "50%",
+                  transition: `background ${tokens.duration.fast} ${tokens.easing.standard}`,
+                }}
+                onMouseEnter={(e) => {
+                  if (isPast || booked || isSelected) return
+                  ;(e.currentTarget as HTMLButtonElement).style.background =
+                    "rgba(255,255,255,0.05)"
+                }}
+                onMouseLeave={(e) => {
+                  if (isPast || booked || isSelected) return
+                  ;(e.currentTarget as HTMLButtonElement).style.background =
+                    "transparent"
                 }}
               >
                 <span
                   style={{
                     position: "relative",
-                    width: 40,
-                    height: 40,
+                    width: 38,
+                    height: 38,
                     borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 15,
-                    fontWeight: isSelected ? 600 : 400,
-                    background: isSelected ? tokens.colors.link : "transparent",
-                    // Fully-booked days read as unavailable via a red-tinted,
-                    // dimmed number (the small dot below is now reserved for
-                    // "today", so booked can't use a dot without colliding).
+                    fontSize: 16,
+                    fontWeight: isSelected ? 500 : 400,
+                    letterSpacing: "0.02em",
+                    // Soft green pill at reduced opacity — NOT a solid green fill
+                    background: isSelected
+                      ? "rgba(37,211,102,0.18)"
+                      : "transparent",
                     color: isSelected
-                      ? "#fff"
+                      ? tokens.colors.brand
                       : booked
                         ? tokens.colors.danger
                         : tokens.colors.text,
                     opacity: booked && !isSelected ? 0.55 : 1,
                     textDecoration: booked && !isSelected ? "line-through" : "none",
-                    border: "1px solid transparent",
-                    transition: `background ${tokens.duration.fast}`,
+                    transition: `background ${tokens.duration.fast} ${tokens.easing.standard}`,
                   }}
                 >
                   {date.getDate()}
-                  {/* Today marker — small dot under the number (calendar-1
-                      demo's data-today treatment). Hidden when this cell is
-                      selected (the solid fill already conveys state). */}
+                  {/* Today marker — small dot under the number */}
                   {isToday && !isSelected && (
                     <span
                       style={{
                         position: "absolute",
-                        bottom: 4,
+                        bottom: 3,
                         left: "50%",
                         transform: "translateX(-50%)",
                         width: 4,
@@ -1241,16 +1293,13 @@ function Calendar({
                       }}
                     />
                   )}
-                  {/* Cross-date order indicator — a dot marking dates that
-                      already have picked hours elsewhere in the order.
-                      Positioned at top (vs. the today-dot's bottom) so the
-                      two never collide on a date that is both today and has
-                      a selection. Passive only — no modal/count. */}
+                  {/* Cross-date order indicator — dot at top for dates
+                      with picked hours elsewhere in the order */}
                   {!isSelected && datesWithSelections.has(fmtYMD(date)) && (
                     <span
                       style={{
                         position: "absolute",
-                        top: 4,
+                        top: 3,
                         left: "50%",
                         transform: "translateX(-50%)",
                         width: 4,
@@ -1288,7 +1337,7 @@ function SummaryCard({
   total: number
   canContinue: boolean
   onContinue: () => void
-  ctaLabel: string
+  ctaLabel: React.ReactNode
   loading?: boolean
   ready?: boolean
   periods: PricingPeriod[]
@@ -1309,14 +1358,16 @@ function SummaryCard({
   return (
     <Card
       variant="elevated"
+      padding="28px"
       style={{ backgroundColor: tokens.colors.depth.elevated }}
     >
         <div
           data-cms-key="book.card.title"
           className="font-label"
           style={{
-            fontSize: 12,
-            color: tokens.colors.textMuted,
+            fontSize: 11,
+            color: tokens.colors.textFaint,
+            letterSpacing: "0.04em",
             marginBottom: 20,
           }}
         >
@@ -1327,11 +1378,11 @@ function SummaryCard({
             display: "flex",
             flexDirection: "column",
             gap: 14,
-            marginBottom: 24,
+            marginBottom: 28,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+            <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
               {t("date")}
             </span>
             <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
@@ -1343,7 +1394,7 @@ function SummaryCard({
           {single ? (
             <>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+                <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                   {t("time_slot")}
                 </span>
                 <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
@@ -1353,7 +1404,7 @@ function SummaryCard({
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+                <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                   {t("duration")}
                 </span>
                 <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
@@ -1363,7 +1414,7 @@ function SummaryCard({
             </>
           ) : (
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+              <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                 {t("time_slot")}
               </span>
               <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
@@ -1385,35 +1436,34 @@ function SummaryCard({
           <div style={{ textAlign: "center", marginBottom: 6 }}>
             <s
               style={{
-                fontFamily: BEBAS,
                 fontSize: 22,
                 color: tokens.colors.textFaint,
                 fontVariantNumeric: "tabular-nums",
               }}
             >
-              HK${total + totalSaved}
+              <BookingPrice amount={total + totalSaved} />
             </s>
           </div>
         )}
         <div
           style={{
-            fontFamily: BEBAS,
-            fontSize: 40,
+            fontFamily: tokens.font.sans,
+            fontSize: 48,
             textAlign: "center",
             marginBottom: ready && totalSaved > 0 ? 10 : 28,
             color: tokens.colors.link,
           }}
         >
-          {ready ? `HK$${total}` : ""}
+          {ready && <BookingPrice amount={total} />}
         </div>
         {ready && totalSaved > 0 && (
           <div
             data-cms-key="book.total_saved"
             style={{
               textAlign: "center",
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 600,
-              color: "#fff",
+              color: tokens.colors.textFaint,
               marginBottom: 22,
             }}
           >
@@ -1442,7 +1492,7 @@ function MobilePriceBar({
   canContinue,
   loading,
 }: {
-  ctaLabel: string
+  ctaLabel: React.ReactNode
   onContinue: () => void
   canContinue: boolean
   loading?: boolean
@@ -1509,6 +1559,8 @@ function Screen1({
 }) {
   const dateStr = useMemo(() => fmtYMD(selectedDate), [selectedDate])
   const timeRef = useRef<HTMLDivElement>(null)
+  const firstAvailableSlotRef = useRef<HTMLButtonElement>(null)
+  const summaryRef = useRef<HTMLDivElement>(null)
   const t = useTranslations("book")
 
   // Read the day's slots from the shared prefetch cache. If the date is cached
@@ -1538,6 +1590,24 @@ function Screen1({
   }, [selectedSlotsByDate, dateStr, availability])
 
   const dayLoading = daySlots === null && availability.loadingDate === dateStr
+  const [scrollRequested, setScrollRequested] = useState(false)
+
+  useEffect(() => {
+    if (!scrollRequested || dayLoading || daySlots === null) return
+    setScrollRequested(false)
+    const target = firstAvailableSlotRef.current
+    if (!target) return
+    const header = timeRef.current?.querySelector<HTMLElement>(".room-grid-header")
+    const offset = 80 + (header?.getBoundingClientRect().height ?? 0) + 12
+    const rect = target.getBoundingClientRect()
+    const bottomBar = document.querySelector<HTMLElement>(".mobile-cta")
+    const bottom = window.innerHeight - (bottomBar?.getBoundingClientRect().height ?? 0)
+    if (rect.top >= offset && rect.bottom <= bottom) return
+    window.scrollTo({
+      top: Math.max(0, rect.top + window.scrollY - offset),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    })
+  }, [scrollRequested, dateStr, dayLoading, daySlots])
 
   const [cutoffTick, setCutoffTick] = useState(0)
   useEffect(() => {
@@ -1596,10 +1666,6 @@ function Screen1({
           {/* Date */}
           <div
             style={{
-              background: tokens.colors.depth.recessed,
-              border: `1px solid ${tokens.colors.border}`,
-              borderRadius: tokens.radius.card,
-              padding: "16px 18px 18px",
               marginBottom: 24,
             }}
           >
@@ -1608,7 +1674,7 @@ function Screen1({
               selected={selectedDate}
               onSelect={(d) => {
                 setSelectedDate(d)
-                scrollToRef(timeRef)
+                setScrollRequested(true)
                 // Deliberately NOT clearing selectedSlotsByDate here —
                 // cross-date orders must survive a calendar switch.
               }}
@@ -1633,14 +1699,15 @@ function Screen1({
               dayLoading={dayLoading}
               slotsForDate={slotsForDate}
               totalSelectedHours={totalSelectedHours}
-              onToggle={(table, hour) => onToggleSlot(dateStr, table, hour)}
+              onToggle={(table, hour) => { onToggleSlot(dateStr, table, hour); scrollIntoViewIfNeeded(summaryRef) }}
               onResumeLocked={onResumeLocked}
+              firstAvailableSlotRef={firstAvailableSlotRef}
             />
           </div>
 
           {/* Selected picks — mobile/inline position (desktop shows the same
               card inside the sticky sidebar instead). */}
-          <div className="mobile-picks" style={{ marginBottom: 16 }}>
+          <div ref={summaryRef} className="mobile-picks" style={{ marginBottom: 16 }}>
             <SelectedPicksCard runs={runs} removeRun={removeRun} periods={periods} />
           </div>
 
@@ -1658,19 +1725,23 @@ function Screen1({
           </div>
         </div>
 
-        {/* Desktop sticky sidebar: summary + picks */}
+        {/* Desktop sticky sidebar: summary + picks — layered "peek" card
+            treatment: SummaryCard floats above SelectedPicksCard with a
+            slight overlap so they read as two distinct depth layers. */}
         <div className="desktop-card">
-          <SummaryCard
-            selectedDate={selectedDate}
-            runs={runs}
-            total={orderTotal}
-            canContinue={canContinue}
-            onContinue={onContinue}
-            ctaLabel={t("continue")}
-            ready={ready}
-            periods={periods}
-          />
-          <div style={{ marginTop: 16 }}>
+          <div style={{ position: "relative", zIndex: 2 }}>
+            <SummaryCard
+              selectedDate={selectedDate}
+              runs={runs}
+              total={orderTotal}
+              canContinue={canContinue}
+              onContinue={onContinue}
+              ctaLabel={t("continue")}
+              ready={ready}
+              periods={periods}
+            />
+          </div>
+          <div style={{ marginTop: 24, position: "relative" }}>
             <SelectedPicksCard runs={runs} removeRun={removeRun} periods={periods} />
           </div>
         </div>
@@ -1678,7 +1749,11 @@ function Screen1({
 
       {/* Mobile sticky price bar */}
       <MobilePriceBar
-        ctaLabel={ready ? `${t("continue")} · HK$${orderTotal}` : t("continue")}
+        ctaLabel={
+          ready ? (
+            <>{t("continue")} · <BookingPrice amount={orderTotal} /></>
+          ) : t("continue")
+        }
         onContinue={onContinue}
         canContinue={canContinue}
       />
@@ -1800,6 +1875,13 @@ function Screen3({
   const [termsShake, setTermsShake] = useState(0)
   const [openModal, setOpenModal] = useState<'venue-rules' | 'terms' | null>(null)
   const termsRef = useRef<HTMLDivElement>(null)
+  const agreementButtonRef = useRef<HTMLButtonElement>(null)
+  const modalCloseRef = useRef<HTMLButtonElement>(null)
+  const shouldRestoreAgreementFocus = useRef(false)
+  const openTermsModal = useCallback(() => {
+    shouldRestoreAgreementFocus.current = true
+    setOpenModal("terms")
+  }, [])
   const flagTermsRequired = useCallback(() => {
     setTermsError(true)
     setTermsShake((n) => n + 1)
@@ -1808,11 +1890,18 @@ function Screen3({
 
   useEffect(() => {
     if (!openModal) return
+    modalCloseRef.current?.focus()
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpenModal(null)
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
+  }, [openModal])
+
+  useEffect(() => {
+    if (openModal || !shouldRestoreAgreementFocus.current) return
+    shouldRestoreAgreementFocus.current = false
+    agreementButtonRef.current?.focus()
   }, [openModal])
 
   // Admin test mode
@@ -1832,6 +1921,7 @@ function Screen3({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null)
   const [confirmed, setConfirmed] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+  const payCtaRef = useRef<HTMLDivElement>(null)
 
   // ── UAT-only PayMe simulation modal ──────────────────────────────────────
   // Pop-up before checkout to select .81 (success) / .82 (fail) / normal.
@@ -2053,9 +2143,9 @@ function Screen3({
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
                     {detail.saved > 0 && (
-                      <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}>HK${detail.baseTotal}</s>
+                      <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
                     )}
-                    HK${detail.total}
+                    <BookingPrice amount={detail.total} />
                   </div>
                 </div>
               )
@@ -2108,12 +2198,12 @@ function Screen3({
           >
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.pay.subtotal">{t("subtotal")}</span>
-              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>HK${total + totalSaved}</span>
+              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}><BookingPrice amount={total + totalSaved} /></span>
             </div>
             {totalSaved > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
                 <span data-cms-key="book.pay.discount">{t("discount_label")}</span>
-                <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−HK${totalSaved}</span>
+                <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−<BookingPrice amount={totalSaved} /></span>
               </div>
             )}
             {/* Points earned row */}
@@ -2124,8 +2214,9 @@ function Screen3({
             <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
-              <span style={{ fontFamily: BEBAS, fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
-                <span style={{ fontSize: 16, opacity: 0.7, marginRight: 2 }}>HK$</span>{total}
+              <span style={{ display: "inline-flex", alignItems: "baseline", gap: 4, whiteSpace: "nowrap", fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
+                <span style={{ fontFamily: tokens.font.sans, fontSize: 16 }}>HK$</span>
+                <span style={{ fontFamily: tokens.font.display }}>{total}</span>
               </span>
             </div>
           </div>
@@ -2200,6 +2291,7 @@ function Screen3({
                   onSelect={(method) => {
                     setPaymentError(null)
                     setPaymentMethod(method)
+                    scrollIntoViewIfNeeded(payCtaRef)
                     const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
                     if (kpayMethods.includes(method as KPayMethod)) {
                       setKpayMethod(method as KPayMethod)
@@ -2318,13 +2410,13 @@ function Screen3({
                 {testConfirming ? (
                   <>{t("processing")}</>
                 ) : (
-                  <>{t("confirm_test_booking") || "TEST 確認訂單"} · HK${total}</>
+                  <>{t("confirm_test_booking") || "TEST 確認訂單"} · <BookingPrice amount={total} /></>
                 )}
               </button>
             </div>
           )}
 
-          {/* Terms agreement */}
+          {/* Terms — visually quieter than payment method cards */}
           <motion.div
             key={termsShake}
             ref={termsRef}
@@ -2333,52 +2425,57 @@ function Screen3({
             style={{
               border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : "transparent"}`,
               borderRadius: tokens.radius.input,
-              padding: "8px 10px",
+              padding: "6px 8px",
               transition: "border-color 0.2s ease",
               marginBottom: 16,
             }}
           >
-            <label
+            <button
+              ref={agreementButtonRef}
+              type="button"
+              disabled={confirmed}
+              onClick={openTermsModal}
+              aria-pressed={agreedToTerms}
               style={{
+                width: "100%",
                 display: "flex",
                 alignItems: "flex-start",
                 gap: 10,
-                cursor: confirmed ? "default" : "pointer",
                 minHeight: 44,
+                padding: 0,
+                border: "none",
+                background: "transparent",
+                textAlign: "left",
+                color: "inherit",
+                cursor: confirmed ? "default" : "pointer",
               }}
             >
-              <input
-                type="checkbox"
-                checked={agreedToTerms}
-                disabled={confirmed}
-                onChange={(e) => {
-                  setAgreedToTerms(e.target.checked)
-                  if (e.target.checked) setTermsError(false)
-                }}
+              <span
+                aria-hidden="true"
                 style={{
                   width: 18,
                   height: 18,
                   marginTop: 1,
                   flexShrink: 0,
-                  accentColor: tokens.colors.link,
-                  cursor: confirmed ? "default" : "pointer",
-                  opacity: confirmed ? 0.7 : 1,
+                  border: `1px solid ${agreedToTerms ? tokens.colors.link : tokens.colors.borderStrong}`,
+                  borderRadius: 4,
+                  background: agreedToTerms ? tokens.colors.link : "transparent",
+                  color: tokens.colors.brandText,
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 13,
+                  fontWeight: 700,
                 }}
-              />
+              >
+                {agreedToTerms ? "✓" : ""}
+              </span>
               <span
                 data-cms-key="book.terms_agree"
-                style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}
+                style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}
               >
-                {t("terms_agree_prefix")}{" "}
-                <button type="button" onClick={() => setOpenModal("venue-rules")} style={legalLinkStyle}>
-                  {t("venue_rules_label")}
-                </button>
-                {" "}{t("terms_agree_connector")}{" "}
-                <button type="button" onClick={() => setOpenModal("terms")} style={legalLinkStyle}>
-                  {t("terms_label")}
-                </button>
+                {t("terms_agree_prefix")} {t("venue_rules_label")} {t("terms_agree_connector")} {t("terms_label")}
               </span>
-            </label>
+            </button>
             <div
               data-cms-key={termsError && !agreedToTerms ? "book.terms_required_error" : "book.terms_required_hint"}
               role={termsError && !agreedToTerms ? "alert" : undefined}
@@ -2418,7 +2515,7 @@ function Screen3({
                   <h2 id="checkout-legal-modal-title" style={{ margin: 0, fontSize: 19, fontWeight: 700 }}>
                     {openModal === "venue-rules" ? t("venue_rules_label") : t("terms_label")}
                   </h2>
-                  <button type="button" aria-label={t("legal_modal_close")} onClick={() => setOpenModal(null)} style={modalCloseStyle}>×</button>
+                  <button ref={modalCloseRef} type="button" aria-label={t("legal_modal_close")} onClick={() => setOpenModal(null)} style={modalCloseStyle}>×</button>
                 </div>
                 <div style={modalContentStyle}>
                   <LegalDocumentRenderer
@@ -2427,8 +2524,16 @@ function Screen3({
                     compact
                   />
                 </div>
-                <button type="button" onClick={() => setOpenModal(null)} style={modalBottomCloseStyle}>
-                  {t("legal_modal_close")}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAgreedToTerms(true)
+                    setTermsError(false)
+                    setOpenModal(null)
+                  }}
+                  style={modalBottomCloseStyle}
+                >
+                  {t("legal_modal_agree")}
                 </button>
               </motion.div>
             </motion.div>
@@ -2551,7 +2656,7 @@ function Screen3({
           bar. Hidden once confirmed — from then on the payment component owns
           the screen and has its own actions. */}
       {!testMode && !confirmed && (
-        <div className="pay-cta">
+        <div ref={payCtaRef} className="pay-cta">
           <div className="pay-cta-inner">
             <button
               type="button"
@@ -2562,17 +2667,17 @@ function Screen3({
                 height: 54,
                 border: "none",
                 borderRadius: 14,
-                background: !paymentMethod ? "rgba(255,255,255,0.15)" : tokens.colors.link,
-                color: !paymentMethod ? tokens.colors.textMuted : "#000",
+                background: paymentMethod && agreedToTerms ? tokens.colors.link : "rgba(255,255,255,0.12)",
+                color: paymentMethod && agreedToTerms ? "#000" : tokens.colors.textMuted,
                 fontWeight: 700,
                 fontSize: 17,
                 cursor: !paymentMethod ? "not-allowed" : "pointer",
                 transition: `background ${tokens.duration.fast}`,
               }}
             >
-              {paymentMethod
-                ? `${t("pay_with", { method: paymentMethodLabel(paymentMethod) })} · HK$${total}`
-                : t("select_payment_method")}
+              {paymentMethod ? (
+                <>{t("pay_with", { method: paymentMethodLabel(paymentMethod) })} · <BookingPrice amount={total} /></>
+              ) : t("select_payment_method")}
             </button>
           </div>
         </div>
@@ -2939,7 +3044,7 @@ export default function BookPage() {
     const duration = Number(durationParam ?? "1")
     const table = Number(tableParam)
     if (!Number.isInteger(start) || start < CONFIG.openHour || start >= CONFIG.closeHour) return
-    if (!Number.isInteger(duration) || duration < 1 || duration > CONFIG.maxHours) return
+    if (!Number.isInteger(duration) || duration < 1) return
     if (start + duration > CONFIG.closeHour) return
 
     const hours = new Set<string>()
@@ -3568,6 +3673,17 @@ export default function BookPage() {
           grid-template-columns: 52px 1fr 1fr;
           gap: 4px;
         }
+        .room-grid-header {
+          position: sticky;
+          top: 76px;
+          z-index: 4;
+          border-radius: 0;
+          background: ${tokens.colors.surface};
+          box-shadow: 0 -1px 0 ${tokens.colors.surface}, 0 1px 0 ${tokens.colors.border};
+        }
+        .room-grid-header > div { min-width: 0; }
+        .room-grid-header > div > div:first-child { flex-wrap: wrap; }
+        .room-grid-header button { overflow-wrap: anywhere; }
         .skeleton-pulse {
           animation: skeleton-pulse 1.4s ease-in-out infinite;
         }
@@ -3593,6 +3709,9 @@ export default function BookPage() {
           flex: 1;
         }
         @media (min-width: 768px) {
+          .room-grid-header {
+            top: 0;
+          }
           .checkout-layout {
             display: grid;
             grid-template-columns: 1fr 440px;
@@ -3625,7 +3744,7 @@ export default function BookPage() {
           left: 0;
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-          background: rgba(0,0,0,0.92);
+          background: ${tokens.colors.depth.elevated};
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
@@ -3641,7 +3760,7 @@ export default function BookPage() {
           left: 0;
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-          background: rgba(0,0,0,0.92);
+          background: ${tokens.colors.depth.elevated};
           backdrop-filter: blur(20px);
           -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
@@ -3714,6 +3833,7 @@ export default function BookPage() {
             top: 88px;
             align-self: start;
             height: fit-content;
+            padding: 0;
           }
           .mobile-picks {
             display: none;
@@ -3731,7 +3851,7 @@ export default function BookPage() {
           scroll-snap-type: x mandatory;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
-          background: #000;
+          background: ${tokens.colors.bg};
           flex: 1;
           min-height: 0;
         }

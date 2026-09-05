@@ -156,7 +156,10 @@
     "hero_subtitle": "Book on demand. No hidden fees.",
     "per_hour": "/hr",
     "period_afternoon_title": "Afternoon",
+    "period_afternoon_tagline": "A slower afternoon, played your way.",
     "period_afternoon_time": "Daily 12:00–16:00",
+    "period_morning_tagline": "Start clear. Let the first break set the tone.",
+    "period_evening_tagline": "When the lights come on, bring your people.",
     "period_evening_title": "Prime Time",
     "period_evening_time": "Daily 16:00–00:00",
     "period_latenight_title": "Late Night",
@@ -541,7 +544,9 @@
     "close": "Close",
     "loading": "Loading…",
     "back": "Back",
-    "greeting": "Hello"
+    "greeting": "Hello",
+    "quick_view_details": "View details",
+    "sending": "Sending…"
   },
   "nav": {
     "home": "Home",
@@ -761,6 +766,7 @@
     "venue_rules_label": "Venue Rules",
     "terms_label": "Terms & Conditions",
     "legal_modal_close": "Close",
+    "legal_modal_agree": "Agree and close",
     "terms_required_hint": "* You must agree to the terms before paying",
     "terms_required_error": "Please read and agree to the Venue Rules first",
     "legend_available": "Available",
@@ -1200,7 +1206,14 @@
   "homeVenue": {
     "eyebrow": "SPACE8 VENUE",
     "title": "Facilities",
-    "intro": "Every detail is designed to keep you focused on the game.",
+    "categories": {
+      "equipment": "Equipment",
+      "ambience": "Atmosphere",
+      "smart_system": "Smart system",
+      "entry": "Entry",
+      "amenities": "Amenities"
+    },
+    "intro": "Every detail, focused on the game.",
     "pagination_label": "Facilities pagination",
     "pagination_item": "Go to facility {n}",
     "items": [

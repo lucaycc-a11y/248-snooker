@@ -31,15 +31,6 @@ type ChatMessage = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function tierName(tier: string): string {
-  const map: Record<string, string> = {
-    amateur: 'Nova',
-    century: 'Platinum',
-    maximum: 'Diamond',
-  }
-  return map[tier] ?? tier
-}
-
 function riskBadgeColor(level: 'low' | 'medium' | 'high'): string {
   if (level === 'high') return 'bg-red-500/15 text-red-400'
   if (level === 'medium') return 'bg-amber-500/15 text-amber-400'

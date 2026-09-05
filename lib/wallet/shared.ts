@@ -9,13 +9,10 @@ import { generateMemberQR } from '@/lib/qrcode'
 /** ISO 639-1 codes used by Apple Wallet `.lproj` folders. */
 export type WalletLocale = 'zh-Hant' | 'zh-Hans' | 'en'
 
-/** Tier display names in the three supported languages (labelled zh-HK/zh-CN/en
- * per the spec's `TIER_DISPLAY` map). */
-export const TIER_DISPLAY: Record<Tier['id'], { zhHK: string; zhCN: string; en: string }> = {
-  amateur: { zhHK: '新星會員', zhCN: '新星会员', en: 'Nova Member' },
-  century: { zhHK: '鉑金會員', zhCN: '铂金会员', en: 'Platinum Member' },
-  maximum: { zhHK: '鑽石會員', zhCN: '钻石会员', en: 'Diamond Member' },
-}
+/** Tier display names in the three supported languages.
+ * Re-exported from the unified mapping (lib/member/tierDisplay) so wallet
+ * passes and site UI never drift; kept here for backward compatibility. */
+export { TIER_DISPLAY } from '@/lib/member/tierDisplay'
 
 /** Static labels shared across both platforms. */
 export const WALLET_LABELS = {

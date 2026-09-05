@@ -44,11 +44,11 @@ export default function Hero() {
         src="/video/Space8_Main_Hero_Poster.jpg"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
+        className="absolute inset-0 h-full w-full object-cover [object-position:center_70%] md:hidden"
         style={{ filter: "brightness(1.3) contrast(1.05)" }}
       />
       <video
-        className="absolute inset-0 h-full w-full object-cover object-center md:hidden"
+        className="absolute inset-0 h-full w-full object-cover [object-position:center_70%] md:hidden"
         style={{
           filter: "brightness(1.3) contrast(1.05)",
           opacity: videoEnded ? 0 : 1,
@@ -74,11 +74,11 @@ export default function Hero() {
           src="/video/Space8_Main_Hero_Poster.jpg"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover [object-position:center_45%]"
+          className="absolute inset-0 h-full w-full object-cover [object-position:center_65%]"
           style={{ filter: "brightness(1.3) contrast(1.05)" }}
         />
         <video
-          className="relative h-full w-full object-cover [object-position:center_45%]"
+          className="relative h-full w-full object-cover [object-position:center_65%]"
           style={{
             filter: "brightness(1.3) contrast(1.05)",
             opacity: videoEnded ? 0 : 1,
@@ -102,21 +102,25 @@ export default function Hero() {
           zIndex: 1,
           pointerEvents: "none",
           background:
-            "linear-gradient(to bottom, transparent 0%, transparent 60%, rgba(0,0,0,0.35) 100%)",
+            "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 35%, transparent 60%, rgba(0,0,0,0.4) 100%)",
         }}
       />
 
-      {/* Content — centred on mobile, top-anchored on desktop */}
-      <div ref={heroContentRef} className="absolute left-1/2 top-[22%] z-10 flex w-full -translate-x-1/2 flex-col items-center px-6 text-center md:top-[20%]">
+      {/* Content — flex-centered with responsive bottom guard-rail to prevent overlap with the pool-table graphic.
+          pointer-events-none lets the table's hover effect work through the full-bleed container. */}
+      <div
+        ref={heroContentRef}
+        className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center pb-[clamp(60px,18svh,180px)] md:pb-[clamp(80px,20svh,200px)]"
+      >
         {/* Space8 wordmark — official SVG artwork, not a text simulation */}
-        <div data-anime-hero-item style={{ marginBottom: "12px" }}>
-          <Logo variant="full" theme="dark" size={34} />
+        <div data-anime-hero-item style={{ marginBottom: "6px" }}>
+          <Logo variant="full" theme="dark" size={32} />
         </div>
 
         {/* Headline — single element, gradient, fades in after 3s */}
         <h1
           data-anime-hero-item
-          className="text-[clamp(48px,10vw,64px)] md:text-[72px]"
+          className="text-[clamp(44px,9vw,60px)] md:text-[68px]"
           style={{
             ...HEADLINE_GRADIENT,
             fontWeight: 600,
@@ -134,7 +138,7 @@ export default function Hero() {
         {/* Sub copy */}
         <p
           data-anime-hero-item
-          className="mt-5 text-[15px] md:mt-6 md:text-[18px]"
+          className="mt-3 text-[14px] md:mt-3.5 md:text-[17px]"
           style={{
             color: "rgba(255,255,255,0.72)",
             fontWeight: 400,
@@ -146,8 +150,9 @@ export default function Hero() {
           {t("subline")}
         </p>
 
-        {/* CTA buttons — kept immediately available; the entrance is decorative only. */}
-        <div data-anime-hero-item className="mt-8 md:mt-10">
+        {/* CTA buttons — tightened gap from subtitle for better composition.
+            pointer-events-auto re-enables clicks suppressed by the overlay container. */}
+        <div data-anime-hero-item className="pointer-events-auto mt-4 md:mt-5">
           <div className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center gap-3 rounded-full px-3 py-2.5 sm:px-4 sm:py-3">
             <Link
               href="/book"

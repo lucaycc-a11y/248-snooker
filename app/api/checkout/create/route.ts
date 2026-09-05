@@ -36,8 +36,6 @@ function isValidBlock(b: unknown): b is Block {
   )
 }
 
-const MAX_BLOCKS = 6
-
 // POST /api/checkout/create
 // Creates a KPay order (QR or H5) for a set of blocks OR an existing booking.
 //
@@ -135,7 +133,7 @@ export async function POST(req: Request) {
     // ── Mode A: blocks[] — lock slots + insert pending bookings ────────────
     const rawBlocks = body?.blocks as unknown[] | undefined
     if (Array.isArray(rawBlocks) && rawBlocks.length > 0) {
-      if (rawBlocks.length > MAX_BLOCKS || !rawBlocks.every(isValidBlock)) {
+      if (!rawBlocks.every(isValidBlock)) {
         return NextResponse.json({ error: 'Invalid blocks' }, { status: 400 })
       }
       const blocks = rawBlocks as Block[]

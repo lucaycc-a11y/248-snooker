@@ -1,15 +1,14 @@
 export const tokens = {
   colors: {
-    bg: '#000000',
-    surface: '#111111',
-    surfaceElevated: '#1A1A1A',
+    bg: '#14161A',
+    surface: '#1A1C20',
+    surfaceElevated: '#1F2126',
     border: 'rgba(255,255,255,0.1)',
     borderStrong: 'rgba(255,255,255,0.18)',
     text: '#FFFFFF',
-    // Raised again (0.62/0.42 → 0.72/0.52) — secondary text still read as too
-    // transparent on pure black (#000) in the /book flow and footer. Keep
-    // muted ≥0.72 and faint ≥0.52 so hint/caption text is clearly legible on
-    // #000 while staying visually subordinate to full-white primary text.
+    // On graphite (#14161A) white text sits at ~18.6:1 contrast — AAA-safe
+    // for all sizes. Keep secondary text opaque enough that it never
+    // disappears into the warmer grey base.
     textMuted: 'rgba(255,255,255,0.72)',
     textFaint: 'rgba(255,255,255,0.52)',
     brand: '#25D366',
@@ -37,11 +36,11 @@ export const tokens = {
     /**
      * Tonal depth system — lighter = raised, darker = recessed.
      * Use these instead of shadows for visual hierarchy on dark backgrounds.
-     * Each step is a ~3% white overlay on pure black.
+     * Each step is a ~3% white overlay on graphite (#14161A).
      */
     depth: {
-      /** Page background / deepest recess — pure black */
-      base: 'rgba(0,0,0,1)',
+      /** Page background — matches colors.bg (graphite) */
+      base: 'rgba(20,22,26,1)',
       /** Recessed surface — sunken inputs, grouped cells */
       recessed: 'rgba(255,255,255,0.02)',
       /** Default surface — standard containers */

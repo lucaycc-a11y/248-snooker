@@ -34,6 +34,8 @@ export function useAnimeReveal<T extends HTMLElement>(
   const rootRef = useRef<T | null>(null);
 
   useEffect(() => {
+    document.documentElement.classList.remove("no-js");
+    document.documentElement.classList.add("js");
     const root = rootRef.current as AnimeRoot | null;
     if (!root) return;
 
@@ -42,8 +44,16 @@ export function useAnimeReveal<T extends HTMLElement>(
       : [root];
     if (!targets.length) return;
 
+    const wrappers = targets.map((target) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "anime-reveal-wrapper";
+      target.parentNode?.insertBefore(wrapper, target);
+      wrapper.appendChild(target);
+      return wrapper;
+    });
+
     if (prefersReducedMotion()) {
-      showImmediately(targets);
+      showImmediately(wrappers);
       return;
     }
 
@@ -53,18 +63,23 @@ export function useAnimeReveal<T extends HTMLElement>(
       leave: "bottom 12%",
       repeat: false,
     });
-    const animation = animate(targets, {
+    const animation = animate(wrappers, {
       opacity: [0, 1],
       y: [options.distance ?? 22, 0],
       duration: options.duration ?? 700,
-      delay: targets.length > 1 ? stagger(options.delay ?? 70) : 0,
+      delay: wrappers.length > 1 ? stagger(options.delay ?? 70) : 0,
       ease: "outCubic",
       autoplay: observer,
     });
 
     return () => {
-      animation.cancel(); // cancel() stops without reverting — leaves current values intact
+      animation.cancel();
       observer.revert();
+      wrappers.forEach((wrapper) => {
+        const target = wrapper.firstElementChild;
+        if (target) wrapper.parentNode?.insertBefore(target, wrapper);
+        wrapper.remove();
+      });
     };
   }, [options.delay, options.distance, options.duration, options.selector]);
 
@@ -78,12 +93,16 @@ export function useAnimeEntrance<T extends HTMLElement>(
   const rootRef = useRef<T | null>(null);
 
   useEffect(() => {
+    document.documentElement.classList.remove("no-js");
+    document.documentElement.classList.add("js");
     const root = rootRef.current as AnimeRoot | null;
     if (!root) return;
     const targets = options.selector
       ? Array.from(root.querySelectorAll<HTMLElement>(options.selector))
       : [root];
     if (!targets.length) return;
+
+    targets.forEach((target) => target.classList.add("anime-reveal-target"));
 
     if (prefersReducedMotion()) {
       showImmediately(targets);
