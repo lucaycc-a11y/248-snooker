@@ -91,8 +91,7 @@ export default function HomeFacilities() {
       {/* ── Horizontal scroll gallery ── */}
       <div
         ref={trackRef}
-        className="overflow-x-auto overflow-y-hidden snap-x snap-mandatory flex gap-8 px-6 md:px-16 pb-4 no-scrollbar hscroll-track"
-        style={{ overscrollBehaviorY: "contain" }}
+        className="overflow-x-auto snap-x snap-mandatory flex gap-8 px-6 md:px-16 pb-4 no-scrollbar hscroll-track"
       >
         {facilities.map((facility, index) => {
           const Icon = FACILITY_ICONS[index] ?? Table2;

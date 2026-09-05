@@ -922,16 +922,17 @@ function SelectedPicksCard({
         background: tokens.colors.depth.raised,
         border: `1px solid ${tokens.colors.border}`,
         borderRadius: tokens.radius.card,
-        padding: "18px 18px 12px",
+        padding: "20px 20px 16px",
       }}
     >
       <div
         data-cms-key="book.selected_slots_title"
         className="font-label"
         style={{
-          fontSize: 12,
-          color: tokens.colors.textMuted,
-          marginBottom: 12,
+          fontSize: 11,
+          color: tokens.colors.textFaint,
+          letterSpacing: "0.04em",
+          marginBottom: 14,
         }}
       >
         {t("selected_slots_title")}
@@ -972,7 +973,7 @@ function SelectedPicksCard({
                   {dateLabel}
                   {padTime(r.startHour)} – {padTime(r.startHour + r.duration)}
                 </div>
-                <div style={{ color: tokens.colors.textMuted, fontSize: 12, marginTop: 2 }}>
+                <div style={{ color: tokens.colors.textFaint, fontSize: 12, marginTop: 3 }}>
                   {getTableName(r.tableNumber, locale)} ·{" "}
                   {detail.saved > 0 && (
                     <s style={{ color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
@@ -986,7 +987,7 @@ function SelectedPicksCard({
                 {detail.saved > 0 && (
                   <div
                     data-cms-key="book.block_saved_badge"
-                    style={{ color: tokens.colors.textMuted, fontSize: 12, marginTop: 2 }}
+                    style={{ color: tokens.colors.textFaint, fontSize: 12, marginTop: 2 }}
                   >
                     {t("block_saved_badge", { hours: r.duration, saved: detail.saved })}
                   </div>
@@ -1093,14 +1094,21 @@ function Calendar({
     })
 
   return (
-    <div>
-      {/* Header */}
+    <div
+      style={{
+        background: tokens.colors.surface,
+        border: `1px solid ${tokens.colors.border}`,
+        borderRadius: tokens.radius.card,
+        padding: 20,
+      }}
+    >
+      {/* Header — month/year + prev/next arrows, inside the unified card */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 14,
+          marginBottom: 16,
         }}
       >
         <button
@@ -1109,20 +1117,39 @@ function Calendar({
           disabled={!canGoPrev}
           onClick={() => shiftMonth(-1)}
           style={{
-            width: 44,
-            height: 44,
+            width: 40,
+            height: 40,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "none",
-            border: "none",
+            background: canGoPrev ? "rgba(255,255,255,0.04)" : "transparent",
+            border: `1px solid ${canGoPrev ? "rgba(255,255,255,0.08)" : "transparent"}`,
+            borderRadius: 10,
             color: canGoPrev ? tokens.colors.text : tokens.colors.textFaint,
             cursor: canGoPrev ? "pointer" : "not-allowed",
+            transition: `background ${tokens.duration.fast} ${tokens.easing.standard}`,
+          }}
+          onMouseEnter={(e) => {
+            if (!canGoPrev) return
+            ;(e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.08)"
+          }}
+          onMouseLeave={(e) => {
+            if (!canGoPrev) return
+            ;(e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.04)"
           }}
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={18} />
         </button>
-        <span style={{ fontSize: 16, fontWeight: 600 }}>
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            letterSpacing: "0.01em",
+            color: tokens.colors.text,
+          }}
+        >
           {year}年{month + 1}月
         </span>
         <button
@@ -1130,27 +1157,37 @@ function Calendar({
           aria-label="下一個月"
           onClick={() => shiftMonth(1)}
           style={{
-            width: 44,
-            height: 44,
+            width: 40,
+            height: 40,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "none",
-            border: "none",
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 10,
             color: tokens.colors.text,
             cursor: "pointer",
+            transition: `background ${tokens.duration.fast} ${tokens.easing.standard}`,
+          }}
+          onMouseEnter={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.08)"
+          }}
+          onMouseLeave={(e) => {
+            ;(e.currentTarget as HTMLButtonElement).style.background =
+              "rgba(255,255,255,0.04)"
           }}
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={18} />
         </button>
       </div>
 
-      {/* Weekday row */}
+      {/* Weekday row — quiet muted text, centered inside the card */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(7, 1fr)",
-          marginBottom: 4,
+          marginBottom: 8,
         }}
       >
         {DAY_NAMES.map((d) => (
@@ -1158,9 +1195,12 @@ function Calendar({
             key={d}
             style={{
               textAlign: "center",
-              fontSize: 12,
-              color: tokens.colors.textMuted,
-              padding: "4px 0",
+              fontSize: 11,
+              fontWeight: 500,
+              color: tokens.colors.textFaint,
+              padding: "6px 0",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase" as const,
             }}
           >
             {d}
@@ -1168,12 +1208,12 @@ function Calendar({
         ))}
       </div>
 
-      {/* Date grid */}
+      {/* Date grid — no per-cell border, numbers on shared card surface */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 2,
+          gap: 4,
         }}
       >
         {cells.map((date, i) => {
@@ -1199,8 +1239,6 @@ function Calendar({
                 aria-current={isSelected ? "date" : undefined}
                 onClick={() => !isPast && !booked && onSelect(date)}
                 style={{
-                  // Tap target fills the whole grid cell (maximised to ~44px+);
-                  // the visual circle inside stays 40px.
                   width: "100%",
                   height: "100%",
                   minHeight: 40,
@@ -1212,43 +1250,53 @@ function Calendar({
                   justifyContent: "center",
                   cursor: isPast || booked ? "default" : "pointer",
                   opacity: isPast || booked ? 0.3 : 1,
+                  borderRadius: "50%",
+                  transition: `background ${tokens.duration.fast} ${tokens.easing.standard}`,
+                }}
+                onMouseEnter={(e) => {
+                  if (isPast || booked || isSelected) return
+                  ;(e.currentTarget as HTMLButtonElement).style.background =
+                    "rgba(255,255,255,0.05)"
+                }}
+                onMouseLeave={(e) => {
+                  if (isPast || booked || isSelected) return
+                  ;(e.currentTarget as HTMLButtonElement).style.background =
+                    "transparent"
                 }}
               >
                 <span
                   style={{
                     position: "relative",
-                    width: 40,
-                    height: 40,
+                    width: 38,
+                    height: 38,
                     borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 15,
-                    fontWeight: isSelected ? 600 : 400,
-                    background: isSelected ? tokens.colors.link : "transparent",
-                    // Fully-booked days read as unavailable via a red-tinted,
-                    // dimmed number (the small dot below is now reserved for
-                    // "today", so booked can't use a dot without colliding).
+                    fontSize: 16,
+                    fontWeight: isSelected ? 500 : 400,
+                    letterSpacing: "0.02em",
+                    // Soft green pill at reduced opacity — NOT a solid green fill
+                    background: isSelected
+                      ? "rgba(37,211,102,0.18)"
+                      : "transparent",
                     color: isSelected
-                      ? "#fff"
+                      ? tokens.colors.brand
                       : booked
                         ? tokens.colors.danger
                         : tokens.colors.text,
                     opacity: booked && !isSelected ? 0.55 : 1,
                     textDecoration: booked && !isSelected ? "line-through" : "none",
-                    border: "1px solid transparent",
-                    transition: `background ${tokens.duration.fast}`,
+                    transition: `background ${tokens.duration.fast} ${tokens.easing.standard}`,
                   }}
                 >
                   {date.getDate()}
-                  {/* Today marker — small dot under the number (calendar-1
-                      demo's data-today treatment). Hidden when this cell is
-                      selected (the solid fill already conveys state). */}
+                  {/* Today marker — small dot under the number */}
                   {isToday && !isSelected && (
                     <span
                       style={{
                         position: "absolute",
-                        bottom: 4,
+                        bottom: 3,
                         left: "50%",
                         transform: "translateX(-50%)",
                         width: 4,
@@ -1258,16 +1306,13 @@ function Calendar({
                       }}
                     />
                   )}
-                  {/* Cross-date order indicator — a dot marking dates that
-                      already have picked hours elsewhere in the order.
-                      Positioned at top (vs. the today-dot's bottom) so the
-                      two never collide on a date that is both today and has
-                      a selection. Passive only — no modal/count. */}
+                  {/* Cross-date order indicator — dot at top for dates
+                      with picked hours elsewhere in the order */}
                   {!isSelected && datesWithSelections.has(fmtYMD(date)) && (
                     <span
                       style={{
                         position: "absolute",
-                        top: 4,
+                        top: 3,
                         left: "50%",
                         transform: "translateX(-50%)",
                         width: 4,
@@ -1326,14 +1371,16 @@ function SummaryCard({
   return (
     <Card
       variant="elevated"
+      padding="28px"
       style={{ backgroundColor: tokens.colors.depth.elevated }}
     >
         <div
           data-cms-key="book.card.title"
           className="font-label"
           style={{
-            fontSize: 12,
-            color: tokens.colors.textMuted,
+            fontSize: 11,
+            color: tokens.colors.textFaint,
+            letterSpacing: "0.04em",
             marginBottom: 20,
           }}
         >
@@ -1344,11 +1391,11 @@ function SummaryCard({
             display: "flex",
             flexDirection: "column",
             gap: 14,
-            marginBottom: 24,
+            marginBottom: 28,
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+            <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
               {t("date")}
             </span>
             <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
@@ -1360,7 +1407,7 @@ function SummaryCard({
           {single ? (
             <>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+                <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                   {t("time_slot")}
                 </span>
                 <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
@@ -1370,7 +1417,7 @@ function SummaryCard({
                 </span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+                <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                   {t("duration")}
                 </span>
                 <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
@@ -1380,7 +1427,7 @@ function SummaryCard({
             </>
           ) : (
             <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14, color: tokens.colors.textMuted }}>
+              <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                 {t("time_slot")}
               </span>
               <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
@@ -1415,7 +1462,7 @@ function SummaryCard({
         <div
           style={{
             fontFamily: tokens.font.display,
-            fontSize: 40,
+            fontSize: 48,
             textAlign: "center",
             marginBottom: ready && totalSaved > 0 ? 10 : 28,
             color: tokens.colors.link,
@@ -1428,9 +1475,9 @@ function SummaryCard({
             data-cms-key="book.total_saved"
             style={{
               textAlign: "center",
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: 600,
-              color: "#fff",
+              color: tokens.colors.textFaint,
               marginBottom: 22,
             }}
           >
@@ -1676,19 +1723,23 @@ function Screen1({
           </div>
         </div>
 
-        {/* Desktop sticky sidebar: summary + picks */}
+        {/* Desktop sticky sidebar: summary + picks — layered "peek" card
+            treatment: SummaryCard floats above SelectedPicksCard with a
+            slight overlap so they read as two distinct depth layers. */}
         <div className="desktop-card">
-          <SummaryCard
-            selectedDate={selectedDate}
-            runs={runs}
-            total={orderTotal}
-            canContinue={canContinue}
-            onContinue={onContinue}
-            ctaLabel={t("continue")}
-            ready={ready}
-            periods={periods}
-          />
-          <div style={{ marginTop: 16 }}>
+          <div style={{ position: "relative", zIndex: 2 }}>
+            <SummaryCard
+              selectedDate={selectedDate}
+              runs={runs}
+              total={orderTotal}
+              canContinue={canContinue}
+              onContinue={onContinue}
+              ctaLabel={t("continue")}
+              ready={ready}
+              periods={periods}
+            />
+          </div>
+          <div style={{ marginTop: -10, position: "relative", zIndex: 1 }}>
             <SelectedPicksCard runs={runs} removeRun={removeRun} periods={periods} />
           </div>
         </div>
@@ -3734,6 +3785,10 @@ export default function BookPage() {
             top: 88px;
             align-self: start;
             height: fit-content;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 10px;
           }
           .mobile-picks {
             display: none;

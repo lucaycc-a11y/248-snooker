@@ -174,7 +174,6 @@ export default function Gallery() {
               overflowX: "auto",
               scrollSnapType: "x mandatory",
               padding: "0 24px",
-              touchAction: "pan-y",
             }}
           >
             {slides.map((slide, i) => card(slide, i))}
