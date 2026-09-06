@@ -476,8 +476,8 @@ export default function Member() {
             display: none;
           }
           .s7-slide {
-            flex: 0 0 88vw;
-            max-width: 440px;
+            flex: 0 0 min(82vw, 400px);
+            max-width: 400px;
             scroll-snap-align: start;
             scroll-snap-stop: always;
           }

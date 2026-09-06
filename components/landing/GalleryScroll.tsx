@@ -407,7 +407,7 @@ export default function GalleryScroll() {
               data-cms-key="gallery.title"
               style={{
                 fontWeight: 700,
-                fontSize: "clamp(36px, 8vw, 52px)",
+                fontSize: "clamp(30px, 6.5vw, 44px)",
                 letterSpacing: "-0.025em",
                 color: "white",
                 textAlign: "center",
@@ -572,7 +572,7 @@ export default function GalleryScroll() {
         .venue-title {
           font-family: 'Noto Sans TC', sans-serif;
           font-weight: 900;
-          font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+          font-size: clamp(1.45rem, 3vw, 2.15rem);
           color: #f5f2ec;
           text-align: center;
           margin-bottom: 34px;

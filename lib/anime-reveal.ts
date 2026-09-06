@@ -109,14 +109,19 @@ export function useAnimeEntrance<T extends HTMLElement>(
       : [root];
     if (!targets.length) return;
 
-    targets.forEach((target) => target.classList.add("anime-reveal-target"));
+    const authoredWrappers = targets
+      .map((target) => target.closest<HTMLElement>(".anime-reveal-wrapper"))
+      .filter((wrapper): wrapper is HTMLElement => Boolean(wrapper));
+    const animationTargets = Array.from(new Set([...targets, ...authoredWrappers]));
+
+    animationTargets.forEach((target) => target.classList.add("anime-reveal-target"));
 
     if (prefersReducedMotion()) {
-      showImmediately(targets);
+      showImmediately(animationTargets);
       return;
     }
 
-    const animation = animate(targets, {
+    const animation = animate(animationTargets, {
       opacity: [0, 1],
       y: [options.distance ?? 18, 0],
       duration: options.duration ?? 850,

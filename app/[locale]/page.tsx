@@ -6,7 +6,7 @@ import GalleryScroll from "@/components/landing/GalleryScroll";
 import HomeFacilities from "@/components/landing/HomeFacilities";
 import HomeRooms from "@/components/landing/HomeRooms";
 import HomeFocus from "@/components/landing/HomeFocus";
-import Section4TableTransition from "@/components/landing/Section4TableTransition";
+import SpacePilotHomepage from "@/components/landing/SpacePilotHomepage";
 import Section5Booking from "@/components/landing/Section5Booking";
 import Section6Pricing from "@/components/landing/Section6Pricing";
 import { getConfig } from "@/lib/data/getConfig";
@@ -17,7 +17,6 @@ import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import Section2Value from "@/components/landing/Section2Value";
-import SpacePilotScrollDemo from "@/components/landing/SpacePilotScrollDemo";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 
@@ -120,19 +119,18 @@ export default async function Home({
       <AmbientGlow />
       <Nav />
       <Hero />
-      {/* <GalleryScroll /> — temporarily hidden */}
+      <GalleryScroll />
       <Section2Value />
       <HomeFacilities />
-      <Section4TableTransition />
+      <SpacePilotHomepage />
       <Section5Booking />
       <Section6Pricing periods={config.periods} />
 
-      {/* Learn More scroll target — zero-height anchor, sections flow directly */}
+      {/* Learn More scroll target - zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />
 
-      {/* Membership — last section before footer */}
+      {/* Membership - last section before footer */}
       <Member />
-      <SpacePilotScrollDemo />
 
       {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
           a "了解更多" link to the full /faq page. */}
