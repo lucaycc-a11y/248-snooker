@@ -75,8 +75,8 @@
     "semantic_hash": "093726ca0bcb4d8994f48c18db9894d9"
   },
   "app/[locale]/book/page.tsx": {
-    "mtime": 1788682130.0121152,
-    "ast_hash": "c46200c5ee0c2e1eadc1810f4451e7a1",
+    "mtime": 1788684125.9311018,
+    "ast_hash": "6fcd678ca30006b4acb8a67e30cacd7e",
     "semantic_hash": ""
   },
   "app/[locale]/faq/page.tsx": {
@@ -5777,6 +5777,41 @@
   "supabase/migrations/20260906_login_otp_idempotency.sql": {
     "mtime": 1788682266.668521,
     "ast_hash": "f0110bdaf76c227adf476ee9844ec2cc",
+    "semantic_hash": ""
+  },
+  "hero-verify/homepage_sections.py": {
+    "mtime": 1788683401.6832507,
+    "ast_hash": "595749c90641bec7d8ce92ed8590df46",
+    "semantic_hash": ""
+  },
+  "hero-verify/desktop-full.png": {
+    "mtime": 1788683459.6687055,
+    "ast_hash": "972a98e3110c2f012c63df9b3ddb1fe7",
+    "semantic_hash": ""
+  },
+  "hero-verify/desktop-page.png": {
+    "mtime": 1788683463.0118687,
+    "ast_hash": "d6d2f95e5975bff168b7a499bd45e656",
+    "semantic_hash": ""
+  },
+  "hero-verify/mobile-full.png": {
+    "mtime": 1788683446.2959793,
+    "ast_hash": "69bbd7a7053e82fa10824d6d329f1c52",
+    "semantic_hash": ""
+  },
+  "hero-verify/mobile-page.png": {
+    "mtime": 1788683447.5288641,
+    "ast_hash": "9558079ce37e1c9c79990f759c2d443d",
+    "semantic_hash": ""
+  },
+  "hero-verify/tablet-full.png": {
+    "mtime": 1788683451.9486382,
+    "ast_hash": "e23e138ff03d56f2502d61501b9265a1",
+    "semantic_hash": ""
+  },
+  "hero-verify/tablet-page.png": {
+    "mtime": 1788683454.9092376,
+    "ast_hash": "ba6f5b86e67747888b1754e1dd98a9b6",
     "semantic_hash": ""
   }
 }

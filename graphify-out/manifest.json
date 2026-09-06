@@ -75,8 +75,8 @@
     "semantic_hash": "093726ca0bcb4d8994f48c18db9894d9"
   },
   "app/[locale]/book/page.tsx": {
-    "mtime": 1788683924.6392233,
-    "ast_hash": "663464933a670ab19044016d7b5a1130",
+    "mtime": 1788684125.9311018,
+    "ast_hash": "6fcd678ca30006b4acb8a67e30cacd7e",
     "semantic_hash": ""
   },
   "app/[locale]/faq/page.tsx": {
@@ -125,8 +125,8 @@
     "semantic_hash": "ea7d6497a6809640fdbb81f23d743b73"
   },
   "app/[locale]/page.tsx": {
-    "mtime": 1788682806.8608055,
-    "ast_hash": "a3e2b39a823ce6e73723c07750a4457f",
+    "mtime": 1788684624.657892,
+    "ast_hash": "14128338fca1fe351926fb48dbe11fc2",
     "semantic_hash": ""
   },
   "app/[locale]/pricing/PricingContent.tsx": {
@@ -3665,8 +3665,8 @@
     "semantic_hash": ""
   },
   "components/checkout/PaymentMethodList.tsx": {
-    "mtime": 1788682753.9335687,
-    "ast_hash": "215472d01d69b2bb416caf3a0c16db46",
+    "mtime": 1788684378.885057,
+    "ast_hash": "bdb28e8250b379acb6c24bac4ff3801f",
     "semantic_hash": ""
   },
   "components/checkout/PromoCodeInput.tsx": {
