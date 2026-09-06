@@ -83,35 +83,34 @@ export async function POST(req: Request) {
 
     const service = getServiceSupabase()
 
-    // Verified-contact authority. The users_profile_complete_verified_chk
-    // constraint (migration 20260829) makes "profile_complete = true" MEAN
-    // "both contacts verified": the write below must carry non-null
-    // email_verified_at and phone_verified_at or the upsert 500s. Those two
-    // stamps must come from genuine verification, never from the submitted form:
-    //
-    //   email — the session email is the only trustable one. Every path that
-    //   reaches this gate holds a Supabase session for a confirmed email (OAuth
-    //   emails are auto-confirmed, the email-first signup stamps its own
-    //   email_verified_at, SMS-recovered accounts were created email-first); an
-    //   email in the form that differs from the session email is unverified by
-    //   definition and must be rejected, not stamped.
-    //
-    //   phone — two honest sources only: (a) public.users.phone_verified_at
-    //   already set for THIS phone by /api/otp/verify-binding (the new Google /
-    //   Apple / typed-phone OTP step), or (b) auth.users.phone matching (a
-    //   genuinely Supabase-SMS-verified number). Anything else — a bare typed
-    //   phone with no OTP proof — gets a 422 phone_not_verified: this is the
-    //   server-side half of C2 item 6, a direct POST here must never bypass the
-    //   phone verification step.
+    // The phone identity ledger is the canonical verification source. The
+    // legacy users.phone_verified_at column is still populated below for the
+    // profile-complete constraint and older readers, but it must never decide
+    // whether this submitted phone has actually been proven.
     const { data: existing } = await service
       .from('users')
-      .select('member_code, phone, phone_verified_at')
+      .select('member_code')
       .eq('id', user.id)
-      .maybeSingle<{
-        member_code: string | null
-        phone: string | null
-        phone_verified_at: string | null
-      }>()
+      .maybeSingle<{ member_code: string | null }>()
+
+    const { data: verifiedIdentity, error: identityError } = await service
+      .from('auth_identities')
+      .select('verified_at')
+      .eq('user_id', user.id)
+      .eq('provider', 'phone')
+      .eq('identifier', result.value.phone)
+      .eq('verified', true)
+      .maybeSingle<{ verified_at: string | null }>()
+
+    if (identityError) {
+      console.error('[profile/complete] phone identity lookup failed', {
+        message: identityError.message,
+        code: identityError.code,
+        userId: user.id,
+        submittedPhone: `***${result.value.phone.slice(-3)}`,
+      })
+      return NextResponse.json({ error: 'internal_error' }, { status: 500 })
+    }
 
     const submittedEmail = result.value.email
     const sessionEmail = (user.email ?? '').toLowerCase()
@@ -131,22 +130,11 @@ export async function POST(req: Request) {
       ?? new Date().toISOString()
 
     const phone = result.value.phone
-    const rowAlreadyVerified =
-      existing?.phone_verified_at != null && existing.phone === phone
-    const authPhoneVerified = user.phone === phone
-    const phoneVerifiedAt = rowAlreadyVerified
-      ? existing.phone_verified_at
-      : authPhoneVerified
-        ? new Date().toISOString()
-        : null
-    if (!phoneVerifiedAt) {
+    if (!verifiedIdentity) {
       console.warn('[profile/complete] 422 phone_not_verified', {
         submittedPhone: `***${phone.slice(-3)}`,
-        existingPhone: existing?.phone ? `***${existing.phone.slice(-3)}` : '(none)',
-        existingPhoneVerified: existing?.phone_verified_at ?? '(null)',
-        authUserPhone: user.phone ? `***${user.phone.slice(-3)}` : '(none)',
-        rowAlreadyVerified,
-        authPhoneVerified,
+        verificationSource: 'auth_identities',
+        identityVerified: false,
         userId: user.id,
       })
       return NextResponse.json(
@@ -154,6 +142,10 @@ export async function POST(req: Request) {
         { status: 422 },
       )
     }
+
+    // Older verified identities may lack a timestamp. Their verified flag is
+    // authoritative; this fallback only fills the legacy profile projection.
+    const phoneVerifiedAt = verifiedIdentity.verified_at ?? new Date().toISOString()
 
     // Member code: SPACE8-{TIER}-{4chars}-{check}. New signups always start at
     // the Amateur tier (→ AMA). Codes are random, so this is idempotent by reuse:
