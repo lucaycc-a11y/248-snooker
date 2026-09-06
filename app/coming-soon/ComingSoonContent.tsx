@@ -7,6 +7,7 @@ import { X } from 'lucide-react'
 import { Starfield } from '@/app/[locale]/Starfield'
 import { AmbientGlow } from '@/components/shared/AmbientGlow'
 import { Logo } from '@/components/brand/Logo'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 
 const GREEN = '#22c55e'
 const LONG_PRESS_MS = 2500
@@ -184,13 +185,12 @@ function PasswordModal({ open, onClose }: { open: boolean; onClose: () => void }
               type="button"
               onClick={onClose}
               aria-label="Close"
-              style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{ position: 'absolute', top: 16, right: 16, width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <X size={20} color="#86868B" />
             </button>
             <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
-              <input
-                type="password"
+              <PasswordInput
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('password_placeholder')}

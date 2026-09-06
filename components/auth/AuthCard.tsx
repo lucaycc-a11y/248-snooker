@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client"
 import { normalizeHkPhone } from "@/lib/auth/profile"
 import { validatePassword } from "@/lib/auth/password"
 import { LoadingGif } from "@/components/ui/LoadingGif"
+import { PasswordInput } from "@/components/ui/PasswordInput"
 import PasswordStrength from "./PasswordStrength"
 import { GoogleSignInButton } from "./GoogleSignInButton"
 import { AppleSignInButton } from "./AppleSignInButton"
@@ -671,11 +672,10 @@ export function AuthCard({
             aria-label={t("identifier_placeholder")}
             style={{ height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
           />
-          <input
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t("password_placeholder")}
-            type="password"
             autoComplete="current-password"
             aria-label={t("password_placeholder")}
             style={{ height: 52, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.14)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none" }}
