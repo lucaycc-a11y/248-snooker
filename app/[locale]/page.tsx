@@ -119,7 +119,6 @@ export default async function Home({
       <AmbientGlow />
       <Nav />
       <Hero />
-      <GalleryScroll />
       <Section2Value />
       <HomeFacilities />
       <SpacePilotHomepage />

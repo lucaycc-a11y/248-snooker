@@ -1,14 +1,9 @@
 "use client"
 
 // ────────────────────────────────────────────────────────────────
-// PaymentMethodList — full payment method selector for the Space8
-// checkout flow. Eight methods, each with a label, sublabel, and
-// branded badge icons. The backend still rejects any direct API request
-// using the permanently unsupported Apple Pay / Google Pay method IDs.
-//
-// alipay / alipayhk / wechat / unionpay_qp are marked disabled:false
-// (clickable) but the backend has no implementation for them — they
-// will return a 400 error. This is intentional per the spec.
+// PaymentMethodList — payment method selector for the Space8 checkout
+// flow. PAYMENT_METHODS is the catalog; AVAILABLE_PAYMENT_METHODS is
+// the ordered allowlist for methods currently shown in the UI.
 // ────────────────────────────────────────────────────────────────
 
 import { tokens } from "@/app/styles/tokens"
