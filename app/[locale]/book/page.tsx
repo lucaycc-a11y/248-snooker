@@ -1924,6 +1924,25 @@ function Screen3({
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const payCtaRef = useRef<HTMLDivElement>(null)
 
+  // A browser-back from an external Alipay page can restore this component from
+  // bfcache with the pre-redirect commitment still set. Re-enter the selector
+  // only for that return path; the normal first visit remains unchanged.
+  useEffect(() => {
+    const resetAfterExternalPaymentReturn = (event: PageTransitionEvent) => {
+      const redirectStatus = new URLSearchParams(window.location.search).get("redirect_status")
+      if (!event.persisted && redirectStatus !== "returned" && redirectStatus !== "cancelled") return
+
+      clearKPayPersistedState()
+      setConfirmed(false)
+      setPaymentMethod(null)
+      setKpayMethod(null)
+      setPaymentError(null)
+    }
+
+    window.addEventListener("pageshow", resetAfterExternalPaymentReturn)
+    return () => window.removeEventListener("pageshow", resetAfterExternalPaymentReturn)
+  }, [])
+
   // ── UAT-only PayMe simulation modal ──────────────────────────────────────
   // Pop-up before checkout to select .81 (success) / .82 (fail) / normal.
   // Only appears for PayMe method — other methods are unaffected.
