@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 import { normalizeHkPhone } from '@/lib/auth/profile'
 import { sendEngagelabOtp, mapEngagelabError } from '@/lib/engagelab/otp'
+import { getServiceSupabase } from '@/lib/supabase/service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -51,13 +52,48 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
     }
 
-    const engagelabData = await sendEngagelabOtp(phone, 'zh_HK')
+    const service = getServiceSupabase()
+    const { data: reservation, error: reservationError } = await service.rpc('reserve_login_otp', {
+      p_phone: phone,
+    }).maybeSingle()
+    if (reservationError || !reservation) {
+      console.error('[otp/send] reservation_failed', { message: reservationError?.message ?? 'empty reservation', phone })
+      return NextResponse.json({ error: 'send_failed' }, { status: 503 })
+    }
 
-    return NextResponse.json({
-      success: true,
-      messageId: engagelabData.message_id,
-      channel: engagelabData.send_channel,
-    })
+    const row = reservation as unknown as {
+      request_id: string
+      message_id: string | null
+      channel: string | null
+      expires_at: string
+      is_owner: boolean
+    }
+    if (!row.is_owner) {
+      if (row.message_id) {
+        console.info('[otp/send] reused_pending', { phone, requestId: row.request_id })
+        return NextResponse.json({ success: true, messageId: row.message_id, channel: row.channel ?? 'sms', expiresAt: row.expires_at, reused: true })
+      }
+      console.warn('[otp/send] send_in_progress', { phone, requestId: row.request_id })
+      return NextResponse.json({ error: 'send_in_progress' }, { status: 409 })
+    }
+
+    try {
+      const engagelabData = await sendEngagelabOtp(phone, 'zh_HK')
+      const { data: completed, error: completionError } = await service.rpc('complete_login_otp', {
+        p_request_id: row.request_id,
+        p_message_id: engagelabData.message_id,
+        p_channel: engagelabData.send_channel,
+      })
+      if (completionError || completed !== true) {
+        console.error('[otp/send] reservation_completion_failed', { message: completionError?.message ?? 'reservation was not updated', phone, requestId: row.request_id })
+        await service.rpc('expire_login_otp', { p_request_id: row.request_id })
+        return NextResponse.json({ error: 'send_failed' }, { status: 503 })
+      }
+      return NextResponse.json({ success: true, messageId: engagelabData.message_id, channel: engagelabData.send_channel, expiresAt: row.expires_at, reused: false })
+    } catch (error: unknown) {
+      await service.rpc('expire_login_otp', { p_request_id: row.request_id })
+      throw error
+    }
   } catch (error: unknown) {
     console.error('[otp/send] error', error)
 

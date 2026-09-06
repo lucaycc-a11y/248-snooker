@@ -27,18 +27,17 @@ export async function rateLimit(
       p_window_seconds: windowSeconds,
     })
     if (error) {
-      console.error('[rate-limit] check_rate_limit_error', {
-        message: error.message,
-        code: (error as { code?: string }).code,
-        bucket,
-        identifier,
-      })
-      return true // fail open
+      console.error('[rate-limit] service_unhealthy_rejecting', { message: error.message, code: (error as { code?: string }).code, bucket, identifier, strategy: 'fail_closed' })
+      return false
     }
-    return data === true
+    if (typeof data !== 'boolean') {
+      console.error('[rate-limit] service_unhealthy_rejecting', { bucket, identifier, strategy: 'fail_closed', reason: 'invalid_rpc_result' })
+      return false
+    }
+    return data
   } catch (err) {
-    console.error('[rate-limit] error', { message: (err as Error).message, bucket, identifier })
-    return true // fail open
+    console.error('[rate-limit] service_unhealthy_rejecting', { message: err instanceof Error ? err.message : 'unknown error', bucket, identifier, strategy: 'fail_closed' })
+    return false
   }
 }
 
