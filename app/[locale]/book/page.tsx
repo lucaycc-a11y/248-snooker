@@ -2286,7 +2286,6 @@ function Screen3({
                 /* ── PaymentMethodList (full method selector) ── */
                 /* Selecting only highlights. The bottom CTA commits. */
                 <PaymentMethodList
-                  collapsed
                   selected={paymentMethod}
                   onSelect={(method) => {
                     setPaymentError(null)
