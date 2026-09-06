@@ -53,7 +53,7 @@ export default function HomeFacilities() {
           <h2 id="home-facilities-title" data-cms-key="homeVenue.title" className="sr-only">
             {t("title")}
           </h2>
-          <p data-cms-key="homeVenue.intro" className="m-0 max-w-4xl text-[clamp(2.25rem,6vw,5rem)] font-semibold leading-[1.02] tracking-[-0.04em] text-[#111110]">
+          <p data-cms-key="homeVenue.intro" className="m-0 max-w-4xl text-[clamp(1.75rem,4vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.04em] text-[#111110]">
             {t("intro")}
           </p>
         </motion.div>

@@ -5,7 +5,7 @@ import Hero from "@/components/landing/Hero";
 import HomeFacilities from "@/components/landing/HomeFacilities";
 import HomeRooms from "@/components/landing/HomeRooms";
 import HomeFocus from "@/components/landing/HomeFocus";
-import SpacePilotHomepage from "@/components/landing/SpacePilotHomepage";
+import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
 import Section5Booking from "@/components/landing/Section5Booking";
 import Section6Pricing from "@/components/landing/Section6Pricing";
 import { getConfig } from "@/lib/data/getConfig";
@@ -120,7 +120,7 @@ export default async function Home({
       <Hero />
       <Section2Value />
       <HomeFacilities />
-      <SpacePilotHomepage />
+      <SpacePilotScoreboardExperience />
       <Section5Booking />
       <Section6Pricing periods={config.periods} />
 
