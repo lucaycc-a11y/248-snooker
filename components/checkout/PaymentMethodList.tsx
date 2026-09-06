@@ -1,7 +1,5 @@
 "use client"
 
-import { useState } from "react"
-
 // ────────────────────────────────────────────────────────────────
 // PaymentMethodList — full payment method selector for the Space8
 // checkout flow. Eight methods, each with a label, sublabel, and
@@ -73,39 +71,11 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     ),
   },
   {
-    id: "alipay",
-    label: "支付寶",
-    sublabel: "Alipay 中國內地帳戶",
-    disabled: false,
-    icons: <AlipayBadgeIcon />,
-  },
-  {
     id: "alipayhk",
     label: "AlipayHK",
     sublabel: "香港支付寶錢包",
     disabled: false,
     icons: <AlipayHKBadgeIcon />,
-  },
-  {
-    id: "wechat",
-    label: "微信支付",
-    sublabel: "WeChat Pay",
-    disabled: false,
-    icons: <WeChatPayBadgeIcon />,
-  },
-  {
-    id: "unionpay_qp",
-    label: "雲閃付",
-    sublabel: "UnionPay QuickPass",
-    disabled: false,
-    icons: <UnionPayQuickPassBadgeIcon />,
-  },
-  {
-    id: "octopus",
-    label: "八達通",
-    sublabel: "Octopus",
-    disabled: false,
-    icons: <OctopusBadgeIcon />,
   },
   {
     id: "payme",
@@ -115,11 +85,39 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     icons: <PayMeBadgeIcon />,
   },
   {
+    id: "wechat",
+    label: "微信支付",
+    sublabel: "WeChat Pay",
+    disabled: false,
+    icons: <WeChatPayBadgeIcon />,
+  },
+  {
+    id: "octopus",
+    label: "八達通",
+    sublabel: "Octopus",
+    disabled: false,
+    icons: <OctopusBadgeIcon />,
+  },
+  {
     id: "fps",
     label: "轉數快",
     sublabel: "FPS · 60 秒內完成過數",
     disabled: false,
     icons: <FpsBadgeIcon />,
+  },
+  {
+    id: "alipay",
+    label: "支付寶",
+    sublabel: "Alipay 中國內地帳戶",
+    disabled: false,
+    icons: <AlipayBadgeIcon />,
+  },
+  {
+    id: "unionpay_qp",
+    label: "雲閃付",
+    sublabel: "UnionPay QuickPass",
+    disabled: false,
+    icons: <UnionPayQuickPassBadgeIcon />,
   },
 ]
 
@@ -134,23 +132,11 @@ export function paymentMethodLabel(id: PaymentMethodId): string {
 type Props = {
   selected: PaymentMethodId | null
   onSelect: (method: PaymentMethodId) => void
-  /** When true, collapse non-essential methods behind a "more" toggle. */
-  collapsed?: boolean
 }
 
 // ── Component ──────────────────────────────────────────────────
 
-const FEATURED_METHODS: PaymentMethodId[] = ['card', 'alipay', 'fps']
-
-export default function PaymentMethodList({ selected, onSelect, collapsed }: Props) {
-  const [expanded, setExpanded] = useState(false)
-
-  // Nothing selected or expanded — show all; collapsed mode shows only featured
-  const visibleMethods =
-    collapsed && !expanded
-      ? PAYMENT_METHODS.filter((m) => FEATURED_METHODS.includes(m.id))
-      : PAYMENT_METHODS
-
+export default function PaymentMethodList({ selected, onSelect }: Props) {
   return (
     // Container is a quiet grouping wrapper — no own fill/border — so the
     // interactive PaymentMethodCards are the only elevated surfaces here.
@@ -163,7 +149,7 @@ export default function PaymentMethodList({ selected, onSelect, collapsed }: Pro
         gap: 10,
       }}
     >
-      {visibleMethods.map((method) => (
+      {PAYMENT_METHODS.map((method) => (
         <PaymentMethodCard
           key={method.id}
           method={method.id}
@@ -176,26 +162,6 @@ export default function PaymentMethodList({ selected, onSelect, collapsed }: Pro
           onSelect={(method) => onSelect(method as PaymentMethodId)}
         />
       ))}
-      {collapsed && !expanded && (
-        <button
-          type="button"
-          onClick={() => setExpanded(true)}
-          style={{
-            background: "transparent",
-            border: `1px solid ${tokens.colors.border}`,
-            borderRadius: tokens.radius.button,
-            padding: "12px 16px",
-            color: tokens.colors.textMuted,
-            fontSize: 13,
-            fontWeight: 500,
-            cursor: "pointer",
-            marginTop: 4,
-            transition: "border-color 0.2s",
-          }}
-        >
-          更多付款方式
-        </button>
-      )}
     </div>
   )
 }
