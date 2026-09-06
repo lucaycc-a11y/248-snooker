@@ -121,6 +121,13 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
   },
 ]
 
+// Controls both visibility and display order. Add a method here when it launches.
+const AVAILABLE_PAYMENT_METHODS: readonly PaymentMethodId[] = ["card", "alipayhk", "payme"]
+
+const visibleMethods = AVAILABLE_PAYMENT_METHODS.flatMap((id) =>
+  PAYMENT_METHODS.filter((method) => method.id === id)
+)
+
 /** Display name for a rail, for the "pay with …" confirm button. Single source
  * of truth — the CTA must never drift from the card the customer tapped. */
 export function paymentMethodLabel(id: PaymentMethodId): string {
@@ -149,7 +156,7 @@ export default function PaymentMethodList({ selected, onSelect }: Props) {
         gap: 10,
       }}
     >
-      {PAYMENT_METHODS.map((method) => (
+      {visibleMethods.map((method) => (
         <PaymentMethodCard
           key={method.id}
           method={method.id}
