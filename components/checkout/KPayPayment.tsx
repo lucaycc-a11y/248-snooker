@@ -357,6 +357,18 @@ export default function KPayPayment(props: Props) {
           setState('failed')
           return
         }
+        if (json.bookingId || localBookingId) {
+          try {
+            persistKPayState({
+              bookingId: String(json.bookingId ?? localBookingId),
+              providerOrderNo: json.providerOrderNo,
+              method,
+              mode,
+              agreedToTerms: true,
+              savedAt: Date.now(),
+            })
+          } catch {}
+        }
         window.location.href = json.payInfo
         return
       }

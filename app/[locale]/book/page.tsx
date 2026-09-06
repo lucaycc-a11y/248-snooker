@@ -327,7 +327,7 @@ function parseSelectionEntries(entries: unknown): Map<string, Set<string>> {
 // so window.scrollTo works on every breakpoint. The short delay lets the
 // section mount/expand before we measure.
 function scrollToRef(ref: React.RefObject<HTMLElement>) {
-  if (typeof window === "undefined") return
+  if (typeof window === "undefined" || window.matchMedia("(max-width: 767px)").matches) return
   setTimeout(() => {
     if (!ref.current) return
     const y = ref.current.getBoundingClientRect().top + window.scrollY - 80
@@ -341,7 +341,7 @@ function scrollToRef(ref: React.RefObject<HTMLElement>) {
 // (e.g. .mobile-picks is hidden on desktop where the sidebar is always
 // visible, so no scroll is needed).
 function scrollIntoViewIfNeeded(ref: React.RefObject<HTMLElement>, offset = 80) {
-  if (typeof window === "undefined") return
+  if (typeof window === "undefined" || window.matchMedia("(max-width: 767px)").matches) return
   setTimeout(() => {
     if (!ref.current) return
     const rect = ref.current.getBoundingClientRect()
