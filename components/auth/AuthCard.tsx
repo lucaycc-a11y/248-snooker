@@ -73,6 +73,7 @@ export function AuthCard({
   const [error, setError] = useState<string | null>(null)
   const [attemptsLeft, setAttemptsLeft] = useState(MAX_OTP_ATTEMPTS)
   const [cooldown, setCooldown] = useState(0)
+  const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null)
   const [prefill, setPrefill] = useState<Prefill>({ name: "", email: "", phone: "", phoneVerified: false })
   // True until the mount-time session check resolves — avoids flashing the method
   // picker to a user who's already signed in (e.g. returning from an OAuth redirect).
@@ -355,6 +356,7 @@ export function AuthCard({
       setOtpStatus("input")
       setOtpChannel("sms")
       setMessageId(typeof j?.messageId === "string" ? j.messageId : "")
+      setOtpExpiresAt(typeof j?.expiresAt === "string" ? j.expiresAt : null)
       setOtpDeliveryChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
       setAttemptsLeft(MAX_OTP_ATTEMPTS)
       setCooldown(RESEND_COOLDOWN)
@@ -393,6 +395,7 @@ export function AuthCard({
       setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
       setOtpStatus("input")
       setOtpChannel("email")
+      setOtpExpiresAt(null)
       setAttemptsLeft(MAX_OTP_ATTEMPTS)
       setCooldown(RESEND_COOLDOWN)
       setBusy(false)
@@ -420,15 +423,37 @@ export function AuthCard({
     }
     setBusy(true)
     setError(null)
-    const supabase = createClient()
-    const authInput = normalizedPhone ? { phone: normalizedPhone, password } : { email: identifier.toLowerCase(), password }
-    const { error: signInErr } = await supabase.auth.signInWithPassword(authInput)
-    if (signInErr) {
-      setError(t("err_password"))
+    try {
+      const supabase = createClient()
+      const authInput = normalizedPhone ? { phone: normalizedPhone, password } : { email: identifier.toLowerCase(), password }
+      const { error: signInErr } = await supabase.auth.signInWithPassword(authInput)
+      if (signInErr) {
+        const message = signInErr.message.toLowerCase()
+        if (signInErr.status === 429 || signInErr.code === "over_request_rate_limit") {
+          setError(t("err_rate_limited"))
+        } else if (
+          signInErr.code === "invalid_credentials" ||
+          signInErr.code === "user_not_found" ||
+          (!signInErr.code && message === "invalid login credentials")
+        ) {
+          // Do not distinguish missing accounts or unset passwords from wrong credentials.
+          // Keeping the same message avoids introducing an account-enumeration signal.
+          setError(t("err_password"))
+        } else if (signInErr.code === "email_not_confirmed") {
+          // Only use the explicit Auth code; do not infer account state from arbitrary messages.
+          setError(t("err_password_email_unconfirmed"))
+        } else {
+          setError(t("err_password_unknown"))
+        }
+        return
+      }
+      await afterSignIn()
+    } catch (error: unknown) {
+      console.error("Password sign-in failed", error)
+      setError(t("err_password_unknown"))
+    } finally {
       setBusy(false)
-      return
     }
-    await afterSignIn()
   }
 
   const verifyOtp = async (code: string) => {
@@ -480,7 +505,9 @@ export function AuthCard({
           setError(t("err_otp_wrong", { count: remaining }))
         } else {
           setError(t("err_otp_locked"))
-          setPhase("methods")
+          setOtpStatus("locked")
+          setBusy(false)
+          return
         }
         setOtpStatus("failure")
         setBusy(false)
@@ -499,9 +526,11 @@ export function AuthCard({
         setError(t("err_otp_wrong", { count: remaining }))
       } else {
         setError(t("err_otp_locked"))
-        setPhase("methods")
+        setOtpStatus("locked")
+        setBusy(false)
+        return
       }
-      setOtpStatus(remaining > 0 ? "failure" : "input")
+      setOtpStatus("failure")
       setBusy(false)
       return
     }
@@ -632,6 +661,7 @@ export function AuthCard({
             error={error}
             onReset={() => { setOtp(Array.from({ length: OTP_LENGTH }, () => "")); setError(null); setOtpStatus("input") }}
             disabled={busy}
+            expiresAt={otpExpiresAt}
           />
 
         <button
