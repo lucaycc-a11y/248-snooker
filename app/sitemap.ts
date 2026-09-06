@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getBlogPosts } from '@/lib/data/getBlog'
+import { getSiteGate } from '@/lib/gate/config'
 
 const BASE = 'https://space8.com.hk'
 const LOCALES = ['zh-HK', 'zh-CN', 'en']
@@ -33,6 +34,9 @@ function staticEntry(
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { config } = await getSiteGate()
+  if (config.enabled) return []
+
   const now = new Date()
 
   const postsByLocale = await Promise.all(LOCALES.map((locale) => getBlogPosts(locale)))

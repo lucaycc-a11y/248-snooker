@@ -7,7 +7,8 @@ import { safeJsonLd } from '@/lib/seo/jsonLd'
 export const metadata: Metadata = {
   title: 'SPACE8｜香港中八桌球室｜新蒲崗自助無煙獨立球室（即將開幕）',
   description: 'SPACE8 是香港新蒲崗自助無煙中八獨立球室，全預約制，網上預訂、QR碼自助入場。鄰近鑽石山及啟德港鐵站，九龍區中八愛好者主場，即將開幕。',
-  robots: { index: true, follow: true },
+  // Temporary gate content must not compete with the real localized pages in search.
+  robots: { index: false, follow: false },
 }
 
 // Never prerender/cache — the gate can be toggled off at any time, and this
