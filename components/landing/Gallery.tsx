@@ -75,14 +75,14 @@ export default function Gallery() {
       style={{
         position: "relative",
         flexShrink: 0,
-        width: isMobile ? "88%" : "100%",
+        width: isMobile ? "82%" : "100%",
         // aspectRatio drives height on desktop; on mobile we fix an explicit
         // height so every card is identical and the carousel track never
         // reflows when snapping between cards.
         aspectRatio: isMobile ? undefined : "16 / 10",
-        height: isMobile ? "60vw" : undefined,
-        minHeight: isMobile ? "200px" : undefined,
-        borderRadius: isMobile ? "20px" : "24px",
+        height: isMobile ? "54vw" : undefined,
+        minHeight: isMobile ? "180px" : undefined,
+        borderRadius: isMobile ? "18px" : "20px",
         overflow: "hidden",
         background: "#2C2C2E",
         scrollSnapAlign: isMobile ? "center" : undefined,
@@ -102,14 +102,14 @@ export default function Gallery() {
           top: 0,
           left: 0,
           right: 0,
-          padding: isMobile ? "24px 24px 48px" : "32px 36px 56px",
+          padding: isMobile ? "20px 20px 40px" : "26px 30px 48px",
           background:
             "linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0) 100%)",
         }}
       >
         <h3
           style={{
-            fontSize: "clamp(20px, 2.2vw, 28px)",
+            fontSize: "clamp(18px, 2vw, 24px)",
             fontWeight: 600,
             letterSpacing: "-0.02em",
             color: "white",
@@ -122,7 +122,7 @@ export default function Gallery() {
         </h3>
         <p
           style={{
-            fontSize: "clamp(15px, 1.3vw, 18px)",
+            fontSize: "clamp(14px, 1.2vw, 16px)",
             color: "rgba(255,255,255,0.78)",
             marginTop: "8px",
             lineHeight: 1.6,
@@ -147,7 +147,7 @@ export default function Gallery() {
       {/* Section title */}
       <h2
         style={{
-          fontSize: "clamp(32px, 4vw, 48px)",
+          fontSize: "clamp(28px, 3.5vw, 40px)",
           fontWeight: 600,
           letterSpacing: "-0.025em",
           color: "white",

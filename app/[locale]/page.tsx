@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Hero from "@/components/landing/Hero";
-import GalleryScroll from "@/components/landing/GalleryScroll";
 import HomeFacilities from "@/components/landing/HomeFacilities";
 import HomeRooms from "@/components/landing/HomeRooms";
 import HomeFocus from "@/components/landing/HomeFocus";

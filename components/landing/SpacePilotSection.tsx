@@ -9,7 +9,6 @@ import {
   Languages,
   Monitor,
   QrCode,
-  Sparkles,
   Trophy,
   UserPlus,
   Users,
@@ -91,12 +90,6 @@ export default function SpacePilotSection({ limit, compact = false }: SpacePilot
           ))}
         </div>
 
-        {compact && (
-          <p data-cms-key="spacePilot.more" style={{ color: "#22C55E", fontSize: 14, margin: "28px 0 0" }}>
-            <Sparkles aria-hidden="true" size={15} style={{ verticalAlign: "-3px", marginRight: 7 }} />
-            {t("more")}
-          </p>
-        )}
       </div>
     </section>
   );

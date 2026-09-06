@@ -121,7 +121,7 @@ export default function Hero() {
         <div className="anime-reveal-wrapper">
         <h1
           data-anime-hero-item
-          className="text-[clamp(44px,9vw,60px)] md:text-[68px]"
+          className="text-[clamp(38px,8vw,54px)] md:text-[60px]"
           style={{
             ...HEADLINE_GRADIENT,
             fontWeight: 600,

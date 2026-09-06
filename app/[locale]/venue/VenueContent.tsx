@@ -253,7 +253,8 @@ const SITE_CSS = `
 }
 .compare-frame {
   position: relative;
-  width: 100%;
+  width: min(100%, 900px);
+  margin: 0 auto;
   aspect-ratio: 1600 / 1143;
   border-radius: 16px;
   overflow: hidden;
