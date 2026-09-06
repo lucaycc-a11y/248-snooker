@@ -9,6 +9,12 @@ export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
 
 type Body = { phone?: unknown }
 
+type OtpErrorCode = 'AUTH_REQUIRED' | 'PHONE_INVALID' | 'OTP_RATE_LIMITED' | 'OTP_SEND_FAILED' | 'OTP_INTERNAL'
+
+function jsonError(code: OtpErrorCode, status: number, requestId: string, retryAfterSeconds?: number) {
+  return NextResponse.json({ code, requestId, ...(retryAfterSeconds ? { retryAfterSeconds } : {}) }, { status })
+}
+
 // POST /api/profile/complete/send-otp  { phone }
 // Authenticated half of the profile-completion phone verification. Sends an OTP
 // to a format-valid HK number and returns the provider message id, which the
@@ -21,6 +27,9 @@ type Body = { phone?: unknown }
 // still applies — an IP bucket plus a per-phone bucket so an attacker cannot burn
 // OTP credits across many numbers from one machine.
 export async function POST(request: Request) {
+  const requestId = crypto.randomUUID()
+  const startedAt = Date.now()
+  console.log(JSON.stringify({ event: 'otp.profile.send.received', requestId, at: new Date().toISOString() }))
   try {
     const supabase = await createClient()
     const {
@@ -29,35 +38,35 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
     if (authError || !user) {
       const status = (authError as { status?: number } | null)?.status
-      console.error('[profile/complete/send-otp] auth.getUser failed:', {
-        message: authError?.message ?? 'no user, no error (missing/partial session cookie)',
-        status,
-      })
+      console.error(JSON.stringify({ event: 'otp.profile.send.auth_failed', requestId, message: authError?.message ?? 'missing session', status }))
       if (authError && (status === undefined || status >= 500)) {
-        return NextResponse.json({ error: 'auth_unavailable' }, { status: 503 })
+        return jsonError('OTP_INTERNAL', 503, requestId)
       }
-      return NextResponse.json({ error: 'not_authenticated' }, { status: 401 })
+      return jsonError('AUTH_REQUIRED', 401, requestId)
     }
 
     const body = (await request.json().catch(() => null)) as Body | null
     const phone = normalizeHkPhone(typeof body?.phone === 'string' ? body.phone : '')
-    if (!phone) return NextResponse.json({ error: 'invalid_phone' }, { status: 422 })
+    console.log(JSON.stringify({ event: 'otp.profile.send.validation', requestId, phone: phone ? `***${phone.slice(-3)}` : null, valid: Boolean(phone) }))
+    if (!phone) return jsonError('PHONE_INVALID', 422, requestId)
 
     const okIp = await rateLimit('auth_otp_ip', `ip:${clientIp(request)}`, 10, 15 * 60)
-    if (!okIp) return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
+    if (!okIp) return jsonError('OTP_RATE_LIMITED', 429, requestId, 900)
     const okPhone = await rateLimit('auth_profile_complete_phone', phone, 3, 15 * 60)
-    if (!okPhone) return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
+    if (!okPhone) return jsonError('OTP_RATE_LIMITED', 429, requestId, 900)
 
     try {
+      const providerStartedAt = Date.now()
       const sms = await sendEngagelabOtp(phone, 'zh_HK')
-      console.log('[profile/complete/send-otp] sent', { userId: user.id, channel: sms.send_channel })
-      return NextResponse.json({ ok: true, messageId: sms.message_id, channel: sms.send_channel })
+      console.log(JSON.stringify({ event: 'otp.profile.send.provider', requestId, userId: user.id, channel: sms.send_channel, messageId: sms.message_id, durationMs: Date.now() - providerStartedAt }))
+      console.log(JSON.stringify({ event: 'otp.profile.send.success', requestId, userId: user.id, durationMs: Date.now() - startedAt }))
+      return NextResponse.json({ ok: true, requestId, messageId: sms.message_id, channel: sms.send_channel, expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString() })
     } catch (error) {
-      console.error('[profile/complete/send-otp] delivery failed', error)
-      return NextResponse.json({ error: 'send_failed' }, { status: 502 })
+      console.error(JSON.stringify({ event: 'otp.profile.send.provider_failed', requestId, error: error instanceof Error ? error.message : String(error), durationMs: Date.now() - startedAt }))
+      return jsonError('OTP_SEND_FAILED', 502, requestId)
     }
   } catch (error) {
-    console.error('[profile/complete/send-otp] error', error)
-    return NextResponse.json({ error: 'internal_error' }, { status: 500 })
+    console.error(JSON.stringify({ event: 'otp.profile.send.failed', requestId, error: error instanceof Error ? error.message : String(error), durationMs: Date.now() - startedAt }))
+    return jsonError('OTP_INTERNAL', 500, requestId)
   }
 }

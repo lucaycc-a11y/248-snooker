@@ -87,25 +87,42 @@ export async function GET(request: Request) {
           })
         }
 
-        // Insert OAuth identity (provider = google/apple/etc.)
-        const { error: identityErr } = await service
+        // The verified identity index is partial, so supabase-js upsert cannot
+        // express its predicate. Select/update/insert avoids PostgreSQL 42P10.
+        const identifier = user.email.toLowerCase()
+        const verifiedAt = new Date().toISOString()
+        const { data: ownIdentity, error: ownIdentityError } = await service
           .from('auth_identities')
-          .upsert(
-            {
-              user_id: user.id,
-              provider: oauthProvider,
-              identifier: user.email.toLowerCase(),
-              verified: true,
-              verified_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id,provider,identifier' },
-          )
+          .select('id, verified')
+          .eq('user_id', user.id)
+          .eq('provider', oauthProvider)
+          .eq('identifier', identifier)
+          .maybeSingle<{ id: string; verified: boolean }>()
+
+        let identityErr = ownIdentityError
+        if (!identityErr && ownIdentity) {
+          const { error } = await service
+            .from('auth_identities')
+            .update({ verified: true, verified_at: verifiedAt, updated_at: verifiedAt })
+            .eq('id', ownIdentity.id)
+          identityErr = error
+        } else if (!identityErr) {
+          const { error } = await service.from('auth_identities').insert({
+            user_id: user.id,
+            provider: oauthProvider,
+            identifier,
+            verified: true,
+            verified_at: verifiedAt,
+            updated_at: verifiedAt,
+          })
+          identityErr = error
+        }
 
         if (identityErr && identityErr.code !== '23505') {
-          // 23505 = unique constraint violation (race condition, safe to ignore)
           console.error('[auth/callback] identity insert error', {
             message: identityErr.message,
             code: identityErr.code,
+            provider: oauthProvider,
           })
         }
       }

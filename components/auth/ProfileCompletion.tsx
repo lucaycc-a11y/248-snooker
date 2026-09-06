@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
@@ -18,16 +18,6 @@ import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
 const GREEN = "#22c55e"
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60
-
-type Grecaptcha = {
-  execute: (siteKey: string, options: { action: string }) => Promise<string>
-}
-
-function isGrecaptcha(value: unknown): value is Grecaptcha {
-  if (!value || typeof value !== "object") return false
-  const candidate = value as { execute?: unknown }
-  return typeof candidate.execute === "function"
-}
 
 function localHkPhoneValue(value: string): string {
   const normalized = normalizeHkPhone(value)
@@ -114,6 +104,13 @@ export function ProfileCompletion({
   const [otpStatus, setOtpStatus] = useState<OtpVerificationStatus>("input")
   const [otpChannel, setOtpChannel] = useState<"whatsapp" | "sms">("sms")
   const [cooldown, setCooldown] = useState(0)
+  const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = window.setInterval(() => setCooldown((value) => Math.max(0, value - 1)), 1000)
+    return () => window.clearInterval(timer)
+  }, [cooldown])
 
   // isPhoneVerified means the user already signed in via SMS — that number is
   // genuinely Supabase-verified, so keep it locked and skip the OTP sub-step.
@@ -196,31 +193,24 @@ export function ProfileCompletion({
     setErrMsg(null)
     setSaving(true)
     try {
-      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
-      const grecaptchaValue: unknown = typeof window === "undefined" ? undefined : window.grecaptcha
-      if (!siteKey || !isGrecaptcha(grecaptchaValue)) {
-        setErrMsg(labels.err_generic)
-        setSaving(false)
-        return
-      }
-      const recaptchaToken = await grecaptchaValue.execute(siteKey, { action: "send_otp" })
-      const res = await fetch("/api/otp/send", {
+      const res = await fetch("/api/profile/complete/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: v.value.phone, recaptchaToken }),
+        body: JSON.stringify({ phone: v.value.phone }),
       })
       const j = await res.json().catch(() => ({}))
-      if (!j?.success) {
+      if (!res.ok || j?.ok !== true) {
         setErrMsg(
-          j?.error === "rate_limited" ? t("err_rate_limited")
-          : (j?.error === "缺少必要參數" || j?.error === "missing_parameter") ? t("err_missing_param")
-          : (j?.error === "發送失敗，請重試" || j?.error === "send_failed") ? t("err_send")
-          : t("err_send")
+          j?.code === "OTP_RATE_LIMITED" ? t("err_rate_limited")
+          : j?.code === "PHONE_INVALID" ? labels.err_phone
+          : j?.code === "OTP_INTERNAL" || j?.code === "OTP_SEND_FAILED" ? t("err_send")
+          : t("err_generic")
         )
         setSaving(false)
         return
       }
       setMessageId(typeof j.messageId === "string" ? j.messageId : "")
+      setOtpExpiresAt(typeof j.expiresAt === "string" ? j.expiresAt : null)
       setOtpChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
       setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
       setOtpStatus("input")
@@ -335,6 +325,7 @@ export function ProfileCompletion({
             setOtpStatus("input")
           }}
           disabled={saving}
+          expiresAt={otpExpiresAt}
         />
 
         <button
