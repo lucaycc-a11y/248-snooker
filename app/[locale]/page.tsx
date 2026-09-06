@@ -18,6 +18,7 @@ import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import Section2Value from "@/components/landing/Section2Value";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
+import HomepageParallax from "@/components/landing/HomepageParallax";
 
 export async function generateMetadata({
   params,
@@ -116,27 +117,28 @@ export default async function Home({
         dangerouslySetInnerHTML={{ __html: safeJsonLd(sportsClubJsonLd) }}
       />
       <AmbientGlow />
+      <HomepageParallax />
       <Nav />
-      <Hero />
-      <Section2Value />
-      <HomeFacilities />
-      <SpacePilotScoreboardExperience />
-      <Section5Booking />
-      <Section6Pricing periods={config.periods} />
+      <div data-home-parallax="hero"><Hero /></div>
+      <div data-home-parallax="value"><Section2Value /></div>
+      <div data-home-parallax="facilities"><HomeFacilities /></div>
+      <div data-home-parallax="rooms"><SpacePilotScoreboardExperience /></div>
+      <div data-home-parallax="booking"><Section5Booking /></div>
+      <div data-home-parallax="pricing"><Section6Pricing periods={config.periods} /></div>
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />
 
       {/* Membership - last section before footer */}
-      <Member />
+      <div data-home-parallax="member"><Member /></div>
 
       {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
           a "了解更多" link to the full /faq page. */}
-      <HomeFAQ ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" />
+      <div data-home-parallax="faq"><HomeFAQ ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" /></div>
 
-      <Directions />
+      <div data-home-parallax="directions"><Directions /></div>
 
-      <Footer />
+      <div data-home-parallax="footer"><Footer /></div>
 
       {/* Floating contact CTA — mobile only. AI chat by default; becomes an
           AI-edit entry point when an admin has edit-mode on. */}
