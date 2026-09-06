@@ -79,7 +79,7 @@ export class KPayProvider implements PaymentProvider {
   // ── createOrder ──────────────────────────────────────────────
 
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
-    const { outTradeNo, bookingId, amount, method, mode, remark, baseUrl } = params
+    const { outTradeNo, bookingId, amount, method, mode, remark, baseUrl, returnUrl } = params
 
     // Gateway floor, checked before the request so a too-small test amount
     // fails with a readable message instead of KPay's opaque 1047 無效金額.
@@ -96,7 +96,7 @@ export class KPayProvider implements PaymentProvider {
     // 3DS. We create the order with CNP_SALES_GATEWAY, then build a signed
     // H5 URL that redirects the user to KPay's hosted checkout.
     if (method === 'card') {
-      return this.createCnpHostedOrder(outTradeNo, bookingId, amount, remark, baseUrl)
+      return this.createCnpHostedOrder(outTradeNo, bookingId, amount, remark, baseUrl, returnUrl)
     }
 
     // ── Direct-connect methods (FPS / PayMe / Octopus / wallets) ──────────
@@ -107,7 +107,7 @@ export class KPayProvider implements PaymentProvider {
     // Do NOT call /v1/order/add first: that registers outTradeNo with KPay, and
     // the QR call then collides with it and fails "商戶訂單號已存在". That was a
     // self-collision inside one request, not a concurrent double-submit.
-    const directReturnUrl = `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
+    const directReturnUrl = returnUrl ?? `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
     const institution = this.getPaymentInstitution(method)
     const qrEndpoint = this.getQrEndpoint(method, mode)
 
@@ -175,6 +175,7 @@ export class KPayProvider implements PaymentProvider {
     amount: number,
     remark: string | undefined,
     baseUrl: string,
+    returnUrl?: string,
   ): Promise<CreateOrderResult> {
     // Step 1: create order with CNP_SALES_GATEWAY type
     const orderBody = {
@@ -235,8 +236,8 @@ export class KPayProvider implements PaymentProvider {
     // Step 2: build signed H5 redirect URL for KPay's hosted card page
     const timestamp = Date.now().toString()
     const nonceStr = generateNonce()
-    const returnUrl = `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
-    const h5Path = `/v1/h5?orderNo=${encodeURIComponent(orderNo)}&language=zh_HK&returnUrl=${encodeURIComponent(returnUrl)}&K-Merchant-Code=${encodeURIComponent(this.merchantCode)}&K-Nonce-Str=${encodeURIComponent(nonceStr)}&K-Timestamp=${encodeURIComponent(timestamp)}`
+    const returnUrlValue = returnUrl ?? `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
+    const h5Path = `/v1/h5?orderNo=${encodeURIComponent(orderNo)}&language=zh_HK&returnUrl=${encodeURIComponent(returnUrlValue)}&K-Merchant-Code=${encodeURIComponent(this.merchantCode)}&K-Nonce-Str=${encodeURIComponent(nonceStr)}&K-Timestamp=${encodeURIComponent(timestamp)}`
 
     const signText = buildSignText('GET', h5Path, timestamp, nonceStr, this.merchantCode, '')
     const signature = signKpay(this.privateKey, signText)

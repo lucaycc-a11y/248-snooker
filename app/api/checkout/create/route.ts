@@ -83,6 +83,9 @@ export async function POST(req: Request) {
     }
     const method = body?.method as string | undefined
     const mode: 'qr' | 'h5' = body?.mode === 'h5' ? 'h5' : 'qr'
+    const returnUrl = typeof body?.returnUrl === 'string' && /^https?:\/\//i.test(body.returnUrl)
+      ? body.returnUrl
+      : undefined
 
     // ── Explicit deny: Apple Pay / Google Pay are UI-only "coming soon" ────
     if (method === 'apple_pay' || method === 'google_pay') {
@@ -296,6 +299,7 @@ export async function POST(req: Request) {
         paymentMethod,
         mode,
         origin: new URL(req.url).origin,
+        ...(returnUrl ? { returnUrl: `${returnUrl}?bookingId=${encodeURIComponent(bookingIds[0])}` } : {}),
         extra: { orderGroupId, bookingIds },
         ...(uatPaymeSimulation ? { uatPaymeSimulation } : {}),
       })
@@ -423,6 +427,7 @@ export async function POST(req: Request) {
       paymentMethod,
       mode,
       origin: new URL(req.url).origin,
+      ...(returnUrl ? { returnUrl: `${returnUrl}?bookingId=${encodeURIComponent(bookingId)}` } : {}),
       ...(uatPaymeSimulation ? { uatPaymeSimulation } : {}),
     })
   } catch (err) {
@@ -519,6 +524,7 @@ type CreateAndStampArgs = {
   paymentMethod: PaymentMethod
   mode: 'qr' | 'h5'
   origin: string
+  returnUrl?: string
   extra?: Record<string, unknown>
   /** UAT-ONLY: PayMe test-amount simulation selector. */
   uatPaymeSimulation?: 'success' | 'fail'
@@ -527,7 +533,7 @@ type CreateAndStampArgs = {
 async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
   const {
     service, provider, userId, primaryBookingId, outTradeNo, siblingIds,
-    orderGroupId, totalAmount, paymentMethod, mode, origin, extra,
+    orderGroupId, totalAmount, paymentMethod, mode, origin, returnUrl, extra,
     uatPaymeSimulation,
   } = args
 
@@ -593,6 +599,7 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
       method: paymentMethod,
       mode,
       baseUrl: origin,
+      ...(returnUrl ? { returnUrl } : {}),
       ...(uatPaymeSimulation ? { uatPaymeSimulation } : {}),
     })
   } catch (err) {

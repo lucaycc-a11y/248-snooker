@@ -300,10 +300,13 @@ export default function KPayPayment(props: Props) {
     setFailureReason(null)
 
     try {
+      const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+      const confirmPath = `${localePrefix ? `/${localePrefix}` : ''}/book/confirm`
       const body: Record<string, unknown> = {
         method,
         mode,
         agreedToTerms,
+        returnUrl: `${window.location.origin}${confirmPath}`,
       }
       if (pointsAmount > 0) {
         body.pointsAmount = pointsAmount
@@ -358,6 +361,10 @@ export default function KPayPayment(props: Props) {
           return
         }
         if (json.bookingId || localBookingId) {
+          const bookingId = String(json.bookingId ?? localBookingId)
+          const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+          const confirmUrl = `${window.location.origin}${localePrefix ? `/${localePrefix}` : ''}/book/confirm?bookingId=${encodeURIComponent(bookingId)}`
+          window.history.replaceState({}, '', confirmUrl)
           try {
             persistKPayState({
               bookingId: String(json.bookingId ?? localBookingId),
@@ -398,6 +405,10 @@ export default function KPayPayment(props: Props) {
       // 'form-post' payInfo is a JSON field map, not a URL — it must be POSTed
       // as a form instead of assigned to location.href.
       if (json.kind === 'form-post') {
+        const bookingId = String(json.bookingId ?? localBookingId)
+        const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+        const confirmUrl = `${window.location.origin}${localePrefix ? `/${localePrefix}` : ''}/book/confirm?bookingId=${encodeURIComponent(bookingId)}`
+        window.history.replaceState({}, '', confirmUrl)
         if (!submitGatewayForm(json.payInfo)) {
           setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
           setState('failed')
@@ -566,10 +577,13 @@ export default function KPayPayment(props: Props) {
         setError(null)
         setFailureReason(null)
 
+        const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+        const confirmPath = `${localePrefix ? `/${localePrefix}` : ''}/book/confirm`
         const body: Record<string, unknown> = {
           method,
           mode,
           agreedToTerms,
+          returnUrl: `${window.location.origin}${confirmPath}`,
           bookingId: resumeBookingId,
           orderGroupId: resumeOrderNo ? undefined : localOrderGroupId,
         }
@@ -598,6 +612,10 @@ export default function KPayPayment(props: Props) {
         // Redirect responses — same as createOrder
         if ((json.kind === 'redirect' || json.kind === 'link') && json.payInfo) {
           if (/^(https?:\/\/|[a-z][a-z0-9+.-]*:)/i.test(String(json.payInfo).trim())) {
+            const bookingId = String(json.bookingId ?? resumeBookingId)
+            const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+            const confirmUrl = `${window.location.origin}${localePrefix ? `/${localePrefix}` : ''}/book/confirm?bookingId=${encodeURIComponent(bookingId)}`
+            window.history.replaceState({}, '', confirmUrl)
             window.location.href = String(json.payInfo)
             return
           }
@@ -626,6 +644,10 @@ export default function KPayPayment(props: Props) {
         })
 
         if (json.kind === 'form-post') {
+          const bookingId = String(json.bookingId ?? resumeBookingId)
+          const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+          const confirmUrl = `${window.location.origin}${localePrefix ? `/${localePrefix}` : ''}/book/confirm?bookingId=${encodeURIComponent(bookingId)}`
+          window.history.replaceState({}, '', confirmUrl)
           if (!submitGatewayForm(json.payInfo as string)) {
             setError('付款閘道回應格式錯誤，請重試或改用其他付款方式')
             setState('failed')

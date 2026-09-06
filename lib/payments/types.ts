@@ -74,6 +74,8 @@ export interface CreateOrderParams {
   remark?: string
   /** Base URL for the webhook + return URLs. */
   baseUrl: string
+  /** Browser URL to return to after a redirect-based payment. */
+  returnUrl?: string
   /**
    * UAT-ONLY: when set on a PayMe order, overrides the payAmount sent to KPay
    * with the corresponding test constant (8.81 = success, 8.82 = fail).
