@@ -44,16 +44,23 @@ export function useAnimeReveal<T extends HTMLElement>(
       : [root];
     if (!targets.length) return;
 
+    // Prefer wrappers authored in the initial HTML. This keeps the text node's
+    // rasterization boundary stable before React effects and animation setup.
     const wrappers = targets.map((target) => {
+      const authoredWrapper = target.closest<HTMLElement>(".anime-reveal-wrapper");
+      if (authoredWrapper && authoredWrapper !== root) return authoredWrapper;
+
+      // Defensive fallback for older callers that have not migrated yet.
       const wrapper = document.createElement("div");
       wrapper.className = "anime-reveal-wrapper";
       target.parentNode?.insertBefore(wrapper, target);
       wrapper.appendChild(target);
       return wrapper;
     });
+    const uniqueWrappers = Array.from(new Set(wrappers));
 
     if (prefersReducedMotion()) {
-      showImmediately(wrappers);
+      showImmediately(uniqueWrappers);
       return;
     }
 
@@ -63,7 +70,7 @@ export function useAnimeReveal<T extends HTMLElement>(
       leave: "bottom 12%",
       repeat: false,
     });
-    const animation = animate(wrappers, {
+    const animation = animate(uniqueWrappers, {
       opacity: [0, 1],
       y: [options.distance ?? 22, 0],
       duration: options.duration ?? 700,

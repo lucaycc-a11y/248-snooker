@@ -52,6 +52,15 @@
   --duration-slow: 380ms;
 }
 
+/* Keep text rasterization stable while animated wrappers move. This is in the
+   critical stylesheet so the first paint and every later compositor pass use
+   the same smoothing mode. */
+html,
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* ──────────────────── Good Times Display Font ────────────────────
    Code-like text (member codes, booking codes) and short English labels.
    Never applied to Chinese text, long sentences, or body text. */
@@ -724,6 +733,7 @@ body {
   opacity: 0;
   transform: translateY(22px);
 }
+html.no-js .anime-reveal-wrapper,
 html.no-js .anime-reveal-target,
 html.no-js .scroll-reveal,
 html.no-js .pi-card,
