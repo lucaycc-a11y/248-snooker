@@ -61,7 +61,11 @@ export default function ConfirmPageClient({ bookingId }: Props) {
         retrying={retrying}
         error={retryError}
         onRetry={handleRetry}
-        onBackToSlots={() => { window.location.href = "/book" }}
+        onBackToSlots={() => {
+          // Re-enter the payment selector while preserving the durable slot
+          // selection; this is distinct from abandoning the booking flow.
+          window.location.href = `/book?redirect_status=methods&bookingId=${encodeURIComponent(bookingId)}`
+        }}
         supportPhone={t("support_phone")}
         supportEmail={t("support_email")}
         labels={{

@@ -3239,11 +3239,25 @@ export default function BookPage() {
     const bId = params.get("bookingId")
     if (!bId || !(params.get("redirect_status") || params.get("payment_intent"))) return
 
-    // Retry path: the user clicked "選擇付款方式" on the recovery screen.
+    // Payment-method return from the confirm recovery screen. The booking and
+    // durable slot selection remain intact; only the payment UI is re-entered.
+    if (params.get("redirect_status") === "methods") {
+      clearKPayPersistedState()
+      setKpayResumeData(null)
+      setConfirmBookingId(null)
+      setConfirmRecoveryReason(null)
+      setConfirmError(false)
+      direction.current = 1
+      setScreen(2)
+      return
+    }
+
+    // Retry path: the user clicked "重試付款" on the recovery screen.
     // handleRetry stored bookingId + orderGroupId in sessionStorage before
     // redirecting. We restore them into kpayResumeData so KPayPayment picks
     // up the existing booking in Mode B and generates a fresh KPay order.
     if (params.get("redirect_status") === "retry") {
+      clearKPayPersistedState()
       try {
         const raw = sessionStorage.getItem("kpayRetry")
         if (raw) {
