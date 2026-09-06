@@ -127,12 +127,13 @@ const modalContentStyle: React.CSSProperties = {
 const modalBottomCloseStyle: React.CSSProperties = {
   minHeight: 44,
   margin: "8px 20px 16px",
-  border: `1px solid ${tokens.colors.borderStrong}`,
+  border: "none",
   borderRadius: tokens.radius.button,
-  background: "transparent",
-  color: tokens.colors.text,
-  fontWeight: 600,
+  background: tokens.colors.brand,
+  color: tokens.colors.brandText,
+  fontWeight: 700,
   cursor: "pointer",
+  transition: `all ${tokens.duration.fast} ${tokens.easing.standard}`,
   flexShrink: 0,
 }
 

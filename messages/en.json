@@ -768,7 +768,7 @@
     "venue_rules_label": "Venue Rules",
     "terms_label": "Terms & Conditions",
     "legal_modal_close": "Close",
-    "legal_modal_agree": "Agree and close",
+    "legal_modal_agree": "Read, agree and close",
     "terms_required_hint": "* You must agree to the terms before paying",
     "terms_required_error": "Please read and agree to the Venue Rules first",
     "legend_available": "Available",
