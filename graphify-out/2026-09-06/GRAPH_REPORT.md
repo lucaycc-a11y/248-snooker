@@ -1,16 +1,16 @@
 # Graph Report - Space8_web  (2026-09-06)
 
 ## Corpus Check
-- 1065 files · ~1,956,558 words
+- 1065 files · ~1,956,570 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 10330 nodes · 22618 edges · 589 communities (513 shown, 76 thin omitted)
+- 10332 nodes · 22618 edges · 590 communities (512 shown, 78 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 342 edges (avg confidence: 0.69)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `75a2b443`
+- Built from commit: `e597afac`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -33,16 +33,16 @@
 - whatsapp-bot/package.json
 - middleware.ts
 - getAdminStats.ts
-- planetSystem.ts
-- data/pricing.ts
+- Planet3D.tsx
+- booking/server.ts
 - .agents/skills/impeccable/scripts/detector/rules/checks.mjs
 - .claude/skills/impeccable/scripts/detector/rules/checks.mjs
 - StripePayment.tsx
 - .claude/skills/impeccable/scripts/context.mjs
 - .claude/skills/impeccable/scripts/live.mjs
-- DashboardGrid.tsx
+- applyEditing
 - legal/index.ts
-- [locale]/page.tsx
+- FAQ.tsx
 - admin/ai/chat/route.ts
 - .agents/skills/impeccable/scripts/context.mjs
 - .claude/skills/impeccable/scripts/live/svelte-component.mjs
@@ -75,9 +75,9 @@
 - setLiveState
 - Graphify
 - 248 Snooker Club
-- rateLimit
+- verify-phone/route.ts
 - member/bookings/[id]/page.tsx
-- MemberCardGrid.tsx
+- tierDisplay.ts
 - i18n-locale-audit.mjs
 - .agents/skills/impeccable/scripts/lib/impeccable-paths.mjs
 - .claude/skills/impeccable/scripts/detector/browser/injected/index.mjs
@@ -88,7 +88,7 @@
 - build_merge function
 - setLiveState
 - checkHtmlPatterns
-- .agents/skills/impeccable/scripts/context-signals.mjs
+- .agents/skills/impeccable/scripts/critique-storage.mjs
 - Hybrid CMS Architecture
 - count_sections
 - backfill-human-codes.mjs
@@ -129,9 +129,9 @@
 - dependencies
 - VenueContent.tsx
 - animations.ts
-- mountSvelteComponentVariant
-- .claude/skills/impeccable/scripts/lib/staleness-deep.mjs
-- .claude/skills/impeccable/scripts/live/insert-ui.mjs
+- .agents/skills/impeccable/scripts/live/accept-css.mjs
+- .agents/skills/impeccable/scripts/live/insert-ui.mjs
+- getAdminBookings.ts
 - .agents/skills/impeccable/scripts/hook-lib.mjs
 - parseAnyColor
 - StyleGuideShell.tsx
@@ -142,7 +142,7 @@
 - .agents/skills/impeccable/scripts/concept-seed.mjs
 - .claude/skills/impeccable/scripts/critique-storage.mjs
 - BookingDrawer.tsx
-- .claude/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs
+- resolveLiveInjectionAnchor
 - .claude/skills/impeccable/scripts/concept-seed.mjs
 - .agents/skills/impeccable/scripts/live/svelte-component.mjs
 - el
@@ -164,7 +164,7 @@
 - Apache License 2.0
 - data-cms-key constraint
 - Stripe Checkout Sessions Migration Consideration
-- .claude/skills/impeccable/scripts/live-status.mjs
+- .claude/skills/impeccable/scripts/live/session-store.mjs
 - initPageChat
 - .claude/skills/impeccable/scripts/modern-screenshot.umd.js
 - Space8 Club Information for LLMs
@@ -178,7 +178,7 @@
 - Git Workflow Skill
 - Karpathy Guidelines
 - .claude/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs
-- resolveProject
+- getAdminCalendar.ts
 - addVisualContrastFindings
 - .agents/skills/impeccable/scripts/live-commit-manual-edits.mjs
 - .claude/skills/impeccable/scripts/live-commit-manual-edits.mjs
@@ -215,14 +215,14 @@
 - CORE DIRECTIVE: IMAGE-FIRST WEBSITE DESIGN TO CODE
 - CORE DIRECTIVE: PREMIUM MOBILE APP IMAGE DIRECTION
 - .claude/skills/impeccable/scripts/lib/impeccable-paths.mjs
-- SiteGateLog.tsx
+- cli
 - collectBrowserFindings
 - components/ui/Logo.tsx
 - initGlobalBar
 - .agents/skills/impeccable/reference/live.md
 - applyEditing
 - .claude/skills/impeccable/reference/live.md
-- service.ts
+- num
 - High-Agency Frontend Skill
 - PromoCodesManager.tsx
 - parseAnyColor
@@ -233,7 +233,7 @@
 - signup-secret 2.ts
 - .agents/skills/impeccable/scripts/live/roots.mjs
 - .claude/skills/impeccable/scripts/live/roots.mjs
-- .claude/skills/impeccable/scripts/lib/surface-briefs.mjs
+- LegalDocumentRenderer.tsx
 - runHook
 - .agents/skills/impeccable/scripts/live-manual-edit-evidence.mjs
 - .agents/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs
@@ -242,24 +242,24 @@
 - .agents/skills/impeccable/reference/adapt.md
 - parseRgb
 - handleManualEditActivity
-- .agents/skills/impeccable/scripts/live/insert-ui.mjs
+- .agents/skills/impeccable/scripts/live/event-validation.mjs
 - Responsive Design
 - parseRgb
 - handleManualEditActivity
-- .claude/skills/impeccable/scripts/live/event-validation.mjs
+- .claude/skills/impeccable/scripts/live/insert-ui.mjs
 - Design System: SPACE8
 - .agents/skills/impeccable/scripts/live/manual-edit-routes.mjs
 - .claude/skills/impeccable/scripts/live/manual-edit-routes.mjs
 - Scan mode (approach C: auto-extract, then confirm descriptive language)
 - isScreenReaderOnlyTextStyle
-- checkElementGptBorderShadowDOM
+- kpay/route.ts
 - .agents/skills/impeccable/scripts/live/svelte-ast.mjs
 - .claude/skills/impeccable/reference/document.md
 - lockers/page.tsx
 - .claude/skills/impeccable/scripts/live/svelte-ast.mjs
 - .agents/skills/impeccable/reference/onboard.md
 - collectBrowserFindings
-- captureElementToBlob
+- .agents/skills/impeccable/scripts/context-signals.mjs
 - .claude/skills/impeccable/reference/onboard.md
 - MemberDetailTabs.tsx
 - .agents/skills/impeccable/SKILL.md
@@ -272,13 +272,13 @@
 - .claude/skills/impeccable/scripts/serve-question.mjs
 - .claude/skills/impeccable/scripts/live-inject.mjs
 - onAnnotDown
-- .claude/skills/impeccable/scripts/live/source-lock.mjs
+- resolveProjectRoot
 - Analysis & Synthesis Instructions
 - parseAnyColor
 - onAnnotDown
 - PaymentRecoveryScreen 2.tsx
 - Agent Skill: Principal UI/UX Architect & Motion Choreographer (Awwwards-Tier)
-- .claude/skills/impeccable/scripts/live/accept-css.mjs
+- Responsive Design
 - Extract Flow
 - analyzeVisualContrastCandidate
 - .agents/skills/impeccable/scripts/live/sveltekit-adapter.mjs
@@ -287,7 +287,7 @@
 - .agents/skills/impeccable/scripts/live/frameworks/detect-utils.mjs
 - .agents/skills/impeccable/scripts/live/tanstack-adapter.mjs
 - SKILL: Industrial Brutalism & Tactical Telemetry UI
-- Diagnostic Scan
+- validatePassword
 - renderGroupedTemplate
 - .claude/skills/impeccable/scripts/live/tanstack-adapter.mjs
 - scripts
@@ -348,16 +348,16 @@
 - New visual work
 - .claude/skills/impeccable/reference/polish.md
 - .claude/skills/impeccable/reference/quieter.md
-- filterFindings
+- Operate mode depth (and Read notes)
 - .claude/skills/impeccable/scripts/detect-csp.mjs
 - .claude/skills/impeccable/scripts/live/generation-preflight.mjs
 - .claude/skills/impeccable/scripts/palette.mjs
-- .claude/skills/impeccable/scripts/live/session-store.mjs
+- .agents/skills/impeccable/scripts/live/browser-script-parts.mjs
 - 10. REFERENCE VOCABULARY (Pattern Names the Agent Should Know)
 - CORE DIRECTIVE: AWWWARDS-LEVEL DESIGN ENGINEERING
 - 22. STYLE VARIATION ENGINE
 - Init flow
-- Diagnostic Scan
+- admin/ui/Button.tsx
 - Protocol: Premium Utilitarian Minimalism UI Architect
 - Generate Combined Critique Report
 - Init flow
@@ -382,7 +382,7 @@
 - Persona-Based Design Testing
 - create/route.ts
 - Shape
-- .claude/skills/impeccable/scripts/live/browser-script-parts.mjs
+- .agents/skills/impeccable/reference/doctor.md
 - vercel.json
 - .claude/skills/impeccable/scripts/lib/template-extensions.mjs
 - APPENDICES - Real Source-Backed Reference Material
@@ -398,7 +398,7 @@
 - Cognitive Load Assessment
 - Impeccable Finish Reviewer
 - Impeccable Manual Edit Applier
-- .claude/skills/impeccable/reference/bolder.md
+- getAiWidgetSettings.ts
 - Generate Report
 - Generate Report
 - Cognitive Load Assessment
@@ -406,10 +406,10 @@
 - Impeccable Manual Edit Applier
 - 29. ANTI-AI-SLOP RULES
 - 5. IMAGE COUNT & PAGE SLICING
-- resolveProjectRoot
+- Diagnostic Scan
 - container-scroll-animation.tsx
 - .agents/skills/impeccable/scripts/live/frameworks/journal.mjs
-- brand/index.ts
+- ui/index.ts
 - site-gate/route.ts
 - getServiceSupabase
 - signup-state 2.ts
@@ -439,7 +439,7 @@
 - .claude/skills/impeccable/scripts/detect.mjs
 - verify-s2c.mjs
 - HomeFacilities 2.tsx
-- Adaptation Strategies
+- renderGroupedTemplate
 - KPayPayment.tsx
 - onboarding-routing.test.ts
 - admin/maintenance/page.tsx
@@ -453,11 +453,11 @@
 - run-migration.mjs
 - Section5Booking.tsx
 - recaptcha.d.ts
-- checkElementRadialSpotlightDOM
+- checkRadialSpotlight
 - RiskBadge.tsx
 - stripe
-- resolveLiveInjectionAnchor
-- isRepeatedTextContainer
+- Diagnostic Scan
+- .claude/skills/impeccable/reference/bolder.md
 - Section2Value 2.tsx
 - addVisualContrastFindings
 - @tiptap/react
@@ -466,7 +466,7 @@
 - Extract Flow
 - checkElementHeroEyebrowDOM
 - HomeRooms 2.tsx
-- @react-email/render
+- normalizeGitHubEvent
 - password 2.ts
 - verify-s2g.mjs
 - verify-s2g 2.mjs
@@ -482,30 +482,30 @@
 - CreditsContent.tsx
 - WidgetBody.tsx
 - BottomSheet.tsx
-- checkTextOcclusionDOM
-- Responsive Design
+- isScreenReaderOnlyTextStyle
+- PaymentRecoveryScreen.tsx
 - @tiptap/extension-image
 - BreathingGlow.tsx
-- syncEditBadgeHitProxies
+- SpacePilotScoreboardExperience.tsx
 - verify-s3.mjs
 - ConicSpinner.tsx
 - RainbowBorder.tsx
 - SparkleIcon.tsx
 - notifications/page.tsx
-- Operate mode depth (and Read notes)
+- readConfig
 - @dnd-kit/core
 - jsonwebtoken
 - leaflet
 - lucide-react
 - @dnd-kit/utilities
 - next-intl
-- normalizeGitHubEvent
+- .agents/skills/impeccable/scripts/live/source-lock.mjs
 - gsap
-- .agents/skills/impeccable/reference/doctor.md
+- Adaptation Strategies
 - libphonenumber-js
 - passkit-generator
-- checkElementBorders
-- checkElementGptBorderShadowDOM
+- 1. THE THREE DIALS (Core Configuration)
+- animejs
 - checkElementHeroEyebrowDOM
 - Section6Pricing.tsx
 - qrcode.react
@@ -515,12 +515,13 @@
 - @ybouane/liquidglass
 - FooterMap.tsx
 - WidgetGrid.tsx
-- .claude/skills/impeccable/scripts/live/source-search.mjs
 - checkRadialSpotlight
 - html-to-image
 - hero-verify.py
 - section4-verify.py
-- readConfig
+- .claude/skills/impeccable/scripts/hook.mjs
+- Section2Value.tsx
+- selectAvailablePendingEvent
 
 ## God Nodes (most connected - your core abstractions)
 1. `getServiceSupabase()` - 270 edges
@@ -537,14 +538,14 @@
 ## Surprising Connections (you probably didn't know these)
 - `generateMetadata()` --calls--> `getConfig()`  [EXTRACTED]
   app/[locale]/pricing/page.tsx → lib/data/getConfig.ts
-- `AdminCalendarPage()` --calls--> `getMonthDensity()`  [EXTRACTED]
-  app/admin/calendar/page.tsx → lib/data/getAdminCalendar.ts
-- `GET()` --calls--> `getAdminData()`  [EXTRACTED]
-  app/api/booking/admin-test-confirm/route.ts → lib/data/getAdmin.ts
 - `AdminSidebar()` --calls--> `useAdmin()`  [EXTRACTED]
   components/admin/AdminSidebar.tsx → lib/admin/AdminContext.tsx
-- `MemberTable()` --calls--> `tierShortLabel()`  [EXTRACTED]
-  components/admin/MemberTable.tsx → lib/member/tierDisplay.ts
+- `Web Application Testing` --conceptually_related_to--> `Efficient Engineering`  [INFERRED]
+  .agents/skills/webapp-testing/SKILL.md → .claude/skills/efficient-engineering/SKILL.md
+- `graphify knowledge graph` --conceptually_related_to--> `graphify path command`  [INFERRED]
+  CLAUDE.md → .claude/skills/graphify/references/query.md
+- `graphify knowledge graph` --conceptually_related_to--> `graphify explain command`  [INFERRED]
+  CLAUDE.md → .claude/skills/graphify/references/query.md
 
 ## Import Cycles
 - None detected.
@@ -561,19 +562,19 @@
 - **Hybrid CMS Content System** — docs_cms_architecture_hybrid_cms, docs_cms_architecture_static_base, docs_cms_architecture_db_override, docs_cms_architecture_cms_text, docs_cms_fix_summary_merge_messages [INFERRED 0.85]
 - **User Registration and Profile Completion Flow** — docs_auth_payment_verification_sms_otp, docs_auth_payment_verification_apple_sign_in, docs_auth_payment_verification_login_fix, docs_auth_payment_verification_member_code_generation, docs_planet_reveal_planet_system_core, docs_planet_reveal_planet_reveal_component, docs_regression_fix_oauth_callback_check, docs_regression_fix_member_page_gate [INFERRED 0.85]
 
-## Communities (589 total, 76 thin omitted)
+## Communities (590 total, 78 thin omitted)
 
 ### Community 0 - "mountSvelteComponentVariant"
-Cohesion: 0.16
-Nodes (19): acceptedDomAlreadyClean(), applyOriginalAttrsToSvelteAnchor(), commitAcceptedSvelteComponentToDom(), componentModuleCandidates(), describeMountFailure(), detectDevServerBase(), ensureAcceptedDomClean(), findAcceptedRuntimeWrappers() (+11 more)
+Cohesion: 0.11
+Nodes (26): acceptedDomAlreadyClean(), applyOriginalAttrsToSvelteAnchor(), clearMountErrorCard(), commitAcceptedSvelteComponentToDom(), componentModuleCandidates(), describeMountFailure(), detectDevServerBase(), ensureAcceptedDomClean() (+18 more)
 
 ### Community 1 - ".agents/skills/impeccable/scripts/live-browser.js"
 Cohesion: 0.03
-Nodes (140): applyGlobalBarLabelState(), applyParamValue(), applyPlaceholderSizingStyles(), averageRgb01(), bindEditBadgeProxy(), bufferToBase64(), buildCollapsible(), buildColorModels() (+132 more)
+Nodes (142): applyGlobalBarLabelState(), applyParamValue(), applyPlaceholderSizingStyles(), averageRgb01(), bindEditBadgeProxy(), bufferToBase64(), buildCollapsible(), buildColorModels() (+134 more)
 
 ### Community 2 - ".agents/skills/impeccable/scripts/live.mjs"
-Cohesion: 0.18
-Nodes (16): parseCliOptions(), resolveTargetSelection(), parseArgs(), parseTargetOptions(), parseTargetPath(), TargetArgError, __dirname, ensureServerRunning() (+8 more)
+Cohesion: 0.12
+Nodes (26): parseCliOptions(), resolveTargetSelection(), parseTargetOptions(), parseTargetPath(), TargetArgError, __dirname, ensureServerRunning(), globToRegex() (+18 more)
 
 ### Community 3 - "handler.js"
 Cohesion: 0.08
@@ -581,23 +582,23 @@ Nodes (46): app, downloadChrome(), findChrome(), initWhatsApp(), executeAction()
 
 ### Community 4 - "book/page.tsx"
 Cohesion: 0.04
-Nodes (76): ALL_TABLES, BookPage(), Calendar(), CellState, cellStateFor(), CONFIG, ConfirmationTicket, ConfirmedBooking (+68 more)
+Nodes (68): ALL_TABLES, BookPage(), Calendar(), CellState, cellStateFor(), CONFIG, ConfirmationTicket, ConfirmedBooking (+60 more)
 
 ### Community 5 - "MemberDashboard.tsx"
-Cohesion: 0.04
-Nodes (50): bookingEnd(), BookingSection(), bookingStart(), calendarLink(), canRefund(), canReschedule(), canShowQr(), EASE (+42 more)
+Cohesion: 0.05
+Nodes (39): bookingEnd(), BookingSection(), bookingStart(), calendarLink(), canRefund(), canReschedule(), canShowQr(), EASE (+31 more)
 
 ### Community 6 - "template-send.ts"
-Cohesion: 0.04
-Nodes (75): isRecord(), POST(), POST(), POST(), GET(), POST(), GET(), GET() (+67 more)
+Cohesion: 0.05
+Nodes (56): isRecord(), POST(), POST(), GET(), createVerificationCode(), hashVerificationCode(), isVerificationCodeValid(), sendEmailVerificationCode() (+48 more)
 
 ### Community 7 - "devDependencies"
 Cohesion: 0.05
 Nodes (37): autoprefixer, @axe-core/cli, @axe-core/playwright, devDependencies, autoprefixer, @axe-core/cli, @axe-core/playwright, patch-package (+29 more)
 
 ### Community 8 - "[slug]/page.tsx"
-Cohesion: 0.07
-Nodes (31): GET(), LOCALES, CATEGORIES, EASE, formatDate(), GRADIENTS, PostCard(), VIEWPORT (+23 more)
+Cohesion: 0.08
+Nodes (28): CATEGORIES, EASE, formatDate(), GRADIENTS, PostCard(), VIEWPORT, BlogPage(), BlogPostPage() (+20 more)
 
 ### Community 9 - "248 Snooker Club"
 Cohesion: 0.06
@@ -605,19 +606,19 @@ Nodes (34): 248 Snooker Club, FalkorDB export, graphify export command, graphify
 
 ### Community 10 - ".claude/skills/impeccable/scripts/live-browser.js"
 Cohesion: 0.03
-Nodes (136): addManualContextText(), applyEditing(), applyGlobalBarLabelState(), applyPlaceholderSizingStyles(), bufferToBase64(), buildCollapsible(), buildColorModels(), buildListHtml() (+128 more)
+Nodes (140): acceptedDomAlreadyClean(), applyGlobalBarLabelState(), applyOriginalAttrsToSvelteAnchor(), applyPlaceholderSizingStyles(), averageRgb01(), bindEditBadgeProxy(), bufferToBase64(), buildCollapsible() (+132 more)
 
 ### Community 11 - "tokens.ts"
 Cohesion: 0.04
-Nodes (61): AdminAiSettingsPage(), getInitialSettings(), AdminBlogListPage(), getPosts(), AdminCalendarPage(), AccessLog, DeviceStatus, LockoutStatus (+53 more)
+Nodes (65): AdminAiSettingsPage(), getInitialSettings(), AdminBlogEditPage(), getPost(), getSiblings(), AdminBlogListPage(), getPosts(), AccessLog (+57 more)
 
 ### Community 12 - "SettingsForm.tsx"
 Cohesion: 0.17
 Nodes (13): BookingRulesSection(), BookingRulesValue, ConfigKey, DiffRow, fieldRowStyle(), PricingRatesValue, PricingSection(), SectionShell() (+5 more)
 
 ### Community 13 - "AuthCard.tsx"
-Cohesion: 0.06
-Nodes (37): UpdatePasswordForm(), SettingsTab(), DoorCardTable(), AppleSignInButton(), AuthCard(), ContactTab, EASE, Grecaptcha (+29 more)
+Cohesion: 0.04
+Nodes (49): UpdatePasswordForm(), errorKey(), LoginForm(), safeReturnUrl(), DashboardGridProps, SIZE_CLASSES, SortableWidget(), DoorCardTable() (+41 more)
 
 ### Community 14 - "compilerOptions"
 Cohesion: 0.07
@@ -628,28 +629,28 @@ Cohesion: 0.07
 Nodes (26): dotenv, express, node-fetch, nodemon, puppeteer, qrcode-terminal, dependencies, dotenv (+18 more)
 
 ### Community 16 - "middleware.ts"
-Cohesion: 0.11
-Nodes (26): AI_USER_AGENTS, robots(), alternatesFor(), localePath(), LOCALES, NOTE: no hreflang alternates here — blog posts are per-locale rows with, sitemap(), staticEntry() (+18 more)
+Cohesion: 0.14
+Nodes (20): AI_USER_AGENTS, robots(), CacheEntry, getSiteGate(), SiteGateConfig, base64url(), hmacKey(), signGateCookie() (+12 more)
 
 ### Community 17 - "getAdminStats.ts"
 Cohesion: 0.15
 Nodes (19): AdminDashboardPage(), isLayoutArray(), GET(), GET(), isLayoutArray(), isLayoutItem(), PUT(), VALID_ID_SET (+11 more)
 
-### Community 18 - "planetSystem.ts"
-Cohesion: 0.13
-Nodes (14): darkenColor(), generatePlanetTexture(), Planet3D(), PlanetSphere(), EASE, Phase, extractPlanetFromCode(), memberCheckChar() (+6 more)
+### Community 18 - "Planet3D.tsx"
+Cohesion: 0.21
+Nodes (8): darkenColor(), generatePlanetTexture(), Planet3D(), PlanetSphere(), EASE, Phase, PLANET_METADATA, PlanetName
 
-### Community 19 - "data/pricing.ts"
-Cohesion: 0.09
-Nodes (32): AdminSettingsPage(), GET(), GET(), localized(), LocalizedString, EASE, SPRING, EASE (+24 more)
+### Community 19 - "booking/server.ts"
+Cohesion: 0.11
+Nodes (27): AdminSettingsPage(), EASE, SPRING, EASE, fmt(), PeriodPricingSections(), DaySlotRow, LockedSlot (+19 more)
 
 ### Community 20 - ".agents/skills/impeccable/scripts/detector/rules/checks.mjs"
 Cohesion: 0.03
-Nodes (113): ANIMATION_VALUE_KEYWORDS, borderColorsFromStyle(), borderWidthsFromStyle(), checkClippedOverflow(), checkCreamPalette(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementClippedOverflow() (+105 more)
+Nodes (115): ANIMATION_VALUE_KEYWORDS, borderColorsFromStyle(), borderWidthsFromStyle(), checkBorders(), checkClippedOverflow(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders() (+107 more)
 
 ### Community 21 - ".claude/skills/impeccable/scripts/detector/rules/checks.mjs"
 Cohesion: 0.03
-Nodes (119): ANIMATION_VALUE_KEYWORDS, borderColorsFromStyle(), borderWidthsFromStyle(), checkBorders(), checkClippedOverflow(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders() (+111 more)
+Nodes (115): ANIMATION_VALUE_KEYWORDS, borderColorsFromStyle(), borderWidthsFromStyle(), checkBorders(), checkClippedOverflow(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders() (+107 more)
 
 ### Community 22 - "StripePayment.tsx"
 Cohesion: 0.09
@@ -657,39 +658,39 @@ Nodes (22): DEFAULT_LABELS, EASE, PromoResult, Props, SPRING, appearance, Billin
 
 ### Community 23 - ".claude/skills/impeccable/scripts/context.mjs"
 Cohesion: 0.05
-Nodes (78): appendAutonomyCounterDirective(), appendBuildPathDirective(), appendDetectorFallback(), appendImageGenDirective(), appendImageToolsDirective(), appendSubagentAuthorizationDirective(), appendSurfaceBriefContext(), automaticHookMode() (+70 more)
+Nodes (78): appendBuildPathDirective(), appendDetectorFallback(), automaticHookMode(), buildUpdateDirective(), compareSemver(), computeUpdateDirective(), contextSourcePath(), contextSourceStatus() (+70 more)
 
 ### Community 24 - ".claude/skills/impeccable/scripts/live.mjs"
-Cohesion: 0.13
-Nodes (24): parseTargetOptions(), parseTargetPath(), TargetArgError, __dirname, ensureServerRunning(), globToRegex(), globToRegex(), resolveFiles() (+16 more)
+Cohesion: 0.18
+Nodes (20): __dirname, ensureServerRunning(), globToRegex(), globToRegex(), resolveFiles(), acceptInstructions(), bootInstructions(), deferredWrapperInstructions() (+12 more)
 
-### Community 25 - "DashboardGrid.tsx"
-Cohesion: 0.10
-Nodes (23): DashboardGridProps, SIZE_CLASSES, SortableWidget(), ActiveUsersWidget(), AIInsightsWidget(), InsightPayload, Anomaly, AnomalyWidget() (+15 more)
+### Community 25 - "applyEditing"
+Cohesion: 0.09
+Nodes (32): addManualContextText(), applyEditing(), buildLocatorForLeaf(), canRestoreManualEditElement(), contextElementForManualEdit(), copyEditContainerContext(), copyEditLeafContext(), cssIdent() (+24 more)
 
 ### Community 26 - "legal/index.ts"
-Cohesion: 0.06
-Nodes (43): EASE, EN, getSortedPhrases(), highlightKeyPhrases(), PHRASES_BY_LOCALE, IMPORTANT: this file does not alter a single character of the verbatim, SORTED_BY_LOCALE, ZH_CN (+35 more)
+Cohesion: 0.08
+Nodes (32): EASE, DOC_IDS, generateMetadata(), LegalPage(), resolveDocId(), accessibilityEn, accessibilityZhCN, accessibilityZhHK (+24 more)
 
-### Community 27 - "[locale]/page.tsx"
-Cohesion: 0.07
-Nodes (28): FaqPage(), META, Directions(), EASE, FAQ(), VIEWPORT, FaqItem, getFaqItems() (+20 more)
+### Community 27 - "FAQ.tsx"
+Cohesion: 0.22
+Nodes (10): FaqPage(), META, EASE, FAQ(), VIEWPORT, FaqItem, getFaqItems(), getFaqJsonLd() (+2 more)
 
 ### Community 28 - "admin/ai/chat/route.ts"
-Cohesion: 0.06
-Nodes (49): buildSystemPrompt(), ChatBody, ChatMessage, escapeXml(), getRiskLevel(), hasPendingActionId(), POST(), tryParseStructuredResponse() (+41 more)
+Cohesion: 0.07
+Nodes (45): buildSystemPrompt(), ChatBody, ChatMessage, escapeXml(), getRiskLevel(), hasPendingActionId(), POST(), tryParseStructuredResponse() (+37 more)
 
 ### Community 29 - ".agents/skills/impeccable/scripts/context.mjs"
 Cohesion: 0.05
-Nodes (94): appendAutonomyCounterDirective(), appendBuildPathDirective(), appendDetectorFallback(), appendImageGenDirective(), appendImageToolsDirective(), appendSubagentAuthorizationDirective(), appendSurfaceBriefContext(), automaticHookMode() (+86 more)
+Nodes (93): appendAutonomyCounterDirective(), appendBuildPathDirective(), appendDetectorFallback(), appendImageGenDirective(), appendImageToolsDirective(), appendSubagentAuthorizationDirective(), appendSurfaceBriefContext(), automaticHookMode() (+85 more)
 
 ### Community 30 - ".claude/skills/impeccable/scripts/live/svelte-component.mjs"
-Cohesion: 0.08
-Nodes (53): collectUnusedSelectors(), verifyAcceptedSource(), applyLegacyDeferredAcceptsOnStartup(), buildPropsScriptV2(), loadSvelteCompiler(), appendCssToSvelteStyle(), appendSanitizedCssRule(), applyDeferredSvelteComponentAccepts() (+45 more)
+Cohesion: 0.07
+Nodes (69): bakeParamValues(), collectAllSelectors(), collectSelectorsFromNodes(), collectUnusedSelectors(), escapeRegExp(), formatBody(), isToggleOn(), normalizeSelector() (+61 more)
 
 ### Community 31 - "Nav.tsx"
-Cohesion: 0.09
-Nodes (23): AboutPage(), META, Home(), generateMetadata(), PricingPage(), META, VenuePage(), FooterMap (+15 more)
+Cohesion: 0.06
+Nodes (34): AboutPage(), META, Home(), generateMetadata(), PricingPage(), META, VenuePage(), AuthModal() (+26 more)
 
 ### Community 32 - "Quick Deployment Guide — Payment Fixes"
 Cohesion: 0.13
@@ -712,8 +713,8 @@ Cohesion: 0.17
 Nodes (8): APP_DIR, COMPONENTS_DIR, extracted, files, LOCALES, MESSAGES_DIR, report, ROOT
 
 ### Community 37 - ".agents/skills/impeccable/scripts/live-server.mjs"
-Cohesion: 0.06
-Nodes (67): assembleLiveBrowserScript(), assertLiveBrowserScriptParts(), LIVE_BROWSER_SCRIPT_PARTS, readLiveBrowserScriptParts(), resolveLiveBrowserScriptParts(), eventPriority(), selectAvailablePendingEvent(), acknowledgePendingEvent() (+59 more)
+Cohesion: 0.07
+Nodes (57): acknowledgePendingEvent(), activeSessionSummaries(), agentPollingConnected(), annotRoot, args, broadcast(), broadcastAgentPollingIfChanged(), cancelQueuedAnonymousExitEvents() (+49 more)
 
 ### Community 38 - "checkHtmlPatterns"
 Cohesion: 0.13
@@ -736,12 +737,12 @@ Cohesion: 0.06
 Nodes (74): applyParamDefaults(), applyParamValue(), applySavedSessionMeta(), buildParamsPanel(), clampVariantIndex(), clearHandled(), clearSession(), closedClipPath() (+66 more)
 
 ### Community 43 - ".claude/skills/impeccable/scripts/live-server.mjs"
-Cohesion: 0.07
-Nodes (58): eventPriority(), selectAvailablePendingEvent(), acknowledgePendingEvent(), activeSessionSummaries(), agentPollingConnected(), annotRoot, args, broadcast() (+50 more)
+Cohesion: 0.05
+Nodes (72): getDesignSidecarPath(), removeLiveServerInfo(), assembleLiveBrowserScript(), assertLiveBrowserScriptParts(), LIVE_BROWSER_SCRIPT_PARTS, readLiveBrowserScriptParts(), resolveLiveBrowserScriptParts(), eventPriority() (+64 more)
 
 ### Community 44 - "Snooker404Table.tsx"
-Cohesion: 0.11
-Nodes (15): BallSpec, createBall(), createBallSpecs(), drawEightBallGlow(), drawEightBallLabel(), drawFeltTexture(), drawPocketRims(), homePositionFor() (+7 more)
+Cohesion: 0.10
+Nodes (18): BallSpec, createBall(), createBallSpecs(), drawEightBallGlow(), drawEightBallLabel(), drawFeltTexture(), drawPocketRims(), homePositionFor() (+10 more)
 
 ### Community 45 - "Apple UI Design Skill"
 Cohesion: 0.14
@@ -788,8 +789,8 @@ Cohesion: 0.36
 Nodes (8): Change Email Confirmation (HTML), Confirm Signup (HTML), Email Changed Notification (HTML), User Invitation (HTML), Magic Link / OTP (HTML), Phone Changed Notification (HTML), Supabase Email Templates README, Reauthentication (HTML)
 
 ### Community 56 - "runHook"
-Cohesion: 0.13
-Nodes (28): appendDesignSystemNote(), appendDesignSystemNoteOnce(), bumpEditCount(), clampGroupedToBudget(), clampLastLine(), clampToBudget(), consumeSessionNoticeFlag(), dedupeAgainstCache() (+20 more)
+Cohesion: 0.12
+Nodes (27): appendDesignSystemNote(), appendDesignSystemNoteOnce(), bumpEditCount(), canonicalPath(), coLocatedStylesheets(), consumeSessionNoticeFlag(), dedupeAgainstCache(), depthIsSet() (+19 more)
 
 ### Community 57 - "setLiveState"
 Cohesion: 0.11
@@ -803,25 +804,25 @@ Nodes (7): AST Extraction, Community Detection, God Nodes, Graphify, Honesty Rul
 Cohesion: 0.15
 Nodes (12): 1. Install dependencies, 248 Snooker Club, 2. Environment variables, 3. Database setup, 4. Stripe webhook (local dev), 5. Run the dev server, 6. CMS text sync, 7. Testing (+4 more)
 
-### Community 60 - "rateLimit"
-Cohesion: 0.05
-Nodes (98): POST(), POST(), ExistingRow, normalizedEmail(), POST(), SignupBody, normalizedEmail(), POST() (+90 more)
+### Community 60 - "verify-phone/route.ts"
+Cohesion: 0.06
+Nodes (66): Body, POST(), SignupAttempt, Body, POST(), SignupAttempt, Body, isAlreadyRegistered() (+58 more)
 
 ### Community 61 - "member/bookings/[id]/page.tsx"
-Cohesion: 0.14
-Nodes (22): metadata, UpdatePasswordPage(), ComingSoonPage(), metadata, LoginPage(), metadata, safeReturnUrl(), MemberBookingPage() (+14 more)
+Cohesion: 0.15
+Nodes (20): metadata, UpdatePasswordPage(), ComingSoonPage(), metadata, LoginPage(), metadata, safeReturnUrl(), MemberBookingPage() (+12 more)
 
-### Community 62 - "MemberCardGrid.tsx"
-Cohesion: 0.10
-Nodes (23): AdminMembersPage(), GET(), isRecord(), PATCH(), UPDATABLE_FIELDS, UpdatableField, MemberActions(), Props (+15 more)
+### Community 62 - "tierDisplay.ts"
+Cohesion: 0.13
+Nodes (18): GET(), GET(), localized(), LocalizedString, OverviewTab(), AccountMenu(), menuItemStyle, TIER_ACCENT (+10 more)
 
 ### Community 63 - "i18n-locale-audit.mjs"
 Cohesion: 0.29
 Nodes (5): allKeys, __dirname, keysByLocale, LOCALES, missing
 
 ### Community 64 - ".agents/skills/impeccable/scripts/lib/impeccable-paths.mjs"
-Cohesion: 0.14
-Nodes (23): firstExisting(), getDesignSidecarCandidates(), getDesignSidecarPath(), getImpeccableDir(), getLegacyLiveConfigPath(), getLiveAnnotationsDir(), getLiveConfigPath(), getLiveDir() (+15 more)
+Cohesion: 0.17
+Nodes (22): resolveProjectRoot(), firstExisting(), getDesignSidecarCandidates(), getDesignSidecarPath(), getImpeccableDir(), getLegacyLiveAnnotationsDir(), getLegacyLiveConfigPath(), getLegacyLiveServerPath() (+14 more)
 
 ### Community 65 - ".claude/skills/impeccable/scripts/detector/browser/injected/index.mjs"
 Cohesion: 0.11
@@ -855,9 +856,9 @@ Nodes (73): abandonForeignSession(), abortSvelteComponentInjection(), buildInser
 Cohesion: 0.13
 Nodes (27): buildHtmlPatternCorpora(), checkHtmlPatterns(), collectCssCustomProps(), collectMarqueeKeyframes(), collectPulseKeyframes(), cssLengthToPx(), cssTextHasDarkRootBg(), enclosingCssSelector() (+19 more)
 
-### Community 73 - ".agents/skills/impeccable/scripts/context-signals.mjs"
-Cohesion: 0.13
-Nodes (26): cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals(), hasCode(), isVendoredPath(), latestCritique() (+18 more)
+### Community 73 - ".agents/skills/impeccable/scripts/critique-storage.mjs"
+Cohesion: 0.17
+Nodes (22): coerceSlug(), listSnapshots(), main(), nowFilenameStamp(), parseFrontmatter(), readLatestSnapshot(), readLatestSnapshotMatching(), readTrend() (+14 more)
 
 ### Community 74 - "Hybrid CMS Architecture"
 Cohesion: 0.40
@@ -936,24 +937,24 @@ Cohesion: 0.67
 Nodes (3): SVG to PNG Logo Conversion Script, Supabase Auth Email Templates, Email Template Design System
 
 ### Community 100 - ".agents/skills/impeccable/scripts/detector/detect-antipatterns-browser.js"
-Cohesion: 0.05
-Nodes (58): browserColorsClose(), browserDesignSystemConfig(), browserHasDirectText(), browserPrimaryFont(), browserRadiusTokens(), browserSampleText(), buildSelectorSegment(), checkBrowserDesignSystemSources() (+50 more)
+Cohesion: 0.06
+Nodes (55): browserColorsClose(), browserDesignSystemConfig(), browserHasDirectText(), browserPrimaryFont(), browserRadiusTokens(), browserSampleText(), buildSelectorSegment(), checkBrowserDesignSystemSources() (+47 more)
 
 ### Community 107 - "audit/page.tsx"
 Cohesion: 0.33
 Nodes (6): ACTION_LABELS, AuditLogPage(), AuditResponse, AuditRow, formatActionType(), RISK_COLOR
 
 ### Community 109 - ".claude/skills/impeccable/scripts/detector/detect-antipatterns-browser.js"
-Cohesion: 0.06
-Nodes (53): browserColorsClose(), browserDesignSystemConfig(), browserHasDirectText(), browserPrimaryFont(), browserRadiusTokens(), browserSampleText(), buildSelectorSegment(), checkBrowserDesignSystemSources() (+45 more)
+Cohesion: 0.05
+Nodes (63): browserColorsClose(), browserDesignSystemConfig(), browserHasDirectText(), browserPrimaryFont(), browserRadiusTokens(), browserSampleText(), buildSelectorSegment(), checkBrowserDesignSystemSources() (+55 more)
 
 ### Community 127 - ".claude/skills/impeccable/scripts/hook-lib.mjs"
 Cohesion: 0.06
-Nodes (62): ACK_EXTS, ADVISORY_RULES, ALLOWED_EXTS, applyConfigSource(), applyDetectorConfigSource(), canonicalPath(), canonicalPathCache, clampByte() (+54 more)
+Nodes (58): ACK_EXTS, ADVISORY_RULES, ALLOWED_EXTS, applyConfigSource(), applyDetectorConfigSource(), canonicalPathCache, clampByte(), cleanIgnoreValueDisplay() (+50 more)
 
 ### Community 131 - "dependencies"
 Cohesion: 0.06
-Nodes (35): animejs, @anthropic-ai/sdk, bcryptjs, canvas-confetti, framer-motion, google-auth-library, matter-js, dependencies (+27 more)
+Nodes (35): @anthropic-ai/sdk, bcryptjs, canvas-confetti, framer-motion, google-auth-library, matter-js, dependencies, @anthropic-ai/sdk (+27 more)
 
 ### Community 132 - "VenueContent.tsx"
 Cohesion: 0.14
@@ -963,25 +964,25 @@ Nodes (10): EASE, FACILITY_ICON_CLASSES, FACILITY_ICONS, SERVICE_ICON_CLASSES, S
 Cohesion: 0.40
 Nodes (4): EASE, POP, POP_SUBTLE, VIEWPORT
 
-### Community 137 - "mountSvelteComponentVariant"
+### Community 137 - ".agents/skills/impeccable/scripts/live/accept-css.mjs"
+Cohesion: 0.20
+Nodes (23): bakeParamValues(), collectAllSelectors(), collectSelectorsFromNodes(), escapeRegExp(), formatBody(), isToggleOn(), normalizeSelector(), normalizeToggleForVar() (+15 more)
+
+### Community 138 - ".agents/skills/impeccable/scripts/live/insert-ui.mjs"
 Cohesion: 0.11
-Nodes (26): acceptedDomAlreadyClean(), applyOriginalAttrsToSvelteAnchor(), clearMountErrorCard(), commitAcceptedSvelteComponentToDom(), componentModuleCandidates(), describeMountFailure(), detectDevServerBase(), ensureAcceptedDomClean() (+18 more)
+Nodes (10): canCreateInsert(), clampPlaceholderSize(), computeInsertPosition(), groupSiblingRows(), hitSiblingInsertGap(), horizontalOverlap(), insertCreateDisabledReason(), insertLineCoords() (+2 more)
 
-### Community 138 - ".claude/skills/impeccable/scripts/lib/staleness-deep.mjs"
-Cohesion: 0.17
-Nodes (20): checkDesignCoverage(), checkDesignDrift(), checkDetectorIgnores(), checkHookInstallation(), checkLegacyLiveState(), checkWorkspaces(), collectHookCommands(), finding() (+12 more)
-
-### Community 139 - ".claude/skills/impeccable/scripts/live/insert-ui.mjs"
-Cohesion: 0.12
-Nodes (8): clampPlaceholderSize(), computeInsertPosition(), groupSiblingRows(), hitSiblingInsertGap(), horizontalOverlap(), insertLineCoords(), resizePlaceholderFromEdge(), resolveInsertHover()
+### Community 139 - "getAdminBookings.ts"
+Cohesion: 0.13
+Nodes (18): AdminBookingsPage(), metadata, GET(), isRecord(), PATCH(), ApiResponse, ApiResponse, BookingTable() (+10 more)
 
 ### Community 140 - ".agents/skills/impeccable/scripts/hook-lib.mjs"
 Cohesion: 0.06
-Nodes (59): ACK_EXTS, ADVISORY_RULES, applyConfigSource(), applyDetectorConfigSource(), applyPatchText(), canonicalPath(), canonicalPathCache, clampByte() (+51 more)
+Nodes (59): ACK_EXTS, ADVISORY_RULES, ALLOWED_EXTS, appendDesignSystemNote(), appendDesignSystemNoteOnce(), applyPatchText(), canonicalPathCache, clampByte() (+51 more)
 
 ### Community 141 - "parseAnyColor"
 Cohesion: 0.08
-Nodes (57): checkColors(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementGlow(), checkElementGlowDOM(), checkElementHoverContrast(), checkElementIconTile() (+49 more)
+Nodes (60): checkColors(), checkCreamPalette(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementGlow(), checkElementGlowDOM(), checkElementHoverContrast() (+52 more)
 
 ### Community 142 - "StyleGuideShell.tsx"
 Cohesion: 0.13
@@ -993,11 +994,11 @@ Nodes (9): bebasNeue, metadata, viewport, fmt(), HomePricing(), CardItem, ICONS,
 
 ### Community 144 - ".agents/skills/impeccable/scripts/doctor.mjs"
 Cohesion: 0.08
-Nodes (55): applyFixes(), cli(), collect(), readProjectRootPatterns(), renderText(), safeRead(), SCRIPTS_DIR, SEVERITY_LABEL (+47 more)
+Nodes (56): applyFixes(), cli(), collect(), parseArgs(), readProjectRootPatterns(), rel(), renderText(), safeRead() (+48 more)
 
 ### Community 145 - "parseAnyColor"
-Cohesion: 0.09
-Nodes (52): checkColors(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementGlow(), checkElementGlowDOM(), checkElementHoverContrast(), checkElementIconTile() (+44 more)
+Cohesion: 0.08
+Nodes (60): checkColors(), checkCreamPalette(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementGlow(), checkElementGlowDOM(), checkElementHoverContrast() (+52 more)
 
 ### Community 146 - "checkElementDesignSystemDOM"
 Cohesion: 0.15
@@ -1008,36 +1009,36 @@ Cohesion: 0.07
 Nodes (52): API_BASE, API_TIMEOUT_MS, apiBudgetMs(), dealCompositions(), driveSelection(), fetchRoll(), here, loadLocal() (+44 more)
 
 ### Community 148 - ".claude/skills/impeccable/scripts/critique-storage.mjs"
-Cohesion: 0.27
-Nodes (13): coerceSlug(), listSnapshots(), main(), nowFilenameStamp(), parseFrontmatter(), readLatestSnapshot(), readLatestSnapshotMatching(), readTrend() (+5 more)
+Cohesion: 0.17
+Nodes (22): coerceSlug(), listSnapshots(), main(), nowFilenameStamp(), parseFrontmatter(), readLatestSnapshot(), readLatestSnapshotMatching(), readTrend() (+14 more)
 
 ### Community 149 - "BookingDrawer.tsx"
-Cohesion: 0.05
-Nodes (36): AuditApiResponse, AuditEntry, AuditTab(), BookingDrawerProps, CancellationRecord, DetailsTab(), formatCurrency(), formatDate() (+28 more)
+Cohesion: 0.07
+Nodes (27): AuditApiResponse, AuditEntry, AuditTab(), BookingDrawerProps, CancellationRecord, DetailsTab(), formatCurrency(), formatDate() (+19 more)
 
-### Community 150 - ".claude/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs"
-Cohesion: 0.26
-Nodes (14): appendOriginToDirective(), buildTagBlock(), commentClose(), commentOpen(), detectLineEnding(), findCspMetaTags(), getAttr(), insertTag() (+6 more)
+### Community 150 - "resolveLiveInjectionAnchor"
+Cohesion: 0.16
+Nodes (19): buildSvelteExpressionTextMap(), buildSveltePropValuesFromLiveElement(), buildSveltePropValuesV2(), cloneWithoutElements(), collectTextNodes(), collectVisibleTexts(), cssEscapeIdent(), elementMatchesOriginalMarkup() (+11 more)
 
 ### Community 151 - ".claude/skills/impeccable/scripts/concept-seed.mjs"
 Cohesion: 0.07
 Nodes (52): API_BASE, API_TIMEOUT_MS, apiBudgetMs(), dealCompositions(), driveSelection(), fetchRoll(), here, loadLocal() (+44 more)
 
 ### Community 152 - ".agents/skills/impeccable/scripts/live/svelte-component.mjs"
-Cohesion: 0.06
-Nodes (75): bakeParamValues(), collectAllSelectors(), collectSelectorsFromNodes(), collectUnusedSelectors(), escapeRegExp(), formatBody(), isToggleOn(), normalizeSelector() (+67 more)
+Cohesion: 0.08
+Nodes (53): collectUnusedSelectors(), verifyAcceptedSource(), applyLegacyDeferredAcceptsOnStartup(), buildPropsScriptV2(), loadSvelteCompiler(), appendCssToSvelteStyle(), appendSanitizedCssRule(), applyDeferredSvelteComponentAccepts() (+45 more)
 
 ### Community 153 - "el"
 Cohesion: 0.07
-Nodes (57): actionLabel(), applyConfigureBarChrome(), bindConfigureCountPillTooltip(), bindConfigureInlineControlHover(), bindConfigureModifierPillHover(), buildConfigureActionControl(), buildConfigureCountControl(), buildConfigureRow() (+49 more)
+Nodes (55): actionLabel(), applyConfigureBarChrome(), bindConfigureCountPillTooltip(), bindConfigureInlineControlHover(), bindConfigureModifierPillHover(), buildConfigureActionControl(), buildConfigureCountControl(), buildConfigureRow() (+47 more)
 
 ### Community 154 - "el"
 Cohesion: 0.07
 Nodes (55): actionLabel(), applyConfigureBarChrome(), bindConfigureCountPillTooltip(), bindConfigureInlineControlHover(), bindConfigureModifierPillHover(), buildConfigureActionControl(), buildConfigureCountControl(), buildConfigureRow() (+47 more)
 
 ### Community 155 - "kpay.ts"
-Cohesion: 0.06
-Nodes (36): assertRpcSucceeded(), BookingSummary, ConfirmBookingResult, handleFailed(), handleRefunded(), handleSucceeded(), markWebhookFailed(), markWebhookProcessed() (+28 more)
+Cohesion: 0.08
+Nodes (25): getKpayBaseUrl(), KPayApiResponse, KPayProvider, requireEnv(), buildSignText(), generateNonce(), generateTestKeyPair(), signKpay() (+17 more)
 
 ### Community 156 - "initPageChat"
 Cohesion: 0.08
@@ -1051,13 +1052,13 @@ Nodes (52): ae(), be(), bt(), Ce(), Ct(), de(), dt(), _e() (+44 more)
 Cohesion: 0.18
 Nodes (12): asFiniteNumber(), asKind(), asRecord(), CLIENT_CORRECTABLE, CONFLICT, parsePointsRules(), PointsRule, prepareCheckout() (+4 more)
 
-### Community 215 - ".claude/skills/impeccable/scripts/live-status.mjs"
-Cohesion: 0.18
-Nodes (21): readLiveServerInfo(), FORBIDDEN, verifyAcceptedFile(), completeCli(), completeThroughServer(), parseArgs(), readServerInfo(), collectManualApplyFiles() (+13 more)
+### Community 215 - ".claude/skills/impeccable/scripts/live/session-store.mjs"
+Cohesion: 0.12
+Nodes (27): getLegacyLiveSessionsDir(), safeSessionId(), collectManualApplyFiles(), manualApplyReplyCommand(), manualApplyResumeHint(), mountFailureAction(), parseArgs(), renderSummary() (+19 more)
 
 ### Community 216 - "initPageChat"
 Cohesion: 0.08
-Nodes (50): armPageChatForTyping(), attachSteerFocusDebug(), attachSteerFocusGuard(), buildSteerProcessingDots(), buildSteerQueueHint(), clearSteerAwaitTimer(), clearSteerFocusRecoverTimer(), collapsePageChat() (+42 more)
+Nodes (54): armPageChatForTyping(), attachSteerFocusDebug(), attachSteerFocusGuard(), buildSteerProcessingDots(), buildSteerQueueHint(), clearSteerAwaitTimer(), clearSteerFocusRecoverTimer(), collapsePageChat() (+46 more)
 
 ### Community 217 - ".claude/skills/impeccable/scripts/modern-screenshot.umd.js"
 Cohesion: 0.09
@@ -1069,7 +1070,7 @@ Nodes (8): API Route Template, API Security, Auth Architecture, Environment Vari
 
 ### Community 222 - ".agents/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs"
 Cohesion: 0.07
-Nodes (45): blankCssComments(), BLOCK_BRACE_PREFIX_KEYWORDS, CSS_IN_JS_EXTENSIONS, detectText(), extFromFilePath(), extractCSSinJS(), extractStyleBlocks(), findCSSinJSTemplates() (+37 more)
+Nodes (46): blankCssComments(), BLOCK_BRACE_PREFIX_KEYWORDS, CSS_IN_JS_EXTENSIONS, detectText(), extFromFilePath(), extractCSSinJS(), extractStyleBlocks(), findCSSinJSTemplates() (+38 more)
 
 ### Community 223 - "Installation Required"
 Cohesion: 0.25
@@ -1096,12 +1097,12 @@ Cohesion: 0.33
 Nodes (5): 1. Think Before Coding, 2. Simplicity First, 3. Surgical Changes, 4. Goal-Driven Execution, Karpathy Guidelines
 
 ### Community 229 - ".claude/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs"
-Cohesion: 0.06
-Nodes (43): blankCssComments(), BLOCK_BRACE_PREFIX_KEYWORDS, CSS_IN_JS_EXTENSIONS, extractCSSinJS(), extractStyleBlocks(), findCSSinJSTemplates(), findQuotedStringEnd(), findRegexLiteralEnd() (+35 more)
+Cohesion: 0.07
+Nodes (46): blankCssComments(), BLOCK_BRACE_PREFIX_KEYWORDS, CSS_IN_JS_EXTENSIONS, detectText(), extFromFilePath(), extractCSSinJS(), extractStyleBlocks(), findCSSinJSTemplates() (+38 more)
 
-### Community 230 - "resolveProject"
-Cohesion: 0.19
-Nodes (14): contextSourcePath(), contextSourceStatus(), firstExisting(), isPathInside(), isPathInsideOrEqual(), nearestProjectLikeRoot(), nearestTargetContextRoot(), resolveCandidateContextSummary() (+6 more)
+### Community 230 - "getAdminCalendar.ts"
+Cohesion: 0.21
+Nodes (14): AdminCalendarPage(), GET(), DayResponse, densityColor(), monthLabel(), MonthResponse, SlotCalendar(), timeToHourOffset() (+6 more)
 
 ### Community 231 - "addVisualContrastFindings"
 Cohesion: 0.19
@@ -1124,12 +1125,12 @@ Cohesion: 0.08
 Nodes (31): applyStaticDeclaration(), buildBorderOverrideMap(), buildStaticStyleMap(), buildStaticWindow(), collectStaticCssRules(), compareStaticPriority(), cssPropToCamel(), expandStaticBoxValues() (+23 more)
 
 ### Community 236 - ".claude/skills/impeccable/scripts/detector/detect-antipatterns.mjs"
-Cohesion: 0.08
-Nodes (45): confirm(), detectCli(), detectLocalFile(), dim(), fileUrlToLocalPath(), formatAdvisorySection(), formatFindings(), formatFindingsBody() (+37 more)
+Cohesion: 0.09
+Nodes (43): confirm(), detectCli(), detectLocalFile(), dim(), fileUrlToLocalPath(), formatAdvisorySection(), formatFindings(), formatFindingsBody() (+35 more)
 
 ### Community 237 - ".claude/skills/impeccable/scripts/detector/engines/static-html/css-cascade.mjs"
 Cohesion: 0.08
-Nodes (32): applyStaticDeclaration(), buildBorderOverrideMap(), buildStaticStyleMap(), buildStaticWindow(), collectStaticCssRules(), compareStaticPriority(), cssPropToCamel(), expandStaticBoxValues() (+24 more)
+Nodes (31): applyStaticDeclaration(), buildBorderOverrideMap(), buildStaticStyleMap(), buildStaticWindow(), collectStaticCssRules(), compareStaticPriority(), cssPropToCamel(), expandStaticBoxValues() (+23 more)
 
 ### Community 238 - ".claude/skills/impeccable/scripts/lib/impeccable-config.mjs"
 Cohesion: 0.10
@@ -1140,16 +1141,16 @@ Cohesion: 0.10
 Nodes (45): applyDetectionConfigSource(), clampByte(), cleanIgnoreValueDisplay(), cloneDetectionConfig(), cloneRawDetectionConfig(), COLOR_CHANNEL_FORMATS, colorIgnoreKey(), DEFAULT_DETECTION_CONFIG (+37 more)
 
 ### Community 240 - ".claude/skills/impeccable/scripts/live-accept.mjs"
-Cohesion: 0.12
-Nodes (39): acceptCli(), acceptReceiptPath(), argVal(), buildAcceptedWrappedSource(), buildCarbonizeReplacement(), decodeHtmlAttr(), deindentContent(), detectCommentSyntax() (+31 more)
+Cohesion: 0.10
+Nodes (44): matchesTemplateExtension(), acceptCli(), acceptReceiptPath(), argVal(), buildAcceptedWrappedSource(), buildCarbonizeReplacement(), decodeHtmlAttr(), deindentContent() (+36 more)
 
 ### Community 241 - ".agents/skills/impeccable/scripts/live-accept.mjs"
-Cohesion: 0.08
-Nodes (51): extensionCache, LIVE_TEMPLATE_EXTENSIONS, matchesTemplateExtension(), mergeExtensions(), normalizeExtensionEntries(), readLiveTemplateExtensions(), resolveLiveTemplateExtensions(), safeReadJson() (+43 more)
+Cohesion: 0.09
+Nodes (47): matchesTemplateExtension(), readLiveTemplateExtensions(), resolveLiveTemplateExtensions(), safeReadJson(), acceptCli(), acceptReceiptPath(), argVal(), buildAcceptedWrappedSource() (+39 more)
 
 ### Community 242 - ".claude/skills/impeccable/scripts/live-wrap.mjs"
-Cohesion: 0.13
-Nodes (38): hasGeneratedHeader(), HEADER_MARKERS, isGeneratedFile(), isGitIgnored(), resolveSourceTraits(), argVal(), buildInsertWrapperLines(), computeInsertLine() (+30 more)
+Cohesion: 0.11
+Nodes (42): hasGeneratedHeader(), HEADER_MARKERS, isGeneratedFile(), isGitIgnored(), resolveSourceTraits(), argVal(), buildInsertWrapperLines(), computeInsertLine() (+34 more)
 
 ### Community 243 - ".agents/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs"
 Cohesion: 0.11
@@ -1157,15 +1158,15 @@ Nodes (35): mergeDesignSystemFindings(), createBrowserDetector(), detectUrl(), l
 
 ### Community 244 - ".agents/skills/impeccable/scripts/hook-before-edit.mjs"
 Cohesion: 0.10
-Nodes (36): allow(), bumpCursorDenial(), deny(), detectProposedHtml(), done(), escapeRegExp(), findingSignature(), firstMatch() (+28 more)
+Nodes (44): allow(), bumpCursorDenial(), cursorBlockMessage(), deny(), detectProposedHtml(), done(), escapeRegExp(), findingSignature() (+36 more)
 
 ### Community 245 - ".claude/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs"
 Cohesion: 0.11
-Nodes (39): mergeDesignSystemFindings(), createBrowserDetector(), detectUrl(), launchBrowser(), measureContentHiddenAfterReveal(), runVisualContrastFallback(), serializeDesignSystemForBrowser(), detectText() (+31 more)
+Nodes (35): mergeDesignSystemFindings(), createBrowserDetector(), detectUrl(), launchBrowser(), measureContentHiddenAfterReveal(), runVisualContrastFallback(), serializeDesignSystemForBrowser(), runRegexMatchers() (+27 more)
 
 ### Community 246 - ".claude/skills/impeccable/scripts/hook-before-edit.mjs"
-Cohesion: 0.11
-Nodes (43): allow(), bumpCursorDenial(), cursorBlockMessage(), deny(), detectProposedHtml(), done(), escapeRegExp(), findingSignature() (+35 more)
+Cohesion: 0.10
+Nodes (44): allow(), bumpCursorDenial(), cursorBlockMessage(), deny(), detectProposedHtml(), done(), escapeRegExp(), findingSignature() (+36 more)
 
 ### Community 247 - "brandkit/SKILL.md"
 Cohesion: 0.05
@@ -1176,8 +1177,8 @@ Cohesion: 0.06
 Nodes (30): 1. Accessibility (VoiceOver / TalkBack), 2. Performance, 3. Appearance & Theming, 4. Platform Conformance (CRITICAL), 5. Adaptivity, Diagnostic Scan, Recommended Actions, Craft (deprecated alias) (+22 more)
 
 ### Community 249 - ".agents/skills/impeccable/scripts/hook-admin.mjs"
-Cohesion: 0.12
-Nodes (42): ACTIONS, addIgnoreFile(), addIgnoreRule(), addIgnoreValue(), DETECTOR_CONFIG_KEYS, detectorSection(), fileHasImpeccableHookMarker(), HOOK_MANIFEST_TARGETS (+34 more)
+Cohesion: 0.13
+Nodes (41): ACTIONS, addIgnoreFile(), addIgnoreRule(), addIgnoreValue(), DETECTOR_CONFIG_KEYS, detectorSection(), fileHasImpeccableHookMarker(), HOOK_MANIFEST_TARGETS (+33 more)
 
 ### Community 250 - ".agents/skills/impeccable/scripts/live-copy-edit-agent.mjs"
 Cohesion: 0.12
@@ -1188,8 +1189,8 @@ Cohesion: 0.07
 Nodes (29): Assess Adaptation Challenge, Implement & Verify, Recommended Actions, Recommended Actions, Craft (deprecated alias), Monorepo notes, Opting out of the boot check, Step 1: Run the pass (+21 more)
 
 ### Community 252 - ".claude/skills/impeccable/scripts/hook-admin.mjs"
-Cohesion: 0.12
-Nodes (42): ACTIONS, addIgnoreFile(), addIgnoreRule(), addIgnoreValue(), DETECTOR_CONFIG_KEYS, detectorSection(), fileHasImpeccableHookMarker(), HOOK_MANIFEST_TARGETS (+34 more)
+Cohesion: 0.13
+Nodes (41): ACTIONS, addIgnoreFile(), addIgnoreRule(), addIgnoreValue(), DETECTOR_CONFIG_KEYS, detectorSection(), fileHasImpeccableHookMarker(), HOOK_MANIFEST_TARGETS (+33 more)
 
 ### Community 253 - ".claude/skills/impeccable/scripts/live-copy-edit-agent.mjs"
 Cohesion: 0.12
@@ -1216,8 +1217,8 @@ Cohesion: 0.13
 Nodes (39): assessCoverage(), buildColor(), CANONICAL_SECTIONS, collectBullets(), collectColorValues(), collectParagraphs(), detectFormat(), extractColors() (+31 more)
 
 ### Community 259 - "scanCssTextForPulsingDot"
-Cohesion: 0.08
-Nodes (44): buildHtmlPatternCorpora(), checkColors(), checkElementAIPaletteDOM(), checkElementGlow(), checkElementHeroEyebrow(), checkGlow(), checkHoverContrast(), checkHtmlPatterns() (+36 more)
+Cohesion: 0.09
+Nodes (40): buildHtmlPatternCorpora(), checkColors(), checkElementAIPaletteDOM(), checkElementGlow(), checkElementHeroEyebrow(), checkGlow(), checkHoverContrast(), checkHtmlPatterns() (+32 more)
 
 ### Community 260 - ".claude/skills/impeccable/scripts/lib/design-parser.mjs"
 Cohesion: 0.13
@@ -1228,12 +1229,12 @@ Cohesion: 0.15
 Nodes (27): completionAckForAcceptResult(), completionTypeForAcceptResult(), PREVIEW_MODES_WITHOUT_SOURCE_MARKERS, augmentEventWithAcceptHandling(), buildAcceptScriptArgs(), buildPollReplyPayload(), completeAcceptHandling(), EVENT_TYPES_NEEDING_AGENT_REPLY (+19 more)
 
 ### Community 262 - ".claude/skills/impeccable/scripts/doctor.mjs"
-Cohesion: 0.12
-Nodes (36): applyFixes(), cli(), collect(), parseArgs(), readProjectRootPatterns(), rel(), renderText(), safeRead() (+28 more)
+Cohesion: 0.08
+Nodes (54): applyFixes(), cli(), collect(), readProjectRootPatterns(), renderText(), safeRead(), SCRIPTS_DIR, SEVERITY_LABEL (+46 more)
 
 ### Community 263 - ".agents/skills/impeccable/scripts/live-inject.mjs"
-Cohesion: 0.16
-Nodes (20): describeInjectArtifacts(), frameworkIgnorePatterns(), resolveFramework(), applyNuxtLiveAdapter(), buildNuxtPlugin(), detectNuxtProject(), nuxt, removeNuxtLiveAdapter() (+12 more)
+Cohesion: 0.19
+Nodes (17): describeInjectArtifacts(), frameworkIgnorePatterns(), resolveFramework(), applyNuxtLiveAdapter(), buildNuxtPlugin(), detectNuxtProject(), removeNuxtLiveAdapter(), buildLiveScriptSrc() (+9 more)
 
 ### Community 264 - "CORE DIRECTIVE: IMAGE-FIRST WEBSITE DESIGN TO CODE"
 Cohesion: 0.06
@@ -1244,24 +1245,24 @@ Cohesion: 0.06
 Nodes (34): 10. DEVICE MOCKUP FRAME RULE, 11. ONBOARDING FLOW RULE, 12. FIRST SCREEN CLEANLINESS RULE, 13. SAFE AREA AND SYSTEM REGION RULE, 14. NAVIGATION RULE, 15. CLEAN LAYOUT RULE, 16. CREATIVE IMAGE DIRECTION RULE, 17. BACKGROUND TEXTURE AND SURFACE RULE (+26 more)
 
 ### Community 266 - ".claude/skills/impeccable/scripts/lib/impeccable-paths.mjs"
-Cohesion: 0.19
-Nodes (19): resolveProjectRoot(), firstExisting(), getDesignSidecarCandidates(), getDesignSidecarPath(), getImpeccableDir(), getLegacyLiveAnnotationsDir(), getLegacyLiveConfigPath(), getLegacyLiveServerPath() (+11 more)
+Cohesion: 0.11
+Nodes (30): firstExisting(), getDesignSidecarCandidates(), getImpeccableDir(), getLegacyLiveConfigPath(), getLegacyLiveServerPath(), getLiveAnnotationsDir(), getLiveConfigPath(), getLiveDir() (+22 more)
 
-### Community 267 - "SiteGateLog.tsx"
+### Community 267 - "cli"
 Cohesion: 0.15
-Nodes (15): AdminSiteGatePage(), errorMessage(), formatTime(), groupByIp(), IpGroup, isRecord(), methodColor(), MethodFilter (+7 more)
+Nodes (15): appendAutonomyCounterDirective(), appendImageGenDirective(), appendImageToolsDirective(), appendSubagentAuthorizationDirective(), appendSurfaceBriefContext(), buildMissingTargetDirective(), buildResolvedContextDirective(), buildTargetSelectionDirective() (+7 more)
 
 ### Community 268 - "collectBrowserFindings"
-Cohesion: 0.12
-Nodes (25): addBrowserFindings(), browserFindingsFromMap(), checkBorders(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders(), checkElementBordersDOM(), checkElementPseudoStripeDOM() (+17 more)
+Cohesion: 0.14
+Nodes (23): addBrowserFindings(), browserFindingsFromMap(), checkBorders(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders(), checkElementBordersDOM(), checkElementPseudoStripeDOM() (+15 more)
 
 ### Community 269 - "components/ui/Logo.tsx"
 Cohesion: 0.40
 Nodes (4): getLogoSrc(), Logo(), LogoProps, LogoVariant
 
 ### Community 270 - "initGlobalBar"
-Cohesion: 0.13
-Nodes (30): agentHasWorkInFlight(), agentStatusText(), barPaletteForTheme(), brandMarkSvg(), buildDesignHeader(), designPanelCss(), detectPageTheme(), ensureAgentPollTooltip() (+22 more)
+Cohesion: 0.12
+Nodes (33): agentHasWorkInFlight(), agentStatusText(), barPaletteForTheme(), brandMarkSvg(), buildDesignHeader(), cursorForInsertAxis(), designPanelCss(), detectPageTheme() (+25 more)
 
 ### Community 271 - ".agents/skills/impeccable/reference/live.md"
 Cohesion: 0.06
@@ -1275,9 +1276,9 @@ Nodes (30): addManualContextText(), applyEditing(), buildLocatorForLeaf(), canRe
 Cohesion: 0.06
 Nodes (29): Apply at system scale, Audit before choosing, Choose a strategy, Contrast and perception, Live-mode signature params, Verify, Visitor mode, Cleanup (+21 more)
 
-### Community 274 - "service.ts"
-Cohesion: 0.05
-Nodes (58): AdminBookingDetailPage(), getBookingDetail(), AdminBookingsPage(), metadata, AdminDoorPage(), AdminMemberDetailPage(), getMemberDetail(), TIER_BG_VAR (+50 more)
+### Community 274 - "num"
+Cohesion: 0.04
+Nodes (72): AdminBookingDetailPage(), getBookingDetail(), AdminDoorPage(), AdminMemberDetailPage(), getMemberDetail(), TIER_BG_VAR, TIER_COLOR_VAR, AdminMembersPage() (+64 more)
 
 ### Community 275 - "High-Agency Frontend Skill"
 Cohesion: 0.06
@@ -1288,72 +1289,72 @@ Cohesion: 0.14
 Nodes (8): CouponTicketData, CouponTicketProps, Campaign, CouponTemplate, EMPTY_CAMPAIGN_FORM, EMPTY_COUPON_FORM, inputCls, Tab
 
 ### Community 277 - "parseAnyColor"
-Cohesion: 0.15
-Nodes (20): checkBorders(), checkElementBorders(), checkElementBordersDOM(), clamp01(), colorFunctionToRgb(), decodeSrgbChannel(), encodeSrgbChannel(), hslToRgb() (+12 more)
+Cohesion: 0.09
+Nodes (30): borderColorsFromStyle(), borderWidthsFromStyle(), checkCreamPalette(), checkElementGptBorderShadow(), checkElementGptBorderShadowDOM(), checkGptThinBorderWideShadow(), checkTextOcclusionDOM(), clamp01() (+22 more)
 
 ### Community 278 - ".agents/skills/impeccable/scripts/live/session-store.mjs"
-Cohesion: 0.09
-Nodes (37): getLegacyLiveSessionsDir(), readLiveServerInfo(), safeSessionId(), FORBIDDEN, verifyAcceptedFile(), verifyAcceptedSource(), completeCli(), completeThroughServer() (+29 more)
+Cohesion: 0.10
+Nodes (32): safeSessionId(), FORBIDDEN, verifyAcceptedFile(), completeCli(), completeThroughServer(), parseArgs(), readServerInfo(), collectManualApplyFiles() (+24 more)
 
 ### Community 280 - "resolveLengthPx"
-Cohesion: 0.11
-Nodes (26): checkElementQuality(), checkElementQualityDOM(), checkKickerAboveHeading(), checkKickerAboveHeadingDOM(), checkKickerAboveHeadingFromDoc(), checkNumberedSectionLabels(), checkNumberedSectionLabelsDOM(), checkNumberedSectionLabelsFromDoc() (+18 more)
+Cohesion: 0.09
+Nodes (29): checkElementOversizedH1(), checkElementOversizedH1DOM(), checkElementQuality(), checkElementQualityDOM(), checkKickerAboveHeading(), checkKickerAboveHeadingDOM(), checkKickerAboveHeadingFromDoc(), checkNumberedSectionLabels() (+21 more)
 
 ### Community 281 - ".agents/skills/impeccable/scripts/live-poll.mjs"
-Cohesion: 0.11
-Nodes (36): completionAckForAcceptResult(), completionTypeForAcceptResult(), PREVIEW_MODES_WITHOUT_SOURCE_MARKERS, acceptInstructions(), bootInstructions(), deferredWrapperInstructions(), generateInstructions(), insertScaffoldInstructions() (+28 more)
+Cohesion: 0.15
+Nodes (27): completionAckForAcceptResult(), completionTypeForAcceptResult(), PREVIEW_MODES_WITHOUT_SOURCE_MARKERS, augmentEventWithAcceptHandling(), buildAcceptScriptArgs(), buildPollReplyPayload(), completeAcceptHandling(), EVENT_TYPES_NEEDING_AGENT_REPLY (+19 more)
 
 ### Community 282 - "signup-secret 2.ts"
 Cohesion: 0.31
 Nodes (7): decode(), decryptSignupSecret(), encode(), encryptionKey(), encryptSignupSecret(), setSignupSecretCookie(), SignupSecret
 
 ### Community 283 - ".agents/skills/impeccable/scripts/live/roots.mjs"
-Cohesion: 0.16
-Nodes (25): CANDIDATE_SCAN_IGNORED, CONTEXT_FALLBACK_DIRS, DESIGN_NAMES, DEV_CONFIG_MARKERS, discoverAppCandidates(), exists(), findContextFile(), findGitRoot() (+17 more)
+Cohesion: 0.15
+Nodes (27): CANDIDATE_SCAN_IGNORED, consumeTargetArg(), CONTEXT_FALLBACK_DIRS, DESIGN_NAMES, DEV_CONFIG_MARKERS, discoverAppCandidates(), enterLiveRoot(), exists() (+19 more)
 
 ### Community 284 - ".claude/skills/impeccable/scripts/live/roots.mjs"
 Cohesion: 0.15
 Nodes (27): CANDIDATE_SCAN_IGNORED, consumeTargetArg(), CONTEXT_FALLBACK_DIRS, DESIGN_NAMES, DEV_CONFIG_MARKERS, discoverAppCandidates(), enterLiveRoot(), exists() (+19 more)
 
-### Community 285 - ".claude/skills/impeccable/scripts/lib/surface-briefs.mjs"
-Cohesion: 0.44
-Nodes (9): getSurfaceBriefDir(), listSurfaceBriefs(), normalizeSurfaceTarget(), parseSurfaceBrief(), resolveSurfaceBrief(), surfaceBriefPathForTarget(), writeSurfaceBrief(), main() (+1 more)
+### Community 285 - "LegalDocumentRenderer.tsx"
+Cohesion: 0.19
+Nodes (11): EN, getSortedPhrases(), highlightKeyPhrases(), PHRASES_BY_LOCALE, IMPORTANT: this file does not alter a single character of the verbatim, SORTED_BY_LOCALE, ZH_CN, ZH_HK (+3 more)
 
 ### Community 286 - "runHook"
-Cohesion: 0.17
-Nodes (29): main(), appendDesignSystemNote(), appendDesignSystemNoteOnce(), bumpEditCount(), commitFooterShown(), consumeSessionNoticeFlag(), dedupeAgainstCache(), depthIsSet() (+21 more)
+Cohesion: 0.14
+Nodes (24): bumpEditCount(), canonicalPath(), coLocatedStylesheets(), dedupeAgainstCache(), depthIsSet(), ensureFile(), ensureSession(), expandScanTargets() (+16 more)
 
 ### Community 287 - ".agents/skills/impeccable/scripts/live-manual-edit-evidence.mjs"
 Cohesion: 0.15
 Nodes (26): analyzeSourceHint(), buildCandidatesForOp(), buildContextHintsByRef(), buildManualEditEvidence(), collectSearchFiles(), countOps(), decodeBasicHtml(), escapeRegExp() (+18 more)
 
 ### Community 288 - ".agents/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs"
-Cohesion: 0.26
-Nodes (14): appendOriginToDirective(), buildTagBlock(), commentClose(), commentOpen(), detectLineEnding(), findCspMetaTags(), getAttr(), insertTag() (+6 more)
+Cohesion: 0.23
+Nodes (15): appendOriginToDirective(), buildTagBlock(), commentClose(), commentOpen(), detectLineEnding(), findCspMetaTags(), getAttr(), insertTag() (+7 more)
 
 ### Community 289 - ".claude/skills/impeccable/scripts/live-manual-edit-evidence.mjs"
 Cohesion: 0.15
 Nodes (26): analyzeSourceHint(), buildCandidatesForOp(), buildContextHintsByRef(), buildManualEditEvidence(), collectSearchFiles(), countOps(), decodeBasicHtml(), escapeRegExp() (+18 more)
 
 ### Community 290 - "PaymentMethodList.tsx"
-Cohesion: 0.10
-Nodes (22): AlipayBadgeIcon(), AlipayHKBadgeIcon(), AmexBadgeIcon(), BadgeProps, DinersBadgeIcon(), FpsBadgeIcon(), ImgBadgeProps, JcbBadgeIcon() (+14 more)
+Cohesion: 0.09
+Nodes (24): AlipayBadgeIcon(), AlipayHKBadgeIcon(), AmexBadgeIcon(), BadgeProps, DinersBadgeIcon(), FpsBadgeIcon(), ImgBadgeProps, JcbBadgeIcon() (+16 more)
 
 ### Community 291 - ".agents/skills/impeccable/reference/adapt.md"
 Cohesion: 0.08
 Nodes (22): Assess Adaptation Challenge, Content Adaptation, Desktop Adaptation (Mobile → Desktop), Email Adaptation (Web → Email), Implement Adaptations, Layout Adaptation Techniques, Mobile Adaptation (Desktop → Mobile), Adaptation Strategies (+14 more)
 
 ### Community 292 - "parseRgb"
-Cohesion: 0.13
-Nodes (29): checkCreamPalette(), checkElementColors(), checkElementColorsDOM(), checkElementGlowDOM(), checkElementHoverContrast(), checkElementIconTile(), checkElementIconTileDOM(), checkIconTile() (+21 more)
+Cohesion: 0.15
+Nodes (26): checkElementColors(), checkElementColorsDOM(), checkElementGlowDOM(), checkElementHoverContrast(), checkElementIconTile(), checkElementIconTileDOM(), checkIconTile(), collectVisualContrastCandidates() (+18 more)
 
 ### Community 293 - "handleManualEditActivity"
 Cohesion: 0.17
 Nodes (26): clearStoredManualApplyState(), fetchPendingCount(), handleManualEditActivity(), hidePendingApplyDock(), manualApplyLoadingText(), manualApplyStateKey(), manualEditEventForCurrentPage(), numberOrNull() (+18 more)
 
-### Community 294 - ".agents/skills/impeccable/scripts/live/insert-ui.mjs"
-Cohesion: 0.06
-Nodes (34): AGENT_PHASE_SET, FORBIDDEN_MANUAL_EDIT_TEXT_CHARS, INSERT_POSITIONS, isValidId(), isValidMountVariant(), isValidVariantId(), validateAnnotationFields(), validateEvent() (+26 more)
+### Community 294 - ".agents/skills/impeccable/scripts/live/event-validation.mjs"
+Cohesion: 0.13
+Nodes (24): AGENT_PHASE_SET, FORBIDDEN_MANUAL_EDIT_TEXT_CHARS, INSERT_POSITIONS, isValidId(), isValidMountVariant(), isValidVariantId(), validateAnnotationFields(), validateEvent() (+16 more)
 
 ### Community 295 - "Responsive Design"
 Cohesion: 0.08
@@ -1367,9 +1368,9 @@ Nodes (26): checkElementColors(), checkElementColorsDOM(), checkElementGlowDOM()
 Cohesion: 0.17
 Nodes (26): clearStoredManualApplyState(), fetchPendingCount(), handleManualEditActivity(), hidePendingApplyDock(), manualApplyLoadingText(), manualApplyStateKey(), manualEditEventForCurrentPage(), numberOrNull() (+18 more)
 
-### Community 298 - ".claude/skills/impeccable/scripts/live/event-validation.mjs"
-Cohesion: 0.12
-Nodes (26): AGENT_PHASE_SET, FORBIDDEN_MANUAL_EDIT_TEXT_CHARS, INSERT_POSITIONS, isValidId(), isValidMountVariant(), isValidVariantId(), validateAnnotationFields(), validateEvent() (+18 more)
+### Community 298 - ".claude/skills/impeccable/scripts/live/insert-ui.mjs"
+Cohesion: 0.06
+Nodes (34): AGENT_PHASE_SET, FORBIDDEN_MANUAL_EDIT_TEXT_CHARS, INSERT_POSITIONS, isValidId(), isValidMountVariant(), isValidVariantId(), validateAnnotationFields(), validateEvent() (+26 more)
 
 ### Community 299 - "Design System: SPACE8"
 Cohesion: 0.08
@@ -1391,9 +1392,9 @@ Nodes (13): Component translation rules, Narrative mapping, Scan mode (approach 
 Cohesion: 0.47
 Nodes (6): clippedByInset(), clippedByRect(), expandBoxShorthand(), firstMetricLengthPx(), isScreenReaderOnlyTextStyle(), metricLengthPx()
 
-### Community 304 - "checkElementGptBorderShadowDOM"
-Cohesion: 0.32
-Nodes (8): borderColorsFromStyle(), borderWidthsFromStyle(), checkElementGptBorderShadow(), checkElementGptBorderShadowDOM(), checkGptThinBorderWideShadow(), cssColorAlpha(), shadowLayerAlpha(), shadowMaxBlurPx()
+### Community 304 - "kpay/route.ts"
+Cohesion: 0.29
+Nodes (11): assertRpcSucceeded(), BookingSummary, ConfirmBookingResult, handleFailed(), handleRefunded(), handleSucceeded(), markWebhookFailed(), markWebhookProcessed() (+3 more)
 
 ### Community 305 - ".agents/skills/impeccable/scripts/live/svelte-ast.mjs"
 Cohesion: 0.21
@@ -1416,12 +1417,12 @@ Cohesion: 0.09
 Nodes (22): Assess Onboarding Needs, Context Over Ceremony, Contextual Help, Design Onboarding Experiences, Documentation & Help, Empty State Design, Feature Discovery & Adoption, Guided Tours & Walkthroughs (+14 more)
 
 ### Community 310 - "collectBrowserFindings"
-Cohesion: 0.19
-Nodes (17): addBrowserFindings(), browserFindingsFromMap(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementPseudoStripeDOM(), checkElementTextOverflowDOM(), checkFirstViewportColumnOverflowDOM(), checkHeadingRhythmDOM() (+9 more)
+Cohesion: 0.14
+Nodes (23): addBrowserFindings(), browserFindingsFromMap(), checkBorders(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders(), checkElementBordersDOM(), checkElementPseudoStripeDOM() (+15 more)
 
-### Community 311 - "captureElementToBlob"
-Cohesion: 0.15
-Nodes (18): averageRgb01(), captureElementFromRenderedAncestor(), captureElementToBlob(), compileShader(), cssColorToRgb01(), dominantRgb01(), findBackdropAncestor(), findShaderProxyCaptureRoot() (+10 more)
+### Community 311 - ".agents/skills/impeccable/scripts/context-signals.mjs"
+Cohesion: 0.23
+Nodes (13): cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals(), hasCode(), isVendoredPath(), latestCritique() (+5 more)
 
 ### Community 312 - ".claude/skills/impeccable/reference/onboard.md"
 Cohesion: 0.09
@@ -1464,24 +1465,24 @@ Cohesion: 0.12
 Nodes (10): browserOpenCommand(), openSystemBrowser(), esc(), localImages, page(), payloadPath, portArg, QUESTION_DIR (+2 more)
 
 ### Community 322 - ".claude/skills/impeccable/scripts/live-inject.mjs"
-Cohesion: 0.17
-Nodes (19): describeInjectArtifacts(), frameworkIgnorePatterns(), resolveFramework(), applyNuxtLiveAdapter(), buildNuxtPlugin(), detectNuxtProject(), nuxt, removeNuxtLiveAdapter() (+11 more)
+Cohesion: 0.12
+Nodes (33): describeInjectArtifacts(), frameworkIgnorePatterns(), resolveFramework(), applyNuxtLiveAdapter(), buildNuxtPlugin(), detectNuxtProject(), nuxt, removeNuxtLiveAdapter() (+25 more)
 
 ### Community 323 - "onAnnotDown"
 Cohesion: 0.20
 Nodes (17): beginEditPin(), buildAnnotationsForCapture(), buildPinElement(), cancelEditingPin(), clampPlaceholderSize(), finalizeEditingPin(), initAnnotOverlay(), localCoords() (+9 more)
 
-### Community 324 - ".claude/skills/impeccable/scripts/live/source-lock.mjs"
-Cohesion: 0.50
-Nodes (7): isLiveServerPidReachable(), clearStaleLock(), readLock(), releaseOwnLock(), sleepSync(), sourceLockPath(), withSourceLockSync()
+### Community 324 - "resolveProjectRoot"
+Cohesion: 0.25
+Nodes (8): parseCliOptions(), resolveProjectRoot(), parseArgs(), getLegacyLiveAnnotationsDir(), parseTargetOptions(), parseTargetPath(), TargetArgError, resolveLiveTarget()
 
 ### Community 325 - "Analysis & Synthesis Instructions"
 Cohesion: 0.11
 Nodes (18): 1. Define the Atmosphere, 2. Map the Color Palette, 3. Establish Typography Rules, 4. Define the Hero Section, 5. Describe Component Stylings, 6. Define Layout Principles, 7. Define Responsive Rules, 8. Encode Motion Philosophy (+10 more)
 
 ### Community 326 - "parseAnyColor"
-Cohesion: 0.13
-Nodes (22): checkCreamPalette(), checkTextOcclusionDOM(), clamp01(), colorFunctionToRgb(), creamFromClassList(), decodeSrgbChannel(), elementDirectText(), encodeSrgbChannel() (+14 more)
+Cohesion: 0.09
+Nodes (30): borderColorsFromStyle(), borderWidthsFromStyle(), checkCreamPalette(), checkElementGptBorderShadow(), checkElementGptBorderShadowDOM(), checkGptThinBorderWideShadow(), checkTextOcclusionDOM(), clamp01() (+22 more)
 
 ### Community 327 - "onAnnotDown"
 Cohesion: 0.18
@@ -1495,9 +1496,9 @@ Nodes (8): formatClock(), formatRemaining(), PaymentRecoveryLabels, PaymentRecov
 Cohesion: 0.11
 Nodes (17): 1. Meta Information & Core Directive, 2. THE "ABSOLUTE ZERO" DIRECTIVE (STRICT ANTI-PATTERNS), 3. THE CREATIVE VARIANCE ENGINE, 4. HAPTIC MICRO-AESTHETICS (COMPONENT MASTERY), 5. MOTION CHOREOGRAPHY (FLUID DYNAMICS), 6. PERFORMANCE GUARDRAILS, 7. EXECUTION PROTOCOL, 8. PRE-OUTPUT CHECKLIST (+9 more)
 
-### Community 330 - ".claude/skills/impeccable/scripts/live/accept-css.mjs"
+### Community 330 - "Responsive Design"
 Cohesion: 0.20
-Nodes (23): bakeParamValues(), collectAllSelectors(), collectSelectorsFromNodes(), escapeRegExp(), formatBody(), isToggleOn(), normalizeSelector(), normalizeToggleForVar() (+15 more)
+Nodes (10): Breakpoints: Content-Driven, Detect Input Method, Not Just Screen Size, Layout Adaptation Patterns, Mobile-First: Write It Right, Picture Element for Art Direction, Responsive Design, Responsive Images: Get It Right, Safe Areas: Handle the Notch (+2 more)
 
 ### Community 331 - "Extract Flow"
 Cohesion: 0.25
@@ -1520,8 +1521,8 @@ Cohesion: 0.24
 Nodes (16): applySvelteKitLiveAdapter(), buildSvelteLiveRootComponent(), defaultSvelteLayout(), detectSvelteKitProject(), ensureSvelteLiveRootComponent(), escapeRegExp(), fileIncludes(), findSvelteKitAppHtml() (+8 more)
 
 ### Community 336 - ".agents/skills/impeccable/scripts/live/frameworks/detect-utils.mjs"
-Cohesion: 0.27
-Nodes (13): astro, detectAstroProject(), fileExists(), findConfigFile(), firstExistingFile(), hasAnyDependency(), literalConfigFiles(), readPackageDeps() (+5 more)
+Cohesion: 0.33
+Nodes (11): astro, detectAstroProject(), fileExists(), findConfigFile(), firstExistingFile(), hasAnyDependency(), literalConfigFiles(), readPackageDeps() (+3 more)
 
 ### Community 337 - ".agents/skills/impeccable/scripts/live/tanstack-adapter.mjs"
 Cohesion: 0.22
@@ -1531,13 +1532,13 @@ Nodes (15): applyTanStackLiveAdapter(), buildTanStackLiveRootComponent(), detect
 Cohesion: 0.12
 Nodes (16): 1. Skill Meta, 2.1 Swiss Industrial Print, 2.2 Tactical Telemetry & CRT Terminal, 2. Visual Archetypes, 3.1 Macro-Typography (Structural Headers), 3.2 Micro-Typography (Data & Telemetry), 3.3 Textural Contrast (Artistic Disruption), 3. Typographic Architecture (+8 more)
 
-### Community 339 - "Diagnostic Scan"
-Cohesion: 0.33
-Nodes (6): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Diagnostic Scan
+### Community 339 - "validatePassword"
+Cohesion: 0.22
+Nodes (12): BAR_COLORS, PasswordStrength(), Rule, RULES, BAR_COLORS, PasswordStrength(), Rule, RULES (+4 more)
 
 ### Community 340 - "renderGroupedTemplate"
-Cohesion: 0.23
-Nodes (14): cursorBlockMessage(), clampGroupedToBudget(), clampLastLine(), clampToBudget(), directiveFooter(), footerFallbacks(), formatDedupedFindingLine(), formatFindingLine() (+6 more)
+Cohesion: 0.29
+Nodes (12): clampGroupedToBudget(), clampLastLine(), clampToBudget(), directiveFooter(), footerFallbacks(), formatDedupedFindingLine(), isFindingLine(), relativize() (+4 more)
 
 ### Community 341 - ".claude/skills/impeccable/scripts/live/tanstack-adapter.mjs"
 Cohesion: 0.22
@@ -1620,8 +1621,8 @@ Cohesion: 0.14
 Nodes (13): Animation Performance, Assess Performance Issues, Core Web Vitals Optimization, Cumulative Layout Shift (CLS < 0.1), Interaction to Next Paint (INP < 200ms), Largest Contentful Paint (LCP < 2.5s), Loading Performance, Network Optimization (+5 more)
 
 ### Community 362 - "admin/AdminSidebar.tsx"
-Cohesion: 0.21
-Nodes (9): AdminSidebar(), NAV_ITEMS, NavItemData, Logo(), LogoProps, NavItem(), NavItemProps, SidebarNavItem (+1 more)
+Cohesion: 0.16
+Nodes (12): AdminSidebar(), NAV_ITEMS, NavItemData, MobileTabBar(), Tab, TABS, Logo(), LogoProps (+4 more)
 
 ### Community 363 - ".claude/skills/impeccable/scripts/live/frameworks/index.mjs"
 Cohesion: 0.17
@@ -1644,8 +1645,8 @@ Cohesion: 0.13
 Nodes (12): AboutContent(), ClockIcon2(), EASE, PhoneIcon2(), POP, SPRING, StatsItem, STEP_ICONS (+4 more)
 
 ### Community 368 - ".agents/skills/impeccable/scripts/live/frameworks/index.mjs"
-Cohesion: 0.17
-Nodes (11): COMMENT_SYNTAXES, FRAMEWORKS, INJECT_KINDS, PATCH_UNDOERS, PREVIEW_MODES, SOURCE_TRAIT_DEFAULTS, STYLE_MODES, staticHtml (+3 more)
+Cohesion: 0.15
+Nodes (12): COMMENT_SYNTAXES, FRAMEWORKS, INJECT_KINDS, PREVIEW_MODES, SOURCE_TRAIT_DEFAULTS, STYLE_MODES, nextjs, nuxt (+4 more)
 
 ### Community 369 - ".agents/skills/impeccable/scripts/pin.mjs"
 Cohesion: 0.22
@@ -1704,8 +1705,8 @@ Cohesion: 0.17
 Nodes (11): Accessibility & Inclusion, Brand Commitments, Capabilities and Constraints, Evidence on Hand, Operating Context, Platform, Positioning, Product (+3 more)
 
 ### Community 384 - "tasteskill: Anti-Slop Frontend Skill"
-Cohesion: 0.13
-Nodes (15): 0.A Read these signals first, 0.B Output a one-line "Design Read" before generating, 0. BRIEF INFERENCE (Read the Room Before Anything Else), 0.C If the brief is ambiguous, ask one question, do not guess, 0.D Anti-Default Discipline, 13. OUT OF SCOPE, 14. FINAL PRE-FLIGHT CHECK, 1.A Dial Inference (design read → dial values) (+7 more)
+Cohesion: 0.18
+Nodes (11): 0.A Read these signals first, 0.B Output a one-line "Design Read" before generating, 0. BRIEF INFERENCE (Read the Room Before Anything Else), 0.C If the brief is ambiguous, ask one question, do not guess, 0.D Anti-Default Discipline, 13. OUT OF SCOPE, 14. FINAL PRE-FLIGHT CHECK, 2.A When to reach for a real design system (use official packages) (+3 more)
 
 ### Community 385 - ".agents/skills/impeccable/reference/clarify.md"
 Cohesion: 0.18
@@ -1732,16 +1733,16 @@ Cohesion: 0.18
 Nodes (10): Assess Current State, Color Refinement, Composition Refinement, Motion Reduction, Plan Refinement, Refine the Design, Simplification, Verify Quality (+2 more)
 
 ### Community 391 - ".claude/skills/impeccable/scripts/lib/staleness-notice.mjs"
-Cohesion: 0.33
-Nodes (10): appendStalenessDirective(), designSidecarCandidatesFor(), buildStalenessDirective(), cachePath(), filterFreshFindings(), pruneCache(), readCache(), readJson() (+2 more)
+Cohesion: 0.38
+Nodes (9): appendStalenessDirective(), buildStalenessDirective(), cachePath(), filterFreshFindings(), pruneCache(), readCache(), readJson(), stalenessCheckDisabled() (+1 more)
 
 ### Community 392 - ".agents/skills/impeccable/scripts/detect-csp.mjs"
 Cohesion: 0.20
 Nodes (10): detectCsp(), INLINE_HEADER_SIGNALS, LAYOUT_EXTS, MONOREPO_HELPER_SIGNALS, NUXT_ROUTE_RULES_SIGNALS, NUXT_SECURITY_SIGNALS, SCAN_EXTS, SKIP_DIRS (+2 more)
 
 ### Community 393 - ".agents/skills/impeccable/scripts/live/generation-preflight.mjs"
-Cohesion: 0.30
-Nodes (10): buildGenerationPreflight(), compactError(), execFileAsync, insertTarget(), normalizeTarget(), replaceTarget(), runGenerationPreflight(), sourceResolutionCache (+2 more)
+Cohesion: 0.35
+Nodes (9): buildGenerationPreflight(), compactError(), execFileAsync, insertTarget(), normalizeTarget(), replaceTarget(), runGenerationPreflight(), sourceResolutionCache (+1 more)
 
 ### Community 394 - ".agents/skills/impeccable/scripts/palette.mjs"
 Cohesion: 0.24
@@ -1767,25 +1768,25 @@ Nodes (10): 1. Establish the system, 2. Gather the evidence, 3. Triage, 4. Polis
 Cohesion: 0.18
 Nodes (10): Assess Current State, Color Refinement, Composition Refinement, Motion Reduction, Plan Refinement, Refine the Design, Simplification, Verify Quality (+2 more)
 
-### Community 400 - "filterFindings"
-Cohesion: 0.26
-Nodes (13): cleanIgnoreValueDisplay(), extractFindingIgnoreValue(), extractFindingIgnoreValueRaw(), extractMotionIgnoreValue(), filterFindings(), formatFindingIgnoreHint(), isAdvisoryFinding(), isIgnoredFindingValue() (+5 more)
+### Community 400 - "Operate mode depth (and Read notes)"
+Cohesion: 0.22
+Nodes (9): Color, Components, Layout, Motion, Operate mode depth (and Read notes), Product constraints, Product permissions, The product slop test (+1 more)
 
 ### Community 401 - ".claude/skills/impeccable/scripts/detect-csp.mjs"
 Cohesion: 0.20
 Nodes (10): detectCsp(), INLINE_HEADER_SIGNALS, LAYOUT_EXTS, MONOREPO_HELPER_SIGNALS, NUXT_ROUTE_RULES_SIGNALS, NUXT_SECURITY_SIGNALS, SCAN_EXTS, SKIP_DIRS (+2 more)
 
 ### Community 402 - ".claude/skills/impeccable/scripts/live/generation-preflight.mjs"
-Cohesion: 0.30
-Nodes (10): buildGenerationPreflight(), compactError(), execFileAsync, insertTarget(), normalizeTarget(), replaceTarget(), runGenerationPreflight(), sourceResolutionCache (+2 more)
+Cohesion: 0.35
+Nodes (9): buildGenerationPreflight(), compactError(), execFileAsync, insertTarget(), normalizeTarget(), replaceTarget(), runGenerationPreflight(), sourceResolutionCache (+1 more)
 
 ### Community 403 - ".claude/skills/impeccable/scripts/palette.mjs"
 Cohesion: 0.24
 Nodes (7): args, buildWeights(), hashUnit(), pickSeed(), seed, SEEDS, weightedPick()
 
-### Community 404 - ".claude/skills/impeccable/scripts/live/session-store.mjs"
-Cohesion: 0.19
-Nodes (12): safeSessionId(), applyEvent(), baseSnapshot(), COMPLETED_PHASES, deriveRenderState(), GENERATION_FENCED_PHASES, getJournalPath(), getSnapshotPath() (+4 more)
+### Community 404 - ".agents/skills/impeccable/scripts/live/browser-script-parts.mjs"
+Cohesion: 0.21
+Nodes (9): assembleLiveBrowserScript(), assertLiveBrowserScriptParts(), LIVE_BROWSER_SCRIPT_PARTS, readLiveBrowserScriptParts(), resolveLiveBrowserScriptParts(), loadBrowserScripts(), LIVE_CHROME_MOUNT_CONTRACT, LIVE_UI_COMPONENT_IDS (+1 more)
 
 ### Community 405 - "10. REFERENCE VOCABULARY (Pattern Names the Agent Should Know)"
 Cohesion: 0.20
@@ -1803,9 +1804,9 @@ Nodes (10): 22. STYLE VARIATION ENGINE, Decorative Asset Set, Image Art Directio
 Cohesion: 0.20
 Nodes (10): Completion gate, Init flow, Step 1: Load current state, Step 2: Explore the project, Step 3: Interview for product truth, Step 4: Write PRODUCT.md, Step 5: Record workflow defaults, Step 6: Wrap up or resume (+2 more)
 
-### Community 409 - "Diagnostic Scan"
-Cohesion: 0.33
-Nodes (6): 1. Accessibility (VoiceOver / TalkBack), 2. Performance, 3. Appearance & Theming, 4. Platform Conformance (CRITICAL), 5. Adaptivity, Diagnostic Scan
+### Community 409 - "admin/ui/Button.tsx"
+Cohesion: 0.21
+Nodes (6): IconButton(), IconButtonProps, PillButton(), PillButtonProps, PendingActionCard(), WidgetCardProps
 
 ### Community 410 - "Protocol: Premium Utilitarian Minimalism UI Architect"
 Cohesion: 0.20
@@ -1840,8 +1841,8 @@ Cohesion: 0.22
 Nodes (9): Color & materials, Components & controls, iOS platform, Layout & structure, Motion, The iOS slop test, Touch targets, Typography (+1 more)
 
 ### Community 418 - "createClient"
-Cohesion: 0.07
-Nodes (35): acceptInvite(), AcceptInvitePage(), InviteLookup, Layout(), ALLOWED_REDIRECT_SCHEMES, failureMap, getClientIp(), POST() (+27 more)
+Cohesion: 0.06
+Nodes (61): ALLOWED_REDIRECT_SCHEMES, failureMap, getClientIp(), POST(), POST(), POST(), ExistingRow, normalizedEmail() (+53 more)
 
 ### Community 419 - "Common Cognitive Load Violations"
 Cohesion: 0.22
@@ -1893,19 +1894,19 @@ Nodes (8): 1. Impatient Power User: "Alex", 2. Confused First-Timer: "Jordan", 3
 
 ### Community 432 - "create/route.ts"
 Cohesion: 0.06
-Nodes (72): isValidPayment(), isValidSlot(), ManualCreateRequest, PaymentInfo, POST(), SlotInfo, POST(), SlotCheckRequest (+64 more)
+Nodes (78): isValidPayment(), isValidSlot(), ManualCreateRequest, PaymentInfo, POST(), SlotInfo, POST(), SlotCheckRequest (+70 more)
 
 ### Community 433 - "Shape"
 Cohesion: 0.25
 Nodes (8): Cadence, Confirm and stop, Phase 1: Discovery interview, Phase 2: Resolve the design direction, Phase 3: Write the brief, Round 1: purpose, people, and outcome, Round 2: material, behavior, and boundaries, Shape
 
-### Community 434 - ".claude/skills/impeccable/scripts/live/browser-script-parts.mjs"
-Cohesion: 0.21
-Nodes (9): assembleLiveBrowserScript(), assertLiveBrowserScriptParts(), LIVE_BROWSER_SCRIPT_PARTS, readLiveBrowserScriptParts(), resolveLiveBrowserScriptParts(), loadBrowserScripts(), LIVE_CHROME_MOUNT_CONTRACT, LIVE_UI_COMPONENT_IDS (+1 more)
+### Community 434 - ".agents/skills/impeccable/reference/doctor.md"
+Cohesion: 0.25
+Nodes (7): Monorepo notes, Opting out of the boot check, Step 1: Run the pass, Step 2: Act by severity, Step 3: Deprecated fields are binding, Step 4: Do not overclaim on truth drift, What this owns, and what it does not
 
 ### Community 436 - ".claude/skills/impeccable/scripts/lib/template-extensions.mjs"
-Cohesion: 0.27
-Nodes (9): shouldEmitAckForFile(), extensionCache, LIVE_TEMPLATE_EXTENSIONS, matchConfiguredExtension(), mergeExtensions(), normalizeExtensionEntries(), readLiveTemplateExtensions(), resolveLiveTemplateExtensions() (+1 more)
+Cohesion: 0.33
+Nodes (7): extensionCache, LIVE_TEMPLATE_EXTENSIONS, mergeExtensions(), normalizeExtensionEntries(), readLiveTemplateExtensions(), resolveLiveTemplateExtensions(), safeReadJson()
 
 ### Community 437 - "APPENDICES - Real Source-Backed Reference Material"
 Cohesion: 0.29
@@ -1959,9 +1960,9 @@ Nodes (6): Checks, in order, Disposition, Impeccable Finish Reviewer, Input Cont
 Cohesion: 0.29
 Nodes (6): Checks, Entry Atomicity, Impeccable Manual Edit Applier, Input Contract, Output Contract, Workflow
 
-### Community 450 - ".claude/skills/impeccable/reference/bolder.md"
-Cohesion: 0.33
-Nodes (5): Before you finish, Scope is sovereign, The amplification, The skeleton test, Why it reads flat
+### Community 450 - "getAiWidgetSettings.ts"
+Cohesion: 0.27
+Nodes (8): GET(), LOCALES, AiTone, AiWidgetSettings, DEFAULT_GREETING, DEFAULT_PROMPTS, defaultsFor(), getAiWidgetSettings()
 
 ### Community 451 - "Generate Report"
 Cohesion: 0.29
@@ -1991,29 +1992,29 @@ Nodes (6): 29. ANTI-AI-SLOP RULES, Content slop, Density slop, Layout slop, Typo
 Cohesion: 0.33
 Nodes (6): 5. IMAGE COUNT & PAGE SLICING, Continuity Rule, Counting rule, Format, Section size variety, THIS IS THE PRIMARY OUTPUT RULE
 
-### Community 458 - "resolveProjectRoot"
-Cohesion: 0.31
-Nodes (12): resolveProjectRoot(), getLegacyLiveAnnotationsDir(), getLegacyLiveServerPath(), getSurfaceBriefDir(), listSurfaceBriefs(), normalizeSurfaceTarget(), parseSurfaceBrief(), resolveSurfaceBrief() (+4 more)
+### Community 458 - "Diagnostic Scan"
+Cohesion: 0.33
+Nodes (6): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Diagnostic Scan
 
 ### Community 460 - "container-scroll-animation.tsx"
 Cohesion: 0.29
 Nodes (3): CardProps, ContainerScrollProps, HeaderProps
 
 ### Community 461 - ".agents/skills/impeccable/scripts/live/frameworks/journal.mjs"
-Cohesion: 0.36
-Nodes (11): clearInjectJournal(), healArtifact(), healInjectJournal(), injectJournalPath(), insideProject(), normalizeRel(), pruneEmptyDirs(), readIfPresent() (+3 more)
+Cohesion: 0.32
+Nodes (12): PATCH_UNDOERS, clearInjectJournal(), healArtifact(), healInjectJournal(), injectJournalPath(), insideProject(), normalizeRel(), pruneEmptyDirs() (+4 more)
 
-### Community 462 - "brand/index.ts"
-Cohesion: 0.15
-Nodes (16): errorKey(), LoginForm(), safeReturnUrl(), AuthModal(), AppleLogo(), AppleLogoProps, Logo(), LogoProps (+8 more)
+### Community 462 - "ui/index.ts"
+Cohesion: 0.12
+Nodes (17): AppleLogo(), AppleLogoProps, AlipayLogo(), ApplePayLogo(), GooglePayLogo(), LogoComponentProps, MastercardLogo(), VisaLogo() (+9 more)
 
 ### Community 463 - "site-gate/route.ts"
-Cohesion: 0.31
-Nodes (8): Body, GET(), isBody(), POST(), POST(), hashGatePassword(), scrypt(), verifyGatePassword()
+Cohesion: 0.36
+Nodes (7): Body, GET(), isBody(), POST(), hashGatePassword(), scrypt(), verifyGatePassword()
 
 ### Community 464 - "getServiceSupabase"
-Cohesion: 0.03
-Nodes (115): AdminBlogEditPage(), getPost(), getSiblings(), AdminTeamPage(), AdminUserRow, GET(), isRecord(), LOCALES (+107 more)
+Cohesion: 0.02
+Nodes (134): acceptInvite(), AcceptInvitePage(), InviteLookup, Layout(), AdminTeamPage(), AdminUserRow, GET(), isRecord() (+126 more)
 
 ### Community 465 - "signup-state 2.ts"
 Cohesion: 0.29
@@ -2040,8 +2041,8 @@ Cohesion: 0.40
 Nodes (5): 21. MOBILE ANTI-AI-TELLS RULE, Copy AI tells, Layout AI tells, UI clutter tells, Visual AI tells
 
 ### Community 471 - ".claude/skills/impeccable/scripts/context-signals.mjs"
-Cohesion: 0.19
-Nodes (17): extractPlatform(), hasVisualImplementation(), loadContext(), cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals() (+9 more)
+Cohesion: 0.20
+Nodes (16): extractPlatform(), loadContext(), cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals(), hasCode() (+8 more)
 
 ### Community 472 - "Impeccable Documenter"
 Cohesion: 0.40
@@ -2111,9 +2112,9 @@ Nodes (3): candidates, detectorPath, __dirname
 Cohesion: 0.33
 Nodes (4): EASE, Facility, FACILITY_ICONS, FACILITY_IMAGES
 
-### Community 494 - "Adaptation Strategies"
-Cohesion: 0.40
-Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
+### Community 494 - "renderGroupedTemplate"
+Cohesion: 0.26
+Nodes (13): clampGroupedToBudget(), clampLastLine(), clampToBudget(), directiveFooter(), footerFallbacks(), formatDedupedFindingLine(), formatFindingLine(), isFindingLine() (+5 more)
 
 ### Community 495 - "KPayPayment.tsx"
 Cohesion: 0.18
@@ -2148,8 +2149,8 @@ Cohesion: 0.50
 Nodes (4): FONT_STYLE, getMask(), SECTION4_CONFIG, Section4TableTransition()
 
 ### Community 504 - "FloatingChat.tsx"
-Cohesion: 0.14
-Nodes (9): AIThinkingIndicator(), AttachmentCard(), AttachmentCardProps, PillButton(), ChatPanelProps, ModelSelector(), ModelSelectorProps, PendingActionCard() (+1 more)
+Cohesion: 0.16
+Nodes (7): AIThinkingIndicator(), AttachmentCard(), AttachmentCardProps, ChatPanelProps, ModelSelector(), ModelSelectorProps, SuggestionPanelProps
 
 ### Community 505 - "run-migration.mjs"
 Cohesion: 0.50
@@ -2159,21 +2160,21 @@ Nodes (3): __dirname, sql, sqlPath
 Cohesion: 0.50
 Nodes (4): highlight(), Section5Booking(), STEP_IMAGES, STEPS
 
-### Community 509 - "checkElementRadialSpotlightDOM"
-Cohesion: 0.67
-Nodes (4): checkElementRadialSpotlight(), checkElementRadialSpotlightDOM(), elementGradientValue(), spotlightLabel()
+### Community 509 - "checkRadialSpotlight"
+Cohesion: 0.32
+Nodes (8): checkElementRadialSpotlight(), checkElementRadialSpotlightDOM(), checkRadialSpotlight(), elementGradientValue(), parseColorMix(), parseRadialGradientStops(), splitTopLevelCommas(), spotlightLabel()
 
 ### Community 510 - "RiskBadge.tsx"
 Cohesion: 0.40
 Nodes (5): computeRiskLevel(), CONFIG, Props, RiskBadge(), RiskLevel
 
-### Community 512 - "resolveLiveInjectionAnchor"
-Cohesion: 0.22
-Nodes (15): buildSvelteExpressionTextMap(), buildSveltePropValuesFromLiveElement(), buildSveltePropValuesV2(), cloneWithoutElements(), collectTextNodes(), collectVisibleTexts(), cssEscapeIdent(), elementMatchesOriginalMarkup() (+7 more)
+### Community 512 - "Diagnostic Scan"
+Cohesion: 0.33
+Nodes (6): 1. Accessibility (VoiceOver / TalkBack), 2. Performance, 3. Appearance & Theming, 4. Platform Conformance (CRITICAL), 5. Adaptivity, Diagnostic Scan
 
-### Community 513 - "isRepeatedTextContainer"
-Cohesion: 0.25
-Nodes (8): checkLayout(), checkPageLayout(), isCardLike(), isCardLikeDOM(), isCardLikeFromProps(), isRepeatedTextContainer(), parseRadiusToPx(), resolveBorderRadiusPx()
+### Community 513 - ".claude/skills/impeccable/reference/bolder.md"
+Cohesion: 0.33
+Nodes (5): Before you finish, Scope is sovereign, The amplification, The skeleton test, Why it reads flat
 
 ### Community 514 - "Section2Value 2.tsx"
 Cohesion: 0.53
@@ -2194,6 +2195,10 @@ Nodes (5): checkElementHeroEyebrowDOM(), checkHeroEyebrow(), domAccentDashPseudo
 ### Community 525 - "HomeRooms 2.tsx"
 Cohesion: 0.40
 Nodes (3): EASE, Room, ROOM_IMAGES
+
+### Community 526 - "normalizeGitHubEvent"
+Cohesion: 0.47
+Nodes (6): applyPatchText(), envProjectDir(), looksLikeApplyPatch(), normalizeGitHubEvent(), normalizeHookEvent(), parseGitHubToolArgs()
 
 ### Community 528 - "verify-s2g.mjs"
 Cohesion: 0.60
@@ -2216,44 +2221,36 @@ Cohesion: 0.25
 Nodes (4): EASE, FLAP_MESSAGES, VIEWPORT, TextFlippingBoardProps
 
 ### Community 547 - "WidgetBody.tsx"
-Cohesion: 0.15
-Nodes (10): IconButton(), IconButtonProps, PillButtonProps, LineChart(), RingChart(), transactions, TransactionsCard(), Widget (+2 more)
+Cohesion: 0.24
+Nodes (6): LineChart(), RingChart(), transactions, TransactionsCard(), Widget, WidgetBodyProps
 
-### Community 549 - "checkTextOcclusionDOM"
-Cohesion: 0.22
-Nodes (11): checkTextOcclusionDOM(), clippedByInset(), clippedByRect(), elementDirectText(), expandBoxShorthand(), firstMetricLengthPx(), isLayeredElement(), isOpaqueDecoratedBox() (+3 more)
+### Community 549 - "isScreenReaderOnlyTextStyle"
+Cohesion: 0.47
+Nodes (6): clippedByInset(), clippedByRect(), expandBoxShorthand(), firstMetricLengthPx(), isScreenReaderOnlyTextStyle(), metricLengthPx()
 
-### Community 550 - "Responsive Design"
-Cohesion: 0.20
-Nodes (10): Breakpoints: Content-Driven, Detect Input Method, Not Just Screen Size, Layout Adaptation Patterns, Mobile-First: Write It Right, Picture Element for Art Direction, Responsive Design, Responsive Images: Get It Right, Safe Areas: Handle the Notch (+2 more)
-
-### Community 553 - "syncEditBadgeHitProxies"
-Cohesion: 0.27
-Nodes (10): bindEditBadgeProxy(), editBadgeProxyTargets(), initEditBadge(), initEditBadgeHitProxies(), positionEditBadge(), proxyMouseEvent(), setImportantStyle(), styleEditBadgeProxy() (+2 more)
+### Community 550 - "PaymentRecoveryScreen.tsx"
+Cohesion: 0.31
+Nodes (8): formatClock(), formatRemaining(), PaymentRecoveryLabels, PaymentRecoveryReason, PaymentRecoveryScreen(), Props, styles, useRemaining()
 
 ### Community 558 - "notifications/page.tsx"
 Cohesion: 0.27
 Nodes (9): CHANNELS, EMPTY_FORM, extractVariables(), FormData, isRecord(), NotificationsPage(), renderPreview(), SAMPLE_VALUES (+1 more)
 
-### Community 559 - "Operate mode depth (and Read notes)"
-Cohesion: 0.22
-Nodes (9): Color, Components, Layout, Motion, Operate mode depth (and Read notes), Product constraints, Product permissions, The product slop test (+1 more)
+### Community 559 - "readConfig"
+Cohesion: 0.13
+Nodes (17): isStopEvent(), applyConfigSource(), applyDetectorConfigSource(), cloneDefaultConfig(), detectorSection(), hookSection(), numberOr(), readConfig() (+9 more)
 
-### Community 566 - "normalizeGitHubEvent"
-Cohesion: 0.47
-Nodes (6): applyPatchText(), envProjectDir(), looksLikeApplyPatch(), normalizeGitHubEvent(), normalizeHookEvent(), parseGitHubToolArgs()
+### Community 566 - ".agents/skills/impeccable/scripts/live/source-lock.mjs"
+Cohesion: 0.50
+Nodes (7): isLiveServerPidReachable(), clearStaleLock(), readLock(), releaseOwnLock(), sleepSync(), sourceLockPath(), withSourceLockSync()
 
-### Community 568 - ".agents/skills/impeccable/reference/doctor.md"
-Cohesion: 0.25
-Nodes (7): Monorepo notes, Opting out of the boot check, Step 1: Run the pass, Step 2: Act by severity, Step 3: Deprecated fields are binding, Step 4: Do not overclaim on truth drift, What this owns, and what it does not
+### Community 568 - "Adaptation Strategies"
+Cohesion: 0.40
+Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
 
-### Community 571 - "checkElementBorders"
-Cohesion: 0.47
-Nodes (6): checkBorders(), checkElementBorders(), checkElementBordersDOM(), isStatusContextElement(), isTabContextElement(), isNeutralColor()
-
-### Community 572 - "checkElementGptBorderShadowDOM"
-Cohesion: 0.32
-Nodes (8): borderColorsFromStyle(), borderWidthsFromStyle(), checkElementGptBorderShadow(), checkElementGptBorderShadowDOM(), checkGptThinBorderWideShadow(), cssColorAlpha(), shadowLayerAlpha(), shadowMaxBlurPx()
+### Community 571 - "1. THE THREE DIALS (Core Configuration)"
+Cohesion: 0.50
+Nodes (4): 1.A Dial Inference (design read → dial values), 1.B Use-Case Presets, 1.C How the Dials Drive Output, 1. THE THREE DIALS (Core Configuration)
 
 ### Community 573 - "checkElementHeroEyebrowDOM"
 Cohesion: 0.40
@@ -2271,37 +2268,37 @@ Nodes (6): isElementHidden(), postSerializedFindings(), renderBrowserFindings(),
 Cohesion: 0.40
 Nodes (3): FooterMapProps, markerIcon, SPACE8_COORDS
 
-### Community 583 - ".claude/skills/impeccable/scripts/live/source-search.mjs"
-Cohesion: 0.47
-Nodes (5): matchesTemplateExtension(), findSourceFile(), NEVER_SOURCE_DIRS, SOURCE_SEARCH_DIRS, walk()
-
 ### Community 584 - "checkRadialSpotlight"
 Cohesion: 0.32
 Nodes (8): checkElementRadialSpotlight(), checkElementRadialSpotlightDOM(), checkRadialSpotlight(), elementGradientValue(), parseColorMix(), parseRadialGradientStops(), splitTopLevelCommas(), spotlightLabel()
 
-### Community 588 - "readConfig"
-Cohesion: 0.27
-Nodes (9): isStopEvent(), cloneDefaultConfig(), detectorSection(), hookSection(), readConfig(), safeReadJson(), writeAuditLog(), main() (+1 more)
+### Community 588 - ".claude/skills/impeccable/scripts/hook.mjs"
+Cohesion: 0.83
+Nodes (3): isStopEvent(), main(), readStdin()
+
+### Community 594 - "Section2Value.tsx"
+Cohesion: 0.53
+Nodes (5): clamp01(), layerOpacity(), Panel, PANELS, Section2Value()
 
 ## Knowledge Gaps
-- **2692 isolated node(s):** `here`, `API_BASE`, `API_TIMEOUT_MS`, `localStates`, `PING_KINDS` (+2687 more)
+- **2694 isolated node(s):** `here`, `API_BASE`, `API_TIMEOUT_MS`, `localStates`, `PING_KINDS` (+2689 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **76 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **78 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `el()` connect `el` to `.claude/skills/impeccable/scripts/detector/browser/injected/index.mjs`, `isRepeatedTextContainer`, `.claude/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs`, `setLiveState`, `parseRgb`, `.claude/skills/impeccable/scripts/live-browser.js`, `connectSSE`, `collectBrowserFindings`, `.claude/skills/impeccable/scripts/detector/detect-antipatterns-browser.js`, `.claude/skills/impeccable/scripts/detector/engines/static-html/css-cascade.mjs`, `initGlobalBar`, `postSerializedFindings`, `.claude/skills/impeccable/scripts/detector/design-system.mjs`, `.claude/skills/impeccable/scripts/live/svelte-ast.mjs`, `.claude/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs`, `.claude/skills/impeccable/scripts/detector/rules/checks.mjs`, `initPageChat`?**
+- **Why does `el()` connect `el` to `.claude/skills/impeccable/scripts/detector/browser/injected/index.mjs`, `.claude/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs`, `setLiveState`, `parseRgb`, `.claude/skills/impeccable/scripts/live-browser.js`, `connectSSE`, `collectBrowserFindings`, `.claude/skills/impeccable/scripts/detector/detect-antipatterns-browser.js`, `.claude/skills/impeccable/scripts/detector/engines/static-html/css-cascade.mjs`, `initGlobalBar`, `postSerializedFindings`, `.claude/skills/impeccable/scripts/detector/design-system.mjs`, `.claude/skills/impeccable/scripts/live/svelte-ast.mjs`, `.claude/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs`, `.claude/skills/impeccable/scripts/detector/rules/checks.mjs`, `initPageChat`?**
   _High betweenness centrality (0.033) - this node is a cross-community bridge._
-- **Why does `el()` connect `el` to `postSerializedFindings`, `.agents/skills/impeccable/scripts/live-browser.js`, `initGlobalBar`, `.agents/skills/impeccable/scripts/detector/detect-antipatterns-browser.js`, `parseRgb`, `mountSvelteComponentVariant`, `.agents/skills/impeccable/scripts/detector/engines/static-html/css-cascade.mjs`, `.agents/skills/impeccable/scripts/detector/design-system.mjs`, `.agents/skills/impeccable/scripts/live/svelte-ast.mjs`, `.agents/skills/impeccable/scripts/detector/browser/injected/index.mjs`, `.agents/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs`, `.agents/skills/impeccable/scripts/detector/rules/checks.mjs`, `isRepeatedTextContainer`, `collectBrowserFindings`, `setLiveState`, `initPageChat`, `.agents/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs`?**
+- **Why does `el()` connect `el` to `mountSvelteComponentVariant`, `postSerializedFindings`, `.agents/skills/impeccable/scripts/live-browser.js`, `initGlobalBar`, `.agents/skills/impeccable/scripts/detector/detect-antipatterns-browser.js`, `parseRgb`, `.agents/skills/impeccable/scripts/detector/engines/static-html/css-cascade.mjs`, `.agents/skills/impeccable/scripts/detector/design-system.mjs`, `.agents/skills/impeccable/scripts/live/svelte-ast.mjs`, `.agents/skills/impeccable/scripts/detector/browser/injected/index.mjs`, `.agents/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs`, `.agents/skills/impeccable/scripts/detector/rules/checks.mjs`, `isRepeatedTextContainer`, `collectBrowserFindings`, `setLiveState`, `initPageChat`, `.agents/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs`?**
   _High betweenness centrality (0.032) - this node is a cross-community bridge._
 - **Why does `collectPatternNames()` connect `.agents/skills/impeccable/scripts/live/svelte-ast.mjs` to `el`?**
   _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Are the 23 inferred relationships involving `el()` (e.g. with `collectVisualContrastCandidates()` and `renderBrowserFindings()`) actually correct?**
   _`el()` has 23 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `here`, `API_BASE`, `API_TIMEOUT_MS` to the rest of the system?**
-  _2692 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _2694 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `mountSvelteComponentVariant` be split into smaller, more focused modules?**
+  _Cohesion score 0.11384615384615385 - nodes in this community are weakly interconnected._
 - **Should `.agents/skills/impeccable/scripts/live-browser.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.02905545159066286 - nodes in this community are weakly interconnected._
-- **Should `handler.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.08395989974937343 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.028544061302681993 - nodes in this community are weakly interconnected._

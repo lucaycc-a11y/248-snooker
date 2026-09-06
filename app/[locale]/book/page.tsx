@@ -2340,8 +2340,9 @@ function Screen3({
                       terms_required: t("terms_required_hint"),
                     }}
                     onBackToMethods={() => {
-                      // Drop the commitment too, or the list would re-confirm
-                      // and charge again on the next render.
+                      // Drop the commitment and resume payload, or the list would
+                      // re-confirm and charge again on the next render.
+                      clearKPayPersistedState()
                       setConfirmed(false)
                       setPaymentMethod(null)
                     }}
@@ -3154,6 +3155,16 @@ export default function BookPage() {
     if (typeof window === "undefined" || kpayRestoreHandled.current) return
     kpayRestoreHandled.current = true
     try {
+      // A provider return is a new status-check flow, not a page-refresh resume.
+      // KPay returns `redirect_status=returned` for both success and cancellation;
+      // retaining the persisted session here re-enters Screen3's resume effect and
+      // can immediately re-commit the payment UI after the user chose to leave.
+      const redirectStatus = new URLSearchParams(window.location.search).get('redirect_status')
+      if (redirectStatus === 'returned' || redirectStatus === 'cancelled') {
+        clearKPayPersistedState()
+        return
+      }
+
       const persisted = readKPayPersistedState()
       if (!persisted) return
       setScreen(2)
@@ -3236,6 +3247,11 @@ export default function BookPage() {
 
     // A KPay return is deliberately neutral: only the authenticated status
     // endpoint can decide whether payment failed or the booking was confirmed.
+    // The provider return is handled by the status poll below. Clear the
+    // refresh-resume payload so a cancellation cannot re-enter Screen3's
+    // committed payment state.
+    setKpayResumeData(null)
+    clearKPayPersistedState()
     setConfirmBookingId(bId)
     setConfirmError(false)
     setConfirmRecoveryReason(null)
@@ -3579,6 +3595,8 @@ export default function BookPage() {
                     reason={confirmRecoveryReason}
                     hold={confirmResult.hold}
                     onBackToSlots={() => {
+                      clearKPayPersistedState()
+                      setKpayResumeData(null)
                       setConfirmBookingId(null)
                       setConfirmRecoveryReason(null)
                       setConfirmError(false)
