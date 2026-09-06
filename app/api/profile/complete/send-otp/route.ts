@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
 
 type Body = { phone?: unknown; recaptchaToken?: unknown }
 
-type OtpErrorCode = 'AUTH_REQUIRED' | 'PHONE_INVALID' | 'OTP_RATE_LIMITED' | 'OTP_SEND_FAILED' | 'OTP_INTERNAL'
+type OtpErrorCode = 'AUTH_REQUIRED' | 'PHONE_INVALID' | 'PHONE_TAKEN' | 'CAPTCHA_REQUIRED' | 'OTP_COOLDOWN' | 'PHONE_LOCKED' | 'OTP_RATE_LIMITED' | 'OTP_SEND_FAILED' | 'OTP_INTERNAL'
 
 function jsonError(code: OtpErrorCode, status: number, requestId: string, retryAfterSeconds?: number) {
   return NextResponse.json({ code, requestId, ...(retryAfterSeconds ? { retryAfterSeconds } : {}) }, { status })
@@ -57,20 +57,38 @@ export async function POST(request: Request) {
       })
       const verifyData = await verifyResponse.json() as { success?: boolean; score?: number; action?: string }
       captchaVerified = verifyData.success === true && (verifyData.score ?? 0) >= 0.5 && verifyData.action === 'send_otp'
+      console.log(JSON.stringify({ event: 'otp.profile.send.captcha_result', requestId, success: verifyData.success === true, score: verifyData.score ?? null, action: verifyData.action ?? null, verified: captchaVerified }))
+    } else {
+      console.log(JSON.stringify({ event: 'otp.profile.send.captcha_skipped', requestId, hasToken: Boolean(recaptchaToken), hasSecret: Boolean(process.env.RECAPTCHA_SECRET_KEY) }))
     }
     const phone = normalizeHkPhone(typeof body?.phone === 'string' ? body.phone : '')
-    console.log(JSON.stringify({ event: 'otp.profile.send.validation', requestId, phone: phone ? `***${phone.slice(-3)}` : null, valid: Boolean(phone) }))
+    console.log(JSON.stringify({ event: 'otp.profile.send.validation', requestId, phone: phone ? `***${phone.slice(-3)}` : null, valid: Boolean(phone), hasCaptchaToken: Boolean(recaptchaToken), captchaVerified }))
     if (!phone) return jsonError('PHONE_INVALID', 422, requestId)
 
+    console.log(JSON.stringify({ event: 'otp.profile.send.rate_limit_started', requestId }))
     const okIp = await rateLimit('auth_otp_ip', `ip:${clientIp(request)}`, 10, 15 * 60)
+    console.log(JSON.stringify({ event: 'otp.profile.send.rate_limit_result', requestId, okIp }))
     if (!okIp) return jsonError('OTP_RATE_LIMITED', 429, requestId, 900)
+    console.log(JSON.stringify({ event: 'otp.profile.send.service_client_started', requestId, hasSupabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL), hasSupabaseAnonKey: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY), hasSupabaseServiceRoleKey: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE), hasRecaptchaSecretKey: Boolean(process.env.RECAPTCHA_SECRET_KEY), hasEngagelabAuth: Boolean(process.env.ENGAGELAB_AUTH_BASE64), hasEngagelabTemplate: Boolean(process.env.ENGAGELAB_OTP_TEMPLATE_ID) }))
     const service = getServiceSupabase()
-    const { data: existingOwner } = await service.from('auth_identities').select('user_id').eq('provider', 'phone').eq('identifier', phone).eq('verified', true).maybeSingle<{ user_id: string }>()
-    if (existingOwner && existingOwner.user_id !== user.id) return jsonError('OTP_RATE_LIMITED', 409, requestId)
+    console.log(JSON.stringify({ event: 'otp.profile.send.service_client_ready', requestId }))
+    console.log(JSON.stringify({ event: 'otp.profile.send.ownership_lookup_started', requestId }))
+    const { data: existingOwner, error: ownershipError } = await service.from('auth_identities').select('user_id').eq('provider', 'phone').eq('identifier', phone).eq('verified', true).maybeSingle<{ user_id: string }>()
+    if (ownershipError) console.error(JSON.stringify({ event: 'otp.profile.send.ownership_lookup_failed', requestId, error: ownershipError.message, code: ownershipError.code }))
+    console.log(JSON.stringify({ event: 'otp.profile.send.ownership_lookup_result', requestId, found: Boolean(existingOwner), sameUser: existingOwner?.user_id === user.id }))
+    if (existingOwner && existingOwner.user_id !== user.id) return jsonError('PHONE_TAKEN', 409, requestId)
 
+    console.log(JSON.stringify({ event: 'otp.profile.send.reservation_started', requestId }))
     const reserve = (captcha: boolean) => service.rpc('reserve_login_otp', { p_phone: phone, p_purpose: 'profile_binding', p_captcha_verified: captcha }).maybeSingle()
     const firstReservation = await reserve(captchaVerified)
-    if (firstReservation.error || !firstReservation.data) return jsonError('OTP_INTERNAL', 503, requestId)
+    if (firstReservation.error) {
+      console.error(JSON.stringify({ event: 'otp.profile.send.reservation_failed', requestId, error: firstReservation.error.message, code: firstReservation.error.code, details: firstReservation.error.details, hint: firstReservation.error.hint }))
+      return jsonError('OTP_INTERNAL', 503, requestId)
+    }
+    if (!firstReservation.data) {
+      console.error(JSON.stringify({ event: 'otp.profile.send.reservation_empty', requestId }))
+      return jsonError('OTP_INTERNAL', 503, requestId)
+    }
     let row = firstReservation.data as unknown as { ok: boolean; request_id: string | null; reason: string; retry_after_seconds: number | null; locked_until: string | null; message_id: string | null; channel: string | null; expires_at: string | null; is_owner: boolean }
     if (row.reason === 'captcha_required' && captchaVerified) {
       const retry = await reserve(true)
@@ -84,14 +102,18 @@ export async function POST(request: Request) {
 
     try {
       const providerStartedAt = Date.now()
+      console.log(JSON.stringify({ event: 'otp.profile.send.provider_started', requestId, userId: user.id }))
       const sms = await sendEngagelabOtp(phone, 'zh_HK')
       const { data: completed, error: completionError } = await service.rpc('complete_login_otp', { p_request_id: row.request_id, p_message_id: sms.message_id, p_channel: sms.send_channel }).maybeSingle()
-      if (completionError || !(completed as { ok?: boolean } | null)?.ok) return jsonError('OTP_SEND_FAILED', 502, requestId)
+      if (completionError || !(completed as { ok?: boolean } | null)?.ok) {
+        console.error(JSON.stringify({ event: 'otp.profile.send.completion_failed', requestId, error: completionError?.message ?? 'completion rejected', code: completionError?.code }))
+        return jsonError('OTP_SEND_FAILED', 502, requestId)
+      }
       console.log(JSON.stringify({ event: 'otp.profile.send.provider', requestId, userId: user.id, channel: sms.send_channel, messageId: sms.message_id, durationMs: Date.now() - providerStartedAt }))
       console.log(JSON.stringify({ event: 'otp.profile.send.success', requestId, userId: user.id, durationMs: Date.now() - startedAt }))
       return NextResponse.json({ ok: true, requestId, messageId: sms.message_id, channel: sms.send_channel, expiresAt: row.expires_at })
     } catch (error) {
-      console.error(JSON.stringify({ event: 'otp.profile.send.provider_failed', requestId, error: error instanceof Error ? error.message : String(error), durationMs: Date.now() - startedAt }))
+      console.error(JSON.stringify({ event: 'otp.profile.send.provider_failed', requestId, error: error instanceof Error ? { name: error.name, message: error.message, stack: error.stack } : error, durationMs: Date.now() - startedAt }))
       return jsonError('OTP_SEND_FAILED', 502, requestId)
     }
   } catch (error) {
