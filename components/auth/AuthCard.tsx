@@ -338,13 +338,15 @@ export function AuthCard({
       })
       const j = await res.json().catch(() => ({}))
 
-      if (!j?.success) {
-        if (j?.error === "rate_limited") {
+      if (!res.ok || !j?.success) {
+        if (j?.code === "PHONE_NOT_REGISTERED") {
+          setError(t("err_phone_not_registered"))
+        } else if (j?.code === "OTP_COOLDOWN" || j?.code === "OTP_RATE_LIMITED" || j?.error === "rate_limited") {
           setError(t("err_rate_limited"))
-        } else if (j?.error === "缺少必要參數" || j?.error === "missing_parameter") {
-          setError(t("err_missing_param"))
-        } else if (j?.error === "發送失敗，請重試" || j?.error === "send_failed") {
-          setError(t("err_send"))
+        } else if (j?.code === "PHONE_LOCKED" || j?.code === "CAPTCHA_REQUIRED") {
+          setError(t("err_rate_limited"))
+        } else if (j?.code === "PHONE_INVALID") {
+          setError(t("err_phone"))
         } else {
           setError(t("err_send"))
         }

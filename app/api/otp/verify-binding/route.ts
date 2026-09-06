@@ -4,6 +4,7 @@ import { normalizeHkPhone } from '@/lib/auth/profile'
 import { verifyEngagelabOtp, mapEngagelabError } from '@/lib/engagelab/otp'
 import { createClient } from '@/lib/supabase/server'
 import { bindVerifiedPhone } from '@/lib/auth/phone-binding'
+import { getServiceSupabase } from '@/lib/supabase/service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -67,7 +68,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
     }
 
+    const service = getServiceSupabase()
     const verified = await verifyEngagelabOtp(messageId, code)
+    const { data: ledgerData, error: ledgerError } = await service.rpc('otp_record_provider_verification', {
+      p_phone: phone,
+      p_purpose: 'profile_binding',
+      p_message_id: messageId,
+      p_verified: verified.verified === true,
+    }).maybeSingle()
+    if (ledgerError || !ledgerData) {
+      console.error(`[verify-binding:${reqId}] ledger failure`, { message: ledgerError?.message ?? 'empty result' })
+      return NextResponse.json({ code: 'OTP_INTERNAL', requestId: reqId }, { status: 503 })
+    }
+    const ledger = ledgerData as unknown as { ok: boolean; reason: string; remaining_attempts: number; locked_until: string | null }
+    if (!ledger.ok) {
+      const status = ledger.reason === 'phone_locked' ? 423 : ledger.reason === 'expired' || ledger.reason === 'max_attempts_reached' ? 410 : 400
+      return NextResponse.json({ code: ledger.reason === 'invalid_code' ? 'OTP_INVALID' : `OTP_${ledger.reason.toUpperCase()}`, remainingAttempts: ledger.remaining_attempts, lockedUntil: ledger.locked_until, requestId: reqId }, { status })
+    }
     console.log(`[verify-binding:${reqId}] engagelab verify result`, {
       verified: verified?.verified,
       code: verified?.code,

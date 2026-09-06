@@ -5,6 +5,7 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { DEFAULT_LAYOUT } from '@/lib/admin/widgetMeta'
 import type { LayoutItem } from '@/lib/admin/widgetMeta'
 import DashboardGrid from '@/components/admin/DashboardGrid'
+import { OtpPhoneUnlock } from '@/components/admin/OtpPhoneUnlock'
 
 /**
  * Admin Dashboard — §3.
@@ -64,6 +65,8 @@ export default async function AdminDashboardPage() {
           Welcome back, {admin?.displayName ?? admin?.email ?? 'Admin'}
         </p>
       </div>
+
+      {admin?.role === 'super_admin' && <OtpPhoneUnlock />}
 
       {/* Widget grid — client-side dnd-kit */}
       <Suspense fallback={<DashboardSkeleton />}>

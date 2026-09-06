@@ -142,8 +142,8 @@ export function ProfileCompletion({
   // sign-in, or an OTP just redeemed by verifyPhone). The server stamps
   // email_verified_at / phone_verified_at so the users_profile_complete_verified_chk
   // constraint holds — and independently rejects (422) any unproven phone.
-  const submit = async () => {
-    const v = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
+  const submit = async (verifiedPhoneOverride?: string) => {
+    const v = validateProfile({ name, email: effectiveEmail, phone: verifiedPhoneOverride ?? effectivePhone })
     if (!v.ok) {
       setErrField(v.field)
       setErrMsg(errorFor(v))
@@ -193,10 +193,16 @@ export function ProfileCompletion({
     setErrMsg(null)
     setSaving(true)
     try {
+      let recaptchaToken = ""
+      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+      const grecaptcha = typeof window !== "undefined" ? window.grecaptcha : undefined
+      if (siteKey && grecaptcha && typeof grecaptcha.execute === "function") {
+        recaptchaToken = await grecaptcha.execute(siteKey, { action: "send_otp" })
+      }
       const res = await fetch("/api/profile/complete/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: v.value.phone }),
+        body: JSON.stringify({ phone: v.value.phone, recaptchaToken }),
       })
       const j = await res.json().catch(() => ({}))
       if (!res.ok || j?.ok !== true) {
@@ -271,7 +277,7 @@ export function ProfileCompletion({
       await new Promise<void>((resolve) => window.setTimeout(resolve, 720))
       // submit() re-reads the phone state, which is unchanged and now proven;
       // on failure it drops back to the form where the verified badge shows.
-      await submit()
+      await submit(v.value.phone)
     } catch {
       setErrMsg(t("err_network"))
       setOtpStatus("failure")
@@ -436,7 +442,10 @@ export function ProfileCompletion({
 
       <button
         type="button"
-        onClick={phoneConfirmed ? submit : sendPhoneCode}
+        onClick={() => {
+          if (phoneConfirmed) void submit()
+          else void sendPhoneCode()
+        }}
         disabled={!canSubmit}
         data-cms-key="auth.profile.submit"
         style={{

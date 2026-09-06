@@ -30,9 +30,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
     }
 
+    const service = getServiceSupabase()
     const verified = await verifyEngagelabOtp(messageId, code)
-    if (verified.verified !== true) {
-      return NextResponse.json({ error: '驗證碼不正確' }, { status: 400 })
+    const { data: ledgerResult, error: ledgerError } = await service.rpc('otp_record_provider_verification', {
+      p_phone: phone,
+      p_purpose: 'login',
+      p_message_id: messageId,
+      p_verified: verified.verified === true,
+    }).maybeSingle()
+    if (ledgerError || !ledgerResult) {
+      console.error(JSON.stringify({ event: 'otp.verify.ledger_failed', message: ledgerError?.message ?? 'empty result', phone }))
+      return NextResponse.json({ code: 'OTP_INTERNAL' }, { status: 503 })
+    }
+    const result = ledgerResult as unknown as { ok: boolean; reason: string; attempts: number; remaining_attempts: number; locked_until: string | null }
+    if (!result.ok) {
+      const status = result.reason === 'phone_locked' ? 423 : result.reason === 'expired' || result.reason === 'max_attempts_reached' ? 410 : 400
+      return NextResponse.json({ code: result.reason === 'invalid_code' ? 'OTP_INVALID' : `OTP_${result.reason.toUpperCase()}`, remainingAttempts: result.remaining_attempts, lockedUntil: result.locked_until }, { status })
     }
 
     // Query public.users FIRST — never attempt createUser for a login flow.
@@ -43,8 +56,6 @@ export async function POST(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ status: 'not_found' }, { status: 404 })
     }
-
-    const service = getServiceSupabase()
 
     // Fetch the auth user's email so we can issue a magiclink session.
     // generateLink requires an email — we look it up from auth.users via admin API.

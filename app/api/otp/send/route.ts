@@ -11,39 +11,29 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null)
     const phone = normalizeHkPhone(body?.phone ?? '')
-    const recaptchaToken = body?.recaptchaToken ?? ''
+    const recaptchaToken = typeof body?.recaptchaToken === 'string' ? body.recaptchaToken.trim() : ''
 
     if (!phone) {
-      return NextResponse.json({ error: '缺少必要參數' }, { status: 400 })
+      return NextResponse.json({ code: 'PHONE_INVALID' }, { status: 422 })
     }
 
-    if (!recaptchaToken) {
-      return NextResponse.json({ error: '缺少必要參數' }, { status: 400 })
-    }
-
-    const secretKey = process.env.RECAPTCHA_SECRET_KEY
-    if (!secretKey) {
-      console.error('[otp/send] RECAPTCHA_SECRET_KEY not configured')
-      return NextResponse.json({ error: '系統配置錯誤' }, { status: 500 })
-    }
-
-    const verifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        secret: secretKey,
-        response: recaptchaToken,
-      }),
-    })
-    const verifyData = await verifyRes.json()
-
-    if (!verifyData.success || verifyData.score < 0.5) {
-      console.warn('[reCAPTCHA] rejected', {
-        score: verifyData.score,
-        action: verifyData.action,
-        success: verifyData.success,
+    let captchaVerified = false
+    if (recaptchaToken) {
+      const secretKey = process.env.RECAPTCHA_SECRET_KEY
+      if (!secretKey) {
+        console.error(JSON.stringify({ event: 'otp.send.captcha_config_missing' }))
+        return NextResponse.json({ code: 'OTP_INTERNAL' }, { status: 503 })
+      }
+      const verifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ secret: secretKey, response: recaptchaToken }),
       })
-      return NextResponse.json({ error: '驗證失敗，請重試' }, { status: 400 })
+      const verifyData = await verifyRes.json() as { success?: boolean; score?: number; action?: string }
+      captchaVerified = verifyData.success === true && (verifyData.score ?? 0) >= 0.5 && verifyData.action === 'send_otp'
+      if (!captchaVerified) {
+        console.warn(JSON.stringify({ event: 'otp.send.captcha_rejected', score: verifyData.score ?? null, action: verifyData.action ?? null }))
+      }
     }
 
     const okPhone = await rateLimit('auth_otp_phone', phone, 3, 15 * 60)
@@ -55,6 +45,8 @@ export async function POST(req: NextRequest) {
     const service = getServiceSupabase()
     const { data: reservation, error: reservationError } = await service.rpc('reserve_login_otp', {
       p_phone: phone,
+      p_purpose: 'login',
+      p_captcha_verified: captchaVerified,
     }).maybeSingle()
     if (reservationError || !reservation) {
       console.error('[otp/send] reservation_failed', { message: reservationError?.message ?? 'empty reservation', phone })
@@ -62,11 +54,41 @@ export async function POST(req: NextRequest) {
     }
 
     const row = reservation as unknown as {
-      request_id: string
+      ok: boolean
+      request_id: string | null
+      otp_id: string | null
+      reason: string | null
+      retry_after_seconds: number | null
+      requires_captcha: boolean
+      locked_until: string | null
       message_id: string | null
       channel: string | null
-      expires_at: string
+      expires_at: string | null
       is_owner: boolean
+    }
+    if (row.reason === 'captcha_required' && captchaVerified) {
+      const retry = await service.rpc('reserve_login_otp', {
+        p_phone: phone,
+        p_purpose: 'login',
+        p_captcha_verified: true,
+      }).maybeSingle()
+      if (retry.error || !retry.data) return NextResponse.json({ code: 'OTP_INTERNAL' }, { status: 503 })
+      Object.assign(row, retry.data as object)
+    }
+    if (row.reason === 'captcha_required') {
+      return NextResponse.json({ code: 'CAPTCHA_REQUIRED', requiresCaptcha: true }, { status: 428 })
+    }
+    if (row.reason === 'phone_not_registered') {
+      return NextResponse.json({ code: 'PHONE_NOT_REGISTERED' }, { status: 404 })
+    }
+    if (row.reason === 'phone_locked') {
+      return NextResponse.json({ code: 'PHONE_LOCKED', lockedUntil: row.locked_until, retryAfterSeconds: row.retry_after_seconds }, { status: 423 })
+    }
+    if (row.reason === 'cooldown') {
+      return NextResponse.json({ code: 'OTP_COOLDOWN', retryAfterSeconds: row.retry_after_seconds }, { status: 429 })
+    }
+    if (!row.ok || !row.request_id || !row.expires_at) {
+      return NextResponse.json({ code: 'OTP_INTERNAL' }, { status: 503 })
     }
     if (!row.is_owner) {
       if (row.message_id) {
