@@ -1130,7 +1130,14 @@
     "qr_desc": "This is your exclusive member QR code. Door, locker, Smart Concierge Space Pilot — it all starts here. Every game you play is recorded through it.",
     "qr_placeholder": "Illustration · Check your member page for your personal code",
     "qr_cta": "Member Page",
-    "pilot_title": "Smart Concierge",
+    "pilot_title": "Space Pilot",
+    "pilot_intro": "An iPad smart concierge in the room that records every game and applies member points automatically.",
+    "pilot_items": [
+      { "title": "Scan to bind", "body": "When you arrive, staff use a QR Code to bind the device to your reservation slot." },
+      { "title": "Automatic scoring", "body": "Each completed game is recorded automatically, with no manual entry." },
+      { "title": "Points added automatically", "body": "Members earn 5 points per completed game, once every 15 minutes, capped by the reservation duration." },
+      { "title": "Review your record", "body": "View the current game and your historical match records on the iPad at any time." }
+    ],
     "pilot_features": [
       {
         "title": "Unstaffed, but never impersonal",

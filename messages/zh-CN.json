@@ -1130,7 +1130,14 @@
     "qr_desc": "这是属于你的会员专属 QR Code。大门、杆柜、智能小管家 Space Pilot，全部靠它。你的每一场战绩，也是由它记录下来的。",
     "qr_placeholder": "示意图 · 你的专属编码请于会员页面查看",
     "qr_cta": "会员页面",
-    "pilot_title": "智能小管家",
+    "pilot_title": "Space Pilot",
+    "pilot_intro": "iPad 场内智能小管家，让每局记录与会员积分自动完成。",
+    "pilot_items": [
+      { "title": "扫码绑定", "body": "到场后由工作人员以 QR Code 将设备绑定至你的预约时段。" },
+      { "title": "自动计分", "body": "每局完成自动记录，无需手动输入。" },
+      { "title": "积分自动入账", "body": "会员每完成一局即得 5 积分，每 15 分钟限领一次，上限按预约时长计算。" },
+      { "title": "查看战绩", "body": "随时在 iPad 上查看当局及历史对战记录。" }
+    ],
     "pilot_features": [
       {
         "title": "无人自助也有专属招待",
