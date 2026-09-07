@@ -1080,7 +1080,11 @@
       "玩法介绍"
     ],
     "tier_title": "会员制度。",
+    "tier_intro": "注册账号即自动成为 Amateur 会员，无需另外申请。",
+    "tier_join_note": "注册账号即自动成为 Amateur 会员，无需另外申请，并获赠 50 积分。",
     "tier_cta": "立即加入",
+    "cta_book": "立即预订",
+    "cta_login": "登录会员中心",
     "tier_new": {
       "title": "新星会员",
       "body": "HK$1 = 1 积分。注册即送 50 积分。",

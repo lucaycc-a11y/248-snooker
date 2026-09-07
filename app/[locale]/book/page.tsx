@@ -2292,7 +2292,7 @@ function Screen3({
                     TEST · {t("test_mode_label") || "不記入營收"}
                   </div>
                   <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 2 }}>
-                    {t("test_mode_desc") || "直接確認訂單，唔經 Stripe 付款"}
+                    {t("test_mode_desc") || "直接確認訂單，不經支付閘道"}
                   </div>
                 </div>
               </label>

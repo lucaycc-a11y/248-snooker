@@ -1055,9 +1055,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "components/shared/QRCode.tsx": {
-    "mtime": 1788759388.0267856,
-    "ast_hash": "b07a3ccc2d71b7e4124a03696cd735c1",
-    "semantic_hash": ""
+    "mtime": 1785406307.0,
+    "ast_hash": "4ff4960be4ad51ad83736522a11eed10",
+    "semantic_hash": "4ff4960be4ad51ad83736522a11eed10"
   },
   "components/shared/RealtimeCounter.tsx": {
     "mtime": 1785406307.0,
@@ -1400,9 +1400,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "lib/qrcode.ts": {
-    "mtime": 1788759411.295907,
-    "ast_hash": "c7b4175537a51862995a45cf00d14be5",
-    "semantic_hash": ""
+    "mtime": 1785406307.0,
+    "ast_hash": "7b76a5f64f9ccfed2efda64c09d48684",
+    "semantic_hash": "7b76a5f64f9ccfed2efda64c09d48684"
   },
   "lib/rate-limit.ts": {
     "mtime": 1788681694.28416,
@@ -1550,8 +1550,8 @@
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1788707627.714427,
-    "ast_hash": "e8cb80b7190b02527dd3fc10d28252da",
+    "mtime": 1788707235.403489,
+    "ast_hash": "7fc6e1637e6f9a71a6712741739ef59c",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -3650,8 +3650,8 @@
     "semantic_hash": ""
   },
   "components/checkout/KPayPayment.tsx": {
-    "mtime": 1788759421.5549297,
-    "ast_hash": "63a32ded1775a77910beda6de37282c5",
+    "mtime": 1788696885.3099215,
+    "ast_hash": "2a4b5b40a3c2e0e174f27903d159f28b",
     "semantic_hash": ""
   },
   "components/checkout/PaymentMethodCard.tsx": {

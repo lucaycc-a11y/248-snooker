@@ -1080,7 +1080,11 @@
       "How to Play"
     ],
     "tier_title": "Membership.",
+    "tier_intro": "Every registered account automatically becomes an Amateur member. No separate application is needed.",
+    "tier_join_note": "Every registered account automatically becomes an Amateur member, with 50 points as a welcome bonus.",
     "tier_cta": "Join Now",
+    "cta_book": "Book now",
+    "cta_login": "Member login",
     "tier_new": {
       "title": "Nova",
       "body": "HK$1 = 1 point. 50 points free on sign-up.",
