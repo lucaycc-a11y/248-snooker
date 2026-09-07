@@ -5,16 +5,22 @@ import { motion, AnimatePresence } from 'framer-motion'
 import QRCodeLib from 'qrcode'
 import { X } from 'lucide-react'
 
+const SPACE8_QR_LOGO = '/logos/logo-white-mark.svg'
+
 const SPRING = { type: 'spring', stiffness: 320, damping: 30 } as const
 
 async function renderQrDataUrl(data: string): Promise<string> {
   const svg = await QRCodeLib.toString(data, {
     type: 'svg',
     margin: 2,
-    errorCorrectionLevel: 'M',
+    errorCorrectionLevel: 'H',
     color: { dark: '#0a0a0a', light: '#ffffff' },
   })
-  return `data:image/svg+xml;base64,${btoa(svg)}`
+  const brandedSvg = svg.replace(
+    '</svg>',
+    `<rect x="42.5%" y="42.5%" width="15%" height="15%" rx="3" fill="#ffffff"/><image href="${SPACE8_QR_LOGO}" x="44%" y="44%" width="12%" height="12%" preserveAspectRatio="xMidYMid meet"/></svg>`,
+  )
+  return `data:image/svg+xml;base64,${btoa(brandedSvg)}`
 }
 
 /**

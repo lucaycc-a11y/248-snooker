@@ -46,7 +46,7 @@ export type QROptions = {
 const DEFAULT_OPTIONS: Required<Omit<QROptions, 'color'>> & { color: { dark: string; light: string } } = {
   format: 'data-url',
   width: 400,
-  errorCorrectionLevel: 'M',
+  errorCorrectionLevel: 'H',
   color: {
     dark: '#000000',
     light: '#FFFFFF',

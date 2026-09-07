@@ -938,10 +938,19 @@ export default function KPayPayment(props: Props) {
         <div style={styles.qrWrap}>
           <QRCodeSVG
             value={payInfo}
-            size={240}
+            size={220}
             bgColor={BG}
             fgColor={TEXT}
-            level="M"
+            level="L"
+            includeMargin
+            {...(['alipayhk', 'payme'].includes(method) && {
+              imageSettings: {
+                src: method === 'alipayhk' ? '/icons/payment/alipayhk.png' : '/icons/payment/payme.png',
+                height: 32,
+                width: 32,
+                excavate: true,
+              },
+            })}
             style={styles.qr}
           />
         </div>
