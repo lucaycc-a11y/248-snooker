@@ -92,9 +92,9 @@ export function calculatePrice(
 
   const ms = slotEnd.getTime() - slotStart.getTime()
   const durationHours = ms / (1000 * 60 * 60)
-  if (!Number.isInteger(durationHours) || durationHours < 1 || durationHours > 6) {
-    // Bookings are whole-hour, 1–6h (config.maxHours). Reject anything else
-    // rather than silently rounding — a non-integer duration means a bad client.
+  if (!Number.isInteger(durationHours) || durationHours < 1) {
+    // The selected slots and availability checks define the practical boundary;
+    // pricing must not impose a separate hardcoded maximum duration.
     throw new Error(`Invalid booking duration: ${durationHours}h`)
   }
 

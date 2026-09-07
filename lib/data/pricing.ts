@@ -103,7 +103,7 @@ export const DEFAULT_SERVICES: ServiceFees = {
 export const DEFAULT_CONFIG: SiteConfig = {
   pricePerHour: 88,
   currency: 'HKD',
-  maxHours: 6,
+  maxHours: Number.POSITIVE_INFINITY,
   openHour: 6,
   closeHour: 24,
   periods: DEFAULT_PERIODS,
