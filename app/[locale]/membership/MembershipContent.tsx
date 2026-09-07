@@ -63,7 +63,7 @@ function TierCard({ title, subtitle, body, desc, index }: { title: string; subti
 function MembershipSection({ t }: { t: Translation }) {
   const howItems = t.raw("how_items") as Item[];
   return (
-    <section id="membership-tiers" className="py-20 md:py-28">
+    <section id="membership-tiers" className="pt-20 pb-12 md:py-28">
       <SectionHeading title={t("tier_title")} intro={t("tier_intro")} />
       <p className="mx-auto mb-10 max-w-2xl rounded-xl border border-[#22b86b]/35 bg-[#22b86b]/10 px-5 py-4 text-center text-sm font-medium leading-6 text-[#b9f6c9]">{t("tier_join_note")}</p>
       <div className="grid gap-4 md:grid-cols-3">
@@ -79,7 +79,7 @@ function MembershipSection({ t }: { t: Translation }) {
 
 function PilotSection({ t }: { t: Translation }) {
   const items = t.raw("pilot_items") as Item[];
-  return <section id="smart-concierge" className="border-t border-white/10 py-20 md:py-28"><SectionHeading title={t("pilot_title")} intro={t("pilot_intro")} /><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{items.map((item, index) => <InfoCard key={item.title} item={item} index={index} />)}</div></section>;
+  return <section id="smart-concierge" className="border-t border-white/10 pt-20 pb-12 md:py-28"><SectionHeading title={t("pilot_title")} intro={t("pilot_intro")} /><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{items.map((item, index) => <InfoCard key={item.title} item={item} index={index} />)}</div></section>;
 }
 
 export default function MembershipContent() {

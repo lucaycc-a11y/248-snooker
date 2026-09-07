@@ -772,7 +772,7 @@ const SITE_CSS = `
 }
 .weather-list li b { color: #f5f2ec; font-weight: 700; }
 @media (max-width: 560px) {
-  .weather-section { padding: 80px 24px 96px; }
+  .weather-section { padding: 80px 24px 48px; }
   .weather-card { padding: 32px 24px 34px; border-radius: 16px; }
   .weather-header { gap: 13px; margin-bottom: 26px; }
   .weather-icon { width: 38px; height: 38px; }

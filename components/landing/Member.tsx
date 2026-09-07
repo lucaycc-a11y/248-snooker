@@ -459,6 +459,9 @@ export default function Member() {
           display: none;
         }
         @media (max-width: 1023px) {
+          .s7-section {
+            padding-bottom: 48px;
+          }
           .s7-grid {
             display: none;
           }
