@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 
 const VERTEX = `attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`
-const FRAGMENT = `precision mediump float;uniform vec2 r;uniform float t;uniform vec2 m;float n(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}void main(){vec2 p=(gl_FragCoord.xy-.5*r)/min(r.x,r.y);p+=m*.12;float v=0.;for(int i=0;i<5;i++){v+=sin(length(p)*3.-t*.35+float(i)*1.7)*.2;p=mat2(.8,-.6,.6,.8)*p*1.35;}vec3 c=mix(vec3(.012,.11,.15),vec3(.1,.42,.66),clamp(v+.5,0.,1.));c=mix(c,vec3(.35,.82,.96),smoothstep(.25,.9,fract(v+t*.02)));c+=n(gl_FragCoord.xy+t)*.025;gl_FragColor=vec4(clamp(c,0.,1.),1.);}`
+const FRAGMENT = `precision mediump float;uniform vec2 r;uniform float t;uniform vec2 m;float n(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}void main(){vec2 p=(gl_FragCoord.xy-.5*r)/min(r.x,r.y);p+=m*.12;float v=0.;for(int i=0;i<5;i++){v+=sin(length(p)*3.-t*.35+float(i)*1.7)*.2;p=mat2(.8,-.6,.6,.8)*p*1.35;}vec3 c=mix(vec3(.082,.09,.106),vec3(.102,.616,.361),clamp(v+.5,0.,1.));c=mix(c,vec3(.133,.722,.42),smoothstep(.25,.9,fract(v+t*.02)));c=mix(c,vec3(.627,.961,.753),smoothstep(.72,.98,fract(v+t*.02)));c+=n(gl_FragCoord.xy+t)*.025;gl_FragColor=vec4(clamp(c,0.,1.),1.);}`
 
 export function ShaderBackground({ className }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
