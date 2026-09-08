@@ -44,11 +44,11 @@ export default function Hero() {
         src="/video/Space8_Main_Hero_Poster.jpg"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover [object-position:center_62%] md:hidden"
+        className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_68%] md:hidden"
         style={{ filter: "brightness(1.3) contrast(1.05)" }}
       />
       <video
-        className="absolute inset-0 h-full w-full object-cover [object-position:center_62%] md:hidden"
+        className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_68%] md:hidden"
         style={{
           filter: "brightness(1.3) contrast(1.05)",
           opacity: videoEnded ? 0 : 1,
@@ -74,11 +74,11 @@ export default function Hero() {
           src="/video/Space8_Main_Hero_Poster.jpg"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover [object-position:center_65%]"
+          className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_71%]"
           style={{ filter: "brightness(1.3) contrast(1.05)" }}
         />
         <video
-          className="relative h-full w-full object-cover [object-position:center_65%]"
+          className="relative h-full w-full translate-y-[4%] object-cover [object-position:center_71%]"
           style={{
             filter: "brightness(1.3) contrast(1.05)",
             opacity: videoEnded ? 0 : 1,
