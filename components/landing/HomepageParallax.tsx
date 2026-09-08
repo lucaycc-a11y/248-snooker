@@ -31,10 +31,8 @@ export default function HomepageParallax() {
         const section = document.querySelector<HTMLElement>(selector)
         if (!section) return
         const marked = Array.from(section.querySelectorAll<HTMLElement>("[data-parallax-layer]"))
-        const targets = marked.length > 0
-          ? marked
-          : Array.from(section.children).filter((child): child is HTMLElement => child instanceof HTMLElement).slice(0, 2)
-        targets.forEach((target, layerIndex) => {
+        if (marked.length === 0) return
+        marked.forEach((target, layerIndex) => {
           const depth = layerIndex === 0 ? -12 : 7
           gsap.fromTo(target, { yPercent: 0 }, {
             yPercent: depth * amount,
