@@ -44,11 +44,11 @@ export default function Hero() {
         src="/video/Space8_Main_Hero_Poster.jpg"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover [object-position:center_70%] md:hidden"
+        className="absolute inset-0 h-full w-full object-cover [object-position:center_62%] md:hidden"
         style={{ filter: "brightness(1.3) contrast(1.05)" }}
       />
       <video
-        className="absolute inset-0 h-full w-full object-cover [object-position:center_70%] md:hidden"
+        className="absolute inset-0 h-full w-full object-cover [object-position:center_62%] md:hidden"
         style={{
           filter: "brightness(1.3) contrast(1.05)",
           opacity: videoEnded ? 0 : 1,
