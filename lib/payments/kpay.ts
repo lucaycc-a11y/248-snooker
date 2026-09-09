@@ -17,6 +17,7 @@ import type {
 } from './types'
 import { buildSignText, signKpay, generateNonce, toPem } from './kpay-sign'
 import { kpayErrorMessage, KPAY_MIN_AMOUNT_HKD } from './types'
+import { kpayProxyFetch } from '../kpay/proxyFetch'
 
 // ── Env accessors (throw early on missing config) ─────────────
 
@@ -458,7 +459,7 @@ export class KPayProvider implements PaymentProvider {
 
     let res: Response
     try {
-      res = await fetch(url, {
+      res = await kpayProxyFetch(url, {
         method: 'POST',
         headers: {
           'K-Merchant-Code': this.merchantCode,
@@ -541,7 +542,7 @@ export class KPayProvider implements PaymentProvider {
     const signature = signKpay(this.privateKey, signText)
 
     const url = `${this.baseUrl}${path}`
-    const res = await fetch(url, {
+    const res = await kpayProxyFetch(url, {
       method: 'GET',
       headers: {
         'K-Merchant-Code': this.merchantCode,
