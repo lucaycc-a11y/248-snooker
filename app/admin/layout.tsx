@@ -8,6 +8,7 @@ import AdminThemeSync from '@/components/admin/AdminThemeSync'
 import MobileTabBar from '@/components/admin/MobileTabBar'
 
 import '@/app/styles/admin-theme.css'
+import '@/app/styles/admin-ui.css'
 
 /**
  * Admin-only fonts — loaded via <link> in admin layout only (NOT root layout).
@@ -44,8 +45,9 @@ export default async function Layout({ children }: { children: React.ReactNode }
       <link href={ADMIN_FONTS_HREF} rel="stylesheet" />
 
       <div
+        id="admin-app-shell"
         data-theme={resolvedTheme}
-        className="flex min-h-screen bg-[var(--admin-bg)] text-[var(--admin-text)]"
+        className="flex min-h-screen bg-[var(--admin-bg-primary)] text-[var(--admin-text-primary)]"
       >
         <AdminSidebar />
         <div className="flex-1 min-w-0 pb-[68px] lg:pb-0">{children}</div>

@@ -1,22 +1,49 @@
-'use client'
+import StatusDot from './StatusDot'
 
-export default function RingChart() {
+type RingChartProps = {
+  percentage: number
+  ariaLabel: string
+  label: string
+  labelCmsKey: string
+  currentLabel: string
+  currentCmsKey: string
+  goalLabel: string
+  goalCmsKey: string
+}
+
+export default function RingChart({
+  percentage,
+  ariaLabel,
+  label,
+  labelCmsKey,
+  currentLabel,
+  currentCmsKey,
+  goalLabel,
+  goalCmsKey,
+}: RingChartProps) {
+  const safePercentage = Math.min(Math.max(percentage, 0), 100)
+
   return (
-    <div className="sg-ring-wrap">
-      <div className="sg-ring">
-        <div>
-          <small>Percentage</small>
-          <strong>58%</strong>
-        </div>
-      </div>
-      <div className="sg-legend">
-        <span>
-          <i className="sg-dot is-green" />
-          Current
+    <div className="admin-ui-chart">
+      <div
+        className="admin-ui-chart__ring"
+        style={{ background: `conic-gradient(var(--admin-green) 0 ${safePercentage}%, var(--admin-border-subtle) ${safePercentage}% 100%)` }}
+        role="img"
+        aria-label={ariaLabel}
+      >
+        <span className="admin-ui-chart__ring-copy">
+          <span className="admin-ui-chart__ring-label" data-cms-key={labelCmsKey}>{label}</span>
+          <strong className="admin-ui-chart__ring-value">{safePercentage}%</strong>
         </span>
-        <span>
-          <i className="sg-dot is-muted" />
-          Month goal
+      </div>
+      <div className="admin-ui-chart__legend">
+        <span className="admin-ui-chart__legend-item">
+          <StatusDot status="success" />
+          <span data-cms-key={currentCmsKey}>{currentLabel}</span>
+        </span>
+        <span className="admin-ui-chart__legend-item">
+          <StatusDot status="pending" />
+          <span data-cms-key={goalCmsKey}>{goalLabel}</span>
         </span>
       </div>
     </div>

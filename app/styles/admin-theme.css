@@ -1,218 +1,169 @@
-/**
- * Admin Theme — CSS Variable system for dark/light modes.
- *
- * Dark mode is the default (matches [data-theme="dark"] and :root).
- * Light mode activates when <html data-theme="light">.
- * All admin components reference these variables via Tailwind's arbitrary
- * value syntax: `bg-[var(--admin-surface)]` or `text-[var(--admin-text)]`.
- *
- * §1.2 spec: NO shadows — use depth overlays for hierarchy.
- * Green palette only — NO blue anywhere.
- */
-
-/* ── Dark theme (default) ─────────────────────────────────────── */
+/* Canonical admin theme contract. Components may only consume --admin-* variables. */
 :root,
 [data-theme='dark'] {
-  --admin-bg: #000000;
-  --admin-surface: #0a0a0a;
-  --admin-surface-elevated: #111111;
-  --admin-surface-hover: #1a1a1a;
-  --admin-border: rgba(255, 255, 255, 0.08);
-  --admin-border-strong: rgba(255, 255, 255, 0.16);
-  --admin-text: #ffffff;
-  --admin-text-muted: rgba(255, 255, 255, 0.72);
-  --admin-text-faint: rgba(255, 255, 255, 0.48);
-
-  --admin-brand: #22c55e;
-  --admin-brand-hover: #16a34a;
-  --admin-brand-dim: rgba(34, 197, 94, 0.12);
+  --admin-bg-primary: #000000;
+  --admin-bg-surface: #0a0a0a;
+  --admin-bg-elevated: #111111;
+  --admin-border-subtle: rgba(255, 255, 255, 0.1);
+  --admin-text-primary: #ffffff;
+  --admin-text-secondary: rgba(255, 255, 255, 0.72);
+  --admin-text-tertiary: rgba(255, 255, 255, 0.52);
+  --admin-green: #25d366;
+  --admin-green-bright: #22c55e;
+  --admin-green-deep: #15803d;
   --admin-brand-text: #000000;
+  --admin-status-success: #22c55e;
+  --admin-status-warning: #f59e0b;
+  --admin-status-danger: #ff453a;
+  --admin-status-pending: #6b7280;
 
-  --admin-danger: #ef4444;
-  --admin-danger-dim: rgba(239, 68, 68, 0.12);
-  --admin-warning: #f59e0b;
+  --admin-radius-card: 20px;
+  --admin-radius-button: 14px;
+  --admin-radius-input: 12px;
+  --admin-radius-pill: 999px;
+
+  --admin-space-1: 4px;
+  --admin-space-2: 8px;
+  --admin-space-3: 12px;
+  --admin-space-4: 16px;
+  --admin-space-5: 20px;
+  --admin-space-6: 24px;
+  --admin-space-8: 32px;
+
+  --admin-text-xs: 12px;
+  --admin-text-sm: 14px;
+  --admin-text-base: 16px;
+  --admin-text-lg: 20px;
+  --admin-text-xl: 28px;
+
+  --admin-font-sans: Inter, 'Noto Sans TC', system-ui, sans-serif;
+  --admin-font-display: 'Good Times', 'JetBrains Mono', monospace;
+  --admin-border-width: 1px;
+  --admin-outline-width: 1px;
+  --admin-duration-fast: 150ms;
+  --admin-duration-base: 250ms;
+  --admin-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --admin-focus-ring: var(--admin-green-bright);
+
+  /* Transitional aliases for unrelated established admin screens. */
+  --admin-bg: var(--admin-bg-primary);
+  --admin-surface: var(--admin-bg-surface);
+  --admin-surface-alt: var(--admin-bg-elevated);
+  --admin-surface-elevated: var(--admin-bg-elevated);
+  --admin-surface-hover: var(--admin-bg-elevated);
+  --admin-border: var(--admin-border-subtle);
+  --admin-border-strong: var(--admin-text-tertiary);
+  --admin-text: var(--admin-text-primary);
+  --admin-text-muted: var(--admin-text-secondary);
+  --admin-text-faint: var(--admin-text-tertiary);
+  --admin-brand: var(--admin-green);
+  --admin-brand-hover: var(--admin-green-bright);
+  --admin-danger: var(--admin-status-danger);
+  --admin-warning: var(--admin-status-warning);
+  --admin-success: var(--admin-status-success);
+  --admin-accent-blue: var(--admin-green);
+  --admin-brand-dim: rgba(37, 211, 102, 0.12);
+  --admin-danger-dim: rgba(255, 69, 58, 0.12);
   --admin-warning-dim: rgba(245, 158, 11, 0.12);
-  --admin-success: #22c55e;
-  --admin-success-dim: rgba(34, 197, 94, 0.12);
-
-  /* Tier colours — amateur→Nova (green), century→Platinum (yellow), maximum→Diamond (purple) */
-  --admin-tier-nova: #22c55e;
-  --admin-tier-nova-dim: rgba(34, 197, 94, 0.12);
-  --admin-tier-platinum: #eab308;
-  --admin-tier-platinum-dim: rgba(234, 179, 8, 0.12);
-  --admin-tier-diamond: #a855f7;
-  --admin-tier-diamond-dim: rgba(168, 85, 247, 0.12);
-
-  /* Glassmorphism — backdrop blur for cards/sidebar */
-  --admin-glass-bg: rgba(255, 255, 255, 0.04);
-  --admin-glass-border: rgba(255, 255, 255, 0.08);
-  --admin-glass-blur: blur(20px) saturate(180%);
-
-  /* Depth overlays (NO shadows) */
-  --admin-depth-0: rgba(255, 255, 255, 0);
-  --admin-depth-1: rgba(255, 255, 255, 0.02);
-  --admin-depth-2: rgba(255, 255, 255, 0.04);
-  --admin-depth-3: rgba(255, 255, 255, 0.06);
-  --admin-depth-4: rgba(255, 255, 255, 0.08);
-
-  /* Scrollbar */
-  --admin-scrollbar-track: transparent;
-  --admin-scrollbar-thumb: rgba(255, 255, 255, 0.12);
-
-  /* Widget card glow */
-  --admin-widget-glow: rgba(34, 197, 94, 0.06);
-
+  --admin-depth-2: var(--admin-bg-elevated);
+  --admin-glass-bg: var(--admin-bg-surface);
+  --admin-glass-blur: none;
+  --admin-tier-nova: var(--admin-status-success);
+  --admin-tier-nova-dim: var(--admin-brand-dim);
+  --admin-tier-platinum: var(--admin-status-warning);
+  --admin-tier-platinum-dim: var(--admin-warning-dim);
+  --admin-tier-diamond: var(--admin-status-danger);
+  --admin-tier-diamond-dim: var(--admin-danger-dim);
   color-scheme: dark;
 }
 
-/* ── Light theme ──────────────────────────────────────────────── */
 [data-theme='light'] {
-  --admin-bg: #f8faf9;
-  --admin-surface: #ffffff;
-  --admin-surface-elevated: #f0fdf4;
-  --admin-surface-hover: #f0fdf4;
-  --admin-border: rgba(0, 0, 0, 0.08);
-  --admin-border-strong: rgba(0, 0, 0, 0.14);
-  --admin-text: #0f172a;
-  --admin-text-muted: rgba(15, 23, 42, 0.72);
-  --admin-text-faint: rgba(15, 23, 42, 0.48);
-
-  --admin-brand: #16a34a;
-  --admin-brand-hover: #15803d;
-  --admin-brand-dim: rgba(22, 163, 74, 0.10);
+  --admin-bg-primary: #f5f5f7;
+  --admin-bg-surface: #ffffff;
+  --admin-bg-elevated: #ffffff;
+  --admin-border-subtle: rgba(0, 0, 0, 0.12);
+  --admin-text-primary: #1d1d1f;
+  --admin-text-secondary: rgba(29, 29, 31, 0.72);
+  --admin-text-tertiary: rgba(29, 29, 31, 0.52);
+  --admin-green: #1fb855;
+  --admin-green-bright: #16a34a;
+  --admin-green-deep: #166534;
   --admin-brand-text: #ffffff;
+  --admin-status-success: #16a34a;
+  --admin-status-warning: #b45309;
+  --admin-status-danger: #dc2626;
+  --admin-status-pending: #6b7280;
 
-  --admin-danger: #dc2626;
-  --admin-danger-dim: rgba(220, 38, 38, 0.08);
-  --admin-warning: #d97706;
-  --admin-warning-dim: rgba(217, 119, 6, 0.08);
-  --admin-success: #16a34a;
-  --admin-success-dim: rgba(22, 163, 74, 0.08);
+  --admin-radius-card: 20px;
+  --admin-radius-button: 14px;
+  --admin-radius-input: 12px;
+  --admin-radius-pill: 999px;
 
-  --admin-tier-nova: #16a34a;
-  --admin-tier-nova-dim: rgba(22, 163, 74, 0.08);
-  --admin-tier-platinum: #ca8a04;
-  --admin-tier-platinum-dim: rgba(202, 138, 4, 0.08);
-  --admin-tier-diamond: #9333ea;
-  --admin-tier-diamond-dim: rgba(147, 51, 234, 0.08);
+  --admin-space-1: 4px;
+  --admin-space-2: 8px;
+  --admin-space-3: 12px;
+  --admin-space-4: 16px;
+  --admin-space-5: 20px;
+  --admin-space-6: 24px;
+  --admin-space-8: 32px;
 
-  --admin-glass-bg: rgba(255, 255, 255, 0.72);
-  --admin-glass-border: rgba(0, 0, 0, 0.06);
-  --admin-glass-blur: blur(20px) saturate(180%);
+  --admin-text-xs: 12px;
+  --admin-text-sm: 14px;
+  --admin-text-base: 16px;
+  --admin-text-lg: 20px;
+  --admin-text-xl: 28px;
 
-  --admin-depth-0: rgba(0, 0, 0, 0);
-  --admin-depth-1: rgba(0, 0, 0, 0.02);
-  --admin-depth-2: rgba(0, 0, 0, 0.04);
-  --admin-depth-3: rgba(0, 0, 0, 0.06);
-  --admin-depth-4: rgba(0, 0, 0, 0.08);
+  --admin-font-sans: Inter, 'Noto Sans TC', system-ui, sans-serif;
+  --admin-font-display: 'Good Times', 'JetBrains Mono', monospace;
+  --admin-border-width: 1px;
+  --admin-outline-width: 1px;
+  --admin-duration-fast: 150ms;
+  --admin-duration-base: 250ms;
+  --admin-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --admin-focus-ring: var(--admin-green-deep);
 
-  --admin-scrollbar-track: transparent;
-  --admin-scrollbar-thumb: rgba(0, 0, 0, 0.12);
-
-  --admin-widget-glow: rgba(22, 163, 74, 0.04);
-
+  /* Transitional aliases for unrelated established admin screens. */
+  --admin-bg: var(--admin-bg-primary);
+  --admin-surface: var(--admin-bg-surface);
+  --admin-surface-alt: var(--admin-bg-elevated);
+  --admin-surface-elevated: var(--admin-bg-elevated);
+  --admin-surface-hover: var(--admin-bg-elevated);
+  --admin-border: var(--admin-border-subtle);
+  --admin-border-strong: var(--admin-text-tertiary);
+  --admin-text: var(--admin-text-primary);
+  --admin-text-muted: var(--admin-text-secondary);
+  --admin-text-faint: var(--admin-text-tertiary);
+  --admin-brand: var(--admin-green);
+  --admin-brand-hover: var(--admin-green-bright);
+  --admin-danger: var(--admin-status-danger);
+  --admin-warning: var(--admin-status-warning);
+  --admin-success: var(--admin-status-success);
+  --admin-accent-blue: var(--admin-green);
+  --admin-brand-dim: rgba(31, 184, 85, 0.12);
+  --admin-danger-dim: rgba(220, 38, 38, 0.12);
+  --admin-warning-dim: rgba(180, 83, 9, 0.12);
+  --admin-depth-2: var(--admin-bg-elevated);
+  --admin-glass-bg: var(--admin-bg-surface);
+  --admin-glass-blur: none;
+  --admin-tier-nova: var(--admin-status-success);
+  --admin-tier-nova-dim: var(--admin-brand-dim);
+  --admin-tier-platinum: var(--admin-status-warning);
+  --admin-tier-platinum-dim: var(--admin-warning-dim);
+  --admin-tier-diamond: var(--admin-status-danger);
+  --admin-tier-diamond-dim: var(--admin-danger-dim);
   color-scheme: light;
 }
 
-/* ── Admin scrollbar styling ──────────────────────────────────── */
 .admin-scroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: var(--admin-space-2);
+  height: var(--admin-space-2);
 }
+
 .admin-scroll::-webkit-scrollbar-track {
-  background: var(--admin-scrollbar-track);
+  background: var(--admin-bg-primary);
 }
+
 .admin-scroll::-webkit-scrollbar-thumb {
-  background: var(--admin-scrollbar-thumb);
-  border-radius: 3px;
-}
-
-/* ── Conic spinner (AI loading) ───────────────────────────────── */
-@keyframes admin-conic-spin {
-  to { transform: rotate(360deg); }
-}
-
-.admin-conic-spinner {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent 0%, var(--admin-brand) 100%);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
-  animation: admin-conic-spin 0.8s linear infinite;
-}
-
-/* ── Rainbow border (focus glow) ──────────────────────────────── */
-@keyframes admin-rainbow-rotate {
-  to { transform: rotate(360deg); }
-}
-
-.admin-rainbow-border {
-  position: relative;
-}
-.admin-rainbow-border::before {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from 0deg,
-    var(--admin-brand),
-    var(--admin-tier-nova),
-    var(--admin-brand-hover),
-    var(--admin-tier-platinum),
-    var(--admin-brand)
-  );
-  opacity: 0;
-  z-index: -1;
-  transition: opacity 0.3s ease;
-  animation: admin-rainbow-rotate 3s linear infinite;
-}
-.admin-rainbow-border:focus-within::before {
-  opacity: 1;
-}
-
-/* ── Breathing glow (pending actions) ─────────────────────────── */
-@keyframes admin-breathe {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.02); }
-}
-
-.admin-breathing-glow {
-  animation: admin-breathe 2.5s ease-in-out infinite;
-}
-
-/* ── Sparkle icon (AI indicator) ──────────────────────────────── */
-@keyframes admin-sparkle {
-  0%, 100% { opacity: 0.6; transform: scale(0.9) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1.1) rotate(8deg); }
-}
-
-.admin-sparkle {
-  animation: admin-sparkle 2s ease-in-out infinite;
-  transform-origin: center;
-}
-
-/* ── Reduced motion: disable all admin animations ─────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .admin-conic-spinner,
-  .admin-breathing-glow,
-  .admin-sparkle,
-  .admin-rainbow-border::before {
-    animation: none !important;
-  }
-  .admin-conic-spinner {
-    opacity: 0.6;
-  }
-  .admin-breathing-glow {
-    opacity: 0.6;
-    transform: none;
-  }
-  .admin-sparkle {
-    opacity: 0.8;
-    transform: none;
-  }
-  .admin-rainbow-border::before {
-    animation: none !important;
-  }
+  background: var(--admin-border-subtle);
+  border-radius: var(--admin-radius-pill);
 }

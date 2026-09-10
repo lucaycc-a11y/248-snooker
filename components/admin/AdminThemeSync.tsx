@@ -14,7 +14,6 @@
  */
 
 import { useEffect, useState } from 'react'
-import { useAdmin } from '@/lib/admin/AdminContext'
 import type { AdminThemePreference } from '@/lib/data/getAdmin'
 
 type AdminThemeSyncProps = {
@@ -23,7 +22,6 @@ type AdminThemeSyncProps = {
 }
 
 export default function AdminThemeSync({ preference, resolved }: AdminThemeSyncProps) {
-  const admin = useAdmin()
   const [theme, setTheme] = useState<'dark' | 'light'>(resolved)
 
   useEffect(() => {
@@ -36,7 +34,8 @@ export default function AdminThemeSync({ preference, resolved }: AdminThemeSyncP
   }, [preference])
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-admin-theme', theme)
+    const shell = document.getElementById('admin-app-shell')
+    shell?.setAttribute('data-theme', theme)
     document.documentElement.style.colorScheme = theme
   }, [theme])
 

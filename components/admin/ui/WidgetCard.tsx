@@ -1,33 +1,22 @@
-'use client'
-
-import { ArrowUpRight, TrendingUp } from 'lucide-react'
-import { IconButton } from './Button'
+import type { ReactNode } from 'react'
 
 type WidgetCardProps = {
   title: string
-  value: string
-  trend?: string
-  children: React.ReactNode
+  titleCmsKey?: string
+  value?: string
+  action?: ReactNode
+  children?: ReactNode
+  className?: string
 }
 
-export default function WidgetCard({ title, value, trend, children }: WidgetCardProps) {
+export default function WidgetCard({ title, titleCmsKey, value, action, children, className = '' }: WidgetCardProps) {
   return (
-    <section className="sg-card sg-stat-card">
-      <div className="sg-card-heading">
-        <h3>{title}</h3>
-        <IconButton label={`Open ${title}`}>
-          <ArrowUpRight size={16} strokeWidth={1.5} />
-        </IconButton>
-      </div>
-      <div className="sg-value-row">
-        <strong className="sg-mono sg-money">{value}</strong>
-        {trend && (
-          <span className="sg-trend">
-            <TrendingUp size={14} strokeWidth={1.5} />
-            {trend}
-          </span>
-        )}
-      </div>
+    <section className={`admin-ui-widget-card ${className}`}>
+      <header className="admin-ui-widget-card__header">
+        <h2 className="admin-ui-widget-card__title" data-cms-key={titleCmsKey}>{title}</h2>
+        {action}
+      </header>
+      {value && <strong className="admin-ui-widget-card__value">{value}</strong>}
       {children}
     </section>
   )

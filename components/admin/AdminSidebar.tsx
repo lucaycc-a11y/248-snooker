@@ -1,38 +1,23 @@
 'use client'
 
-/**
- * AdminSidebar — responsive navigation sidebar.
- *
- * §2 spec breakpoints:
- *  - Desktop ≥1024px: full sidebar with labels (via extracted Sidebar)
- *  - iPad 768–1023px: collapsed icon-only sidebar using NavItem
- *  - Mobile <768px: hidden — replaced by MobileTabBar
- *
- * Uses extracted Sidebar, NavItem, Logo from components/admin/ui/.
- * All legacy --admin-* tokens removed; uses new design tokens.
- * data-cms-key on every user-visible label for CMS sync.
- */
-
-import { useEffect, useState, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard,
-  CalendarDays,
-  Users,
-  Settings,
-  UsersRound,
   Bot,
-  Newspaper,
-  Tag,
-  Receipt,
-  KeyRound,
-  Lock,
-  CreditCard,
+  CalendarDays,
   FileSearch,
   HeartPulse,
-  Wrench,
+  KeyRound,
+  LayoutDashboard,
+  Lock,
   LockKeyhole,
-  ShieldCheck,
+  Newspaper,
+  Receipt,
+  Settings,
+  Tag,
+  Users,
+  UsersRound,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react'
 import Sidebar from './ui/Sidebar'
@@ -73,7 +58,6 @@ const COLLAPSE_KEY = 'admin_sidebar_collapsed'
 export default function AdminSidebar() {
   const pathname = usePathname()
   const admin = useAdmin()
-
   const [collapsed, setCollapsed] = useState(false)
   const [hydrated, setHydrated] = useState(false)
 
@@ -83,71 +67,41 @@ export default function AdminSidebar() {
   }, [])
 
   const toggleCollapsed = useCallback(() => {
-    setCollapsed((prev) => {
-      const next = !prev
+    setCollapsed((previous) => {
+      const next = !previous
       localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0')
       return next
     })
   }, [])
 
-  const filteredItems = NAV_ITEMS.filter(
-    (item) => !item.superAdminOnly || admin.role === 'super_admin'
-  )
-
+  const items = NAV_ITEMS.filter((item) => !item.superAdminOnly || admin.role === 'super_admin')
   const activeHref = pathname ?? '/admin'
-
-  const adminInitial = (admin.displayName ?? admin.email).charAt(0).toUpperCase()
   const adminName = admin.displayName ?? admin.email
-  const adminRole = admin.role
+  const adminInitial = adminName.charAt(0).toUpperCase()
+  const isActive = (href: string) => href === '/admin' ? activeHref === href : activeHref.startsWith(href)
 
   return (
     <>
-      {/* Desktop sidebar (≥1024px) — uses extracted Sidebar */}
-      <Sidebar
-        items={filteredItems}
-        activeHref={activeHref}
-        collapsed={hydrated && collapsed}
-        onToggleCollapse={toggleCollapsed}
-        adminInitial={adminInitial}
-        adminName={adminName}
-        adminRole={adminRole}
-      />
-
-      {/* iPad sidebar (768–1023px): icon-only, collapsed NavItem */}
-      <aside
-        className={`
-          hidden md:flex lg:hidden flex-col shrink-0 min-h-screen
-          bg-[var(--surface-primary)] border-r border-[var(--border-subtle)]
-          p-3 gap-1 w-[64px] items-center
-        `}
-      >
-        <Logo className="h-6 w-auto mb-4" />
-        <nav className="flex flex-col gap-0.5 flex-1 w-full items-center">
-          {filteredItems.map((item) => (
-            <NavItem
-              key={item.href}
-              href={item.href}
-              label={item.label}
-              cmsKey={item.cmsKey}
-              icon={item.icon}
-              active={
-                item.href === '/admin'
-                  ? activeHref === '/admin'
-                  : activeHref?.startsWith(item.href) ?? false
-              }
-              collapsed
-            />
+      <div className="hidden lg:block">
+        <Sidebar
+          items={items}
+          activeHref={activeHref}
+          collapsed={hydrated && collapsed}
+          onToggleCollapse={toggleCollapsed}
+          adminInitial={adminInitial}
+          adminName={adminName}
+          adminRole={admin.role}
+        />
+      </div>
+      <aside className="hidden md:flex lg:hidden admin-ui-sidebar admin-ui-sidebar--collapsed">
+        <div className="admin-ui-sidebar__header"><Logo compact /></div>
+        <nav className="admin-ui-sidebar__nav" aria-label="Admin navigation">
+          {items.map((item) => (
+            <NavItem key={item.href} {...item} active={isActive(item.href)} collapsed />
           ))}
         </nav>
-        <div
-          aria-hidden="true"
-          className="flex items-center justify-center w-7 h-7 rounded-full bg-[var(--green-bright)] text-[var(--surface-primary)] text-xs font-bold mt-2"
-        >
-          {adminInitial}
-        </div>
+        <span className="admin-ui-avatar" aria-label={adminName}>{adminInitial}</span>
       </aside>
-
-      {/* Mobile (<768px): sidebar hidden — MobileTabBar renders in layout */}
     </>
   )
 }

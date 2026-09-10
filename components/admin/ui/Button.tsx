@@ -1,35 +1,36 @@
-'use client'
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type IconButtonProps = {
-  label: string
-  children: React.ReactNode
-  className?: string
-  onClick?: () => void
+type ButtonVariant = 'primary' | 'secondary' | 'danger'
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: ReactNode
+  variant?: ButtonVariant
 }
 
-export function IconButton({ label, children, className = '', onClick }: IconButtonProps) {
+type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: ReactNode
+  label: string
+}
+
+export function Button({ children, className = '', variant = 'secondary', type = 'button', ...props }: ButtonProps) {
   return (
     <button
-      aria-label={label}
-      onClick={onClick}
-      className={`sg-icon-button ${className}`}
+      {...props}
+      type={type}
+      className={`admin-ui-button admin-ui-button--${variant} ${className}`}
     >
       {children}
     </button>
   )
 }
 
-type PillButtonProps = {
-  children: React.ReactNode
-  primary?: boolean
-  danger?: boolean
-  className?: string
-}
-
-export function PillButton({ children, primary = false, danger = false, className = '' }: PillButtonProps) {
+export function IconButton({ children, className = '', label, type = 'button', ...props }: IconButtonProps) {
   return (
     <button
-      className={`sg-pill-button ${primary ? 'is-primary' : ''} ${danger ? 'is-danger' : ''} ${className}`}
+      {...props}
+      type={type}
+      aria-label={label}
+      className={`admin-ui-icon-button ${className}`}
     >
       {children}
     </button>

@@ -1,6 +1,5 @@
-import StyleGuideShell from '@/components/admin/ui/StyleGuideShell'
-import '@/app/styles/admin-style-guide.css'
+import StyleGuidePreview from '@/components/admin/ui/StyleGuidePreview'
 
 export default function StyleGuidePage() {
-  return <StyleGuideShell />
+  return <StyleGuidePreview />
 }

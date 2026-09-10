@@ -1,6 +1,11 @@
-import StyleGuideShell from '@/components/admin/ui/StyleGuideShell'
-import '@/app/styles/admin-style-guide.css'
+import '@/app/styles/admin-theme.css'
+import '@/app/styles/admin-ui.css'
+import StyleGuidePreview from '@/components/admin/ui/StyleGuidePreview'
 
 export default function StyleGuidePreviewPage() {
-  return <StyleGuideShell />
+  return (
+    <div data-theme="dark">
+      <StyleGuidePreview />
+    </div>
+  )
 }

@@ -1,26 +1,9 @@
 'use client'
 
-/**
- * MobileTabBar — bottom navigation for admin panel on mobile (<768px).
- *
- * §2 spec: replaces sidebar entirely on mobile.
- * 5 tabs: Dashboard, Bookings, Users, Alerts, More
- * Payment Log accessible via "More".
- * Uses extracted NavItem with vertical prop for consistent active state.
- * data-cms-key on every label for CMS sync.
- * Hidden on tablet/desktop via `hidden` + `lg:hidden`.
- */
-
 import { usePathname } from 'next/navigation'
-import {
-  LayoutDashboard,
-  CalendarDays,
-  Users,
-  Bell,
-  MoreHorizontal,
-} from 'lucide-react'
-import NavItem from './ui/NavItem'
+import { Bell, CalendarDays, LayoutDashboard, MoreHorizontal, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import NavItem from './ui/NavItem'
 
 type Tab = {
   href: string
@@ -40,26 +23,12 @@ const TABS: Tab[] = [
 
 export default function MobileTabBar() {
   const pathname = usePathname()
-
-  const isActive = (tab: Tab) =>
-    tab.matchExact ? pathname === tab.href : pathname?.startsWith(tab.href) ?? false
+  const isActive = (tab: Tab) => tab.matchExact ? pathname === tab.href : pathname?.startsWith(tab.href) ?? false
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex lg:hidden items-center justify-around
-        h-[68px] px-2 pb-[env(safe-area-inset-bottom)]
-        bg-[var(--surface-primary)] border-t border-[var(--border-subtle)]"
-    >
+    <nav className="admin-ui-mobile-tabs fixed bottom-0 left-0 right-0 z-40 lg:hidden" aria-label="Admin mobile navigation">
       {TABS.map((tab) => (
-        <NavItem
-          key={tab.href}
-          href={tab.href}
-          label={tab.label}
-          cmsKey={tab.cmsKey}
-          icon={tab.icon}
-          active={isActive(tab)}
-          vertical
-        />
+        <NavItem key={tab.href} {...tab} active={isActive(tab)} vertical />
       ))}
     </nav>
   )
