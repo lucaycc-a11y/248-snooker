@@ -1126,6 +1126,8 @@
         "body": "登入会员中心，随时查看余额、等级进度及预订记录。"
       }
     ],
+    "entry_title": "入场指南",
+    "entry_body": "预约确认后，你会收到专属 QR code。到达场地后扫描 QR code，大门便会自动开启。",
     "qr_title": "会员 QR Code",
     "qr_desc": "这是属于你的会员专属 QR Code。大门、杆柜、智能小管家 Space Pilot，全部靠它。你的每一场战绩，也是由它记录下来的。",
     "qr_placeholder": "示意图 · 你的专属编码请于会员页面查看",

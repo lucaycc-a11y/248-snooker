@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 
 /**
  * Section 5 — Booking Process (left-steps + right-image layout)
@@ -163,24 +164,45 @@ export default function Section5Booking() {
                 <div className="s5-marker">
                   <span className="s5-num">{step.num}</span>
                 </div>
-                <div className="s5-text">
-                  <h3
-                    className="s5-step-title"
-                    data-cms-key={`how.${step.titleKey}`}
-                  >
-                    {highlight(
-                      tHow(step.titleKey),
-                      tHow(step.highlightKey),
-                      step.color,
-                    )}
-                  </h3>
-                  <p
-                    className="s5-step-body"
-                    data-cms-key={`how.${step.bodyKey}`}
-                  >
-                    {tHow(step.bodyKey)}
-                  </p>
-                </div>
+                {step.num === "02" ? (
+                  <Link href="/membership#entry-guide" className="s5-text s5-entry-link">
+                    <h3
+                      className="s5-step-title"
+                      data-cms-key={`how.${step.titleKey}`}
+                    >
+                      {highlight(
+                        tHow(step.titleKey),
+                        tHow(step.highlightKey),
+                        step.color,
+                      )}
+                    </h3>
+                    <p
+                      className="s5-step-body"
+                      data-cms-key={`how.${step.bodyKey}`}
+                    >
+                      {tHow(step.bodyKey)}
+                    </p>
+                  </Link>
+                ) : (
+                  <div className="s5-text">
+                    <h3
+                      className="s5-step-title"
+                      data-cms-key={`how.${step.titleKey}`}
+                    >
+                      {highlight(
+                        tHow(step.titleKey),
+                        tHow(step.highlightKey),
+                        step.color,
+                      )}
+                    </h3>
+                    <p
+                      className="s5-step-body"
+                      data-cms-key={`how.${step.bodyKey}`}
+                    >
+                      {tHow(step.bodyKey)}
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -309,6 +331,15 @@ export default function Section5Booking() {
         /* ── Step text ── */
         .s5-text {
           display: block;
+        }
+        .s5-entry-link {
+          color: inherit;
+          text-decoration: none;
+        }
+        .s5-entry-link:focus-visible {
+          outline: 2px solid #22C55E;
+          outline-offset: 6px;
+          border-radius: 4px;
         }
         .s5-step-title {
           display: block;

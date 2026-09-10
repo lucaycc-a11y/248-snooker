@@ -1126,6 +1126,8 @@
         "body": "Sign in to the member centre to check your balance, tier progress and booking history anytime."
       }
     ],
+    "entry_title": "Entry guide",
+    "entry_body": "After your booking is confirmed, you will receive a personal QR code. Scan it at the venue and the door will open automatically.",
     "qr_title": "Member QR Code",
     "qr_desc": "This is your exclusive member QR code. Door, locker, Smart Concierge Space Pilot — it all starts here. Every game you play is recorded through it.",
     "qr_placeholder": "Illustration · Check your member page for your personal code",
