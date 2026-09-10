@@ -438,7 +438,11 @@ export async function POST(req: Request) {
     if (e.message.startsWith('KPay 未配置完成')) {
       return NextResponse.json({ error: e.message }, { status: 503 })
     }
-    if (e.message.startsWith('KPay 建單失敗') || e.message.startsWith('KPay 取碼失敗')) {
+    if (
+      e.message.startsWith('KPay 建單失敗') ||
+      e.message.startsWith('KPay 取碼失敗') ||
+      e.message.includes('KPay API request timeout')
+    ) {
       return NextResponse.json({ error: e.message }, { status: 502 })
     }
 

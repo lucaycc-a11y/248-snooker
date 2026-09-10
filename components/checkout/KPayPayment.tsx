@@ -18,6 +18,10 @@ export type KPayState =
   | 'cancelled'     // booking hold was cancelled
   | 'expired'       // QR/H5 link expired
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'AbortError'
+}
+
 export type KPayMode = 'qr' | 'h5'
 
 export type KPayBlock = {
@@ -280,6 +284,7 @@ export default function KPayPayment(props: Props) {
   // a stable dependency array and avoid re-launching on every state/prop change.
   const stateRef = useRef<KPayState>(state)
   const onSuccessRef = useRef(onSuccess)
+  const createControllerRef = useRef<AbortController | null>(null)
 
   // Keep refs current without re-triggering the polling effect.
   useEffect(() => { stateRef.current = state }, [state])
@@ -331,10 +336,13 @@ export default function KPayPayment(props: Props) {
         body.orderGroupId = localOrderGroupId
       }
 
+      const controller = new AbortController()
+      createControllerRef.current = controller
       const res = await fetch('/api/checkout/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: controller.signal,
       })
 
       if (!res.ok) {
@@ -416,8 +424,10 @@ export default function KPayPayment(props: Props) {
         return
       }
     } catch (e) {
-      setError((e as Error).message)
-      setState('failed')
+      if (!isAbortError(e)) {
+        setError((e as Error).message)
+        setState('failed')
+      }
     } finally {
       creatingRef.current = false
       setCreating(false)
@@ -509,6 +519,7 @@ export default function KPayPayment(props: Props) {
     }
     if (agreedToTerms) createOrder()
     return () => {
+      createControllerRef.current?.abort()
       creatingRef.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -524,11 +535,15 @@ export default function KPayPayment(props: Props) {
   useEffect(() => {
     if (!resumeBookingId) return
     let cancelled = false
+    let activeController: AbortController | null = null
 
     const resumePayment = async () => {
       try {
         // First: poll status to see where the booking stands
-        const statusRes = await fetch(`/api/checkout/status?bookingId=${resumeBookingId}`)
+        activeController = new AbortController()
+        const statusRes = await fetch(`/api/checkout/status?bookingId=${resumeBookingId}`, {
+          signal: activeController.signal,
+        })
         if (!statusRes.ok || cancelled) return
         const status = await statusRes.json() as Record<string, unknown>
 
@@ -594,10 +609,12 @@ export default function KPayPayment(props: Props) {
           console.log('[KPay] createOrder (Mode B) sending uat_payme:', uatPaymeSimulation)
         }
 
+        activeController = new AbortController()
         const createRes = await fetch('/api/checkout/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          signal: activeController.signal,
         })
 
         if (!createRes.ok || cancelled) {
@@ -654,7 +671,7 @@ export default function KPayPayment(props: Props) {
           }
         }
       } catch (e) {
-        if (!cancelled) {
+        if (!cancelled && !isAbortError(e)) {
           setError((e as Error).message)
           setState('failed')
         }
@@ -664,8 +681,11 @@ export default function KPayPayment(props: Props) {
       }
     }
 
-    resumePayment()
-    return () => { cancelled = true }
+    void resumePayment()
+    return () => {
+      cancelled = true
+      activeController?.abort()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeBookingId])
 
@@ -709,6 +729,7 @@ export default function KPayPayment(props: Props) {
     let cancelled = false
     let timer: ReturnType<typeof setTimeout> | null = null
     let elapsedTimer: ReturnType<typeof setInterval> | null = null
+    let activeController: AbortController | null = null
 
     // Smooth per-second "已等待 XX 秒" counter, independent of poll cadence.
     elapsedTimer = setInterval(() => {
@@ -721,8 +742,14 @@ export default function KPayPayment(props: Props) {
       const attempt = attemptRef.current
       const elapsedMs = Date.now() - pollStartRef.current
 
+      const controller = new AbortController()
+      activeController = controller
+
       try {
-        const res = await fetch(`/api/checkout/status?bookingId=${encodeURIComponent(localBookingId)}`, { cache: 'no-store' })
+        const res = await fetch(`/api/checkout/status?bookingId=${encodeURIComponent(localBookingId)}`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        })
         const raw: unknown = await res.json()
         if (!res.ok || attempt !== attemptRef.current) return
         const json = raw && typeof raw === 'object' && !Array.isArray(raw)
@@ -766,7 +793,9 @@ export default function KPayPayment(props: Props) {
           return
         }
       } catch {
-        // Network error — retry on the next interval.
+        // Network error — retry on the next interval. Aborts are ignored below.
+      } finally {
+        if (activeController === controller) activeController = null
       }
 
       if (cancelled) return
@@ -774,15 +803,6 @@ export default function KPayPayment(props: Props) {
       // stop and transition to a terminal state so the UI isn't stuck forever.
       if (elapsedMs >= KPAY_POLL_TIMEOUT_MS) {
         console.log('[KPay] pollTimeout', { bookingId: localBookingId, elapsedMs })
-        // If the last response showed provider success but DB isn't confirmed
-        // yet, stay on pending_confirmation (the status endpoint is proactively
-        // confirming — one more poll will likely resolve it). Otherwise, treat
-        // as a failure so the user can take action.
-        if (stateRef.current === 'pending_confirmation') {
-          // Keep polling slowly — proactive confirmation may still be in progress
-          timer = setTimeout(poll, KPAY_POLL_SLOW_MS)
-          return
-        }
         clearKPayPersistedState()
         setState('failed')
         return
@@ -796,6 +816,7 @@ export default function KPayPayment(props: Props) {
 
     return () => {
       cancelled = true
+      activeController?.abort()
       if (timer) clearTimeout(timer)
       if (elapsedTimer) clearInterval(elapsedTimer)
     }

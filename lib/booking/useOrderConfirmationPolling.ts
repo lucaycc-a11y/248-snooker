@@ -68,6 +68,10 @@ function parseStatusResponse(value: unknown): CheckoutStatusResponse {
   }
 }
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError"
+}
+
 /** Poll the provider-aware checkout status after an external payment return. */
 export function useOrderConfirmationPolling(
   bookingId: string | null,
@@ -89,6 +93,7 @@ export function useOrderConfirmationPolling(
     const timeoutMs = resolveTimeoutMs()
     let timer: ReturnType<typeof setTimeout> | null = null
     let elapsedTimer: ReturnType<typeof setInterval> | null = null
+    let activeController: AbortController | null = null
 
     const elapsedMs = () => Date.now() - startedAt
 
@@ -105,10 +110,13 @@ export function useOrderConfirmationPolling(
     const poll = async () => {
       if (cancelled) return
 
+      const controller = new AbortController()
+      activeController = controller
+
       try {
         const response = await fetch(
           `/api/checkout/status?bookingId=${encodeURIComponent(bookingId)}`,
-          { cache: "no-store" },
+          { cache: "no-store", signal: controller.signal },
         )
         const data: unknown = await response.json()
         const result = parseStatusResponse(data)
@@ -151,7 +159,11 @@ export function useOrderConfirmationPolling(
           return
         }
       } catch (error) {
-        console.error("[KPay] pollResult error", { bookingId, elapsedMs: elapsedMs(), error })
+        if (!isAbortError(error)) {
+          console.error("[KPay] pollResult error", { bookingId, elapsedMs: elapsedMs(), error })
+        }
+      } finally {
+        if (activeController === controller) activeController = null
       }
 
       if (cancelled) return
@@ -175,6 +187,7 @@ export function useOrderConfirmationPolling(
 
     return () => {
       cancelled = true
+      activeController?.abort()
       if (timer) clearTimeout(timer)
       if (elapsedTimer) clearInterval(elapsedTimer)
     }
