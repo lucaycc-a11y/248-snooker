@@ -26,7 +26,7 @@ export function Card({ item, index, onOpen }: { item: CarouselItem; index: numbe
       type="button"
       onClick={onOpen}
       aria-label={`${item.title} — ${item.category}`}
-      className="group relative h-[440px] w-[82vw] max-w-[320px] shrink-0 snap-start overflow-hidden rounded-[24px] bg-[#1d1d1f] text-left md:h-[500px] md:w-[320px]"
+      className="group relative h-[440px] w-[82vw] max-w-[320px] shrink-0 snap-start overflow-hidden rounded-[24px] bg-[#1d1d1f] text-left md:h-[500px] md:w-[320px] lg:w-full lg:max-w-none"
     >
       <BlurImage src={item.src} alt={item.title} />
       <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
@@ -69,14 +69,14 @@ export function Carousel({ items }: CarouselProps) {
       <div className="relative">
         <div
           ref={trackRef}
-          className="facilities-carousel-track flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-5 no-scrollbar md:px-16"
+          className="facilities-carousel-track flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-5 no-scrollbar md:px-16 lg:grid lg:grid-cols-3 lg:gap-6 lg:overflow-visible"
           style={{ touchAction: "pan-x pan-y", overscrollBehaviorX: "contain", overscrollBehaviorY: "auto" }}
         >
           {items.map((item, index) => (
             <Card key={`${item.title}-${index}`} item={item} index={index} onOpen={() => setActiveIndex(index)} />
           ))}
         </div>
-        <div className="mt-5 hidden justify-end gap-2 px-16 md:flex">
+        <div className="mt-5 hidden justify-end gap-2 px-16 md:flex lg:hidden">
           <button type="button" onClick={() => scroll(-1)} aria-label="Previous facility" className="grid h-11 w-11 place-items-center rounded-full border border-black/10 bg-white text-[#111110] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105">
             <ChevronLeft size={18} strokeWidth={1.6} />
           </button>
