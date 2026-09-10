@@ -186,6 +186,7 @@ export class KPayProvider implements PaymentProvider {
       payCurrency: 'HKD',
       notifyUrl: `${baseUrl}/api/webhooks/kpay`,
       returnUrl: `${baseUrl}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`,
+      pageFeatureControls: ['HIDE_EMAIL_ADDRESS', 'HIDE_BILL_INFORMATION'],
       ...(remark ? { orderRemark: remark } : {}),
     }
 
