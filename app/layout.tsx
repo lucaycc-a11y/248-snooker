@@ -4,6 +4,7 @@ import { getLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import Script from "next/script";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -81,7 +82,7 @@ export default async function RootLayout({
   const locale = await getLocale().catch(() => routing.defaultLocale);
 
   return (
-    <html lang={locale} className={`${bebasNeue.variable} no-js`}>
+    <html lang={locale} className={cn("no-js", bebasNeue.variable, "font-sans")}>
       <body className="min-h-screen bg-black text-white antialiased">
         {children}
       </body>

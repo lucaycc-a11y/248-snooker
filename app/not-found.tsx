@@ -1,5 +1,5 @@
 import { MessageCircle } from 'lucide-react'
-import { ShaderBackground } from '@/components/ui/kk'
+import BlackHole from '@/components/ui/black-hole'
 import { SITE_CONTACT } from '@/lib/site/contact'
 
 const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
@@ -8,10 +8,11 @@ export default function NotFound() {
   return (
     <main
       data-nav-theme="dark"
-      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#15171B] px-6 py-16 text-white"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6 py-16 text-white"
     >
-      <ShaderBackground className="absolute inset-0" />
-      <div className="pointer-events-none absolute inset-0 bg-[#15171B]/35" />
+      <div className="pointer-events-none absolute inset-0">
+        <BlackHole />
+      </div>
 
       <section className="relative z-10 flex w-full max-w-2xl flex-col items-center text-center">
         <p
