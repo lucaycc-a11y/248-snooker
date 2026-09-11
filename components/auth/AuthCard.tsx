@@ -28,7 +28,7 @@ const EASE = [0.16, 1, 0.3, 1] as const
 type Phase = "methods" | "contact" | "otp" | "profile" | "password" | "signup" | "signupPhone" | "signupEmail"
 type OtpChannel = "sms" | "email"
 type OtpDeliveryChannel = "whatsapp" | "sms"
-type ContactTab = "phone" | "email"
+type ContactType = "phone" | "email" | "unknown"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
 type Grecaptcha = {
   execute: (siteKey: string, options: { action: string }) => Promise<string>
@@ -54,7 +54,7 @@ export function AuthCard({
 }) {
   const t = useTranslations("auth")
   const [phase, setPhase] = useState<Phase>("methods")
-  const [contactTab, setContactTab] = useState<ContactTab>("phone")
+  const [contact, setContact] = useState("")
   const [phone, setPhone] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -304,6 +304,132 @@ export function AuthCard({
       onAuthComplete()
     } catch { setError(t("err_network")); setOtpStatus("failure") }
     setBusy(false)
+  }
+
+  // Detect contact type: email (contains @), phone (8 digits), or unknown
+  const detectContactType = (input: string): ContactType => {
+    const trimmed = input.trim()
+    if (!trimmed) return "unknown"
+
+    // Email detection: contains @ and basic email pattern
+    if (trimmed.includes("@") && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return "email"
+    }
+
+    // Phone detection: exactly 8 digits (no +852 prefix needed from user)
+    const digitsOnly = trimmed.replace(/\D/g, "")
+    if (digitsOnly.length === 8 && /^\d{8}$/.test(digitsOnly)) {
+      return "phone"
+    }
+
+    return "unknown"
+  }
+
+  // Unified send function that detects format and routes appropriately
+  const sendContactOtp = async () => {
+    const contactType = detectContactType(contact)
+
+    if (contactType === "unknown") {
+      setError(t("err_contact_format"))
+      return
+    }
+
+    if (contactType === "email") {
+      const trimmed = contact.trim()
+      setEmail(trimmed)
+      setBusy(true)
+      setError(null)
+      try {
+        const res = await fetch("/api/auth/send-email-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: trimmed }),
+        })
+        const j = await res.json().catch(() => ({}))
+        if (j?.ok !== true) {
+          if (j?.error === "rate_limited") {
+            setError(t("err_rate_limited"))
+          } else {
+            setError(j?.detail ? `${t("err_send")} (${j.detail})` : t("err_send"))
+          }
+          setBusy(false)
+          return
+        }
+        setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+        setOtpStatus("input")
+        setOtpChannel("email")
+        setOtpExpiresAt(null)
+        setAttemptsLeft(MAX_OTP_ATTEMPTS)
+        setCooldown(RESEND_COOLDOWN)
+        setBusy(false)
+        setPhase("otp")
+      } catch {
+        setError(t("err_network"))
+        setBusy(false)
+      }
+    } else {
+      // Phone path: auto-prepend +852
+      const digitsOnly = contact.trim().replace(/\D/g, "")
+      const normalized = `+852${digitsOnly}`
+      setPhone(normalized)
+
+      setBusy(true)
+      setError(null)
+      try {
+        const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
+        if (!siteKey) {
+          setError(t("err_send"))
+          setBusy(false)
+          return
+        }
+
+        const grecaptchaValue: unknown = typeof window === "undefined" ? undefined : window.grecaptcha
+        if (!isGrecaptcha(grecaptchaValue)) {
+          setError(t("err_send"))
+          setBusy(false)
+          return
+        }
+
+        const recaptchaToken = await grecaptchaValue.execute(siteKey, { action: "send_otp" })
+
+        const res = await fetch("/api/otp/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: normalized, recaptchaToken }),
+        })
+        const j = await res.json().catch(() => ({}))
+
+        if (!res.ok || !j?.success) {
+          if (j?.code === "PHONE_NOT_REGISTERED") {
+            setError(t("err_phone_not_registered"))
+          } else if (j?.code === "OTP_COOLDOWN" || j?.code === "OTP_RATE_LIMITED" || j?.error === "rate_limited") {
+            setError(t("err_rate_limited"))
+          } else if (j?.code === "PHONE_LOCKED" || j?.code === "CAPTCHA_REQUIRED") {
+            setError(t("err_rate_limited"))
+          } else if (j?.code === "PHONE_INVALID") {
+            setError(t("err_phone"))
+          } else {
+            setError(t("err_send"))
+          }
+          setBusy(false)
+          return
+        }
+
+        setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+        setOtpStatus("input")
+        setOtpChannel("sms")
+        setMessageId(typeof j?.messageId === "string" ? j.messageId : "")
+        setOtpExpiresAt(typeof j?.expiresAt === "string" ? j.expiresAt : null)
+        setOtpDeliveryChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
+        setAttemptsLeft(MAX_OTP_ATTEMPTS)
+        setCooldown(RESEND_COOLDOWN)
+        setBusy(false)
+        setPhase("otp")
+      } catch {
+        setError(t("err_network"))
+        setBusy(false)
+      }
+    }
   }
 
   const sendOtp = async () => {
@@ -735,99 +861,82 @@ export function AuthCard({
     )
   }
 
-  // ── Contact entry (phone / email tabbed) ────────────────────────────────────
+  // ── Contact entry (unified input with auto-detection) ───────────────────────
   if (phase === "contact") {
+    const contactType = detectContactType(contact)
+    const showFormatHint = contact.trim().length > 0 && contactType === "unknown"
+
     return (
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
         <button
           type="button"
-          onClick={() => { setPhase("methods"); setError(null); setOtpStatus("input") }}
+          onClick={() => { setPhase("methods"); setError(null); setOtpStatus("input"); setContact("") }}
           aria-label={t("back")}
           style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}
         >
           <ChevronLeft size={16} /> {t("back")}
         </button>
 
-        {/* Tab switch */}
-        <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.04)", borderRadius: 12, padding: 4, marginBottom: 20 }}>
-          {(["phone", "email"] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => { setContactTab(tab); setError(null) }}
-              data-cms-key={tab === "phone" ? "auth.contact.phone_tab" : "auth.contact.email_tab"}
-              style={{
-                flex: 1,
-                height: 40,
-                border: "none",
-                borderRadius: 9,
-                background: contactTab === tab ? "rgba(255,255,255,0.12)" : "transparent",
-                color: contactTab === tab ? "#fff" : "rgba(255,255,255,0.5)",
-                fontWeight: 600,
-                fontSize: 14,
-                cursor: "pointer",
-                transition: "background 0.15s ease, color 0.15s ease",
-              }}
-            >
-              {tab === "phone" ? t("contact_phone_tab") : t("contact_email_tab")}
-            </button>
-          ))}
-        </div>
+        <h2 data-cms-key="auth.contact.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>
+          {t("contact_title")}
+        </h2>
+        <p data-cms-key="auth.contact.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
+          {t("contact_subtitle")}
+        </p>
 
-        {contactTab === "phone" ? (
-          <>
-            <div style={{ display: "flex", gap: 8 }}>
-              <span style={{ display: "flex", alignItems: "center", padding: "0 14px", height: 50, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, color: "#fff", fontSize: 16 }}>+852</span>
-              <input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                placeholder={t("phone_placeholder")}
-                inputMode="numeric"
-                pattern="[0-9]{8}"
-                maxLength={8}
-                autoComplete="tel-national"
-                aria-label={t("phone_placeholder")}
-                style={{ flex: 1, height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={sendOtp}
-              disabled={busy}
-              data-cms-key="auth.phone.send_code"
-              style={{ marginTop: 12, width: "100%", height: 50, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer", transition: "background 0.2s ease" }}
-            >
-              {busy ? t("sending") : t("phone_send_code")}
-            </button>
-          </>
-        ) : (
-          <>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={t("email_placeholder")}
-              inputMode="email"
-              autoComplete="email"
-              aria-label={t("email_placeholder")}
-              style={{ height: 50, background: "rgba(255,255,255,0.04)", border: `1px solid ${error ? "#f87171" : "rgba(255,255,255,0.12)"}`, borderRadius: 12, padding: "0 16px", color: "#fff", fontSize: 16, outline: "none", transition: "border-color 0.2s ease" }}
-            />
-            <button
-              type="button"
-              onClick={sendEmailOtp}
-              disabled={busy}
-              data-cms-key="auth.email.continue"
-              style={{ marginTop: 12, width: "100%", height: 50, border: "none", borderRadius: 9999, background: busy ? "rgba(34,197,94,0.5)" : GREEN, color: "#000", fontWeight: 700, fontSize: 16, cursor: busy ? "not-allowed" : "pointer", transition: "background 0.2s ease" }}
-            >
-              {busy ? t("sending") : t("email_continue")}
-            </button>
-          </>
+        <input
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
+          placeholder={t("contact_placeholder")}
+          autoComplete="username"
+          aria-label={t("contact_placeholder")}
+          style={{
+            height: 50,
+            background: "rgba(255,255,255,0.04)",
+            border: `1px solid ${error || showFormatHint ? "#f87171" : "rgba(255,255,255,0.12)"}`,
+            borderRadius: 12,
+            padding: "0 16px",
+            color: "#fff",
+            fontSize: 16,
+            outline: "none",
+            transition: "border-color 0.2s ease",
+            width: "100%"
+          }}
+        />
+
+        {showFormatHint && (
+          <p style={{ marginTop: 8, fontSize: 13, color: "#f87171", textAlign: "left" }}>
+            {t("contact_format_hint")}
+          </p>
         )}
+
+        <button
+          type="button"
+          onClick={sendContactOtp}
+          disabled={busy || contact.trim().length === 0}
+          data-cms-key="auth.contact.continue"
+          style={{
+            marginTop: 12,
+            width: "100%",
+            height: 50,
+            border: "none",
+            borderRadius: 9999,
+            background: busy || contact.trim().length === 0 ? "rgba(34,197,94,0.5)" : GREEN,
+            color: "#000",
+            fontWeight: 700,
+            fontSize: 16,
+            cursor: busy || contact.trim().length === 0 ? "not-allowed" : "pointer",
+            transition: "background 0.2s ease"
+          }}
+        >
+          {busy ? t("sending") : t("contact_continue")}
+        </button>
 
         {error && <p data-cms-key="auth.error" style={{ marginTop: 12, fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
 
         <button
           type="button"
-          onClick={() => { setPhase("password"); setError(null) }}
+          onClick={() => { setPhase("password"); setError(null); setContact("") }}
           data-cms-key="auth.switch_to_password"
           style={{ marginTop: 16, background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12.5, cursor: "pointer", textAlign: "center", textDecoration: "underline", textUnderlineOffset: 2, textDecorationColor: "rgba(255,255,255,0.1)" }}
         >
@@ -835,7 +944,7 @@ export function AuthCard({
         </button>
 
         {/* reCAPTCHA compliance notice — only shown on the contact/OTP phase
-            where reCAPTCHA is actually executed (sendOtp calls grecaptcha.execute).
+            where reCAPTCHA is actually executed (sendContactOtp calls grecaptcha.execute).
             Required by Google when hiding the grecaptcha-badge. */}
         <p style={{ marginTop: 16, textAlign: "center", fontSize: 11, lineHeight: 1.6, color: "rgba(255,255,255,0.3)" }}>
           本網站受 reCAPTCHA 保護，適用 Google{' '}
@@ -855,8 +964,7 @@ export function AuthCard({
             style={{ color: "rgba(255,255,255,0.3)", textDecoration: "underline" }}
           >
             服務條款
-          </a>
-          。
+          </a>。
         </p>
       </motion.div>
     )
