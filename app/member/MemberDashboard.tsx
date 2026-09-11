@@ -135,7 +135,8 @@ export default function MemberDashboard({
         continue
       }
 
-      const bookingTime = new Date(b.date + 'T' + (b.startTime?.slice(11, 19) || b.startTime || '00:00:00')).getTime()
+      const time = extractTime(b.startTime) || '00:00:00';
+      const bookingTime = new Date(b.date + 'T' + time).getTime()
       if (Number.isNaN(bookingTime)) {
         recent.push(b)
         continue
@@ -891,12 +892,37 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// Normalize a time value that could be either:
+// - bare Postgres time: "HH:MM:SS" or "HH:MM:SS.sss"
+// - full ISO timestamp: "YYYY-MM-DDTHH:MM:SS" or "YYYY-MM-DDTHH:MM:SS.sssZ"
+// Returns "HH:MM:SS" format, or null if unparseable.
+function extractTime(timeValue: string | null): string | null {
+  if (!timeValue) return null;
+  // If it contains 'T', it's an ISO timestamp — extract the time part
+  if (timeValue.includes('T')) {
+    const timePart = timeValue.split('T')[1];
+    if (!timePart) return null;
+    // Remove timezone suffix if present
+    return timePart.split('Z')[0].split('+')[0].split('-')[0].slice(0, 8);
+  }
+  // Already a bare time value — return first 8 chars (HH:MM:SS)
+  return timeValue.slice(0, 8);
+}
+
+// Format time for display (HH:MM)
+function formatTimeDisplay(timeValue: string | null): string {
+  const time = extractTime(timeValue);
+  if (!time || time.length < 5) return "—";
+  return time.slice(0, 5); // HH:MM
+}
+
 // bookings.start_time is a bare Postgres `time` ("HH:MM:SS"), not a full
 // timestamp — anchor it to the booking's date for real "now vs start" math.
 // (Confirmed by getMemberTicket's parseInt(startTime.slice(0,2)) usage.)
 function bookingStart(b: MemberBooking): Date | null {
   if (!b.date || !b.startTime) return null;
-  const time = b.startTime.length > 8 ? b.startTime.slice(11, 19) : b.startTime;
+  const time = extractTime(b.startTime);
+  if (!time) return null;
   const d = new Date(`${b.date}T${time}`);
   return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -920,7 +946,8 @@ function canReschedule(b: MemberBooking): boolean {
 // hide the button instead of offering a dead QR.
 function bookingEnd(b: MemberBooking): Date | null {
   if (!b.date || !b.endTime) return null;
-  const time = b.endTime.length > 8 ? b.endTime.slice(11, 19) : b.endTime;
+  const time = extractTime(b.endTime);
+  if (!time) return null;
   const d = new Date(`${b.date}T${time}`);
   return Number.isNaN(d.getTime()) ? null : d;
 }
@@ -1264,8 +1291,8 @@ function BookingSection({
                   {formatDate(b.date, locale)}
                 </div>
                 <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
-                  {b.startTime?.slice(11, 16) || b.startTime || "—"}
-                  {b.endTime ? ` – ${b.endTime.slice(11, 16) || b.endTime}` : ""}
+                  {formatTimeDisplay(b.startTime)}
+                  {b.endTime ? ` – ${formatTimeDisplay(b.endTime)}` : ""}
                   {b.tableId ? ` · ${t("booking_table")} ${b.tableId}` : ""}
                 </div>
                 <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "2px" }}>
@@ -2123,7 +2150,7 @@ function QrModal({ booking, memberCode, onClose, locale }: { booking: MemberBook
               </div>
               <div style={{ fontSize: "14px", color: SUBTLE, marginTop: "8px" }}>
                 {formatDate(booking.date, locale)}
-                {booking.startTime ? ` · ${booking.startTime.slice(11, 16) || booking.startTime}` : ""}
+                {booking.startTime ? ` · ${formatTimeDisplay(booking.startTime)}` : ""}
               </div>
             </div>
           </motion.div>
@@ -2151,8 +2178,9 @@ function calendarLink(b: MemberBooking): string {
 // prefill path — Screen1 handles a since-taken slot the same way either way.
 function retryPaymentLink(b: MemberBooking): string | null {
   if (!b.date || !b.startTime || !b.tableId) return null;
-  const hour = b.startTime.length > 8 ? b.startTime.slice(11, 13) : b.startTime.slice(0, 2);
-  const start = parseInt(hour, 10);
+  const time = extractTime(b.startTime);
+  if (!time) return null;
+  const start = parseInt(time.slice(0, 2), 10);
   if (Number.isNaN(start)) return null;
   const params = new URLSearchParams({
     date: b.date,
