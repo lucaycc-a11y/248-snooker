@@ -89,9 +89,10 @@ export async function POST(req: Request) {
 
     const service = getServiceSupabase()
     const provider = getPaymentProvider()
+    const providerName = process.env.PAYMENT_PROVIDER || 'kpay'
 
     // ── KPay-only block: Apple Pay / Google Pay not yet supported on KPay ──
-    if (provider.name === 'kpay' && (method === 'apple_pay' || method === 'google_pay')) {
+    if (providerName === 'kpay' && (method === 'apple_pay' || method === 'google_pay')) {
       return NextResponse.json(
         { error: 'KPay 暫不支援 Apple Pay 及 Google Pay，請使用其他付款方式' },
         { status: 400 },
@@ -135,9 +136,6 @@ export async function POST(req: Request) {
         { status: 400 },
       )
     }
-
-    const service = getServiceSupabase()
-    const provider = getPaymentProvider()
 
     // ── Mode A: blocks[] — lock slots + insert pending bookings ────────────
     const rawBlocks = body?.blocks as unknown[] | undefined

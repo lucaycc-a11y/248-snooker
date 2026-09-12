@@ -23,7 +23,7 @@ import * as dotenv from 'dotenv'
 import * as path from 'path'
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
 
-const HOOK_SECRET = process.env.SUPABASE_AUTH_HOOK_SECRET
+const HOOK_SECRET = process.env.SUPABASE_AUTH_HOOK_SECRET ?? ''
 const TEST_ENDPOINT = 'http://localhost:3000/api/auth/hooks/send-sms'
 
 if (!HOOK_SECRET) {
