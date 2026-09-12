@@ -34,7 +34,7 @@
     "contact_title": "登入或註冊",
     "contact_subtitle": "輸入手機號碼或電郵地址",
     "contact_placeholder": "電話號碼 (8位數字) 或電郵",
-    "contact_continue": "繼續",
+    "contact_continue": "以電郵或手機號碼繼續",
     "contact_format_hint": "請輸入 8 位數字電話號碼或有效電郵地址",
     "err_contact_format": "請輸入 8 位數字電話號碼或有效電郵地址",
     "sending": "傳送中…",

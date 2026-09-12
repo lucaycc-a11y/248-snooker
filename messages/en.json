@@ -34,7 +34,7 @@
     "contact_title": "Sign in or register",
     "contact_subtitle": "Enter your phone number or email address",
     "contact_placeholder": "Phone (8 digits) or email",
-    "contact_continue": "Continue",
+    "contact_continue": "Continue with email or phone",
     "contact_format_hint": "Please enter an 8-digit phone number or valid email address",
     "err_contact_format": "Please enter an 8-digit phone number or valid email address",
     "sending": "Sending…",

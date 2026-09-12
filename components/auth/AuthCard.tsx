@@ -316,13 +316,51 @@ export function AuthCard({
       return "email"
     }
 
-    // Phone detection: exactly 8 digits (no +852 prefix needed from user)
+    // Phone detection: handle multiple formats for autofill compatibility
+    // 1. Pure 8 digits: 66009975
+    // 2. With 852 prefix: 85266009975 (11 digits starting with 852)
+    // 3. With +852 prefix: +85266009975 (autofill format)
     const digitsOnly = trimmed.replace(/\D/g, "")
+
+    // Check: exactly 8 digits
     if (digitsOnly.length === 8 && /^\d{8}$/.test(digitsOnly)) {
       return "phone"
     }
 
+    // Check: 11 digits starting with 852 (852 + 8 digits)
+    if (digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
+      return "phone"
+    }
+
+    // Check: +852 format (will be 12 chars with +, 11 digits without)
+    if (trimmed.startsWith("+852") && digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
+      return "phone"
+    }
+
     return "unknown"
+  }
+
+  // Extract normalized phone number from various input formats
+  const extractPhoneNumber = (input: string): string => {
+    const trimmed = input.trim()
+    const digitsOnly = trimmed.replace(/\D/g, "")
+
+    // If it's 11 digits starting with 852, extract last 8 digits
+    if (digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
+      return `+852${digitsOnly.slice(3)}`
+    }
+
+    // If it's 8 digits, prepend +852
+    if (digitsOnly.length === 8) {
+      return `+852${digitsOnly}`
+    }
+
+    // Fallback: return as-is if already has +852
+    if (trimmed.startsWith("+852")) {
+      return trimmed
+    }
+
+    return `+852${digitsOnly}`
   }
 
   // Unified send function that detects format and routes appropriately
@@ -368,9 +406,8 @@ export function AuthCard({
         setBusy(false)
       }
     } else {
-      // Phone path: auto-prepend +852
-      const digitsOnly = contact.trim().replace(/\D/g, "")
-      const normalized = `+852${digitsOnly}`
+      // Phone path: extract and normalize phone number (handles +852, 852, or 8-digit formats)
+      const normalized = extractPhoneNumber(contact)
       setPhone(normalized)
 
       setBusy(true)
@@ -535,7 +572,7 @@ export function AuthCard({
   }
 
   const signInWithPassword = async () => {
-    const identifier = email.trim()
+    const identifier = contact.trim()
     if (!identifier) {
       setError(t("err_identifier"))
       return
@@ -544,16 +581,31 @@ export function AuthCard({
       setError(t("err_password"))
       return
     }
-    const normalizedPhone = normalizeHkPhone(identifier)
-    if (!normalizedPhone && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
+
+    // Detect if identifier is phone or email
+    const contactType = detectContactType(identifier)
+    if (contactType === "unknown") {
       setError(t("err_identifier"))
       return
     }
+
     setBusy(true)
     setError(null)
     try {
       const supabase = createClient()
-      const authInput = normalizedPhone ? { phone: normalizedPhone, password } : { email: identifier.toLowerCase(), password }
+
+      // Build auth input based on contact type
+      let authInput: { email: string; password: string } | { phone: string; password: string }
+
+      if (contactType === "phone") {
+        const normalized = extractPhoneNumber(identifier)
+        authInput = { phone: normalized, password }
+        setPhone(normalized)
+      } else {
+        authInput = { email: identifier.toLowerCase(), password }
+        setEmail(identifier.toLowerCase())
+      }
+
       const { error: signInErr } = await supabase.auth.signInWithPassword(authInput)
       if (signInErr) {
         const message = signInErr.message.toLowerCase()
@@ -811,7 +863,7 @@ export function AuthCard({
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: EASE }}>
         <button
           type="button"
-          onClick={() => { setPhase("methods"); setError(null); setPassword("") }}
+          onClick={() => { setPhase("contact"); setError(null); setPassword("") }}
           aria-label={t("back")}
           style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}
         >
@@ -822,8 +874,8 @@ export function AuthCard({
         </h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
             placeholder={t("identifier_placeholder")}
             inputMode="email"
             autoComplete="username"
@@ -850,7 +902,7 @@ export function AuthCard({
           {error && <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
           <button
             type="button"
-            onClick={() => { setPhase("methods"); setError(null); setPassword("") }}
+            onClick={() => { setPhase("contact"); setError(null); setPassword("") }}
             data-cms-key="auth.password.switch_to_otp"
             style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", textAlign: "center" }}
           >
