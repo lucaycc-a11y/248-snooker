@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
 import { normalizeHkPhone } from "@/lib/auth/profile"
 import { validatePassword } from "@/lib/auth/password"
+import { getRecaptchaToken } from "@/lib/recaptcha"
 import { LoadingGif } from "@/components/ui/LoadingGif"
 import { PasswordInput } from "@/components/ui/PasswordInput"
 import PasswordStrength from "./PasswordStrength"
@@ -30,15 +31,6 @@ type OtpChannel = "sms" | "email"
 type OtpDeliveryChannel = "whatsapp" | "sms"
 type ContactType = "phone" | "email" | "unknown"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
-type Grecaptcha = {
-  execute: (siteKey: string, options: { action: string }) => Promise<string>
-}
-
-function isGrecaptcha(value: unknown): value is Grecaptcha {
-  if (!value || typeof value !== "object") return false
-  const candidate = value as { execute?: unknown }
-  return typeof candidate.execute === "function"
-}
 
 // Reusable auth content — the single source of truth used by BOTH the /login page
 // and the in-booking modal. Method picker shows three clean options: Apple, Google,
@@ -413,21 +405,14 @@ export function AuthCard({
       setBusy(true)
       setError(null)
       try {
-        const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
-        if (!siteKey) {
+        let recaptchaToken: string
+        try {
+          recaptchaToken = await getRecaptchaToken("send_otp")
+        } catch {
           setError(t("err_send"))
           setBusy(false)
           return
         }
-
-        const grecaptchaValue: unknown = typeof window === "undefined" ? undefined : window.grecaptcha
-        if (!isGrecaptcha(grecaptchaValue)) {
-          setError(t("err_send"))
-          setBusy(false)
-          return
-        }
-
-        const recaptchaToken = await grecaptchaValue.execute(siteKey, { action: "send_otp" })
 
         const res = await fetch("/api/otp/send", {
           method: "POST",
@@ -478,21 +463,14 @@ export function AuthCard({
     setBusy(true)
     setError(null)
     try {
-      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
-      if (!siteKey) {
+      let recaptchaToken: string
+      try {
+        recaptchaToken = await getRecaptchaToken("send_otp")
+      } catch {
         setError(t("err_send"))
         setBusy(false)
         return
       }
-
-      const grecaptchaValue: unknown = typeof window === "undefined" ? undefined : window.grecaptcha
-      if (!isGrecaptcha(grecaptchaValue)) {
-        setError(t("err_send"))
-        setBusy(false)
-        return
-      }
-
-      const recaptchaToken = await grecaptchaValue.execute(siteKey, { action: "send_otp" })
 
       const res = await fetch("/api/otp/send", {
         method: "POST",
