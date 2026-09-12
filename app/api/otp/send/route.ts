@@ -119,8 +119,14 @@ export async function POST(req: NextRequest) {
         p_message_id: engagelabData.message_id,
         p_channel: engagelabData.send_channel,
       })
-      if (completionError || completed !== true) {
-        console.error('[otp/send] reservation_completion_failed', { message: completionError?.message ?? 'reservation was not updated', phone, requestId: row.request_id })
+      // complete_login_otp 返回 table [{ok, reason, otp_id, expires_at}],唔係 boolean
+      const completionRow = Array.isArray(completed) ? completed[0] : null
+      if (completionError || !completionRow?.ok) {
+        console.error('[otp/send] reservation_completion_failed', {
+          message: completionError?.message ?? completionRow?.reason ?? 'reservation was not updated',
+          phone,
+          requestId: row.request_id,
+        })
         await service.rpc('expire_login_otp', { p_request_id: row.request_id })
         await refundRateLimit('auth_otp_phone', phone, 15 * 60)
         await refundRateLimit('auth_otp_ip', `ip:${clientIp(req)}`, 15 * 60)

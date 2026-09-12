@@ -104,8 +104,10 @@ export async function POST(request: Request) {
       const providerStartedAt = Date.now()
       console.log(JSON.stringify({ event: 'otp.profile.send.provider_started', requestId, userId: user.id }))
       const sms = await sendEngagelabOtp(phone, 'zh_HK')
-      const { data: completed, error: completionError } = await service.rpc('complete_login_otp', { p_request_id: row.request_id, p_message_id: sms.message_id, p_channel: sms.send_channel }).maybeSingle()
-      if (completionError || !(completed as { ok?: boolean } | null)?.ok) {
+      const { data: completed, error: completionError } = await service.rpc('complete_login_otp', { p_request_id: row.request_id, p_message_id: sms.message_id, p_channel: sms.send_channel })
+      // complete_login_otp 返回 table [{ok, reason, otp_id, expires_at}],唔係 boolean
+      const completionRow = Array.isArray(completed) ? completed[0] : null
+      if (completionError || !completionRow?.ok) {
         console.error(JSON.stringify({ event: 'otp.profile.send.completion_failed', requestId, error: completionError?.message ?? 'completion rejected', code: completionError?.code }))
         return jsonError('OTP_SEND_FAILED', 502, requestId)
       }
