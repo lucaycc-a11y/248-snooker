@@ -22,7 +22,7 @@ const META: Record<string, { title: string; description: string }> = {
   en: {
     title: "Venue｜SPACE8 Chinese Eight-Ball Room in San Po Kong",
     description:
-      "SPACE8 venue facilities and services: Star Chinese eight-ball table, tournament lighting, smart QR entry. Reservation-based — book online, self check-in via QR code. Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong.",
+      "SPACE8 venue facilities and services: Star Chinese eight-ball table, tournament lighting, smart QR entry. Reservation-based — book online, self check-in via QR code. Room 05, 3/f, Laurels Industrial Centre, Tai Yau Street 32, San Po Kong, Hong Kong.",
   },
 };
 

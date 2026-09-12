@@ -10,7 +10,7 @@ import { SITE_CONTACT } from '@/lib/site/contact'
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 
-const VENUE_ADDRESS = 'Room 05, 3/F, Tai Lik Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong'
+const VENUE_ADDRESS = 'Room 05, 3/f, Laurels Industrial Centre, Tai Yau Street 32, San Po Kong, Hong Kong'
 const GOOGLE_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Tai+Lik+Industrial+Centre+32+Tai+Yau+Street+San+Po+Kong+Hong+Kong'
 const WHATSAPP_FALLBACK = SITE_CONTACT.phoneDigits
 
