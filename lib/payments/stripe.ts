@@ -22,30 +22,18 @@ export class StripeProvider implements PaymentProvider {
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
     const stripe = getStripe()
     const amountInCents = Math.round(params.amount * 100)
-
-    // Build metadata for webhook handlers to identify the booking
-    const metadata: Record<string, string> = {
-      out_trade_no: params.outTradeNo,
-      booking_id: params.bookingId,
-    }
-
-    // Add optional metadata if provided (used by webhook handlers)
-    if (params.userId) metadata.user_id = params.userId
-    if (params.orderGroupId) metadata.order_group_id = params.orderGroupId
-    if (params.remark) metadata.remark = params.remark
-
     const intent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: 'hkd',
       automatic_payment_methods: { enabled: true },
-      metadata,
+      metadata: {
+        out_trade_no: params.outTradeNo,
+      },
     })
-
     return {
       providerOrderNo: intent.id,
-      // Return client_secret for Payment Element to consume client-side
       payInfo: intent.client_secret ?? '',
-      kind: 'client_secret', // Not a redirect — front-end uses Payment Element
+      kind: 'redirect',
       expiresInSeconds: 1800, // 30 min default Stripe expiry
     }
   }

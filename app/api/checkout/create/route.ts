@@ -87,22 +87,15 @@ export async function POST(req: Request) {
       ? body.returnUrl
       : undefined
 
-    const service = getServiceSupabase()
-    const provider = getPaymentProvider()
-    const providerName = process.env.PAYMENT_PROVIDER || 'kpay'
-
-    // ── KPay-only block: Apple Pay / Google Pay not yet supported on KPay ──
-    if (providerName === 'kpay' && (method === 'apple_pay' || method === 'google_pay')) {
+    // ── Explicit deny: Apple Pay / Google Pay are UI-only "coming soon" ────
+    if (method === 'apple_pay' || method === 'google_pay') {
       return NextResponse.json(
-        { error: 'KPay 暫不支援 Apple Pay 及 Google Pay，請使用其他付款方式' },
+        { error: 'Apple Pay 及 Google Pay 尚未開放，請使用其他付款方式' },
         { status: 400 },
       )
     }
 
-    // Stripe supports: card, alipay, apple_pay, google_pay
-    // KPay supports: card, fps, payme, octopus, alipay, alipayhk, wechat, unionpay_qp
-    const validMethods = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp', 'apple_pay', 'google_pay']
-    if (!method || !validMethods.includes(method)) {
+    if (!method || !['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'].includes(method)) {
       return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
     }
 
@@ -136,6 +129,9 @@ export async function POST(req: Request) {
         { status: 400 },
       )
     }
+
+    const service = getServiceSupabase()
+    const provider = getPaymentProvider()
 
     // ── Mode A: blocks[] — lock slots + insert pending bookings ────────────
     const rawBlocks = body?.blocks as unknown[] | undefined
@@ -609,9 +605,6 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
       baseUrl: origin,
       ...(returnUrl ? { returnUrl } : {}),
       ...(uatPaymeSimulation ? { uatPaymeSimulation } : {}),
-      // Stripe metadata: userId and orderGroupId for webhook handlers
-      userId,
-      orderGroupId: orderGroupId ?? undefined,
     })
   } catch (err) {
     const e = err as Error

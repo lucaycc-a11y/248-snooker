@@ -18,8 +18,7 @@ export type PaymentMethod =
 // 'form-post' — the gateway returned a JSON parameter map rather than a URL.
 // It must be submitted as an HTML form POST, never assigned to location.href:
 // a JSON blob there resolves as a relative path (https://site/{...json...}).
-// 'client_secret' — Stripe PaymentIntent client_secret for Payment Element.
-export type PayInfoKind = 'qr' | 'link' | 'redirect' | 'form-post' | 'client_secret'
+export type PayInfoKind = 'qr' | 'link' | 'redirect' | 'form-post'
 
 /** Gateway-imposed floor, not a pricing rule — UAT rejects smaller with 1047 無效金額. */
 export const KPAY_MIN_AMOUNT_HKD = 1.5
@@ -83,10 +82,6 @@ export interface CreateOrderParams {
    * Ignored in production (KPAY_ENV === 'prod') and for non-PayMe methods.
    */
   uatPaymeSimulation?: 'success' | 'fail'
-  /** User ID for Stripe metadata (used by webhook handlers). */
-  userId?: string
-  /** Order group ID for grouped bookings (used by webhook handlers). */
-  orderGroupId?: string
 }
 
 export interface CreateOrderResult {

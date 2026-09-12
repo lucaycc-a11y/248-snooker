@@ -3,7 +3,8 @@
 // Writes to production site_gate_ip_whitelist table - requires active admin user
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
 
 export const runtime = 'edge'
 
@@ -15,7 +16,7 @@ function getClientIp(req: NextRequest): string {
   )
 }
 
-async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function checkAdminAuth(supabase: ReturnType<typeof createRouteHandlerClient>) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = createRouteHandlerClient({ cookies })
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin) {
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = createRouteHandlerClient({ cookies })
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin || !auth.user) {
@@ -146,7 +147,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = createRouteHandlerClient({ cookies })
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin || !auth.user) {

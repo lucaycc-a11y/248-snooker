@@ -35,8 +35,6 @@ export type PaymentMethodId =
   | "octopus"
   | "payme"
   | "fps"
-  | "apple_pay"
-  | "google_pay"
 
 type PaymentMethodConfig = {
   id: PaymentMethodId
@@ -75,27 +73,6 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     icons: <AlipayHKBadgeIcon />,
   },
   {
-    id: "alipay",
-    label: "支付寶",
-    sublabel: "Alipay 中國內地帳戶",
-    disabled: false,
-    icons: <AlipayBadgeIcon />,
-  },
-  {
-    id: "apple_pay",
-    label: "Apple Pay",
-    sublabel: "Apple 裝置專用",
-    disabled: false,
-    icons: <span style={{ fontSize: 18 }}>🍎</span>,
-  },
-  {
-    id: "google_pay",
-    label: "Google Pay",
-    sublabel: "Google 帳戶支付",
-    disabled: false,
-    icons: <span style={{ fontSize: 18 }}>🅖</span>,
-  },
-  {
     id: "payme",
     label: "PayMe",
     sublabel: "HSBC PayMe",
@@ -124,6 +101,13 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     icons: <FpsBadgeIcon />,
   },
   {
+    id: "alipay",
+    label: "支付寶",
+    sublabel: "Alipay 中國內地帳戶",
+    disabled: false,
+    icons: <AlipayBadgeIcon />,
+  },
+  {
     id: "unionpay_qp",
     label: "雲閃付",
     sublabel: "UnionPay QuickPass",
@@ -132,20 +116,8 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
   },
 ]
 
-// Payment provider-specific method lists
-// KPay: card (CNP Hosted), alipayhk, payme
-// Stripe: card, alipay, apple_pay, google_pay
-const KPAY_METHODS: readonly PaymentMethodId[] = ["card", "alipayhk", "payme"]
-const STRIPE_METHODS: readonly PaymentMethodId[] = ["card", "alipay", "google_pay", "apple_pay"]
-
-// Read PAYMENT_PROVIDER from environment (client-side via NEXT_PUBLIC_ prefix)
-// Defaults to 'kpay' if not set
-const PAYMENT_PROVIDER = typeof window !== 'undefined'
-  ? (window as { NEXT_PUBLIC_PAYMENT_PROVIDER?: string }).NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
-  : 'kpay'
-
-const AVAILABLE_PAYMENT_METHODS: readonly PaymentMethodId[] =
-  PAYMENT_PROVIDER === 'stripe' ? STRIPE_METHODS : KPAY_METHODS
+// Controls both visibility and display order. Add a method here when it launches.
+const AVAILABLE_PAYMENT_METHODS: readonly PaymentMethodId[] = ["card", "alipayhk", "payme"]
 
 const visibleMethods = AVAILABLE_PAYMENT_METHODS.flatMap((id) =>
   PAYMENT_METHODS.filter((method) => method.id === id)
