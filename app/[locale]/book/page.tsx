@@ -913,17 +913,33 @@ function SelectedPicksCard({
         padding: "20px 20px 16px",
       }}
     >
-      <div
-        data-cms-key="book.selected_slots_title"
-        className="font-label"
-        style={{
-          fontSize: 11,
-          color: tokens.colors.textFaint,
-          letterSpacing: "0.04em",
-          marginBottom: 14,
-        }}
-      >
-        {t("selected_slots_title")}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <div
+          data-cms-key="book.selected_slots_title"
+          className="font-label"
+          style={{
+            fontSize: 11,
+            color: tokens.colors.textFaint,
+            letterSpacing: "0.04em",
+          }}
+        >
+          {t("selected_slots_title")}
+        </div>
+        {runs.length > 0 && (
+          <div
+            data-cms-key="book.selected_slots_count"
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: tokens.colors.link,
+              background: `${tokens.colors.link}15`,
+              padding: "4px 10px",
+              borderRadius: 12,
+            }}
+          >
+            {t("selected_slots_count", { count: runs.length })}
+          </div>
+        )}
       </div>
       {runs.length === 0 ? (
         <div
@@ -1858,6 +1874,7 @@ function Screen3({
   onPromoChange,
   resumeBookingId,
   resumeOrderNo,
+  removeRun,
 }: {
   blocks: SelectedBlock[]
   onBackToSlots?: () => void
@@ -1866,9 +1883,28 @@ function Screen3({
   onPromoChange: (p: PromoResult | null) => void
   resumeBookingId?: string
   resumeOrderNo?: string
+  removeRun?: (run: SelectedBlock) => void
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
+
+  // Part 5: Slot removal confirmation dialog
+  const [removeConfirmRun, setRemoveConfirmRun] = useState<SelectedBlock | null>(null)
+
+  const handleRemoveClick = useCallback((run: SelectedBlock) => {
+    setRemoveConfirmRun(run)
+  }, [])
+
+  const handleRemoveConfirm = useCallback(() => {
+    if (removeConfirmRun && removeRun) {
+      removeRun(removeConfirmRun)
+      setRemoveConfirmRun(null)
+    }
+  }, [removeConfirmRun, removeRun])
+
+  const handleRemoveCancel = useCallback(() => {
+    setRemoveConfirmRun(null)
+  }, [])
 
   // Terms-agreement gate
   const [agreedToTerms, setAgreedToTerms] = useState(false)
@@ -2127,7 +2163,7 @@ function Screen3({
                     borderBottom: blocks.length > 1 && blocks.indexOf(b) < blocks.length - 1 ? `1px solid ${tokens.colors.border}` : "none",
                   }}
                 >
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums", marginBottom: 4 }}>
                       {Number(m)}/{Number(d)} · {padTime(b.startHour)}–{padTime(blockEnd)}{blockEnd >= 24 ? " +1" : ""}
                     </div>
@@ -2137,11 +2173,36 @@ function Screen3({
                       <span>{b.duration}{t("hours")}</span>
                     </div>
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
-                    {detail.saved > 0 && (
-                      <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+                      {detail.saved > 0 && (
+                        <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
+                      )}
+                      <BookingPrice amount={detail.total} />
+                    </div>
+                    {removeRun && blocks.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveClick(b)}
+                        aria-label={t("remove_slot")}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "none",
+                          border: `1px solid ${tokens.colors.border}`,
+                          borderRadius: 6,
+                          color: tokens.colors.textMuted,
+                          fontSize: 18,
+                          cursor: "pointer",
+                          flexShrink: 0,
+                        }}
+                      >
+                        ×
+                      </button>
                     )}
-                    <BookingPrice amount={detail.total} />
                   </div>
                 </div>
               )
@@ -2648,6 +2709,90 @@ function Screen3({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Part 5: Slot removal confirmation dialog */}
+      {removeConfirmRun && (
+        <motion.div
+          role="presentation"
+          onClick={handleRemoveCancel}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={modalOverlayStyle}
+        >
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remove-slot-confirm-title"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            style={{
+              width: "min(100%, 420px)",
+              background: tokens.colors.bg,
+              border: `1px solid ${tokens.colors.borderStrong}`,
+              borderRadius: 20,
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ padding: "24px 24px 20px" }}>
+              <h2
+                id="remove-slot-confirm-title"
+                data-cms-key="book.remove_slot_confirm_title"
+                style={{ margin: 0, fontSize: 19, fontWeight: 700, marginBottom: 12 }}
+              >
+                {t("remove_slot_confirm_title")}
+              </h2>
+              <p
+                data-cms-key="book.remove_slot_confirm_message"
+                style={{ margin: 0, fontSize: 14, color: tokens.colors.textMuted, lineHeight: 1.5 }}
+              >
+                {t("remove_slot_confirm_message")}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 12, padding: "0 24px 24px" }}>
+              <button
+                type="button"
+                onClick={handleRemoveCancel}
+                data-cms-key="book.remove_slot_confirm_cancel"
+                style={{
+                  flex: 1,
+                  padding: "14px 16px",
+                  borderRadius: tokens.radius.button,
+                  border: `1px solid ${tokens.colors.borderStrong}`,
+                  background: "transparent",
+                  color: tokens.colors.text,
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: "pointer",
+                }}
+              >
+                {t("remove_slot_confirm_cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveConfirm}
+                data-cms-key="book.remove_slot_confirm_remove"
+                style={{
+                  flex: 1,
+                  padding: "14px 16px",
+                  borderRadius: tokens.radius.button,
+                  border: "none",
+                  background: tokens.colors.link,
+                  color: "#000",
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: "pointer",
+                }}
+              >
+                {t("remove_slot_confirm_remove")}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   )
@@ -3555,6 +3700,7 @@ export default function BookPage() {
                   onPromoChange={setPromoCode}
                   resumeBookingId={kpayResumeData?.bookingId}
                   resumeOrderNo={kpayResumeData?.orderNo}
+                  removeRun={removeRun}
                   onBackToSlots={() => {
                     // Refresh availability (the lock may have changed while on
                     // the payment step) but keep the user's selection intact —
