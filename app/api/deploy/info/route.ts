@@ -2,12 +2,11 @@
 // Admin-only, requires active admin_users entry
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'edge'
 
-async function checkAdminAuth(supabase: ReturnType<typeof createRouteHandlerClient>) {
+async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -60,7 +59,7 @@ async function getGitHubBranchInfo(branch: string) {
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin) {

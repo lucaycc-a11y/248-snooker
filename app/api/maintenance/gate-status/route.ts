@@ -2,8 +2,7 @@
 // Returns whether gate is enabled and if current request has bypass access
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'edge'
 
@@ -17,7 +16,7 @@ function getClientIp(req: NextRequest): string {
 
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
     const clientIp = getClientIp(req)
 
     // Get gate config

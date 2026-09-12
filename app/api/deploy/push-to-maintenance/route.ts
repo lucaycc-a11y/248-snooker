@@ -2,8 +2,7 @@
 // Admin-only, with in-flight lock to prevent concurrent merges
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'edge'
 
@@ -15,7 +14,7 @@ function getClientIp(req: NextRequest): string {
   )
 }
 
-async function checkAdminAuth(supabase: ReturnType<typeof createRouteHandlerClient>) {
+async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -39,7 +38,7 @@ async function checkAdminAuth(supabase: ReturnType<typeof createRouteHandlerClie
   }
 }
 
-async function checkMergeLock(supabase: ReturnType<typeof createRouteHandlerClient>): Promise<boolean> {
+async function checkMergeLock(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
   // Check if a merge is already in progress (simple lock via config table)
   const { data: config } = await supabase
     .from('config')
@@ -65,7 +64,7 @@ async function checkMergeLock(supabase: ReturnType<typeof createRouteHandlerClie
   return true
 }
 
-async function acquireMergeLock(supabase: ReturnType<typeof createRouteHandlerClient>): Promise<boolean> {
+async function acquireMergeLock(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('config')
@@ -79,7 +78,7 @@ async function acquireMergeLock(supabase: ReturnType<typeof createRouteHandlerCl
   }
 }
 
-async function releaseMergeLock(supabase: ReturnType<typeof createRouteHandlerClient>) {
+async function releaseMergeLock(supabase: Awaited<ReturnType<typeof createClient>>) {
   await supabase
     .from('config')
     .update({ value: { locked: false, timestamp: 0 } })
@@ -87,7 +86,7 @@ async function releaseMergeLock(supabase: ReturnType<typeof createRouteHandlerCl
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = await createClient()
 
   try {
     const auth = await checkAdminAuth(supabase)

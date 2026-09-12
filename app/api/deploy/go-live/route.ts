@@ -2,8 +2,7 @@
 // Admin-only
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'edge'
 
@@ -15,7 +14,7 @@ function getClientIp(req: NextRequest): string {
   )
 }
 
-async function checkAdminAuth(supabase: ReturnType<typeof createRouteHandlerClient>) {
+async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -41,7 +40,7 @@ async function checkAdminAuth(supabase: ReturnType<typeof createRouteHandlerClie
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin || !auth.user) {
