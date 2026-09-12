@@ -8,7 +8,7 @@ This document records the complete checklist for deploying the `uat.space8.com.h
 
 ---
 
-## 1. UAT Domain Setup (Vercel)
+å## 1. UAT Domain Setup (Vercel)
 
 ### 1.1 Branch Configuration
 - [ ] 在 Vercel Dashboard 中，將 `uat.space8.com.hk` 指向固定的 `uat` 或 `staging` branch

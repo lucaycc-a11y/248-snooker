@@ -782,6 +782,7 @@
     "slot_booked": "已被預約",
     "free_suffix": "空",
     "selected_slots_title": "已選擇時段",
+    "selected_slots_count": "已選 {count} 個時段",
     "empty_picks": "尚未選擇任何時段，點擊上方時間表即可加入。",
     "discount_label": "連訂折扣",
     "pay_with": "以{method}付款",

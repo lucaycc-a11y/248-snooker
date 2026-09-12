@@ -782,6 +782,7 @@
     "slot_booked": "Booked",
     "free_suffix": "free",
     "selected_slots_title": "Selected slots",
+    "selected_slots_count": "{count, plural, one {# slot selected} other {# slots selected}}",
     "empty_picks": "No slots selected yet — tap the timetable above to add.",
     "discount_label": "Multi-hour discount",
     "pay_with": "Pay with {method}",

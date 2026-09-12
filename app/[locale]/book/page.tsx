@@ -1881,22 +1881,6 @@ function Screen3({
     termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
   }, [])
 
-  useEffect(() => {
-    if (!openModal) return
-    modalCloseRef.current?.focus()
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpenModal(null)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [openModal])
-
-  useEffect(() => {
-    if (openModal || !shouldRestoreAgreementFocus.current) return
-    shouldRestoreAgreementFocus.current = false
-    agreementButtonRef.current?.focus()
-  }, [openModal])
-
   // Admin test mode
   const [isAdmin, setIsAdmin] = useState(false)
   const [testMode, setTestMode] = useState(false)
@@ -2443,10 +2427,9 @@ function Screen3({
             }}
           >
             <button
-              ref={agreementButtonRef}
               type="button"
               disabled={confirmed}
-              onClick={openTermsModal}
+              onClick={() => setAgreedToTerms(!agreedToTerms)}
               aria-pressed={agreedToTerms}
               style={{
                 width: "100%",
@@ -2485,7 +2468,26 @@ function Screen3({
                 data-cms-key="book.terms_agree"
                 style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}
               >
-                {t("terms_agree_prefix")} {t("venue_rules_label")} {t("terms_agree_connector")} {t("terms_label")}
+                {t("terms_agree_prefix")}{" "}
+                <a
+                  href="/venue"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={legalLinkStyle}
+                >
+                  {t("venue_rules_label")}
+                </a>{" "}
+                {t("terms_agree_connector")}{" "}
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={legalLinkStyle}
+                >
+                  {t("terms_label")}
+                </a>
               </span>
             </button>
             <div
@@ -2503,53 +2505,6 @@ function Screen3({
             </div>
           </motion.div>
 
-          {openModal && (
-            <motion.div
-              role="presentation"
-              onClick={() => setOpenModal(null)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={modalOverlayStyle}
-            >
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="checkout-legal-modal-title"
-                onClick={(event) => event.stopPropagation()}
-                initial={{ opacity: 0, scale: 0.96, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 12 }}
-                transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                style={modalStyle}
-              >
-                <div style={modalHeaderStyle}>
-                  <h2 id="checkout-legal-modal-title" style={{ margin: 0, fontSize: 19, fontWeight: 700 }}>
-                    {openModal === "venue-rules" ? t("venue_rules_label") : t("terms_label")}
-                  </h2>
-                  <button ref={modalCloseRef} type="button" aria-label={t("legal_modal_close")} onClick={() => setOpenModal(null)} style={modalCloseStyle}>×</button>
-                </div>
-                <div style={modalContentStyle}>
-                  <LegalDocumentRenderer
-                    document={getLegalDocument("terms", locale as import("@/i18n/routing").Locale)}
-                    locale={locale as import("@/i18n/routing").Locale}
-                    compact
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAgreedToTerms(true)
-                    setTermsError(false)
-                    setOpenModal(null)
-                  }}
-                  style={modalBottomCloseStyle}
-                >
-                  {t("legal_modal_agree")}
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
 
           {/* ── UAT-only PayMe simulation modal ─────────────────────────── */}
           {showPaymeUatModal && (
