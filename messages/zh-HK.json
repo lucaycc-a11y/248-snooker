@@ -59,6 +59,7 @@
     "err_missing_param": "請求參數不完整，請重試。",
     "err_network": "連線出現問題，請再試一次。",
     "err_rate_limited": "嘗試次數過多，請稍候數分鐘。",
+    "err_rate_limited_with_time": "嘗試次數過多，請於 {minutes} 分鐘後重試。",
     "err_otp_expired": "驗證碼已過期，請重新索取。",
     "err_otp_wrong": "驗證碼不正確，尚餘 {count} 次機會。",
     "err_otp_locked": "錯誤次數過多，請重新開始。",

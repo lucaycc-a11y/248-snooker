@@ -59,6 +59,7 @@
     "err_missing_param": "Request parameters are incomplete. Please try again.",
     "err_network": "Connection issue. Please try again.",
     "err_rate_limited": "Too many attempts. Please wait a few minutes.",
+    "err_rate_limited_with_time": "Too many attempts. Please try again in {minutes} minutes.",
     "err_otp_expired": "Code expired. Request a new one.",
     "err_otp_wrong": "Incorrect code, {count} attempts remaining.",
     "err_otp_locked": "Too many incorrect attempts. Start again.",

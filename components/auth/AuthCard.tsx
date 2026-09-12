@@ -425,7 +425,8 @@ export function AuthCard({
           if (j?.code === "PHONE_NOT_REGISTERED") {
             setError(t("err_phone_not_registered"))
           } else if (j?.code === "OTP_COOLDOWN" || j?.code === "OTP_RATE_LIMITED" || j?.error === "rate_limited") {
-            setError(t("err_rate_limited"))
+            const retryMinutes = j?.retryAfterSeconds ? Math.ceil(j.retryAfterSeconds / 60) : 15
+            setError(t("err_rate_limited_with_time", { minutes: retryMinutes }))
           } else if (j?.code === "PHONE_LOCKED" || j?.code === "CAPTCHA_REQUIRED") {
             setError(t("err_rate_limited"))
           } else if (j?.code === "PHONE_INVALID") {
@@ -483,7 +484,8 @@ export function AuthCard({
         if (j?.code === "PHONE_NOT_REGISTERED") {
           setError(t("err_phone_not_registered"))
         } else if (j?.code === "OTP_COOLDOWN" || j?.code === "OTP_RATE_LIMITED" || j?.error === "rate_limited") {
-          setError(t("err_rate_limited"))
+          const retryMinutes = j?.retryAfterSeconds ? Math.ceil(j.retryAfterSeconds / 60) : 15
+          setError(t("err_rate_limited_with_time", { minutes: retryMinutes }))
         } else if (j?.code === "PHONE_LOCKED" || j?.code === "CAPTCHA_REQUIRED") {
           setError(t("err_rate_limited"))
         } else if (j?.code === "PHONE_INVALID") {
