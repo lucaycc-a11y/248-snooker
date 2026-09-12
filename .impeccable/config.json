@@ -886,6 +886,24 @@
         ],
         "createdAt": "2026-09-04T17:17:42.639Z",
         "reason": "agent: L207 is .blog-prose blockquote, not a card — a left border on blockquotes is canonical editorial typography (GitHub/Medium/Tailwind prose convention), domain-appropriate styling rather than the AI card-accent tell the rule targets"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "components/uat/Dev2Panel.tsx"
+        ],
+        "createdAt": "2026-09-12T15:30:55.636Z",
+        "reason": "UAT-only debug panel intentionally uses distinct colors for visibility and debugging, not part of production design system"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "components/uat/MaintenanceBadge.tsx"
+        ],
+        "createdAt": "2026-09-12T15:37:22.892Z",
+        "reason": "Maintenance badge is admin-only production review tool, uses distinct red color for visibility, not part of production design system"
       }
     ]
   }

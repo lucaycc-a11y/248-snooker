@@ -41,6 +41,36 @@ export async function rateLimit(
   }
 }
 
+/**
+ * Refund a rate-limit attempt that did not actually consume the gated resource.
+ * Decrements the counter by 1 (floor 0) for the current window.
+ *
+ * Use this when an attempt was counted but the actual operation failed before
+ * completion (e.g. OTP send failed due to reCAPTCHA race condition, Engagelab
+ * API error, or internal reservation failure). Do NOT refund for intentional
+ * throttling mechanisms (cooldown, phone_locked) where the rate limit itself
+ * is the desired behavior.
+ */
+export async function refundRateLimit(
+  bucket: string,
+  identifier: string,
+  windowSeconds: number,
+): Promise<void> {
+  try {
+    const supabase = getServiceSupabase()
+    const { error } = await supabase.rpc('refund_rate_limit', {
+      p_bucket: bucket,
+      p_identifier: identifier,
+      p_window_seconds: windowSeconds,
+    })
+    if (error) {
+      console.error('[rate-limit] refund_failed', { message: error.message, bucket, identifier })
+    }
+  } catch (err) {
+    console.error('[rate-limit] refund_failed', { message: err instanceof Error ? err.message : 'unknown error', bucket, identifier })
+  }
+}
+
 /** Extract the best-effort client IP from a request's forwarding headers. */
 export function clientIp(req: Request): string {
   const fwd = req.headers.get('x-forwarded-for')

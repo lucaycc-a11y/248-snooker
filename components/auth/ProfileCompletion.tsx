@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
+import { getRecaptchaToken } from "@/lib/recaptcha"
 import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
 
 // Matches the GREEN constant duplicated across every other auth-flow file
@@ -194,10 +195,11 @@ export function ProfileCompletion({
     setSaving(true)
     try {
       let recaptchaToken = ""
-      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
-      const grecaptcha = typeof window !== "undefined" ? window.grecaptcha : undefined
-      if (siteKey && grecaptcha && typeof grecaptcha.execute === "function") {
-        recaptchaToken = await grecaptcha.execute(siteKey, { action: "send_otp" })
+      try {
+        recaptchaToken = await getRecaptchaToken("send_otp")
+      } catch {
+        // 保持空字串 fall through——後端 captchaVerified 會維持 false，
+        // 由 reserve_login_otp RPC 決定是否要求 captcha。
       }
       const res = await fetch("/api/profile/complete/send-otp", {
         method: "POST",

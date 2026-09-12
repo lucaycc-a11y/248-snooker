@@ -29,8 +29,10 @@ function requireEnv(name: string): string {
   return val
 }
 
-function getKpayBaseUrl(): string {
-  const env = process.env.KPAY_ENV ?? 'uat'
+function getKpayBaseUrl(hostname?: string): string {
+  // Import dynamically to avoid circular deps if needed
+  const { getKPayEnv } = require('@/lib/env/uat')
+  const env = getKPayEnv(hostname)
   if (env === 'prod') return 'https://payment.kpay-group.com'
   return 'https://payment.uat.kpay-group.com'
 }
@@ -52,12 +54,14 @@ export class KPayProvider implements PaymentProvider {
   private readonly privateKey: string
   private readonly platformPublicKey: string
   private readonly baseUrl: string
+  private readonly hostname: string | undefined
 
-  constructor() {
+  constructor(hostname?: string) {
+    this.hostname = hostname
     this.merchantCode = requireEnv('KPAY_MERCHANT_CODE')
     this.privateKey = toPem(requireEnv('KPAY_PRIVATE_KEY'), 'PRIVATE KEY')
     this.platformPublicKey = toPem(requireEnv('KPAY_PLATFORM_PUBLIC_KEY'), 'PUBLIC KEY')
-    this.baseUrl = getKpayBaseUrl()
+    this.baseUrl = getKpayBaseUrl(hostname)
 
     // Validate key formats at startup so misconfigured keys fail loudly on
     // cold-start rather than silently at the first payment request.

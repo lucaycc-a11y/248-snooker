@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { rateLimit, clientIp } from '@/lib/rate-limit'
+import { rateLimit, refundRateLimit, clientIp } from '@/lib/rate-limit'
 import { normalizeHkPhone } from '@/lib/auth/profile'
 import { sendEngagelabOtp, mapEngagelabError } from '@/lib/engagelab/otp'
 import { getServiceSupabase } from '@/lib/supabase/service'
@@ -39,7 +39,10 @@ export async function POST(req: NextRequest) {
     const okPhone = await rateLimit('auth_otp_phone', phone, 3, 15 * 60)
     const okIp = await rateLimit('auth_otp_ip', `ip:${clientIp(req)}`, 10, 15 * 60)
     if (!okPhone || !okIp) {
-      return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
+      const windowSeconds = 15 * 60
+      const nowEpoch = Math.floor(Date.now() / 1000)
+      const retryAfterSeconds = windowSeconds - (nowEpoch % windowSeconds)
+      return NextResponse.json({ error: 'rate_limited', retryAfterSeconds }, { status: 429 })
     }
 
     const service = getServiceSupabase()
@@ -50,6 +53,8 @@ export async function POST(req: NextRequest) {
     }).maybeSingle()
     if (reservationError || !reservation) {
       console.error('[otp/send] reservation_failed', { message: reservationError?.message ?? 'empty reservation', phone })
+      await refundRateLimit('auth_otp_phone', phone, 15 * 60)
+      await refundRateLimit('auth_otp_ip', `ip:${clientIp(req)}`, 15 * 60)
       return NextResponse.json({ error: 'send_failed' }, { status: 503 })
     }
 
@@ -72,10 +77,16 @@ export async function POST(req: NextRequest) {
         p_purpose: 'login',
         p_captcha_verified: true,
       }).maybeSingle()
-      if (retry.error || !retry.data) return NextResponse.json({ code: 'OTP_INTERNAL' }, { status: 503 })
+      if (retry.error || !retry.data) {
+        await refundRateLimit('auth_otp_phone', phone, 15 * 60)
+        await refundRateLimit('auth_otp_ip', `ip:${clientIp(req)}`, 15 * 60)
+        return NextResponse.json({ code: 'OTP_INTERNAL' }, { status: 503 })
+      }
       Object.assign(row, retry.data as object)
     }
     if (row.reason === 'captcha_required') {
+      await refundRateLimit('auth_otp_phone', phone, 15 * 60)
+      await refundRateLimit('auth_otp_ip', `ip:${clientIp(req)}`, 15 * 60)
       return NextResponse.json({ code: 'CAPTCHA_REQUIRED', requiresCaptcha: true }, { status: 428 })
     }
     if (row.reason === 'phone_not_registered') {
@@ -88,6 +99,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ code: 'OTP_COOLDOWN', retryAfterSeconds: row.retry_after_seconds }, { status: 429 })
     }
     if (!row.ok || !row.request_id || !row.expires_at) {
+      await refundRateLimit('auth_otp_phone', phone, 15 * 60)
+      await refundRateLimit('auth_otp_ip', `ip:${clientIp(req)}`, 15 * 60)
       return NextResponse.json({ code: 'OTP_INTERNAL' }, { status: 503 })
     }
     if (!row.is_owner) {
@@ -109,11 +122,15 @@ export async function POST(req: NextRequest) {
       if (completionError || completed !== true) {
         console.error('[otp/send] reservation_completion_failed', { message: completionError?.message ?? 'reservation was not updated', phone, requestId: row.request_id })
         await service.rpc('expire_login_otp', { p_request_id: row.request_id })
+        await refundRateLimit('auth_otp_phone', phone, 15 * 60)
+        await refundRateLimit('auth_otp_ip', `ip:${clientIp(req)}`, 15 * 60)
         return NextResponse.json({ error: 'send_failed' }, { status: 503 })
       }
       return NextResponse.json({ success: true, messageId: engagelabData.message_id, channel: engagelabData.send_channel, expiresAt: row.expires_at, reused: false })
     } catch (error: unknown) {
       await service.rpc('expire_login_otp', { p_request_id: row.request_id })
+      await refundRateLimit('auth_otp_phone', phone, 15 * 60)
+      await refundRateLimit('auth_otp_ip', `ip:${clientIp(req)}`, 15 * 60)
       throw error
     }
   } catch (error: unknown) {

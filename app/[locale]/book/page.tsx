@@ -913,17 +913,33 @@ function SelectedPicksCard({
         padding: "20px 20px 16px",
       }}
     >
-      <div
-        data-cms-key="book.selected_slots_title"
-        className="font-label"
-        style={{
-          fontSize: 11,
-          color: tokens.colors.textFaint,
-          letterSpacing: "0.04em",
-          marginBottom: 14,
-        }}
-      >
-        {t("selected_slots_title")}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <div
+          data-cms-key="book.selected_slots_title"
+          className="font-label"
+          style={{
+            fontSize: 11,
+            color: tokens.colors.textFaint,
+            letterSpacing: "0.04em",
+          }}
+        >
+          {t("selected_slots_title")}
+        </div>
+        {runs.length > 0 && (
+          <div
+            data-cms-key="book.selected_slots_count"
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: tokens.colors.link,
+              background: `${tokens.colors.link}15`,
+              padding: "4px 10px",
+              borderRadius: 12,
+            }}
+          >
+            {t("selected_slots_count", { count: runs.length })}
+          </div>
+        )}
       </div>
       {runs.length === 0 ? (
         <div
@@ -1858,6 +1874,7 @@ function Screen3({
   onPromoChange,
   resumeBookingId,
   resumeOrderNo,
+  removeRun,
 }: {
   blocks: SelectedBlock[]
   onBackToSlots?: () => void
@@ -1866,44 +1883,39 @@ function Screen3({
   onPromoChange: (p: PromoResult | null) => void
   resumeBookingId?: string
   resumeOrderNo?: string
+  removeRun?: (run: SelectedBlock) => void
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
+
+  // Part 5: Slot removal confirmation dialog
+  const [removeConfirmRun, setRemoveConfirmRun] = useState<SelectedBlock | null>(null)
+
+  const handleRemoveClick = useCallback((run: SelectedBlock) => {
+    setRemoveConfirmRun(run)
+  }, [])
+
+  const handleRemoveConfirm = useCallback(() => {
+    if (removeConfirmRun && removeRun) {
+      removeRun(removeConfirmRun)
+      setRemoveConfirmRun(null)
+    }
+  }, [removeConfirmRun, removeRun])
+
+  const handleRemoveCancel = useCallback(() => {
+    setRemoveConfirmRun(null)
+  }, [])
 
   // Terms-agreement gate
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [termsError, setTermsError] = useState(false)
   const [termsShake, setTermsShake] = useState(0)
-  const [openModal, setOpenModal] = useState<'venue-rules' | 'terms' | null>(null)
   const termsRef = useRef<HTMLDivElement>(null)
-  const agreementButtonRef = useRef<HTMLButtonElement>(null)
-  const modalCloseRef = useRef<HTMLButtonElement>(null)
-  const shouldRestoreAgreementFocus = useRef(false)
-  const openTermsModal = useCallback(() => {
-    shouldRestoreAgreementFocus.current = true
-    setOpenModal("terms")
-  }, [])
   const flagTermsRequired = useCallback(() => {
     setTermsError(true)
     setTermsShake((n) => n + 1)
     termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
   }, [])
-
-  useEffect(() => {
-    if (!openModal) return
-    modalCloseRef.current?.focus()
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpenModal(null)
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [openModal])
-
-  useEffect(() => {
-    if (openModal || !shouldRestoreAgreementFocus.current) return
-    shouldRestoreAgreementFocus.current = false
-    agreementButtonRef.current?.focus()
-  }, [openModal])
 
   // Admin test mode
   const [isAdmin, setIsAdmin] = useState(false)
@@ -2151,7 +2163,7 @@ function Screen3({
                     borderBottom: blocks.length > 1 && blocks.indexOf(b) < blocks.length - 1 ? `1px solid ${tokens.colors.border}` : "none",
                   }}
                 >
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums", marginBottom: 4 }}>
                       {Number(m)}/{Number(d)} · {padTime(b.startHour)}–{padTime(blockEnd)}{blockEnd >= 24 ? " +1" : ""}
                     </div>
@@ -2161,11 +2173,36 @@ function Screen3({
                       <span>{b.duration}{t("hours")}</span>
                     </div>
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
-                    {detail.saved > 0 && (
-                      <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+                      {detail.saved > 0 && (
+                        <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
+                      )}
+                      <BookingPrice amount={detail.total} />
+                    </div>
+                    {removeRun && blocks.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveClick(b)}
+                        aria-label={t("remove_slot")}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "none",
+                          border: `1px solid ${tokens.colors.border}`,
+                          borderRadius: 6,
+                          color: tokens.colors.textMuted,
+                          fontSize: 18,
+                          cursor: "pointer",
+                          flexShrink: 0,
+                        }}
+                      >
+                        ×
+                      </button>
                     )}
-                    <BookingPrice amount={detail.total} />
                   </div>
                 </div>
               )
@@ -2451,10 +2488,9 @@ function Screen3({
             }}
           >
             <button
-              ref={agreementButtonRef}
               type="button"
               disabled={confirmed}
-              onClick={openTermsModal}
+              onClick={() => setAgreedToTerms(!agreedToTerms)}
               aria-pressed={agreedToTerms}
               style={{
                 width: "100%",
@@ -2493,7 +2529,26 @@ function Screen3({
                 data-cms-key="book.terms_agree"
                 style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}
               >
-                {t("terms_agree_prefix")} {t("venue_rules_label")} {t("terms_agree_connector")} {t("terms_label")}
+                {t("terms_agree_prefix")}{" "}
+                <a
+                  href="/venue"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={legalLinkStyle}
+                >
+                  {t("venue_rules_label")}
+                </a>{" "}
+                {t("terms_agree_connector")}{" "}
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={legalLinkStyle}
+                >
+                  {t("terms_label")}
+                </a>
               </span>
             </button>
             <div
@@ -2511,53 +2566,6 @@ function Screen3({
             </div>
           </motion.div>
 
-          {openModal && (
-            <motion.div
-              role="presentation"
-              onClick={() => setOpenModal(null)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={modalOverlayStyle}
-            >
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="checkout-legal-modal-title"
-                onClick={(event) => event.stopPropagation()}
-                initial={{ opacity: 0, scale: 0.96, y: 12 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 12 }}
-                transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                style={modalStyle}
-              >
-                <div style={modalHeaderStyle}>
-                  <h2 id="checkout-legal-modal-title" style={{ margin: 0, fontSize: 19, fontWeight: 700 }}>
-                    {openModal === "venue-rules" ? t("venue_rules_label") : t("terms_label")}
-                  </h2>
-                  <button ref={modalCloseRef} type="button" aria-label={t("legal_modal_close")} onClick={() => setOpenModal(null)} style={modalCloseStyle}>×</button>
-                </div>
-                <div style={modalContentStyle}>
-                  <LegalDocumentRenderer
-                    document={getLegalDocument("terms", locale as import("@/i18n/routing").Locale)}
-                    locale={locale as import("@/i18n/routing").Locale}
-                    compact
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAgreedToTerms(true)
-                    setTermsError(false)
-                    setOpenModal(null)
-                  }}
-                  style={modalBottomCloseStyle}
-                >
-                  {t("legal_modal_agree")}
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
 
           {/* ── UAT-only PayMe simulation modal ─────────────────────────── */}
           {showPaymeUatModal && (
@@ -2701,6 +2709,90 @@ function Screen3({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Part 5: Slot removal confirmation dialog */}
+      {removeConfirmRun && (
+        <motion.div
+          role="presentation"
+          onClick={handleRemoveCancel}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          style={modalOverlayStyle}
+        >
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="remove-slot-confirm-title"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            transition={{ type: "spring", stiffness: 380, damping: 30 }}
+            style={{
+              width: "min(100%, 420px)",
+              background: tokens.colors.bg,
+              border: `1px solid ${tokens.colors.borderStrong}`,
+              borderRadius: 20,
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ padding: "24px 24px 20px" }}>
+              <h2
+                id="remove-slot-confirm-title"
+                data-cms-key="book.remove_slot_confirm_title"
+                style={{ margin: 0, fontSize: 19, fontWeight: 700, marginBottom: 12 }}
+              >
+                {t("remove_slot_confirm_title")}
+              </h2>
+              <p
+                data-cms-key="book.remove_slot_confirm_message"
+                style={{ margin: 0, fontSize: 14, color: tokens.colors.textMuted, lineHeight: 1.5 }}
+              >
+                {t("remove_slot_confirm_message")}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 12, padding: "0 24px 24px" }}>
+              <button
+                type="button"
+                onClick={handleRemoveCancel}
+                data-cms-key="book.remove_slot_confirm_cancel"
+                style={{
+                  flex: 1,
+                  padding: "14px 16px",
+                  borderRadius: tokens.radius.button,
+                  border: `1px solid ${tokens.colors.borderStrong}`,
+                  background: "transparent",
+                  color: tokens.colors.text,
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: "pointer",
+                }}
+              >
+                {t("remove_slot_confirm_cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveConfirm}
+                data-cms-key="book.remove_slot_confirm_remove"
+                style={{
+                  flex: 1,
+                  padding: "14px 16px",
+                  borderRadius: tokens.radius.button,
+                  border: "none",
+                  background: tokens.colors.link,
+                  color: "#000",
+                  fontWeight: 600,
+                  fontSize: 15,
+                  cursor: "pointer",
+                }}
+              >
+                {t("remove_slot_confirm_remove")}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
       )}
     </div>
   )
@@ -3012,6 +3104,12 @@ export default function BookPage() {
   const handleBack = useCallback(() => {
     if (screen === 0) {
       router.push("/")
+    } else if (screen === 2) {
+      // Part 2(b): From payment screen, skip the login screen and go directly
+      // back to slot selection (screen 0). The login screen has no purpose for
+      // an already-logged-in user, and the slot selection state is preserved.
+      direction.current = -1
+      setScreen(0)
     } else {
       // Step back one section (e.g. login → slot selection) instead of the old
       // leave-confirm dead end — the selection state survives, so backing up
@@ -3602,6 +3700,7 @@ export default function BookPage() {
                   onPromoChange={setPromoCode}
                   resumeBookingId={kpayResumeData?.bookingId}
                   resumeOrderNo={kpayResumeData?.orderNo}
+                  removeRun={removeRun}
                   onBackToSlots={() => {
                     // Refresh availability (the lock may have changed while on
                     // the payment step) but keep the user's selection intact —
