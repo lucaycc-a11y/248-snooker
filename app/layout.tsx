@@ -6,6 +6,7 @@ import Script from "next/script";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Dev2Badge } from "@/components/uat/Dev2Panel";
+import { MaintenanceBadge } from "@/components/uat/MaintenanceBadge";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -87,6 +88,7 @@ export default async function RootLayout({
       <body className="min-h-screen bg-black text-white antialiased">
         {children}
         <Dev2Badge />
+        <MaintenanceBadge />
       </body>
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}

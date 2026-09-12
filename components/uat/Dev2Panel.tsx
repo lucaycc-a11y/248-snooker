@@ -13,7 +13,7 @@ import {
   type ActivityEntry,
 } from '@/lib/uat/activity-logger'
 
-type Tab = 'activity' | 'env' | 'actions' | 'whitelist'
+type Tab = 'activity' | 'env' | 'actions' | 'whitelist' | 'deploy'
 
 type EnvInfo = {
   appEnv: string
@@ -31,7 +31,22 @@ type WhitelistEntry = {
   created_at: string
 }
 
-export function Dev2Panel() {
+type DeployInfo = {
+  mainBranch: {
+    sha: string
+    message: string
+  }
+  uatBranch: {
+    sha: string
+    message: string
+  }
+  isUpToDate: boolean
+  gateEnabled: boolean
+}
+
+type DeployStatus = 'idle' | 'merging' | 'success' | 'error'
+
+export function Dev2Panel({ mode = 'uat' }: { mode?: 'uat' | 'production-review' }) {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('activity')
   const [activityEntries, setActivityEntries] = useState<ActivityEntry[]>([])
@@ -40,6 +55,11 @@ export function Dev2Panel() {
   const [isLoadingWhitelist, setIsLoadingWhitelist] = useState(false)
   const [newIpAddress, setNewIpAddress] = useState('')
   const [newIpLabel, setNewIpLabel] = useState('')
+  const [deployInfo, setDeployInfo] = useState<DeployInfo | null>(null)
+  const [deployStatus, setDeployStatus] = useState<DeployStatus>('idle')
+  const [deployError, setDeployError] = useState<string | null>(null)
+  const [pushConfirmText, setPushConfirmText] = useState('')
+  const [goLiveConfirmText, setGoLiveConfirmText] = useState('')
 
   // Initialize activity logger on mount
   useEffect(() => {
@@ -68,6 +88,13 @@ export function Dev2Panel() {
     }
   }, [isOpen, activeTab, envInfo?.isAdmin])
 
+  // Load deploy info when switching to deploy tab
+  useEffect(() => {
+    if (isOpen && activeTab === 'deploy' && envInfo?.isAdmin) {
+      loadDeployInfo()
+    }
+  }, [isOpen, activeTab, envInfo?.isAdmin])
+
   const loadEnvInfo = useCallback(async () => {
     try {
       const res = await fetch('/api/uat/env-info')
@@ -92,6 +119,18 @@ export function Dev2Panel() {
       console.error('[dev2] Failed to load whitelist', err)
     } finally {
       setIsLoadingWhitelist(false)
+    }
+  }, [])
+
+  const loadDeployInfo = useCallback(async () => {
+    try {
+      const res = await fetch('/api/deploy/info')
+      if (res.ok) {
+        const data = await res.json()
+        setDeployInfo(data)
+      }
+    } catch (err) {
+      console.error('[dev2] Failed to load deploy info', err)
     }
   }, [])
 
@@ -191,6 +230,68 @@ export function Dev2Panel() {
     [loadWhitelist]
   )
 
+  const handlePushToMaintenance = useCallback(async () => {
+    if (pushConfirmText !== 'PUSH TO MAINTENANCE') {
+      alert('Type "PUSH TO MAINTENANCE" to confirm')
+      return
+    }
+
+    setDeployStatus('merging')
+    setDeployError(null)
+
+    try {
+      const res = await fetch('/api/deploy/push-to-maintenance', { method: 'POST' })
+      const data = await res.json()
+
+      if (res.ok) {
+        setDeployStatus('success')
+        setPushConfirmText('')
+        loadDeployInfo()
+        alert(`Successfully merged to main. New commit: ${data.commitSha}`)
+      } else {
+        setDeployStatus('error')
+        setDeployError(data.error || 'Unknown error')
+        alert(`Error: ${data.error}`)
+      }
+    } catch (err) {
+      setDeployStatus('error')
+      setDeployError(err instanceof Error ? err.message : 'Network error')
+      alert('Failed to push to maintenance')
+      console.error(err)
+    }
+  }, [pushConfirmText, loadDeployInfo])
+
+  const handleGoLive = useCallback(async () => {
+    if (goLiveConfirmText !== 'GO LIVE') {
+      alert('Type "GO LIVE" to confirm')
+      return
+    }
+
+    setDeployStatus('merging')
+    setDeployError(null)
+
+    try {
+      const res = await fetch('/api/deploy/go-live', { method: 'POST' })
+      const data = await res.json()
+
+      if (res.ok) {
+        setDeployStatus('success')
+        setGoLiveConfirmText('')
+        loadDeployInfo()
+        alert('Site is now live! Gate disabled.')
+      } else {
+        setDeployStatus('error')
+        setDeployError(data.error || 'Unknown error')
+        alert(`Error: ${data.error}`)
+      }
+    } catch (err) {
+      setDeployStatus('error')
+      setDeployError(err instanceof Error ? err.message : 'Network error')
+      alert('Failed to go live')
+      console.error(err)
+    }
+  }, [goLiveConfirmText, loadDeployInfo])
+
   if (!isOpen) return null
 
   return (
@@ -242,8 +343,12 @@ export function Dev2Panel() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid #333' }}>
-        {(['activity', 'env', 'actions', ...(envInfo?.isAdmin ? ['whitelist' as const] : [])] as Tab[]).map(
-          (tab) => (
+        {([
+          'activity',
+          'env',
+          'actions',
+          ...(envInfo?.isAdmin ? ['whitelist' as const, 'deploy' as const] : []),
+        ] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -546,6 +651,163 @@ export function Dev2Panel() {
                 ))
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'deploy' && envInfo?.isAdmin && (
+          <div>
+            {!deployInfo ? (
+              <div>Loading...</div>
+            ) : (
+              <div>
+                <div style={{ marginBottom: '16px', fontSize: '12px' }}>
+                  <div style={{ marginBottom: '12px' }}>
+                    <strong>Main Branch:</strong>
+                    <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>
+                      {deployInfo.mainBranch.sha.substring(0, 7)} — {deployInfo.mainBranch.message}
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <strong>UAT Branch:</strong>
+                    <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>
+                      {deployInfo.uatBranch.sha.substring(0, 7)} — {deployInfo.uatBranch.message}
+                    </div>
+                  </div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <strong>Status:</strong>{' '}
+                    {deployInfo.isUpToDate ? (
+                      <span style={{ color: '#4caf50' }}>Up to date</span>
+                    ) : (
+                      <span style={{ color: '#ff9800' }}>UAT ahead of main</span>
+                    )}
+                  </div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <strong>Gate Enabled:</strong>{' '}
+                    {deployInfo.gateEnabled ? (
+                      <span style={{ color: '#f44336' }}>Yes (Maintenance mode)</span>
+                    ) : (
+                      <span style={{ color: '#4caf50' }}>No (Public)</span>
+                    )}
+                  </div>
+                </div>
+
+                {deployStatus === 'error' && deployError && (
+                  <div
+                    style={{
+                      marginBottom: '16px',
+                      padding: '12px',
+                      background: '#d32f2f',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                    }}
+                  >
+                    Error: {deployError}
+                  </div>
+                )}
+
+                {/* Push to Maintenance */}
+                <div style={{ marginBottom: '24px' }}>
+                  <div style={{ marginBottom: '8px', fontSize: '12px', fontWeight: 'bold' }}>
+                    Push to Maintenance
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#999', marginBottom: '8px' }}>
+                    Merge UAT → main, enable gate (internal review mode)
+                  </div>
+                  <input
+                    type="text"
+                    placeholder='Type "PUSH TO MAINTENANCE" to confirm'
+                    value={pushConfirmText}
+                    onChange={(e) => setPushConfirmText(e.target.value)}
+                    disabled={deployInfo.isUpToDate || deployStatus === 'merging'}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      background: '#222',
+                      border: '1px solid #555',
+                      borderRadius: '4px',
+                      color: '#e0e0e0',
+                      fontSize: '12px',
+                      marginBottom: '8px',
+                    }}
+                  />
+                  <button
+                    onClick={handlePushToMaintenance}
+                    disabled={
+                      deployInfo.isUpToDate ||
+                      pushConfirmText !== 'PUSH TO MAINTENANCE' ||
+                      deployStatus === 'merging'
+                    }
+                    style={{
+                      padding: '8px 16px',
+                      background:
+                        deployInfo.isUpToDate || pushConfirmText !== 'PUSH TO MAINTENANCE'
+                          ? '#555'
+                          : '#ff9800',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: '#fff',
+                      cursor:
+                        deployInfo.isUpToDate || pushConfirmText !== 'PUSH TO MAINTENANCE'
+                          ? 'not-allowed'
+                          : 'pointer',
+                      fontSize: '12px',
+                      width: '100%',
+                    }}
+                  >
+                    {deployStatus === 'merging' ? 'Merging...' : 'Push to Maintenance'}
+                  </button>
+                </div>
+
+                {/* Go Live */}
+                <div>
+                  <div style={{ marginBottom: '8px', fontSize: '12px', fontWeight: 'bold' }}>
+                    Go Live (End Maintenance)
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#999', marginBottom: '8px' }}>
+                    Disable gate, make site public (no deploy)
+                  </div>
+                  <input
+                    type="text"
+                    placeholder='Type "GO LIVE" to confirm'
+                    value={goLiveConfirmText}
+                    onChange={(e) => setGoLiveConfirmText(e.target.value)}
+                    disabled={!deployInfo.gateEnabled || deployStatus === 'merging'}
+                    style={{
+                      width: '100%',
+                      padding: '8px',
+                      background: '#222',
+                      border: '1px solid #555',
+                      borderRadius: '4px',
+                      color: '#e0e0e0',
+                      fontSize: '12px',
+                      marginBottom: '8px',
+                    }}
+                  />
+                  <button
+                    onClick={handleGoLive}
+                    disabled={
+                      !deployInfo.gateEnabled || goLiveConfirmText !== 'GO LIVE' || deployStatus === 'merging'
+                    }
+                    style={{
+                      padding: '8px 16px',
+                      background:
+                        !deployInfo.gateEnabled || goLiveConfirmText !== 'GO LIVE' ? '#555' : '#4caf50',
+                      border: 'none',
+                      borderRadius: '4px',
+                      color: '#fff',
+                      cursor:
+                        !deployInfo.gateEnabled || goLiveConfirmText !== 'GO LIVE'
+                          ? 'not-allowed'
+                          : 'pointer',
+                      fontSize: '12px',
+                      width: '100%',
+                    }}
+                  >
+                    {deployStatus === 'merging' ? 'Processing...' : 'Go Live'}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
