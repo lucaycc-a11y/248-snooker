@@ -37,16 +37,64 @@ async function checkSiteGate(request: NextRequest): Promise<NextResponse | null>
   const { config, whitelist } = await getSiteGate()
   if (!config.enabled) return null
 
-  if (whitelist.includes(clientIp(request))) return null
+  const ip = clientIp(request)
 
+  // IP whitelist bypass — access granted, log it
+  if (whitelist.includes(ip)) {
+    // Log successful whitelist access (fire-and-forget, don't block the request)
+    logGateAccess(ip, 'whitelist', request.nextUrl.pathname).catch((err) =>
+      console.error('[gate] log failed', err)
+    )
+    return null
+  }
+
+  // Check for valid bypass cookie
   const secret = process.env.GATE_COOKIE_SECRET
   const cookie = request.cookies.get(GATE_COOKIE_NAME)?.value
-  if (secret && cookie && (await verifyGateCookie(cookie, secret))) return null
+  if (secret && cookie && (await verifyGateCookie(cookie, secret))) {
+    // Valid cookie — access granted
+    return null
+  }
+
+  // No valid bypass — redirect to maintenance page with 503 status
+  // Log denied access attempt (fire-and-forget)
+  logGateAccess(ip, 'denied', request.nextUrl.pathname).catch((err) =>
+    console.error('[gate] log failed', err)
+  )
 
   const url = request.nextUrl.clone()
   url.pathname = '/coming-soon'
   url.search = ''
-  return NextResponse.redirect(url)
+
+  // Return 503 Service Unavailable with Retry-After header
+  const response = NextResponse.redirect(url, { status: 307 })
+  response.headers.set('Retry-After', '3600') // Suggest retry in 1 hour
+
+  // Note: The actual 503 status must be set in the coming-soon page's response
+  // since NextResponse.redirect() forces a 3xx status code. The redirect gets
+  // the user to the maintenance page; the page itself returns 503.
+  return response
+}
+
+// Helper to log gate access attempts to site_gate_access_log
+async function logGateAccess(
+  ip: string,
+  method: 'whitelist' | 'password' | 'denied',
+  pathname: string
+): Promise<void> {
+  try {
+    const { getServiceSupabase } = await import('@/lib/supabase/service')
+    const supabase = getServiceSupabase()
+    await supabase.from('site_gate_access_log').insert({
+      ip_address: ip,
+      method,
+      pathname,
+      user_agent: '', // Could extract from request.headers if needed
+    })
+  } catch (err) {
+    // Log failure is non-critical, don't throw
+    console.error('[gate] failed to log access', err)
+  }
 }
 
 function isLocalized(pathname: string): boolean {

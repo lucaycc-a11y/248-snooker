@@ -59,11 +59,15 @@ function getPaymentMethodIconUrl(method: string | null): string {
 /**
  * Format a date string (YYYY-MM-DD) into a human-readable format with locale.
  * e.g. "2026年7月30日 (週三)" or "Thursday, July 30, 2026"
+ *
+ * Directly parses the date string without timezone conversion to avoid
+ * off-by-one errors when server timezone (UTC) differs from HK timezone (+08:00).
  */
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00+08:00')
+  const [year, month, day] = dateStr.split('-').map(Number)
   const zhDay = ['日', '一', '二', '三', '四', '五', '六']
-  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 (週${zhDay[d.getDay()]})`
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay()
+  return `${year}年${month}月${day}日 (週${zhDay[weekday]})`
 }
 
 function formatTime(time: string): string {

@@ -1874,15 +1874,7 @@ function Screen3({
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [termsError, setTermsError] = useState(false)
   const [termsShake, setTermsShake] = useState(0)
-  const [openModal, setOpenModal] = useState<'venue-rules' | 'terms' | null>(null)
   const termsRef = useRef<HTMLDivElement>(null)
-  const agreementButtonRef = useRef<HTMLButtonElement>(null)
-  const modalCloseRef = useRef<HTMLButtonElement>(null)
-  const shouldRestoreAgreementFocus = useRef(false)
-  const openTermsModal = useCallback(() => {
-    shouldRestoreAgreementFocus.current = true
-    setOpenModal("terms")
-  }, [])
   const flagTermsRequired = useCallback(() => {
     setTermsError(true)
     setTermsShake((n) => n + 1)
@@ -3012,6 +3004,12 @@ export default function BookPage() {
   const handleBack = useCallback(() => {
     if (screen === 0) {
       router.push("/")
+    } else if (screen === 2) {
+      // Part 2(b): From payment screen, skip the login screen and go directly
+      // back to slot selection (screen 0). The login screen has no purpose for
+      // an already-logged-in user, and the slot selection state is preserved.
+      direction.current = -1
+      setScreen(0)
     } else {
       // Step back one section (e.g. login → slot selection) instead of the old
       // leave-confirm dead end — the selection state survives, so backing up

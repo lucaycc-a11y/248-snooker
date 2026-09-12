@@ -10,17 +10,28 @@
 import type { PaymentProvider } from './types'
 import { KPayProvider } from './kpay'
 
-let kpayProvider: KPayProvider | null = null
+// Cache providers per hostname to ensure UAT and production use different
+// KPay environments (UAT domain always uses KPay UAT keys, production domain
+// respects KPAY_ENV). The cache is per-serverless-instance, which is fine —
+// cross-domain requests are rare and the overhead of creating a new provider
+// is minimal (just env var reads + key validation).
+const providerCache = new Map<string, KPayProvider>()
 
 /**
- * Return the singleton KPayProvider. Throws on missing env vars.
+ * Return a KPayProvider for the given hostname. Throws on missing env vars.
  * Apple Pay / Google Pay are blocked upstream — they never call this.
+ *
+ * @param hostname - Request hostname (e.g., 'uat.space8.com.hk') for
+ *   environment-aware KPay key selection. If omitted, uses default env.
  */
-export function getPaymentProvider(): PaymentProvider {
-  if (!kpayProvider) {
-    kpayProvider = new KPayProvider()
+export function getPaymentProvider(hostname?: string): PaymentProvider {
+  const key = hostname ?? 'default'
+  let provider = providerCache.get(key)
+  if (!provider) {
+    provider = new KPayProvider(hostname)
+    providerCache.set(key, provider)
   }
-  return kpayProvider
+  return provider
 }
 
 /**

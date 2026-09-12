@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { Logo } from "@/components/brand";
 
@@ -24,6 +26,10 @@ function errorKey(error: string | null): string | null {
 // truth) inside a liquid-glass surface matching the landing page (black bg +
 // translucent-white blur card). AuthCard self-resolves an existing session on
 // mount and redirects via onAuthComplete, so a logged-in user never sees the form.
+//
+// Part 2(a) fix: Check session immediately on mount. If user is already logged in,
+// redirect to booking page instead of showing login form. This prevents the
+// "back button from booking lands on empty login page" issue.
 export default function LoginForm({
   returnUrl,
   error = null,
@@ -35,6 +41,45 @@ export default function LoginForm({
   const t = useTranslations("login");
   const safeUrl = safeReturnUrl(returnUrl);
   const errKey = errorKey(error);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (cancelled) return;
+
+      if (user) {
+        // User is already logged in - redirect to booking page or returnUrl
+        const redirectTarget = safeUrl === "/member" ? "/book" : safeUrl;
+        router.replace(redirectTarget);
+        return;
+      }
+
+      setCheckingSession(false);
+    })();
+    return () => { cancelled = true; };
+  }, [router, safeUrl]);
+
+  // Show nothing while checking session to avoid flash of login form
+  if (checkingSession) {
+    return (
+      <section
+        className="glass-panel"
+        style={{
+          width: "100%",
+          maxWidth: 400,
+          padding: 40,
+          textAlign: "center",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+          <Logo variant="full" theme="dark" size={40} />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
