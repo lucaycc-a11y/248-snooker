@@ -17,6 +17,7 @@ export type KPayState =
   | 'failed'        // payment failed
   | 'cancelled'     // booking hold was cancelled
   | 'expired'       // QR/H5 link expired
+  | 'unauthorized'  // session expired (401)
 
 function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError'
@@ -347,14 +348,35 @@ export default function KPayPayment(props: Props) {
 
       if (!res.ok) {
         let message = '付款初始化失敗，請重試'
+        let errorType: 'unauthorized' | 'slot_unavailable' | 'generic' = 'generic'
         try {
           const errBody = await res.json()
-          message = errBody.error || message
+          const errorText = errBody.error || message
+
+          // Part 2: Detect session expiry (401 Unauthorized)
+          if (res.status === 401) {
+            message = '你嘅登入狀態已過期，請重新登入'
+            errorType = 'unauthorized'
+          }
+          // Part 3: Detect slot unavailability (409 Conflict)
+          else if (res.status === 409 ||
+                   errorText.includes('Slot unavailable') ||
+                   errorText.includes('Slot lock no longer valid')) {
+            message = '呢個時段已經被其他人預訂，請重新選擇時段'
+            errorType = 'slot_unavailable'
+          }
+          else {
+            message = errorText
+          }
         } catch {
           // non-JSON response (e.g. unexpected HTML error page) — use default
         }
         setError(message)
-        setState('failed')
+        setState(errorType === 'unauthorized' ? 'unauthorized' as KPayState : 'failed')
+        // Store error type for rendering appropriate CTA in the failed state screen
+        if (errorType === 'slot_unavailable') {
+          setFailureReason('slot_unavailable')
+        }
         return
       }
 
@@ -552,9 +574,12 @@ export default function KPayPayment(props: Props) {
         const uiStatus = status.status as string | undefined
         const providerOrderNoVal = status.providerOrderNo as string | undefined
 
-        // Booking is already confirmed — nothing to do, onSuccess will fire from the polling effect
+        // Booking is already confirmed — trigger onSuccess directly
+        // (the polling effect won't run because we're not in pending/pending_confirmation state)
         if (uiStatus === 'confirmed') {
+          clearKPayPersistedState()
           setState('success')
+          onSuccessRef.current(localBookingId)
           return
         }
 
@@ -870,7 +895,38 @@ export default function KPayPayment(props: Props) {
     )
   }
 
+  // Part 2: Unauthorized state (session expired)
+  if (state === 'unauthorized') {
+    return (
+      <div style={styles.card}>
+        <div style={styles.iconWrap}>
+          <CircleX size={48} color={DANGER} aria-hidden />
+        </div>
+        <p style={styles.stateTitle}>登入已過期</p>
+        <p style={styles.stateDesc}>
+          {error || '你嘅登入狀態已過期，請重新登入'}
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            // Preserve current booking context for return after login
+            const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+            const loginPath = `${localePrefix ? `/${localePrefix}` : ''}/login`
+            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search)
+            window.location.href = `${loginPath}?returnUrl=${returnUrl}`
+          }}
+          style={styles.primaryButton}
+        >
+          返回登入
+        </button>
+      </div>
+    )
+  }
+
   if (state === 'failed') {
+    // Part 3: Slot unavailability requires different CTA
+    const isSlotUnavailable = failureReason === 'slot_unavailable'
+
     return (
       <div style={styles.card}>
         <div style={styles.iconWrap}>
@@ -880,16 +936,44 @@ export default function KPayPayment(props: Props) {
         <p style={styles.stateDesc}>
           {error || labels.failed_desc}
         </p>
-        {failureReason && <p style={styles.failureReason}>{failureReason}</p>}
-        <button type="button" onClick={retryPayment} disabled={actionBusy} style={styles.primaryButton}>
-          {actionBusy ? labels.processing : labels.try_again}
-        </button>
-        <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
-          {labels.back_to_methods}
-        </button>
-        <button type="button" onClick={cancelBooking} disabled={actionBusy} style={styles.tertiaryButton}>
-          {labels.cancel}
-        </button>
+        {failureReason && failureReason !== 'slot_unavailable' && (
+          <p style={styles.failureReason}>{failureReason}</p>
+        )}
+
+        {isSlotUnavailable ? (
+          // Slot unavailable: redirect to re-select time slots
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                // Clear the failed booking and return to booking page
+                const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+                const bookPath = `${localePrefix ? `/${localePrefix}` : ''}/book`
+                window.location.href = bookPath
+              }}
+              disabled={actionBusy}
+              style={styles.primaryButton}
+            >
+              重新選擇時段
+            </button>
+            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+              {labels.back_to_methods}
+            </button>
+          </>
+        ) : (
+          // Generic payment failure: allow retry
+          <>
+            <button type="button" onClick={retryPayment} disabled={actionBusy} style={styles.primaryButton}>
+              {actionBusy ? labels.processing : labels.try_again}
+            </button>
+            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+              {labels.back_to_methods}
+            </button>
+            <button type="button" onClick={cancelBooking} disabled={actionBusy} style={styles.tertiaryButton}>
+              {labels.cancel}
+            </button>
+          </>
+        )}
       </div>
     )
   }
@@ -1070,7 +1154,9 @@ export default function KPayPayment(props: Props) {
       <p style={styles.stateTitle}>
         {labels.pending.replace('{method}', METHOD_NAMES[method])}
       </p>
-      <p style={styles.stateDesc}>{labels.pending_desc}</p>
+      <p style={styles.stateDesc}>
+        {labels.pending_desc.replace('{time}', formatCountdown(countdown))}
+      </p>
     </div>
   )
 }
