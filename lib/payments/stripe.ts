@@ -46,24 +46,22 @@ export class StripeProvider implements PaymentProvider {
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
     const { outTradeNo, bookingId, amount, method, remark } = params
 
-    // Map our method IDs to Stripe payment_method_types
-    const paymentMethodTypes: string[] = []
-    if (method === 'card' || method === 'google_pay' || method === 'apple_pay') {
-      paymentMethodTypes.push('card')
-    } else if (method === 'alipay' || method === 'alipayhk') {
-      paymentMethodTypes.push('alipay')
-    } else if (method === 'wechat_pay') {
-      paymentMethodTypes.push('wechat_pay')
-    }
-
+    // Stripe payment method types: Apple Pay/Google Pay use 'card' as the underlying type.
+    // They are wallet presentation methods, not separate payment_method_types.
+    // See: https://docs.stripe.com/stripe-js/elements/payment-request-button
     const createParams: any = {
       amount: Math.round(amount * 100), // Convert HKD to cents
       currency: 'hkd',
-      payment_method_types: paymentMethodTypes,
+      automatic_payment_methods: {
+        enabled: true,
+        allow_redirects: 'never', // Prevent redirect-based methods for better UX
+      },
       metadata: {
         booking_id: bookingId,
         out_trade_no: outTradeNo,
         remark: remark || '',
+        // Store the user's selected method for analytics/display purposes
+        selected_method: method,
       },
     }
 
