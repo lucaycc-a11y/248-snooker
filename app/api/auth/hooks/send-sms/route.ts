@@ -111,6 +111,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // DEBUG: Log the phone format Supabase sent to the hook
+  console.log('[DEBUG send_sms_hook] Supabase sent phone:', JSON.stringify(user.phone))
+
   // Detect language from user metadata (set during profile completion)
   // or default to zh_HK
   const language = (user.user_metadata?.locale as string | undefined) || 'zh_HK'
@@ -146,9 +149,9 @@ export async function POST(req: NextRequest) {
     if (error && typeof error === 'object' && 'code' in error) {
       const code = (error as { code?: number }).code
       if (typeof code === 'number') {
-        const message = mapEngagelabError(code)
+        const errorInfo = mapEngagelabError(code)
         return NextResponse.json(
-          { error: message },
+          { error: errorInfo.userMessage, engagelab_code: code, engagelab_type: errorInfo.type },
           { status: 500 }
         )
       }
