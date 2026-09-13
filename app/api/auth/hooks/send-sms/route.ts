@@ -126,8 +126,9 @@ export async function POST(req: NextRequest) {
       channel: result.send_channel,
     }))
 
-    // Supabase expects a 200 response with empty body on success
-    return new NextResponse(null, { status: 200 })
+    // Supabase requires Content-Type: application/json header even for empty response
+    // Without it, Supabase logs "hook_payload_invalid_content_type" and retries
+    return NextResponse.json({}, { status: 200 })
   } catch (error: unknown) {
     console.error(JSON.stringify({
       event: 'send_sms_hook.engagelab_failed',
