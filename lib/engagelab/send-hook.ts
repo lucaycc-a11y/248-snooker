@@ -62,29 +62,25 @@ export async function sendSupabaseOtpViaEngagelab(
     throw new Error('ENGAGELAB_OTP_TEMPLATE_ID configuration missing - you must create a custom template in Engagelab Dashboard with {{code}} placeholder')
   }
 
-  // CRITICAL: The verification code MUST be in the top-level "code" field,
-  // NOT inside variables/params. This is confirmed by testing:
-  // - Old way: variables: { code: "123456" } → Engagelab ignored it, sent own code
-  // - Correct way: code: "123456" (top-level) → Engagelab sends exactly this code
+  // ✅ CONFIRMED via official docs: https://engagelab.com/docs/otp/REST-API/CustomMessages-Send
+  // Custom OTP Send endpoint: POST /v1/codes (NOT /v1/messages)
+  // Request body structure per docs:
   const requestBody = {
     to: phone,
+    code: otpCode,  // ← Top-level "code" field (NOT template.code or template.params.code)
     template: {
       id: templateId,
       language,
-      code: otpCode,  // ← Top-level code field, NOT variables.code
+      // params: {} if template has custom variables beyond {{code}}
     },
   }
 
   // 🔍 DEBUG: Log the EXACT request body we're sending to Engagelab
+  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Supabase OTP code:', otpCode)
   console.log('[DEBUG sendSupabaseOtpViaEngagelab] Request body:', JSON.stringify(requestBody))
-  console.log('[DEBUG sendSupabaseOtpViaEngagelab] OTP code in template.code:', otpCode)
 
-  // CRITICAL: Reverting to /v1/messages (the ONLY endpoint we confirmed works)
-  // /v1/custom-send-otp returned 404 — that endpoint doesn't exist.
-  //
-  // TODO: Contact Engagelab support to get the CORRECT endpoint/structure for:
-  // "Send a Supabase-generated OTP code via Engagelab (you generate, they deliver)"
-  const res = await fetch('https://otp.api.engagelab.cc/v1/messages', {
+  // Official endpoint for "自訂驗證碼下發" (Custom OTP Send)
+  const res = await fetch('https://otp.api.engagelab.cc/v1/codes', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
