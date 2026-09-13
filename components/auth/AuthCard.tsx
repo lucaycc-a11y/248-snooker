@@ -416,6 +416,10 @@ export function AuthCard({
 
         // Use Supabase native phone auth instead of custom /api/otp/send
         const supabase = createClient()
+
+        // DEBUG: Log the actual phone value being sent to signInWithOtp
+        console.log('[DEBUG signInWithOtp] phone:', JSON.stringify(normalized))
+
         const { error } = await supabase.auth.signInWithOtp({
           phone: normalized,
           options: {
@@ -634,6 +638,9 @@ export function AuthCard({
         setBusy(false)
         return
       }
+
+      // DEBUG: Log the actual phone value being sent to verifyOtp
+      console.log('[DEBUG verifyOtp] phone:', JSON.stringify(phone), 'token:', code, 'type:', 'sms')
 
       const { error } = await supabase.auth.verifyOtp({
         phone,
