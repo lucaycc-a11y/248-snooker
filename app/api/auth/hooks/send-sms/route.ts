@@ -55,17 +55,26 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Read the raw body for signature verification
+  // Read the raw body and Standard Webhooks headers for signature verification
+  // Supabase Auth Hooks follow Standard Webhooks specification
   const rawBody = await req.text()
-  const signature = req.headers.get('x-supabase-signature')
+  const webhookId = req.headers.get('webhook-id')
+  const webhookTimestamp = req.headers.get('webhook-timestamp')
+  const webhookSignature = req.headers.get('webhook-signature')
 
   // Verify the request is genuinely from Supabase
-  const isValid = await verifySupabaseHookSignature(rawBody, signature, hookSecret)
+  const isValid = await verifySupabaseHookSignature(
+    rawBody,
+    { id: webhookId, timestamp: webhookTimestamp, signature: webhookSignature },
+    hookSecret
+  )
 
   if (!isValid) {
     console.warn(JSON.stringify({
       event: 'send_sms_hook.invalid_signature',
-      hasSignature: !!signature,
+      hasSignature: !!webhookSignature,
+      hasId: !!webhookId,
+      hasTimestamp: !!webhookTimestamp,
       ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown',
     }))
     return NextResponse.json(
