@@ -97,42 +97,75 @@ export async function sendSupabaseOtpViaEngagelab(
 /**
  * Verify the Supabase Auth Hook signature to ensure the request is authentic.
  *
- * Supabase signs webhook requests using HMAC-SHA256. The signature is sent in
- * the X-Supabase-Signature header as a hex-encoded string.
+ * Supabase Auth Hooks follow the Standard Webhooks specification.
+ * Signatures use HMAC-SHA256 and are sent in base64 format via three headers:
+ * - webhook-id: Unique message identifier
+ * - webhook-timestamp: Unix timestamp in seconds
+ * - webhook-signature: Space-separated list of "v1,<base64-signature>" entries
+ *
+ * The signed content is: `${webhookId}.${webhookTimestamp}.${payload}`
+ *
+ * The secret format from Supabase is "v1,whsec_XXXXXXXX". We strip the prefix
+ * and base64-decode it to get the raw HMAC key.
  *
  * @param payload - The raw request body (as string)
- * @param signature - The signature from X-Supabase-Signature header
- * @param secret - The webhook secret from Supabase Dashboard
+ * @param headers - Object containing id, timestamp, and signature from webhook headers
+ * @param secret - The webhook secret from Supabase Dashboard (format: "v1,whsec_...")
+ * @see https://supabase.com/docs/guides/auth/auth-hooks/send-sms-hook
+ * @see https://www.standardwebhooks.com/
  */
 export async function verifySupabaseHookSignature(
   payload: string,
-  signature: string | null,
+  headers: { id: string | null; timestamp: string | null; signature: string | null },
   secret: string
 ): Promise<boolean> {
-  if (!signature) {
+  const { id, timestamp, signature } = headers
+  if (!id || !timestamp || !signature) {
     return false
   }
 
-  // Supabase uses HMAC-SHA256 for webhook signatures
+  // Secret format: "v1,whsec_XXXXXXXX" — strip prefix, base64 decode to get binary key
+  const stripped = secret.replace(/^v1,/, '').replace(/^whsec_/, '')
+  let keyBuffer: ArrayBuffer
+  try {
+    const decoded = atob(stripped)
+    const keyBytes = new Uint8Array(decoded.length)
+    for (let i = 0; i < decoded.length; i++) {
+      keyBytes[i] = decoded.charCodeAt(i)
+    }
+    keyBuffer = keyBytes.buffer
+  } catch {
+    // Invalid base64 secret
+    return false
+  }
+
+  // Standard Webhooks signed content: "${id}.${timestamp}.${payload}"
+  const signedContent = `${id}.${timestamp}.${payload}`
   const encoder = new TextEncoder()
+
   const key = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(secret),
+    keyBuffer,
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
   )
 
-  const signatureBytes = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    encoder.encode(payload)
-  )
+  const sigBytes = await crypto.subtle.sign('HMAC', key, encoder.encode(signedContent))
+  // Convert ArrayBuffer to base64
+  const sigArray = new Uint8Array(sigBytes)
+  const expected = btoa(String.fromCharCode(...Array.from(sigArray)))
 
-  const expectedSignature = Array.from(new Uint8Array(signatureBytes))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
+  // Header may contain space-separated list of "v1,<base64>" for key rotation
+  // Extract all base64 signatures and check if any matches
+  const candidates = signature
+    .split(' ')
+    .map((s) => {
+      const parts = s.split(',')
+      return parts.length === 2 ? parts[1] : null
+    })
+    .filter((s): s is string => s !== null)
 
   // Constant-time comparison to prevent timing attacks
-  return expectedSignature === signature
+  return candidates.some(candidate => candidate === expected)
 }
