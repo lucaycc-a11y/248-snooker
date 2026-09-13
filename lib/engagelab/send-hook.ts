@@ -90,11 +90,27 @@ export async function sendSupabaseOtpViaEngagelab(
     body: JSON.stringify(requestBody),
   })
 
-  const data = await res.json()
-
-  // 🔍 DEBUG: Log Engagelab's complete response
+  // 🔍 CRITICAL: Get raw text FIRST — don't assume it's valid JSON
+  const rawText = await res.text()
   console.log('[DEBUG sendSupabaseOtpViaEngagelab] Engagelab response status:', res.status)
-  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Engagelab response body:', JSON.stringify(data))
+  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Engagelab RAW response text:', rawText)
+  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Response length:', rawText.length, 'bytes')
+
+  // Try to parse as JSON, but handle failure gracefully
+  let data: any
+  try {
+    data = JSON.parse(rawText)
+    console.log('[DEBUG sendSupabaseOtpViaEngagelab] Successfully parsed as JSON:', JSON.stringify(data))
+  } catch (parseError) {
+    console.error('[DEBUG sendSupabaseOtpViaEngagelab] JSON parse FAILED:', parseError)
+    console.error('[DEBUG sendSupabaseOtpViaEngagelab] First 200 chars of raw text:', rawText.substring(0, 200))
+    throw {
+      code: -1,
+      message: `Engagelab returned non-JSON response: ${rawText.substring(0, 100)}`,
+      httpStatus: res.status,
+      rawText,
+    }
+  }
 
   if (!res.ok) {
     throw {
