@@ -2,8 +2,7 @@
 // ONLY accessible when NEXT_PUBLIC_APP_ENV === 'uat'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'edge'
 
@@ -22,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = createClient()
     const clientIp = getClientIp(req)
 
     // Get current user

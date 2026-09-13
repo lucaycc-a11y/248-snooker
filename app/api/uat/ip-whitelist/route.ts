@@ -3,8 +3,7 @@
 // Writes to production site_gate_ip_whitelist table - requires active admin user
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'edge'
 
@@ -16,7 +15,7 @@ function getClientIp(req: NextRequest): string {
   )
 }
 
-async function checkAdminAuth(supabase: ReturnType<typeof createRouteHandlerClient>) {
+async function checkAdminAuth(supabase: ReturnType<typeof createClient>) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
