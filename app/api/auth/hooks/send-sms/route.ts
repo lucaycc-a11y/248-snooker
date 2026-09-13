@@ -118,8 +118,15 @@ export async function POST(req: NextRequest) {
   // or default to zh_HK
   const language = (user.user_metadata?.locale as string | undefined) || 'zh_HK'
 
+  // 🔍 DEBUG: Log the EXACT OTP code Supabase sent us
+  console.log('[DEBUG send_sms_hook] Supabase OTP code:', sms.otp)
+  console.log('[DEBUG send_sms_hook] Will send to Engagelab with variables.code:', sms.otp)
+
   try {
     const result = await sendSupabaseOtpViaEngagelab(user.phone, sms.otp, language)
+
+    // 🔍 DEBUG: Log Engagelab's complete response
+    console.log('[DEBUG send_sms_hook] Engagelab response:', JSON.stringify(result))
 
     console.info(JSON.stringify({
       event: 'send_sms_hook.success',
@@ -127,6 +134,8 @@ export async function POST(req: NextRequest) {
       phone: user.phone.replace(/\d{4}$/, '****'), // Mask last 4 digits for privacy
       messageId: result.message_id,
       channel: result.send_channel,
+      // 🔍 Keep OTP in log for debugging (mask in production later)
+      otpSent: sms.otp,
     }))
 
     // Supabase requires Content-Type: application/json header even for empty response

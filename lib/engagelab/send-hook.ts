@@ -62,26 +62,36 @@ export async function sendSupabaseOtpViaEngagelab(
 
   // Use Engagelab's template API with custom variables
   // The template should have {{code}} as a variable placeholder
+  const requestBody = {
+    to: phone,
+    template: {
+      id: templateId,
+      language,
+      // Pass the Supabase OTP code as a template variable
+      variables: {
+        code: otpCode,
+      },
+    },
+  }
+
+  // 🔍 DEBUG: Log the EXACT request body we're sending to Engagelab
+  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Request body:', JSON.stringify(requestBody))
+  console.log('[DEBUG sendSupabaseOtpViaEngagelab] OTP code in variables.code:', otpCode)
+
   const res = await fetch('https://otp.api.engagelab.cc/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Basic ${authBase64}`,
     },
-    body: JSON.stringify({
-      to: phone,
-      template: {
-        id: templateId,
-        language,
-        // Pass the Supabase OTP code as a template variable
-        variables: {
-          code: otpCode,
-        },
-      },
-    }),
+    body: JSON.stringify(requestBody),
   })
 
   const data = await res.json()
+
+  // 🔍 DEBUG: Log Engagelab's complete response
+  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Engagelab response status:', res.status)
+  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Engagelab response body:', JSON.stringify(data))
 
   if (!res.ok) {
     throw {
