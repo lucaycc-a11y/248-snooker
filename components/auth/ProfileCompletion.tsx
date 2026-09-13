@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 import { getRecaptchaToken } from "@/lib/recaptcha"
+import { createClient } from "@/lib/supabase/client"
 import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
 
 // Matches the GREEN constant duplicated across every other auth-flow file
@@ -34,8 +35,8 @@ function localHkPhoneValue(value: string): string {
 //
 // Phone verification (C2): a phone that is NOT already Supabase-SMS-verified is
 // NOT accepted on the form alone. The submit button becomes "send verification
-// code" — it runs reCAPTCHA, POSTs /api/otp/send (Engagelab issues the SMS),
-// then /api/otp/verify-binding proves possession of the number BEFORE
+// code" — it runs reCAPTCHA and calls Supabase's native signInWithOtp to issue
+// the SMS, then verifyOtp proves possession of the number BEFORE
 // /api/profile/complete is allowed to run. The backend enforces the same rule
 // (profile/complete returns 422 phone_not_verified for any unproven phone), so a
 // direct API POST cannot skip this step (C2 item 6). SMS-login users keep their
@@ -97,10 +98,9 @@ export function ProfileCompletion({
   const [errMsg, setErrMsg] = useState<string | null>(null)
 
   // Phone verification sub-step. True when an OTP was successfully redeemed via
-  // /api/otp/verify-binding for this component's phone number.
+  // bind-phone for this component's phone number.
   const [phoneVerified, setPhoneVerified] = useState(false)
   const [verifyMode, setVerifyMode] = useState<"form" | "phoneOtp">("form")
-  const [messageId, setMessageId] = useState("")
   const [otp, setOtp] = useState<string[]>(() => Array.from({ length: OTP_LENGTH }, () => ""))
   const [otpStatus, setOtpStatus] = useState<OtpVerificationStatus>("input")
   const [otpChannel, setOtpChannel] = useState<"whatsapp" | "sms">("sms")
@@ -194,27 +194,25 @@ export function ProfileCompletion({
     setErrMsg(null)
     setSaving(true)
     try {
-      let recaptchaToken = ""
-      try {
-        recaptchaToken = await getRecaptchaToken("send_otp")
-      } catch {
-        // Fall through with empty token — Supabase may reject if captcha is required
-      }
-
-      // Use Supabase native phone auth to send OTP
+      // updateUser({ phone }), NOT signInWithOtp: the caller already has a
+      // session. signInWithOtp is a sign-in primitive — it would either create a
+      // fresh account for this number or sign us in as that number's existing
+      // owner, in both cases abandoning the session we are completing the
+      // profile for. updateUser starts a phone-CHANGE challenge against the
+      // current user, which is what "bind this phone to my account" means.
+      // (No captchaToken: GoTrue's phone_change endpoint takes none. The session
+      // itself is the proof of humanity here, same rationale as the old
+      // /api/profile/complete/send-otp route.)
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: v.value.phone,
-        options: {
-          captchaToken: recaptchaToken || undefined,
-        },
-      })
+      const { error } = await supabase.auth.updateUser({ phone: v.value.phone })
 
       if (error) {
         if (error.message.includes("rate limit") || error.message.includes("too many")) {
           setErrMsg(t("err_rate_limited"))
         } else if (error.message.includes("invalid phone")) {
           setErrMsg(labels.err_phone)
+        } else if (error.message.includes("already been registered") || error.message.includes("already registered")) {
+          setErrMsg(t("err_phone_exists"))
         } else {
           console.error("[ProfileCompletion] sendPhoneCode error:", error)
           setErrMsg(t("err_send"))
@@ -223,7 +221,6 @@ export function ProfileCompletion({
         return
       }
 
-      setMessageId("") // Supabase doesn't expose message ID
       setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString()) // 10 min default
       setOtpChannel("sms")
       setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
@@ -249,11 +246,13 @@ export function ProfileCompletion({
     try {
       const supabase = createClient()
 
-      // Verify the OTP code using Supabase native verifyOtp
+      // type "phone_change", matching the updateUser({ phone }) challenge that
+      // sent this code. Using "sms" here would look for a sign-in OTP that was
+      // never issued and always fail.
       const { error: verifyError } = await supabase.auth.verifyOtp({
         phone: v.value.phone,
         token: code,
-        type: "sms",
+        type: "phone_change",
       })
 
       if (verifyError) {
@@ -292,19 +291,19 @@ export function ProfileCompletion({
         return
       }
 
-      // Phone is verified and not taken — update the user's profile
-      // The phone is already set in auth.users.phone by verifyOtp, we just need to
-      // update public.users.phone for consistency
-      const { error: updateError } = await supabase
-        .from("users")
-        .update({
-          phone: v.value.phone,
-          phone_verified_at: new Date().toISOString(),
-        })
-        .eq("id", currentUser.id)
+      // Phone is verified and not taken — bind it to the account.
+      // verifyOtp wrote auth.users.phone, now we need the auth.identities ledger
+      // entry (phone provider + phone number) so /api/profile/complete accepts
+      // this number as genuinely proven.
+      const bindRes = await fetch("/api/profile/complete/bind-phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: v.value.phone }),
+      })
 
-      if (updateError) {
-        console.error("[ProfileCompletion] DB update error:", updateError)
+      if (!bindRes.ok) {
+        const bindErr = await bindRes.json().catch(() => ({}))
+        console.error("[ProfileCompletion] bind-phone failed:", bindErr)
         setErrMsg(t("err_binding_failed_retry"))
         setOtpStatus("failure")
         setSaving(false)

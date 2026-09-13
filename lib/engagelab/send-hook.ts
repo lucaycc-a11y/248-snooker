@@ -50,14 +50,14 @@ export async function sendSupabaseOtpViaEngagelab(
   language: string = 'zh_HK'
 ): Promise<EngagelabCustomOtpResponse> {
   const authBase64 = process.env.ENGAGELAB_AUTH_BASE64
-  const templateId = process.env.ENGAGELAB_SUPABASE_TEMPLATE_ID
+  const templateId = process.env.ENGAGELAB_OTP_TEMPLATE_ID
 
   if (!authBase64) {
     throw new Error('ENGAGELAB_AUTH_BASE64 configuration missing')
   }
 
   if (!templateId) {
-    throw new Error('ENGAGELAB_SUPABASE_TEMPLATE_ID configuration missing - you must create a custom template in Engagelab Dashboard with {{code}} placeholder')
+    throw new Error('ENGAGELAB_OTP_TEMPLATE_ID configuration missing - you must create a custom template in Engagelab Dashboard with {{code}} placeholder')
   }
 
   // Use Engagelab's template API with custom variables
