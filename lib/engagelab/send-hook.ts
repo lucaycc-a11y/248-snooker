@@ -24,25 +24,27 @@ export interface EngagelabCustomOtpResponse {
 /**
  * Send a Supabase-generated OTP code via Engagelab.
  *
- * IMPORTANT: Engagelab's OTP API uses template-based verification where:
- * 1. You create a template in the Engagelab Dashboard with placeholders
- * 2. The API call passes variables to fill those placeholders
- * 3. Engagelab handles both sending AND verification of the code
+ * CRITICAL: Uses Engagelab's Custom Messages API (/v1/custom-messages), NOT /v1/messages.
  *
- * However, for Supabase integration, we need to:
- * 1. Accept a Supabase-generated OTP code
- * 2. Send it via Engagelab SMS/WhatsApp
- * 3. Let Supabase handle verification (not Engagelab)
+ * Key difference:
+ * - /v1/messages — Engagelab generates its own OTP code (ignores variables.code)
+ * - /v1/custom-messages — Sends YOUR pre-generated code exactly as provided
  *
- * This requires using Engagelab's template API with a CUSTOM template that:
- * - Has a variable placeholder for the OTP code (e.g., {{code}})
- * - Doesn't use Engagelab's auto-generated verification
+ * For Supabase Phone Auth integration:
+ * 1. Supabase generates the OTP code
+ * 2. Supabase calls our Send SMS Hook with the code
+ * 3. We forward it to Engagelab via /v1/custom-messages
+ * 4. Engagelab sends it via SMS/WhatsApp (does NOT generate new code)
+ * 5. User enters the code
+ * 6. Supabase verifies it (not Engagelab)
  *
- * You must create this template in Engagelab Dashboard:
- * Template name: "Supabase OTP"
- * Template content: "【Space8】您的驗證碼是{{code}}，5分鐘內有效。請勿將驗證碼告知他人。"
- * Variables: code
- * Verification: DISABLED (Supabase handles it)
+ * Template requirements in Engagelab Dashboard:
+ * - Template name: "Supabase OTP"
+ * - Template content: "【Space8】您的驗證碼是{{code}}，5分鐘內有效。請勿將驗證碼告知他人。"
+ * - Variables: code
+ * - Type: Custom message (not auto-generated OTP)
+ *
+ * Reference: https://engagelab.com/docs/otp/REST-API/CustomMessages-Send
  */
 export async function sendSupabaseOtpViaEngagelab(
   phone: string,
@@ -60,8 +62,8 @@ export async function sendSupabaseOtpViaEngagelab(
     throw new Error('ENGAGELAB_OTP_TEMPLATE_ID configuration missing - you must create a custom template in Engagelab Dashboard with {{code}} placeholder')
   }
 
-  // Use Engagelab's template API with custom variables
-  // The template should have {{code}} as a variable placeholder
+  // Use Engagelab's CUSTOM MESSAGES API (not /v1/messages)
+  // This API sends YOUR code, does not generate its own
   const requestBody = {
     to: phone,
     template: {
@@ -78,7 +80,8 @@ export async function sendSupabaseOtpViaEngagelab(
   console.log('[DEBUG sendSupabaseOtpViaEngagelab] Request body:', JSON.stringify(requestBody))
   console.log('[DEBUG sendSupabaseOtpViaEngagelab] OTP code in variables.code:', otpCode)
 
-  const res = await fetch('https://otp.api.engagelab.cc/v1/messages', {
+  // CRITICAL: Use /v1/custom-messages (not /v1/messages)
+  const res = await fetch('https://otp.api.engagelab.cc/v1/custom-messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
