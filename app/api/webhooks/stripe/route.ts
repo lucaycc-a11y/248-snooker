@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const { data: existingEvent } = await supabase
       .from('webhook_events')
       .select('id')
-      .eq('event_id', event.eventId || event.providerOrderNo)
+      .eq('event_id', event.providerOrderNo)
       .maybeSingle()
 
     if (existingEvent) {
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     // Store event for idempotency
     await supabase.from('webhook_events').insert({
-      event_id: event.eventId || event.providerOrderNo,
+      event_id: event.providerOrderNo,
       event_type: event.eventType,
       provider: 'stripe',
       payload: event.rawPayload,

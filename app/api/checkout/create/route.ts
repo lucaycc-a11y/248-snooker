@@ -18,6 +18,9 @@ import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import type { PaymentMethod } from '@/lib/payments/types'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { getHostname } from '@/lib/env/hostname'
+import { isUatEnv } from '@/lib/env/uat'
+import { applyTestPriceOverride } from '@/lib/uat/test-pricing'
 
 export const runtime = 'nodejs'
 
@@ -118,6 +121,17 @@ export async function POST(req: Request) {
       rawUatPayme === 'success' || rawUatPayme === 'fail' ? rawUatPayme : undefined
     if (uatPaymeSimulation) {
       console.log('[checkout/create] UAT PayMe test simulation:', uatPaymeSimulation)
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
+    // ── Test-booking flag (SERVER-DERIVED ONLY) ─────────────────────────────
+    // Deliberately NOT read from the request body. If a client could assert
+    // is_test, it could also assert the cheap UAT override price on production
+    // and pay HK$1 for a real booking. The hostname comes from the platform's
+    // x-forwarded-host, which the browser cannot forge.
+    const isTestBooking = isUatEnv(getHostname(req))
+    if (isTestBooking) {
+      console.log('[checkout/create] UAT host — booking will be flagged is_test = true')
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -248,6 +262,10 @@ export async function POST(req: Request) {
           status: 'pending',
           table_number: slot.table_number,
           is_free_booking: false,
+          // Server-derived from the request host — never client-supplied. Keeps
+          // UAT traffic out of revenue/stats queries, which already filter on
+          // is_test = false, and gates the test-price override below.
+          is_test: isTestBooking,
           order_group_id: orderGroupId,
           human_code: humanReadableCode(newId),
           // The customer-selected rail, persisted BEFORE payment succeeds. The
@@ -464,8 +482,17 @@ async function prepareForCheckout(args: {
   promoCode: string | null
   pointsAmount: number
   quotedTotal: number
+  /** Server-derived test flag. When false the UAT override is never consulted. */
+  isTest: boolean
+  /** Billed hours across the whole order — drives per_hour override mode. */
+  durationHours: number
+  /** Every booking row in this order, so an override stays consistent DB-wide. */
+  bookingIds: string[]
 }): Promise<{ total: number } | { error: Response }> {
-  const { service, bookingId, userId, promoCode, pointsAmount, quotedTotal } = args
+  const {
+    service, bookingId, userId, promoCode, pointsAmount, quotedTotal,
+    isTest, durationHours, bookingIds,
+  } = args
 
   const outcome = await prepareCheckout(service, {
     bookingId,
@@ -504,7 +531,56 @@ async function prepareForCheckout(args: {
     }
   }
 
-  return { total: prepared.total }
+  // ── UAT test-price override ────────────────────────────────────────────────
+  // Applied AFTER prepare_checkout has written the authoritative discounted
+  // total, and BEFORE that number reaches provider.createOrder. For a normal
+  // booking (isTest === false) applyTestPriceOverride is a pure no-op: it does
+  // not query uat_test_pricing at all, so the production pricing path here is
+  // byte-for-byte the behaviour it had before this feature.
+  const override = await applyTestPriceOverride({
+    service,
+    isTest,
+    total: prepared.total,
+    durationHours,
+    bookingId,
+  })
+
+  if (!override.applied) return { total: prepared.total }
+
+  // prepare_checkout wrote the real total onto every row in the group, so the
+  // rows must be re-stamped or the DB would disagree with the KPay charge.
+  // total_price is what the charge and the receipt are read from; base_price and
+  // subtotal are re-baselined too so a later re-prepare cannot resurrect the
+  // real price mid-checkout.
+  const { error: syncErr } = await service
+    .from('bookings')
+    .update({
+      total_price: override.total,
+      base_price: override.total,
+      subtotal: override.total,
+    })
+    .in('id', bookingIds.length ? bookingIds : [bookingId])
+
+  if (syncErr) {
+    // Failing closed here would strand a prepared booking; charging the real
+    // price is the safe outcome, but it must be visible rather than silent.
+    console.error('[checkout/create] uat_override_row_sync_failed_charging_real_price', {
+      bookingId,
+      message: syncErr.message,
+      intendedTotal: override.total,
+      realTotal: prepared.total,
+    })
+    return { total: prepared.total }
+  }
+
+  console.log('[checkout/create] uat_test_price_applied', {
+    bookingId,
+    realTotal: override.originalTotal,
+    chargedTotal: override.total,
+    quotedTotal,
+  })
+
+  return { total: override.total }
 }
 
 // ── Single order-creation path ───────────────────────────────────────────────

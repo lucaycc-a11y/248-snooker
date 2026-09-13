@@ -472,24 +472,23 @@ export function AuthCard({
         return
       }
 
-      const res = await fetch("/api/otp/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: normalized, recaptchaToken }),
+      // Use Supabase native phone auth instead of custom /api/otp/send
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: normalized,
+        options: {
+          captchaToken: recaptchaToken,
+        },
       })
-      const j = await res.json().catch(() => ({}))
 
-      if (!res.ok || !j?.success) {
-        if (j?.code === "PHONE_NOT_REGISTERED") {
-          setError(t("err_phone_not_registered"))
-        } else if (j?.code === "OTP_COOLDOWN" || j?.code === "OTP_RATE_LIMITED" || j?.error === "rate_limited") {
-          const retryMinutes = j?.retryAfterSeconds ? Math.ceil(j.retryAfterSeconds / 60) : 15
-          setError(t("err_rate_limited_with_time", { minutes: retryMinutes }))
-        } else if (j?.code === "PHONE_LOCKED" || j?.code === "CAPTCHA_REQUIRED") {
+      if (error) {
+        // Map Supabase errors to user-friendly messages
+        if (error.message.includes("rate limit") || error.message.includes("too many")) {
           setError(t("err_rate_limited"))
-        } else if (j?.code === "PHONE_INVALID") {
+        } else if (error.message.includes("invalid phone")) {
           setError(t("err_phone"))
         } else {
+          console.error("[auth] signInWithOtp error:", error)
           setError(t("err_send"))
         }
         setBusy(false)
@@ -499,9 +498,9 @@ export function AuthCard({
       setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
       setOtpStatus("input")
       setOtpChannel("sms")
-      setMessageId(typeof j?.messageId === "string" ? j.messageId : "")
-      setOtpExpiresAt(typeof j?.expiresAt === "string" ? j.expiresAt : null)
-      setOtpDeliveryChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
+      setMessageId("") // Supabase doesn't expose message ID
+      setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString()) // 10 min default
+      setOtpDeliveryChannel("sms")
       setAttemptsLeft(MAX_OTP_ATTEMPTS)
       setCooldown(RESEND_COOLDOWN)
       setBusy(false)
@@ -621,43 +620,37 @@ export function AuthCard({
     setError(null)
     const supabase = createClient()
 
-    // SMS/WhatsApp path: the code was issued by Engagelab (not Supabase), so
-    // Supabase's native sms verifyOtp can't validate it. We POST to /api/otp/verify,
-    // which checks the code with Engagelab and returns a Supabase magiclink
-    // token_hash; exchanging that mints the session with Supabase as the authority.
+    // Use Supabase native verifyOtp for both email and phone
     let vErr: { message: string } | null = null
     if (otpChannel === "email") {
       const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "email" })
       vErr = error
     } else {
+      // Phone path: now uses Supabase native phone OTP verification
       const normalized = normalizeHkPhone(phone) ?? ""
-      if (!normalized || !messageId) {
+      if (!normalized) {
         setError(t("err_otp_expired"))
         setOtpStatus("failure")
         setBusy(false)
         return
       }
-      const res = await fetch("/api/otp/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: normalized, messageId, code }),
-      }).catch(() => null)
-      const j = res ? await res.json().catch(() => ({})) : {}
-      if (!j?.success || typeof j.tokenHash !== "string") {
-        if (j?.error === "rate_limited") {
+
+      const { error } = await supabase.auth.verifyOtp({
+        phone: normalized,
+        token: code,
+        type: "sms",
+      })
+
+      // Handle Supabase errors with attempt countdown
+      if (error) {
+        if (error.message.includes("rate limit") || error.message.includes("too many")) {
           setError(t("err_rate_limited"))
           setOtpStatus("failure")
           setBusy(false)
           return
         }
-        if (j?.status === "not_found") {
-          setError(t("err_otp_not_found"))
-          setOtpStatus("failure")
-          setBusy(false)
-          return
-        }
-        // Backend rejected the code (wrong / expired). Same localized
-        // attempt-countdown UX as the email branch.
+
+        // Wrong or expired code - countdown attempts
         const remaining = attemptsLeft - 1
         setAttemptsLeft(remaining)
         if (remaining > 0) {
@@ -672,7 +665,7 @@ export function AuthCard({
         setBusy(false)
         return
       }
-      const { error } = await supabase.auth.verifyOtp({ token_hash: j.tokenHash, type: "magiclink" })
+
       vErr = error
     }
 
