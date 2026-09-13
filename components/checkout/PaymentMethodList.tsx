@@ -31,10 +31,13 @@ export type PaymentMethodId =
   | "alipay"
   | "alipayhk"
   | "wechat"
+  | "wechat_pay"
   | "unionpay_qp"
   | "octopus"
   | "payme"
   | "fps"
+  | "google_pay"
+  | "apple_pay"
 
 type PaymentMethodConfig = {
   id: PaymentMethodId
@@ -66,11 +69,51 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
     ),
   },
   {
+    id: "alipay",
+    label: "支付宝",
+    sublabel: "Alipay",
+    disabled: false,
+    icons: <AlipayHKBadgeIcon />,
+  },
+  {
     id: "alipayhk",
     label: "AlipayHK",
     sublabel: "香港支付寶錢包",
     disabled: false,
     icons: <AlipayHKBadgeIcon />,
+  },
+  {
+    id: "google_pay",
+    label: "Google Pay",
+    sublabel: "",
+    disabled: false,
+    icons: (
+      <img
+        src="/logos/payment/google.png"
+        alt="Google Pay"
+        style={{ height: 20, width: 'auto' }}
+      />
+    ),
+  },
+  {
+    id: "apple_pay",
+    label: "Apple Pay",
+    sublabel: "",
+    disabled: false,
+    icons: (
+      <img
+        src="/logos/payment/apple.png"
+        alt="Apple Pay"
+        style={{ height: 20, width: 'auto' }}
+      />
+    ),
+  },
+  {
+    id: "wechat_pay",
+    label: "微信支付",
+    sublabel: "WeChat Pay",
+    disabled: false,
+    icons: <WeChatPayBadgeIcon />,
   },
   {
     id: "payme",
@@ -117,7 +160,19 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
 ]
 
 // Controls both visibility and display order. Add a method here when it launches.
-const AVAILABLE_PAYMENT_METHODS: readonly PaymentMethodId[] = ["card", "alipayhk", "payme"]
+// Provider-aware: Stripe supports card, alipay, google_pay, apple_pay, wechat_pay
+// KPay supports card, alipayhk, payme (others commented out in PAYMENT_METHODS)
+const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
+const STRIPE_METHODS: readonly PaymentMethodId[] = [
+  'card',
+  'alipay',
+  'google_pay',
+  'apple_pay',
+  'wechat_pay',
+]
+const KPAY_METHODS: readonly PaymentMethodId[] = ['card', 'alipayhk', 'payme']
+const AVAILABLE_PAYMENT_METHODS: readonly PaymentMethodId[] =
+  provider === 'stripe' ? STRIPE_METHODS : KPAY_METHODS
 
 const visibleMethods = AVAILABLE_PAYMENT_METHODS.flatMap((id) =>
   PAYMENT_METHODS.filter((method) => method.id === id)

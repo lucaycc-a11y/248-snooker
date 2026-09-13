@@ -13,12 +13,14 @@ export type PaymentMethod =
   | 'alipay'
   | 'alipayhk'
   | 'wechat'
+  | 'wechat_pay'
   | 'unionpay_qp'
 
 // 'form-post' — the gateway returned a JSON parameter map rather than a URL.
 // It must be submitted as an HTML form POST, never assigned to location.href:
 // a JSON blob there resolves as a relative path (https://site/{...json...}).
-export type PayInfoKind = 'qr' | 'link' | 'redirect' | 'form-post'
+// 'client_secret' — Stripe PaymentIntent client_secret for Payment Element.
+export type PayInfoKind = 'qr' | 'link' | 'redirect' | 'form-post' | 'client_secret'
 
 /** Gateway-imposed floor, not a pricing rule — UAT rejects smaller with 1047 無效金額. */
 export const KPAY_MIN_AMOUNT_HKD = 1.5

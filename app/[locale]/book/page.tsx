@@ -16,6 +16,8 @@ import { LoadingGif } from "@/components/ui/LoadingGif"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
+import StripeCheckoutPayment from "@/components/checkout/StripeCheckoutPayment"
+import StripeElementsWrapper from "@/components/checkout/StripeElementsWrapper"
 import KPayPayment from "@/components/checkout/KPayPayment"
 import { readKPayPersistedState, clearKPayPersistedState } from "@/components/checkout/KPayPayment"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
@@ -2349,12 +2351,25 @@ function Screen3({
                     setPaymentMethod(method)
                     scrollIntoViewIfNeeded(payCtaRef)
                     const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
-                    if (kpayMethods.includes(method as KPayMethod)) {
+                    const stripeMethods: PaymentMethodId[] = ['card', 'alipay', 'google_pay', 'apple_pay', 'wechat_pay']
+                    const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
+
+                    if (provider === 'stripe' && stripeMethods.includes(method)) {
+                      // Stripe payment - no mode selection needed
+                    } else if (kpayMethods.includes(method as KPayMethod)) {
                       setKpayMethod(method as KPayMethod)
                       setKpayMode(isDesktopDevice() ? "qr" : "h5")
                     }
                   }}
                 />
+              ) : paymentMethod !== null && (['card', 'alipay', 'google_pay', 'apple_pay', 'wechat_pay'] as const).includes(paymentMethod as any) && (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe') ? (
+                /* ── Stripe payment (Card, Alipay, Google Pay, Apple Pay, WeChat Pay) ── */
+                <>
+                  {/* TODO: Wire Stripe payment with client_secret from booking API */}
+                  <div style={{ padding: 20, textAlign: 'center', color: tokens.colors.textMuted }}>
+                    Stripe payment integration (client_secret wiring in progress)
+                  </div>
+                </>
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
                 /* ── KPay payment (card via CNP Hosted + all direct-connect methods) ── */
                 <>

@@ -1,35 +1,42 @@
 // ─────────────────────────────────────────────────────────────────
-// Payment provider — KPay is the sole checkout provider.
-// Apple Pay / Google Pay are UI-only "coming soon" and never reach
-// this module (blocked at the API route layer with 400).
+// Payment provider factory — single selection point for Stripe vs KPay.
+// Reads PAYMENT_PROVIDER env var: 'stripe' | 'kpay' (default).
 //
-// Stripe code is preserved in ./stripe.ts for future re-enablement
-// (Apple Pay / Google Pay) but is NOT imported or referenced here.
+// Stripe code integration added 2026-09-12 to support Card, Alipay,
+// Google Pay, Apple Pay, and WeChat Pay. KPay remains fully intact.
 // ─────────────────────────────────────────────────────────────────
 
 import type { PaymentProvider } from './types'
 import { KPayProvider } from './kpay'
+import { StripeProvider } from './stripe'
 
 // Cache providers per hostname to ensure UAT and production use different
 // KPay environments (UAT domain always uses KPay UAT keys, production domain
 // respects KPAY_ENV). The cache is per-serverless-instance, which is fine —
 // cross-domain requests are rare and the overhead of creating a new provider
 // is minimal (just env var reads + key validation).
-const providerCache = new Map<string, KPayProvider>()
+const kpayProviderCache = new Map<string, KPayProvider>()
 
 /**
- * Return a KPayProvider for the given hostname. Throws on missing env vars.
- * Apple Pay / Google Pay are blocked upstream — they never call this.
+ * Single provider-selection point — reads PAYMENT_PROVIDER env var.
+ * Returns Stripe for 'stripe', KPay for 'kpay' (default).
  *
  * @param hostname - Request hostname (e.g., 'uat.space8.com.hk') for
- *   environment-aware KPay key selection. If omitted, uses default env.
+ *   environment-aware KPay key selection. Only used for KPay provider.
  */
 export function getPaymentProvider(hostname?: string): PaymentProvider {
+  const providerName = process.env.PAYMENT_PROVIDER || 'kpay'
+
+  if (providerName === 'stripe') {
+    return new StripeProvider()
+  }
+
+  // KPay: use cached provider per hostname
   const key = hostname ?? 'default'
-  let provider = providerCache.get(key)
+  let provider = kpayProviderCache.get(key)
   if (!provider) {
     provider = new KPayProvider(hostname)
-    providerCache.set(key, provider)
+    kpayProviderCache.set(key, provider)
   }
   return provider
 }

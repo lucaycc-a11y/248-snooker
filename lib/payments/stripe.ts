@@ -1,13 +1,12 @@
 // ─────────────────────────────────────────────────────────────────
-// StripeProvider — wraps the existing Stripe PaymentIntent flow
-// behind the PaymentProvider interface.  No behavioural change to
-// the existing Stripe checkout path.
+// StripeProvider — Stripe PaymentIntents integration supporting
+// Card, Alipay, Google Pay, Apple Pay, WeChat Pay.
 // ─────────────────────────────────────────────────────────────────
 
-import type Stripe from 'stripe'
-import { getStripe } from '@/lib/stripe/server'
 import type {
   PaymentProvider,
+  PaymentMethod,
+  PayInfoKind,
   CreateOrderParams,
   CreateOrderResult,
   OrderStatus,
@@ -16,93 +15,185 @@ import type {
   WebhookEvent,
 } from './types'
 
+// ── Env accessors ──────────────────────────────────────────────
+
+function requireEnv(name: string): string {
+  const val = process.env[name]
+  if (!val) {
+    throw new Error(`Stripe 未配置完成：缺少 ${name}`)
+  }
+  return val
+}
+
+// ── StripeProvider ────────────────────────────────────────────
+
 export class StripeProvider implements PaymentProvider {
   readonly name = 'stripe'
+  private readonly stripe: any
+
+  constructor() {
+    const secretKey = requireEnv('STRIPE_SECRET_KEY')
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Stripe = require('stripe')
+    this.stripe = new Stripe(secretKey, {
+      apiVersion: '2026-06-24.dahlia',
+      typescript: true,
+    })
+  }
+
+  // ── createOrder ────────────────────────────────────────────
 
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
-    const stripe = getStripe()
-    const amountInCents = Math.round(params.amount * 100)
-    const intent = await stripe.paymentIntents.create({
-      amount: amountInCents,
+    const { outTradeNo, bookingId, amount, method, remark } = params
+
+    // Map our method IDs to Stripe payment_method_types
+    const paymentMethodTypes: string[] = []
+    if (method === 'card' || method === 'google_pay' || method === 'apple_pay') {
+      paymentMethodTypes.push('card')
+    } else if (method === 'alipay' || method === 'alipayhk') {
+      paymentMethodTypes.push('alipay')
+    } else if (method === 'wechat_pay') {
+      paymentMethodTypes.push('wechat_pay')
+    }
+
+    const createParams: any = {
+      amount: Math.round(amount * 100), // Convert HKD to cents
       currency: 'hkd',
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: paymentMethodTypes,
       metadata: {
-        out_trade_no: params.outTradeNo,
+        booking_id: bookingId,
+        out_trade_no: outTradeNo,
+        remark: remark || '',
       },
-    })
+    }
+
+    // WeChat Pay requires explicit client parameter
+    if (method === 'wechat_pay') {
+      createParams.payment_method_options = {
+        wechat_pay: {
+          client: 'web',
+        },
+      }
+    }
+
+    const intent = await this.stripe.paymentIntents.create(createParams)
+
+    if (!intent.client_secret) {
+      throw new Error('Stripe PaymentIntent 建立失敗：缺少 client_secret')
+    }
+
     return {
       providerOrderNo: intent.id,
-      payInfo: intent.client_secret ?? '',
-      kind: 'redirect',
-      expiresInSeconds: 1800, // 30 min default Stripe expiry
+      payInfo: intent.client_secret,
+      kind: 'client_secret' as PayInfoKind,
+      expiresInSeconds: 3600, // Stripe PaymentIntents don't auto-expire, set reasonable timeout
     }
   }
+
+  // ── queryOrder ─────────────────────────────────────────────
 
   async queryOrder(providerOrderNo: string): Promise<OrderStatus> {
-    const stripe = getStripe()
-    const pi = await stripe.paymentIntents.retrieve(providerOrderNo)
+    const intent = await this.stripe.paymentIntents.retrieve(providerOrderNo)
+    const status = this.mapStripeStatus(intent.status)
+
     return {
-      providerOrderNo: pi.id,
-      status: mapStripeStatus(pi.status),
-      rawStatus: pi.status,
+      status,
+      providerOrderNo: intent.id,
+      rawStatus: intent.status,
+      failureCode: intent.last_payment_error?.code ?? undefined,
+      failureReason: intent.last_payment_error?.message ?? undefined,
     }
   }
+
+  // ── refund ─────────────────────────────────────────────────
 
   async refund(params: RefundParams): Promise<RefundResult> {
-    const stripe = getStripe()
-    try {
-      const refund = await stripe.refunds.create({
-        payment_intent: params.providerOrderNo,
-        amount: Math.round(params.amount * 100),
-      })
-      return {
-        success: true,
-        providerRefundNo: refund.id,
-      }
-    } catch (err) {
-      const e = err as { message?: string }
-      return { success: false, message: e.message ?? 'Refund failed' }
+    const { providerOrderNo, amount, reason } = params
+
+    const refund = await this.stripe.refunds.create({
+      payment_intent: providerOrderNo,
+      amount: Math.round(amount * 100),
+      reason: reason === 'user_cancel' ? 'requested_by_customer' : undefined,
+      metadata: {
+        reason: reason || '',
+      },
+    })
+
+    return {
+      success: refund.status === 'succeeded' || refund.status === 'pending',
+      providerRefundNo: refund.id,
+      message: refund.status,
     }
   }
 
-  verifyWebhookSignature(_rawBody: string, headers: Record<string, string>): boolean {
-    // Stripe signature verification is done by the Stripe SDK's
-    // constructEvent() — we delegate to that in the route handler.
-    // This method is a no-op for Stripe.
-    return true
+  // ── verifyWebhookSignature ────────────────────────────────
+
+  verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean {
+    const webhookSecret = requireEnv('STRIPE_WEBHOOK_SECRET')
+    const signature = headers['stripe-signature']
+    if (!signature) return false
+
+    try {
+      this.stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
+      return true
+    } catch {
+      return false
+    }
   }
+
+  // ── parseWebhookPayload ───────────────────────────────────
 
   parseWebhookPayload(rawBody: string): WebhookEvent {
-    const event = JSON.parse(rawBody) as Stripe.Event
-    const obj = event.data.object as Stripe.PaymentIntent & { out_trade_no?: string }
+    const webhookSecret = requireEnv('STRIPE_WEBHOOK_SECRET')
+    const signature = process.env.STRIPE_WEBHOOK_SIGNATURE || ''
+    const event = this.stripe.webhooks.constructEvent(rawBody, signature, webhookSecret)
+
+    let status: 'succeeded' | 'failed' | 'refunded' = 'failed'
+    let providerOrderNo = ''
+    let outTradeNo: string | undefined
+
+    if (event.type === 'payment_intent.succeeded') {
+      const intent = event.data.object as any
+      status = 'succeeded'
+      providerOrderNo = intent.id
+      outTradeNo = intent.metadata.out_trade_no
+    } else if (event.type === 'payment_intent.payment_failed') {
+      const intent = event.data.object as any
+      status = 'failed'
+      providerOrderNo = intent.id
+      outTradeNo = intent.metadata.out_trade_no
+    } else if (event.type === 'charge.refunded') {
+      const charge = event.data.object as any
+      status = 'refunded'
+      providerOrderNo = charge.payment_intent as string
+    }
+
     return {
       eventType: event.type,
-      providerOrderNo: obj.id,
-      outTradeNo: obj.metadata?.out_trade_no,
-      status: mapWebhookEventType(event.type),
-      rawPayload: event as unknown as Record<string, unknown>,
+      providerOrderNo,
+      outTradeNo,
+      status,
+      rawPayload: event.data.object as unknown as Record<string, unknown>,
     }
   }
-}
 
-function mapStripeStatus(status: string): OrderStatus['status'] {
-  switch (status) {
-    case 'succeeded':
-    case 'processing':
-      return 'success'
-    case 'requires_payment_method':
-    case 'requires_confirmation':
-    case 'requires_action':
-    case 'canceled':
-      return 'cancelled'
-    default:
-      return 'pending'
+  // ── Helper: map Stripe status to our OrderStatus ──────────
+
+  private mapStripeStatus(stripeStatus: string): OrderStatus['status'] {
+    switch (stripeStatus) {
+      case 'succeeded':
+        return 'success'
+      case 'processing':
+        return 'pending'
+      case 'requires_payment_method':
+      case 'requires_confirmation':
+      case 'requires_action':
+      case 'requires_capture':
+        return 'pending'
+      case 'canceled':
+        return 'cancelled'
+      default:
+        return 'failed'
+    }
   }
-}
-
-function mapWebhookEventType(type: string): WebhookEvent['status'] {
-  if (type === 'payment_intent.succeeded') return 'succeeded'
-  if (type === 'payment_intent.payment_failed') return 'failed'
-  if (type === 'charge.refunded') return 'refunded'
-  return 'succeeded'
 }
