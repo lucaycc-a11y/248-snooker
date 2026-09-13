@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getPaymentProvider } from '@/lib/payments'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
@@ -31,7 +30,7 @@ export async function POST(req: NextRequest) {
     const event = provider.parseWebhookPayload(body)
 
     // Idempotency: check if we've already processed this event
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
 
     const { data: existingEvent } = await supabase
       .from('webhook_events')

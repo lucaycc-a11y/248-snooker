@@ -414,24 +414,23 @@ export function AuthCard({
           return
         }
 
-        const res = await fetch("/api/otp/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone: normalized, recaptchaToken }),
+        // Use Supabase native phone auth instead of custom /api/otp/send
+        const supabase = createClient()
+        const { error } = await supabase.auth.signInWithOtp({
+          phone: normalized,
+          options: {
+            captchaToken: recaptchaToken,
+          },
         })
-        const j = await res.json().catch(() => ({}))
 
-        if (!res.ok || !j?.success) {
-          if (j?.code === "PHONE_NOT_REGISTERED") {
-            setError(t("err_phone_not_registered"))
-          } else if (j?.code === "OTP_COOLDOWN" || j?.code === "OTP_RATE_LIMITED" || j?.error === "rate_limited") {
-            const retryMinutes = j?.retryAfterSeconds ? Math.ceil(j.retryAfterSeconds / 60) : 15
-            setError(t("err_rate_limited_with_time", { minutes: retryMinutes }))
-          } else if (j?.code === "PHONE_LOCKED" || j?.code === "CAPTCHA_REQUIRED") {
+        if (error) {
+          // Map Supabase errors to user-friendly messages
+          if (error.message.includes("rate limit") || error.message.includes("too many")) {
             setError(t("err_rate_limited"))
-          } else if (j?.code === "PHONE_INVALID") {
+          } else if (error.message.includes("invalid phone")) {
             setError(t("err_phone"))
           } else {
+            console.error("[auth] signInWithOtp error:", error)
             setError(t("err_send"))
           }
           setBusy(false)
@@ -441,9 +440,9 @@ export function AuthCard({
         setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
         setOtpStatus("input")
         setOtpChannel("sms")
-        setMessageId(typeof j?.messageId === "string" ? j.messageId : "")
-        setOtpExpiresAt(typeof j?.expiresAt === "string" ? j.expiresAt : null)
-        setOtpDeliveryChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
+        setMessageId("") // Supabase doesn't expose message ID
+        setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString()) // 10 min default
+        setOtpDeliveryChannel("sms")
         setAttemptsLeft(MAX_OTP_ATTEMPTS)
         setCooldown(RESEND_COOLDOWN)
         setBusy(false)
