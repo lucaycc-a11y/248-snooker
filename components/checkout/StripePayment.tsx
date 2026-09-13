@@ -681,6 +681,17 @@ export default function StripePayment(props: Props) {
         payDisabled={props.payDisabled}
         onDisabledPayClick={props.onDisabledPayClick}
       />
+      {/* Powered by Stripe branding - required by Stripe brand guidelines
+          https://stripe.com/newsroom/information
+          https://stripe.com/marks/legal */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 14, opacity: 0.5 }}>
+        <span style={{ fontSize: 11, color: '#A1A1A6' }}>Powered by</span>
+        <img
+          src="https://cdn.brandfolder.io/KGT2DTA4/at/8vbr8k4mr5xjwk4hxq4t9vs/Stripe_wordmark_-_blurple.svg"
+          alt="Stripe"
+          style={{ height: 12, marginLeft: 6 }}
+        />
+      </div>
     </Elements>
   )
 }
