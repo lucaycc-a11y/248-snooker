@@ -124,6 +124,16 @@ export default function StripeCheckoutPayment({
           {isProcessing ? '處理中...' : '確認付款'}
         </button>
       </form>
+
+      {/* Powered by Stripe branding - required by Stripe brand guidelines */}
+      <div className="flex items-center justify-center pt-2 opacity-60">
+        <span className="text-xs text-gray-500">Powered by</span>
+        <img
+          src="https://cdn.brandfolder.io/KGT2DTA4/at/8vbr8k4mr5xjwk4hxq4t9vs/Stripe_wordmark_-_blurple.svg"
+          alt="Stripe"
+          className="ml-1.5 h-3"
+        />
+      </div>
     </div>
   )
 }

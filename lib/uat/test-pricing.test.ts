@@ -168,28 +168,19 @@ describe('applyTestPriceOverride — production safety', () => {
 describe('computeOverrideTotal', () => {
   it('ignores duration in flat mode', () => {
     expect(
-      computeOverrideTotal(
-        { id: 'x', mode: 'flat', amount: 5, label: null, updatedAt: '' },
-        4,
-      ),
+      computeOverrideTotal({ id: 'x', mode: 'flat', amount: 5, label: null, updatedAt: '' }, 4),
     ).toBe(5)
   })
 
   it('multiplies by hours in per_hour mode', () => {
     expect(
-      computeOverrideTotal(
-        { id: 'x', mode: 'per_hour', amount: 5, label: null, updatedAt: '' },
-        4,
-      ),
+      computeOverrideTotal({ id: 'x', mode: 'per_hour', amount: 5, label: null, updatedAt: '' }, 4),
     ).toBe(20)
   })
 
   it('treats a non-positive duration as one hour rather than zero', () => {
     expect(
-      computeOverrideTotal(
-        { id: 'x', mode: 'per_hour', amount: 5, label: null, updatedAt: '' },
-        0,
-      ),
+      computeOverrideTotal({ id: 'x', mode: 'per_hour', amount: 5, label: null, updatedAt: '' }, 0),
     ).toBe(5)
   })
 })

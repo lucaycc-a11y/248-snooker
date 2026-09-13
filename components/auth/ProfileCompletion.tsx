@@ -182,7 +182,7 @@ export function ProfileCompletion({
   }
 
   // Step 1 of the OTP sub-step: prove the human isn't a bot (reCAPTCHA), then
-  // have Engagelab send a 6-digit code to the entered number.
+  // send a 6-digit code to the entered number using Supabase native phone auth.
   const sendPhoneCode = async () => {
     const v = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
     if (!v.ok) {
@@ -198,28 +198,34 @@ export function ProfileCompletion({
       try {
         recaptchaToken = await getRecaptchaToken("send_otp")
       } catch {
-        // 保持空字串 fall through——後端 captchaVerified 會維持 false，
-        // 由 reserve_login_otp RPC 決定是否要求 captcha。
+        // Fall through with empty token — Supabase may reject if captcha is required
       }
-      const res = await fetch("/api/profile/complete/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: v.value.phone, recaptchaToken }),
+
+      // Use Supabase native phone auth to send OTP
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: v.value.phone,
+        options: {
+          captchaToken: recaptchaToken || undefined,
+        },
       })
-      const j = await res.json().catch(() => ({}))
-      if (!res.ok || j?.ok !== true) {
-        setErrMsg(
-          j?.code === "OTP_RATE_LIMITED" ? t("err_rate_limited")
-          : j?.code === "PHONE_INVALID" ? labels.err_phone
-          : j?.code === "OTP_INTERNAL" || j?.code === "OTP_SEND_FAILED" ? t("err_send")
-          : t("err_generic")
-        )
+
+      if (error) {
+        if (error.message.includes("rate limit") || error.message.includes("too many")) {
+          setErrMsg(t("err_rate_limited"))
+        } else if (error.message.includes("invalid phone")) {
+          setErrMsg(labels.err_phone)
+        } else {
+          console.error("[ProfileCompletion] sendPhoneCode error:", error)
+          setErrMsg(t("err_send"))
+        }
         setSaving(false)
         return
       }
-      setMessageId(typeof j.messageId === "string" ? j.messageId : "")
-      setOtpExpiresAt(typeof j.expiresAt === "string" ? j.expiresAt : null)
-      setOtpChannel(j?.channel === "whatsapp" ? "whatsapp" : "sms")
+
+      setMessageId("") // Supabase doesn't expose message ID
+      setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString()) // 10 min default
+      setOtpChannel("sms")
       setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
       setOtpStatus("input")
       setCooldown(RESEND_COOLDOWN)
@@ -230,57 +236,90 @@ export function ProfileCompletion({
     setSaving(false)
   }
 
-  // Step 2: redeem the OTP and BIND the phone to the account
-  // (/api/otp/verify-binding writes phone + phone_verified_at), then finalize the
-  // profile now that the server can stamp a genuine phone_verified_at.
+  // Step 2: redeem the OTP and BIND the phone to the account using Supabase native verifyOtp.
+  // This verifies the code and updates the user's phone in auth.users.phone.
   const verifyPhone = async (code: string) => {
     const v = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
     if (!v.ok) return
-    if (!messageId) {
-      setErrMsg(t("err_send"))
-      setOtpStatus("failure")
-      return
-    }
+
     setSaving(true)
     setOtpStatus("verifying")
     setErrMsg(null)
+
     try {
-      const res = await fetch("/api/otp/verify-binding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: v.value.phone, messageId, code }),
+      const supabase = createClient()
+
+      // Verify the OTP code using Supabase native verifyOtp
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        phone: v.value.phone,
+        token: code,
+        type: "sms",
       })
-      const j = await res.json().catch(() => ({}))
-      if (res.status === 409 && j?.status === "phone_taken") {
+
+      if (verifyError) {
+        if (verifyError.message.includes("rate limit") || verifyError.message.includes("too many")) {
+          setErrMsg(t("err_rate_limited"))
+        } else {
+          console.error("[ProfileCompletion] verifyPhone error:", verifyError)
+          setErrMsg(t("err_otp_wrong_generic"))
+        }
+        setOtpStatus("failure")
+        setSaving(false)
+        return
+      }
+
+      // OTP verified successfully! Now check if this phone is already taken by another user
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser) {
+        setErrMsg(t("err_generic"))
+        setOtpStatus("failure")
+        setSaving(false)
+        return
+      }
+
+      // Check if another user already has this phone
+      const { data: existingUsers } = await supabase
+        .from("users")
+        .select("id")
+        .eq("phone", v.value.phone)
+        .neq("id", currentUser.id)
+        .limit(1)
+
+      if (existingUsers && existingUsers.length > 0) {
         setErrMsg(t("err_phone_exists"))
         setOtpStatus("failure")
         setSaving(false)
         return
       }
-      // db_error: the code was CORRECT but the server failed to bind the phone
-      // (transient DB/constraint issue). Never conflate with a wrong code.
-      if (j?.error === "db_error") {
+
+      // Phone is verified and not taken — update the user's profile
+      // The phone is already set in auth.users.phone by verifyOtp, we just need to
+      // update public.users.phone for consistency
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          phone: v.value.phone,
+          phone_verified_at: new Date().toISOString(),
+        })
+        .eq("id", currentUser.id)
+
+      if (updateError) {
+        console.error("[ProfileCompletion] DB update error:", updateError)
         setErrMsg(t("err_binding_failed_retry"))
         setOtpStatus("failure")
         setSaving(false)
         return
       }
-      if (!res.ok || j?.success !== true) {
-        setErrMsg(j?.error === "rate_limited" ? t("err_rate_limited") : t("err_otp_wrong_generic"))
-        setOtpStatus("failure")
-        setSaving(false)
-        return
-      }
-      // j.alreadyVerified === true also lands here (res.ok, success: true): the
-      // OTP was correct and the phone was already bound to this same account,
-      // which is a success — fall through, finalize the profile.
+
+      // Success!
       setPhoneVerified(true)
       setOtpStatus("success")
       await new Promise<void>((resolve) => window.setTimeout(resolve, 720))
       // submit() re-reads the phone state, which is unchanged and now proven;
       // on failure it drops back to the form where the verified badge shows.
       await submit(v.value.phone)
-    } catch {
+    } catch (err) {
+      console.error("[ProfileCompletion] verifyPhone exception:", err)
       setErrMsg(t("err_network"))
       setOtpStatus("failure")
       setSaving(false)
