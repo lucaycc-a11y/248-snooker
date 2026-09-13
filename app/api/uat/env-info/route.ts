@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const clientIp = getClientIp(req)
 
     // Get current user

@@ -15,7 +15,7 @@ function getClientIp(req: NextRequest): string {
   )
 }
 
-async function checkAdminAuth(supabase: ReturnType<typeof createClient>) {
+async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin) {
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin || !auth.user) {
@@ -146,7 +146,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await createClient()
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin || !auth.user) {
