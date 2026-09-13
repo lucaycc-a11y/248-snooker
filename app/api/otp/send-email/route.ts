@@ -31,8 +31,7 @@ export async function POST(req: Request) {
     }
 
     // Rate limit: 3 email OTP requests per 5 minutes per user
-    const rateLimitKey = `email-otp:${user.id}`
-    const allowed = await rateLimit(rateLimitKey, 3, 300)
+    const allowed = await rateLimit('email-otp', `user:${user.id}`, 3, 300)
     if (!allowed) {
       console.warn('[otp/send-email] rate limit exceeded', {
         userId: user.id,
