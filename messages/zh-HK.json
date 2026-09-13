@@ -41,7 +41,7 @@
     "terms": "繼續即表示你同意我們的條款及私隱政策。",
     "back": "返回",
     "otp_title": "輸入驗證碼",
-    "otp_subtitle": "我們已傳送 6 位數驗證碼至 +852 {phone}",
+    "otp_subtitle": "我們已傳送 6 位數驗證碼至 {phone}",
     "resend": "重新傳送驗證碼",
     "resend_in": "{seconds} 秒後可重新傳送",
     "saving": "儲存中…",

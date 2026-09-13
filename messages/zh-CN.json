@@ -41,7 +41,7 @@
     "terms": "继续即表示你同意我们的条款及隐私政策。",
     "back": "返回",
     "otp_title": "输入验证码",
-    "otp_subtitle": "我们已向 +852 {phone} 发送 6 位数验证码",
+    "otp_subtitle": "我们已向 {phone} 发送 6 位数验证码",
     "resend": "重新发送验证码",
     "resend_in": "{seconds} 秒后可重新发送",
     "saving": "保存中…",

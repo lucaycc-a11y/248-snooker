@@ -75,7 +75,6 @@ export function OtpVerification({
           <p id={instructionId} className="sr-only" data-cms-key="auth.otp.instruction">{t("otp_instruction", { length })}</p>
           <OtpInput length={length} value={value} onChange={onChange} onComplete={onComplete} disabled={disabled || unavailable || remainingSeconds === 0} invalid={hasError} className={hasError ? "otp-input-grid-failure" : undefined} digitLabel={(index) => t("otp_digit", { number: index + 1 })} ariaDescribedBy={describedBy} focusFirst={status === "input"} />
         </fieldset>
-        {expiresAt && remainingSeconds !== null && !unavailable && remainingSeconds > 0 && <p className="otp-verification-expiry" role="status" aria-live="polite">{t("resend_in", { seconds: formattedRemaining })}</p>}
         {hasError && <>
           <p id={errorId} className="otp-verification-error" role="alert" data-cms-key="auth.otp.error">{displayError ?? t("err_otp_wrong_generic")}</p>
           {!unavailable && <button type="button" className="otp-reset-button" onClick={onReset} disabled={disabled} data-cms-key="auth.otp.try_again">{t("otp_try_again")}</button>}

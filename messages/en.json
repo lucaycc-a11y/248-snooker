@@ -41,7 +41,7 @@
     "terms": "By continuing, you agree to our Terms and Privacy Policy.",
     "back": "Back",
     "otp_title": "Enter Code",
-    "otp_subtitle": "We sent a 6-digit code to +852 {phone}",
+    "otp_subtitle": "We sent a 6-digit code to {phone}",
     "resend": "Resend code",
     "resend_in": "Resend in {seconds}s",
     "saving": "Saving…",

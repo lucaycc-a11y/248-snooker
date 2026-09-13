@@ -626,9 +626,9 @@ export function AuthCard({
       const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "email" })
       vErr = error
     } else {
-      // Phone path: now uses Supabase native phone OTP verification
-      const normalized = normalizeHkPhone(phone) ?? ""
-      if (!normalized) {
+      // Phone path: use the already-normalized phone from state
+      // (normalized by extractPhoneNumber when signInWithOtp was called)
+      if (!phone) {
         setError(t("err_otp_expired"))
         setOtpStatus("failure")
         setBusy(false)
@@ -636,7 +636,7 @@ export function AuthCard({
       }
 
       const { error } = await supabase.auth.verifyOtp({
-        phone: normalized,
+        phone,
         token: code,
         type: "sms",
       })
