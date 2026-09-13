@@ -100,12 +100,15 @@ export function ProfileCompletion({
   // Phone verification sub-step. True when an OTP was successfully redeemed via
   // bind-phone for this component's phone number.
   const [phoneVerified, setPhoneVerified] = useState(false)
-  const [verifyMode, setVerifyMode] = useState<"form" | "phoneOtp">("form")
+  const [verifyMode, setVerifyMode] = useState<"form" | "phoneOtp" | "emailOtp">("form")
   const [otp, setOtp] = useState<string[]>(() => Array.from({ length: OTP_LENGTH }, () => ""))
   const [otpStatus, setOtpStatus] = useState<OtpVerificationStatus>("input")
   const [otpChannel, setOtpChannel] = useState<"whatsapp" | "sms">("sms")
   const [cooldown, setCooldown] = useState(0)
   const [otpExpiresAt, setOtpExpiresAt] = useState<string | null>(null)
+
+  // Email verification sub-step. True when an OTP was successfully redeemed for this email.
+  const [emailVerified, setEmailVerified] = useState(false)
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -118,6 +121,16 @@ export function ProfileCompletion({
   // Every other user (Apple/Google/Email) must prove the number with an OTP
   // before the profile can be completed.
   const phoneConfirmed = isPhoneVerified || phoneVerified
+
+  // For phone-first users, check if email is already in session (email-first path)
+  const supabase = createClient()
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null)
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setSessionEmail(data.user?.email ?? null)
+    })
+  }, [])
+  const emailConfirmed = !!sessionEmail || emailVerified
 
   // When missingContact is set, only validate the required field. Name is always
   // optional in this mode since the user's identity is already established via auth.
@@ -325,6 +338,94 @@ export function ProfileCompletion({
     }
   }
 
+  // Email verification: Step 1 - send email OTP
+  const sendEmailCode = async () => {
+    const v = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
+    if (!v.ok) {
+      setErrField(v.field)
+      setErrMsg(errorFor(v))
+      return
+    }
+    setErrField(null)
+    setErrMsg(null)
+    setSaving(true)
+    try {
+      const res = await fetch("/api/otp/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: v.value.email }),
+      })
+
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        if (res.status === 429) {
+          setErrMsg(t("err_rate_limited"))
+        } else if (j.error === "invalid_email") {
+          setErrMsg(labels.err_email)
+        } else {
+          console.error("[ProfileCompletion] sendEmailCode error:", j)
+          setErrMsg(t("err_send"))
+        }
+        setSaving(false)
+        return
+      }
+
+      setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString())
+      setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+      setOtpStatus("input")
+      setCooldown(RESEND_COOLDOWN)
+      setVerifyMode("emailOtp")
+    } catch {
+      setErrMsg(t("err_network"))
+    }
+    setSaving(false)
+  }
+
+  // Email verification: Step 2 - verify email OTP
+  const verifyEmail = async (code: string) => {
+    const v = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
+    if (!v.ok) return
+
+    setSaving(true)
+    setOtpStatus("verifying")
+    setErrMsg(null)
+
+    try {
+      const res = await fetch("/api/otp/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: v.value.email, token: code }),
+      })
+
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        if (res.status === 429) {
+          setErrMsg(t("err_rate_limited"))
+        } else if (j.error === "invalid_or_expired_token") {
+          setErrMsg(t("err_otp_wrong_generic"))
+        } else {
+          console.error("[ProfileCompletion] verifyEmail error:", j)
+          setErrMsg(t("err_otp_wrong_generic"))
+        }
+        setOtpStatus("failure")
+        setSaving(false)
+        return
+      }
+
+      // Success!
+      setEmailVerified(true)
+      setOtpStatus("success")
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 720))
+      // Return to form with verified badge
+      setVerifyMode("form")
+    } catch (err) {
+      console.error("[ProfileCompletion] verifyEmail exception:", err)
+      setErrMsg(t("err_network"))
+      setOtpStatus("failure")
+      setSaving(false)
+    }
+  }
+
   const fieldStyle = (field: "name" | "email" | "phone") => ({
     width: "100%",
     height: 52,
@@ -338,6 +439,63 @@ export function ProfileCompletion({
   })
 
   const submitLabel = phoneConfirmed ? labels.submit : labels.phone_send_code
+
+  // ── Email OTP sub-step ─────────────────────────────────────────────────────
+  // Shown when phone-first users need to verify their email before profile completion.
+  if (verifyMode === "emailOtp" && !emailConfirmed) {
+    return (
+      <div>
+        <h2
+          data-cms-key="auth.profile.title"
+          style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, letterSpacing: "0.02em", color: "#fff", marginBottom: 6 }}
+        >
+          {labels.title}
+        </h2>
+        <p data-cms-key="auth.profile.email_otp_subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
+          我們已經發送驗證碼到 <strong style={{ color: "#22c55e" }}>{email}</strong>
+        </p>
+
+        <OtpVerification
+          length={OTP_LENGTH}
+          value={otp}
+          onChange={setOtp}
+          onComplete={verifyEmail}
+          status={otpStatus}
+          error={errMsg}
+          onReset={() => {
+            setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+            setErrMsg(null)
+            setOtpStatus("input")
+          }}
+          disabled={saving}
+          expiresAt={otpExpiresAt}
+        />
+
+        <button
+          type="button"
+          onClick={sendEmailCode}
+          disabled={cooldown > 0 || saving}
+          data-cms-key="auth.otp.resend"
+          style={{ marginTop: 20, width: "100%", background: "none", border: "none", color: cooldown > 0 ? "rgba(255,255,255,0.35)" : GREEN, fontSize: 14, cursor: cooldown > 0 ? "default" : "pointer" }}
+        >
+          {cooldown > 0 ? t("resend_in", { seconds: cooldown }) : t("resend")}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setVerifyMode("form")
+            setErrMsg(null)
+            setOtpStatus("input")
+          }}
+          data-cms-key="auth.profile.email_change"
+          style={{ marginTop: 8, width: "100%", background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: 13, cursor: "pointer", textAlign: "center", textDecoration: "underline", textUnderlineOffset: 2 }}
+        >
+          更改 Email
+        </button>
+      </div>
+    )
+  }
 
   // ── OTP sub-step ───────────────────────────────────────────────────────────
   // Shown only when the phone needs proving. The number is displayed read-only
@@ -408,9 +566,36 @@ export function ProfileCompletion({
       >
         {labels.title}
       </h2>
-      <p data-cms-key="auth.profile.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
+      <p data-cms-key="auth.profile.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 12 }}>
         {labels.subtitle}
       </p>
+
+      {/* Why we need both email and phone verification */}
+      <div style={{
+        marginBottom: 24,
+        padding: 16,
+        background: "rgba(34,197,94,0.08)",
+        border: "1px solid rgba(34,197,94,0.2)",
+        borderRadius: 12
+      }}>
+        <p data-cms-key="auth.profile.verification_notice" style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", marginBottom: 10, lineHeight: 1.6 }}>
+          <strong style={{ color: "#22c55e" }}>為什麼需要驗證？</strong>
+        </p>
+        <ul style={{ fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.6, paddingLeft: 20, margin: 0 }}>
+          <li style={{ marginBottom: 6 }}>
+            <strong>電話和 Email 都需要驗證</strong>，驗證後你可以用任何一種方式登入
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Email 用於發送確認信</strong>，入面會有場館 QR code 等重要資訊
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>電話方便我們聯絡你</strong>，有關預訂的緊急通知會透過電話
+          </li>
+          <li>
+            <strong>推廣資訊只會透過 Email</strong>，電話不會收到任何推廣，而且 Email 推廣可以隨時關閉
+          </li>
+        </ul>
+      </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {showName && (
@@ -424,15 +609,55 @@ export function ProfileCompletion({
           />
         )}
         {showEmail && (
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={labels.email}
-            autoComplete="email"
-            inputMode="email"
-            aria-label={labels.email}
-            style={fieldStyle("email")}
-          />
+          <>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={labels.email}
+              autoComplete="email"
+              inputMode="email"
+              disabled={emailConfirmed}
+              aria-label={labels.email}
+              style={{
+                ...fieldStyle("email"),
+                opacity: emailConfirmed ? 0.65 : 1,
+                cursor: emailConfirmed ? "not-allowed" : "text",
+              }}
+            />
+
+            {emailConfirmed && (
+              <div
+                data-cms-key="auth.profile.email_verified_badge"
+                style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#22c55e" }}
+              >
+                ✓ Email 已驗證
+              </div>
+            )}
+
+            {!emailConfirmed && !sessionEmail && (
+              <button
+                type="button"
+                onClick={sendEmailCode}
+                disabled={!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || saving}
+                data-cms-key="auth.profile.email_send_code"
+                style={{
+                  marginTop: 8,
+                  width: "100%",
+                  height: 42,
+                  border: "1px solid rgba(34,197,94,0.3)",
+                  borderRadius: 10,
+                  background: "rgba(34,197,94,0.1)",
+                  color: "#22c55e",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  cursor: (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || saving) ? "not-allowed" : "pointer",
+                  opacity: (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || saving) ? 0.5 : 1,
+                }}
+              >
+                發送 Email 驗證碼
+              </button>
+            )}
+          </>
         )}
         {showPhone && (
           <>
