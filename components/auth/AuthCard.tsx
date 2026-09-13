@@ -417,8 +417,8 @@ export function AuthCard({
         // Use Supabase native phone auth instead of custom /api/otp/send
         const supabase = createClient()
 
-        // DEBUG: Log the actual phone value being sent to signInWithOtp
-        console.log('[DEBUG signInWithOtp] phone:', JSON.stringify(normalized))
+        // DEBUG: Trace to detect duplicate calls
+        console.trace('[DEBUG signInWithOtp] phone:', JSON.stringify(normalized))
 
         const { error } = await supabase.auth.signInWithOtp({
           phone: normalized,
