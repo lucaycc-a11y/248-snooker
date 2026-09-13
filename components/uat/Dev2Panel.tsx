@@ -46,6 +46,36 @@ type DeployInfo = {
 
 type DeployStatus = 'idle' | 'merging' | 'success' | 'error'
 
+/** The active UAT test-price override. Test bookings charge REAL money. */
+type TestPrice = {
+  id: string
+  mode: 'flat' | 'per_hour'
+  amount: number
+  label: string | null
+  updatedAt: string
+}
+
+type TestBooking = {
+  id: string
+  humanCode: string | null
+  date: string
+  startTime: string
+  endTime: string
+  tableNumber: number | null
+  durationHours: number | null
+  totalPrice: number | null
+  status: string
+  paymentMethod: string | null
+  providerOrderNo: string | null
+  refundedAt: string | null
+  refundAmount: number | null
+  createdAt: string
+  isOwn: boolean
+  attemptId: string | null
+  attemptStatus: string | null
+  refundable: boolean
+}
+
 export function Dev2Panel({ mode = 'uat' }: { mode?: 'uat' | 'production-review' }) {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('activity')
@@ -60,6 +90,19 @@ export function Dev2Panel({ mode = 'uat' }: { mode?: 'uat' | 'production-review'
   const [deployError, setDeployError] = useState<string | null>(null)
   const [pushConfirmText, setPushConfirmText] = useState('')
   const [goLiveConfirmText, setGoLiveConfirmText] = useState('')
+
+  // ── UAT test pricing + refunds ──────────────────────────────────────────
+  const [testPrice, setTestPrice] = useState<TestPrice | null>(null)
+  const [isLoadingTestPrice, setIsLoadingTestPrice] = useState(false)
+  const [priceMode, setPriceMode] = useState<'flat' | 'per_hour'>('flat')
+  const [priceAmount, setPriceAmount] = useState('1')
+  const [priceLabel, setPriceLabel] = useState('')
+  const [priceSaving, setPriceSaving] = useState(false)
+  const [testBookings, setTestBookings] = useState<TestBooking[]>([])
+  const [isLoadingTestBookings, setIsLoadingTestBookings] = useState(false)
+  const [refundTargetId, setRefundTargetId] = useState<string | null>(null)
+  const [refundConfirmText, setRefundConfirmText] = useState('')
+  const [refundingId, setRefundingId] = useState<string | null>(null)
 
   // Initialize activity logger on mount
   useEffect(() => {
@@ -89,6 +132,14 @@ export function Dev2Panel({ mode = 'uat' }: { mode?: 'uat' | 'production-review'
   }, [isOpen, activeTab, envInfo?.isAdmin])
 
   // Load deploy info when switching to deploy tab
+  useEffect(() => {
+    if (isOpen && activeTab === 'actions' && envInfo?.isAdmin) {
+      loadTestPrice()
+      loadTestBookings()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, activeTab, envInfo?.isAdmin])
+
   useEffect(() => {
     if (isOpen && activeTab === 'deploy' && envInfo?.isAdmin) {
       loadDeployInfo()
@@ -164,6 +215,104 @@ export function Dev2Panel({ mode = 'uat' }: { mode?: 'uat' | 'production-review'
       console.error(err)
     }
   }, [])
+
+  const loadTestPrice = useCallback(async () => {
+    setIsLoadingTestPrice(true)
+    try {
+      const res = await fetch('/api/uat/test-pricing')
+      const data = await res.json()
+      if (res.ok) setTestPrice(data.active ?? null)
+    } catch (err) {
+      console.error('[dev2] loadTestPrice failed', err)
+    } finally {
+      setIsLoadingTestPrice(false)
+    }
+  }, [])
+
+  const loadTestBookings = useCallback(async () => {
+    setIsLoadingTestBookings(true)
+    try {
+      const res = await fetch('/api/uat/test-bookings')
+      const data = await res.json()
+      if (res.ok) setTestBookings(Array.isArray(data.bookings) ? data.bookings : [])
+    } catch (err) {
+      console.error('[dev2] loadTestBookings failed', err)
+    } finally {
+      setIsLoadingTestBookings(false)
+    }
+  }, [])
+
+  const handleSetTestPrice = useCallback(async () => {
+    const amount = Number(priceAmount)
+    if (!Number.isFinite(amount) || amount < 1) {
+      alert('Amount must be at least 1 — KPay rejects zero-amount orders.')
+      return
+    }
+    setPriceSaving(true)
+    try {
+      const res = await fetch('/api/uat/test-pricing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: priceMode,
+          amount,
+          ...(priceLabel.trim() ? { label: priceLabel.trim() } : {}),
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setTestPrice(data.active ?? null)
+        setPriceLabel('')
+        alert(
+          `Test price set: ${priceMode === 'flat' ? `HK$${amount} flat` : `HK$${amount}/hour`}`,
+        )
+      } else {
+        alert(`Error: ${data.error}`)
+      }
+    } catch (err) {
+      alert('Failed to set test price')
+      console.error(err)
+    } finally {
+      setPriceSaving(false)
+    }
+  }, [priceMode, priceAmount, priceLabel])
+
+  const handleRefundTestBooking = useCallback(
+    async (bookingId: string) => {
+      if (refundConfirmText !== 'REFUND') {
+        alert('Type "REFUND" to confirm')
+        return
+      }
+      setRefundingId(bookingId)
+      try {
+        const res = await fetch('/api/uat/test-bookings/refund', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookingId }),
+        })
+        const data = await res.json()
+        if (res.ok) {
+          setRefundTargetId(null)
+          setRefundConfirmText('')
+          // Refresh so the row's status reflects the refund without a page reload.
+          await loadTestBookings()
+          alert(
+            data.warning
+              ? `Refunded HK$${data.refundAmount} — WARNING: ${data.warning}`
+              : `Refunded HK$${data.refundAmount}${data.providerRefundNo ? ` (KPay refund no: ${data.providerRefundNo})` : ''}`,
+          )
+        } else {
+          alert(`Refund failed: ${data.error}`)
+        }
+      } catch (err) {
+        alert('Refund request failed')
+        console.error(err)
+      } finally {
+        setRefundingId(null)
+      }
+    },
+    [refundConfirmText, loadTestBookings],
+  )
 
   const handleAddCurrentIp = useCallback(async () => {
     try {
@@ -483,6 +632,287 @@ export function Dev2Panel({ mode = 'uat' }: { mode?: 'uat' | 'production-review'
 
         {activeTab === 'actions' && (
           <div>
+            {envInfo?.isAdmin && (
+              <div
+                style={{
+                  marginBottom: '16px',
+                  padding: '10px',
+                  background: '#1a1a1a',
+                  border: '1px solid #ff9800',
+                  borderRadius: '4px',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: '11px',
+                    color: '#ff9800',
+                    fontWeight: 600,
+                    marginBottom: '6px',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  UAT TEST PRICE
+                </div>
+
+                {/* Test bookings hit the production KPay account, so what they
+                    cost must be impossible to miss. */}
+                <div style={{ fontSize: '13px', color: '#e0e0e0', marginBottom: '2px' }}>
+                  {isLoadingTestPrice
+                    ? 'Loading…'
+                    : testPrice
+                      ? testPrice.mode === 'flat'
+                        ? `HK$${testPrice.amount} per booking (flat)`
+                        : `HK$${testPrice.amount} per hour`
+                      : 'No override — test bookings charge the FULL real price'}
+                </div>
+                {testPrice?.label && (
+                  <div style={{ fontSize: '11px', color: '#999' }}>{testPrice.label}</div>
+                )}
+                <div style={{ fontSize: '10px', color: '#d32f2f', marginTop: '6px' }}>
+                  Real money: UAT shares the production KPay merchant account.
+                </div>
+
+                <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+                  <select
+                    value={priceMode}
+                    onChange={(e) =>
+                      setPriceMode(e.target.value === 'per_hour' ? 'per_hour' : 'flat')
+                    }
+                    style={{
+                      flex: '1 1 0',
+                      padding: '6px',
+                      background: '#222',
+                      border: '1px solid #555',
+                      borderRadius: '4px',
+                      color: '#e0e0e0',
+                      fontSize: '11px',
+                    }}
+                  >
+                    <option value="flat">Flat</option>
+                    <option value="per_hour">Per hour</option>
+                  </select>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={priceAmount}
+                    onChange={(e) => setPriceAmount(e.target.value)}
+                    placeholder="HK$"
+                    style={{
+                      flex: '1 1 0',
+                      padding: '6px',
+                      background: '#222',
+                      border: '1px solid #555',
+                      borderRadius: '4px',
+                      color: '#e0e0e0',
+                      fontSize: '11px',
+                    }}
+                  />
+                </div>
+                <input
+                  type="text"
+                  value={priceLabel}
+                  onChange={(e) => setPriceLabel(e.target.value)}
+                  placeholder="Label (optional)"
+                  style={{
+                    width: '100%',
+                    marginTop: '6px',
+                    padding: '6px',
+                    background: '#222',
+                    border: '1px solid #555',
+                    borderRadius: '4px',
+                    color: '#e0e0e0',
+                    fontSize: '11px',
+                  }}
+                />
+                <button
+                  onClick={handleSetTestPrice}
+                  disabled={priceSaving}
+                  style={{
+                    width: '100%',
+                    marginTop: '6px',
+                    padding: '7px',
+                    background: priceSaving ? '#555' : '#ff9800',
+                    border: 'none',
+                    borderRadius: '4px',
+                    color: priceSaving ? '#999' : '#000',
+                    cursor: priceSaving ? 'not-allowed' : 'pointer',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                  }}
+                >
+                  {priceSaving ? 'Saving…' : 'Set UAT Test Price'}
+                </button>
+              </div>
+            )}
+
+            {envInfo?.isAdmin && (
+              <div style={{ marginBottom: '16px' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '6px',
+                  }}
+                >
+                  <span style={{ fontSize: '11px', color: '#ff9800', fontWeight: 600 }}>
+                    REFUND TEST BOOKING
+                  </span>
+                  <button
+                    onClick={loadTestBookings}
+                    style={{
+                      padding: '3px 8px',
+                      background: 'transparent',
+                      border: '1px solid #555',
+                      borderRadius: '4px',
+                      color: '#999',
+                      cursor: 'pointer',
+                      fontSize: '10px',
+                    }}
+                  >
+                    Refresh
+                  </button>
+                </div>
+
+                {isLoadingTestBookings ? (
+                  <div style={{ fontSize: '11px', color: '#999' }}>Loading…</div>
+                ) : testBookings.length === 0 ? (
+                  <div style={{ fontSize: '11px', color: '#999' }}>No test bookings yet.</div>
+                ) : (
+                  <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
+                    {testBookings.map((b) => (
+                      <div
+                        key={b.id}
+                        style={{
+                          padding: '7px',
+                          marginBottom: '5px',
+                          background: '#1a1a1a',
+                          border: '1px solid #333',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            fontSize: '11px',
+                            color: '#e0e0e0',
+                          }}
+                        >
+                          <span>{b.humanCode ?? b.id.slice(0, 8)}</span>
+                          <span>HK${b.totalPrice ?? 0}</span>
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>
+                          {b.date} {b.startTime}–{b.endTime}
+                          {b.tableNumber ? ` · T${b.tableNumber}` : ''}
+                          {b.paymentMethod ? ` · ${b.paymentMethod}` : ''}
+                        </div>
+                        <div style={{ fontSize: '10px', color: '#777', marginTop: '2px' }}>
+                          {b.status}
+                          {b.attemptStatus ? ` · attempt: ${b.attemptStatus}` : ''}
+                          {b.refundedAt ? ` · refunded HK$${b.refundAmount ?? 0}` : ''}
+                        </div>
+
+                        {b.refundedAt ? (
+                          <div style={{ fontSize: '10px', color: '#4caf50', marginTop: '4px' }}>
+                            Refunded
+                          </div>
+                        ) : !b.refundable ? (
+                          <div style={{ fontSize: '10px', color: '#777', marginTop: '4px' }}>
+                            Not refundable (no successful charge)
+                          </div>
+                        ) : refundTargetId === b.id ? (
+                          <div style={{ marginTop: '5px' }}>
+                            <input
+                              type="text"
+                              value={refundConfirmText}
+                              onChange={(e) => setRefundConfirmText(e.target.value)}
+                              placeholder='Type "REFUND"'
+                              style={{
+                                width: '100%',
+                                padding: '5px',
+                                background: '#222',
+                                border: '1px solid #d32f2f',
+                                borderRadius: '4px',
+                                color: '#e0e0e0',
+                                fontSize: '11px',
+                              }}
+                            />
+                            <div style={{ display: 'flex', gap: '5px', marginTop: '5px' }}>
+                              <button
+                                onClick={() => handleRefundTestBooking(b.id)}
+                                disabled={refundingId === b.id || refundConfirmText !== 'REFUND'}
+                                style={{
+                                  flex: 1,
+                                  padding: '5px',
+                                  background:
+                                    refundingId === b.id || refundConfirmText !== 'REFUND'
+                                      ? '#555'
+                                      : '#d32f2f',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  color:
+                                    refundingId === b.id || refundConfirmText !== 'REFUND'
+                                      ? '#999'
+                                      : '#fff',
+                                  cursor:
+                                    refundingId === b.id || refundConfirmText !== 'REFUND'
+                                      ? 'not-allowed'
+                                      : 'pointer',
+                                  fontSize: '10px',
+                                }}
+                              >
+                                {refundingId === b.id ? 'Refunding…' : 'Confirm Refund'}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRefundTargetId(null)
+                                  setRefundConfirmText('')
+                                }}
+                                style={{
+                                  flex: 1,
+                                  padding: '5px',
+                                  background: 'transparent',
+                                  border: '1px solid #555',
+                                  borderRadius: '4px',
+                                  color: '#999',
+                                  cursor: 'pointer',
+                                  fontSize: '10px',
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setRefundTargetId(b.id)
+                              setRefundConfirmText('')
+                            }}
+                            style={{
+                              width: '100%',
+                              marginTop: '5px',
+                              padding: '5px',
+                              background: 'transparent',
+                              border: '1px solid #d32f2f',
+                              borderRadius: '4px',
+                              color: '#d32f2f',
+                              cursor: 'pointer',
+                              fontSize: '10px',
+                            }}
+                          >
+                            Refund
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ marginBottom: '16px' }}>
               <button
                 onClick={handleDeleteTestBookings}
