@@ -79,9 +79,12 @@ export async function sendSupabaseOtpViaEngagelab(
   console.log('[DEBUG sendSupabaseOtpViaEngagelab] Request body:', JSON.stringify(requestBody))
   console.log('[DEBUG sendSupabaseOtpViaEngagelab] OTP code in template.code:', otpCode)
 
-  // Use Custom Send OTP API (https://engagelab.com/docs/otp/api/custom-send-otp)
-  // This is a SEPARATE API from /v1/messages — dedicated to sending pre-generated codes
-  const res = await fetch('https://otp.api.engagelab.cc/v1/custom-send-otp', {
+  // CRITICAL: Reverting to /v1/messages (the ONLY endpoint we confirmed works)
+  // /v1/custom-send-otp returned 404 — that endpoint doesn't exist.
+  //
+  // TODO: Contact Engagelab support to get the CORRECT endpoint/structure for:
+  // "Send a Supabase-generated OTP code via Engagelab (you generate, they deliver)"
+  const res = await fetch('https://otp.api.engagelab.cc/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
