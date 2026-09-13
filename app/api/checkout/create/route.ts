@@ -221,6 +221,9 @@ export async function POST(req: Request) {
       // identical to create-intent, and correct across midnight.
       const bookingIds: string[] = []
       let totalAmount = 0
+      // Billed hours across the whole order — only consumed by the UAT
+      // per_hour test-price override; it does not affect normal pricing.
+      let totalDurationHours = 0
 
       for (const slotId of slotIds) {
         const slot = await validateSlotLock(slotId, user.id)
@@ -289,6 +292,7 @@ export async function POST(req: Request) {
         }
         bookingIds.push(newId)
         totalAmount += quote.total
+        totalDurationHours += slot.duration_hours
       }
 
       // Reserve the discount and take the authoritative total from the database.
@@ -301,6 +305,9 @@ export async function POST(req: Request) {
         promoCode,
         pointsAmount,
         quotedTotal: totalAmount,
+        isTest: isTestBooking,
+        durationHours: totalDurationHours,
+        bookingIds,
       })
       if ('error' in prepared) return prepared.error
 
@@ -334,7 +341,7 @@ export async function POST(req: Request) {
     // ── Load the primary booking ───────────────────────────────────────────
     const { data: booking, error: bookingErr } = await service
       .from('bookings')
-      .select('id, status, total_price, human_code, order_group_id, payment_provider, provider_order_no, payment_method')
+      .select('id, status, total_price, human_code, order_group_id, payment_provider, provider_order_no, payment_method, is_test, duration_hours')
       .eq('id', bookingId)
       .eq('user_id', user.id)
       .single()
@@ -429,6 +436,13 @@ export async function POST(req: Request) {
       promoCode,
       pointsAmount,
       quotedTotal: booking.total_price,
+      // The stored flag wins here: this booking may have been created on UAT (or
+      // flagged by an admin) and is merely being resumed. Falling back to the
+      // current host keeps a UAT-hosted retry cheap even if the row predates the
+      // is_test wiring. Neither source is client-controlled.
+      isTest: booking.is_test === true || isTestBooking,
+      durationHours: typeof booking.duration_hours === 'number' ? booking.duration_hours : 1,
+      bookingIds: [bookingId],
     })
     if ('error' in prepared) return prepared.error
 

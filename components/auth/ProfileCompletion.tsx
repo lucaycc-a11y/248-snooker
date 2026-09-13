@@ -34,8 +34,8 @@ function localHkPhoneValue(value: string): string {
 //
 // Phone verification (C2): a phone that is NOT already Supabase-SMS-verified is
 // NOT accepted on the form alone. The submit button becomes "send verification
-// code" — it runs reCAPTCHA, POSTs /api/otp/send (Engagelab issues the SMS),
-// then /api/otp/verify-binding proves possession of the number BEFORE
+// code" — it runs reCAPTCHA and calls Supabase's native signInWithOtp to issue
+// the SMS, then verifyOtp proves possession of the number BEFORE
 // /api/profile/complete is allowed to run. The backend enforces the same rule
 // (profile/complete returns 422 phone_not_verified for any unproven phone), so a
 // direct API POST cannot skip this step (C2 item 6). SMS-login users keep their
