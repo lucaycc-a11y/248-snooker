@@ -242,13 +242,13 @@ function ActivityLogTab() {
       )
     }
 
-    window.fetch = async (...args: any[]) => {
-      const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || 'unknown'
-      const method = args[1]?.method || 'GET'
+    window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+      const method = init?.method || 'GET'
       setLogs((prev) =>
         [{ timestamp: new Date().toISOString(), type: 'fetch' as const, message: `${method} ${url}` }, ...prev].slice(0, maxLogs)
       )
-      return originalFetch(...args)
+      return originalFetch(input, init)
     }
 
     return () => {
