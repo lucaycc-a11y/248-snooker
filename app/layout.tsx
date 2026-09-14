@@ -5,7 +5,7 @@ import { routing } from "@/i18n/routing";
 import Script from "next/script";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { Dev2Badge } from "@/components/uat/Dev2Panel";
+import { UatBadge } from "@/components/uat/UatBadge";
 import { MaintenanceBadge } from "@/components/uat/MaintenanceBadge";
 
 const bebasNeue = Bebas_Neue({
@@ -87,7 +87,7 @@ export default async function RootLayout({
     <html lang={locale} className={cn("no-js", bebasNeue.variable, "font-sans")}>
       <body className="min-h-screen bg-black text-white antialiased">
         {children}
-        <Dev2Badge />
+        <UatBadge />
         <MaintenanceBadge />
       </body>
       <Script
