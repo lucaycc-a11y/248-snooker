@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 import { getRecaptchaToken } from "@/lib/recaptcha"
 import { createClient } from "@/lib/supabase/client"
+import { mapSupabaseSendError, mapSupabaseVerifyError, recaptchaError, networkError } from "@/lib/auth/otp-errors"
 import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
 
 // Matches the GREEN constant duplicated across every other auth-flow file
@@ -270,7 +271,7 @@ export function ProfileCompletion({
       // OTP verified successfully! Now check if this phone is already taken by another user
       const { data: { user: currentUser } } = await supabase.auth.getUser()
       if (!currentUser) {
-        setErrMsg(t("err_generic"))
+        setErrMsg(t("err_session_expired"))
         setOtpStatus("failure")
         setSaving(false)
         return

@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
+import { mapOAuthError } from "@/lib/auth/oauth-errors"
 import { AppleLogo } from "@/components/brand"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://space8.com.hk"
@@ -32,6 +34,7 @@ export function AppleSignInButton({
   label: string
   errorLabel: string
 }) {
+  const t = useTranslations("auth")
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -39,8 +42,6 @@ export function AppleSignInButton({
     setBusy(true)
     setErr(null)
     const supabase = createClient()
-    // Actual origin, not the SITE_URL constant — see GoogleSignInButton's
-    // fallbackSignIn for why (multi-domain + Supabase Site-URL fallback).
     const origin = typeof window !== "undefined" ? window.location.origin : SITE_URL
     try {
       sessionStorage.setItem("authReturnUrl", returnUrl)
@@ -50,10 +51,10 @@ export function AppleSignInButton({
       options: { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(returnUrl)}` },
     })
     if (error) {
-      setErr(errorLabel)
+      const mappedError = mapOAuthError(error, 'apple', t)
+      setErr(mappedError.message)
       setBusy(false)
     }
-    // On success the browser redirects to Apple — nothing more to do here.
   }
 
   return (

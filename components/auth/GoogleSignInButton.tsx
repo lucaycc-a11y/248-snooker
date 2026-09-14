@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { createClient } from "@/lib/supabase/client"
+import { mapOAuthError } from "@/lib/auth/oauth-errors"
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://space8.com.hk"
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -32,11 +34,11 @@ export function GoogleSignInButton({
   errorLabel,
 }: {
   returnUrl: string
-  // Called after an in-place (no-redirect) GIS sign-in succeeds.
   onSignedIn: () => void
   fallbackLabel: string
   errorLabel: string
 }) {
+  const t = useTranslations("auth")
   const gisRef = useRef<HTMLDivElement>(null)
   const [gisReady, setGisReady] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -62,7 +64,8 @@ export function GoogleSignInButton({
             token: resp.credential,
           })
           if (error) {
-            setErr(errorLabel)
+            const mappedError = mapOAuthError(error, 'google', t)
+            setErr(mappedError.message)
             setBusy(false)
             return
           }
