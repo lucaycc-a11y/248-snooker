@@ -7,6 +7,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Dev2Badge } from "@/components/uat/Dev2Panel";
 import { MaintenanceBadge } from "@/components/uat/MaintenanceBadge";
+import { UatBadge } from "@/components/uat/UatBadge";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -89,6 +90,7 @@ export default async function RootLayout({
         {children}
         <Dev2Badge />
         <MaintenanceBadge />
+        <UatBadge />
       </body>
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}

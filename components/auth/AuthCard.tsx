@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client"
 import { normalizeHkPhone } from "@/lib/auth/profile"
 import { validatePassword } from "@/lib/auth/password"
 import { getRecaptchaToken } from "@/lib/recaptcha"
+import { mapSupabaseSendError, mapSupabaseVerifyError, recaptchaError, networkError } from "@/lib/auth/otp-errors"
 import { LoadingGif } from "@/components/ui/LoadingGif"
 import { PasswordInput } from "@/components/ui/PasswordInput"
 import PasswordStrength from "./PasswordStrength"
@@ -409,7 +410,8 @@ export function AuthCard({
         try {
           recaptchaToken = await getRecaptchaToken("send_otp")
         } catch {
-          setError(t("err_send"))
+          const err = recaptchaError(t)
+          setError(err.message)
           setBusy(false)
           return
         }
@@ -428,15 +430,30 @@ export function AuthCard({
         })
 
         if (error) {
-          // Map Supabase errors to user-friendly messages
-          if (error.message.includes("rate limit") || error.message.includes("too many")) {
-            setError(t("err_rate_limited"))
-          } else if (error.message.includes("invalid phone")) {
-            setError(t("err_phone"))
-          } else {
-            console.error("[auth] signInWithOtp error:", error)
-            setError(t("err_send"))
+          // Use unified error mapper from otp-errors.ts
+          const mappedError = mapSupabaseSendError(error, t)
+          setError(mappedError.message)
+
+          // Handle special case: code already sent (3004) -> route to OTP entry
+          if (mappedError.action === 'retry' && mappedError.engagelabCode === 3004) {
+            setOtp(Array.from({ length: OTP_LENGTH }, () => ""))
+            setOtpStatus("input")
+            setOtpChannel("sms")
+            setMessageId("")
+            setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString())
+            setOtpDeliveryChannel("sms")
+            setAttemptsLeft(MAX_OTP_ATTEMPTS)
+            setCooldown(RESEND_COOLDOWN)
+            setBusy(false)
+            setPhase("otp")
+            return
           }
+
+          // For rate limiting, set cooldown timer
+          if (mappedError.retryAfterSeconds) {
+            setCooldown(mappedError.retryAfterSeconds)
+          }
+
           setBusy(false)
           return
         }
@@ -452,7 +469,8 @@ export function AuthCard({
         setBusy(false)
         setPhase("otp")
       } catch {
-        setError(t("err_network"))
+        const err = networkError(t)
+        setError(err.message)
         setBusy(false)
       }
     }
@@ -625,7 +643,7 @@ export function AuthCard({
     const supabase = createClient()
 
     // Use Supabase native verifyOtp for both email and phone
-    let vErr: { message: string } | null = null
+    let vErr: { message: string; status?: number } | null = null
     if (otpChannel === "email") {
       const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code, type: "email" })
       vErr = error
@@ -648,32 +666,30 @@ export function AuthCard({
         type: "sms",
       })
 
-      // Handle Supabase errors with attempt countdown
-      if (error) {
-        if (error.message.includes("rate limit") || error.message.includes("too many")) {
-          setError(t("err_rate_limited"))
-          setOtpStatus("failure")
-          setBusy(false)
-          return
-        }
+      vErr = error
+    }
 
-        // Wrong or expired code - countdown attempts
-        const remaining = attemptsLeft - 1
-        setAttemptsLeft(remaining)
-        if (remaining > 0) {
-          setError(t("err_otp_wrong", { count: remaining }))
-        } else {
-          setError(t("err_otp_locked"))
-          setOtpStatus("locked")
-          setBusy(false)
-          return
-        }
-        setOtpStatus("failure")
-        setBusy(false)
-        return
+    // Handle verification errors with unified error mapper
+    if (vErr) {
+      const mappedError = mapSupabaseVerifyError(vErr, attemptsLeft - 1, t)
+
+      // Update attempts counter (only for wrong_code, not for network/rate limit)
+      if (mappedError.type === 'wrong_code' || mappedError.type === 'exhausted') {
+        setAttemptsLeft(mappedError.attemptsLeft ?? 0)
       }
 
-      vErr = error
+      setError(mappedError.message)
+
+      // If exhausted or expired, lock the OTP entry
+      if (mappedError.needsResend) {
+        setOtpStatus("locked")
+      } else {
+        setOtpStatus("failure")
+      }
+
+      setBusy(false)
+      return
+    }
     }
 
     if (vErr) {

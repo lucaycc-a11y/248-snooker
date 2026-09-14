@@ -108,6 +108,7 @@ export async function POST(req: Request) {
           status: 'pending',
           table_number: block.tableNumber,
           is_free_booking: false,
+          is_test: true,
           order_group_id: orderGroupId,
           human_code: humanReadableCode(newId),
         })

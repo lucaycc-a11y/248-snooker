@@ -90,9 +90,18 @@ export async function getAvailableTables(
 ): Promise<number[]> {
   const { slotStart: reqStart, slotEnd: reqEnd } = slotBounds(date, startHour, durationHours)
   const supabase = getServiceSupabase()
+
+  // First, get all slot_ids that belong to test bookings so we can exclude them
+  const { data: testSlotIds } = await supabase
+    .from('bookings')
+    .select('slot_id')
+    .eq('is_test', true)
+    .not('slot_id', 'is', null)
+  const testSlotIdSet = new Set((testSlotIds ?? []).map((b) => b.slot_id))
+
   const { data, error } = await supabase
     .from('slots')
-    .select('table_number, date, start_time, duration_hours, status, locked_until')
+    .select('id, table_number, date, start_time, duration_hours, status, locked_until')
     .eq('date', date)
     .in('status', ['locked', 'booked'])
   if (error) {
@@ -102,6 +111,9 @@ export async function getAvailableTables(
 
   const taken = new Set<number>()
   for (const s of data ?? []) {
+    // Skip test bookings — they don't block real availability
+    if (testSlotIdSet.has(s.id)) continue
+
     // Expired locks don't count as taken.
     if (s.status === 'locked' && (!s.locked_until || new Date(s.locked_until) <= new Date())) {
       continue
@@ -165,16 +177,28 @@ export async function getDaySlots(date: string, userId: string | null = null): P
   next.setDate(next.getDate() + 1)
 
   const supabase = getServiceSupabase()
+
+  // Get all slot_ids that belong to test bookings so we can exclude them
+  const { data: testSlotIds } = await supabase
+    .from('bookings')
+    .select('slot_id')
+    .eq('is_test', true)
+    .not('slot_id', 'is', null)
+  const testSlotIdSet = new Set((testSlotIds ?? []).map((b) => b.slot_id))
+
   const { data, error } = await supabase
     .from('slots')
-    .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
+    .select('id, table_number, date, start_time, duration_hours, status, locked_until, locked_by')
     .in('date', [fmt(prev), date, fmt(next)])
     .in('status', ['locked', 'booked'])
   if (error) {
     console.error('day_slots_query_error', error.message)
     return []
   }
-  return (data ?? []).map((row) => toDaySlotRow(row, userId))
+  // Filter out test bookings before returning
+  return (data ?? [])
+    .filter((row) => !testSlotIdSet.has(row.id))
+    .map((row) => toDaySlotRow(row, userId))
 }
 
 /**
@@ -199,9 +223,18 @@ export async function getRangeSlots(
   to.setDate(to.getDate() + days) // exclusive end already pads the high edge
 
   const supabase = getServiceSupabase()
+
+  // Get all slot_ids that belong to test bookings so we can exclude them
+  const { data: testSlotIds } = await supabase
+    .from('bookings')
+    .select('slot_id')
+    .eq('is_test', true)
+    .not('slot_id', 'is', null)
+  const testSlotIdSet = new Set((testSlotIds ?? []).map((b) => b.slot_id))
+
   const { data, error } = await supabase
     .from('slots')
-    .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
+    .select('id, table_number, date, start_time, duration_hours, status, locked_until, locked_by')
     .gte('date', fmt(from))
     .lte('date', fmt(to))
     .in('status', ['locked', 'booked'])
@@ -209,7 +242,10 @@ export async function getRangeSlots(
     console.error('range_slots_query_error', error.message)
     return []
   }
-  return (data ?? []).map((row) => toDaySlotRow(row, userId))
+  // Filter out test bookings before returning
+  return (data ?? [])
+    .filter((row) => !testSlotIdSet.has(row.id))
+    .map((row) => toDaySlotRow(row, userId))
 }
 
 export type LockedSlot = {

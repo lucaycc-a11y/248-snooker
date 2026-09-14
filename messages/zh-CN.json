@@ -105,7 +105,21 @@
     "update_password_err_expired": "此密码重设链接已过期，请重新索取。",
     "update_password_err_mismatch": "两次输入的密码不一致。",
     "update_password_err_generic": "未能更新密码，请再试一次。",
-    "update_password_back_to_login": "返回登录"
+    "update_password_back_to_login": "返回登录",
+    "err_code_already_sent": "你已有一个有效验证码，请输入你收到的验证码",
+    "err_phone_rate_limited": "此号码最近请求验证码过于频繁，请稍后再试",
+    "err_phone_format": "电话号码格式不正确，请检查后重新输入",
+    "err_phone_blacklisted": "此号码目前无法接收信息，请改用 Email 注册或联系客服",
+    "err_phone_disconnected": "无法送达，请确保你的手机已开机，或改用 Email 注册",
+    "err_sms_unavailable": "SMS 暂时无法使用，请改用 Email 注册",
+    "err_password_wrong": "密码不正确，请再试一次或使用「忘记密码」",
+    "err_password_not_set": "此账户未设定密码。请使用验证码登录，或登录后于设置中新增密码",
+    "err_oauth_cancelled": "登录已取消或失败，请再试一次",
+    "err_oauth_failed": "登录处理失败，请再试一次",
+    "err_identity_already_linked": "此{type}已关联另一账户。如果是你的账户，请用该{type}登录",
+    "err_session_expired": "你的登录已过期，请重新登录",
+    "identity_type_email": "Email",
+    "identity_type_phone": "电话号码"
   },
   "404": {
     "code": "404",

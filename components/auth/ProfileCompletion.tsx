@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 import { getRecaptchaToken } from "@/lib/recaptcha"
 import { createClient } from "@/lib/supabase/client"
+import { mapSupabaseSendError, mapSupabaseVerifyError, recaptchaError, networkError } from "@/lib/auth/otp-errors"
 import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
 
 // Matches the GREEN constant duplicated across every other auth-flow file
@@ -207,16 +208,15 @@ export function ProfileCompletion({
       const { error } = await supabase.auth.updateUser({ phone: v.value.phone })
 
       if (error) {
-        if (error.message.includes("rate limit") || error.message.includes("too many")) {
-          setErrMsg(t("err_rate_limited"))
-        } else if (error.message.includes("invalid phone")) {
-          setErrMsg(labels.err_phone)
-        } else if (error.message.includes("already been registered") || error.message.includes("already registered")) {
-          setErrMsg(t("err_phone_exists"))
-        } else {
-          console.error("[ProfileCompletion] sendPhoneCode error:", error)
-          setErrMsg(t("err_send"))
+        // Use unified error mapper from otp-errors.ts
+        const mappedError = mapSupabaseSendError(error, t)
+        setErrMsg(mappedError.message)
+
+        // For rate limiting, set cooldown timer
+        if (mappedError.retryAfterSeconds) {
+          setCooldown(mappedError.retryAfterSeconds)
         }
+
         setSaving(false)
         return
       }

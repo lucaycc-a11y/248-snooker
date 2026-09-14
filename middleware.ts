@@ -56,7 +56,7 @@ async function checkSiteGate(request: NextRequest): Promise<NextResponse | null>
     return null
   }
 
-  // No valid bypass — redirect to maintenance page with 503 status
+  // No valid bypass — show maintenance page with 503 status
   // Log denied access attempt (fire-and-forget)
   logGateAccess(ip, 'denied', request.nextUrl.pathname).catch((err) =>
     console.error('[gate] log failed', err)
@@ -66,13 +66,12 @@ async function checkSiteGate(request: NextRequest): Promise<NextResponse | null>
   url.pathname = '/coming-soon'
   url.search = ''
 
-  // Return 503 Service Unavailable with Retry-After header
-  const response = NextResponse.redirect(url, { status: 307 })
+  // Rewrite to the coming-soon page with 503 Service Unavailable status.
+  // Using rewrite (not redirect) so the URL stays as the original request,
+  // and we can set a 5xx status code (redirect forces 3xx).
+  const response = NextResponse.rewrite(url)
+  response.status = 503
   response.headers.set('Retry-After', '3600') // Suggest retry in 1 hour
-
-  // Note: The actual 503 status must be set in the coming-soon page's response
-  // since NextResponse.redirect() forces a 3xx status code. The redirect gets
-  // the user to the maintenance page; the page itself returns 503.
   return response
 }
 
