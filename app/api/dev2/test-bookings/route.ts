@@ -111,14 +111,14 @@ export async function POST(req: NextRequest) {
     // Get payment attempt to find the provider payment ID
     const { data: payment } = await service
       .from('payment_attempts')
-      .select('provider_payment_id, method')
+      .select('provider_payment_id, provider_order_no, method')
       .eq('booking_id', bookingId)
       .eq('status', 'succeeded')
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
 
-    if (!payment?.provider_payment_id) {
+    if (!payment?.provider_order_no) {
       return NextResponse.json({ error: 'No successful payment found' }, { status: 404 })
     }
 
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
     const provider = getPaymentProvider(hostname)
 
     const refundResult = await provider.refund({
-      paymentId: payment.provider_payment_id,
+      providerOrderNo: payment.provider_order_no,
       amount: booking.total_price,
       reason: 'Test booking refund via dev2 panel',
     })
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: 'Refund failed',
-          detail: refundResult.error || 'Unknown error',
+          detail: refundResult.message || 'Unknown error',
         },
         { status: 500 }
       )
@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      refundId: refundResult.refundId,
+      refundId: refundResult.providerRefundNo,
       amount: booking.total_price,
     })
   } catch (error) {
