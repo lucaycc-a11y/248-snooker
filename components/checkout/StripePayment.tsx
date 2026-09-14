@@ -25,40 +25,57 @@ const SLOT_TAKEN = "__slot_taken__"
 // dedicated "booking expired" screen instead of the generic error message.
 const BOOKING_EXPIRED = "__booking_expired__"
 
-// Match the booking page's black + brand-green + pill design language.
+// Match KPayPayment's deep black + brand-green design language.
 // PaymentElement renders official, licensed method icons + native Apple/Google
 // Pay buttons, so no brand assets to source ourselves. `rules` targets the
 // sub-elements (method tabs, card/phone inputs) that the top-level `variables`
 // don't reach on their own.
+//
+// Color tokens from KPayPayment.tsx (Space8 design system):
+// - GREEN = '#1a9d5c', GREEN_BRIGHT = '#22b86b'
+// - SURFACE = '#111111', BG = '#000000'
+// - BORDER = 'rgba(255,255,255,0.1)'
 const appearance: Appearance = {
   theme: "night",
   variables: {
-    colorPrimary: "#22c55e",
-    colorBackground: "#000000",
+    colorPrimary: "#22b86b",        // GREEN_BRIGHT (KPay 品牌綠)
+    colorBackground: "#000000",      // BG (深黑背景)
     colorText: "#ffffff",
-    colorTextSecondary: "#a3a3a3",
-    borderRadius: "9999px",
+    colorTextSecondary: "rgba(255,255,255,0.72)", // TEXT_MUTED (KPay)
+    borderRadius: "16px",            // 跟 KPay 卡片圓角 (16-20px)
     fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif",
     spacingUnit: "4px",
   },
   rules: {
     ".Tab": {
-      border: "1px solid #333333",
-      borderRadius: "9999px",
-      backgroundColor: "#111111",
+      border: "1px solid rgba(255,255,255,0.1)", // BORDER (KPay)
+      borderRadius: "16px",
+      backgroundColor: "#111111",     // SURFACE (KPay)
+      padding: "12px 16px",
     },
     ".Tab--selected": {
-      backgroundColor: "#22c55e",
-      borderColor: "#22c55e",
-      color: "#000000",
+      backgroundColor: "#1a9d5c",     // GREEN (KPay 選中背景)
+      borderColor: "#22b86b",         // GREEN_BRIGHT (KPay 選中邊框)
+      color: "#ffffff",
+    },
+    ".Tab:hover": {
+      borderColor: "rgba(255,255,255,0.2)",
+      backgroundColor: "rgba(255,255,255,0.04)",
     },
     ".Input": {
-      borderRadius: "9999px",
-      backgroundColor: "#111111",
-      border: "1px solid #333333",
+      borderRadius: "16px",
+      backgroundColor: "#111111",     // SURFACE (KPay)
+      border: "1px solid rgba(255,255,255,0.1)", // BORDER (KPay)
+      padding: "12px 16px",
     },
     ".Input:focus": {
-      borderColor: "#22c55e",
+      borderColor: "#22b86b",         // GREEN_BRIGHT (KPay)
+      boxShadow: "0 0 0 1px #22b86b",
+    },
+    ".Label": {
+      color: "rgba(255,255,255,0.72)", // TEXT_MUTED (KPay)
+      fontSize: "14px",
+      fontWeight: "600",
     },
   },
 }
@@ -630,7 +647,7 @@ export default function StripePayment(props: Props) {
             textAlign: "center",
             fontSize: 13,
             fontWeight: countdown.urgent ? 700 : 400,
-            color: countdown.urgent ? "#FF6B4A" : "rgba(255,255,255,0.55)",
+            color: countdown.urgent ? "#FF453A" : "rgba(255,255,255,0.55)", // DANGER (KPay)
             marginBottom: 12,
             transition: "color 0.3s ease",
           }}
