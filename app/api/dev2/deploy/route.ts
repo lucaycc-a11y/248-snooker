@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)
 
 async function checkAdminAuth() {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = await createClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -25,7 +24,8 @@ async function checkAdminAuth() {
   }
 }
 
-async function auditLog(supabase: any, userId: string, action: string, details: any) {
+async function auditLog(userId: string, action: string, details: any) {
+  const supabase = await createClient()
   await supabase.from('audit_log').insert({
     user_id: userId,
     action,
@@ -57,23 +57,33 @@ export async function POST(request: NextRequest) {
     if (action === 'push' && confirmation !== 'PUSH') {
       return NextResponse.json({ error: 'Invalid confirmation' }, { status: 400 })
     }
+    if (action === 'maintenance' && confirmation !== 'PUSH') {
+      return NextResponse.json({ error: 'Invalid confirmation' }, { status: 400 })
+    }
     if (action === 'go-live' && confirmation !== 'GO LIVE') {
       return NextResponse.json({ error: 'Invalid confirmation' }, { status: 400 })
     }
 
     deployInProgress = true
-    const supabase = createRouteHandlerClient({ cookies })
 
     try {
       if (action === 'push' || action === 'maintenance') {
+        // Fetch latest
+        await execAsync('git fetch origin')
+
         // Checkout main
         await execAsync('git checkout main')
 
+        // Pull latest main
+        await execAsync('git pull origin main')
+
         // Merge uat into main
         try {
-          await execAsync('git merge uat --no-ff')
+          await execAsync('git merge uat --no-ff -m "Merge uat into main"')
         } catch (mergeError) {
           deployInProgress = false
+          await execAsync('git merge --abort').catch(() => {})
+          await execAsync('git checkout uat').catch(() => {})
           return NextResponse.json(
             { error: 'Merge conflict detected. Resolve manually.' },
             { status: 409 }
@@ -87,6 +97,7 @@ export async function POST(request: NextRequest) {
 
         if (isAncestor.trim() !== 'yes') {
           deployInProgress = false
+          await execAsync('git checkout uat').catch(() => {})
           return NextResponse.json(
             { error: 'Merge verification failed' },
             { status: 500 }
@@ -96,6 +107,8 @@ export async function POST(request: NextRequest) {
         // Push to main
         await execAsync('git push origin main')
 
+        const supabase = await createClient()
+
         // If maintenance mode, force gate on
         if (action === 'maintenance') {
           await supabase
@@ -103,12 +116,12 @@ export async function POST(request: NextRequest) {
             .update({ enabled: true, reason: 'maintenance' })
             .eq('id', 1)
 
-          await auditLog(supabase, userId, 'push_to_maintenance', {
+          await auditLog(userId, 'push_to_maintenance', {
             from_branch: 'uat',
             to_branch: 'main',
           })
         } else {
-          await auditLog(supabase, userId, 'push_to_main', {
+          await auditLog(userId, 'push_to_main', {
             from_branch: 'uat',
             to_branch: 'main',
           })
@@ -121,16 +134,17 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
           success: true,
           action,
-          message: 'Deploy successful',
+          message: 'Deploy successful. Vercel will deploy automatically.',
         })
       } else if (action === 'go-live') {
         // Open the gate
+        const supabase = await createClient()
         await supabase
           .from('site_gate_config')
           .update({ enabled: false, reason: null })
           .eq('id', 1)
 
-        await auditLog(supabase, userId, 'end_maintenance', {})
+        await auditLog(userId, 'end_maintenance', {})
 
         deployInProgress = false
         return NextResponse.json({
@@ -149,6 +163,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     deployInProgress = false
     console.error('Deploy error:', error)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    return NextResponse.json(
+      { error: `Internal error: ${error}` },
+      { status: 500 }
+    )
   }
 }

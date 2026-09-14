@@ -224,21 +224,21 @@ function ActivityLogTab() {
     console.log = (...args: any[]) => {
       originalLog(...args)
       setLogs((prev) =>
-        [{ timestamp: new Date().toISOString(), type: 'log', message: args.join(' ') }, ...prev].slice(0, maxLogs)
+        [{ timestamp: new Date().toISOString(), type: 'log' as const, message: args.join(' ') }, ...prev].slice(0, maxLogs)
       )
     }
 
     console.warn = (...args: any[]) => {
       originalWarn(...args)
       setLogs((prev) =>
-        [{ timestamp: new Date().toISOString(), type: 'warn', message: args.join(' ') }, ...prev].slice(0, maxLogs)
+        [{ timestamp: new Date().toISOString(), type: 'warn' as const, message: args.join(' ') }, ...prev].slice(0, maxLogs)
       )
     }
 
     console.error = (...args: any[]) => {
       originalError(...args)
       setLogs((prev) =>
-        [{ timestamp: new Date().toISOString(), type: 'error', message: args.join(' ') }, ...prev].slice(0, maxLogs)
+        [{ timestamp: new Date().toISOString(), type: 'error' as const, message: args.join(' ') }, ...prev].slice(0, maxLogs)
       )
     }
 
@@ -246,7 +246,7 @@ function ActivityLogTab() {
       const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || 'unknown'
       const method = args[1]?.method || 'GET'
       setLogs((prev) =>
-        [{ timestamp: new Date().toISOString(), type: 'fetch', message: `${method} ${url}` }, ...prev].slice(0, maxLogs)
+        [{ timestamp: new Date().toISOString(), type: 'fetch' as const, message: `${method} ${url}` }, ...prev].slice(0, maxLogs)
       )
       return originalFetch(...args)
     }
