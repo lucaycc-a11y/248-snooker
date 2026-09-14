@@ -1,4 +1,4 @@
-import { LoadingGif } from '@/components/ui'
+import { LoadingGif } from '@/components/shared/LoadingGif'
 
 /** Next.js route-transition loading UI — full-screen black overlay with the
  * branded loading GIF. */

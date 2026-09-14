@@ -13,7 +13,7 @@ import PlainLink from 'next/link'
 import { routing } from '@/i18n/routing'
 import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
-import { Button } from '@/components/ui'
+import { Button } from '@/components/ui/button'
 import { AccountMenu } from '@/components/auth/AccountMenu'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { createClient } from '@/lib/supabase/client'
@@ -665,7 +665,7 @@ export default function Nav() {
 
             <div style={{ width: '100%', paddingTop: 24 }}>
               <Link href="/book" onClick={() => setMenuOpen(false)} style={{ textDecoration: 'none' }}>
-                <Button variant="primary" size="lg" fullWidth>
+                <Button variant="default" size="lg" className="w-full">
                   {t('book')}
                 </Button>
               </Link>

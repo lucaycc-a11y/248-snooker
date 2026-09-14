@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 import { tokens } from '@/app/styles/tokens'
-import { Button, Card, Input, Spinner, ProgressSteps, Sheet } from '@/components/ui'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Sheet } from '@/components/ui/sheet'
+import { RefreshCw } from 'lucide-react'
 import {
   ApplePayLogo,
   GooglePayLogo,
@@ -35,36 +39,39 @@ export default function ComponentsDemo() {
           Buttons
         </h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
-          <Button variant="primary" size="lg">
-            Primary Large
+          <Button variant="default" size="lg">
+            Default Large
           </Button>
-          <Button variant="primary" size="md">
-            Primary Medium
+          <Button variant="default" size="default">
+            Default Medium
           </Button>
-          <Button variant="primary" size="sm">
-            Primary Small
+          <Button variant="default" size="sm">
+            Default Small
           </Button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', marginTop: '16px' }}>
           <Button variant="secondary">Secondary</Button>
           <Button variant="ghost">Ghost</Button>
           <Button variant="link">Link Style</Button>
+          <Button variant="secondary">Destructive</Button>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', marginTop: '16px' }}>
-          <Button variant="primary" loading>
+          <Button variant="default" disabled>
+            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
             Loading
           </Button>
-          <Button variant="primary" disabled>
+          <Button variant="default" disabled>
             Disabled
           </Button>
         </div>
         <div style={{ marginTop: '16px', maxWidth: '320px' }}>
-          <Button variant="primary" fullWidth>
+          <Button variant="default" className="w-full">
             Full Width
           </Button>
         </div>
         <div style={{ marginTop: '16px' }}>
-          <Button variant="primary" leftIcon={<AppleLogo size={18} />}>
+          <Button variant="default">
+            <AppleLogo size={18} />
             以 Apple 繼續
           </Button>
         </div>
@@ -76,26 +83,19 @@ export default function ComponentsDemo() {
           Inputs
         </h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '400px' }}>
-          <Input label="姓名" placeholder="輸入你嘅姓名" />
-          <Input
-            label="電話"
-            placeholder="9XXX XXXX"
-            inputMode="tel"
-            leftSlot={
-              <span
-                style={{
-                  fontSize: '14px',
-                  color: tokens.colors.textMuted,
-                  backgroundColor: 'rgba(255,255,255,0.06)',
-                  padding: '4px 8px',
-                  borderRadius: tokens.radius.pill,
-                }}
-              >
-                +852
-              </span>
-            }
-          />
-          <Input label="有錯誤嘅 Input" placeholder="..." error="呢個欄位係必填" />
+          <div>
+            <label className="text-sm font-medium mb-2 block">姓名</label>
+            <Input placeholder="輸入你嘅姓名" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">電話</label>
+            <Input placeholder="9XXX XXXX" type="tel" />
+          </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">有錯誤嘅 Input</label>
+            <Input placeholder="..." className="border-destructive" />
+            <p className="text-sm text-destructive mt-1">呢個欄位係必填</p>
+          </div>
         </div>
       </section>
 
@@ -106,16 +106,16 @@ export default function ComponentsDemo() {
         </h2>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
           <Card>
-            <p style={{ color: tokens.colors.text, margin: 0 }}>Default Card</p>
-            <p style={{ color: tokens.colors.textMuted, margin: '8px 0 0', fontSize: '14px' }}>
-              Surface background with border
-            </p>
+            <CardContent className="pt-6">
+              <p className="text-foreground m-0">Default Card</p>
+              <p className="text-muted-foreground mt-2 text-sm">Surface background with border</p>
+            </CardContent>
           </Card>
-          <Card variant="elevated">
-            <p style={{ color: tokens.colors.text, margin: 0 }}>Elevated Card</p>
-            <p style={{ color: tokens.colors.textMuted, margin: '8px 0 0', fontSize: '14px' }}>
-              Elevated surface for layered UI
-            </p>
+          <Card className="shadow-lg">
+            <CardContent className="pt-6">
+              <p className="text-foreground m-0">Elevated Card</p>
+              <p className="text-muted-foreground mt-2 text-sm">Elevated surface for layered UI</p>
+            </CardContent>
           </Card>
         </div>
       </section>
@@ -126,19 +126,9 @@ export default function ComponentsDemo() {
           Spinner
         </h2>
         <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-          <Spinner size={32} />
-          <Spinner size={48} />
-          <Spinner size={64} />
-        </div>
-      </section>
-
-      {/* Progress Steps */}
-      <section style={{ marginBottom: '48px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '24px', color: tokens.colors.text }}>
-          Progress Steps
-        </h2>
-        <div style={{ maxWidth: '400px' }}>
-          <ProgressSteps steps={['日期', '時間', '資料', '付款']} current={1} />
+          <RefreshCw className="h-8 w-8 animate-spin" />
+          <RefreshCw className="h-12 w-12 animate-spin" />
+          <RefreshCw className="h-16 w-16 animate-spin" />
         </div>
       </section>
 
@@ -174,7 +164,7 @@ export default function ComponentsDemo() {
             背後有 overlay，頂部有 drag handle。
           </p>
           <div style={{ marginTop: '24px' }}>
-            <Button variant="primary" fullWidth onClick={() => setSheetOpen(false)}>
+            <Button variant="default" className="w-full" onClick={() => setSheetOpen(false)}>
               確認
             </Button>
           </div>

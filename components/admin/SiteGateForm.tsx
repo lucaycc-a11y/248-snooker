@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
 import { tokens } from '@/app/styles/tokens'
 import type { SiteGateWhitelistRow } from '@/lib/data/getAdminSiteGate'
 
@@ -159,8 +159,8 @@ export default function SiteGateForm({
               {enabled ? 'Visitors see the coming-soon page unless whitelisted or unlocked.' : 'Gate is off — site is fully public.'}
             </div>
           </div>
-          <Button variant={enabled ? 'secondary' : 'primary'} size="sm" loading={toggling} onClick={toggleEnabled}>
-            {enabled ? 'Disable' : 'Enable'}
+          <Button variant={enabled ? 'secondary' : 'primary'} disabled={toggling} onClick={toggleEnabled}>
+            {toggling ? 'Toggling...' : enabled ? 'Disable' : 'Enable'}
           </Button>
         </div>
       </Card>
@@ -175,7 +175,7 @@ export default function SiteGateForm({
         <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ flex: 1, minWidth: 160 }}>
             <Input
-              label="New password"
+
               placeholder="At least 6 characters"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
@@ -183,12 +183,10 @@ export default function SiteGateForm({
           </div>
           <Button
             variant="secondary"
-            size="md"
-            loading={settingPassword}
-            disabled={passwordInput.trim().length < 6}
+            disabled={settingPassword || passwordInput.trim().length < 6}
             onClick={setPassword}
           >
-            Confirm
+            {settingPassword ? 'Confirming...' : 'Confirm'}
           </Button>
         </div>
       </Card>
@@ -199,13 +197,15 @@ export default function SiteGateForm({
         </div>
         <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: tokens.spacing.md }}>
           <div style={{ flex: 1, minWidth: 160 }}>
-            <Input label="IP address" placeholder="203.0.113.1" value={newIp} onChange={(e) => setNewIp(e.target.value)} />
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>IP address</label>
+          <Input placeholder="203.0.113.1" value={newIp} onChange={(e) => setNewIp(e.target.value)} />
           </div>
           <div style={{ flex: 1, minWidth: 160 }}>
-            <Input label="Label" placeholder="e.g. Office" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} />
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Label</label>
+          <Input placeholder="e.g. Office" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} />
           </div>
-          <Button variant="primary" size="md" loading={addingIp} disabled={!newIp.trim()} onClick={addIp}>
-            Add
+          <Button variant="primary" disabled={addingIp || !newIp.trim()} onClick={addIp}>
+            {addingIp ? 'Adding...' : 'Add'}
           </Button>
         </div>
         <div>
@@ -225,8 +225,8 @@ export default function SiteGateForm({
                 <div style={{ color: tokens.colors.text, fontSize: 15, fontFamily: 'monospace' }}>{row.ipAddress}</div>
                 {row.label && <div style={{ color: tokens.colors.textMuted, fontSize: 13 }}>{row.label}</div>}
               </div>
-              <Button variant="ghost" size="sm" loading={busyId === row.id} onClick={() => removeIp(row.id)} style={{ color: tokens.colors.danger }}>
-                Remove
+              <Button variant="danger" disabled={busyId === row.id} onClick={() => removeIp(row.id)}>
+                {busyId === row.id ? 'Removing...' : 'Remove'}
               </Button>
             </div>
           ))}

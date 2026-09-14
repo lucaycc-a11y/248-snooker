@@ -29,7 +29,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { OtpVerification, type OtpVerificationStatus } from "@/components/auth/OtpVerification";
 import { normalizeHkPhone } from "@/lib/auth/profile";
-import { BackButton } from "@/components/ui";
+import { BackButton } from "@/components/shared/BackButton";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";

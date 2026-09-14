@@ -1,10 +1,10 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger'
+type AdminButtonVariant = 'primary' | 'secondary' | 'danger'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   children: ReactNode
-  variant?: ButtonVariant
+  variant?: AdminButtonVariant
 }
 
 type IconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {

@@ -425,9 +425,9 @@ function DetailsTab({
           <DetailRow label="Table" value={`Table ${booking.tableNumber}`} />
           <DetailRow label="Date" value={booking.date ?? '—'} />
           <DetailRow label="Time" value={booking.startTime && booking.endTime ? `${booking.startTime} – ${booking.endTime}` : booking.startTime ?? '—'} />
-          <DetailRow label="Amount" value={<span className="font-code">{formatCurrency(booking.price)} HKD</span>} mono />
+          <DetailRow label="Price" value={<span className="font-code">{formatCurrency(booking.price)} HKD</span>} mono />
           <DetailRow label="Payment" value={booking.paymentMethod ?? '—'} />
-          <DetailRow label="Code" value={booking.humanCode ?? booking.bookingReference ?? '—'} mono />
+          <DetailRow label="Reference" value={booking.humanCode ?? booking.bookingReference ?? '—'} mono />
           {booking.isTest && (
             <div className="flex items-center gap-2 py-2.5">
               <span className="inline-flex items-center rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-400">

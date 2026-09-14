@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
 import { tokens } from '@/app/styles/tokens'
 
 const LOCALES: { code: string; label: string }[] = [
@@ -101,8 +101,10 @@ export default function AiSettingsForm({ initialSettings }: { initialSettings: S
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
+            Greeting message
+          </label>
           <Input
-            label="Greeting message"
             value={row.greeting_message}
             onChange={(e) => update({ greeting_message: e.target.value })}
           />
@@ -125,13 +127,12 @@ export default function AiSettingsForm({ initialSettings }: { initialSettings: S
           </div>
         ))}
         <div style={{ display: 'flex', gap: tokens.spacing.sm, marginBottom: tokens.spacing.md }}>
-          <Button variant="ghost" size="sm" onClick={() => update({ suggested_prompts: [...row.suggested_prompts, ''] })}>
+          <Button variant="secondary" onClick={() => update({ suggested_prompts: [...row.suggested_prompts, ''] })}>
             + Add prompt
           </Button>
           {row.suggested_prompts.length > 1 && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant="secondary"
               onClick={() => update({ suggested_prompts: row.suggested_prompts.slice(0, -1) })}
             >
               Remove last
@@ -185,8 +186,8 @@ export default function AiSettingsForm({ initialSettings }: { initialSettings: S
         />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.sm, marginTop: tokens.spacing.lg }}>
-          <Button variant="primary" size="md" onClick={save} loading={saving}>
-            Save
+          <Button variant="primary" onClick={save} disabled={saving}>
+            {saving ? 'Saving...' : 'Save'}
           </Button>
           {saved && <span style={{ fontSize: 13, color: tokens.colors.brand }}>Saved — live immediately</span>}
         </div>

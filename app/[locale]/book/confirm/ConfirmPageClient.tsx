@@ -4,7 +4,7 @@ import { useCallback, useState } from "react"
 import { useTranslations } from "next-intl"
 import { useOrderConfirmationPolling } from "@/lib/booking/useOrderConfirmationPolling"
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
-import { LoadingGif } from "@/components/ui/LoadingGif"
+import { LoadingGif } from "@/components/shared/LoadingGif"
 import { tokens } from "@/app/styles/tokens"
 
 type Props = { bookingId: string }

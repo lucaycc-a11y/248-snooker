@@ -7,9 +7,9 @@ import StarterKit from '@tiptap/starter-kit'
 import TiptapImage from '@tiptap/extension-image'
 import TiptapLink from '@tiptap/extension-link'
 import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
 import { tokens } from '@/app/styles/tokens'
 
 type BlogPost = {
@@ -246,16 +246,20 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Title</label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <Input label="Slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Slug</label>
+          <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
         </div>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <Input label="Category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="tutorial, venue, event, culture" />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Category</label>
+          <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="tutorial, venue, event, culture" />
         </div>
         <div>
-          <Input label="Excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Excerpt</label>
+          <Input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
         </div>
       </Card>
 
@@ -278,12 +282,14 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
                 if (file) uploadCoverImage(file)
               }}
             />
-            <Button variant="secondary" size="sm" leftIcon={<ImagePlus size={16} />} loading={uploading} disabled={uploading}>
-              Upload image
+            <Button variant="secondary" disabled={uploading}>
+              <ImagePlus size={16} style={{ marginRight: 6 }} />
+              {uploading ? 'Uploading...' : 'Upload image'}
             </Button>
           </label>
-          <Button variant="secondary" size="sm" leftIcon={<Sparkles size={16} />} loading={generatingImage} disabled={generatingImage} onClick={generateCoverImage}>
-            Generate with AI
+          <Button variant="secondary" disabled={generatingImage} onClick={generateCoverImage}>
+            <Sparkles size={16} style={{ marginRight: 6 }} />
+            {generatingImage ? 'Generating...' : 'Generate with AI'}
           </Button>
         </div>
         {imageError && <div style={{ color: tokens.colors.danger, fontSize: 13, marginTop: 8 }}>{imageError}</div>}
@@ -341,18 +347,20 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <Input label="SEO title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO title</label>
+          <Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
         </div>
         <div>
-          <Input label="SEO description" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO description</label>
+          <Input value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
         </div>
       </Card>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.sm }}>
-        <Button variant="secondary" size="md" onClick={save} loading={saving}>
-          Save draft
+        <Button variant="secondary" onClick={save} disabled={saving}>
+          {saving ? 'Saving...' : 'Save draft'}
         </Button>
-        <Button variant="primary" size="md" onClick={togglePublish} disabled={saving}>
+        <Button variant="primary" onClick={togglePublish} disabled={saving}>
           {post.published_at ? 'Unpublish' : 'Publish'}
         </Button>
         {saved && <span style={{ fontSize: 13, color: tokens.colors.brand }}>Saved</span>}

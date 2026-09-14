@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
 import { tokens } from '@/app/styles/tokens'
 import { useAdmin } from '@/lib/admin/AdminContext'
 
@@ -112,7 +112,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
           <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ flex: 1, minWidth: 220 }}>
               <Input
-                label="Email"
+               
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -140,14 +140,14 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
                 <option value="super_admin">Super Admin</option>
               </select>
             </div>
-            <Button variant="primary" size="md" loading={inviting} disabled={!email} onClick={submitInvite}>
-              Invite
+            <Button variant="primary" disabled={inviting || !email} onClick={submitInvite}>
+              {inviting ? 'Inviting...' : 'Invite'}
             </Button>
           </div>
         </Card>
       )}
 
-      <Card padding="0">
+      <Card className="p-0">
         {items.map((row, i) => {
           const isSelf = row.email.toLowerCase() === admin.email.toLowerCase()
           return (
@@ -174,8 +174,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
                 <div style={{ display: 'flex', gap: tokens.spacing.sm }}>
                   <Button
                     variant="secondary"
-                    size="sm"
-                    loading={busyId === row.id}
+                    disabled={busyId === row.id}
                     onClick={() =>
                       act(row.id, { action: 'set_role', role: row.role === 'super_admin' ? 'admin' : 'super_admin' }, () =>
                         setItems((prev) =>
@@ -184,12 +183,11 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
                       )
                     }
                   >
-                    {row.role === 'super_admin' ? 'Demote' : 'Promote'}
+                    {busyId === row.id ? 'Loading...' : row.role === 'super_admin' ? 'Demote' : 'Promote'}
                   </Button>
                   <Button
                     variant="secondary"
-                    size="sm"
-                    loading={busyId === row.id}
+                    disabled={busyId === row.id}
                     onClick={() =>
                       act(row.id, { action: 'revoke' }, () =>
                         setItems((prev) => prev.map((r) => (r.id === row.id ? { ...r, invite_status: 'revoked' } : r)))

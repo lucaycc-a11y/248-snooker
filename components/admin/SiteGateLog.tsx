@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Sheet } from '@/components/ui/Sheet'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Sheet } from '@/components/ui/sheet'
 import { tokens } from '@/app/styles/tokens'
 import type { SiteGateLogRow } from '@/lib/data/getAdminSiteGate'
 
@@ -155,7 +155,7 @@ export default function SiteGateLog({
   }
 
   return (
-    <Card style={{ marginTop: tokens.spacing.lg }} padding="0">
+    <Card style={{ marginTop: tokens.spacing.lg }}>
       <div style={{ padding: tokens.spacing.base, borderBottom: `1px solid ${tokens.colors.border}` }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>Access log</div>
         <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginTop: 4 }}>
@@ -166,7 +166,6 @@ export default function SiteGateLog({
             <Button
               key={m}
               variant={methodFilter === m ? 'primary' : 'secondary'}
-              size="sm"
               onClick={() => applyFilters(m, rangeFilter)}
             >
               {m === 'all' ? 'All methods' : m}
@@ -177,7 +176,6 @@ export default function SiteGateLog({
             <Button
               key={r}
               variant={rangeFilter === r ? 'primary' : 'secondary'}
-              size="sm"
               onClick={() => applyFilters(methodFilter, r)}
             >
               {r === 'today' ? 'Today' : r === '7d' ? '7 days' : r === '30d' ? '30 days' : 'All time'}
@@ -243,7 +241,6 @@ export default function SiteGateLog({
               {group.ip !== 'unknown' && (
                 <Button
                   variant="secondary"
-                  size="sm"
                   disabled={isWhitelisted}
                   onClick={() => openLabelModal(group.ip)}
                 >
@@ -267,17 +264,17 @@ export default function SiteGateLog({
           This IP will bypass the coming-soon gate immediately.
         </div>
         <Input
-          label="Label (optional)"
+
           placeholder="e.g. Office"
           value={labelInput}
           onChange={(e) => setLabelInput(e.target.value)}
         />
         <div style={{ display: 'flex', gap: tokens.spacing.sm, marginTop: tokens.spacing.lg, justifyContent: 'flex-end' }}>
-          <Button variant="ghost" size="md" onClick={() => setLabelTarget(null)}>
+          <Button variant="secondary" onClick={() => setLabelTarget(null)}>
             Cancel
           </Button>
-          <Button variant="primary" size="md" loading={saving} onClick={confirmWhitelist}>
-            Add
+          <Button variant="primary" disabled={saving} onClick={confirmWhitelist}>
+            {saving ? 'Adding...' : 'Add'}
           </Button>
         </div>
       </Sheet>

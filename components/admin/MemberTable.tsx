@@ -2,9 +2,9 @@
 
 import { useCallback, useState } from 'react'
 import Link from 'next/link'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
 import { tokens } from '@/app/styles/tokens'
 import type { AdminMemberRow } from '@/lib/data/getAdminMembers'
 import { tierShortLabel } from '@/lib/member/tierDisplay'
@@ -45,12 +45,12 @@ export default function MemberTable({ initial }: { initial: ApiResponse }) {
             }}
           />
         </div>
-        <Button variant="secondary" size="md" onClick={() => fetchPage(1, search)} loading={loading}>
-          Search
+        <Button variant="secondary" onClick={() => fetchPage(1, search)} disabled={loading}>
+          {loading ? 'Searching...' : 'Search'}
         </Button>
       </div>
 
-      <Card padding="0">
+      <Card className="p-0">
         {data.members.map((m, i) => (
           <Link
             key={m.id}
@@ -91,10 +91,10 @@ export default function MemberTable({ initial }: { initial: ApiResponse }) {
           Page {page} of {totalPages} · {data.total} total
         </span>
         <div style={{ display: 'flex', gap: tokens.spacing.sm }}>
-          <Button variant="secondary" size="sm" disabled={page <= 1} onClick={() => fetchPage(page - 1, search)}>
+          <Button variant="secondary" disabled={page <= 1} onClick={() => fetchPage(page - 1, search)}>
             Previous
           </Button>
-          <Button variant="secondary" size="sm" disabled={page >= totalPages} onClick={() => fetchPage(page + 1, search)}>
+          <Button variant="secondary" disabled={page >= totalPages} onClick={() => fetchPage(page + 1, search)}>
             Next
           </Button>
         </div>

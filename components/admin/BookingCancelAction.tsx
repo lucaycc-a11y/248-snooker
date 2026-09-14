@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Sheet } from '@/components/ui/Sheet'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Sheet } from '@/components/ui/sheet'
 import { tokens } from '@/app/styles/tokens'
 
 export default function BookingCancelAction({ bookingId, compact = false }: { bookingId: string; compact?: boolean }) {
@@ -38,7 +38,7 @@ export default function BookingCancelAction({ bookingId, compact = false }: { bo
 
   return (
     <>
-      <Button variant="secondary" size="sm" onClick={() => setOpen(true)} style={compact ? undefined : { marginBottom: tokens.spacing.lg }}>
+      <Button variant="secondary" onClick={() => setOpen(true)} style={compact ? undefined : { marginBottom: tokens.spacing.lg }}>
         Cancel booking (admin)
       </Button>
       <Sheet open={open} onClose={() => setOpen(false)}>
@@ -52,10 +52,10 @@ export default function BookingCancelAction({ bookingId, compact = false }: { bo
         <Input placeholder="Reason (required)" value={reason} onChange={(e) => setReason(e.target.value)} />
         {error && <div style={{ color: tokens.colors.danger, fontSize: 13, marginTop: 8 }}>{error}</div>}
         <div style={{ display: 'flex', gap: tokens.spacing.sm, marginTop: tokens.spacing.md }}>
-          <Button variant="primary" size="sm" loading={submitting} disabled={!reason.trim()} onClick={submit}>
-            Confirm cancel
+          <Button variant="primary" disabled={submitting || !reason.trim()} onClick={submit}>
+            {submitting ? 'Cancelling...' : 'Confirm cancel'}
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+          <Button variant="secondary" onClick={() => setOpen(false)}>
             Back
           </Button>
         </div>

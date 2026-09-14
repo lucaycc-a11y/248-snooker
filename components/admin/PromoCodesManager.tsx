@@ -279,7 +279,7 @@ export default function PromoCodesManager() {
                     placeholder="e.g. Summer Saver 20%"
                   />
                 </Field>
-                <Field label="Type">
+                <Field label="Discount Type">
                   <select
                     className={inputCls}
                     value={couponForm.discountType}
@@ -302,7 +302,7 @@ export default function PromoCodesManager() {
                     placeholder={couponForm.discountType === 'percentage' ? 'e.g. 20' : 'e.g. 50'}
                   />
                 </Field>
-                <Field label="Max Uses (optional)">
+                <Field label="Max Uses">
                   <input
                     className={inputCls}
                     type="number"
@@ -432,7 +432,7 @@ export default function PromoCodesManager() {
               }}
             >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Name">
+                <Field label="Campaign Name">
                   <input
                     className={inputCls}
                     value={campaignForm.name}

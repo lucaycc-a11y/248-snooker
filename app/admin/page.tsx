@@ -1,100 +1,175 @@
-import { Suspense } from 'react'
-import { getAdminData } from '@/lib/data/getAdmin'
-import { getAdminStats } from '@/lib/data/getAdminStats'
-import { getServiceSupabase } from '@/lib/supabase/service'
-import { DEFAULT_LAYOUT } from '@/lib/admin/widgetMeta'
-import type { LayoutItem } from '@/lib/admin/widgetMeta'
-import DashboardGrid from '@/components/admin/DashboardGrid'
-import { OtpPhoneUnlock } from '@/components/admin/OtpPhoneUnlock'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { ShoppingBag, AlertTriangle } from 'lucide-react'
 
-/**
- * Admin Dashboard — §3.
- *
- * Server Component that fetches admin role + saved layout, then passes
- * both to the client-side DashboardGrid which handles dnd-kit interactivity.
- */
-
-function isLayoutArray(value: unknown): value is LayoutItem[] {
-  return (
-    Array.isArray(value) &&
-    value.length > 0 &&
-    value.every(
-      (item) =>
-        typeof item === 'object' &&
-        item !== null &&
-        typeof (item as Record<string, unknown>).id === 'string' &&
-        typeof (item as Record<string, unknown>).size === 'string'
-    )
-  )
-}
-
-export default async function AdminDashboardPage() {
-  const admin = await getAdminData()
-  const isAdmin = admin?.role === 'super_admin' || admin?.role === 'admin'
-
-  // Fetch saved layout (best-effort; falls back to DEFAULT_LAYOUT)
-  let layout: LayoutItem[] = DEFAULT_LAYOUT
-  try {
-    if (admin?.userId) {
-      const service = getServiceSupabase()
-      const { data } = await service
-        .from('admin_dashboard_config')
-        .select('layout')
-        .eq('admin_id', admin.userId)
-        .maybeSingle()
-
-      if (data?.layout && isLayoutArray(data.layout)) {
-        layout = data.layout
-      }
+async function getTodayBookings() {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Server Component restriction
+          }
+        },
+      },
     }
-  } catch {
-    // Table may not exist — use default layout
+  )
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('date', new Date().toISOString().split('T')[0])
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching today bookings:', error)
+    return []
   }
 
-  return (
-    <main className="max-w-[1400px] mx-auto px-4 py-8 lg:px-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1
-          className="text-2xl font-bold text-[var(--admin-text)] tracking-tight"
-          data-cms-key="admin_dashboard_title"
-        >
-          Dashboard
-        </h1>
-        <p className="text-sm text-[var(--admin-text-muted)] mt-1">
-          Welcome back, {admin?.displayName ?? admin?.email ?? 'Admin'}
-        </p>
-      </div>
-
-      {admin?.role === 'super_admin' && <OtpPhoneUnlock />}
-
-      {/* Widget grid — client-side dnd-kit */}
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardGrid initialLayout={layout} isAdmin={isAdmin} />
-      </Suspense>
-    </main>
-  )
+  return data || []
 }
 
-// ── Loading skeleton ────────────────────────────────────────────────────────
+async function getAnomalousPayments() {
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Server Component restriction
+          }
+        },
+      },
+    }
+  )
 
-function DashboardSkeleton() {
+  // Orphaned payment attempts (no booking_id)
+  const { data: orphanedAttempts } = await supabase
+    .from('payment_attempts')
+    .select('*')
+    .is('booking_id', null)
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  // Webhook events that don't match any payment_attempt
+  const { data: orphanedWebhooks } = await supabase
+    .from('webhook_events')
+    .select('*')
+    .not('payment_intent_id', 'in', `(SELECT stripe_payment_intent_id FROM payment_attempts WHERE stripe_payment_intent_id IS NOT NULL)`)
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  return {
+    orphanedAttempts: orphanedAttempts || [],
+    orphanedWebhooks: orphanedWebhooks || [],
+  }
+}
+
+export default async function AdminDashboard() {
+  const todayBookings = await getTodayBookings()
+  const anomalies = await getAnomalousPayments()
+
+  const totalAnomalies =
+    anomalies.orphanedAttempts.length + anomalies.orphanedWebhooks.length
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {Array.from({ length: 7 }).map((_, i) => (
-        <div
-          key={i}
-          className={`min-h-[160px] rounded-2xl border border-[var(--admin-border)] bg-[var(--admin-surface)]/60 backdrop-blur-xl animate-pulse ${
-            i % 3 === 0 ? 'md:col-span-2' : ''
-          }`}
-        >
-          <div className="p-4 space-y-3">
-            <div className="h-3 bg-[var(--admin-surface)] rounded w-1/3" />
-            <div className="h-8 bg-[var(--admin-surface)] rounded w-1/2" />
-            <div className="h-3 bg-[var(--admin-surface)] rounded w-2/3" />
-          </div>
-        </div>
-      ))}
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">營運概況</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">今日訂單</CardTitle>
+            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{todayBookings.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {new Date().toLocaleDateString('zh-HK', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">異常付款</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-baseline gap-2">
+              <div className="text-2xl font-bold">{totalAnomalies}</div>
+              {totalAnomalies > 0 && (
+                <Badge variant="destructive">需處理</Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {anomalies.orphanedAttempts.length} 孤立嘗試 /{' '}
+              {anomalies.orphanedWebhooks.length} 孤立 webhook
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {todayBookings.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>今日訂單明細</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {todayBookings.slice(0, 5).map((booking) => (
+                <div
+                  key={booking.id}
+                  className="flex items-center justify-between rounded-lg border border-border p-3"
+                >
+                  <div>
+                    <p className="font-medium">{booking.name || '未命名'}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {booking.table_number} 號檯 · {booking.start_time} -{' '}
+                      {booking.end_time}
+                    </p>
+                  </div>
+                  <Badge
+                    variant={
+                      booking.status === 'confirmed' ? 'default' : 'secondary'
+                    }
+                  >
+                    {booking.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

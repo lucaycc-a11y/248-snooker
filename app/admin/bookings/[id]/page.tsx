@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { Card } from '@/components/ui/Card'
+import { Card } from '@/components/ui/card'
 import { tokens } from '@/app/styles/tokens'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 import BookingCancelAction from '@/components/admin/BookingCancelAction'
@@ -73,19 +73,19 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
       )}
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <Row_ label="Customer" value={user?.display_name ?? user?.email ?? 'Guest'} />
+        <Row_ label="Name" value={user?.display_name ?? user?.email ?? 'Guest'} />
         {user?.email && <Row_ label="Email" value={user.email} />}
         {user?.phone && <Row_ label="Phone" value={user.phone} />}
         <Row_ label="Table" value={String(num(booking, ['table_number'], 0))} />
         <Row_
-          label="Date / time"
+          label="Time"
           value={`${str(booking, ['date']) ?? ''} ${str(booking, ['start_time']) ?? ''}-${str(booking, ['end_time']) ?? ''}`}
         />
-        <Row_ label="Price" value={`HK$${num(booking, ['total_price'], 0)}`} />
+        <Row_ label="Total" value={`HK$${num(booking, ['total_price'], 0)}`} />
         <Row_ label="Status" value={str(booking, ['status']) ?? 'unknown'} />
-        <Row_ label="Payment method" value={str(booking, ['payment_method']) ?? '—'} />
+        <Row_ label="Payment" value={str(booking, ['payment_method']) ?? '—'} />
         {num(booking, ['refund_amount'], 0) > 0 && (
-          <Row_ label="Refund amount" value={`HK$${num(booking, ['refund_amount'], 0)}`} />
+          <Row_ label="Refund" value={`HK$${num(booking, ['refund_amount'], 0)}`} />
         )}
       </Card>
 

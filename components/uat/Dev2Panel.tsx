@@ -2,7 +2,24 @@
 
 import { useEffect, useState } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { X, RefreshCw, Trash2, Check, AlertCircle } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Separator } from '@/components/ui/separator'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { X, RefreshCw, Trash2, Check, AlertCircle, GitBranch, Play, Shield, ArrowRight, ShieldAlert, Rocket } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatVersion } from '@/lib/version'
 
 type EnvInfo = {
@@ -22,6 +39,15 @@ type EnvInfo = {
     amount: number
     label: string | null
   } | null
+}
+
+type DeployStatus = {
+  uatSha: string
+  uatMessage: string
+  mainSha: string
+  mainMessage: string
+  uatAhead: number
+  gateEnabled: boolean
 }
 
 type GitStatus = {
@@ -76,32 +102,20 @@ export function Dev2Panel({ onClose }: Dev2PanelProps) {
   const [activeTab, setActiveTab] = useState('env')
 
   return (
-    <div style={{ padding: 24, maxHeight: '90vh', overflow: 'auto' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+    <div className="p-6 max-h-[90vh] overflow-auto bg-background">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--foreground)', marginBottom: 4 }}>
+          <h1 className="text-2xl font-bold text-foreground mb-1">
             Dev2 Panel · {formatVersion()}
           </h1>
-          <p style={{ color: 'var(--muted-foreground)', fontSize: 14 }}>
+          <p className="text-sm text-muted-foreground">
             UAT testing and deployment management
           </p>
         </div>
         {onClose && (
-          <button
-            onClick={onClose}
-            style={{
-              padding: 8,
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              borderRadius: 8,
-              color: 'var(--foreground)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <X size={20} />
-          </button>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
         )}
       </div>
 
@@ -148,68 +162,99 @@ export function Dev2Panel({ onClose }: Dev2PanelProps) {
   )
 }
 
+// Env Info Tab Component
 function EnvInfoTab() {
   const [data, setData] = useState<EnvInfo | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchData()
+    fetch('/api/dev2/env-info')
+      .then((res) => res.json())
+      .then((json) => {
+        setData(json)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [])
 
-  async function fetchData() {
-    try {
-      const res = await fetch('/api/dev2/env-info')
-      if (res.ok) {
-        const json = await res.json()
-        setData(json)
-      }
-    } catch (err) {
-      console.error('Failed to fetch env info:', err)
-    } finally {
-      setLoading(false)
-    }
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
-  if (loading) return <div style={{ padding: 24 }}>Loading...</div>
-  if (!data) return <div style={{ padding: 24 }}>No data</div>
+  if (!data) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="h-5 w-5" />
+            <span>Failed to load environment info</span>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
-      <InfoRow label="Environment" value={data.env} />
-      <InfoRow label="User" value={data.admin.email} />
-      <InfoRow label="Role" value={data.admin.role} />
-      <InfoRow label="Client IP" value={data.clientIp} />
-      <InfoRow label="IP Whitelisted" value={data.isIpWhitelisted ? '✓ Yes' : '✗ No'} />
-      <InfoRow label="Gate Enabled" value={data.gateEnabled ? `✓ Yes (${data.gateReason || 'unknown'})` : '✗ No'} />
-      <InfoRow
-        label="Active Test Price"
-        value={
-          data.activeTestPrice
-            ? `${data.activeTestPrice.mode} · HK$${data.activeTestPrice.amount}${data.activeTestPrice.label ? ` · ${data.activeTestPrice.label}` : ''}`
-            : 'None'
-        }
-      />
+    <Card>
+      <CardHeader>
+        <CardTitle>Environment Information</CardTitle>
+        <CardDescription>Current system state and admin context</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <InfoRow label="Environment" value={data.env} />
+        <Separator />
+        <InfoRow label="Admin Email" value={data.admin.email} />
+        <InfoRow label="Role" value={data.admin.role} />
+        <InfoRow label="Display Name" value={data.admin.displayName || '(none)'} />
+        <Separator />
+        <InfoRow label="Client IP" value={data.clientIp} />
+        <InfoRow
+          label="IP Whitelisted"
+          value={data.isIpWhitelisted ? '✓ Yes' : '✗ No'}
+          badge={data.isIpWhitelisted ? 'default' : 'destructive'}
+        />
+        <Separator />
+        <InfoRow
+          label="Gate Enabled"
+          value={data.gateEnabled ? `✓ Yes (${data.gateReason || 'unknown'})` : '✗ No'}
+          badge={data.gateEnabled ? 'destructive' : 'default'}
+        />
+        <Separator />
+        {data.activeTestPrice && (
+          <InfoRow
+            label="Active Test Price"
+            value={`${data.activeTestPrice.mode}: HK$${data.activeTestPrice.amount} ${data.activeTestPrice.label ? `(${data.activeTestPrice.label})` : ''}`}
+          />
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function InfoRow({ label, value, badge }: { label: string; value: string; badge?: 'default' | 'destructive' }) {
+  return (
+    <div className="flex items-center justify-between py-1">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      {badge ? (
+        <Badge variant={badge} className="font-mono text-xs">
+          {value}
+        </Badge>
+      ) : (
+        <span className="text-sm font-mono font-semibold">{value}</span>
+      )}
     </div>
   )
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: 12,
-        background: 'var(--muted)',
-        borderRadius: 8,
-      }}
-    >
-      <span style={{ color: 'var(--muted-foreground)', fontSize: 14 }}>{label}</span>
-      <span style={{ color: 'var(--foreground)', fontSize: 14, fontWeight: 600, fontFamily: 'monospace' }}>{value}</span>
-    </div>
-  )
-}
-
+// Activity Log Tab Component
 function ActivityLogTab() {
   const [logs, setLogs] = useState<ActivityLogEntry[]>([])
   const maxLogs = 200
@@ -271,76 +316,56 @@ function ActivityLogTab() {
   const typeColor = (type: string) => {
     switch (type) {
       case 'log':
-        return 'var(--foreground)'
+        return 'text-foreground'
       case 'warn':
-        return 'orange'
+        return 'text-orange-500'
       case 'error':
-        return 'var(--destructive)'
+        return 'text-destructive'
       case 'fetch':
-        return 'cyan'
+        return 'text-cyan-500'
       default:
-        return 'var(--muted-foreground)'
+        return 'text-muted-foreground'
     }
   }
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button
-          onClick={copyAll}
-          style={{
-            padding: '8px 16px',
-            background: 'var(--primary)',
-            color: 'var(--primary-foreground)',
-            border: 'none',
-            borderRadius: 6,
-            cursor: 'pointer',
-            fontSize: 14,
-          }}
-        >
-          Copy All
-        </button>
-        <button
-          onClick={clear}
-          style={{
-            padding: '8px 16px',
-            background: 'var(--destructive)',
-            color: 'var(--destructive-foreground)',
-            border: 'none',
-            borderRadius: 6,
-            cursor: 'pointer',
-            fontSize: 14,
-          }}
-        >
-          Clear
-        </button>
-        <span style={{ marginLeft: 'auto', color: 'var(--muted-foreground)', fontSize: 14, lineHeight: '36px' }}>
-          {logs.length} / {maxLogs} entries
-        </span>
-      </div>
-      <div
-        style={{
-          background: '#000',
-          padding: 16,
-          borderRadius: 8,
-          maxHeight: 500,
-          overflow: 'auto',
-          fontFamily: 'monospace',
-          fontSize: 12,
-        }}
-      >
-        {logs.length === 0 && <div style={{ color: '#666' }}>No activity logged yet</div>}
-        {logs.map((log, i) => (
-          <div key={i} style={{ marginBottom: 4, color: typeColor(log.type) }}>
-            <span style={{ color: '#666' }}>[{new Date(log.timestamp).toLocaleTimeString()}]</span>{' '}
-            <span style={{ color: '#888' }}>{log.type.toUpperCase()}:</span> {log.message}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Activity Log</CardTitle>
+            <CardDescription>Console output and network requests</CardDescription>
           </div>
-        ))}
-      </div>
-    </div>
+          <span className="text-sm text-muted-foreground">
+            {logs.length} / {maxLogs} entries
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex gap-2">
+          <Button onClick={copyAll} variant="default" size="sm">
+            Copy All
+          </Button>
+          <Button onClick={clear} variant="secondary" size="sm">
+            <Trash2 className="h-4 w-4 mr-1" />
+            Clear
+          </Button>
+        </div>
+        <div className="bg-black p-4 rounded-lg max-h-[500px] overflow-auto font-mono text-xs">
+          {logs.length === 0 && <div className="text-muted-foreground">No activity logged yet</div>}
+          {logs.map((log, i) => (
+            <div key={i} className={`mb-1 ${typeColor(log.type)}`}>
+              <span className="text-muted-foreground">[{new Date(log.timestamp).toLocaleTimeString()}]</span>{' '}
+              <span className="text-muted-foreground">{log.type.toUpperCase()}:</span> {log.message}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
+// Payment Log Tab Component
 function PaymentLogTab() {
   const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
@@ -361,47 +386,61 @@ function PaymentLogTab() {
     }
   }
 
-  if (loading) return <div style={{ padding: 24 }}>Loading...</div>
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid var(--border)' }}>
-              <th style={{ padding: 12, textAlign: 'left' }}>ID</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>Amount</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>Method</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>Status</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>Test</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((p) => (
-              <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: 12, fontFamily: 'monospace', fontSize: 12 }}>{p.id.slice(0, 8)}</td>
-                <td style={{ padding: 12, fontWeight: 600 }}>HK${p.total_price}</td>
-                <td style={{ padding: 12 }}>{p.payment_method}</td>
-                <td
-                  style={{
-                    padding: 12,
-                    color: p.payment_status === 'completed' ? 'var(--success)' : 'var(--muted-foreground)',
-                  }}
-                >
-                  {p.payment_status}
-                </td>
-                <td style={{ padding: 12 }}>{p.is_test ? '✓ Test' : ''}</td>
-                <td style={{ padding: 12, fontSize: 12 }}>{new Date(p.created_at).toLocaleString()}</td>
+    <Card>
+      <CardHeader>
+        <CardTitle>Payment Log</CardTitle>
+        <CardDescription>Recent bookings and payment status</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2">
+                <th className="p-3 text-left font-semibold">ID</th>
+                <th className="p-3 text-left font-semibold">Amount</th>
+                <th className="p-3 text-left font-semibold">Method</th>
+                <th className="p-3 text-left font-semibold">Status</th>
+                <th className="p-3 text-left font-semibold">Test</th>
+                <th className="p-3 text-left font-semibold">Created</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            </thead>
+            <tbody>
+              {payments.map((p) => (
+                <tr key={p.id} className="border-b">
+                  <td className="p-3 font-mono text-xs">{p.id.slice(0, 8)}</td>
+                  <td className="p-3 font-semibold">HK${p.total_price}</td>
+                  <td className="p-3">{p.payment_method}</td>
+                  <td className="p-3">
+                    <Badge variant={p.payment_status === 'completed' ? 'default' : 'secondary'}>
+                      {p.payment_status}
+                    </Badge>
+                  </td>
+                  <td className="p-3">{p.is_test ? '✓ Test' : ''}</td>
+                  <td className="p-3 text-xs">{new Date(p.created_at).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
+// Auth Log Tab Component
 function AuthLogTab() {
   const [events, setEvents] = useState<AuthEvent[]>([])
   const [loading, setLoading] = useState(true)
@@ -422,43 +461,60 @@ function AuthLogTab() {
     }
   }
 
-  if (loading) return <div style={{ padding: 24 }}>Loading...</div>
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid var(--border)' }}>
-              <th style={{ padding: 12, textAlign: 'left' }}>Timestamp</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>User</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>Action</th>
-              <th style={{ padding: 12, textAlign: 'left' }}>Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((e) => (
-              <tr key={e.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: 12, fontSize: 12 }}>{new Date(e.created_at).toLocaleString()}</td>
-                <td style={{ padding: 12, fontFamily: 'monospace', fontSize: 12 }}>{e.user_id.slice(0, 8)}</td>
-                <td style={{ padding: 12, fontWeight: 600 }}>{e.action}</td>
-                <td style={{ padding: 12, fontSize: 12, fontFamily: 'monospace' }}>
-                  {JSON.stringify(e.details).slice(0, 60)}
-                </td>
+    <Card>
+      <CardHeader>
+        <CardTitle>Auth Log</CardTitle>
+        <CardDescription>Authentication and authorization events</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b-2">
+                <th className="p-3 text-left font-semibold">Timestamp</th>
+                <th className="p-3 text-left font-semibold">User</th>
+                <th className="p-3 text-left font-semibold">Action</th>
+                <th className="p-3 text-left font-semibold">Details</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+            </thead>
+            <tbody>
+              {events.map((e) => (
+                <tr key={e.id} className="border-b">
+                  <td className="p-3 text-xs">{new Date(e.created_at).toLocaleString()}</td>
+                  <td className="p-3 font-mono text-xs">{e.user_id.slice(0, 8)}</td>
+                  <td className="p-3 font-semibold">{e.action}</td>
+                  <td className="p-3 text-xs font-mono">{JSON.stringify(e.details).slice(0, 60)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
+// IP Whitelist Tab Component
 function IpWhitelistTab() {
   const [whitelist, setWhitelist] = useState<WhitelistEntry[]>([])
   const [pending, setPending] = useState<PendingRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [newIp, setNewIp] = useState('')
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false)
+  const [ipToRemove, setIpToRemove] = useState('')
 
   useEffect(() => {
     fetchData()
@@ -490,13 +546,14 @@ function IpWhitelistTab() {
     }
   }
 
-  async function removeIp(ip: string) {
-    if (!confirm(`Remove ${ip}?`)) return
+  async function confirmRemoveIp() {
     await fetch('/api/dev2/ip-whitelist', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ip }),
+      body: JSON.stringify({ ip: ipToRemove }),
     })
+    setShowRemoveDialog(false)
+    setIpToRemove('')
     await fetchData()
   }
 
@@ -511,409 +568,480 @@ function IpWhitelistTab() {
     await fetchData()
   }
 
-  if (loading) return <div style={{ padding: 24 }}>Loading...</div>
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <section style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Add IP</h3>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            type="text"
-            value={newIp}
-            onChange={(e) => setNewIp(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addIp()}
-            placeholder="192.168.1.1"
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              border: '1px solid var(--border)',
-              borderRadius: 6,
-              background: 'var(--background)',
-              color: 'var(--foreground)',
-            }}
-          />
-          <button
-            onClick={addIp}
-            style={{
-              padding: '8px 16px',
-              background: 'var(--primary)',
-              color: 'var(--primary-foreground)',
-              border: 'none',
-              borderRadius: 6,
-              cursor: 'pointer',
-            }}
-          >
-            Add
-          </button>
-        </div>
-      </section>
-
-      <section style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Whitelisted ({whitelist.length})</h3>
-        <div style={{ display: 'grid', gap: 8 }}>
-          {whitelist.map((w) => (
-            <div
-              key={w.ip_address}
-              style={{
-                padding: 12,
-                background: 'var(--muted)',
-                borderRadius: 6,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <div>
-                <div style={{ fontFamily: 'monospace', fontWeight: 600 }}>{w.ip_address}</div>
-                {w.label && <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{w.label}</div>}
-              </div>
-              <button
-                onClick={() => removeIp(w.ip_address)}
-                style={{
-                  padding: '6px 12px',
-                  background: 'var(--destructive)',
-                  color: 'var(--destructive-foreground)',
-                  border: 'none',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                }}
-              >
-                <Trash2 size={14} />
-              </button>
+    <>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Add IP Address</CardTitle>
+            <CardDescription>Manually add an IP to the whitelist</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                value={newIp}
+                onChange={(e) => setNewIp(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addIp()}
+                placeholder="192.168.1.1"
+                className="font-mono"
+              />
+              <Button onClick={addIp}>Add</Button>
             </div>
-          ))}
-        </div>
-      </section>
+          </CardContent>
+        </Card>
 
-      <section>
-        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Pending Requests ({pending.length})</h3>
-        <div style={{ display: 'grid', gap: 8 }}>
-          {pending.map((p) => (
-            <div
-              key={p.ip}
-              style={{
-                padding: 12,
-                background: 'var(--muted)',
-                borderRadius: 6,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: 'monospace', fontWeight: 600 }}>{p.ip}</div>
-                <div style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>
-                  {p.count} attempts · Last: {new Date(p.lastSeen).toLocaleString()}
-                </div>
-                {p.userAgent && (
-                  <div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginTop: 4 }}>
-                    {p.userAgent.slice(0, 80)}
+        <Card>
+          <CardHeader>
+            <CardTitle>Whitelisted ({whitelist.length})</CardTitle>
+            <CardDescription>Currently approved IP addresses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {whitelist.map((w) => (
+                <div key={w.ip_address} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div>
+                    <div className="font-mono font-semibold">{w.ip_address}</div>
+                    {w.label && <div className="text-sm text-muted-foreground">{w.label}</div>}
                   </div>
-                )}
-              </div>
-              <button
-                onClick={() => approveIp(p.ip)}
-                style={{
-                  padding: '6px 12px',
-                  background: 'var(--primary)',
-                  color: 'var(--primary-foreground)',
-                  border: 'none',
-                  borderRadius: 4,
-                  cursor: 'pointer',
-                  fontSize: 12,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <Check size={14} /> Approve
-              </button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setIpToRemove(w.ip_address)
+                      setShowRemoveDialog(true)
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-    </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pending Requests ({pending.length})</CardTitle>
+            <CardDescription>Blocked access attempts awaiting approval</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {pending.map((p) => (
+                <div key={p.ip} className="flex items-center justify-between p-3 bg-muted rounded-lg gap-4">
+                  <div className="flex-1">
+                    <div className="font-mono font-semibold">{p.ip}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {p.count} attempts · Last: {new Date(p.lastSeen).toLocaleString()}
+                    </div>
+                    {p.userAgent && (
+                      <div className="text-xs text-muted-foreground mt-1">{p.userAgent.slice(0, 80)}</div>
+                    )}
+                  </div>
+                  <Button variant="default" size="sm" onClick={() => approveIp(p.ip)}>
+                    <Check className="h-4 w-4 mr-1" /> Approve
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <AlertDialog open={showRemoveDialog} onOpenChange={setShowRemoveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove IP from whitelist?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove <span className="font-mono font-semibold">{ipToRemove}</span> from the whitelist.
+              They will be blocked on next request.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIpToRemove('')}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemoveIp} className="bg-destructive text-destructive-foreground">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 
+// Deploy Tab Component
 function DeployTab() {
-  const [gitStatus, setGitStatus] = useState<GitStatus | null>(null)
-  const [gateEnabled, setGateEnabled] = useState(false)
+  const [status, setStatus] = useState<DeployStatus | null>(null)
   const [loading, setLoading] = useState(true)
-  const [deploying, setDeploying] = useState(false)
-  const [result, setResult] = useState<string | null>(null)
+  const [showPushDialog, setShowPushDialog] = useState(false)
+  const [showMaintenanceDialog, setShowMaintenanceDialog] = useState(false)
+  const [showGoLiveDialog, setShowGoLiveDialog] = useState(false)
+  const [confirmation, setConfirmation] = useState('')
 
   useEffect(() => {
-    fetchData()
+    fetchStatus()
   }, [])
 
-  async function fetchData() {
+  async function fetchStatus() {
     try {
-      const [git, env] = await Promise.all([
-        fetch('/api/dev2/git-status').then((r) => r.json()),
-        fetch('/api/dev2/env-info').then((r) => r.json()),
-      ])
-      setGitStatus(git)
-      setGateEnabled(env.gateEnabled)
+      const res = await fetch('/api/dev2/git-status')
+      if (res.ok) {
+        const json = await res.json()
+        setStatus(json)
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  async function deploy(action: 'push' | 'maintenance' | 'go-live') {
-    const confirmText = action === 'go-live' ? 'GO LIVE' : 'PUSH'
-    const confirmation = prompt(`Type "${confirmText}" to confirm:`)
-    if (confirmation !== confirmText) return
-
-    setDeploying(true)
-    setResult(null)
-    try {
-      const res = await fetch('/api/dev2/deploy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, confirmation }),
-      })
-      const json = await res.json()
-      if (res.ok) {
-        setResult(`✓ ${json.message}`)
-        await fetchData()
-      } else {
-        setResult(`✗ ${json.error}`)
-      }
-    } catch (error) {
-      setResult(`✗ Deploy failed: ${error}`)
-    } finally {
-      setDeploying(false)
+  async function executePush(enableGate: boolean) {
+    const res = await fetch('/api/dev2/deploy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enableGate }),
+    })
+    const json = await res.json()
+    if (res.ok) {
+      alert(`✅ ${json.message}`)
+      await fetchStatus()
+    } else {
+      alert(`❌ ${json.error}`)
     }
+    setShowPushDialog(false)
+    setShowMaintenanceDialog(false)
+    setShowGoLiveDialog(false)
+    setConfirmation('')
   }
 
-  if (loading) return <div style={{ padding: 24 }}>Loading...</div>
-  if (!gitStatus) return <div style={{ padding: 24 }}>No git status</div>
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center py-8">
+            <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!status) return null
+
+  const isDiverged = status.uatAhead > 0
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <section style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Branch Status</h3>
-        <div style={{ display: 'grid', gap: 12 }}>
-          <div style={{ padding: 12, background: 'var(--muted)', borderRadius: 6 }}>
-            <div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 4 }}>UAT Branch</div>
-            <div style={{ fontFamily: 'monospace', fontSize: 14 }}>
-              <strong>{gitStatus.uat.sha}</strong> · {gitStatus.uat.message}
+    <>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Branch Status</CardTitle>
+            <CardDescription>Current deployment state</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">UAT Branch</div>
+                <div className="font-mono text-xs bg-muted p-2 rounded">
+                  {status.uatSha.slice(0, 7)} — {status.uatMessage}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Main Branch</div>
+                <div className="font-mono text-xs bg-muted p-2 rounded">
+                  {status.mainSha.slice(0, 7)} — {status.mainMessage}
+                </div>
+              </div>
             </div>
-          </div>
-          <div style={{ padding: 12, background: 'var(--muted)', borderRadius: 6 }}>
-            <div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 4 }}>Main Branch</div>
-            <div style={{ fontFamily: 'monospace', fontSize: 14 }}>
-              <strong>{gitStatus.main.sha}</strong> · {gitStatus.main.message}
+            <Separator />
+            <div className="flex items-center justify-between">
+              <span className="text-sm">UAT ahead of main</span>
+              {isDiverged ? (
+                <Badge variant="secondary" className="font-mono">
+                  +{status.uatAhead} commits
+                </Badge>
+              ) : (
+                <Badge variant="default">In sync</Badge>
+              )}
             </div>
-          </div>
-          {gitStatus.diverged && (
-            <div style={{ padding: 12, background: 'orange', color: '#000', borderRadius: 6, fontWeight: 600 }}>
-              <AlertCircle size={16} style={{ display: 'inline', marginRight: 8 }} />
-              Branches have diverged
+            <div className="flex items-center justify-between">
+              <span className="text-sm">Site Gate</span>
+              <Badge variant={status.gateEnabled ? 'destructive' : 'default'}>
+                {status.gateEnabled ? '🔒 Enabled' : '🟢 Open'}
+              </Badge>
             </div>
-          )}
-        </div>
-      </section>
+          </CardContent>
+        </Card>
 
-      <section style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Deploy Actions</h3>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button
-            onClick={() => deploy('push')}
-            disabled={deploying}
-            style={{
-              padding: '12px 20px',
-              background: 'var(--primary)',
-              color: 'var(--primary-foreground)',
-              border: 'none',
-              borderRadius: 6,
-              cursor: deploying ? 'not-allowed' : 'pointer',
-              fontWeight: 600,
-              opacity: deploying ? 0.5 : 1,
-            }}
-          >
-            Push (uat → main, gate unchanged)
-          </button>
-          <button
-            onClick={() => deploy('maintenance')}
-            disabled={deploying}
-            style={{
-              padding: '12px 20px',
-              background: 'orange',
-              color: '#000',
-              border: 'none',
-              borderRadius: 6,
-              cursor: deploying ? 'not-allowed' : 'pointer',
-              fontWeight: 600,
-              opacity: deploying ? 0.5 : 1,
-            }}
-          >
-            Maintenance (uat → main, gate ON)
-          </button>
-          {gateEnabled && (
-            <button
-              onClick={() => deploy('go-live')}
-              disabled={deploying}
-              style={{
-                padding: '12px 20px',
-                background: 'var(--success)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                cursor: deploying ? 'not-allowed' : 'pointer',
-                fontWeight: 600,
-                opacity: deploying ? 0.5 : 1,
+        <Card>
+          <CardHeader>
+            <CardTitle>Deployment Actions</CardTitle>
+            <CardDescription>Merge and deploy operations</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button
+              variant="default"
+              className="w-full justify-start"
+              onClick={() => setShowPushDialog(true)}
+              disabled={!isDiverged}
+            >
+              <ArrowRight className="h-4 w-4 mr-2" />
+              Push to Production (gate unchanged)
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full justify-start"
+              onClick={() => setShowMaintenanceDialog(true)}
+              disabled={!isDiverged}
+            >
+              <ShieldAlert className="h-4 w-4 mr-2" />
+              Push + Enable Maintenance Mode
+            </Button>
+            {status.gateEnabled && (
+              <Button variant="default" className="w-full justify-start" onClick={() => setShowGoLiveDialog(true)}>
+                <Rocket className="h-4 w-4 mr-2" />
+                Open Site Gate (Go Live)
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Push Dialog */}
+      <AlertDialog open={showPushDialog} onOpenChange={setShowPushDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Push to Production?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will merge <span className="font-mono">uat</span> into <span className="font-mono">main</span> and
+              trigger a production deploy. The site gate will remain{' '}
+              <strong>{status.gateEnabled ? 'ENABLED' : 'OPEN'}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Input
+              type="text"
+              value={confirmation}
+              onChange={(e) => setConfirmation(e.target.value)}
+              placeholder='Type "PUSH" to confirm'
+              className="font-mono"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setConfirmation('')
               }}
             >
-              Go Live (open gate)
-            </button>
-          )}
-        </div>
-      </section>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction disabled={confirmation !== 'PUSH'} onClick={() => executePush(status.gateEnabled)}>
+              Push Now
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {result && (
-        <div
-          style={{
-            padding: 16,
-            background: result.startsWith('✓') ? 'var(--success)' : 'var(--destructive)',
-            color: '#fff',
-            borderRadius: 6,
-            fontWeight: 600,
-          }}
-        >
-          {result}
-        </div>
-      )}
-    </div>
+      {/* Maintenance Dialog */}
+      <AlertDialog open={showMaintenanceDialog} onOpenChange={setShowMaintenanceDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Push + Enable Maintenance?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will merge <span className="font-mono">uat</span> into <span className="font-mono">main</span>,
+              deploy to production, and <strong className="text-destructive">ENABLE THE SITE GATE</strong>. Visitors
+              will see the maintenance page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Input
+              type="text"
+              value={confirmation}
+              onChange={(e) => setConfirmation(e.target.value)}
+              placeholder='Type "PUSH" to confirm'
+              className="font-mono"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setConfirmation('')
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={confirmation !== 'PUSH'}
+              onClick={() => executePush(true)}
+              className="bg-destructive text-destructive-foreground"
+            >
+              Push + Enable Gate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Go Live Dialog */}
+      <AlertDialog open={showGoLiveDialog} onOpenChange={setShowGoLiveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Open Site Gate?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will <strong className="text-green-600">DISABLE THE SITE GATE</strong> and allow public access to the
+              site immediately. No code is deployed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Input
+              type="text"
+              value={confirmation}
+              onChange={(e) => setConfirmation(e.target.value)}
+              placeholder='Type "GO LIVE" to confirm'
+              className="font-mono"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setConfirmation('')
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction disabled={confirmation !== 'GO LIVE'} onClick={() => executePush(false)}>
+              Go Live Now
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 
+// Quick Actions Tab Component
 function QuickActionsTab() {
-  const [mode, setMode] = useState('flat')
+  const [mode, setMode] = useState<'flat' | 'per-hour'>('flat')
   const [amount, setAmount] = useState('')
   const [label, setLabel] = useState('')
-  const [result, setResult] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
 
-  async function setTestPrice() {
-    if (!amount) return
+  async function confirmSubmit() {
+    setLoading(true)
     try {
       const res = await fetch('/api/dev2/test-price', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode, amount: parseFloat(amount), label }),
+        body: JSON.stringify({
+          mode,
+          amount: parseFloat(amount),
+          label: label.trim() || undefined,
+        }),
       })
       if (res.ok) {
-        setResult(`✓ Test price set: ${mode} HK$${amount}`)
+        alert('✅ Test price updated')
         setAmount('')
         setLabel('')
       } else {
-        setResult('✗ Failed to set test price')
+        const json = await res.json()
+        alert(`❌ ${json.error}`)
       }
-    } catch (error) {
-      setResult(`✗ Error: ${error}`)
+    } finally {
+      setLoading(false)
+      setShowConfirmDialog(false)
     }
   }
 
   return (
-    <div style={{ marginTop: 16 }}>
-      <section style={{ marginBottom: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Set UAT Test Price</h3>
-        <div style={{ display: 'grid', gap: 12 }}>
-          <div>
-            <label style={{ display: 'block', fontSize: 14, marginBottom: 4 }}>Mode</label>
-            <select
-              value={mode}
-              onChange={(e) => setMode(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid var(--border)',
-                borderRadius: 6,
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-              }}
-            >
-              <option value="flat">Flat</option>
-              <option value="per-hour">Per Hour</option>
-            </select>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>UAT Test Pricing</CardTitle>
+          <CardDescription>Override booking prices for UAT testing</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Pricing Mode</label>
+            <Select value={mode} onValueChange={(v) => setMode(v as 'flat' | 'per-hour')}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="flat">Flat Rate</SelectItem>
+                <SelectItem value="per-hour">Per Hour</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 14, marginBottom: 4 }}>Amount (HK$)</label>
-            <input
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Amount (HK$)</label>
+            <Input
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="1"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid var(--border)',
-                borderRadius: 6,
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-              }}
+              placeholder="100"
+              min="0"
+              step="0.01"
             />
           </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 14, marginBottom: 4 }}>Label (optional)</label>
-            <input
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Label (optional)</label>
+            <Input
               type="text"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="Test pricing"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid var(--border)',
-                borderRadius: 6,
-                background: 'var(--background)',
-                color: 'var(--foreground)',
-              }}
+              placeholder="e.g. Weekend Special"
             />
           </div>
-          <button
-            onClick={setTestPrice}
-            style={{
-              padding: '12px 20px',
-              background: 'var(--primary)',
-              color: 'var(--primary-foreground)',
-              border: 'none',
-              borderRadius: 6,
-              cursor: 'pointer',
-              fontWeight: 600,
-            }}
+
+          <Button
+            onClick={() => setShowConfirmDialog(true)}
+            disabled={!amount || loading}
+            className="w-full"
+            variant="default"
           >
+            {loading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
             Set Test Price
-          </button>
-        </div>
-      </section>
+          </Button>
+        </CardContent>
+      </Card>
 
-      {result && (
-        <div
-          style={{
-            padding: 16,
-            background: result.startsWith('✓') ? 'var(--success)' : 'var(--destructive)',
-            color: '#fff',
-            borderRadius: 6,
-            fontWeight: 600,
-          }}
-        >
-          {result}
-        </div>
-      )}
-
-      <section style={{ marginTop: 32 }}>
-        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12, color: 'var(--muted-foreground)' }}>
-          More actions coming soon
-        </h3>
-        <p style={{ fontSize: 14, color: 'var(--muted-foreground)' }}>
-          • Refund test booking
-          <br />• Delete my test bookings
-        </p>
-      </section>
-    </div>
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Test Price</AlertDialogTitle>
+            <AlertDialogDescription>
+              Set UAT test price to{' '}
+              <strong className="font-mono">
+                HK${amount} ({mode})
+              </strong>
+              {label && (
+                <>
+                  {' '}
+                  with label "<strong>{label}</strong>"
+                </>
+              )}
+              ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSubmit}>Confirm</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

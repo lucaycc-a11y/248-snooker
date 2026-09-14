@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Sheet } from '@/components/ui/Sheet'
-import { Button } from '@/components/ui/Button'
+import { Sheet } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
 import { tokens } from '@/app/styles/tokens'
 import type { DayDensity, CalendarBooking } from '@/lib/data/getAdminCalendar'
 

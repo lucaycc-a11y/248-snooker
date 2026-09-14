@@ -566,9 +566,9 @@ export default function PaymentLogClient() {
                       <div className="border-t border-[var(--admin-border)] px-5 py-4 space-y-3">
                         {/* Detail grid */}
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-sm">
-                          <Detail label="Payment ID" value={p.id} mono />
+                          <Detail label="ID" value={p.id} mono />
                           <Detail label="Provider Order" value={p.providerOrderNo ?? '—'} mono />
-                          <Detail label="Booking ID" value={p.bookingId ? `${p.bookingId.slice(0, 8)}…` : '—'} mono />
+                          <Detail label="Booking" value={p.bookingId ? `${p.bookingId.slice(0, 8)}…` : '—'} mono />
                           <Detail label="Completed" value={p.completedAt ? formatDate(p.completedAt) : '—'} />
                           <Detail
                             label="Amount"

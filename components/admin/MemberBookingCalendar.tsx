@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { tokens } from '@/app/styles/tokens'
 
 export type MemberBookingDay = { date: string; status: string }

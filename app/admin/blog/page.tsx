@@ -1,6 +1,6 @@
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { tokens } from '@/app/styles/tokens'
-import { Card } from '@/components/ui/Card'
+import { Card } from '@/components/ui/card'
 import BlogAdminList from '@/components/admin/BlogAdminList'
 
 async function getPosts() {
@@ -20,7 +20,7 @@ export default async function AdminBlogListPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.text }}>Blog</h1>
       </div>
-      <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg, padding: tokens.spacing.md }}>
+      <Card className="p-4" style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
           Posts save as drafts. Use Publish on a post to make it live immediately — no separate build/deploy needed.
         </div>

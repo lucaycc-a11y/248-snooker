@@ -1,0 +1,28 @@
+
+> 248-snooker@3.12.5 build
+> node scripts/check-i18n-keys.js && next build
+
+✅ All locale files have matching keys.
+ ⚠ Invalid next.config.js options detected: 
+ ⚠     Unrecognized key(s) in object: 'serverComponentsExternalPackages'
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+  ▲ Next.js 14.2.33
+  - Environments: .env.local, .env.production
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./app/admin/blog/page.tsx:23:13
+Type error: Type '{ children: Element; variant: string; style: { marginBottom: "24px"; padding: "12px"; }; }' is not assignable to type 'IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { ...; }'.
+  Property 'variant' does not exist on type 'IntrinsicAttributes & ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & { ...; }'.
+
+[0m [90m 21 |[39m         [33m<[39m[33mh1[39m style[33m=[39m{{ fontSize[33m:[39m [35m28[39m[33m,[39m fontWeight[33m:[39m [35m700[39m[33m,[39m color[33m:[39m tokens[33m.[39mcolors[33m.[39mtext }}[33m>[39m[33mBlog[39m[33m<[39m[33m/[39m[33mh1[39m[33m>[39m[0m
+[0m [90m 22 |[39m       [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+[0m[31m[1m>[22m[39m[90m 23 |[39m       [33m<[39m[33mCard[39m variant[33m=[39m[32m"gradient"[39m style[33m=[39m{{ marginBottom[33m:[39m tokens[33m.[39mspacing[33m.[39mlg[33m,[39m padding[33m:[39m tokens[33m.[39mspacing[33m.[39mmd }}[33m>[39m[0m
+[0m [90m    |[39m             [31m[1m^[22m[39m[0m
+[0m [90m 24 |[39m         [33m<[39m[33mdiv[39m style[33m=[39m{{ fontSize[33m:[39m [35m13[39m[33m,[39m color[33m:[39m tokens[33m.[39mcolors[33m.[39mtextMuted }}[33m>[39m[0m
+[0m [90m 25 |[39m           [33mPosts[39m save [36mas[39m drafts[33m.[39m [33mUse[39m [33mPublish[39m on a post to make it live immediately — no separate build[33m/[39mdeploy needed[33m.[39m[0m
+[0m [90m 26 |[39m         [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m[0m
+Next.js build worker exited with code: 1 and signal: null

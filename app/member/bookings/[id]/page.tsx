@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getMemberData, getMemberTicket } from "@/lib/data/getMember";
 import { resolveLocaleFromCookie, loadMessages } from "@/lib/i18n/serverLocale";
-import { BackButton } from "@/components/ui";
+import { BackButton } from "@/components/shared/BackButton";
 import { TicketCard } from "@/components/booking/TicketCard";
 
 export const metadata: Metadata = {

@@ -11,8 +11,11 @@ import {
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { isSlotStillBookable, slotStartInHongKong } from "@/lib/booking/slot-cutoff"
-import { Button, Card, ProgressSteps, BackButton } from "@/components/ui"
-import { LoadingGif } from "@/components/ui/LoadingGif"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { LoadingGif } from "@/components/shared/LoadingGif"
+import { BackButton } from "@/components/shared/BackButton"
+import { ProgressSteps } from "@/components/ui/ProgressSteps"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
@@ -1376,8 +1379,7 @@ function SummaryCard({
 
   return (
     <Card
-      variant="elevated"
-      padding="28px"
+      className="p-7"
       style={{ backgroundColor: tokens.colors.depth.elevated }}
     >
         <div
@@ -1490,15 +1492,14 @@ function SummaryCard({
           </div>
         )}
         <Button
-          variant="primary"
+          variant="default"
           size="lg"
-          fullWidth
-          disabled={!canContinue}
-          loading={loading}
+          className="w-full"
+          disabled={!canContinue || loading}
           onClick={onContinue}
-          rightIcon={<ChevronRight size={18} />}
         >
           {ctaLabel}
+          <ChevronRight size={18} />
         </Button>
     </Card>
   )

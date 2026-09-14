@@ -7,6 +7,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { UatBadge } from "@/components/uat/UatBadge";
 import { MaintenanceBadge } from "@/components/uat/MaintenanceBadge";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -84,11 +85,18 @@ export default async function RootLayout({
   const locale = await getLocale().catch(() => routing.defaultLocale);
 
   return (
-    <html lang={locale} className={cn("no-js", bebasNeue.variable, "font-sans")}>
+    <html lang={locale} className={cn("no-js", bebasNeue.variable, "font-sans")} suppressHydrationWarning>
       <body className="min-h-screen bg-black text-white antialiased">
-        {children}
-        <UatBadge />
-        <MaintenanceBadge />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <UatBadge />
+          <MaintenanceBadge />
+        </ThemeProvider>
       </body>
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}

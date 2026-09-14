@@ -6,7 +6,7 @@ import { X } from 'lucide-react'
 import { Starfield } from '@/app/[locale]/Starfield'
 import { AmbientGlow } from '@/components/shared/AmbientGlow'
 import { Logo } from '@/components/brand/Logo'
-import { PasswordInput } from '@/components/ui/PasswordInput'
+import { PasswordInput } from '@/components/shared/PasswordInput'
 
 const GREEN = '#22c55e'
 const LONG_PRESS_MS = 2500

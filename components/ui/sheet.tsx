@@ -105,3 +105,67 @@ export function Sheet({ open, onClose, children }: SheetProps) {
     </AnimatePresence>
   )
 }
+
+export function SheetTitle({
+  children,
+  className,
+  style
+}: {
+  children: React.ReactNode
+  className?: string
+  style?: React.CSSProperties
+}) {
+  return (
+    <h2 className={className} style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, marginBottom: tokens.spacing.sm, ...style }}>
+      {children}
+    </h2>
+  )
+}
+
+export function SheetDescription({
+  children,
+  className,
+  style
+}: {
+  children: React.ReactNode
+  className?: string
+  style?: React.CSSProperties
+}) {
+  return (
+    <p className={className} style={{ fontSize: '0.875rem', color: tokens.colors.textMuted, margin: 0, marginBottom: tokens.spacing.md, ...style }}>
+      {children}
+    </p>
+  )
+}
+
+export function SheetContent({
+  children,
+  className,
+  style
+}: {
+  children: React.ReactNode
+  className?: string
+  style?: React.CSSProperties
+}) {
+  return (
+    <div className={className} style={style}>
+      {children}
+    </div>
+  )
+}
+
+export function SheetHeader({
+  children,
+  className,
+  style
+}: {
+  children: React.ReactNode
+  className?: string
+  style?: React.CSSProperties
+}) {
+  return (
+    <div className={className} style={{ marginBottom: tokens.spacing.md, ...style }}>
+      {children}
+    </div>
+  )
+}

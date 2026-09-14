@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/Card'
+import { Card } from '@/components/ui/card'
 import { tokens } from '@/app/styles/tokens'
 import { Lock, Unlock, RefreshCw, QrCode, CreditCard, Key, AlertTriangle } from 'lucide-react'
 
@@ -202,7 +202,7 @@ export default function DoorLockPage() {
       </h1>
 
       {/* Device Status */}
-      <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg }}>
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text, marginBottom: 16 }}>
           Device Status
         </div>
@@ -223,7 +223,7 @@ export default function DoorLockPage() {
       </Card>
 
       {/* Quick Actions */}
-      <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg }}>
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text, marginBottom: 16 }}>
           Quick Actions
         </div>
@@ -289,7 +289,7 @@ export default function DoorLockPage() {
       </Card>
 
       {/* Backup Passwords */}
-      <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg }}>
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text }}>
             Backup Passwords (TOTP)
@@ -358,7 +358,7 @@ export default function DoorLockPage() {
       </Card>
 
       {/* Admin QR Code */}
-      <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg }}>
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text }}>
             Admin QR Code
@@ -406,7 +406,7 @@ export default function DoorLockPage() {
 
       {/* Lockout Status */}
       {lockouts.length > 0 && (
-        <Card variant="gradient" style={{ marginBottom: tokens.spacing.lg }}>
+        <Card style={{ marginBottom: tokens.spacing.lg }}>
           <div style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
             <AlertTriangle size={20} color={tokens.colors.danger} />
             Lockout Alerts
@@ -437,7 +437,7 @@ export default function DoorLockPage() {
       )}
 
       {/* Access Logs */}
-      <Card variant="gradient">
+      <Card>
         <div style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text, marginBottom: 16 }}>
           Recent Access Logs
         </div>

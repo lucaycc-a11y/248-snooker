@@ -125,7 +125,7 @@ export default function StyleGuidePreview() {
                 <RingChart
                   percentage={58}
                   ariaLabel="Current progress: 58%"
-                  label="Percentage"
+                  label="58%"
                   labelCmsKey="admin_style_guide_percentage"
                   currentLabel="Current"
                   currentCmsKey="admin_style_guide_current"

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
 import { tokens } from '@/app/styles/tokens'
 import { useNfcRegistrationStatus } from '@/lib/door/useNfcRegistrationStatus'
 import type { DoorCardRow } from '@/lib/data/getAdminDoorCards'
@@ -101,7 +101,7 @@ export default function DoorCardTable({ initial }: { initial: DoorCardRow[] }) {
 
   return (
     <div>
-      <Card padding="0" style={{ marginBottom: tokens.spacing.lg }}>
+      <Card className="p-0" style={{ marginBottom: tokens.spacing.lg }}>
         {cards.map((c, i) => (
           <div
             key={c.id}
@@ -122,10 +122,10 @@ export default function DoorCardTable({ initial }: { initial: DoorCardRow[] }) {
               </div>
             </div>
             <div style={{ display: 'flex', gap: tokens.spacing.sm }}>
-              <Button variant="ghost" size="sm" onClick={() => toggleActive(c.id, !c.active)}>
+              <Button variant="secondary" onClick={() => toggleActive(c.id, !c.active)}>
                 {c.active ? 'Disable' : 'Enable'}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => deleteCard(c.id)} style={{ color: tokens.colors.danger }}>
+              <Button variant="danger" onClick={() => deleteCard(c.id)}>
                 Delete
               </Button>
             </div>
@@ -138,16 +138,16 @@ export default function DoorCardTable({ initial }: { initial: DoorCardRow[] }) {
         )}
       </Card>
 
-      <Card padding={tokens.spacing.base}>
+      <Card style={{ padding: tokens.spacing.base }}>
         {!registering ? (
-          <Button variant="secondary" size="sm" onClick={() => setRegistering(true)}>
+          <Button variant="secondary" onClick={() => setRegistering(true)}>
             + Register new card
           </Button>
         ) : !requestId ? (
           <div>
             <div style={{ marginBottom: tokens.spacing.sm }}>
               <Input
-                label="Card label"
+
                 placeholder="e.g. Front desk staff card"
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
@@ -157,10 +157,10 @@ export default function DoorCardTable({ initial }: { initial: DoorCardRow[] }) {
               />
             </div>
             <div style={{ display: 'flex', gap: tokens.spacing.sm }}>
-              <Button variant="primary" size="sm" loading={busy} onClick={startRegistration}>
-                Start
+              <Button variant="primary" disabled={busy} onClick={startRegistration}>
+                {busy ? 'Starting...' : 'Start'}
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setRegistering(false)}>
+              <Button variant="secondary" onClick={() => setRegistering(false)}>
                 Cancel
               </Button>
             </div>
@@ -173,7 +173,7 @@ export default function DoorCardTable({ initial }: { initial: DoorCardRow[] }) {
             <div style={{ color: tokens.colors.textMuted, fontSize: 13, marginBottom: tokens.spacing.sm }}>
               Tap the new card on the door reader now.
             </div>
-            <Button variant="ghost" size="sm" onClick={cancelRegistration}>
+            <Button variant="secondary" onClick={cancelRegistration}>
               Cancel
             </Button>
           </div>
@@ -183,13 +183,14 @@ export default function DoorCardTable({ initial }: { initial: DoorCardRow[] }) {
               Card detected — UID {uid}
             </div>
             <div style={{ marginBottom: tokens.spacing.sm }}>
-              <Input label="Confirm label" value={confirmLabel} onChange={(e) => setConfirmLabel(e.target.value)} />
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Confirm label</label>
+          <Input value={confirmLabel} onChange={(e) => setConfirmLabel(e.target.value)} />
             </div>
             <div style={{ display: 'flex', gap: tokens.spacing.sm }}>
-              <Button variant="primary" size="sm" loading={busy} onClick={confirmRegistration}>
-                Confirm
+              <Button variant="primary" disabled={busy} onClick={confirmRegistration}>
+                {busy ? 'Confirming...' : 'Confirm'}
               </Button>
-              <Button variant="ghost" size="sm" onClick={cancelRegistration}>
+              <Button variant="secondary" onClick={cancelRegistration}>
                 Cancel
               </Button>
             </div>
@@ -199,7 +200,7 @@ export default function DoorCardTable({ initial }: { initial: DoorCardRow[] }) {
             <div style={{ color: tokens.colors.danger, fontSize: 14, marginBottom: tokens.spacing.sm }}>
               Registration {status}. Please try again.
             </div>
-            <Button variant="ghost" size="sm" onClick={cancelRegistration}>
+            <Button variant="secondary" onClick={cancelRegistration}>
               Close
             </Button>
           </div>

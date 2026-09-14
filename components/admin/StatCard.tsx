@@ -1,5 +1,5 @@
 import { TrendingUp, TrendingDown, type LucideIcon } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
+import { Card } from '@/components/ui/card'
 import { tokens } from '@/app/styles/tokens'
 
 export default function StatCard({
@@ -17,7 +17,7 @@ export default function StatCard({
   const TrendIcon = trend != null && trend < 0 ? TrendingDown : TrendingUp
 
   return (
-    <Card variant="gradient">
+    <Card>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Icon size={18} color={tokens.colors.textMuted} />
         {trend != null && (

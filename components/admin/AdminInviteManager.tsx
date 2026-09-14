@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { Mail, X, Check, Copy, Clock } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
 import { tokens } from '@/app/styles/tokens'
 
 const TEXT = '#FFFFFF'
@@ -101,7 +101,7 @@ export default function AdminInviteManager() {
       <h2 style={{ fontSize: 20, fontWeight: 700, color: TEXT, marginBottom: 16 }}>Admin Invites</h2>
 
       {/* Send invite form */}
-      <Card variant="gradient" style={{ padding: '20px', marginBottom: 20 }}>
+      <Card style={{ padding: '20px', marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <label style={{ fontSize: 12, color: MUTED, marginBottom: 4, display: 'block' }}>Email</label>
@@ -141,7 +141,7 @@ export default function AdminInviteManager() {
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {pendingInvites.map((invite) => (
-                  <Card key={invite.id} variant="gradient" style={{ padding: '14px 16px' }}>
+                  <Card key={invite.id} style={{ padding: '14px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>{invite.email}</div>
@@ -183,7 +183,7 @@ export default function AdminInviteManager() {
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {activeInvites.map((invite) => (
-                <Card key={invite.id} variant="gradient" style={{ padding: '14px 16px' }}>
+                <Card key={invite.id} style={{ padding: '14px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>{invite.email}</div>

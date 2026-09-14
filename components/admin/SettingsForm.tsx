@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Card } from '@/components/ui/Card'
-import { Sheet } from '@/components/ui/Sheet'
+import { Button } from '@/components/admin/ui/Button'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import { Sheet } from '@/components/ui/sheet'
 import { tokens } from '@/app/styles/tokens'
 import type { PricingPeriod, ServiceFees, Tier } from '@/lib/data/pricing'
 
@@ -42,7 +42,7 @@ function SectionShell({
       <div style={sectionTitleStyle()}>{title}</div>
       {children}
       <div style={{ marginTop: tokens.spacing.lg, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="primary" size="sm" disabled={!dirty} onClick={onRequestSave}>
+        <Button variant="primary" disabled={!dirty} onClick={onRequestSave}>
           Save
         </Button>
       </div>
@@ -93,11 +93,11 @@ function ConfirmModal({
         )}
       </div>
       <div style={{ display: 'flex', gap: tokens.spacing.sm, justifyContent: 'flex-end' }}>
-        <Button variant="secondary" size="sm" onClick={onCancel} disabled={saving}>
+        <Button variant="secondary" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
-        <Button variant="primary" size="sm" onClick={onConfirm} loading={saving} disabled={rows.length === 0}>
-          Apply now
+        <Button variant="primary" onClick={onConfirm} disabled={saving || rows.length === 0}>
+          {saving ? 'Applying...' : 'Apply now'}
         </Button>
       </div>
     </Sheet>
@@ -120,10 +120,14 @@ function SiteSection({ initial, onSave }: { initial: SiteValue; onSave: (v: Site
     <>
       <SectionShell title="Venue" dirty={dirty} onRequestSave={() => setConfirmOpen(true)}>
         <div style={fieldRowStyle()}>
-          <Input label="Currency" value={value.currency} onChange={(e) => setValue((v) => ({ ...v, currency: e.target.value }))} />
-          <Input label="Max hours" type="number" min={1} inputMode="numeric" value={value.maxHours} onChange={(e) => setValue((v) => ({ ...v, maxHours: Number(e.target.value) || 0 }))} />
-          <Input label="Open hour" type="number" min={0} max={24} inputMode="numeric" value={value.openHour} onChange={(e) => setValue((v) => ({ ...v, openHour: Number(e.target.value) || 0 }))} />
-          <Input label="Close hour" type="number" min={0} max={24} inputMode="numeric" value={value.closeHour} onChange={(e) => setValue((v) => ({ ...v, closeHour: Number(e.target.value) || 0 }))} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Currency</label>
+          <Input value={value.currency} onChange={(e) => setValue((v) => ({ ...v, currency: e.target.value }))} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Max hours</label>
+          <Input type="number" min={1} inputMode="numeric" value={value.maxHours} onChange={(e) => setValue((v) => ({ ...v, maxHours: Number(e.target.value) || 0 }))} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Open hour</label>
+          <Input type="number" min={0} max={24} inputMode="numeric" value={value.openHour} onChange={(e) => setValue((v) => ({ ...v, openHour: Number(e.target.value) || 0 }))} />
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Close hour</label>
+          <Input type="number" min={0} max={24} inputMode="numeric" value={value.closeHour} onChange={(e) => setValue((v) => ({ ...v, closeHour: Number(e.target.value) || 0 }))} />
         </div>
       </SectionShell>
       <ConfirmModal
@@ -177,8 +181,10 @@ function PricingSection({ initial, onSave }: { initial: PricingRatesValue; onSav
                 {id} ({p.timeRange})
               </div>
               <div style={fieldRowStyle()}>
-                <Input label="Base rate (HK$/hr)" type="number" min={0} inputMode="numeric" value={p.base} onChange={(e) => setField(id, 'base', Number(e.target.value) || 0)} />
-                <Input label="Discount 2h+ (HK$/hr)" type="number" min={0} inputMode="numeric" value={p.discount} onChange={(e) => setField(id, 'discount', Number(e.target.value) || 0)} />
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Base rate (HK$/hr)</label>
+          <Input type="number" min={0} inputMode="numeric" value={p.base} onChange={(e) => setField(id, 'base', Number(e.target.value) || 0)} />
+                <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Discount 2h+ (HK$/hr)</label>
+          <Input type="number" min={0} inputMode="numeric" value={p.discount} onChange={(e) => setField(id, 'discount', Number(e.target.value) || 0)} />
               </div>
             </div>
           )
@@ -229,9 +235,12 @@ function TiersSection({ initial, onSave }: { initial: Tier[]; onSave: (v: Tier[]
               {t.id}
             </div>
             <div style={fieldRowStyle()}>
-              <Input label="Min points" type="number" min={0} inputMode="numeric" value={t.minPts} onChange={(e) => setTier(t.id, { minPts: Number(e.target.value) || 0 })} />
-              <Input label="Discount (0-1)" type="number" min={0} max={1} step={0.01} inputMode="decimal" value={t.discount} onChange={(e) => setTier(t.id, { discount: Number(e.target.value) || 0 })} />
-              <Input label="Points multiplier" type="number" min={0} step={0.1} inputMode="decimal" value={t.multiplier} onChange={(e) => setTier(t.id, { multiplier: Number(e.target.value) || 0 })} />
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Min points</label>
+          <Input type="number" min={0} inputMode="numeric" value={t.minPts} onChange={(e) => setTier(t.id, { minPts: Number(e.target.value) || 0 })} />
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Discount (0-1)</label>
+          <Input type="number" min={0} max={1} step={0.01} inputMode="decimal" value={t.discount} onChange={(e) => setTier(t.id, { discount: Number(e.target.value) || 0 })} />
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Points multiplier</label>
+          <Input type="number" min={0} step={0.1} inputMode="decimal" value={t.multiplier} onChange={(e) => setTier(t.id, { multiplier: Number(e.target.value) || 0 })} />
             </div>
           </div>
         ))}
@@ -275,7 +284,7 @@ function BookingRulesSection({
       <SectionShell title="Booking rules" dirty={dirty} onRequestSave={() => setConfirmOpen(true)}>
         <div style={fieldRowStyle()}>
           <Input
-            label="Refund cutoff (hours before start)"
+           
             type="number"
             min={0}
             inputMode="numeric"

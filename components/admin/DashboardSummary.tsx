@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/admin/ui/Button'
 import { tokens } from '@/app/styles/tokens'
 
 export default function DashboardSummary() {
@@ -42,8 +42,8 @@ export default function DashboardSummary() {
     <Card style={{ marginBottom: tokens.spacing.lg }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: tokens.spacing.md }}>
         <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>Today&apos;s summary</div>
-        <Button variant="secondary" size="sm" onClick={fetchSummary} loading={loading}>
-          {summary ? 'Refresh' : 'Generate'}
+        <Button variant="secondary" onClick={fetchSummary} disabled={loading}>
+          {loading ? 'Loading...' : summary ? 'Refresh' : 'Generate'}
         </Button>
       </div>
       {summary && (

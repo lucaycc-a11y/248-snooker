@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Trash2 } from 'lucide-react'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/admin/ui/Button'
 import { tokens } from '@/app/styles/tokens'
 
 type PostRow = {
@@ -54,8 +54,9 @@ export default function BlogAdminList({ initialPosts }: { initialPosts: PostRow[
 
   return (
     <div>
-      <Button variant="primary" size="sm" leftIcon={<Plus size={16} />} onClick={createDraft} loading={creating} style={{ marginBottom: tokens.spacing.lg }}>
-        New post
+      <Button variant="primary" onClick={createDraft} disabled={creating} style={{ marginBottom: tokens.spacing.lg }}>
+        <Plus size={16} style={{ marginRight: 6 }} />
+        {creating ? 'Creating...' : 'New post'}
       </Button>
 
       {posts.length === 0 && (
