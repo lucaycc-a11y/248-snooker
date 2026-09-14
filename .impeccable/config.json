@@ -946,6 +946,12 @@
         "value": "#a1a1a6",
         "createdAt": "2026-09-14T02:49:29.827Z",
         "reason": "coming-soon page subtitle text color - matches existing design"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(234, 179, 8, 0.9)",
+        "createdAt": "2026-09-14T03:01:48.433Z",
+        "reason": "UAT badge color - intentional high-visibility warning color"
       }
     ]
   }

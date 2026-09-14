@@ -1,12 +1,8 @@
 'use client'
 
-/**
- * UAT environment indicator badge.
- * Shows "UAT TEST" in bottom-left corner when NEXT_PUBLIC_APP_ENV=uat.
- * Only renders in UAT environment; hidden in production and development.
- */
+import { formatVersion } from '@/lib/version'
+
 export function UatBadge() {
-  // Only show when explicitly running in UAT environment
   if (process.env.NEXT_PUBLIC_APP_ENV !== 'uat') {
     return null
   }
@@ -29,7 +25,7 @@ export function UatBadge() {
         userSelect: 'none',
       }}
     >
-      UAT TEST
+      UAT TEST · {formatVersion()}
     </div>
   )
 }

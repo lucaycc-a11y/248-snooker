@@ -2,26 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { formatVersion } from '@/lib/version'
 
-/**
- * Maintenance Badge - shown bottom-left when:
- * - site_gate_config.enabled = true
- * - AND viewer has already bypassed the gate (whitelist or password)
- *
- * Tapping opens the dev2 panel (Deploy tab front-and-center)
- */
 export function MaintenanceBadge() {
-  const [show, setShow] = useState(false)
   const router = useRouter()
+  const [show, setShow] = useState(false)
 
   useEffect(() => {
-    // Check if gate is enabled and we're viewing the site (bypassed)
-    // This is indicated by being able to see this page at all
-    fetch('/api/dev2/env-info', { credentials: 'include' })
+    // Only show if gate is enabled and user has bypassed it
+    fetch('/api/gate/status')
       .then((res) => res.json())
       .then((data) => {
-        // Only show badge if gate is enabled and we're an admin who bypassed it
-        setShow(data.gateEnabled && data.admin)
+        setShow(data.enabled && data.bypassed)
       })
       .catch(() => setShow(false))
   }, [])
@@ -29,28 +21,26 @@ export function MaintenanceBadge() {
   if (!show) return null
 
   return (
-    <div
+    <button
       onClick={() => router.push('/admin/dev2?tab=deploy')}
       style={{
         position: 'fixed',
         bottom: 16,
         left: 16,
-        zIndex: 9998,
-        padding: '8px 14px',
-        background: 'rgba(255, 136, 0, 0.95)',
+        zIndex: 9999,
+        padding: '6px 12px',
+        background: 'rgba(255, 136, 0, 0.9)',
         color: '#000',
         fontFamily: 'monospace',
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: 700,
-        borderRadius: 6,
+        borderRadius: 4,
+        border: 'none',
         cursor: 'pointer',
         userSelect: 'none',
-        border: '2px solid #ff8800',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
       }}
-      title="Maintenance mode active - Click to open Dev2 panel"
     >
-      🔧 MAINTENANCE
-    </div>
+      MAINTENANCE MODE · {formatVersion()}
+    </button>
   )
 }
