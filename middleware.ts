@@ -18,8 +18,9 @@ const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/maint
 // Routes the site gate never blocks: admin (needs to reach the toggle even
 // while gated), the API (the gate's own verify/waitlist endpoints live here,
 // plus webhooks/auth callbacks that must always work), and the gate's own
-// coming-soon page (blocking it would redirect-loop).
-const GATE_BYPASS_PREFIXES = ['/api', '/admin', '/auth', '/coming-soon', '/style-guide-preview']
+// coming-soon page (blocking it would redirect-loop). Also includes /uat-gate
+// for UAT domain visitors.
+const GATE_BYPASS_PREFIXES = ['/api', '/admin', '/auth', '/coming-soon', '/uat-gate', '/style-guide-preview']
 
 function clientIp(request: NextRequest): string {
   const fwd = request.headers.get('x-forwarded-for')
@@ -62,11 +63,17 @@ async function checkSiteGate(request: NextRequest): Promise<NextResponse | null>
     console.error('[gate] log failed', err)
   )
 
+  // Detect if this is the UAT domain
+  const host = request.headers.get('host') || ''
+  const isUatDomain = host.includes('uat.space8.com.hk')
+
   const url = request.nextUrl.clone()
-  url.pathname = '/coming-soon'
+  // UAT domain visitors go to /uat-gate (which redirects to production after 3s)
+  // Production domain visitors go to /coming-soon (standard maintenance page)
+  url.pathname = isUatDomain ? '/uat-gate' : '/coming-soon'
   url.search = ''
 
-  // Return 503 Service Unavailable with Retry-After header
+  // Return 307 Temporary Redirect with Retry-After header
   const response = NextResponse.redirect(url, { status: 307 })
   response.headers.set('Retry-After', '3600') // Suggest retry in 1 hour
 
