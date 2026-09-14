@@ -1,79 +1,56 @@
 'use client'
 
-// Maintenance badge for production domain during internal review
-// Only renders when site_gate_config.enabled=true AND request passed the gate
-
 import { useEffect, useState } from 'react'
-import { Dev2Panel } from './Dev2Panel'
+import { useRouter } from 'next/navigation'
 
-type GateStatus = {
-  enabled: boolean
-  isWhitelisted: boolean
-  hasBypass: boolean
-}
-
+/**
+ * Maintenance Badge - shown bottom-left when:
+ * - site_gate_config.enabled = true
+ * - AND viewer has already bypassed the gate (whitelist or password)
+ *
+ * Tapping opens the dev2 panel (Deploy tab front-and-center)
+ */
 export function MaintenanceBadge() {
-  const [isOpen, setIsOpen] = useState(false)
-  const [gateStatus, setGateStatus] = useState<GateStatus | null>(null)
+  const [show, setShow] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
-    // Only fetch on production domain (not UAT)
-    if (process.env.NEXT_PUBLIC_APP_ENV === 'uat') return
-
-    fetch('/api/maintenance/gate-status')
+    // Check if gate is enabled and we're viewing the site (bypassed)
+    // This is indicated by being able to see this page at all
+    fetch('/api/dev2/env-info', { credentials: 'include' })
       .then((res) => res.json())
-      .then((data) => setGateStatus(data))
-      .catch(() => setGateStatus(null))
+      .then((data) => {
+        // Only show badge if gate is enabled and we're an admin who bypassed it
+        setShow(data.gateEnabled && data.admin)
+      })
+      .catch(() => setShow(false))
   }, [])
 
-  // Don't render if:
-  // - Still loading
-  // - Gate is disabled (site is public)
-  // - User hasn't passed the gate (shouldn't see this on coming-soon page)
-  if (!gateStatus || !gateStatus.enabled) return null
-  if (!gateStatus.isWhitelisted && !gateStatus.hasBypass) return null
+  if (!show) return null
 
   return (
-    <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          position: 'fixed',
-          bottom: '16px',
-          left: '16px',
-          zIndex: 9999,
-          backgroundColor: 'rgba(244, 67, 54, 0.95)',
-          color: '#fff',
-          padding: '8px 16px',
-          borderRadius: '4px',
-          fontFamily: 'var(--font-good-times, system-ui)',
-          fontSize: '14px',
-          fontWeight: 'bold',
-          letterSpacing: '0.5px',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-          userSelect: 'none',
-          border: 'none',
-          cursor: 'pointer',
-        }}
-        aria-label="Maintenance Mode - Internal Review - Open Debug Panel"
-      >
-        MAINTENANCE — INTERNAL REVIEW
-      </button>
-
-      {isOpen && (
-        <>
-          {/* Click-outside overlay */}
-          <div
-            onClick={() => setIsOpen(false)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 9998,
-            }}
-          />
-          <Dev2Panel mode="production-review" />
-        </>
-      )}
-    </>
+    <div
+      onClick={() => router.push('/admin/dev2?tab=deploy')}
+      style={{
+        position: 'fixed',
+        bottom: 16,
+        left: 16,
+        zIndex: 9998,
+        padding: '8px 14px',
+        background: 'rgba(255, 136, 0, 0.95)',
+        color: '#000',
+        fontFamily: 'monospace',
+        fontSize: 13,
+        fontWeight: 700,
+        borderRadius: 6,
+        cursor: 'pointer',
+        userSelect: 'none',
+        border: '2px solid #ff8800',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+      }}
+      title="Maintenance mode active - Click to open Dev2 panel"
+    >
+      🔧 MAINTENANCE
+    </div>
   )
 }

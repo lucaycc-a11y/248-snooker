@@ -12,6 +12,8 @@ import { PasswordInput } from '@/components/ui/PasswordInput'
 const GREEN = '#22c55e'
 const LONG_PRESS_MS = 2500
 
+type GateReason = 'prelaunch' | 'maintenance'
+
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
@@ -236,9 +238,11 @@ function PasswordModal({ open, onClose }: { open: boolean; onClose: () => void }
   )
 }
 
-export default function ComingSoonContent() {
+export default function ComingSoonContent({ reason = 'prelaunch' }: { reason?: GateReason }) {
   const t = useTranslations('comingSoon')
   const [modalOpen, setModalOpen] = useState(false)
+
+  const isMaintenanceMode = reason === 'maintenance'
 
   return (
     <main
@@ -265,13 +269,15 @@ export default function ComingSoonContent() {
             data-cms-key="comingSoon.title"
             style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 40, letterSpacing: '0.02em', color: '#fff', marginBottom: 12 }}
           >
-            {t('title')}
+            {isMaintenanceMode ? '網站維護中' : t('title')}
           </h1>
           <p data-cms-key="comingSoon.subtitle" style={{ color: '#A1A1A6', fontSize: 15, lineHeight: 1.5 }}>
-            {t('subtitle')}
+            {isMaintenanceMode
+              ? '我們正在進行系統更新，請稍後再試。已授權用戶可正常訪問。'
+              : t('subtitle')}
           </p>
         </div>
-        <WaitlistForm onSecretActivate={() => setModalOpen(true)} />
+        {!isMaintenanceMode && <WaitlistForm onSecretActivate={() => setModalOpen(true)} />}
       </section>
       <PasswordModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </main>
