@@ -2365,9 +2365,47 @@ function Screen3({
               ) : paymentMethod !== null && (['card', 'alipay', 'google_pay', 'apple_pay', 'wechat_pay'] as const).includes(paymentMethod as any) && (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe') ? (
                 /* ── Stripe payment (Card, Alipay, Google Pay, Apple Pay, WeChat Pay) ── */
                 <>
-                  {/* TODO: Wire Stripe payment with client_secret from booking API */}
-                  <div style={{ padding: 20, textAlign: 'center', color: tokens.colors.textMuted }}>
-                    Stripe payment integration (client_secret wiring in progress)
+                  <StripePayment
+                    date={blocks[0]?.date ?? ''}
+                    startHour={blocks[0]?.startHour ?? 0}
+                    duration={blocks[0]?.duration ?? 0}
+                    tableNumber={blocks[0]?.tableNumber ?? 1}
+                    blocks={blocks.map((b) => ({
+                      date: b.date,
+                      startHour: b.startHour,
+                      duration: b.duration,
+                      tableNumber: b.tableNumber as 1 | 2,
+                    }))}
+                    total={total}
+                    promoCode={promoCode}
+                    onPromoChange={onPromoChange}
+                    locale={locale as 'zh-HK' | 'zh-CN' | 'en'}
+                    returnPath={`/${locale}/book`}
+                    billingDetails={profile ? {
+                      name: profile.name,
+                      email: profile.email,
+                      phone: profile.phone,
+                    } : undefined}
+                    onBackToSlots={onBackToSlots}
+                    payLabel={t("pay_label") || "Pay"}
+                    processingLabel={t("processing_label") || "Processing..."}
+                    errorLabel={t("error_label") || "Payment failed"}
+                    loadingLabel={t("loading_label") || "Loading..."}
+                    lockHoldLabel={t("lock_hold_label") || "Slot reserved"}
+                    slotTakenLabel={t("slot_taken_label") || "This slot was just taken"}
+                    bookingExpiredLabel={t("booking_expired_label") || "Booking expired"}
+                    paymentFailedLabel={t("payment_failed_label") || "Payment failed"}
+                    whatsappSupportLabel={t("whatsapp_support_label") || "Contact support"}
+                    retryPaymentLabel={t("retry_payment_label") || "Try again"}
+                    backToSlotsLabel={t("back_to_slots_label") || "Back to slots"}
+                    bookingExpiredDescLabel={t("booking_expired_desc_label") || "Your hold period expired"}
+                    payDisabled={!agreedToTerms}
+                    onDisabledPayClick={flagTermsRequired}
+                  />
+                  {/* Powered by Stripe */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 14, opacity: 0.5 }}>
+                    <span style={{ fontSize: 12, color: tokens.colors.textMuted }}>Powered by </span>
+                    <img src="/logos/stripe-logo.svg" alt="Stripe" style={{ height: 18, width: "auto", display: "block", marginLeft: 4 }} />
                   </div>
                 </>
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
