@@ -1,74 +1,68 @@
-// Dev2 Panel: Environment Info
-// Returns current environment state, admin user info, IP whitelist status
-
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { createClient } from '@/lib/supabase/server'
 
-export const runtime = 'edge'
-
-function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
-
-export async function GET(req: NextRequest) {
-  const admin = await getAdminData()
-  if (!admin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export async function GET(request: NextRequest) {
   try {
-    const service = getServiceSupabase()
-    const clientIp = getClientIp(req)
+    const supabase = await createClient()
 
-    // Get gate config
-    const { data: gateConfig } = await service
-      .from('site_gate_config')
-      .select('enabled')
-      .eq('id', '00000000-0000-0000-0000-000000000001')
+    // Check admin auth
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { data: adminData } = await supabase
+      .from('admin_users')
+      .select('is_active, role')
+      .eq('user_id', session.user.id)
       .single()
 
-    // Check if current IP is whitelisted
-    const { data: whitelistEntry } = await service
+    if (!adminData?.is_active) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Get client IP
+    const forwarded = request.headers.get('x-forwarded-for')
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') || 'unknown'
+
+    // Check if IP is whitelisted
+    const { data: whitelist } = await supabase
       .from('site_gate_ip_whitelist')
       .select('ip_address')
       .eq('ip_address', clientIp)
-      .maybeSingle()
+      .single()
 
-    // Get active UAT test pricing
-    const { data: activePrice } = await service
+    // Get gate config
+    const { data: gateConfig } = await supabase
+      .from('site_gate_config')
+      .select('enabled, reason')
+      .single()
+
+    // Get active test pricing
+    const { data: activePrice } = await supabase
       .from('uat_test_pricing')
-      .select('*')
+      .select('mode, amount, label')
       .eq('is_active', true)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .single()
 
     return NextResponse.json({
-      env: process.env.NEXT_PUBLIC_APP_ENV || 'production',
+      env: process.env.NEXT_PUBLIC_APP_ENV || 'unknown',
       admin: {
-        userId: admin.userId,
-        email: admin.email,
-        role: admin.role,
-        displayName: admin.displayName,
+        userId: session.user.id,
+        email: session.user.email || '',
+        role: adminData.role,
+        displayName: session.user.user_metadata?.display_name || null,
       },
       clientIp,
-      isIpWhitelisted: !!whitelistEntry,
-      gateEnabled: gateConfig?.enabled ?? false,
-      activeTestPrice: activePrice
-        ? {
-            mode: activePrice.mode,
-            amount: activePrice.amount,
-            label: activePrice.label,
-          }
-        : null,
+      isIpWhitelisted: !!whitelist,
+      gateEnabled: gateConfig?.enabled || false,
+      gateReason: gateConfig?.reason || null,
+      activeTestPrice: activePrice || null,
     })
   } catch (error) {
-    console.error('[dev2/env-info] error:', error)
+    console.error('Error fetching env info:', error)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }

@@ -1,199 +1,145 @@
-// Dev2 Panel: IP Whitelist Management
-// List, approve pending requests, and delete whitelist entries
-
 import { NextRequest, NextResponse } from 'next/server'
-import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { createClient } from '@/lib/supabase/server'
 
-export const runtime = 'edge'
+async function checkAdminAuth() {
+  const supabase = await createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+  if (!session) return { authorized: false, userId: null }
 
-// GET - List whitelist and pending requests
-export async function GET() {
-  const admin = await getAdminData()
-  if (!admin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { data: adminData } = await supabase
+    .from('admin_users')
+    .select('is_active')
+    .eq('user_id', session.user.id)
+    .single()
+
+  return {
+    authorized: adminData?.is_active || false,
+    userId: session.user.id,
   }
+}
 
+export async function GET() {
   try {
-    const service = getServiceSupabase()
+    const { authorized } = await checkAdminAuth()
+    if (!authorized) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    // Get current whitelist
-    const { data: whitelist, error: whitelistError } = await service
+    const supabase = await createClient()
+
+    // Get whitelist
+    const { data: whitelist } = await supabase
       .from('site_gate_ip_whitelist')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('added_at', { ascending: false })
 
-    if (whitelistError) throw whitelistError
-
-    // Get denied access attempts (pending requests)
-    const { data: deniedAttempts, error: deniedError } = await service
+    // Get pending requests (denied IPs not in whitelist)
+    const { data: accessLog } = await supabase
       .from('site_gate_access_log')
-      .select('ip_address, user_agent, attempted_at, pathname')
+      .select('*')
       .eq('method', 'denied')
       .order('attempted_at', { ascending: false })
-      .limit(500)
+      .limit(100)
 
-    if (deniedError) throw deniedError
+    // Group by IP and get first/last seen
+    const pendingMap = new Map()
+    for (const log of accessLog || []) {
+      // Skip if already whitelisted
+      if (whitelist?.some((w) => w.ip_address === log.ip_address)) continue
 
-    // Group by IP and exclude already whitelisted IPs
-    const whitelistedIps = new Set((whitelist || []).map((w) => w.ip_address))
-    const pendingMap = new Map<
-      string,
-      { ip: string; firstSeen: string; lastSeen: string; count: number; userAgents: string[] }
-    >()
-
-    for (const attempt of deniedAttempts || []) {
-      if (whitelistedIps.has(attempt.ip_address)) continue
-
-      const existing = pendingMap.get(attempt.ip_address)
-      if (existing) {
-        existing.count++
-        existing.lastSeen = attempt.attempted_at
-        if (attempt.user_agent && !existing.userAgents.includes(attempt.user_agent)) {
-          existing.userAgents.push(attempt.user_agent)
-        }
-      } else {
-        pendingMap.set(attempt.ip_address, {
-          ip: attempt.ip_address,
-          firstSeen: attempt.attempted_at,
-          lastSeen: attempt.attempted_at,
+      if (!pendingMap.has(log.ip_address)) {
+        pendingMap.set(log.ip_address, {
+          ip: log.ip_address,
+          firstSeen: log.attempted_at,
+          lastSeen: log.attempted_at,
           count: 1,
-          userAgents: attempt.user_agent ? [attempt.user_agent] : [],
+          userAgent: log.user_agent,
         })
+      } else {
+        const entry = pendingMap.get(log.ip_address)
+        entry.count++
+        entry.lastSeen = log.attempted_at
       }
     }
 
+    const pending = Array.from(pendingMap.values())
+
     return NextResponse.json({
-      whitelist: (whitelist || []).map((w) => ({
-        id: w.id,
-        ipAddress: w.ip_address,
-        label: w.label,
-        createdAt: w.created_at,
-      })),
-      pending: Array.from(pendingMap.values()),
+      whitelist: whitelist || [],
+      pending,
     })
   } catch (error) {
-    console.error('[dev2/ip-whitelist] GET error:', error)
+    console.error('Error fetching IP data:', error)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
 
-// POST - Approve pending IP request
-export async function POST(req: NextRequest) {
-  const admin = await getAdminData()
-  if (!admin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json()
-    const { ip, label } = body
-
-    if (!ip || typeof ip !== 'string') {
-      return NextResponse.json({ error: 'ip required' }, { status: 400 })
+    const { authorized, userId } = await checkAdminAuth()
+    if (!authorized || !userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const service = getServiceSupabase()
+    const { ip, label } = await request.json()
 
-    // Check if already whitelisted
-    const { data: existing } = await service
-      .from('site_gate_ip_whitelist')
-      .select('id')
-      .eq('ip_address', ip)
-      .maybeSingle()
-
-    if (existing) {
-      return NextResponse.json({ error: 'IP already whitelisted' }, { status: 409 })
+    if (!ip) {
+      return NextResponse.json({ error: 'IP required' }, { status: 400 })
     }
 
-    // Insert into whitelist
-    const { data: newEntry, error: insertError } = await service
-      .from('site_gate_ip_whitelist')
-      .insert({
-        ip_address: ip,
-        label: label || `Approved by ${admin.email}`,
-      })
-      .select()
-      .single()
+    const supabase = await createClient()
 
-    if (insertError) throw insertError
-
-    // Write audit log
-    await service.from('audit_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
-      action: 'approve_ip_whitelist',
-      target_table: 'site_gate_ip_whitelist',
-      target_id: newEntry.id,
-      before_value: null,
-      after_value: { ip_address: ip, label: newEntry.label },
+    // Add to whitelist
+    await supabase.from('site_gate_ip_whitelist').insert({
+      ip_address: ip,
+      label: label || null,
+      added_at: new Date().toISOString(),
     })
 
-    return NextResponse.json({
-      success: true,
-      entry: {
-        id: newEntry.id,
-        ipAddress: newEntry.ip_address,
-        label: newEntry.label,
-        createdAt: newEntry.created_at,
-      },
-    })
-  } catch (error) {
-    console.error('[dev2/ip-whitelist] POST error:', error)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
-  }
-}
-
-// DELETE - Remove IP from whitelist
-export async function DELETE(req: NextRequest) {
-  const admin = await getAdminData()
-  if (!admin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  try {
-    const { searchParams } = new URL(req.url)
-    const id = searchParams.get('id')
-
-    if (!id) {
-      return NextResponse.json({ error: 'id parameter required' }, { status: 400 })
-    }
-
-    const service = getServiceSupabase()
-
-    // Get existing entry for audit log
-    const { data: existing } = await service
-      .from('site_gate_ip_whitelist')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (!existing) {
-      return NextResponse.json({ error: 'IP not found' }, { status: 404 })
-    }
-
-    // Delete entry
-    const { error: deleteError } = await service
-      .from('site_gate_ip_whitelist')
-      .delete()
-      .eq('id', id)
-
-    if (deleteError) throw deleteError
-
-    // Write audit log
-    await service.from('audit_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
-      action: 'delete_ip_whitelist',
-      target_table: 'site_gate_ip_whitelist',
-      target_id: id,
-      before_value: { ip_address: existing.ip_address, label: existing.label },
-      after_value: null,
+    // Audit log
+    await supabase.from('audit_log').insert({
+      user_id: userId,
+      action: 'ip_whitelist_add',
+      details: { ip, label },
+      created_at: new Date().toISOString(),
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[dev2/ip-whitelist] DELETE error:', error)
+    console.error('Error adding IP:', error)
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { authorized, userId } = await checkAdminAuth()
+    if (!authorized || !userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { ip } = await request.json()
+
+    if (!ip) {
+      return NextResponse.json({ error: 'IP required' }, { status: 400 })
+    }
+
+    const supabase = await createClient()
+
+    await supabase.from('site_gate_ip_whitelist').delete().eq('ip_address', ip)
+
+    await supabase.from('audit_log').insert({
+      user_id: userId,
+      action: 'ip_whitelist_remove',
+      details: { ip },
+      created_at: new Date().toISOString(),
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error removing IP:', error)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
