@@ -2595,7 +2595,7 @@ function Screen3({
               >
                 {t("terms_agree_prefix")}{" "}
                 <a
-                  href="/venue"
+                  href="/legal"
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
