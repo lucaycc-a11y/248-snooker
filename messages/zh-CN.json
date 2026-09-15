@@ -1603,5 +1603,11 @@
       "err_test_booking_refund_failed_hint": "请检查测试环境设置",
       "err_test_booking_refund_failed_cta": "重试"
     }
+<<<<<<< HEAD
   }
+=======
+  },
+  "coming_soon_label": "此付款方式即将推出",
+  "qr_instruction_label": "您将看到一个二维码，请使用微信支付扫描以完成付款"
+>>>>>>> 63e3c9b (fix(stripe): Separate card and QR payment UI flows for mutual exclusion)
 }

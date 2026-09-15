@@ -1605,5 +1605,11 @@
       "err_test_booking_refund_failed_desc": "無法處理測試訂單退款，請檢查訂單狀態。",
       "err_test_booking_refund_failed_hint": "僅限 is_test = true 的訂單可透過此功能退款"
     }
+<<<<<<< HEAD
   }
+=======
+  },
+  "coming_soon_label": "此付款方式即將推出",
+  "qr_instruction_label": "您將看到一個二維碼，請使用微信支付掃描以完成付款"
+>>>>>>> 63e3c9b (fix(stripe): Separate card and QR payment UI flows for mutual exclusion)
 }
