@@ -52,10 +52,6 @@ export class StripeProvider implements PaymentProvider {
     const createParams: any = {
       amount: Math.round(amount * 100), // Convert HKD to cents
       currency: 'hkd',
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: 'never', // Prevent redirect-based methods for better UX
-      },
       metadata: {
         booking_id: bookingId,
         out_trade_no: outTradeNo,
@@ -63,6 +59,20 @@ export class StripeProvider implements PaymentProvider {
         // Store the user's selected method for analytics/display purposes
         selected_method: method,
       },
+    }
+
+    // For credit card payment, restrict to card-only to avoid showing
+    // unwanted payment method tabs (Alipay/WeChat/Google Pay) in PaymentElement.
+    // Uses API version 2026-06-24.dahlia's allowed_payment_method_types parameter.
+    // See: https://docs.stripe.com/changelog/dahlia/2026-07-29/allowed-payment-method-types-parameter
+    if (method === 'card') {
+      createParams.allowed_payment_method_types = ['card']
+    } else {
+      // For other methods, use automatic payment methods to enable all available options
+      createParams.automatic_payment_methods = {
+        enabled: true,
+        allow_redirects: 'never', // Prevent redirect-based methods for better UX
+      }
     }
 
     // WeChat Pay requires explicit client parameter

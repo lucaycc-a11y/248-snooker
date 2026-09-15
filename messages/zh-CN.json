@@ -148,9 +148,9 @@
       "website_terms": "網站條款",
       "privacy": "私隱政策",
       "accessibility": "无障碍声明",
-    "refund_policy": "退款政策",
-    "delivery_policy": "交付政策",
-    "brand_statement": "品牌及标志声明"
+      "refund_policy": "退款政策",
+      "delivery_policy": "交付政策",
+      "brand_statement": "品牌及标志声明"
     }
   },
   "pricingPage": {
@@ -1145,10 +1145,22 @@
     "pilot_title": "Space Pilot",
     "pilot_intro": "iPad 场内智能小管家，让每局记录与会员积分自动完成。",
     "pilot_items": [
-      { "title": "扫码绑定", "body": "到场后由工作人员以 QR Code 将设备绑定至你的预约时段。" },
-      { "title": "自动计分", "body": "每局完成自动记录，无需手动输入。" },
-      { "title": "积分自动入账", "body": "会员每完成一局即得 5 积分，每 15 分钟限领一次，上限按预约时长计算。" },
-      { "title": "查看战绩", "body": "随时在 iPad 上查看当局及历史对战记录。" }
+      {
+        "title": "扫码绑定",
+        "body": "到场后由工作人员以 QR Code 将设备绑定至你的预约时段。"
+      },
+      {
+        "title": "自动计分",
+        "body": "每局完成自动记录，无需手动输入。"
+      },
+      {
+        "title": "积分自动入账",
+        "body": "会员每完成一局即得 5 积分，每 15 分钟限领一次，上限按预约时长计算。"
+      },
+      {
+        "title": "查看战绩",
+        "body": "随时在 iPad 上查看当局及历史对战记录。"
+      }
     ],
     "pilot_features": [
       {
@@ -1603,5 +1615,6 @@
       "err_test_booking_refund_failed_hint": "请检查测试环境设置",
       "err_test_booking_refund_failed_cta": "重试"
     }
-  }
+  },
+  "coming_soon_label": "此付款方式即将推出"
 }

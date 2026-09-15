@@ -952,6 +952,30 @@
         "value": "rgba(234, 179, 8, 0.9)",
         "createdAt": "2026-09-14T03:01:48.433Z",
         "reason": "UAT badge color - intentional high-visibility warning color"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26, 157, 92, 0.1)",
+        "createdAt": "2026-09-15T03:39:50.053Z",
+        "reason": "Intentional selected-state gradient overlay (10% opacity brand green), distinct from solid GREEN constant"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0f131c",
+        "files": [
+          "components/checkout/StripeMethodSelector.tsx"
+        ],
+        "createdAt": "2026-09-15T04:07:22.154Z",
+        "reason": "Stripe UI deep-black surface color, intentionally distinct from KPay design system - user confirmed single-stage mixed UI approach"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#161d2b",
+        "files": [
+          "components/checkout/StripeMethodSelector.tsx"
+        ],
+        "createdAt": "2026-09-15T04:07:33.243Z",
+        "reason": "Stripe UI selected-state background color, intentionally distinct from KPay design system - user confirmed single-stage mixed UI approach"
       }
     ]
   }

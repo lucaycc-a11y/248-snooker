@@ -148,9 +148,9 @@
       "website_terms": "網站條款",
       "privacy": "私隱政策",
       "accessibility": "無障礙聲明",
-    "refund_policy": "退款政策",
-    "delivery_policy": "交付政策",
-    "brand_statement": "品牌及標誌聲明"
+      "refund_policy": "退款政策",
+      "delivery_policy": "交付政策",
+      "brand_statement": "品牌及標誌聲明"
     }
   },
   "pricingPage": {
@@ -1145,10 +1145,22 @@
     "pilot_title": "Space Pilot",
     "pilot_intro": "iPad 場內智能小管家，讓每局記錄與會員積分自動完成。",
     "pilot_items": [
-      { "title": "掃碼綁定", "body": "到場後由職員以 QR Code 綁定裝置至你的預約時段。" },
-      { "title": "自動計分", "body": "每局完成自動記錄，毋須手動輸入。" },
-      { "title": "積分自動入帳", "body": "會員每完成一局即得 5 積分，每 15 分鐘限領一次，上限依預約時長計算。" },
-      { "title": "查看戰績", "body": "隨時在 iPad 上查看當局及歷史對戰記錄。" }
+      {
+        "title": "掃碼綁定",
+        "body": "到場後由職員以 QR Code 綁定裝置至你的預約時段。"
+      },
+      {
+        "title": "自動計分",
+        "body": "每局完成自動記錄，毋須手動輸入。"
+      },
+      {
+        "title": "積分自動入帳",
+        "body": "會員每完成一局即得 5 積分，每 15 分鐘限領一次，上限依預約時長計算。"
+      },
+      {
+        "title": "查看戰績",
+        "body": "隨時在 iPad 上查看當局及歷史對戰記錄。"
+      }
     ],
     "pilot_features": [
       {
@@ -1599,11 +1611,10 @@
       "err_uat_access_denied_hint": "請聯絡系統管理員加入白名單",
       "err_uat_access_denied_cta": "聯絡管理員",
       "err_test_booking_refund_failed_title": "測試訂單退款失敗",
-      "err_test_booking_refund_failed_desc": "無法處理測試訂單的退款操作。",
-      "err_test_booking_refund_failed_hint": "請檢查測試環境設定",
-      "err_test_booking_refund_failed_cta": "重試",
       "err_test_booking_refund_failed_desc": "無法處理測試訂單退款，請檢查訂單狀態。",
-      "err_test_booking_refund_failed_hint": "僅限 is_test = true 的訂單可透過此功能退款"
+      "err_test_booking_refund_failed_hint": "僅限 is_test = true 的訂單可透過此功能退款",
+      "err_test_booking_refund_failed_cta": "重試"
     }
-  }
+  },
+  "coming_soon_label": "此付款方式即將推出"
 }

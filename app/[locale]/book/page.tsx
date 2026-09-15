@@ -19,6 +19,7 @@ import { ProgressSteps } from "@/components/ui/ProgressSteps"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment from "@/components/checkout/StripePayment"
+import StripeMethodSelector from "@/components/checkout/StripeMethodSelector"
 import StripeCheckoutPayment from "@/components/checkout/StripeCheckoutPayment"
 import StripeElementsWrapper from "@/components/checkout/StripeElementsWrapper"
 import KPayPayment from "@/components/checkout/KPayPayment"
@@ -2342,9 +2343,50 @@ function Screen3({
           {/* Payment method selection — hidden when test mode is active */}
           {!testMode && (
             <>
-              {!confirmed ? (
-                /* ── PaymentMethodList (full method selector) ── */
-                /* Selecting only highlights. The bottom CTA commits. */
+              {/* Provider-specific payment UI */}
+              {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
+                /* ── Stripe: Single-stage 6-row selector with inline PaymentElement ── */
+                <StripeMethodSelector
+                  date={blocks[0]?.date ?? ''}
+                  startHour={blocks[0]?.startHour ?? 0}
+                  duration={blocks[0]?.duration ?? 0}
+                  tableNumber={blocks[0]?.tableNumber ?? 1}
+                  blocks={blocks.map((b) => ({
+                    date: b.date,
+                    startHour: b.startHour,
+                    duration: b.duration,
+                    tableNumber: b.tableNumber as 1 | 2,
+                  }))}
+                  total={total}
+                  promoCode={promoCode}
+                  onPromoChange={onPromoChange}
+                  pointsAmount={0}
+                  locale={locale as 'zh-HK' | 'zh-CN' | 'en'}
+                  returnPath={`/${locale}/book`}
+                  billingDetails={profile ? {
+                    name: profile.name,
+                    email: profile.email,
+                    phone: profile.phone,
+                  } : undefined}
+                  onBackToSlots={onBackToSlots}
+                  payLabel={t("pay_label") || "Pay"}
+                  processingLabel={t("processing_label") || "Processing..."}
+                  errorLabel={t("error_label") || "Payment failed"}
+                  loadingLabel={t("loading_label") || "Loading..."}
+                  comingSoonLabel={t("coming_soon_label") || "即將推出"}
+                  lockHoldLabel={t("lock_hold_label") || "Slot reserved"}
+                  slotTakenLabel={t("slot_taken_label") || "This slot was just taken"}
+                  bookingExpiredLabel={t("booking_expired_label") || "Booking expired"}
+                  bookingExpiredDescLabel={t("booking_expired_desc_label") || "Your hold period expired"}
+                  paymentFailedLabel={t("payment_failed_label") || "Payment failed"}
+                  whatsappSupportLabel={t("whatsapp_support_label") || "Contact support"}
+                  retryPaymentLabel={t("retry_payment_label") || "Try again"}
+                  backToSlotsLabel={t("back_to_slots_label") || "Back to slots"}
+                  payDisabled={!agreedToTerms}
+                  onDisabledPayClick={flagTermsRequired}
+                />
+              ) : !confirmed ? (
+                /* ── KPay: Two-stage flow (PaymentMethodList → KPayPayment) ── */
                 <PaymentMethodList
                   selected={paymentMethod}
                   onSelect={(method) => {
@@ -2352,63 +2394,13 @@ function Screen3({
                     setPaymentMethod(method)
                     scrollIntoViewIfNeeded(payCtaRef)
                     const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
-                    const stripeMethods: PaymentMethodId[] = ['card', 'alipay', 'google_pay', 'apple_pay', 'wechat_pay']
-                    const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
 
-                    if (provider === 'stripe' && stripeMethods.includes(method)) {
-                      // Stripe payment - no mode selection needed
-                    } else if (kpayMethods.includes(method as KPayMethod)) {
+                    if (kpayMethods.includes(method as KPayMethod)) {
                       setKpayMethod(method as KPayMethod)
                       setKpayMode(isDesktopDevice() ? "qr" : "h5")
                     }
                   }}
                 />
-              ) : paymentMethod !== null && (['card', 'alipay', 'google_pay', 'apple_pay', 'wechat_pay'] as const).includes(paymentMethod as any) && (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe') ? (
-                /* ── Stripe payment (Card, Alipay, Google Pay, Apple Pay, WeChat Pay) ── */
-                <>
-                  <StripePayment
-                    date={blocks[0]?.date ?? ''}
-                    startHour={blocks[0]?.startHour ?? 0}
-                    duration={blocks[0]?.duration ?? 0}
-                    tableNumber={blocks[0]?.tableNumber ?? 1}
-                    blocks={blocks.map((b) => ({
-                      date: b.date,
-                      startHour: b.startHour,
-                      duration: b.duration,
-                      tableNumber: b.tableNumber as 1 | 2,
-                    }))}
-                    total={total}
-                    promoCode={promoCode}
-                    onPromoChange={onPromoChange}
-                    locale={locale as 'zh-HK' | 'zh-CN' | 'en'}
-                    returnPath={`/${locale}/book`}
-                    billingDetails={profile ? {
-                      name: profile.name,
-                      email: profile.email,
-                      phone: profile.phone,
-                    } : undefined}
-                    onBackToSlots={onBackToSlots}
-                    payLabel={t("pay_label") || "Pay"}
-                    processingLabel={t("processing_label") || "Processing..."}
-                    errorLabel={t("error_label") || "Payment failed"}
-                    loadingLabel={t("loading_label") || "Loading..."}
-                    lockHoldLabel={t("lock_hold_label") || "Slot reserved"}
-                    slotTakenLabel={t("slot_taken_label") || "This slot was just taken"}
-                    bookingExpiredLabel={t("booking_expired_label") || "Booking expired"}
-                    paymentFailedLabel={t("payment_failed_label") || "Payment failed"}
-                    whatsappSupportLabel={t("whatsapp_support_label") || "Contact support"}
-                    retryPaymentLabel={t("retry_payment_label") || "Try again"}
-                    backToSlotsLabel={t("back_to_slots_label") || "Back to slots"}
-                    bookingExpiredDescLabel={t("booking_expired_desc_label") || "Your hold period expired"}
-                    payDisabled={!agreedToTerms}
-                    onDisabledPayClick={flagTermsRequired}
-                  />
-                  {/* Powered by Stripe */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 14, opacity: 0.5 }}>
-                    <span style={{ fontSize: 12, color: tokens.colors.textMuted }}>Powered by </span>
-                    <img src="/logos/stripe-logo.svg" alt="Stripe" style={{ height: 18, width: "auto", display: "block", marginLeft: 4 }} />
-                  </div>
-                </>
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
                 /* ── KPay payment (card via CNP Hosted + all direct-connect methods) ── */
                 <>
