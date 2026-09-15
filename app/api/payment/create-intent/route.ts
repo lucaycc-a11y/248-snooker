@@ -141,6 +141,7 @@ export async function POST(req: Request) {
             table_number: slot.table_number,
             is_free_booking: false,
             payment_method: 'card',
+            payment_provider: 'stripe',
             order_group_id: orderGroupId,
             human_code: humanReadableCode(newId),
           })
@@ -185,6 +186,7 @@ export async function POST(req: Request) {
             table_number: slot.table_number,
             order_group_id: orderGroupId,
             payment_method: 'card',
+            payment_provider: 'stripe',
           })
           .eq('id', bookingId)
       }

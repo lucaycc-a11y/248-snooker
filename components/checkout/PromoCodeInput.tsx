@@ -14,7 +14,7 @@ const INK = '#f5f5f7'
 const SPRING = { type: 'spring', stiffness: 320, damping: 30 } as const
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type PromoResult = {
+export type PromoResult = {
   code: string
   discount_type: 'percentage' | 'fixed_amount'
   discount_value: number

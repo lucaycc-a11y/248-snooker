@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPaymentProvider } from '@/lib/payments'
 import { createClient } from '@/lib/supabase/server'
+import { getStripe } from '@/lib/stripe/server'
 
 export const runtime = 'nodejs'
 
@@ -15,19 +15,30 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get('stripe-signature')
 
     if (!signature) {
+      console.error('[Stripe] webhook: missing signature')
       return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
     }
 
-    // Verify webhook signature
-    const provider = getPaymentProvider()
-    const headers: Record<string, string> = { 'stripe-signature': signature }
+    // Verify webhook signature using Stripe SDK directly
+    const stripe = getStripe()
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 
-    if (!provider.verifyWebhookSignature(body, headers)) {
+    if (!webhookSecret) {
+      console.error('[Stripe] webhook: STRIPE_WEBHOOK_SECRET not configured')
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+    }
+
+    let event: any
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+    } catch (err) {
+      console.error('[Stripe] webhook: signature verification failed', { error: (err as Error).message })
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
-    // Parse webhook payload
-    const event = provider.parseWebhookPayload(body)
+    console.log('[Stripe] webhook received', { type: event.type, id: event.id })
+
+    console.log('[Stripe] webhook received', { type: event.type, id: event.id })
 
     // Idempotency: check if we've already processed this event
     const supabase = await createClient()
@@ -35,35 +46,37 @@ export async function POST(req: NextRequest) {
     const { data: existingEvent } = await supabase
       .from('webhook_events')
       .select('id')
-      .eq('event_id', event.providerOrderNo)
+      .eq('event_id', event.id)
       .maybeSingle()
 
     if (existingEvent) {
-      // Already processed
+      console.log('[Stripe] webhook: duplicate event', { eventId: event.id })
       return NextResponse.json({ received: true, duplicate: true })
     }
 
     // Store event for idempotency
     await supabase.from('webhook_events').insert({
-      event_id: event.providerOrderNo,
-      event_type: event.eventType,
+      event_id: event.id,
+      event_type: event.type,
       provider: 'stripe',
-      payload: event.rawPayload,
+      payload: event.data.object,
       processed_at: new Date().toISOString(),
     })
 
     // Handle the event based on type
-    if (event.status === 'succeeded') {
+    if (event.type === 'payment_intent.succeeded') {
       await handleSucceeded(event, supabase)
-    } else if (event.status === 'failed') {
+    } else if (event.type === 'payment_intent.payment_failed') {
       await handleFailed(event, supabase)
-    } else if (event.status === 'refunded') {
+    } else if (event.type === 'charge.refunded') {
       await handleRefunded(event, supabase)
+    } else {
+      console.log('[Stripe] webhook: unhandled event type', { type: event.type })
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Stripe webhook error:', error)
+    console.error('[Stripe] webhook error:', error)
     return NextResponse.json(
       { error: 'Webhook handler failed' },
       { status: 500 }
@@ -72,13 +85,16 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleSucceeded(event: any, supabase: any) {
-  const metadata = event.rawPayload.metadata || {}
+  const intent = event.data.object
+  const metadata = intent.metadata || {}
   const bookingId = metadata.booking_id
 
   if (!bookingId) {
-    console.error('No booking_id in metadata:', metadata)
+    console.error('[Stripe] webhook: no booking_id in metadata', { metadata, intentId: intent.id })
     return
   }
+
+  console.log('[Stripe] webhook: payment succeeded', { bookingId, intentId: intent.id })
 
   // Update booking status to confirmed
   const { error } = await supabase
@@ -87,45 +103,61 @@ async function handleSucceeded(event: any, supabase: any) {
       status: 'confirmed',
       payment_status: 'paid',
       paid_at: new Date().toISOString(),
-      provider_order_no: event.providerOrderNo,
+      provider_order_no: intent.id,
     })
     .eq('id', bookingId)
+    .eq('payment_provider', 'stripe')
 
   if (error) {
-    console.error('Failed to update booking:', error)
+    console.error('[Stripe] webhook: failed to update booking', { error, bookingId })
     throw error
   }
 }
 
 async function handleFailed(event: any, supabase: any) {
-  const metadata = event.rawPayload.metadata || {}
+  const intent = event.data.object
+  const metadata = intent.metadata || {}
   const bookingId = metadata.booking_id
 
   if (!bookingId) {
-    console.error('No booking_id in metadata:', metadata)
+    console.error('[Stripe] webhook: no booking_id in metadata', { metadata, intentId: intent.id })
     return
   }
+
+  console.log('[Stripe] webhook: payment failed', { bookingId, intentId: intent.id })
 
   // Update booking status to failed
   await supabase
     .from('bookings')
     .update({
       payment_status: 'failed',
-      provider_order_no: event.providerOrderNo,
+      provider_order_no: intent.id,
     })
     .eq('id', bookingId)
+    .eq('payment_provider', 'stripe')
 }
 
 async function handleRefunded(event: any, supabase: any) {
+  const charge = event.data.object
+  const paymentIntentId = charge.payment_intent
+
+  if (!paymentIntentId) {
+    console.error('[Stripe] webhook: no payment_intent in refund event', { chargeId: charge.id })
+    return
+  }
+
+  console.log('[Stripe] webhook: refund processed', { paymentIntentId, chargeId: charge.id })
+
   // Find booking by provider_order_no
   const { data: booking } = await supabase
     .from('bookings')
     .select('id')
-    .eq('provider_order_no', event.providerOrderNo)
+    .eq('provider_order_no', paymentIntentId)
+    .eq('payment_provider', 'stripe')
     .maybeSingle()
 
   if (!booking) {
-    console.error('Booking not found for refund:', event.providerOrderNo)
+    console.error('[Stripe] webhook: booking not found for refund', { paymentIntentId })
     return
   }
 
