@@ -815,6 +815,8 @@
     "stripe_error_processing_error": "付款处理时出现错误，请重试或联络客服",
     "stripe_error_generic": "付款未能完成，请重试或联络客服",
     "stripe_error_terms_required": "请先同意条款与细则",
+    "stripe_processing": "正在处理付款，请稍候",
+    "kpay_processing": "正在处理付款，请稍候",
     "table_count": "Snooker",
     "test_mode_confirm_detail": "此订单会直接标记为已付款，不会产生支付交易。适合开发测试使用。",
     "test_mode_desc": "直接确认订单，不经支付网关",

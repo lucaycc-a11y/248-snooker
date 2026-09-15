@@ -97,16 +97,16 @@ async function handleSucceeded(event: any, supabase: any) {
   console.log('[Stripe] webhook: payment succeeded', { bookingId, intentId: intent.id })
 
   // Update booking status to confirmed
+  // Note: Don't filter by payment_provider since it may be null during creation
   const { error } = await supabase
     .from('bookings')
     .update({
       status: 'confirmed',
-      payment_status: 'paid',
-      paid_at: new Date().toISOString(),
+      payment_provider: 'stripe',
       provider_order_no: intent.id,
+      stripe_payment_intent: intent.id,
     })
     .eq('id', bookingId)
-    .eq('payment_provider', 'stripe')
 
   if (error) {
     console.error('[Stripe] webhook: failed to update booking', { error, bookingId })
@@ -127,14 +127,16 @@ async function handleFailed(event: any, supabase: any) {
   console.log('[Stripe] webhook: payment failed', { bookingId, intentId: intent.id })
 
   // Update booking status to failed
+  // Don't filter by payment_provider since it may be null
   await supabase
     .from('bookings')
     .update({
-      payment_status: 'failed',
+      status: 'payment_failed',
+      payment_provider: 'stripe',
       provider_order_no: intent.id,
+      stripe_payment_intent: intent.id,
     })
     .eq('id', bookingId)
-    .eq('payment_provider', 'stripe')
 }
 
 async function handleRefunded(event: any, supabase: any) {
@@ -148,12 +150,11 @@ async function handleRefunded(event: any, supabase: any) {
 
   console.log('[Stripe] webhook: refund processed', { paymentIntentId, chargeId: charge.id })
 
-  // Find booking by provider_order_no
+  // Find booking by provider_order_no or stripe_payment_intent
   const { data: booking } = await supabase
     .from('bookings')
     .select('id')
-    .eq('provider_order_no', paymentIntentId)
-    .eq('payment_provider', 'stripe')
+    .or(`provider_order_no.eq.${paymentIntentId},stripe_payment_intent.eq.${paymentIntentId}`)
     .maybeSingle()
 
   if (!booking) {
@@ -165,7 +166,6 @@ async function handleRefunded(event: any, supabase: any) {
   await supabase
     .from('bookings')
     .update({
-      payment_status: 'refunded',
       status: 'cancelled',
       refunded_at: new Date().toISOString(),
     })

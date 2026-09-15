@@ -819,6 +819,8 @@
     "stripe_error_processing_error": "付款處理時出現錯誤，請重試或聯絡客服",
     "stripe_error_generic": "付款未能完成，請重試或聯絡客服",
     "stripe_error_terms_required": "請先同意條款與細則",
+    "stripe_processing": "正在處理付款，請稍候",
+    "kpay_processing": "正在處理付款，請稍候",
     "table_count": "Snooker",
     "venue": "SPACE8",
     "kpay_title": "選擇付款方式",

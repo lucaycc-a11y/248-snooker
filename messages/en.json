@@ -815,6 +815,8 @@
     "stripe_error_processing_error": "An error occurred while processing your payment. Please try again or contact support.",
     "stripe_error_generic": "Payment could not be completed. Please try again or contact support.",
     "stripe_error_terms_required": "Please agree to the terms and conditions first.",
+    "stripe_processing": "Processing payment, please wait",
+    "kpay_processing": "Processing payment, please wait",
     "table_count": "Snooker",
     "test_mode_confirm_detail": "This booking will be marked as paid without a payment transaction. For development/testing use only.",
     "test_mode_desc": "Confirm booking directly without a payment gateway",

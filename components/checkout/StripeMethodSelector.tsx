@@ -866,11 +866,10 @@ export default function StripeMethodSelector(props: Props) {
           opacity: 0.4,
         }}
       >
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Powered by</span>
         <img
-          src="/logos/stripe-logo.svg"
-          alt="Stripe"
-          style={{ height: 16, width: "auto", opacity: 0.7 }}
+          src="/logos/Powered by Stripe/Powered by Stripe - white.svg"
+          alt="Powered by Stripe"
+          style={{ height: 20, width: "auto" }}
         />
       </div>
     </div>
