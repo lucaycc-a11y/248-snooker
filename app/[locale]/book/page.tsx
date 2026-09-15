@@ -2382,6 +2382,7 @@ function Screen3({
                   whatsappSupportLabel={t("whatsapp_support_label") || "Contact support"}
                   retryPaymentLabel={t("retry_payment_label") || "Try again"}
                   backToSlotsLabel={t("back_to_slots_label") || "Back to slots"}
+                  qrInstructionLabel={t("qr_instruction_label") || "您將看到一個二維碼，請使用微信支付掃描以完成付款"}
                   payDisabled={!agreedToTerms}
                   onDisabledPayClick={flagTermsRequired}
                 />

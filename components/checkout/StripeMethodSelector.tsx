@@ -2,8 +2,9 @@
 
 // ────────────────────────────────────────────────────────────────
 // StripeMethodSelector — Single-stage Stripe payment selector with
-// inline PaymentElement expansion. 6-row list where clicking an
-// enabled method expands the Stripe payment interface below that row.
+// inline expansion. Card methods show PaymentElement; QR methods
+// (WeChat Pay) show QR code UI instead of PaymentElement.
+// Ensures card input fields and QR UI are mutually exclusive.
 // ────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react"
@@ -11,13 +12,14 @@ import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-
 import type { Appearance, StripeElementLocale } from "@stripe/stripe-js"
 import { getStripeClient } from "@/lib/stripe/client"
 import { tokens } from "@/app/styles/tokens"
-import { Check, ChevronRight, Lock } from "lucide-react"
+import { Check, ChevronRight, Lock, QrCode } from "lucide-react"
 
 const stripePromise = getStripeClient()
 
 // ── Payment Method Definitions ─────────────────────────────────
 
 type StripeMethodId = 'card' | 'alipay' | 'alipay_cn' | 'google_pay' | 'apple_pay' | 'wechat_pay'
+type PaymentMethodType = 'card' | 'qr' // card: use PaymentElement, qr: show QR code
 
 type MethodConfig = {
   id: StripeMethodId
@@ -25,6 +27,7 @@ type MethodConfig = {
   sublabel: string
   enabled: boolean // Dashboard 已開通
   icon: React.ReactNode
+  type: PaymentMethodType
 }
 
 const METHODS: MethodConfig[] = [
@@ -34,6 +37,7 @@ const METHODS: MethodConfig[] = [
     sublabel: 'Visa · Mastercard · UnionPay',
     enabled: true,
     icon: <span style={{ fontSize: 20 }}>💳</span>,
+    type: 'card',
   },
   {
     id: 'alipay',
@@ -41,6 +45,7 @@ const METHODS: MethodConfig[] = [
     sublabel: 'Alipay HK',
     enabled: false,
     icon: <span style={{ fontSize: 20 }}>🅰️</span>,
+    type: 'qr',
   },
   {
     id: 'alipay_cn',
@@ -48,12 +53,13 @@ const METHODS: MethodConfig[] = [
     sublabel: 'Alipay 中國內地帳戶',
     enabled: false,
     icon: <span style={{ fontSize: 20 }}>🇨🇳</span>,
+    type: 'qr',
   },
   {
     id: 'google_pay',
     label: 'Google Pay',
     sublabel: '',
-    enabled: false,
+    enabled: false, // CHECK: verify in Stripe Dashboard
     icon: (
       <img
         src="/logos/payment/google.png"
@@ -61,12 +67,13 @@ const METHODS: MethodConfig[] = [
         style={{ height: 20, width: 'auto' }}
       />
     ),
+    type: 'card', // Google Pay uses card network
   },
   {
     id: 'apple_pay',
     label: 'Apple Pay',
     sublabel: '',
-    enabled: false,
+    enabled: false, // CHECK: verify in Stripe Dashboard
     icon: (
       <img
         src="/logos/payment/apple.png"
@@ -74,6 +81,7 @@ const METHODS: MethodConfig[] = [
         style={{ height: 20, width: 'auto' }}
       />
     ),
+    type: 'card', // Apple Pay uses card network
   },
   {
     id: 'wechat_pay',
@@ -81,6 +89,7 @@ const METHODS: MethodConfig[] = [
     sublabel: 'WeChat Pay',
     enabled: true,
     icon: <span style={{ fontSize: 20 }}>💬</span>,
+    type: 'qr', // WeChat Pay shows QR code
   },
 ]
 
@@ -98,9 +107,6 @@ const appearance: Appearance = {
     spacingUnit: "4px",
   },
   rules: {
-    ".Tab": {
-      display: "none", // 隱藏 tabs，因為我哋喺上面 row 已經揀咗 method
-    },
     ".Input": {
       borderRadius: "16px",
       backgroundColor: "#0F131C",
@@ -125,9 +131,195 @@ const STRIPE_LOCALES: Record<string, StripeElementLocale> = {
   en: "en",
 }
 
-// ── PaymentForm (inline expansion below selected row) ─────────
+// ── QR Code UI (for WeChat Pay / Alipay) ──────────────────────
 
-function PaymentForm({
+function QRCodeUI({
+  method,
+  bookingId,
+  clientSecret,
+  returnPath,
+  payLabel,
+  processingLabel,
+  qrInstructionLabel,
+  payDisabled,
+  onDisabledPayClick,
+}: {
+  method: StripeMethodId
+  bookingId: string
+  clientSecret: string
+  returnPath: string
+  payLabel: string
+  processingLabel: string
+  qrInstructionLabel: string
+  payDisabled?: boolean
+  onDisabledPayClick?: () => void
+}) {
+  const stripe = useStripe()
+  const [qrUrl, setQrUrl] = useState<string | null>(null)
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+
+  const handlePay = async () => {
+    if (payDisabled) {
+      onDisabledPayClick?.()
+      return
+    }
+    if (!stripe) return
+    setSubmitting(true)
+    setErr(null)
+
+    try {
+      const returnUrl = `${window.location.origin}${returnPath}?bookingId=${bookingId}&redirect_status=succeeded`
+
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        clientSecret,
+        confirmParams: {
+          return_url: returnUrl,
+          payment_method_data: {
+            billing_details: { address: { country: "HK" } },
+          },
+        },
+        redirect: "if_required",
+      })
+
+      if (error) {
+        console.error("[stripe] wechat_confirm_error", {
+          bookingId,
+          message: error.message,
+          code: error.code,
+        })
+        setErr(error.message ?? "Payment failed")
+        setSubmitting(false)
+        return
+      }
+
+      // WeChat Pay requires user to scan QR or redirect
+      if (paymentIntent?.next_action?.type === "wechat_pay_display_qr_code") {
+        const nextAction = paymentIntent.next_action as any
+        const qr = nextAction.wechat_pay_display_qr_code
+        setQrUrl(qr?.data || null)
+        console.log("[stripe] wechat_qr_ready", { bookingId, qrData: qr?.data })
+      } else if (paymentIntent?.next_action?.type === "wechat_pay_redirect_to_android_app") {
+        const nextAction = paymentIntent.next_action as any
+        const redirect = nextAction.wechat_pay_redirect_to_android_app
+        setRedirectUrl(redirect?.url || null)
+        console.log("[stripe] wechat_redirect_ready", { bookingId, redirectUrl: redirect?.url })
+      } else if (paymentIntent?.status === "succeeded") {
+        // Rare: immediate success
+        window.location.href = returnUrl
+      } else {
+        console.error("[stripe] unexpected_wechat_response", { paymentIntent })
+        setErr("Unexpected response from payment provider")
+      }
+
+      setSubmitting(false)
+    } catch (e) {
+      console.error("[stripe] wechat_exception", { bookingId, error: e })
+      setErr((e as Error).message)
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div style={{ padding: "16px 0 0" }}>
+      {!qrUrl && !redirectUrl && (
+        <>
+          {/* Instruction text */}
+          <div
+            style={{
+              padding: "20px",
+              borderRadius: 12,
+              background: "#161D2B",
+              border: "1px solid rgba(255,255,255,0.1)",
+              marginBottom: 16,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <QrCode size={24} color="#22b86b" style={{ flexShrink: 0, marginTop: 2 }} />
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.85)", margin: 0, lineHeight: 1.5 }}>
+                {qrInstructionLabel}
+              </p>
+            </div>
+          </div>
+
+          {err && (
+            <div style={{ marginBottom: 16 }} role="alert" aria-live="polite">
+              <p style={{ fontSize: 13, color: "#f87171", margin: 0 }}>{err}</p>
+            </div>
+          )}
+
+          {/* Pay button */}
+          <button
+            type="button"
+            onClick={handlePay}
+            disabled={!stripe || submitting}
+            aria-disabled={payDisabled || undefined}
+            style={{
+              width: "100%",
+              height: 54,
+              border: "none",
+              borderRadius: 14,
+              background: submitting || payDisabled ? "rgba(255,255,255,0.15)" : "#22c55e",
+              color: submitting || payDisabled ? "rgba(255,255,255,0.6)" : "#000",
+              fontWeight: 700,
+              fontSize: 17,
+              cursor: submitting ? "not-allowed" : "pointer",
+            }}
+          >
+            {submitting ? processingLabel : payLabel}
+          </button>
+        </>
+      )}
+
+      {/* QR Code display */}
+      {qrUrl && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "32px 20px",
+            borderRadius: 12,
+            background: "#fff",
+          }}
+        >
+          <img
+            src={qrUrl}
+            alt="WeChat Pay QR Code"
+            style={{ width: 240, height: 240, display: "inline-block" }}
+          />
+          <p style={{ fontSize: 14, color: "#0F131C", marginTop: 16, marginBottom: 0 }}>
+            請使用微信掃描二維碼完成支付
+          </p>
+        </div>
+      )}
+
+      {/* Redirect link (H5) */}
+      {redirectUrl && (
+        <div style={{ textAlign: "center", padding: "24px 20px" }}>
+          <a
+            href={redirectUrl}
+            style={{
+              display: "inline-block",
+              padding: "14px 28px",
+              borderRadius: 9999,
+              background: "#22c55e",
+              color: "#000",
+              fontWeight: 700,
+              fontSize: 16,
+              textDecoration: "none",
+            }}
+          >
+            前往微信支付
+          </a>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Card Payment Form (for card-based methods) ─────────────────
+
+function CardPaymentForm({
   method,
   bookingId,
   clientSecret,
@@ -191,7 +383,7 @@ function PaymentForm({
     })
 
     if (error) {
-      console.error("[stripe] confirm_error", {
+      console.error("[stripe] card_confirm_error", {
         bookingId,
         message: error.message,
         type: error.type,
@@ -202,7 +394,7 @@ function PaymentForm({
       return
     }
     if (paymentIntent && paymentIntent.status !== "succeeded" && paymentIntent.status !== "processing") {
-      console.error("[stripe] unexpected_status", {
+      console.error("[stripe] unexpected_card_status", {
         bookingId,
         status: paymentIntent.status,
         id: paymentIntent.id,
@@ -211,7 +403,7 @@ function PaymentForm({
       setSubmitting(false)
       return
     }
-    console.log("[stripe] confirm_success", {
+    console.log("[stripe] card_confirm_success", {
       bookingId,
       status: paymentIntent?.status,
       id: paymentIntent?.id,
@@ -315,6 +507,7 @@ type Props = {
   whatsappSupportLabel: string
   retryPaymentLabel: string
   backToSlotsLabel: string
+  qrInstructionLabel: string
   payDisabled?: boolean
   onDisabledPayClick?: () => void
 }
@@ -527,6 +720,8 @@ export default function StripeMethodSelector(props: Props) {
     )
   }
 
+  const selectedMethod = METHODS.find((m) => m.id === selected)
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {METHODS.map((method) => {
@@ -606,7 +801,7 @@ export default function StripeMethodSelector(props: Props) {
             </button>
 
             {/* Expanded payment form */}
-            {isExpanded && clientSecret && bookingId && (
+            {isExpanded && clientSecret && bookingId && selectedMethod && (
               <div
                 style={{
                   marginTop: -8,
@@ -626,19 +821,33 @@ export default function StripeMethodSelector(props: Props) {
                     locale: STRIPE_LOCALES[props.locale] ?? "auto",
                   }}
                 >
-                  <PaymentForm
-                    method={method.id}
-                    bookingId={bookingId}
-                    clientSecret={clientSecret}
-                    returnPath={props.returnPath}
-                    locale={props.locale}
-                    billingDetails={props.billingDetails}
-                    payLabel={props.payLabel}
-                    processingLabel={props.processingLabel}
-                    paymentFailedLabel={props.paymentFailedLabel}
-                    payDisabled={props.payDisabled}
-                    onDisabledPayClick={props.onDisabledPayClick}
-                  />
+                  {selectedMethod.type === 'card' ? (
+                    <CardPaymentForm
+                      method={method.id}
+                      bookingId={bookingId}
+                      clientSecret={clientSecret}
+                      returnPath={props.returnPath}
+                      locale={props.locale}
+                      billingDetails={props.billingDetails}
+                      payLabel={props.payLabel}
+                      processingLabel={props.processingLabel}
+                      paymentFailedLabel={props.paymentFailedLabel}
+                      payDisabled={props.payDisabled}
+                      onDisabledPayClick={props.onDisabledPayClick}
+                    />
+                  ) : (
+                    <QRCodeUI
+                      method={method.id}
+                      bookingId={bookingId}
+                      clientSecret={clientSecret}
+                      returnPath={props.returnPath}
+                      payLabel={props.payLabel}
+                      processingLabel={props.processingLabel}
+                      qrInstructionLabel={props.qrInstructionLabel}
+                      payDisabled={props.payDisabled}
+                      onDisabledPayClick={props.onDisabledPayClick}
+                    />
+                  )}
                 </Elements>
               </div>
             )}
@@ -647,19 +856,21 @@ export default function StripeMethodSelector(props: Props) {
       })}
 
       {/* Powered by Stripe branding */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 14, opacity: 0.5 }}>
-        <span style={{ fontSize: 11, color: '#A1A1A6' }}>Powered by</span>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          marginTop: 8,
+          opacity: 0.4,
+        }}
+      >
+        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Powered by</span>
         <img
-          src="/logos/Powered by Stripe/Powered by Stripe - white.svg"
+          src="/logos/stripe-logo.svg"
           alt="Stripe"
-          style={{ height: 12, marginLeft: 6 }}
-          onError={(e) => {
-            // Fallback 去 blurple 版本
-            const target = e.target as HTMLImageElement
-            if (target.src.includes('white.svg')) {
-              target.src = "/logos/Powered by Stripe/Powered by Stripe - blurple.svg"
-            }
-          }}
+          style={{ height: 16, width: "auto", opacity: 0.7 }}
         />
       </div>
     </div>

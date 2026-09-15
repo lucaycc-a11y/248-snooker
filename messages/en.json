@@ -1616,5 +1616,6 @@
       "err_test_booking_refund_failed_cta": "Retry"
     }
   },
-  "coming_soon_label": "Coming Soon"
+  "coming_soon_label": "Coming Soon",
+  "qr_instruction_label": "You will see a QR code. Please scan it with WeChat Pay to complete payment"
 }

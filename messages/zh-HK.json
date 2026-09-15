@@ -1616,5 +1616,6 @@
       "err_test_booking_refund_failed_cta": "重試"
     }
   },
-  "coming_soon_label": "此付款方式即將推出"
+  "coming_soon_label": "此付款方式即將推出",
+  "qr_instruction_label": "您將看到一個二維碼，請使用微信支付掃描以完成付款"
 }
