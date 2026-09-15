@@ -2346,6 +2346,10 @@ function Screen3({
               {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
                 /* ── Stripe single-stage selector (6 methods inline) ── */
                 <StripeMethodSelector
+                  date={dateStr}
+                  startHour={startHour}
+                  duration={duration}
+                  tableNumber={tableNumber}
                   blocks={blocks.map((b) => ({
                     date: b.date,
                     startHour: b.startHour,
@@ -2367,6 +2371,7 @@ function Screen3({
                   processingLabel={t("processing_label") || "處理中..."}
                   errorLabel={t("error_label") || "付款失敗"}
                   loadingLabel={t("loading_label") || "載入中..."}
+                  comingSoonLabel={t("coming_soon_label") || "即將推出"}
                   lockHoldLabel={t("lock_hold_label") || "已鎖定場地"}
                   slotTakenLabel={t("slot_taken_label") || "此時段已被預訂"}
                   bookingExpiredLabel={t("booking_expired_label") || "預訂已過期"}
