@@ -1603,11 +1603,7 @@
       "err_test_booking_refund_failed_hint": "Please check test environment settings",
       "err_test_booking_refund_failed_cta": "Retry"
     }
-<<<<<<< HEAD
-  }
-=======
   },
   "coming_soon_label": "Coming Soon",
   "qr_instruction_label": "You will see a QR code. Please scan it with WeChat Pay to complete payment"
->>>>>>> 63e3c9b (fix(stripe): Separate card and QR payment UI flows for mutual exclusion)
 }
