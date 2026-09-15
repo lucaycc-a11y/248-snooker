@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: 'hkd',
-      payment_method_types: method === 'card' ? ['card'] : [method],
+      automatic_payment_methods: { enabled: true },
       metadata: {
         bookingId,
         userId: session.user.id,

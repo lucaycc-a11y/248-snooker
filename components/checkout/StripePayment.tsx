@@ -6,8 +6,34 @@ import type { Appearance, StripeElementLocale } from '@stripe/stripe-js'
 import { getStripeClient } from '@/lib/stripe/client'
 import { CircleCheck, CircleX, Clock3 } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
+import { useTranslations } from 'next-intl'
 
 const stripePromise = getStripeClient()
+
+// ── Helper: Map Stripe Error Code to i18n Key ────────────────────────────────
+
+/**
+ * Maps Stripe error codes to localized error message keys.
+ * Falls back to generic error if code is unknown.
+ */
+function getStripeErrorKey(code?: string | null): string {
+  if (!code) return 'book.stripe_error_generic'
+
+  switch (code) {
+    case 'card_declined':
+      return 'book.stripe_error_card_declined'
+    case 'expired_card':
+      return 'book.stripe_error_expired_card'
+    case 'incorrect_cvc':
+      return 'book.stripe_error_incorrect_cvc'
+    case 'insufficient_funds':
+      return 'book.stripe_error_insufficient_funds'
+    case 'processing_error':
+      return 'book.stripe_error_processing_error'
+    default:
+      return 'book.stripe_error_generic'
+  }
+}
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -178,6 +204,8 @@ export default function StripePayment(props: Props) {
     onBackToMethods, onSuccess,
   } = props
 
+  const t = useTranslations('book')
+
   const [state, setState] = useState<StripeState>('idle')
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [qrUrl, setQrUrl] = useState<string | null>(null)
@@ -201,7 +229,7 @@ export default function StripePayment(props: Props) {
 
   const createPaymentIntent = useCallback(async () => {
     if (!agreedToTerms) {
-      setError(labels.terms_required || '請先同意條款與細則')
+      setError(t('stripe_error_terms_required'))
       setState('failed')
       return
     }
@@ -253,7 +281,7 @@ export default function StripePayment(props: Props) {
 
     } catch (e) {
       console.error('[stripe] create_payment_intent_error', e)
-      setError((e as Error).message)
+      setError(t('stripe_error_generic'))
       setState('failed')
     } finally {
       setCreating(false)
@@ -299,7 +327,8 @@ export default function StripePayment(props: Props) {
 
       if (error) {
         console.error('[stripe] wechat_confirm_error', error)
-        setError(error.message || labels.failed_desc)
+        const errorKey = getStripeErrorKey(error.code)
+        setError(t(errorKey))
         setState('failed')
         return
       }
@@ -319,7 +348,7 @@ export default function StripePayment(props: Props) {
       }
     } catch (e) {
       console.error('[stripe] wechat_exception', e)
-      setError((e as Error).message)
+      setError(t('stripe_error_generic'))
       setState('failed')
     }
   }
@@ -807,6 +836,7 @@ function CardPaymentForm(props: {
   const { bookingId, returnUrl, labels, onBackToMethods } = props
   const stripe = useStripe()
   const elements = useElements()
+  const t = useTranslations('book')
   const [submitting, setSubmitting] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
@@ -826,10 +856,11 @@ function CardPaymentForm(props: {
       })
 
       if (error) {
-        setErr(error.message || labels.failed_desc)
+        const errorKey = getStripeErrorKey(error.code)
+        setErr(t(errorKey))
       }
     } catch (e) {
-      setErr((e as Error).message)
+      setErr(t('stripe_error_generic'))
     } finally {
       setSubmitting(false)
     }
