@@ -15,6 +15,18 @@
       },
       {
         "rule": "design-system-color",
+        "value": "#0F131C",
+        "createdAt": "2026-09-15T13:10:00.000Z",
+        "reason": "Dark theme surface level from design system tonal ladder (step 3/7)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#161D2B",
+        "createdAt": "2026-09-15T13:10:00.000Z",
+        "reason": "Dark theme surface level from design system tonal ladder (step 4/7)"
+      },
+      {
+        "rule": "design-system-color",
         "value": "rgba(255,159,10,0.08)",
         "createdAt": "2026-08-17T10:50:08.234Z",
         "reason": "Test-mode amber warning color, intentional admin-only UI"
