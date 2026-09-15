@@ -47,10 +47,13 @@ export async function POST(req: NextRequest) {
       date: block.date,
       start_time: `${block.startHour.toString().padStart(2, '0')}:00`,
       end_time: `${(block.startHour + block.duration).toString().padStart(2, '0')}:00`,
+      duration_hours: block.duration,
       table_number: block.tableNumber,
       total_price: block.duration * hourlyRate,
       status: 'pending',
       payment_provider: 'stripe',
+      payment_method: 'card',
+      is_free_booking: false,
     }))
 
     const { data: bookings, error: bookingError } = await supabase
