@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getServiceSupabase } from '@/lib/supabase/service'
 import { getStripe } from '@/lib/stripe/server'
 
 export const runtime = 'nodejs'
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     console.log('[Stripe] webhook received', { type: event.type, id: event.id })
 
     // Idempotency: check if we've already processed this event
-    const supabase = await createClient()
+    const supabase = getServiceSupabase()
 
     const { data: existingEvent } = await supabase
       .from('webhook_events')

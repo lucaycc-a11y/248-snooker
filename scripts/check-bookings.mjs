@@ -1,50 +1,36 @@
-#!/usr/bin/env node
+import { getServiceSupabase } from '../lib/supabase/service.js'
 
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('Missing Supabase credentials')
-  process.exit(1)
-}
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const supabase = getServiceSupabase()
 
 const bookingIds = [
-  'c7176c80-15db-491e-b79a-0957281669ea',
-  'a2bc45e1-0f2f-400f-a56d-8dd68976e9dc'
+  '159422b9-cbfe-4eda-a911-fe7de2e148cc',
+  '075f3f2e-7564-427d-af0b-5b9cedd9e6a0'
 ]
 
-console.log('Checking bookings status...\n')
+console.log('Querying bookings...\n')
 
 const { data, error } = await supabase
   .from('bookings')
-  .select('id, user_id, status, payment_provider, payment_method, total_price, date, start_time, end_time, created_at, updated_at')
+  .select('id, status, payment_provider, provider_order_no, payment_method, created_at, updated_at, total_price, user_id, order_group_id')
   .in('id', bookingIds)
   .order('created_at', { ascending: false })
 
 if (error) {
-  console.error('Error querying bookings:', error)
+  console.error('Error:', error)
   process.exit(1)
 }
 
-if (!data || data.length === 0) {
-  console.log('No bookings found with these IDs')
-} else {
-  console.log(`Found ${data.length} booking(s):\n`)
-  data.forEach((booking, i) => {
-    console.log(`Booking ${i + 1}:`)
-    console.log(`  ID: ${booking.id}`)
-    console.log(`  Status: ${booking.status}`)
-    console.log(`  Payment Provider: ${booking.payment_provider}`)
-    console.log(`  Payment Method: ${booking.payment_method}`)
-    console.log(`  Total Price: HK$${booking.total_price}`)
-    console.log(`  Date: ${booking.date}`)
-    console.log(`  Time: ${booking.start_time} - ${booking.end_time}`)
-    console.log(`  Created: ${booking.created_at}`)
-    console.log(`  Updated: ${booking.updated_at}`)
-    console.log('')
-  })
-}
+console.log('Found', data.length, 'bookings:\n')
+data.forEach(b => {
+  console.log('Booking ID:', b.id)
+  console.log('Status:', b.status)
+  console.log('Payment Provider:', b.payment_provider)
+  console.log('Provider Order No:', b.provider_order_no)
+  console.log('Payment Method:', b.payment_method)
+  console.log('Created:', b.created_at)
+  console.log('Updated:', b.updated_at)
+  console.log('Total Price:', b.total_price)
+  console.log('User ID:', b.user_id)
+  console.log('Order Group ID:', b.order_group_id)
+  console.log('---')
+})
