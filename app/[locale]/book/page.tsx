@@ -2483,7 +2483,7 @@ function Screen3({
                   }}
                   onSuccess={(returnedBookingId) => {
                     if (returnedBookingId) {
-                      window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=returned`
+                      window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
                     }
                   }}
                 />
@@ -2557,7 +2557,7 @@ function Screen3({
                     }}
                     onSuccess={(returnedBookingId) => {
                       if (returnedBookingId) {
-                        window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=returned`
+                        window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
                       }
                     }}
                   />
@@ -3545,6 +3545,22 @@ export default function BookPage() {
       setConfirmRecoveryReason(null)
       direction.current = 1
       setScreen(2)
+      return
+    }
+
+    const redirectStatus = params.get("redirect_status")
+    // Guard: if redirect_status exists but is not a recognized value (succeeded,
+    // processing, requires_payment_method, failed, methods, retry), treat it as
+    // a malformed return and clear state to prevent UI freeze.
+    const recognizedStatuses = ["succeeded", "processing", "requires_payment_method", "failed", "methods", "retry"]
+    if (redirectStatus && !recognizedStatuses.includes(redirectStatus)) {
+      console.warn(`[Book] Unknown redirect_status="${redirectStatus}" — clearing state and redirecting to booking form`)
+      clearKPayPersistedState()
+      setKpayResumeData(null)
+      setConfirmBookingId(null)
+      setConfirmRecoveryReason(null)
+      setConfirmError(false)
+      window.history.replaceState(null, "", `/book`)
       return
     }
 

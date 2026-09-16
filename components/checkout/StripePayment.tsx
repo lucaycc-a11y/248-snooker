@@ -137,8 +137,10 @@ export function clearStripePersistedState() {
 const GREEN = '#1a9d5c'
 const GREEN_BRIGHT = '#22b86b'
 const GREEN_DEEP = '#0f7845'
-const BG = '#111111'
-const SURFACE = '#111111'
+// Match booking summary card background: tokens.colors.depth.elevated
+// = rgba(255,255,255,0.06) on graphite #14161A → composite #222428
+const BG = '#222428'
+const SURFACE = '#222428'
 const TEXT = '#ffffff'
 const TEXT_MUTED = 'rgba(255,255,255,0.72)'
 const TEXT_FAINT = 'rgba(255,255,255,0.52)'
@@ -956,7 +958,7 @@ function CardPaymentForm(props: {
         if (paymentIntent.status === 'succeeded' || paymentIntent.status === 'processing') {
           // Hand off to the page's status poll, which is the only authority on
           // whether the booking got confirmed.
-          window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
+          window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=succeeded`
           return
         }
         // requires_payment_method / requires_action / canceled — the customer
