@@ -137,7 +137,7 @@ export function clearStripePersistedState() {
 const GREEN = '#1a9d5c'
 const GREEN_BRIGHT = '#22b86b'
 const GREEN_DEEP = '#0f7845'
-const BG = '#000000'
+const BG = '#111111'
 const SURFACE = '#111111'
 const TEXT = '#ffffff'
 const TEXT_MUTED = 'rgba(255,255,255,0.72)'

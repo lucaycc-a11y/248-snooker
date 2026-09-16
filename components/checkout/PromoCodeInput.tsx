@@ -8,8 +8,8 @@ const GREEN = '#22b86b'
 const DANGER = '#FF453A'
 const MUTED = 'rgba(255,255,255,0.72)'
 const BORDER = 'rgba(255,255,255,0.1)'
-const GLASS_BG = '#000000'
-const INPUT_BG = '#000000'
+const GLASS_BG = '#111111'
+const INPUT_BG = '#111111'
 const INK = '#ffffff'
 
 const SPRING = { type: 'spring', stiffness: 320, damping: 30 } as const
