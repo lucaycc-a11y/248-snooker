@@ -70,6 +70,24 @@ async function handleStripeStatus(booking: any, service: any, userId: string) {
     console.log('[Stripe] pollResult', { bookingId: booking.id, elapsedMs: Date.now() - startedAt, ...payload })
   }
 
+  // Re-query booking status to avoid stale data from the initial query. The webhook
+  // may have written `status = 'confirmed'` between the outer query (line 37) and
+  // this handler, and we must see that update immediately — not after a minute of
+  // retries. This query hits the same service_role client as the webhook, bypassing
+  // read replica lag.
+  const { data: freshBooking, error: freshErr } = await service
+    .from('bookings')
+    .select('id, status, payment_provider, provider_order_no, payment_method, order_group_id, human_code, total_price, user_id')
+    .eq('id', booking.id)
+    .single()
+
+  if (freshErr || !freshBooking) {
+    console.error('[Stripe] pollResult fresh_query_failed', { bookingId: booking.id, error: freshErr?.message })
+    // Fallback to stale booking if re-query fails
+  } else {
+    booking = freshBooking
+  }
+
   const holdState = async (): Promise<{ holdActive: boolean; holdExpiresAt: string | null }> => {
     const { data, error } = await service.rpc('checkout_hold_expiry', {
       p_booking_id: booking.id,
