@@ -231,11 +231,10 @@ export default function StripePayment(props: Props) {
   // ── Create PaymentIntent ─────────────────────────────────────────────────
 
   const createPaymentIntent = useCallback(async () => {
-    if (!agreedToTerms) {
-      setError(t('stripe_error_terms_required'))
-      setState('failed')
-      return
-    }
+    // Problem 3 fix: Remove pre-flight terms check here. The user should see
+    // the Stripe Payment Element immediately (matching KPay's flow where the
+    // user sees payment methods first). The terms agreement is enforced at
+    // the moment they click "Pay" inside CardPaymentForm.handleSubmit().
 
     if (creatingRef.current) return
     creatingRef.current = true

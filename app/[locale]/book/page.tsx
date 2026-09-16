@@ -3223,9 +3223,12 @@ function ConfirmingPayment({
 
 /**
  * Stateful wrapper that owns the retry lifecycle so the BookPage root doesn't
- * carry ephemeral retry/retrying state. The retry endpoint calls the DB RPC
- * `retry_payment_failed_booking` and then re-creates the KPay order by
- * redirecting back to /book with the same booking.
+ * carry ephemeral retry/retrying state.
+ *
+ * **Problem 2 fix**: The old retry flow (POST /api/checkout/retry → redirect
+ * with bookingId) didn't work reliably. New behavior: "重新付款" simply calls
+ * onBackToSlots() to reset the entire booking flow, letting the user pick
+ * slots fresh. No server-side retry endpoint, no stale booking resurrection.
  */
 function ConfirmingPaymentContainer({
   bookingId,
@@ -3238,58 +3241,17 @@ function ConfirmingPaymentContainer({
   hold: OrderHoldState
   onBackToSlots: () => void
 }) {
-  const [retrying, setRetrying] = useState(false)
-  const [retryError, setRetryError] = useState<string | null>(null)
-
-  const handleRetry = useCallback(async () => {
-    if (retrying) return
-    setRetrying(true)
-    setRetryError(null)
-
-    try {
-      const res = await fetch("/api/checkout/retry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId }),
-      })
-      const payload: unknown = await res.json().catch(() => null)
-      if (!res.ok) {
-        const message =
-          payload && typeof payload === "object" && !Array.isArray(payload)
-            ? (payload as Record<string, unknown>).error
-            : undefined
-        setRetryError(typeof message === "string" ? message : "Unable to retry payment")
-        return
-      }
-
-      // RPC succeeded — the booking is reset to `pending` with no provider
-      // order. Redirect to /book with the booking ID so the checkout flow
-      // picks it up in Mode B (existing bookingId) and creates a fresh KPay
-      // order. This full-page nav clears stale component state cleanly.
-      const orderGroupId =
-        payload && typeof payload === "object" && !Array.isArray(payload)
-          ? (payload as Record<string, unknown>).orderGroupId
-          : undefined
-      try {
-        sessionStorage.setItem(
-          "kpayRetry",
-          JSON.stringify({ bookingId, orderGroupId: orderGroupId ?? null }),
-        )
-      } catch {}
-      window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=retry`
-    } catch {
-      setRetryError("Network error — please try again")
-    } finally {
-      setRetrying(false)
-    }
-  }, [bookingId, retrying])
+  // Retry now just resets to slot selection
+  const handleRetry = useCallback(() => {
+    onBackToSlots()
+  }, [onBackToSlots])
 
   return (
     <ConfirmingPayment
       reason={reason}
       hold={hold}
-      retrying={retrying}
-      retryError={retryError}
+      retrying={false}
+      retryError={null}
       onRetry={handleRetry}
       onBackToSlots={onBackToSlots}
     />

@@ -104,46 +104,137 @@ async function handleSucceeded(event: any, supabase: any) {
   // rather than papering over a real money discrepancy.
   const { data: rows } = await supabase
     .from('bookings')
-    .select('id, total_price, order_group_id')
+    .select('id, total_price, order_group_id, status, user_id, payment_method')
     .eq('id', bookingId)
 
   const bookingRow = rows?.[0]
-  if (bookingRow) {
-    const expectedCents = Math.round(Number(bookingRow.total_price) * 100)
-    if (expectedCents !== intent.amount) {
-      console.error('[Stripe] webhook: AMOUNT MISMATCH — not confirming', {
-        bookingId,
-        intentId: intent.id,
-        chargedCents: intent.amount,
-        expectedCents,
-      })
-      await supabase
-        .from('bookings')
-        .update({
-          status: 'payment_review',
-          payment_provider: 'stripe',
-          provider_order_no: intent.id,
-          stripe_payment_intent: intent.id,
-        })
-        .eq('id', bookingId)
-      return
-    }
+  if (!bookingRow) {
+    console.error('[Stripe] webhook: booking not found', { bookingId, intentId: intent.id })
+    return
   }
 
-  // Update booking status to confirmed
-  // Note: Don't filter by payment_provider since it may be null during creation
-  const { error } = await supabase
-    .from('bookings')
-    .update({
-      status: 'confirmed',
-      payment_provider: 'stripe',
-      provider_order_no: intent.id,
-      stripe_payment_intent: intent.id,
+  const expectedCents = Math.round(Number(bookingRow.total_price) * 100)
+  if (expectedCents !== intent.amount) {
+    console.error('[Stripe] webhook: AMOUNT MISMATCH — not confirming', {
+      bookingId,
+      intentId: intent.id,
+      chargedCents: intent.amount,
+      expectedCents,
     })
-    .eq('id', bookingId)
+    await supabase
+      .from('bookings')
+      .update({
+        status: 'payment_review',
+        payment_provider: 'stripe',
+        provider_order_no: intent.id,
+        stripe_payment_intent: intent.id,
+      })
+      .eq('id', bookingId)
+    return
+  }
 
-  if (error) {
-    console.error('[Stripe] webhook: failed to update booking', { error, bookingId })
+  // If already confirmed (proactive polling beat the webhook), skip to avoid
+  // duplicate notifications. The idempotent RPC would handle this, but skipping
+  // early saves a DB round-trip.
+  if (bookingRow.status === 'confirmed') {
+    console.log('[Stripe] webhook: already confirmed (proactive polling)', { bookingId, intentId: intent.id })
+    return
+  }
+
+  // Use the same idempotent RPC as the proactive polling endpoint. This ensures
+  // both paths generate QR codes, send notifications, and update payment_attempts
+  // identically, preventing the race condition where a user completes payment
+  // but sees "未能確認結果" because the webhook arrived late.
+  try {
+    if (bookingRow.order_group_id) {
+      // Grouped booking: confirm all siblings
+      const { data: groupRows, error: groupErr } = await supabase
+        .from('bookings')
+        .select('id, total_price')
+        .eq('order_group_id', bookingRow.order_group_id)
+
+      if (groupErr || !groupRows || groupRows.length === 0) {
+        console.error('[Stripe] webhook: failed to fetch group bookings', {
+          orderGroupId: bookingRow.order_group_id,
+          error: groupErr,
+        })
+        throw groupErr || new Error('Group bookings not found')
+      }
+
+      // Generate QR codes for all bookings in the group
+      const { humanReadableCode } = await import('@/lib/qr/jwt')
+      const qrCodes: Record<string, string> = {}
+      for (const r of groupRows) {
+        qrCodes[r.id] = humanReadableCode(r.id)
+      }
+
+      console.log('[Stripe] webhook: confirm_booking_group', {
+        orderGroupId: bookingRow.order_group_id,
+        bookings: groupRows.length,
+        intentId: intent.id,
+        eventId: event.id,
+      })
+
+      await supabase.rpc('confirm_booking_group', {
+        p_order_group_id: bookingRow.order_group_id,
+        p_payment_intent_id: intent.id,
+        p_payment_method: bookingRow.payment_method || 'card',
+        p_qr_codes: qrCodes,
+        p_event_id: event.id,
+      })
+    } else {
+      // Single booking
+      const { humanReadableCode } = await import('@/lib/qr/jwt')
+      const humanCode = humanReadableCode(bookingId)
+
+      console.log('[Stripe] webhook: confirm_booking', {
+        bookingId,
+        intentId: intent.id,
+        eventId: event.id,
+      })
+
+      await supabase.rpc('confirm_booking', {
+        p_booking_id: bookingId,
+        p_payment_intent_id: intent.id,
+        p_payment_method: bookingRow.payment_method || 'card',
+        p_qr_code: humanCode,
+        p_event_id: event.id,
+      })
+    }
+
+    // Send confirmation email and log notifications
+    try {
+      const { sendBookingConfirmation } = await import('@/lib/resend/template-send')
+      await sendBookingConfirmation(bookingId)
+      await supabase.from('notification_log').insert([
+        { user_id: bookingRow.user_id, booking_id: bookingId, channel: 'email', type: 'booking_confirmed', status: 'sent' },
+        { user_id: bookingRow.user_id, booking_id: bookingId, channel: 'whatsapp', type: 'booking_confirmed', status: 'pending' },
+      ])
+    } catch (e) {
+      console.error('[Stripe] webhook: notification failed', {
+        bookingId,
+        message: (e as Error).message,
+      })
+      // Non-fatal — the booking is confirmed, notification is best-effort
+    }
+
+    // Mark payment attempt complete
+    try {
+      await supabase.rpc('complete_payment_attempt', {
+        p_provider_order_no: intent.id,
+        p_provider: 'stripe',
+      })
+    } catch {
+      // Non-fatal
+    }
+
+    console.log('[Stripe] webhook: confirmation complete', { bookingId, intentId: intent.id })
+  } catch (error) {
+    console.error('[Stripe] webhook: confirmation RPC failed', {
+      bookingId,
+      intentId: intent.id,
+      error: (error as Error).message,
+    })
     throw error
   }
 }
