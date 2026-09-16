@@ -45,13 +45,30 @@ export async function GET(req: Request) {
     }
 
     // Route to provider-specific handler based on payment_provider
-    if (booking.payment_provider === 'stripe') {
+    const provider = booking.payment_provider
+
+    // Free booking path (no payment required) — when a promo code or discount fully
+    // covers the order, payment_provider is null and the booking was already confirmed
+    // immediately via /api/booking/free-confirm (no async payment to poll)
+    if (provider === null || provider === 'free' || provider === 'none') {
+      console.log('[checkout/status] free_booking', { bookingId, status: booking.status })
+      return NextResponse.json({
+        bookingId: booking.id,
+        status: 'confirmed',
+        providerStatus: 'free',
+      })
+    }
+
+    if (provider === 'stripe') {
       return handleStripeStatus(booking, service, user.id)
-    } else if (booking.payment_provider === 'kpay') {
+    } else if (provider === 'kpay') {
       return handleKPayStatus(booking, service, user.id)
     } else {
-      console.error('[checkout/status] unknown payment_provider', { provider: booking.payment_provider, bookingId })
-      return NextResponse.json({ error: 'Unknown payment provider' }, { status: 500 })
+      console.error('[checkout/status] unknown payment_provider', { provider, bookingId })
+      return NextResponse.json(
+        { error: 'unsupported_provider', detail: `Payment provider "${provider}" is not supported` },
+        { status: 400 }
+      )
     }
   } catch (err) {
     const e = err as Error
