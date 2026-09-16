@@ -17,7 +17,6 @@ import { logSiteError } from '@/lib/errors/log'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus } from '@/lib/checkout/prepare'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
-import { isMobileDevice } from '@/lib/device'
 
 export const runtime = 'nodejs'
 
@@ -274,23 +273,30 @@ export async function POST(req: Request) {
     // parameters they were first used with".
     const idempotencyKey = `${orderGroupId ?? primaryBookingId}:${amountInCents}`
 
-    // Detect if request comes from mobile device for WeChat Pay H5 mode
-    const userAgent = req.headers.get('user-agent') ?? ''
-    const isMobile = isMobileDevice(userAgent)
-
     let intent
     try {
       const stripe = getStripe() // throws if STRIPE_SECRET_KEY is unset
+
+      // WeChat Pay client must be 'web' for browser-based checkout (mobile or desktop).
+      // Stripe only accepts: 'web' | 'ios' | 'android'. The H5 vs QR flow is determined
+      // by other factors (return_url, device capabilities), not the client field.
+      const wechatPayClient = 'web'
+
+      console.log('[payment/create-intent] stripe request', {
+        amount: amountInCents,
+        userId: user.id,
+        bookingIds,
+        wechatPayClient,
+      })
+
       intent = await stripe.paymentIntents.create(
         {
           amount: amountInCents,
           currency: 'hkd',
           automatic_payment_methods: { enabled: true },
-          // WeChat Pay: use H5 (mobile_web) for mobile browsers, QR (web) for desktop
           payment_method_options: {
             wechat_pay: {
-              // @ts-expect-error - Stripe types are outdated; mobile_web is valid per API docs
-              client: isMobile ? 'mobile_web' : 'web',
+              client: wechatPayClient,
             },
           },
           // receipt_email intentionally omitted: Stripe Dashboard's email
@@ -336,9 +342,12 @@ export async function POST(req: Request) {
         userId: user.id,
         bookingIds,
       })
+
+      // Return 400 for invalid request parameters (our fault), 502 for Stripe infrastructure issues
+      const is4xx = e.type === 'StripeInvalidRequestError' || (e.statusCode && e.statusCode >= 400 && e.statusCode < 500)
       return NextResponse.json(
         { error: 'stripe_error', detail: e.message ?? 'Stripe request failed', code: e.code ?? e.type ?? null },
-        { status: 502 },
+        { status: is4xx ? 400 : 502 },
       )
     }
 
