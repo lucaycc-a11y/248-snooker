@@ -289,7 +289,7 @@ export async function POST(req: Request) {
           // WeChat Pay: use H5 (mobile_web) for mobile browsers, QR (web) for desktop
           payment_method_options: {
             wechat_pay: {
-              client: isMobile ? 'mobile_web' : 'web',
+              client: (isMobile ? 'mobile_web' : 'web') as 'web' | 'mobile_web',
             },
           },
           // receipt_email intentionally omitted: Stripe Dashboard's email
