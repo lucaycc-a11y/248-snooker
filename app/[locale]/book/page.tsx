@@ -39,6 +39,7 @@ import { useOrderConfirmationPolling, type OrderHoldState } from "@/lib/booking/
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
+import { formatPhoneDisplay } from "@/lib/phone-format"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
@@ -2039,6 +2040,10 @@ function Screen3({
   // Apply promo discount if present
   const promoDiscount = promoCode?.discount_amount ?? 0
   const total = Math.max(0, subtotal - promoDiscount)
+  // The zero-amount rail. Requires a real priced cart AND an applied code —
+  // `total === 0` alone is also true for an empty cart, which must not surface
+  // the free-booking CTA.
+  const isFreeCheckout = subtotal > 0 && promoCode !== null && total === 0
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
   useEffect(() => {
@@ -2123,7 +2128,26 @@ function Screen3({
       })
       const json = await res.json()
       if (!res.ok) {
-        setFreeError(json.detail || json.error || "Free booking failed")
+        // The route re-derives the total server-side. If it no longer lands on
+        // zero, the promo does not actually cover this cart — drop the code so
+        // the payment selector comes back rather than stranding the user on a
+        // free-booking CTA that can never succeed.
+        if (json.error === "payment_required") {
+          onPromoChange(null)
+          setFreeError(t("promo_no_longer_free") || "This promo code no longer covers the full amount. Please select a payment method.")
+          setFreeConfirming(false)
+          return
+        }
+        const reason = typeof json.error === "string" ? json.error : ""
+        const mapped =
+          reason === "usage_limit_reached" || reason === "user_limit_reached"
+            ? t("promo_already_used")
+            : reason === "expired" || reason === "invalid" || reason === "inactive"
+              ? t("promo_invalid")
+              : reason === "min_order_not_met"
+                ? t("promo_min_cart")
+                : null
+        setFreeError(mapped || json.detail || reason || "Free booking failed")
         setFreeConfirming(false)
         return
       }
@@ -2133,7 +2157,7 @@ function Screen3({
       setFreeError((e as Error).message)
       setFreeConfirming(false)
     }
-  }, [blocks, promoCode, agreedToTerms, flagTermsRequired])
+  }, [blocks, promoCode, agreedToTerms, flagTermsRequired, onPromoChange, t])
 
   return (
     <div className={`screen-content${!testMode && !confirmed ? " pay-screen" : ""}`}>
@@ -2284,7 +2308,7 @@ function Screen3({
                 {profile.name && <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>{profile.name}</div>}
                 {(profile.email || profile.phone) && (
                   <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
-                    {[profile.email, profile.phone].filter(Boolean).join(" · ")}
+                    {[profile.email, profile.phone ? formatPhoneDisplay(profile.phone) : null].filter(Boolean).join(" · ")}
                   </div>
                 )}
               </div>
@@ -2346,11 +2370,18 @@ function Screen3({
             </div>
           </div>
 
-          {/* Trust strip */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, fontSize: 12.5, color: tokens.colors.textFaint }}>
-            <Lock size={14} style={{ color: tokens.colors.link, flexShrink: 0 }} />
-            <span data-cms-key="book.pay.secure">{t("kpay_secure")}</span>
-          </div>
+          {/* Trust strip — names the provider that will actually handle the
+              charge, so it is suppressed on the zero-amount rail where none is. */}
+          {!isFreeCheckout && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, fontSize: 12.5, color: tokens.colors.textFaint }}>
+              <Lock size={14} style={{ color: tokens.colors.link, flexShrink: 0 }} />
+              <span data-cms-key="book.pay.secure">
+                {(process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") === "stripe"
+                  ? t("stripe_secure")
+                  : t("kpay_secure")}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* ── RIGHT: Payment ── */}
@@ -2405,10 +2436,59 @@ function Screen3({
           )}
 
           {/* Payment method selection — hidden when test mode is active or when total is $0 */}
-          {!testMode && total > 0 && (
+          {!testMode && !isFreeCheckout && (
             <>
-              {!confirmed ? (
-                /* ── Stage 1: PaymentMethodList (both Stripe and KPay use this) ── */
+              {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
+                /* ── Stripe: Direct to Payment Element (skip PaymentMethodList) ── */
+                <StripePayment
+                  blocks={blocks.map((b) => ({
+                    date: b.date,
+                    startHour: b.startHour,
+                    duration: b.duration,
+                    tableNumber: b.tableNumber as 1 | 2,
+                  }))}
+                  method="card"
+                  labels={{
+                    title: t("stripe_title") || "付款",
+                    pending: t("stripe_qr_scan") || `請用微信支付掃描以下二維碼`,
+                    pending_desc: t("stripe_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
+                    pending_confirmation: t("stripe_pending_confirmation") || "確認付款中",
+                    pending_confirmation_desc: t("stripe_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
+                    success: t("stripe_success") || "付款成功",
+                    success_desc: t("stripe_success_desc") || "你的預訂已確認",
+                    failed: t("stripe_failed") || "付款失敗",
+                    failed_desc: t("stripe_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
+                    expired: t("stripe_expired") || "二維碼已過期",
+                    expired_desc: t("stripe_expired_desc") || "此二維碼已過期，新二維碼即將自動生成",
+                    regenerate: t("stripe_regenerate") || "重新生成",
+                    try_again: t("stripe_try_again") || "重試",
+                    countdown: t("stripe_countdown") || "二維碼將於 {time} 後過期",
+                    help: t("stripe_help") || "需要幫助？",
+                    support_whatsapp: t("stripe_support_whatsapp") || "WhatsApp 客服",
+                    back_to_methods: t("stripe_back_to_methods") || "返回付款方式",
+                    waited: t("stripe_waited") || "已等待 {seconds} 秒",
+                    cancelled: t("stripe_cancelled") || "付款已取消",
+                    cancelled_desc: t("stripe_cancelled_desc") || "此預訂已取消，已釋放時段。",
+                    cancel: t("stripe_cancel") || "取消預訂",
+                    processing: t("stripe_processing") || "處理中…",
+                    terms_required: t("terms_required_hint"),
+                  }}
+                  agreedToTerms={agreedToTerms}
+                  returnUrl={`${window.location.origin}/${locale}/book`}
+                  locale={locale}
+                  onBackToMethods={() => {
+                    clearStripePersistedState()
+                    setConfirmed(false)
+                    setPaymentMethod(null)
+                  }}
+                  onSuccess={(returnedBookingId) => {
+                    if (returnedBookingId) {
+                      window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=returned`
+                    }
+                  }}
+                />
+              ) : !confirmed ? (
+                /* ── KPay: Stage 1 - PaymentMethodList ── */
                 <PaymentMethodList
                   selected={paymentMethod}
                   onSelect={(method) => {
@@ -2425,72 +2505,10 @@ function Screen3({
                         setKpayMode(isDesktopDevice() ? "qr" : "h5")
                       }
                     }
-                    // Stripe methods are handled in Stage 2
                   }}
                 />
-              ) : process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' && paymentMethod !== null && (['card', 'wechat_pay', 'alipay', 'google_pay', 'apple_pay'] as const).includes(paymentMethod as any) ? (
-                /* ── Stage 2: Stripe payment ── */
-                <>
-                  <StripePayment
-                    blocks={blocks.map((b) => ({
-                      date: b.date,
-                      startHour: b.startHour,
-                      duration: b.duration,
-                      tableNumber: b.tableNumber as 1 | 2,
-                    }))}
-                    method={paymentMethod as StripePaymentMethod}
-                    labels={{
-                      title: t("stripe_title") || "付款",
-                      pending: t("stripe_qr_scan") || `請用微信支付掃描以下二維碼`,
-                      pending_desc: t("stripe_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
-                      pending_confirmation: t("stripe_pending_confirmation") || "確認付款中",
-                      pending_confirmation_desc: t("stripe_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
-                      success: t("stripe_success") || "付款成功",
-                      success_desc: t("stripe_success_desc") || "你的預訂已確認",
-                      failed: t("stripe_failed") || "付款失敗",
-                      failed_desc: t("stripe_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
-                      expired: t("stripe_expired") || "二維碼已過期",
-                      expired_desc: t("stripe_expired_desc") || "此二維碼已過期，新二維碼即將自動生成",
-                      regenerate: t("stripe_regenerate") || "重新生成",
-                      try_again: t("stripe_try_again") || "重試",
-                      countdown: t("stripe_countdown") || "二維碼將於 {time} 後過期",
-                      help: t("stripe_help") || "需要幫助？",
-                      support_whatsapp: t("stripe_support_whatsapp") || "WhatsApp 客服",
-                      back_to_methods: t("stripe_back_to_methods") || "返回付款方式",
-                      waited: t("stripe_waited") || "已等待 {seconds} 秒",
-                      cancelled: t("stripe_cancelled") || "付款已取消",
-                      cancelled_desc: t("stripe_cancelled_desc") || "此預訂已取消，已釋放時段。",
-                      cancel: t("stripe_cancel") || "取消預訂",
-                      processing: t("stripe_processing") || "處理中…",
-                      terms_required: t("terms_required_hint"),
-                    }}
-                    agreedToTerms={agreedToTerms}
-                    // Base return URL only — StripePayment appends the real
-                    // bookingId once create-intent returns it. This used to pass
-                    // blocks[0].date as `bookingId`, so the return-page status
-                    // poll had no resolvable booking and always ran to its 60s
-                    // timeout instead of reporting the failure.
-                    returnUrl={`${window.location.origin}/${locale}/book`}
-
-                    locale={locale}
-                    onBackToMethods={() => {
-                      clearStripePersistedState()
-                      setConfirmed(false)
-                      setPaymentMethod(null)
-                    }}
-                    onSuccess={(returnedBookingId) => {
-                      if (returnedBookingId) {
-                        window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=returned`
-                      }
-                    }}
-                  />
-                  {/* Powered by Stripe */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 14, opacity: 0.5 }}>
-                    <img src="/logos/stripe-logo.svg" alt="Powered by Stripe" style={{ height: 18, width: "auto", display: "block" }} />
-                  </div>
-                </>
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
-                /* ── KPay payment (card via CNP Hosted + all direct-connect methods) ── */
+                /* ── KPay: Stage 2 - Payment ── */
                 <>
                   <KPayPayment
                     blocks={blocks.map((b) => ({
@@ -2608,7 +2626,7 @@ function Screen3({
           )}
 
           {/* Free booking: show when total is $0 (promo code brought it to zero) */}
-          {!testMode && total === 0 && (
+          {!testMode && isFreeCheckout && (
             <div
               style={{
                 background: "rgba(34,197,94,0.08)",

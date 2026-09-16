@@ -1013,6 +1013,17 @@ function CardPaymentForm(props: {
       >
         {labels.back_to_methods}
       </button>
+
+      {/* Stripe security badge */}
+      <p style={{
+        fontSize: 12,
+        color: TEXT_FAINT,
+        textAlign: 'center',
+        marginTop: 16,
+        marginBottom: 0,
+      }}>
+        Stripe 加密支付・資料安全傳輸
+      </p>
     </form>
   )
 }

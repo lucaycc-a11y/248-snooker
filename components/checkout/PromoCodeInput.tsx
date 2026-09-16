@@ -4,12 +4,13 @@ import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tag, X, Check, Loader2 } from 'lucide-react'
 
-const GREEN = '#22C55E'
+const GREEN = '#22b86b'
 const DANGER = '#FF453A'
-const MUTED = '#A1A1A6'
+const MUTED = 'rgba(255,255,255,0.72)'
 const BORDER = 'rgba(255,255,255,0.1)'
-const GLASS_BG = 'rgba(255,255,255,0.05)'
-const INK = '#f5f5f7'
+const GLASS_BG = '#000000'
+const INPUT_BG = '#000000'
+const INK = '#ffffff'
 
 const SPRING = { type: 'spring', stiffness: 320, damping: 30 } as const
 const EASE = [0.16, 1, 0.3, 1] as const
