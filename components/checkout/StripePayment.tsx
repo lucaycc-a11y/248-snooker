@@ -352,6 +352,7 @@ export default function StripePayment(props: Props) {
         {
           payment_method_options: {
             wechat_pay: {
+              // @ts-expect-error - Stripe types are outdated; mobile_web is valid per API docs
               client: isMobile ? 'mobile_web' : 'web'
             }
           },
