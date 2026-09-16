@@ -7,6 +7,7 @@ import { getStripeClient } from '@/lib/stripe/client'
 import { CircleCheck, CircleX, Clock3 } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
 import { useTranslations } from 'next-intl'
+import { isMobileClient } from '@/lib/device'
 
 const stripePromise = getStripeClient()
 
@@ -333,18 +334,29 @@ export default function StripePayment(props: Props) {
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Confirm WeChat Pay and get QR code ──────────────────────────────────
+  // ── Confirm WeChat Pay and get QR code or H5 redirect ──────────────────────
 
   const confirmWeChatPayment = async (secret: string) => {
     if (!stripePromise) return
+
+    const isMobile = isMobileClient()
 
     try {
       const stripe = await stripePromise
       if (!stripe) throw new Error('Stripe not loaded')
 
+      // Mobile: use H5 mode (redirects to WeChat app)
+      // Desktop: use QR mode (displays QR code)
       const { error, paymentIntent } = await stripe.confirmWechatPayPayment(
         secret,
-        { payment_method_options: { wechat_pay: { client: 'web' } } },
+        {
+          payment_method_options: {
+            wechat_pay: {
+              client: isMobile ? 'mobile_web' : 'web'
+            }
+          },
+          return_url: isMobile ? returnUrl : undefined,
+        },
         { handleActions: false }
       )
 
@@ -356,6 +368,24 @@ export default function StripePayment(props: Props) {
         return
       }
 
+      // Mobile H5: redirect to WeChat app
+      if (isMobile && paymentIntent?.next_action?.type === 'wechat_pay_redirect_to_android_app') {
+        const redirectUrl = (paymentIntent.next_action as any).wechat_pay_redirect_to_android_app?.url
+        if (redirectUrl) {
+          window.location.href = redirectUrl
+          return
+        }
+      }
+
+      if (isMobile && paymentIntent?.next_action?.type === 'wechat_pay_redirect_to_ios_app') {
+        const redirectUrl = (paymentIntent.next_action as any).wechat_pay_redirect_to_ios_app?.url
+        if (redirectUrl) {
+          window.location.href = redirectUrl
+          return
+        }
+      }
+
+      // Desktop: display QR code
       if (paymentIntent?.next_action?.type === 'wechat_pay_display_qr_code') {
         const qrData = (paymentIntent.next_action as any).wechat_pay_display_qr_code?.data
         if (qrData) {
@@ -635,17 +665,11 @@ export default function StripePayment(props: Props) {
 
   // ── Render: Loading ──────────────────────────────────────────────────────
 
+  // Processing overlay removed per Change 2 - payment frame renders directly
+  // when clientSecret is ready. No intermediate loading placeholder.
   if (creating || (state === 'idle' && !clientSecret)) {
-    return (
-      <div style={styles.card}>
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <Clock3 size={48} color={TEXT_MUTED} style={{ marginBottom: 16 }} />
-          <p style={{ fontSize: 16, color: TEXT_MUTED, margin: 0 }}>
-            {labels.processing || '處理中…'}
-          </p>
-        </div>
-      </div>
-    )
+    // Return null instead of loading overlay - let the payment frame appear as soon as ready
+    return null
   }
 
   // ── Render: Success ──────────────────────────────────────────────────────

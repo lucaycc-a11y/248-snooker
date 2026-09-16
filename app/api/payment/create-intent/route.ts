@@ -17,6 +17,7 @@ import { logSiteError } from '@/lib/errors/log'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus } from '@/lib/checkout/prepare'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { isMobileDevice } from '@/lib/device'
 
 export const runtime = 'nodejs'
 
@@ -273,6 +274,10 @@ export async function POST(req: Request) {
     // parameters they were first used with".
     const idempotencyKey = `${orderGroupId ?? primaryBookingId}:${amountInCents}`
 
+    // Detect if request comes from mobile device for WeChat Pay H5 mode
+    const userAgent = req.headers.get('user-agent') ?? ''
+    const isMobile = isMobileDevice(userAgent)
+
     let intent
     try {
       const stripe = getStripe() // throws if STRIPE_SECRET_KEY is unset
@@ -281,6 +286,12 @@ export async function POST(req: Request) {
           amount: amountInCents,
           currency: 'hkd',
           automatic_payment_methods: { enabled: true },
+          // WeChat Pay: use H5 (mobile_web) for mobile browsers, QR (web) for desktop
+          payment_method_options: {
+            wechat_pay: {
+              client: isMobile ? 'mobile_web' : 'web',
+            },
+          },
           // receipt_email intentionally omitted: Stripe Dashboard's email
           // settings are OFF (we send our own via Resend). Passing receipt_email
           // here would override the Dashboard toggle and re-enable Stripe's
