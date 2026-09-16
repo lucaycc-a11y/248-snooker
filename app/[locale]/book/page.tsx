@@ -3349,6 +3349,12 @@ export default function BookPage() {
     if (promoCode) sessionStorage.removeItem('pendingPromo')
   }, [promoCode])
 
+  // Step navigation: advance to next screen
+  const advance = useCallback(() => {
+    direction.current = 1
+    setScreen((s) => Math.min(s + 1, 3))
+  }, [])
+
   // Toggle one (table, hour) slot on/off for a given date. Deletes the date's
   // map entry entirely when its Set becomes empty, so the map never
   // accumulates empty entries.
@@ -3691,11 +3697,6 @@ export default function BookPage() {
   }, [selectedSlotsByDate])
 
   const direction = useRef(1)
-
-  const advance = useCallback(() => {
-    direction.current = 1
-    setScreen((s) => Math.min(s + 1, 3))
-  }, [])
 
   // Resume a slot the caller already has locked (e.g. an abandoned checkout)
   // instead of re-picking: adopt its date/hour/table into the order state and
