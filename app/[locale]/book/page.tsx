@@ -8,6 +8,7 @@ import {
   Lock,
   ShieldCheck,
   AlertTriangle,
+  Clock,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { isSlotStillBookable, slotStartInHongKong } from "@/lib/booking/slot-cutoff"
@@ -1408,7 +1409,7 @@ function SummaryCard({
             <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
               {t("date")}
             </span>
-            <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint }}>
               {ready
                 ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`
                 : dash}
@@ -1416,11 +1417,17 @@ function SummaryCard({
           </div>
           {single ? (
             <>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                   {t("time_slot")}
                 </span>
-                <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint, display: "flex", alignItems: "center", gap: 6 }}>
+                  {ready && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  )}
                   {ready
                     ? `${padTime(single.startHour)} – ${padTime(endHour)}${crossDay ? " +1日" : ""}`
                     : dash}
@@ -1430,7 +1437,7 @@ function SummaryCard({
                 <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                   {t("duration")}
                 </span>
-                <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint }}>
                   {ready ? `${single.duration}${t("hours")}` : dash}
                 </span>
               </div>
@@ -1440,7 +1447,7 @@ function SummaryCard({
               <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                 {t("time_slot")}
               </span>
-              <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint }}>
                 {ready ? t("slots_selected", { count: runs.length }) + ` · ${totalHours}${t("hours")}` : dash}
               </span>
             </div>
@@ -2235,8 +2242,9 @@ function Screen3({
                   }}
                 >
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums", marginBottom: 4 }}>
-                      {Number(m)}/{Number(d)} · {padTime(b.startHour)}–{padTime(blockEnd)}{blockEnd >= 24 ? " +1" : ""}
+                    <div style={{ fontSize: 18, fontWeight: 800, fontVariantNumeric: "tabular-nums", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+                      <Clock size={16} style={{ flexShrink: 0, opacity: 0.7 }} />
+                      <span>{Number(m)}/{Number(d)} · {padTime(b.startHour)}–{padTime(blockEnd)}{blockEnd >= 24 ? " +1" : ""}</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: tokens.colors.textMuted, flexWrap: "wrap" }}>
                       <span>{displayName}</span>
@@ -2245,7 +2253,7 @@ function Screen3({
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
                       {detail.saved > 0 && (
                         <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
                       )}
@@ -2686,9 +2694,9 @@ function Screen3({
             animate={termsShake > 0 ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : false}
             transition={{ duration: 0.45 }}
             style={{
-              border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : "transparent"}`,
+              border: `1px solid ${agreedToTerms ? tokens.colors.danger : tokens.colors.border}`,
               borderRadius: tokens.radius.input,
-              padding: "6px 8px",
+              padding: "14px 16px",
               transition: "border-color 0.2s ease",
               marginBottom: 16,
             }}
@@ -2712,25 +2720,6 @@ function Screen3({
                 cursor: confirmed ? "default" : "pointer",
               }}
             >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 18,
-                  height: 18,
-                  marginTop: 1,
-                  flexShrink: 0,
-                  border: `1px solid ${agreedToTerms ? tokens.colors.link : tokens.colors.borderStrong}`,
-                  borderRadius: 4,
-                  background: agreedToTerms ? tokens.colors.link : "transparent",
-                  color: tokens.colors.brandText,
-                  display: "grid",
-                  placeItems: "center",
-                  fontSize: 13,
-                  fontWeight: 700,
-                }}
-              >
-                {agreedToTerms ? "✓" : ""}
-              </span>
               <span
                 data-cms-key="book.terms_agree"
                 style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}
@@ -3364,19 +3353,34 @@ export default function BookPage() {
   // map entry entirely when its Set becomes empty, so the map never
   // accumulates empty entries.
   const toggleSlot = useCallback((date: string, table: number, hour: number) => {
+    let wasAdded = false
     setSelectedSlotsByDate((prev) => {
       const prevSet = prev.get(date) ?? EMPTY_SET
       const nextSet = new Set(prevSet)
       const key = slotKey(table, hour)
-      if (nextSet.has(key)) nextSet.delete(key)
-      else nextSet.add(key)
+      if (nextSet.has(key)) {
+        nextSet.delete(key)
+        wasAdded = false
+      } else {
+        nextSet.add(key)
+        wasAdded = true
+      }
 
       const next = new Map(prev)
       if (nextSet.size === 0) next.delete(date)
       else next.set(date, nextSet)
       return next
     })
-  }, [])
+
+    // Auto-advance to next step when selecting a slot (not deselecting)
+    if (wasAdded) {
+      haptic.vibrate(12)
+      // Small delay so the green fill animation completes before navigation
+      setTimeout(() => {
+        advance()
+      }, 180)
+    }
+  }, [advance, haptic])
 
   // Prune/update a single date's slot Set via an updater function (used by
   // Screen1's availability-pruning effect).
