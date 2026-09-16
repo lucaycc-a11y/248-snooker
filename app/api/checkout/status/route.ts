@@ -119,6 +119,20 @@ async function handleStripeStatus(booking: any, service: any, userId: string) {
     })
   }
 
+  // The charge succeeded but its amount disagreed with total_price, so the
+  // webhook parked the row instead of confirming. Terminal for the UI: polling
+  // cannot resolve it, only a manual refund reconciliation can.
+  if (booking.status === 'payment_review') {
+    logResult({ status: booking.status, providerStatus: 'amount_mismatch' })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: 'payment_review',
+      providerStatus: 'amount_mismatch',
+      holdActive: false,
+      holdExpiresAt: null,
+    })
+  }
+
   const hold = await holdState()
 
   // No provider order yet — the order hasn't been created

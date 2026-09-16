@@ -28,7 +28,7 @@ import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
-import type { PromoResult } from "@/components/checkout/PromoCodeInput"
+import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
@@ -2031,11 +2031,14 @@ function Screen3({
   const duration = primary?.duration ?? 0
   const tableNumber = primary?.tableNumber ?? 0
 
-  const total = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
+  const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
   const totalSaved = blocks.reduce(
     (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
     0,
   )
+  // Apply promo discount if present
+  const promoDiscount = promoCode?.discount_amount ?? 0
+  const total = Math.max(0, subtotal - promoDiscount)
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
   useEffect(() => {
@@ -2091,6 +2094,46 @@ function Screen3({
       setTestConfirming(false)
     }
   }, [blocks, dateStr, startHour, duration, tableNumber, agreedToTerms, flagTermsRequired])
+
+  // Free booking confirm handler (when promo brings total to $0)
+  const [freeConfirming, setFreeConfirming] = useState(false)
+  const [freeError, setFreeError] = useState<string | null>(null)
+
+  const handleFreeConfirm = useCallback(async () => {
+    if (!agreedToTerms) {
+      flagTermsRequired()
+      return
+    }
+    setFreeConfirming(true)
+    setFreeError(null)
+    try {
+      const body = {
+        blocks: blocks.map((b) => ({
+          date: b.date,
+          startHour: b.startHour,
+          duration: b.duration,
+          tableNumber: b.tableNumber
+        })),
+        promoCode: promoCode?.code,
+      }
+      const res = await fetch("/api/booking/free-confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setFreeError(json.detail || json.error || "Free booking failed")
+        setFreeConfirming(false)
+        return
+      }
+      // Navigate to confirmation
+      window.location.href = `/book?bookingId=${json.primaryBookingId}&redirect_status=succeeded`
+    } catch (e) {
+      setFreeError((e as Error).message)
+      setFreeConfirming(false)
+    }
+  }, [blocks, promoCode, agreedToTerms, flagTermsRequired])
 
   return (
     <div className={`screen-content${!testMode && !confirmed ? " pay-screen" : ""}`}>
@@ -2259,7 +2302,7 @@ function Screen3({
           >
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.pay.subtotal">{t("subtotal")}</span>
-              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}><BookingPrice amount={total + totalSaved} /></span>
+              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}><BookingPrice amount={subtotal + totalSaved} /></span>
             </div>
             {totalSaved > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
@@ -2267,6 +2310,27 @@ function Screen3({
                 <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−<BookingPrice amount={totalSaved} /></span>
               </div>
             )}
+
+            {/* Promo code input */}
+            <div style={{ margin: "16px 0" }}>
+              <PromoCodeInput
+                originalTotal={subtotal}
+                onApply={onPromoChange}
+                onRemove={() => onPromoChange(null)}
+                activeCode={promoCode}
+                labels={{
+                  placeholder: t("promo_placeholder") || "優惠碼",
+                  applyLabel: t("promo_apply") || "應用",
+                  removeLabel: t("promo_remove") || "移除",
+                  discountLabel: t("promo_discount") || "折扣",
+                  invalidLabel: t("promo_invalid") || "無效代碼",
+                  expiredLabel: t("promo_expired") || "代碼已過期",
+                  minCartLabel: t("promo_min_cart") || "未達最低消費",
+                  validatingLabel: t("promo_validating") || "驗證中...",
+                }}
+              />
+            </div>
+
             {/* Points earned row */}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.points_earned_label">{t("points_earned_label")}</span>
@@ -2340,8 +2404,8 @@ function Screen3({
             </div>
           )}
 
-          {/* Payment method selection — hidden when test mode is active */}
-          {!testMode && (
+          {/* Payment method selection — hidden when test mode is active or when total is $0 */}
+          {!testMode && total > 0 && (
             <>
               {!confirmed ? (
                 /* ── Stage 1: PaymentMethodList (both Stripe and KPay use this) ── */
@@ -2401,7 +2465,13 @@ function Screen3({
                       terms_required: t("terms_required_hint"),
                     }}
                     agreedToTerms={agreedToTerms}
-                    returnUrl={`${window.location.origin}/${locale}/book?bookingId=${blocks[0]?.date || ''}`}
+                    // Base return URL only — StripePayment appends the real
+                    // bookingId once create-intent returns it. This used to pass
+                    // blocks[0].date as `bookingId`, so the return-page status
+                    // poll had no resolvable booking and always ran to its 60s
+                    // timeout instead of reporting the failure.
+                    returnUrl={`${window.location.origin}/${locale}/book`}
+
                     locale={locale}
                     onBackToMethods={() => {
                       clearStripePersistedState()
@@ -2532,6 +2602,60 @@ function Screen3({
                   <>{t("processing")}</>
                 ) : (
                   <>{t("confirm_test_booking") || "TEST 確認訂單"} · <BookingPrice amount={total} /></>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Free booking: show when total is $0 (promo code brought it to zero) */}
+          {!testMode && total === 0 && (
+            <div
+              style={{
+                background: "rgba(34,197,94,0.08)",
+                border: "1px solid rgba(34,197,94,0.25)",
+                borderRadius: tokens.radius.card,
+                padding: 24,
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.link, marginBottom: 8 }}
+              >
+                {t("free_booking_title") || "🎉 Free Booking"}
+              </div>
+              <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
+                {t("free_booking_desc") || "Your promo code covers the full amount. Click below to confirm your booking — no payment required."}
+              </div>
+              {freeError && (
+                <div style={{ fontSize: 13, color: tokens.colors.danger, marginBottom: 12, padding: "8px 12px", background: "rgba(255,69,58,0.08)", borderRadius: tokens.radius.input }}>
+                  {freeError}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleFreeConfirm}
+                disabled={freeConfirming}
+                style={{
+                  width: "100%",
+                  height: 54,
+                  border: "none",
+                  borderRadius: tokens.radius.button,
+                  background: freeConfirming ? "rgba(255,255,255,0.15)" : tokens.colors.link,
+                  color: freeConfirming ? "rgba(255,255,255,0.6)" : "#000",
+                  fontWeight: 700,
+                  fontSize: 17,
+                  cursor: freeConfirming ? "not-allowed" : "pointer",
+                  transition: `background ${tokens.duration.fast}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                {freeConfirming ? (
+                  <>{t("processing")}</>
+                ) : (
+                  <>{t("confirm_free_booking") || "Confirm Free Booking"}</>
                 )}
               </button>
             </div>

@@ -96,6 +96,40 @@ async function handleSucceeded(event: any, supabase: any) {
 
   console.log('[Stripe] webhook: payment succeeded', { bookingId, intentId: intent.id })
 
+  // Amount invariant. create-intent derives the amount from the booking rows, so
+  // a mismatch means the charge and the booking disagree — confirming would hand
+  // the customer a booking at a price they were not charged (or, as happened with
+  // the retired /api/stripe/create-payment-intent route, charge them HK$100 for a
+  // HK$5 booking). Leave the row pending and surface it for manual reconciliation
+  // rather than papering over a real money discrepancy.
+  const { data: rows } = await supabase
+    .from('bookings')
+    .select('id, total_price, order_group_id')
+    .eq('id', bookingId)
+
+  const bookingRow = rows?.[0]
+  if (bookingRow) {
+    const expectedCents = Math.round(Number(bookingRow.total_price) * 100)
+    if (expectedCents !== intent.amount) {
+      console.error('[Stripe] webhook: AMOUNT MISMATCH — not confirming', {
+        bookingId,
+        intentId: intent.id,
+        chargedCents: intent.amount,
+        expectedCents,
+      })
+      await supabase
+        .from('bookings')
+        .update({
+          status: 'payment_review',
+          payment_provider: 'stripe',
+          provider_order_no: intent.id,
+          stripe_payment_intent: intent.id,
+        })
+        .eq('id', bookingId)
+      return
+    }
+  }
+
   // Update booking status to confirmed
   // Note: Don't filter by payment_provider since it may be null during creation
   const { error } = await supabase

@@ -215,6 +215,9 @@ export default function StripePayment(props: Props) {
   const [error, setError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [elapsedSec, setElapsedSec] = useState(0)
+  // The authoritative amount in cents, as re-derived by the server. Rendered on
+  // the pay button so a mismatch is visible to the customer before confirming.
+  const [serverAmount, setServerAmount] = useState<number | null>(null)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const creatingRef = useRef(false)
@@ -240,13 +243,31 @@ export default function StripePayment(props: Props) {
     setError(null)
 
     try {
-      const res = await fetch('/api/stripe/create-payment-intent', {
+      // Lock the slots first. /api/booking/lock returns the slot ids that
+      // /api/payment/create-intent re-prices server-side from the `config`
+      // table via calculatePrice(). The client never supplies an amount —
+      // /api/stripe/create-payment-intent used to derive one from a
+      // non-existent `config.hourly_rate` column and silently fell back to
+      // HK$100/hour, charging HK$100 for a HK$5 booking.
+      const lockRes = await fetch('/api/booking/lock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          blocks,
-          method,
-        }),
+        body: JSON.stringify({ blocks }),
+      })
+      const lockJson = await lockRes.json().catch(() => ({}))
+      if (!lockRes.ok) {
+        throw new Error(lockJson.detail || lockJson.error || 'lock failed')
+      }
+
+      const intentBody: Record<string, unknown> =
+        Array.isArray(lockJson.slotIds) && lockJson.slotIds.length > 1
+          ? { slotIds: lockJson.slotIds, orderGroupId: lockJson.orderGroupId }
+          : { slotId: lockJson.slotId ?? lockJson.slotIds?.[0] }
+
+      const res = await fetch('/api/payment/create-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(intentBody),
       })
 
       if (!res.ok) {
@@ -262,6 +283,7 @@ export default function StripePayment(props: Props) {
 
       setClientSecret(json.clientSecret)
       setLocalBookingId(json.bookingId)
+      setServerAmount(typeof json.amount === 'number' ? json.amount : null)
 
       // Persist state for page refresh recovery
       persistStripeState({
@@ -389,21 +411,48 @@ export default function StripePayment(props: Props) {
 
     const poll = async () => {
       try {
-        const res = await fetch(`/api/bookings/${localBookingId}`, {
-          signal: abortController.signal,
-        })
-        if (!res.ok) return
+        // /api/bookings/:id does not exist — every poll 404'd and `return`ed
+        // without rescheduling, so the QR flow never saw `confirmed` OR
+        // `cancelled`. /api/checkout/status queries Stripe live and is the
+        // authority on terminal state.
+        const res = await fetch(
+          `/api/checkout/status?bookingId=${encodeURIComponent(localBookingId)}`,
+          { signal: abortController.signal, cache: 'no-store' },
+        )
+        if (!res.ok) {
+          // Reschedule rather than silently stopping — a transient 5xx must not
+          // strand the customer on a QR that will never resolve.
+          const elapsedOnError = Date.now() - pollStartRef.current
+          if (elapsedOnError > STRIPE_POLL_TIMEOUT_MS) {
+            setState('pending_confirmation')
+            return
+          }
+          timeoutId = setTimeout(poll, STRIPE_POLL_SLOW_MS)
+          return
+        }
 
-        const booking = await res.json()
+        const payload = await res.json()
+        const status: string | undefined = payload?.status
 
-        if (booking.status === 'confirmed') {
+        if (status === 'confirmed') {
           setState('success')
           onSuccessRef.current(localBookingId)
           return
         }
 
-        if (booking.status === 'cancelled') {
+        if (status === 'cancelled') {
           setState('cancelled')
+          return
+        }
+
+        if (status === 'payment_failed' || status === 'failed') {
+          setError(t('stripe_error_generic'))
+          setState('failed')
+          return
+        }
+
+        if (status === 'expired') {
+          setState('expired')
           return
         }
 
@@ -433,7 +482,7 @@ export default function StripePayment(props: Props) {
       abortController.abort()
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [state, localBookingId])
+  }, [state, localBookingId, t])
 
   // ── Cancel booking ───────────────────────────────────────────────────────
 
@@ -443,12 +492,27 @@ export default function StripePayment(props: Props) {
     const confirmed = window.confirm(labels.cancel || '確定要取消預訂嗎？')
     if (!confirmed) return
 
+    // /api/bookings/:id/cancel does not exist — that POST 404'd, the catch
+    // swallowed it, and setState('cancelled') below still ran, so an unpaid
+    // WeChat hold stayed `pending` in the DB while the UI claimed cancelled.
+    // /api/checkout/cancel calls cancel_pending_booking, releasing the slot.
     try {
-      await fetch(`/api/bookings/${localBookingId}/cancel`, { method: 'POST' })
+      const res = await fetch('/api/checkout/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: localBookingId }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        console.error('[stripe] cancel_rejected', { status: res.status, error: body?.error })
+        setError(t('stripe_error_generic'))
+        return
+      }
       setState('cancelled')
       clearStripePersistedState()
     } catch (e) {
       console.error('[stripe] cancel_error', e)
+      setError(t('stripe_error_generic'))
     }
   }
 
@@ -786,6 +850,15 @@ export default function StripePayment(props: Props) {
   // ── Render: Card payment (PaymentElement) ────────────────────────────────
 
   if (method === 'card' && clientSecret) {
+    // Stripe appends `payment_intent` + `redirect_status` to this URL after a
+    // redirect-based method (3DS, wallet redirect). The booking page's return
+    // effect requires a real `bookingId` to start its status poll — it was
+    // previously given `blocks[0].date`, so the poll had no resolvable booking
+    // and always ran to its 60s timeout instead of reporting the failure.
+    const resolvedReturnUrl = localBookingId
+      ? `${returnUrl.split('?')[0]}?bookingId=${encodeURIComponent(localBookingId)}`
+      : returnUrl
+
     return (
       <div style={styles.card}>
         <Elements
@@ -798,7 +871,8 @@ export default function StripePayment(props: Props) {
         >
           <CardPaymentForm
             bookingId={localBookingId || ''}
-            returnUrl={returnUrl}
+            returnUrl={resolvedReturnUrl}
+            amountInCents={serverAmount}
             labels={labels}
             onBackToMethods={onBackToMethods}
           />
@@ -830,10 +904,11 @@ export default function StripePayment(props: Props) {
 function CardPaymentForm(props: {
   bookingId: string
   returnUrl: string
+  amountInCents: number | null
   labels: StripeLabels
   onBackToMethods: () => void
 }) {
-  const { bookingId, returnUrl, labels, onBackToMethods } = props
+  const { bookingId, returnUrl, amountInCents, labels, onBackToMethods } = props
   const stripe = useStripe()
   const elements = useElements()
   const t = useTranslations('book')
@@ -848,16 +923,36 @@ function CardPaymentForm(props: {
     setErr(null)
 
     try {
-      const { error } = await stripe.confirmPayment({
+      // confirmPayment resolves immediately for non-redirect methods (declines,
+      // wallet cancellations) — only redirect flows navigate away. `redirect:
+      // 'if_required'` is what makes `paymentIntent` available in that immediate
+      // case; without it Stripe resolves with `{ error }` only and a decline
+      // leaves the button spinning until the caller's poll times out. Methods
+      // that genuinely need a redirect still get one, via return_url.
+      const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
           return_url: returnUrl,
         },
+        redirect: 'if_required',
       })
 
       if (error) {
         const errorKey = getStripeErrorKey(error.code)
         setErr(t(errorKey))
+        return
+      }
+
+      if (paymentIntent) {
+        if (paymentIntent.status === 'succeeded' || paymentIntent.status === 'processing') {
+          // Hand off to the page's status poll, which is the only authority on
+          // whether the booking got confirmed.
+          window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
+          return
+        }
+        // requires_payment_method / requires_action / canceled — the customer
+        // dismissed the wallet sheet or the method was rejected. Report it now.
+        setErr(t('stripe_error_generic'))
       }
     } catch (e) {
       setErr(t('stripe_error_generic'))
@@ -900,7 +995,11 @@ function CardPaymentForm(props: {
           color: submitting ? 'rgba(255,255,255,0.6)' : '#000',
         }}
       >
-        {submitting ? labels.processing : `${labels.title}`}
+        {submitting
+          ? labels.processing
+          : amountInCents !== null
+            ? `${labels.title} HK$${(amountInCents / 100).toLocaleString('en-HK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
+            : `${labels.title}`}
       </button>
 
       <button
