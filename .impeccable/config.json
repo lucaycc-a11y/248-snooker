@@ -15,13 +15,13 @@
       },
       {
         "rule": "design-system-color",
-        "value": "#0F131C",
+        "value": "#0f131c",
         "createdAt": "2026-09-15T13:10:00.000Z",
         "reason": "Dark theme surface level from design system tonal ladder (step 3/7)"
       },
       {
         "rule": "design-system-color",
-        "value": "#161D2B",
+        "value": "#161d2b",
         "createdAt": "2026-09-15T13:10:00.000Z",
         "reason": "Dark theme surface level from design system tonal ladder (step 4/7)"
       },
@@ -964,6 +964,15 @@
         "value": "rgba(234, 179, 8, 0.9)",
         "createdAt": "2026-09-14T03:01:48.433Z",
         "reason": "UAT badge color - intentional high-visibility warning color"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#86868b",
+        "files": [
+          "app/maintenance/MaintenanceContent.tsx"
+        ],
+        "createdAt": "2026-09-15T14:47:01.035Z",
+        "reason": "maintenance gate page intentionally uses hardcoded colors for system-failure independence"
       }
     ]
   }

@@ -2888,8 +2888,11 @@ function Screen3({
           so the customer sees what they are about to be charged with. Pinned to
           the bottom on phone AND desktop, mirroring the slot-picker's continue
           bar. Hidden once confirmed — from then on the payment component owns
-          the screen and has its own actions. */}
-      {!testMode && !confirmed && (
+          the screen and has its own actions.
+
+          Stripe: This CTA is KPay-specific (it triggers the 2-stage KPay flow).
+          Stripe users skip directly to Payment Element, so hide this button. */}
+      {!testMode && !confirmed && process.env.NEXT_PUBLIC_PAYMENT_PROVIDER !== 'stripe' && (
         <div ref={payCtaRef} className="pay-cta">
           <div className="pay-cta-inner">
             <button

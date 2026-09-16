@@ -178,10 +178,10 @@ function PasswordModal({ open, onClose }: { open: boolean; onClose: () => void }
 
 export default function UatGateContent() {
   const [modalOpen, setModalOpen] = useState(false)
-  const [countdown, setCountdown] = useState(3)
+  const [countdown, setCountdown] = useState(30)
 
   useEffect(() => {
-    // Redirect to production after 3 seconds if no interaction
+    // Redirect to production after 30 seconds if no interaction
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -235,9 +235,34 @@ export default function UatGateContent() {
             <br />
             Redirecting to production in <strong style={{ color: GREEN }}>{countdown}s</strong>...
           </p>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            style={{
+              width: '100%',
+              height: 52,
+              marginBottom: 16,
+              borderRadius: 9999,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.16)',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            }}
+          >
+            Enter Password
+          </button>
           {/* ignore-value design-system-color '#666' */}
           <p style={{ color: '#666', fontSize: 13 }}>
-            Authorized testers: hold anywhere on screen for 2.5 seconds
+            Or hold anywhere on screen for 2.5 seconds
           </p>
         </div>
       </section>

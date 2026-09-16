@@ -48,6 +48,7 @@ export default function Hero() {
         style={{ filter: "brightness(1.3) contrast(1.05)" }}
       />
       <video
+        ref={mobileVideoRef}
         className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_68%] md:hidden"
         style={{
           filter: "brightness(1.3) contrast(1.05)",
@@ -57,6 +58,9 @@ export default function Hero() {
         autoPlay
         muted
         playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
         poster="/video/Space8_Main_Hero_Poster.jpg"
         onEnded={() => setVideoEnded(true)}
       >
@@ -78,6 +82,7 @@ export default function Hero() {
           style={{ filter: "brightness(1.3) contrast(1.05)" }}
         />
         <video
+          ref={desktopVideoRef}
           className="relative h-full w-full translate-y-[4%] object-cover [object-position:center_71%]"
           style={{
             filter: "brightness(1.3) contrast(1.05)",
@@ -87,6 +92,9 @@ export default function Hero() {
           autoPlay
           muted
           playsInline
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
           poster="/video/Space8_Main_Hero_Poster.jpg"
           onEnded={() => setVideoEnded(true)}
         >
@@ -107,10 +115,11 @@ export default function Hero() {
       />
 
       {/* Content — flex-centered with responsive bottom guard-rail to prevent overlap with the pool-table graphic.
-          pointer-events-none lets the table's hover effect work through the full-bleed container. */}
+          pointer-events-none lets the table's hover effect work through the full-bleed container.
+          iPad-specific positioning: raise content higher on tablet landscape/portrait to avoid table overlap. */}
       <div
         ref={heroContentRef}
-        className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center pb-[clamp(60px,18svh,180px)] md:pb-[clamp(80px,20svh,200px)]"
+        className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center pb-[clamp(60px,18svh,180px)] sm:pb-[clamp(100px,22svh,220px)] md:pb-[clamp(80px,20svh,200px)] lg:pb-[clamp(100px,18svh,180px)]"
       >
         {/* Space8 wordmark — official SVG artwork, not a text simulation */}
         <div className="anime-reveal-wrapper" data-anime-hero-item style={{ marginBottom: "6px" }}>

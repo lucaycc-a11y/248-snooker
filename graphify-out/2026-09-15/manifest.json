@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "app/[locale]/book/page.tsx": {
-    "mtime": 1789484596.601742,
-    "ast_hash": "38c97699211defb39daed720170b9501",
+    "mtime": 1789482117.3357503,
+    "ast_hash": "dccec27b353fdc609193db2e6f9afee7",
     "semantic_hash": ""
   },
   "app/[locale]/faq/page.tsx": {
@@ -580,8 +580,8 @@
     "semantic_hash": "5c9ad553f6cda91639b574cc15a4de3f"
   },
   "app/api/webhooks/stripe/route.ts": {
-    "mtime": 1789484622.9067695,
-    "ast_hash": "751ff5eaa81d2001a55a2b6f34cbc3fc",
+    "mtime": 1789467218.0374432,
+    "ast_hash": "0cae1a9ebe8ed0aeee4b4afc347cb8e2",
     "semantic_hash": ""
   },
   "app/api/whatsapp/notify/route.ts": {
@@ -640,9 +640,9 @@
     "semantic_hash": "bbb33102744c8380aa4ed1357da10214"
   },
   "app/maintenance/page.tsx": {
-    "mtime": 1789483378.473786,
-    "ast_hash": "88e9d8f088bb77440b4a5cca3eb46b13",
-    "semantic_hash": ""
+    "mtime": 1789383883.2594888,
+    "ast_hash": "ca6f3a2fad04b2fa8f8c78a1ca234a5b",
+    "semantic_hash": "ca6f3a2fad04b2fa8f8c78a1ca234a5b"
   },
   "app/member/MemberDashboard.tsx": {
     "mtime": 1789448694.9029117,
@@ -915,8 +915,8 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "components/checkout/StripePayment.tsx": {
-    "mtime": 1789484687.7473433,
-    "ast_hash": "860163d53d131cc7f32b40730a0b9e64",
+    "mtime": 1789464680.3578615,
+    "ast_hash": "2128ce73500f36d6d4179d71b660a2e3",
     "semantic_hash": ""
   },
   "components/confirm/CalendarAdd.tsx": {
@@ -950,8 +950,8 @@
     "semantic_hash": ""
   },
   "components/landing/Hero.tsx": {
-    "mtime": 1789483359.147724,
-    "ast_hash": "0adfa0137cbcdff0a3f807af2b601c97",
+    "mtime": 1789448656.8390384,
+    "ast_hash": "31e4842a618fd370491f8c28a73d2b2a",
     "semantic_hash": ""
   },
   "components/landing/HowItWorks.tsx": {
@@ -1495,18 +1495,18 @@
     "semantic_hash": "82b09b19805cfa69fee86984d757d9d2"
   },
   "messages/en.json": {
-    "mtime": 1789483995.2612815,
-    "ast_hash": "3b9b096879d4f04aa05ce874f4daba46",
+    "mtime": 1789467319.2621512,
+    "ast_hash": "83e7d67070c8a79e2a7ef6ea805bf593",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1789483984.3758857,
-    "ast_hash": "9e30ee4b4cad4d46f8a1c0679a87d8f3",
+    "mtime": 1789467303.7841406,
+    "ast_hash": "b64e828ee90a77e3aaaa39e31cc92066",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1789483972.5261362,
-    "ast_hash": "a13cc8a05f38265a41f933fe656ceec4",
+    "mtime": 1789467288.255275,
+    "ast_hash": "0362d1eae3a2a7643d2649afad5574e1",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -3510,8 +3510,8 @@
     "semantic_hash": ""
   },
   ".impeccable/config.json": {
-    "mtime": 1789483621.0425925,
-    "ast_hash": "b034eb07db1cd2f20371292326439d4a",
+    "mtime": 1789449050.9045548,
+    "ast_hash": "9a1a82149973390d1c2390279e591968",
     "semantic_hash": ""
   },
   ".impeccable/design.json": {
@@ -3580,8 +3580,8 @@
     "semantic_hash": ""
   },
   "app/api/checkout/status/route.ts": {
-    "mtime": 1789484731.8728592,
-    "ast_hash": "e783fc5ebccb04b42e1f39f683ae27ff",
+    "mtime": 1789457822.880271,
+    "ast_hash": "888a22208a44a5889e35f0fa71243953",
     "semantic_hash": ""
   },
   "app/api/member/notifications/route.ts": {
@@ -4325,8 +4325,8 @@
     "semantic_hash": ""
   },
   "lib/booking/useOrderConfirmationPolling.ts": {
-    "mtime": 1789484752.0225666,
-    "ast_hash": "a9bff290f0d1a972c49ae2ff2ccd8ccb",
+    "mtime": 1789044096.8802485,
+    "ast_hash": "39fb6232127dd5a74bfbf269ccae46bc",
     "semantic_hash": ""
   },
   "public/icons/payment/octopus-card.png": {
@@ -6205,13 +6205,13 @@
     "semantic_hash": ""
   },
   "app/api/stripe/create-payment-intent/route.ts": {
-    "mtime": 1789484607.3424294,
-    "ast_hash": "cf019bf1ec091a9fb7c0a0cb72be834f",
+    "mtime": 1789480421.403896,
+    "ast_hash": "a98a6ac8f1bc3b17fb1783dc4c90b05a",
     "semantic_hash": ""
   },
   "app/uat-gate/UatGateContent.tsx": {
-    "mtime": 1789483659.2035537,
-    "ast_hash": "43f3f9a4b87fb0a1ffc31e5b00c147c8",
+    "mtime": 1789448694.9032347,
+    "ast_hash": "18cdf9358f96032c78f4c79faed3b5d6",
     "semantic_hash": ""
   },
   "app/uat-gate/page.tsx": {
@@ -6432,21 +6432,6 @@
   "public/logos/Powered by Stripe/Powered by Stripe - white.svg": {
     "mtime": 1789448694.9802356,
     "ast_hash": "dc0b57b1e01485ae369f6b19f16c5d39",
-    "semantic_hash": ""
-  },
-  "app/api/booking/free-confirm/route.ts": {
-    "mtime": 1789483908.9374406,
-    "ast_hash": "7b835f76cf6e5c23d5ac5c933639da40",
-    "semantic_hash": ""
-  },
-  "app/maintenance/MaintenanceContent.tsx": {
-    "mtime": 1789483494.432795,
-    "ast_hash": "9e1a29df1d6187db9f3015d87b3c3327",
-    "semantic_hash": ""
-  },
-  "supabase/migrations/20260915_payment_review_status.sql": {
-    "mtime": 1789484660.9011276,
-    "ast_hash": "c9cd46007d2537c949282280a325d928",
     "semantic_hash": ""
   }
 }

@@ -17,21 +17,21 @@ const stripePromise = getStripeClient()
  * Falls back to generic error if code is unknown.
  */
 function getStripeErrorKey(code?: string | null): string {
-  if (!code) return 'book.stripe_error_generic'
+  if (!code) return 'stripe_error_generic'
 
   switch (code) {
     case 'card_declined':
-      return 'book.stripe_error_card_declined'
+      return 'stripe_error_card_declined'
     case 'expired_card':
-      return 'book.stripe_error_expired_card'
+      return 'stripe_error_expired_card'
     case 'incorrect_cvc':
-      return 'book.stripe_error_incorrect_cvc'
+      return 'stripe_error_incorrect_cvc'
     case 'insufficient_funds':
-      return 'book.stripe_error_insufficient_funds'
+      return 'stripe_error_insufficient_funds'
     case 'processing_error':
-      return 'book.stripe_error_processing_error'
+      return 'stripe_error_processing_error'
     default:
-      return 'book.stripe_error_generic'
+      return 'stripe_error_generic'
   }
 }
 
@@ -182,7 +182,7 @@ const appearance: Appearance = {
 }
 
 const STRIPE_LOCALES: Record<string, StripeElementLocale> = {
-  'zh-HK': 'zh-HK',
+  'zh-HK': 'zh-TW',  // Use zh-TW for traditional Chinese to avoid simplified chars
   'zh-CN': 'zh',
   'en': 'en',
   'ja': 'ja',
@@ -874,6 +874,7 @@ export default function StripePayment(props: Props) {
             returnUrl={resolvedReturnUrl}
             amountInCents={serverAmount}
             labels={labels}
+            agreedToTerms={agreedToTerms}
             onBackToMethods={onBackToMethods}
           />
         </Elements>
@@ -906,9 +907,10 @@ function CardPaymentForm(props: {
   returnUrl: string
   amountInCents: number | null
   labels: StripeLabels
+  agreedToTerms: boolean
   onBackToMethods: () => void
 }) {
-  const { bookingId, returnUrl, amountInCents, labels, onBackToMethods } = props
+  const { bookingId, returnUrl, amountInCents, labels, agreedToTerms, onBackToMethods } = props
   const stripe = useStripe()
   const elements = useElements()
   const t = useTranslations('book')
@@ -918,6 +920,14 @@ function CardPaymentForm(props: {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!stripe || !elements || submitting) return
+
+    // Block submission if terms are not agreed — the "failed" screen is reserved
+    // for genuine payment failures (card declined, Stripe error), not for a
+    // missing checkbox tick. Stay on the form and show the inline error.
+    if (!agreedToTerms) {
+      setErr(labels.terms_required)
+      return
+    }
 
     setSubmitting(true)
     setErr(null)
