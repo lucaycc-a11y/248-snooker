@@ -2488,6 +2488,8 @@ function Screen3({
                     clearStripePersistedState()
                     setConfirmed(false)
                     setPaymentMethod(null)
+                    // Clean navigation — remove all Stripe redirect parameters
+                    router.push('/book')
                   }}
                   onSuccess={(returnedBookingId) => {
                     if (returnedBookingId) {

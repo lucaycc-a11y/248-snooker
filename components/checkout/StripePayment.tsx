@@ -714,7 +714,12 @@ export default function StripePayment(props: Props) {
           <button
             type="button"
             onClick={onBackToMethods}
-            style={{ ...styles.button, ...styles.buttonSecondary }}
+            style={{
+              ...styles.button,
+              background: 'rgba(255,255,255,0.15)',
+              color: TEXT,
+              fontWeight: 600,
+            }}
           >
             {labels.back_to_methods}
           </button>
