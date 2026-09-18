@@ -2489,7 +2489,7 @@ function Screen3({
                     setConfirmed(false)
                     setPaymentMethod(null)
                     // Clean navigation — remove all Stripe redirect parameters
-                    router.push('/book')
+                    window.location.href = '/book'
                   }}
                   onSuccess={(returnedBookingId) => {
                     if (returnedBookingId) {
