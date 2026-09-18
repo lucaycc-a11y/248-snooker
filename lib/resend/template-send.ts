@@ -229,44 +229,32 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
 
   let qrCodeUrl: string
   try {
-    // Generate QR as PNG buffer
-    const qrBuffer = await QRCode.toBuffer(qrContent, {
-      errorCorrectionLevel: 'M',
-      type: 'png',
+    // Generate QR as SVG with SPACE8 logo embedded
+    const svg = await QRCode.toString(qrContent, {
+      type: 'svg',
+      margin: 2,
+      errorCorrectionLevel: 'H', // High error correction needed for logo overlay
+      color: { dark: '#0a0a0a', light: '#ffffff' },
       width: 500,
-      margin: 4,
-      color: { dark: '#000000', light: '#FFFFFF' },
     })
 
-    // Upload to Supabase Storage (public bucket)
-    const qrFileName = `booking-${bookingId}.png`
-    const { data: uploadData, error: uploadError } = await supabase
-      .storage
-      .from('qr-codes')
-      .upload(qrFileName, qrBuffer, {
-        contentType: 'image/png',
-        upsert: true,
-      })
+    // Embed SPACE8 logo in the center with white backing
+    const brandedSvg = svg.replace(
+      '</svg>',
+      `<rect x="42.5%" y="42.5%" width="15%" height="15%" rx="3" fill="#ffffff"/><image href="https://space8.com.hk/logos/logo-white-mark.svg" x="44%" y="44%" width="12%" height="12%" preserveAspectRatio="xMidYMid meet"/></svg>`,
+    )
 
-    if (uploadError) {
-      throw uploadError
-    }
-
-    const { data: publicUrlData } = supabase
-      .storage
-      .from('qr-codes')
-      .getPublicUrl(qrFileName)
-
-    qrCodeUrl = publicUrlData.publicUrl
+    // Convert SVG to data URL for email embedding
+    qrCodeUrl = `data:image/svg+xml;base64,${Buffer.from(brandedSvg).toString('base64')}`
   } catch (qrErr) {
-    // Fallback to base64 data URL if storage upload fails
-    console.warn('[template-send] QR upload failed, falling back to base64', { bookingId, error: (qrErr as Error).message })
+    // Fallback to plain QR if logo embedding fails
+    console.warn('[template-send] QR generation failed, falling back to plain QR', { bookingId, error: (qrErr as Error).message })
     qrCodeUrl = await QRCode.toDataURL(qrContent, {
-      errorCorrectionLevel: 'M',
+      errorCorrectionLevel: 'H',
       type: 'image/png',
       width: 500,
       margin: 4,
-      color: { dark: '#000000', light: '#FFFFFF' },
+      color: { dark: '#0a0a0a', light: '#ffffff' },
     })
   }
 

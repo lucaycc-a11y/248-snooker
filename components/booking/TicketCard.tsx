@@ -451,17 +451,10 @@ export function TicketCard({
               </div>
 
               {/* QR Code — per-ticket, door entry validates each independently.
-                  Glow lives on this container's box-shadow only, entirely
-                  outside the QR's own black/white module area (16px padding
-                  gap), so scan contrast is never touched. */}
+                  No wrapper/border — the QR sits directly on the page background
+                  with its own white background for scannability. */}
               <div
                 style={{
-                  position: "relative",
-                  background: "#0a0a0a",
-                  borderRadius: 16,
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  boxShadow: "0 0 24px rgba(34,197,94,0.18)",
-                  padding: 16,
                   display: "flex",
                   justifyContent: "center",
                   marginBottom: 10,
