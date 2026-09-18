@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getStripe } from '@/lib/stripe/server'
+import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 
 export const runtime = 'nodejs'
 
@@ -96,12 +97,14 @@ async function handleSucceeded(event: any, supabase: any) {
 
   console.log('[Stripe] webhook: payment succeeded', { bookingId, intentId: intent.id })
 
-  // Amount invariant. create-intent derives the amount from the booking rows, so
-  // a mismatch means the charge and the booking disagree — confirming would hand
-  // the customer a booking at a price they were not charged (or, as happened with
-  // the retired /api/stripe/create-payment-intent route, charge them HK$100 for a
-  // HK$5 booking). Leave the row pending and surface it for manual reconciliation
-  // rather than papering over a real money discrepancy.
+  // Amount invariant with enhanced reconciliation. Re-check the amount at webhook
+  // time (not just at create-intent) because the booking's total_price could have
+  // changed between intent creation and payment completion (though this should be
+  // rare with proper locking). Covers three scenarios:
+  //   1. Match: confirm normally
+  //   2. Overpaid: confirm booking (customer paid more than required) but flag for
+  //      support follow-up — do not silently keep excess without disclosure
+  //   3. Underpaid: do NOT confirm booking, show contact-support message to user
   const { data: rows } = await supabase
     .from('bookings')
     .select('id, total_price, order_group_id, status, user_id, payment_method')
@@ -113,24 +116,51 @@ async function handleSucceeded(event: any, supabase: any) {
     return
   }
 
-  const expectedCents = Math.round(Number(bookingRow.total_price) * 100)
-  if (expectedCents !== intent.amount) {
-    console.error('[Stripe] webhook: AMOUNT MISMATCH — not confirming', {
+  const amountCheck = checkAmountMatch(Number(bookingRow.total_price), intent.amount)
+
+  if (!amountCheck.matches) {
+    logAmountMismatch('webhook', {
       bookingId,
-      intentId: intent.id,
-      chargedCents: intent.amount,
-      expectedCents,
+      providerOrderNo: intent.id,
+      userId: bookingRow.user_id,
+      requiredCents: amountCheck.requiredCents,
+      actualCents: amountCheck.actualCents,
+      scenario: amountCheck.scenario!,
+      discrepancyCents: amountCheck.discrepancyCents!,
     })
-    await supabase
-      .from('bookings')
-      .update({
-        status: 'payment_review',
-        payment_provider: 'stripe',
-        provider_order_no: intent.id,
-        stripe_payment_intent: intent.id,
+
+    if (amountCheck.scenario === 'underpaid') {
+      // Underpaid: do NOT confirm. Park the booking in payment_review state so
+      // polling shows "contact support" and ops can manually reconcile.
+      console.error('[Stripe] webhook: UNDERPAID — not confirming', {
+        bookingId,
+        intentId: intent.id,
+        chargedCents: intent.amount,
+        requiredCents: amountCheck.requiredCents,
+        shortfallCents: Math.abs(amountCheck.discrepancyCents!),
       })
-      .eq('id', bookingId)
-    return
+      await supabase
+        .from('bookings')
+        .update({
+          status: 'payment_review',
+          payment_provider: 'stripe',
+          provider_order_no: intent.id,
+          stripe_payment_intent: intent.id,
+        })
+        .eq('id', bookingId)
+      return
+    } else if (amountCheck.scenario === 'overpaid') {
+      // Overpaid: confirm booking (customer paid enough) but log prominently for
+      // support follow-up. The excess must be flagged — do not silently retain it.
+      console.warn('[Stripe] webhook: OVERPAID — confirming but flagging for support', {
+        bookingId,
+        intentId: intent.id,
+        chargedCents: intent.amount,
+        requiredCents: amountCheck.requiredCents,
+        excessCents: amountCheck.discrepancyCents!,
+      })
+      // Continue to confirmation below, but the log above ensures ops visibility
+    }
   }
 
   // If already confirmed (proactive polling beat the webhook), skip to avoid

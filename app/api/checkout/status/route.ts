@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getPaymentProvider } from '@/lib/payments'
 import { humanReadableCode } from '@/lib/qr/jwt'
+import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -186,11 +187,67 @@ async function handleStripeStatus(booking: any, service: any, userId: string) {
   const provider = getPaymentProvider()
   const orderStatus = await provider.queryOrder(booking.provider_order_no)
 
-  // Proactive confirmation: same as KPay, if provider reports success but DB isn't confirmed yet
+  // Proactive confirmation: if provider reports success but DB isn't confirmed yet,
+  // confirm immediately rather than waiting for the webhook (which may be delayed
+  // or lost). This is the critical fallback that prevents stuck-pending scenarios.
   let uiStatus: string
   switch (orderStatus.status) {
     case 'success':
       if (booking.status !== 'confirmed') {
+        // Amount reconciliation at polling stage: before confirming, verify that
+        // the amount Stripe captured matches the booking's required total. This
+        // catches webhook-bypass scenarios where the proactive path is the only
+        // confirmation attempt.
+        try {
+          const stripe = await import('@/lib/stripe/server').then(m => m.getStripe())
+          const stripeIntent = await stripe.paymentIntents.retrieve(booking.provider_order_no)
+          const amountCheck = checkAmountMatch(Number(booking.total_price), stripeIntent.amount)
+
+          if (!amountCheck.matches) {
+            logAmountMismatch('polling', {
+              bookingId: booking.id,
+              providerOrderNo: booking.provider_order_no,
+              userId: booking.user_id,
+              requiredCents: amountCheck.requiredCents,
+              actualCents: amountCheck.actualCents,
+              scenario: amountCheck.scenario!,
+              discrepancyCents: amountCheck.discrepancyCents!,
+            })
+
+            if (amountCheck.scenario === 'underpaid') {
+              // Underpaid: park in payment_review, return contact-support message
+              await service
+                .from('bookings')
+                .update({ status: 'payment_review' })
+                .eq('id', booking.id)
+              logResult({ status: 'payment_review', providerStatus: 'amount_mismatch_underpaid' })
+              return NextResponse.json({
+                bookingId: booking.id,
+                status: 'payment_review',
+                providerStatus: 'amount_mismatch_underpaid',
+                holdActive: false,
+                holdExpiresAt: null,
+              })
+            } else if (amountCheck.scenario === 'overpaid') {
+              // Overpaid: confirm booking but log prominently for support follow-up
+              console.warn('[Stripe] proactive polling: OVERPAID — confirming but flagging', {
+                bookingId: booking.id,
+                chargedCents: amountCheck.actualCents,
+                requiredCents: amountCheck.requiredCents,
+                excessCents: amountCheck.discrepancyCents!,
+              })
+              // Continue to confirmation below
+            }
+          }
+        } catch (amountCheckErr) {
+          // If amount check fails (e.g., Stripe API error), log but don't block confirmation
+          console.error('[Stripe] proactive polling: amount check failed', {
+            bookingId: booking.id,
+            error: (amountCheckErr as Error).message,
+          })
+          // Continue to confirmation - webhook's amount check is the primary safeguard
+        }
+
         try {
           if (booking.order_group_id) {
             const { data: rows, error: rowsErr } = await service

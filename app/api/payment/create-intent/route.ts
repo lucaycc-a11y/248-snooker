@@ -17,6 +17,7 @@ import { logSiteError } from '@/lib/errors/log'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus } from '@/lib/checkout/prepare'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 
 export const runtime = 'nodejs'
 
@@ -251,6 +252,31 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: 'Zero-amount bookings are not supported' },
         { status: 400 },
+      )
+    }
+
+    // Amount reconciliation check: assert that the PaymentIntent amount we're about
+    // to create matches the booking's required total. This catches pricing logic bugs
+    // before they reach Stripe, rather than discovering them at webhook time.
+    const amountCheck = checkAmountMatch(prepared.total, amountInCents)
+    if (!amountCheck.matches) {
+      logAmountMismatch('create-intent', {
+        bookingId: primaryBookingId,
+        userId: user.id,
+        requiredCents: amountCheck.requiredCents,
+        actualCents: amountCheck.actualCents,
+        scenario: amountCheck.scenario!,
+        discrepancyCents: amountCheck.discrepancyCents!,
+      })
+      await logSiteError('payment/create-intent', 'error', 'Amount mismatch at intent creation', {
+        bookingId: primaryBookingId,
+        userId: user.id,
+        requiredCents: amountCheck.requiredCents,
+        actualCents: amountCheck.actualCents,
+      })
+      return NextResponse.json(
+        { error: 'Payment amount mismatch — please contact support' },
+        { status: 500 },
       )
     }
 
