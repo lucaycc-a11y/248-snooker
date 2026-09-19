@@ -1,10 +1,11 @@
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import Nav from '@/components/layout/Nav'
 import { Link } from '@/i18n/navigation'
 import { Snooker404Table } from './Snooker404Table'
 
 export default async function NotFound() {
-  const t = await getTranslations('404')
+  const locale = await getLocale()
+  const t = await getTranslations({ locale, namespace: '404' })
 
   return (
     <main
