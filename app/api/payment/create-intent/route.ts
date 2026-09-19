@@ -84,6 +84,26 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'booking_expired', message: 'Slot lock no longer valid' }, { status: 409 })
       }
 
+      // Guard against a confirmed booking that landed between lock acquisition
+      // and payment finalisation. The DB unique constraint is authoritative; this
+      // gives callers a clean 409 + localised message before the insert attempt.
+      const { data: confirmedBooking } = await service
+        .from('bookings')
+        .select('id')
+        .eq('slot_id', slot.id)
+        .eq('status', 'confirmed')
+        .maybeSingle()
+      if (confirmedBooking) {
+        return NextResponse.json(
+          {
+            error: 'Slot already booked',
+            message: '呢個時段啱啱俾人訂咗，請揀返第個時段',
+            reason: 'slot_confirmed',
+          },
+          { status: 409 },
+        )
+      }
+
       const startHour = parseInt(slot.start_time.slice(0, 2), 10)
       if (!isValidSlotStart(slot.date, startHour)) {
         return NextResponse.json({ error: 'Invalid slot' }, { status: 400 })

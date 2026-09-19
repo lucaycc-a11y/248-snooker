@@ -500,9 +500,9 @@ function DualTableGrid({
       const perTable = daySlots ? tableStatesFor(daySlots, dateStr, h, 1) : null
       for (const tn of ALL_TABLES) {
         const state: TableState = perTable?.get(tn) ?? "available"
-        // locked_by_you stays interactive (resumes to payment); everything
-        // else that isn't plain-available is dead.
-        const disabled = past || state === "booked" || state === "locked"
+        // Only confirmed bookings are non-selectable; transient locks (whether
+        // owned by this user or another) are treated as available.
+        const disabled = past || state === "booked"
         states.set(slotKey(tn, h), { state, past, disabled })
       }
     }
@@ -620,13 +620,13 @@ function DualTableGrid({
         onClick={() => toggle(tn, h)}
         ref={slotKey(tn, h) === firstAvailableSlotKey ? firstAvailableSlotRef : undefined}
         aria-label={`${t("table_label")} ${tn} ${padTime(h)}`}
-        title={lockedByYou ? t("table_locked_by_you") : locked ? t("table_locked") : undefined}
+        title={undefined}
         style={{
           minHeight: 44,
           padding: "10px 6px",
           borderRadius: tokens.radius.input,
           border: `1px solid ${
-            selected || lockedByYou
+            selected
               ? tokens.colors.link
               : booked
                 ? "rgba(255,69,58,0.35)"
@@ -641,11 +641,9 @@ function DualTableGrid({
             ? "#000"
             : booked
               ? "#FF8A80"
-              : past || locked
+              : past
                 ? tokens.colors.textFaint
-                : lockedByYou
-                  ? tokens.colors.link
-                  : tokens.colors.text,
+                : tokens.colors.text,
           fontSize: 13,
           fontWeight: selected ? 700 : 400,
           opacity: past ? 0.35 : 1,
@@ -657,11 +655,8 @@ function DualTableGrid({
           gap: 4,
         }}
       >
-        {(locked || lockedByYou) && (
-          <Lock size={12} style={{ flexShrink: 0, color: lockedByYou ? tokens.colors.link : undefined }} />
-        )}
         <span style={{ whiteSpace: "nowrap" }} data-cms-key={booked ? "book.slot_booked" : undefined}>
-          {booked ? t("slot_booked") : lockedByYou ? t("table_resume") : padTime(h)}
+          {booked ? t("slot_booked") : padTime(h)}
         </span>
       </button>
     )
