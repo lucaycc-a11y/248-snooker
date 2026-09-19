@@ -64,13 +64,12 @@ export function CookieConsent() {
           style={{
             maxWidth: '1200px',
             margin: '0 auto',
-            background: 'rgba(10, 10, 10, 0.98)',
+            background: 'rgba(0, 0, 0, 0.72)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            border: '1px solid rgba(255, 255, 255, 0.10)',
             borderRadius: '16px',
             padding: '24px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
             pointerEvents: 'auto',
           }}
         >
