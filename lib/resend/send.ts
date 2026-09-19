@@ -4,7 +4,7 @@ import { BookingRefundedEmail, type BookingRefundedEmailProps } from './template
 import { BookingRescheduledEmail, type BookingRescheduledEmailProps } from './templates/booking-rescheduled'
 import { AdminInviteEmail } from './templates/admin-invite'
 import { render } from '@react-email/render'
-import { generateBookingQR, getRecommendedQRSize } from '@/lib/qrcode'
+import { generateBookingQR, generateMemberQRWithLogo, getRecommendedQRSize } from '@/lib/qrcode'
 import type { QrPayload } from '@/lib/qr/jwt'
 
 type SendReceiptParams = {
@@ -19,6 +19,7 @@ type SendReceiptParams = {
     total_price: number
     payment_method: string
     human_code?: string
+    member_code?: string
   }
   paymentIntentId: string
   customerName: string
@@ -37,23 +38,38 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
   const serviceFee = 0
   const total = subtotal + serviceFee
 
-  // Generate QR code for door access
-  const startIso = `${params.booking.date}T${params.booking.start_time}`
-  const endTimeHHMMSS = params.booking.end_time.length === 5 ? `${params.booking.end_time}:00` : params.booking.end_time
-  const endIso = `${params.booking.date}T${endTimeHHMMSS}`
+  // Generate QR code for the receipt email.
+  // Prefer member_code (encodes identity, shows branded logo) over the booking
+  // human_code path — fall back only when member_code is unavailable.
+  let qrCodeDataUrl: string
+  let backupCode: string
 
-  const qrPayload: QrPayload = {
-    booking_id: params.booking.id,
-    user_id: params.booking.user_id,
-    table_number: params.booking.table_number,
-    start_time: startIso,
-    end_time: endIso,
+  if (params.booking.member_code) {
+    qrCodeDataUrl = await generateMemberQRWithLogo(
+      params.booking.member_code,
+      getRecommendedQRSize('email'),
+    )
+    backupCode = params.booking.human_code || `248-${params.booking.id.slice(0, 8).toUpperCase()}`
+  } else {
+    const startIso = `${params.booking.date}T${params.booking.start_time}`
+    const endTimeHHMMSS = params.booking.end_time.length === 5 ? `${params.booking.end_time}:00` : params.booking.end_time
+    const endIso = `${params.booking.date}T${endTimeHHMMSS}`
+
+    const qrPayload: QrPayload = {
+      booking_id: params.booking.id,
+      user_id: params.booking.user_id,
+      table_number: params.booking.table_number,
+      start_time: startIso,
+      end_time: endIso,
+    }
+
+    const result = await generateBookingQR(qrPayload, {
+      format: 'data-url',
+      width: getRecommendedQRSize('email'),
+    })
+    qrCodeDataUrl = result.qrCode as string
+    backupCode = result.backupCode
   }
-
-  const { qrCode, backupCode } = await generateBookingQR(qrPayload, {
-    format: 'data-url',
-    width: getRecommendedQRSize('email'),
-  })
 
   const emailProps: BookingConfirmedEmailProps = {
     locale: params.locale,
@@ -61,7 +77,7 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
     customerEmail: params.to,
     customerPhone: params.customerPhone,
     date: params.booking.date,
-    startTime: params.booking.start_time.slice(0, 5), // "HH:mm:ss" -> "HH:mm"
+    startTime: params.booking.start_time.slice(0, 5),
     endTime: params.booking.end_time.slice(0, 5),
     tableNumber: params.booking.table_number,
     receiptNumber,
@@ -70,7 +86,7 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
     total,
     paymentMethod: params.booking.payment_method,
     paymentIntentId: params.paymentIntentId,
-    qrCodeDataUrl: qrCode as string,
+    qrCodeDataUrl,
     backupCode,
   }
 
