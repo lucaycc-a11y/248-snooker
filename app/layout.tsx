@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { UatBadge } from "@/components/uat/UatBadge";
 import { MaintenanceBadge } from "@/components/uat/MaintenanceBadge";
 import { ThemeProvider } from "@/components/theme-provider";
+import { CookieConsent } from "@/components/legal/CookieConsent";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://space8.com.hk"),
   title: "SPACE8 · 香港自助中式桌球 06:00-24:00",
   description:
-    "香港首間自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
+    "香港自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
   verification: {
     google: "t5MhRgSpnnNRfckNMeR0y2ycI_HGgay1IalMFu4sUDI",
   },
@@ -34,7 +35,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "SPACE8 · 屬於你的空間",
-    description: "香港首間自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
+    description: "香港自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
     url: "https://space8.com.hk",
     siteName: "SPACE8",
     images: [
@@ -94,6 +95,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <CookieConsent />
           <UatBadge />
           <MaintenanceBadge />
         </ThemeProvider>

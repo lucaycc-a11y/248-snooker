@@ -148,9 +148,10 @@
       "website_terms": "Website Terms",
       "privacy": "Privacy Policy",
       "accessibility": "Accessibility Statement",
-    "refund_policy": "Returns & Refunds",
-    "delivery_policy": "Delivery Policy",
-    "brand_statement": "Brand & Logo Statement"
+      "refund_policy": "Returns & Refunds",
+      "delivery_policy": "Delivery Policy",
+      "brand_statement": "Brand & Logo Statement",
+      "cookie_policy": "Cookie Policy"
     }
   },
   "pricingPage": {
@@ -1651,5 +1652,13 @@
     }
   },
   "coming_soon_label": "Coming Soon",
-  "qr_instruction_label": "You will see a QR code. Please scan it with WeChat Pay to complete payment"
+  "qr_instruction_label": "You will see a QR code. Please scan it with WeChat Pay to complete payment",
+  "cookie_consent": {
+    "title": "We Use Cookies",
+    "message": "This website uses necessary cookies to maintain login and booking functionality, and analytics cookies to improve user experience.",
+    "learn_more": "Learn more",
+    "accept_all": "Accept All Cookies",
+    "necessary_only": "Necessary Only",
+    "dismiss": "Dismiss"
+  }
 }

@@ -148,9 +148,10 @@
       "website_terms": "網站條款",
       "privacy": "私隱政策",
       "accessibility": "无障碍声明",
-    "refund_policy": "退款政策",
-    "delivery_policy": "交付政策",
-    "brand_statement": "品牌及标志声明"
+      "refund_policy": "退款政策",
+      "delivery_policy": "交付政策",
+      "brand_statement": "品牌及标志声明",
+      "cookie_policy": "Cookie 政策"
     }
   },
   "pricingPage": {
@@ -1651,5 +1652,13 @@
     }
   },
   "coming_soon_label": "此付款方式即将推出",
-  "qr_instruction_label": "您将看到一个二维码，请使用微信支付扫描以完成付款"
+  "qr_instruction_label": "您将看到一个二维码，请使用微信支付扫描以完成付款",
+  "cookie_consent": {
+    "title": "我们使用 Cookies",
+    "message": "本网站使用必要 Cookies 以维持登录及预约功能，并使用分析 Cookies 改善使用体验。",
+    "learn_more": "了解更多",
+    "accept_all": "接受所有 Cookies",
+    "necessary_only": "仅必要 Cookies",
+    "dismiss": "关闭"
+  }
 }
