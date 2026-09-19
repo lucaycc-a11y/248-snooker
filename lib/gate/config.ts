@@ -4,6 +4,7 @@ export type SiteGateConfig = {
   enabled: boolean
   passwordHash: string | null
   passwordSalt: string | null
+  passwordVersion: number
 }
 
 const CONFIG_ID = '00000000-0000-0000-0000-000000000001'
@@ -30,7 +31,7 @@ export async function getSiteGate(): Promise<{ config: SiteGateConfig; whitelist
     const [{ data: configRow }, { data: whitelistRows }] = await Promise.all([
       service
         .from('site_gate_config')
-        .select('enabled, password_hash, password_salt')
+        .select('enabled, password_hash, password_salt, password_version')
         .eq('id', CONFIG_ID)
         .maybeSingle(),
       service.from('site_gate_ip_whitelist').select('ip_address'),
@@ -40,6 +41,7 @@ export async function getSiteGate(): Promise<{ config: SiteGateConfig; whitelist
       enabled: configRow?.enabled === true,
       passwordHash: (configRow?.password_hash as string | null) ?? null,
       passwordSalt: (configRow?.password_salt as string | null) ?? null,
+      passwordVersion: (configRow?.password_version as number | null) ?? 1,
     }
     const whitelist = ((whitelistRows ?? []) as { ip_address: string }[]).map((r) => r.ip_address)
 
@@ -47,6 +49,6 @@ export async function getSiteGate(): Promise<{ config: SiteGateConfig; whitelist
     return { config, whitelist }
   } catch (err) {
     console.error('[gate/config] read failed, failing open', err)
-    return { config: { enabled: false, passwordHash: null, passwordSalt: null }, whitelist: [] }
+    return { config: { enabled: false, passwordHash: null, passwordSalt: null, passwordVersion: 1 }, whitelist: [] }
   }
 }

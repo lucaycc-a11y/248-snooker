@@ -3,7 +3,9 @@ import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { hashGatePassword } from '@/lib/gate/password'
 
-const MIN_PASSWORD_LENGTH = 6
+// Minimum password length raised from 6 to 10 to reduce brute-force risk on
+// the 5-attempts-per-minute rate limit window.
+const MIN_PASSWORD_LENGTH = 10
 
 export const runtime = 'nodejs'
 
@@ -34,8 +36,9 @@ function isBody(value: unknown): value is Body {
   return false
 }
 
-// POST /api/admin/site-gate — toggle the gate on/off, or regenerate the
-// password (returned ONCE in the response; only the hash is persisted).
+// POST /api/admin/site-gate — toggle the gate on/off, or change the password.
+// set_password increments password_version in the same DB update as the new
+// hash/salt, so all previously issued bypass cookies are immediately invalid.
 export async function POST(req: Request) {
   try {
     const admin = await getAdminData()
@@ -49,7 +52,7 @@ export async function POST(req: Request) {
     const service = getServiceSupabase()
     const { data: existing } = await service
       .from('site_gate_config')
-      .select('enabled')
+      .select('enabled, password_version')
       .eq('id', CONFIG_ID)
       .maybeSingle()
 
@@ -82,11 +85,17 @@ export async function POST(req: Request) {
     }
 
     const { salt, hash } = await hashGatePassword(body.password)
+    const currentVersion = (existing?.password_version as number | null) ?? 1
+    const nextVersion = currentVersion + 1
+
     const { error } = await service
       .from('site_gate_config')
       .update({
         password_hash: hash,
         password_salt: salt,
+        // Increment version atomically with the new hash — any cookie carrying
+        // the old version is rejected immediately by middleware.
+        password_version: nextVersion,
         updated_at: new Date().toISOString(),
         updated_by: admin.userId,
       })
@@ -96,14 +105,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Internal error' }, { status: 500 })
     }
 
+    // Audit log records only version numbers — never the password, hash, or salt.
     await service.from('audit_log').insert({
       admin_user_id: admin.userId,
       admin_email: admin.email,
       action: 'site_gate_set_password',
       target_table: 'site_gate_config',
       target_id: CONFIG_ID,
-      before_value: null,
-      after_value: null, // never store the plaintext password, even in the audit log
+      before_value: { password_version: currentVersion },
+      after_value: { password_version: nextVersion },
     })
 
     return NextResponse.json({ success: true })
