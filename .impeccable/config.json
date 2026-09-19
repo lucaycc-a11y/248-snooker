@@ -967,12 +967,42 @@
       },
       {
         "rule": "design-system-color",
+        "value": "rgba(26, 157, 92, 0.1)",
+        "createdAt": "2026-09-15T03:39:50.053Z",
+        "reason": "Intentional selected-state gradient overlay (10% opacity brand green), distinct from solid GREEN constant"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0f131c",
+        "files": [
+          "components/checkout/StripeMethodSelector.tsx"
+        ],
+        "createdAt": "2026-09-15T04:07:22.154Z",
+        "reason": "Stripe UI deep-black surface color, intentionally distinct from KPay design system - user confirmed single-stage mixed UI approach"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#161d2b",
+        "files": [
+          "components/checkout/StripeMethodSelector.tsx"
+        ],
+        "createdAt": "2026-09-15T04:07:33.243Z",
+        "reason": "Stripe UI selected-state background color, intentionally distinct from KPay design system - user confirmed single-stage mixed UI approach"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#86868b",
+        "createdAt": "2026-09-19T15:47:57.829Z",
+        "reason": "Apple secondary-label gray — project-wide convention for de-emphasised UI chrome (matches same value used in shared/PasswordInput.tsx eye-toggle button)",
+      {
+        "rule": "design-system-color",
         "value": "#86868b",
         "files": [
           "app/maintenance/MaintenanceContent.tsx"
         ],
         "createdAt": "2026-09-15T14:47:01.035Z",
         "reason": "maintenance gate page intentionally uses hardcoded colors for system-failure independence"
+      }
       }
     ]
   }

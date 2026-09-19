@@ -49,10 +49,11 @@ async function checkSiteGate(request: NextRequest): Promise<NextResponse | null>
     return null
   }
 
-  // Check for valid bypass cookie
+  // Check for valid bypass cookie — version must match current DB value so a
+  // password change immediately invalidates all previously issued cookies.
   const secret = process.env.GATE_COOKIE_SECRET
   const cookie = request.cookies.get(GATE_COOKIE_NAME)?.value
-  if (secret && cookie && (await verifyGateCookie(cookie, secret))) {
+  if (secret && cookie && (await verifyGateCookie(cookie, secret, config.passwordVersion))) {
     // Valid cookie — access granted
     return null
   }

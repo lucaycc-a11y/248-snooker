@@ -21,6 +21,7 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
 import StripePayment, { clearStripePersistedState } from "@/components/checkout/StripePayment"
 import type { StripePaymentMethod } from "@/components/checkout/StripePayment"
+import StripeMethodSelector from "@/components/checkout/StripeMethodSelector"
 import StripeCheckoutPayment from "@/components/checkout/StripeCheckoutPayment"
 import StripeElementsWrapper from "@/components/checkout/StripeElementsWrapper"
 import KPayPayment from "@/components/checkout/KPayPayment"
@@ -501,8 +502,9 @@ function DualTableGrid({
       const perTable = daySlots ? tableStatesFor(daySlots, dateStr, h, 1) : null
       for (const tn of ALL_TABLES) {
         const state: TableState = perTable?.get(tn) ?? "available"
-        // Only someone else's lock or a confirmed booking disables the cell.
-        const disabled = past || state === "booked" || state === "locked"
+        // Only confirmed bookings are non-selectable; transient locks (whether
+        // owned by this user or another) are treated as available.
+        const disabled = past || state === "booked"
         states.set(slotKey(tn, h), { state, past, disabled })
       }
     }
@@ -611,7 +613,7 @@ function DualTableGrid({
         onClick={() => toggle(tn, h)}
         ref={slotKey(tn, h) === firstAvailableSlotKey ? firstAvailableSlotRef : undefined}
         aria-label={`${t("table_label")} ${tn} ${padTime(h)}`}
-        title={locked ? t("table_locked") : undefined}
+        title={undefined}
         style={{
           minHeight: 44,
           padding: "10px 6px",
@@ -632,7 +634,7 @@ function DualTableGrid({
             ? "#000"
             : booked
               ? "#FF8A80"
-              : past || locked
+              : past
                 ? tokens.colors.textFaint
                 : tokens.colors.text,
           fontSize: 13,
@@ -646,9 +648,6 @@ function DualTableGrid({
           gap: 4,
         }}
       >
-        {locked && (
-          <Lock size={12} style={{ flexShrink: 0 }} />
-        )}
         <span style={{ whiteSpace: "nowrap" }} data-cms-key={booked ? "book.slot_booked" : undefined}>
           {booked ? t("slot_booked") : padTime(h)}
         </span>
@@ -2430,74 +2429,62 @@ function Screen3({
           {/* Payment method selection — hidden when test mode is active or when total is $0 */}
           {!testMode && !isFreeCheckout && (
             <>
+              {/* Provider-specific payment UI */}
               {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
-                /* ── Stripe: Direct to Payment Element (skip PaymentMethodList) ── */
-                <StripePayment
+                /* ── Stripe: Single-stage 6-row selector with inline PaymentElement ── */
+                <StripeMethodSelector
+                  date={blocks[0]?.date ?? ''}
+                  startHour={blocks[0]?.startHour ?? 0}
+                  duration={blocks[0]?.duration ?? 0}
+                  tableNumber={blocks[0]?.tableNumber ?? 1}
                   blocks={blocks.map((b) => ({
                     date: b.date,
                     startHour: b.startHour,
                     duration: b.duration,
                     tableNumber: b.tableNumber as 1 | 2,
                   }))}
-                  method="card"
-                  labels={{
-                    title: t("stripe_title") || "付款",
-                    pending: t("stripe_qr_scan") || `請用微信支付掃描以下二維碼`,
-                    pending_desc: t("stripe_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
-                    pending_confirmation: t("stripe_pending_confirmation") || "確認付款中",
-                    pending_confirmation_desc: t("stripe_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
-                    success: t("stripe_success") || "付款成功",
-                    success_desc: t("stripe_success_desc") || "你的預訂已確認",
-                    failed: t("stripe_failed") || "付款失敗",
-                    failed_desc: t("stripe_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
-                    expired: t("stripe_expired") || "二維碼已過期",
-                    expired_desc: t("stripe_expired_desc") || "此二維碼已過期，新二維碼即將自動生成",
-                    regenerate: t("stripe_regenerate") || "重新生成",
-                    try_again: t("stripe_try_again") || "重試",
-                    countdown: t("stripe_countdown") || "二維碼將於 {time} 後過期",
-                    help: t("stripe_help") || "需要幫助？",
-                    support_whatsapp: t("stripe_support_whatsapp") || "WhatsApp 客服",
-                    back_to_methods: t("stripe_back_to_methods") || "返回選擇時段",
-                    waited: t("stripe_waited") || "已等待 {seconds} 秒",
-                    cancelled: t("stripe_cancelled") || "付款已取消",
-                    cancelled_desc: t("stripe_cancelled_desc") || "此預訂已取消，已釋放時段。",
-                    cancel: t("stripe_cancel") || "取消預訂",
-                    processing: t("stripe_processing") || "處理中…",
-                    terms_required: t("terms_required_hint"),
-                  }}
-                  agreedToTerms={agreedToTerms}
-                  returnUrl={`${window.location.origin}/${locale}/book`}
-                  locale={locale}
-                  onBackToMethods={() => {
-                    clearStripePersistedState()
-                    setConfirmed(false)
-                    setPaymentMethod(null)
-                    // Clean navigation — remove all Stripe redirect parameters
-                    window.location.href = '/book'
-                  }}
-                  onSuccess={(returnedBookingId) => {
-                    if (returnedBookingId) {
-                      window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
-                    }
-                  }}
+                  total={total}
+                  promoCode={promoCode}
+                  onPromoChange={onPromoChange}
+                  pointsAmount={0}
+                  locale={locale as 'zh-HK' | 'zh-CN' | 'en'}
+                  returnPath={`/${locale}/book`}
+                  billingDetails={profile ? {
+                    name: profile.name,
+                    email: profile.email,
+                    phone: profile.phone,
+                  } : undefined}
+                  onBackToSlots={onBackToSlots}
+                  payLabel={t("pay_label") || "Pay"}
+                  processingLabel={t("processing_label") || "Processing..."}
+                  errorLabel={t("error_label") || "Payment failed"}
+                  loadingLabel={t("loading_label") || "Loading..."}
+                  comingSoonLabel={t("coming_soon_label") || "即將推出"}
+                  lockHoldLabel={t("lock_hold_label") || "Slot reserved"}
+                  slotTakenLabel={t("slot_taken_label") || "This slot was just taken"}
+                  bookingExpiredLabel={t("booking_expired_label") || "Booking expired"}
+                  bookingExpiredDescLabel={t("booking_expired_desc_label") || "Your hold period expired"}
+                  paymentFailedLabel={t("payment_failed_label") || "Payment failed"}
+                  whatsappSupportLabel={t("whatsapp_support_label") || "Contact support"}
+                  retryPaymentLabel={t("retry_payment_label") || "Try again"}
+                  backToSlotsLabel={t("back_to_slots_label") || "Back to slots"}
+                  qrInstructionLabel={t("qr_instruction_label") || "您將看到一個二維碼，請使用微信支付掃描以完成付款"}
+                  payDisabled={!agreedToTerms}
+                  onDisabledPayClick={flagTermsRequired}
                 />
               ) : !confirmed ? (
-                /* ── KPay: Stage 1 - PaymentMethodList ── */
+                /* ── KPay: Two-stage flow (PaymentMethodList → KPayPayment) ── */
                 <PaymentMethodList
                   selected={paymentMethod}
                   onSelect={(method) => {
                     setPaymentError(null)
                     setPaymentMethod(method)
                     scrollIntoViewIfNeeded(payCtaRef)
+                    const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
 
-                    const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
-
-                    if (provider === 'kpay') {
-                      const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
-                      if (kpayMethods.includes(method as KPayMethod)) {
-                        setKpayMethod(method as KPayMethod)
-                        setKpayMode(isDesktopDevice() ? "qr" : "h5")
-                      }
+                    if (kpayMethods.includes(method as KPayMethod)) {
+                      setKpayMethod(method as KPayMethod)
+                      setKpayMode(isDesktopDevice() ? "qr" : "h5")
                     }
                   }}
                 />
