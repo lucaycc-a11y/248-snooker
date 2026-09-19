@@ -3733,8 +3733,8 @@ export default function BookPage() {
       })
       const d = new Date(`${date}T00:00:00`)
       if (!Number.isNaN(d.getTime())) setSelectedDate(d)
-      direction.current = 1
-      setScreen(2)
+      // Do not advance the screen here — slot taps must never navigate.
+      // The user continues via 繼續預訂, which is the sole navigation control.
     },
     [],
   )
