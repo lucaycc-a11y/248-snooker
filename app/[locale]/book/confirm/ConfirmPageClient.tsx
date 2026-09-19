@@ -95,6 +95,13 @@ export default function ConfirmPageClient({ bookingId }: Props) {
           <h1 style={styles.title} data-cms-key="book.confirm.success_title">{t("kpay_success")}</h1>
           <p style={styles.text} data-cms-key="book.confirm.success_desc">{t("kpay_success_desc")}</p>
           <p style={styles.reference}>{bookingId}</p>
+          <a
+            href="/member"
+            style={styles.memberLink}
+            data-cms-key="book.confirm.view_member_area"
+          >
+            {t("view_member_area")}
+          </a>
         </section>
       </main>
     )
@@ -118,4 +125,16 @@ const styles: Record<string, React.CSSProperties> = {
   title: { margin: 0, color: tokens.colors.text, fontSize: 22, fontWeight: 700 },
   text: { margin: 0, color: tokens.colors.textMuted, fontSize: 14, lineHeight: 1.6 },
   reference: { margin: "8px 0 0", color: tokens.colors.textFaint, fontSize: 11, wordBreak: "break-all" },
+  memberLink: {
+    marginTop: 16,
+    padding: "12px 24px",
+    borderRadius: 12,
+    background: tokens.colors.link,
+    color: "#000",
+    fontSize: 15,
+    fontWeight: 600,
+    textDecoration: "none",
+    display: "inline-block",
+    transition: "all 0.2s ease",
+  },
 }

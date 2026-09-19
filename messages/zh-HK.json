@@ -1176,6 +1176,8 @@
     "kpay_pending_confirmation_desc": "正在確認你的付款，請稍候⋯",
     "kpay_success": "付款成功",
     "kpay_success_desc": "你的預訂已確認",
+    "view_member_area": "前往會員中心",
+    "no_upcoming_bookings": "暫無即將到來的預訂",
     "kpay_failed": "付款失敗",
     "kpay_failed_desc": "付款未能完成，請重新嘗試",
     "kpay_expired": "二維碼已過期",
