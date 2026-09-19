@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Bebas_Neue } from "next/font/google";
-import { getLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import Script from "next/script";
 import "./globals.css";
@@ -8,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { UatBadge } from "@/components/uat/UatBadge";
 import { MaintenanceBadge } from "@/components/uat/MaintenanceBadge";
 import { ThemeProvider } from "@/components/theme-provider";
-import { CookieConsent } from "@/components/legal/CookieConsent";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -79,11 +77,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Routes outside [locale] (e.g. /login, /member, /admin) never set a request
-  // locale, so this falls back to routing.defaultLocale for them — still
-  // correct, since those routes render zh-HK-only chrome around client-side
-  // locale-aware content.
-  const locale = await getLocale().catch(() => routing.defaultLocale);
+  // Routes outside [locale] (e.g. /admin, /auth) never set a request locale.
+  // getLocale() throws during static prerender when no request context is
+  // seeded, crashing every route. Use the static default directly instead.
+  const locale = routing.defaultLocale;
 
   return (
     <html lang={locale} className={cn("no-js", bebasNeue.variable, "font-sans")} suppressHydrationWarning>
@@ -95,7 +92,6 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           {children}
-          <CookieConsent />
           <UatBadge />
           <MaintenanceBadge />
         </ThemeProvider>
