@@ -263,14 +263,14 @@ const SLOT_GROUPS: { key: string; hours: number[] }[] = [
   { key: "evening", hours: [18, 19, 20, 21, 22, 23] },
 ]
 
-type TableState = "available" | "locked_by_you" | "locked" | "booked"
+type TableState = "available" | "locked" | "booked"
 
 // Per-table state for [startHour, startHour+duration) on `dateStr`, given the
 // day's booked/active-locked slots. Pure + client-side so it drives both the wheel
 // greying (Step 2) and the table list (Step 3) without extra API calls.
-// "locked_by_you" = the caller's OWN active hold (e.g. an abandoned checkout) —
-// clickable, resumes straight to payment (see onResumeLocked). "locked" =
-// someone else's active 15-min hold; "booked" = confirmed.
+// "locked" = someone else's active 15-min hold; "booked" = confirmed.
+// locked_by_you slots from the API are treated as "available" — the current
+// user's own hold never blocks them from reselecting that slot.
 function tableStatesFor(
   daySlots: DaySlot[],
   dateStr: string,
@@ -292,9 +292,10 @@ function tableStatesFor(
     const eEnd = new Date(eStart)
     eEnd.setHours(eEnd.getHours() + Number(s.duration_hours))
     if (eStart < reqEnd && reqStart < eEnd) {
+      if (s.locked_by_you) continue  // own hold → stays "available"
       states.set(
         s.table_number,
-        s.status === "booked" ? "booked" : s.locked_by_you ? "locked_by_you" : "locked",
+        s.status === "booked" ? "booked" : "locked",
       )
     }
   }
@@ -384,7 +385,6 @@ function DualTableGrid({
   slotsForDate,
   totalSelectedHours,
   onToggle,
-  onResumeLocked,
   firstAvailableSlotRef,
 }: {
   selectedDate: Date
@@ -393,7 +393,6 @@ function DualTableGrid({
   slotsForDate: Set<string>
   totalSelectedHours: number
   onToggle: (table: number, hour: number) => void
-  onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
   firstAvailableSlotRef: React.RefObject<HTMLButtonElement>
 }) {
   const t = useTranslations("book")
@@ -502,8 +501,7 @@ function DualTableGrid({
       const perTable = daySlots ? tableStatesFor(daySlots, dateStr, h, 1) : null
       for (const tn of ALL_TABLES) {
         const state: TableState = perTable?.get(tn) ?? "available"
-        // locked_by_you stays interactive (resumes to payment); everything
-        // else that isn't plain-available is dead.
+        // Only someone else's lock or a confirmed booking disables the cell.
         const disabled = past || state === "booked" || state === "locked"
         states.set(slotKey(tn, h), { state, past, disabled })
       }
@@ -1554,7 +1552,6 @@ function Screen1({
   orderTotal,
   removeRun,
   onContinue,
-  onResumeLocked,
   availability,
   monthAvailability,
   periods,
@@ -1570,7 +1567,6 @@ function Screen1({
   orderTotal: number
   removeRun: (run: SelectedBlock) => void
   onContinue: () => void
-  onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
   availability: ReturnType<typeof useAvailabilityCache>
   monthAvailability: ReturnType<typeof useMonthAvailability>
   periods: PricingPeriod[]
@@ -1718,7 +1714,6 @@ function Screen1({
               slotsForDate={slotsForDate}
               totalSelectedHours={totalSelectedHours}
               onToggle={(table, hour) => { onToggleSlot(dateStr, table, hour); scrollIntoViewIfNeeded(summaryRef) }}
-              onResumeLocked={onResumeLocked}
               firstAvailableSlotRef={firstAvailableSlotRef}
             />
           </div>
@@ -3708,26 +3703,6 @@ export default function BookPage() {
 
   const direction = useRef(1)
 
-  // Resume a slot the caller already has locked (e.g. an abandoned checkout)
-  // instead of re-picking: adopt its date/hour/table into the order state and
-  // jump straight to the payment screen. StripePayment's lock-on-mount effect
-  // re-locks as the same user, which the RPC treats as a no-op refresh of
-  // locked_until — never re-validates as "taken."
-  const resumeLockedSlot = useCallback(
-    (date: string, startHour: number, duration: number, tableNumber: number) => {
-      setSelectedSlotsByDate(() => {
-        const slots = new Set<string>()
-        for (let h = startHour; h < startHour + duration; h++) slots.add(slotKey(tableNumber, h))
-        return new Map([[date, slots]])
-      })
-      const d = new Date(`${date}T00:00:00`)
-      if (!Number.isNaN(d.getTime())) setSelectedDate(d)
-      // Do not advance the screen here — slot taps must never navigate.
-      // The user continues via 繼續預訂, which is the sole navigation control.
-    },
-    [],
-  )
-
   // Backward-only step navigation from the progress bar. Forward jumps are never
   // allowed (can't skip to payment from time-select). Not available once the
   // booking is confirmed (screen 3) — that flow is terminal. Going back from
@@ -3851,7 +3826,6 @@ export default function BookPage() {
                   orderTotal={orderTotal}
                   removeRun={removeRun}
                   onContinue={advance}
-                  onResumeLocked={resumeLockedSlot}
                   availability={availability}
                   monthAvailability={monthAvailability}
                   periods={periods}
