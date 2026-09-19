@@ -236,18 +236,86 @@ export default function PaymentMethodList({ selected, onSelect }: Props) {
     PAYMENT_METHODS.filter((method) => method.id === id)
   )
 
-  // Show loading state only for Stripe during initial load
+  // Skeleton placeholder — shown only during the Stripe available-methods fetch.
+  // Matches PaymentMethodCard geometry exactly so no layout shift on load.
   if (isLoadingStripeMethods) {
     return (
-      <div
-        style={{
-          padding: 20,
-          textAlign: 'center',
-          color: tokens.colors.textMuted,
-        }}
-      >
-        載入付款方式...
-      </div>
+      <>
+        <style>{`
+          @keyframes payment-skeleton-pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+          }
+          .payment-skeleton-pulse {
+            animation: payment-skeleton-pulse 1.6s ease-in-out infinite;
+          }
+        `}</style>
+        <div
+          className="payment-skeleton-pulse"
+          style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}
+          aria-busy="true"
+          aria-label="載入付款方式"
+        >
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                minHeight: 56,
+                padding: "12px 16px",
+                border: `1.5px solid ${tokens.colors.border}`,
+                borderRadius: 16,
+                background: tokens.colors.surface,
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                animationDelay: `${i * 0.12}s`,
+              }}
+            >
+              {/* Radio circle */}
+              <div
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: "50%",
+                  border: `2px solid ${tokens.colors.border}`,
+                  flexShrink: 0,
+                }}
+              />
+              {/* Label + sublabel bars */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                <div
+                  style={{
+                    height: 13,
+                    width: "42%",
+                    borderRadius: 6,
+                    background: tokens.colors.border,
+                  }}
+                />
+                <div
+                  style={{
+                    height: 10,
+                    width: "62%",
+                    borderRadius: 6,
+                    background: tokens.colors.border,
+                    opacity: 0.6,
+                  }}
+                />
+              </div>
+              {/* Icon badge placeholder */}
+              <div
+                style={{
+                  width: 36,
+                  height: 22,
+                  borderRadius: 6,
+                  background: tokens.colors.border,
+                  flexShrink: 0,
+                  opacity: 0.5,
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </>
     )
   }
 
