@@ -870,6 +870,8 @@
     "kpay_pending_confirmation_desc": "Confirming your payment, please wait⋯",
     "kpay_success": "Payment Successful",
     "kpay_success_desc": "Your booking is confirmed",
+    "view_member_area": "Go to Member Area",
+    "no_upcoming_bookings": "No upcoming bookings",
     "kpay_failed": "Payment Failed",
     "kpay_failed_desc": "Payment could not be completed. Please try again",
     "kpay_expired": "QR Code Expired",

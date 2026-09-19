@@ -564,6 +564,7 @@ export default function MemberDashboard({
                   memberQrDataUrl={memberQrDataUrl}
                   stats={stats}
                   onSwitchTab={setTab}
+                  upcomingBookings={upcomingBookings}
                 />
               )}
               {tab === "bookings" && (
@@ -965,12 +966,13 @@ function canShowQr(b: MemberBooking): boolean {
 /* ── Overview Tab — first-time landing, card + stats in compact view ── */
 function OverviewTab({
   user, tierId, accent, progress, pointsToNext, next, current,
-  memberQrDataUrl, stats, onSwitchTab,
+  memberQrDataUrl, stats, onSwitchTab, upcomingBookings,
 }: {
   user: MemberData['user']; tierId: string; accent: string; progress: number;
   pointsToNext: number; next: Tier | null; current: Tier;
   memberQrDataUrl: string | null; stats: { bookings: number; hours: number };
   onSwitchTab: (tab: TabId) => void;
+  upcomingBookings: MemberBooking[];
 }) {
   const t = useTranslations('memberPage');
   const locale = useLocale();
@@ -1024,6 +1026,44 @@ function OverviewTab({
             style={{ height: '100%', background: accent, borderRadius: 100 }}
           />
         </div>
+      </div>
+
+      {/* Upcoming booking summary */}
+      <div
+        style={{
+          border: `1px solid ${BORDER}`, borderRadius: 16, padding: 18,
+          background: GLASS_BG, marginBottom: 16, cursor: 'pointer',
+        }}
+        onClick={() => onSwitchTab('bookings')}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSwitchTab('bookings') }}
+        data-cms-key="memberPage.section_upcoming"
+      >
+        <div style={{ fontSize: 13, fontWeight: 600, color: INK, marginBottom: 10 }}>
+          {t('section_upcoming')}
+        </div>
+        {upcomingBookings.length === 0 ? (
+          <p style={{ margin: 0, fontSize: 13, color: SUBTLE }}>
+            {t('no_upcoming_bookings')}
+          </p>
+        ) : (() => {
+          const b = upcomingBookings[0]
+          const roomName = b.tableId === 1 ? 'SPACE INFINITY' : b.tableId === 2 ? 'SPACE ETERNITY' : `Table ${b.tableId}`
+          const timeLabel = b.startTime ? b.startTime.slice(0, 5) : '—'
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: INK }}>{b.date}</span>
+                <span style={{ fontSize: 12, color: SUBTLE }}>{roomName}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 13, color: SUBTLE }}>{timeLabel} · {b.durationHours}h</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: accent }}>HK${b.price}</span>
+              </div>
+            </div>
+          )
+        })()}
       </div>
 
       {/* 暫時停用，等 Apple PEM 格式問題同 Google service account 設定好返先重開，相關 prompt：wallet-pass-refined-prompt.md */}
