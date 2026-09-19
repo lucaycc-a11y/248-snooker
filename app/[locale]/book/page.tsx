@@ -3364,17 +3364,15 @@ export default function BookPage() {
   // map entry entirely when its Set becomes empty, so the map never
   // accumulates empty entries.
   const toggleSlot = useCallback((date: string, table: number, hour: number) => {
-    let wasAdded = false
+    haptic.vibrate(12)
     setSelectedSlotsByDate((prev) => {
       const prevSet = prev.get(date) ?? EMPTY_SET
       const nextSet = new Set(prevSet)
       const key = slotKey(table, hour)
       if (nextSet.has(key)) {
         nextSet.delete(key)
-        wasAdded = false
       } else {
         nextSet.add(key)
-        wasAdded = true
       }
 
       const next = new Map(prev)
@@ -3382,16 +3380,7 @@ export default function BookPage() {
       else next.set(date, nextSet)
       return next
     })
-
-    // Auto-advance to next step when selecting a slot (not deselecting)
-    if (wasAdded) {
-      haptic.vibrate(12)
-      // Small delay so the green fill animation completes before navigation
-      setTimeout(() => {
-        advance()
-      }, 180)
-    }
-  }, [advance, haptic])
+  }, [haptic])
 
   // Prune/update a single date's slot Set via an updater function (used by
   // Screen1's availability-pruning effect).
