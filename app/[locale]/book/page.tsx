@@ -2696,7 +2696,7 @@ function Screen3({
             animate={termsShake > 0 ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : false}
             transition={{ duration: 0.45 }}
             style={{
-              border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : tokens.colors.border}`,
+              border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : agreedToTerms ? tokens.colors.danger : tokens.colors.border}`,
               borderRadius: tokens.radius.input,
               padding: "14px 16px",
               transition: "border-color 0.2s ease",
