@@ -52,6 +52,12 @@ export async function POST(req: Request) {
     const tier = await resolveTierForUser(user.id)
     const service = getServiceSupabase()
 
+    // Release any prior locks this user holds before acquiring new ones.
+    // find_or_lock_slot skips same-user locks on the *same* slot, but a lock
+    // on a *different* slot stays until TTL — blocking other users for up to
+    // 15 min. Releasing first keeps the board clean on every slot change.
+    await service.rpc('release_my_locks', { p_user_id: user.id })
+
     // ── Multi-block (non-contiguous) path ──────────────────────────────
     if (Array.isArray(body?.blocks)) {
       const blocks: unknown[] = body.blocks

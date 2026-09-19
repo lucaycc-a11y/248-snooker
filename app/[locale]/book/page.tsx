@@ -546,18 +546,10 @@ function DualTableGrid({
     (tn: number, h: number) => {
       const cell = cellStates.get(slotKey(tn, h))
       if (!cell || cell.disabled) return
-      if (cell.state === "locked_by_you" && daySlots) {
-        // Resume the caller's own abandoned hold instead of re-selecting.
-        const own = daySlots.find((s) => s.table_number === tn && s.locked_by_you)
-        if (own) {
-          onResumeLocked(own.date, parseInt(own.start_time.slice(0, 2), 10), Number(own.duration_hours), tn)
-          return
-        }
-      }
       haptic.vibrate(8)
       onToggle(tn, h)
     },
-    [cellStates, daySlots, slotsForDate, haptic, onToggle, onResumeLocked],
+    [cellStates, haptic, onToggle],
   )
 
   // Skeleton laid out as the real dual-column rows.
@@ -612,7 +604,6 @@ function DualTableGrid({
     const { state, past, disabled } = cell
     const booked = state === "booked"
     const locked = state === "locked"
-    const lockedByYou = state === "locked_by_you"
 
     return (
       <button
@@ -622,13 +613,13 @@ function DualTableGrid({
         onClick={() => toggle(tn, h)}
         ref={slotKey(tn, h) === firstAvailableSlotKey ? firstAvailableSlotRef : undefined}
         aria-label={`${t("table_label")} ${tn} ${padTime(h)}`}
-        title={lockedByYou ? t("table_locked_by_you") : locked ? t("table_locked") : undefined}
+        title={locked ? t("table_locked") : undefined}
         style={{
           minHeight: 44,
           padding: "10px 6px",
           borderRadius: tokens.radius.input,
           border: `1px solid ${
-            selected || lockedByYou
+            selected
               ? tokens.colors.link
               : booked
                 ? "rgba(255,69,58,0.35)"
@@ -645,9 +636,7 @@ function DualTableGrid({
               ? "#FF8A80"
               : past || locked
                 ? tokens.colors.textFaint
-                : lockedByYou
-                  ? tokens.colors.link
-                  : tokens.colors.text,
+                : tokens.colors.text,
           fontSize: 13,
           fontWeight: selected ? 700 : 400,
           opacity: past ? 0.35 : 1,
