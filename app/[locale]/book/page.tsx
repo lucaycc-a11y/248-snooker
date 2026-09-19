@@ -659,11 +659,11 @@ function DualTableGrid({
           gap: 4,
         }}
       >
-        {(locked || lockedByYou) && (
-          <Lock size={12} style={{ flexShrink: 0, color: lockedByYou ? tokens.colors.link : undefined }} />
+        {locked && (
+          <Lock size={12} style={{ flexShrink: 0 }} />
         )}
         <span style={{ whiteSpace: "nowrap" }} data-cms-key={booked ? "book.slot_booked" : undefined}>
-          {booked ? t("slot_booked") : lockedByYou ? t("table_resume") : padTime(h)}
+          {booked ? t("slot_booked") : padTime(h)}
         </span>
       </button>
     )
