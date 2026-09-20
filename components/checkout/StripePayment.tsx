@@ -138,10 +138,10 @@ export function clearStripePersistedState() {
 const GREEN = '#1a9d5c'
 const GREEN_BRIGHT = '#22b86b'
 const GREEN_DEEP = '#0f7845'
-// Match booking summary card background: tokens.colors.depth.elevated
-// = rgba(255,255,255,0.06) on graphite #14161A → composite #222428
-const BG = '#222428'
-const SURFACE = '#222428'
+// Form panel surface — one step above graphite (#14161A), reads as grey not black.
+// #111111 was the deliberate fix in a37bbaa; #222428 was a merge regression.
+const BG = '#111111'
+const SURFACE = '#111111'
 const TEXT = '#ffffff'
 const TEXT_MUTED = 'rgba(255,255,255,0.72)'
 const TEXT_FAINT = 'rgba(255,255,255,0.52)'
@@ -164,13 +164,13 @@ const STRIPE_POLL_TIMEOUT_MS = 60_000
 //
 // Color tokens from KPayPayment.tsx (Space8 design system):
 // - GREEN = '#1a9d5c', GREEN_BRIGHT = '#22b86b'
-// - SURFACE = '#111111', BG = '#000000'
+// - SURFACE = '#111111', BG = '#111111'
 // - BORDER = 'rgba(255,255,255,0.1)'
 const appearance: Appearance = {
   theme: "night",
   variables: {
     colorPrimary: "#22b86b",        // GREEN_BRIGHT (KPay 品牌綠)
-    colorBackground: "#000000",      // BG (深黑背景)
+    colorBackground: "#111111",      // BG (深灰背景)
     colorText: "#ffffff",
     colorTextSecondary: "rgba(255,255,255,0.72)", // TEXT_MUTED (KPay)
     borderRadius: "16px",            // 跟 KPay 卡片圓角 (16-20px)
