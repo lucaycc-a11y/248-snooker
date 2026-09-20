@@ -613,7 +613,9 @@ function DualTableGrid({
         aria-label={`${t("table_label")} ${tn} ${padTime(h)}`}
         title={locked ? t("table_locked") : undefined}
         style={{
-              : tokens.colors.depth.recessed,
+          background: selected
+            ? tokens.colors.link
+            : tokens.colors.depth.recessed,
           color: selected
             ? "#000"
             : booked
