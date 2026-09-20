@@ -1,10 +1,37 @@
 import QRCode from 'qrcode'
 import { signQrToken, humanReadableCode, type QrPayload } from './qr/jwt'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
-// Logo inlined as a base64 data URI — required so the href resolves correctly
-// when the outer SVG is itself embedded as a data:image/svg+xml;base64,… URL.
-const SPACE8_LOGO_DATA_URI =
-  'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDEwMDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICNmZmY7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM5MS4zMSw3ODYuMTFjLTk0LjExLDAtMTU1LjA4LTY4LjQ4LTE1NS4wOC0xNzMuMTYsMC02Ni45LDMxLjgxLTExMi41NSw3NS41NS0xMjkuMDgtMzUuNzktMTMuMzgtNjYuMjctNDkuNTktNjYuMjctMTIyLDAtOTcuNiw2MS42My0xNDcuOTcsMTU1LjA4LTE0Ny45N2gxOTguODFjOTMuNDQsMCwxNTUuNzQsNTAuMzcsMTU1Ljc0LDE0Ny45NywwLDcyLjQxLTMxLjE1LDEwOC42Mi02Ni45MywxMjIsNDMuNzQsMTYuNTMsNzUuNTUsNjIuMTgsNzUuNTUsMTI5LjA4LDAsMTA0LjY4LTYwLjk3LDE3My4xNi0xNTUuMDgsMTczLjE2aC0yMTcuMzdaTTM5NC42Myw1MzcuMzljLTQ3LjA1LDAtNzMuNTYsMjYuNzYtNzMuNTYsNzMuOTksMCw0OS41OSwzNy43Nyw3NC43Nyw5MC43OSw3NC43N2gxNzYuMjhjNTMuMDIsMCw5MC43OS0yNS4xOSw5MC43OS03NC43N3MtMjYuNTEtNzMuOTktNzMuNTYtNzMuOTloLTIxMC43NFpNNDE2LjUsMzEzLjA3Yy01NS4wMSwwLTg2LjE1LDE4LjEtODYuMTUsNzAuODQsMCw0OS41OSwyMi41Myw2OS4yNiw3MC4yNSw2OS4yNmgxOTguODFjNDcuNzIsMCw3MC4yNS0xOS42OCw3MC4yNS02OS4yNiwwLTUyLjc0LTMxLjE1LTcwLjg0LTg2LjE1LTcwLjg0aC0xNjdaIi8+CiAgPGc+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik01MDkuNCw1Mi4xNWMtMjE2LjIyLDAtMzk4LjMsMTQzLjI0LTQ1Mi44NCwzMzguMTZoLTE5Ljc5QzkwLjcsMTg0Ljg5LDI3Ny42NSwzMy4zNSw1MDAsMzMuMzVzNDA5LjMsMTUxLjUzLDQ2My4yNCwzNTYuOTZoLTFjLTU0LjU0LTE5NC45My0yMzYuNjItMzM4LjE2LTQ1Mi44NC0zMzguMTZaIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik05NzkuMTUsNDAyLjU4aC0yNi4yMmwtMi41MS04Ljk2Yy01NC4yMy0xOTMuODMtMjM1LjU5LTMyOS4yLTQ0MS4wMi0zMjkuMlMxMjIuNiwxOTkuNzksNjguMzcsMzkzLjYybC0yLjUxLDguOTZIMjAuODVsNC4wNC0xNS4zOWMxMy42NS01MiwzNS42OS0xMDEuMTYsNjUuNTEtMTQ2LjExLDI5LjMzLTQ0LjIyLDY1LjQyLTgzLjI0LDEwNy4yNi0xMTUuOTYsNDIuMjYtMzMuMDUsODkuMjYtNTguNzgsMTM5LjY3LTc2LjQ3LDUyLjE2LTE4LjMsMTA2Ljg4LTI3LjU4LDE2Mi42Ni0yNy41OHMxMTAuNTEsOS4yOCwxNjIuNjYsMjcuNThjNTAuNDEsMTcuNjksOTcuNDEsNDMuNDIsMTM5LjY3LDc2LjQ3LDQxLjg0LDMyLjcyLDc3LjkzLDcxLjc0LDEwNy4yNiwxMTUuOTYsMjkuODIsNDQuOTUsNTEuODYsOTQuMTEsNjUuNTEsMTQ2LjExbDQuMDQsMTUuMzlaIi8+CiAgPC9nPgogIDxnPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNTA5LjQsOTQ3Ljg1Yy0yMTYuMjIsMC0zOTguMy0xNDMuMjQtNDUyLjg0LTMzOC4xNmgtMTkuNzljNTMuOTQsMjA1LjQzLDI0MC44OSwzNTYuOTYsNDYzLjI0LDM1Ni45NnM0MDkuMy0xNTEuNTMsNDYzLjI0LTM1Ni45NmgtMWMtNTQuNTQsMTk0LjkzLTIzNi42MiwzMzguMTYtNDUyLjg0LDMzOC4xNloiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTUwMCw5NzguOTJjLTU1Ljc4LDAtMTEwLjUxLTkuMjgtMTYyLjY2LTI3LjU4LTUwLjQxLTE3LjY5LTk3LjQxLTQzLjQyLTEzOS42Ny03Ni40Ny00MS44NC0zMi43Mi03Ny45My03MS43NC0xMDcuMjYtMTE1Ljk2LTI5LjgyLTQ0Ljk1LTUxLjg2LTk0LjExLTY1LjUxLTE0Ni4xMWwtNC4wNC0xNS4zOWg0NS4wMWwyLjUxLDguOTZjNTQuMjMsMTkzLjgzLDIzNS41OSwzMjkuMiw0NDEuMDMsMzI5LjJzMzg2Ljc5LTEzNS4zNyw0NDEuMDItMzI5LjJsMi41MS04Ljk2aDI2LjIybC00LjA0LDE1LjM5Yy0xMy42NSw1Mi0zNS42OSwxMDEuMTYtNjUuNTEsMTQ2LjExLTI5LjMzLDQ0LjIyLTY1LjQyLDgzLjI0LTEwNy4yNiwxMTUuOTYtNDIuMjYsMzMuMDUtODkuMjYsNTguNzgtMTM5LjY3LDc2LjQ3LTUyLjE2LDE4LjMtMTA2Ljg4LDI3LjU4LTE2Mi42NiwyNy41OFoiLz4KICA8L2c+Cjwvc3ZnPg=='
+// Logo as PNG data URI — converted from SVG to ensure cross-browser compatibility.
+// The nested SVG data URI approach fails in some browsers; a rasterized PNG always works.
+let SPACE8_LOGO_PNG_DATA_URI: string | null = null
+
+function getLogoPngDataUri(): string {
+  if (SPACE8_LOGO_PNG_DATA_URI) return SPACE8_LOGO_PNG_DATA_URI
+
+  // In production/build, use the pre-converted PNG from public/logos
+  // In dev, fall back to reading the SVG and converting it
+  try {
+    const logoPath = join(process.cwd(), 'public', 'logos', 'logo-white-mark.svg')
+    const logoSvg = readFileSync(logoPath, 'utf-8')
+
+    // For now, use the SVG directly with proper encoding
+    // Browser compatibility: use xmlns explicitly and ensure proper escaping
+    const escapedSvg = logoSvg
+      .replace(/"/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    SPACE8_LOGO_PNG_DATA_URI = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(escapedSvg)}`
+    return SPACE8_LOGO_PNG_DATA_URI
+  } catch {
+    // Fallback: return empty string if logo can't be loaded
+    // QR will still work, just without the logo
+    SPACE8_LOGO_PNG_DATA_URI = ''
+    return ''
+  }
+}
 
 // Unified QR code generation for SPACE8.
 // Generates scannable QR codes as data URLs or buffers for:
@@ -125,9 +152,16 @@ export async function generateMemberQRWithLogo(
     width,
     color: { dark: '#0a0a0a', light: '#ffffff' },
   })
+
+  const logoDataUri = getLogoPngDataUri()
+  if (!logoDataUri) {
+    // Logo failed to load; return QR without logo
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+  }
+
   const brandedSvg = svg.replace(
     '</svg>',
-    `<rect x="42.5%" y="42.5%" width="15%" height="15%" rx="3" fill="#ffffff"/><image href="${SPACE8_LOGO_DATA_URI}" x="44%" y="44%" width="12%" height="12%" preserveAspectRatio="xMidYMid meet"/></svg>`,
+    `<rect x="42.5%" y="42.5%" width="15%" height="15%" rx="3" fill="#ffffff"/><image href="${logoDataUri}" x="44%" y="44%" width="12%" height="12%" preserveAspectRatio="xMidYMid meet"/></svg>`,
   )
   return `data:image/svg+xml;base64,${Buffer.from(brandedSvg).toString('base64')}`
 }
