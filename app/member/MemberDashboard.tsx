@@ -1346,9 +1346,6 @@ function BookingSection({
                   <OverflowMenu
                     items={[
                       { label: t("booking_add_calendar"), icon: <CalendarPlus size={15} strokeWidth={2} />, href: calendarLink(b) },
-                      ...(canReschedule(b)
-                        ? [{ label: t("booking_reschedule"), icon: <CalendarClock size={15} strokeWidth={2} />, onClick: () => onReschedule(b) }]
-                        : []),
                     ]}
                     ariaLabel={t("booking_more_actions")}
                   />
