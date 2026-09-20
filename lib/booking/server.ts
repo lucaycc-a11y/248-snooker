@@ -95,6 +95,7 @@ export async function getAvailableTables(
     .select('table_number, date, start_time, duration_hours, status, locked_until')
     .eq('date', date)
     .in('status', ['locked', 'booked'])
+    .eq('is_test', false)
   if (error) {
     console.error('availability_query_error', error.message)
     return [...TABLE_NUMBERS] // fail open — RPC is the real guard
@@ -170,6 +171,7 @@ export async function getDaySlots(date: string, userId: string | null = null): P
     .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
     .in('date', [fmt(prev), date, fmt(next)])
     .in('status', ['locked', 'booked'])
+    .eq('is_test', false)
   if (error) {
     console.error('day_slots_query_error', error.message)
     return []
@@ -205,6 +207,7 @@ export async function getRangeSlots(
     .gte('date', fmt(from))
     .lte('date', fmt(to))
     .in('status', ['locked', 'booked'])
+    .eq('is_test', false)
   if (error) {
     console.error('range_slots_query_error', error.message)
     return []

@@ -216,6 +216,21 @@ export async function POST(req: Request) {
         slotIds = [data.slot_id]
       }
 
+      // UAT: stamp is_test on every locked slot so the availability queries can
+      // filter them out for production customers. The flag is server-derived
+      // (hostname) — never client-supplied — matching the bookings.is_test logic.
+      if (isTestBooking && slotIds.length > 0) {
+        const { error: stampErr } = await service
+          .from('slots')
+          .update({ is_test: true })
+          .in('id', slotIds)
+        if (stampErr) {
+          console.error('[checkout/create] failed to stamp slots.is_test', stampErr.message)
+          // Non-fatal: the booking still proceeds, but the slot may bleed into
+          // prod availability until cleaned up. Log and continue.
+        }
+      }
+
       // Insert one pending booking per locked slot. Read the slot row back from
       // the DB (validateSlotLock) so end_time/period come from the slot record —
       // identical to create-intent, and correct across midnight.
