@@ -51,23 +51,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { action, confirmation } = await request.json()
-
-    // Validate confirmation
-    if (action === 'push' && confirmation !== 'PUSH') {
-      return NextResponse.json({ error: 'Invalid confirmation' }, { status: 400 })
-    }
-    if (action === 'maintenance' && confirmation !== 'PUSH') {
-      return NextResponse.json({ error: 'Invalid confirmation' }, { status: 400 })
-    }
-    if (action === 'go-live' && confirmation !== 'GO LIVE') {
-      return NextResponse.json({ error: 'Invalid confirmation' }, { status: 400 })
-    }
+    const { enableGate } = await request.json()
 
     deployInProgress = true
 
     try {
-      if (action === 'push' || action === 'maintenance') {
+      if (enableGate !== undefined) {
+        // This is a push-to-production action (with or without gate)
         // Fetch latest
         await execAsync('git fetch origin')
 
@@ -109,23 +99,20 @@ export async function POST(request: NextRequest) {
 
         const supabase = await createClient()
 
-        // If maintenance mode, force gate on
-        if (action === 'maintenance') {
-          await supabase
-            .from('site_gate_config')
-            .update({ enabled: true, reason: 'maintenance' })
-            .eq('id', 1)
+        // Update gate based on enableGate param
+        await supabase
+          .from('site_gate_config')
+          .update({
+            enabled: enableGate,
+            reason: enableGate ? 'maintenance' : null
+          })
+          .eq('id', 1)
 
-          await auditLog(userId, 'push_to_maintenance', {
-            from_branch: 'uat',
-            to_branch: 'main',
-          })
-        } else {
-          await auditLog(userId, 'push_to_main', {
-            from_branch: 'uat',
-            to_branch: 'main',
-          })
-        }
+        await auditLog(userId, enableGate ? 'push_to_maintenance' : 'push_to_main', {
+          from_branch: 'uat',
+          to_branch: 'main',
+          gate_enabled: enableGate,
+        })
 
         // Return to uat branch
         await execAsync('git checkout uat')
@@ -133,11 +120,12 @@ export async function POST(request: NextRequest) {
         deployInProgress = false
         return NextResponse.json({
           success: true,
-          action,
-          message: 'Deploy successful. Vercel will deploy automatically.',
+          message: enableGate
+            ? 'Deploy successful. Site gate enabled. Vercel will deploy automatically.'
+            : 'Deploy successful. Vercel will deploy automatically.',
         })
-      } else if (action === 'go-live') {
-        // Open the gate
+      } else {
+        // This is a gate-only toggle (go-live action)
         const supabase = await createClient()
         await supabase
           .from('site_gate_config')
@@ -149,13 +137,9 @@ export async function POST(request: NextRequest) {
         deployInProgress = false
         return NextResponse.json({
           success: true,
-          action,
           message: 'Site is now live',
         })
       }
-
-      deployInProgress = false
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     } catch (error) {
       deployInProgress = false
       throw error

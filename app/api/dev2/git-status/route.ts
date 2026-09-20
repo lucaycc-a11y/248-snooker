@@ -33,19 +33,30 @@ export async function GET() {
     const { stdout: mainSha } = await execAsync('git rev-parse main')
     const { stdout: mainMsg } = await execAsync('git log -1 --pretty=%s main')
 
-    // Check if branches diverged
-    const diverged = uatSha.trim() !== mainSha.trim()
+    // Count commits ahead
+    let uatAhead = 0
+    try {
+      const { stdout: aheadCount } = await execAsync('git rev-list main..uat --count')
+      uatAhead = parseInt(aheadCount.trim(), 10) || 0
+    } catch {
+      // If this fails, just use 0
+    }
+
+    // Get gate status
+    const supabase = await createClient()
+    const { data: gateData } = await supabase
+      .from('site_gate_config')
+      .select('enabled')
+      .eq('id', 1)
+      .single()
 
     return NextResponse.json({
-      uat: {
-        sha: uatSha.trim().substring(0, 7),
-        message: uatMsg.trim(),
-      },
-      main: {
-        sha: mainSha.trim().substring(0, 7),
-        message: mainMsg.trim(),
-      },
-      diverged,
+      uatSha: uatSha.trim(),
+      uatMessage: uatMsg.trim(),
+      mainSha: mainSha.trim(),
+      mainMessage: mainMsg.trim(),
+      uatAhead,
+      gateEnabled: gateData?.enabled || false,
     })
   } catch (error) {
     console.error('Error fetching git status:', error)

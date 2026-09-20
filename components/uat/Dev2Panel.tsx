@@ -21,6 +21,7 @@ import {
 import { X, RefreshCw, Trash2, Check, AlertCircle, GitBranch, Play, Shield, ArrowRight, ShieldAlert, Rocket } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { formatVersion } from '@/lib/version'
+import { toast } from 'sonner'
 
 type EnvInfo = {
   env: string
@@ -174,14 +175,17 @@ function EnvInfoTab() {
         setData(json)
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch((err) => {
+        toast.error('Failed to load environment info')
+        setLoading(false)
+      })
   }, [])
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-muted">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-12">
             <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         </CardContent>
@@ -191,9 +195,9 @@ function EnvInfoTab() {
 
   if (!data) {
     return (
-      <Card>
+      <Card className="border-destructive/50">
         <CardContent className="pt-6">
-          <div className="flex items-center gap-2 text-destructive">
+          <div className="flex items-center gap-2 text-destructive py-4">
             <AlertCircle className="h-5 w-5" />
             <span>Failed to load environment info</span>
           </div>
@@ -203,52 +207,67 @@ function EnvInfoTab() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Environment Information</CardTitle>
+    <Card className="border-muted shadow-sm">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg">Environment Information</CardTitle>
         <CardDescription>Current system state and admin context</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <InfoRow label="Environment" value={data.env} />
-        <Separator />
-        <InfoRow label="Admin Email" value={data.admin.email} />
-        <InfoRow label="Role" value={data.admin.role} />
-        <InfoRow label="Display Name" value={data.admin.displayName || '(none)'} />
-        <Separator />
-        <InfoRow label="Client IP" value={data.clientIp} />
-        <InfoRow
-          label="IP Whitelisted"
-          value={data.isIpWhitelisted ? '✓ Yes' : '✗ No'}
-          badge={data.isIpWhitelisted ? 'default' : 'destructive'}
-        />
-        <Separator />
-        <InfoRow
-          label="Gate Enabled"
-          value={data.gateEnabled ? `✓ Yes (${data.gateReason || 'unknown'})` : '✗ No'}
-          badge={data.gateEnabled ? 'destructive' : 'default'}
-        />
-        <Separator />
-        {data.activeTestPrice && (
+      <CardContent className="space-y-4">
+        <div className="space-y-3">
+          <InfoRow label="Environment" value={data.env} badge={data.env === 'uat' ? 'secondary' : 'default'} />
+          <Separator className="my-3" />
+          <InfoRow label="Admin Email" value={data.admin.email} />
+          <InfoRow label="Role" value={data.admin.role} />
+          <InfoRow label="Display Name" value={data.admin.displayName || '(none)'} />
+          <Separator className="my-3" />
+          <InfoRow label="Client IP" value={data.clientIp} mono />
           <InfoRow
-            label="Active Test Price"
-            value={`${data.activeTestPrice.mode}: HK$${data.activeTestPrice.amount} ${data.activeTestPrice.label ? `(${data.activeTestPrice.label})` : ''}`}
+            label="IP Whitelisted"
+            value={data.isIpWhitelisted ? '✓ Yes' : '✗ No'}
+            badge={data.isIpWhitelisted ? 'default' : 'secondary'}
           />
-        )}
+          <Separator className="my-3" />
+          <InfoRow
+            label="Gate Enabled"
+            value={data.gateEnabled ? `✓ Yes (${data.gateReason || 'unknown'})` : '✗ No'}
+            badge={data.gateEnabled ? 'destructive' : 'default'}
+          />
+          {data.activeTestPrice && (
+            <>
+              <Separator className="my-3" />
+              <InfoRow
+                label="Active Test Price"
+                value={`${data.activeTestPrice.mode}: HK$${data.activeTestPrice.amount} ${data.activeTestPrice.label ? `(${data.activeTestPrice.label})` : ''}`}
+                mono
+              />
+            </>
+          )}
+        </div>
       </CardContent>
     </Card>
   )
 }
 
-function InfoRow({ label, value, badge }: { label: string; value: string; badge?: 'default' | 'destructive' }) {
+function InfoRow({
+  label,
+  value,
+  badge,
+  mono = false,
+}: {
+  label: string
+  value: string
+  badge?: 'default' | 'destructive' | 'secondary'
+  mono?: boolean
+}) {
   return (
-    <div className="flex items-center justify-between py-1">
-      <span className="text-sm text-muted-foreground">{label}</span>
+    <div className="flex items-center justify-between py-2 px-1 rounded hover:bg-muted/50 transition-colors">
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
       {badge ? (
-        <Badge variant={badge} className="font-mono text-xs">
+        <Badge variant={badge} className={`font-mono text-xs px-3 py-1 ${mono ? 'font-mono' : ''}`}>
           {value}
         </Badge>
       ) : (
-        <span className="text-sm font-mono font-semibold">{value}</span>
+        <span className={`text-sm font-semibold ${mono ? 'font-mono' : ''}`}>{value}</span>
       )}
     </div>
   )
@@ -307,10 +326,12 @@ function ActivityLogTab() {
   function copyAll() {
     const text = logs.map((l) => `[${l.timestamp}] ${l.type.toUpperCase()}: ${l.message}`).join('\n')
     navigator.clipboard.writeText(text)
+    toast.success('Copied all logs to clipboard')
   }
 
   function clear() {
     setLogs([])
+    toast.info('Activity log cleared')
   }
 
   const typeColor = (type: string) => {
@@ -329,34 +350,34 @@ function ActivityLogTab() {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-muted shadow-sm">
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Activity Log</CardTitle>
+            <CardTitle className="text-lg">Activity Log</CardTitle>
             <CardDescription>Console output and network requests</CardDescription>
           </div>
-          <span className="text-sm text-muted-foreground">
-            {logs.length} / {maxLogs} entries
-          </span>
+          <Badge variant="secondary" className="text-xs font-mono">
+            {logs.length} / {maxLogs}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2">
-          <Button onClick={copyAll} variant="default" size="sm">
+          <Button onClick={copyAll} variant="default" size="sm" disabled={logs.length === 0}>
             Copy All
           </Button>
-          <Button onClick={clear} variant="secondary" size="sm">
+          <Button onClick={clear} variant="secondary" size="sm" disabled={logs.length === 0}>
             <Trash2 className="h-4 w-4 mr-1" />
             Clear
           </Button>
         </div>
-        <div className="bg-black p-4 rounded-lg max-h-[500px] overflow-auto font-mono text-xs">
-          {logs.length === 0 && <div className="text-muted-foreground">No activity logged yet</div>}
+        <div className="bg-black/95 p-4 rounded-lg max-h-[500px] overflow-auto font-mono text-xs border border-border">
+          {logs.length === 0 && <div className="text-muted-foreground italic">No activity logged yet</div>}
           {logs.map((log, i) => (
             <div key={i} className={`mb-1 ${typeColor(log.type)}`}>
               <span className="text-muted-foreground">[{new Date(log.timestamp).toLocaleTimeString()}]</span>{' '}
-              <span className="text-muted-foreground">{log.type.toUpperCase()}:</span> {log.message}
+              <span className="font-semibold">{log.type.toUpperCase()}:</span> {log.message}
             </div>
           ))}
         </div>
@@ -380,7 +401,11 @@ function PaymentLogTab() {
       if (res.ok) {
         const json = await res.json()
         setPayments(json.payments)
+      } else {
+        toast.error('Failed to load payment log')
       }
+    } catch (err) {
+      toast.error('Failed to load payment log')
     } finally {
       setLoading(false)
     }
@@ -388,9 +413,9 @@ function PaymentLogTab() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-muted">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-12">
             <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         </CardContent>
@@ -399,16 +424,23 @@ function PaymentLogTab() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Payment Log</CardTitle>
-        <CardDescription>Recent bookings and payment status</CardDescription>
+    <Card className="border-muted shadow-sm">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">Payment Log</CardTitle>
+            <CardDescription>Recent bookings and payment status</CardDescription>
+          </div>
+          <Badge variant="secondary" className="text-xs font-mono">
+            {payments.length} records
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto border rounded-lg">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b-2">
+            <thead className="bg-muted/50">
+              <tr className="border-b">
                 <th className="p-3 text-left font-semibold">ID</th>
                 <th className="p-3 text-left font-semibold">Amount</th>
                 <th className="p-3 text-left font-semibold">Method</th>
@@ -418,18 +450,25 @@ function PaymentLogTab() {
               </tr>
             </thead>
             <tbody>
+              {payments.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-6 text-center text-muted-foreground italic">
+                    No payments found
+                  </td>
+                </tr>
+              )}
               {payments.map((p) => (
-                <tr key={p.id} className="border-b">
+                <tr key={p.id} className="border-b hover:bg-muted/30 transition-colors">
                   <td className="p-3 font-mono text-xs">{p.id.slice(0, 8)}</td>
                   <td className="p-3 font-semibold">HK${p.total_price}</td>
-                  <td className="p-3">{p.payment_method}</td>
+                  <td className="p-3 capitalize">{p.payment_method}</td>
                   <td className="p-3">
-                    <Badge variant={p.payment_status === 'completed' ? 'default' : 'secondary'}>
+                    <Badge variant={p.payment_status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                       {p.payment_status}
                     </Badge>
                   </td>
-                  <td className="p-3">{p.is_test ? '✓ Test' : ''}</td>
-                  <td className="p-3 text-xs">{new Date(p.created_at).toLocaleString()}</td>
+                  <td className="p-3">{p.is_test ? <Badge variant="secondary" className="text-xs">Test</Badge> : ''}</td>
+                  <td className="p-3 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -455,7 +494,11 @@ function AuthLogTab() {
       if (res.ok) {
         const json = await res.json()
         setEvents(json.authEvents)
+      } else {
+        toast.error('Failed to load auth log')
       }
+    } catch (err) {
+      toast.error('Failed to load auth log')
     } finally {
       setLoading(false)
     }
@@ -463,9 +506,9 @@ function AuthLogTab() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-muted">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-12">
             <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         </CardContent>
@@ -474,16 +517,23 @@ function AuthLogTab() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Auth Log</CardTitle>
-        <CardDescription>Authentication and authorization events</CardDescription>
+    <Card className="border-muted shadow-sm">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg">Auth Log</CardTitle>
+            <CardDescription>Authentication and authorization events</CardDescription>
+          </div>
+          <Badge variant="secondary" className="text-xs font-mono">
+            {events.length} events
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto border rounded-lg">
           <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b-2">
+            <thead className="bg-muted/50">
+              <tr className="border-b">
                 <th className="p-3 text-left font-semibold">Timestamp</th>
                 <th className="p-3 text-left font-semibold">User</th>
                 <th className="p-3 text-left font-semibold">Action</th>
@@ -491,12 +541,19 @@ function AuthLogTab() {
               </tr>
             </thead>
             <tbody>
+              {events.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="p-6 text-center text-muted-foreground italic">
+                    No auth events found
+                  </td>
+                </tr>
+              )}
               {events.map((e) => (
-                <tr key={e.id} className="border-b">
-                  <td className="p-3 text-xs">{new Date(e.created_at).toLocaleString()}</td>
+                <tr key={e.id} className="border-b hover:bg-muted/30 transition-colors">
+                  <td className="p-3 text-xs text-muted-foreground">{new Date(e.created_at).toLocaleString()}</td>
                   <td className="p-3 font-mono text-xs">{e.user_id.slice(0, 8)}</td>
                   <td className="p-3 font-semibold">{e.action}</td>
-                  <td className="p-3 text-xs font-mono">{JSON.stringify(e.details).slice(0, 60)}</td>
+                  <td className="p-3 text-xs font-mono text-muted-foreground">{JSON.stringify(e.details).slice(0, 60)}</td>
                 </tr>
               ))}
             </tbody>
@@ -527,31 +584,54 @@ function IpWhitelistTab() {
         const json = await res.json()
         setWhitelist(json.whitelist)
         setPending(json.pending)
+      } else {
+        toast.error('Failed to load IP whitelist')
       }
+    } catch (err) {
+      toast.error('Failed to load IP whitelist')
     } finally {
       setLoading(false)
     }
   }
 
   async function addIp() {
-    if (!newIp.trim()) return
-    const res = await fetch('/api/dev2/ip-whitelist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ip: newIp.trim() }),
-    })
-    if (res.ok) {
-      setNewIp('')
-      await fetchData()
+    if (!newIp.trim()) {
+      toast.error('Please enter an IP address')
+      return
+    }
+    try {
+      const res = await fetch('/api/dev2/ip-whitelist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: newIp.trim() }),
+      })
+      if (res.ok) {
+        toast.success(`Added ${newIp.trim()} to whitelist`)
+        setNewIp('')
+        await fetchData()
+      } else {
+        toast.error('Failed to add IP')
+      }
+    } catch (err) {
+      toast.error('Failed to add IP')
     }
   }
 
   async function confirmRemoveIp() {
-    await fetch('/api/dev2/ip-whitelist', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ip: ipToRemove }),
-    })
+    try {
+      const res = await fetch('/api/dev2/ip-whitelist', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: ipToRemove }),
+      })
+      if (res.ok) {
+        toast.success(`Removed ${ipToRemove} from whitelist`)
+      } else {
+        toast.error('Failed to remove IP')
+      }
+    } catch (err) {
+      toast.error('Failed to remove IP')
+    }
     setShowRemoveDialog(false)
     setIpToRemove('')
     await fetchData()
@@ -560,19 +640,28 @@ function IpWhitelistTab() {
   async function approveIp(ip: string) {
     const label = prompt(`Approve ${ip}. Optional label:`)
     if (label === null) return
-    await fetch('/api/dev2/ip-whitelist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ip, label }),
-    })
-    await fetchData()
+    try {
+      const res = await fetch('/api/dev2/ip-whitelist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip, label }),
+      })
+      if (res.ok) {
+        toast.success(`Approved ${ip}`)
+        await fetchData()
+      } else {
+        toast.error('Failed to approve IP')
+      }
+    } catch (err) {
+      toast.error('Failed to approve IP')
+    }
   }
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-muted">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-12">
             <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         </CardContent>
@@ -583,9 +672,9 @@ function IpWhitelistTab() {
   return (
     <>
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Add IP Address</CardTitle>
+        <Card className="border-muted shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Add IP Address</CardTitle>
             <CardDescription>Manually add an IP to the whitelist</CardDescription>
           </CardHeader>
           <CardContent>
@@ -603,26 +692,37 @@ function IpWhitelistTab() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Whitelisted ({whitelist.length})</CardTitle>
-            <CardDescription>Currently approved IP addresses</CardDescription>
+        <Card className="border-muted shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Whitelisted IPs</CardTitle>
+                <CardDescription>Currently approved IP addresses</CardDescription>
+              </div>
+              <Badge variant="secondary" className="text-xs font-mono">
+                {whitelist.length}
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
+              {whitelist.length === 0 && (
+                <div className="p-6 text-center text-muted-foreground italic">No whitelisted IPs</div>
+              )}
               {whitelist.map((w) => (
-                <div key={w.ip_address} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div key={w.ip_address} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-muted hover:bg-muted/50 transition-colors">
                   <div>
-                    <div className="font-mono font-semibold">{w.ip_address}</div>
-                    {w.label && <div className="text-sm text-muted-foreground">{w.label}</div>}
+                    <div className="font-mono font-semibold text-sm">{w.ip_address}</div>
+                    {w.label && <div className="text-sm text-muted-foreground mt-1">{w.label}</div>}
                   </div>
                   <Button
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
                     onClick={() => {
                       setIpToRemove(w.ip_address)
                       setShowRemoveDialog(true)
                     }}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -632,22 +732,32 @@ function IpWhitelistTab() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Requests ({pending.length})</CardTitle>
-            <CardDescription>Blocked access attempts awaiting approval</CardDescription>
+        <Card className="border-muted shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Pending Requests</CardTitle>
+                <CardDescription>Blocked access attempts awaiting approval</CardDescription>
+              </div>
+              <Badge variant="secondary" className="text-xs font-mono">
+                {pending.length}
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
+              {pending.length === 0 && (
+                <div className="p-6 text-center text-muted-foreground italic">No pending requests</div>
+              )}
               {pending.map((p) => (
-                <div key={p.ip} className="flex items-center justify-between p-3 bg-muted rounded-lg gap-4">
+                <div key={p.ip} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-muted gap-4 hover:bg-muted/50 transition-colors">
                   <div className="flex-1">
-                    <div className="font-mono font-semibold">{p.ip}</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="font-mono font-semibold text-sm">{p.ip}</div>
+                    <div className="text-sm text-muted-foreground mt-1">
                       {p.count} attempts · Last: {new Date(p.lastSeen).toLocaleString()}
                     </div>
                     {p.userAgent && (
-                      <div className="text-xs text-muted-foreground mt-1">{p.userAgent.slice(0, 80)}</div>
+                      <div className="text-xs text-muted-foreground mt-2 font-mono">{p.userAgent.slice(0, 80)}</div>
                     )}
                   </div>
                   <Button variant="default" size="sm" onClick={() => approveIp(p.ip)}>
@@ -671,7 +781,7 @@ function IpWhitelistTab() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setIpToRemove('')}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmRemoveIp} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={confirmRemoveIp} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Remove
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -685,6 +795,7 @@ function IpWhitelistTab() {
 function DeployTab() {
   const [status, setStatus] = useState<DeployStatus | null>(null)
   const [loading, setLoading] = useState(true)
+  const [deploying, setDeploying] = useState(false)
   const [showPushDialog, setShowPushDialog] = useState(false)
   const [showMaintenanceDialog, setShowMaintenanceDialog] = useState(false)
   const [showGoLiveDialog, setShowGoLiveDialog] = useState(false)
@@ -700,36 +811,47 @@ function DeployTab() {
       if (res.ok) {
         const json = await res.json()
         setStatus(json)
+      } else {
+        toast.error('Failed to load git status')
       }
+    } catch (err) {
+      toast.error('Failed to load git status')
     } finally {
       setLoading(false)
     }
   }
 
   async function executePush(enableGate: boolean) {
-    const res = await fetch('/api/dev2/deploy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enableGate }),
-    })
-    const json = await res.json()
-    if (res.ok) {
-      alert(`✅ ${json.message}`)
-      await fetchStatus()
-    } else {
-      alert(`❌ ${json.error}`)
+    setDeploying(true)
+    try {
+      const res = await fetch('/api/dev2/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enableGate }),
+      })
+      const json = await res.json()
+      if (res.ok) {
+        toast.success(json.message || 'Deploy successful')
+        await fetchStatus()
+      } else {
+        toast.error(json.error || 'Deploy failed')
+      }
+    } catch (err) {
+      toast.error('Deploy failed')
+    } finally {
+      setDeploying(false)
+      setShowPushDialog(false)
+      setShowMaintenanceDialog(false)
+      setShowGoLiveDialog(false)
+      setConfirmation('')
     }
-    setShowPushDialog(false)
-    setShowMaintenanceDialog(false)
-    setShowGoLiveDialog(false)
-    setConfirmation('')
   }
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-muted">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-12">
             <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         </CardContent>
@@ -744,49 +866,49 @@ function DeployTab() {
   return (
     <>
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Branch Status</CardTitle>
+        <Card className="border-muted shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Branch Status</CardTitle>
             <CardDescription>Current deployment state</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">UAT Branch</div>
-                <div className="font-mono text-xs bg-muted p-2 rounded">
-                  {status.uatSha.slice(0, 7)} — {status.uatMessage}
+              <div className="p-3 bg-muted/30 rounded-lg border border-muted">
+                <div className="text-sm font-medium text-muted-foreground mb-2">UAT Branch</div>
+                <div className="font-mono text-xs">
+                  <span className="font-semibold">{status.uatSha.slice(0, 7)}</span> — {status.uatMessage}
                 </div>
               </div>
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Main Branch</div>
-                <div className="font-mono text-xs bg-muted p-2 rounded">
-                  {status.mainSha.slice(0, 7)} — {status.mainMessage}
+              <div className="p-3 bg-muted/30 rounded-lg border border-muted">
+                <div className="text-sm font-medium text-muted-foreground mb-2">Main Branch</div>
+                <div className="font-mono text-xs">
+                  <span className="font-semibold">{status.mainSha.slice(0, 7)}</span> — {status.mainMessage}
                 </div>
               </div>
             </div>
             <Separator />
-            <div className="flex items-center justify-between">
-              <span className="text-sm">UAT ahead of main</span>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm font-medium">UAT ahead of main</span>
               {isDiverged ? (
-                <Badge variant="secondary" className="font-mono">
+                <Badge variant="secondary" className="font-mono text-xs">
                   +{status.uatAhead} commits
                 </Badge>
               ) : (
-                <Badge variant="default">In sync</Badge>
+                <Badge variant="default" className="text-xs">In sync</Badge>
               )}
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm">Site Gate</span>
-              <Badge variant={status.gateEnabled ? 'destructive' : 'default'}>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-sm font-medium">Site Gate</span>
+              <Badge variant={status.gateEnabled ? 'destructive' : 'default'} className="text-xs">
                 {status.gateEnabled ? '🔒 Enabled' : '🟢 Open'}
               </Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Deployment Actions</CardTitle>
+        <Card className="border-muted shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg">Deployment Actions</CardTitle>
             <CardDescription>Merge and deploy operations</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -794,7 +916,7 @@ function DeployTab() {
               variant="default"
               className="w-full justify-start"
               onClick={() => setShowPushDialog(true)}
-              disabled={!isDiverged}
+              disabled={!isDiverged || deploying}
             >
               <ArrowRight className="h-4 w-4 mr-2" />
               Push to Production (gate unchanged)
@@ -803,13 +925,18 @@ function DeployTab() {
               variant="secondary"
               className="w-full justify-start"
               onClick={() => setShowMaintenanceDialog(true)}
-              disabled={!isDiverged}
+              disabled={!isDiverged || deploying}
             >
               <ShieldAlert className="h-4 w-4 mr-2" />
               Push + Enable Maintenance Mode
             </Button>
             {status.gateEnabled && (
-              <Button variant="default" className="w-full justify-start" onClick={() => setShowGoLiveDialog(true)}>
+              <Button
+                variant="default"
+                className="w-full justify-start bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => setShowGoLiveDialog(true)}
+                disabled={deploying}
+              >
                 <Rocket className="h-4 w-4 mr-2" />
                 Open Site Gate (Go Live)
               </Button>
@@ -826,7 +953,7 @@ function DeployTab() {
             <AlertDialogDescription>
               This will merge <span className="font-mono">uat</span> into <span className="font-mono">main</span> and
               trigger a production deploy. The site gate will remain{' '}
-              <strong>{status.gateEnabled ? 'ENABLED' : 'OPEN'}</strong>.
+              <strong>{status?.gateEnabled ? 'ENABLED' : 'OPEN'}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
@@ -846,7 +973,8 @@ function DeployTab() {
             >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction disabled={confirmation !== 'PUSH'} onClick={() => executePush(status.gateEnabled)}>
+            <AlertDialogAction disabled={confirmation !== 'PUSH' || deploying} onClick={() => executePush(status?.gateEnabled || false)}>
+              {deploying ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
               Push Now
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -882,10 +1010,11 @@ function DeployTab() {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              disabled={confirmation !== 'PUSH'}
+              disabled={confirmation !== 'PUSH' || deploying}
               onClick={() => executePush(true)}
-              className="bg-destructive text-destructive-foreground"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
+              {deploying ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
               Push + Enable Gate
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -919,7 +1048,12 @@ function DeployTab() {
             >
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction disabled={confirmation !== 'GO LIVE'} onClick={() => executePush(false)}>
+            <AlertDialogAction
+              disabled={confirmation !== 'GO LIVE' || deploying}
+              onClick={() => executePush(false)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {deploying ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : null}
               Go Live Now
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -950,13 +1084,15 @@ function QuickActionsTab() {
         }),
       })
       if (res.ok) {
-        alert('✅ Test price updated')
+        toast.success('Test price updated successfully')
         setAmount('')
         setLabel('')
       } else {
         const json = await res.json()
-        alert(`❌ ${json.error}`)
+        toast.error(json.error || 'Failed to update test price')
       }
+    } catch (err) {
+      toast.error('Failed to update test price')
     } finally {
       setLoading(false)
       setShowConfirmDialog(false)
@@ -965,9 +1101,9 @@ function QuickActionsTab() {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>UAT Test Pricing</CardTitle>
+      <Card className="border-muted shadow-sm">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">UAT Test Pricing</CardTitle>
           <CardDescription>Override booking prices for UAT testing</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -1038,7 +1174,10 @@ function QuickActionsTab() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmSubmit}>Confirm</AlertDialogAction>
+            <AlertDialogAction onClick={confirmSubmit} disabled={loading}>
+              {loading ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : null}
+              Confirm
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

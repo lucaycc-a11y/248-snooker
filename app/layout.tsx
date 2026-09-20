@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { UatBadge } from "@/components/uat/UatBadge";
 import { MaintenanceBadge } from "@/components/uat/MaintenanceBadge";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "sonner";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -94,6 +95,7 @@ export default async function RootLayout({
           {children}
           <UatBadge />
           <MaintenanceBadge />
+          <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
       <Script
