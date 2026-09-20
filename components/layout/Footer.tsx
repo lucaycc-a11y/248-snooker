@@ -391,33 +391,16 @@ export default function Footer() {
             justifyContent: 'center',
           }}
         >
-          <div
+          <img
+            src="/logos/stripe-logo.svg"
+            alt="Stripe"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
+              height: '20px',
+              width: 'auto',
+              display: 'block',
               opacity: 0.7,
             }}
-          >
-            <span
-              style={{
-                fontSize: '12px',
-                color: tokens.colors.textFaint,
-                letterSpacing: '0.03em',
-              }}
-            >
-              Secured by
-            </span>
-            <img
-              src="/logos/stripe-logo.svg"
-              alt="Stripe"
-              style={{
-                height: '20px',
-                width: 'auto',
-                display: 'block',
-              }}
-            />
-          </div>
+          />
         </div>
 
         {/* Bottom row — simplified copyright + legal links */}
