@@ -9,7 +9,7 @@ import LegalContent from "./LegalContent";
 
 const BASE = "https://space8.com.hk";
 
-const DOC_IDS: LegalDocId[] = ["terms", "website_terms", "privacy", "accessibility", "refund_policy", "delivery_policy", "brand_statement"];
+const DOC_IDS: LegalDocId[] = ["terms", "website_terms", "privacy", "accessibility", "refund_policy", "delivery_policy", "brand_statement", "cookie_policy"];
 
 function resolveDocId(raw: string | undefined): LegalDocId {
   return (DOC_IDS as string[]).includes(raw ?? "") ? (raw as LegalDocId) : "terms";
@@ -94,6 +94,7 @@ export default async function LegalPage({
           refund_policy: t("nav.refund_policy"),
           delivery_policy: t("nav.delivery_policy"),
           brand_statement: t("nav.brand_statement"),
+          cookie_policy: t("nav.cookie_policy"),
         }}
         documents={documents}
       />

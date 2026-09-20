@@ -8,6 +8,7 @@ import {
   Lock,
   ShieldCheck,
   AlertTriangle,
+  Clock,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { isSlotStillBookable, slotStartInHongKong } from "@/lib/booking/slot-cutoff"
@@ -18,8 +19,8 @@ import { BackButton } from "@/components/shared/BackButton"
 import { ProgressSteps } from "@/components/ui/ProgressSteps"
 import { Starfield } from "@/app/[locale]/Starfield"
 import { AuthCard } from "@/components/auth/AuthCard"
-import StripePayment from "@/components/checkout/StripePayment"
-import StripeMethodSelector from "@/components/checkout/StripeMethodSelector"
+import StripePayment, { clearStripePersistedState } from "@/components/checkout/StripePayment"
+import type { StripePaymentMethod } from "@/components/checkout/StripePayment"
 import StripeCheckoutPayment from "@/components/checkout/StripeCheckoutPayment"
 import StripeElementsWrapper from "@/components/checkout/StripeElementsWrapper"
 import KPayPayment from "@/components/checkout/KPayPayment"
@@ -28,7 +29,7 @@ import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
-import type { PromoResult } from "@/components/checkout/StripePayment"
+import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
@@ -39,6 +40,7 @@ import { useOrderConfirmationPolling, type OrderHoldState } from "@/lib/booking/
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
+import { formatPhoneDisplay } from "@/lib/phone-format"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
@@ -261,14 +263,14 @@ const SLOT_GROUPS: { key: string; hours: number[] }[] = [
   { key: "evening", hours: [18, 19, 20, 21, 22, 23] },
 ]
 
-type TableState = "available" | "locked_by_you" | "locked" | "booked"
+type TableState = "available" | "locked" | "booked"
 
 // Per-table state for [startHour, startHour+duration) on `dateStr`, given the
 // day's booked/active-locked slots. Pure + client-side so it drives both the wheel
 // greying (Step 2) and the table list (Step 3) without extra API calls.
-// "locked_by_you" = the caller's OWN active hold (e.g. an abandoned checkout) —
-// clickable, resumes straight to payment (see onResumeLocked). "locked" =
-// someone else's active 15-min hold; "booked" = confirmed.
+// "locked" = someone else's active 15-min hold; "booked" = confirmed.
+// locked_by_you slots from the API are treated as "available" — the current
+// user's own hold never blocks them from reselecting that slot.
 function tableStatesFor(
   daySlots: DaySlot[],
   dateStr: string,
@@ -290,9 +292,10 @@ function tableStatesFor(
     const eEnd = new Date(eStart)
     eEnd.setHours(eEnd.getHours() + Number(s.duration_hours))
     if (eStart < reqEnd && reqStart < eEnd) {
+      if (s.locked_by_you) continue  // own hold → stays "available"
       states.set(
         s.table_number,
-        s.status === "booked" ? "booked" : s.locked_by_you ? "locked_by_you" : "locked",
+        s.status === "booked" ? "booked" : "locked",
       )
     }
   }
@@ -382,7 +385,6 @@ function DualTableGrid({
   slotsForDate,
   totalSelectedHours,
   onToggle,
-  onResumeLocked,
   firstAvailableSlotRef,
 }: {
   selectedDate: Date
@@ -391,7 +393,6 @@ function DualTableGrid({
   slotsForDate: Set<string>
   totalSelectedHours: number
   onToggle: (table: number, hour: number) => void
-  onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
   firstAvailableSlotRef: React.RefObject<HTMLButtonElement>
 }) {
   const t = useTranslations("book")
@@ -500,9 +501,8 @@ function DualTableGrid({
       const perTable = daySlots ? tableStatesFor(daySlots, dateStr, h, 1) : null
       for (const tn of ALL_TABLES) {
         const state: TableState = perTable?.get(tn) ?? "available"
-        // Only confirmed bookings are non-selectable; transient locks (whether
-        // owned by this user or another) are treated as available.
-        const disabled = past || state === "booked"
+        // Only someone else's lock or a confirmed booking disables the cell.
+        const disabled = past || state === "booked" || state === "locked"
         states.set(slotKey(tn, h), { state, past, disabled })
       }
     }
@@ -544,18 +544,10 @@ function DualTableGrid({
     (tn: number, h: number) => {
       const cell = cellStates.get(slotKey(tn, h))
       if (!cell || cell.disabled) return
-      if (cell.state === "locked_by_you" && daySlots) {
-        // Resume the caller's own abandoned hold instead of re-selecting.
-        const own = daySlots.find((s) => s.table_number === tn && s.locked_by_you)
-        if (own) {
-          onResumeLocked(own.date, parseInt(own.start_time.slice(0, 2), 10), Number(own.duration_hours), tn)
-          return
-        }
-      }
       haptic.vibrate(8)
       onToggle(tn, h)
     },
-    [cellStates, daySlots, slotsForDate, haptic, onToggle, onResumeLocked],
+    [cellStates, haptic, onToggle],
   )
 
   // Skeleton laid out as the real dual-column rows.
@@ -610,7 +602,6 @@ function DualTableGrid({
     const { state, past, disabled } = cell
     const booked = state === "booked"
     const locked = state === "locked"
-    const lockedByYou = state === "locked_by_you"
 
     return (
       <button
@@ -620,22 +611,8 @@ function DualTableGrid({
         onClick={() => toggle(tn, h)}
         ref={slotKey(tn, h) === firstAvailableSlotKey ? firstAvailableSlotRef : undefined}
         aria-label={`${t("table_label")} ${tn} ${padTime(h)}`}
-        title={undefined}
+        title={locked ? t("table_locked") : undefined}
         style={{
-          minHeight: 44,
-          padding: "10px 6px",
-          borderRadius: tokens.radius.input,
-          border: `1px solid ${
-            selected
-              ? tokens.colors.link
-              : booked
-                ? "rgba(255,69,58,0.35)"
-                : tokens.colors.border
-          }`,
-          background: selected
-            ? tokens.colors.link
-            : booked
-              ? "rgba(255,69,58,0.08)"
               : tokens.colors.depth.recessed,
           color: selected
             ? "#000"
@@ -655,6 +632,9 @@ function DualTableGrid({
           gap: 4,
         }}
       >
+        {locked && (
+          <Lock size={12} style={{ flexShrink: 0 }} />
+        )}
         <span style={{ whiteSpace: "nowrap" }} data-cms-key={booked ? "book.slot_booked" : undefined}>
           {booked ? t("slot_booked") : padTime(h)}
         </span>
@@ -1402,7 +1382,7 @@ function SummaryCard({
             <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
               {t("date")}
             </span>
-            <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint }}>
               {ready
                 ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`
                 : dash}
@@ -1410,11 +1390,17 @@ function SummaryCard({
           </div>
           {single ? (
             <>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                   {t("time_slot")}
                 </span>
-                <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint, display: "flex", alignItems: "center", gap: 6 }}>
+                  {ready && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  )}
                   {ready
                     ? `${padTime(single.startHour)} – ${padTime(endHour)}${crossDay ? " +1日" : ""}`
                     : dash}
@@ -1424,7 +1410,7 @@ function SummaryCard({
                 <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                   {t("duration")}
                 </span>
-                <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
+                <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint }}>
                   {ready ? `${single.duration}${t("hours")}` : dash}
                 </span>
               </div>
@@ -1434,7 +1420,7 @@ function SummaryCard({
               <span style={{ fontSize: 13, color: tokens.colors.textFaint }}>
                 {t("time_slot")}
               </span>
-              <span style={{ fontSize: 15, fontWeight: 500, color: ready ? undefined : tokens.colors.textFaint }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint }}>
                 {ready ? t("slots_selected", { count: runs.length }) + ` · ${totalHours}${t("hours")}` : dash}
               </span>
             </div>
@@ -1552,7 +1538,6 @@ function Screen1({
   orderTotal,
   removeRun,
   onContinue,
-  onResumeLocked,
   availability,
   monthAvailability,
   periods,
@@ -1568,7 +1553,6 @@ function Screen1({
   orderTotal: number
   removeRun: (run: SelectedBlock) => void
   onContinue: () => void
-  onResumeLocked: (date: string, startHour: number, duration: number, tableNumber: number) => void
   availability: ReturnType<typeof useAvailabilityCache>
   monthAvailability: ReturnType<typeof useMonthAvailability>
   periods: PricingPeriod[]
@@ -1716,7 +1700,6 @@ function Screen1({
               slotsForDate={slotsForDate}
               totalSelectedHours={totalSelectedHours}
               onToggle={(table, hour) => { onToggleSlot(dateStr, table, hour); scrollIntoViewIfNeeded(summaryRef) }}
-              onResumeLocked={onResumeLocked}
               firstAvailableSlotRef={firstAvailableSlotRef}
             />
           </div>
@@ -2026,11 +2009,18 @@ function Screen3({
   const duration = primary?.duration ?? 0
   const tableNumber = primary?.tableNumber ?? 0
 
-  const total = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
+  const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
   const totalSaved = blocks.reduce(
     (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
     0,
   )
+  // Apply promo discount if present
+  const promoDiscount = promoCode?.discount_amount ?? 0
+  const total = Math.max(0, subtotal - promoDiscount)
+  // The zero-amount rail. Requires a real priced cart AND an applied code —
+  // `total === 0` alone is also true for an empty cart, which must not surface
+  // the free-booking CTA.
+  const isFreeCheckout = subtotal > 0 && promoCode !== null && total === 0
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
   useEffect(() => {
@@ -2086,6 +2076,65 @@ function Screen3({
       setTestConfirming(false)
     }
   }, [blocks, dateStr, startHour, duration, tableNumber, agreedToTerms, flagTermsRequired])
+
+  // Free booking confirm handler (when promo brings total to $0)
+  const [freeConfirming, setFreeConfirming] = useState(false)
+  const [freeError, setFreeError] = useState<string | null>(null)
+
+  const handleFreeConfirm = useCallback(async () => {
+    if (!agreedToTerms) {
+      flagTermsRequired()
+      return
+    }
+    setFreeConfirming(true)
+    setFreeError(null)
+    try {
+      const body = {
+        blocks: blocks.map((b) => ({
+          date: b.date,
+          startHour: b.startHour,
+          duration: b.duration,
+          tableNumber: b.tableNumber
+        })),
+        promoCode: promoCode?.code,
+      }
+      const res = await fetch("/api/booking/free-confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        // The route re-derives the total server-side. If it no longer lands on
+        // zero, the promo does not actually cover this cart — drop the code so
+        // the payment selector comes back rather than stranding the user on a
+        // free-booking CTA that can never succeed.
+        if (json.error === "payment_required") {
+          onPromoChange(null)
+          setFreeError(t("promo_no_longer_free") || "This promo code no longer covers the full amount. Please select a payment method.")
+          setFreeConfirming(false)
+          return
+        }
+        const reason = typeof json.error === "string" ? json.error : ""
+        const mapped =
+          reason === "usage_limit_reached" || reason === "user_limit_reached"
+            ? t("promo_already_used")
+            : reason === "expired" || reason === "invalid" || reason === "inactive"
+              ? t("promo_invalid")
+              : reason === "min_order_not_met"
+                ? t("promo_min_cart")
+                : null
+        setFreeError(mapped || json.detail || reason || "Free booking failed")
+        setFreeConfirming(false)
+        return
+      }
+      // Navigate to confirmation
+      window.location.href = `/book?bookingId=${json.primaryBookingId}&redirect_status=succeeded`
+    } catch (e) {
+      setFreeError((e as Error).message)
+      setFreeConfirming(false)
+    }
+  }, [blocks, promoCode, agreedToTerms, flagTermsRequired, onPromoChange, t])
 
   return (
     <div className={`screen-content${!testMode && !confirmed ? " pay-screen" : ""}`}>
@@ -2163,8 +2212,9 @@ function Screen3({
                   }}
                 >
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, fontVariantNumeric: "tabular-nums", marginBottom: 4 }}>
-                      {Number(m)}/{Number(d)} · {padTime(b.startHour)}–{padTime(blockEnd)}{blockEnd >= 24 ? " +1" : ""}
+                    <div style={{ fontSize: 18, fontWeight: 800, fontVariantNumeric: "tabular-nums", marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
+                      <Clock size={16} style={{ flexShrink: 0, opacity: 0.7 }} />
+                      <span>{Number(m)}/{Number(d)} · {padTime(b.startHour)}–{padTime(blockEnd)}{blockEnd >= 24 ? " +1" : ""}</span>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: tokens.colors.textMuted, flexWrap: "wrap" }}>
                       <span>{displayName}</span>
@@ -2173,7 +2223,7 @@ function Screen3({
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
                       {detail.saved > 0 && (
                         <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
                       )}
@@ -2236,7 +2286,7 @@ function Screen3({
                 {profile.name && <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 2 }}>{profile.name}</div>}
                 {(profile.email || profile.phone) && (
                   <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
-                    {[profile.email, profile.phone].filter(Boolean).join(" · ")}
+                    {[profile.email, profile.phone ? formatPhoneDisplay(profile.phone) : null].filter(Boolean).join(" · ")}
                   </div>
                 )}
               </div>
@@ -2254,7 +2304,7 @@ function Screen3({
           >
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.pay.subtotal">{t("subtotal")}</span>
-              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}><BookingPrice amount={total + totalSaved} /></span>
+              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}><BookingPrice amount={subtotal + totalSaved} /></span>
             </div>
             {totalSaved > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
@@ -2262,6 +2312,27 @@ function Screen3({
                 <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>−<BookingPrice amount={totalSaved} /></span>
               </div>
             )}
+
+            {/* Promo code input */}
+            <div style={{ margin: "16px 0" }}>
+              <PromoCodeInput
+                originalTotal={subtotal}
+                onApply={onPromoChange}
+                onRemove={() => onPromoChange(null)}
+                activeCode={promoCode}
+                labels={{
+                  placeholder: t("promo_placeholder") || "優惠碼",
+                  applyLabel: t("promo_apply") || "應用",
+                  removeLabel: t("promo_remove") || "移除",
+                  discountLabel: t("promo_discount") || "折扣",
+                  invalidLabel: t("promo_invalid") || "無效代碼",
+                  expiredLabel: t("promo_expired") || "代碼已過期",
+                  minCartLabel: t("promo_min_cart") || "未達最低消費",
+                  validatingLabel: t("promo_validating") || "驗證中...",
+                }}
+              />
+            </div>
+
             {/* Points earned row */}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.points_earned_label">{t("points_earned_label")}</span>
@@ -2277,11 +2348,18 @@ function Screen3({
             </div>
           </div>
 
-          {/* Trust strip */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, fontSize: 12.5, color: tokens.colors.textFaint }}>
-            <Lock size={14} style={{ color: tokens.colors.link, flexShrink: 0 }} />
-            <span data-cms-key="book.pay.secure">{t("kpay_secure")}</span>
-          </div>
+          {/* Trust strip — names the provider that will actually handle the
+              charge, so it is suppressed on the zero-amount rail where none is. */}
+          {!isFreeCheckout && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, fontSize: 12.5, color: tokens.colors.textFaint }}>
+              <Lock size={14} style={{ color: tokens.colors.link, flexShrink: 0 }} />
+              <span data-cms-key="book.pay.secure">
+                {(process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") === "stripe"
+                  ? t("stripe_secure")
+                  : t("kpay_secure")}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* ── RIGHT: Payment ── */}
@@ -2335,70 +2413,82 @@ function Screen3({
             </div>
           )}
 
-          {/* Payment method selection — hidden when test mode is active */}
-          {!testMode && (
+          {/* Payment method selection — hidden when test mode is active or when total is $0 */}
+          {!testMode && !isFreeCheckout && (
             <>
-              {/* Provider-specific payment UI */}
               {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
-                /* ── Stripe: Single-stage 6-row selector with inline PaymentElement ── */
-                <StripeMethodSelector
-                  date={blocks[0]?.date ?? ''}
-                  startHour={blocks[0]?.startHour ?? 0}
-                  duration={blocks[0]?.duration ?? 0}
-                  tableNumber={blocks[0]?.tableNumber ?? 1}
+                /* ── Stripe: Direct to Payment Element (skip PaymentMethodList) ── */
+                <StripePayment
                   blocks={blocks.map((b) => ({
                     date: b.date,
                     startHour: b.startHour,
                     duration: b.duration,
                     tableNumber: b.tableNumber as 1 | 2,
                   }))}
-                  total={total}
-                  promoCode={promoCode}
-                  onPromoChange={onPromoChange}
-                  pointsAmount={0}
-                  locale={locale as 'zh-HK' | 'zh-CN' | 'en'}
-                  returnPath={`/${locale}/book`}
-                  billingDetails={profile ? {
-                    name: profile.name,
-                    email: profile.email,
-                    phone: profile.phone,
-                  } : undefined}
-                  onBackToSlots={onBackToSlots}
-                  payLabel={t("pay_label") || "Pay"}
-                  processingLabel={t("processing_label") || "Processing..."}
-                  errorLabel={t("error_label") || "Payment failed"}
-                  loadingLabel={t("loading_label") || "Loading..."}
-                  comingSoonLabel={t("coming_soon_label") || "即將推出"}
-                  lockHoldLabel={t("lock_hold_label") || "Slot reserved"}
-                  slotTakenLabel={t("slot_taken_label") || "This slot was just taken"}
-                  bookingExpiredLabel={t("booking_expired_label") || "Booking expired"}
-                  bookingExpiredDescLabel={t("booking_expired_desc_label") || "Your hold period expired"}
-                  paymentFailedLabel={t("payment_failed_label") || "Payment failed"}
-                  whatsappSupportLabel={t("whatsapp_support_label") || "Contact support"}
-                  retryPaymentLabel={t("retry_payment_label") || "Try again"}
-                  backToSlotsLabel={t("back_to_slots_label") || "Back to slots"}
-                  qrInstructionLabel={t("qr_instruction_label") || "您將看到一個二維碼，請使用微信支付掃描以完成付款"}
-                  payDisabled={!agreedToTerms}
-                  onDisabledPayClick={flagTermsRequired}
+                  method="card"
+                  labels={{
+                    title: t("stripe_title") || "付款",
+                    pending: t("stripe_qr_scan") || `請用微信支付掃描以下二維碼`,
+                    pending_desc: t("stripe_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
+                    pending_confirmation: t("stripe_pending_confirmation") || "確認付款中",
+                    pending_confirmation_desc: t("stripe_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
+                    success: t("stripe_success") || "付款成功",
+                    success_desc: t("stripe_success_desc") || "你的預訂已確認",
+                    failed: t("stripe_failed") || "付款失敗",
+                    failed_desc: t("stripe_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
+                    expired: t("stripe_expired") || "二維碼已過期",
+                    expired_desc: t("stripe_expired_desc") || "此二維碼已過期，新二維碼即將自動生成",
+                    regenerate: t("stripe_regenerate") || "重新生成",
+                    try_again: t("stripe_try_again") || "重試",
+                    countdown: t("stripe_countdown") || "二維碼將於 {time} 後過期",
+                    help: t("stripe_help") || "需要幫助？",
+                    support_whatsapp: t("stripe_support_whatsapp") || "WhatsApp 客服",
+                    back_to_methods: t("stripe_back_to_methods") || "返回選擇時段",
+                    waited: t("stripe_waited") || "已等待 {seconds} 秒",
+                    cancelled: t("stripe_cancelled") || "付款已取消",
+                    cancelled_desc: t("stripe_cancelled_desc") || "此預訂已取消，已釋放時段。",
+                    cancel: t("stripe_cancel") || "取消預訂",
+                    processing: t("stripe_processing") || "處理中…",
+                    terms_required: t("terms_required_hint"),
+                  }}
+                  agreedToTerms={agreedToTerms}
+                  returnUrl={`${window.location.origin}/${locale}/book`}
+                  locale={locale}
+                  onBackToMethods={() => {
+                    clearStripePersistedState()
+                    setConfirmed(false)
+                    setPaymentMethod(null)
+                    // Clean navigation — remove all Stripe redirect parameters
+                    window.location.href = '/book'
+                  }}
+                  onSuccess={(returnedBookingId) => {
+                    if (returnedBookingId) {
+                      window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
+                    }
+                  }}
                 />
               ) : !confirmed ? (
-                /* ── KPay: Two-stage flow (PaymentMethodList → KPayPayment) ── */
+                /* ── KPay: Stage 1 - PaymentMethodList ── */
                 <PaymentMethodList
                   selected={paymentMethod}
                   onSelect={(method) => {
                     setPaymentError(null)
                     setPaymentMethod(method)
                     scrollIntoViewIfNeeded(payCtaRef)
-                    const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
 
-                    if (kpayMethods.includes(method as KPayMethod)) {
-                      setKpayMethod(method as KPayMethod)
-                      setKpayMode(isDesktopDevice() ? "qr" : "h5")
+                    const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
+
+                    if (provider === 'kpay') {
+                      const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
+                      if (kpayMethods.includes(method as KPayMethod)) {
+                        setKpayMethod(method as KPayMethod)
+                        setKpayMode(isDesktopDevice() ? "qr" : "h5")
+                      }
                     }
                   }}
                 />
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
-                /* ── KPay payment (card via CNP Hosted + all direct-connect methods) ── */
+                /* ── KPay: Stage 2 - Payment ── */
                 <>
                   <KPayPayment
                     blocks={blocks.map((b) => ({
@@ -2447,7 +2537,7 @@ function Screen3({
                     }}
                     onSuccess={(returnedBookingId) => {
                       if (returnedBookingId) {
-                        window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=returned`
+                        window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
                       }
                     }}
                   />
@@ -2515,6 +2605,60 @@ function Screen3({
             </div>
           )}
 
+          {/* Free booking: show when total is $0 (promo code brought it to zero) */}
+          {!testMode && isFreeCheckout && (
+            <div
+              style={{
+                background: "rgba(34,197,94,0.08)",
+                border: "1px solid rgba(34,197,94,0.25)",
+                borderRadius: tokens.radius.card,
+                padding: 24,
+                marginBottom: 20,
+              }}
+            >
+              <div
+                style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.link, marginBottom: 8 }}
+              >
+                {t("free_booking_title") || "🎉 Free Booking"}
+              </div>
+              <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 16, lineHeight: 1.5 }}>
+                {t("free_booking_desc") || "Your promo code covers the full amount. Click below to confirm your booking — no payment required."}
+              </div>
+              {freeError && (
+                <div style={{ fontSize: 13, color: tokens.colors.danger, marginBottom: 12, padding: "8px 12px", background: "rgba(255,69,58,0.08)", borderRadius: tokens.radius.input }}>
+                  {freeError}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleFreeConfirm}
+                disabled={freeConfirming}
+                style={{
+                  width: "100%",
+                  height: 54,
+                  border: "none",
+                  borderRadius: tokens.radius.button,
+                  background: freeConfirming ? "rgba(255,255,255,0.15)" : tokens.colors.link,
+                  color: freeConfirming ? "rgba(255,255,255,0.6)" : "#000",
+                  fontWeight: 700,
+                  fontSize: 17,
+                  cursor: freeConfirming ? "not-allowed" : "pointer",
+                  transition: `background ${tokens.duration.fast}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                {freeConfirming ? (
+                  <>{t("processing")}</>
+                ) : (
+                  <>{t("confirm_free_booking") || "Confirm Free Booking"}</>
+                )}
+              </button>
+            </div>
+          )}
+
           {/* Terms — visually quieter than payment method cards */}
           <motion.div
             key={termsShake}
@@ -2522,9 +2666,9 @@ function Screen3({
             animate={termsShake > 0 ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : false}
             transition={{ duration: 0.45 }}
             style={{
-              border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : "transparent"}`,
+              border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : agreedToTerms ? tokens.colors.danger : tokens.colors.border}`,
               borderRadius: tokens.radius.input,
-              padding: "6px 8px",
+              padding: "14px 16px",
               transition: "border-color 0.2s ease",
               marginBottom: 16,
             }}
@@ -2555,10 +2699,10 @@ function Screen3({
                   height: 18,
                   marginTop: 1,
                   flexShrink: 0,
-                  border: `1px solid ${agreedToTerms ? tokens.colors.link : tokens.colors.borderStrong}`,
+                  border: `1px solid ${agreedToTerms ? tokens.colors.danger : tokens.colors.borderStrong}`,
                   borderRadius: 4,
-                  background: agreedToTerms ? tokens.colors.link : "transparent",
-                  color: tokens.colors.brandText,
+                  background: "transparent",
+                  color: tokens.colors.danger,
                   display: "grid",
                   placeItems: "center",
                   fontSize: 13,
@@ -2573,7 +2717,7 @@ function Screen3({
               >
                 {t("terms_agree_prefix")}{" "}
                 <a
-                  href="/venue"
+                  href="/legal"
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
@@ -2724,8 +2868,11 @@ function Screen3({
           so the customer sees what they are about to be charged with. Pinned to
           the bottom on phone AND desktop, mirroring the slot-picker's continue
           bar. Hidden once confirmed — from then on the payment component owns
-          the screen and has its own actions. */}
-      {!testMode && !confirmed && (
+          the screen and has its own actions.
+
+          Stripe: This CTA is KPay-specific (it triggers the 2-stage KPay flow).
+          Stripe users skip directly to Payment Element, so hide this button. */}
+      {!testMode && !confirmed && process.env.NEXT_PUBLIC_PAYMENT_PROVIDER !== 'stripe' && (
         <div ref={payCtaRef} className="pay-cta">
           <div className="pay-cta-inner">
             <button
@@ -3056,9 +3203,12 @@ function ConfirmingPayment({
 
 /**
  * Stateful wrapper that owns the retry lifecycle so the BookPage root doesn't
- * carry ephemeral retry/retrying state. The retry endpoint calls the DB RPC
- * `retry_payment_failed_booking` and then re-creates the KPay order by
- * redirecting back to /book with the same booking.
+ * carry ephemeral retry/retrying state.
+ *
+ * **Problem 2 fix**: The old retry flow (POST /api/checkout/retry → redirect
+ * with bookingId) didn't work reliably. New behavior: "重新付款" simply calls
+ * onBackToSlots() to reset the entire booking flow, letting the user pick
+ * slots fresh. No server-side retry endpoint, no stale booking resurrection.
  */
 function ConfirmingPaymentContainer({
   bookingId,
@@ -3071,58 +3221,17 @@ function ConfirmingPaymentContainer({
   hold: OrderHoldState
   onBackToSlots: () => void
 }) {
-  const [retrying, setRetrying] = useState(false)
-  const [retryError, setRetryError] = useState<string | null>(null)
-
-  const handleRetry = useCallback(async () => {
-    if (retrying) return
-    setRetrying(true)
-    setRetryError(null)
-
-    try {
-      const res = await fetch("/api/checkout/retry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId }),
-      })
-      const payload: unknown = await res.json().catch(() => null)
-      if (!res.ok) {
-        const message =
-          payload && typeof payload === "object" && !Array.isArray(payload)
-            ? (payload as Record<string, unknown>).error
-            : undefined
-        setRetryError(typeof message === "string" ? message : "Unable to retry payment")
-        return
-      }
-
-      // RPC succeeded — the booking is reset to `pending` with no provider
-      // order. Redirect to /book with the booking ID so the checkout flow
-      // picks it up in Mode B (existing bookingId) and creates a fresh KPay
-      // order. This full-page nav clears stale component state cleanly.
-      const orderGroupId =
-        payload && typeof payload === "object" && !Array.isArray(payload)
-          ? (payload as Record<string, unknown>).orderGroupId
-          : undefined
-      try {
-        sessionStorage.setItem(
-          "kpayRetry",
-          JSON.stringify({ bookingId, orderGroupId: orderGroupId ?? null }),
-        )
-      } catch {}
-      window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=retry`
-    } catch {
-      setRetryError("Network error — please try again")
-    } finally {
-      setRetrying(false)
-    }
-  }, [bookingId, retrying])
+  // Retry now just resets to slot selection
+  const handleRetry = useCallback(() => {
+    onBackToSlots()
+  }, [onBackToSlots])
 
   return (
     <ConfirmingPayment
       reason={reason}
       hold={hold}
-      retrying={retrying}
-      retryError={retryError}
+      retrying={false}
+      retryError={null}
       onRetry={handleRetry}
       onBackToSlots={onBackToSlots}
     />
@@ -3231,23 +3340,33 @@ export default function BookPage() {
     if (promoCode) sessionStorage.removeItem('pendingPromo')
   }, [promoCode])
 
+  // Step navigation: advance to next screen
+  const advance = useCallback(() => {
+    direction.current = 1
+    setScreen((s) => Math.min(s + 1, 3))
+  }, [])
+
   // Toggle one (table, hour) slot on/off for a given date. Deletes the date's
   // map entry entirely when its Set becomes empty, so the map never
   // accumulates empty entries.
   const toggleSlot = useCallback((date: string, table: number, hour: number) => {
+    haptic.vibrate(12)
     setSelectedSlotsByDate((prev) => {
       const prevSet = prev.get(date) ?? EMPTY_SET
       const nextSet = new Set(prevSet)
       const key = slotKey(table, hour)
-      if (nextSet.has(key)) nextSet.delete(key)
-      else nextSet.add(key)
+      if (nextSet.has(key)) {
+        nextSet.delete(key)
+      } else {
+        nextSet.add(key)
+      }
 
       const next = new Map(prev)
       if (nextSet.size === 0) next.delete(date)
       else next.set(date, nextSet)
       return next
     })
-  }, [])
+  }, [haptic])
 
   // Prune/update a single date's slot Set via an updater function (used by
   // Screen1's availability-pruning effect).
@@ -3419,6 +3538,22 @@ export default function BookPage() {
       return
     }
 
+    const redirectStatus = params.get("redirect_status")
+    // Guard: if redirect_status exists but is not a recognized value (succeeded,
+    // processing, requires_payment_method, failed, methods, retry), treat it as
+    // a malformed return and clear state to prevent UI freeze.
+    const recognizedStatuses = ["succeeded", "processing", "requires_payment_method", "failed", "methods", "retry"]
+    if (redirectStatus && !recognizedStatuses.includes(redirectStatus)) {
+      console.warn(`[Book] Unknown redirect_status="${redirectStatus}" — clearing state and redirecting to booking form`)
+      clearKPayPersistedState()
+      setKpayResumeData(null)
+      setConfirmBookingId(null)
+      setConfirmRecoveryReason(null)
+      setConfirmError(false)
+      window.history.replaceState(null, "", `/book`)
+      return
+    }
+
     // A KPay return is deliberately neutral: only the authenticated status
     // endpoint can decide whether payment failed or the booking was confirmed.
     // The provider return is handled by the status poll below. Clear the
@@ -3543,31 +3678,6 @@ export default function BookPage() {
 
   const direction = useRef(1)
 
-  const advance = useCallback(() => {
-    direction.current = 1
-    setScreen((s) => Math.min(s + 1, 3))
-  }, [])
-
-  // Resume a slot the caller already has locked (e.g. an abandoned checkout)
-  // instead of re-picking: adopt its date/hour/table into the order state and
-  // jump straight to the payment screen. StripePayment's lock-on-mount effect
-  // re-locks as the same user, which the RPC treats as a no-op refresh of
-  // locked_until — never re-validates as "taken."
-  const resumeLockedSlot = useCallback(
-    (date: string, startHour: number, duration: number, tableNumber: number) => {
-      setSelectedSlotsByDate(() => {
-        const slots = new Set<string>()
-        for (let h = startHour; h < startHour + duration; h++) slots.add(slotKey(tableNumber, h))
-        return new Map([[date, slots]])
-      })
-      const d = new Date(`${date}T00:00:00`)
-      if (!Number.isNaN(d.getTime())) setSelectedDate(d)
-      direction.current = 1
-      setScreen(2)
-    },
-    [],
-  )
-
   // Backward-only step navigation from the progress bar. Forward jumps are never
   // allowed (can't skip to payment from time-select). Not available once the
   // booking is confirmed (screen 3) — that flow is terminal. Going back from
@@ -3691,7 +3801,6 @@ export default function BookPage() {
                   orderTotal={orderTotal}
                   removeRun={removeRun}
                   onContinue={advance}
-                  onResumeLocked={resumeLockedSlot}
                   availability={availability}
                   monthAvailability={monthAvailability}
                   periods={periods}

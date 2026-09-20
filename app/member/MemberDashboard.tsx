@@ -35,6 +35,7 @@ import type { MemberData, MemberBooking } from "@/lib/data/getMember";
 import RefundConfirmModal from "@/components/member/RefundConfirmModal";
 import ReschedulePicker from "@/components/member/ReschedulePicker";
 import MemberQrGuide from "@/components/member/MemberQrGuide";
+import DeleteDataModal from "@/components/member/DeleteDataModal";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
 import { Logo } from "@/components/brand";
@@ -613,7 +614,7 @@ export default function MemberDashboard({
                 </>
               )}
               {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} />}
-              {tab === "settings" && <SettingsTab user={user} onSignOut={signOut} />}
+              {tab === "settings" && <SettingsTab user={user} bookings={bookings} onSignOut={signOut} />}
               {tab === "access" && (
                 <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
               )}
@@ -1454,7 +1455,7 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
   );
 }
 
-function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut: () => void }) {
+function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; bookings: MemberBooking[]; onSignOut: () => void }) {
   const t = useTranslations("memberPage");
   const tAuth = useTranslations("auth");
   const [name, setName] = useState(user.display_name ?? "");
@@ -1465,6 +1466,30 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
   const [notif, setNotif] = useState({ booking: true, points: true, promo: false });
   const [pwSending, setPwSending] = useState(false);
   const [pwMessage, setPwMessage] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [hasActiveBookings, setHasActiveBookings] = useState(false);
+
+  // Check for active/upcoming bookings to block deletion if present
+  useEffect(() => {
+    // Check if user has any confirmed bookings in the future or within last 7 days
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const hasActive = bookings.some((b) => {
+      if (b.status !== 'confirmed') return false;
+      if (b.date) {
+        const bookingDate = new Date(b.date);
+        return bookingDate >= new Date(now.toISOString().split('T')[0]); // Today or future
+      }
+      if (b.startTime) {
+        const startTime = new Date(b.startTime);
+        return startTime > sevenDaysAgo;
+      }
+      return false;
+    });
+
+    setHasActiveBookings(hasActive);
+  }, [bookings]);
 
   // ── Phone-change OTP flow (C4 item 9) ──────────────────────────────────────
   // When the phone field changes, route through the contact-change double-
@@ -1700,6 +1725,26 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
     } catch { /* keep existing UI state */ }
   };
 
+  const handleDeleteData = async () => {
+    try {
+      const res = await fetch('/api/member/delete-data', {
+        method: 'POST',
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Deletion failed');
+      }
+
+      // Success — user will be signed out automatically by the RPC
+      // The auth.users deletion triggers signout, so just wait for it
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      window.location.href = '/';
+    } catch (err) {
+      throw err; // Let modal handle the error display
+    }
+  };
+
   const confirmDelete = () => {
     if (window.confirm(t("delete_confirm"))) {
       // Deletion requires a server action — redirect to support
@@ -1879,7 +1924,7 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
         <h4 style={{ fontSize: "14px", fontWeight: 600, color: DANGER, margin: "0 0 12px" }} data-cms-key="member.danger_zone">{t("danger_zone")}</h4>
         <button
           type="button"
-          onClick={confirmDelete}
+          onClick={() => setDeleteModalOpen(true)}
           style={{ minHeight: 44, padding: "0 18px", borderRadius: "12px", border: `1px solid ${DANGER}`, background: "transparent", color: DANGER, fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
           data-cms-key="member.delete_account"
         >
@@ -1896,6 +1941,15 @@ function SettingsTab({ user, onSignOut }: { user: MemberData["user"]; onSignOut:
         <LogOut size={16} strokeWidth={2} />
         {t("sign_out")}
       </button>
+
+      {/* Data deletion modal (PDPO requirement A20) */}
+      <DeleteDataModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleDeleteData}
+        userEmail={user.email}
+        hasActiveBookings={hasActiveBookings}
+      />
     </div>
   );
 }

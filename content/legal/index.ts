@@ -21,8 +21,11 @@ import { deliveryPolicyEn } from './delivery-policy.en'
 import { brandStatementZhHK } from './brand-statement.zh-HK'
 import { brandStatementZhCN } from './brand-statement.zh-CN'
 import { brandStatementEn } from './brand-statement.en'
+import { cookiePolicyZhHK } from './cookie-policy.zh-HK'
+import { cookiePolicyZhCN } from './cookie-policy.zh-CN'
+import { cookiePolicyEn } from './cookie-policy.en'
 
-// Registry of the 6 legal documents × 3 locales = 18 static files. zh-HK is
+// Registry of the 7 legal documents × 3 locales = 21 static files. zh-HK is
 // the canonical source; zh-CN and en are faithful 1:1 translations (same
 // section count/structure, translated by a human-reviewed pass — never
 // machine-summarized). No ja variant exists (ja was dropped site-wide).
@@ -31,7 +34,7 @@ import { brandStatementEn } from './brand-statement.en'
 // content/legal/verify-section-counts.ts for the structural parity check
 // that must pass across all 3 locales for each document.
 
-export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy' | 'brand_statement'
+export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy' | 'brand_statement' | 'cookie_policy'
 
 const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
   terms: {
@@ -69,6 +72,11 @@ const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
     'zh-CN': brandStatementZhCN,
     en: brandStatementEn,
   },
+  cookie_policy: {
+    'zh-HK': cookiePolicyZhHK,
+    'zh-CN': cookiePolicyZhCN,
+    en: cookiePolicyEn,
+  },
 }
 
 export function getLegalDocument(docId: LegalDocId, locale: Locale): LegalDocument {
@@ -84,5 +92,6 @@ export function getAllLegalDocuments(locale: Locale): Record<LegalDocId, LegalDo
     refund_policy: getLegalDocument('refund_policy', locale),
     delivery_policy: getLegalDocument('delivery_policy', locale),
     brand_statement: getLegalDocument('brand_statement', locale),
+    cookie_policy: getLegalDocument('cookie_policy', locale),
   }
 }

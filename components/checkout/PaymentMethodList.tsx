@@ -6,6 +6,7 @@
 // the ordered allowlist for methods currently shown in the UI.
 // ────────────────────────────────────────────────────────────────
 
+import { useState, useEffect } from "react"
 import { tokens } from "@/app/styles/tokens"
 import PaymentMethodCard from "./PaymentMethodCard"
 import {
@@ -160,19 +161,16 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
 ]
 
 // Controls both visibility and display order. Add a method here when it launches.
-// Provider-aware: Stripe supports card, alipay, google_pay, apple_pay, wechat_pay
+// Provider-aware: Stripe methods are queried dynamically from /api/payment/available-methods
 // KPay supports card, alipayhk, payme (others commented out in PAYMENT_METHODS)
 const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
-const STRIPE_METHODS: readonly PaymentMethodId[] = [
-  'card',
-  'alipay',
-  'google_pay',
-  'apple_pay',
-  'wechat_pay',
-]
 const KPAY_METHODS: readonly PaymentMethodId[] = ['card', 'alipayhk', 'payme']
+
+// Stripe methods are now loaded dynamically — this is just a fallback
+const STRIPE_FALLBACK_METHODS: readonly PaymentMethodId[] = ['card']
+
 const AVAILABLE_PAYMENT_METHODS: readonly PaymentMethodId[] =
-  provider === 'stripe' ? STRIPE_METHODS : KPAY_METHODS
+  provider === 'stripe' ? STRIPE_FALLBACK_METHODS : KPAY_METHODS
 
 const visibleMethods = AVAILABLE_PAYMENT_METHODS.flatMap((id) =>
   PAYMENT_METHODS.filter((method) => method.id === id)
@@ -194,6 +192,133 @@ type Props = {
 // ── Component ──────────────────────────────────────────────────
 
 export default function PaymentMethodList({ selected, onSelect }: Props) {
+  const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
+
+  // State: dynamically loaded Stripe payment methods
+  const [stripeAvailableMethods, setStripeAvailableMethods] = useState<PaymentMethodId[]>(
+    STRIPE_FALLBACK_METHODS as PaymentMethodId[]
+  )
+  const [isLoadingStripeMethods, setIsLoadingStripeMethods] = useState(provider === 'stripe')
+
+  // Effect: query Stripe for actually-enabled payment methods
+  useEffect(() => {
+    if (provider !== 'stripe') return
+
+    const fetchStripeMethods = async () => {
+      try {
+        const res = await fetch('/api/payment/available-methods')
+        if (!res.ok) {
+          console.warn('[PaymentMethodList] Stripe methods query failed, using fallback')
+          setStripeAvailableMethods(STRIPE_FALLBACK_METHODS as PaymentMethodId[])
+          setIsLoadingStripeMethods(false)
+          return
+        }
+
+        const data = await res.json()
+        const available = data.available || []
+
+        console.log('[PaymentMethodList] Loaded Stripe methods:', available)
+        setStripeAvailableMethods(available)
+      } catch (err) {
+        console.error('[PaymentMethodList] Failed to fetch Stripe methods', err)
+        setStripeAvailableMethods(STRIPE_FALLBACK_METHODS as PaymentMethodId[])
+      } finally {
+        setIsLoadingStripeMethods(false)
+      }
+    }
+
+    fetchStripeMethods()
+  }, [provider])
+
+  // Compute visible methods based on provider
+  const availableMethods = provider === 'stripe' ? stripeAvailableMethods : KPAY_METHODS
+  const visibleMethods = availableMethods.flatMap((id) =>
+    PAYMENT_METHODS.filter((method) => method.id === id)
+  )
+
+  // Skeleton placeholder — shown only during the Stripe available-methods fetch.
+  // Matches PaymentMethodCard geometry exactly so no layout shift on load.
+  if (isLoadingStripeMethods) {
+    return (
+      <>
+        <style>{`
+          @keyframes payment-skeleton-pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+          }
+          .payment-skeleton-pulse {
+            animation: payment-skeleton-pulse 1.6s ease-in-out infinite;
+          }
+        `}</style>
+        <div
+          className="payment-skeleton-pulse"
+          style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}
+          aria-busy="true"
+          aria-label="載入付款方式"
+        >
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                minHeight: 56,
+                padding: "12px 16px",
+                border: `1.5px solid ${tokens.colors.border}`,
+                borderRadius: 16,
+                background: tokens.colors.surface,
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                animationDelay: `${i * 0.12}s`,
+              }}
+            >
+              {/* Radio circle */}
+              <div
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: "50%",
+                  border: `2px solid ${tokens.colors.border}`,
+                  flexShrink: 0,
+                }}
+              />
+              {/* Label + sublabel bars */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                <div
+                  style={{
+                    height: 13,
+                    width: "42%",
+                    borderRadius: 6,
+                    background: tokens.colors.border,
+                  }}
+                />
+                <div
+                  style={{
+                    height: 10,
+                    width: "62%",
+                    borderRadius: 6,
+                    background: tokens.colors.border,
+                    opacity: 0.6,
+                  }}
+                />
+              </div>
+              {/* Icon badge placeholder */}
+              <div
+                style={{
+                  width: 36,
+                  height: 22,
+                  borderRadius: 6,
+                  background: tokens.colors.border,
+                  flexShrink: 0,
+                  opacity: 0.5,
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </>
+    )
+  }
+
   return (
     // Container is a quiet grouping wrapper — no own fill/border — so the
     // interactive PaymentMethodCards are the only elevated surfaces here.

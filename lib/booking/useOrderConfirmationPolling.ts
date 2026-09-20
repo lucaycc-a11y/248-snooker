@@ -149,6 +149,13 @@ export function useOrderConfirmationPolling(
         } else if (statusValue === "cancelled" || providerStatus === "cancelled") {
           finish("cancelled")
           return
+        } else if (statusValue === "payment_review") {
+          // Charged, but the amount disagreed with the booking total. Terminal —
+          // polling cannot resolve a money discrepancy, so park the customer on
+          // the recovery screen rather than burning the full timeout.
+          console.error("[checkout] amount_mismatch_review", { bookingId })
+          finish("failed")
+          return
         } else if (
           statusValue === "failed" ||
           statusValue === "payment_failed" ||

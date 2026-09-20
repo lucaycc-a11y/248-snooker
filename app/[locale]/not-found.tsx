@@ -2,9 +2,18 @@ import { getTranslations } from 'next-intl/server'
 import Nav from '@/components/layout/Nav'
 import { Link } from '@/i18n/navigation'
 import { Snooker404Table } from './Snooker404Table'
+import { routing } from '@/i18n/routing'
+
+// not-found.tsx is a Next.js special file that runs outside the normal layout
+// render tree during prerender, so the next-intl middleware context is never
+// seeded. We must not call getLocale() here — it throws when there is no
+// request context, which crashes the entire [locale] segment during static
+// generation (same digest 2260559448 on every locale page).
+export const dynamic = 'force-dynamic'
 
 export default async function NotFound() {
-  const t = await getTranslations('404')
+  const locale = routing.defaultLocale
+  const t = await getTranslations({ locale, namespace: '404' })
 
   return (
     <main

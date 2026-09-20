@@ -133,7 +133,11 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
               <p style="color:#525252;font-size:11px;line-height:1.6;margin:0;">
                 此電郵為交易確認及收據，請妥善保存。<br/>
                 This email serves as transaction confirmation and receipt. Please keep it for your records.<br/>
-                <a href="https://space8.com.hk/legal/refund-policy" style="color:#22c55e;text-decoration:none;">退款條款 Refund Policy</a>
+                <a href="https://space8.com.hk/legal?doc=refund_policy" style="color:#22c55e;text-decoration:none;">退款條款 Refund Policy</a>
+              </p>
+              <p style="color:#525252;font-size:11px;line-height:1.6;margin:12px 0 0;">
+                如不希望收到預約提醒通知，可於<a href="https://space8.com.hk/member" style="color:#22c55e;text-decoration:none;">會員設定</a>管理通知偏好。<br/>
+                To manage notification preferences, visit <a href="https://space8.com.hk/member" style="color:#22c55e;text-decoration:none;">Member Settings</a>.
               </p>
               <p style="color:#525252;font-size:12px;margin:16px 0 0;">
                 &copy; {{currentYear}} SPACE8 · Hong Kong

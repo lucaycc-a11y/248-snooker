@@ -136,6 +136,13 @@ export async function middleware(request: NextRequest) {
   const gateRedirect = await checkSiteGate(request)
   if (gateRedirect) return gateRedirect
 
+  // Webhook routes must bypass ALL middleware processing to preserve raw headers
+  // (e.g. stripe-signature). NextResponse.next({request}) in updateSession()
+  // rebuilds the request and can strip these headers, breaking signature verification.
+  if (request.nextUrl.pathname.startsWith('/api/webhooks/')) {
+    return NextResponse.next()
+  }
+
   // Non-localized routes (/api, /auth, /admin, /member, /login, /maintenance) are
   // exactly the auth-sensitive ones — refresh the Supabase session here so a
   // single token rotation happens before any handler/RSC calls getUser(). This

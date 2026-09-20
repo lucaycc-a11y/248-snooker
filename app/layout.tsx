@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Bebas_Neue } from "next/font/google";
-import { getLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import Script from "next/script";
 import "./globals.css";
@@ -20,7 +19,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://space8.com.hk"),
   title: "SPACE8 · 香港自助中式桌球 06:00-24:00",
   description:
-    "香港首間自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
+    "香港自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
   verification: {
     google: "t5MhRgSpnnNRfckNMeR0y2ycI_HGgay1IalMFu4sUDI",
   },
@@ -34,7 +33,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "SPACE8 · 屬於你的空間",
-    description: "香港首間自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
+    description: "香港自助中式桌球會所。即時預訂，每日 06:00 至 24:00 營業。",
     url: "https://space8.com.hk",
     siteName: "SPACE8",
     images: [
@@ -78,11 +77,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Routes outside [locale] (e.g. /login, /member, /admin) never set a request
-  // locale, so this falls back to routing.defaultLocale for them — still
-  // correct, since those routes render zh-HK-only chrome around client-side
-  // locale-aware content.
-  const locale = await getLocale().catch(() => routing.defaultLocale);
+  // Routes outside [locale] (e.g. /admin, /auth) never set a request locale.
+  // getLocale() throws during static prerender when no request context is
+  // seeded, crashing every route. Use the static default directly instead.
+  const locale = routing.defaultLocale;
 
   return (
     <html lang={locale} className={cn("no-js", bebasNeue.variable, "font-sans")} suppressHydrationWarning>

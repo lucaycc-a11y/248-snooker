@@ -17,6 +17,7 @@ import { logSiteError } from '@/lib/errors/log'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus } from '@/lib/checkout/prepare'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 
 export const runtime = 'nodejs'
 
@@ -161,6 +162,7 @@ export async function POST(req: Request) {
             table_number: slot.table_number,
             is_free_booking: false,
             payment_method: 'card',
+            payment_provider: 'stripe',
             order_group_id: orderGroupId,
             human_code: humanReadableCode(newId),
           })
@@ -205,6 +207,7 @@ export async function POST(req: Request) {
             table_number: slot.table_number,
             order_group_id: orderGroupId,
             payment_method: 'card',
+            payment_provider: 'stripe',
           })
           .eq('id', bookingId)
       }
@@ -272,6 +275,31 @@ export async function POST(req: Request) {
       )
     }
 
+    // Amount reconciliation check: assert that the PaymentIntent amount we're about
+    // to create matches the booking's required total. This catches pricing logic bugs
+    // before they reach Stripe, rather than discovering them at webhook time.
+    const amountCheck = checkAmountMatch(prepared.total, amountInCents)
+    if (!amountCheck.matches) {
+      logAmountMismatch('create-intent', {
+        bookingId: primaryBookingId,
+        userId: user.id,
+        requiredCents: amountCheck.requiredCents,
+        actualCents: amountCheck.actualCents,
+        scenario: amountCheck.scenario!,
+        discrepancyCents: amountCheck.discrepancyCents!,
+      })
+      await logSiteError('payment/create-intent', 'error', 'Amount mismatch at intent creation', {
+        bookingId: primaryBookingId,
+        userId: user.id,
+        requiredCents: amountCheck.requiredCents,
+        actualCents: amountCheck.actualCents,
+      })
+      return NextResponse.json(
+        { error: 'Payment amount mismatch — please contact support' },
+        { status: 500 },
+      )
+    }
+
     if (prepared.discountAmount > 0) {
       console.log('[payment/create-intent] discount applied', {
         kind: prepared.kind,
@@ -294,11 +322,29 @@ export async function POST(req: Request) {
     let intent
     try {
       const stripe = getStripe() // throws if STRIPE_SECRET_KEY is unset
+
+      // WeChat Pay client must be 'web' for browser-based checkout (mobile or desktop).
+      // Stripe only accepts: 'web' | 'ios' | 'android'. The H5 vs QR flow is determined
+      // by other factors (return_url, device capabilities), not the client field.
+      const wechatPayClient = 'web'
+
+      console.log('[payment/create-intent] stripe request', {
+        amount: amountInCents,
+        userId: user.id,
+        bookingIds,
+        wechatPayClient,
+      })
+
       intent = await stripe.paymentIntents.create(
         {
           amount: amountInCents,
           currency: 'hkd',
           automatic_payment_methods: { enabled: true },
+          payment_method_options: {
+            wechat_pay: {
+              client: wechatPayClient,
+            },
+          },
           // receipt_email intentionally omitted: Stripe Dashboard's email
           // settings are OFF (we send our own via Resend). Passing receipt_email
           // here would override the Dashboard toggle and re-enable Stripe's
@@ -342,9 +388,12 @@ export async function POST(req: Request) {
         userId: user.id,
         bookingIds,
       })
+
+      // Return 400 for invalid request parameters (our fault), 502 for Stripe infrastructure issues
+      const is4xx = e.type === 'StripeInvalidRequestError' || (e.statusCode && e.statusCode >= 400 && e.statusCode < 500)
       return NextResponse.json(
         { error: 'stripe_error', detail: e.message ?? 'Stripe request failed', code: e.code ?? e.type ?? null },
-        { status: 502 },
+        { status: is4xx ? 400 : 502 },
       )
     }
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { Starfield } from '@/app/[locale]/Starfield'
@@ -9,14 +9,31 @@ import { Logo } from '@/components/brand/Logo'
 import { PasswordInput } from '@/components/shared/PasswordInput'
 
 const LONG_PRESS_MS = 800
+const GREEN = '#22c55e'
 
 export default function UatGateContent() {
+  const [modalOpen, setModalOpen] = useState(false)
+  const [countdown, setCountdown] = useState(30)
   const [unlockVisible, setUnlockVisible] = useState(false)
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          window.location.href = 'https://www.space8.com.hk'
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
 
   function startPress() {
     pressTimer.current = setTimeout(() => {
@@ -116,8 +133,38 @@ export default function UatGateContent() {
           >
             內部測試中
           </h1>
-          <p style={{ color: '#A1A1A6', fontSize: 15, lineHeight: 1.5 }}>
-            此網站現正進行內部測試，暫不開放。
+          <p style={{ color: '#A1A1A6', fontSize: 15, lineHeight: 1.5, marginBottom: 24 }}>
+            This is the UAT testing environment.
+            <br />
+            Redirecting to production in <strong style={{ color: GREEN }}>{countdown}s</strong>...
+          </p>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            style={{
+              width: '100%',
+              height: 52,
+              marginBottom: 16,
+              borderRadius: 9999,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.16)',
+              color: '#fff',
+              fontWeight: 600,
+              fontSize: 15,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.12)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            }}
+          >
+            Enter Password
+          </button>
+          <p style={{ color: '#A1A1A6', fontSize: 13 }}>
+            Or hold anywhere on screen for 2.5 seconds
           </p>
         </div>
 
@@ -190,7 +237,7 @@ export default function UatGateContent() {
                   style={{
                     height: 52,
                     borderRadius: 9999,
-                    background: '#22c55e',
+                    background: GREEN,
                     color: '#000',
                     fontWeight: 700,
                     fontSize: 16,
@@ -207,6 +254,90 @@ export default function UatGateContent() {
           )}
         </AnimatePresence>
       </section>
+
+      <AnimatePresence>
+        {modalOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setModalOpen(false)}
+          >
+            <motion.div
+              className="glass-panel"
+              style={{ padding: 32, maxWidth: 360, width: '100%', position: 'relative' }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                aria-label="Close"
+                style={{
+                  position: 'absolute',
+                  top: 16,
+                  right: 16,
+                  width: 44,
+                  height: 44,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={20} color="#86868B" />
+              </button>
+              <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+                <PasswordInput
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  autoFocus
+                  style={{
+                    height: 52,
+                    padding: '0 16px',
+                    borderRadius: 12,
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#fff',
+                    fontSize: 16,
+                    outline: 'none',
+                  }}
+                />
+                {error && (
+                  <p role="alert" style={{ color: '#f87171', fontSize: 13 }}>
+                    {error}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={loading || !password}
+                  style={{
+                    height: 52,
+                    borderRadius: 9999,
+                    background: GREEN,
+                    color: '#000',
+                    fontWeight: 700,
+                    fontSize: 16,
+                    border: 'none',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading || !password ? 0.6 : 1,
+                  }}
+                >
+                  {loading ? 'Unlocking...' : 'Unlock UAT'}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   )
 }

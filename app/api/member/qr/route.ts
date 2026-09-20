@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { generateMemberQR, getRecommendedQRSize } from '@/lib/qrcode'
+import { generateMemberQRWithLogo } from '@/lib/qrcode'
 
 /**
  * GET /api/member/qr
  *
- * Generates QR code for authenticated member's member_code.
- * Returns data URL (base64-encoded PNG) for display in browser.
+ * Generates a branded QR code for the authenticated member's member_code.
+ * Returns a data:image/svg+xml;base64 URL for display in browser.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -33,15 +33,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    // Generate QR code as data URL
-    const qrDataUrl = await generateMemberQR(userData.member_code, {
-      format: 'data-url',
-      width: getRecommendedQRSize('display'),
-      color: {
-        dark: '#0a0a0a',
-        light: '#fdfcf8',
-      },
-    })
+    const qrDataUrl = await generateMemberQRWithLogo(userData.member_code, 400)
 
     return NextResponse.json({ qrCode: qrDataUrl })
   } catch (error) {

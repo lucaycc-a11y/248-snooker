@@ -3,13 +3,16 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getPaymentProvider } from '@/lib/payments'
 import { humanReadableCode } from '@/lib/qr/jwt'
+import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 // GET /api/checkout/status?bookingId=...
-// Returns the KPay order status for a booking. Used by the UI to poll while
+// Returns the payment order status for a booking. Used by the UI to poll while
 // waiting for the customer to complete payment (QR scan / H5 redirect).
+//
+// IMPORTANT: Routes to KPay or Stripe logic based on booking.payment_provider.
 //
 // For grouped bookings, the primary bookingId is sufficient — all siblings
 // share the same provider_order_no.
@@ -38,225 +41,511 @@ export async function GET(req: Request) {
       .single()
 
     if (bookingErr || !booking) {
-      console.log('[KPay] status: booking_not_found', { bookingId, userId: user.id })
+      console.log('[checkout/status] booking_not_found', { bookingId, userId: user.id })
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    const startedAt = Date.now()
-    const logResult = (payload: Record<string, unknown>) => {
-      console.log('[KPay] pollResult', { bookingId, elapsedMs: Date.now() - startedAt, ...payload })
-    }
+    // Route to provider-specific handler based on payment_provider
+    const provider = booking.payment_provider
 
-    // Slot-hold state drives the recovery screen: it decides whether "retry
-    // payment" is still possible (hold alive) or the user must pick new slots
-    // (hold gone), and supplies the countdown deadline. Only meaningful while
-    // the booking is unresolved, so it's skipped on terminal states below.
-    const holdState = async (): Promise<{ holdActive: boolean; holdExpiresAt: string | null }> => {
-      const { data, error } = await service.rpc('checkout_hold_expiry', {
-        p_booking_id: booking.id,
-        p_user_id: user.id,
-      })
-      if (error || !data || typeof data !== 'object' || Array.isArray(data)) {
-        // Unknown hold state must not imply an active hold — retry would then
-        // re-create an order against slots someone else may already hold.
-        if (error) console.error('[KPay] pollResult hold_expiry_failed', { message: error.message })
-        return { holdActive: false, holdExpiresAt: null }
-      }
-      const record = data as Record<string, unknown>
-      return {
-        holdActive: record.hold_active === true,
-        holdExpiresAt: typeof record.expires_at === 'string' ? record.expires_at : null,
-      }
-    }
-
-    // If the booking is already confirmed server-side (webhook fired), short-circuit
-    if (booking.status === 'confirmed') {
-      logResult({ status: 'confirmed', providerStatus: 'success' })
+    // Free booking path (no payment required) — when a promo code or discount fully
+    // covers the order, payment_provider is null and the booking was already confirmed
+    // immediately via /api/booking/free-confirm (no async payment to poll)
+    if (provider === null || provider === 'free' || provider === 'none') {
+      console.log('[checkout/status] free_booking', { bookingId, status: booking.status })
       return NextResponse.json({
         bookingId: booking.id,
         status: 'confirmed',
-        providerStatus: 'success',
+        providerStatus: 'free',
       })
     }
 
-    if (booking.status === 'cancelled' || booking.status === 'expired') {
-      logResult({ status: booking.status, providerStatus: booking.status })
-      return NextResponse.json({
-        bookingId: booking.id,
-        status: booking.status,
-        providerStatus: booking.status === 'cancelled' ? 'cancelled' : booking.status,
-        holdActive: false,
-        holdExpiresAt: null,
-      })
+    if (provider === 'stripe') {
+      return handleStripeStatus(booking, service, user.id)
+    } else if (provider === 'kpay') {
+      return handleKPayStatus(booking, service, user.id)
+    } else {
+      console.error('[checkout/status] unknown payment_provider', { provider, bookingId })
+      return NextResponse.json(
+        { error: 'unsupported_provider', detail: `Payment provider "${provider}" is not supported` },
+        { status: 400 }
+      )
     }
+  } catch (err) {
+    const e = err as Error
+    console.error('[checkout/status] error', { message: e.message, stack: e.stack })
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  }
+}
 
-    // payment_failed is recoverable, so it reports hold state — the UI needs it
-    // to decide between "retry payment" and "back to slot selection".
-    if (booking.status === 'payment_failed') {
-      const hold = await holdState()
-      logResult({ status: booking.status, providerStatus: booking.status, holdActive: hold.holdActive })
-      return NextResponse.json({
-        bookingId: booking.id,
-        status: booking.status,
-        providerStatus: booking.status,
-        holdActive: hold.holdActive,
-        holdExpiresAt: hold.holdExpiresAt,
-      })
+// ──────────────────────────────────────────────────────────────────
+// Stripe Status Handler
+// ──────────────────────────────────────────────────────────────────
+
+async function handleStripeStatus(booking: any, service: any, userId: string) {
+  const startedAt = Date.now()
+  const logResult = (payload: Record<string, unknown>) => {
+    console.log('[Stripe] pollResult', { bookingId: booking.id, elapsedMs: Date.now() - startedAt, ...payload })
+  }
+
+  // Re-query booking status to avoid stale data from the initial query. The webhook
+  // may have written `status = 'confirmed'` between the outer query (line 37) and
+  // this handler, and we must see that update immediately — not after a minute of
+  // retries. This query hits the same service_role client as the webhook, bypassing
+  // read replica lag.
+  const { data: freshBooking, error: freshErr } = await service
+    .from('bookings')
+    .select('id, status, payment_provider, provider_order_no, payment_method, order_group_id, human_code, total_price, user_id')
+    .eq('id', booking.id)
+    .single()
+
+  if (freshErr || !freshBooking) {
+    console.error('[Stripe] pollResult fresh_query_failed', { bookingId: booking.id, error: freshErr?.message })
+    // Fallback to stale booking if re-query fails
+  } else {
+    booking = freshBooking
+  }
+
+  const holdState = async (): Promise<{ holdActive: boolean; holdExpiresAt: string | null }> => {
+    const { data, error } = await service.rpc('checkout_hold_expiry', {
+      p_booking_id: booking.id,
+      p_user_id: userId,
+    })
+    if (error || !data || typeof data !== 'object' || Array.isArray(data)) {
+      if (error) console.error('[Stripe] pollResult hold_expiry_failed', { message: error.message })
+      return { holdActive: false, holdExpiresAt: null }
     }
+    const record = data as Record<string, unknown>
+    return {
+      holdActive: record.hold_active === true,
+      holdExpiresAt: typeof record.expires_at === 'string' ? record.expires_at : null,
+    }
+  }
 
+  // If the booking is already confirmed server-side (webhook fired), short-circuit
+  if (booking.status === 'confirmed') {
+    logResult({ status: 'confirmed', providerStatus: 'success' })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: 'confirmed',
+      providerStatus: 'success',
+    })
+  }
+
+  if (booking.status === 'cancelled' || booking.status === 'expired') {
+    logResult({ status: booking.status, providerStatus: booking.status })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: booking.status,
+      providerStatus: booking.status === 'cancelled' ? 'cancelled' : booking.status,
+      holdActive: false,
+      holdExpiresAt: null,
+    })
+  }
+
+  if (booking.status === 'payment_failed') {
     const hold = await holdState()
+    logResult({ status: booking.status, providerStatus: booking.status, holdActive: hold.holdActive })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: booking.status,
+      providerStatus: booking.status,
+      holdActive: hold.holdActive,
+      holdExpiresAt: hold.holdExpiresAt,
+    })
+  }
 
-    // No provider order yet — the order hasn't been created
-    if (!booking.provider_order_no || booking.payment_provider !== 'kpay') {
-      logResult({ status: booking.status === 'pending' ? 'pending' : 'failed', providerStatus: 'pending', holdActive: hold.holdActive })
-      return NextResponse.json({
-        bookingId: booking.id,
-        status: booking.status === 'pending' ? 'pending' : 'failed',
-        providerStatus: 'pending',
-        holdActive: hold.holdActive,
-        holdExpiresAt: hold.holdExpiresAt,
-      })
-    }
+  // The charge succeeded but its amount disagreed with total_price, so the
+  // webhook parked the row instead of confirming. Terminal for the UI: polling
+  // cannot resolve it, only a manual refund reconciliation can.
+  if (booking.status === 'payment_review') {
+    logResult({ status: booking.status, providerStatus: 'amount_mismatch' })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: 'payment_review',
+      providerStatus: 'amount_mismatch',
+      holdActive: false,
+      holdExpiresAt: null,
+    })
+  }
 
-    // Query the payment provider for current order status.
-    // Use the booking's stored method so the query signs with the right
-    // merchant context; the provider is KPay here (checked above).
-    const provider = getPaymentProvider()
-    const orderStatus = await provider.queryOrder(booking.provider_order_no)
+  const hold = await holdState()
 
-    // Provider success is not database confirmation. The webhook still needs to
-    // commit the booking transition and generate the booking credentials.
-    // PROACTIVE CONFIRMATION: When the provider reports success but the DB
-    // booking isn't confirmed yet, call confirm_booking/confirm_booking_group
-    // directly. This makes polling self-healing — if the webhook is delayed or
-    // never arrives, the booking still gets finalized. The RPC is idempotent,
-    // so a concurrent webhook call is safe.
-    let uiStatus: string
-    switch (orderStatus.status) {
-      case 'success':
-        if (booking.status !== 'confirmed') {
-          try {
-            if (booking.order_group_id) {
-              // Grouped booking: confirm every row atomically
-              const { data: rows, error: rowsErr } = await service
+  // No provider order yet — the order hasn't been created
+  if (!booking.provider_order_no) {
+    logResult({ status: booking.status === 'pending' ? 'pending' : 'failed', providerStatus: 'pending', holdActive: hold.holdActive })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: booking.status === 'pending' ? 'pending' : 'failed',
+      providerStatus: 'pending',
+      holdActive: hold.holdActive,
+      holdExpiresAt: hold.holdExpiresAt,
+    })
+  }
+
+  // Query Stripe for current PaymentIntent status
+  const provider = getPaymentProvider()
+  const orderStatus = await provider.queryOrder(booking.provider_order_no)
+
+  // Proactive confirmation: if provider reports success but DB isn't confirmed yet,
+  // confirm immediately rather than waiting for the webhook (which may be delayed
+  // or lost). This is the critical fallback that prevents stuck-pending scenarios.
+  let uiStatus: string
+  switch (orderStatus.status) {
+    case 'success':
+      if (booking.status !== 'confirmed') {
+        // Amount reconciliation at polling stage: before confirming, verify that
+        // the amount Stripe captured matches the booking's required total. This
+        // catches webhook-bypass scenarios where the proactive path is the only
+        // confirmation attempt.
+        try {
+          const stripe = await import('@/lib/stripe/server').then(m => m.getStripe())
+          const stripeIntent = await stripe.paymentIntents.retrieve(booking.provider_order_no)
+          const amountCheck = checkAmountMatch(Number(booking.total_price), stripeIntent.amount)
+
+          if (!amountCheck.matches) {
+            logAmountMismatch('polling', {
+              bookingId: booking.id,
+              providerOrderNo: booking.provider_order_no,
+              userId: booking.user_id,
+              requiredCents: amountCheck.requiredCents,
+              actualCents: amountCheck.actualCents,
+              scenario: amountCheck.scenario!,
+              discrepancyCents: amountCheck.discrepancyCents!,
+            })
+
+            if (amountCheck.scenario === 'underpaid') {
+              // Underpaid: park in payment_review, return contact-support message
+              await service
                 .from('bookings')
-                .select('id, total_price')
-                .eq('order_group_id', booking.order_group_id)
-
-              if (!rowsErr && rows && rows.length > 0) {
-                const qrCodes: Record<string, string> = {}
-                for (const r of rows) {
-                  qrCodes[r.id] = humanReadableCode(r.id)
-                }
-                console.log('[KPay] proactive confirm_booking_group', {
-                  orderGroupId: booking.order_group_id,
-                  bookings: rows.length,
-                  providerOrderNo: booking.provider_order_no,
-                })
-                await service.rpc('confirm_booking_group', {
-                  p_order_group_id: booking.order_group_id,
-                  p_payment_intent_id: booking.provider_order_no,
-                  p_payment_method: booking.payment_method,
-                  p_qr_codes: qrCodes,
-                  p_event_id: null,
-                })
-              }
-            } else {
-              // Single booking
-              const humanCode = booking.human_code ?? humanReadableCode(booking.id)
-              console.log('[KPay] proactive confirm_booking', {
+                .update({ status: 'payment_review' })
+                .eq('id', booking.id)
+              logResult({ status: 'payment_review', providerStatus: 'amount_mismatch_underpaid' })
+              return NextResponse.json({
                 bookingId: booking.id,
+                status: 'payment_review',
+                providerStatus: 'amount_mismatch_underpaid',
+                holdActive: false,
+                holdExpiresAt: null,
+              })
+            } else if (amountCheck.scenario === 'overpaid') {
+              // Overpaid: confirm booking but log prominently for support follow-up
+              console.warn('[Stripe] proactive polling: OVERPAID — confirming but flagging', {
+                bookingId: booking.id,
+                chargedCents: amountCheck.actualCents,
+                requiredCents: amountCheck.requiredCents,
+                excessCents: amountCheck.discrepancyCents!,
+              })
+              // Continue to confirmation below
+            }
+          }
+        } catch (amountCheckErr) {
+          // If amount check fails (e.g., Stripe API error), log but don't block confirmation
+          console.error('[Stripe] proactive polling: amount check failed', {
+            bookingId: booking.id,
+            error: (amountCheckErr as Error).message,
+          })
+          // Continue to confirmation - webhook's amount check is the primary safeguard
+        }
+
+        try {
+          if (booking.order_group_id) {
+            const { data: rows, error: rowsErr } = await service
+              .from('bookings')
+              .select('id, total_price')
+              .eq('order_group_id', booking.order_group_id)
+
+            if (!rowsErr && rows && rows.length > 0) {
+              const qrCodes: Record<string, string> = {}
+              for (const r of rows) {
+                qrCodes[r.id] = humanReadableCode(r.id)
+              }
+              console.log('[Stripe] proactive confirm_booking_group', {
+                orderGroupId: booking.order_group_id,
+                bookings: rows.length,
                 providerOrderNo: booking.provider_order_no,
               })
-              await service.rpc('confirm_booking', {
-                p_booking_id: booking.id,
+              await service.rpc('confirm_booking_group', {
+                p_order_group_id: booking.order_group_id,
                 p_payment_intent_id: booking.provider_order_no,
                 p_payment_method: booking.payment_method,
-                p_qr_code: humanCode,
+                p_qr_codes: qrCodes,
                 p_event_id: null,
               })
             }
-            // Re-read the booking to return the now-confirmed status
-            const { data: refreshed } = await service
-              .from('bookings')
-              .select('status')
-              .eq('id', booking.id)
-              .single()
-            if (refreshed?.status === 'confirmed') {
-              // Send confirmation notification (non-fatal, same as webhook).
-              // The webhook may also fire and send a duplicate — that's
-              // acceptable; a missed notification is worse than a double email.
-              try {
-                const { sendBookingConfirmation } = await import('@/lib/resend/template-send')
-                await sendBookingConfirmation(booking.id)
-                await service.from('notification_log').insert([
-                  { user_id: booking.user_id, booking_id: booking.id, channel: 'email', type: 'booking_confirmed', status: 'sent' },
-                  { user_id: booking.user_id, booking_id: booking.id, channel: 'whatsapp', type: 'booking_confirmed', status: 'pending' },
-                ])
-              } catch (e) {
-                console.error('[KPay] proactive confirmation notification_failed', {
-                  bookingId: booking.id,
-                  message: (e as Error).message,
-                })
-              }
-              // Mark payment attempt succeeded (non-fatal).
-              try {
-                await service.rpc('complete_payment_attempt', {
-                  p_provider_order_no: booking.provider_order_no,
-                  p_provider: 'kpay',
-                })
-              } catch {
-                // non-fatal
-              }
-              logResult({ status: 'confirmed', providerStatus: 'success' })
-              return NextResponse.json({
-                bookingId: booking.id,
-                status: 'confirmed',
-                providerStatus: 'success',
-              })
-            }
-          } catch (e) {
-            // Proactive confirmation failed — fall through to pending_confirmation
-            // and let the webhook retry. Log the error for debugging.
-            console.error('[KPay] proactive confirmation failed', {
+          } else {
+            const humanCode = booking.human_code ?? humanReadableCode(booking.id)
+            console.log('[Stripe] proactive confirm_booking', {
               bookingId: booking.id,
-              error: (e as Error).message,
+              providerOrderNo: booking.provider_order_no,
+            })
+            await service.rpc('confirm_booking', {
+              p_booking_id: booking.id,
+              p_payment_intent_id: booking.provider_order_no,
+              p_payment_method: booking.payment_method,
+              p_qr_code: humanCode,
+              p_event_id: null,
             })
           }
+          const { data: refreshed } = await service
+            .from('bookings')
+            .select('status')
+            .eq('id', booking.id)
+            .single()
+          if (refreshed?.status === 'confirmed') {
+            try {
+              const { sendBookingConfirmation } = await import('@/lib/resend/template-send')
+              await sendBookingConfirmation(booking.id)
+              await service.from('notification_log').insert([
+                { user_id: booking.user_id, booking_id: booking.id, channel: 'email', type: 'booking_confirmed', status: 'sent' },
+                { user_id: booking.user_id, booking_id: booking.id, channel: 'whatsapp', type: 'booking_confirmed', status: 'pending' },
+              ])
+            } catch (e) {
+              console.error('[Stripe] proactive confirmation notification_failed', {
+                bookingId: booking.id,
+                message: (e as Error).message,
+              })
+            }
+            try {
+              await service.rpc('complete_payment_attempt', {
+                p_provider_order_no: booking.provider_order_no,
+                p_provider: 'stripe',
+              })
+            } catch {
+              // non-fatal
+            }
+            logResult({ status: 'confirmed', providerStatus: 'success' })
+            return NextResponse.json({
+              bookingId: booking.id,
+              status: 'confirmed',
+              providerStatus: 'success',
+            })
+          }
+        } catch (e) {
+          console.error('[Stripe] proactive confirmation failed', {
+            bookingId: booking.id,
+            error: (e as Error).message,
+          })
         }
-        uiStatus = 'pending_confirmation'
-        break
-      case 'failed':
-        uiStatus = 'failed'
-        break
-      case 'cancelled':
-        uiStatus = 'cancelled'
-        break
-      case 'closed':
-        uiStatus = 'failed'
-        break
-      case 'refunded':
-        uiStatus = 'refunded'
-        break
-      default:
-        uiStatus = 'pending'
+      }
+      uiStatus = 'pending_confirmation'
+      break
+    case 'failed':
+      uiStatus = 'failed'
+      break
+    case 'cancelled':
+      uiStatus = 'cancelled'
+      break
+    case 'closed':
+      uiStatus = 'failed'
+      break
+    case 'refunded':
+      uiStatus = 'refunded'
+      break
+    default:
+      uiStatus = 'pending'
+  }
+
+  logResult({ status: uiStatus, providerStatus: orderStatus.status })
+
+  return NextResponse.json({
+    bookingId: booking.id,
+    status: uiStatus,
+    providerStatus: orderStatus.status,
+    holdActive: hold.holdActive,
+    holdExpiresAt: hold.holdExpiresAt,
+    rawStatus: orderStatus.rawStatus,
+    ...(orderStatus.failureCode ? { failureCode: orderStatus.failureCode } : {}),
+    ...(orderStatus.failureReason ? { failureReason: orderStatus.failureReason } : {}),
+  })
+}
+
+// ──────────────────────────────────────────────────────────────────
+// KPay Status Handler
+// ──────────────────────────────────────────────────────────────────
+
+async function handleKPayStatus(booking: any, service: any, userId: string) {
+  const startedAt = Date.now()
+  const logResult = (payload: Record<string, unknown>) => {
+    console.log('[KPay] pollResult', { bookingId: booking.id, elapsedMs: Date.now() - startedAt, ...payload })
+  }
+
+  const holdState = async (): Promise<{ holdActive: boolean; holdExpiresAt: string | null }> => {
+    const { data, error } = await service.rpc('checkout_hold_expiry', {
+      p_booking_id: booking.id,
+      p_user_id: userId,
+    })
+    if (error || !data || typeof data !== 'object' || Array.isArray(data)) {
+      if (error) console.error('[KPay] pollResult hold_expiry_failed', { message: error.message })
+      return { holdActive: false, holdExpiresAt: null }
     }
+    const record = data as Record<string, unknown>
+    return {
+      holdActive: record.hold_active === true,
+      holdExpiresAt: typeof record.expires_at === 'string' ? record.expires_at : null,
+    }
+  }
 
-    logResult({ status: uiStatus, providerStatus: orderStatus.status })
-
+  if (booking.status === 'confirmed') {
+    logResult({ status: 'confirmed', providerStatus: 'success' })
     return NextResponse.json({
       bookingId: booking.id,
-      status: uiStatus,
-      providerStatus: orderStatus.status,
+      status: 'confirmed',
+      providerStatus: 'success',
+    })
+  }
+
+  if (booking.status === 'cancelled' || booking.status === 'expired') {
+    logResult({ status: booking.status, providerStatus: booking.status })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: booking.status,
+      providerStatus: booking.status === 'cancelled' ? 'cancelled' : booking.status,
+      holdActive: false,
+      holdExpiresAt: null,
+    })
+  }
+
+  if (booking.status === 'payment_failed') {
+    const hold = await holdState()
+    logResult({ status: booking.status, providerStatus: booking.status, holdActive: hold.holdActive })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: booking.status,
+      providerStatus: booking.status,
       holdActive: hold.holdActive,
       holdExpiresAt: hold.holdExpiresAt,
-      rawStatus: orderStatus.rawStatus,
-      ...(orderStatus.failureCode ? { failureCode: orderStatus.failureCode } : {}),
-      ...(orderStatus.failureReason ? { failureReason: orderStatus.failureReason } : {}),
     })
-  } catch (err) {
-    const e = err as Error
-    console.error('[KPay] pollResult error', { message: e.message, stack: e.stack })
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
+
+  const hold = await holdState()
+
+  if (!booking.provider_order_no) {
+    logResult({ status: booking.status === 'pending' ? 'pending' : 'failed', providerStatus: 'pending', holdActive: hold.holdActive })
+    return NextResponse.json({
+      bookingId: booking.id,
+      status: booking.status === 'pending' ? 'pending' : 'failed',
+      providerStatus: 'pending',
+      holdActive: hold.holdActive,
+      holdExpiresAt: hold.holdExpiresAt,
+    })
+  }
+
+  const provider = getPaymentProvider()
+  const orderStatus = await provider.queryOrder(booking.provider_order_no)
+
+  let uiStatus: string
+  switch (orderStatus.status) {
+    case 'success':
+      if (booking.status !== 'confirmed') {
+        try {
+          if (booking.order_group_id) {
+            const { data: rows, error: rowsErr } = await service
+              .from('bookings')
+              .select('id, total_price')
+              .eq('order_group_id', booking.order_group_id)
+
+            if (!rowsErr && rows && rows.length > 0) {
+              const qrCodes: Record<string, string> = {}
+              for (const r of rows) {
+                qrCodes[r.id] = humanReadableCode(r.id)
+              }
+              console.log('[KPay] proactive confirm_booking_group', {
+                orderGroupId: booking.order_group_id,
+                bookings: rows.length,
+                providerOrderNo: booking.provider_order_no,
+              })
+              await service.rpc('confirm_booking_group', {
+                p_order_group_id: booking.order_group_id,
+                p_payment_intent_id: booking.provider_order_no,
+                p_payment_method: booking.payment_method,
+                p_qr_codes: qrCodes,
+                p_event_id: null,
+              })
+            }
+          } else {
+            const humanCode = booking.human_code ?? humanReadableCode(booking.id)
+            console.log('[KPay] proactive confirm_booking', {
+              bookingId: booking.id,
+              providerOrderNo: booking.provider_order_no,
+            })
+            await service.rpc('confirm_booking', {
+              p_booking_id: booking.id,
+              p_payment_intent_id: booking.provider_order_no,
+              p_payment_method: booking.payment_method,
+              p_qr_code: humanCode,
+              p_event_id: null,
+            })
+          }
+          const { data: refreshed } = await service
+            .from('bookings')
+            .select('status')
+            .eq('id', booking.id)
+            .single()
+          if (refreshed?.status === 'confirmed') {
+            try {
+              const { sendBookingConfirmation } = await import('@/lib/resend/template-send')
+              await sendBookingConfirmation(booking.id)
+              await service.from('notification_log').insert([
+                { user_id: booking.user_id, booking_id: booking.id, channel: 'email', type: 'booking_confirmed', status: 'sent' },
+                { user_id: booking.user_id, booking_id: booking.id, channel: 'whatsapp', type: 'booking_confirmed', status: 'pending' },
+              ])
+            } catch (e) {
+              console.error('[KPay] proactive confirmation notification_failed', {
+                bookingId: booking.id,
+                message: (e as Error).message,
+              })
+            }
+            try {
+              await service.rpc('complete_payment_attempt', {
+                p_provider_order_no: booking.provider_order_no,
+                p_provider: 'kpay',
+              })
+            } catch {
+              // non-fatal
+            }
+            logResult({ status: 'confirmed', providerStatus: 'success' })
+            return NextResponse.json({
+              bookingId: booking.id,
+              status: 'confirmed',
+              providerStatus: 'success',
+            })
+          }
+        } catch (e) {
+          console.error('[KPay] proactive confirmation failed', {
+            bookingId: booking.id,
+            error: (e as Error).message,
+          })
+        }
+      }
+      uiStatus = 'pending_confirmation'
+      break
+    case 'failed':
+      uiStatus = 'failed'
+      break
+    case 'cancelled':
+      uiStatus = 'cancelled'
+      break
+    case 'closed':
+      uiStatus = 'failed'
+      break
+    case 'refunded':
+      uiStatus = 'refunded'
+      break
+    default:
+      uiStatus = 'pending'
+  }
+
+  logResult({ status: uiStatus, providerStatus: orderStatus.status })
+
+  return NextResponse.json({
+    bookingId: booking.id,
+    status: uiStatus,
+    providerStatus: orderStatus.status,
+    holdActive: hold.holdActive,
+    holdExpiresAt: hold.holdExpiresAt,
+    rawStatus: orderStatus.rawStatus,
+    ...(orderStatus.failureCode ? { failureCode: orderStatus.failureCode } : {}),
+    ...(orderStatus.failureReason ? { failureReason: orderStatus.failureReason } : {}),
+  })
 }
