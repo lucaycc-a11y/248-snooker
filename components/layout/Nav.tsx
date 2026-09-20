@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { AccountMenu } from '@/components/auth/AccountMenu'
 import { AuthModal } from '@/components/auth/AuthModal'
 import { createClient } from '@/lib/supabase/client'
+import { resolveNavThemeFromElement } from '@/lib/nav-theme'
 
 const navItems = [
   { href: '/', key: 'home' },
@@ -173,10 +174,8 @@ export default function Nav() {
         target = target.parentElement
       }
 
-      const bg = window.getComputedStyle(el).backgroundColor
-      const rgb = bg.match(/\d+/g)?.map(Number) ?? [0, 0, 0]
-      const lum = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000
-      setTheme(lum < 128 ? 'dark' : 'light')
+      const resolved = resolveNavThemeFromElement(el)
+      setTheme(resolved)
     }
 
     // Throttle to one probe per frame — `elementFromPoint` + getComputedStyle

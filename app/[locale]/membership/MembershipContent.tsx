@@ -128,7 +128,7 @@ function PilotSection({ t }: { t: Translation }) {
 export default function MembershipContent() {
   const t = useTranslations("membershipHub");
   return (
-    <div className="bg-black text-white">
+    <div className="bg-black text-white" data-nav-theme="dark">
       <main className="mx-auto max-w-6xl px-5 md:px-8">
         <MembershipSection t={t} />
         <PointsSection t={t} />

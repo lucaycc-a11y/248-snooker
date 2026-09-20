@@ -613,14 +613,26 @@ function DualTableGrid({
         aria-label={`${t("table_label")} ${tn} ${padTime(h)}`}
         title={locked ? t("table_locked") : undefined}
         style={{
+          minHeight: 44,
+          padding: "10px 6px",
+          borderRadius: tokens.radius.input,
+          border: `1px solid ${
+            selected
+              ? tokens.colors.link
+              : booked
+                ? "rgba(255,69,58,0.35)"
+                : tokens.colors.border
+          }`,
           background: selected
             ? tokens.colors.link
-            : tokens.colors.depth.recessed,
+            : booked
+              ? "rgba(255,69,58,0.08)"
+              : tokens.colors.depth.recessed,
           color: selected
             ? "#000"
             : booked
               ? "#FF8A80"
-              : past
+              : past || locked
                 ? tokens.colors.textFaint
                 : tokens.colors.text,
           fontSize: 13,
