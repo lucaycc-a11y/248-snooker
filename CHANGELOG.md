@@ -6,6 +6,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.12.8-uat.2] - 2026-09-21
+
+### Fixed
+- **Stripe payment flow (create-intent/route.ts)**: Add missing `is_test` flag to booking inserts — Stripe bookings were never marked as test, causing UAT bookings to pollute production availability queries and revenue statistics.
+- **KPay payment flow (checkout/create/route.ts)**: Refactor `is_test` logic to use shared fail-safe helper instead of inline `isUatEnv()` check.
+
+### Added
+- **lib/env/test-booking.ts**: Shared fail-safe test-booking detection helper. Production hostnames (`space8.com.hk`, `www.space8.com.hk`) always return `false` (never test), even if `VERCEL_ENV` is misconfigured. Non-production runtime detection uses explicit allowlist (`VERCEL_ENV ∈ {preview, development}` or `NODE_ENV=development`) instead of unsafe `!== 'production'` check. Unknown/missing environment variables default to `false` (production) for safety, since `is_test` also gates `applyTestPriceOverride` — a false positive on production means real customers pay test prices.
+- **lib/env/test-booking.test.ts**: 17 unit tests covering fail-safe logic, including critical case: `VERCEL_ENV=undefined` on production hostname correctly returns `false` (our implementation), not `true` (unsafe `!== 'production'` check).
+- **tsconfig.json**: Exclude `**/*.spec.ts` and `**/*.e2e.ts` from TypeScript compilation (Playwright end-to-end tests have separate config).
+
+### Security
+- **Stripe key audit**: Confirmed Preview environment uses Stripe **live keys** (`pk_live_...`), same as Production. Combined with test-booking low prices (HK$1-5), Preview deployments charge real Stripe accounts with real cards at reduced amounts. Consider switching Preview to Stripe test-mode keys (`pk_test_...`, `sk_test_...`) to avoid charging real payment methods during internal testing.
+
 ## [3.12.8-uat.1] - 2026-09-20
 
 ### Fixed

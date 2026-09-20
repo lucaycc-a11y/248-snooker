@@ -18,6 +18,8 @@ import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus } from '@/lib/checkout/prepare'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
+import { getHostname } from '@/lib/env/hostname'
+import { isTestBooking } from '@/lib/env/test-booking'
 
 export const runtime = 'nodejs'
 
@@ -67,6 +69,23 @@ export async function POST(req: Request) {
     }
 
     console.log('[payment/create-intent] attempt', { userId: user.id, slotIds, orderGroupId })
+
+    // ── Test-booking flag (SERVER-DERIVED ONLY) ─────────────────────────────
+    // Deliberately NOT read from the request body. If a client could assert
+    // is_test, it could also assert the cheap UAT override price on production
+    // and pay HK$1 for a real booking. The hostname comes from the platform's
+    // x-forwarded-host, which the browser cannot forge.
+    //
+    // Fail-safe logic (lib/env/test-booking.ts):
+    // - Production hostnames → always false (never test)
+    // - UAT hostname → always true
+    // - Non-production runtime (VERCEL_ENV=preview/development, NODE_ENV=development) → true
+    // - Unknown environment → false (assume production for safety)
+    const isTest = isTestBooking(getHostname(req))
+    if (isTest) {
+      console.log('[payment/create-intent] test booking — will be flagged is_test = true')
+    }
+    // ────────────────────────────────────────────────────────────────────────
 
     const periods = await loadPeriods()
     const tier = await resolveTierForUser(user.id)
@@ -163,6 +182,10 @@ export async function POST(req: Request) {
             is_free_booking: false,
             payment_method: 'card',
             payment_provider: 'stripe',
+            // Server-derived from the request host — never client-supplied. Keeps
+            // UAT traffic out of revenue/stats queries, which already filter on
+            // is_test = false.
+            is_test: isTest,
             order_group_id: orderGroupId,
             human_code: humanReadableCode(newId),
           })

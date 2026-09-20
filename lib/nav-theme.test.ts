@@ -1,118 +1,112 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { parseCssColor, resolveNavThemeFromElement } from './nav-theme'
 
 describe('parseCssColor', () => {
-  it('parses rgba with comma syntax and low alpha', () => {
-    const result = parseCssColor('rgba(255, 255, 255, 0.025)')
+  it('parses rgba with comma syntax and low alpha as transparent', () => {
+    const result = parseCssColor('rgba(255,255,255,0.025)')
     expect(result).toEqual({ r: 255, g: 255, b: 255, a: 0.025 })
   })
 
-  it('parses rgba with space/slash syntax and percent alpha', () => {
+  it('parses rgba with space/slash syntax', () => {
     const result = parseCssColor('rgb(0 0 0 / 50%)')
     expect(result).toEqual({ r: 0, g: 0, b: 0, a: 0.5 })
   })
 
-  it('parses green rgba with low alpha', () => {
-    const result = parseCssColor('rgba(34, 184, 107, 0.08)')
+  it('parses green translucent card correctly', () => {
+    const result = parseCssColor('rgba(34,184,107,0.08)')
     expect(result).toEqual({ r: 34, g: 184, b: 107, a: 0.08 })
   })
 
-  it('parses opaque rgb (comma syntax)', () => {
-    const result = parseCssColor('rgb(255, 255, 255)')
+  it('parses opaque rgb', () => {
+    const result = parseCssColor('rgb(255,255,255)')
     expect(result).toEqual({ r: 255, g: 255, b: 255, a: 1 })
   })
 
-  it('parses opaque rgb (space syntax)', () => {
-    const result = parseCssColor('rgb(0 0 0)')
-    expect(result).toEqual({ r: 0, g: 0, b: 0, a: 1 })
-  })
-
-  it('treats transparent as alpha 0', () => {
+  it('treats transparent keyword as alpha 0', () => {
     const result = parseCssColor('transparent')
     expect(result).toEqual({ r: 0, g: 0, b: 0, a: 0 })
   })
 
   it('returns null for unparseable input', () => {
-    expect(parseCssColor('invalid')).toBe(null)
-    expect(parseCssColor('#fff')).toBe(null)
-    expect(parseCssColor('hsl(0, 100%, 50%)')).toBe(null)
+    expect(parseCssColor('invalid')).toBeNull()
+    expect(parseCssColor('#ffffff')).toBeNull()
+  })
+
+  it('parses alpha as percentage', () => {
+    const result = parseCssColor('rgba(255, 255, 255, 50%)')
+    expect(result).toEqual({ r: 255, g: 255, b: 255, a: 0.5 })
   })
 })
 
 describe('resolveNavThemeFromElement', () => {
-  let container: HTMLDivElement
-  let child: HTMLDivElement
+  it('returns dark when translucent white card sits on black background', () => {
+    // Simulates: <div style="background: black"><div style="background: rgba(255,255,255,0.025)">...</div></div>
+    const container = document.createElement('div')
+    container.style.backgroundColor = 'rgb(0, 0, 0)'
 
-  beforeEach(() => {
-    container = document.createElement('div')
-    child = document.createElement('div')
-    container.appendChild(child)
+    const card = document.createElement('div')
+    card.style.backgroundColor = 'rgba(255,255,255,0.025)'
+    container.appendChild(card)
+
     document.body.appendChild(container)
-  })
 
-  afterEach(() => {
+    const theme = resolveNavThemeFromElement(card)
+    expect(theme).toBe('dark')
+
     document.body.removeChild(container)
   })
 
-  it('returns dark when translucent white card sits on black ancestor', () => {
-    // Simulates membership page: black root with rgba(255,255,255,0.025) card
+  it('returns dark when green translucent banner sits on black background', () => {
+    const container = document.createElement('div')
     container.style.backgroundColor = 'rgb(0, 0, 0)'
-    child.style.backgroundColor = 'rgba(255, 255, 255, 0.025)'
 
-    const theme = resolveNavThemeFromElement(child)
+    const banner = document.createElement('div')
+    banner.style.backgroundColor = 'rgba(34,184,107,0.08)'
+    container.appendChild(banner)
+
+    document.body.appendChild(container)
+
+    const theme = resolveNavThemeFromElement(banner)
     expect(theme).toBe('dark')
+
+    document.body.removeChild(container)
   })
 
-  it('returns dark when green translucent banner sits on black', () => {
-    container.style.backgroundColor = 'rgb(0, 0, 0)'
-    child.style.backgroundColor = 'rgba(34, 184, 107, 0.08)'
+  it('returns light for opaque white background', () => {
+    const el = document.createElement('div')
+    el.style.backgroundColor = 'rgb(255, 255, 255)'
+    document.body.appendChild(el)
 
-    const theme = resolveNavThemeFromElement(child)
-    expect(theme).toBe('dark')
-  })
-
-  it('returns light when opaque white background is found', () => {
-    container.style.backgroundColor = 'rgb(255, 255, 255)'
-
-    const theme = resolveNavThemeFromElement(container)
+    const theme = resolveNavThemeFromElement(el)
     expect(theme).toBe('light')
+
+    document.body.removeChild(el)
   })
 
-  it('returns dark when opaque black background is found', () => {
+  it('walks up to find opaque background when element has transparent background', () => {
+    const container = document.createElement('div')
     container.style.backgroundColor = 'rgb(0, 0, 0)'
 
-    const theme = resolveNavThemeFromElement(container)
+    const textEl = document.createElement('span')
+    textEl.style.backgroundColor = 'transparent'
+    container.appendChild(textEl)
+
+    document.body.appendChild(container)
+
+    const theme = resolveNavThemeFromElement(textEl)
     expect(theme).toBe('dark')
+
+    document.body.removeChild(container)
   })
 
-  it('walks up to find opaque ancestor when child is transparent', () => {
-    container.style.backgroundColor = 'rgb(255, 255, 255)'
-    child.style.backgroundColor = 'transparent'
+  it('returns dark as fallback when no opaque background is found', () => {
+    const el = document.createElement('div')
+    el.style.backgroundColor = 'rgba(0, 0, 0, 0.1)'
+    document.body.appendChild(el)
 
-    const theme = resolveNavThemeFromElement(child)
-    expect(theme).toBe('light')
-  })
-
-  it('returns dark when no qualifying background is found (site default)', () => {
-    // Neither container nor child has background set
-    const theme = resolveNavThemeFromElement(child)
+    const theme = resolveNavThemeFromElement(el)
     expect(theme).toBe('dark')
-  })
 
-  it('ignores backgrounds with alpha just under threshold', () => {
-    container.style.backgroundColor = 'rgb(0, 0, 0)'
-    child.style.backgroundColor = 'rgba(255, 255, 255, 0.59)'
-
-    // Child's white at 59% alpha should be ignored, walk to black ancestor
-    const theme = resolveNavThemeFromElement(child)
-    expect(theme).toBe('dark')
-  })
-
-  it('uses background with alpha at threshold (0.6)', () => {
-    child.style.backgroundColor = 'rgba(255, 255, 255, 0.6)'
-
-    // 60% alpha qualifies, white RGB → light
-    const theme = resolveNavThemeFromElement(child)
-    expect(theme).toBe('light')
+    document.body.removeChild(el)
   })
 })

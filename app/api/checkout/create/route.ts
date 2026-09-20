@@ -19,7 +19,7 @@ import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/l
 import type { PaymentMethod } from '@/lib/payments/types'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 import { getHostname } from '@/lib/env/hostname'
-import { isUatEnv } from '@/lib/env/uat'
+import { isTestBooking } from '@/lib/env/test-booking'
 import { applyTestPriceOverride } from '@/lib/uat/test-pricing'
 
 export const runtime = 'nodejs'
@@ -129,9 +129,15 @@ export async function POST(req: Request) {
     // is_test, it could also assert the cheap UAT override price on production
     // and pay HK$1 for a real booking. The hostname comes from the platform's
     // x-forwarded-host, which the browser cannot forge.
-    const isTestBooking = isUatEnv(getHostname(req))
-    if (isTestBooking) {
-      console.log('[checkout/create] UAT host — booking will be flagged is_test = true')
+    //
+    // Fail-safe logic (lib/env/test-booking.ts):
+    // - Production hostnames → always false (never test)
+    // - UAT hostname → always true
+    // - Non-production runtime (VERCEL_ENV=preview/development, NODE_ENV=development) → true
+    // - Unknown environment → false (assume production for safety)
+    const isTest = isTestBooking(getHostname(req))
+    if (isTest) {
+      console.log('[checkout/create] test booking — will be flagged is_test = true')
     }
     // ────────────────────────────────────────────────────────────────────────
 
@@ -219,7 +225,7 @@ export async function POST(req: Request) {
       // UAT: stamp is_test on every locked slot so the availability queries can
       // filter them out for production customers. The flag is server-derived
       // (hostname) — never client-supplied — matching the bookings.is_test logic.
-      if (isTestBooking && slotIds.length > 0) {
+      if (isTest && slotIds.length > 0) {
         const { error: stampErr } = await service
           .from('slots')
           .update({ is_test: true })
@@ -305,7 +311,7 @@ export async function POST(req: Request) {
           // Server-derived from the request host — never client-supplied. Keeps
           // UAT traffic out of revenue/stats queries, which already filter on
           // is_test = false, and gates the test-price override below.
-          is_test: isTestBooking,
+          is_test: isTest,
           order_group_id: orderGroupId,
           human_code: humanReadableCode(newId),
           // The customer-selected rail, persisted BEFORE payment succeeds. The
@@ -342,7 +348,7 @@ export async function POST(req: Request) {
         promoCode,
         pointsAmount,
         quotedTotal: totalAmount,
-        isTest: isTestBooking,
+        isTest: isTest,
         durationHours: totalDurationHours,
         bookingIds,
       })
@@ -477,7 +483,7 @@ export async function POST(req: Request) {
       // flagged by an admin) and is merely being resumed. Falling back to the
       // current host keeps a UAT-hosted retry cheap even if the row predates the
       // is_test wiring. Neither source is client-controlled.
-      isTest: booking.is_test === true || isTestBooking,
+      isTest: booking.is_test === true || isTest,
       durationHours: typeof booking.duration_hours === 'number' ? booking.duration_hours : 1,
       bookingIds: [bookingId],
     })
