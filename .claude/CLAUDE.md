@@ -38,6 +38,11 @@
 ## Timeout Prevention (CRITICAL)
 - **Do not exceed 30 seconds of processing time per step.** To prevent API gateway timeouts (503) or context errors, break down complex tasks, large file reads, or extensive refactoring into smaller, incremental steps. Avoid long "thinking", "compaction", or "smooshing" phases. Output progress frequently. If the user interrupts you (e.g., via Ctrl+C), gracefully acknowledge and ask for the prompt to be broken down.
 
+## Push Gate (MANDATORY)
+- **Never push to `uat` or `main` unless `npm run build` and `npx tsc --noEmit` passed locally on the exact commit being pushed.**
+- Fix build errors locally in one batch. Do not push `fix(build)` commits one at a time to see what Vercel says.
+- Do NOT: touch `main`, force-push, rebase, delete or move tags/branches, run `vercel --prod`, use Vercel "Redeploy" or "Promote" from any task unless that task's scope explicitly permits it.
+
 # graphify
 - **graphify** (`.claude/skills/graphify/SKILL.md`) - any input to knowledge graph. Trigger: `/graphify`
 When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
