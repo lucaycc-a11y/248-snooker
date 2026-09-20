@@ -1095,7 +1095,6 @@ function CardPaymentForm(props: {
     </form>
   )
 }
-<<<<<<< HEAD
 
 /** mm:ss countdown to `until`, plus an `urgent` flag for the final 2 minutes
  *  (Loss Aversion: the reminder should read as more urgent as the deadline
