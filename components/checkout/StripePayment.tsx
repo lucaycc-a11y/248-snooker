@@ -138,10 +138,10 @@ export function clearStripePersistedState() {
 const GREEN = '#1a9d5c'
 const GREEN_BRIGHT = '#22b86b'
 const GREEN_DEEP = '#0f7845'
-// Form panel surface — one step above graphite (#14161A), reads as grey not black.
-// #111111 was the deliberate fix in a37bbaa; #222428 was a merge regression.
-const BG = '#111111'
-const SURFACE = '#111111'
+// Form panel surface — matches booking summary card tokens.colors.depth.elevated.
+// #222428 from main branch; lighter grey that reads as cohesive with the summary card.
+const BG = '#222428'
+const SURFACE = '#222428'
 const TEXT = '#ffffff'
 const TEXT_MUTED = 'rgba(255,255,255,0.72)'
 const TEXT_FAINT = 'rgba(255,255,255,0.52)'
@@ -162,15 +162,15 @@ const STRIPE_POLL_TIMEOUT_MS = 60_000
 // sub-elements (method tabs, card/phone inputs) that the top-level `variables`
 // don't reach on their own.
 //
-// Color tokens from KPayPayment.tsx (Space8 design system):
+// Color tokens aligned with booking summary card surface:
 // - GREEN = '#1a9d5c', GREEN_BRIGHT = '#22b86b'
-// - SURFACE = '#111111', BG = '#111111'
+// - SURFACE = '#222428', BG = '#222428' (matches tokens.colors.depth.elevated)
 // - BORDER = 'rgba(255,255,255,0.1)'
 const appearance: Appearance = {
   theme: "night",
   variables: {
-    colorPrimary: "#22b86b",        // GREEN_BRIGHT (KPay 品牌綠)
-    colorBackground: "#111111",      // BG (深灰背景)
+    colorPrimary: "#22b86b",        // GREEN_BRIGHT (品牌綠)
+    colorBackground: "#222428",      // BG (淺灰背景，同訂單摘要一致)
     colorText: "#ffffff",
     colorTextSecondary: "rgba(255,255,255,0.72)", // TEXT_MUTED (KPay)
     borderRadius: "16px",            // 跟 KPay 卡片圓角 (16-20px)
@@ -179,14 +179,14 @@ const appearance: Appearance = {
   },
   rules: {
     ".Tab": {
-      border: "1px solid rgba(255,255,255,0.1)", // BORDER (KPay)
+      border: "1px solid rgba(255,255,255,0.1)", // BORDER
       borderRadius: "16px",
-      backgroundColor: "#111111",     // SURFACE (KPay)
+      backgroundColor: "#222428",     // SURFACE (淺灰，同訂單摘要一致)
       padding: "12px 16px",
     },
     ".Tab--selected": {
-      backgroundColor: "#1a9d5c",     // GREEN (KPay 選中背景)
-      borderColor: "#22b86b",         // GREEN_BRIGHT (KPay 選中邊框)
+      backgroundColor: "#1a9d5c",     // GREEN (選中背景)
+      borderColor: "#22b86b",         // GREEN_BRIGHT (選中邊框)
       color: "#ffffff",
     },
     ".Tab:hover": {
@@ -195,12 +195,12 @@ const appearance: Appearance = {
     },
     ".Input": {
       borderRadius: "16px",
-      backgroundColor: "#111111",     // SURFACE (KPay)
-      border: "1px solid rgba(255,255,255,0.1)", // BORDER (KPay)
+      backgroundColor: "#222428",     // SURFACE (淺灰，同訂單摘要一致)
+      border: "1px solid rgba(255,255,255,0.1)", // BORDER
       padding: "12px 16px",
     },
     ".Input:focus": {
-      borderColor: "#22b86b",         // GREEN_BRIGHT (KPay)
+      borderColor: "#22b86b",         // GREEN_BRIGHT
       boxShadow: "0 0 0 1px #22b86b",
     },
     ".Label": {
