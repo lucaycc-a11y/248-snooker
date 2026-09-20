@@ -6,6 +6,14 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.12.8-uat.3] - 2026-09-21
+
+### Fixed
+- **/maintenance page**: Added missing `maintenance` namespace to all three locale files (zh-HK, zh-CN, en) — page was rendering raw translation keys (`maintenance.title`, `maintenance.subtitle`, etc.) instead of text whenever maintenance mode was enabled.
+
+### Changed
+- **scripts/check-i18n-keys.js**: Extended i18n validation to detect missing namespaces and duplicate keys within JSON objects. The script now scans source code for `useTranslations('X')` and `getTranslations('X')` calls and fails the build if any referenced namespace is missing from locale files, preventing this class of bug from shipping.
+
 ## [3.12.8-uat.2] - 2026-09-21
 
 ### Fixed

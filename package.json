@@ -1,6 +1,6 @@
 {
   "name": "248-snooker",
-  "version": "3.12.8-uat.2",
+  "version": "3.12.8-uat.3",
   "private": true,
   "scripts": {
     "dev": "next dev",

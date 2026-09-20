@@ -413,6 +413,20 @@
       }
     ]
   },
+  "maintenance": {
+    "title": "Under Maintenance",
+    "subtitle": "SPACE8 is being updated. Please check back shortly.",
+    "eta": "We expect to be back shortly.",
+    "notify_title": "Get notified when we're back",
+    "notify_desc": "Leave your email and we'll let you know once the site is back.",
+    "email_placeholder": "Email address",
+    "notify_me": "Notify Me",
+    "sending": "Sending…",
+    "subscribed": "You're on the list.",
+    "err_email": "Enter a valid email address.",
+    "err_generic": "Something went wrong. Please try again.",
+    "contact": "Questions? Contact Admin@space8.com.hk or WhatsApp +852 6180 8022."
+  },
   "memberPage": {
     "card_label": "MEMBER CARD",
     "card_passenger": "PASSENGER",

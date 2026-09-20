@@ -413,6 +413,20 @@
       }
     ]
   },
+  "maintenance": {
+    "title": "系統維護中",
+    "subtitle": "SPACE8 正在進行系統更新，請稍後再試。",
+    "eta": "預計短時間內恢復服務",
+    "notify_title": "恢復後通知我",
+    "notify_desc": "留下電郵地址，網站恢復後我們會通知你。",
+    "email_placeholder": "電郵地址",
+    "notify_me": "通知我",
+    "sending": "提交中…",
+    "subscribed": "已為你登記。",
+    "err_email": "請輸入正確的電郵地址。",
+    "err_generic": "發生錯誤，請再試一次。",
+    "contact": "如有查詢，請聯絡 Admin@space8.com.hk 或 WhatsApp +852 6180 8022。"
+  },
   "memberPage": {
     "card_label": "MEMBER CARD",
     "card_passenger": "持卡會員",
