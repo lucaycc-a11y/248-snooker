@@ -1913,6 +1913,13 @@ function Screen3({
     termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
   }, [])
 
+  // Clear terms error when user checks the box
+  useEffect(() => {
+    if (agreedToTerms && termsError) {
+      setTermsError(false)
+    }
+  }, [agreedToTerms, termsError])
+
   // Admin test mode
   const [isAdmin, setIsAdmin] = useState(false)
   const [testMode, setTestMode] = useState(false)
@@ -2680,7 +2687,7 @@ function Screen3({
             animate={termsShake > 0 ? { x: [0, -8, 8, -6, 6, -3, 3, 0] } : false}
             transition={{ duration: 0.45 }}
             style={{
-              border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : agreedToTerms ? tokens.colors.danger : tokens.colors.border}`,
+              border: `1px solid ${termsError && !agreedToTerms ? tokens.colors.danger : tokens.colors.border}`,
               borderRadius: tokens.radius.input,
               padding: "14px 16px",
               transition: "border-color 0.2s ease",
@@ -2713,10 +2720,10 @@ function Screen3({
                   height: 18,
                   marginTop: 1,
                   flexShrink: 0,
-                  border: `1px solid ${agreedToTerms ? tokens.colors.danger : tokens.colors.borderStrong}`,
+                  border: `1px solid ${agreedToTerms ? tokens.colors.link : tokens.colors.borderStrong}`,
                   borderRadius: 4,
                   background: "transparent",
-                  color: tokens.colors.danger,
+                  color: agreedToTerms ? tokens.colors.link : tokens.colors.textMuted,
                   display: "grid",
                   placeItems: "center",
                   fontSize: 13,
