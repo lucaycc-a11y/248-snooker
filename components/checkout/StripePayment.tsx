@@ -1412,5 +1412,3 @@ export default function StripePayment(props: Props) {
     </Elements>
   )
 }
-=======
->>>>>>> origin/main
