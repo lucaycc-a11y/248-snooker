@@ -20,7 +20,7 @@ const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/maint
 // plus webhooks/auth callbacks that must always work), and the gate's own
 // coming-soon page (blocking it would redirect-loop). Also includes /uat-gate
 // for UAT domain visitors.
-const GATE_BYPASS_PREFIXES = ['/api', '/admin', '/auth', '/coming-soon', '/uat-gate', '/style-guide-preview']
+const GATE_BYPASS_PREFIXES = ['/api', '/admin', '/auth', '/member', '/coming-soon', '/uat-gate', '/style-guide-preview']
 
 function clientIp(request: NextRequest): string {
   const fwd = request.headers.get('x-forwarded-for')

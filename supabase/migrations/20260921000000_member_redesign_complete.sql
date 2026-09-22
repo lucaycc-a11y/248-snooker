@@ -18,28 +18,28 @@ INSERT INTO public.config (key, value) VALUES
   ('member_tiers', jsonb_build_array(
     jsonb_build_object(
       'id', 'amateur',
-      'name_zh_hk', '業餘',
-      'name_zh_cn', '业余',
-      'name_en', 'Amateur',
-      'name_ja', 'アマチュア',
+      'name_zh_hk', '新星會員',
+      'name_zh_cn', '新星会员',
+      'name_en', 'Nova',
+      'name_ja', 'ノヴァ',
       'min_lifetime_points', 0,
       'benefits', jsonb_build_object('discount', 1.0, 'multiplier', 1.0)
     ),
     jsonb_build_object(
       'id', 'century',
-      'name_zh_hk', '世紀',
-      'name_zh_cn', '世纪',
-      'name_en', 'Century',
-      'name_ja', 'センチュリー',
+      'name_zh_hk', '鉑金會員',
+      'name_zh_cn', '铂金会员',
+      'name_en', 'Platinum',
+      'name_ja', 'プラチナ',
       'min_lifetime_points', 500,
       'benefits', jsonb_build_object('discount', 0.95, 'multiplier', 1.5)
     ),
     jsonb_build_object(
       'id', 'maximum',
-      'name_zh_hk', '極限',
-      'name_zh_cn', '极限',
-      'name_en', 'Maximum',
-      'name_ja', 'マキシマム',
+      'name_zh_hk', '鑽石會員',
+      'name_zh_cn', '钻石会员',
+      'name_en', 'Diamond',
+      'name_ja', 'ダイヤモンド',
       'min_lifetime_points', 2000,
       'benefits', jsonb_build_object('discount', 0.9, 'multiplier', 2.0)
     )

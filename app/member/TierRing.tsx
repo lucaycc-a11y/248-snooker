@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
+import { TIER_DISPLAY, tierLabel } from '@/lib/member/tierDisplay'
 
 // ════════════════════════════════════════════════════════════════════════════
 // TierRing — P3: Animated circular progress ring showing tier advancement
@@ -15,11 +16,12 @@ type Props = {
 
 export function TierRing({ profile }: Props) {
   const t = useTranslations('member')
+  const locale = useLocale()
 
   const tiers = [
-    { id: 'amateur', min: 0, name_zh_hk: '業餘', color: '#10B981' },
-    { id: 'century', min: 500, name_zh_hk: '世紀', color: '#F59E0B' },
-    { id: 'maximum', min: 2000, name_zh_hk: '極限', color: '#A855F7' },
+    { id: 'amateur' as const, min: 0, color: '#10B981' },
+    { id: 'century' as const, min: 500, color: '#F59E0B' },
+    { id: 'maximum' as const, min: 2000, color: '#A855F7' },
   ]
 
   const currentTier = tiers.find((t) => t.id === profile.tier_id) ?? tiers[0]
@@ -86,7 +88,7 @@ export function TierRing({ profile }: Props) {
           >
             <p className="font-label text-sm text-white/40">{t('tier.current')}</p>
             <p className="mt-1 text-3xl font-bold text-white" style={{ color: currentTier.color }}>
-              {currentTier.name_zh_hk}
+              {tierLabel(currentTier.id, locale)}
             </p>
             <p className="font-code mt-1 text-2xl text-white">{profile.lifetime_points.toLocaleString()}</p>
             <p className="font-label text-xs text-white/40">{t('tier.lifetime_points')}</p>
@@ -103,7 +105,7 @@ export function TierRing({ profile }: Props) {
           className="mt-6 text-center"
         >
           <p className="font-label text-sm text-white/60">
-            {t('tier.next_tier')}: <span className="font-bold text-white">{nextTier.name_zh_hk}</span>
+            {t('tier.next_tier')}: <span className="font-bold text-white">{tierLabel(nextTier.id, locale)}</span>
           </p>
           <p className="mt-1 text-xl font-bold text-white">
             <span className="font-code">{pointsToNext.toLocaleString()}</span> <span className="font-label text-sm font-normal text-white/60">{t('tier.points_away')}</span>
@@ -145,7 +147,7 @@ export function TierRing({ profile }: Props) {
               >
                 {isReached && <span className="text-xl">✓</span>}
               </motion.div>
-              <p className="mt-2 text-xs font-medium text-white/60">{tier.name_zh_hk}</p>
+              <p className="mt-2 text-xs font-medium text-white/60">{tierLabel(tier.id, locale)}</p>
               <p className="font-code text-xs text-white/40">{tier.min.toLocaleString()}</p>
 
               {/* Connector line */}
