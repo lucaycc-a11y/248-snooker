@@ -7,6 +7,7 @@ import { loadPeriods, resolveTierForUser, slotBounds } from '@/lib/booking/serve
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 export const runtime = 'nodejs'
 
@@ -32,7 +33,7 @@ function isValidBlock(b: unknown): b is Block {
 //   → find_or_lock_slots() locks all blocks atomically (all-or-nothing);
 //     returns { slotIds, orderGroupId, lockedUntil }.
 // Price is computed SERVER-SIDE per block, so pricing stays in lib/pricing.
-export async function POST(req: Request) {
+async function handleBookingLock(req: Request) {
   try {
     const supabase = await createClient()
     const {
@@ -232,3 +233,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal error', detail: msg }, { status: 500 })
   }
 }
+
+// Export with security wrapper: CSRF + rate limiting
+export const POST = withSecurity(handleBookingLock, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'booking_lock',
+    max: 20,
+    windowSeconds: 60,
+    identifierType: 'both',
+  },
+})
+

@@ -20,6 +20,7 @@ import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/li
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 import { getHostname } from '@/lib/env/hostname'
 import { isTestBooking } from '@/lib/env/test-booking'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 export const runtime = 'nodejs'
 
@@ -28,7 +29,7 @@ export const runtime = 'nodejs'
 // bookings row exists, and creates a Stripe PaymentIntent (Payment Element).
 // Idempotency key = booking_id so a double-tap reuses the same intent. The
 // webhook later calls confirm_booking(booking_id, …).
-export async function POST(req: Request) {
+async function handleCreateIntent(req: Request) {
   try {
     const supabase = await createClient()
     const {
@@ -444,3 +445,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+// Export with security wrapper: CSRF + rate limiting
+export const POST = withSecurity(handleCreateIntent, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'payment_create_intent',
+    max: 20,
+    windowSeconds: 60,
+    identifierType: 'both', // Both IP and user rate limits
+  },
+})

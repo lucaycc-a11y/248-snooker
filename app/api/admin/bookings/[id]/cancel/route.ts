@@ -15,6 +15,7 @@ import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { num, str } from '@/lib/data/adminReadHelpers'
+import { withAdminSecurity } from '@/lib/security/admin-wrapper'
 
 export const runtime = 'nodejs'
 
@@ -24,9 +25,10 @@ type CancelRequest = {
   compensationValue?: number
 }
 
-export async function POST(
+async function handleAdminBookingCancel(
   req: Request,
-  { params }: { params: { id: string } }
+  adminUser: { id: string; email?: string },
+  context?: { params: Record<string, string> }
 ) {
   try {
     const admin = await getAdminData()
@@ -34,7 +36,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized — admin only' }, { status: 401 })
     }
 
-    const bookingId = params.id
+    const bookingId = context?.params?.id
     if (!bookingId || typeof bookingId !== 'string') {
       return NextResponse.json({ error: 'Invalid booking ID' }, { status: 400 })
     }
@@ -193,3 +195,12 @@ export async function POST(
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+// Export with admin security wrapper: auth + admin role check + CSRF + rate limiting
+export const POST = withAdminSecurity(handleAdminBookingCancel, {
+  rateLimit: {
+    bucket: 'admin_booking_cancel',
+    max: 30,
+    windowSeconds: 60,
+  },
+})

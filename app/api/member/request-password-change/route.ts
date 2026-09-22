@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 // ════════════════════════════════════════════════════════════════════════════
 // POST /api/member/request-password-change
 // Sends magic link email for password change
 // ════════════════════════════════════════════════════════════════════════════
 
-export async function POST() {
+async function handleRequestPasswordChange() {
   try {
     const supabase = await createClient()
     const {
@@ -45,3 +46,14 @@ export async function POST() {
     return NextResponse.json({ error: 'server_error' }, { status: 500 })
   }
 }
+
+// Export with security wrapper: CSRF + rate limiting
+export const POST = withSecurity(handleRequestPasswordChange, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'password_change_request',
+    max: 5,
+    windowSeconds: 300, // 5 per 5 minutes
+    identifierType: 'both',
+  },
+})

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 import { normalizeHkPhone } from '@/lib/auth/profile'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic'
 // Sends an SMS OTP via Supabase's native phone provider, gated by a server-side
 // rate limit the client cannot bypass: max 3 sends per phone / 15 min, plus a
 // looser per-IP cap to blunt enumeration. The client only calls verifyOtp.
-export async function POST(req: Request) {
+async function handleSendOtp(req: Request) {
   try {
     const body = await req.json().catch(() => null)
     const phone = normalizeHkPhone(body?.phone ?? '')
@@ -64,3 +65,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: 'internal_error', detail: e.message }, { status: 500 })
   }
 }
+
+// Export with security wrapper: CSRF protection only
+// Rate limiting already implemented inside handler (phone-specific + IP)
+export const POST = withSecurity(handleSendOtp, {
+  csrf: true,
+})

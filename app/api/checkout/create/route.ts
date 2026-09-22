@@ -21,6 +21,7 @@ import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/li
 import { getHostname } from '@/lib/env/hostname'
 import { isTestBooking } from '@/lib/env/test-booking'
 import { applyTestPriceOverride } from '@/lib/uat/test-pricing'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 export const runtime = 'nodejs'
 
@@ -54,7 +55,7 @@ function isValidBlock(b: unknown): b is Block {
 //
 // Idempotent: if the booking already has a provider_order_no, returns the
 // existing one instead of creating a new KPay order.
-export async function POST(req: Request) {
+async function handleCheckoutCreate(req: Request) {
   const startTime = Date.now()
   console.log('[checkout/create] === REQUEST START ===', new Date().toISOString(), '| start_time:', startTime)
 
@@ -835,3 +836,14 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
     ...extra,
   })
 }
+
+// Export with security wrapper: CSRF + rate limiting
+export const POST = withSecurity(handleCheckoutCreate, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'checkout_create',
+    max: 20,
+    windowSeconds: 60,
+    identifierType: 'both', // Both IP and user rate limits
+  },
+})

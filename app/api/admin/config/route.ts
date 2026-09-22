@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import type { SiteConfig, Tier } from '@/lib/data/pricing'
+import { withAdminSecurity } from '@/lib/security/admin-wrapper'
 
 // Admin-only config writer. GET is intentionally omitted — the settings page
 // reads current values directly via getConfig()/getConfigValue() as a Server
@@ -98,7 +99,7 @@ function validateByKey(key: ConfigKey, value: unknown): unknown | null {
   }
 }
 
-export async function POST(req: Request) {
+async function handleAdminConfigUpdate(req: Request) {
   try {
     const admin = await getAdminData()
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -142,3 +143,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+// Export with admin security wrapper: auth + admin role check + CSRF + rate limiting
+export const POST = withAdminSecurity(handleAdminConfigUpdate, {
+  rateLimit: {
+    bucket: 'admin_config_update',
+    max: 20,
+    windowSeconds: 60,
+  },
+})

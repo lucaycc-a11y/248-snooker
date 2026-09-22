@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { normalizeHkPhone } from '@/lib/auth/profile'
 import { bindVerifiedPhone } from '@/lib/auth/phone-binding'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
@@ -21,7 +22,7 @@ export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
 // and auth.users.phone matching the submitted number can only happen if
 // verifyOtp actually succeeded for this user. A caller who POSTs an unverified
 // number gets 422 — the body cannot manufacture verification.
-export async function POST(req: Request) {
+async function handleBindPhone(req: Request) {
   try {
     const supabase = await createClient()
     const {
@@ -96,3 +97,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 }
+
+// Export with security wrapper: CSRF + rate limiting
+export const POST = withSecurity(handleBindPhone, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'profile_bind_phone',
+    max: 10,
+    windowSeconds: 300, // 10 attempts per 5 minutes
+    identifierType: 'both',
+  },
+})

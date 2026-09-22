@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { rateLimit } from '@/lib/rate-limit'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 export const runtime = 'nodejs'
 
@@ -9,7 +10,7 @@ function isUuid(value: unknown): value is string {
   return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
 }
 
-export async function POST(req: Request) {
+async function handleCancel(req: Request) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -47,3 +48,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+// Export with security wrapper: CSRF + rate limiting
+export const POST = withSecurity(handleCancel, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'checkout_cancel',
+    max: 10,
+    windowSeconds: 60,
+    identifierType: 'both',
+  },
+})

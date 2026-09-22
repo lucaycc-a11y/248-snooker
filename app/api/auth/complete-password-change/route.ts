@@ -5,6 +5,7 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { validateChangeToken, consumeChangeToken } from '@/lib/auth/change-token'
 import { validatePassword } from '@/lib/auth/password'
 import { clientIp } from '@/lib/rate-limit'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -14,7 +15,7 @@ type RequestBody = { token: string; password: string }
 // Completes a password change via email link token.
 // Validates token, updates password, marks token as used, logs the change,
 // sends confirmation email, and signs out other sessions.
-export async function POST(request: Request) {
+async function handleCompletePasswordChange(request: Request) {
   try {
     const cookieStore = await cookies()
     const supabase = createServerClient(
@@ -148,3 +149,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 }
+
+// Export with security wrapper: CSRF + rate limiting
+export const POST = withSecurity(handleCompletePasswordChange, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'auth_password_change',
+    max: 5,
+    windowSeconds: 300, // 5 attempts per 5 minutes
+    identifierType: 'both',
+  },
+})

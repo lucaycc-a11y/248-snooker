@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { validateNamePhone } from '@/lib/auth/profile'
+import { withSecurity } from '@/lib/security/api-wrapper'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
@@ -12,7 +13,7 @@ export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
 // with junk), and writes via service-role rather than a client .update() that
 // silently fails when RLS blocks self-updates. Email is read-only in Settings,
 // so it's intentionally not editable here.
-export async function POST(req: Request) {
+async function handleProfileUpdate(req: Request) {
   try {
     const supabase = await createClient()
     const {
@@ -51,3 +52,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 })
   }
 }
+
+// Export with security wrapper: CSRF + rate limiting
+export const POST = withSecurity(handleProfileUpdate, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'profile_update',
+    max: 10,
+    windowSeconds: 60, // 10 per minute
+    identifierType: 'both',
+  },
+})
