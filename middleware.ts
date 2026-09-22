@@ -269,7 +269,24 @@ export async function middleware(request: NextRequest) {
 
     return response
   }
-  return intlMiddleware(request)
+
+  // For localized routes, run intlMiddleware and ensure locale cookie is properly set
+  const intlResponse = intlMiddleware(request)
+
+  // Ensure NEXT_LOCALE cookie has correct flags for client-side reading
+  // (it must NOT be HttpOnly so the language switcher can read it)
+  const localeCookie = intlResponse.cookies.get('NEXT_LOCALE')
+  if (localeCookie) {
+    intlResponse.cookies.set('NEXT_LOCALE', localeCookie.value, {
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: false, // MUST be false for client-side language switcher
+      maxAge: 31536000, // 1 year
+    })
+  }
+
+  return intlResponse
 }
 
 export const config = {
