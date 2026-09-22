@@ -105,6 +105,116 @@ async function logGateAccess(
   }
 }
 
+// Password gate: redirects authenticated users without a password to /auth/set-password.
+// This enforces requirement A: no user may access member pages, booking flow, or
+// checkout without first setting a password.
+async function checkPasswordGate(
+  request: NextRequest,
+  response: NextResponse
+): Promise<NextResponse | null> {
+  const pathname = request.nextUrl.pathname
+
+  // Skip the gate for:
+  // - The set-password page itself (would redirect-loop)
+  // - Auth/login routes (user needs to reach login to authenticate first)
+  // - API routes (webhooks, auth callbacks, change-request endpoints)
+  // - Admin (admin login uses separate auth, should not be gated by member password)
+  // - Static/public pages
+  const GATE_BYPASS = [
+    '/auth/set-password',
+    '/auth/login',
+    '/login',
+    '/auth/callback',
+    '/auth/change-password',
+    '/auth/change-phone',
+    '/api/',
+    '/admin',
+    '/maintenance',
+    '/coming-soon',
+    '/_next/',
+    '/favicon',
+  ]
+
+  if (GATE_BYPASS.some((p) => pathname.startsWith(p))) {
+    return null
+  }
+
+  // Only gate member-facing pages: /member, /book, checkout (future), etc.
+  // Public pages like homepage, pricing, about should not require a password.
+  const GATED_PREFIXES = ['/member', '/book']
+  if (!GATED_PREFIXES.some((p) => pathname.startsWith(p))) {
+    return null
+  }
+
+  try {
+    // Extract user from the response cookies (the session was just refreshed by updateSession)
+    const { createServerClient } = await import('@supabase/ssr')
+
+    // Parse cookies from the response that updateSession just set
+    const responseCookies = new Map<string, string>()
+    response.headers.getSetCookie().forEach((cookie) => {
+      const [nameValue] = cookie.split(';')
+      const [name, value] = nameValue.split('=')
+      if (name && value) responseCookies.set(name.trim(), value.trim())
+    })
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => {
+            // Merge request cookies with fresh response cookies (response takes precedence)
+            const allCookies: { name: string; value: string }[] = []
+            const requestCookies = request.cookies.getAll()
+            const names = new Set([
+              ...requestCookies.map((c) => c.name),
+              ...responseCookies.keys(),
+            ])
+            names.forEach((name) => {
+              const value = responseCookies.get(name) ?? requestCookies.find((c) => c.name === name)?.value
+              if (value) allCookies.push({ name, value })
+            })
+            return allCookies
+          },
+          setAll: () => {}, // Read-only
+        },
+      }
+    )
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    // Not authenticated → let them through (they'll hit the login page naturally)
+    if (!user) return null
+
+    // Check if password is set
+    const { getServiceSupabase } = await import('@/lib/supabase/service')
+    const service = getServiceSupabase()
+    const { data: status } = await service
+      .from('user_password_status')
+      .select('password_set')
+      .eq('user_id', user.id)
+      .maybeSingle<{ password_set: boolean }>()
+
+    // Password not set → redirect to set-password page
+    if (!status?.password_set) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/set-password'
+      url.search = '' // Clear query params
+      return NextResponse.redirect(url)
+    }
+
+    // Password is set → allow through
+    return null
+  } catch (err) {
+    // On error, fail open (don't block access) but log the issue
+    console.error('[password-gate] check failed:', err)
+    return null
+  }
+}
+
 function isLocalized(pathname: string): boolean {
   // Never rewrite auth/api routes — the OAuth callback must resolve as-is.
   // Segment-exact match: '/member' must NOT swallow '/membership' (a public
@@ -150,7 +260,14 @@ export async function middleware(request: NextRequest) {
   // one-time refresh token). Localized public pages don't touch auth, so they go
   // straight to the intl rewrite and never pay the refresh cost.
   if (!isLocalized(request.nextUrl.pathname)) {
-    return updateSession(request)
+    const response = await updateSession(request)
+
+    // Password gate: authenticated users without a password are redirected to
+    // /auth/set-password (except when already on that page, or on auth/API routes)
+    const passwordGateRedirect = await checkPasswordGate(request, response)
+    if (passwordGateRedirect) return passwordGateRedirect
+
+    return response
   }
   return intlMiddleware(request)
 }

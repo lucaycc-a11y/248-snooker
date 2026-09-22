@@ -218,7 +218,19 @@ for (const [file, text] of Object.entries(localeTexts)) {
 const usedNamespaces = extractUsedNamespaces()
 for (const namespace of usedNamespaces) {
   for (const [file, data] of Object.entries(locales)) {
-    if (!data[namespace]) {
+    // Support nested namespaces like 'member.offers' by traversing the path
+    const parts = namespace.split('.')
+    let current = data
+    let found = true
+    for (const part of parts) {
+      if (current && typeof current === 'object' && part in current) {
+        current = current[part]
+      } else {
+        found = false
+        break
+      }
+    }
+    if (!found) {
       console.error(`❌ ${file} is missing namespace used in code: "${namespace}"`)
       hasError = true
     }

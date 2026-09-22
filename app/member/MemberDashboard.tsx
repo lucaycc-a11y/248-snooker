@@ -27,8 +27,7 @@ import {
   Check,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { OtpVerification, type OtpVerificationStatus } from "@/components/auth/OtpVerification";
-import { normalizeHkPhone } from "@/lib/auth/profile";
+import { CHANGE_REQUEST_COOLDOWN } from "@/lib/auth/change-constants";
 import { BackButton } from "@/components/shared/BackButton";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
@@ -1454,9 +1453,7 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
 
 function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; bookings: MemberBooking[]; onSignOut: () => void }) {
   const t = useTranslations("memberPage");
-  const tAuth = useTranslations("auth");
   const [name, setName] = useState(user.display_name ?? "");
-  const [phone, setPhone] = useState(user.phone ?? "");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -1488,34 +1485,28 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
     setHasActiveBookings(hasActive);
   }, [bookings]);
 
-  // ── Phone-change OTP flow (C4 item 9) ──────────────────────────────────────
-  // When the phone field changes, route through the contact-change double-
-  // verification flow instead of saving directly. The flow is:
-  //   start → OTP to current phone → verify-current → OTP to new phone → verify-new → signOut
-  const OTP_LENGTH = 6;
-  const RESEND_COOLDOWN = 60;
-  const [otpPhase, setOtpPhase] = useState<"form" | "verifyCurrent" | "verifyNew">("form");
-  const [requestId, setRequestId] = useState("");
-  const [otp, setOtp] = useState<string[]>(() => Array.from({ length: OTP_LENGTH }, () => ""));
-  const [otpStatus, setOtpStatus] = useState<OtpVerificationStatus>("input");
-  const [otpChannel, setOtpChannel] = useState<"whatsapp" | "sms">("sms");
-  const [otpCooldown, setOtpCooldown] = useState(0);
-  const [otpError, setOtpError] = useState<string | null>(null);
+  // ── Email-link change requests (phone + password) ──────────────────────────
+  // Phone and password can no longer be changed from this form. Both route
+  // through /api/auth/change-request, which emails a single-use link to the
+  // address on the account. The change itself happens on the linked page.
+  const [phoneSending, setPhoneSending] = useState(false);
+  const [phoneMessage, setPhoneMessage] = useState<string | null>(null);
+  const [phoneCooldown, setPhoneCooldown] = useState(0);
+  const [pwCooldown, setPwCooldown] = useState(0);
 
-  // Detect whether the phone field actually changed (normalized E.164 comparison)
-  const originalPhoneE164 = normalizeHkPhone(user.phone ?? "");
-  const currentPhoneE164 = normalizeHkPhone(phone);
-  const phoneChanged = currentPhoneE164 !== null && currentPhoneE164 !== originalPhoneE164;
-
-  // Strip +852 prefix for display in OTP subtitles
-  const localHkPhoneValue = (v: string | null) => (v ? v.slice(4) : "");
-
-  // Cooldown timer for OTP resend
+  // Visible countdown for the phone-change request button
   useEffect(() => {
-    if (otpCooldown <= 0) return;
-    const id = window.setTimeout(() => setOtpCooldown((c) => c - 1), 1000);
+    if (phoneCooldown <= 0) return;
+    const id = window.setTimeout(() => setPhoneCooldown((c) => c - 1), 1000);
     return () => window.clearTimeout(id);
-  }, [otpCooldown]);
+  }, [phoneCooldown]);
+
+  // Visible countdown for the password-change request button
+  useEffect(() => {
+    if (pwCooldown <= 0) return;
+    const id = window.setTimeout(() => setPwCooldown((c) => c - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [pwCooldown]);
 
   const toggleNotif = async (key: 'booking' | 'points' | 'promo', value: boolean) => {
     setNotif((s) => ({ ...s, [key]: value }));
@@ -1528,75 +1519,26 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
     } catch {}
   };
 
-  // ── Save handler (C4 item 9) ──────────────────────────────────────────────
-  // Name changes go through /api/profile/update directly.
-  // Phone changes route through the double-verification contact-change flow:
-  //   start (OTP to current phone) → verifyCurrent → verifyNew (OTP to new phone)
-  // After the new phone is verified, the backend invalidates other sessions and
-  // we sign out + reload so the new phone takes effect.
+  // ── Save handler ──────────────────────────────────────────────────────────
+  // Saves display name only. Notification toggles persist on change via
+  // toggleNotif. Phone and password are deliberately NOT saved here — both
+  // require the emailed single-use link (requirement B).
   const save = async () => {
     setSaving(true);
     setSaveError(null);
     try {
-      if (!phoneChanged) {
-        // Name-only save — no OTP needed
-        const res = await fetch("/api/profile/update", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name }),
-        });
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          setSaveError(j.field === "name" ? t("settings_err_name") : t("settings_err_generic"));
-          return;
-        }
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
-        return;
-      }
-
-      // ── Phone change: start the contact-change flow ──────────────────────
-      if (!currentPhoneE164) {
-        setSaveError(t("settings_err_phone"));
-        return;
-      }
-      const startRes = await fetch("/api/profile/contact-change/start", {
+      const res = await fetch("/api/profile/update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind: "phone", method: "otp", value: currentPhoneE164 }),
+        body: JSON.stringify({ name }),
       });
-      const startJ = await startRes.json().catch(() => ({}));
-      if (!startRes.ok) {
-        if (startRes.status === 409 && startJ?.error === "change_in_progress") {
-          setSaveError(tAuth("err_phone_change_in_progress"));
-        } else if (startRes.status === 409 && startJ?.error === "same_value") {
-          // Phone didn't actually change (normalized match) — treat as name-only save
-          const nameRes = await fetch("/api/profile/update", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name }),
-          });
-          if (!nameRes.ok) {
-            setSaveError(t("settings_err_generic"));
-            return;
-          }
-          setSaved(true);
-          setTimeout(() => setSaved(false), 2000);
-          return;
-        } else {
-          setSaveError(t("settings_err_generic"));
-        }
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setSaveError(j.field === "name" ? t("settings_err_name") : t("settings_err_generic"));
         return;
       }
-
-      // Flow started — OTP sent to current phone
-      setRequestId(startJ.requestId);
-      setOtpChannel(startJ.currentChannel === "whatsapp" ? "whatsapp" : "sms");
-      setOtp(Array.from({ length: OTP_LENGTH }, () => ""));
-      setOtpStatus("input");
-      setOtpError(null);
-      setOtpCooldown(RESEND_COOLDOWN);
-      setOtpPhase("verifyCurrent");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     } catch {
       setSaveError(t("settings_err_generic"));
     } finally {
@@ -1604,122 +1546,43 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
     }
   };
 
-  // ── Change password (C6 item 13) ─────────────────────────────────────
-  // Triggers a Supabase password-reset email. The user completes the
-  // flow on /auth/update-password (outside [locale], site-gate bypassed).
-  const changePassword = async () => {
-    if (!user.email) { setPwMessage(t("settings_err_generic")); return; }
-    setPwSending(true);
-    setPwMessage(null);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-        redirectTo: "https://space8.com.hk/auth/update-password",
-      });
-      if (error) {
-        console.error("[settings] resetPasswordForEmail failed:", error.message);
-        setPwMessage(t("settings_err_generic"));
-        return;
-      }
-      setPwMessage("✓ Reset email sent — check your inbox.");
-    } catch {
-      setPwMessage(t("settings_err_generic"));
-    } finally {
-      setPwSending(false);
-    }
-  };
+  // ── Request a change link ─────────────────────────────────────────────────
+  // Both 更改電話 and 更改密碼 hit the same endpoint with a different purpose.
+  // The response is deliberately identical whether or not an email exists, so
+  // the UI shows the same confirmation either way (no account enumeration).
+  const requestChangeLink = async (purpose: "phone" | "password") => {
+    const setSending = purpose === "phone" ? setPhoneSending : setPwSending;
+    const setMessage = purpose === "phone" ? setPhoneMessage : setPwMessage;
+    const setCooldown = purpose === "phone" ? setPhoneCooldown : setPwCooldown;
 
-  // ── OTP verification sub-step (C4 item 9) ─────────────────────────────────
-  // verifyCurrent: user enters the OTP sent to their CURRENT phone
-  // verifyNew:     user enters the OTP sent to their NEW phone
-  const verifyOtp = async (code: string) => {
-    setOtpStatus("verifying");
-    setOtpError(null);
+    setSending(true);
+    setMessage(null);
     try {
-      const endpoint =
-        otpPhase === "verifyCurrent"
-          ? "/api/profile/contact-change/verify-current"
-          : "/api/profile/contact-change/verify-new";
-      const res = await fetch(endpoint, {
+      const res = await fetch("/api/auth/change-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requestId, code }),
+        body: JSON.stringify({ purpose }),
       });
       const j = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setOtpStatus("failure");
-        if (res.status === 409 && j?.error === "phone_exists") {
-          setOtpError(tAuth("err_phone_exists"));
-        } else if (j?.error === "invalid_code") {
-          setOtpError(tAuth("err_otp_wrong_generic"));
+        if (res.status === 429) {
+          setMessage(t("settings_change_rate_limited"));
+        } else if (j?.error === "no_email_on_account") {
+          setMessage(t("settings_change_no_email"));
         } else {
-          setOtpError(tAuth("err_otp_wrong_generic"));
+          setMessage(t("settings_err_generic"));
         }
         return;
       }
 
-      if (otpPhase === "verifyCurrent") {
-        // Current phone verified — now verify the new phone
-        setOtpPhase("verifyNew");
-        setOtp(Array.from({ length: OTP_LENGTH }, () => ""));
-        setOtpStatus("input");
-        setOtpCooldown(RESEND_COOLDOWN);
-      } else {
-        // New phone verified — phone change complete, sign out to refresh session
-        setOtpStatus("success");
-        try {
-          const sb = createClient();
-          await sb.auth.signOut();
-        } catch { /* best-effort — reload will clear stale session */ }
-        window.location.reload();
-      }
+      setMessage(t("settings_change_link_sent"));
+      setCooldown(CHANGE_REQUEST_COOLDOWN);
     } catch {
-      setOtpStatus("failure");
-      setOtpError(tAuth("err_network"));
+      setMessage(t("settings_err_generic"));
+    } finally {
+      setSending(false);
     }
-  };
-
-  // Resend OTP during the contact-change flow
-  const resendOtp = async () => {
-    setOtpError(null);
-    setOtpStatus("input");
-    setOtp(Array.from({ length: OTP_LENGTH }, () => ""));
-    try {
-      if (otpPhase === "verifyCurrent") {
-        // Resend to current phone
-        const res = await fetch("/api/profile/contact-change/start", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ kind: "phone", method: "otp", value: currentPhoneE164 }),
-        });
-        const j = await res.json().catch(() => ({}));
-        if (res.ok && j?.requestId) {
-          setRequestId(j.requestId);
-          setOtpChannel(j.currentChannel === "whatsapp" ? "whatsapp" : "sms");
-          setOtpCooldown(RESEND_COOLDOWN);
-        }
-      } else {
-        // verifyNew: resend OTP to new phone by calling verify-current with same code —
-        // Actually, we need to re-trigger the new-phone OTP. The contact-change
-        // flow doesn't have an explicit resend for the new phone, so we restart.
-        // In practice, the verify-new route uses the message_id stored at start;
-        // re-starting the flow is the safest path.
-        const res = await fetch("/api/profile/contact-change/start", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ kind: "phone", method: "otp", value: currentPhoneE164 }),
-        });
-        const j = await res.json().catch(() => ({}));
-        if (res.ok && j?.requestId) {
-          // Restart full flow — verify current first, then new
-          setRequestId(j.requestId);
-          setOtpPhase("verifyCurrent");
-          setOtpChannel(j.currentChannel === "whatsapp" ? "whatsapp" : "sms");
-          setOtpCooldown(RESEND_COOLDOWN);
-        }
-      }
-    } catch { /* keep existing UI state */ }
   };
 
   const handleDeleteData = async () => {
@@ -1761,86 +1624,6 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
     fontFamily: FONT_FAMILY,
   };
 
-  // ── OTP sub-step UI (C4 item 9) ───────────────────────────────────────────
-  // Shown when a phone change is mid-verification. Blocks the main form so the
-  // user cannot abandon the change and save a half-verified state.
-  if (otpPhase !== "form") {
-    const isVerifyCurrent = otpPhase === "verifyCurrent";
-    const targetPhone = isVerifyCurrent ? localHkPhoneValue(originalPhoneE164) : localHkPhoneValue(currentPhoneE164);
-    return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        <h4 style={{ fontSize: "16px", fontWeight: 600, margin: 0, color: INK }} data-cms-key="member.settings_verify_phone_title">
-          {t("settings_verify_phone_title")}
-        </h4>
-        <p style={{ fontSize: "13px", color: SUBTLE, margin: 0 }} data-cms-key="member.settings_verify_phone_subtitle">
-          {otpChannel === "whatsapp"
-            ? tAuth("otp_subtitle_whatsapp", { phone: targetPhone })
-            : tAuth("otp_subtitle", { phone: targetPhone })}
-        </p>
-
-        <OtpVerification
-          length={OTP_LENGTH}
-          value={otp}
-          onChange={setOtp}
-          onComplete={verifyOtp}
-          status={otpStatus}
-          error={otpError}
-          onReset={() => {
-            setOtp(Array.from({ length: OTP_LENGTH }, () => ""));
-            setOtpError(null);
-            setOtpStatus("input");
-          }}
-          disabled={saving}
-        />
-
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            onClick={resendOtp}
-            disabled={otpCooldown > 0}
-            style={{
-              flex: 1,
-              minHeight: 44,
-              borderRadius: "12px",
-              border: `1px solid ${BORDER}`,
-              background: "transparent",
-              color: otpCooldown > 0 ? SUBTLE : GREEN,
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: otpCooldown > 0 ? "default" : "pointer",
-            }}
-            data-cms-key="auth.otp.resend"
-          >
-            {otpCooldown > 0 ? tAuth("resend_in", { seconds: otpCooldown }) : tAuth("resend")}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setOtpPhase("form");
-              setOtpError(null);
-              setOtpStatus("input");
-              setOtp(Array.from({ length: OTP_LENGTH }, () => ""));
-            }}
-            style={{
-              flex: 1,
-              minHeight: 44,
-              borderRadius: "12px",
-              border: `1px solid ${BORDER}`,
-              background: "transparent",
-              color: SUBTLE,
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-            data-cms-key="member.settings_verify_cancel"
-          >
-            {t("settings_verify_cancel")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
       <Field label={t("settings_display_name")}>
@@ -1850,8 +1633,39 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
         <input value={user.email ?? ""} readOnly style={{ ...inputStyle, color: SUBTLE, cursor: "not-allowed" }} aria-label={t("settings_email")} />
       </Field>
       <Field label={t("settings_phone")}>
-        <input value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} inputMode="tel" aria-label={t("settings_phone")} />
+        <input value={user.phone ?? ""} readOnly style={{ ...inputStyle, color: SUBTLE, cursor: "not-allowed" }} inputMode="tel" aria-label={t("settings_phone")} />
       </Field>
+
+      {/* Change phone — emails a single-use link; the change happens there */}
+      <button
+        type="button"
+        onClick={() => requestChangeLink("phone")}
+        disabled={phoneSending || phoneCooldown > 0}
+        style={{
+          minHeight: 48,
+          borderRadius: "12px",
+          border: `1px solid ${BORDER}`,
+          background: "transparent",
+          color: phoneCooldown > 0 ? SUBTLE : INK,
+          fontSize: "15px",
+          fontWeight: 600,
+          cursor: phoneSending || phoneCooldown > 0 ? "default" : "pointer",
+          opacity: phoneSending ? 0.6 : 1,
+        }}
+        data-cms-key="member.settings_change_phone"
+      >
+        {phoneCooldown > 0
+          ? t("settings_change_resend_in", { seconds: phoneCooldown })
+          : phoneSending
+            ? t("sending")
+            : t("settings_change_phone")}
+      </button>
+
+      {phoneMessage && (
+        <p style={{ fontSize: "13px", color: SUBTLE, margin: 0 }} role="status">
+          {phoneMessage}
+        </p>
+      )}
 
       {/* Notifications */}
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px" }}>
@@ -1887,31 +1701,34 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
         {saved ? t("saved") : t("save")}
       </button>
 
-      {/* Change password — sends a Supabase recovery email, user sets a new
-          password on /auth/update-password (C6 item 13) */}
+      {/* Change password — same endpoint as 更改電話, different purpose */}
       <button
         type="button"
-        onClick={changePassword}
-        disabled={pwSending}
+        onClick={() => requestChangeLink("password")}
+        disabled={pwSending || pwCooldown > 0}
         style={{
           minHeight: 48,
           borderRadius: "12px",
           border: `1px solid ${BORDER}`,
           background: "transparent",
-          color: INK,
+          color: pwCooldown > 0 ? SUBTLE : INK,
           fontSize: "15px",
           fontWeight: 600,
-          cursor: pwSending ? "default" : "pointer",
+          cursor: pwSending || pwCooldown > 0 ? "default" : "pointer",
           opacity: pwSending ? 0.6 : 1,
           marginTop: "4px",
         }}
         data-cms-key="member.settings_change_password"
       >
-        {pwSending ? t("sending") : t("settings_change_password")}
+        {pwCooldown > 0
+          ? t("settings_change_resend_in", { seconds: pwCooldown })
+          : pwSending
+            ? t("sending")
+            : t("settings_change_password")}
       </button>
 
       {pwMessage && (
-        <p style={{ fontSize: "13px", color: pwMessage.startsWith("✓") ? GREEN : DANGER, margin: 0 }}>
+        <p style={{ fontSize: "13px", color: SUBTLE, margin: 0 }} role="status">
           {pwMessage}
         </p>
       )}

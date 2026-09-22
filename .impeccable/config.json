@@ -994,6 +994,42 @@
         "value": "#86868b",
         "createdAt": "2026-09-19T15:47:57.829Z",
         "reason": "Apple secondary-label gray — project-wide convention for de-emphasised UI chrome (matches same value used in shared/PasswordInput.tsx eye-toggle button)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(248,113,113,0.1)",
+        "createdAt": "2026-09-20T06:56:49.001Z",
+        "reason": "error alert background - matches existing AuthCard.tsx pattern"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(248,113,113,0.3)",
+        "createdAt": "2026-09-20T06:57:03.532Z",
+        "reason": "error alert border - matches existing AuthCard.tsx pattern"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#6b7280",
+        "createdAt": "2026-09-20T06:59:31.853Z",
+        "reason": "email footer text color - transactional email styling"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#10b981",
+        "files": [
+          "app/member/TierRing.tsx"
+        ],
+        "createdAt": "2026-09-21T15:02:08.406Z",
+        "reason": "Tier indicator color - amateur tier green"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f59e0b",
+        "files": [
+          "app/member/TierRing.tsx"
+        ],
+        "createdAt": "2026-09-21T15:02:37.525Z",
+        "reason": "Tier indicator color - century tier amber"
       }
     ]
   }

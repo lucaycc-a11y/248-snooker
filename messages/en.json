@@ -1,4 +1,14 @@
 {
+  "404": {
+    "code": "404",
+    "title": "Page Not Found",
+    "subtitle": "This page doesn't exist, but your snooker time shouldn't go to waste",
+    "hint": "Flick the balls around",
+    "completed": "All potted!",
+    "canvas_label": "Interactive snooker physics game",
+    "cta_book": "Book Now",
+    "cta_home": "Back to Home"
+  },
   "auth": {
     "title": "Sign in or sign up",
     "close": "Close",
@@ -177,16 +187,6 @@
     "change_phone_success_title": "Phone Changed",
     "change_phone_success_body": "Redirecting…",
     "change_phone_go_to_settings": "Go to Settings"
-  },
-  "404": {
-    "code": "404",
-    "title": "Page Not Found",
-    "subtitle": "This page doesn't exist, but your snooker time shouldn't go to waste",
-    "hint": "Flick the balls around",
-    "completed": "All potted!",
-    "canvas_label": "Interactive snooker physics game",
-    "cta_book": "Book Now",
-    "cta_home": "Back to Home"
   },
   "login": {
     "brand": "SPACE8",
@@ -690,29 +690,251 @@
     "qr_hint": "Tip: You can also use your member QR code to enter and leave the venue. Find it under “My Account” after signing in."
   },
   "member": {
-    "title": "Membership",
-    "amateur_title": "Nova",
-    "amateur_body": "Sign up and earn points from day one. Every match is recorded as your court story grows.",
-    "amateur_highlight": "points",
-    "amateur_modal_body": "New users join Nova automatically with 50 points. Earn 1 point for every HK$1 spent, unlock the full Space Pilot experience, and build your personal total wins from your first match.",
-    "century_title": "Platinum",
-    "century_subtitle": "From 800 points",
-    "century_body": "Accelerate your points and unlock an elevated member experience.",
-    "century_highlight1": "Accelerate",
-    "century_highlight2": "elevated member experience",
-    "century_modal_body": "Reach Platinum at 800 points. Unlock an annual personal performance review, redeem points for time-slot discount vouchers, and earn points at 1.5x speed.",
-    "maximum_title": "Diamond",
-    "maximum_subtitle": "From 6,000 points",
-    "maximum_badge": "Top Tier",
-    "maximum_body": "The hall of dedicated players: double points and premium privileges.",
-    "maximum_highlight1": "double points",
-    "maximum_highlight2": "premium privileges",
-    "maximum_highlight3": "Top Tier",
-    "maximum_modal_body": "Reach Diamond at 6,000 points. Enjoy occasional exclusive SPACE8 merchandise, priority locker allocation, early access to new venues and features, and double points for every booking.",
-    "modal_label": "Membership Tier",
-    "cta_join": "Join Now",
-    "cta_learn": "Learn More",
-    "close_modal": "Close"
+    "tabs": {
+      "home": "Home",
+      "rewards": "Rewards",
+      "bookings": "Bookings",
+      "inbox": "Inbox",
+      "settings": "Settings",
+      "help": "Help Center"
+    },
+    "birthday_perk_active": "Birthday Perk Active",
+    "stats": {
+      "available_points": "Available Points",
+      "lifetime_points": "Lifetime Points",
+      "ready_offers": "Ready Offers"
+    },
+    "home": {
+      "active_offers": "Active Offers",
+      "book_now": "Book Now",
+      "book_now_desc": "Reserve your table",
+      "view_rewards": "View Rewards",
+      "view_rewards_desc": "Browse points and offers"
+    },
+    "card": {
+      "member_code": "Member Code",
+      "available_points": "Available Points",
+      "tap_for_qr": "Tap for QR code",
+      "scan_to_verify": "Scan to verify membership"
+    },
+    "tier": {
+      "current": "Current Tier",
+      "lifetime_points": "Lifetime Points",
+      "next_tier": "Next Tier",
+      "points_away": "points away",
+      "max_tier_reached": "Max tier reached"
+    },
+    "offers": {
+      "state": {
+        "issued": "Issued",
+        "ready": "Ready",
+        "reserved": "Reserved",
+        "used": "Used",
+        "expired": "Expired"
+      },
+      "expires": "Expires",
+      "min_hours": "Min hours",
+      "claim_now": "Claim Now",
+      "claiming": "Claiming...",
+      "redeem_for": "Redeem for",
+      "points": "points",
+      "redeeming": "Redeeming...",
+      "use_offer": "Use Offer",
+      "reserved_in_booking": "Reserved in booking",
+      "expired": "Expired",
+      "used_at": "Used at",
+      "discount_types": {
+        "off": "Discount",
+        "free": "Free",
+        "birthday_perk": "Birthday Perk"
+      },
+      "units": {
+        "off": "off",
+        "free": "free",
+        "points": "pts"
+      },
+      "errors": {
+        "offer_not_found": "Offer not found",
+        "offer_already_redeemed": "Already redeemed",
+        "offer_not_points_redeemable": "Not points redeemable",
+        "insufficient_points": "Insufficient points",
+        "offer_already_claimed": "Already claimed",
+        "offer_not_claimable": "Not claimable",
+        "unknown_error": "Unknown error",
+        "network_error": "Network error"
+      }
+    },
+    "rewards": {
+      "overview": "Overview",
+      "catalog": "Points Shop",
+      "history": "History",
+      "ready_offers": "Ready Offers",
+      "claim_offers": "Offers to Claim",
+      "recent_points": "Recent Points",
+      "points_shop": "Points Shop",
+      "no_catalog": "No offers available",
+      "offer_history": "Offer History",
+      "no_history": "No history"
+    },
+    "bookings": {
+      "filters": {
+        "all": "All",
+        "upcoming": "Upcoming",
+        "past": "Past"
+      },
+      "empty_state": "No bookings yet",
+      "table": "Table",
+      "time": "Time",
+      "duration": "Duration",
+      "price": "Price",
+      "reference": "Reference",
+      "refunded_at": "Refunded at",
+      "refund_amount": "Refund amount",
+      "fee": "Fee",
+      "rescheduled_at": "Rescheduled at",
+      "scan_to_check_in": "Scan to check in",
+      "status": {
+        "confirmed": "Confirmed",
+        "pending": "Pending",
+        "payment_failed": "Payment Failed",
+        "cancelled": "Cancelled"
+      }
+    },
+    "points": {
+      "empty_state": "No points history",
+      "balance": "Balance"
+    },
+    "inbox": {
+      "title": "Inbox",
+      "unread": "unread",
+      "mark_all_read": "Mark all read",
+      "marking_all": "Marking...",
+      "tabs": {
+        "all": "All",
+        "offer": "Offers",
+        "booking": "Bookings",
+        "system": "System"
+      },
+      "empty_state": "No notifications"
+    },
+    "settings": {
+      "title": "Settings",
+      "personal": "Personal",
+      "security": {
+        "change_password": "Change Password",
+        "change_password_desc": "We'll send a password change link to your email",
+        "change_phone": "Change Phone",
+        "change_phone_desc": "We'll send a phone change link to your email",
+        "two_factor": "Two-Factor Authentication",
+        "two_factor_desc": "Enhance your account security",
+        "email_sent": "Email sent",
+        "sending": "Sending...",
+        "send_email": "Send Email",
+        "coming_soon": "Coming Soon"
+      },
+      "notifications": {
+        "email_notifications": "Email Notifications",
+        "push_notifications": "Push Notifications",
+        "booking_confirmed": "Booking Confirmed",
+        "booking_confirmed_desc": "Receive notification when booking is confirmed",
+        "booking_reminder": "Booking Reminder",
+        "booking_reminder_desc": "Receive reminder before booking",
+        "offers": "Offers",
+        "offers_desc": "Receive new offers and rewards",
+        "promotions": "Promotions",
+        "promotions_desc": "Receive promotional updates",
+        "push_booking_reminder": "Booking Reminder",
+        "push_booking_reminder_desc": "Push booking reminders",
+        "push_offers": "Offers",
+        "push_offers_desc": "Push new offer notifications",
+        "push_system": "System",
+        "push_system_desc": "Push important system notifications",
+        "save_preferences": "Save Preferences",
+        "saving": "Saving...",
+        "saved": "Saved"
+      },
+      "privacy": "Privacy",
+      "display_name": "Display Name",
+      "display_name_hint": "Your public display name",
+      "email": "Email",
+      "email_readonly": "Email cannot be changed",
+      "phone": "Phone",
+      "phone_readonly": "Phone must be changed via email",
+      "birth_month": "Birth Month",
+      "birth_month_hint": "Set once for birthday perks (cannot be changed)",
+      "birth_month_locked": "Set (cannot be changed)",
+      "not_set": "Not set",
+      "set": "Set",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "member_since": "Member Since",
+      "privacy_title": "Privacy Settings",
+      "privacy_desc": "Manage your personal data and account",
+      "delete_account": "Delete Account",
+      "errors": {
+        "invalid_month": "Invalid month",
+        "unauthorized": "Unauthorized",
+        "already_set": "Already set",
+        "unknown_error": "Unknown error",
+        "network_error": "Network error"
+      }
+    },
+    "help": {
+      "title": "Help Center",
+      "subtitle": "We're here to help",
+      "search_placeholder": "Search FAQs...",
+      "categories": {
+        "all": "All",
+        "booking": "Booking",
+        "points": "Points",
+        "payment": "Payment",
+        "account": "Account",
+        "general": "General"
+      },
+      "no_results": "No results found",
+      "still_need_help": "Still need help?",
+      "contact": {
+        "email": "Email Support",
+        "phone": "Phone Support",
+        "hours": "Business Hours",
+        "hours_detail": "Mon-Sun 10:00 - 22:00"
+      },
+      "faq": {
+        "how_to_book": {
+          "question": "How do I book a table?",
+          "answer": "Click \"Book Now\" on the homepage, select date, time and table, then complete payment."
+        },
+        "cancel_booking": {
+          "question": "Can I cancel a booking?",
+          "answer": "Confirmed bookings cannot be cancelled or refunded. For special circumstances, please contact customer service."
+        },
+        "earn_points": {
+          "question": "How do I earn points?",
+          "answer": "After each booking, you automatically earn points based on spending and tier. Higher tiers earn more points."
+        },
+        "redeem_points": {
+          "question": "How do I use points?",
+          "answer": "Points can be redeemed for offers in the Points Shop. Offers can be used during booking for discounts."
+        },
+        "tier_upgrade": {
+          "question": "How do I upgrade my tier?",
+          "answer": "Tiers are automatically upgraded based on lifetime points. Tiers never downgrade, only upgrade."
+        },
+        "payment_methods": {
+          "question": "What payment methods are accepted?",
+          "answer": "We accept credit cards, FPS, Alipay and WeChat Pay."
+        },
+        "birthday_perk": {
+          "question": "How do I use the birthday perk?",
+          "answer": "Set your birth month in Settings (cannot be changed once set), then enjoy double points during your birthday month each year."
+        },
+        "change_password": {
+          "question": "How do I change my password?",
+          "answer": "Go to Settings > Security and click \"Change Password\". We'll send a secure link to your email."
+        }
+      }
+    }
   },
   "faq": {
     "title": "FAQ",
@@ -796,8 +1018,8 @@
     "pay_now": "Pay Now",
     "card_number": "Card Number",
     "cardholder": "Cardholder Name",
-    "kpay_secure": "KPay encrypted payment · secure data transmission",
-    "stripe_secure": "Stripe encrypted payment · secure data transmission",
+    "kpay_secure": "KPay encrypted payment · Secure data transmission",
+    "stripe_secure": "Stripe encrypted payment · Secure data transmission",
     "pay_error": "Couldn't start payment. Please go back and try again.",
     "pay_loading": "Preparing secure payment…",
     "confirming": "Confirming your payment…",
@@ -903,7 +1125,7 @@
     "stripe_error_generic": "Payment could not be completed. Please try again or contact support.",
     "stripe_error_terms_required": "Please agree to the terms and conditions first.",
     "stripe_processing": "Processing payment, please wait",
-    "kpay_processing": "Processing payment, please wait",
+    "kpay_processing": "Processing⋯",
     "stripe_title": "Payment",
     "stripe_qr_scan": "Please scan the QR code below with WeChat Pay",
     "stripe_pending_desc": "Complete payment on your phone. QR code expires in {time}",
@@ -921,8 +1143,6 @@
     "stripe_cancelled": "Payment cancelled",
     "stripe_cancelled_desc": "This booking has been cancelled and slots released.",
     "stripe_cancel": "Cancel booking",
-    "stripe_secure": "Stripe encrypted payment · Secure data transmission",
-    "kpay_secure": "KPay encrypted payment · Secure data transmission",
     "table_count": "Snooker",
     "promo_placeholder": "Enter promo code",
     "promo_apply": "Apply",
@@ -967,7 +1187,6 @@
     "kpay_back_to_methods": "Back to payment methods",
     "kpay_waited": "Waited {seconds}s",
     "kpay_choose_method": "Choose payment method",
-    "kpay_processing": "Processing⋯",
     "kpay_cancelled": "Payment Cancelled",
     "kpay_cancelled_desc": "This booking was cancelled and its held slots were released.",
     "kpay_cancel": "Cancel Booking",

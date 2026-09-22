@@ -1,56 +1,31 @@
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { NextIntlClientProvider } from "next-intl";
-import { getMemberData } from "@/lib/data/getMember";
-import { getConfig, getConfigValue } from "@/lib/data/getConfig";
-import { resolveLocaleFromCookie, loadMessages } from "@/lib/i18n/serverLocale";
-import MemberDashboard from "./MemberDashboard";
+import { getMemberDashboardData } from '@/lib/data/getMemberRedesign'
+import { MemberDashboardRedesign } from './MemberDashboardRedesign'
 
-// Member dashboard is private — never index it.
-export const metadata: Metadata = {
-  title: "會員中心 | Space8",
-  robots: { index: false, follow: false },
-};
-
-// Always render fresh per request (auth + personal data).
-export const dynamic = "force-dynamic";
+// ════════════════════════════════════════════════════════════════════════════
+// Member Page — Server Component wrapper for new dashboard
+// Route: /member
+// ════════════════════════════════════════════════════════════════════════════
 
 export default async function MemberPage() {
-  // Protected route: fetch member data (returns null when not signed in).
-  const data = await getMemberData();
-  if (!data) redirect("/login?returnUrl=/member");
+  const data = await getMemberDashboardData()
 
-  // Profile completion gate: if profile is incomplete, redirect to /login where
-  // AuthCard will detect the session and show the profile completion flow (which
-  // includes the member welcome/animation for new members).
-  const { createClient } = await import("@/lib/supabase/server");
-  const supabase = await createClient();
-  const { data: profile } = await supabase
-    .from("users")
-    .select("profile_complete")
-    .eq("id", data.user.id)
-    .maybeSingle();
-
-  if (profile?.profile_complete !== true) {
-    redirect("/login?returnUrl=/member");
+  if (!data) {
+    // User not authenticated - redirect to login
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white">請先登入</h1>
+          <p className="mt-2 text-white/60">Please log in to access your member dashboard</p>
+          <a
+            href="/auth/login"
+            className="mt-6 inline-block rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 px-8 py-3 font-medium text-white transition-all hover:from-blue-600 hover:to-cyan-600"
+          >
+            登入 / Login
+          </a>
+        </div>
+      </div>
+    )
   }
 
-  // /member lives outside the [locale] segment (bypassed by middleware), so we
-  // resolve the locale from the NEXT_LOCALE cookie and provide messages here.
-  const locale = await resolveLocaleFromCookie();
-  const messages = await loadMessages(locale);
-
-  // Tier thresholds come from config (with bundled fallback).
-  const config = await getConfig();
-
-  // Refund cutoff window (hours before start_time inside which self-serve
-  // refund is blocked) — soft client-side gate only; request_booking_refund()
-  // is the authority.
-  const bookingRules = await getConfigValue("booking_rules", { refundCutoffHours: 1 });
-
-  return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
-      <MemberDashboard data={data} tiers={config.tiers} refundCutoffHours={bookingRules.refundCutoffHours} />
-    </NextIntlClientProvider>
-  );
+  return <MemberDashboardRedesign initialData={data} />
 }

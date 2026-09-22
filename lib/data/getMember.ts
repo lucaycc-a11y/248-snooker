@@ -89,7 +89,7 @@ function deriveMemberCode(id: string, explicit: string | null): string {
 // real status simply takes over.
 const STUCK_PENDING_MINUTES = 20
 
-function normalizeBooking(row: Row): MemberBooking {
+export function normalizeBooking(row: Row): MemberBooking {
   const start = str(row, ['start_time', 'startTime', 'starts_at', 'start'])
   const date = str(row, ['date', 'booking_date', 'day']) ?? (start ? start.slice(0, 10) : null)
   const refundAmount = row.refund_amount
