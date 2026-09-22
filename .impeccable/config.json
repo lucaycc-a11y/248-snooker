@@ -1011,7 +1011,7 @@
         "rule": "design-system-color",
         "value": "#6b7280",
         "createdAt": "2026-09-20T06:59:31.853Z",
-        "reason": "email footer text color - transactional email styling"
+        "reason": "Tier fallback: neutral gray for unknown tier"
       },
       {
         "rule": "design-system-color",
@@ -1030,6 +1030,48 @@
         ],
         "createdAt": "2026-09-21T15:02:37.525Z",
         "reason": "Tier indicator color - century tier amber"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "from-purple-500/20 to-pink-500/20",
+        "createdAt": "2026-09-22T07:37:40.335Z",
+        "reason": "Intentional tier celebration design: purple gradient matches Diamond tier brand color (#A855F7)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#667eea",
+        "createdAt": "2026-09-22T13:48:11.726Z",
+        "reason": "Tier gradient: Nova blue (amateur tier brand color)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#764ba2",
+        "createdAt": "2026-09-22T13:48:16.691Z",
+        "reason": "Tier gradient: Nova purple (amateur tier brand color)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#bdc3c7",
+        "createdAt": "2026-09-22T13:48:20.962Z",
+        "reason": "Tier gradient: Platinum silver (century tier brand color)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2c3e50",
+        "createdAt": "2026-09-22T13:48:26.614Z",
+        "reason": "Tier gradient: Platinum dark (century tier brand color)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f093fb",
+        "createdAt": "2026-09-22T13:48:34.567Z",
+        "reason": "Tier gradient: Diamond pink (maximum tier brand color)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f5576c",
+        "createdAt": "2026-09-22T13:48:39.507Z",
+        "reason": "Tier gradient: Diamond coral (maximum tier brand color)"
       }
     ]
   }

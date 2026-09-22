@@ -6,10 +6,11 @@ import { useTranslations } from 'next-intl'
 import {
   type MemberDashboardData,
   type MemberProfile,
-  type Offer,
+  type UserCoupon,
   type PointsTransaction,
   type Notification,
 } from '@/lib/data/memberRedesignTypes'
+import { getTierColor, getTierName } from '@/lib/member/tierHelpers'
 import { MemberCard } from './MemberCard'
 import { TierRing } from './TierRing'
 import { OfferCard } from './OfferCard'
@@ -55,7 +56,7 @@ export function MemberDashboardRedesign({ initialData }: Props) {
     refreshData()
   }, [activeTab])
 
-  const { profile, offers, points, notifications, birthday_perk_eligible } = data
+  const { profile, coupons, points, notifications, birthday_perk_eligible } = data
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
@@ -101,8 +102,8 @@ export function MemberDashboardRedesign({ initialData }: Props) {
               </motion.div>
             )}
             <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5 backdrop-blur">
-              <div className={`h-2 w-2 rounded-full ${getTierColor(profile.tier_id)}`} />
-              <span className="text-sm font-medium text-white">{profile.tier?.name_zh_hk ?? profile.tier_id}</span>
+              <div className={`h-2 w-2 rounded-full ${getTierColor(profile.tier)}`} />
+              <span className="text-sm font-medium text-white">{profile.tier_definition?.name_zh_hk ?? getTierName(profile.tier, 'zh-HK')}</span>
             </div>
           </div>
         </div>
@@ -139,14 +140,14 @@ export function MemberDashboardRedesign({ initialData }: Props) {
             {activeTab === 'home' && (
               <HomeView
                 profile={profile}
-                offers={offers}
+                coupons={coupons}
                 cardFlipped={cardFlipped}
                 onFlipCard={() => setCardFlipped(!cardFlipped)}
                 onRefresh={refreshData}
               />
             )}
             {activeTab === 'rewards' && (
-              <RewardsView profile={profile} offers={offers} points={points} onRefresh={refreshData} />
+              <RewardsView profile={profile} coupons={coupons} points={points} onRefresh={refreshData} />
             )}
             {activeTab === 'bookings' && <BookingHistory userId={profile.id} />}
             {activeTab === 'inbox' && <InboxView notifications={notifications} onRefresh={refreshData} />}
@@ -165,13 +166,13 @@ export function MemberDashboardRedesign({ initialData }: Props) {
 
 type HomeViewProps = {
   profile: MemberProfile
-  offers: MemberDashboardData['offers']
+  coupons: MemberDashboardData['coupons']
   cardFlipped: boolean
   onFlipCard: () => void
   onRefresh: () => void
 }
 
-function HomeView({ profile, offers, cardFlipped, onFlipCard, onRefresh }: HomeViewProps) {
+function HomeView({ profile, coupons, cardFlipped, onFlipCard, onRefresh }: HomeViewProps) {
   const t = useTranslations('member')
 
   return (
@@ -190,26 +191,26 @@ function HomeView({ profile, offers, cardFlipped, onFlipCard, onRefresh }: HomeV
           color="from-cyan-500/20 to-blue-500/20"
         />
         <StatCard
-          label={t('stats.lifetime_points')}
-          value={profile.lifetime_points.toLocaleString()}
+          label={t('stats.current_tier')}
+          value={getTierName(profile.tier, 'zh-HK')}
           icon="🏆"
           color="from-amber-500/20 to-orange-500/20"
         />
         <StatCard
-          label={t('stats.ready_offers')}
-          value={offers.ready.length.toString()}
+          label={t('stats.available_coupons')}
+          value={coupons.available.length.toString()}
           icon="🎁"
           color="from-green-500/20 to-emerald-500/20"
         />
       </section>
 
-      {/* Active Offers Preview */}
-      {offers.ready.length > 0 && (
+      {/* Active Coupons Preview */}
+      {coupons.available.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-xl font-bold text-white">{t('home.active_offers')}</h2>
+          <h2 className="text-xl font-bold text-white">{t('home.active_coupons')}</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            {offers.ready.slice(0, 2).map((offer) => (
-              <OfferCard key={offer.id} offer={offer} variant="compact" onRefresh={onRefresh} />
+            {coupons.available.slice(0, 2).map((coupon) => (
+              <OfferCard key={coupon.id} offer={coupon} variant="compact" onRefresh={onRefresh} />
             ))}
           </div>
         </section>
@@ -242,12 +243,12 @@ function HomeView({ profile, offers, cardFlipped, onFlipCard, onRefresh }: HomeV
 
 type RewardsViewProps = {
   profile: MemberProfile
-  offers: MemberDashboardData['offers']
+  coupons: MemberDashboardData['coupons']
   points: PointsTransaction[]
   onRefresh: () => void
 }
 
-function RewardsView({ profile, offers, points, onRefresh }: RewardsViewProps) {
+function RewardsView({ profile, coupons, points, onRefresh }: RewardsViewProps) {
   const t = useTranslations('member')
   const [subTab, setSubTab] = useState<'overview' | 'catalog' | 'history'>('overview')
 
@@ -276,23 +277,12 @@ function RewardsView({ profile, offers, points, onRefresh }: RewardsViewProps) {
       {/* Content */}
       {subTab === 'overview' && (
         <div className="space-y-6">
-          {offers.ready.length > 0 && (
+          {coupons.available.length > 0 && (
             <section className="space-y-4">
-              <h3 className="text-lg font-bold text-white">{t('rewards.ready_offers')}</h3>
+              <h3 className="text-lg font-bold text-white">{t('rewards.available_coupons')}</h3>
               <div className="grid gap-4 md:grid-cols-2">
-                {offers.ready.map((offer) => (
-                  <OfferCard key={offer.id} offer={offer} onRefresh={onRefresh} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {offers.issued.length > 0 && (
-            <section className="space-y-4">
-              <h3 className="text-lg font-bold text-white">{t('rewards.claim_offers')}</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                {offers.issued.map((offer) => (
-                  <OfferCard key={offer.id} offer={offer} onRefresh={onRefresh} />
+                {coupons.available.map((coupon) => (
+                  <OfferCard key={coupon.id} offer={coupon} onRefresh={onRefresh} />
                 ))}
               </div>
             </section>
@@ -308,10 +298,10 @@ function RewardsView({ profile, offers, points, onRefresh }: RewardsViewProps) {
       {subTab === 'catalog' && (
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-white">{t('rewards.points_shop')}</h3>
-          {offers.catalog.length > 0 ? (
+          {coupons.catalog.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {offers.catalog.map((offer) => (
-                <OfferCard key={offer.id} offer={offer} onRefresh={onRefresh} />
+              {coupons.catalog.map((template) => (
+                <OfferCard key={template.id} offer={template} variant="catalog" onRefresh={onRefresh} />
               ))}
             </div>
           ) : (
@@ -322,11 +312,11 @@ function RewardsView({ profile, offers, points, onRefresh }: RewardsViewProps) {
 
       {subTab === 'history' && (
         <div className="space-y-4">
-          <h3 className="text-lg font-bold text-white">{t('rewards.offer_history')}</h3>
-          {offers.history.length > 0 ? (
+          <h3 className="text-lg font-bold text-white">{t('rewards.coupon_history')}</h3>
+          {coupons.history.length > 0 ? (
             <div className="space-y-3">
-              {offers.history.map((offer) => (
-                <OfferCard key={offer.id} offer={offer} variant="history" onRefresh={onRefresh} />
+              {coupons.history.map((coupon) => (
+                <OfferCard key={coupon.id} offer={coupon} variant="history" onRefresh={onRefresh} />
               ))}
             </div>
           ) : (

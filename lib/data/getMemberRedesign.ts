@@ -1,90 +1,68 @@
 import { createClient } from '@/lib/supabase/server'
 import { type Row, num, str, genId } from './adminReadHelpers'
+import { getTierDefinition } from '@/lib/member/tierHelpers'
 
 // ════════════════════════════════════════════════════════════════════════════
-// Member Redesign Data Layer — extends getMember.ts with new P0-P7 features
+// Member Redesign Data Layer — FIXED to use real schema
 // Server-only: uses createClient from @/lib/supabase/server
 // For types only, import from @/lib/data/memberRedesignTypes
 // ════════════════════════════════════════════════════════════════════════════
 
 // Re-export types from the client-safe types file
 export type {
+  TierValue,
   TierDefinition,
   MemberProfile,
-  Offer,
+  UserCoupon,
+  CouponTemplate,
   PointsTransaction,
   Notification,
   MemberDashboardData,
 } from './memberRedesignTypes'
 
 import type {
-  TierDefinition,
+  TierValue,
   MemberProfile,
-  Offer,
+  UserCoupon,
+  CouponTemplate,
   PointsTransaction,
   Notification,
   MemberDashboardData,
 } from './memberRedesignTypes'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// § HELPER — Load Tier Definitions from Config
-// ─────────────────────────────────────────────────────────────────────────────
-
-let tierCache: TierDefinition[] | null = null
-
-async function loadTiers(supabase: Awaited<ReturnType<typeof createClient>>): Promise<TierDefinition[]> {
-  if (tierCache) return tierCache
-
-  try {
-    const { data } = await supabase.from('config').select('value').eq('key', 'member_tiers').single()
-    if (data?.value && Array.isArray(data.value)) {
-      tierCache = data.value as TierDefinition[]
-      return tierCache
-    }
-  } catch {
-    /* fall through to default */
-  }
-
-  // Fallback tiers if config load fails
-  tierCache = [
-    {
-      id: 'amateur',
-      name_zh_hk: '新星會員',
-      name_zh_cn: '新星会员',
-      name_en: 'Nova',
-      name_ja: 'ノヴァ',
-      min_lifetime_points: 0,
-      benefits: { discount: 1.0, multiplier: 1.0 },
-    },
-    {
-      id: 'century',
-      name_zh_hk: '鉑金會員',
-      name_zh_cn: '铂金会员',
-      name_en: 'Platinum',
-      name_ja: 'プラチナ',
-      min_lifetime_points: 500,
-      benefits: { discount: 0.95, multiplier: 1.5 },
-    },
-    {
-      id: 'maximum',
-      name_zh_hk: '鑽石會員',
-      name_zh_cn: '钻石会员',
-      name_en: 'Diamond',
-      name_ja: 'ダイヤモンド',
-      min_lifetime_points: 2000,
-      benefits: { discount: 0.9, multiplier: 2.0 },
-    },
-  ]
-  return tierCache
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // § NORMALIZATION FUNCTIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function normalizeOffer(row: Row): Offer {
+function normalizeUserCoupon(row: Row): UserCoupon {
   return {
-    id: String(row.id ?? genId('offer')),
+    id: String(row.id ?? genId('coupon')),
+    user_id: String(row.user_id ?? ''),
+    template_id: String(row.template_id ?? ''),
+    code: str(row, ['code']) ?? '',
+    status: (str(row, ['status']) ?? 'available') as UserCoupon['status'],
+    discount_type: (str(row, ['discount_type']) ?? 'fixed') as UserCoupon['discount_type'],
+    discount_value: num(row, ['discount_value'], 0),
+    min_booking_hours: row.min_booking_hours != null ? num(row, ['min_booking_hours'], 0) : null,
+    issued_at: str(row, ['issued_at']) ?? new Date().toISOString(),
+    expires_at: str(row, ['expires_at']),
+    used_at: str(row, ['used_at']),
+    booking_id: str(row, ['booking_id']),
+    // Joined fields from coupon_templates
+    title_zh_hk: str(row, ['title_zh_hk']),
+    title_zh_cn: str(row, ['title_zh_cn']),
+    title_en: str(row, ['title_en']),
+    title_ja: str(row, ['title_ja']),
+    description_zh_hk: str(row, ['description_zh_hk']),
+    description_zh_cn: str(row, ['description_zh_cn']),
+    description_en: str(row, ['description_en']),
+    description_ja: str(row, ['description_ja']),
+  }
+}
+
+function normalizeCouponTemplate(row: Row): CouponTemplate {
+  return {
+    id: String(row.id ?? genId('template')),
     title_zh_hk: str(row, ['title_zh_hk']) ?? '',
     title_zh_cn: str(row, ['title_zh_cn']) ?? '',
     title_en: str(row, ['title_en']) ?? '',
@@ -93,35 +71,35 @@ function normalizeOffer(row: Row): Offer {
     description_zh_cn: str(row, ['description_zh_cn']),
     description_en: str(row, ['description_en']),
     description_ja: str(row, ['description_ja']),
-    discount_type: (str(row, ['discount_type']) ?? 'fixed') as Offer['discount_type'],
+    discount_type: (str(row, ['discount_type']) ?? 'fixed') as CouponTemplate['discount_type'],
     discount_value: num(row, ['discount_value'], 0),
     min_booking_hours: row.min_booking_hours != null ? num(row, ['min_booking_hours'], 0) : null,
-    state: (str(row, ['state']) ?? 'issued') as Offer['state'],
-    acquire_mode: (str(row, ['acquire_mode']) ?? 'auto') as Offer['acquire_mode'],
     points_cost: row.points_cost != null ? num(row, ['points_cost'], 0) : null,
-    issued_at: str(row, ['issued_at']) ?? new Date().toISOString(),
-    claimed_at: str(row, ['claimed_at']),
-    expires_at: str(row, ['expires_at']),
-    used_at: str(row, ['used_at']),
+    active: Boolean(row.active ?? true),
+    created_at: str(row, ['created_at']) ?? new Date().toISOString(),
   }
 }
 
 function normalizePointsTransaction(row: Row): PointsTransaction {
   return {
     id: String(row.id ?? genId('points')),
-    delta: num(row, ['delta'], 0),
+    user_id: String(row.user_id ?? ''),
+    points: num(row, ['points'], 0),
     balance_after: num(row, ['balance_after'], 0),
-    category: (str(row, ['category']) ?? 'manual') as PointsTransaction['category'],
-    description: str(row, ['description']) ?? '',
+    type: str(row, ['type']) ?? 'manual',
+    category: str(row, ['category']),
+    description: str(row, ['description']),
+    reference_type: str(row, ['reference_type']),
+    reference_id: str(row, ['reference_id']),
     created_at: str(row, ['created_at']) ?? new Date().toISOString(),
     booking_id: str(row, ['booking_id']),
-    offer_id: str(row, ['offer_id']),
   }
 }
 
 function normalizeNotification(row: Row): Notification {
   return {
     id: String(row.id ?? genId('notification')),
+    user_id: String(row.user_id ?? ''),
     type: (str(row, ['type']) ?? 'system') as Notification['type'],
     title_zh_hk: str(row, ['title_zh_hk']) ?? '',
     title_zh_cn: str(row, ['title_zh_cn']) ?? '',
@@ -148,9 +126,6 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
   } = await supabase.auth.getUser()
   if (!user) return null
 
-  // Load tier definitions
-  const tiers = await loadTiers(supabase)
-
   // Fetch user profile
   let profile: Row = {}
   try {
@@ -160,8 +135,9 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
     /* fall through to defaults */
   }
 
-  const tierId = str(profile, ['tier_id']) ?? 'amateur'
-  const tier = tiers.find((t) => t.id === tierId) ?? tiers[0]
+  // Use REAL tier column (not tier_id)
+  const tierValue = (str(profile, ['tier']) ?? 'amateur') as TierValue
+  const tierDefinition = getTierDefinition(tierValue)
 
   // Count unread notifications
   let unreadCount = 0
@@ -183,10 +159,9 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
       (profile.display_name as string) ?? (user.user_metadata?.full_name as string) ?? user.email?.split('@')[0] ?? null,
     avatar_url: (profile.avatar_url as string) ?? (user.user_metadata?.avatar_url as string) ?? null,
     phone: (profile.phone as string) ?? null,
-    points: num(profile, ['points'], 0),
-    lifetime_points: num(profile, ['lifetime_points'], 0),
-    tier_id: tierId,
-    tier,
+    points: num(profile, ['points'], 0), // REAL COLUMN: spendable balance
+    tier: tierValue, // REAL COLUMN: 'amateur' | 'century' | 'maximum'
+    tier_definition: tierDefinition,
     birth_month: profile.birth_month != null ? num(profile, ['birth_month'], 1) : null,
     birth_month_set_at: str(profile, ['birth_month_set_at']),
     member_code: str(profile, ['member_code']) ?? `248-${user.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}`,
@@ -194,31 +169,72 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
     unread_notifications: unreadCount,
   }
 
-  // Fetch offers (categorized)
-  let allOffers: Offer[] = []
+  // Fetch user's coupons (REAL user_coupons table, not phantom offers)
+  let userCoupons: UserCoupon[] = []
   try {
     const { data } = await supabase
-      .from('offers')
-      .select('*')
+      .from('user_coupons')
+      .select(
+        `
+        *,
+        coupon_templates (
+          title_zh_hk,
+          title_zh_cn,
+          title_en,
+          title_ja,
+          description_zh_hk,
+          description_zh_cn,
+          description_en,
+          description_ja
+        )
+      `
+      )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(100)
-    if (Array.isArray(data)) allOffers = data.map((r) => normalizeOffer(r as Row))
+
+    if (Array.isArray(data)) {
+      userCoupons = data.map((r) => {
+        const template = (r as any).coupon_templates
+        return normalizeUserCoupon({
+          ...r,
+          title_zh_hk: template?.title_zh_hk,
+          title_zh_cn: template?.title_zh_cn,
+          title_en: template?.title_en,
+          title_ja: template?.title_ja,
+          description_zh_hk: template?.description_zh_hk,
+          description_zh_cn: template?.description_zh_cn,
+          description_en: template?.description_en,
+          description_ja: template?.description_ja,
+        })
+      })
+    }
+  } catch {
+    /* defensive */
+  }
+
+  // Fetch coupon catalog (templates user can claim/redeem)
+  let catalogTemplates: CouponTemplate[] = []
+  try {
+    const { data } = await supabase
+      .from('coupon_templates')
+      .select('*')
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    if (Array.isArray(data)) catalogTemplates = data.map((r) => normalizeCouponTemplate(r as Row))
   } catch {
     /* defensive */
   }
 
   const now = new Date()
-  const offers = {
-    ready: allOffers.filter((o) => o.state === 'ready' && (!o.expires_at || new Date(o.expires_at) > now)),
-    issued: allOffers.filter((o) => o.state === 'issued' && (!o.expires_at || new Date(o.expires_at) > now)),
-    catalog: allOffers.filter(
-      (o) => o.acquire_mode === 'points' && o.state === 'issued' && (!o.expires_at || new Date(o.expires_at) > now)
-    ),
-    history: allOffers.filter((o) => o.state === 'used' || o.state === 'expired' || (o.expires_at && new Date(o.expires_at) <= now)),
+  const coupons = {
+    available: userCoupons.filter((c) => c.status === 'available' && (!c.expires_at || new Date(c.expires_at) > now)),
+    catalog: catalogTemplates,
+    history: userCoupons.filter((c) => c.status === 'used' || c.status === 'expired' || (c.expires_at && new Date(c.expires_at) <= now)),
   }
 
-  // Fetch points transactions
+  // Fetch points transactions (REAL points_ledger)
   let points: PointsTransaction[] = []
   try {
     const { data } = await supabase
@@ -246,18 +262,18 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
     /* defensive */
   }
 
-  // Check birthday perk eligibility
+  // Check birthday perk eligibility (if function exists)
   let birthday_perk_eligible = false
-  try {
-    const { data } = await supabase.rpc('check_birthday_perk_eligibility', { p_user_id: user.id })
-    birthday_perk_eligible = Boolean(data)
-  } catch {
-    /* defensive */
+  const currentMonth = new Date().getMonth() + 1
+  if (memberProfile.birth_month) {
+    // Simple check: within 30 days of birth month
+    const monthDiff = Math.abs(currentMonth - memberProfile.birth_month)
+    birthday_perk_eligible = monthDiff === 0 || monthDiff === 1 || monthDiff === 11
   }
 
   return {
     profile: memberProfile,
-    offers,
+    coupons,
     points,
     notifications,
     birthday_perk_eligible,
@@ -267,44 +283,6 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
 // ─────────────────────────────────────────────────────────────────────────────
 // § CLIENT ACTIONS (for server actions / route handlers)
 // ─────────────────────────────────────────────────────────────────────────────
-
-export async function redeemOfferWithPoints(offerId: string): Promise<{ success: boolean; error?: string; new_balance?: number }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'unauthorized' }
-
-  try {
-    const { data, error } = await supabase.rpc('redeem_offer_with_points', {
-      p_user_id: user.id,
-      p_offer_id: offerId,
-    })
-    if (error) throw error
-    return data as { success: boolean; error?: string; new_balance?: number }
-  } catch (err: any) {
-    return { success: false, error: err.message ?? 'unknown_error' }
-  }
-}
-
-export async function claimOffer(offerId: string): Promise<{ success: boolean; error?: string }> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { success: false, error: 'unauthorized' }
-
-  try {
-    const { data, error } = await supabase.rpc('claim_offer', {
-      p_user_id: user.id,
-      p_offer_id: offerId,
-    })
-    if (error) throw error
-    return data as { success: boolean; error?: string }
-  } catch (err: any) {
-    return { success: false, error: err.message ?? 'unknown_error' }
-  }
-}
 
 export async function markNotificationRead(notificationId: string): Promise<boolean> {
   const supabase = await createClient()

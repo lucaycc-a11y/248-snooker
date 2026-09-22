@@ -1,231 +1,367 @@
-# Stripe UI 最終方向實作計劃
+# Implementation Plan — Member System Rebuild
 
-## 現況分析
-
-### 當前流程
-1. 用戶見到 `PaymentMethodList`（6行選項列表）
-2. 揀咗一個付款方式後，`confirmed = true`
-3. 根據 provider 顯示：
-   - `PAYMENT_PROVIDER=stripe` → `StripePayment`（Stripe PaymentElement accordion）
-   - `PAYMENT_PROVIDER=kpay` → `KPayPayment`（KPay QR/H5）
-
-### 結構性問題
-
-**Requirement vs Reality:**
-
-要求話：「六個付款方式全部要顯示」for Stripe
-
-但 Stripe 嘅 PaymentElement 有兩個限制：
-1. 唔支援 6-row radio list UI（只支援 accordion/tabs）
-2. Dashboard 而家得 Card + WeChat Pay 開咗（Alipay/Google Pay/Apple Pay 未啟用）
-
-**兩個可行方案：**
-
-### 方案 A：兩階段 UI（推薦）
-1. **Stage 1: Payment Method Selection**（顯示 6 個選項）
-   - KPay: 6-row list（現有）
-   - **Stripe: 新設計嘅 6-row list**（唔係用 PaymentElement，自己設計）
-   
-2. **Stage 2: Payment Details Input**
-   - KPay: QR code / H5 redirect
-   - Stripe: **PaymentElement accordion**（只顯示用戶 Stage 1 揀咗嗰個 method）
-
-**優點：**
-- 六個方法都有獨立入口（符合要求）
-- 未開通嘅方法可以顯示「即將推出」
-- 視覺上 Stripe 有自己一套設計（唔係跟 KPay）
-
-### 方案 B：單階段 accordion（Stripe 原生）
-1. 直接顯示 Stripe PaymentElement（accordion）
-2. PaymentElement 會自動顯示 Dashboard 已開通嘅方法
-3. 未開通嘅方法唔會出現
-
-**缺點：**
-- 唔符合「六個方法全部要顯示」呢個要求
-- 無法預告未開通嘅方法
+**Branch:** `feat/member-db-audit-rebuild`  
+**Target Merge:** `uat` only (NOT main)  
+**Date:** 2026-09-22
 
 ---
 
-## 推薦方案：方案 A（兩階段 UI）
+## Verified Schema (Live Database)
 
-### 檔案結構
+### users table
+- `tier` (text, default 'amateur') — CHECK constraint: 'amateur' | 'century' | 'maximum'
+- `points` (int, default 50) — net spendable balance
+- NO `tier_id`, NO `lifetime_points`
 
+### Tier distribution (current data)
+- `amateur`: 10 users
+- `maximum`: 1 user
+- `century`: 0 users (valid but unused)
+
+### points_ledger
+- `type` values: `'booking'` (112 rows, earn), `'manual'` (1 row, earn)
+- NO spend/redeem type — redemptions handled via `points_holds` only
+
+### points_holds (redemption system)
+- Columns: id, booking_id, order_group_id, user_id, checkout_key, points, discount_amount, status, held_at, redeemed_at, released_at, created_at
+- This is where points→discount happens; never written back to points_ledger
+
+### Existing coupon/offer system
+- `coupon_templates` — offer catalog ✅ EXISTS
+- `user_coupons` — user-owned offer instances ✅ EXISTS
+
+### Phantom tables (confirmed NOT exist)
+- `offers` ❌
+- `member_tiers` ❌
+- `birthday_perk_usage` ❌
+
+---
+
+## Tier Name Mapping (Luca-confirmed)
+
+| DB Value | Display Names |
+|----------|---------------|
+| `amateur` | 新星會員 (zh-HK) / 新星会员 (zh-CN) / Nova (en) / ノヴァ (ja) |
+| `century` | 鉑金會員 (zh-HK) / 铂金会员 (zh-CN) / Platinum (en) / プラチナ (ja) |
+| `maximum` | 鑽石會員 (zh-HK) / 钻石会员 (zh-CN) / Diamond (en) / ダイヤモンド (ja) |
+
+---
+
+## Architecture Decision: Lifetime Points
+
+### Current State
+- `users.points` = net spendable balance (earn - redeem)
+- No tracking of "total earned over lifetime"
+- Tier upgrades would be based on... what exactly?
+
+### Options
+
+**Option A: Derive from points_ledger (no new column)**
+```sql
+SELECT user_id, SUM(points) as lifetime_earned
+FROM points_ledger
+WHERE type IN ('booking', 'manual')  -- earn types only
+GROUP BY user_id
 ```
-components/checkout/
-├── PaymentMethodList.tsx          # 現有（KPay 用）
-├── StripeMethodSelector.tsx       # 新增（Stripe Stage 1：6-row 選擇器）
-├── StripePayment.tsx              # 現有（Stripe Stage 2：PaymentElement）
-└── KPayPayment.tsx                # 現有（KPay Stage 2：QR/H5）
+- Pros: No schema change, single source of truth
+- Cons: Requires aggregate query for tier calculation
+
+**Option B: Add users.lifetime_points (new column)**
+```sql
+ALTER TABLE users ADD COLUMN lifetime_points integer DEFAULT 0;
+-- Backfill from ledger
+UPDATE users SET lifetime_points = (
+  SELECT COALESCE(SUM(points), 0)
+  FROM points_ledger
+  WHERE user_id = users.id AND type IN ('booking', 'manual')
+);
 ```
+- Pros: Fast tier checks, clear high-water mark
+- Cons: New column to maintain, must keep in sync with ledger
 
-### Stage 1: StripeMethodSelector 設計規格
+**Option C: Use current balance only (no lifetime tracking)**
+- Tier based on `users.points` (current spendable balance)
+- Redeeming points could cause tier downgrade (probably wrong product-wise)
 
-**視覺設計（深色主題，獨立於 KPay）：**
-- 背景：`#0A0D12` (deepest surface from design_sense)
-- 卡片：`#0F131C` → `#161D2B` on hover
-- 選中狀態：`#1a9d5c` (KPay GREEN) 邊框 + `#22b86b` 發光
-- 圓角：`16px`（跟 Stripe PaymentElement 一致）
-- 字體：SF Pro Display / system-ui
+### Recommendation: **Defer to Luca**
 
-**6 個方法：**
-1. ✅ Card（已開通）
-2. ⏳ Alipay（未開通，顯示「即將推出」）
-3. ⏳ Alipay 中國內地帳戶（未開通）
-4. ⏳ Google Pay（未開通）
-5. ⏳ Apple Pay（未開通）
-6. ✅ WeChat Pay（已開通）
-
-**互動：**
-- 揀咗已開通方法 → 進入 Stage 2（StripePayment）
-- 揀咗未開通方法 → Toast 提示「此付款方式即將推出」
-
-### Stage 2: StripePayment 改善
-
-**現有問題（從截圖）：**
-1. ❌ Email 輸入框直角（要改圓角）
-2. ❌ i18n key 未翻譯（`book.pay_label`、`book.lock_hold_label`）
-3. ❌ Powered by Stripe logo 外部連結失效（改用本地 `/logos/stripe-logo.svg`）
-4. ✅ Stripe Link widget（keep，唔改）
-5. ✅ Appearance API 深色主題（已做，再微調）
-
-**改善項目：**
-- PaymentElement 只顯示用戶 Stage 1 揀咗嗰個方法（用 `allowed_payment_method_types`）
-- 統一圓角 `16px`
-- 修正 i18n keys
-- 本地 Stripe logo
+For Phase 1 (this task), I'll:
+1. Build tier display using existing `users.tier` values
+2. Show `users.points` as current balance
+3. Build a "points ring" UI that shows progress but WITHOUT "next tier at X points" (since we don't have thresholds defined for the real tier system yet)
+4. Flag the lifetime-tracking decision as a product question
 
 ---
 
-## 實作步驟
+## Part 2 — Member Page Rebuild
 
-### Step 1: 創建 StripeMethodSelector 組件
-- [ ] 新增 `components/checkout/StripeMethodSelector.tsx`
-- [ ] 6-row 設計（深色主題，圓角，hover/selected 狀態）
-- [ ] 標記已開通 vs 未開通方法
-- [ ] Click handler：已開通 → 進入 Stage 2，未開通 → Toast
+### Fix Strategy
 
-### Step 2: 修改 book/page.tsx 流程
-- [ ] Provider 判斷：
-  - `PAYMENT_PROVIDER=kpay` → `PaymentMethodList`（現有）
-  - `PAYMENT_PROVIDER=stripe` → `StripeMethodSelector`（新）
-- [ ] Stage 2 保持不變（已經係 provider-aware）
+1. **Delete phantom migration files**
+   - `supabase/migrations/20260921000000_member_redesign_complete.sql` → DELETE
+   - `supabase/migrations/20260922000000_member_redesign_fixes.sql` → DELETE
+   - Create ONE new migration that only adds what's actually needed
 
-### Step 3: 改善 StripePayment 組件
-- [ ] Email 輸入框圓角（appearance.rules `.Input` borderRadius）
-- [ ] 修正 i18n keys（確認 messages/*.json 有正確 key）
-- [ ] Powered by Stripe logo 改本地路徑
-- [ ] PaymentElement 只顯示選中方法（`allowed_payment_method_types: [selectedMethod]`）
+2. **Fix TypeScript types**
+   - `lib/data/memberRedesignTypes.ts` → replace `tier_id` with `tier`, remove `lifetime_points`
+   - Add proper type mapping for tier enum
 
-### Step 4: Stripe Dashboard 開通步驟文檔
-- [ ] Web search Stripe Dashboard Payment methods 設定步驟
-- [ ] 回報俾用戶手動去開通 Alipay/Google Pay/Apple Pay
+3. **Fix data fetching**
+   - `lib/data/getMemberRedesign.ts` → query real columns, use `user_coupons` not `offers`
+   - Map `coupon_templates` to "catalog", `user_coupons` to "owned"
 
-### Step 5: 驗證
-- [ ] KPay 分支：6-row list 正常顯示（唔受影響）
-- [ ] Stripe 分支：新 6-row selector → PaymentElement accordion
-- [ ] 截圖對比（改善前 vs 改善後）
-- [ ] i18n 全部顯示正確
-- [ ] Stripe logo 正常顯示
+4. **Fix UI components**
+   - `app/member/TierRing.tsx` → use `profile.tier`, show `profile.points`
+   - `app/member/MemberCard.tsx` → use `profile.tier` for color/gradient
+   - `app/member/MemberDashboardRedesign.tsx` → remove `lifetime_points` display
+   - `app/member/OfferCard.tsx` → use `UserCoupon` type from real schema
 
----
+5. **Fix `/member` page**
+   - `app/member/page.tsx` → verify it renders, diagnose real error
 
-## 未開通方法 API 錯誤處理
+### Tier Display Helpers
 
-即使前端有「即將推出」提示，用戶如果強制發送請求（inspect + 改 code），API 層要有防護：
-
-**`lib/payments/stripe.ts` 現有邏輯：**
+Create `lib/member/tierHelpers.ts`:
 ```typescript
-if (method === 'card') {
-  createParams.allowed_payment_method_types = ['card']
-} else {
-  createParams.automatic_payment_methods = {
-    enabled: true,
-    allow_redirects: 'never',
-  }
-}
-```
+export type TierValue = 'amateur' | 'century' | 'maximum'
 
-**問題：**
-`automatic_payment_methods.enabled = true` 會嘗試開通所有 Dashboard 已啟用嘅方法，但如果用戶揀咗未啟用嘅（e.g. Alipay），Stripe API 會回傳：
-```
-{
-  "error": {
-    "code": "payment_method_not_available",
-    "message": "Alipay is not enabled for this account"
-  }
-}
-```
+export const TIER_NAMES = {
+  amateur: { zh_hk: '新星會員', zh_cn: '新星会员', en: 'Nova', ja: 'ノヴァ' },
+  century: { zh_hk: '鉑金會員', zh_cn: '铂金会员', en: 'Platinum', ja: 'プラチナ' },
+  maximum: { zh_hk: '鑽石會員', zh_cn: '钻石会员', en: 'Diamond', ja: 'ダイヤモンド' }
+} as const
 
-**解決方案：**
-前端捕捉呢個 error，顯示清晰提示：
-```typescript
-// StripePayment.tsx PayForm onSubmit
-if (error.code === 'payment_method_not_available') {
-  setErr('此付款方式暫未開放，請選擇其他方式')
-  return
+export function getTierColor(tier: TierValue): string {
+  // Return Tailwind classes for tier badge
+}
+
+export function getTierGradient(tier: TierValue): string {
+  // Return gradient for card background
 }
 ```
 
 ---
 
-## 需要用戶確認嘅問題
+## Part 3 — IPN Verification
 
-### Q1: Stripe 分支入面，Alipay/Google Pay/Apple Pay 係咪要有獨立入口？
+### Locate Real Handler
 
-根據要求「六個方法全部要顯示」，方案 A 俾佢哋獨立入口（6-row selector），但用戶揀咗未開通嘅會見到「即將推出」。
+Search for:
+- KPay callback route (likely `app/api/kpay/callback` or similar)
+- Webhook handler that writes to `webhook_events`
+- Booking confirmation logic that awards points
 
-**請確認：**
-- ✅ 方案 A（兩階段：6-row selector → PaymentElement）
-- ❌ 方案 B（單階段：PaymentElement accordion，只顯示已開通方法）
+### Verify Implementation
 
-### Q2: StripeMethodSelector 設計方向
+1. **Signature verification**
+   - Check for KPay signature header validation
+   - Confirm shared secret is used
+   - Test with tampered payload (on UAT only)
 
-要求話「唔係跟 KPay 個六行列表嘅視覺」，但都係 6-row layout。
+2. **Idempotency**
+   - Check for `webhook_events.id` deduplication
+   - Verify booking can't be confirmed twice
+   - Test by replaying same payload
 
-**視覺差異：**
-- KPay: 白色邊框，淺灰背景，綠色選中
-- Stripe: 深黑背景（#0A0D12），深灰卡片（#0F131C），圓角 16px，綠色選中 + 發光效果
+3. **Points awarding**
+   - Confirm `points_ledger` entry created with `type='booking'`
+   - Confirm `users.points` incremented
+   - Check for race conditions (multiple simultaneous IPNs)
 
-**請確認：**
-- 呢個視覺差異係咪足夠「獨立設計」？
-- 定係要完全唔同 layout（例如 3x2 grid 而唔係 6 rows）？
-
----
-
-## Stripe Dashboard 開通步驟（需要用戶手動操作）
-
-### Alipay
-1. Dashboard → Settings → Payment methods
-2. 搵到 Alipay → Click "Enable"
-3. 填寫 business details（如果係首次啟用）
-4. Save
-
-### Google Pay / Apple Pay
-1. Dashboard → Settings → Payment methods
-2. 搵到 Google Pay / Apple Pay → Click "Enable"
-3. 確認 card payment method 已啟用（Google/Apple Pay 依賴 card network）
-4. Save
-
-### 注意事項
-- **Stripe account 要經過 verification** 先可以啟用某啲方法
-- **某啲方法有地區限制**（例如 Alipay 要 business registered in eligible country）
-- **測試模式 vs 生產模式**：要分別啟用
+4. **Logging**
+   - Confirm `webhook_events` row created with all fields
+   - Confirm `provider` field populated (found null rows earlier)
+   - Confirm errors logged with full payload for debugging
 
 ---
 
-## 總結
+## Part 4 — Login System (Uber-style)
 
-**推薦實作方向：方案 A（兩階段 UI）**
+### Locate Current Auth
 
-1. KPay: 保持現有 6-row list
-2. Stripe: 新設計 6-row selector（Stage 1）→ PaymentElement accordion（Stage 2）
-3. 六個方法全部顯示，未開通嘅標記「即將推出」
-4. StripePayment 組件改善：圓角、i18n、本地 logo
-5. API 層錯誤處理：清晰提示未開通方法
+Search for:
+- Login entry point (likely `app/[locale]/login` or `app/auth/login`)
+- OTP sending logic (uses `whatsapp_otps` table)
+- Password verification (uses `user_password_status`)
 
-**等待用戶確認：**
-- 方案 A vs 方案 B
-- StripeMethodSelector 設計方向
-- Dashboard 開通步驟（用戶手動操作）
+### Restyle to Uber Pattern
 
-確認後即刻實作。
+1. **Phone number entry** (Step 1)
+   - Large input, country code selector
+   - "Continue" CTA pinned to bottom
+   - Rate limit messaging from `auth_otp_policy`
+
+2. **OTP verification** (Step 2)
+   - Six-box input with auto-advance
+   - `autocomplete="one-time-code"` for iOS autofill
+   - Resend button with cooldown from `auth_otp_policy`
+   - Lockout messaging from `otp_phone_locks`
+
+3. **Password (if set)** (Step 3)
+   - Only shown if `user_password_status.password_set = true`
+   - "Forgot password" link → password reset flow
+   - Option to login with OTP instead
+
+4. **Redirect handling**
+   - Accept `?redirect=/booking/ABC123` param
+   - Sanitize: only relative paths starting with `/`, reject `//`, `\`, absolute URLs
+
+---
+
+## Part 5 — Settings: Change Password/Phone/Email
+
+### Use Existing Tables
+
+- `account_change_requests` — for password reset links
+- `contact_change_requests` — for phone/email changes
+
+### Change Password Flow
+
+1. Settings → "Change Password" → sheet confirmation
+2. Backend creates `account_change_requests` row:
+   - `purpose = 'password_reset'` (or whatever existing code uses)
+   - `token_hash = hash(randomBytes(32))` (never store plain token)
+   - `expires_at = now() + 30min`
+3. Email sent with link: `https://space8.com.hk/auth/reset-password?token=RAW_TOKEN`
+4. User clicks → page verifies token hash + expiry → shows password form
+5. On submit: update `user_password_status`, mark token `used_at = now()`
+
+### Change Phone/Email Flow
+
+1. Settings → "Change Phone" → sheet confirmation
+2. Backend creates `contact_change_requests` row:
+   - `kind = 'phone'` or `'email'`
+   - `current_value` = existing phone/email
+   - `new_value` = new phone/email
+   - `status = 'awaiting_current'`
+3. **Two-step verification:**
+   - Step A: Send code to CURRENT contact → user enters → `current_verified_at` set, `status = 'awaiting_new'`
+   - Step B: Send code to NEW contact → user enters → `new_verified_at` set, `status = 'completed'`
+4. On completion: update `users.phone`/`users.email`, update `auth_identities`
+
+### Security Requirements
+
+- **Token hashing:** Never store raw tokens, always hash (SHA-256 minimum)
+- **Single-use:** Check `used_at IS NULL`, set atomically on consumption
+- **Race protection:** Test concurrent use of same link (only one succeeds)
+- **Rate limiting:** Max N requests per user per hour (use existing rate-limit tables)
+
+---
+
+## Verification Checklist
+
+### Part 2: Member Page
+- [ ] `/member` returns 200 for authenticated user
+- [ ] Tier displayed matches `users.tier` value from DB
+- [ ] Points displayed match `users.points` value from DB
+- [ ] Tier badge shows correct localized name (zh-HK 新星會員 for amateur)
+- [ ] Rewards catalog shows coupons from `coupon_templates`
+- [ ] User's owned coupons show from `user_coupons`
+- [ ] No console errors on member page
+
+### Part 3: IPN
+- [ ] Replayed IPN payload is idempotent (no double points)
+- [ ] Tampered payload signature fails validation
+- [ ] Failed IPN creates `webhook_events` row with `status='error'`
+- [ ] Successful IPN creates `webhook_events` row with `status='processed'`
+- [ ] `webhook_events.provider` field populated (not null)
+
+### Part 4: Login
+- [ ] Phone entry → OTP → login succeeds
+- [ ] Password login (if password set) succeeds
+- [ ] Resend cooldown matches `auth_otp_policy` seconds
+- [ ] Lockout message shown after N failed attempts
+- [ ] `redirect=/booking/ABC` works
+- [ ] `redirect=//evil.com` rejected
+- [ ] `autocomplete="one-time-code"` present on OTP input
+
+### Part 5: Settings
+- [ ] Change password: email received with working link
+- [ ] Change password: used/expired link shows blocked state
+- [ ] Change password: concurrent double-use only succeeds once
+- [ ] Change phone: current-phone verification required first
+- [ ] Change phone: cannot skip to new-phone verification
+- [ ] Change email: same two-step flow enforced
+- [ ] Rate limit prevents spam requests
+
+### Build & Deploy
+- [ ] `npm run build` passes (no TypeScript errors)
+- [ ] `npx tsc --noEmit` passes
+- [ ] Committed to `feat/member-db-audit-rebuild`
+- [ ] Merged into `uat` (NOT main)
+- [ ] `git merge-base --is-ancestor <commit> uat` proves merge
+- [ ] UAT deployment succeeds
+- [ ] Manual smoke test on UAT
+
+---
+
+## Files to Modify
+
+### Delete (phantom migrations)
+- `supabase/migrations/20260921000000_member_redesign_complete.sql`
+- `supabase/migrations/20260922000000_member_redesign_fixes.sql`
+
+### Create (new minimal migration)
+- `supabase/migrations/20260923000000_member_cleanup.sql` — only adds missing bits, no phantom tables
+
+### Fix (types)
+- `lib/data/memberRedesignTypes.ts` — use `tier`, remove `lifetime_points`
+- `lib/member/tierHelpers.ts` — NEW file for tier display logic
+
+### Fix (data fetching)
+- `lib/data/getMemberRedesign.ts` — query real schema
+
+### Fix (UI components)
+- `app/member/page.tsx` — diagnose/fix
+- `app/member/TierRing.tsx` — use `tier`, `points`
+- `app/member/MemberCard.tsx` — use `tier`
+- `app/member/MemberDashboardRedesign.tsx` — remove `lifetime_points`
+- `app/member/OfferCard.tsx` — use `user_coupons` type
+
+### Investigate & Fix (IPN, login, settings)
+- Search for KPay/webhook handler
+- Search for login routes
+- Search for settings routes
+- Fix each per plan above
+
+---
+
+## Git Strategy
+
+1. Create branch: `git checkout -b feat/member-db-audit-rebuild`
+2. Commit in logical chunks:
+   - "fix(member): delete phantom migrations and update types to use real schema"
+   - "fix(member): rebuild member dashboard to use tier/points from real users table"
+   - "fix(ipn): verify idempotency and signature validation"
+   - "fix(auth): restyle login to Uber pattern"
+   - "fix(settings): wire change-password/phone/email to existing request tables"
+3. Build verification: `npm run build && npx tsc --noEmit`
+4. Merge to uat: `git checkout uat && git merge feat/member-db-audit-rebuild`
+5. Prove: `git merge-base --is-ancestor $(git rev-parse HEAD) uat`
+6. Push: `git push origin uat`
+
+---
+
+## Open Questions for Luca
+
+1. **Lifetime points tracking:** Should tier be based on total points earned over time (requires new column or ledger aggregation), or on current spendable balance? If lifetime, should we add `users.lifetime_points` column now?
+
+2. **Tier upgrade thresholds:** Config shows 0/500/2000 points for tier thresholds, but these were never applied. Should we implement auto-upgrade logic based on these thresholds, or is tier manually assigned?
+
+3. **Birthday perk:** Context mentions a birthday perk system. Should we implement `birthday_perk_usage` table, or defer this feature?
+
+4. **Offer vs. Coupon terminology:** Use "rewards" (會員獎勵), "coupons" (優惠券), or "offers" (優惠) in the UI?
+
+---
+
+## Time Estimate
+
+- Part 1: ✅ DONE (audit report)
+- Part 2: ~2 hours (member page rebuild)
+- Part 3: ~1 hour (IPN verification)
+- Part 4: ~2 hours (login restyle)
+- Part 5: ~3 hours (settings flows)
+- Testing: ~2 hours (end-to-end verification)
+- **Total: ~10 hours**
+
+Split into checkpoints — deliver Part 2, verify, then proceed to Part 3+.

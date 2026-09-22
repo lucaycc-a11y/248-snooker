@@ -2,12 +2,13 @@
 
 import { motion } from 'framer-motion'
 import { useTranslations, useLocale } from 'next-intl'
-import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
-import { TIER_DISPLAY, tierLabel } from '@/lib/member/tierDisplay'
+import { type MemberProfile, type TierValue } from '@/lib/data/memberRedesignTypes'
+import { getTierName, getTierRingColor } from '@/lib/member/tierHelpers'
 
 // ════════════════════════════════════════════════════════════════════════════
-// TierRing — P3: Animated circular progress ring showing tier advancement
-// Shows current tier, points to next tier, and lifetime achievement
+// TierRing — P3: Animated circular progress ring showing current tier
+// FIXED: Uses real schema (tier, points) not phantom (tier_id, lifetime_points)
+// Shows current tier and points balance (no "next tier" since thresholds aren't defined yet)
 // ════════════════════════════════════════════════════════════════════════════
 
 type Props = {
@@ -18,31 +19,24 @@ export function TierRing({ profile }: Props) {
   const t = useTranslations('member')
   const locale = useLocale()
 
-  const tiers = [
-    { id: 'amateur' as const, min: 0, color: '#10B981' },
-    { id: 'century' as const, min: 500, color: '#F59E0B' },
-    { id: 'maximum' as const, min: 2000, color: '#A855F7' },
-  ]
+  // Tier colors from helpers
+  const tierColor = getTierRingColor(profile.tier)
+  const tierName = getTierName(profile.tier, locale)
 
-  const currentTier = tiers.find((t) => t.id === profile.tier_id) ?? tiers[0]
-  const currentIndex = tiers.findIndex((t) => t.id === profile.tier_id)
-  const nextTier = tiers[currentIndex + 1]
-
-  let progress = 1 // Default to 100% if max tier
-  let pointsToNext = 0
-  let pointsInCurrentTier = profile.lifetime_points - currentTier.min
-
-  if (nextTier) {
-    const tierRange = nextTier.min - currentTier.min
-    pointsToNext = nextTier.min - profile.lifetime_points
-    progress = Math.min(pointsInCurrentTier / tierRange, 1)
-  }
-
+  // Simple display: no thresholds yet, so show 100% ring
   const radius = 120
   const strokeWidth = 16
   const normalizedRadius = radius - strokeWidth / 2
   const circumference = normalizedRadius * 2 * Math.PI
-  const strokeDashoffset = circumference - progress * circumference
+
+  // All tiers (for milestone display)
+  const allTiers: Array<{ id: TierValue; label: string; color: string }> = [
+    { id: 'amateur', label: getTierName('amateur', locale), color: getTierRingColor('amateur') },
+    { id: 'century', label: getTierName('century', locale), color: getTierRingColor('century') },
+    { id: 'maximum', label: getTierName('maximum', locale), color: getTierRingColor('maximum') },
+  ]
+
+  const currentIndex = allTiers.findIndex((t) => t.id === profile.tier)
 
   return (
     <div className="relative flex flex-col items-center">
@@ -58,22 +52,22 @@ export function TierRing({ profile }: Props) {
             cx={radius}
             cy={radius}
           />
-          {/* Progress ring */}
+          {/* Progress ring (full circle for now) */}
           <motion.circle
-            stroke={currentTier.color}
+            stroke={tierColor}
             fill="transparent"
             strokeWidth={strokeWidth}
             strokeDasharray={`${circumference} ${circumference}`}
-            strokeDashoffset={strokeDashoffset}
+            strokeDashoffset={0}
             strokeLinecap="round"
             r={normalizedRadius}
             cx={radius}
             cy={radius}
             initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset }}
+            animate={{ strokeDashoffset: 0 }}
             transition={{ duration: 1.5, ease: 'easeInOut' }}
             style={{
-              filter: `drop-shadow(0 0 8px ${currentTier.color}40)`,
+              filter: `drop-shadow(0 0 8px ${tierColor}40)`,
             }}
           />
         </svg>
@@ -87,49 +81,36 @@ export function TierRing({ profile }: Props) {
             className="text-center"
           >
             <p className="font-label text-sm text-white/40">{t('tier.current')}</p>
-            <p className="mt-1 text-3xl font-bold text-white" style={{ color: currentTier.color }}>
-              {tierLabel(currentTier.id, locale)}
+            <p className="mt-1 text-3xl font-bold text-white" style={{ color: tierColor }}>
+              {tierName}
             </p>
-            <p className="font-code mt-1 text-2xl text-white">{profile.lifetime_points.toLocaleString()}</p>
-            <p className="font-label text-xs text-white/40">{t('tier.lifetime_points')}</p>
+            <p className="font-code mt-1 text-2xl text-white">{profile.points.toLocaleString()}</p>
+            <p className="font-label text-xs text-white/40">{t('tier.current_points')}</p>
           </motion.div>
         </div>
       </div>
 
-      {/* Next tier info */}
-      {nextTier && pointsToNext > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6 text-center"
-        >
-          <p className="font-label text-sm text-white/60">
-            {t('tier.next_tier')}: <span className="font-bold text-white">{tierLabel(nextTier.id, locale)}</span>
-          </p>
-          <p className="mt-1 text-xl font-bold text-white">
-            <span className="font-code">{pointsToNext.toLocaleString()}</span> <span className="font-label text-sm font-normal text-white/60">{t('tier.points_away')}</span>
-          </p>
-        </motion.div>
-      )}
-
-      {/* Max tier reached */}
-      {!nextTier && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mt-6 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-6 py-2 text-center backdrop-blur"
-        >
-          <p className="font-label text-sm text-purple-300">🏆 {t('tier.max_tier_reached')}</p>
-        </motion.div>
-      )}
+      {/* Tier badge (current tier highlight) */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="mt-6 rounded-full px-6 py-2 text-center backdrop-blur"
+        style={{
+          background: `linear-gradient(135deg, ${tierColor}40, ${tierColor}20)`,
+          border: `1px solid ${tierColor}60`,
+        }}
+      >
+        <p className="font-label text-sm" style={{ color: tierColor }}>
+          {tierName}
+        </p>
+      </motion.div>
 
       {/* Tier milestones */}
       <div className="mt-8 flex w-full max-w-md items-center justify-between">
-        {tiers.map((tier, index) => {
-          const isReached = profile.lifetime_points >= tier.min
-          const isCurrent = tier.id === profile.tier_id
+        {allTiers.map((tier, index) => {
+          const isReached = index <= currentIndex
+          const isCurrent = tier.id === profile.tier
 
           return (
             <div key={tier.id} className="relative flex flex-col items-center">
@@ -147,17 +128,16 @@ export function TierRing({ profile }: Props) {
               >
                 {isReached && <span className="text-xl">✓</span>}
               </motion.div>
-              <p className="mt-2 text-xs font-medium text-white/60">{tierLabel(tier.id, locale)}</p>
-              <p className="font-code text-xs text-white/40">{tier.min.toLocaleString()}</p>
+              <p className="mt-2 text-xs font-medium text-white/60">{tier.label}</p>
 
               {/* Connector line */}
-              {index < tiers.length - 1 && (
+              {index < allTiers.length - 1 && (
                 <div
                   className="absolute top-6 left-12 h-0.5 w-[calc(100%+2rem)]"
                   style={{
                     background:
-                      profile.lifetime_points >= tiers[index + 1].min
-                        ? `linear-gradient(to right, ${tier.color}, ${tiers[index + 1].color})`
+                      index < currentIndex
+                        ? `linear-gradient(to right, ${tier.color}, ${allTiers[index + 1].color})`
                         : 'rgba(255, 255, 255, 0.1)',
                   }}
                 />
