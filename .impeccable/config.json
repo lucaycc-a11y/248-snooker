@@ -1072,6 +1072,22 @@
         "value": "#f5576c",
         "createdAt": "2026-09-22T13:48:39.507Z",
         "reason": "Tier gradient: Diamond coral (maximum tier brand color)"
+      },
+      {
+        "rule": "from-blue-500/20 to-cyan-500/20",
+        "value": "tier-brand gradient: nova tier blue-cyan palette used in quick action cards to reinforce tier identity",
+        "createdAt": "2026-09-22T14:06:48.294Z"
+      },
+      {
+        "rule": "from-purple-500 to-pink-500",
+        "value": "tier-brand gradient: diamond tier pink-coral palette used in reward redemption ctas to reinforce tier identity",
+        "createdAt": "2026-09-22T14:06:53.007Z"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "from-purple-500/10 via-cyan-500/5 to-transparent",
+        "createdAt": "2026-09-22T14:56:21.161Z",
+        "reason": "intentional member dashboard redesign palette, matches existing TierRing gradient system"
       }
     ]
   }

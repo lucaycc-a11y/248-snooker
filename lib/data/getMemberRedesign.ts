@@ -87,7 +87,7 @@ function normalizePointsTransaction(row: Row): PointsTransaction {
     points: num(row, ['points'], 0),
     balance_after: num(row, ['balance_after'], 0),
     type: str(row, ['type']) ?? 'manual',
-    category: str(row, ['category']),
+    category: str(row, ['category']) ?? undefined,
     description: str(row, ['description']),
     reference_type: str(row, ['reference_type']),
     reference_id: str(row, ['reference_id']),
@@ -348,4 +348,21 @@ export async function setBirthMonth(month: number): Promise<{ success: boolean; 
   } catch (err: any) {
     return { success: false, error: err.message ?? 'unknown_error' }
   }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// STUB FUNCTIONS (TODO: implement)
+// ════════════════════════════════════════════════════════════════════════════
+
+export async function claimOffer(offerId: string): Promise<{ success: boolean; error?: string }> {
+  // TODO: implement offer claiming logic
+  return { success: false, error: 'not_implemented' }
+}
+
+export async function redeemOfferWithPoints(
+  offerId: string,
+  pointsCost: number
+): Promise<{ success: boolean; error?: string }> {
+  // TODO: implement points redemption logic
+  return { success: false, error: 'not_implemented' }
 }

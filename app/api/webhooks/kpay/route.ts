@@ -70,6 +70,32 @@ export async function POST(req: Request) {
     return new NextResponse('Invalid signature', { status: 401 })
   }
 
+  // ── Timestamp freshness check (defense-in-depth against replay) ────────
+  // The idempotency key alone makes replays harmless (orderNo is unique),
+  // but rejecting stale webhooks early reduces DB load and detects attacks faster.
+  const webhookTimestamp = Number.parseInt(timestamp, 10)
+  const nowMs = Date.now()
+  const ageMs = nowMs - webhookTimestamp
+  const MAX_AGE_MS = 10 * 60 * 1000 // 10 minutes
+
+  if (Number.isNaN(webhookTimestamp) || ageMs > MAX_AGE_MS) {
+    console.warn('[webhook/kpay] stale_timestamp', {
+      timestamp,
+      ageMinutes: Math.floor(ageMs / 60000),
+      maxMinutes: 10,
+    })
+    return new NextResponse('Webhook timestamp too old', { status: 401 })
+  }
+
+  if (ageMs < -60000) {
+    // Clock skew > 1 min in the future — likely tampered or server clock wrong
+    console.warn('[webhook/kpay] future_timestamp', {
+      timestamp,
+      skewMinutes: Math.floor(-ageMs / 60000),
+    })
+    return new NextResponse('Webhook timestamp in future', { status: 401 })
+  }
+
   // ── Parse payload ──────────────────────────────────────────────────────
   let payload: Record<string, unknown>
   try {
@@ -113,7 +139,7 @@ export async function POST(req: Request) {
 
   const { error: claimErr } = await supabase
     .from('webhook_events')
-    .insert({ id: eventId, type: `kpay.${eventType}`, payload })
+    .insert({ id: eventId, type: `kpay.${eventType}`, payload, provider: 'kpay' })
 
   if (claimErr) {
     if ((claimErr as { code?: string }).code !== '23505') {

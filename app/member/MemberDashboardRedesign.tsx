@@ -442,20 +442,3 @@ function PrivacySettings({ profile }: { profile: MemberProfile }) {
     </div>
   )
 }
-
-// ────────────────────────────────────────────────────────────────────────────
-// § TIER COLOR HELPERS
-// ────────────────────────────────────────────────────────────────────────────
-
-function getTierColor(tierId: string): string {
-  switch (tierId) {
-    case 'amateur':
-      return 'bg-green-400'
-    case 'century':
-      return 'bg-amber-400'
-    case 'maximum':
-      return 'bg-purple-400'
-    default:
-      return 'bg-gray-400'
-  }
-}

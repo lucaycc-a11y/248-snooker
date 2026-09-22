@@ -48,9 +48,9 @@ export function PointsHistory({ points }: Props) {
 
 function TransactionRow({ transaction, locale }: { transaction: PointsTransaction; locale: string }) {
   const t = useTranslations('member.points')
-  const isPositive = transaction.delta > 0
-  const categoryIcon = getCategoryIcon(transaction.category)
-  const categoryColor = getCategoryColor(transaction.category)
+  const isPositive = transaction.points > 0
+  const categoryIcon = getCategoryIcon(transaction.category ?? '')
+  const categoryColor = getCategoryColor(transaction.category ?? '')
 
   return (
     <div className="flex items-center justify-between rounded-xl bg-white/5 p-4 backdrop-blur transition-colors hover:bg-white/10">
@@ -75,7 +75,7 @@ function TransactionRow({ transaction, locale }: { transaction: PointsTransactio
       <div className="text-right">
         <p className={`font-code text-lg ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
           {isPositive ? '+' : ''}
-          {transaction.delta.toLocaleString()}
+          {transaction.points.toLocaleString()}
         </p>
         <p className="font-label text-xs text-white/40">
           {t('balance')}: <span className="font-code">{transaction.balance_after.toLocaleString()}</span>

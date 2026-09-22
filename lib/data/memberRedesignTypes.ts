@@ -51,14 +51,14 @@ export type UserCoupon = {
   used_at: string | null
   booking_id: string | null
   // Joined from coupon_templates
-  title_zh_hk?: string
-  title_zh_cn?: string
-  title_en?: string
-  title_ja?: string
-  description_zh_hk?: string | null
-  description_zh_cn?: string | null
-  description_en?: string | null
-  description_ja?: string | null
+  title_zh_hk: string | null
+  title_zh_cn: string | null
+  title_en: string | null
+  title_ja: string | null
+  description_zh_hk: string | null
+  description_zh_cn: string | null
+  description_en: string | null
+  description_ja: string | null
 }
 
 // Use real coupon_templates schema

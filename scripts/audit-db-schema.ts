@@ -70,7 +70,7 @@ async function main() {
       ORDER BY table_name
     `
   })
-  console.log('   Tables:', existingTables?.map(t => t.table_name))
+  console.log('   Tables:', existingTables?.map((t: any) => t.table_name))
 
   // 5. Check points_ledger structure and type values
   console.log('\n5️⃣  Checking points_ledger...')
@@ -100,7 +100,7 @@ async function main() {
       ORDER BY ordinal_position
     `
   })
-  console.log('   Columns:', contactCols?.map(c => c.column_name))
+  console.log('   Columns:', contactCols?.map((c: any) => c.column_name))
 
   // 7. Check account_change_requests
   console.log('\n7️⃣  Checking account_change_requests...')
@@ -112,7 +112,7 @@ async function main() {
       ORDER BY ordinal_position
     `
   })
-  console.log('   Columns:', accountCols?.map(c => c.column_name))
+  console.log('   Columns:', accountCols?.map((c: any) => c.column_name))
 
   // 8. Check webhook_events
   console.log('\n8️⃣  Checking webhook_events...')
@@ -124,7 +124,7 @@ async function main() {
       ORDER BY ordinal_position
     `
   })
-  console.log('   Columns:', webhookCols?.map(c => c.column_name))
+  console.log('   Columns:', webhookCols?.map((c: any) => c.column_name))
 
   console.log('\n✅ Schema audit complete')
 }

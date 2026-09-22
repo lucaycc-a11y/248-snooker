@@ -3,16 +3,16 @@ import { redeemOfferWithPoints } from '@/lib/data/getMemberRedesign'
 
 export async function POST(req: Request) {
   try {
-    const { offerId } = await req.json()
+    const { offerId, pointsCost } = await req.json()
 
-    if (!offerId) {
-      return NextResponse.json({ error: 'offer_id_required' }, { status: 400 })
+    if (!offerId || !pointsCost) {
+      return NextResponse.json({ error: 'offer_id_and_points_required' }, { status: 400 })
     }
 
-    const result = await redeemOfferWithPoints(offerId)
+    const result = await redeemOfferWithPoints(offerId, pointsCost)
 
     if (result.success) {
-      return NextResponse.json({ success: true, new_balance: result.new_balance })
+      return NextResponse.json({ success: true })
     } else {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 })
     }
