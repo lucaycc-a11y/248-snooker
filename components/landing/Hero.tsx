@@ -69,12 +69,17 @@ export default function Hero() {
         <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
       </video>
 
-      {/* Desktop: bottom-anchored square, black sides */}
+      {/* Desktop: bottom-anchored square, fluid sizing across all viewports */}
       <motion.div
-        className="absolute bottom-0 left-1/2 hidden aspect-square w-[85vw] overflow-hidden md:block lg:w-[80vw] lg:max-w-[1000px] xl:w-[65vw] xl:max-w-[1100px]"
+        className="absolute bottom-0 left-1/2 hidden aspect-square overflow-hidden md:block"
         whileHover={{ scale: 1.025 }}
         transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        style={{ x: "-50%", transformOrigin: "center bottom", willChange: "transform" }}
+        style={{
+          x: "-50%",
+          transformOrigin: "center bottom",
+          willChange: "transform",
+          width: "clamp(600px, 75vw, 1200px)", // Fluid scaling from 600px to 1200px
+        }}
       >
         <img
           src="/video/Space8_Main_Hero_Poster.jpg"
@@ -116,95 +121,118 @@ export default function Hero() {
         }}
       />
 
-      {/* Content — flex-centered with responsive bottom guard-rail to prevent overlap with the pool-table graphic.
-          pointer-events-none lets the table's hover effect work through the full-bleed container.
-          iPad-specific positioning: raise content higher on tablet landscape/portrait to avoid table overlap. */}
+      {/* Content — flex-centered with constrained max-width on large screens and responsive
+          bottom spacing that scales proportionally with the viewport to maintain consistent
+          gap to the pool table across all screen sizes. pointer-events-none lets the table's
+          hover effect work through the full-bleed container. */}
       <div
         ref={heroContentRef}
-        className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center pb-[clamp(60px,18svh,180px)] sm:pb-[clamp(100px,22svh,220px)] md:pb-[clamp(80px,20svh,200px)] lg:pb-[clamp(100px,18svh,180px)]"
+        className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
+        style={{
+          paddingBottom: "clamp(80px, 20vh, 220px)",
+        }}
       >
-        {/* Space8 wordmark — official SVG artwork, not a text simulation */}
-        <div className="anime-reveal-wrapper" data-anime-hero-item style={{ marginBottom: "6px" }}>
-          <Logo variant="full" theme="dark" size={32} />
-        </div>
-
-        {/* Headline — single element, gradient, fades in after 3s */}
-        <div className="anime-reveal-wrapper">
-        <h1
-          data-anime-hero-item
-          className="text-[clamp(38px,8vw,54px)] md:text-[60px]"
-          style={{
-            ...HEADLINE_GRADIENT,
-            fontWeight: 600,
-            letterSpacing: "-0.015em",
-            lineHeight: 1.04,
-            margin: 0,
-            whiteSpace: "normal",
-            fontFamily:
-              "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
-          }}
-        >
-          {t("tagline")}
-        </h1>
-        </div>
-
-        {/* Sub copy */}
-        <div className="anime-reveal-wrapper">
-        <p
-          data-anime-hero-item
-          className="mt-3 text-[14px] md:mt-3.5 md:text-[17px]"
-          style={{
-            color: "rgba(255,255,255,0.72)",
-            fontWeight: 400,
-            letterSpacing: "-0.01em",
-            fontFamily:
-              "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif",
-          }}
-        >
-          {t("subline")}
-        </p>
-        </div>
-
-        {/* CTA buttons — tightened gap from subtitle for better composition.
-            pointer-events-auto re-enables clicks suppressed by the overlay container. */}
-        <div className="anime-reveal-wrapper" data-anime-hero-item>
-        <div className="pointer-events-auto mt-4 md:mt-5">
-          <div className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center gap-3 rounded-full px-3 py-2.5 sm:px-4 sm:py-3">
-            <Link
-              href="/book"
-              prefetch
-              className="flex min-h-11 items-center justify-center rounded-full px-6 py-3 text-[13px] font-bold leading-none transition-[transform,filter] duration-200 hover:scale-[1.03] hover:brightness-[1.08] active:scale-95 md:px-7 md:py-3 md:text-[15px]"
-              style={{
-                background: GREEN,
-                color: "#000",
-                letterSpacing: "-0.01em",
-                textDecoration: "none",
-                minHeight: 44,
-                minWidth: 44,
-              }}
-            >
-              {t("cta_book")}
-            </Link>
-
-            <Link
-              href="/venue"
-              className="flex items-center justify-center rounded-full border px-6 py-3 text-[13px] leading-none transition-colors duration-200 hover:bg-white/[0.08] active:scale-[0.97] md:px-7 md:py-3 md:text-[15px]"
-              style={{
-                background: "rgba(255,255,255,0.08)",
-                backdropFilter: "blur(10px)",
-                WebkitBackdropFilter: "blur(10px)",
-                border: "1px solid rgba(255,255,255,0.28)",
-                color: "rgba(255,255,255,0.82)",
-                fontWeight: 400,
-                textDecoration: "none",
-                minHeight: 44,
-                minWidth: 44,
-              }}
-            >
-              {t("cta_learn")}
-            </Link>
+        {/* Content wrapper with constrained max-width for large screens */}
+        <div className="w-full" style={{ maxWidth: "min(720px, 90vw)" }}>
+          {/* Space8 wordmark — official SVG artwork, not a text simulation */}
+          <div className="anime-reveal-wrapper" data-anime-hero-item style={{ marginBottom: "clamp(4px, 0.8vh, 8px)" }}>
+            <Logo variant="full" theme="dark" size={32} />
           </div>
-        </div>
+
+          {/* Headline — fluid sizing across all viewports, no breakpoint jumps */}
+          <div className="anime-reveal-wrapper">
+            <h1
+              data-anime-hero-item
+              style={{
+                ...HEADLINE_GRADIENT,
+                fontSize: "clamp(2.25rem, 5.5vw + 1rem, 4.5rem)", // 36px → 72px fluid
+                fontWeight: 600,
+                letterSpacing: "-0.015em",
+                lineHeight: 1.04,
+                margin: 0,
+                whiteSpace: "normal",
+                fontFamily:
+                  "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+              }}
+            >
+              {t("tagline")}
+            </h1>
+          </div>
+
+          {/* Sub copy — fluid sizing */}
+          <div className="anime-reveal-wrapper">
+            <p
+              data-anime-hero-item
+              style={{
+                marginTop: "clamp(0.625rem, 1vh, 1rem)", // 10px → 16px
+                fontSize: "clamp(0.875rem, 0.8vw + 0.5rem, 1.125rem)", // 14px → 18px fluid
+                color: "rgba(255,255,255,0.72)",
+                fontWeight: 400,
+                letterSpacing: "-0.01em",
+                fontFamily:
+                  "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif",
+              }}
+            >
+              {t("subline")}
+            </p>
+          </div>
+
+          {/* CTA buttons — fluid gap and sizing with enforced 44px tap target.
+              pointer-events-auto re-enables clicks suppressed by the overlay container. */}
+          <div className="anime-reveal-wrapper" data-anime-hero-item>
+            <div
+              className="pointer-events-auto"
+              style={{
+                marginTop: "clamp(1rem, 2vh, 1.5rem)", // 16px → 24px
+              }}
+            >
+              <div
+                className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center rounded-full"
+                style={{
+                  gap: "clamp(0.625rem, 1vw, 0.875rem)", // 10px → 14px
+                  padding: "clamp(0.5rem, 0.8vh, 0.75rem)",
+                }}
+              >
+                <Link
+                  href="/book"
+                  prefetch
+                  className="flex items-center justify-center rounded-full font-bold leading-none transition-[transform,filter] duration-200 hover:scale-[1.03] hover:brightness-[1.08] active:scale-95"
+                  style={{
+                    background: GREEN,
+                    color: "#000",
+                    fontSize: "clamp(0.8125rem, 0.6vw + 0.5rem, 0.9375rem)", // 13px → 15px
+                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)", // Fixed py: 12px, fluid px: 24px→28px
+                    letterSpacing: "-0.01em",
+                    textDecoration: "none",
+                    minHeight: "44px",
+                    minWidth: "44px",
+                  }}
+                >
+                  {t("cta_book")}
+                </Link>
+
+                <Link
+                  href="/venue"
+                  className="flex items-center justify-center rounded-full border leading-none transition-colors duration-200 hover:bg-white/[0.08] active:scale-[0.97]"
+                  style={{
+                    background: "rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(10px)",
+                    WebkitBackdropFilter: "blur(10px)",
+                    border: "1px solid rgba(255,255,255,0.28)",
+                    color: "rgba(255,255,255,0.82)",
+                    fontSize: "clamp(0.8125rem, 0.6vw + 0.5rem, 0.9375rem)", // 13px → 15px
+                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)", // Fixed py: 12px, fluid px: 24px→28px
+                    fontWeight: 400,
+                    textDecoration: "none",
+                    minHeight: "44px",
+                    minWidth: "44px",
+                  }}
+                >
+                  {t("cta_learn")}
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
