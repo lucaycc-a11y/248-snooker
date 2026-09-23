@@ -521,6 +521,7 @@
     "tab_points": "積分記錄",
     "tab_settings": "設定",
     "tab_access": "入場指南",
+    "tab_help": "說明",
     "section_upcoming": "即将到來",
     "section_upcoming_desc": "你已確認的未來預訂",
     "section_recent": "最近",
@@ -1980,6 +1981,10 @@
   "help": {
     "title": "支援中心",
     "subtitle": "查找常見問題的解答",
+    "hero": {
+      "title": "您好，有什麼可以協助您？",
+      "subtitle": "搜尋常見問題或瀏覽下方主題"
+    },
     "searchPlaceholder": "搜尋文章...",
     "noResults": "找不到相關文章",
     "backToSupport": "返回支援中心",
@@ -1987,6 +1992,8 @@
     "stillNeedHelp": "仍需要協助？",
     "stillNeedHelpDesc": "如果以上資訊未能解決您的問題，歡迎聯絡客服團隊。",
     "contactSupport": "聯絡客服",
+    "popularQuestions": "熱門問題",
+    "browseTopics": "瀏覽主題",
     "categories": {
       "all": {
         "title": "全部"
@@ -2003,7 +2010,44 @@
       "policies": {
         "title": "政策"
       },
+      "support": {
+        "title": "支援"
+      },
       "articlesCount": "篇文章"
+    },
+    "articles": {
+      "entry-qr": {
+        "title": "如何使用QR Code入場",
+        "excerpt": "了解如何使用您的預訂QR Code進入場地"
+      },
+      "booking": {
+        "title": "如何預訂檯桌",
+        "excerpt": "預訂檯桌的完整流程說明"
+      },
+      "account-login": {
+        "title": "帳戶登入問題",
+        "excerpt": "解決登入帳戶時遇到的常見問題"
+      },
+      "find-qr": {
+        "title": "找不到QR Code？",
+        "excerpt": "如何查找或重新獲取您的入場QR Code"
+      },
+      "tier-points": {
+        "title": "會員等級與積分",
+        "excerpt": "了解會員等級制度與積分累積方式"
+      },
+      "cancellation-policy": {
+        "title": "取消政策",
+        "excerpt": "預訂取消、退款條件及處理流程"
+      },
+      "special-weather": {
+        "title": "特殊天氣安排",
+        "excerpt": "惡劣天氣下的預訂處理及退款政策"
+      },
+      "contact-support": {
+        "title": "聯絡客服",
+        "excerpt": "如何聯絡我們的客服團隊獲得協助"
+      }
     }
   }
 }

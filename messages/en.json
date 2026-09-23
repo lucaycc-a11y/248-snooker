@@ -521,6 +521,7 @@
     "tab_points": "Points",
     "tab_settings": "Settings",
     "tab_access": "Access guide",
+    "tab_help": "Help",
     "section_upcoming": "Upcoming",
     "section_upcoming_desc": "Your confirmed future bookings",
     "section_recent": "Recent",
@@ -1980,6 +1981,10 @@
   "help": {
     "title": "Support Center",
     "subtitle": "Find answers to common questions",
+    "hero": {
+      "title": "Hello, how can we help you?",
+      "subtitle": "Search for common questions or browse topics below"
+    },
     "searchPlaceholder": "Search articles...",
     "noResults": "No articles found",
     "backToSupport": "Back to Support",
@@ -1987,6 +1992,8 @@
     "stillNeedHelp": "Still need help?",
     "stillNeedHelpDesc": "If the information above didn't solve your issue, feel free to contact our support team.",
     "contactSupport": "Contact Support",
+    "popularQuestions": "Popular Questions",
+    "browseTopics": "Browse Topics",
     "categories": {
       "all": {
         "title": "All"
@@ -2003,7 +2010,44 @@
       "policies": {
         "title": "Policies"
       },
+      "support": {
+        "title": "Support"
+      },
       "articlesCount": "articles"
+    },
+    "articles": {
+      "entry-qr": {
+        "title": "How to use QR Code for entry",
+        "excerpt": "Learn how to use your booking QR Code to enter the venue"
+      },
+      "booking": {
+        "title": "How to book a table",
+        "excerpt": "Complete guide to booking a table"
+      },
+      "account-login": {
+        "title": "Account login issues",
+        "excerpt": "Resolve common issues when logging into your account"
+      },
+      "find-qr": {
+        "title": "Can't find your QR Code?",
+        "excerpt": "How to locate or retrieve your entry QR Code"
+      },
+      "tier-points": {
+        "title": "Membership tiers and points",
+        "excerpt": "Learn about the membership tier system and how to earn points"
+      },
+      "cancellation-policy": {
+        "title": "Cancellation policy",
+        "excerpt": "Booking cancellation, refund conditions and processing"
+      },
+      "special-weather": {
+        "title": "Special weather arrangements",
+        "excerpt": "Booking handling and refund policy during adverse weather"
+      },
+      "contact-support": {
+        "title": "Contact support",
+        "excerpt": "How to reach our support team for assistance"
+      }
     }
   }
 }

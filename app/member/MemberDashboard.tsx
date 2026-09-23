@@ -25,6 +25,7 @@ import {
   Percent,
   Coins,
   Check,
+  HelpCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CHANGE_REQUEST_COOLDOWN } from "@/lib/auth/change-constants";
@@ -39,6 +40,7 @@ import DeleteDataModal from "@/components/member/DeleteDataModal";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
 import { Logo } from "@/components/brand";
+import { HelpCentre } from "@/components/help/HelpCentre";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -77,7 +79,7 @@ const TIER_GLOW: Record<string, string> = {
 // Display names for tier IDs — see lib/member/tierDisplay.ts (single source
 // of truth). This module renders localized long-form names via tierLabel().
 
-type TabId = "overview" | "bookings" | "points" | "settings" | "access";
+type TabId = "overview" | "bookings" | "points" | "settings" | "access" | "help";
 
 // Number of days after which a past booking moves to "History"
 const RECENT_DAYS = 30
@@ -163,7 +165,7 @@ export default function MemberDashboard({
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
     const q = searchParams.get("tab");
-    if (q === "bookings" || q === "points" || q === "settings" || q === "access") return q;
+    if (q === "bookings" || q === "points" || q === "settings" || q === "access" || q === "help") return q;
     return "overview";
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
@@ -489,6 +491,7 @@ export default function MemberDashboard({
             { id: "points" as TabId, key: "tab_points", icon: <Coins size={15} strokeWidth={2} /> },
             { id: "settings" as TabId, key: "tab_settings", icon: <Settings2 size={15} strokeWidth={2} /> },
             { id: "access" as TabId, key: "tab_access", icon: <QrCodeIcon size={15} strokeWidth={2} /> },
+            { id: "help" as TabId, key: "tab_help", icon: <HelpCircle size={15} strokeWidth={2} /> },
           ]).map((tabItem) => {
             const active = tab === tabItem.id;
             return (
@@ -616,6 +619,9 @@ export default function MemberDashboard({
               {tab === "settings" && <SettingsTab user={user} bookings={bookings} onSignOut={signOut} />}
               {tab === "access" && (
                 <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
+              )}
+              {tab === "help" && (
+                <HelpCentre locale={locale as "zh-HK" | "zh-CN" | "en" | "ja"} />
               )}
             </motion.div>
           </AnimatePresence>

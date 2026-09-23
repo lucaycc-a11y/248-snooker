@@ -521,6 +521,7 @@
     "tab_points": "积分记录",
     "tab_settings": "设置",
     "tab_access": "入场指南",
+    "tab_help": "说明",
     "section_upcoming": "即将到来",
     "section_upcoming_desc": "你已确认的未来预订",
     "section_recent": "最近",
@@ -1980,6 +1981,10 @@
   "help": {
     "title": "支持中心",
     "subtitle": "查找常见问题的解答",
+    "hero": {
+      "title": "您好，有什么可以协助您？",
+      "subtitle": "搜索常见问题或浏览下方主题"
+    },
     "searchPlaceholder": "搜索文章...",
     "noResults": "找不到相关文章",
     "backToSupport": "返回支持中心",
@@ -1987,6 +1992,8 @@
     "stillNeedHelp": "仍需要协助？",
     "stillNeedHelpDesc": "如果以上信息未能解决您的问题，欢迎联络客服团队。",
     "contactSupport": "联络客服",
+    "popularQuestions": "热门问题",
+    "browseTopics": "浏览主题",
     "categories": {
       "all": {
         "title": "全部"
@@ -2003,7 +2010,44 @@
       "policies": {
         "title": "政策"
       },
+      "support": {
+        "title": "支持"
+      },
       "articlesCount": "篇文章"
+    },
+    "articles": {
+      "entry-qr": {
+        "title": "如何使用QR Code入场",
+        "excerpt": "了解如何使用您的预订QR Code进入场地"
+      },
+      "booking": {
+        "title": "如何预订台桌",
+        "excerpt": "预订台桌的完整流程说明"
+      },
+      "account-login": {
+        "title": "账户登录问题",
+        "excerpt": "解决登录账户时遇到的常见问题"
+      },
+      "find-qr": {
+        "title": "找不到QR Code？",
+        "excerpt": "如何查找或重新获取您的入场QR Code"
+      },
+      "tier-points": {
+        "title": "会员等级与积分",
+        "excerpt": "了解会员等级制度与积分累积方式"
+      },
+      "cancellation-policy": {
+        "title": "取消政策",
+        "excerpt": "预订取消、退款条件及处理流程"
+      },
+      "special-weather": {
+        "title": "特殊天气安排",
+        "excerpt": "恶劣天气下的预订处理及退款政策"
+      },
+      "contact-support": {
+        "title": "联络客服",
+        "excerpt": "如何联络我们的客服团队获得协助"
+      }
     }
   }
 }
