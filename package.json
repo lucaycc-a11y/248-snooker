@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:debug": "next dev 2>&1 | grep -E '\\[booking|\\[payment|\\[webhook|\\[profile|ERROR'",
-    "build": "node scripts/check-i18n-keys.js && next build",
+    "build": "node scripts/check-i18n-keys.js && node scripts/check-zh-hk-traditional.js && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
