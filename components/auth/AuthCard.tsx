@@ -145,7 +145,9 @@ export function AuthCard({
         phone: data?.phone ?? verifiedPhone,
         phoneVerified: verifiedPhone.length > 0,
       })
-      setVerifiedEmail(idEmail ?? data?.email ?? user.email ?? undefined)
+      // Normalize empty strings to undefined so ProfileCompletion's showEmail logic works correctly
+      const emailValue = idEmail ?? data?.email ?? user.email ?? undefined
+      setVerifiedEmail(emailValue || undefined)
       setVerifiedPhone(idPhone ?? (verifiedPhone || undefined))
       setMissingContact(hasEmail && !hasPhone ? "phone" : hasPhone && !hasEmail ? "email" : undefined)
       setPhase("profile")
@@ -207,7 +209,9 @@ export function AuthCard({
       phone: data?.phone ?? (verifiedPhone || (phone ? normalizeHkPhone(phone) ?? "" : "")),
       phoneVerified: verifiedPhone.length > 0,
     })
-    setVerifiedEmail(idEmail ?? data?.email ?? user.email ?? undefined)
+    // Normalize empty strings to undefined so ProfileCompletion's showEmail logic works correctly
+    const emailValue = idEmail ?? data?.email ?? user.email ?? undefined
+    setVerifiedEmail(emailValue || undefined)
     setVerifiedPhone(idPhone ?? (verifiedPhone || undefined))
     setMissingContact(hasEmail && !hasPhone ? "phone" : hasPhone && !hasEmail ? "email" : undefined)
     setBusy(false)

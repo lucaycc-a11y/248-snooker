@@ -114,8 +114,12 @@ export async function POST(req: Request) {
 
     const submittedEmail = result.value.email
     const sessionEmail = (user.email ?? '').toLowerCase()
+    // SMS users have no session email (empty string or null). Accept their submitted
+    // email without the match check — they'll verify it via the booking confirmation
+    // flow. OAuth users must submit the email from their verified identity.
     const emailMatchesSession = submittedEmail === sessionEmail
-    if (!emailMatchesSession) {
+    const sessionHasEmail = sessionEmail.length > 0
+    if (sessionHasEmail && !emailMatchesSession) {
       console.warn('[profile/complete] 422 email_not_verified', {
         submittedEmail: `***@${submittedEmail.split('@')[1]}`,
         sessionEmail: sessionEmail ? `***@${sessionEmail.split('@')[1]}` : '(empty)',
