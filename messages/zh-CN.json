@@ -1,4 +1,14 @@
 {
+  "404": {
+    "code": "404",
+    "title": "页面不存在",
+    "subtitle": "此页面不存在，但你的台球时间不应该浪费",
+    "hint": "拨动小球玩玩",
+    "completed": "全部入袋！",
+    "canvas_label": "互动台球物理游戏",
+    "cta_book": "立即预订",
+    "cta_home": "返回主页"
+  },
   "auth": {
     "title": "登录或注册",
     "close": "关闭",
@@ -177,16 +187,6 @@
     "change_phone_success_title": "电话已更改",
     "change_phone_success_body": "正在跳转…",
     "change_phone_go_to_settings": "前往设定页面"
-  },
-  "404": {
-    "code": "404",
-    "title": "页面不存在",
-    "subtitle": "此页面不存在，但你的台球时间不应该浪费",
-    "hint": "拨动小球玩玩",
-    "completed": "全部入袋！",
-    "canvas_label": "互动台球物理游戏",
-    "cta_book": "立即预订",
-    "cta_home": "返回主页"
   },
   "login": {
     "brand": "SPACE8",
@@ -2049,5 +2049,30 @@
         "excerpt": "如何联络我们的客服团队获得协助"
       }
     }
+  },
+  "memberShowcase": {
+    "title": "会员制度",
+    "cta_join": "立即加入",
+    "cta_learn": "了解更多",
+    "modal_label": "会员等级",
+    "close_modal": "关闭",
+    "amateur_title": "新星会员",
+    "amateur_body": "HK$1 = 1 积分。注册即送 50 积分。",
+    "amateur_highlight": "50 积分",
+    "amateur_modal_body": "新用户自动加入新星会员，即时获赠 50 积分。每消费 HK$1 累积 1 积分。开始你的旅程，轻松累积。",
+    "century_title": "铂金会员",
+    "century_subtitle": "800 积分起",
+    "century_body": "贴心补给。积分 1.5 倍加速。",
+    "century_highlight1": "贴心补给",
+    "century_highlight2": "1.5 倍",
+    "century_modal_body": "累积 800 积分晋升铂金会员等级。解锁「专属灯光欢迎词」。每场预约均免费随附优质瓶装水 2 支。积分以 1.5 倍速度累积，升级更快。",
+    "maximum_title": "钻石会员",
+    "maximum_subtitle": "6,000 积分起",
+    "maximum_badge": "最高等级",
+    "maximum_body": "极致玩家殿堂，积分双倍，尊享特级礼遇。",
+    "maximum_highlight1": "积分双倍",
+    "maximum_highlight2": "特级礼遇",
+    "maximum_highlight3": "教练时段",
+    "maximum_modal_body": "累积 6,000 积分达到钻石会员最高等级。尊享不定期 SPACE8 专属品牌周边馈赠。积分双倍累积，并可以用以换购折扣券，预约教练时段。为最投入的玩家而设。"
   }
 }

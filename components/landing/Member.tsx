@@ -96,7 +96,7 @@ interface ModalData {
 /* ── Main component ───────────────────────────────────────────────── */
 
 export default function Member() {
-  const t = useTranslations("member")
+  const t = useTranslations("memberShowcase")
   const secRef = useRef<HTMLElement>(null)
   const [entered, setEntered] = useState(false)
   const [modal, setModal] = useState<ModalData | null>(null)

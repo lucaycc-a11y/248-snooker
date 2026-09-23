@@ -127,7 +127,18 @@ export default function LoginForm({
         </div>
       )}
 
-      <AuthCard returnUrl={safeUrl} onAuthComplete={() => router.replace(safeUrl)} />
+      <AuthCard
+        returnUrl={safeUrl}
+        onAuthComplete={() => {
+          try {
+            router.replace(safeUrl);
+          } catch (err) {
+            console.error("[LoginForm] Post-login navigation failed:", err);
+            // Show visible error to user instead of silent failure
+            alert("登入成功，但頁面跳轉失敗。請手動重新整理頁面。");
+          }
+        }}
+      />
     </section>
   );
 }
