@@ -34,13 +34,13 @@ export default function Hero() {
     <section
       data-nav-theme="dark"
       className="relative overflow-hidden bg-black"
-      style={{ width: "100%", height: "100svh", minHeight: "100svh" }}
+      style={{
+        width: "100%",
+        height: "100dvh",
+        minHeight: "100dvh",
+      }}
     >
       {/* Video background — full-screen on mobile, square anchored bottom on desktop */}
-      {/* TODO: 需要 Luca 提供正確素材 — 中式桌球枱 hero 影片/照片（現有片為英式枱，暫用佔位） */}
-      {/* Plays once per page load. On `ended` the video fades out over the
-          static end-frame image beneath it (same poster composition), so the
-          section settles into a designed still instead of freezing mid-frame. */}
       {/* Mobile: full-bleed cover */}
       <img
         src="/video/Space8_Main_Hero_Poster.jpg"
@@ -78,7 +78,7 @@ export default function Hero() {
           x: "-50%",
           transformOrigin: "center bottom",
           willChange: "transform",
-          width: "clamp(600px, 75vw, 1200px)", // Fluid scaling from 600px to 1200px
+          width: "clamp(600px, 75vw, 1200px)",
         }}
       >
         <img
@@ -109,7 +109,7 @@ export default function Hero() {
         </video>
       </motion.div>
 
-      {/* Subtle bottom gradient — keeps buttons readable over the table */}
+      {/* Subtle gradient overlay — keeps content readable */}
       <div
         style={{
           position: "absolute",
@@ -121,25 +121,33 @@ export default function Hero() {
         }}
       />
 
-      {/* Content — flex-centered with constrained max-width on large screens and responsive
-          bottom spacing that scales proportionally with the viewport to maintain consistent
-          gap to the pool table across all screen sizes. pointer-events-none lets the table's
-          hover effect work through the full-bleed container. */}
+      {/* Content stack — vertically centered with proportional bottom spacing to prevent table overlap.
+          Full 100dvh parent means nav overlays on top (hero extends behind nav).
+          Centered column with max-width constraint for large screens.
+          Logo → Headline → Subtext → Buttons all horizontally centered as one stack. */}
       <div
         ref={heroContentRef}
         className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
         style={{
-          paddingBottom: "clamp(80px, 20vh, 220px)",
+          // Proportional bottom padding scales with viewport to maintain gap above table
+          paddingBottom: "clamp(120px, 24vh, 280px)",
         }}
       >
-        {/* Content wrapper with constrained max-width for large screens */}
-        <div className="w-full" style={{ maxWidth: "min(720px, 90vw)" }}>
-          {/* Space8 wordmark — official SVG artwork, not a text simulation */}
-          <div className="anime-reveal-wrapper" data-anime-hero-item style={{ marginBottom: "clamp(4px, 0.8vh, 8px)" }}>
+        {/* Constrained content column for large screens */}
+        <div
+          className="flex w-full flex-col items-center"
+          style={{ maxWidth: "min(720px, 90vw)" }}
+        >
+          {/* SPACE8 Logo — centered above headline */}
+          <div
+            className="anime-reveal-wrapper"
+            data-anime-hero-item
+            style={{ marginBottom: "clamp(8px, 1.2vh, 16px)" }}
+          >
             <Logo variant="full" theme="dark" size={32} />
           </div>
 
-          {/* Headline — fluid sizing across all viewports, no breakpoint jumps */}
+          {/* Headline — fluid sizing, centered */}
           <div className="anime-reveal-wrapper">
             <h1
               data-anime-hero-item
@@ -159,13 +167,13 @@ export default function Hero() {
             </h1>
           </div>
 
-          {/* Sub copy — fluid sizing */}
+          {/* Subtext — fluid sizing */}
           <div className="anime-reveal-wrapper">
             <p
               data-anime-hero-item
               style={{
                 marginTop: "clamp(0.625rem, 1vh, 1rem)", // 10px → 16px
-                fontSize: "clamp(0.875rem, 0.8vw + 0.5rem, 1.125rem)", // 14px → 18px fluid
+                fontSize: "clamp(0.875rem, 0.8vw + 0.5rem, 1.125rem)", // 14px → 18px
                 color: "rgba(255,255,255,0.72)",
                 fontWeight: 400,
                 letterSpacing: "-0.01em",
@@ -177,8 +185,7 @@ export default function Hero() {
             </p>
           </div>
 
-          {/* CTA buttons — fluid gap and sizing with enforced 44px tap target.
-              pointer-events-auto re-enables clicks suppressed by the overlay container. */}
+          {/* CTA buttons — fluid sizing with enforced 44px tap targets */}
           <div className="anime-reveal-wrapper" data-anime-hero-item>
             <div
               className="pointer-events-auto"
@@ -201,7 +208,7 @@ export default function Hero() {
                     background: GREEN,
                     color: "#000",
                     fontSize: "clamp(0.8125rem, 0.6vw + 0.5rem, 0.9375rem)", // 13px → 15px
-                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)", // Fixed py: 12px, fluid px: 24px→28px
+                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)", // Fixed py: 12px, fluid px
                     letterSpacing: "-0.01em",
                     textDecoration: "none",
                     minHeight: "44px",
@@ -221,7 +228,7 @@ export default function Hero() {
                     border: "1px solid rgba(255,255,255,0.28)",
                     color: "rgba(255,255,255,0.82)",
                     fontSize: "clamp(0.8125rem, 0.6vw + 0.5rem, 0.9375rem)", // 13px → 15px
-                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)", // Fixed py: 12px, fluid px: 24px→28px
+                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)", // Fixed py: 12px, fluid px
                     fontWeight: 400,
                     textDecoration: "none",
                     minHeight: "44px",

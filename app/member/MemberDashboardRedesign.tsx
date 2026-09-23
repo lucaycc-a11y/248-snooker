@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import {
   type MemberDashboardData,
   type MemberProfile,
@@ -20,7 +20,7 @@ import { InboxView } from './InboxView'
 import { PersonalInfo } from './PersonalInfo'
 import { SecuritySettings } from './SecuritySettings'
 import { NotificationSettings } from './NotificationSettings'
-import { HelpCenter } from './HelpCenter'
+// import { HelpCenter } from './HelpCenter' // TODO: Re-enable when help/support implementation is complete
 
 // ════════════════════════════════════════════════════════════════════════════
 // MemberDashboardRedesign — P1-P7 Complete Implementation
@@ -35,6 +35,7 @@ type Props = {
 
 export function MemberDashboardRedesign({ initialData }: Props) {
   const t = useTranslations('member')
+  const locale = useLocale()
   const [activeTab, setActiveTab] = useState<Tab>('home')
   const [data, setData] = useState(initialData)
   const [cardFlipped, setCardFlipped] = useState(false)
@@ -152,7 +153,11 @@ export function MemberDashboardRedesign({ initialData }: Props) {
             {activeTab === 'bookings' && <BookingHistory userId={profile.id} />}
             {activeTab === 'inbox' && <InboxView notifications={notifications} onRefresh={refreshData} />}
             {activeTab === 'settings' && <SettingsView profile={profile} onRefresh={refreshData} />}
-            {activeTab === 'help' && <HelpCenter />}
+            {activeTab === 'help' && (
+              <div className="flex items-center justify-center py-12 text-neutral-500">
+                Help Center coming soon
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

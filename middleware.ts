@@ -198,15 +198,24 @@ async function checkPasswordGate(
       .eq('user_id', user.id)
       .maybeSingle<{ password_set: boolean }>()
 
-    // Password not set → redirect to set-password page
+    // Password not set → check if user authenticated via OAuth
     if (!status?.password_set) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/auth/set-password'
-      url.search = '' // Clear query params
-      return NextResponse.redirect(url)
+      // OAuth users (Apple, Google) don't need passwords — allow them through
+      // Only redirect if this is a non-OAuth account that hasn't set a password yet
+      const { data: authUser } = await service.auth.admin.getUserById(user.id)
+      const identities = authUser?.user?.identities || []
+      const hasOAuth = identities.some(i => i.provider === 'google' || i.provider === 'apple')
+
+      if (!hasOAuth) {
+        // Non-OAuth account without password → redirect to set-password
+        const url = request.nextUrl.clone()
+        url.pathname = '/auth/set-password'
+        url.search = '' // Clear query params
+        return NextResponse.redirect(url)
+      }
     }
 
-    // Password is set → allow through
+    // Password is set OR user has OAuth → allow through
     return null
   } catch (err) {
     // On error, fail open (don't block access) but log the issue

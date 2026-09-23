@@ -10,6 +10,7 @@ import Section5Booking from "@/components/landing/Section5Booking";
 import Section6Pricing from "@/components/landing/Section6Pricing";
 import { getConfig } from "@/lib/data/getConfig";
 import Member from "@/components/landing/Member";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import HomeFAQ from "@/components/landing/HomeFAQ";
 import Directions from "@/components/landing/Directions";
 import Footer from "@/components/layout/Footer";
@@ -130,7 +131,11 @@ export default async function Home({
       <div id="social-proof" aria-hidden="true" />
 
       {/* Membership - last section before footer */}
-      <div data-home-parallax="member"><Member /></div>
+      <div data-home-parallax="member">
+        <ErrorBoundary sectionName="會員制度">
+          <Member />
+        </ErrorBoundary>
+      </div>
 
       {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
           a "了解更多" link to the full /faq page. */}

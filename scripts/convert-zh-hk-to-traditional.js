@@ -144,7 +144,8 @@ const SIMPLIFIED_TO_TRADITIONAL = {
   '围': '圍',
   '湾': '灣',
   '台': '臺',
-  '务': '務'
+  '务': '務',
+  '将': '將'
 };
 
 const zhHKPath = path.join(__dirname, '../messages/zh-HK.json');

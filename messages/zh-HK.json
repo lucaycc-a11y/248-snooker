@@ -1,4 +1,14 @@
 {
+  "404": {
+    "code": "404",
+    "title": "頁面不存在",
+    "subtitle": "此頁面不存在，但你的桌球時間不應該浪費",
+    "hint": "拨动小球玩玩",
+    "completed": "全部入袋！",
+    "canvas_label": "互动桌球物理游戏",
+    "cta_book": "立即預訂",
+    "cta_home": "返回主頁"
+  },
   "auth": {
     "title": "登入或註冊",
     "close": "關閉",
@@ -38,35 +48,35 @@
     "contact_format_hint": "請輸入 8 位數字電話號碼或有效電郵地址",
     "err_contact_format": "請輸入 8 位數字電話號碼或有效電郵地址",
     "sending": "發送中…",
-    "terms": "繼續即表示你同意我们的条款及隐私政策。",
+    "terms": "繼續即表示你同意我們的條款及隐私政策。",
     "back": "返回",
     "otp_title": "輸入驗證碼",
-    "otp_subtitle": "我们已向 {phone} 發送 6 位數驗證碼",
+    "otp_subtitle": "我們已向 {phone} 發送 6 位數驗證碼",
     "resend": "重新發送驗證碼",
     "resend_in": "{seconds} 秒后可重新發送",
     "saving": "儲存中…",
     "profile_title": "完善個人資料",
     "profile_subtitle": "首次預訂前，請填寫少量資料。",
     "profile_name": "全名",
-    "profile_email": "电子郵箱",
+    "profile_email": "電子郵箱",
     "profile_phone": "電話號碼",
     "profile_submit": "繼續",
     "err_generic": "出了点問題，請重試。",
     "err_phone": "請輸入有效的香港電話號碼。",
     "err_name": "請輸入你的姓名。",
-    "err_email": "請輸入有效的电子郵箱。",
+    "err_email": "請輸入有效的電子郵箱。",
     "err_send": "無法發送驗證碼，請重試。",
     "err_missing_param": "請求参數不完整，請重試。",
     "err_network": "連線出現問題，請重試。",
     "err_rate_limited": "嘗試次數過多，請稍候几分鐘。",
     "err_rate_limited_with_time": "嘗試次數過多，請於 {minutes} 分鐘后重試。",
     "err_otp_expired": "驗證碼已過期，請重新獲取。",
-    "err_otp_wrong": "驗證碼不正確，还剩 {count} 次機會。",
+    "err_otp_wrong": "驗證碼不正確，還剩 {count} 次機會。",
     "err_otp_locked": "錯誤次數過多，請重新開始。",
     "email_placeholder": "電郵地址",
     "email_continue": "以電郵繼續",
-    "otp_subtitle_email": "我们已傳送 6 位數驗證碼至 {email}",
-    "otp_subtitle_whatsapp": "我们已通過 WhatsApp 向 +852 {phone} 發送 6 位數驗證碼",
+    "otp_subtitle_email": "我們已傳送 6 位數驗證碼至 {email}",
+    "otp_subtitle_whatsapp": "我們已通過 WhatsApp 向 +852 {phone} 發送 6 位數驗證碼",
     "otp_verifying": "驗證中…",
     "otp_verified": "驗證成功",
     "otp_try_again": "重新輸入",
@@ -99,7 +109,7 @@
     "update_password_submit": "更新密碼",
     "update_password_verifying": "驗證重設鏈接中…",
     "update_password_success_title": "密碼已更新",
-    "update_password_success_body": "密碼已成功更改。正在跳转至會員中心…",
+    "update_password_success_body": "密碼已成功更改。正在跳轉至會員中心…",
     "update_password_err_title": "鏈接已過期或無效",
     "update_password_err_invalid_link": "此密碼重設鏈接無效，請重新索取。",
     "update_password_err_expired": "此密碼重設鏈接已過期，請重新索取。",
@@ -107,7 +117,7 @@
     "update_password_err_generic": "未能更新密碼，請再試一次。",
     "update_password_back_to_login": "返回登入",
     "set_password_title": "設定密碼",
-    "set_password_subtitle": "為保障你的帳户安全，請設定密碼",
+    "set_password_subtitle": "為保障你的帳戶安全，請設定密碼",
     "set_password_label": "密碼",
     "set_password_placeholder": "至少 8 個字符",
     "set_password_confirm_label": "確認密碼",
@@ -131,23 +141,23 @@
     "change_password_error_requirements": "密碼不符合要求",
     "change_password_error_invalid_link": "無效的鏈接",
     "change_password_error_failed": "更改密碼失敗，請重試",
-    "change_password_error_same": "新密碼与旧密碼相同",
+    "change_password_error_same": "新密碼與舊密碼相同",
     "change_password_error_generic": "發生錯誤，請重試",
     "change_password_link_expired_title": "鏈接已過期",
     "change_password_link_expired_body": "此鏈接已過期（30 分鐘有效期）。請重新申請更改密碼鏈接。",
     "change_password_link_used_title": "鏈接已使用",
     "change_password_link_used_body": "此鏈接已被使用過。如需再次更改密碼，請重新申請鏈接。",
     "change_password_link_invalid_title": "無效的鏈接",
-    "change_password_link_invalid_body": "此鏈接無效或已损坏。請重新申請更改密碼鏈接。",
+    "change_password_link_invalid_body": "此鏈接無效或已損壞。請重新申請更改密碼鏈接。",
     "change_password_success_title": "密碼已更改",
-    "change_password_success_body": "正在跳转…",
+    "change_password_success_body": "正在跳轉…",
     "change_password_go_to_settings": "前往設定頁面",
     "change_phone_title": "更改電話",
-    "change_phone_subtitle": "請輸入新的香港電話號碼，我们将發送驗證碼確認。",
-    "change_phone_error_same_number": "新號碼与目前號碼相同",
+    "change_phone_subtitle": "請輸入新的香港電話號碼，我們將發送驗證碼確認。",
+    "change_phone_error_same_number": "新號碼與目前號碼相同",
     "change_phone_otp_length_error": "請輸入 6 位數驗證碼",
     "change_phone_otp_expiry": "驗證碼有效期為 10 分鐘",
-    "change_phone_otp_note": "標準短信費用可能适用",
+    "change_phone_otp_note": "標準短信費用可能適用",
     "change_phone_validating": "驗證中…",
     "change_phone_current_label": "目前電話",
     "change_phone_new_label": "新電話號碼",
@@ -156,7 +166,7 @@
     "change_phone_sending_otp": "發送中…",
     "change_phone_otp_label": "驗證碼",
     "change_phone_otp_placeholder": "6 位數字",
-    "change_phone_otp_subtitle": "我们已傳送 6 位數驗證碼至",
+    "change_phone_otp_subtitle": "我們已傳送 6 位數驗證碼至",
     "change_phone_resend_otp": "重新傳送",
     "change_phone_resend_in": "{seconds} 秒后可重新傳送",
     "change_phone_verify": "驗證并更改",
@@ -173,20 +183,10 @@
     "change_phone_link_used_title": "鏈接已使用",
     "change_phone_link_used_body": "此鏈接已被使用過。如需再次更改電話，請重新申請鏈接。",
     "change_phone_link_invalid_title": "無效的鏈接",
-    "change_phone_link_invalid_body": "此鏈接無效或已损坏。請重新申請更改電話鏈接。",
+    "change_phone_link_invalid_body": "此鏈接無效或已損壞。請重新申請更改電話鏈接。",
     "change_phone_success_title": "電話已更改",
-    "change_phone_success_body": "正在跳转…",
+    "change_phone_success_body": "正在跳轉…",
     "change_phone_go_to_settings": "前往設定頁面"
-  },
-  "404": {
-    "code": "404",
-    "title": "頁面不存在",
-    "subtitle": "此頁面不存在，但你的桌球時間不應該浪費",
-    "hint": "拨动小球玩玩",
-    "completed": "全部入袋！",
-    "canvas_label": "互动桌球物理游戏",
-    "cta_book": "立即預訂",
-    "cta_home": "返回主頁"
   },
   "login": {
     "brand": "SPACE8",
@@ -198,16 +198,16 @@
   },
   "comingSoon": {
     "brand": "SPACE8",
-    "title": "即将開幕",
-    "subtitle": "香港自助中式桌球會所，即将開幕。",
-    "email_placeholder": "电子郵箱",
+    "title": "即將開幕",
+    "subtitle": "香港自助中式桌球會所，即將開幕。",
+    "email_placeholder": "電子郵箱",
     "notify_me": "開幕通知我",
     "subscribed": "已為你登记。",
-    "err_email": "請輸入正確的电子郵箱地址。",
+    "err_email": "請輸入正確的電子郵箱地址。",
     "err_generic": "出錯了，請重試。",
     "password_placeholder": "密碼",
-    "unlock": "解锁",
-    "unlocking": "解锁中…",
+    "unlock": "解鎖",
+    "unlocking": "解鎖中…",
     "err_password": "密碼不正確。",
     "err_rate_limited": "嘗試次數過多，請稍后再試。"
   },
@@ -234,10 +234,10 @@
     "hero_subtitle": "按需預訂，無隐藏費用。",
     "per_hour": "／小時",
     "period_afternoon_title": "下午時段",
-    "period_afternoon_tagline": "午后慢慢打，让節奏留给自己。",
+    "period_afternoon_tagline": "午后慢慢打，讓節奏留給自己。",
     "period_afternoon_time": "每日 12:00–16:00",
     "period_morning_tagline": "清醒開局，第一杆更專註。",
-    "period_evening_tagline": "灯光亮起，今晚适合一起上場。",
+    "period_evening_tagline": "燈光亮起，今晚適合一起上場。",
     "period_evening_title": "黄金時段",
     "period_evening_time": "每日 16:00–00:00",
     "period_latenight_title": "深夜時段",
@@ -262,21 +262,21 @@
     "benefits": [
       {
         "tier": "新星會員",
-        "desc": "基本積分累积"
+        "desc": "基本積分累積"
       },
       {
         "tier": "铂金會員",
         "desc": "1.5 倍積分 + 优先預訂"
       },
       {
-        "tier": "钻石會員",
+        "tier": "鑽石會員",
         "desc": "2 倍積分 + 每月一次免費延時"
       }
     ],
     "services_title": "附加服務",
     "services": [
       {
-        "name": "储物柜",
+        "name": "儲物柜",
         "price": "按次 HK$20／月租 HK$600"
       },
       {
@@ -284,11 +284,11 @@
         "price": "基本免費／專業 HK$30/hr"
       },
       {
-        "name": "饮品",
+        "name": "飲品",
         "price": "自动售货機 HK$8–18"
       },
       {
-        "name": "WiFi／空调／充电",
+        "name": "WiFi／空调／充電",
         "price": "免費"
       }
     ],
@@ -297,14 +297,14 @@
     "faqs": [
       {
         "q": "有隐藏費用吗？",
-        "a": "沒有。所有收費均按時计算并在預訂時清楚顯示，绝無隐藏費用。"
+        "a": "沒有。所有收費均按時計算并在預訂時清楚顯示，絕無隐藏費用。"
       },
       {
         "q": "可以中途延长吗？",
-        "a": "可以，视場地空档而定。超時将按每 15 分鐘 HK$50 计算。"
+        "a": "可以，视場地空档而定。超時將按每 15 分鐘 HK$50 計算。"
       },
       {
-        "q": "超時怎么计算？",
+        "q": "超時怎么計算？",
         "a": "超時每 15 分鐘收費 HK$50，從已登记信用卡自动扣除。"
       },
       {
@@ -321,7 +321,7 @@
   },
   "blog": {
     "title": "Blog",
-    "subtitle": "桌球技巧、場地信息与最新活动。",
+    "subtitle": "桌球技巧、場地信息與最新活动。",
     "filter_all": "全部",
     "filter_tutorial": "教学",
     "filter_venue": "場地信息",
@@ -329,8 +329,8 @@
     "filter_culture": "桌球文化",
     "read_time": "{min} 分鐘阅讀",
     "by_author": "作者",
-    "coming_soon_title": "即将推出",
-    "coming_soon_body": "我们正在準備精彩内容，敬請期待。",
+    "coming_soon_title": "即將推出",
+    "coming_soon_body": "我們正在準備精彩内容，敬請期待。",
     "newsletter_placeholder": "輸入郵箱訂阅更新",
     "newsletter_button": "訂阅",
     "back_to_blog": "返回 Blog",
@@ -345,7 +345,7 @@
     "hero_title": "關於 SPACE8",
     "hero_subtitle": "好的中式八球室不應有多餘干擾。SPACE8 自助無煙中式桌球獨立球室。随時随地，一键預訂專屬球臺。從預訂、付款到入場，全程自助，無需等候。",
     "scroll": "向下滑动",
-    "mission_eyebrow": "我们的理念",
+    "mission_eyebrow": "我們的理念",
     "mission_statement": "零打擾，全專註。打造專屬中八空間。",
     "mission_items": [
       {
@@ -366,10 +366,10 @@
     "venue_title": "場地設施",
     "venue_features": [
       "星牌中式桌球臺",
-      "專業级照明",
+      "專業級照明",
       "恒温冷气",
       "免費高速 WiFi",
-      "自助饮品區",
+      "自助飲品區",
       "智能 QR 门禁"
     ],
     "numbers": [
@@ -379,7 +379,7 @@
       },
       {
         "value": "18",
-        "label": "小時营業"
+        "label": "小時營業"
       },
       {
         "value": "1",
@@ -390,19 +390,19 @@
         "label": "等候時間"
       }
     ],
-    "contact_title": "聯系我们",
+    "contact_title": "聯繫我們",
     "contact_address_label": "地址",
     "contact_address": "香港新蒲岗大有街 32 號泰力工業中心 3 楼 05 室",
     "contact_whatsapp_label": "WhatsApp",
     "contact_email_label": "電郵",
-    "contact_hours_label": "营業時間",
+    "contact_hours_label": "營業時間",
     "contact_hours": "每日 06:00 至 24:00",
-    "contact_cta": "WhatsApp 聯系",
+    "contact_cta": "WhatsApp 聯繫",
     "hero_rotating_words": [
       "创造奇迹",
       "獨享私密",
       "纯粹玩乐",
-      "干净舒适"
+      "干净舒適"
     ],
     "hero_prefix": "一個",
     "hero_suffix": "的空間",
@@ -415,12 +415,12 @@
         "body": "精選星牌桌球臺，確保最佳手感。"
       },
       {
-        "title": "專業级照明",
-        "body": "特调比赛灯光模式，專註於每一次出杆。"
+        "title": "專業級照明",
+        "body": "特调比賽燈光模式，專註於每一次出杆。"
       },
       {
         "title": "恒温冷气",
-        "body": "全場恒温，长時間对局依然舒适。"
+        "body": "全場恒温，长時間对局依然舒適。"
       },
       {
         "title": "免費高速 WiFi",
@@ -428,7 +428,7 @@
       },
       {
         "title": "無煙區域",
-        "body": "場地全面禁煙，创造舒适环境。"
+        "body": "場地全面禁煙，创造舒適環境。"
       },
       {
         "title": "智能 QR 门禁",
@@ -472,31 +472,31 @@
         "value": "80",
         "unit": "",
         "suffix": "+",
-        "label": "累积体驗時數",
-        "live": "持續累积中"
+        "label": "累積体驗時數",
+        "live": "持續累積中"
       },
       {
         "value": "100",
         "unit": "",
         "suffix": "+",
-        "label": "热情球友加入",
+        "label": "熱情球友加入",
         "live": "持續增加中"
       }
     ]
   },
   "maintenance": {
-    "title": "系统维護中",
-    "subtitle": "SPACE8 正在進行系统更新，請稍后再試。",
-    "eta": "預计短時間内恢復服務",
+    "title": "繫統維護中",
+    "subtitle": "SPACE8 正在進行繫統更新，請稍后再試。",
+    "eta": "預計短時間内恢復服務",
     "notify_title": "恢復后通知我",
-    "notify_desc": "留下电子郵箱，網站恢復后我们會通知你。",
-    "email_placeholder": "电子郵箱",
+    "notify_desc": "留下電子郵箱，網站恢復后我們會通知你。",
+    "email_placeholder": "電子郵箱",
     "notify_me": "通知我",
     "sending": "提交中…",
     "subscribed": "已為你登记。",
-    "err_email": "請輸入正確的电子郵箱地址。",
+    "err_email": "請輸入正確的電子郵箱地址。",
     "err_generic": "出錯了，請重試。",
-    "contact": "如有疑問，請聯系 Admin@space8.com.hk 或 WhatsApp +852 6180 8022。"
+    "contact": "如有疑問，請聯繫 Admin@space8.com.hk 或 WhatsApp +852 6180 8022。"
   },
   "memberPage": {
     "card_label": "MEMBER CARD",
@@ -507,21 +507,22 @@
     "card_member_no": "會員編號",
     "add_apple_wallet": "加入 Apple Wallet",
     "add_google_wallet": "加入 Google Wallet",
-    "stat_bookings": "总預訂",
+    "stat_bookings": "總預訂",
     "stat_bookings_unit": "次",
     "stat_hours": "游玩時間",
     "stat_hours_unit": "小時",
     "tier_progress_title": "等級進度",
     "tier_current": "當前等級",
     "tier_next": "下一等級",
-    "points_to_next": "距离下一等級还差 {pts} 積分",
+    "points_to_next": "距離下一等級還差 {pts} 積分",
     "max_tier_reached": "已达最高等級",
     "tab_bookings": "預訂記錄",
-    "tab_overview": "总览",
+    "tab_overview": "總覽",
     "tab_points": "積分記錄",
     "tab_settings": "設定",
     "tab_access": "入場指南",
-    "section_upcoming": "即将到來",
+    "tab_help": "說明",
+    "section_upcoming": "即將到來",
     "section_upcoming_desc": "你已確認的未來預訂",
     "section_recent": "最近",
     "section_recent_desc": "過去 7 天",
@@ -530,18 +531,18 @@
     "no_bookings_desc": "當你完成預訂后，記錄會在這里顯示。準備好玩了吗？",
     "access_eyebrow": "會員入場",
     "access_title": "你的入場方式，随時準備好。",
-    "access_intro": "準備好你的會員 QR code，享受 SPACE8 流畅的自助体驗。",
+    "access_intro": "準備好你的會員 QR code，享受 SPACE8 流暢的自助体驗。",
     "access_qr_label": "你的會員 QR code",
     "access_qr_title": "使用會員 QR code 掃描入場。",
-    "access_qr_description": "使用你的會員 QR code 需要你有一個進行中已確認的預訂；開门時間由預訂時段開始前 5 分鐘開始，直到時段结束為止。",
+    "access_qr_description": "使用你的會員 QR code 需要你有一個進行中已確認的預訂；開门時間由預訂時段開始前 5 分鐘開始，直到時段結束為止。",
     "access_qr_identity": "會員編號",
     "access_qr_enlarge": "轻触放大會員 QR code",
     "access_feature_entry_label": "01 / 入場",
     "access_feature_entry_title": "打開大门",
     "access_feature_entry_body": "有進行中已確認的預訂時，在入口掃描你的會員 QR code。",
-    "access_feature_locker_label": "02 / 储物柜",
-    "access_feature_locker_title": "使用储物柜",
-    "access_feature_locker_body": "從到場到開始打球，使用同一套會員入場流程，顺畅完成整個体驗。",
+    "access_feature_locker_label": "02 / 儲物柜",
+    "access_feature_locker_title": "使用儲物柜",
+    "access_feature_locker_body": "從到場到開始打球，使用同一套會員入場流程，顺暢完成整個体驗。",
     "access_feature_pilot_label": "03 / SPACE PILOT",
     "access_feature_pilot_title": "你的私人房間",
     "access_feature_pilot_body": "享受配合預訂時段的自助空間，無需在接待處等候。",
@@ -557,15 +558,15 @@
     "access_step_3_body": "在已確認預訂的有效時段内於入口掃描，然后直接入場。",
     "access_tips_title": "几個實用提示",
     "access_tip_brightness": "掃描前调高手機屏幕亮度。",
-    "access_tip_private": "會員 QR code 只屬於你，請勿分享给其他人。",
-    "access_tip_offline": "到場前可以在浏览器儲存此頁，方便快速打開。",
+    "access_tip_private": "會員 QR code 只屬於你，請勿分享給其他人。",
+    "access_tip_offline": "到場前可以在浏覽器儲存此頁，方便快速打開。",
     "access_tip_display": "保持完整 QR code 清晰顯示，避免屏幕反光。",
     "access_cta_member": "返回會員中心",
     "access_cta_records": "查看我的預訂",
     "access_footer": "SPACE8 · 你的球局，你的空間。",
     "booking_table": "臺號",
     "booking_duration": "時長",
-    "booking_view_qr": "查看二维碼",
+    "booking_view_qr": "查看二維碼",
     "booking_add_calendar": "加入日歷",
     "status_confirmed": "已確認",
     "status_cancelled": "已取消",
@@ -580,7 +581,7 @@
     "refund_modal_title": "申請退款",
     "refund_modal_original_price": "原價",
     "refund_modal_fee": "手續費",
-    "refund_modal_amount": "退款金额",
+    "refund_modal_amount": "退款金額",
     "refund_modal_reason_label": "原因（選填）",
     "refund_modal_confirm": "確認退款",
     "refund_modal_cancel": "取消",
@@ -598,16 +599,16 @@
     "reschedule_modal_unavailable_error": "此時段已被預訂。",
     "reschedule_modal_generic_error": "改期失敗，請重試。",
     "reschedule_success_toast": "已改期",
-    "bookings_upcoming": "即将到來",
+    "bookings_upcoming": "即將到來",
     "bookings_history": "歷史記錄",
     "no_bookings": "暂無預訂記錄",
     "no_history": "暂無歷史記錄",
-    "points_running_total": "餘额",
+    "points_running_total": "餘額",
     "points_earn_title": "賺取積分方式",
     "points_earn": [
       "每消費 HK$1 = 1 積分",
       "首次登入 = 50 積分",
-      "生日月份 = 双倍積分"
+      "生日月份 = 雙倍積分"
     ],
     "no_points": "暂無積分記錄",
     "settings_display_name": "顯示名称",
@@ -630,9 +631,9 @@
     "settings_verify_phone_title": "驗證電話號碼更改",
     "settings_verify_cancel": "取消",
     "settings_change_password": "修改密碼",
-    "qr_modal_title": "預訂二维碼",
+    "qr_modal_title": "預訂二維碼",
     "qr_reference": "預訂編號",
-    "qr_tap_enlarge": "点击放大二维碼",
+    "qr_tap_enlarge": "点击放大二維碼",
     "close": "關閉",
     "loading": "載入中…",
     "back": "返回",
@@ -673,19 +674,19 @@
     "step1_highlight": "即時確認",
     "step1_modal_label": "預訂",
     "step1_modal_title": "選擇時段",
-    "step1_modal_body": "全程在线預訂，三步完成。選擇日期、時間及時長后即時確認，無需等候人工回復。付款支持 Apple Pay、Visa、Mastercard 及银聯，安全快捷。",
+    "step1_modal_body": "全程在線預訂，三步完成。選擇日期、時間及時長后即時確認，無需等候人工回復。付款支持 Apple Pay、Visa、Mastercard 及银聯，安全快捷。",
     "step2_title": "扫碼入場",
     "step2_body": "預訂確認后即獲 QR 碼。到場掃描，自动開门。",
     "step2_highlight": "自动開门",
     "step2_modal_label": "入場",
     "step2_modal_title": "扫碼入場",
-    "step2_modal_body": "預訂確認后即時獲發專屬 QR 碼，於預訂時段内有效。到場時於门锁掃描即自动開门，全程無需工作人員协助。",
-    "step3_title": "累积積分",
-    "step3_body": "每 HK$1 累积 1 積分。越打越划算。",
+    "step2_modal_body": "預訂確認后即時獲發專屬 QR 碼，於預訂時段内有效。到場時於门鎖掃描即自动開门，全程無需工作人員協助。",
+    "step3_title": "累積積分",
+    "step3_body": "每 HK$1 累積 1 積分。越打越划算。",
     "step3_highlight": "越打越划算",
     "step3_modal_label": "奖励",
-    "step3_modal_title": "累积積分",
-    "step3_modal_body": "每消費 HK$1 即累积 1 積分，自动升级會員等級。三個等級 新星、铂金、钻石，解锁不同專屬福利。",
+    "step3_modal_title": "累積積分",
+    "step3_modal_body": "每消費 HK$1 即累積 1 積分，自动升級會員等級。三個等級 新星、铂金、鑽石，解鎖不同專屬福利。",
     "close": "關閉",
     "qr_hint": "提示：也可以用會員 QR code 進出場地，QR code 可以在登入后「我的帳戶」看到"
   },
@@ -813,7 +814,7 @@
         "all": "全部",
         "offer": "優惠",
         "booking": "訂場",
-        "system": "系統"
+        "system": "繫統"
       },
       "empty_state": "暫無通知"
     },
@@ -847,8 +848,8 @@
         "push_booking_reminder_desc": "推送訂場前提醒",
         "push_offers": "優惠通知",
         "push_offers_desc": "推送新優惠通知",
-        "push_system": "系統通知",
-        "push_system_desc": "推送重要系統通知",
+        "push_system": "繫統通知",
+        "push_system_desc": "推送重要繫統通知",
         "save_preferences": "儲存偏好設定",
         "saving": "儲存中...",
         "saved": "已儲存"
@@ -939,38 +940,38 @@
   "faq": {
     "title": "常見問題",
     "faq_booking_q": "如何預訂球桌？",
-    "faq_booking_a": "選擇日期、時段及時長，以 Apple Pay 或信用卡即時付款，確認后即獲 QR 碼。全程不需人工协助。",
+    "faq_booking_a": "選擇日期、時段及時長，以 Apple Pay 或信用卡即時付款，確認后即獲 QR 碼。全程不需人工協助。",
     "faq_entry_q": "預訂后如何入場？",
-    "faq_entry_a": "付款確認后，你将收到專屬 QR 碼。到場掃描门口感應器，系统自动開门，全程自助。",
+    "faq_entry_a": "付款確認后，你將收到專屬 QR 碼。到場掃描门口感應器，繫統自动開门，全程自助。",
     "faq_cancel_q": "可以取消或退款吗？",
-    "faq_cancel_a": "所有預約一經確認，一律不設取消、改期或退款（臺风 8 號或以上／黑色暴雨警告除外，可申請改期）。詳情請参阅《場地使用守則及条款》[第三条](/legal?doc=terms#section-3)及[第六条](/legal?doc=terms#section-6)。",
-    "faq_hours_q": "营業時間是什么？",
-    "faq_hours_a": "每日 06:00 至 24:00 营業，全年無休，包括公众假期。",
+    "faq_cancel_a": "所有預約一經確認，一律不設取消、改期或退款（臺風 8 號或以上／黑色暴雨警告除外，可申請改期）。詳情請参阅《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)及[第六條](/legal?doc=terms#section-6)。",
+    "faq_hours_q": "營業時間是什么？",
+    "faq_hours_a": "每日 06:00 至 24:00 營業，全年無休，包括公众假期。",
     "faq_smoking_q": "球室内禁止吸煙吗？",
-    "faq_smoking_a": "本球室全區严格禁煙（包含纸煙、电子煙及加热煙），旨在维護最高品质的無煙环境。若有吸煙需求，請至大厦户外吸煙。",
+    "faq_smoking_a": "本球室全區严格禁煙（包含纸煙、電子煙及加熱煙），旨在維護最高品质的無煙環境。若有吸煙需求，請至大厦戶外吸煙。",
     "faq_weather_q": "恶劣天气怎么辦？",
-    "faq_weather_a": "【8 號或以上风球 / 黑色暴雨警告】\n如常营業：場地自动化系统维持正常运作，阁下可评估安全后如常前往。\n改期機制：若决定不前往，必須於原預約時間開始前以 WhatsApp 聯系客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，将视為自动放弃權益。\n\n【一般情况 / 其它天气（如 3 號风球、红雨）】\n不設退改：除上述极端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
+    "faq_weather_a": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自动化繫統維持正常運作，閣下可評估安全后如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，將视為自动放弃權益。\n\n【一般情况 / 其它天气（如 3 號風球、红雨）】\n不設退改：除上述极端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
     "faq_overtime_q": "如果超時了該怎么辦？",
-    "faq_overtime_a": "若您預約的時段后面無其他顾客，請在 15 分鐘内离開場地（如超時 15 分鐘后仍使用相關設施，需要缴付 1 小時的正價租用費用）；若下一時段已有預約，系统會在结束前 5 分鐘會以小管家屏幕作温馨提醒，請於預約時間结束前整理离場。",
-    "faq_pricing_q": "收費如何计算？",
-    "faq_pricing_a": "按時段每小時计費，不同時段費率不同，連續預訂 2 小時或以上可享優惠；超時逗留将另收超時費用。詳情請参阅[定價頁面](/pricing)及《場地使用守則及条款》[第三条](/legal?doc=terms#section-3)。",
+    "faq_overtime_a": "若您預約的時段后面無其他顾客，請在 15 分鐘内離開場地（如超時 15 分鐘后仍使用相關設施，需要繳付 1 小時的正價租用費用）；若下一時段已有預約，繫統會在結束前 5 分鐘會以小管家屏幕作温馨提醒，請於預約時間結束前整理離場。",
+    "faq_pricing_q": "收費如何計算？",
+    "faq_pricing_a": "按時段每小時計費，不同時段費率不同，連續預訂 2 小時或以上可享優惠；超時逗留將另收超時費用。詳情請参阅[定價頁面](/pricing)及《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)。",
     "faq_points_q": "什么是積分制度？",
-    "faq_points_a": "每消費 HK$1 賺取 1 積分，累积積分可升级 铂金 及 钻石 會籍，尊享更多礼遇。詳情請参阅[會員頁面](/membership)。",
+    "faq_points_a": "每消費 HK$1 賺取 1 積分，累積積分可升級 铂金 及 鑽石 會籍，尊享更多禮遇。詳情請参阅[會員頁面](/membership)。",
     "faq_facilities_q": "場地内有什么設施？",
-    "faq_facilities_a": "專業桌球臺、高品质標準公杆、顶级灯光設備、冷气、免費 Wi-Fi，以及自助饮水區。",
+    "faq_facilities_a": "專業桌球臺、高品质標準公杆、顶級燈光設備、冷气、免費 Wi-Fi，以及自助飲水區。",
     "faq_guests_q": "可以带朋友一起來吗？",
-    "faq_guests_a": "可以，每個時段可容纳多人，費用按時段计算，無需额外收費。",
-    "faq_contact_q": "有問題如何聯系？",
-    "faq_contact_a": "可透過 WhatsApp 聯系我们，或發送電郵至 hello@space8.com.hk，我们将尽快回復。",
+    "faq_guests_a": "可以，每個時段可容納多人，費用按時段計算，無需額外收費。",
+    "faq_contact_q": "有問題如何聯繫？",
+    "faq_contact_a": "可透過 WhatsApp 聯繫我們，或發送電郵至 hello@space8.com.hk，我們將尽快回復。",
     "more": "了解更多"
   },
   "whatsapp": {
-    "aria_label": "WhatsApp 聯系我们",
-    "tooltip": "WhatsApp 我们"
+    "aria_label": "WhatsApp 聯繫我們",
+    "tooltip": "WhatsApp 我們"
   },
   "ai_chat": {
-    "aria_label": "在线聊天",
-    "tooltip": "在线聊天",
+    "aria_label": "在線聊天",
+    "tooltip": "在線聊天",
     "placeholder": "有什么想問的...",
     "send": "發送",
     "close": "關閉"
@@ -991,7 +992,7 @@
     "slot_taken": "此時段剛剛被其他人預訂了，請返回選擇其他時段。",
     "back_to_slots": "返回選擇時段",
     "booking_expired": "此預約時段已過期",
-    "booking_expired_desc": "您的保留時段已超過15分鐘未完成付款，系统已自动释放此時段，請重新選擇時間。",
+    "booking_expired_desc": "您的保留時段已超過15分鐘未完成付款，繫統已自动释放此時段，請重新選擇時間。",
     "current_session_cutoff_passed": "此時段已開始超過 15 分鐘，暂不接受預訂",
     "selected": "已選擇",
     "select_this_table": "選擇此臺",
@@ -1002,7 +1003,7 @@
     "continue": "繼續預訂",
     "instant_confirm": "即時確認・無需等候",
     "login_title": "完成預訂",
-    "login_subtitle": "你的時段已暂時锁定",
+    "login_subtitle": "你的時段已暂時鎖定",
     "login_subtitle_specific": "已為你保留 {start}–{end}，{table}",
     "login_apple": "以 Apple 登入",
     "login_google": "以 Google 帳戶登入",
@@ -1010,8 +1011,8 @@
     "or": "或",
     "payment_title": "付款",
     "payment_subtitle": "選擇付款方式",
-    "subtotal": "小计",
-    "points_earned_label": "可赚積分",
+    "subtotal": "小計",
+    "points_earned_label": "可賺積分",
     "points": "分",
     "service_fee": "服務費",
     "total": "總計",
@@ -1023,7 +1024,7 @@
     "pay_error": "無法開始付款，請返回再試。",
     "pay_loading": "正在準備安全付款…",
     "confirming": "正在確認付款…",
-    "confirm_failed": "未能確認付款，如已扣款請聯系客服。",
+    "confirm_failed": "未能確認付款，如已扣款請聯繫客服。",
     "confirm_timeout": "處理時間较长，請稍后查看訂單狀態。",
     "confirm_view_order": "查看我的訂單",
     "confirm_title": "已確認",
@@ -1031,7 +1032,7 @@
     "share": "分享",
     "share_loading": "正在分享…",
     "share_ticket_image": "儲存门票圖片",
-    "share_qr_image": "仅分享二维碼",
+    "share_qr_image": "仅分享二維碼",
     "share_copy": "復制訂單資料",
     "share_caption": "立即訂座 Space8",
     "share_ref_label": "訂單編號",
@@ -1039,13 +1040,13 @@
     "go_to_member": "前往會員中心",
     "back_home": "返回主頁",
     "back": "返回",
-    "leave_title": "离開預訂？",
-    "leave_body": "你當前的選擇将不會保留。",
-    "leave_confirm": "离開",
+    "leave_title": "離開預訂？",
+    "leave_body": "你當前的選擇將不會保留。",
+    "leave_confirm": "離開",
     "leave_stay": "繼續預訂",
     "checking": "正在檢查可用球臺…",
     "fully_booked": "此時段已满，請選擇其他時間或日期。",
-    "qr_hint": "請於入場時出示此二维碼・客服热线",
+    "qr_hint": "請於入場時出示此二維碼・客服熱線",
     "your_booking": "你的預約",
     "date": "日期",
     "time_slot": "時段",
@@ -1065,7 +1066,7 @@
     "pay_timeout": "付款處理需時比預期耐，請檢查網絡連線再試一次。",
     "max_hours_reached": "最多可選 6 小時",
     "payment_reminder": "15 分鐘内必須完成付款交易，否則預約時間自动取消",
-    "whatsapp_support": "如果你怀疑已經被扣款，請通過 WhatsApp 聯系我们核實",
+    "whatsapp_support": "如果你怀疑已經被扣款，請通過 WhatsApp 聯繫我們核實",
     "retry_payment": "重新選擇付款方式",
     "slot_group_morning": "上午",
     "slot_group_afternoon": "下午",
@@ -1075,15 +1076,15 @@
     "duration_hours_chip": "{count} 小時",
     "most_popular": "最多人選",
     "slots_selected": "已選 {count} 個時段",
-    "points_earned_estimate": "此預訂最少赚 {pts} 積分",
-    "terms_agree": "已代表同意 SPACE8 的<link>《場地使用守則》和《条款与细則》</link>",
+    "points_earned_estimate": "此預訂最少賺 {pts} 積分",
+    "terms_agree": "已代表同意 SPACE8 的<link>《場地使用守則》和《條款與细則》</link>",
     "terms_agree_prefix": "已代表同意 SPACE8 的",
     "terms_agree_connector": "和",
     "venue_rules_label": "《場地使用守則》",
-    "terms_label": "《条款与细則》",
+    "terms_label": "《條款與细則》",
     "legal_modal_close": "關閉",
     "legal_modal_agree": "已阅讀及同意并關閉",
-    "terms_required_hint": "* 必須同意条款方可繼續付款",
+    "terms_required_hint": "* 必須同意條款方可繼續付款",
     "terms_required_error": "請先阅讀并同意場地使用守則",
     "legend_available": "可預約",
     "legend_selected": "已選",
@@ -1101,10 +1102,10 @@
     "pay_with": "以{method}付款",
     "select_payment_method": "請選擇付款方式",
     "block_saved_badge": "連訂 {hours} 小時，省 HK${saved}",
-    "total_saved": "总共省 HK${saved}",
-    "redeem_points_title": "積分兑換",
+    "total_saved": "總共省 HK${saved}",
+    "redeem_points_title": "積分兌換",
     "redeem_points_balance": "可用積分：{pts} pts",
-    "redeem_points_select": "選擇兑換優惠",
+    "redeem_points_select": "選擇兌換優惠",
     "redeem_points_applied": "−HK${discount}（扣 {pts} 積分）",
     "redeem_points_remove": "移除",
     "redeem_points_insufficient": "積分不足",
@@ -1117,26 +1118,26 @@
     "stripe_failed_desc": "交易未能完成，請重試或選擇其他付款方式",
     "stripe_try_again": "重新付款",
     "stripe_back_to_methods": "返回選擇付款方式",
-    "stripe_error_card_declined": "您的信用卡被拒绝，請確認卡片信息或更換其他付款方式",
+    "stripe_error_card_declined": "您的信用卡被拒絕，請確認卡片信息或更換其他付款方式",
     "stripe_error_expired_card": "您的信用卡已過期，請更換其他信用卡",
-    "stripe_error_incorrect_cvc": "安全碼有误，請重新輸入",
-    "stripe_error_insufficient_funds": "餘额不足，請更換其他付款方式或信用卡",
+    "stripe_error_incorrect_cvc": "安全碼有誤，請重新輸入",
+    "stripe_error_insufficient_funds": "餘額不足，請更換其他付款方式或信用卡",
     "stripe_error_processing_error": "付款處理時出現錯誤，請重試或聯络客服",
     "stripe_error_generic": "付款未能完成，請重試或聯络客服",
-    "stripe_error_terms_required": "請先同意条款与细則",
+    "stripe_error_terms_required": "請先同意條款與细則",
     "stripe_processing": "正在處理付款，請稍候",
     "kpay_processing": "處理中⋯",
     "stripe_title": "付款",
-    "stripe_qr_scan": "請用微信支付掃描以下二维碼",
-    "stripe_pending_desc": "請在手機上完成付款，二维碼将於 {time} 后過期",
+    "stripe_qr_scan": "請用微信支付掃描以下二維碼",
+    "stripe_pending_desc": "請在手機上完成付款，二維碼將於 {time} 后過期",
     "stripe_pending_confirmation": "確認付款中",
-    "stripe_pending_confirmation_desc": "系统正在確認你的付款，請稍候…",
+    "stripe_pending_confirmation_desc": "繫統正在確認你的付款，請稍候…",
     "stripe_success": "付款成功",
     "stripe_success_desc": "你的預訂已確認",
-    "stripe_expired": "二维碼已過期",
-    "stripe_expired_desc": "此二维碼已過期，新二维碼即将自动生成",
+    "stripe_expired": "二維碼已過期",
+    "stripe_expired_desc": "此二維碼已過期，新二維碼即將自动生成",
     "stripe_regenerate": "重新生成",
-    "stripe_countdown": "二维碼将於 {time} 后過期",
+    "stripe_countdown": "二維碼將於 {time} 后過期",
     "stripe_help": "需要幫助？",
     "stripe_support_whatsapp": "WhatsApp 客服",
     "stripe_waited": "已等待 {seconds} 秒",
@@ -1153,13 +1154,13 @@
     "promo_min_cart": "未达最低消費",
     "promo_validating": "驗證中…",
     "free_booking_title": "免費預訂",
-    "free_booking_desc": "您的優惠碼已完全抵扣訂單金额。点击下方按钮確認預訂 — 無需付款。",
+    "free_booking_desc": "您的優惠碼已完全抵扣訂單金額。点击下方按钮確認預訂 — 無需付款。",
     "confirm_free_booking": "確認免費預訂",
     "promo_already_used": "您已使用過此優惠碼。",
-    "promo_no_longer_free": "此優惠碼已無法完全抵扣訂單金额，請選擇付款方式。",
-    "test_mode_confirm_detail": "此訂單會直接標记為已付款，不會產生支付交易。适合開發测試使用。",
+    "promo_no_longer_free": "此優惠碼已無法完全抵扣訂單金額，請選擇付款方式。",
+    "test_mode_confirm_detail": "此訂單會直接標记為已付款，不會產生支付交易。適合開發测試使用。",
     "test_mode_desc": "直接確認訂單，不經支付網關",
-    "test_mode_label": "不计入营收",
+    "test_mode_label": "不計入營收",
     "test_mode_title": "管理員测試模式",
     "venue": "SPACE8",
     "kpay_title": "選擇付款方式",
@@ -1193,7 +1194,7 @@
     "recovery_title": "付款未完成",
     "recovery_reason_failed": "付款未能完成，請重新嘗試",
     "recovery_reason_cancelled": "付款已取消",
-    "recovery_reason_timeout": "處理時間较长，未能確認付款结果",
+    "recovery_reason_timeout": "處理時間较长，未能確認付款結果",
     "recovery_timeout_warning": "如果你已經完成付款但看到這個画面，請勿重復付款，可以聯络客服核實訂單狀態",
     "recovery_hold_active": "你的時段仍然保留中",
     "recovery_hold_active_time": "時段保留至 {time}（剩餘 {remaining}）",
@@ -1201,7 +1202,7 @@
     "recovery_retry": "選擇付款方式",
     "recovery_retry_busy": "處理中⋯",
     "recovery_back_to_slots": "返回選擇時段",
-    "recovery_support_phone": "致电客服 {phone}",
+    "recovery_support_phone": "致電客服 {phone}",
     "recovery_support_email": "郵箱 {email}",
     "support_phone": "+852 6180 8022",
     "support_email": "Admin@space8.com.hk"
@@ -1213,12 +1214,12 @@
     "booking_pass": "訂桌票",
     "date_time": "日期時間",
     "room": "球室",
-    "amount": "金额",
+    "amount": "金額",
     "holder": "持卡人",
     "status": "狀態",
     "holder_fallback": "Space8 會員",
     "payment_card": "银行卡",
-    "payment_fps": "转數快",
+    "payment_fps": "轉數快",
     "payment_payme": "PayMe",
     "payment_octopus": "八达通",
     "payment_alipay": "支付宝",
@@ -1235,8 +1236,8 @@
     "paid": "已付",
     "payment": "付款",
     "confirmed": "已確認 ✓",
-    "footer": "請於入場時出示此二维碼・客服热线",
-    "qr_tap_enlarge": "点击放大二维碼",
+    "footer": "請於入場時出示此二維碼・客服熱線",
+    "qr_tap_enlarge": "点击放大二維碼",
     "close": "關閉"
   },
   "gallery": {
@@ -1245,13 +1246,13 @@
     "slides": [
       {
         "title": "專業設備",
-        "subtitle": "精選星牌桌球臺，特调比赛氛圍",
+        "subtitle": "精選星牌桌球臺，特调比賽氛圍",
         "alt": "SPACE8 專業星牌桌球臺"
       },
       {
         "title": "扫碼即入場",
-        "subtitle": "全自助包厢。網上约訂，到場扫碼，快捷方便。",
-        "alt": "SPACE8 智能扫碼入場系统"
+        "subtitle": "全自助包廂。網上約訂，到場扫碼，快捷方便。",
+        "alt": "SPACE8 智能扫碼入場繫統"
       },
       {
         "title": "私人獨立空間",
@@ -1261,31 +1262,31 @@
       {
         "title": "智能科技",
         "subtitle": "Space Pilot 智能对戰小管家專屬為你服務。",
-        "alt": "SPACE8 Space Pilot 智能对戰系统"
+        "alt": "SPACE8 Space Pilot 智能对戰繫統"
       }
     ]
   },
   "footer": {
-    "tagline": "香港自助桌球會所・06:00–24:00 营業",
+    "tagline": "香港自助桌球會所・06:00–24:00 營業",
     "copyright": "© 2026 SPACE8",
-    "terms": "条款及细則",
+    "terms": "條款及细則",
     "privacy": "隐私政策",
-    "legal": "場地使用守則及条款",
-    "contact_title": "聯系我们",
+    "legal": "場地使用守則及條款",
+    "contact_title": "聯繫我們",
     "address_label": "地址",
     "address": "香港新蒲岗大有街 32 號泰力工業中心 3 楼 05 室",
     "directions_label": "前往方法",
-    "directions": "港铁钻石山站或啟德站步行约 10 分鐘",
+    "directions": "港鐵鑽石山站或啟德站步行約 10 分鐘",
     "map_cta": "Google Maps 導航",
-    "hours_label": "营業時間",
+    "hours_label": "營業時間",
     "hours": "每日 06:00 至 24:00",
     "seo_title": "香港新蒲岗自助中式桌球室",
-    "seo_blurb": "SPACE8 是香港新蒲岗自助無煙中式桌球獨立球室，每日 06:00 至 24:00 营業，網上預訂、二维碼自助入場，無需等候。邻近钻石山及啟德港铁站，是九龙區桌球爱好者的理想主場。",
+    "seo_blurb": "SPACE8 是香港新蒲岗自助無煙中式桌球獨立球室，每日 06:00 至 24:00 營業，網上預訂、二維碼自助入場，無需等候。鄰近鑽石山及啟德港鐵站，是九龙區桌球愛好者的理想主場。",
     "credits": "制作團隊",
     "credits_closing": "於香港用心制作。每個细節，每個像素。",
     "trust_ssl": "256-bit SSL 加密 — 全站連線加密",
-    "trust_stripe": "KPay 安全付款 — 付款資料加密傳輸，本網站不會储存完整卡號",
-    "trust_privacy": "資料受保護 — 個人資料按香港《個人資料（隐私）条例》處理",
+    "trust_stripe": "KPay 安全付款 — 付款資料加密傳輸，本網站不會儲存完整卡號",
+    "trust_privacy": "資料受保護 — 個人資料按香港《個人資料（隐私）條例》處理",
     "phone_label": "電話",
     "email_label": "郵箱",
     "group_nav_label": "導航",
@@ -1293,9 +1294,9 @@
   },
   "profile": {
     "add_phone_title": "加入電話號碼",
-    "add_phone_subtitle": "方便我们發送預訂提醒（可選）",
+    "add_phone_subtitle": "方便我們發送預訂提醒（可選）",
     "add_email_title": "加入郵箱地址",
-    "add_email_subtitle": "方便我们發送預訂確認（可選）",
+    "add_email_subtitle": "方便我們發送預訂確認（可選）",
     "phone_placeholder": "9XXX XXXX",
     "save": "儲存",
     "skip": "跳過"
@@ -1310,20 +1311,20 @@
         "body": "精選星牌桌球臺，確保最佳手感。"
       },
       {
-        "title": "專業级照明",
-        "body": "特调比赛灯光模式，專註於每一次出杆。"
+        "title": "專業級照明",
+        "body": "特调比賽燈光模式，專註於每一次出杆。"
       },
       {
         "title": "恒温冷气",
-        "body": "全場恒温，长時間对局依然舒适。"
+        "body": "全場恒温，长時間对局依然舒適。"
       },
       {
         "title": "免費高速 WiFi",
         "body": "全場覆盖，随時分享你的精彩一杆。"
       },
       {
-        "title": "自助饮品區",
-        "body": "自助售卖饮品，补给無需离場。"
+        "title": "自助飲品區",
+        "body": "自助售賣飲品，補給無需離場。"
       },
       {
         "title": "智能 QR 门禁",
@@ -1333,8 +1334,8 @@
     "services_title": "服務說明",
     "services": [
       {
-        "title": "全自助运营",
-        "body": "由預訂、付款到入場全程自助，場内不設常驻职員。"
+        "title": "全自助運營",
+        "body": "由預訂、付款到入場全程自助，場内不設常駐職員。"
       },
       {
         "title": "網上預訂",
@@ -1345,50 +1346,50 @@
         "body": "付款后即時收到確認電郵及進場 QR 碼。"
       },
       {
-        "title": "客户支持",
-        "body": "如有查詢或需要协助，歡迎通過 WhatsApp 聯系我们。"
+        "title": "客戶支持",
+        "body": "如有查詢或需要協助，歡迎通過 WhatsApp 聯繫我們。"
       }
     ],
     "rules_title": "留意事项",
     "rules": [
       "每間球室使用人數上限為 8 人。",
-      "場内全面禁煙，包括电子煙及加热煙。",
+      "場内全面禁煙，包括電子煙及加熱煙。",
       "未满 12 岁人士須由年满 18 岁成人全程陪同。",
-      "請於預約時段结束時準時离場，超時 15 分鐘将收取超時費用。",
-      "离場前請完成場地復原：归位球具、清洁臺面、套回防尘罩、關閉电源。",
-      "進場后如發現設施损坏，請於 10 分鐘内通過 WhatsApp 向我们報告。"
+      "請於預約時段結束時準時離場，超時 15 分鐘將收取超時費用。",
+      "離場前請完成場地復原：歸位球具、清洁臺面、套回防塵罩、關閉電源。",
+      "進場后如發現設施損壞，請於 10 分鐘内通過 WhatsApp 向我們報告。"
     ],
-    "rules_link": "查看完整場地使用守則及条款",
+    "rules_link": "查看完整場地使用守則及條款",
     "weather_title": "恶劣天气及特殊安排",
-    "weather_body": "【8 號或以上风球 / 黑色暴雨警告】\n如常营業：場地自动化系统维持正常运作，阁下可评估安全后如常前往。\n改期機制：若决定不前往，必須於原預約時間開始前以 WhatsApp 聯系客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，将视為自动放弃權益。\n\n【一般情况 / 其它天气（如 3 號风球、红雨）】\n不設退改：除上述极端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
+    "weather_body": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自动化繫統維持正常運作，閣下可評估安全后如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，將视為自动放弃權益。\n\n【一般情况 / 其它天气（如 3 號風球、红雨）】\n不設退改：除上述极端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
     "directions_title": "如何前往",
     "address_label": "地址",
     "address": "香港新蒲岗大有街 32 號泰力工業中心 3 楼 05 室",
-    "directions_body": "港铁钻石山站或啟德站步行约 10 分鐘；亦可乘搭巴士或小巴至大有街附近下车。",
+    "directions_body": "港鐵鑽石山站或啟德站步行約 10 分鐘；亦可乘搭巴士或小巴至大有街附近下车。",
     "map_cta": "Google Maps 導航",
     "book_cta": "立即預訂"
   },
   "membershipPage": {
     "hero_title": "會員",
-    "hero_subtitle": "每一次消費，都在累积屬於你的福利。",
+    "hero_subtitle": "每一次消費，都在累積屬於你的福利。",
     "stage_title": "你在哪一個阶段",
-    "how_title": "玩法介绍",
+    "how_title": "玩法介紹",
     "how_items": [
       {
         "title": "賺取積分",
-        "body": "每消費 HK$1 即累积 1 積分。新用户註冊即送 50 積分。"
+        "body": "每消費 HK$1 即累積 1 積分。新用戶註冊即送 50 積分。"
       },
       {
-        "title": "自动升级",
-        "body": "積分达到门槛即自动升级，無須申請。等級越高，積分累积速度越快。"
+        "title": "自动升級",
+        "body": "積分达到门槛即自动升級，無須申請。等級越高，積分累積速度越快。"
       },
       {
         "title": "使用積分",
-        "body": "積分可換購折扣券及預約教练時段，礼遇随等級提升。"
+        "body": "積分可換購折扣券及預約教练時段，禮遇随等級提升。"
       },
       {
         "title": "查看進度",
-        "body": "登入會員中心，随時查看積分结餘、等級進度及預訂記錄。"
+        "body": "登入會員中心，随時查看積分結餘、等級進度及預訂記錄。"
       }
     ],
     "cta_book": "立即預訂",
@@ -1397,12 +1398,12 @@
   "spacePilot": {
     "eyebrow": "SPACE8 智能管家",
     "title": "Space Pilot, SPACE8 的智能管家",
-    "intro": "一套更聪明的自助体驗，让每個球室、每場球局与每位會員都更流畅。",
+    "intro": "一套更聰明的自助体驗，讓每個球室、每場球局與每位會員都更流暢。",
     "scoreboard_kicker": "SPACE PILOT / 即時比分板",
-    "scoreboard_title": "每一球，都与赛事同步。",
-    "scoreboard_intro": "Space Pilot 将私人球室變成即時赛事中枢：比分、勝場、排名和剩餘時間清晰呈現，让你專註於球臺。",
-    "scoreboard_alt": "SPACE8 Space Pilot 即時比分板，展示比赛比分、勝場统计、球員排名及剩餘時段",
-    "scoreboard_live": "即時赛事",
+    "scoreboard_title": "每一球，都與賽事同步。",
+    "scoreboard_intro": "Space Pilot 將私人球室變成即時賽事中枢：比分、勝場、排名和剩餘時間清晰呈現，讓你專註於球臺。",
+    "scoreboard_alt": "SPACE8 Space Pilot 即時比分板，展示比賽比分、勝場統計、球員排名及剩餘時段",
+    "scoreboard_live": "即時賽事",
     "scoreboard_wins": "勝場記錄",
     "scoreboard_time": "使用時間",
     "scoreboard_standings": "球員排名",
@@ -1414,77 +1415,77 @@
     "cta_qr": "了解會員 QR Code",
     "features": [
       {
-        "title": "AI对戰系统",
-        "body": "系统會推荐最适合公平的赛制，從双人对戰到三五好友都有最适合的玩法"
+        "title": "AI对戰繫統",
+        "body": "繫統會推薦最適合公平的賽制，從雙人对戰到三五好友都有最適合的玩法"
       },
       {
         "title": "大屏幕即時比分",
-        "body": "自带计分、计時，红蓝对戰双方清晰醒目，隔着半個包厢也看得一清二楚"
+        "body": "自带計分、計時，红藍对戰雙方清晰醒目，隔着半個包廂也看得一清二楚"
       },
       {
-        "title": "戰绩自动累积",
-        "body": "每一場勝負寫入個人总勝場，記錄你的勝利時刻！"
+        "title": "戰绩自动累積",
+        "body": "每一場勝負寫入個人總勝場，記錄你的勝利時刻！"
       },
       {
         "title": "高清進球回放（敬請期待）",
-        "body": "完整球局可以在对戰结束后回放，回看精彩進球"
+        "body": "完整球局可以在对戰結束后回放，回看精彩進球"
       }
     ],
     "space_title": "空間全開，由你主場",
-    "space_subtitle": "自助入場，無煙环境，專為桌球而設"
+    "space_subtitle": "自助入場，無煙環境，專為桌球而設"
   },
   "membershipHub": {
     "tabs": [
       "會員制度",
       "會員 QR Code",
       "智能小管家",
-      "玩法介绍"
+      "玩法介紹"
     ],
     "tier_title": "會員制度。",
-    "tier_intro": "註冊账號即自动成為新星會員，無需另外申請。",
-    "tier_join_note": "註冊账號即自动成為新星會員，無需另外申請，并獲赠 50 積分。",
+    "tier_intro": "註冊賬號即自动成為新星會員，無需另外申請。",
+    "tier_join_note": "註冊賬號即自动成為新星會員，無需另外申請，并獲贈 50 積分。",
     "tier_cta": "立即加入",
     "cta_book": "立即預訂",
     "cta_login": "登入會員中心",
     "tier_new": {
       "title": "新星會員",
       "body": "HK$1 = 1 積分。註冊即送 50 積分。",
-      "desc": "新用户自动成為新星會員，獲得 50 積分作為歡迎礼物。"
+      "desc": "新用戶自动成為新星會員，獲得 50 積分作為歡迎禮物。"
     },
     "tier_platinum": {
       "title": "铂金會員",
       "subtitle": "800 積分起",
-      "body": "尊享礼遇，積分 1.5 倍加速。",
-      "desc": "解锁專屬灯光歡迎、每場獲赠两支高级矿泉水，積分賺取倍率提升至 1.5 倍。"
+      "body": "尊享禮遇，積分 1.5 倍加速。",
+      "desc": "解鎖專屬燈光歡迎、每場獲贈两支高級礦泉水，積分賺取倍率提升至 1.5 倍。"
     },
     "tier_diamond": {
-      "title": "钻石會員",
+      "title": "鑽石會員",
       "subtitle": "6,000 積分起",
       "badge": "最高等級",
-      "body": "极致玩家殿堂，積分双倍，尊享特级礼遇。",
-      "desc": "獨家 SPACE8 周边商品、每場預訂積分双倍、可兑換折扣券及預約教练課程。"
+      "body": "极致玩家殿堂，積分雙倍，尊享特級禮遇。",
+      "desc": "獨家 SPACE8 周边商品、每場預訂積分雙倍、可兌換折扣券及預約教练課程。"
     },
-    "how_title": "賺取与使用積分",
+    "how_title": "賺取與使用積分",
     "how_items": [
       {
         "icon": "earn",
         "title": "賺取積分",
-        "body": "每消費 HK$1 累积 1 積分，新會員註冊即送 50 積分。"
+        "body": "每消費 HK$1 累積 1 積分，新會員註冊即送 50 積分。"
       },
       {
         "icon": "upgrade",
-        "title": "自动升级",
-        "body": "达到積分门槛即自动升级，無需申請。较高等級賺取積分更快。"
+        "title": "自动升級",
+        "body": "达到積分门槛即自动升級，無需申請。较高等級賺取積分更快。"
       },
       {
         "icon": "spend",
         "title": "使用積分",
-        "body": "積分可兑換折扣券及教练課程，较高等級享有更多專屬福利。"
+        "body": "積分可兌換折扣券及教练課程，较高等級享有更多專屬福利。"
       },
       {
         "icon": "track",
         "title": "查看進度",
-        "body": "登入會員中心，随時查看餘额、等級進度及預訂記錄。"
+        "body": "登入會員中心，随時查看餘額、等級進度及預訂記錄。"
       }
     ],
     "entry_title": "入場指南",
@@ -1494,19 +1495,19 @@
     "qr_placeholder": "示意圖 · 你的專屬編碼請於會員頁面查看",
     "qr_cta": "會員頁面",
     "pilot_title": "Space Pilot",
-    "pilot_intro": "iPad 場内智能小管家，让每局記錄与會員積分自动完成。",
+    "pilot_intro": "iPad 場内智能小管家，讓每局記錄與會員積分自动完成。",
     "pilot_items": [
       {
         "title": "扫碼綁定",
-        "body": "到場后由工作人員以 QR Code 将設備綁定至你的預約時段。"
+        "body": "到場后由工作人員以 QR Code 將設備綁定至你的預約時段。"
       },
       {
-        "title": "自动计分",
+        "title": "自动計分",
         "body": "每局完成自动記錄，無需手动輸入。"
       },
       {
-        "title": "積分自动入账",
-        "body": "會員每完成一局即得 5 積分，每 15 分鐘限领一次，上限按預約時長计算。"
+        "title": "積分自动入賬",
+        "body": "會員每完成一局即得 5 積分，每 15 分鐘限领一次，上限按預約時長計算。"
       },
       {
         "title": "查看戰绩",
@@ -1516,62 +1517,62 @@
     "pilot_features": [
       {
         "title": "無人自助也有專屬招待",
-        "body": "扫碼進場后，屏幕即時顯示你的名字、等級和累积勝場，配合 450 句随時段變化的歡迎词，每次到访都有新鲜感。"
+        "body": "扫碼進場后，屏幕即時顯示你的名字、等級和累積勝場，配合 450 句随時段變化的歡迎词，每次到訪都有新鲜感。"
       },
       {
-        "title": "AI 帮你排赛程",
-        "body": "不確定怎么安排大型对决？系统會推荐最公平的赛制，一键即可開始。"
+        "title": "AI 帮你排賽程",
+        "body": "不確定怎么安排大型对決？繫統會推薦最公平的賽制，一键即可開始。"
       },
       {
-        "title": "五种赛制任你挑",
-        "body": "循环赛、瑞士制、双敗淘汰、擂臺赛、單敗淘汰——從三人到八人都能找到最适合的玩法。"
+        "title": "五种賽制任你挑",
+        "body": "循環賽、瑞士制、雙敗淘汰、擂臺賽、單敗淘汰——從三人到八人都能找到最適合的玩法。"
       },
       {
-        "title": "戰绩自动累积",
-        "body": "每一場比赛结果都會記錄到你的個人戰绩，從新星到铂金到钻石，一路升级。"
+        "title": "戰绩自动累積",
+        "body": "每一場比賽結果都會記錄到你的個人戰绩，從新星到铂金到鑽石，一路升級。"
       },
       {
         "title": "朋友沒會員？沒問題",
-        "body": "一键加入访客選手，立即投入比赛。事后可随時加入會員保留戰绩。"
+        "body": "一键加入訪客選手，立即投入比賽。事后可随時加入會員保留戰绩。"
       },
       {
         "title": "大屏幕即時比分",
-        "body": "红隊对蓝隊，清晰醒目，從球室任何角落都能看见。"
+        "body": "红隊对藍隊，清晰醒目，從球室任何角落都能看见。"
       },
       {
         "title": "時間管理不尴尬",
-        "body": "自动提醒剩餘 10 分鐘和 5 分鐘，礼貌提示即将结束，扫碼即可續约，無需店員介入。"
+        "body": "自动提醒剩餘 10 分鐘和 5 分鐘，禮貌提示即將結束，扫碼即可續約，無需店員介入。"
       },
       {
         "title": "免打擾模式",
-        "body": "專註打球時，屏幕只顯示時間。最后五分鐘才會提示——更配合气氛，也更省电。"
+        "body": "專註打球時，屏幕只顯示時間。最后五分鐘才會提示——更配合气氛，也更省電。"
       },
       {
         "title": "三语切換",
-        "body": "繁体中文、简体中文、英文即時切換，本地常客和外地访客都用得顺手。"
+        "body": "繁体中文、简体中文、英文即時切換，本地常客和外地訪客都用得顺手。"
       },
       {
         "title": "两間球室，一套体驗",
-        "body": "Space Infinity 和 Space Eternity，同樣流畅的智能系统。"
+        "body": "Space Infinity 和 Space Eternity，同樣流暢的智能繫統。"
       }
     ],
-    "play_title": "玩法介绍",
+    "play_title": "玩法介紹",
     "play_items": [
       {
-        "title": "AI 赛程安排",
-        "body": "不確定怎么安排大型对决？系统推荐最公平的赛制，一键即可開始。"
+        "title": "AI 賽程安排",
+        "body": "不確定怎么安排大型对決？繫統推薦最公平的賽制，一键即可開始。"
       },
       {
-        "title": "五种赛制任你挑",
-        "body": "循环赛、瑞士制、双敗淘汰、擂臺赛、單敗淘汰——三人到八人都能找到最适合的玩法。"
+        "title": "五种賽制任你挑",
+        "body": "循環賽、瑞士制、雙敗淘汰、擂臺賽、單敗淘汰——三人到八人都能找到最適合的玩法。"
       },
       {
         "title": "大屏幕即時比分",
-        "body": "红隊对蓝隊，清晰醒目。分數即時更新，從球室任何角落都能看见。"
+        "body": "红隊对藍隊，清晰醒目。分數即時更新，從球室任何角落都能看见。"
       },
       {
-        "title": "戰绩自动累积",
-        "body": "每一場比赛结果都會記錄到你的個人戰绩，從新星到铂金到钻石，每一局都算數。"
+        "title": "戰绩自动累積",
+        "body": "每一場比賽結果都會記錄到你的個人戰绩，從新星到铂金到鑽石，每一局都算數。"
       }
     ]
   },
@@ -1597,11 +1598,11 @@
     "categories": {
       "equipment": "設備",
       "ambience": "氛圍",
-      "smart_system": "智能系统",
+      "smart_system": "智能繫統",
       "entry": "入場",
       "amenities": "配套"
     },
-    "intro": "每個细節，都让你專註於桌球。",
+    "intro": "每個细節，都讓你專註於桌球。",
     "pagination_label": "場地設施分頁",
     "pagination_item": "前往第 {n} 项",
     "items": [
@@ -1611,11 +1612,11 @@
       },
       {
         "title": "專業設備",
-        "body": "特别装修，特调專註比赛灯光和氛圍"
+        "body": "特别装修，特调專註比賽燈光和氛圍"
       },
       {
         "title": "Space Pilot",
-        "body": "引入 AI 智能对戰管家，将科技带入傳统桌球室"
+        "body": "引入 AI 智能对戰管家，將科技带入傳統桌球室"
       },
       {
         "title": "自助入場",
@@ -1623,7 +1624,7 @@
       },
       {
         "title": "無煙區域",
-        "body": "場地全面禁煙，创造舒适环境"
+        "body": "場地全面禁煙，创造舒適環境"
       },
       {
         "title": "專業桌球杆",
@@ -1631,11 +1632,11 @@
       },
       {
         "title": "沙發休息區",
-        "body": "舒适沙發休息區，比赛之餘尽享放松"
+        "body": "舒適沙發休息區，比賽之餘尽享放松"
       },
       {
-        "title": "充电區",
-        "body": "設有 USB 充电插座，随時為設備补充电力"
+        "title": "充電區",
+        "body": "設有 USB 充電插座，随時為設備補充電力"
       },
       {
         "title": "随身物品存放",
@@ -1668,11 +1669,11 @@
       },
       {
         "title": "科技体驗",
-        "body": "扫碼全自助入場，配上智能对戰系统"
+        "body": "扫碼全自助入場，配上智能对戰繫統"
       },
       {
         "title": "專業設備",
-        "body": "星牌中式球臺，特调比赛氛圍"
+        "body": "星牌中式球臺，特调比賽氛圍"
       }
     ]
   },
@@ -1682,7 +1683,7 @@
     "part1_heading": "專業球臺，認真对待",
     "part1_highlight": "專業球臺",
     "part1_after": "，認真对待",
-    "part1_footer": "精選星牌桌球臺，特调比赛氛圍",
+    "part1_footer": "精選星牌桌球臺，特调比賽氛圍",
     "part2_kicker": "快捷",
     "part2_heading": "扫碼即入，简單直接",
     "part2_highlight": "扫碼即入",
@@ -1700,11 +1701,11 @@
   "errors": {
     "booking": {
       "err_slot_unavailable_concurrent_title": "時段已被預訂",
-      "err_slot_unavailable_concurrent_desc": "此時段剛被其他用户預訂，請選擇其他時段。",
-      "err_slot_unavailable_concurrent_hint": "建議：選擇相邻時段或其他球室",
+      "err_slot_unavailable_concurrent_desc": "此時段剛被其他用戶預訂，請選擇其他時段。",
+      "err_slot_unavailable_concurrent_hint": "建議：選擇相鄰時段或其他球室",
       "err_slot_unavailable_concurrent_cta": "選擇其他時段",
       "err_slot_booking_cutoff_title": "預訂時間太近",
-      "err_slot_booking_cutoff_desc": "此時段距离開始時間太近，已無法預訂。",
+      "err_slot_booking_cutoff_desc": "此時段距離開始時間太近，已無法預訂。",
       "err_slot_booking_cutoff_hint": "請選擇至少 2 小時后的時段",
       "err_slot_booking_cutoff_cta": "選擇其他時段",
       "err_slot_lock_expired_title": "時段保留已過期",
@@ -1716,12 +1717,12 @@
       "err_slot_multi_block_conflict_hint": "請檢查并重新選擇時段",
       "err_slot_multi_block_conflict_cta": "重新選擇",
       "err_slot_already_locked_title": "有人正在預訂",
-      "err_slot_already_locked_desc": "此時段正被其他用户暂時保留，請稍候片刻或選擇其他時段。",
-      "err_slot_already_locked_hint": "時段锁定通常在 15 分鐘内释放",
+      "err_slot_already_locked_desc": "此時段正被其他用戶暂時保留，請稍候片刻或選擇其他時段。",
+      "err_slot_already_locked_hint": "時段鎖定通常在 15 分鐘内释放",
       "err_slot_already_locked_cta": "稍后重試",
       "err_lock_failed_server_title": "無法保留時段",
-      "err_lock_failed_server_desc": "系统暂時無法處理您的預訂，請稍后重試。",
-      "err_lock_failed_server_hint": "如問題持續，請聯系客服",
+      "err_lock_failed_server_desc": "繫統暂時無法處理您的預訂，請稍后重試。",
+      "err_lock_failed_server_hint": "如問題持續，請聯繫客服",
       "err_lock_failed_server_cta": "重試",
       "err_invalid_slot_input_title": "無效的預訂参數",
       "err_invalid_slot_input_desc": "您選擇的日期、時間或時長無效，請重新選擇。",
@@ -1741,28 +1742,28 @@
       "err_booking_not_found_cta": "返回首頁",
       "err_booking_already_confirmed_title": "預訂已確認",
       "err_booking_already_confirmed_desc": "此預訂已確認，無法再次修改。",
-      "err_booking_already_confirmed_hint": "如需更改，請聯系客服或申請退款",
+      "err_booking_already_confirmed_hint": "如需更改，請聯繫客服或申請退款",
       "err_booking_already_confirmed_cta": "查看預訂",
       "err_booking_create_failed_title": "無法創建預訂",
-      "err_booking_create_failed_desc": "系统暂時無法處理您的預訂，請重試。",
-      "err_booking_create_failed_hint": "如問題持續，請聯系客服",
+      "err_booking_create_failed_desc": "繫統暂時無法處理您的預訂，請重試。",
+      "err_booking_create_failed_hint": "如問題持續，請聯繫客服",
       "err_booking_create_failed_cta": "重試"
     },
     "payment": {
       "err_payment_intent_failed_title": "無法啟动付款",
-      "err_payment_intent_failed_desc": "付款系统暂時無法處理您的請求，請稍后重試。",
-      "err_payment_intent_failed_hint": "如問題持續，請聯系客服",
+      "err_payment_intent_failed_desc": "付款繫統暂時無法處理您的請求，請稍后重試。",
+      "err_payment_intent_failed_hint": "如問題持續，請聯繫客服",
       "err_payment_intent_failed_cta": "重試",
-      "err_payment_zero_amount_title": "金额無效",
-      "err_payment_zero_amount_desc": "預訂金额為零或負數，無法繼續付款。",
-      "err_payment_zero_amount_hint": "請重新選擇時段或聯系客服",
-      "err_payment_zero_amount_cta": "聯系客服",
-      "err_payment_declined_title": "付款被拒绝",
-      "err_payment_declined_desc": "您的付款方式被拒绝，請檢查卡片資料或使用其他付款方式。",
-      "err_payment_declined_hint": "建議：檢查卡片餘额、有效期限或嘗試其他付款方式",
+      "err_payment_zero_amount_title": "金額無效",
+      "err_payment_zero_amount_desc": "預訂金額為零或負數，無法繼續付款。",
+      "err_payment_zero_amount_hint": "請重新選擇時段或聯繫客服",
+      "err_payment_zero_amount_cta": "聯繫客服",
+      "err_payment_declined_title": "付款被拒絕",
+      "err_payment_declined_desc": "您的付款方式被拒絕，請檢查卡片資料或使用其他付款方式。",
+      "err_payment_declined_hint": "建議：檢查卡片餘額、有效期限或嘗試其他付款方式",
       "err_payment_declined_cta": "更換付款方式",
-      "err_payment_insufficient_funds_title": "餘额不足",
-      "err_payment_insufficient_funds_desc": "您的卡片餘额不足以完成此交易。",
+      "err_payment_insufficient_funds_title": "餘額不足",
+      "err_payment_insufficient_funds_desc": "您的卡片餘額不足以完成此交易。",
       "err_payment_insufficient_funds_hint": "請使用其他付款方式或充值后重試",
       "err_payment_insufficient_funds_cta": "更換付款方式",
       "err_payment_card_expired_title": "卡片已過期",
@@ -1778,16 +1779,16 @@
       "err_payment_processing_error_hint": "請重試或使用其他付款方式",
       "err_payment_processing_error_cta": "重試",
       "err_payment_timeout_title": "付款超時",
-      "err_payment_timeout_desc": "付款處理時間较长，未能確認结果。",
+      "err_payment_timeout_desc": "付款處理時間较长，未能確認結果。",
       "err_payment_timeout_hint": "請檢查您的訂單記錄，如已扣款請勿重復付款",
       "err_payment_timeout_cta": "查看訂單",
       "err_kpay_failed_title": "付款失敗",
       "err_kpay_failed_desc": "通過 {method} 的付款未能完成，請重新嘗試。",
       "err_kpay_failed_hint": "請確保完成付款操作，或選擇其他付款方式",
       "err_kpay_failed_cta": "重試",
-      "err_kpay_expired_title": "二维碼已過期",
-      "err_kpay_expired_desc": "付款二维碼已超過有效時間，請重新生成。",
-      "err_kpay_expired_hint": "二维碼有效期為 15 分鐘",
+      "err_kpay_expired_title": "二維碼已過期",
+      "err_kpay_expired_desc": "付款二維碼已超過有效時間，請重新生成。",
+      "err_kpay_expired_hint": "二維碼有效期為 15 分鐘",
       "err_kpay_expired_cta": "重新生成",
       "err_kpay_cancelled_title": "付款已取消",
       "err_kpay_cancelled_desc": "您已取消此次付款，預訂時段已释放。",
@@ -1799,19 +1800,19 @@
       "err_promo_invalid_cta": "移除優惠碼",
       "err_promo_used_title": "優惠碼已使用",
       "err_promo_used_desc": "您已使用過此優惠碼，無法重復使用。",
-      "err_promo_used_hint": "每個優惠碼每位用户只能使用一次",
+      "err_promo_used_hint": "每個優惠碼每位用戶只能使用一次",
       "err_promo_used_cta": "移除優惠碼",
-      "err_promo_min_spend_title": "未达優惠碼使用条件",
+      "err_promo_min_spend_title": "未达優惠碼使用條件",
       "err_promo_min_spend_desc": "此優惠碼要求最低消費 ¥{amount}，當前訂單未达標。",
       "err_promo_min_spend_hint": "請增加預訂時長或移除優惠碼",
       "err_promo_min_spend_cta": "移除優惠碼",
       "err_points_insufficient_title": "積分不足",
-      "err_points_insufficient_desc": "您的可用積分不足以兑換此優惠。當前可用：{available} 分，需要：{required} 分。",
-      "err_points_insufficient_hint": "請選擇较低金额的兑換選项",
-      "err_points_insufficient_cta": "调整兑換",
-      "err_discount_invalid_amount_title": "兑換金额無效",
-      "err_discount_invalid_amount_desc": "積分兑換金额無效，請重新選擇。",
-      "err_discount_invalid_amount_hint": "請選擇有效的兑換選项",
+      "err_points_insufficient_desc": "您的可用積分不足以兌換此優惠。當前可用：{available} 分，需要：{required} 分。",
+      "err_points_insufficient_hint": "請選擇较低金額的兌換選项",
+      "err_points_insufficient_cta": "调整兌換",
+      "err_discount_invalid_amount_title": "兌換金額無效",
+      "err_discount_invalid_amount_desc": "積分兌換金額無效，請重新選擇。",
+      "err_discount_invalid_amount_hint": "請選擇有效的兌換選项",
       "err_discount_invalid_amount_cta": "重新選擇"
     },
     "auth": {
@@ -1823,15 +1824,15 @@
       "err_auth_session_expired_desc": "您的登入狀態已過期，請重新登入。",
       "err_auth_session_expired_hint": "請重新登入以繼續",
       "err_auth_session_expired_cta": "重新登入",
-      "err_auth_invalid_credentials_title": "账號或密碼錯誤",
-      "err_auth_invalid_credentials_desc": "您輸入的账號或密碼不正確，請重新輸入。",
+      "err_auth_invalid_credentials_title": "賬號或密碼錯誤",
+      "err_auth_invalid_credentials_desc": "您輸入的賬號或密碼不正確，請重新輸入。",
       "err_auth_invalid_credentials_hint": "建議：使用「忘记密碼」功能重設密碼",
       "err_auth_invalid_credentials_cta": "重試"
     },
     "otp": {
       "err_otp_send_failed_title": "無法發送驗證碼",
       "err_otp_send_failed_desc": "驗證碼發送失敗，請稍后重試。",
-      "err_otp_send_failed_hint": "如問題持續，請嘗試郵箱驗證或聯系客服",
+      "err_otp_send_failed_hint": "如問題持續，請嘗試郵箱驗證或聯繫客服",
       "err_otp_send_failed_cta": "重試",
       "err_otp_invalid_title": "驗證碼錯誤",
       "err_otp_invalid_desc": "您輸入的驗證碼不正確，請重新輸入。",
@@ -1846,21 +1847,21 @@
       "err_otp_rate_limited_hint": "請等待 {seconds} 秒后再試",
       "err_otp_rate_limited_cta": "稍后重試",
       "err_otp_too_many_attempts_title": "嘗試次數過多",
-      "err_otp_too_many_attempts_desc": "您輸入錯誤驗證碼次數過多，账號已暂時锁定。",
-      "err_otp_too_many_attempts_hint": "請等待 {minutes} 分鐘后重試，或聯系客服",
-      "err_otp_too_many_attempts_cta": "聯系客服"
+      "err_otp_too_many_attempts_desc": "您輸入錯誤驗證碼次數過多，賬號已暂時鎖定。",
+      "err_otp_too_many_attempts_hint": "請等待 {minutes} 分鐘后重試，或聯繫客服",
+      "err_otp_too_many_attempts_cta": "聯繫客服"
     },
     "signup": {
       "err_signup_email_exists_title": "郵箱已被註冊",
       "err_signup_email_exists_desc": "此郵箱地址已被其他帳戶使用，請登入或使用其他郵箱。",
-      "err_signup_email_exists_hint": "建議：使用「忘记密碼」功能找回账號",
+      "err_signup_email_exists_hint": "建議：使用「忘记密碼」功能找回賬號",
       "err_signup_email_exists_cta": "前往登入",
       "err_signup_phone_exists_title": "手機號已被註冊",
       "err_signup_phone_exists_desc": "此手機號已被其他帳戶使用，請登入或使用其他號碼。",
       "err_signup_phone_exists_hint": "建議：嘗試使用驗證碼登入",
       "err_signup_phone_exists_cta": "前往登入",
       "err_profile_incomplete_title": "請完善個人資料",
-      "err_profile_incomplete_desc": "預訂前需要完善個人資料（姓名、聯系方式等）。",
+      "err_profile_incomplete_desc": "預訂前需要完善個人資料（姓名、聯繫方式等）。",
       "err_profile_incomplete_hint": "請前往個人中心完善資料",
       "err_profile_incomplete_cta": "完善資料",
       "err_password_weak_title": "密碼強度不足",
@@ -1877,18 +1878,18 @@
       "err_email_invalid_format_desc": "請輸入有效的郵箱地址。",
       "err_email_invalid_format_hint": "示例：example@qq.com",
       "err_email_invalid_format_cta": "重新輸入",
-      "err_contact_required_title": "需要聯系方式",
-      "err_contact_required_desc": "請提供至少一种聯系方式（手機或郵箱）。",
+      "err_contact_required_title": "需要聯繫方式",
+      "err_contact_required_desc": "請提供至少一种聯繫方式（手機或郵箱）。",
       "err_contact_required_hint": "建議：提供手機號以接收預訂通知",
-      "err_contact_required_cta": "填寫聯系方式",
+      "err_contact_required_cta": "填寫聯繫方式",
       "err_name_required_title": "請輸入姓名",
       "err_name_required_desc": "姓名為必填项目，請輸入您的真實姓名。",
-      "err_name_required_hint": "姓名将顯示在預訂凭证上",
+      "err_name_required_hint": "姓名將顯示在預訂凭證上",
       "err_name_required_cta": "填寫姓名",
-      "err_terms_not_accepted_title": "請同意条款",
-      "err_terms_not_accepted_desc": "繼續付款前，請先阅讀并同意場地使用守則及条款与细則。",
+      "err_terms_not_accepted_title": "請同意條款",
+      "err_terms_not_accepted_desc": "繼續付款前，請先阅讀并同意場地使用守則及條款與细則。",
       "err_terms_not_accepted_hint": "請勾選同意選项",
-      "err_terms_not_accepted_cta": "查看条款"
+      "err_terms_not_accepted_cta": "查看條款"
     },
     "system": {
       "err_rate_limit_exceeded_title": "請求過於频繁",
@@ -1905,19 +1906,19 @@
       "err_network_offline_cta": "重試",
       "err_network_generic_title": "網絡錯誤",
       "err_network_generic_desc": "網絡連線出現問題，請重試。",
-      "err_network_generic_hint": "如問題持續，請檢查網絡設定或聯系客服",
+      "err_network_generic_hint": "如問題持續，請檢查網絡設定或聯繫客服",
       "err_network_generic_cta": "重試",
       "err_server_error_title": "服務器錯誤",
       "err_server_error_desc": "服務器暂時無法處理您的請求，請稍后重試。",
-      "err_server_error_hint": "如問題持續，請聯系客服",
+      "err_server_error_hint": "如問題持續，請聯繫客服",
       "err_server_error_cta": "重試",
       "err_service_unavailable_title": "服務暂時無法使用",
-      "err_service_unavailable_desc": "系统正在维護中，請稍后再試。",
-      "err_service_unavailable_hint": "預计维護時間：{duration}",
+      "err_service_unavailable_desc": "繫統正在維護中，請稍后再試。",
+      "err_service_unavailable_hint": "預計維護時間：{duration}",
       "err_service_unavailable_cta": "返回首頁",
       "err_database_error_title": "數据庫錯誤",
       "err_database_error_desc": "數据讀取失敗，請重試。",
-      "err_database_error_hint": "如問題持續，請聯系客服",
+      "err_database_error_hint": "如問題持續，請聯繫客服",
       "err_database_error_cta": "重試"
     },
     "refund": {
@@ -1927,15 +1928,15 @@
       "err_refund_cutoff_closed_cta": "查看政策",
       "err_refund_not_allowed_title": "無法退款",
       "err_refund_not_allowed_desc": "此預訂目前狀態不允許退款。",
-      "err_refund_not_allowed_hint": "如有疑問，請聯系客服",
-      "err_refund_not_allowed_cta": "聯系客服",
+      "err_refund_not_allowed_hint": "如有疑問，請聯繫客服",
+      "err_refund_not_allowed_cta": "聯繫客服",
       "err_refund_already_processed_title": "已退款",
       "err_refund_already_processed_desc": "此預訂已完成退款，無法重復操作。",
-      "err_refund_already_processed_hint": "退款通常在 5-7 個工作日内到账",
+      "err_refund_already_processed_hint": "退款通常在 5-7 個工作日内到賬",
       "err_refund_already_processed_cta": "查看記錄",
       "err_refund_pending_review_title": "退款審核中",
-      "err_refund_pending_review_desc": "您的退款申請已提交，我们會尽快處理。",
-      "err_refund_pending_review_hint": "預计處理時間：1-2 個工作日",
+      "err_refund_pending_review_desc": "您的退款申請已提交，我們會尽快處理。",
+      "err_refund_pending_review_hint": "預計處理時間：1-2 個工作日",
       "err_refund_pending_review_cta": "返回首頁"
     },
     "reschedule": {
@@ -1945,33 +1946,33 @@
       "err_reschedule_cutoff_closed_cta": "查看政策",
       "err_reschedule_not_allowed_title": "無法改期",
       "err_reschedule_not_allowed_desc": "此預訂目前狀態不允許改期。",
-      "err_reschedule_not_allowed_hint": "如需更改，請聯系客服",
-      "err_reschedule_not_allowed_cta": "聯系客服",
+      "err_reschedule_not_allowed_hint": "如需更改，請聯繫客服",
+      "err_reschedule_not_allowed_cta": "聯繫客服",
       "err_reschedule_target_unavailable_title": "新時段不可用",
       "err_reschedule_target_unavailable_desc": "您選擇的新時段已被預訂，請選擇其他時段。",
-      "err_reschedule_target_unavailable_hint": "建議：選擇相邻時段",
+      "err_reschedule_target_unavailable_hint": "建議：選擇相鄰時段",
       "err_reschedule_target_unavailable_cta": "選擇其他時段"
     },
     "admin": {
       "err_admin_required_title": "需要管理員權限",
-      "err_admin_required_desc": "此操作需要管理員權限，您沒有访問權限。",
-      "err_admin_required_hint": "請聯系系统管理員",
+      "err_admin_required_desc": "此操作需要管理員權限，您沒有訪問權限。",
+      "err_admin_required_hint": "請聯繫繫統管理員",
       "err_admin_required_cta": "返回首頁",
-      "err_uat_access_denied_title": "UAT 环境访問被拒",
-      "err_uat_access_denied_desc": "您的 IP 地址未在白名單中，無法访問 UAT 环境。",
-      "err_uat_access_denied_hint": "請聯系系统管理員加入白名單",
-      "err_uat_access_denied_cta": "聯系管理員",
+      "err_uat_access_denied_title": "UAT 環境訪問被拒",
+      "err_uat_access_denied_desc": "您的 IP 地址未在白名單中，無法訪問 UAT 環境。",
+      "err_uat_access_denied_hint": "請聯繫繫統管理員加入白名單",
+      "err_uat_access_denied_cta": "聯繫管理員",
       "err_test_booking_refund_failed_title": "测試訂單退款失敗",
       "err_test_booking_refund_failed_desc": "無法處理测試訂單的退款操作。",
-      "err_test_booking_refund_failed_hint": "請檢查测試环境設定",
+      "err_test_booking_refund_failed_hint": "請檢查测試環境設定",
       "err_test_booking_refund_failed_cta": "重試"
     }
   },
-  "coming_soon_label": "此付款方式即将推出",
-  "qr_instruction_label": "您将看到一個二维碼，請使用微信支付掃描以完成付款",
+  "coming_soon_label": "此付款方式即將推出",
+  "qr_instruction_label": "您將看到一個二維碼，請使用微信支付掃描以完成付款",
   "cookie_consent": {
-    "title": "我们使用 Cookies",
-    "message": "本網站使用必要 Cookies 以维持登入及預約功能，并使用分析 Cookies 改善使用体驗。",
+    "title": "我們使用 Cookies",
+    "message": "本網站使用必要 Cookies 以維持登入及預約功能，并使用分析 Cookies 改善使用体驗。",
     "learn_more": "了解更多",
     "accept_all": "接受所有 Cookies",
     "necessary_only": "仅必要 Cookies",
@@ -1980,6 +1981,10 @@
   "help": {
     "title": "支援中心",
     "subtitle": "查找常見問題的解答",
+    "hero": {
+      "title": "您好，有什麼可以協助您？",
+      "subtitle": "搜尋常見問題或瀏覽下方主題"
+    },
     "searchPlaceholder": "搜尋文章...",
     "noResults": "找不到相關文章",
     "backToSupport": "返回支援中心",
@@ -1987,6 +1992,8 @@
     "stillNeedHelp": "仍需要協助？",
     "stillNeedHelpDesc": "如果以上資訊未能解決您的問題，歡迎聯絡客服團隊。",
     "contactSupport": "聯絡客服",
+    "popularQuestions": "熱門問題",
+    "browseTopics": "瀏覽主題",
     "categories": {
       "all": {
         "title": "全部"
@@ -2003,41 +2010,69 @@
       "policies": {
         "title": "政策"
       },
+      "support": {
+        "title": "支援"
+      },
       "articlesCount": "篇文章"
     },
     "articles": {
-      "entryQr": {
-        "title": "如何使用會員 QR Code 入場",
-        "excerpt": "了解如何使用您的會員 QR Code 進行場館入場"
+      "entry-qr": {
+        "title": "如何使用QR Code入場",
+        "excerpt": "了解如何使用您的預訂QR Code進入場地"
       },
       "booking": {
-        "title": "如何預訂",
-        "excerpt": "了解預訂流程及注意事項"
+        "title": "如何預訂檯桌",
+        "excerpt": "預訂檯桌的完整流程說明"
       },
-      "accountLogin": {
-        "title": "登入及會員功能",
-        "excerpt": "了解如何登入帳戶及使用會員專屬功能"
+      "account-login": {
+        "title": "帳戶登入問題",
+        "excerpt": "解決登入帳戶時遇到的常見問題"
       },
-      "findQr": {
-        "title": "在哪裡找到我的 QR Code",
-        "excerpt": "快速找到您的會員 QR Code"
+      "find-qr": {
+        "title": "找不到QR Code？",
+        "excerpt": "如何查找或重新獲取您的入場QR Code"
       },
-      "tierPoints": {
-        "title": "會籍等級與積分",
-        "excerpt": "了解會籍等級制度及積分累積方式"
+      "tier-points": {
+        "title": "會員等級與積分",
+        "excerpt": "了解會員等級制度與積分累積方式"
       },
-      "cancellationPolicy": {
+      "cancellation-policy": {
         "title": "取消政策",
-        "excerpt": "了解預訂取消的相關規定"
+        "excerpt": "預訂取消、退款條件及處理流程"
       },
-      "specialWeather": {
+      "special-weather": {
         "title": "特殊天氣安排",
-        "excerpt": "了解八號風球或黑色暴雨時的營業安排"
+        "excerpt": "惡劣天氣下的預訂處理及退款政策"
       },
-      "contactSupport": {
+      "contact-support": {
         "title": "聯絡客服",
-        "excerpt": "透過 WhatsApp 或現場聯絡我們的客服團隊"
+        "excerpt": "如何聯絡我們的客服團隊獲得協助"
       }
     }
+  },
+  "memberShowcase": {
+    "title": "會員制度",
+    "cta_join": "立即加入",
+    "cta_learn": "了解更多",
+    "modal_label": "會員等級",
+    "close_modal": "關閉",
+    "amateur_title": "新星會員",
+    "amateur_body": "HK$1 = 1 積分。註冊即送 50 積分。",
+    "amateur_highlight": "50 積分",
+    "amateur_modal_body": "新用戶自動加入新星會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。開始你的旅程，輕鬆累積。",
+    "century_title": "鉑金會員",
+    "century_subtitle": "800 積分起",
+    "century_body": "貼心補給。積分 1.5 倍加速。",
+    "century_highlight1": "貼心補給",
+    "century_highlight2": "1.5 倍",
+    "century_modal_body": "累積 800 積分晉升鉑金會員等級。解鎖「專屬燈光歡迎詞」。每場預約均免費隨附優質瓶裝水 2 支。積分以 1.5 倍速度累積，升級更快。",
+    "maximum_title": "鑽石會員",
+    "maximum_subtitle": "6,000 積分起",
+    "maximum_badge": "最高等級",
+    "maximum_body": "極致玩家殿堂，積分雙倍，尊享特級禮遇。",
+    "maximum_highlight1": "積分雙倍",
+    "maximum_highlight2": "特級禮遇",
+    "maximum_highlight3": "教練時段",
+    "maximum_modal_body": "累積 6,000 積分達到鑽石會員最高等級。尊享不定期 SPACE8 專屬品牌周邊饋贈。積分雙倍累積，並可以用以換購折扣劵，預約教練時段。為最投入的玩家而設。"
   }
 }

@@ -25,19 +25,22 @@ import {
   Percent,
   Coins,
   Check,
+  HelpCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CHANGE_REQUEST_COOLDOWN } from "@/lib/auth/change-constants";
 import { BackButton } from "@/components/shared/BackButton";
 import { resolveTier, type Tier } from "@/lib/data/pricing";
 import type { MemberData, MemberBooking } from "@/lib/data/getMember";
-import RefundConfirmModal from "@/components/member/RefundConfirmModal";
-import ReschedulePicker from "@/components/member/ReschedulePicker";
+// Self-service cancel/reschedule removed per business policy (2025-01)
+// import RefundConfirmModal from "@/components/member/RefundConfirmModal";
+// import ReschedulePicker from "@/components/member/ReschedulePicker";
 import MemberQrGuide from "@/components/member/MemberQrGuide";
 import DeleteDataModal from "@/components/member/DeleteDataModal";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
 import { Logo } from "@/components/brand";
+import { HelpCentre } from "@/components/help/HelpCentre";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -76,7 +79,7 @@ const TIER_GLOW: Record<string, string> = {
 // Display names for tier IDs — see lib/member/tierDisplay.ts (single source
 // of truth). This module renders localized long-form names via tierLabel().
 
-type TabId = "overview" | "bookings" | "points" | "settings" | "access";
+type TabId = "overview" | "bookings" | "points" | "settings" | "access" | "help";
 
 // Number of days after which a past booking moves to "History"
 const RECENT_DAYS = 30
@@ -162,15 +165,16 @@ export default function MemberDashboard({
   // Honour a ?tab= deep-link (e.g. the account menu's "Settings" → /member?tab=settings).
   const initialTab: TabId = ((): TabId => {
     const q = searchParams.get("tab");
-    if (q === "bookings" || q === "points" || q === "settings" || q === "access") return q;
+    if (q === "bookings" || q === "points" || q === "settings" || q === "access" || q === "help") return q;
     return "overview";
   })();
   const [tab, setTab] = useState<TabId>(initialTab);
   const [fadeVisible, setFadeVisible] = useState(false);
   const tabsRef = useRef<HTMLDivElement>(null);
   const [qrBooking, setQrBooking] = useState<MemberBooking | null>(null);
-  const [refundBooking, setRefundBooking] = useState<MemberBooking | null>(null);
-  const [rescheduleBooking, setRescheduleBooking] = useState<MemberBooking | null>(null);
+  // Self-service cancel/reschedule removed per business policy (2025-01)
+  // const [refundBooking, setRefundBooking] = useState<MemberBooking | null>(null);
+  // const [rescheduleBooking, setRescheduleBooking] = useState<MemberBooking | null>(null);
   const [memberQrDataUrl, setMemberQrDataUrl] = useState<string | null>(null);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<Array<{
@@ -487,6 +491,7 @@ export default function MemberDashboard({
             { id: "points" as TabId, key: "tab_points", icon: <Coins size={15} strokeWidth={2} /> },
             { id: "settings" as TabId, key: "tab_settings", icon: <Settings2 size={15} strokeWidth={2} /> },
             { id: "access" as TabId, key: "tab_access", icon: <QrCodeIcon size={15} strokeWidth={2} /> },
+            { id: "help" as TabId, key: "tab_help", icon: <HelpCircle size={15} strokeWidth={2} /> },
           ]).map((tabItem) => {
             const active = tab === tabItem.id;
             return (
@@ -574,8 +579,6 @@ export default function MemberDashboard({
                     locale={locale}
                     refundCutoffHours={refundCutoffHours}
                     onViewQr={setQrBooking}
-                    onRefund={setRefundBooking}
-                    onReschedule={setRescheduleBooking}
                   />
                   {(historyBookings.length > 0 || upcomingBookings.length + recentBookings.length === 0) && (
                     <motion.div
@@ -617,6 +620,9 @@ export default function MemberDashboard({
               {tab === "access" && (
                 <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
               )}
+              {tab === "help" && (
+                <HelpCentre locale={locale as "zh-HK" | "zh-CN" | "en" | "ja"} />
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -625,44 +631,8 @@ export default function MemberDashboard({
       {/* QR modal */}
       <QrModal booking={qrBooking} memberCode={user.member_code} onClose={() => setQrBooking(null)} locale={locale} />
 
-      {/* Refund confirmation modal */}
-      <RefundConfirmModal
-        booking={refundBooking}
-        onClose={() => setRefundBooking(null)}
-        onRefunded={(booking, result) => {
-          setBookings((prev) =>
-            prev.map((b) =>
-              b.id === booking.id
-                ? { ...b, status: "refunded", refundAmount: result.refundAmount, refundFee: result.refundFee }
-                : b,
-            ),
-          );
-          setRefundBooking(null);
-        }}
-      />
-
-      {/* Reschedule picker */}
-      <ReschedulePicker
-        booking={rescheduleBooking}
-        onClose={() => setRescheduleBooking(null)}
-        onRescheduled={(booking, result) => {
-          setBookings((prev) =>
-            prev.map((b) =>
-              b.id === booking.id
-                ? {
-                    ...b,
-                    date: result.date,
-                    startTime: result.startTime,
-                    endTime: result.endTime,
-                    tableId: result.tableNumber,
-                    rescheduleCount: result.rescheduleCount,
-                  }
-                : b,
-            ),
-          );
-          setRescheduleBooking(null);
-        }}
-      />
+      {/* Self-service cancel/reschedule modals removed per business policy (2025-01) */}
+      {/* Users must contact customer service via WhatsApp 6180 8022 or Admin@space8.com.hk */}
     </div>
   );
 }
@@ -1130,8 +1100,6 @@ function BookingsTab({
   locale,
   refundCutoffHours,
   onViewQr,
-  onRefund,
-  onReschedule,
 }: {
   upcomingBookings: MemberBooking[];
   recentBookings: MemberBooking[];
@@ -1139,8 +1107,6 @@ function BookingsTab({
   locale: string;
   refundCutoffHours: number;
   onViewQr: (b: MemberBooking) => void;
-  onRefund: (b: MemberBooking) => void;
-  onReschedule: (b: MemberBooking) => void;
 }) {
   const t = useTranslations("memberPage");
   const router = useRouter();
@@ -1186,8 +1152,6 @@ function BookingsTab({
           locale={locale}
           refundCutoffHours={refundCutoffHours}
           onViewQr={onViewQr}
-          onRefund={onRefund}
-          onReschedule={onReschedule}
         />
       )}
       {recentBookings.length > 0 && (
@@ -1199,8 +1163,6 @@ function BookingsTab({
           locale={locale}
           refundCutoffHours={refundCutoffHours}
           onViewQr={onViewQr}
-          onRefund={onRefund}
-          onReschedule={onReschedule}
         />
       )}
       {historyBookings.length > 0 && (
@@ -1212,8 +1174,6 @@ function BookingsTab({
           locale={locale}
           refundCutoffHours={refundCutoffHours}
           onViewQr={onViewQr}
-          onRefund={onRefund}
-          onReschedule={onReschedule}
           muted
         />
       )}
@@ -1222,7 +1182,7 @@ function BookingsTab({
 }
 
 function BookingSection({
-  title, subtitle, icon, bookings, locale, refundCutoffHours, onViewQr, onRefund, onReschedule, muted,
+  title, subtitle, icon, bookings, locale, refundCutoffHours, onViewQr, muted,
 }: {
   title: string;
   subtitle: string;
@@ -1231,8 +1191,6 @@ function BookingSection({
   locale: string;
   refundCutoffHours: number;
   onViewQr: (b: MemberBooking) => void;
-  onRefund: (b: MemberBooking) => void;
-  onReschedule: (b: MemberBooking) => void;
   muted?: boolean;
 }) {
   const t = useTranslations("memberPage");
@@ -1332,15 +1290,8 @@ function BookingSection({
                     />
                   )
                 )}
-                {canRefund(b, refundCutoffHours) && (
-                  <SmallButton
-                    onClick={() => onRefund(b)}
-                    icon={<Undo2 size={15} strokeWidth={2} />}
-                    label={t("booking_refund")}
-                    cmsKey="member.booking_refund"
-                    tone="danger"
-                  />
-                )}
+                {/* Self-service cancel/reschedule removed per business policy (2025-01) */}
+                {/* Users must contact customer service via WhatsApp 6180 8022 or Admin@space8.com.hk */}
                 <div style={{ marginLeft: "auto" }}>
                   <OverflowMenu
                     items={[

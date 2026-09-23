@@ -521,6 +521,7 @@
     "tab_points": "Points",
     "tab_settings": "Settings",
     "tab_access": "Access guide",
+    "tab_help": "Help",
     "section_upcoming": "Upcoming",
     "section_upcoming_desc": "Your confirmed future bookings",
     "section_recent": "Recent",
@@ -1976,5 +1977,102 @@
     "accept_all": "Accept All Cookies",
     "necessary_only": "Necessary Only",
     "dismiss": "Dismiss"
+  },
+  "help": {
+    "title": "Support Center",
+    "subtitle": "Find answers to common questions",
+    "hero": {
+      "title": "Hello, how can we help you?",
+      "subtitle": "Search for common questions or browse topics below"
+    },
+    "searchPlaceholder": "Search articles...",
+    "noResults": "No articles found",
+    "backToSupport": "Back to Support",
+    "backToHelp": "Back to Help",
+    "stillNeedHelp": "Still need help?",
+    "stillNeedHelpDesc": "If the information above didn't solve your issue, feel free to contact our support team.",
+    "contactSupport": "Contact Support",
+    "popularQuestions": "Popular Questions",
+    "browseTopics": "Browse Topics",
+    "categories": {
+      "all": {
+        "title": "All"
+      },
+      "getting-started": {
+        "title": "Getting Started"
+      },
+      "booking": {
+        "title": "Booking"
+      },
+      "account": {
+        "title": "Account"
+      },
+      "policies": {
+        "title": "Policies"
+      },
+      "support": {
+        "title": "Support"
+      },
+      "articlesCount": "articles"
+    },
+    "articles": {
+      "entry-qr": {
+        "title": "How to use QR Code for entry",
+        "excerpt": "Learn how to use your booking QR Code to enter the venue"
+      },
+      "booking": {
+        "title": "How to book a table",
+        "excerpt": "Complete guide to booking a table"
+      },
+      "account-login": {
+        "title": "Account login issues",
+        "excerpt": "Resolve common issues when logging into your account"
+      },
+      "find-qr": {
+        "title": "Can't find your QR Code?",
+        "excerpt": "How to locate or retrieve your entry QR Code"
+      },
+      "tier-points": {
+        "title": "Membership tiers and points",
+        "excerpt": "Learn about the membership tier system and how to earn points"
+      },
+      "cancellation-policy": {
+        "title": "Cancellation policy",
+        "excerpt": "Booking cancellation, refund conditions and processing"
+      },
+      "special-weather": {
+        "title": "Special weather arrangements",
+        "excerpt": "Booking handling and refund policy during adverse weather"
+      },
+      "contact-support": {
+        "title": "Contact support",
+        "excerpt": "How to reach our support team for assistance"
+      }
+    }
+  },
+  "memberShowcase": {
+    "title": "Membership",
+    "cta_join": "Join Now",
+    "cta_learn": "Learn More",
+    "modal_label": "Membership Tier",
+    "close_modal": "Close",
+    "amateur_title": "Nova Member",
+    "amateur_body": "HK$1 = 1 point. Get 50 points on signup.",
+    "amateur_highlight": "50 points",
+    "amateur_modal_body": "New users automatically join as Nova Members and receive 50 points instantly. Earn 1 point for every HK$1 spent. Start your journey and accumulate with ease.",
+    "century_title": "Platinum Member",
+    "century_subtitle": "From 800 points",
+    "century_body": "Thoughtful perks. 1.5× points acceleration.",
+    "century_highlight1": "Thoughtful perks",
+    "century_highlight2": "1.5×",
+    "century_modal_body": "Reach 800 points to unlock Platinum Member status. Get a custom LED welcome message. Each booking includes 2 complimentary premium bottled waters. Earn points 1.5× faster.",
+    "maximum_title": "Diamond Member",
+    "maximum_subtitle": "From 6,000 points",
+    "maximum_badge": "Highest Tier",
+    "maximum_body": "Elite player sanctuary, 2× points, exclusive VIP perks.",
+    "maximum_highlight1": "2× points",
+    "maximum_highlight2": "VIP perks",
+    "maximum_highlight3": "Coach slots",
+    "maximum_modal_body": "Reach 6,000 points to attain Diamond Member — our highest tier. Enjoy exclusive SPACE8 branded merchandise gifts. Earn points at 2× rate, redeem for discounts, and book premium coach sessions. Reserved for our most dedicated players."
   }
 }

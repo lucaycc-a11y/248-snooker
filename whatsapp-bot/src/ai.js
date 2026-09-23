@@ -78,7 +78,7 @@ ${bookings.map((booking) => `- ${booking.date} ${booking.start_time}-${booking.e
 export async function generateAdminReply(adminMessage, context) {
   const { history } = context
 
-  const systemPrompt = `你係248 Snooker嘅管理系統AI。
+  const systemPrompt = `你係248 Snooker嘅管理繫統AI。
 管理員用自然語言同你溝通，你負責理解佢嘅意圖並執行或確認操作。
 
 可以執行嘅操作：
