@@ -153,7 +153,7 @@
     "change_password_success_body": "正在跳轉…",
     "change_password_go_to_settings": "前往設定頁面",
     "change_phone_title": "更改電話",
-    "change_phone_subtitle": "請輸入新的香港電話號碼，我們将發送驗證碼確認。",
+    "change_phone_subtitle": "請輸入新的香港電話號碼，我們將發送驗證碼確認。",
     "change_phone_error_same_number": "新號碼與目前號碼相同",
     "change_phone_otp_length_error": "請輸入 6 位數驗證碼",
     "change_phone_otp_expiry": "驗證碼有效期為 10 分鐘",
@@ -301,7 +301,7 @@
       },
       {
         "q": "可以中途延长吗？",
-        "a": "可以，视場地空档而定。超時将按每 15 分鐘 HK$50 計算。"
+        "a": "可以，视場地空档而定。超時將按每 15 分鐘 HK$50 計算。"
       },
       {
         "q": "超時怎么計算？",
@@ -329,7 +329,7 @@
     "filter_culture": "桌球文化",
     "read_time": "{min} 分鐘阅讀",
     "by_author": "作者",
-    "coming_soon_title": "即将推出",
+    "coming_soon_title": "即將推出",
     "coming_soon_body": "我們正在準備精彩内容，敬請期待。",
     "newsletter_placeholder": "輸入郵箱訂阅更新",
     "newsletter_button": "訂阅",
@@ -522,7 +522,7 @@
     "tab_settings": "設定",
     "tab_access": "入場指南",
     "tab_help": "說明",
-    "section_upcoming": "即将到來",
+    "section_upcoming": "即將到來",
     "section_upcoming_desc": "你已確認的未來預訂",
     "section_recent": "最近",
     "section_recent_desc": "過去 7 天",
@@ -599,7 +599,7 @@
     "reschedule_modal_unavailable_error": "此時段已被預訂。",
     "reschedule_modal_generic_error": "改期失敗，請重試。",
     "reschedule_success_toast": "已改期",
-    "bookings_upcoming": "即将到來",
+    "bookings_upcoming": "即將到來",
     "bookings_history": "歷史記錄",
     "no_bookings": "暂無預訂記錄",
     "no_history": "暂無歷史記錄",
@@ -942,7 +942,7 @@
     "faq_booking_q": "如何預訂球桌？",
     "faq_booking_a": "選擇日期、時段及時長，以 Apple Pay 或信用卡即時付款，確認后即獲 QR 碼。全程不需人工協助。",
     "faq_entry_q": "預訂后如何入場？",
-    "faq_entry_a": "付款確認后，你将收到專屬 QR 碼。到場掃描门口感應器，繫統自动開门，全程自助。",
+    "faq_entry_a": "付款確認后，你將收到專屬 QR 碼。到場掃描门口感應器，繫統自动開门，全程自助。",
     "faq_cancel_q": "可以取消或退款吗？",
     "faq_cancel_a": "所有預約一經確認，一律不設取消、改期或退款（臺風 8 號或以上／黑色暴雨警告除外，可申請改期）。詳情請参阅《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)及[第六條](/legal?doc=terms#section-6)。",
     "faq_hours_q": "營業時間是什么？",
@@ -950,11 +950,11 @@
     "faq_smoking_q": "球室内禁止吸煙吗？",
     "faq_smoking_a": "本球室全區严格禁煙（包含纸煙、電子煙及加熱煙），旨在維護最高品质的無煙環境。若有吸煙需求，請至大厦戶外吸煙。",
     "faq_weather_q": "恶劣天气怎么辦？",
-    "faq_weather_a": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自动化繫統維持正常運作，閣下可評估安全后如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，将视為自动放弃權益。\n\n【一般情况 / 其它天气（如 3 號風球、红雨）】\n不設退改：除上述极端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
+    "faq_weather_a": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自动化繫統維持正常運作，閣下可評估安全后如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，將视為自动放弃權益。\n\n【一般情况 / 其它天气（如 3 號風球、红雨）】\n不設退改：除上述极端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
     "faq_overtime_q": "如果超時了該怎么辦？",
     "faq_overtime_a": "若您預約的時段后面無其他顾客，請在 15 分鐘内離開場地（如超時 15 分鐘后仍使用相關設施，需要繳付 1 小時的正價租用費用）；若下一時段已有預約，繫統會在結束前 5 分鐘會以小管家屏幕作温馨提醒，請於預約時間結束前整理離場。",
     "faq_pricing_q": "收費如何計算？",
-    "faq_pricing_a": "按時段每小時計費，不同時段費率不同，連續預訂 2 小時或以上可享優惠；超時逗留将另收超時費用。詳情請参阅[定價頁面](/pricing)及《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)。",
+    "faq_pricing_a": "按時段每小時計費，不同時段費率不同，連續預訂 2 小時或以上可享優惠；超時逗留將另收超時費用。詳情請参阅[定價頁面](/pricing)及《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)。",
     "faq_points_q": "什么是積分制度？",
     "faq_points_a": "每消費 HK$1 賺取 1 積分，累積積分可升級 铂金 及 鑽石 會籍，尊享更多禮遇。詳情請参阅[會員頁面](/membership)。",
     "faq_facilities_q": "場地内有什么設施？",
@@ -962,7 +962,7 @@
     "faq_guests_q": "可以带朋友一起來吗？",
     "faq_guests_a": "可以，每個時段可容納多人，費用按時段計算，無需額外收費。",
     "faq_contact_q": "有問題如何聯繫？",
-    "faq_contact_a": "可透過 WhatsApp 聯繫我們，或發送電郵至 hello@space8.com.hk，我們将尽快回復。",
+    "faq_contact_a": "可透過 WhatsApp 聯繫我們，或發送電郵至 hello@space8.com.hk，我們將尽快回復。",
     "more": "了解更多"
   },
   "whatsapp": {
@@ -1041,7 +1041,7 @@
     "back_home": "返回主頁",
     "back": "返回",
     "leave_title": "離開預訂？",
-    "leave_body": "你當前的選擇将不會保留。",
+    "leave_body": "你當前的選擇將不會保留。",
     "leave_confirm": "離開",
     "leave_stay": "繼續預訂",
     "checking": "正在檢查可用球臺…",
@@ -1129,15 +1129,15 @@
     "kpay_processing": "處理中⋯",
     "stripe_title": "付款",
     "stripe_qr_scan": "請用微信支付掃描以下二維碼",
-    "stripe_pending_desc": "請在手機上完成付款，二維碼将於 {time} 后過期",
+    "stripe_pending_desc": "請在手機上完成付款，二維碼將於 {time} 后過期",
     "stripe_pending_confirmation": "確認付款中",
     "stripe_pending_confirmation_desc": "繫統正在確認你的付款，請稍候…",
     "stripe_success": "付款成功",
     "stripe_success_desc": "你的預訂已確認",
     "stripe_expired": "二維碼已過期",
-    "stripe_expired_desc": "此二維碼已過期，新二維碼即将自动生成",
+    "stripe_expired_desc": "此二維碼已過期，新二維碼即將自动生成",
     "stripe_regenerate": "重新生成",
-    "stripe_countdown": "二維碼将於 {time} 后過期",
+    "stripe_countdown": "二維碼將於 {time} 后過期",
     "stripe_help": "需要幫助？",
     "stripe_support_whatsapp": "WhatsApp 客服",
     "stripe_waited": "已等待 {seconds} 秒",
@@ -1355,13 +1355,13 @@
       "每間球室使用人數上限為 8 人。",
       "場内全面禁煙，包括電子煙及加熱煙。",
       "未满 12 岁人士須由年满 18 岁成人全程陪同。",
-      "請於預約時段結束時準時離場，超時 15 分鐘将收取超時費用。",
+      "請於預約時段結束時準時離場，超時 15 分鐘將收取超時費用。",
       "離場前請完成場地復原：歸位球具、清洁臺面、套回防塵罩、關閉電源。",
       "進場后如發現設施損壞，請於 10 分鐘内通過 WhatsApp 向我們報告。"
     ],
     "rules_link": "查看完整場地使用守則及條款",
     "weather_title": "恶劣天气及特殊安排",
-    "weather_body": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自动化繫統維持正常運作，閣下可評估安全后如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，将视為自动放弃權益。\n\n【一般情况 / 其它天气（如 3 號風球、红雨）】\n不設退改：除上述极端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
+    "weather_body": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自动化繫統維持正常運作，閣下可評估安全后如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，將视為自动放弃權益。\n\n【一般情况 / 其它天气（如 3 號風球、红雨）】\n不設退改：除上述极端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
     "directions_title": "如何前往",
     "address_label": "地址",
     "address": "香港新蒲岗大有街 32 號泰力工業中心 3 楼 05 室",
@@ -1401,7 +1401,7 @@
     "intro": "一套更聰明的自助体驗，讓每個球室、每場球局與每位會員都更流暢。",
     "scoreboard_kicker": "SPACE PILOT / 即時比分板",
     "scoreboard_title": "每一球，都與賽事同步。",
-    "scoreboard_intro": "Space Pilot 将私人球室變成即時賽事中枢：比分、勝場、排名和剩餘時間清晰呈現，讓你專註於球臺。",
+    "scoreboard_intro": "Space Pilot 將私人球室變成即時賽事中枢：比分、勝場、排名和剩餘時間清晰呈現，讓你專註於球臺。",
     "scoreboard_alt": "SPACE8 Space Pilot 即時比分板，展示比賽比分、勝場統計、球員排名及剩餘時段",
     "scoreboard_live": "即時賽事",
     "scoreboard_wins": "勝場記錄",
@@ -1499,7 +1499,7 @@
     "pilot_items": [
       {
         "title": "扫碼綁定",
-        "body": "到場后由工作人員以 QR Code 将設備綁定至你的預約時段。"
+        "body": "到場后由工作人員以 QR Code 將設備綁定至你的預約時段。"
       },
       {
         "title": "自动計分",
@@ -1541,7 +1541,7 @@
       },
       {
         "title": "時間管理不尴尬",
-        "body": "自动提醒剩餘 10 分鐘和 5 分鐘，禮貌提示即将結束，扫碼即可續約，無需店員介入。"
+        "body": "自动提醒剩餘 10 分鐘和 5 分鐘，禮貌提示即將結束，扫碼即可續約，無需店員介入。"
       },
       {
         "title": "免打擾模式",
@@ -1616,7 +1616,7 @@
       },
       {
         "title": "Space Pilot",
-        "body": "引入 AI 智能对戰管家，将科技带入傳統桌球室"
+        "body": "引入 AI 智能对戰管家，將科技带入傳統桌球室"
       },
       {
         "title": "自助入場",
@@ -1884,7 +1884,7 @@
       "err_contact_required_cta": "填寫聯繫方式",
       "err_name_required_title": "請輸入姓名",
       "err_name_required_desc": "姓名為必填项目，請輸入您的真實姓名。",
-      "err_name_required_hint": "姓名将顯示在預訂凭證上",
+      "err_name_required_hint": "姓名將顯示在預訂凭證上",
       "err_name_required_cta": "填寫姓名",
       "err_terms_not_accepted_title": "請同意條款",
       "err_terms_not_accepted_desc": "繼續付款前，請先阅讀并同意場地使用守則及條款與细則。",
@@ -1968,8 +1968,8 @@
       "err_test_booking_refund_failed_cta": "重試"
     }
   },
-  "coming_soon_label": "此付款方式即将推出",
-  "qr_instruction_label": "您将看到一個二維碼，請使用微信支付掃描以完成付款",
+  "coming_soon_label": "此付款方式即將推出",
+  "qr_instruction_label": "您將看到一個二維碼，請使用微信支付掃描以完成付款",
   "cookie_consent": {
     "title": "我們使用 Cookies",
     "message": "本網站使用必要 Cookies 以維持登入及預約功能，并使用分析 Cookies 改善使用体驗。",
