@@ -1,20 +1,27 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
-import { slotBounds } from '@/lib/booking/server'
-import { isSlotStillBookable, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
-import { rateLimit } from '@/lib/rate-limit'
-import { logSiteError } from '@/lib/errors/log'
 
 export const runtime = 'nodejs'
 
 // POST /api/bookings/[id]/reschedule
-// Self-serve, free reschedule to a new date/time/table. Must be before the
-// booking's current start_time; the new slot must be free. Body:
-// { date, startHour, duration, tableNumber } — same shape as /api/booking/lock,
-// converted server-side into timestamps via the shared slotBounds() helper so
-// the client never constructs a timestamptz itself. No Stripe call (free).
+// PERMANENTLY DISABLED 2025-01-XX per confirmed business policy.
+// Self-service rescheduling is not permitted under any circumstances.
+// Users must contact customer service via WhatsApp for reschedule requests,
+// which will be evaluated on a case-by-case basis per the venue policy.
 export async function POST(req: Request, { params }: { params: { id: string } }) {
+  return NextResponse.json(
+    {
+      error: 'Self-service rescheduling not available',
+      message: '預訂一經確認，恕不設自助更改。如有特殊情況（例如惡劣天氣），請透過 WhatsApp 6180 8022 或電郵 Admin@space8.com.hk 聯絡客服，並提供訂單編號（格式：SPACE8-XXXXX-C）。',
+      contact: {
+        whatsapp: '+852 6180 8022',
+        whatsappUrl: 'https://wa.me/85261808022',
+        email: 'Admin@space8.com.hk',
+      },
+    },
+    { status: 410 }
+  )
+
+  /* ORIGINAL IMPLEMENTATION PRESERVED FOR REFERENCE - DO NOT REMOVE THIS COMMENT BLOCK
   try {
     const supabase = await createClient()
     const {
@@ -132,4 +139,5 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     await logSiteError('bookings/reschedule', 'error', 'unhandled exception', { message: (err as Error).message })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
+  */
 }

@@ -690,29 +690,251 @@
     "qr_hint": "提示：也可以用会员 QR code 进出场地，QR code 可以在登录后「我的账户」看到"
   },
   "member": {
-    "title": "会员制度",
-    "amateur_title": "新星会员",
-    "amateur_body": "注册即送积分，每一场都被记录下来，从这里开始累积属于你的球场故事。",
-    "amateur_highlight": "积分",
-    "amateur_modal_body": "新用户自动加入新星会员，即时获赠 50 积分。每消费 HK$1 累积 1 积分。Space Pilot 完整功能开放使用，个人总胜场自动累积，开始你的台球之旅。",
-    "century_title": "铂金会员",
-    "century_subtitle": "800 积分起",
-    "century_body": "积分加速累积，解锁高级会员专属体验",
-    "century_highlight1": "积分加速累积",
-    "century_highlight2": "高级会员专属体验",
-    "century_modal_body": "累积 800 积分晋升铂金会员等级。解锁专享年度个人战绩回顾报告。可用积分兑换时段折扣券，积分以 1.5 倍速度累积，升级更快。",
-    "maximum_title": "钻石会员",
-    "maximum_subtitle": "6,000 积分起",
-    "maximum_badge": "最高等级",
-    "maximum_body": "极致玩家殿堂，积分双倍，尊享特级礼遇。",
-    "maximum_highlight1": "积分双倍",
-    "maximum_highlight2": "特级礼遇",
-    "maximum_highlight3": "最高等级",
-    "maximum_modal_body": "累积 6000 积分达到钻石会员最高等级。尊享不定期 SPACE8 专属品牌周边馈赠。个人杆柜优先分配。新场地／新功能优先试用权。积分双倍累积，为最投入的玩家而设。",
-    "modal_label": "会员等级",
-    "cta_join": "立即加入",
-    "cta_learn": "了解更多",
-    "close_modal": "关闭"
+    "tabs": {
+      "home": "主页",
+      "rewards": "奖赏",
+      "bookings": "订场记录",
+      "inbox": "收件箱",
+      "settings": "设定",
+      "help": "帮助中心"
+    },
+    "birthday_perk_active": "生日优惠已启用",
+    "stats": {
+      "available_points": "可用积分",
+      "lifetime_points": "累积积分",
+      "ready_offers": "可用优惠"
+    },
+    "home": {
+      "active_offers": "当前优惠",
+      "book_now": "立即订场",
+      "book_now_desc": "预订您的枱位",
+      "view_rewards": "查看奖赏",
+      "view_rewards_desc": "浏览积分和优惠"
+    },
+    "card": {
+      "member_code": "会员编号",
+      "available_points": "可用积分",
+      "tap_for_qr": "点击查看二维码",
+      "scan_to_verify": "扫描验证会籍"
+    },
+    "tier": {
+      "current": "当前等级",
+      "lifetime_points": "累积积分",
+      "next_tier": "下一等级",
+      "points_away": "分之遥",
+      "max_tier_reached": "已达最高等级"
+    },
+    "offers": {
+      "state": {
+        "issued": "待领取",
+        "ready": "可使用",
+        "reserved": "已预留",
+        "used": "已使用",
+        "expired": "已过期"
+      },
+      "expires": "有效期至",
+      "min_hours": "最少时数",
+      "claim_now": "立即领取",
+      "claiming": "领取中...",
+      "redeem_for": "兑换需",
+      "points": "积分",
+      "redeeming": "兑换中...",
+      "use_offer": "使用优惠",
+      "reserved_in_booking": "已在订单中预留",
+      "expired": "已过期",
+      "used_at": "使用时间",
+      "discount_types": {
+        "off": "折扣",
+        "free": "免费",
+        "birthday_perk": "生日优惠"
+      },
+      "units": {
+        "off": "折扣",
+        "free": "免费",
+        "points": "积分"
+      },
+      "errors": {
+        "offer_not_found": "找不到优惠",
+        "offer_already_redeemed": "优惠已兑换",
+        "offer_not_points_redeemable": "此优惠不可用积分兑换",
+        "insufficient_points": "积分不足",
+        "offer_already_claimed": "优惠已领取",
+        "offer_not_claimable": "此优惠不可领取",
+        "unknown_error": "未知错误",
+        "network_error": "网络错误"
+      }
+    },
+    "rewards": {
+      "overview": "总览",
+      "catalog": "积分商店",
+      "history": "历史记录",
+      "ready_offers": "可用优惠",
+      "claim_offers": "待领取优惠",
+      "recent_points": "最近积分",
+      "points_shop": "积分商店",
+      "no_catalog": "暂无可兑换优惠",
+      "offer_history": "优惠历史",
+      "no_history": "暂无历史记录"
+    },
+    "bookings": {
+      "filters": {
+        "all": "全部",
+        "upcoming": "即将到来",
+        "past": "过往"
+      },
+      "empty_state": "暂无订场记录",
+      "table": "枱号",
+      "time": "时间",
+      "duration": "时长",
+      "price": "价格",
+      "reference": "参考编号",
+      "refunded_at": "退款时间",
+      "refund_amount": "退款金额",
+      "fee": "手续费",
+      "rescheduled_at": "改期时间",
+      "scan_to_check_in": "扫描以办理入场",
+      "status": {
+        "confirmed": "已确认",
+        "pending": "待确认",
+        "payment_failed": "付款失败",
+        "cancelled": "已取消"
+      }
+    },
+    "points": {
+      "empty_state": "暂无积分记录",
+      "balance": "余额"
+    },
+    "inbox": {
+      "title": "收件箱",
+      "unread": "条未读",
+      "mark_all_read": "全部标为已读",
+      "marking_all": "标记中...",
+      "tabs": {
+        "all": "全部",
+        "offer": "优惠",
+        "booking": "订场",
+        "system": "系统"
+      },
+      "empty_state": "暂无通知"
+    },
+    "settings": {
+      "title": "设定",
+      "personal": "个人资料",
+      "security": {
+        "change_password": "更改密码",
+        "change_password_desc": "我们会发送更改密码连结到您的电邮",
+        "change_phone": "更改电话",
+        "change_phone_desc": "我们会发送更改电话连结到您的电邮",
+        "two_factor": "双重验证",
+        "two_factor_desc": "增强您的帐户安全",
+        "email_sent": "已发送电邮",
+        "sending": "发送中...",
+        "send_email": "发送邮件",
+        "coming_soon": "即将推出"
+      },
+      "notifications": {
+        "email_notifications": "电邮通知",
+        "push_notifications": "推送通知",
+        "booking_confirmed": "订场确认",
+        "booking_confirmed_desc": "当订场确认时接收通知",
+        "booking_reminder": "订场提醒",
+        "booking_reminder_desc": "在订场前接收提醒",
+        "offers": "优惠通知",
+        "offers_desc": "接收新优惠和奖赏通知",
+        "promotions": "推广资讯",
+        "promotions_desc": "接收推广活动资讯",
+        "push_booking_reminder": "订场提醒",
+        "push_booking_reminder_desc": "推送订场前提醒",
+        "push_offers": "优惠通知",
+        "push_offers_desc": "推送新优惠通知",
+        "push_system": "系统通知",
+        "push_system_desc": "推送重要系统通知",
+        "save_preferences": "储存偏好设定",
+        "saving": "储存中...",
+        "saved": "已储存"
+      },
+      "privacy": "私隐",
+      "display_name": "显示名称",
+      "display_name_hint": "您的公开显示名称",
+      "email": "电邮",
+      "email_readonly": "电邮地址无法更改",
+      "phone": "电话",
+      "phone_readonly": "电话号码需通过邮件更改",
+      "birth_month": "出生月份",
+      "birth_month_hint": "设定后用于生日优惠（设定后无法更改）",
+      "birth_month_locked": "已设定（无法更改）",
+      "not_set": "未设定",
+      "set": "设定",
+      "confirm": "确认",
+      "cancel": "取消",
+      "saving": "储存中...",
+      "member_since": "会员加入日期",
+      "privacy_title": "私隐设定",
+      "privacy_desc": "管理您的个人资料和帐户",
+      "delete_account": "删除帐户",
+      "errors": {
+        "invalid_month": "无效月份",
+        "unauthorized": "未授权",
+        "already_set": "已设定",
+        "unknown_error": "未知错误",
+        "network_error": "网络错误"
+      }
+    },
+    "help": {
+      "title": "帮助中心",
+      "subtitle": "我们在此为您提供协助",
+      "search_placeholder": "搜寻常见问题...",
+      "categories": {
+        "all": "全部",
+        "booking": "订场",
+        "points": "积分",
+        "payment": "付款",
+        "account": "帐户",
+        "general": "一般"
+      },
+      "no_results": "找不到相关结果",
+      "still_need_help": "仍需要协助？",
+      "contact": {
+        "email": "电邮支援",
+        "phone": "电话支援",
+        "hours": "营业时间",
+        "hours_detail": "星期一至日 10:00 - 22:00"
+      },
+      "faq": {
+        "how_to_book": {
+          "question": "如何预订枱位？",
+          "answer": "在首页点击「立即订场」，选择日期、时间和枱位，然后完成付款即可。"
+        },
+        "cancel_booking": {
+          "question": "可以取消预订吗？",
+          "answer": "已确认的订场无法取消或退款。如有特殊情况，请联络客户服务。"
+        },
+        "earn_points": {
+          "question": "如何赚取积分？",
+          "answer": "每次完成订场后，您会根据消费金额和会员等级自动获得积分。更高等级可获得更多积分倍数。"
+        },
+        "redeem_points": {
+          "question": "如何使用积分？",
+          "answer": "积分可在积分商店兑换优惠券。优惠券可在下次订场时使用以获得折扣。"
+        },
+        "tier_upgrade": {
+          "question": "如何升级会员等级？",
+          "answer": "会员等级基于累积积分自动升级。等级永不降级，您只会向上晋升。"
+        },
+        "payment_methods": {
+          "question": "接受哪些付款方式？",
+          "answer": "我们接受信用卡、FPS、支付宝和微信支付。"
+        },
+        "birthday_perk": {
+          "question": "生日优惠如何使用？",
+          "answer": "在设定中设定您的出生月份（设定后无法更改），每年可在生日月份享受一次双倍积分优惠。"
+        },
+        "change_password": {
+          "question": "如何更改密码？",
+          "answer": "进入设定 > 安全，点击「更改密码」。我们会发送一个安全连结到您的电邮。"
+        }
+      }
+    }
   },
   "faq": {
     "title": "常见问题",
@@ -796,8 +1018,8 @@
     "pay_now": "立即付款",
     "card_number": "卡号",
     "cardholder": "持卡人姓名",
-    "kpay_secure": "KPay 加密支付・资料安全传输",
-    "stripe_secure": "Stripe 加密支付・资料安全传输",
+    "kpay_secure": "KPay 加密支付 · 资料安全传输",
+    "stripe_secure": "Stripe 加密支付 · 资料安全传输",
     "pay_error": "无法开始付款，请返回再试。",
     "pay_loading": "正在准备安全付款…",
     "confirming": "正在确认付款…",
@@ -903,7 +1125,7 @@
     "stripe_error_generic": "付款未能完成，请重试或联络客服",
     "stripe_error_terms_required": "请先同意条款与细则",
     "stripe_processing": "正在处理付款，请稍候",
-    "kpay_processing": "正在处理付款，请稍候",
+    "kpay_processing": "處理中⋯",
     "stripe_title": "付款",
     "stripe_qr_scan": "请用微信支付扫描以下二维码",
     "stripe_pending_desc": "请在手机上完成付款，二维码将于 {time} 后过期",
@@ -921,8 +1143,6 @@
     "stripe_cancelled": "付款已取消",
     "stripe_cancelled_desc": "此预订已取消，已释放时段。",
     "stripe_cancel": "取消预订",
-    "stripe_secure": "Stripe 加密支付 · 资料安全传输",
-    "kpay_secure": "KPay 加密支付 · 资料安全传输",
     "table_count": "Snooker",
     "promo_placeholder": "输入优惠码",
     "promo_apply": "套用",
@@ -967,7 +1187,6 @@
     "kpay_back_to_methods": "返回選擇付款方式",
     "kpay_waited": "已等待 {seconds} 秒",
     "kpay_choose_method": "選擇付款方式",
-    "kpay_processing": "處理中⋯",
     "kpay_cancelled": "付款已取消",
     "kpay_cancelled_desc": "此预订已取消，已释放时段。",
     "kpay_cancel": "取消预订",
@@ -1758,253 +1977,33 @@
     "necessary_only": "仅必要 Cookies",
     "dismiss": "关闭"
   },
-  "member": {
-    "tabs": {
-      "home": "主页",
-      "rewards": "奖赏",
-      "bookings": "订场记录",
-      "inbox": "收件箱",
-      "settings": "设定",
-      "help": "帮助中心"
-    },
-    "birthday_perk_active": "生日优惠已启用",
-    "stats": {
-      "available_points": "可用积分",
-      "lifetime_points": "累积积分",
-      "ready_offers": "可用优惠"
-    },
-    "home": {
-      "active_offers": "当前优惠",
-      "book_now": "立即订场",
-      "book_now_desc": "预订您的枱位",
-      "view_rewards": "查看奖赏",
-      "view_rewards_desc": "浏览积分和优惠"
-    },
-    "card": {
-      "member_code": "会员编号",
-      "available_points": "可用积分",
-      "tap_for_qr": "点击查看二维码",
-      "scan_to_verify": "扫描验证会籍"
-    },
-    "tier": {
-      "current": "当前等级",
-      "lifetime_points": "累积积分",
-      "next_tier": "下一等级",
-      "points_away": "分之遥",
-      "max_tier_reached": "已达最高等级"
-    },
-    "offers": {
-      "state": {
-        "issued": "待领取",
-        "ready": "可使用",
-        "reserved": "已预留",
-        "used": "已使用",
-        "expired": "已过期"
+  "help": {
+    "title": "支持中心",
+    "subtitle": "查找常见问题的解答",
+    "searchPlaceholder": "搜索文章...",
+    "noResults": "找不到相关文章",
+    "backToSupport": "返回支持中心",
+    "backToHelp": "返回说明",
+    "stillNeedHelp": "仍需要协助？",
+    "stillNeedHelpDesc": "如果以上信息未能解决您的问题，欢迎联络客服团队。",
+    "contactSupport": "联络客服",
+    "categories": {
+      "all": {
+        "title": "全部"
       },
-      "expires": "有效期至",
-      "min_hours": "最少时数",
-      "claim_now": "立即领取",
-      "claiming": "领取中...",
-      "redeem_for": "兑换需",
-      "points": "积分",
-      "redeeming": "兑换中...",
-      "use_offer": "使用优惠",
-      "reserved_in_booking": "已在订单中预留",
-      "expired": "已过期",
-      "used_at": "使用时间",
-      "discount_types": {
-        "off": "折扣",
-        "free": "免费",
-        "birthday_perk": "生日优惠"
+      "getting-started": {
+        "title": "入门指南"
       },
-      "units": {
-        "off": "折扣",
-        "free": "免费",
-        "points": "积分"
+      "booking": {
+        "title": "预订"
       },
-      "errors": {
-        "offer_not_found": "找不到优惠",
-        "offer_already_redeemed": "优惠已兑换",
-        "offer_not_points_redeemable": "此优惠不可用积分兑换",
-        "insufficient_points": "积分不足",
-        "offer_already_claimed": "优惠已领取",
-        "offer_not_claimable": "此优惠不可领取",
-        "unknown_error": "未知错误",
-        "network_error": "网络错误"
-      }
-    },
-    "rewards": {
-      "overview": "总览",
-      "catalog": "积分商店",
-      "history": "历史记录",
-      "ready_offers": "可用优惠",
-      "claim_offers": "待领取优惠",
-      "recent_points": "最近积分",
-      "points_shop": "积分商店",
-      "no_catalog": "暂无可兑换优惠",
-      "offer_history": "优惠历史",
-      "no_history": "暂无历史记录"
-    },
-    "bookings": {
-      "filters": {
-        "all": "全部",
-        "upcoming": "即将到来",
-        "past": "过往"
+      "account": {
+        "title": "账户"
       },
-      "empty_state": "暂无订场记录",
-      "table": "枱号",
-      "time": "时间",
-      "duration": "时长",
-      "price": "价格",
-      "reference": "参考编号",
-      "refunded_at": "退款时间",
-      "refund_amount": "退款金额",
-      "fee": "手续费",
-      "rescheduled_at": "改期时间",
-      "scan_to_check_in": "扫描以办理入场",
-      "status": {
-        "confirmed": "已确认",
-        "pending": "待确认",
-        "payment_failed": "付款失败",
-        "cancelled": "已取消"
-      }
-    },
-    "points": {
-      "empty_state": "暂无积分记录",
-      "balance": "余额"
-    },
-    "inbox": {
-      "title": "收件箱",
-      "unread": "条未读",
-      "mark_all_read": "全部标为已读",
-      "marking_all": "标记中...",
-      "tabs": {
-        "all": "全部",
-        "offer": "优惠",
-        "booking": "订场",
-        "system": "系统"
+      "policies": {
+        "title": "政策"
       },
-      "empty_state": "暂无通知"
-    },
-    "settings": {
-      "title": "设定",
-      "personal": "个人资料",
-      "security": "安全",
-      "notifications": "通知",
-      "privacy": "私隐",
-      "display_name": "显示名称",
-      "display_name_hint": "您的公开显示名称",
-      "email": "电邮",
-      "email_readonly": "电邮地址无法更改",
-      "phone": "电话",
-      "phone_readonly": "电话号码需通过邮件更改",
-      "birth_month": "出生月份",
-      "birth_month_hint": "设定后用于生日优惠（设定后无法更改）",
-      "birth_month_locked": "已设定（无法更改）",
-      "not_set": "未设定",
-      "set": "设定",
-      "confirm": "确认",
-      "cancel": "取消",
-      "saving": "储存中...",
-      "member_since": "会员加入日期",
-      "security": {
-        "change_password": "更改密码",
-        "change_password_desc": "我们会发送更改密码连结到您的电邮",
-        "change_phone": "更改电话",
-        "change_phone_desc": "我们会发送更改电话连结到您的电邮",
-        "two_factor": "双重验证",
-        "two_factor_desc": "增强您的帐户安全",
-        "email_sent": "已发送电邮",
-        "sending": "发送中...",
-        "send_email": "发送邮件",
-        "coming_soon": "即将推出"
-      },
-      "notifications": {
-        "email_notifications": "电邮通知",
-        "push_notifications": "推送通知",
-        "booking_confirmed": "订场确认",
-        "booking_confirmed_desc": "当订场确认时接收通知",
-        "booking_reminder": "订场提醒",
-        "booking_reminder_desc": "在订场前接收提醒",
-        "offers": "优惠通知",
-        "offers_desc": "接收新优惠和奖赏通知",
-        "promotions": "推广资讯",
-        "promotions_desc": "接收推广活动资讯",
-        "push_booking_reminder": "订场提醒",
-        "push_booking_reminder_desc": "推送订场前提醒",
-        "push_offers": "优惠通知",
-        "push_offers_desc": "推送新优惠通知",
-        "push_system": "系统通知",
-        "push_system_desc": "推送重要系统通知",
-        "save_preferences": "储存偏好设定",
-        "saving": "储存中...",
-        "saved": "已储存"
-      },
-      "privacy_title": "私隐设定",
-      "privacy_desc": "管理您的个人资料和帐户",
-      "delete_account": "删除帐户",
-      "errors": {
-        "invalid_month": "无效月份",
-        "unauthorized": "未授权",
-        "already_set": "已设定",
-        "unknown_error": "未知错误",
-        "network_error": "网络错误"
-      }
-    },
-    "help": {
-      "title": "帮助中心",
-      "subtitle": "我们在此为您提供协助",
-      "search_placeholder": "搜寻常见问题...",
-      "categories": {
-        "all": "全部",
-        "booking": "订场",
-        "points": "积分",
-        "payment": "付款",
-        "account": "帐户",
-        "general": "一般"
-      },
-      "no_results": "找不到相关结果",
-      "still_need_help": "仍需要协助？",
-      "contact": {
-        "email": "电邮支援",
-        "phone": "电话支援",
-        "hours": "营业时间",
-        "hours_detail": "星期一至日 10:00 - 22:00"
-      },
-      "faq": {
-        "how_to_book": {
-          "question": "如何预订枱位？",
-          "answer": "在首页点击「立即订场」，选择日期、时间和枱位，然后完成付款即可。"
-        },
-        "cancel_booking": {
-          "question": "可以取消预订吗？",
-          "answer": "已确认的订场无法取消或退款。如有特殊情况，请联络客户服务。"
-        },
-        "earn_points": {
-          "question": "如何赚取积分？",
-          "answer": "每次完成订场后，您会根据消费金额和会员等级自动获得积分。更高等级可获得更多积分倍数。"
-        },
-        "redeem_points": {
-          "question": "如何使用积分？",
-          "answer": "积分可在积分商店兑换优惠券。优惠券可在下次订场时使用以获得折扣。"
-        },
-        "tier_upgrade": {
-          "question": "如何升级会员等级？",
-          "answer": "会员等级基于累积积分自动升级。等级永不降级，您只会向上晋升。"
-        },
-        "payment_methods": {
-          "question": "接受哪些付款方式？",
-          "answer": "我们接受信用卡、FPS、支付宝和微信支付。"
-        },
-        "birthday_perk": {
-          "question": "生日优惠如何使用？",
-          "answer": "在设定中设定您的出生月份（设定后无法更改），每年可在生日月份享受一次双倍积分优惠。"
-        },
-        "change_password": {
-          "question": "如何更改密码？",
-          "answer": "进入设定 > 安全，点击「更改密码」。我们会发送一个安全连结到您的电邮。"
-        }
-      }
+      "articlesCount": "篇文章"
     }
   }
 }

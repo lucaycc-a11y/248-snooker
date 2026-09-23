@@ -41,7 +41,7 @@ export async function GET(req: Request) {
       // Users: search by email, phone, member_code, display_name
       service
         .from('users')
-        .select('id, email, display_name, phone, member_code, tier, last_active_at')
+        .select('id, email, display_name, phone, member_code, tier')
         .or(`email.ilike.%${q}%,phone.ilike.%${q}%,member_code.ilike.%${q}%,display_name.ilike.%${q}%`)
         .order('created_at', { ascending: false })
         .limit(MAX_PER_SECTION),

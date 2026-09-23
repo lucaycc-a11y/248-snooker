@@ -38,7 +38,7 @@ async function getMemberDetail(id: string) {
     await Promise.all([
       service
         .from('users')
-        .select('id, member_code, email, display_name, phone, tier, points, is_blacklisted, created_at, last_active_at')
+        .select('id, member_code, email, display_name, phone, tier, points, is_blacklisted, created_at')
         .eq('id', id)
         .maybeSingle(),
 

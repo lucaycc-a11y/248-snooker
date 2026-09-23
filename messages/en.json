@@ -1976,5 +1976,34 @@
     "accept_all": "Accept All Cookies",
     "necessary_only": "Necessary Only",
     "dismiss": "Dismiss"
+  },
+  "help": {
+    "title": "Support Center",
+    "subtitle": "Find answers to common questions",
+    "searchPlaceholder": "Search articles...",
+    "noResults": "No articles found",
+    "backToSupport": "Back to Support",
+    "backToHelp": "Back to Help",
+    "stillNeedHelp": "Still need help?",
+    "stillNeedHelpDesc": "If the information above didn't solve your issue, feel free to contact our support team.",
+    "contactSupport": "Contact Support",
+    "categories": {
+      "all": {
+        "title": "All"
+      },
+      "getting-started": {
+        "title": "Getting Started"
+      },
+      "booking": {
+        "title": "Booking"
+      },
+      "account": {
+        "title": "Account"
+      },
+      "policies": {
+        "title": "Policies"
+      },
+      "articlesCount": "articles"
+    }
   }
 }
