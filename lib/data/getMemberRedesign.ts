@@ -22,7 +22,7 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
   // Fetch profile with points, tier, member_code
   const { data: profile, error: profileError } = await supabase
     .from('users')
-    .select('id, display_name, email, phone, tier, points, member_code, gender, birthday, birthday_set, birth_month')
+    .select('id, display_name, email, phone, tier, points, member_code, gender, date_of_birth, birthday_set')
     .eq('id', session.user.id)
     .single()
 
@@ -48,9 +48,8 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
       member_code: profile.member_code ?? '',
       unread_notifications: unreadCount ?? 0,
       gender: profile.gender,
-      birthday: profile.birthday,
+      date_of_birth: profile.date_of_birth,
       birthday_set: profile.birthday_set ?? false,
-      birth_month: profile.birth_month ?? null,
     },
   }
 }
