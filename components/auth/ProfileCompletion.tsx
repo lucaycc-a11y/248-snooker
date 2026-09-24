@@ -7,6 +7,8 @@ import { getRecaptchaToken } from "@/lib/recaptcha"
 import { createClient } from "@/lib/supabase/client"
 import { mapSupabaseSendError, mapSupabaseVerifyError, recaptchaError, networkError } from "@/lib/auth/otp-errors"
 import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
+import { DateInput } from "./DateInput"
+import { validateDateOfBirth } from "@/lib/auth/date-validation"
 
 // Matches the GREEN constant duplicated across every other auth-flow file
 // (AuthCard.tsx, AuthModal.tsx, AccountMenu.tsx, OtpInput.tsx,
@@ -76,11 +78,14 @@ export function ProfileCompletion({
     name: string
     email: string
     phone: string
+    date_of_birth: string
+    date_of_birth_hint: string
     submit: string
     saving: string
     err_name: string
     err_email: string
     err_phone: string
+    err_date_of_birth: string
     err_generic: string
     /** Shown when phone was already verified via SMS sign-in, e.g. "Verified". */
     phone_verified_badge: string
@@ -94,8 +99,9 @@ export function ProfileCompletion({
   const [name, setName] = useState(initialName)
   const [email, setEmail] = useState(initialEmail)
   const [phone, setPhone] = useState(() => localHkPhoneValue(initialPhone))
+  const [dateOfBirth, setDateOfBirth] = useState({ day: "", month: "", year: "" })
   const [saving, setSaving] = useState(false)
-  const [errField, setErrField] = useState<"name" | "email" | "phone" | null>(null)
+  const [errField, setErrField] = useState<"name" | "email" | "phone" | "date_of_birth" | null>(null)
   const [errMsg, setErrMsg] = useState<string | null>(null)
 
   // Phone verification sub-step. True when an OTP was successfully redeemed via
@@ -128,16 +134,44 @@ export function ProfileCompletion({
 
   const effectiveEmail = showEmail ? email : (verifiedEmail ?? initialEmail)
   const effectivePhone = showPhone ? phone : (verifiedPhone ?? initialPhone)
+
+  // Returning user detection: has a name already
+  const isReturningUser = Boolean(initialName)
+
+  // Progress calculation
+  const totalSteps = isReturningUser ? 2 : 3 // Returning: phone verify + DOB; New: phone verify + name+DOB + complete
+  const currentStep = verifyMode === "phoneOtp" && !phoneConfirmed ? 1 : (isReturningUser ? 2 : 2)
+
+  // Validate date of birth separately
+  const dateValidation = dateOfBirth.day && dateOfBirth.month && dateOfBirth.year
+    ? validateDateOfBirth(
+        parseInt(dateOfBirth.day, 10),
+        parseInt(dateOfBirth.month, 10),
+        parseInt(dateOfBirth.year, 10)
+      )
+    : { valid: false }
+
   const validation = showName
     ? validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
     : missingContact === "phone"
       ? validateProfile({ name: name || " ", email: "x@x.com", phone: effectivePhone })
       : validateProfile({ name: name || " ", email: effectiveEmail, phone: "12345678" })
-  const canSubmit = validation.ok && !saving
+  const canSubmit = validation.ok && dateValidation.valid && !saving
 
   const errorFor = (v: ProfileValidation): string => {
     if (v.ok) return ""
     return v.field === "name" ? labels.err_name : v.field === "email" ? labels.err_email : labels.err_phone
+  }
+
+  // Helper to get date error message
+  const dateErrorMsg = (): string | null => {
+    if (!dateOfBirth.day || !dateOfBirth.month || !dateOfBirth.year) {
+      return labels.err_date_of_birth
+    }
+    if (!dateValidation.valid && dateValidation.error) {
+      return dateValidation.error
+    }
+    return null
   }
 
   // Authoritative finalize. Only runs once the phone has genuine proof (SMS
@@ -151,6 +185,14 @@ export function ProfileCompletion({
       setErrMsg(errorFor(v))
       return
     }
+
+    // Validate date of birth
+    if (!dateValidation.valid) {
+      setErrField("date_of_birth")
+      setErrMsg(dateErrorMsg() ?? labels.err_date_of_birth)
+      return
+    }
+
     setErrField(null)
     setErrMsg(null)
     setSaving(true)
@@ -158,13 +200,18 @@ export function ProfileCompletion({
       const res = await fetch("/api/profile/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email: v.value.email, phone: v.value.phone }),
+        body: JSON.stringify({
+          name,
+          email: v.value.email,
+          phone: v.value.phone,
+          date_of_birth: dateValidation.dateString
+        }),
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
         if (res.status === 422 && j.field) {
           setErrField(j.field)
-          setErrMsg(j.field === "name" ? labels.err_name : j.field === "email" ? labels.err_email : labels.err_phone)
+          setErrMsg(j.field === "name" ? labels.err_name : j.field === "email" ? labels.err_email : j.field === "phone" ? labels.err_phone : labels.err_date_of_birth)
         } else {
           setErrMsg(labels.err_generic)
         }
@@ -347,11 +394,18 @@ export function ProfileCompletion({
   if (verifyMode === "phoneOtp" && !phoneConfirmed) {
     return (
       <div>
+        {/* Progress indicator */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+            {t("step")} {currentStep} / {totalSteps}
+          </span>
+        </div>
+
         <h2
           data-cms-key="auth.profile.title"
           style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, letterSpacing: "0.02em", color: "#fff", marginBottom: 6 }}
         >
-          {labels.title}
+          {isReturningUser && initialName ? t("profile_welcome_back", { name: initialName }) : labels.title}
         </h2>
         <p data-cms-key="auth.profile.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
           {otpChannel === "whatsapp"
@@ -403,11 +457,18 @@ export function ProfileCompletion({
 
   return (
     <div>
+      {/* Progress indicator */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>
+          {t("profile_step")} {currentStep} / {totalSteps}
+        </span>
+      </div>
+
       <h2
         data-cms-key="auth.profile.title"
         style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, letterSpacing: "0.02em", color: "#fff", marginBottom: 6 }}
       >
-        {labels.title}
+        {isReturningUser && initialName ? t("profile_welcome_back", { name: initialName }) : labels.title}
       </h2>
       <p data-cms-key="auth.profile.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
         {labels.subtitle}
@@ -472,6 +533,14 @@ export function ProfileCompletion({
             )}
           </>
         )}
+
+        <DateInput
+          value={dateOfBirth}
+          onChange={setDateOfBirth}
+          disabled={saving}
+          label={labels.date_of_birth}
+          hint={labels.date_of_birth_hint}
+        />
 
       </div>
 
