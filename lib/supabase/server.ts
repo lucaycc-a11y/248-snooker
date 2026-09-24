@@ -15,10 +15,8 @@ export async function createClient() {
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, {
               ...options,
-              httpOnly: true,
+              // Only set secure in production, keep Supabase's other defaults
               secure: process.env.NODE_ENV === 'production',
-              sameSite: 'lax',
-              path: '/',
             }),
           )
         },
