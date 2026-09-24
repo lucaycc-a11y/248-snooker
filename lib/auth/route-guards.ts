@@ -25,11 +25,38 @@ export async function requireAuth(redirectTo?: string) {
  * Only allows same-origin redirects or explicitly allowed domains.
  */
 export function validateRedirectUrl(url: string, allowedOrigins: string[] = []): string {
+  // Reject empty strings
+  if (!url || typeof url !== 'string') {
+    return '/'
+  }
+
+  // Reject protocol-relative URLs (//evil.com)
+  if (url.startsWith('//')) {
+    return '/'
+  }
+
+  // Reject dangerous protocols
+  const dangerousProtocols = ['javascript:', 'data:', 'file:', 'vbscript:', 'blob:']
+  const lowerUrl = url.toLowerCase()
+  for (const protocol of dangerousProtocols) {
+    if (lowerUrl.startsWith(protocol)) {
+      return '/'
+    }
+  }
+
   try {
     const parsed = new URL(url, typeof window !== 'undefined' ? window.location.origin : 'https://space8.com.hk')
 
+    // Reject non-HTTP(S) protocols after parsing
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return '/'
+    }
+
     // Allow relative URLs (same origin)
-    if (!parsed.hostname || parsed.hostname === new URL(typeof window !== 'undefined' ? window.location.origin : 'https://space8.com.hk').hostname) {
+    const baseOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://space8.com.hk'
+    const baseHostname = new URL(baseOrigin).hostname
+
+    if (!parsed.hostname || parsed.hostname === baseHostname) {
       return parsed.pathname + parsed.search + parsed.hash
     }
 
