@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateRedirectUrl } from '../route-guards'
+import { validateRedirectUrl } from '../validate-redirect'
 
 describe('validateRedirectUrl', () => {
   describe('same-origin redirects', () => {

@@ -11,7 +11,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 
 interface HelpCentreProps {
-  locale?: "zh-HK" | "zh-CN" | "en" | "ja";
+  locale?: "zh-HK" | "zh-CN" | "en";
 }
 
 export function HelpCentre({ locale = "zh-HK" }: HelpCentreProps) {

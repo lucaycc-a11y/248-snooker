@@ -36,7 +36,7 @@ export default function SupportArticlePage({
 
         <HelpArticle
           slug={params.slug as HelpArticleSlug}
-          locale={params.locale as "zh-HK" | "zh-CN" | "en" | "ja"}
+          locale={params.locale as "zh-HK" | "zh-CN" | "en"}
         />
       </div>
     </div>

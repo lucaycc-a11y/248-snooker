@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Compares messages/{locale}.json key sets across all 4 routing locales
-// (zh-HK/zh-CN/en/ja) and reports any key present in one locale but missing
+// Compares messages/{locale}.json key sets across all 3 routing locales
+// (zh-HK/zh-CN/en) and reports any key present in one locale but missing
 // from another. Unlike scripts/cms-audit.mjs (which lints for hardcoded JSX
 // text), this checks translation *completeness* across locales — that check
 // didn't exist anywhere in the repo before this script.
@@ -44,7 +44,7 @@ for (const key of allKeys) {
 
 const missingCount = Object.keys(missing).length
 if (missingCount === 0) {
-  console.log(`OK — all ${allKeys.size} keys present in all 4 locales (${LOCALES.join(', ')}).`)
+  console.log(`OK — all ${allKeys.size} keys present in all 3 locales (${LOCALES.join(', ')}).`)
   process.exit(0)
 }
 

@@ -62,7 +62,7 @@ export function withAdminSecurity(
 
     // Check admin role from profiles table
     const { data: profile, error } = await supabase
-      .from('profiles')
+      .from('users')
       .select('is_admin')
       .eq('id', user.id)
       .single()

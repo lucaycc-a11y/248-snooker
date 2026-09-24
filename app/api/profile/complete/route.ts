@@ -7,7 +7,7 @@ import { generateMemberCode } from '@/lib/member/planetSystem'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
 
-// POST /api/profile/complete  { name, email, phone }
+// POST /api/profile/complete  { name, email, phone, date_of_birth }
 // The authoritative server-side half of the mandatory profile-completion step.
 // Requires a valid session; re-validates every field with the SAME validator the
 // client uses (never trusts client-side validation); writes the normalized values
@@ -44,6 +44,7 @@ export async function POST(req: Request) {
       name: body?.name ? (body.name as string).slice(0, 2) + '***' : undefined,
       email: body?.email ? `***@${(body.email as string).split('@')[1]}` : undefined,
       phone: body?.phone ? `***${(body.phone as string).slice(-3)}` : undefined,
+      date_of_birth: body?.date_of_birth ? 'YYYY-MM-DD' : undefined,
       bodyType: typeof body,
     })
 
@@ -53,6 +54,49 @@ export async function POST(req: Request) {
         phoneType: typeof body?.phone,
       })
       return NextResponse.json({ error: '請提供有效的電話號碼' }, { status: 400 })
+    }
+
+    // Validate date_of_birth format (YYYY-MM-DD)
+    const dateOfBirth = body?.date_of_birth as string | undefined
+    if (!dateOfBirth || !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+      console.warn('[profile/complete] 422 date_of_birth_invalid', {
+        rawDate: dateOfBirth ?? '(empty)',
+        dateType: typeof dateOfBirth,
+      })
+      return NextResponse.json(
+        { error: '請提供有效的出生日期', field: 'date_of_birth' },
+        { status: 422 },
+      )
+    }
+
+    // Validate date_of_birth constraints (not future, not before 1900)
+    const dobDate = new Date(dateOfBirth)
+    const minDate = new Date('1900-01-01')
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (isNaN(dobDate.getTime())) {
+      console.warn('[profile/complete] 422 date_of_birth_invalid_date', { dateOfBirth })
+      return NextResponse.json(
+        { error: '請輸入有效的日期', field: 'date_of_birth' },
+        { status: 422 },
+      )
+    }
+
+    if (dobDate < minDate) {
+      console.warn('[profile/complete] 422 date_of_birth_too_early', { dateOfBirth })
+      return NextResponse.json(
+        { error: '年份不得早於 1900 年', field: 'date_of_birth' },
+        { status: 422 },
+      )
+    }
+
+    if (dobDate > today) {
+      console.warn('[profile/complete] 422 date_of_birth_future', { dateOfBirth })
+      return NextResponse.json(
+        { error: '出生日期不得為未來日期', field: 'date_of_birth' },
+        { status: 422 },
+      )
     }
 
     const result = validateProfile({
@@ -183,6 +227,7 @@ export async function POST(req: Request) {
           display_name: result.value.display_name,
           email: result.value.email,
           phone,
+          date_of_birth: dateOfBirth,
           member_code: memberCode,
           email_verified_at: emailVerifiedAt,
           phone_verified_at: phoneVerifiedAt,

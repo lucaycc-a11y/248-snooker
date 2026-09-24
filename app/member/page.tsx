@@ -1,13 +1,16 @@
 import { getMemberDashboardData } from '@/lib/data/getMemberRedesign'
-import { MemberDashboardRedesign } from './MemberDashboardRedesign'
+import { MemberPageClient } from './MemberPageClient'
+import { MemberAuthGuard } from './components/MemberAuthGuard'
 import { logSiteError } from '@/lib/errors/log'
-import { notFound } from 'next/navigation'
-import { headers } from 'next/headers'
 
 // ════════════════════════════════════════════════════════════════════════════
-// Member Page — Server Component wrapper for new dashboard
+// Member Page — Full Rebuild (Mobile-First, Single Scroll)
 // Route: /member
+// Replaces tab-based navigation with premium single-page experience
 // ════════════════════════════════════════════════════════════════════════════
+
+// Force dynamic rendering - this page requires authentication
+export const dynamic = 'force-dynamic'
 
 export default async function MemberPage() {
   let data
@@ -18,11 +21,6 @@ export default async function MemberPage() {
   } catch (err) {
     fetchError = err as Error
 
-    // Log the error that occurred during data fetch
-    const headersList = await headers()
-    const pathname = headersList.get('x-pathname') || '/member'
-    const userAgent = headersList.get('user-agent') || 'unknown'
-
     await logSiteError(
       'member-page-data-fetch-error',
       'error',
@@ -30,49 +28,27 @@ export default async function MemberPage() {
       {
         error_message: fetchError.message,
         error_stack: fetchError.stack,
-        pathname,
-        user_agent: userAgent,
       }
     )
 
-    // If data fetch throws, trigger 404
-    notFound()
+    // Show auth guard (will display AuthModal)
+    return <MemberAuthGuard />
   }
 
   if (!data) {
-    // User not authenticated - log this case and show login prompt
-    const headersList = await headers()
-    const pathname = headersList.get('x-pathname') || '/member'
-    const userAgent = headersList.get('user-agent') || 'unknown'
-
     await logSiteError(
       'member-page-no-data',
       'info',
       'getMemberDashboardData returned null (unauthenticated user)',
       {
-        pathname,
-        user_agent: userAgent,
-        note: 'This is expected for unauthenticated users - showing login prompt',
+        note: 'Showing AuthModal via MemberAuthGuard',
       }
     )
 
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white">請先登入</h1>
-          <p className="mt-2 text-white/60">Please log in to access your member dashboard</p>
-          <a
-            href="/auth/login"
-            className="mt-6 inline-block rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 px-8 py-3 font-medium text-white transition-all hover:from-blue-600 hover:to-cyan-600"
-          >
-            登入 / Login
-          </a>
-        </div>
-      </div>
-    )
+    // Show auth guard (will display AuthModal)
+    return <MemberAuthGuard />
   }
 
-  // Log successful data fetch
   await logSiteError(
     'member-page-success',
     'info',
@@ -84,5 +60,5 @@ export default async function MemberPage() {
     }
   )
 
-  return <MemberDashboardRedesign initialData={data} />
+  return <MemberPageClient initialData={data} />
 }

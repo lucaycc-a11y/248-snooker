@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
+
 import { NextResponse } from 'next/server'
 
 // ════════════════════════════════════════════════════════════════════════════
-// GET /api/member/bookings — Fetch user's bookings (upcoming + past)
+// GET /api/member/profile — Fetch member code for QR display
 // ════════════════════════════════════════════════════════════════════════════
 
 export async function GET() {
@@ -16,27 +17,11 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch all confirmed bookings for this user
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select('id, table_id, date, start_time, duration_hours, price, human_code, status')
-    .eq('user_id', session.user.id)
-    .order('date', { ascending: false })
+  const { data: profile } = await supabase
+    .from('users')
+    .select('member_code')
+    .eq('id', session.user.id)
+    .single()
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json({
-    bookings: (bookings ?? []).map((b) => ({
-      id: b.id,
-      tableId: b.table_id,
-      date: b.date,
-      startTime: b.start_time,
-      durationHours: b.duration_hours,
-      price: b.price,
-      humanCode: b.human_code,
-      status: b.status,
-    })),
-  })
+  return NextResponse.json({ member_code: profile?.member_code ?? '' })
 }

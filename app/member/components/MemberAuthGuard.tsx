@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthModal } from "@/components/auth/AuthModal"
-import { validateRedirectUrl } from "@/lib/auth/route-guards"
+import { validateRedirectUrl } from "@/lib/auth/validate-redirect"
 
 /**
  * Auth guard for /member route.

@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
+
 import { NextResponse } from 'next/server'
 
 // ════════════════════════════════════════════════════════════════════════════
-// GET /api/member/bookings — Fetch user's bookings (upcoming + past)
+// POST /api/member/wallet-notify — Save wallet launch notification opt-in
 // ════════════════════════════════════════════════════════════════════════════
 
-export async function GET() {
+export async function POST(req: Request) {
   const supabase = await createClient()
 
   const {
@@ -16,27 +17,17 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch all confirmed bookings for this user
-  const { data: bookings, error } = await supabase
-    .from('bookings')
-    .select('id, table_id, date, start_time, duration_hours, price, human_code, status')
-    .eq('user_id', session.user.id)
-    .order('date', { ascending: false })
+  const { notify } = await req.json()
+
+  // Save to profiles.wallet_notify_opt_in (add column if needed)
+  const { error } = await supabase
+    .from('users')
+    .update({ wallet_notify_opt_in: notify === true })
+    .eq('id', session.user.id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({
-    bookings: (bookings ?? []).map((b) => ({
-      id: b.id,
-      tableId: b.table_id,
-      date: b.date,
-      startTime: b.start_time,
-      durationHours: b.duration_hours,
-      price: b.price,
-      humanCode: b.human_code,
-      status: b.status,
-    })),
-  })
+  return NextResponse.json({ success: true })
 }

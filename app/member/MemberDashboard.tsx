@@ -622,7 +622,7 @@ export default function MemberDashboard({
                 <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
               )}
               {tab === "help" && (
-                <HelpCentre locale={locale as "zh-HK" | "zh-CN" | "en" | "ja"} />
+                <HelpCentre locale={locale as "zh-HK" | "zh-CN" | "en"} />
               )}
             </motion.div>
           </AnimatePresence>
