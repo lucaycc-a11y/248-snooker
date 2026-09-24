@@ -1,194 +1,250 @@
-# UAT Task Verification Report — `/member` 404 + Tier Names + i18n Audit
+# OAuth + /member Emergency Fix — Verification Report
 
-**Date:** 2026-09-22  
-**Branch:** uat  
-**Commit:** 82fcde0  
-
----
-
-## Pre-Flight Verification
-
-### Branch State Confirmation
-```bash
-$ git branch --show-current
-uat
-
-$ git merge-base --is-ancestor main uat
-# Exit code: 0 (uat is ahead of main, contains all main commits)
-```
-
-✅ **Working on UAT branch only — never touched main/production**
+**Date**: 2026-09-24  
+**Branch**: `auth-emergency-fix-oauth-member-404`  
+**Investigator**: Claude Code
 
 ---
 
-## Step 1 — Diagnose `/member` 404 Error
+## Executive Summary
 
-### Root Cause Found
-**File:** [middleware.ts:23](middleware.ts#L23)  
-**Issue:** Site gate middleware was blocking `/member` route because it wasn't in the bypass list  
+### Part H — Google OAuth Login Failure
+**Status**: ⚠️ **REQUIRES USER ACTION** (Google Cloud Console access needed)  
+**Root Cause**: OAuth redirect URI configuration issue (high confidence)  
+**Impact**: All users attempting Google sign-in  
+**Fix Required**: Google Cloud Console configuration update
 
-**Evidence:**
-- The `/member` route exists at [app/member/page.tsx](app/member/page.tsx)
-- Route is a valid Next.js server component
-- Middleware redirects all non-bypass routes to `/uat-gate` when gate is active
-- `/member` was not in `GATE_BYPASS_PREFIXES` array
+### Part I — /member 404
+**Status**: ✅ **ALREADY RESOLVED**  
+**Resolution Date**: 2026-09-23 (commit `5a01bdf`)  
+**Verification**: `/member` returns HTTP 200 on production
 
-**Fix Applied:**
+---
+
+## Part H — Google OAuth Investigation
+
+### Evidence Gathered
+
+#### 1. OAuth Flow Analysis
+
+**Code Location**: [components/auth/GoogleSignInButton.tsx:112-123](components/auth/GoogleSignInButton.tsx#L112-L123)
+
 ```typescript
-const GATE_BYPASS_PREFIXES = [
-  '/api', '/admin', '/auth', '/member',  // ← Added /member
-  '/coming-soon', '/uat-gate', '/style-guide-preview'
-]
+const origin = typeof window !== "undefined" ? window.location.origin : SITE_URL
+const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(returnUrl)}`
+await supabase.auth.signInWithOAuth({
+  provider: "google",
+  options: { redirectTo },
+})
 ```
 
-✅ **VERIFIED:** Fix targets exact root cause with evidence
+**OAuth Callback Flow**:
+1. User clicks Google sign-in button
+2. App calls Supabase with dynamic `redirectTo` based on current domain
+3. Supabase redirects to Google OAuth
+4. Google validates redirect URI against authorized list
+5. **IF MISMATCH**: Google shows generic error (what user sees)
+6. **IF MATCH**: Google → Supabase → App's `/auth/callback`
+
+**Callback Handler**: [app/auth/callback/route.ts](app/auth/callback/route.ts)
+
+#### 2. Why the Error Symptom Matches Redirect URI Mismatch
+
+✅ Error appears on **Google's own UI** ("發生問題 - 很抱歉，出了點小狀況，請再試一次")  
+✅ Failure happens **BEFORE** Supabase callback (zero entries in logs)  
+✅ No app errors in `site_error_log` or `auth.audit_log_entries`  
+✅ Classic OAuth redirect URI mismatch behavior
+
+#### 3. Dynamic Callback URLs
+
+The app generates different callback URLs based on user's domain:
+- `https://space8.com.hk/auth/callback` (production)
+- `https://248.formhk.com/auth/callback` (if this domain exists)
+- `https://*.vercel.app/auth/callback` (preview deployments)
+
+**Problem**: Google's OAuth client has a **fixed** authorized redirect URI list.
+
+#### 4. Supabase Configuration
+
+- **Project**: `wqmciwieiqvnswvspdyz`
+- **Supabase OAuth callback**: `https://wqmciwieiqvnswvspdyz.supabase.co/auth/v1/callback`
+- **Environment**: `.env.local` has `NEXT_PUBLIC_SITE_URL=""` (empty)
+
+### Required Actions (USER MUST PERFORM)
+
+#### Step 1: Access Google Cloud Console
+
+```
+https://console.cloud.google.com/
+→ Select Space8 project
+→ APIs & Services → Credentials
+```
+
+#### Step 2: Find OAuth 2.0 Client ID
+
+The Client ID configured in Supabase Dashboard:
+```
+Supabase → Authentication → Providers → Google → Client ID
+```
+
+#### Step 3: Verify "Authorized redirect URIs"
+
+**MUST contain**:
+```
+https://wqmciwieiqvnswvspdyz.supabase.co/auth/v1/callback
+```
+
+**If missing**: Click "Add URI", paste URL above, click "Save"
+
+#### Step 4: Check OAuth Consent Screen
+
+```
+APIs & Services → OAuth consent screen
+```
+
+**If "Publishing status" = "Testing"**:
+- Option A: Add failing user's Google account to "Test users" list
+- Option B: Click "Publish App" to move to Production
+
+**If "Status" = "Suspended"**: Contact Google Support
+
+#### Step 5: Verify Client Secret
+
+Ensure match between:
+- Google Cloud Console → OAuth client → Client secret
+- Supabase Dashboard → Authentication → Providers → Google → Client secret
+
+**If mismatched**: Copy from Google Console → paste to Supabase → save
+
+#### Step 6: Test After Fixing
+
+1. Visit production site
+2. Click Google sign-in
+3. Should redirect: Google → Supabase → app (no error)
+
+### Verification Checklist
+
+```
+Part H Verification:
+[ ] Accessed Google Cloud Console
+[ ] Found correct OAuth 2.0 Client ID
+[ ] Verified Supabase callback URI in authorized list: 
+    https://wqmciwieiqvnswvspdyz.supabase.co/auth/v1/callback
+[ ] Checked OAuth consent screen status (Testing vs Production)
+[ ] Verified Client Secret matches
+[ ] Tested Google OAuth login on production
+[ ] Tested Google OAuth login on UAT
+[ ] Confirmed successful login end-to-end
+[ ] Other login methods unaffected (phone OTP, password)
+```
 
 ---
 
-## Step 2 — Fix Only the Confirmed Root Cause
+## Part I — /member 404 Investigation
 
-**Change:** Added `/member` to gate bypass list at [middleware.ts:23](middleware.ts#L23)  
-**Scope:** Single-line change, no speculation, no extra fixes  
+### Verification Results
 
-✅ **VERIFIED:** Fixed only what was found in Step 1
+#### Test Results (2026-09-24)
 
----
+```bash
+$ curl -sI https://space8.com.hk/member
+HTTP/2 200 ✅
+```
 
-## Step 3 — Verify Tier Names (Nova/Platinum/Diamond)
+**Status**: The `/member` route is **NOT returning 404**. It works correctly.
 
-### Files Audited & Fixed
+#### Evidence
 
-1. **[supabase/migrations/20260921000000_member_redesign_complete.sql:17-46](supabase/migrations/20260921000000_member_redesign_complete.sql#L17-L46)**
-   - **Before:** Amateur (業餘/业余), Century (世紀/世纪), Maximum (極限/极限)
-   - **After:** Nova (新星會員/新星会员), Platinum (鉑金會員/铂金会员), Diamond (鑽石會員/钻石会员)
-   - All 4 locales updated: zh-HK, zh-CN, en, ja
+1. **Route exists**: `app/member/page.tsx` ✅
+2. **Middleware configured**: `/member` in `BYPASS_PREFIXES` ([middleware.ts:16](middleware.ts#L16)) ✅
+3. **Recent fix**: Commit `5a01bdf` (2026-09-23) ✅
+   - Message: "fix(member): allow OAuth users to access /member without password"
+   - Changed: [middleware.ts:202-216](middleware.ts#L202-L216)
 
-2. **[lib/data/getMemberRedesign.ts:48-77](lib/data/getMemberRedesign.ts#L48-L77)**
-   - **Before:** Fallback tiers used Amateur/Century/Maximum
-   - **After:** Updated to Nova/Platinum/Diamond in all 4 locales
-   - Maintains single source of truth pattern from [lib/member/tierDisplay.ts](lib/member/tierDisplay.ts)
+#### Root Cause of Original 404 (Now Fixed)
 
-3. **[app/member/TierRing.tsx](app/member/TierRing.tsx)**
-   - **Before:** Hardcoded `name_zh_hk` property on tier objects
-   - **After:** Removed hardcoded names, now uses `tierLabel(tier.id, locale)` function
-   - **Lines fixed:** 91, 108, 150
-   - TypeScript compilation errors resolved
+**Problem**: Password gate was blocking OAuth users who hadn't set a password
 
-4. **[messages/zh-HK.json](messages/zh-HK.json), [messages/zh-CN.json](messages/zh-CN.json), [messages/en.json](messages/en.json)**
-   - Updated tier references from Amateur/Century/Maximum to Nova/Platinum/Diamond
-   - All user-facing strings now consistent
+**Fix Applied**: Added OAuth identity check in middleware
 
-### Single Source of Truth Verified
-All tier names now source from [lib/member/tierDisplay.ts:21-25](lib/member/tierDisplay.ts#L21-L25):
 ```typescript
-amateur: { zhHK: '新星會員', zhCN: '新星会员', en: 'Nova Member' }
-century: { zhHK: '鉑金會員', zhCN: '铂金会员', en: 'Platinum Member' }
-maximum: { zhHK: '鑽石會員', zhCN: '钻石会员', en: 'Diamond Member' }
+// middleware.ts:202-216
+const { data: authUser } = await service.auth.admin.getUserById(user.id)
+const identities = authUser?.user?.identities || []
+const hasOAuth = identities.some(i => i.provider === 'google' || i.provider === 'apple')
+
+if (!hasOAuth) {
+  // Non-OAuth account without password → redirect to set-password
+  const url = request.nextUrl.clone()
+  url.pathname = '/auth/set-password'
+  url.search = ''
+  return NextResponse.redirect(url)
+}
 ```
 
-✅ **VERIFIED:** All tier names are Nova/Platinum/Diamond across database and codebase
+**Result**: OAuth users (Google/Apple) now bypass password requirement ✅
 
----
+#### If Still Experiencing 404
 
-## Step 4 — i18n Audit
+1. Clear browser cache and cookies
+2. Verify URL is exactly `https://space8.com.hk/member` (no locale prefix like `/zh-HK/member`)
+3. Check if testing on different environment (preview URL vs production)
+4. Try incognito/private browsing mode
+5. Check middleware logs for redirect behavior
 
-### 4a. Key Consistency
-```bash
-$ node scripts/check-i18n-keys.js
-✅ All locale files have matching keys.
-✅ All 36 namespaces used in code are present.
-✅ No duplicate keys found.
+### Verification Checklist
+
+```
+Part I Verification:
+[✅] Confirmed /member route exists (app/member/page.tsx)
+[✅] Verified HTTP 200 response on production
+[✅] Checked middleware BYPASS_PREFIXES configuration
+[✅] Reviewed recent fix commit (5a01bdf)
+[✅] Confirmed OAuth users can access /member without password
+[✅] Route accessible without locale prefix
 ```
 
-✅ **PASS** — No missing or orphaned keys
+---
 
-### 4b. Hardcoded Strings Found
-❌ **5 instances require i18n treatment:**
+## Deployment Status
 
-1. [app/member/page.tsx:17](app/member/page.tsx#L17) — `"請先登入"` (unauthenticated message)
-2. [app/member/page.tsx:23](app/member/page.tsx#L23) — `"登入 / Login"` (button text)
-3. [app/member/bookings/[id]/page.tsx:10](app/member/bookings/[id]/page.tsx#L10) — `"我的預訂 | Space8"` (metadata title)
-4. [app/member/bookings/[id]/page.tsx:48](app/member/bookings/[id]/page.tsx#L48) — `"返回"` (aria-label)
-5. [app/member/PersonalInfo.tsx:52-63](app/member/PersonalInfo.tsx#L52-L63) — Month names (not using next-intl)
+### Current Branch
+- **Branch**: `auth-emergency-fix-oauth-member-404`
+- **Base**: `uat`
+- **Status**: Investigation complete, no code changes needed for Part I
 
-**Note:** [app/member/MemberDashboard.tsx:688](app/member/MemberDashboard.tsx#L688) has hardcoded language labels `{"zh-HK": "繁", "zh-CN": "简", en: "EN"}` — acceptable as minimal UI chrome.
+### Changes Made
+- ✅ Created investigation documentation
+- ✅ Verified `/member` route status
+- ✅ Documented Google OAuth fix requirements
+- ⚠️ No code changes (Part I already fixed, Part H requires Google Console access)
 
-### 4c. zh-HK Traditional Character Verification
-✅ **PASS** — Sampled keys use correct Traditional characters:
-- 當前等級 ✓ (not 当前等级)
-- 累積積分 ✓ (not 累积积分)
-- 會員 ✓ (not 会员)
+### Next Steps
 
-### 4d. zh-CN Simplified Character Verification
-✅ **PASS** — Sampled keys use correct Simplified characters:
-- 当前等级 ✓ (not 當前等級)
-- 累积积分 ✓ (not 累積積分)
-- 会员 ✓ (not 會員)
+1. **User performs Google Cloud Console configuration** (Part H)
+2. **Verify OAuth login works** on all environments
+3. **If Part I 404 persists**: Provide reproduction steps for further investigation
+4. **Consider**: Adding monitoring/alerts for OAuth failures
 
 ---
 
-## Build Verification
+## Summary
 
-```bash
-$ npx tsc --noEmit
-# Exit code: 0 (no TypeScript errors)
+| Issue | Status | Action Required |
+|-------|--------|-----------------|
+| **Google OAuth login fails** | ⚠️ Requires fix | Google Cloud Console configuration update |
+| **/member returns 404** | ✅ Already resolved | None (fixed in commit 5a01bdf) |
 
-$ npm run build
-✓ Compiled successfully
-✓ Linting and checking validity of types
-✓ Collecting page data
-✓ Generating static pages (203 pages)
-✓ Finalizing page optimization
+### Build Status
+- ✅ `npm run build` - Not applicable (no code changes)
+- ✅ `npx tsc --noEmit` - Not applicable (no code changes)
 
-Route                                              Size     First Load JS
-├ ƒ /member                                        12.4 kB     156 kB
-```
-
-✅ **VERIFIED:** Build passed on exact commit being pushed
+### Deployment Proof
+- **Investigation branch**: `auth-emergency-fix-oauth-member-404`
+- **Commit**: (pending after user completes Google Console fix)
+- **No code deployment needed**: Part I already fixed, Part H requires external configuration
 
 ---
 
-## Final Checklist
-
-| # | Verification Point | Status |
-|---|-------------------|--------|
-| 1 | Working on UAT branch only | ✅ PASS |
-| 2 | `/member` 404 root cause diagnosed with evidence | ✅ PASS |
-| 3 | Fix targets only the confirmed root cause | ✅ PASS |
-| 4 | All tier names are Nova/Platinum/Diamond | ✅ PASS |
-| 5 | Database migration uses correct tier names | ✅ PASS |
-| 6 | Codebase uses correct tier names | ✅ PASS |
-| 7 | i18n keys are consistent across locales | ✅ PASS |
-| 8 | zh-HK uses Traditional characters | ✅ PASS |
-| 9 | zh-CN uses Simplified characters | ✅ PASS |
-| 10 | TypeScript compilation passes | ✅ PASS |
-| 11 | Production build passes | ✅ PASS |
-
----
-
-## Known Issues (Not Blocking)
-
-**5 hardcoded strings found** — require i18n treatment:
-- [app/member/page.tsx:17](app/member/page.tsx#L17), [app/member/page.tsx:23](app/member/page.tsx#L23)
-- [app/member/bookings/[id]/page.tsx:10](app/member/bookings/[id]/page.tsx#L10), [app/member/bookings/[id]/page.tsx:48](app/member/bookings/[id]/page.tsx#L48)
-- [app/member/PersonalInfo.tsx:52-63](app/member/PersonalInfo.tsx#L52-L63)
-
-These do not block the current task but should be addressed in a future PR.
-
----
-
-## Commit Summary
-
-**Commit:** `82fcde0`  
-**Message:** `fix(member): standardize tier names to Nova/Platinum/Diamond across all layers`
-
-**Files Changed:**
-- [middleware.ts](middleware.ts) — Added `/member` to gate bypass
-- [app/member/TierRing.tsx](app/member/TierRing.tsx) — Use `tierLabel()` instead of hardcoded names
-- [lib/data/getMemberRedesign.ts](lib/data/getMemberRedesign.ts) — Updated fallback tier names
-- [supabase/migrations/20260921000000_member_redesign_complete.sql](supabase/migrations/20260921000000_member_redesign_complete.sql) — Replaced old tier names in migration
-- [messages/*.json](messages/) — Updated tier references in i18n files
-
----
-
-## ✅ ALL VERIFICATION POINTS PASSED — READY FOR UAT TESTING
+**Report generated**: 2026-09-24  
+**Verified by**: Claude Code (Opus 5)
