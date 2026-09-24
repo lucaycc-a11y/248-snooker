@@ -14,18 +14,51 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const next = safeNextPath(searchParams.get('next') ?? searchParams.get('returnUrl'))
 
+  // 詳細 logging - 記錄 OAuth callback 開始
+  console.log('[auth/callback] OAuth callback START', {
+    hasCode: !!code,
+    codeLength: code?.length,
+    origin,
+    next,
+    searchParams: Object.fromEntries(searchParams.entries()),
+    timestamp: new Date().toISOString(),
+  })
+
   if (!code) {
+    console.error('[auth/callback] MISSING CODE', {
+      url: request.url,
+      allParams: Object.fromEntries(searchParams.entries()),
+    })
     return NextResponse.redirect(`${origin}/login?error=missing_code&returnUrl=${encodeURIComponent(next)}`)
   }
 
   try {
     const supabase = await createClient()
+    console.log('[auth/callback] Supabase client created, attempting exchangeCodeForSession')
+
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+
     if (error) {
+      console.error('[auth/callback] exchangeCodeForSession FAILED', {
+        errorMessage: error.message,
+        errorName: error.name,
+        errorStatus: (error as any).status,
+        errorCode: (error as any).code,
+        code: code.substring(0, 20) + '...',
+      })
       return NextResponse.redirect(`${origin}/login?error=oauth&returnUrl=${encodeURIComponent(next)}`)
     }
 
+    console.log('[auth/callback] exchangeCodeForSession SUCCESS')
+
     const { data: { user } } = await supabase.auth.getUser()
+    console.log('[auth/callback] getUser result', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      provider: user?.app_metadata?.provider,
+    })
+
     if (user) {
       const service = getServiceSupabase()
 
@@ -36,8 +69,15 @@ export async function GET(request: Request) {
         .eq('id', user.id)
         .maybeSingle<{ onboarding_status: string | null; profile_complete: boolean | null }>()
 
+      console.log('[auth/callback] Existing user check', {
+        userId: user.id,
+        onboardingStatus: existingUser?.onboarding_status,
+        profileComplete: existingUser?.profile_complete,
+      })
+
       // If already complete, redirect straight to the app
       if (existingUser?.onboarding_status === 'complete' || existingUser?.profile_complete === true) {
+        console.log('[auth/callback] User onboarding complete, redirecting to', next)
         return NextResponse.redirect(`${origin}${next}`)
       }
 
@@ -60,6 +100,13 @@ export async function GET(request: Request) {
           message: upsertErr.message,
           code: (upsertErr as { code?: string }).code,
           provider: oauthProvider,
+          userId: user.id,
+        })
+      } else {
+        console.log('[auth/callback] Profile upserted successfully', {
+          userId: user.id,
+          provider: oauthProvider,
+          onboardingStatus: 'pending_second_identity',
         })
       }
 
@@ -136,16 +183,28 @@ export async function GET(request: Request) {
         .maybeSingle<{ onboarding_status: string | null }>()
 
       if (refreshedUser?.onboarding_status === 'complete') {
+        console.log('[auth/callback] Final redirect to', next)
         return NextResponse.redirect(`${origin}${next}`)
       }
 
       // Incomplete onboarding → redirect to /login where AuthCard handles
       // the second-identity collection flow
+      console.log('[auth/callback] Incomplete onboarding, redirecting to /login', {
+        userId: user.id,
+        onboardingStatus: refreshedUser?.onboarding_status,
+        returnUrl: next,
+      })
       return NextResponse.redirect(`${origin}/login?returnUrl=${encodeURIComponent(next)}`)
     }
 
+    console.log('[auth/callback] No user after exchangeCodeForSession, redirecting to', next)
     return NextResponse.redirect(`${origin}${next}`)
-  } catch {
+  } catch (err) {
+    console.error('[auth/callback] EXCEPTION caught', {
+      errorMessage: err instanceof Error ? err.message : String(err),
+      errorStack: err instanceof Error ? err.stack : undefined,
+      errorName: err instanceof Error ? err.name : typeof err,
+    })
     return NextResponse.redirect(`${origin}/login?error=oauth&returnUrl=${encodeURIComponent(next)}`)
   }
 }
