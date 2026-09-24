@@ -10,12 +10,14 @@ import { type MemberDashboardData } from './memberRedesignTypes'
 export async function getMemberDashboardData(): Promise<MemberDashboardData | null> {
   const supabase = await createClient()
 
-  // Get current user
+  // SECURITY: Use getUser() not getSession() for server-side auth decisions
+  // getSession() reads cookies which can be forged; getUser() validates with auth server
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (authError || !user) {
     return null
   }
 
@@ -23,7 +25,7 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
   const { data: profile, error: profileError } = await supabase
     .from('users')
     .select('id, display_name, email, phone, tier, points, member_code, gender, date_of_birth, birthday_set')
-    .eq('id', session.user.id)
+    .eq('id', user.id)
     .single()
 
   if (profileError || !profile) {
@@ -34,7 +36,7 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
   const { count: unreadCount } = await supabase
     .from('admin_notifications')
     .select('*', { count: 'exact', head: true })
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .eq('read', false)
 
   return {
