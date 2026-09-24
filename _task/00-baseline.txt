@@ -1,0 +1,96 @@
+BASELINE SNAPSHOT
+=================
+Timestamp: 2026-09-24 (session start)
+Branch: main
+HEAD SHA: b7ea5365af8a981031a6d5f8976a97c87ce15394
+
+Git status --short:
+ M app/[locale]/support/[slug]/page.tsx
+ M app/[locale]/support/page.tsx
+ M app/api/member/bookings/route.ts
+ D app/api/member/claim-offer/route.ts
+ D app/api/member/mark-all-notifications-read/route.ts
+ D app/api/member/mark-notification-read/route.ts
+ D app/api/member/redeem-offer/route.ts
+ D app/api/member/set-birth-month/route.ts
+ M app/api/profile/complete/route.ts
+ D app/member/InboxView.tsx
+ M app/member/MemberDashboard.tsx
+ D app/member/MemberDashboardRedesign.tsx
+ D app/member/OfferCard.tsx
+ D app/member/PersonalInfo.tsx
+ M app/member/page.tsx
+ M components/auth/AuthCard.tsx
+ M components/auth/OtpInput.tsx
+ M components/auth/ProfileCompletion.tsx
+ M components/help/HelpCentre.tsx
+ M graphify-out/cache/last_query_stamp
+ M lib/data/getMemberRedesign.ts
+ M lib/data/memberRedesignTypes.ts
+ M messages/en.json
+ D messages/ja.json
+ M messages/zh-CN.json
+ M messages/zh-HK.json
+ M scripts/i18n-locale-audit.mjs
+
+Untracked files:
+?? .backup/
+?? app/api/member/check-admin/
+?? app/api/member/profile/
+?? app/api/member/wallet-notify/
+?? app/api/member/version/
+?? app/member/MemberPageClient.tsx
+?? app/member/components/
+?? app/member/help/
+?? app/member/inbox/
+?? app/member/legal/
+?? app/member/manage/
+?? app/member/page-old.tsx.bak
+?? app/member/safety/
+?? app/member/settings/
+?? components/auth/ContactInput.tsx
+?? components/auth/DateInput.tsx
+?? lib/auth/__tests__/
+?? lib/auth/contact-validation.ts
+?? lib/auth/date-validation.ts
+?? lib/auth/useOtpSend.ts
+?? lib/auth/useOtpVerify.ts
+?? supabase/migrations/20260109_add_wallet_notify_opt_in.sql
+?? supabase/migrations/20260924000000_add_date_of_birth.sql
+
+Git diff --stat:
+ app/[locale]/support/[slug]/page.tsx               |   2 +-
+ app/[locale]/support/page.tsx                      |   2 +-
+ app/api/member/bookings/route.ts                   |  56 +--
+ app/api/member/claim-offer/route.ts                |  23 --
+ .../member/mark-all-notifications-read/route.ts    |  17 -
+ app/api/member/mark-notification-read/route.ts     |  23 --
+ app/api/member/redeem-offer/route.ts               |  23 --
+ app/api/member/set-birth-month/route.ts            |  23 --
+ app/api/profile/complete/route.ts                  |  47 ++-
+ app/member/InboxView.tsx                           | 294 --------------
+ app/member/MemberDashboard.tsx                     |   2 +-
+ app/member/MemberDashboardRedesign.tsx             | 449 ---------------------
+ app/member/OfferCard.tsx                           | 315 ---------------
+ app/member/PersonalInfo.tsx                        | 220 ----------
+ app/member/page.tsx                                |  47 +--
+ components/auth/AuthCard.tsx                       |   5 +-
+ components/auth/OtpInput.tsx                       |   1 +
+ components/auth/ProfileCompletion.tsx              |  56 ++-
+ components/help/HelpCentre.tsx                     |   2 +-
+ graphify-out/cache/last_query_stamp                |   2 +-
+ lib/data/getMemberRedesign.ts                      | 449 ++-------------------
+ lib/data/memberRedesignTypes.ts                    | 106 +----
+ messages/en.json                                   |   3 +
+ messages/ja.json                                   | 251 ------------
+ messages/zh-CN.json                                |   3 +
+ messages/zh-HK.json                                | 423 +++++++++----------
+ scripts/i18n-locale-audit.mjs                      |   6 +-
+ 27 files changed, 419 insertions(+), 2431 deletions(-)
+
+Recent commits:
+b7ea536 fix(oauth): respect Supabase cookie options to persist session
+1487e31 feat(member): add upcoming booking card to overview tab; add back-to-member link on confirm page
+307664e feat(member): add comprehensive logging to track /member 404 issue
+a89caf9 docs(auth): complete OAuth + /member 404 investigation
+22afd3c fix(profile): allow SMS users to submit any valid email during profile completion
