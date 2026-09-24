@@ -33,6 +33,13 @@
 - Same pattern used in: `MemberCard.tsx`, `BookingHistory.tsx`, `UpcomingBookingCard.tsx`, `MemberCardFlip.tsx`
 - **For bookings**: Uses `booking.humanCode` or `booking.qr_code` (both columns exist in `bookings` table)
 
+**⚠️ KNOWN SECURITY LIMITATION (Out of Phase 1 scope):**
+- `member_code` is a **static UUID** that never changes
+- **Replay attack vector**: Anyone who screenshots/photographs the QR code can reuse it for entry
+- **No time-bound verification**: QR code remains valid indefinitely
+- **Decision deferred**: User (Luca) will decide later whether to add time-based JWT tokens, expiry, or rotation mechanism
+- **Current trade-off**: Prioritizes member convenience over time-bound security
+
 #### ✅ b. Member Data Model
 **Confirmed schema** from `users` table + `getMemberRedesign.ts`:
 ```

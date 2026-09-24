@@ -15,7 +15,7 @@ type Props = {
     email: string | null
     phone: string | null
     gender: string | null
-    birthday: string | null
+    date_of_birth: string | null
     birthday_set: boolean
   } | null
   onUpdate: () => void
@@ -28,7 +28,7 @@ export function PersonalInfoTab({ profile, onUpdate }: Props) {
   const [form, setForm] = useState({
     display_name: profile?.display_name ?? '',
     gender: profile?.gender ?? '',
-    birthday: profile?.birthday ?? '',
+    date_of_birth: profile?.date_of_birth ?? '',
   })
   const [error, setError] = useState('')
 
@@ -45,13 +45,13 @@ export function PersonalInfoTab({ profile, onUpdate }: Props) {
       .update({
         display_name: form.display_name || null,
         gender: form.gender || null,
-        birthday: form.birthday || null,
+        date_of_birth: form.date_of_birth || null,
       })
       .eq('id', session.user.id)
 
     if (updateError) {
       // Server-side birthday_set enforcement will reject if already set
-      if (updateError.message.includes('birthday')) {
+      if (updateError.message.includes('date_of_birth')) {
         setError('生日只能設定一次，無法更改')
       } else {
         setError(updateError.message)
@@ -144,12 +144,12 @@ export function PersonalInfoTab({ profile, onUpdate }: Props) {
             {editing && !profile?.birthday_set ? (
               <input
                 type="date"
-                value={form.birthday}
-                onChange={(e) => setForm({ ...form, birthday: e.target.value })}
+                value={form.date_of_birth}
+                onChange={(e) => setForm({ ...form, date_of_birth: e.target.value })}
                 className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white focus:border-[#22c55e] focus:outline-none"
               />
             ) : (
-              <p className="mt-1 text-white">{profile?.birthday ?? '未設定'}</p>
+              <p className="mt-1 text-white">{profile?.date_of_birth ?? '未設定'}</p>
             )}
             {profile?.birthday_set && (
               <p className="mt-1 text-xs text-white/40">生日已設定，無法更改</p>
@@ -173,7 +173,7 @@ export function PersonalInfoTab({ profile, onUpdate }: Props) {
                 setForm({
                   display_name: profile?.display_name ?? '',
                   gender: profile?.gender ?? '',
-                  birthday: profile?.birthday ?? '',
+                  date_of_birth: profile?.date_of_birth ?? '',
                 })
               }}
               className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
