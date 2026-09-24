@@ -121,17 +121,80 @@ function normalizeNotification(row: Row): Notification {
 
 export async function getMemberDashboardData(): Promise<MemberDashboardData | null> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return null
+
+  let userId: string | null = null
+  let authError: string | null = null
+
+  try {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
+
+    if (error) {
+      authError = error.message
+      // Log auth error
+      const { logSiteError } = await import('@/lib/errors/log')
+      await logSiteError(
+        'member-data-auth-error',
+        'error',
+        'supabase.auth.getUser() returned an error',
+        {
+          error_message: error.message,
+          error_name: error.name,
+          error_status: (error as any).status,
+        }
+      )
+    }
+
+    if (!user) {
+      // Log unauthenticated access attempt with session details
+      const { logSiteError } = await import('@/lib/errors/log')
+      await logSiteError(
+        'member-data-no-user',
+        'info',
+        'getMemberDashboardData called without authenticated user',
+        {
+          auth_error: authError,
+          note: 'This returns null and shows login prompt - expected for unauthenticated users',
+        }
+      )
+      return null
+    }
+
+    userId = user.id
+  } catch (err) {
+    // Log exception during auth check
+    const { logSiteError } = await import('@/lib/errors/log')
+    await logSiteError(
+      'member-data-auth-exception',
+      'error',
+      'Exception thrown during supabase.auth.getUser()',
+      {
+        error_message: (err as Error).message,
+        error_stack: (err as Error).stack,
+      }
+    )
+    return null
+  }
 
   // Fetch user profile
   let profile: Row = {}
   try {
-    const { data } = await supabase.from('users').select('*').eq('id', user.id).maybeSingle()
+    const { data } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
     if (data) profile = data as Row
-  } catch {
+  } catch (err) {
+    // Log profile fetch error but continue with defaults
+    const { logSiteError } = await import('@/lib/errors/log')
+    await logSiteError(
+      'member-data-profile-error',
+      'warning',
+      'Error fetching user profile from users table',
+      {
+        user_id: userId,
+        error_message: (err as Error).message,
+      }
+    )
     /* fall through to defaults */
   }
 
@@ -145,7 +208,7 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
     const { count } = await supabase
       .from('notification_log')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('read', false)
     unreadCount = count ?? 0
   } catch {
@@ -153,19 +216,19 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
   }
 
   const memberProfile: MemberProfile = {
-    id: user.id,
-    email: (profile.email as string) ?? user.email ?? null,
+    id: userId,
+    email: (profile.email as string) ?? null,
     display_name:
-      (profile.display_name as string) ?? (user.user_metadata?.full_name as string) ?? user.email?.split('@')[0] ?? null,
-    avatar_url: (profile.avatar_url as string) ?? (user.user_metadata?.avatar_url as string) ?? null,
+      (profile.display_name as string) ?? null,
+    avatar_url: (profile.avatar_url as string) ?? null,
     phone: (profile.phone as string) ?? null,
     points: num(profile, ['points'], 0), // REAL COLUMN: spendable balance
     tier: tierValue, // REAL COLUMN: 'amateur' | 'century' | 'maximum'
     tier_definition: tierDefinition,
     birth_month: profile.birth_month != null ? num(profile, ['birth_month'], 1) : null,
     birth_month_set_at: str(profile, ['birth_month_set_at']),
-    member_code: str(profile, ['member_code']) ?? `248-${user.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}`,
-    created_at: (profile.created_at as string) ?? user.created_at ?? null,
+    member_code: str(profile, ['member_code']) ?? `248-${userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)}`,
+    created_at: (profile.created_at as string) ?? null,
     unread_notifications: unreadCount,
   }
 
@@ -189,7 +252,7 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
         )
       `
       )
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(100)
 
@@ -240,7 +303,7 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
     const { data } = await supabase
       .from('points_ledger')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
     if (Array.isArray(data)) points = data.map((r) => normalizePointsTransaction(r as Row))
@@ -254,7 +317,7 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
     const { data } = await supabase
       .from('notification_log')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(50)
     if (Array.isArray(data)) notifications = data.map((r) => normalizeNotification(r as Row))

@@ -1088,6 +1088,12 @@
         "value": "from-purple-500/10 via-cyan-500/5 to-transparent",
         "createdAt": "2026-09-22T14:56:21.161Z",
         "reason": "intentional member dashboard redesign palette, matches existing TierRing gradient system"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "from-purple-600 to-pink-600",
+        "createdAt": "2026-09-23T11:32:17.301Z",
+        "reason": "Intentional admin-only beta signal documented in SparkWidget.tsx:13-14"
       }
     ]
   }

@@ -45,7 +45,7 @@ export function classifyComplexity(input: string): Complexity {
 }
 
 export function modelFor(complexity: Complexity): string {
-  return complexity === 'complex' ? 'claude-opus-4-8' : 'claude-sonnet-4-6'
+  return complexity === 'complex' ? 'claude-sonnet-5' : 'claude-haiku-4-5'
 }
 
 // Image generation is a separate REST surface on the same VectorEngine proxy
