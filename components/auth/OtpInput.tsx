@@ -106,7 +106,9 @@ export function OtpInput({
   }
 
   return (
-    <div className={`otp-input-row${className ? ` ${className}` : ""}`}>
+    <div className={`otp-input-row${className ? ` ${className}` : ""}`} style={{
+      animation: invalid ? 'otp-shake 150ms ease-in-out' : undefined
+    }}>
       {slots.map((digit, index) => (
         <input
           key={index}
@@ -115,6 +117,7 @@ export function OtpInput({
             refs.current[index] = element
           }}
           inputMode="numeric"
+          pattern="[0-9]*"
           autoComplete={index === 0 ? "one-time-code" : "off"}
           maxLength={length}
           disabled={disabled}

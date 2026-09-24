@@ -17,6 +17,8 @@ export function OtpVerification({
   onReset,
   disabled = false,
   expiresAt,
+  onGoBack,
+  onSwitchMethod,
 }: {
   length: number
   value: string[]
@@ -27,6 +29,8 @@ export function OtpVerification({
   onReset: () => void
   disabled?: boolean
   expiresAt?: string | null
+  onGoBack?: () => void
+  onSwitchMethod?: () => void
 }) {
   const t = useTranslations("auth")
   const statusRef = useRef<HTMLDivElement>(null)
@@ -35,6 +39,7 @@ export function OtpVerification({
   const digits = Array.from({ length }, (_, index) => value[index] ?? "")
   const codeComplete = digits.every((digit) => digit.length === 1)
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null)
+  const [showMoreOptions, setShowMoreOptions] = useState(false)
 
   useEffect(() => {
     if (!expiresAt) {
@@ -68,6 +73,10 @@ export function OtpVerification({
     const describedBy = hasError ? `${instructionId} ${errorId}` : instructionId
     const displayError = effectiveStatus === "expired" ? t("err_otp_expired") : effectiveStatus === "locked" ? t("err_otp_locked") : error
     const formattedRemaining = remainingSeconds === null ? "" : `${Math.floor(remainingSeconds / 60).toString().padStart(2, "0")}:${(remainingSeconds % 60).toString().padStart(2, "0")}`
+
+    // Check if error is hourly limit
+    const isHourlyLimit = error?.includes("hourly") || error?.includes("每小時") || error?.includes("每小时")
+
     return (
       <div className={`otp-verification otp-verification-${status}`}>
         <fieldset className="otp-input-fieldset">
@@ -76,9 +85,125 @@ export function OtpVerification({
           <OtpInput length={length} value={value} onChange={onChange} onComplete={onComplete} disabled={disabled || unavailable || remainingSeconds === 0} invalid={hasError} className={hasError ? "otp-input-grid-failure" : undefined} digitLabel={(index) => t("otp_digit", { number: index + 1 })} ariaDescribedBy={describedBy} focusFirst={status === "input"} />
         </fieldset>
         {hasError && <>
-          <p id={errorId} className="otp-verification-error" role="alert" data-cms-key="auth.otp.error">{displayError ?? t("err_otp_wrong_generic")}</p>
+          <p id={errorId} className="otp-verification-error" role="alert" data-cms-key="auth.otp.error">{isHourlyLimit ? t("otp_hourly_limit") : displayError ?? t("err_otp_wrong_generic")}</p>
           {!unavailable && <button type="button" className="otp-reset-button" onClick={onReset} disabled={disabled} data-cms-key="auth.otp.try_again">{t("otp_try_again")}</button>}
         </>}
+
+        {/* More options link */}
+        {(onGoBack || onSwitchMethod) && (
+          <button
+            type="button"
+            onClick={() => setShowMoreOptions(true)}
+            style={{
+              marginTop: 16,
+              background: "none",
+              border: "none",
+              color: "rgba(255,255,255,0.5)",
+              fontSize: 14,
+              cursor: "pointer",
+              textDecoration: "underline",
+              textUnderlineOffset: 2
+            }}
+          >
+            {t("otp_more_options")}
+          </button>
+        )}
+
+        {/* More options modal */}
+        {showMoreOptions && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.7)",
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "center",
+              zIndex: 9999
+            }}
+            onClick={() => setShowMoreOptions(false)}
+          >
+            <div
+              style={{
+                background: "#1A1C20",
+                borderRadius: "20px 20px 0 0",
+                padding: "24px",
+                width: "100%",
+                maxWidth: "500px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px"
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ fontSize: 18, fontWeight: 600, color: "#fff", marginBottom: 8 }}>
+                {t("otp_more_options")}
+              </h3>
+
+              {onSwitchMethod && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMoreOptions(false)
+                    onSwitchMethod()
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: "12px",
+                    color: "#fff",
+                    fontSize: 15,
+                    cursor: "pointer",
+                    textAlign: "left"
+                  }}
+                >
+                  Try a different method
+                </button>
+              )}
+
+              {onGoBack && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMoreOptions(false)
+                    onGoBack()
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: "12px",
+                    color: "#fff",
+                    fontSize: 15,
+                    cursor: "pointer",
+                    textAlign: "left"
+                  }}
+                >
+                  {t("back")}
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowMoreOptions(false)}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  background: "transparent",
+                  border: "none",
+                  color: "rgba(255,255,255,0.5)",
+                  fontSize: 15,
+                  cursor: "pointer"
+                }}
+              >
+                {t("close")}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

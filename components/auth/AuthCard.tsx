@@ -23,15 +23,30 @@ import { QRGuideModal } from "./QRGuideModal"
 // parent modal/login card).
 const GREEN = "#22c55e"
 const OTP_LENGTH = 6
-const RESEND_COOLDOWN = 60
+const RESEND_COOLDOWN = 30
 const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type Phase = "methods" | "identify" | "otp" | "profile"
+type Phase = "methods" | "identify" | "otp" | "profile" | "signup" | "signupPhone" | "signupEmail" | "contact" | "password"
 type OtpChannel = "sms" | "email"
 type OtpDeliveryChannel = "whatsapp" | "sms"
 type ContactType = "phone" | "email" | "unknown"
 type Prefill = { name: string; email: string; phone: string; phoneVerified: boolean }
+
+// Mask sensitive contact info for OTP display
+function maskContact(contact: string, type: OtpChannel): string {
+  if (type === "email") {
+    const [local, domain] = contact.split("@")
+    if (!local || !domain) return contact
+    return `${local[0]}***@${domain}`
+  }
+  // Phone: show last 4 digits only
+  const digits = contact.replace(/\D/g, "")
+  if (digits.length >= 4) {
+    return `+852 **** ${digits.slice(-4)}`
+  }
+  return contact
+}
 
 // Reusable auth content — the single source of truth used by BOTH the /login page
 // and the in-booking modal. Method picker shows three clean options: Apple, Google,
@@ -795,8 +810,8 @@ export function AuthCard({
             abandons to the method picker rather than offering a dead-end back. */}
         <button type="button" onClick={() => { setPhase(phoneStep ? "methods" : "signup"); setError(null); setOtpStatus("input") }} aria-label={t("back")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}><ChevronLeft size={16} /> {t("back")}</button>
         <h2 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>{phoneStep ? t("signup_phone_title") : t("signup_email_title")}</h2>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>{phoneStep ? t(otpDeliveryChannel === "whatsapp" ? "otp_subtitle_whatsapp" : "otp_subtitle", { phone: signupPhone }) : t("otp_subtitle_email", { email: signupEmail })}</p>
-        <OtpVerification length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={phoneStep ? verifySignupPhone : verifySignupEmail} status={otpStatus} error={error} onReset={() => { setOtp([]); setError(null); setOtpStatus("input") }} disabled={busy} />
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>{phoneStep ? `${t("otp_sent_to")} ${maskContact(signupPhone, "sms")}` : `${t("otp_sent_to")} ${maskContact(signupEmail, "email")}`}</p>
+        <OtpVerification length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={phoneStep ? verifySignupPhone : verifySignupEmail} status={otpStatus} error={error} onReset={() => { setOtp([]); setError(null); setOtpStatus("input") }} disabled={busy} onGoBack={() => { setPhase(phoneStep ? "methods" : "signup"); setError(null); setOtpStatus("input") }} />
       </motion.div>
     )
   }
@@ -817,10 +832,10 @@ export function AuthCard({
         </h2>
         <p data-cms-key="auth.otp.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
           {otpChannel === "email"
-            ? t("otp_subtitle_email", { email })
+            ? `${t("otp_sent_to")} ${maskContact(email, "email")}`
             : otpDeliveryChannel === "whatsapp"
-              ? t("otp_subtitle_whatsapp", { phone })
-              : t("otp_subtitle", { phone })}
+              ? `${t("otp_sent_to")} ${maskContact(phone, "sms")} (WhatsApp)`
+              : `${t("otp_sent_to")} ${maskContact(phone, "sms")}`}
         </p>
 
           <OtpVerification
@@ -833,6 +848,8 @@ export function AuthCard({
             onReset={() => { setOtp(Array.from({ length: OTP_LENGTH }, () => "")); setError(null); setOtpStatus("input") }}
             disabled={busy}
             expiresAt={otpExpiresAt}
+            onGoBack={() => { setPhase("contact"); setError(null); setOtpStatus("input") }}
+            onSwitchMethod={() => { setPhase("contact"); setError(null); setOtpStatus("input") }}
           />
 
         <button
