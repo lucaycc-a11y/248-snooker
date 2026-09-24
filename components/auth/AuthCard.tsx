@@ -27,7 +27,7 @@ const RESEND_COOLDOWN = 60
 const MAX_OTP_ATTEMPTS = 3
 const EASE = [0.16, 1, 0.3, 1] as const
 
-type Phase = "methods" | "contact" | "otp" | "profile" | "password" | "signup" | "signupPhone" | "signupEmail"
+type Phase = "methods" | "identify" | "otp" | "profile"
 type OtpChannel = "sms" | "email"
 type OtpDeliveryChannel = "whatsapp" | "sms"
 type ContactType = "phone" | "email" | "unknown"
@@ -422,8 +422,6 @@ export function AuthCard({
         // Use Supabase native phone auth instead of custom /api/otp/send
         const supabase = createClient()
 
-        // DEBUG: Trace to detect duplicate calls
-        console.trace('[DEBUG signInWithOtp] phone:', JSON.stringify(normalized))
 
         const { error } = await supabase.auth.signInWithOtp({
           phone: normalized,
@@ -654,8 +652,6 @@ export function AuthCard({
         return
       }
 
-      // DEBUG: Log the actual phone value being sent to verifyOtp
-      console.log('[DEBUG verifyOtp] phone:', JSON.stringify(phone), 'token:', code, 'type:', 'sms')
 
       const { error } = await supabase.auth.verifyOtp({
         phone,
@@ -746,11 +742,14 @@ export function AuthCard({
           name: t("profile_name"),
           email: t("profile_email"),
           phone: t("profile_phone"),
+          date_of_birth: t("profile_date_of_birth"),
+          date_of_birth_hint: t("profile_date_of_birth_hint"),
           submit: t("profile_submit"),
           saving: t("saving"),
           err_name: t("err_name"),
           err_email: t("err_email"),
           err_phone: t("err_phone"),
+          err_date_of_birth: t("err_date_of_birth"),
           err_generic: t("err_generic"),
           phone_verified_badge: t("profile_phone_verified_badge"),
           phone_send_code: t("profile_phone_send_code"),
