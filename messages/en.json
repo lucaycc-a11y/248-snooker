@@ -889,6 +889,34 @@
         "network_error": "Network error"
       }
     },
+    "card_redesign": {
+      "available_points": "Available Points",
+      "spent_amount": "Spent ${spent}, spend ${remaining} more to upgrade to {tierName}",
+      "max_tier_reached": "Top tier reached · Exclusive privileges",
+      "tap_to_view_qr": "Tap to view entry QR code",
+      "scan_to_enter": "Scan to enter"
+    },
+    "points_page": {
+      "title": "Space Pts",
+      "history_button": "Points History",
+      "available_points": "Available Points",
+      "points_to_next": "{points} points away from {tierName}",
+      "max_tier_reached": "Top tier reached",
+      "tier_status": "Membership Status",
+      "points_count": "{points} points",
+      "points_to_next_short": "{points} points to next tier",
+      "tier_benefits": "Tier Benefits",
+      "tier_nova": "Nova Member",
+      "tier_platinum": "Platinum Member",
+      "tier_diamond": "Diamond Member",
+      "benefit_nova": "Basic points accumulation",
+      "benefit_platinum": "1.5x points multiplier",
+      "benefit_diamond": "2x points multiplier · Exclusive perks",
+      "redeem_rewards": "Redeem Rewards",
+      "no_rewards_title": "No rewards available",
+      "no_rewards_message": "Check Inbox for notifications",
+      "close": "Close"
+    },
     "help": {
       "title": "Help Center",
       "subtitle": "We're here to help",

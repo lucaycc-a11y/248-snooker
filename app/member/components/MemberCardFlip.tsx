@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { Sparkles, Trophy, Gem } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 import { getTierName, getTierGradient } from '@/lib/member/tierHelpers'
 import { resolveTier, DEFAULT_TIERS } from '@/lib/data/pricing'
@@ -20,6 +21,7 @@ type Props = {
 }
 
 export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
+  const t = useTranslations('member.card_redesign')
   const tierName = getTierName(profile.tier, 'zh-HK')
   const tierGradient = getTierGradient(profile.tier)
   const tierRingColors = getTierRingColorPair(profile.tier)
@@ -120,7 +122,11 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
 
                     {/* Status text below bar */}
                     <p className="mt-1.5 text-[11px] text-white/40">
-                      已消費 ${profile.points.toLocaleString()}，再消費 ${pointsToNext.toLocaleString()} 可升級至{getTierName(next.id, 'zh-HK')}
+                      {t('spent_amount', {
+                        spent: profile.points.toLocaleString(),
+                        remaining: pointsToNext.toLocaleString(),
+                        tierName: getTierName(next.id, 'zh-HK')
+                      })}
                     </p>
                   </div>
                 </div>
@@ -128,13 +134,13 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
 
               {/* Max tier - static text, no progress bar */}
               {isMaxTier && (
-                <p className="mt-2 text-xs text-white/50">已達最高等級 · 尊享特級禮遇</p>
+                <p className="mt-2 text-xs text-white/50">{t('max_tier_reached')}</p>
               )}
             </div>
 
             {/* Points display - right aligned, always visible */}
             <div className="flex flex-col items-end justify-center">
-              <p className="text-[10px] text-white/40">可用積分</p>
+              <p className="text-[10px] text-white/40">{t('available_points')}</p>
               <p className="font-code text-4xl font-bold leading-tight text-white">
                 {profile.points.toLocaleString()}
               </p>
@@ -155,7 +161,7 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
                   d="M15.5 12.5l-3-3m0 0l-3 3m3-3v9m0-15a9 9 0 110 18 9 9 0 010-18z"
                 />
               </svg>
-              <p className="text-xs">輕觸查看入場 QR code</p>
+              <p className="text-xs">{t('tap_to_view_qr')}</p>
             </div>
           </div>
         </div>
@@ -174,7 +180,7 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
               <QRCodeSVG value={profile.member_code} size={160} level="H" />
             </div>
             <p className="font-code mt-4 text-sm text-white">{profile.member_code}</p>
-            <p className="mt-1 text-xs text-white/40">掃描入場</p>
+            <p className="mt-1 text-xs text-white/40">{t('scan_to_enter')}</p>
           </div>
         </div>
       </motion.div>

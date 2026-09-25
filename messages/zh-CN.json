@@ -943,6 +943,34 @@
           "answer": "进入设定 > 安全，点击「更改密码」。我们会发送一个安全连结到您的电邮。"
         }
       }
+    },
+    "card_redesign": {
+      "available_points": "可用积分",
+      "spent_amount": "已消费 ${spent}，再消费 ${remaining} 可升级至{tierName}",
+      "max_tier_reached": "已达最高等级 · 尊享特级礼遇",
+      "tap_to_view_qr": "轻触查看入场 QR code",
+      "scan_to_enter": "扫描入场"
+    },
+    "points_page": {
+      "title": "Space Pts",
+      "history_button": "积分历史",
+      "available_points": "可用积分",
+      "points_to_next": "距离{tierName}尚差 {points} 分",
+      "max_tier_reached": "已达最高等级",
+      "tier_status": "会员等级状态",
+      "points_count": "{points} 积分",
+      "points_to_next_short": "距离下一等级 {points} 分",
+      "tier_benefits": "等级礼遇",
+      "tier_nova": "新星会员 (Nova)",
+      "tier_platinum": "铂金会员 (Platinum)",
+      "tier_diamond": "钻石会员 (Diamond)",
+      "benefit_nova": "基本积分累积",
+      "benefit_platinum": "1.5x 积分倍数",
+      "benefit_diamond": "2x 积分倍数 · 专属优惠",
+      "redeem_rewards": "兑换奖赏",
+      "no_rewards_title": "暂无可兑换奖赏",
+      "no_rewards_message": "留意 Inbox 通知",
+      "close": "关闭"
     }
   },
   "faq": {

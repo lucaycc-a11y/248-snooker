@@ -889,6 +889,34 @@
         "network_error": "網絡錯誤"
       }
     },
+    "card_redesign": {
+      "available_points": "可用積分",
+      "spent_amount": "已消費 ${spent}，再消費 ${remaining} 可升級至{tierName}",
+      "max_tier_reached": "已達最高等級 · 尊享特級禮遇",
+      "tap_to_view_qr": "輕觸查看入場 QR code",
+      "scan_to_enter": "掃描入場"
+    },
+    "points_page": {
+      "title": "Space Pts",
+      "history_button": "積分歷史",
+      "available_points": "可用積分",
+      "points_to_next": "距離{tierName}尚差 {points} 分",
+      "max_tier_reached": "已達最高等級",
+      "tier_status": "會員等級狀態",
+      "points_count": "{points} 積分",
+      "points_to_next_short": "距離下一等級 {points} 分",
+      "tier_benefits": "等級禮遇",
+      "tier_nova": "新星會員 (Nova)",
+      "tier_platinum": "鉑金會員 (Platinum)",
+      "tier_diamond": "鑽石會員 (Diamond)",
+      "benefit_nova": "基本積分累積",
+      "benefit_platinum": "1.5x 積分倍數",
+      "benefit_diamond": "2x 積分倍數 · 專屬優惠",
+      "redeem_rewards": "兌換獎賞",
+      "no_rewards_title": "暫無可兌換獎賞",
+      "no_rewards_message": "留意 Inbox 通知",
+      "close": "關閉"
+    },
     "help": {
       "title": "幫助中心",
       "subtitle": "我們在此為您提供協助",
