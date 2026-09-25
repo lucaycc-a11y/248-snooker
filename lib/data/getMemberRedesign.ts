@@ -33,11 +33,25 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
   }
 
   // Count unread notifications (inbox)
-  const { count: unreadCount } = await supabase
-    .from('admin_notifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-    .eq('read', false)
+  // Graceful degradation: if the admin_notifications table doesn't exist yet,
+  // default to 0 unread notifications rather than crashing the page
+  let unreadCount = 0
+  try {
+    const { count, error: notifError } = await supabase
+      .from('admin_notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('read', false)
+
+    if (notifError) {
+      console.warn('[getMemberRedesign] admin_notifications query failed:', notifError.message)
+    } else {
+      unreadCount = count ?? 0
+    }
+  } catch (err) {
+    // Table doesn't exist or query failed — graceful degradation to 0 unread
+    console.warn('[getMemberRedesign] admin_notifications query threw:', err)
+  }
 
   return {
     profile: {
