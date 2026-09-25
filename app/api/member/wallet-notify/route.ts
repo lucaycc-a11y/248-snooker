@@ -9,11 +9,14 @@ import { NextResponse } from 'next/server'
 export async function POST(req: Request) {
   const supabase = await createClient()
 
+  // SECURITY: Use getUser() not getSession() for auth decisions
+  // getSession() reads cookies which can be forged; getUser() validates with auth server
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -23,7 +26,7 @@ export async function POST(req: Request) {
   const { error } = await supabase
     .from('users')
     .update({ wallet_notify_opt_in: notify === true })
-    .eq('id', session.user.id)
+    .eq('id', user.id)
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })

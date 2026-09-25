@@ -60,11 +60,12 @@ export default function PointsPage() {
   const isMaxTier = !next
   const tierGradient = getTierGradient(current.id)
   const tierRingColor = getTierRingColor(current.id)
+  const tierBackgroundGradient = getTierBackgroundGradient(current.id)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0D12]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0D12]/90 backdrop-blur-xl">
         <div className="mx-auto max-w-3xl px-4 py-4">
           <div className="flex items-center justify-between">
             <a href="/member" className="text-white/60 transition-colors hover:text-white">
@@ -72,7 +73,7 @@ export default function PointsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </a>
-            <h1 className="text-lg font-medium text-white">Space Pts</h1>
+            <h1 className="text-lg font-semibold text-white">Space Pts</h1>
             <div className="w-6" />
           </div>
         </div>
@@ -81,8 +82,16 @@ export default function PointsPage() {
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="space-y-8">
           {/* Hero: Large points balance with progress ring */}
-          <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-8">
-            <div className="flex flex-col items-center">
+          <section
+            className="relative overflow-hidden rounded-2xl border border-white/10 p-8"
+            style={{ background: tierBackgroundGradient }}
+          >
+            {/* Watermark tier icon */}
+            <div className="pointer-events-none absolute -bottom-8 -right-8 opacity-[0.03]">
+              {getTierIcon(current.id, 'h-40 w-40')}
+            </div>
+
+            <div className="relative flex flex-col items-center">
               {/* Larger progress ring */}
               <div className="relative">
                 {!isMaxTier ? (
@@ -280,5 +289,18 @@ function getTierRingColor(tier: string): string {
       return 'rgba(240, 147, 251, 0.6)'
     default:
       return 'rgba(107, 114, 128, 0.6)'
+  }
+}
+
+function getTierBackgroundGradient(tier: string): string {
+  switch (tier) {
+    case 'amateur':
+      return 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(15, 19, 28, 0.95) 100%)'
+    case 'century':
+      return 'linear-gradient(135deg, rgba(189, 195, 199, 0.12) 0%, rgba(44, 62, 80, 0.08) 50%, rgba(15, 19, 28, 0.95) 100%)'
+    case 'maximum':
+      return 'linear-gradient(135deg, rgba(240, 147, 251, 0.15) 0%, rgba(245, 87, 108, 0.10) 50%, rgba(15, 19, 28, 0.95) 100%)'
+    default:
+      return 'linear-gradient(135deg, rgba(107, 114, 128, 0.08) 0%, rgba(15, 19, 28, 0.95) 100%)'
   }
 }

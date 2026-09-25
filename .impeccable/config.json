@@ -1118,6 +1118,26 @@
         "value": "rgba(107, 114, 128, 0.8)",
         "createdAt": "2026-09-25T06:00:01.347Z",
         "reason": "Tier gradient colors reused from existing member card tier pills (default tier)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(102, 126, 234, 0.12) tier background gradient for 新星會員 (amateur tier) - intentional visual identity",
+        "createdAt": "2026-09-25T08:35:29.659Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(189, 195, 199, 0.12) tier background gradient for 鉑金會員 (century tier) - intentional visual identity",
+        "createdAt": "2026-09-25T08:36:04.552Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(240, 147, 251, 0.15) tier background gradient for 鑽石會員 (maximum tier) - intentional visual identity",
+        "createdAt": "2026-09-25T08:36:17.215Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(107, 114, 128, 0.08) tier background gradient for default tier - intentional visual identity",
+        "createdAt": "2026-09-25T08:36:26.244Z"
       }
     ]
   }

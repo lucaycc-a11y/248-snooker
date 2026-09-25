@@ -23,6 +23,7 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
   const tierName = getTierName(profile.tier, 'zh-HK')
   const tierGradient = getTierGradient(profile.tier)
   const tierRingColors = getTierRingColorPair(profile.tier)
+  const tierBackgroundGradient = getTierBackgroundGradient(profile.tier)
 
   // Calculate real progress to next tier using actual DB thresholds
   const { current, next, progress, pointsToNext } = resolveTier(profile.points, DEFAULT_TIERS)
@@ -31,7 +32,7 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
   return (
     <div className="perspective-1000 mx-auto w-full max-w-md">
       <motion.div
-        className="relative h-56 w-full cursor-pointer"
+        className="relative h-64 w-full cursor-pointer"
         onClick={onFlip}
         animate={{ rotateY: flipped ? 180 : 0 }}
         transition={{
@@ -42,32 +43,43 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
       >
         {/* Front */}
         <div
-          className="absolute inset-0 rounded-3xl p-[2px]"
-          style={{
-            backfaceVisibility: 'hidden',
-            background: `linear-gradient(135deg, ${tierRingColors[0]}, ${tierRingColors[1]})`,
-          }}
+          className="absolute inset-0 overflow-hidden rounded-3xl border border-white/10"
+          style={{ backfaceVisibility: 'hidden' }}
         >
-          <div className="flex h-full w-full flex-col justify-between rounded-3xl bg-[#0F131C]/90 p-6 backdrop-blur-xl">
+          {/* Tier-based gradient background */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: tierBackgroundGradient,
+            }}
+          />
+
+          {/* Watermark tier icon - large, subtle, bottom-right */}
+          <div className="pointer-events-none absolute -bottom-6 -right-6 opacity-[0.04]">
+            {getTierIconComponent(profile.tier, 'h-32 w-32')}
+          </div>
+
+          {/* Content overlay */}
+          <div className="relative flex h-full w-full flex-col justify-between p-6">
             {/* Top row: SPACE8 logo + tier pill */}
             <div className="flex items-start justify-between">
-              <div className="h-6 w-6 opacity-60">
+              <div className="h-7 w-7 opacity-50">
                 <svg viewBox="0 0 1000 1000" fill="currentColor" className="text-white">
                   <path d="M391.31,786.11c-94.11,0-155.08-68.48-155.08-173.16,0-66.9,31.81-112.55,75.55-129.08-35.79-13.38-66.27-49.59-66.27-122,0-97.6,61.63-147.97,155.08-147.97h198.81c93.44,0,155.74,50.37,155.74,147.97,0,72.41-31.15,108.62-66.93,122,43.74,16.53,75.55,62.18,75.55,129.08,0,104.68-60.97,173.16-155.08,173.16h-217.37ZM394.63,537.39c-47.05,0-73.56,26.76-73.56,73.99,0,49.59,37.77,74.77,90.79,74.77h176.28c53.02,0,90.79-25.19,90.79-74.77s-26.51-73.99-73.56-73.99h-210.74ZM416.5,313.07c-55.01,0-86.15,18.1-86.15,70.84,0,49.59,22.53,69.26,70.25,69.26h198.81c47.72,0,70.25-19.68,70.25-69.26,0-52.74-31.15-70.84-86.15-70.84h-167Z"/>
                 </svg>
               </div>
               <div
-                className="rounded-full px-3 py-1 text-xs text-white shadow-lg"
+                className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-white backdrop-blur-sm"
                 style={{ background: tierGradient }}
               >
                 {tierName}
               </div>
             </div>
 
-            {/* Member identity row */}
-            <div className="flex-1">
-              <p className="text-xs text-white/40">248 Member</p>
-              <h3 className="mt-0.5 text-2xl font-bold text-white">{profile.display_name ?? '會員'}</h3>
+            {/* Member identity row - improved hierarchy */}
+            <div className="flex-1 space-y-1">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-white/30">248 Member</p>
+              <h3 className="text-3xl font-bold leading-tight text-white">{profile.display_name ?? '會員'}</h3>
             </div>
 
             {/* Points hero row: ring on left, points number on right */}
@@ -199,5 +211,21 @@ function getTierIconComponent(tier: string, sizeClass: string = 'h-12 w-12'): JS
       return <Gem className={`${sizeClass} text-white`} strokeWidth={1.5} />
     default:
       return <Sparkles className={`${sizeClass} text-white`} strokeWidth={1.5} />
+  }
+}
+
+function getTierBackgroundGradient(tier: string): string {
+  switch (tier) {
+    case 'amateur':
+      // Subtle blue-purple gradient for 新星會員
+      return 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(15, 19, 28, 0.95) 100%)'
+    case 'century':
+      // Subtle silver gradient for 鉑金會員
+      return 'linear-gradient(135deg, rgba(189, 195, 199, 0.12) 0%, rgba(44, 62, 80, 0.08) 50%, rgba(15, 19, 28, 0.95) 100%)'
+    case 'maximum':
+      // Subtle pink-purple gradient for 鑽石會員
+      return 'linear-gradient(135deg, rgba(240, 147, 251, 0.15) 0%, rgba(245, 87, 108, 0.10) 50%, rgba(15, 19, 28, 0.95) 100%)'
+    default:
+      return 'linear-gradient(135deg, rgba(107, 114, 128, 0.08) 0%, rgba(15, 19, 28, 0.95) 100%)'
   }
 }

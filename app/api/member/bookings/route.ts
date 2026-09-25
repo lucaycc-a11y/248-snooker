@@ -8,11 +8,14 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   const supabase = await createClient()
 
+  // SECURITY: Use getUser() not getSession() for auth decisions
+  // getSession() reads cookies which can be forged; getUser() validates with auth server
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -20,7 +23,7 @@ export async function GET() {
   const { data: bookings, error } = await supabase
     .from('bookings')
     .select('id, table_id, date, start_time, duration_hours, price, human_code, status')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .order('date', { ascending: false })
 
   if (error) {

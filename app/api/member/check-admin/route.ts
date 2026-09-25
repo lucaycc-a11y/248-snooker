@@ -10,11 +10,14 @@ import { NextResponse } from 'next/server'
 export async function GET() {
   const supabase = await createClient()
 
+  // SECURITY: Use getUser() not getSession() for auth decisions
+  // getSession() reads cookies which can be forged; getUser() validates with auth server
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (authError || !user) {
     return NextResponse.json({ isAdmin: false })
   }
 
@@ -22,7 +25,7 @@ export async function GET() {
   const { data: adminUser } = await supabase
     .from('admin_users')
     .select('is_active')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .eq('is_active', true)
     .single()
 
