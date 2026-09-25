@@ -1,0 +1,28 @@
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { QRCodeSVG } from 'qrcode.react'
+import { Sparkles } from 'lucide-react'
+
+// ════════════════════════════════════════════════════════════════════════════
+// Card Quality Preview — 3 visual styles for member card enhancement
+// Style 1: Glassmorphism (frosted glass + glow border)
+// Style 2: Metallic Premium (metal gradient border + deep shadow)
+// Style 3: Gradient + Texture (bold gradient + noise texture)
+// ════════════════════════════════════════════════════════════════════════════
+
+type CardStyle = 'glass' | 'metal' | 'gradient'
+
+export default function CardPreviewPage() {
+  const [style, setStyle] = useState<CardStyle>('glass')
+  const [flipped, setFlipped] = useState(false)
+
+  const mockProfile = {
+    display_name: 'Luca Yau',
+    member_code: 'SPACE8-2024-001',
+    points: 1250,
+    tier: 'amateur'
+  }
+
+  return (

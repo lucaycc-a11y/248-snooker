@@ -1171,8 +1171,8 @@
       {
         "rule": "design-system-color",
         "value": "rgba(44, 62, 80, 0.08)",
-        "createdAt": "2026-09-25T11:24:00.000Z",
-        "reason": "Tier background gradient for Platinum (century) - core membership visual identity system"
+        "createdAt": "2026-09-25T11:32:00.000Z",
+        "reason": "Tier background gradient for Platinum (century) - secondary gradient stop in card backdrop"
       },
       {
         "rule": "design-system-color",
@@ -1212,12 +1212,6 @@
       },
       {
         "rule": "design-system-color",
-        "value": "rgba(44, 62, 80, 0.08)",
-        "createdAt": "2026-09-25T11:32:00.000Z",
-        "reason": "Tier background gradient for Platinum (century) - secondary gradient stop in card backdrop"
-      },
-      {
-        "rule": "design-system-color",
         "value": "rgba(15, 19, 28, 0.95)",
         "createdAt": "2026-09-25T11:32:00.000Z",
         "reason": "Tier background gradient anchor - dark terminal gradient stop shared across all tier card backdrops"
@@ -1227,6 +1221,31 @@
         "value": "rgba(107, 114, 128, 0.08)",
         "createdAt": "2026-09-25T11:32:00.000Z",
         "reason": "Tier background gradient fallback - default gray for unrecognized tier card backdrops"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(148, 163, 184, 0.15) phase 3: nova tier enhanced gradient (cooler silver tones)",
+        "createdAt": "2026-09-25T14:14:32.631Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(192, 132, 252, 0.20) phase 3: diamond tier enhanced gradient (royal purple with shimmer)",
+        "createdAt": "2026-09-25T14:14:44.480Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(107, 114, 128, 0.10) phase 3: default tier gradient (fallback state)",
+        "createdAt": "2026-09-25T14:14:55.876Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(189, 195, 199, 0.12) phase 2 item 1: nova tier silver gradient (existing design from previous phase)",
+        "createdAt": "2026-09-25T14:17:18.295Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(240, 147, 251, 0.15) phase 2 item 1: diamond tier purple gradient (existing design from previous phase)",
+        "createdAt": "2026-09-25T14:19:13.570Z"
       }
     ]
   }
