@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { Calendar, CircleDot } from 'lucide-react'
+import { getTableName } from '@/lib/booking/constants'
+import { useLocale } from 'next-intl'
 
 // ════════════════════════════════════════════════════════════════════════════
 // UpcomingBookingCard — Next booking with QR code
@@ -26,6 +28,7 @@ type Props = {
 }
 
 export function UpcomingBookingCard({ userId }: Props) {
+  const locale = useLocale()
   const [booking, setBooking] = useState<Booking | null>(null)
   const [loading, setLoading] = useState(true)
   const [showQR, setShowQR] = useState(false)
@@ -79,7 +82,7 @@ export function UpcomingBookingCard({ userId }: Props) {
         <p className="mt-4 text-sm text-white/60">暫無預約</p>
         <a
           href="/booking"
-          className="mt-4 inline-block rounded-full bg-[#22c55e] px-6 py-2 text-sm font-medium text-white transition-all hover:bg-[#16a34a]"
+          className="mt-4 inline-block rounded-full bg-[#22c55e] px-6 py-2.5 font-code text-sm font-medium text-white transition-all hover:bg-[#16a34a]"
         >
           立即預訂
         </a>
@@ -100,9 +103,9 @@ export function UpcomingBookingCard({ userId }: Props) {
           <h3 className="text-sm font-medium text-white/80">即將到來的預約</h3>
           <button
             onClick={() => setShowQR(!showQR)}
-            className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/20"
+            className="rounded-lg bg-white/10 px-3 py-1.5 font-code text-xs text-white transition-colors hover:bg-white/20"
           >
-            {showQR ? '隱藏' : '顯示'} QR
+            {showQR ? 'Hide QR' : 'Show QR'}
           </button>
         </div>
       </div>
@@ -113,7 +116,7 @@ export function UpcomingBookingCard({ userId }: Props) {
             <div className="flex items-center gap-2">
               <CircleDot className="h-6 w-6 text-white" strokeWidth={1.5} />
               <h4 className="text-xl font-bold text-white">
-                球檯 {booking.tableId ?? '--'}
+                {booking.tableId ? getTableName(parseInt(booking.tableId), locale) : '--'}
               </h4>
             </div>
             {bookingDate && (
@@ -132,15 +135,15 @@ export function UpcomingBookingCard({ userId }: Props) {
         <div className="mt-4 grid grid-cols-3 gap-4">
           <div>
             <p className="text-xs text-white/40">時間</p>
-            <p className="mt-1 font-medium text-white">{booking.startTime ?? '--'}</p>
+            <p className="mt-1 font-code font-medium text-white">{booking.startTime ?? '--'}</p>
           </div>
           <div>
             <p className="text-xs text-white/40">時長</p>
-            <p className="mt-1 font-medium text-white">{booking.durationHours}小時</p>
+            <p className="mt-1 font-code font-medium text-white">{booking.durationHours}小時</p>
           </div>
           <div>
             <p className="text-xs text-white/40">金額</p>
-            <p className="mt-1 font-medium text-white">HK${booking.price.toLocaleString()}</p>
+            <p className="mt-1 font-code font-medium text-white">HK${booking.price.toLocaleString()}</p>
           </div>
         </div>
 

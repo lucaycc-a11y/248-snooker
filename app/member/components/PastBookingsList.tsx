@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, CircleDot } from 'lucide-react'
+import { getTableName } from '@/lib/booking/constants'
+import { useLocale } from 'next-intl'
 
 // ════════════════════════════════════════════════════════════════════════════
 // PastBookingsList — Read-only history link
@@ -25,6 +27,7 @@ type Props = {
 }
 
 export function PastBookingsList({ userId }: Props) {
+  const locale = useLocale()
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -112,7 +115,7 @@ export function PastBookingsList({ userId }: Props) {
                   <div className="flex items-center gap-2">
                     <CircleDot className="h-5 w-5 text-white" strokeWidth={1.5} />
                     <p className="font-medium text-white">
-                      球檯 {booking.tableId ?? '--'}
+                      {booking.tableId ? getTableName(parseInt(booking.tableId), locale) : '--'}
                     </p>
                   </div>
                   {bookingDate && (
@@ -128,10 +131,10 @@ export function PastBookingsList({ userId }: Props) {
                   )}
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-white">
+                  <p className="font-code text-sm font-medium text-white">
                     HK${booking.price.toLocaleString()}
                   </p>
-                  <p className="text-xs text-white/40">{booking.durationHours}小時</p>
+                  <p className="font-code text-xs text-white/40">{booking.durationHours}小時</p>
                 </div>
               </div>
             </motion.div>

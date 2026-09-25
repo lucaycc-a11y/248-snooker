@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { type MemberDashboardData } from '@/lib/data/memberRedesignTypes'
 import { MemberCardFlip } from './components/MemberCardFlip'
-import { ActionGrid } from './components/ActionGrid'
+import { HorizontalActionTiles } from './components/HorizontalActionTiles'
 
 // Lazy load below-fold components
 const UpcomingBookingCard = dynamic(
@@ -23,8 +23,9 @@ const BottomLinks = dynamic(
 )
 
 // ════════════════════════════════════════════════════════════════════════════
-// MemberPageClient — Full Rebuild: Mobile-First Single Scroll
-// Layout: Header → Flip Card → 2×2 Grid → Upcoming → Past → Footer
+// MemberPageClient — Uber-Style Horizontal Scrolling Layout
+// Layout: Header → Member Card → Horizontal Action Tiles → Upcoming → Past → Footer
+// Each section is independently scrollable horizontally (Uber app style)
 // ════════════════════════════════════════════════════════════════════════════
 
 type Props = {
@@ -60,37 +61,47 @@ export function MemberPageClient({ initialData }: Props) {
       </header>
 
       {/* Content */}
-      <div className="mx-auto max-w-7xl px-4 py-6">
-        <div className="space-y-6">
-          {/* Desktop Layout: Card + Grid side-by-side on ≥1024px */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Member Card */}
-            <section>
-              <MemberCardFlip
-                profile={profile}
-                flipped={cardFlipped}
-                onFlip={() => setCardFlipped(!cardFlipped)}
-              />
-            </section>
-
-            {/* 2×2 Action Grid */}
-            <section>
-              <ActionGrid profile={profile} />
-            </section>
-          </div>
-
-          {/* Upcoming Booking - Full width on all screens */}
-          <section>
-            <UpcomingBookingCard userId={profile.id} />
+      <div className="mx-auto max-w-7xl pb-8">
+        <div className="space-y-8">
+          {/* Member Card - Full width, reduced height */}
+          <section className="px-4 pt-6">
+            <MemberCardFlip
+              profile={profile}
+              flipped={cardFlipped}
+              onFlip={() => setCardFlipped(!cardFlipped)}
+            />
           </section>
 
-          {/* Past Bookings - Full width on all screens */}
+          {/* Horizontal Action Tiles - Uber style */}
           <section>
-            <PastBookingsList userId={profile.id} />
+            <div className="px-4">
+              <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-white/60">Quick Actions</h2>
+            </div>
+            <HorizontalActionTiles profile={profile} />
+          </section>
+
+          {/* Upcoming Booking */}
+          <section>
+            <div className="px-4">
+              <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-white/60">Upcoming</h2>
+            </div>
+            <div className="px-4">
+              <UpcomingBookingCard userId={profile.id} />
+            </div>
+          </section>
+
+          {/* Past Bookings */}
+          <section>
+            <div className="px-4">
+              <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-white/60">History</h2>
+            </div>
+            <div className="px-4">
+              <PastBookingsList userId={profile.id} />
+            </div>
           </section>
 
           {/* Bottom Links */}
-          <section>
+          <section className="px-4">
             <BottomLinks />
           </section>
         </div>
