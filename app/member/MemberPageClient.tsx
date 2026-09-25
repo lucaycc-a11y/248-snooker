@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { type MemberDashboardData } from '@/lib/data/memberRedesignTypes'
-import { MemberCardFlip } from './components/MemberCardFlip'
+import { MemberCardFlipRedesign } from './components/MemberCardFlipRedesign'
 import { HorizontalActionTiles } from './components/HorizontalActionTiles'
 
 // Lazy load below-fold components
@@ -65,7 +65,7 @@ export function MemberPageClient({ initialData }: Props) {
         <div className="space-y-8">
           {/* Member Card - Full width, reduced height */}
           <section className="px-4 pt-6">
-            <MemberCardFlip
+            <MemberCardFlipRedesign
               profile={profile}
               flipped={cardFlipped}
               onFlip={() => setCardFlipped(!cardFlipped)}
