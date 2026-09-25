@@ -3,12 +3,24 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
+import dynamic from 'next/dynamic'
 import { type MemberDashboardData } from '@/lib/data/memberRedesignTypes'
 import { MemberCardFlip } from './components/MemberCardFlip'
 import { ActionGrid } from './components/ActionGrid'
-import { UpcomingBookingCard } from './components/UpcomingBookingCard'
-import { PastBookingsList } from './components/PastBookingsList'
-import { BottomLinks } from './components/BottomLinks'
+
+// Lazy load below-fold components
+const UpcomingBookingCard = dynamic(
+  () => import('./components/UpcomingBookingCard').then(mod => ({ default: mod.UpcomingBookingCard })),
+  { ssr: false }
+)
+const PastBookingsList = dynamic(
+  () => import('./components/PastBookingsList').then(mod => ({ default: mod.PastBookingsList })),
+  { ssr: false }
+)
+const BottomLinks = dynamic(
+  () => import('./components/BottomLinks').then(mod => ({ default: mod.BottomLinks })),
+  { ssr: false }
+)
 
 // ════════════════════════════════════════════════════════════════════════════
 // MemberPageClient — Full Rebuild: Mobile-First Single Scroll
@@ -50,26 +62,29 @@ export function MemberPageClient({ initialData }: Props) {
       {/* Content */}
       <div className="mx-auto max-w-7xl px-4 py-6">
         <div className="space-y-6">
-          {/* Member Card */}
-          <section>
-            <MemberCardFlip
-              profile={profile}
-              flipped={cardFlipped}
-              onFlip={() => setCardFlipped(!cardFlipped)}
-            />
-          </section>
+          {/* Desktop Layout: Card + Grid side-by-side on ≥1024px */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Member Card */}
+            <section>
+              <MemberCardFlip
+                profile={profile}
+                flipped={cardFlipped}
+                onFlip={() => setCardFlipped(!cardFlipped)}
+              />
+            </section>
 
-          {/* 2×2 Action Grid */}
-          <section>
-            <ActionGrid profile={profile} />
-          </section>
+            {/* 2×2 Action Grid */}
+            <section>
+              <ActionGrid profile={profile} />
+            </section>
+          </div>
 
-          {/* Upcoming Booking */}
+          {/* Upcoming Booking - Full width on all screens */}
           <section>
             <UpcomingBookingCard userId={profile.id} />
           </section>
 
-          {/* Past Bookings */}
+          {/* Past Bookings - Full width on all screens */}
           <section>
             <PastBookingsList userId={profile.id} />
           </section>

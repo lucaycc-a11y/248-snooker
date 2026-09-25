@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
+import { Sparkles, Trophy, Gem } from 'lucide-react'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 import { getTierName, getTierGradient } from '@/lib/member/tierHelpers'
 
@@ -21,7 +22,6 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
   const tierName = getTierName(profile.tier, 'zh-HK')
   const tierGradient = getTierGradient(profile.tier)
   const tierRingColors = getTierRingColorPair(profile.tier)
-  const tierIcon = getTierIcon(profile.tier)
 
   return (
     <div className="perspective-1000 mx-auto w-full max-w-md">
@@ -60,8 +60,8 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
 
             {/* Tier Icon + Points */}
             <div className="flex items-end justify-between">
-              <div>
-                <span className="text-5xl">{tierIcon}</span>
+              <div className="flex h-12 w-12 items-center justify-center">
+                {getTierIconComponent(profile.tier)}
               </div>
               <div className="text-right">
                 <p className="text-xs text-white/40">可用積分</p>
@@ -110,15 +110,16 @@ function getTierRingColorPair(tier: string): [string, string] {
   }
 }
 
-function getTierIcon(tier: string): string {
+function getTierIconComponent(tier: string): JSX.Element {
+  const iconClass = "h-12 w-12 text-white"
   switch (tier) {
     case 'amateur':
-      return '✨' // 新星會員 sparkle
+      return <Sparkles className={iconClass} strokeWidth={1.5} />
     case 'century':
-      return '🏆' // 鉑金會員 trophy
+      return <Trophy className={iconClass} strokeWidth={1.5} />
     case 'maximum':
-      return '💎' // 鑽石會員 diamond
+      return <Gem className={iconClass} strokeWidth={1.5} />
     default:
-      return '✨'
+      return <Sparkles className={iconClass} strokeWidth={1.5} />
   }
 }

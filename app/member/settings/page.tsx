@@ -33,26 +33,28 @@ export default function SettingsPage() {
   }, [])
 
   const loadProfile = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    // SECURITY: Use getUser() not getSession() for client-side auth checks
+    // getSession() reads cookies which can be forged; getUser() validates with auth server
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
       router.push('/auth/login')
       return
     }
 
-    const { data } = await supabase
+    // Query only columns that exist in users table schema
+    // (notification_preferences and preferred_locale don't exist in the schema)
+    const { data, error: profileError } = await supabase
       .from('users')
-      .select('display_name, phone, email, notification_preferences, preferred_locale')
-      .eq('id', session.user.id)
+      .select('display_name, phone, email')
+      .eq('id', user.id)
       .single()
+
+    if (profileError) {
+      console.error('[Settings] Profile fetch failed:', profileError.message)
+    }
 
     if (data) {
       setProfile(data)
-      if (data.notification_preferences) {
-        setNotifPrefs(data.notification_preferences)
-      }
-      if (data.preferred_locale) {
-        setLocale(data.preferred_locale)
-      }
     }
     setLoading(false)
   }
@@ -72,25 +74,17 @@ export default function SettingsPage() {
     const newPrefs = { ...notifPrefs, [key]: !notifPrefs[key] }
     setNotifPrefs(newPrefs)
 
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    await supabase
-      .from('users')
-      .update({ notification_preferences: newPrefs })
-      .eq('id', session.user.id)
+    // Note: notification_preferences column doesn't exist in users table schema
+    // This is client-side state only until the column is added
+    console.warn('[Settings] notification_preferences column does not exist in users table')
   }
 
   const handleLocaleChange = async (newLocale: string) => {
     setLocale(newLocale)
 
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
-
-    await supabase
-      .from('users')
-      .update({ preferred_locale: newLocale })
-      .eq('id', session.user.id)
+    // Note: preferred_locale column doesn't exist in users table schema
+    // This is client-side state only until the column is added
+    console.warn('[Settings] preferred_locale column does not exist in users table')
   }
 
   if (loading) {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { MessageCircle, Wallet, Shield, Inbox, CreditCard } from 'lucide-react'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -50,29 +51,30 @@ export function ActionGrid({ profile }: Props) {
     <>
       <div className="grid grid-cols-2 gap-4">
         <ActionCard
-          icon="💬"
+          icon={<MessageCircle className="h-10 w-10" strokeWidth={1.5} />}
           title="Help"
           subtitle="幫助中心"
           href="/member/help"
         />
 
         <ActionCard
-          icon="🔒"
+          icon={<Wallet className="h-10 w-10" strokeWidth={1.5} />}
           title="Wallet"
           subtitle="即將推出"
           onClick={handleWalletClick}
           locked
+          beta
         />
 
         <ActionCard
-          icon="🛡️"
+          icon={<Shield className="h-10 w-10" strokeWidth={1.5} />}
           title="Safety"
           subtitle="安全守則"
           href="/member/safety"
         />
 
         <ActionCard
-          icon="📬"
+          icon={<Inbox className="h-10 w-10" strokeWidth={1.5} />}
           title="Inbox"
           subtitle="優惠資訊"
           href="/member/inbox"
@@ -97,7 +99,7 @@ export function ActionGrid({ profile }: Props) {
           >
             <div className="mb-4 flex justify-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
-                <span className="text-3xl">💳</span>
+                <CreditCard className="h-8 w-8 text-white" strokeWidth={1.5} />
               </div>
             </div>
             <h3 className="text-center text-xl font-bold text-white">電子錢包功能</h3>
@@ -139,20 +141,27 @@ export function ActionGrid({ profile }: Props) {
 // ────────────────────────────────────────────────────────────────────────────
 
 type ActionCardProps = {
-  icon: string
+  icon: JSX.Element
   title: string
   subtitle: string
   href?: string
   onClick?: () => void
   locked?: boolean
+  beta?: boolean
   badge?: number
 }
 
-function ActionCard({ icon, title, subtitle, href, onClick, locked, badge }: ActionCardProps) {
+function ActionCard({ icon, title, subtitle, href, onClick, locked, beta, badge }: ActionCardProps) {
   const content = (
-    <div className="group relative h-32 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-4 transition-all hover:border-white/20 hover:from-white/10">
-      {locked && (
-        <div className="absolute right-2 top-2 text-xs text-white/40">🔒</div>
+    <div className={`group relative h-32 overflow-hidden rounded-2xl border p-4 transition-all ${
+      locked
+        ? 'border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent opacity-60'
+        : 'border-white/10 bg-gradient-to-br from-white/5 to-transparent hover:border-white/20 hover:from-white/10'
+    }`}>
+      {beta && (
+        <div className="absolute right-2 top-2 rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-bold text-white/60">
+          BETA
+        </div>
       )}
       {badge && (
         <div className="absolute right-2 top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
@@ -160,10 +169,10 @@ function ActionCard({ icon, title, subtitle, href, onClick, locked, badge }: Act
         </div>
       )}
       <div className="flex h-full flex-col justify-between">
-        <span className="text-4xl">{icon}</span>
+        <div className={locked ? 'text-white/40' : 'text-white'}>{icon}</div>
         <div>
-          <p className="text-lg font-bold text-white">{title}</p>
-          <p className="text-xs text-white/50">{subtitle}</p>
+          <p className={`text-lg font-bold ${locked ? 'text-white/40' : 'text-white'}`}>{title}</p>
+          <p className={`text-xs ${locked ? 'text-white/30' : 'text-white/50'}`}>{subtitle}</p>
         </div>
       </div>
     </div>
