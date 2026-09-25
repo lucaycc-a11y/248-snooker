@@ -40,8 +40,7 @@ export default function Hero() {
         minHeight: "100dvh",
       }}
     >
-      {/* Video background — full-screen on mobile, square anchored bottom on desktop */}
-      {/* Mobile: full-bleed cover */}
+      {/* Mobile: full-viewport edge-to-edge table */}
       <img
         src="/video/Space8_Main_Hero_Poster.jpg"
         alt=""
@@ -69,7 +68,7 @@ export default function Hero() {
         <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
       </video>
 
-      {/* Desktop: bottom-anchored square, fluid sizing across all viewports */}
+      {/* Desktop: large perspective wedge occupying most of the hero area */}
       <motion.div
         className="absolute bottom-0 left-1/2 hidden aspect-square overflow-hidden md:block"
         whileHover={{ scale: 1.025 }}
@@ -78,7 +77,8 @@ export default function Hero() {
           x: "-50%",
           transformOrigin: "center bottom",
           willChange: "transform",
-          width: "clamp(600px, 75vw, 1200px)",
+          width: "clamp(900px, 95vw, 1600px)",
+          height: "clamp(900px, 95vh, 1600px)",
         }}
       >
         <img
@@ -109,7 +109,7 @@ export default function Hero() {
         </video>
       </motion.div>
 
-      {/* Subtle gradient overlay — keeps content readable */}
+      {/* Gradient overlay — ensures text readability over the large table */}
       <div
         style={{
           position: "absolute",
@@ -117,21 +117,15 @@ export default function Hero() {
           zIndex: 1,
           pointerEvents: "none",
           background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.15) 35%, transparent 60%, rgba(0,0,0,0.4) 100%)",
+            "linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.3) 25%, rgba(0,0,0,0.15) 50%, transparent 70%, rgba(0,0,0,0.3) 100%)",
         }}
       />
 
-      {/* Content stack — vertically centered with proportional bottom spacing to prevent table overlap.
-          Full 100dvh parent means nav overlays on top (hero extends behind nav).
-          Centered column with max-width constraint for large screens.
-          Logo → Headline → Subtext → Buttons all horizontally centered as one stack. */}
+      {/* Content stack — centered in viewport, sitting on top of the large table.
+          Text block remains horizontally centered with constrained max-width for readability. */}
       <div
         ref={heroContentRef}
         className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
-        style={{
-          // Proportional bottom padding scales with viewport to maintain gap above table
-          paddingBottom: "clamp(120px, 24vh, 280px)",
-        }}
       >
         {/* Constrained content column for large screens */}
         <div
