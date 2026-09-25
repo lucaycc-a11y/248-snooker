@@ -97,3 +97,25 @@
 - [ ] 修復方案是否正確 (改用 table_number, total_price)
 - [ ] 是否同時加入錯誤日誌
 - [ ] 確認後實作
+
+---
+
+## ✅ Phase A COMPLETE - 2026-09-25 17:45
+
+### 修復已部署 Production
+
+**Commit**: d934a02  
+**Branch**: main  
+**Status**: DEPLOYED
+
+**修改內容**:
+- [app/api/member/bookings/route.ts:25](app/api/member/bookings/route.ts#L25) - 修正 table_number, total_price
+- [app/api/member/bookings/route.ts:29-33](app/api/member/bookings/route.ts#L29-L33) - 加入錯誤日誌
+
+**驗證**:
+- ✅ Build passed
+- ✅ Type check passed
+- ✅ Pushed to main
+- ⏳ Vercel auto-deploy in progress
+
+**下一步**: 等待 Vercel 部署完成後在真實環境確認 `/api/member/bookings` 返回 200

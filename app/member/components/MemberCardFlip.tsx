@@ -54,18 +54,23 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
             }}
           />
 
-          {/* Watermark tier icon - large, subtle, bottom-right */}
-          <div className="pointer-events-none absolute -bottom-6 -right-6 opacity-[0.04]">
-            {getTierIconComponent(profile.tier, 'h-32 w-32')}
+          {/* Watermark - Full SPACE8 logo at 8-12% opacity, bottom-right */}
+          <div className="pointer-events-none absolute -bottom-8 -right-8 opacity-[0.10]">
+            <svg viewBox="0 0 2400 1000" fill="currentColor" className="h-40 w-auto text-white">
+              <path d="M391.31,786.11c-94.11,0-155.08-68.48-155.08-173.16,0-66.9,31.81-112.55,75.55-129.08-35.79-13.38-66.27-49.59-66.27-122,0-97.6,61.63-147.97,155.08-147.97h198.81c93.44,0,155.74,50.37,155.74,147.97,0,72.41-31.15,108.62-66.93,122,43.74,16.53,75.55,62.18,75.55,129.08,0,104.68-60.97,173.16-155.08,173.16h-217.37ZM394.63,537.39c-47.05,0-73.56,26.76-73.56,73.99,0,49.59,37.77,74.77,90.79,74.77h176.28c53.02,0,90.79-25.19,90.79-74.77s-26.51-73.99-73.56-73.99h-210.74ZM416.5,313.07c-55.01,0-86.15,18.1-86.15,70.84,0,49.59,22.53,69.26,70.25,69.26h198.81c47.72,0,70.25-19.68,70.25-69.26,0-52.74-31.15-70.84-86.15-70.84h-167Z"/>
+              <text x="900" y="650" fill="currentColor" fontSize="420" fontWeight="300" letterSpacing="20" fontFamily="system-ui,-apple-system,sans-serif">SPACE8</text>
+            </svg>
           </div>
 
           {/* Content overlay */}
           <div className="relative flex h-full w-full flex-col justify-between p-6">
-            {/* Top row: SPACE8 logo + tier pill */}
+            {/* Top row: Full horizontal SPACE8 logo + tier pill */}
             <div className="flex items-start justify-between">
-              <div className="h-7 w-7 opacity-50">
-                <svg viewBox="0 0 1000 1000" fill="currentColor" className="text-white">
+              {/* Full SPACE8 logo horizontal - 20-24px height */}
+              <div className="h-6 w-auto opacity-60">
+                <svg viewBox="0 0 2400 1000" fill="currentColor" className="h-6 w-auto text-white">
                   <path d="M391.31,786.11c-94.11,0-155.08-68.48-155.08-173.16,0-66.9,31.81-112.55,75.55-129.08-35.79-13.38-66.27-49.59-66.27-122,0-97.6,61.63-147.97,155.08-147.97h198.81c93.44,0,155.74,50.37,155.74,147.97,0,72.41-31.15,108.62-66.93,122,43.74,16.53,75.55,62.18,75.55,129.08,0,104.68-60.97,173.16-155.08,173.16h-217.37ZM394.63,537.39c-47.05,0-73.56,26.76-73.56,73.99,0,49.59,37.77,74.77,90.79,74.77h176.28c53.02,0,90.79-25.19,90.79-74.77s-26.51-73.99-73.56-73.99h-210.74ZM416.5,313.07c-55.01,0-86.15,18.1-86.15,70.84,0,49.59,22.53,69.26,70.25,69.26h198.81c47.72,0,70.25-19.68,70.25-69.26,0-52.74-31.15-70.84-86.15-70.84h-167Z"/>
+                  <text x="900" y="650" fill="currentColor" fontSize="420" fontWeight="300" letterSpacing="20" fontFamily="system-ui,-apple-system,sans-serif">SPACE8</text>
                 </svg>
               </div>
               <div
@@ -76,88 +81,81 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
               </div>
             </div>
 
-            {/* Member identity row - improved hierarchy */}
-            <div className="flex-1 space-y-1">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-white/30">248 Member</p>
+            {/* Member identity row - name only, no "248 MEMBER" label */}
+            <div className="flex-1 flex flex-col justify-center">
               <h3 className="text-3xl font-bold leading-tight text-white">{profile.display_name ?? '會員'}</h3>
-            </div>
 
-            {/* Points hero row: ring on left, points number on right */}
-            <div className="flex items-end justify-between gap-4">
-              {/* Circular Progress Ring with tier icon centered inside */}
-              {!isMaxTier ? (
-                <div className="relative h-20 w-20 flex-shrink-0">
-                  <svg className="h-20 w-20 -rotate-90 transform">
-                    {/* Background ring */}
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="34"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                      fill="none"
-                      className="text-white/10"
-                    />
-                    {/* Progress ring - uses tier gradient color */}
-                    <motion.circle
-                      cx="40"
-                      cy="40"
-                      r="34"
-                      stroke={tierRingColors[0]}
-                      strokeWidth="4"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 34}`}
-                      initial={{ strokeDashoffset: 2 * Math.PI * 34 }}
-                      animate={{ strokeDashoffset: 2 * Math.PI * 34 * (1 - progress) }}
-                      transition={{
-                        duration: 0.7,
-                        ease: [0.34, 1.56, 0.64, 1], // bounce/pop easing
-                      }}
-                    />
-                  </svg>
-                  {/* Tier icon centered in ring */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    {getTierIconComponent(profile.tier, 'h-8 w-8')}
-                  </div>
-                </div>
-              ) : (
-                /* Max tier: solid fill ring with distinct treatment */
-                <div className="relative h-20 w-20 flex-shrink-0">
-                  <svg className="h-20 w-20 -rotate-90 transform">
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="34"
-                      stroke={tierRingColors[0]}
-                      strokeWidth="4"
-                      fill="none"
-                      opacity="0.3"
-                    />
-                  </svg>
-                  {/* Tier icon centered in ring */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    {getTierIconComponent(profile.tier, 'h-8 w-8')}
+              {/* Horizontal progress bar (KABU PASS style) - only for non-max tier */}
+              {!isMaxTier && next && (
+                <div className="mt-3">
+                  {/* Tier labels and progress bar */}
+                  <div className="relative">
+                    {/* Tier icons on both ends */}
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        {getTierIconComponent(current.id, 'h-4 w-4')}
+                        <span className="text-xs text-white/60">{getTierName(current.id, 'zh-HK')}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {getTierIconComponent(next.id, 'h-4 w-4')}
+                        <span className="text-xs text-white/60">{getTierName(next.id, 'zh-HK')}</span>
+                      </div>
+                    </div>
+
+                    {/* Progress bar track */}
+                    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                      <motion.div
+                        className="absolute inset-y-0 left-0 rounded-full"
+                        style={{
+                          background: `linear-gradient(90deg, ${tierRingColors[0]}, ${tierRingColors[1]})`,
+                        }}
+                        initial={{ width: '0%' }}
+                        animate={{ width: `${progress * 100}%` }}
+                        transition={{
+                          duration: 0.8,
+                          ease: [0.34, 1.56, 0.64, 1],
+                        }}
+                      />
+                    </div>
+
+                    {/* Status text below bar */}
+                    <p className="mt-1.5 text-[11px] text-white/40">
+                      已消費 ${profile.points.toLocaleString()}，再消費 ${pointsToNext.toLocaleString()} 可升級至{getTierName(next.id, 'zh-HK')}
+                    </p>
                   </div>
                 </div>
               )}
 
-              {/* Points number and caption */}
-              <div className="flex-1 text-right">
-                <p className="text-xs text-white/40">可用積分</p>
-                <p className="font-code text-3xl font-bold leading-tight text-white">
-                  {profile.points.toLocaleString()}
-                </p>
-                {!isMaxTier ? (
-                  <p className="mt-1 text-xs leading-tight text-white/50">
-                    距離下一等級尚差 {pointsToNext.toLocaleString()} 積分
-                  </p>
-                ) : (
-                  <p className="mt-1 text-xs leading-tight text-white/50">
-                    已達最高等級 · 尊享特級禮遇
-                  </p>
-                )}
-              </div>
+              {/* Max tier - static text, no progress bar */}
+              {isMaxTier && (
+                <p className="mt-2 text-xs text-white/50">已達最高等級 · 尊享特級禮遇</p>
+              )}
+            </div>
+
+            {/* Points display - right aligned, always visible */}
+            <div className="flex flex-col items-end justify-center">
+              <p className="text-[10px] text-white/40">可用積分</p>
+              <p className="font-code text-4xl font-bold leading-tight text-white">
+                {profile.points.toLocaleString()}
+              </p>
+            </div>
+
+            {/* Bottom hint: Tap to view QR code */}
+            <div className="mt-4 flex items-center justify-center gap-1.5 text-white/40">
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.5 12.5l-3-3m0 0l-3 3m3-3v9m0-15a9 9 0 110 18 9 9 0 010-18z"
+                />
+              </svg>
+              <p className="text-xs">輕觸查看入場 QR code</p>
             </div>
           </div>
         </div>
