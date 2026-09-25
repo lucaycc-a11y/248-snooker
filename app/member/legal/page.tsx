@@ -35,6 +35,11 @@ export default function LegalPage() {
             href="/legal/venue-terms"
           />
           <LegalLink
+            title="安全守則"
+            subtitle="Safety Guidelines"
+            href="/member/safety"
+          />
+          <LegalLink
             title="交付政策"
             subtitle="Delivery Policy"
             href="/legal/delivery-policy"

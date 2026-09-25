@@ -49,11 +49,12 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
           }}
         >
           <div className="flex h-full w-full flex-col justify-between rounded-3xl bg-[#0F131C]/90 p-6 backdrop-blur-xl">
-            {/* Header */}
+            {/* Top row: SPACE8 logo + tier pill */}
             <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs text-white/40">248 Member</p>
-                <h3 className="mt-1 text-2xl font-bold text-white">{profile.display_name ?? '會員'}</h3>
+              <div className="h-6 w-6 opacity-60">
+                <svg viewBox="0 0 1000 1000" fill="currentColor" className="text-white">
+                  <path d="M391.31,786.11c-94.11,0-155.08-68.48-155.08-173.16,0-66.9,31.81-112.55,75.55-129.08-35.79-13.38-66.27-49.59-66.27-122,0-97.6,61.63-147.97,155.08-147.97h198.81c93.44,0,155.74,50.37,155.74,147.97,0,72.41-31.15,108.62-66.93,122,43.74,16.53,75.55,62.18,75.55,129.08,0,104.68-60.97,173.16-155.08,173.16h-217.37ZM394.63,537.39c-47.05,0-73.56,26.76-73.56,73.99,0,49.59,37.77,74.77,90.79,74.77h176.28c53.02,0,90.79-25.19,90.79-74.77s-26.51-73.99-73.56-73.99h-210.74ZM416.5,313.07c-55.01,0-86.15,18.1-86.15,70.84,0,49.59,22.53,69.26,70.25,69.26h198.81c47.72,0,70.25-19.68,70.25-69.26,0-52.74-31.15-70.84-86.15-70.84h-167Z"/>
+                </svg>
               </div>
               <div
                 className="rounded-full px-3 py-1 text-xs text-white shadow-lg"
@@ -63,65 +64,87 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
               </div>
             </div>
 
-            {/* Tier Icon + Points with Circular Progress */}
-            <div className="flex items-end justify-between">
-              <div className="flex h-12 w-12 items-center justify-center">
-                {getTierIconComponent(profile.tier)}
-              </div>
-              <div className="flex items-center gap-4">
-                {/* Circular Progress Ring */}
-                {!isMaxTier && (
-                  <div className="relative h-24 w-24">
-                    <svg className="h-24 w-24 -rotate-90 transform">
-                      {/* Background ring */}
-                      <circle
-                        cx="48"
-                        cy="48"
-                        r="40"
-                        stroke="currentColor"
-                        strokeWidth="6"
-                        fill="none"
-                        className="text-white/10"
-                      />
-                      {/* Progress ring */}
-                      <motion.circle
-                        cx="48"
-                        cy="48"
-                        r="40"
-                        stroke={tierRingColors[0]}
-                        strokeWidth="6"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeDasharray={`${2 * Math.PI * 40}`}
-                        initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
-                        animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - progress) }}
-                        transition={{
-                          duration: 1.2,
-                          ease: [0.34, 1.56, 0.64, 1], // bounce/pop easing
-                        }}
-                      />
-                    </svg>
-                    {/* Points number in center */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <p className="font-code text-lg font-bold text-white">
-                        {(profile.points / 1000).toFixed(1)}K
-                      </p>
-                    </div>
-                  </div>
-                )}
+            {/* Member identity row */}
+            <div className="flex-1">
+              <p className="text-xs text-white/40">248 Member</p>
+              <h3 className="mt-0.5 text-2xl font-bold text-white">{profile.display_name ?? '會員'}</h3>
+            </div>
 
-                {/* Points info */}
-                <div className="text-right">
-                  <p className="text-xs text-white/40">可用積分</p>
-                  <p className="font-code text-3xl text-white">{profile.points.toLocaleString()}</p>
-                  {!isMaxTier ? (
-                    <p className="mt-1 text-xs text-white/50">
-                      距離下一等級尚差 {pointsToNext.toLocaleString()} 積分
-                    </p>
-                  ) : (
-                    <p className="mt-1 text-xs text-white/50">已達最高等級</p>
-                  )}
+            {/* Points hero row: ring on left, points number on right */}
+            <div className="flex items-end justify-between gap-4">
+              {/* Circular Progress Ring with tier icon centered inside */}
+              {!isMaxTier ? (
+                <div className="relative h-20 w-20 flex-shrink-0">
+                  <svg className="h-20 w-20 -rotate-90 transform">
+                    {/* Background ring */}
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="34"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                      className="text-white/10"
+                    />
+                    {/* Progress ring - uses tier gradient color */}
+                    <motion.circle
+                      cx="40"
+                      cy="40"
+                      r="34"
+                      stroke={tierRingColors[0]}
+                      strokeWidth="4"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 34}`}
+                      initial={{ strokeDashoffset: 2 * Math.PI * 34 }}
+                      animate={{ strokeDashoffset: 2 * Math.PI * 34 * (1 - progress) }}
+                      transition={{
+                        duration: 0.7,
+                        ease: [0.34, 1.56, 0.64, 1], // bounce/pop easing
+                      }}
+                    />
+                  </svg>
+                  {/* Tier icon centered in ring */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {getTierIconComponent(profile.tier, 'h-8 w-8')}
+                  </div>
                 </div>
+              ) : (
+                /* Max tier: solid fill ring with distinct treatment */
+                <div className="relative h-20 w-20 flex-shrink-0">
+                  <svg className="h-20 w-20 -rotate-90 transform">
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="34"
+                      stroke={tierRingColors[0]}
+                      strokeWidth="4"
+                      fill="none"
+                      opacity="0.3"
+                    />
+                  </svg>
+                  {/* Tier icon centered in ring */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {getTierIconComponent(profile.tier, 'h-8 w-8')}
+                  </div>
+                </div>
+              )}
+
+              {/* Points number and caption */}
+              <div className="flex-1 text-right">
+                <p className="text-xs text-white/40">可用積分</p>
+                <p className="font-code text-3xl font-bold leading-tight text-white">
+                  {profile.points.toLocaleString()}
+                </p>
+                {!isMaxTier ? (
+                  <p className="mt-1 text-xs leading-tight text-white/50">
+                    距離下一等級尚差 {pointsToNext.toLocaleString()} 積分
+                  </p>
+                ) : (
+                  <p className="mt-1 text-xs leading-tight text-white/50">
+                    已達最高等級 · 尊享特級禮遇
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -166,16 +189,15 @@ function getTierRingColorPair(tier: string): [string, string] {
   }
 }
 
-function getTierIconComponent(tier: string): JSX.Element {
-  const iconClass = "h-12 w-12 text-white"
+function getTierIconComponent(tier: string, sizeClass: string = 'h-12 w-12'): JSX.Element {
   switch (tier) {
     case 'amateur':
-      return <Sparkles className={iconClass} strokeWidth={1.5} />
+      return <Sparkles className={`${sizeClass} text-white`} strokeWidth={1.5} />
     case 'century':
-      return <Trophy className={iconClass} strokeWidth={1.5} />
+      return <Trophy className={`${sizeClass} text-white`} strokeWidth={1.5} />
     case 'maximum':
-      return <Gem className={iconClass} strokeWidth={1.5} />
+      return <Gem className={`${sizeClass} text-white`} strokeWidth={1.5} />
     default:
-      return <Sparkles className={iconClass} strokeWidth={1.5} />
+      return <Sparkles className={`${sizeClass} text-white`} strokeWidth={1.5} />
   }
 }

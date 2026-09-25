@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { MessageCircle, Wallet, Shield, Inbox, CreditCard } from 'lucide-react'
+import { MessageCircle, Wallet, Gem, Inbox, CreditCard } from 'lucide-react'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
-// ActionGrid — 2×2 grid: Help · Wallet · Safety · Inbox
+// ActionGrid — 2×2 grid: Help · Wallet · Space Pts · Inbox
+// Space Pts: points detail view entry
 // Wallet: locked preview + notify-me toggle for non-admin; real for admin
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -67,10 +68,10 @@ export function ActionGrid({ profile }: Props) {
         />
 
         <ActionCard
-          icon={<Shield className="h-10 w-10" strokeWidth={1.5} />}
-          title="Safety"
-          subtitle="安全守則"
-          href="/member/safety"
+          icon={<Gem className="h-10 w-10" strokeWidth={1.5} />}
+          title="Space Pts"
+          subtitle="積分獎賞"
+          href="/member/points"
         />
 
         <ActionCard
