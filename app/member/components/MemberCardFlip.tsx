@@ -5,11 +5,12 @@ import { QRCodeSVG } from 'qrcode.react'
 import { Sparkles, Trophy, Gem } from 'lucide-react'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 import { getTierName, getTierGradient } from '@/lib/member/tierHelpers'
+import { resolveTier, DEFAULT_TIERS } from '@/lib/data/pricing'
 
 // ════════════════════════════════════════════════════════════════════════════
-// MemberCardFlip — Flippable card with tier-colored ring
-// Front: Tier icon, name, points
-// Back: QR code (profile.member_code) — exact same as current MemberCard.tsx
+// MemberCardFlip — Flippable card with Starbucks-style circular progress
+// Front: Tier icon, name, points with circular progress to next tier
+// Back: QR code (profile.member_code)
 // ════════════════════════════════════════════════════════════════════════════
 
 type Props = {
@@ -22,6 +23,10 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
   const tierName = getTierName(profile.tier, 'zh-HK')
   const tierGradient = getTierGradient(profile.tier)
   const tierRingColors = getTierRingColorPair(profile.tier)
+
+  // Calculate real progress to next tier using actual DB thresholds
+  const { current, next, progress, pointsToNext } = resolveTier(profile.points, DEFAULT_TIERS)
+  const isMaxTier = !next
 
   return (
     <div className="perspective-1000 mx-auto w-full max-w-md">
@@ -58,14 +63,65 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
               </div>
             </div>
 
-            {/* Tier Icon + Points */}
+            {/* Tier Icon + Points with Circular Progress */}
             <div className="flex items-end justify-between">
               <div className="flex h-12 w-12 items-center justify-center">
                 {getTierIconComponent(profile.tier)}
               </div>
-              <div className="text-right">
-                <p className="text-xs text-white/40">可用積分</p>
-                <p className="font-code text-3xl text-white">{profile.points.toLocaleString()}</p>
+              <div className="flex items-center gap-4">
+                {/* Circular Progress Ring */}
+                {!isMaxTier && (
+                  <div className="relative h-24 w-24">
+                    <svg className="h-24 w-24 -rotate-90 transform">
+                      {/* Background ring */}
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r="40"
+                        stroke="currentColor"
+                        strokeWidth="6"
+                        fill="none"
+                        className="text-white/10"
+                      />
+                      {/* Progress ring */}
+                      <motion.circle
+                        cx="48"
+                        cy="48"
+                        r="40"
+                        stroke={tierRingColors[0]}
+                        strokeWidth="6"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeDasharray={`${2 * Math.PI * 40}`}
+                        initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
+                        animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - progress) }}
+                        transition={{
+                          duration: 1.2,
+                          ease: [0.34, 1.56, 0.64, 1], // bounce/pop easing
+                        }}
+                      />
+                    </svg>
+                    {/* Points number in center */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <p className="font-code text-lg font-bold text-white">
+                        {(profile.points / 1000).toFixed(1)}K
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Points info */}
+                <div className="text-right">
+                  <p className="text-xs text-white/40">可用積分</p>
+                  <p className="font-code text-3xl text-white">{profile.points.toLocaleString()}</p>
+                  {!isMaxTier ? (
+                    <p className="mt-1 text-xs text-white/50">
+                      距離下一等級尚差 {pointsToNext.toLocaleString()} 積分
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-xs text-white/50">已達最高等級</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

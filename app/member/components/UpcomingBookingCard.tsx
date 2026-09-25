@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
+import { Calendar, CircleDot } from 'lucide-react'
 
 // ════════════════════════════════════════════════════════════════════════════
 // UpcomingBookingCard — Next booking with QR code
@@ -72,8 +73,10 @@ export function UpcomingBookingCard({ userId }: Props) {
   if (!booking) {
     return (
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6 text-center">
-        <span className="text-4xl opacity-30">📅</span>
-        <p className="mt-2 text-sm text-white/60">暫無預約</p>
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+          <Calendar className="h-8 w-8 text-white/30" strokeWidth={1.5} />
+        </div>
+        <p className="mt-4 text-sm text-white/60">暫無預約</p>
         <a
           href="/booking"
           className="mt-4 inline-block rounded-full bg-[#22c55e] px-6 py-2 text-sm font-medium text-white transition-all hover:bg-[#16a34a]"
@@ -108,7 +111,7 @@ export function UpcomingBookingCard({ userId }: Props) {
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🎱</span>
+              <CircleDot className="h-6 w-6 text-white" strokeWidth={1.5} />
               <h4 className="text-xl font-bold text-white">
                 球檯 {booking.tableId ?? '--'}
               </h4>

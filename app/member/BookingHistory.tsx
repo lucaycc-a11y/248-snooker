@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslations, useLocale } from 'next-intl'
 import { QRCodeSVG } from 'qrcode.react'
+import { Calendar } from 'lucide-react'
 import { type MemberBooking } from '@/lib/data/getMember'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -80,7 +81,9 @@ export function BookingHistory({ userId }: Props) {
       {/* Booking List */}
       {filteredBookings.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-2xl bg-white/5 py-16 text-center backdrop-blur">
-          <span className="text-6xl opacity-30">📅</span>
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
+            <Calendar className="h-10 w-10 text-white/30" strokeWidth={1.5} />
+          </div>
           <p className="mt-4 text-white/60">{t('empty_state')}</p>
         </div>
       ) : (

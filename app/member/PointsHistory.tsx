@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useTranslations, useLocale } from 'next-intl'
+import { Gem, CircleDot, Gift, Undo2, Sparkles, Cake, type LucideIcon } from 'lucide-react'
 import { type PointsTransaction } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -20,7 +21,9 @@ export function PointsHistory({ points }: Props) {
   if (points.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl bg-white/5 py-16 text-center backdrop-blur">
-        <span className="text-6xl opacity-30">💎</span>
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
+          <Gem className="h-10 w-10 text-white/30" strokeWidth={1.5} />
+        </div>
         <p className="mt-4 text-white/60">{t('empty_state')}</p>
       </div>
     )
@@ -49,7 +52,7 @@ export function PointsHistory({ points }: Props) {
 function TransactionRow({ transaction, locale }: { transaction: PointsTransaction; locale: string }) {
   const t = useTranslations('member.points')
   const isPositive = transaction.points > 0
-  const categoryIcon = getCategoryIcon(transaction.category ?? '')
+  const CategoryIcon = getCategoryIcon(transaction.category ?? '')
   const categoryColor = getCategoryColor(transaction.category ?? '')
 
   return (
@@ -57,7 +60,7 @@ function TransactionRow({ transaction, locale }: { transaction: PointsTransactio
       {/* Left: Icon + Description */}
       <div className="flex items-center gap-4">
         <div className={`flex h-10 w-10 items-center justify-center rounded-full ${categoryColor}`}>
-          <span className="text-lg">{categoryIcon}</span>
+          <CategoryIcon className="h-5 w-5 text-white" strokeWidth={1.5} />
         </div>
         <div>
           <p className="font-medium text-white">{transaction.description}</p>
@@ -89,20 +92,20 @@ function TransactionRow({ transaction, locale }: { transaction: PointsTransactio
 // § CATEGORY HELPERS
 // ────────────────────────────────────────────────────────────────────────────
 
-function getCategoryIcon(category: string): string {
+function getCategoryIcon(category: string): LucideIcon {
   switch (category) {
     case 'booking':
-      return '🎱'
+      return CircleDot
     case 'redeem':
-      return '🎁'
+      return Gift
     case 'refund':
-      return '↩️'
+      return Undo2
     case 'manual':
-      return '✨'
+      return Sparkles
     case 'birthday':
-      return '🎂'
+      return Cake
     default:
-      return '💎'
+      return Gem
   }
 }
 

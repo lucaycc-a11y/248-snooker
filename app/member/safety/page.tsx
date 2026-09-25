@@ -1,5 +1,18 @@
 'use client'
 
+import {
+  Building2,
+  Users,
+  Baby,
+  CigaretteOff,
+  PawPrint,
+  ShoppingBag,
+  Camera,
+  Video,
+  AlertTriangle,
+  type LucideIcon,
+} from 'lucide-react'
+
 // ════════════════════════════════════════════════════════════════════════════
 // Safety Page — Venue safety rules from 場地使用守則及條款
 // All content verified from official legal documents
@@ -35,63 +48,63 @@ export default function SafetyPage() {
 
           {/* Self-service nature */}
           <SafetyCard
-            icon="🏢"
+            icon={Building2}
             title="全自助式營運"
             description="場內並無常駐職員或保安人員；會員須自行承擔注意義務與安全責任。"
           />
 
           {/* Room capacity */}
           <SafetyCard
-            icon="👥"
+            icon={Users}
             title="房間人數上限"
             description="每間桌球室使用人數上限 8 人。"
           />
 
           {/* Minors supervision */}
           <SafetyCard
-            icon="👶"
+            icon={Baby}
             title="未成年人士"
             description="未滿 12 歲人士須由 18 歲以上成人全程陪同。"
           />
 
           {/* No smoking */}
           <SafetyCard
-            icon="🚭"
+            icon={CigaretteOff}
             title="全面禁煙"
             description="場內全面禁煙（包括電子煙、加熱煙）。"
           />
 
           {/* No pets */}
           <SafetyCard
-            icon="🐾"
+            icon={PawPrint}
             title="禁止攜帶寵物"
             description="除導盲犬外禁止攜帶寵物。"
           />
 
           {/* Personal belongings */}
           <SafetyCard
-            icon="👜"
+            icon={ShoppingBag}
             title="財物保管"
             description="財物須自行看護，本公司對財物遺失、盜竊、損壞概不負責。"
           />
 
           {/* Damage reporting */}
           <SafetyCard
-            icon="📸"
+            icon={Camera}
             title="損壞回報"
             description="進場後 10 分鐘內須透過 WhatsApp 拍照回報既有損壞，否則視為進場時完好。"
           />
 
           {/* CCTV */}
           <SafetyCard
-            icon="📹"
+            icon={Video}
             title="24 小時監控"
             description="24 小時 CCTV 監控，進入場地即視為同意收集及在合理範圍內使用相關錄像。"
           />
 
           {/* Service interruption */}
           <SafetyCard
-            icon="⚠️"
+            icon={AlertTriangle}
             title="服務中斷"
             description="服務中斷（斷電、政府命令、網絡故障、不可抗力）：本公司不負責間接損失，但會盡力安排補償或退款。"
           />
@@ -130,16 +143,18 @@ export default function SafetyPage() {
 // ────────────────────────────────────────────────────────────────────────────
 
 type SafetyCardProps = {
-  icon: string
+  icon: LucideIcon
   title: string
   description: string
 }
 
-function SafetyCard({ icon, title, description }: SafetyCardProps) {
+function SafetyCard({ icon: Icon, title, description }: SafetyCardProps) {
   return (
     <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
       <div className="flex items-start gap-4">
-        <span className="text-4xl">{icon}</span>
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5">
+          <Icon className="h-6 w-6 text-white" strokeWidth={1.5} />
+        </div>
         <div>
           <h3 className="font-bold text-white">{title}</h3>
           <p className="mt-1 text-sm text-white/70">{description}</p>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
+import { Inbox } from 'lucide-react'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Inbox Page — Admin-issued offers and rewards
@@ -74,7 +75,9 @@ export default function InboxPage() {
           </div>
         ) : notifications.length === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-12 text-center">
-            <span className="text-5xl opacity-30">📬</span>
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
+              <Inbox className="h-10 w-10 text-white/30" strokeWidth={1.5} />
+            </div>
             <p className="mt-4 text-white/60">暫無通知</p>
           </div>
         ) : (

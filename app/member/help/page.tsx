@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
+import { MessageCircle, Mail } from 'lucide-react'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Help Page — FAQ with refund policy + QR code shortcut + WhatsApp contact
@@ -129,15 +130,17 @@ export default function HelpPage() {
                 href="https://wa.me/85261808022"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-full bg-[#22c55e] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[#16a34a]"
+                className="flex items-center justify-center gap-2 rounded-full bg-[#22c55e] px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-[#16a34a]"
               >
-                💬 WhatsApp 聯絡我們
+                <MessageCircle className="h-4 w-4" strokeWidth={1.5} />
+                WhatsApp 聯絡我們
               </a>
               <a
                 href="mailto:Admin@space8.com.hk"
-                className="rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                className="flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
               >
-                📧 電郵
+                <Mail className="h-4 w-4" strokeWidth={1.5} />
+                電郵
               </a>
             </div>
           </section>
