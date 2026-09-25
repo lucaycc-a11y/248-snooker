@@ -1,57 +1,99 @@
-# SPACE8 Auth Refactor Verification Ledger
+# Task Ledger: Member Dashboard Fix & Redesign
 
-## Goal
-Complete and fully verify the SPACE8 login/signup refactor and /member guard fix.
+**Created**: 2026-09-25
+**Branch**: feat/dashboard-fix-redesign
+**Safety Branch**: safety/pre-dashboard-fix-20260925-1735
 
-## Hard Constraints (from task brief)
-- Scope: login/signup UI and flow, /member route guard, date_of_birth field only
-- DO NOT split, rewrite, move or rename AuthCard.tsx or other existing files
-- Do not touch: dev2 panel, site_gate_config, is_test flags, KPay, environment-switching logic
-- Environments: local and UAT only, never production
-- No MIN_AGE constant, no age-limit logic anywhere
-- Date of birth validation: real calendar date (leap years), not in future, year >= 1900
-- Birthday purpose copy: "用於核實年齡" (until changed)
-- Database: ALTER TABLE users ADD COLUMN date_of_birth DATE NULL (no default)
-- OTP length follows backend (currently 6), never hardcode 4
-- Country code selector: only 🇭🇰 +852 now, data structure extensible
-- WhatsApp option appears only if backend provider confirmed configured; otherwise hidden
-- Keep all existing login methods (Apple, Google, email, phone, password)
-- All Chinese copy must be formal written Chinese (書面語), no colloquial Cantonese
-- Provide zh-HK and en; state how zh-CN and ja handled via next-intl
-- lib/auth/contact-validation.ts was untracked: find origin before committing
+---
 
-## Branch & Baseline
-- Work branch: feat/auth-refactor-verify
-- Safety branch: safety/pre-verify-20260924-2101
-- Baseline SHA: b7ea5365af8a981031a6d5f8976a97c87ce15394
-- Mirror location: ~/space8-task-mirror/20260924-2101
+## Phase 0: 環境確認
+- [x] DONE: 建立工作分支與安全分支
+- [x] DONE: 記錄基線狀態
+- [x] DONE: 確認 Supabase project ref: wqmciwieiqvnswvspdyz (證據: CLAUDE.md, 多個 docs)
+- [x] DONE: 列出近期 commits (874a430 至 97a74a2, 共 20 commits since 2024-09-20)
+- [ ] IN_PROGRESS: 調查 /api/member/bookings 500 錯誤原因
+- [ ] TODO: 確認 Vercel 上一個 deployment ID
+- [ ] TODO: 確認 production 登入流程運作狀況
 
-## Task Progress
+## Phase A: `/api/member/bookings` 500 錯誤 (最高優先)
+- [x] DONE: 讀取 route.ts 實作 (L23-28: 查詢 bookings 表 8 個欄位)
+- [ ] IN_PROGRESS: 檢查 bookings 表 schema 及所有必要欄位
+- [ ] TODO: 確認 human_code 欄位是否已在 production 執行 (migration 0030)
+- [ ] TODO: 檢查 RLS 政策
+- [ ] TODO: 找出實際錯誤位置及原因
+- [ ] TODO: 本機/UAT 重現錯誤
+- [ ] TODO: 提出修復方案並等待確認
+- [ ] BLOCKED: 修復實作 (需方案確認)
+- [ ] BLOCKED: 部署 UAT 測試 (需修復完成)
 
-| ID | Description | Status | Evidence | Commit |
-|----|-------------|--------|----------|--------|
-| SETUP-1 | Record baseline state | DONE | _task/00-baseline.txt | - |
-| SETUP-2 | Create safety branch | DONE | safety/pre-verify-20260924-2101 | - |
-| SETUP-3 | Create external mirror | DONE | ~/space8-task-mirror/20260924-2101 | - |
-| SETUP-4 | Create work branch | DONE | feat/auth-refactor-verify | - |
-| SETUP-5 | Initialize ledger | IN_PROGRESS | _task/LEDGER.md | - |
-| A1 | Audit /member guard | TODO | - | - |
-| A2 | Audit Identify step | TODO | - | - |
-| A3 | Audit OTP step | TODO | - | - |
-| A4 | Audit Profile step & DB | TODO | - | - |
-| A5 | Audit UI, i18n, a11y, quality | TODO | - | - |
-| A6 | Audit scope and safety | TODO | - | - |
+## Phase B: QR Code 命名確認 (次要,非緊急)
+- [ ] TODO: 找出 QR code 產生邏輯
+- [ ] TODO: 抽查至少 3 個不同帳戶
+- [ ] TODO: 確認各自獨立性
+- [ ] TODO: 記錄命名規則
 
-## Decision Log
-1. Working on feat/auth-refactor-verify branch, not main
-2. Using sub-agents for all audit and fix tasks to preserve context
-3. One writing sub-agent at a time to avoid conflicts
-4. Orchestrator (this agent) commits after reviewing sub-agent diffs
+## Phase C: Member Dashboard 高級化重新設計
+### C1: 會員卡片
+- [ ] TODO: 長版 SPACE8 logo 實作
+- [ ] TODO: 移除「248 MEMBER」文字
+- [ ] TODO: 等級徽章 i18n
+- [ ] TODO: 積分數字套用 Good Times 字體
+- [ ] TODO: 橫向進度條實作 (KABU PASS 風格)
+- [ ] TODO: 底部「輕觸查看入場 QR code」提示
+- [ ] TODO: 背景水印改用完整 logo (8-12% 透明度)
+- [ ] BLOCKED: 截圖確認 (需實作完成)
 
-## Open Questions for User
-None yet.
+### C2: Space Pts 頁面
+- [ ] TODO: 確認字體授權 (Good Times)
+- [ ] TODO: 圓形進度環實作
+- [ ] TODO: Point History 資料來源確認
+- [ ] TODO: 等級禮遇展開列表
+- [ ] TODO: 兌換獎賞浮動按鈕
+- [ ] TODO: 空白狀態頁面
+- [ ] BLOCKED: 截圖確認 (需實作完成)
 
-## Notes
-- lib/auth/contact-validation.ts origin investigation required before commit
-- WhatsApp provider configuration check required
-- Migration SQL must be approved before UAT application
+### C3-C5: 字體/命名/通用規則
+- [ ] TODO: Good Times 字體授權確認
+- [ ] TODO: 鉑金會員英文名稱確認 (Platinum/Aurora/Prestige)
+- [ ] TODO: 所有文案 i18n (zh-HK + en)
+
+---
+
+## Evidence Log
+
+### Phase 0 證據
+- Supabase project ref: grep 結果顯示 wqmciwieiqvnswvspdyz 在多個 .md 檔案
+- 近期 commits: 874a430 (最新) 到 97a74a2 (2024-09-20+)
+- Safety branch created: safety/pre-dashboard-fix-20260925-1735
+- Work branch created: feat/dashboard-fix-redesign
+- Baseline recorded: _task/00-baseline.txt
+
+### Phase A 證據
+- API route 實作: app/api/member/bookings/route.ts:23-28
+  查詢 8 欄位: id, table_id, date, start_time, duration_hours, price, human_code, status
+- human_code 欄位: migration 0030 加入, nullable, 有 index
+- 錯誤特徵: middleware 200 → getUser 成功 → 360ms 執行 → 500 無錯誤訊息
+
+---
+
+## Phase A 更新 - 2026-09-25 17:40
+
+### ✅ ROOT CAUSE IDENTIFIED
+
+**錯誤原因**: Column name mismatch
+- Member API 查詢 `table_id`, `price` (錯誤)
+- 實際 schema 使用 `table_number`, `total_price`
+- Supabase 返回 "column does not exist" 錯誤 → 500
+
+**證據來源**:
+1. app/api/member/bookings/route.ts:25 (錯誤欄位)
+2. app/api/booking/status/route.ts:30 (正確欄位)
+3. lib/data/getAdminBookings.ts:92 (正確欄位)
+4. Migration 0003 註解確認 bookings 表在 repo 外定義
+
+**修復方案**: 詳見 `_task/PHASE_A_DIAGNOSIS.md`
+
+### 待確認項目
+- [ ] 修復方案是否正確 (改用 table_number, total_price)
+- [ ] 是否同時加入錯誤日誌
+- [ ] 確認後實作

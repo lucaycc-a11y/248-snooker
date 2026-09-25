@@ -22,22 +22,27 @@ export async function GET() {
   // Fetch all confirmed bookings for this user
   const { data: bookings, error } = await supabase
     .from('bookings')
-    .select('id, table_id, date, start_time, duration_hours, price, human_code, status')
+    .select('id, table_number, date, start_time, duration_hours, total_price, human_code, status')
     .eq('user_id', user.id)
     .order('date', { ascending: false })
 
   if (error) {
+    console.error('[member/bookings] Query failed:', {
+      userId: user.id,
+      error: error.message,
+      code: error.code,
+    })
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
   return NextResponse.json({
     bookings: (bookings ?? []).map((b) => ({
       id: b.id,
-      tableId: b.table_id,
+      tableId: b.table_number,
       date: b.date,
       startTime: b.start_time,
       durationHours: b.duration_hours,
-      price: b.price,
+      price: b.total_price,
       humanCode: b.human_code,
       status: b.status,
     })),
