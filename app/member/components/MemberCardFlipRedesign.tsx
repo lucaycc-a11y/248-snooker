@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Sparkles, Trophy, Gem, Maximize2, X } from 'lucide-react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 import { getTierName } from '@/lib/member/tierHelpers'
 
@@ -23,7 +23,8 @@ type Props = {
 
 export function MemberCardFlipRedesign({ profile }: Props) {
   const t = useTranslations('member.card_redesign')
-  const tierName = getTierName(profile.tier, 'zh-HK')
+  const locale = useLocale()
+  const tierName = getTierName(profile.tier, locale)
   const v = getTierVisuals(profile.tier)
   const [zoomed, setZoomed] = useState(false)
 

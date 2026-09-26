@@ -896,7 +896,8 @@
       "tap_to_view_qr": "Tap to view entry QR code",
       "scan_to_enter": "Scan to enter",
       "membership_label": "Member",
-      "member_id_label": "Member ID"
+      "member_id_label": "Member ID",
+      "close": "Close"
     },
     "points_page": {
       "title": "Space Pts",
@@ -1576,14 +1577,32 @@
     "qr_s2": "Where to find it",
     "qr_s3": "Tips for use",
     "qr_uses": [
-      { "tag": "Entry", "title": "Unlock the door" },
-      { "tag": "Room system", "title": "Launch Space Pilot smart concierge" },
-      { "tag": "Match record", "title": "Log your match history" }
+      {
+        "tag": "Entry",
+        "title": "Unlock the door"
+      },
+      {
+        "tag": "Room system",
+        "title": "Launch Space Pilot smart concierge"
+      },
+      {
+        "tag": "Match record",
+        "title": "Log your match history"
+      }
     ],
     "qr_steps": [
-      { "title": "Log in to the member site", "body": "Open www.space8.com.hk in your mobile browser and sign in with your account." },
-      { "title": "Go to your member page", "body": "After signing in, tap your avatar or \"My Member Card\" in the top-right corner to reach your member page." },
-      { "title": "Your QR Code is on the member card", "body": "Your personal QR Code sits in the bottom-right of the card, alongside your name, member code, and tier. We recommend screenshotting it or bookmarking the page for quick access." }
+      {
+        "title": "Log in to the member site",
+        "body": "Open www.space8.com.hk in your mobile browser and sign in with your account."
+      },
+      {
+        "title": "Go to your member page",
+        "body": "After signing in, tap your avatar or \"My Member Card\" in the top-right corner to reach your member page."
+      },
+      {
+        "title": "Your QR Code is on the member card",
+        "body": "Your personal QR Code sits in the bottom-right of the card, alongside your name, member code, and tier. We recommend screenshotting it or bookmarking the page for quick access."
+      }
     ],
     "qr_tips": [
       "Your QR Code is tied to your personal account — do not forward or share it with others.",

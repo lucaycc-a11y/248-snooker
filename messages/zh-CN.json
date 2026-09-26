@@ -951,7 +951,8 @@
       "tap_to_view_qr": "轻触查看入场 QR code",
       "scan_to_enter": "扫描入场",
       "membership_label": "会员",
-      "member_id_label": "会员编号"
+      "member_id_label": "会员编号",
+      "close": "关闭"
     },
     "points_page": {
       "title": "Space Pts",
@@ -1576,14 +1577,32 @@
     "qr_s2": "在哪里找到它",
     "qr_s3": "使用小提醒",
     "qr_uses": [
-      { "tag": "入场", "title": "解锁大门" },
-      { "tag": "包厢系统", "title": "启动 Space Pilot 智能小管家" },
-      { "tag": "战绩累积", "title": "记录你的对战记录" }
+      {
+        "tag": "入场",
+        "title": "解锁大门"
+      },
+      {
+        "tag": "包厢系统",
+        "title": "启动 Space Pilot 智能小管家"
+      },
+      {
+        "tag": "战绩累积",
+        "title": "记录你的对战记录"
+      }
     ],
     "qr_steps": [
-      { "title": "登录会员网站", "body": "用手机浏览器打开 www.space8.com.hk，以你的账号登录。" },
-      { "title": "进入会员页面", "body": "登录后点击右上角头像或「我的会员卡」，即可进入会员页面。" },
-      { "title": "QR Code 就在会员卡上", "body": "你的专属 QR Code 显示在会员卡右下角，与姓名、会员编号、会员等级并列。建议先截图或添加手机书签，方便随时取用。" }
+      {
+        "title": "登录会员网站",
+        "body": "用手机浏览器打开 www.space8.com.hk，以你的账号登录。"
+      },
+      {
+        "title": "进入会员页面",
+        "body": "登录后点击右上角头像或「我的会员卡」，即可进入会员页面。"
+      },
+      {
+        "title": "QR Code 就在会员卡上",
+        "body": "你的专属 QR Code 显示在会员卡右下角，与姓名、会员编号、会员等级并列。建议先截图或添加手机书签，方便随时取用。"
+      }
     ],
     "qr_tips": [
       "QR Code 绑定你的个人账号，请勿转发或分享给他人使用。",
