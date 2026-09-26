@@ -1,198 +1,206 @@
 'use client'
 
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useEffect, useCallback } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import { Sparkles, Trophy, Gem } from 'lucide-react'
+import { Sparkles, Trophy, Gem, Maximize2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 import { getTierName } from '@/lib/member/tierHelpers'
 
 // ════════════════════════════════════════════════════════════════════════════
-// MemberCardFlipRedesign — Phase 4 redesign matching 924 mockup
-// Grid layout: logo+tier top-row, name+ID left col, QR right col
+// MemberCardFlipRedesign — Phase 5 redesign matching 924_Member_QR_card.html
+// Card face: logo+tier top-row, name+ID left col, QR-button right col
+// Tap QR → full-screen white zoom overlay (position:fixed;inset:0)
 // Tier palettes: slate/silver (std), deep emerald (prm), obsidian/gold (prs)
 // ════════════════════════════════════════════════════════════════════════════
 
 type Props = {
   profile: MemberProfile
-  flipped: boolean
-  onFlip: () => void
+  // kept for API compatibility — no longer used; zoom is self-contained
+  flipped?: boolean
+  onFlip?: () => void
 }
 
-export function MemberCardFlipRedesign({ profile, flipped, onFlip }: Props) {
+export function MemberCardFlipRedesign({ profile }: Props) {
   const t = useTranslations('member.card_redesign')
   const tierName = getTierName(profile.tier, 'zh-HK')
   const v = getTierVisuals(profile.tier)
+  const [zoomed, setZoomed] = useState(false)
+
+  const openZoom = useCallback(() => setZoomed(true), [])
+  const closeZoom = useCallback(() => setZoomed(false), [])
+
+  // Close on Escape
+  useEffect(() => {
+    if (!zoomed) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') closeZoom() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [zoomed, closeZoom])
 
   return (
-    <div className="perspective-1000 mx-auto w-full max-w-[560px]">
-      <motion.div
-        className="relative cursor-pointer"
-        style={{ height: 'clamp(160px, 42vw, 210px)', transformStyle: 'preserve-3d' }}
-        onClick={onFlip}
-        animate={{ rotateY: flipped ? 180 : 0 }}
-        transition={{ duration: 0.65, ease: [0.34, 1.2, 0.64, 1] }}
-        whileHover={{ scale: 1.015 }}
-        whileTap={{ scale: 0.985 }}
+    <>
+      {/* ═══════════════════ CARD FACE ═══════════════════ */}
+      <div
+        className="mx-auto w-full max-w-[560px] overflow-hidden rounded-[24px]"
+        style={{
+          background: v.surface,
+          border: `1px solid ${v.rim}`,
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 30px 70px rgba(0,0,0,.55)',
+        }}
       >
-        {/* ═══════════════════ FRONT ═══════════════════ */}
+        {/* Sheen overlay */}
         <div
-          className="absolute inset-0 overflow-hidden rounded-[24px]"
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(120% 90% at 0% 0%, ${v.sheen}, transparent 55%)` }}
+        />
+
+        <div
+          className="relative grid"
           style={{
-            backfaceVisibility: 'hidden',
-            background: v.surface,
-            border: `1px solid ${v.rim}`,
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 30px 70px rgba(0,0,0,.55)',
+            gridTemplateColumns: '1fr auto',
+            gridTemplateRows: 'auto 1fr',
+            columnGap: 'clamp(14px,4vw,24px)',
+            rowGap: '22px',
+            padding: 'clamp(20px,4.5vw,28px)',
           }}
         >
-          {/* Sheen overlay */}
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{ background: `radial-gradient(120% 90% at 0% 0%, ${v.sheen}, transparent 55%)` }}
-          />
-
-          {/* Grid: [name-col] [qr-col] */}
-          <div
-            className="relative flex h-full flex-col p-[clamp(16px,4.5vw,24px)]"
-            style={{ gap: 'clamp(10px,2.5vw,18px)' }}
-          >
-            {/* Top row: logo + tier pill */}
-            <div className="flex items-center justify-between">
-              {/* SPACE8 wordmark — inline SVG so no img src needed */}
-              <svg
-                viewBox="0 0 2400 1000"
-                fill="currentColor"
-                className="text-white/90"
-                style={{ height: 'clamp(12px,2.8vw,16px)', width: 'auto' }}
-                aria-label="SPACE8"
-              >
-                <path d="M391.31,786.11c-94.11,0-155.08-68.48-155.08-173.16,0-66.9,31.81-112.55,75.55-129.08-35.79-13.38-66.27-49.59-66.27-122,0-97.6,61.63-147.97,155.08-147.97h198.81c93.44,0,155.74,50.37,155.74,147.97,0,72.41-31.15,108.62-66.93,122,43.74,16.53,75.55,62.18,75.55,129.08,0,104.68-60.97,173.16-155.08,173.16h-217.37ZM394.63,537.39c-47.05,0-73.56,26.76-73.56,73.99,0,49.59,37.77,74.77,90.79,74.77h176.28c53.02,0,90.79-25.19,90.79-74.77s-26.51-73.99-73.56-73.99h-210.74ZM416.5,313.07c-55.01,0-86.15,18.1-86.15,70.84,0,49.59,22.53,69.26,70.25,69.26h198.81c47.72,0,70.25-19.68,70.25-69.26,0-52.74-31.15-70.84-86.15-70.84h-167Z"/>
-                <text x="900" y="650" fill="currentColor" fontSize="420" fontWeight="300" letterSpacing="20" fontFamily="system-ui,-apple-system,sans-serif">SPACE8</text>
-              </svg>
-
-              {/* Tier pill */}
-              <div
-                className="flex items-center gap-[7px] rounded-full font-semibold shadow-lg"
-                style={{
-                  padding: '8px 15px 8px 12px',
-                  background: v.pill,
-                  color: v.pillInk,
-                  fontSize: '13.5px',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.35), 0 4px 14px rgba(0,0,0,.3)',
-                }}
-              >
-                {getTierIcon(profile.tier)}
-                <span>{tierName}</span>
-              </div>
-            </div>
-
-            {/* Bottom section: name+ID left, QR right */}
-            <div className="flex flex-1 items-end gap-[clamp(14px,4vw,24px)]">
-              {/* Left: name + member ID */}
-              <div className="flex min-w-0 flex-1 flex-col justify-end gap-[14px]">
-                <div>
-                  <p
-                    className="font-code uppercase leading-tight tracking-wide text-white"
-                    style={{ fontSize: 'clamp(18px,5vw,30px)' }}
-                  >
-                    {profile.display_name ?? '會員'}
-                  </p>
-                  <p
-                    className="mt-[6px] text-white/50"
-                    style={{ fontSize: '10.5px', letterSpacing: '0.14em' }}
-                  >
-                    {t('membership_label')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-white/50" style={{ fontSize: '11.5px', lineHeight: 1.5 }}>
-                    {t('member_id_label')}
-                  </p>
-                  <p
-                    className="font-code mt-[2px] tracking-[0.04em]"
-                    style={{ fontSize: '12.5px', color: v.accent }}
-                  >
-                    {profile.member_code}
-                  </p>
-                </div>
-              </div>
-
-              {/* Right: QR button */}
-              <button
-                className="flex-shrink-0"
-                style={{
-                  width: 'clamp(96px,28vw,140px)',
-                  aspectRatio: '1',
-                  borderRadius: '16px',
-                  background: '#fff',
-                  padding: '5px',
-                  boxShadow: `0 10px 26px rgba(0,0,0,.45), 0 0 0 1px ${v.rim}`,
-                }}
-                onClick={(e) => { e.stopPropagation(); onFlip() }}
-                aria-label={t('tap_to_view_qr')}
-              >
-                <QRCodeSVG
-                  value={profile.member_code}
-                  size={200}
-                  level="H"
-                  style={{ width: '100%', height: '100%', borderRadius: '11px', display: 'block' }}
-                />
-              </button>
+          {/* Top row: logo + tier pill — spans both columns */}
+          <div className="col-span-2 flex items-center gap-3">
+            <svg
+              viewBox="0 0 2400 1000"
+              fill="currentColor"
+              className="text-white/90"
+              style={{ height: 'clamp(13px,3vw,16px)', width: 'auto' }}
+              aria-label="SPACE8"
+            >
+              <path d="M391.31,786.11c-94.11,0-155.08-68.48-155.08-173.16,0-66.9,31.81-112.55,75.55-129.08-35.79-13.38-66.27-49.59-66.27-122,0-97.6,61.63-147.97,155.08-147.97h198.81c93.44,0,155.74,50.37,155.74,147.97,0,72.41-31.15,108.62-66.93,122,43.74,16.53,75.55,62.18,75.55,129.08,0,104.68-60.97,173.16-155.08,173.16h-217.37ZM394.63,537.39c-47.05,0-73.56,26.76-73.56,73.99,0,49.59,37.77,74.77,90.79,74.77h176.28c53.02,0,90.79-25.19,90.79-74.77s-26.51-73.99-73.56-73.99h-210.74ZM416.5,313.07c-55.01,0-86.15,18.1-86.15,70.84,0,49.59,22.53,69.26,70.25,69.26h198.81c47.72,0,70.25-19.68,70.25-69.26,0-52.74-31.15-70.84-86.15-70.84h-167Z"/>
+              <text x="900" y="650" fill="currentColor" fontSize="420" fontWeight="300" letterSpacing="20" fontFamily="system-ui,-apple-system,sans-serif">SPACE8</text>
+            </svg>
+            <div className="flex-1" />
+            <div
+              className="flex items-center gap-[7px] rounded-full font-semibold"
+              style={{
+                padding: '8px 15px 8px 12px',
+                background: v.pill,
+                color: v.pillInk,
+                fontSize: '13.5px',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.35), 0 4px 14px rgba(0,0,0,.3)',
+              }}
+            >
+              {getTierIcon(profile.tier)}
+              <span>{tierName}</span>
             </div>
           </div>
-        </div>
 
-        {/* ═══════════════════ BACK ═══════════════════ */}
-        <div
-          className="absolute inset-0 overflow-hidden rounded-[24px]"
-          style={{
-            backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)',
-            background: `linear-gradient(135deg, ${v.accentA}, ${v.accentB})`,
-          }}
-        >
-          <div
-            className="flex h-full w-full flex-col items-center justify-center gap-4 rounded-[22px] bg-[#0A0B0E]/94 p-8"
-            style={{ margin: '2px', width: 'calc(100% - 4px)', height: 'calc(100% - 4px)' }}
-          >
-            {/* QR code with glow */}
-            <div className="relative">
-              <div
-                className="absolute inset-0 blur-2xl opacity-35"
-                style={{ background: v.accentA }}
+          {/* Left: name + member ID */}
+          <div className="flex min-w-0 flex-col justify-end gap-[16px] pb-[2px]">
+            <div>
+              <p
+                className="font-label text-white/50"
+                style={{ fontSize: '10.5px', letterSpacing: '0.14em' }}
+              >
+                MEMBER CARD
+              </p>
+              <p
+                className="font-code mt-[6px] uppercase leading-[1.15] text-white"
+                style={{ fontSize: 'clamp(20px,5.2vw,32px)' }}
+              >
+                {profile.display_name ?? '會員'}
+              </p>
+            </div>
+            <div>
+              <p className="text-white/50" style={{ fontSize: '11.5px', lineHeight: 1.5 }}>
+                {t('member_id_label')}
+              </p>
+              <p
+                className="font-mono mt-[2px] tracking-[0.04em]"
+                style={{ fontSize: '12.5px', color: v.accent }}
+              >
+                {profile.member_code}
+              </p>
+            </div>
+          </div>
+
+          {/* Right: QR button + hint */}
+          <div className="flex flex-col items-center gap-[9px]">
+            <button
+              className="transition-transform active:scale-[.97]"
+              style={{
+                width: 'clamp(108px,30vw,150px)',
+                aspectRatio: '1',
+                borderRadius: '16px',
+                background: '#fff',
+                padding: '5px',
+                boxShadow: `0 10px 26px rgba(0,0,0,.45), 0 0 0 1px ${v.rim}`,
+              }}
+              onClick={openZoom}
+              aria-label={t('tap_to_view_qr')}
+              aria-haspopup="dialog"
+            >
+              <QRCodeSVG
+                value={profile.member_code}
+                size={200}
+                level="H"
+                style={{ width: '100%', height: '100%', borderRadius: '11px', display: 'block', imageRendering: 'pixelated' }}
               />
-              <motion.div
-                className="relative rounded-2xl bg-white p-4 shadow-2xl"
-                initial={{ scale: 0.85, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.25, duration: 0.45 }}
-              >
-                <QRCodeSVG value={profile.member_code} size={130} level="H" />
-              </motion.div>
+            </button>
+            <div className="flex items-center gap-[5px] text-white/50" style={{ fontSize: '11.5px' }}>
+              <Maximize2 style={{ width: 12, height: 12 }} />
+              <span>{t('tap_to_view_qr')}</span>
             </div>
-
-            <motion.p
-              className="font-code text-sm font-bold tracking-widest text-white"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              {profile.member_code}
-            </motion.p>
-
-            <motion.p
-              className="text-xs font-medium text-white/55"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-            >
-              {t('scan_to_enter')}
-            </motion.p>
           </div>
         </div>
-      </motion.div>
-    </div>
+      </div>
+
+      {/* ═══════════════════ ZOOM OVERLAY ═══════════════════
+          Matches 924_Member_QR_card.html: position:fixed;inset:0;background:#fff
+          Full-viewport white takeover, close by tapping anywhere or pressing Esc */}
+      {zoomed && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('tap_to_view_qr')}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-[18px] bg-white p-6"
+          onClick={closeZoom}
+        >
+          <QRCodeSVG
+            value={profile.member_code}
+            size={420}
+            level="H"
+            style={{
+              width: 'min(82vw, 62vh, 420px)',
+              height: 'min(82vw, 62vh, 420px)',
+              imageRendering: 'pixelated',
+            }}
+          />
+          <p
+            className="font-code text-[#0A0B0E]"
+            style={{ fontSize: '16px', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: '6px' }}
+          >
+            {profile.display_name ?? '會員'}
+          </p>
+          <p
+            className="font-code font-semibold text-[#333]"
+            style={{ fontSize: 'clamp(15px,4.2vw,20px)', letterSpacing: '0.06em' }}
+          >
+            {profile.member_code}
+          </p>
+          <p className="text-[#6B7280]" style={{ fontSize: '12.5px' }}>
+            {t('scan_to_enter')}
+          </p>
+          <button
+            className="mt-1 rounded-full border border-[#D4D8DF] px-6 py-3 text-sm font-semibold text-[#0A0B0E] transition-colors hover:bg-[#F3F4F6]"
+            style={{ minHeight: '44px' }}
+            onClick={(e) => { e.stopPropagation(); closeZoom() }}
+            aria-label="關閉"
+          >
+            <X style={{ width: 18, height: 18, display: 'inline', marginRight: 6, verticalAlign: 'middle' }} />
+            {t('close') ?? '關閉'}
+          </button>
+        </div>
+      )}
+    </>
   )
 }
 
