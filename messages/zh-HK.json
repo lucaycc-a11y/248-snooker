@@ -971,7 +971,35 @@
           "answer": "進入設定 > 安全，點擊「更改密碼」。我們會發送一個安全連結到您的電郵。"
         }
       }
-    }
+    },
+    "dashboard": {
+      "greeting": "你好，{name}",
+      "quick_actions": "快捷操作",
+      "upcoming": "即將到來",
+      "history": "歷史記錄"
+    },
+    "upcoming_booking": {
+      "title": "即將到來的預約",
+      "no_booking": "暫無預約",
+      "book_now": "立即預訂",
+      "reschedule": "改期",
+      "cancel": "取消預約",
+      "show_qr": "顯示 QR",
+      "hide_qr": "隱藏 QR",
+      "scan_hint": "入場時出示此碼",
+      "time": "時間",
+      "duration": "時長",
+      "amount": "金額",
+      "hours": "小時"
+    },
+    "past_bookings": {
+      "title": "過往預約",
+      "view_all": "查看全部",
+      "no_history": "暫無歷史預約",
+      "whatsapp_prompt": "需要改期或退款？",
+      "whatsapp_cta": "WhatsApp 聯絡我們"
+    },
+    "version_label": "版本"
   },
   "faq": {
     "title": "常見問題",

@@ -53,7 +53,7 @@ export function MemberPageClient({ initialData }: Props) {
               </svg>
             </a>
             <h1 className="text-lg font-medium text-white">
-              你好，{profile.display_name ?? '會員'}
+              {t('dashboard.greeting', { name: profile.display_name ?? '會員' })}
             </h1>
             <div className="w-6" /> {/* Spacer for center alignment */}
           </div>
@@ -62,9 +62,9 @@ export function MemberPageClient({ initialData }: Props) {
 
       {/* Content */}
       <div className="mx-auto max-w-7xl pb-8">
-        <div className="space-y-8">
-          {/* Member Card - Full width, reduced height */}
-          <section className="px-4 pt-6">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Member Card */}
+          <section className="px-4 pt-4 sm:pt-6">
             <MemberCardFlipRedesign
               profile={profile}
               flipped={cardFlipped}
@@ -72,18 +72,18 @@ export function MemberPageClient({ initialData }: Props) {
             />
           </section>
 
-          {/* Horizontal Action Tiles - Uber style */}
+          {/* Quick Actions */}
           <section>
-            <div className="px-4">
-              <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-white/60">Quick Actions</h2>
+            <div className="px-4 mb-3 sm:mb-4">
+              <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.quick_actions')}</h2>
             </div>
             <HorizontalActionTiles profile={profile} />
           </section>
 
           {/* Upcoming Booking */}
           <section>
-            <div className="px-4">
-              <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-white/60">Upcoming</h2>
+            <div className="px-4 mb-3 sm:mb-4">
+              <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.upcoming')}</h2>
             </div>
             <div className="px-4">
               <UpcomingBookingCard userId={profile.id} />
@@ -92,16 +92,16 @@ export function MemberPageClient({ initialData }: Props) {
 
           {/* Past Bookings */}
           <section>
-            <div className="px-4">
-              <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-white/60">History</h2>
+            <div className="px-4 mb-3 sm:mb-4">
+              <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.history')}</h2>
             </div>
             <div className="px-4">
               <PastBookingsList userId={profile.id} />
             </div>
           </section>
 
-          {/* Bottom Links */}
-          <section className="px-4">
+          {/* Bottom Links - Account/Settings navigation */}
+          <section className="px-4 pt-4 sm:pt-6">
             <BottomLinks />
           </section>
         </div>

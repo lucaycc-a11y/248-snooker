@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import { Calendar, CircleDot } from 'lucide-react'
 import { getTableName } from '@/lib/booking/constants'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 // ════════════════════════════════════════════════════════════════════════════
 // UpcomingBookingCard — Next booking with QR code
@@ -29,6 +29,7 @@ type Props = {
 
 export function UpcomingBookingCard({ userId }: Props) {
   const locale = useLocale()
+  const t = useTranslations('member')
   const [booking, setBooking] = useState<Booking | null>(null)
   const [loading, setLoading] = useState(true)
   const [showQR, setShowQR] = useState(false)
@@ -79,12 +80,12 @@ export function UpcomingBookingCard({ userId }: Props) {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
           <Calendar className="h-8 w-8 text-white/30" strokeWidth={1.5} />
         </div>
-        <p className="mt-4 text-sm text-white/60">暫無預約</p>
+        <p className="mt-4 text-sm text-white/60">{t('upcoming_booking.no_booking')}</p>
         <a
           href="/booking"
           className="mt-4 inline-block rounded-full bg-[#22c55e] px-6 py-2.5 font-code text-sm font-medium text-white transition-all hover:bg-[#16a34a]"
         >
-          立即預訂
+          {t('upcoming_booking.book_now')}
         </a>
       </div>
     )
@@ -100,12 +101,12 @@ export function UpcomingBookingCard({ userId }: Props) {
     >
       <div className="border-b border-white/10 bg-white/5 px-4 py-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-white/80">即將到來的預約</h3>
+          <h3 className="text-sm font-medium text-white/80">{t('upcoming_booking.title')}</h3>
           <button
             onClick={() => setShowQR(!showQR)}
             className="rounded-lg bg-white/10 px-3 py-1.5 font-code text-xs text-white transition-colors hover:bg-white/20"
           >
-            {showQR ? 'Hide QR' : 'Show QR'}
+            {showQR ? t('upcoming_booking.hide_qr') : t('upcoming_booking.show_qr')}
           </button>
         </div>
       </div>
@@ -134,17 +135,33 @@ export function UpcomingBookingCard({ userId }: Props) {
 
         <div className="mt-4 grid grid-cols-3 gap-4">
           <div>
-            <p className="text-xs text-white/40">時間</p>
+            <p className="text-xs text-white/40">{t('upcoming_booking.time')}</p>
             <p className="mt-1 font-code font-medium text-white">{booking.startTime ?? '--'}</p>
           </div>
           <div>
-            <p className="text-xs text-white/40">時長</p>
-            <p className="mt-1 font-code font-medium text-white">{booking.durationHours}小時</p>
+            <p className="text-xs text-white/40">{t('upcoming_booking.duration')}</p>
+            <p className="mt-1 font-code font-medium text-white">{booking.durationHours}{t('upcoming_booking.hours')}</p>
           </div>
           <div>
-            <p className="text-xs text-white/40">金額</p>
+            <p className="text-xs text-white/40">{t('upcoming_booking.amount')}</p>
             <p className="mt-1 font-code font-medium text-white">HK${booking.price.toLocaleString()}</p>
           </div>
+        </div>
+
+        {/* Reschedule / Cancel Actions */}
+        <div className="mt-6 flex gap-3">
+          <a
+            href="/member/help"
+            className="flex-1 rounded-xl border border-white/20 bg-white/5 py-3.5 text-center font-medium text-white transition-colors hover:border-white/30 hover:bg-white/10"
+          >
+            {t('upcoming_booking.reschedule')}
+          </a>
+          <a
+            href="/member/help"
+            className="flex-1 rounded-xl border border-red-500/30 bg-red-500/10 py-3.5 text-center font-medium text-red-400 transition-colors hover:border-red-500/50 hover:bg-red-500/20"
+          >
+            {t('upcoming_booking.cancel')}
+          </a>
         </div>
 
         {showQR && (
@@ -157,7 +174,7 @@ export function UpcomingBookingCard({ userId }: Props) {
               <QRCodeSVG value={booking.humanCode} size={160} level="H" />
             </div>
             <p className="font-code mt-3 text-sm text-white">{booking.humanCode}</p>
-            <p className="mt-1 text-xs text-white/40">入場時出示此碼</p>
+            <p className="mt-1 text-xs text-white/40">{t('upcoming_booking.scan_hint')}</p>
           </motion.div>
         )}
       </div>

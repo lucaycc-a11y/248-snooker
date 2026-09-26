@@ -971,7 +971,35 @@
       "no_rewards_title": "暂无可兑换奖赏",
       "no_rewards_message": "留意 Inbox 通知",
       "close": "关闭"
-    }
+    },
+    "dashboard": {
+      "greeting": "你好，{name}",
+      "quick_actions": "快捷操作",
+      "upcoming": "即将到来",
+      "history": "历史记录"
+    },
+    "upcoming_booking": {
+      "title": "即将到来的预约",
+      "no_booking": "暂无预约",
+      "book_now": "立即预订",
+      "reschedule": "改期",
+      "cancel": "取消预约",
+      "show_qr": "显示 QR",
+      "hide_qr": "隐藏 QR",
+      "scan_hint": "入场时出示此码",
+      "time": "时间",
+      "duration": "时长",
+      "amount": "金额",
+      "hours": "小时"
+    },
+    "past_bookings": {
+      "title": "过往预约",
+      "view_all": "查看全部",
+      "no_history": "暂无历史预约",
+      "whatsapp_prompt": "需要改期或退款？",
+      "whatsapp_cta": "WhatsApp 联系我们"
+    },
+    "version_label": "版本"
   },
   "faq": {
     "title": "常见问题",

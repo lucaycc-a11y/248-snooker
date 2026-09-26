@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, CircleDot } from 'lucide-react'
 import { getTableName } from '@/lib/booking/constants'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 // ════════════════════════════════════════════════════════════════════════════
 // PastBookingsList — Read-only history link
@@ -28,6 +28,7 @@ type Props = {
 
 export function PastBookingsList({ userId }: Props) {
   const locale = useLocale()
+  const t = useTranslations('member')
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -80,7 +81,7 @@ export function PastBookingsList({ userId }: Props) {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
           <FileText className="h-8 w-8 text-white/30" strokeWidth={1.5} />
         </div>
-        <p className="mt-4 text-sm text-white/60">暫無歷史預約</p>
+        <p className="mt-4 text-sm text-white/60">{t('past_bookings.no_history')}</p>
       </div>
     )
   }
@@ -89,12 +90,12 @@ export function PastBookingsList({ userId }: Props) {
     <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent">
       <div className="border-b border-white/10 bg-white/5 px-4 py-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-white/80">過往預約</h3>
+          <h3 className="text-sm font-medium text-white/80">{t('past_bookings.title')}</h3>
           <a
             href="/member/bookings/history"
-            className="text-xs text-white/60 transition-colors hover:text-white"
+            className="-my-2 py-2 px-1 text-xs text-white/60 transition-colors hover:text-white"
           >
-            查看全部 →
+            {t('past_bookings.view_all')} →
           </a>
         </div>
       </div>
@@ -144,14 +145,14 @@ export function PastBookingsList({ userId }: Props) {
 
       <div className="border-t border-white/10 bg-white/5 p-4 text-center">
         <p className="text-xs text-white/50">
-          需要改期或退款？
+          {t('past_bookings.whatsapp_prompt')}
           <a
             href="https://wa.me/85261808022"
             target="_blank"
             rel="noopener noreferrer"
             className="ml-1 text-[#22c55e] underline"
           >
-            WhatsApp 聯絡我們
+            {t('past_bookings.whatsapp_cta')}
           </a>
         </p>
       </div>

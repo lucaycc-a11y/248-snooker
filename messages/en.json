@@ -971,7 +971,35 @@
           "answer": "Go to Settings > Security and click \"Change Password\". We'll send a secure link to your email."
         }
       }
-    }
+    },
+    "dashboard": {
+      "greeting": "Hello, {name}",
+      "quick_actions": "Quick Actions",
+      "upcoming": "Upcoming",
+      "history": "History"
+    },
+    "upcoming_booking": {
+      "title": "Upcoming Booking",
+      "no_booking": "No upcoming bookings",
+      "book_now": "Book Now",
+      "reschedule": "Reschedule",
+      "cancel": "Cancel Booking",
+      "show_qr": "Show QR",
+      "hide_qr": "Hide QR",
+      "scan_hint": "Show this code at entry",
+      "time": "Time",
+      "duration": "Duration",
+      "amount": "Amount",
+      "hours": "hr"
+    },
+    "past_bookings": {
+      "title": "Past Bookings",
+      "view_all": "View All",
+      "no_history": "No past bookings",
+      "whatsapp_prompt": "Need to reschedule or get a refund?",
+      "whatsapp_cta": "Contact us on WhatsApp"
+    },
+    "version_label": "Version"
   },
   "faq": {
     "title": "FAQ",
