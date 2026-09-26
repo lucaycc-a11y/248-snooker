@@ -1791,7 +1791,7 @@
       "entry": "入場",
       "amenities": "配套"
     },
-    "intro": "每個细節，都讓你專註於桌球。",
+    "intro": "專業設備、智能系統，聚光在桌球本身。",
     "pagination_label": "場地設施分頁",
     "pagination_item": "前往第 {n} 項",
     "items": [
@@ -2248,20 +2248,20 @@
     "amateur_title": "標準會員",
     "amateur_body": "HK$1 = 1 積分。註冊即送 50 積分。",
     "amateur_highlight": "50 積分",
-    "amateur_modal_body": "新用戶自動加入標準會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。開始你的旅程，輕鬆累積。",
+    "amateur_modal_body": "新用戶自動加入標準會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。",
     "century_title": "優越會員",
     "century_subtitle": "800 積分起",
-    "century_body": "貼心補給。積分 1.5 倍加速。",
-    "century_highlight1": "貼心補給",
+    "century_body": "尊享禮遇，積分 1.5 倍加速。",
+    "century_highlight1": "年度戰績",
     "century_highlight2": "1.5 倍",
-    "century_modal_body": "累積 800 積分晉升優越會員等級。解鎖「專屬燈光歡迎詞」。每場預約均免費隨附優質瓶裝水 2 支。積分以 1.5 倍速度累積，升級更快。",
+    "century_modal_body": "累積 800 積分晉升優越會員等級。解鎖專享年度個人戰績回顧報告。可用積分兌換時段折扣券。積分以 1.5 倍速度累積，升級更快。",
     "maximum_title": "尊榮會員",
     "maximum_subtitle": "6,000 積分起",
     "maximum_badge": "最高等級",
     "maximum_body": "極致玩家殿堂，積分雙倍，尊享特級禮遇。",
     "maximum_highlight1": "積分雙倍",
-    "maximum_highlight2": "特級禮遇",
-    "maximum_highlight3": "教練時段",
-    "maximum_modal_body": "累積 6,000 積分達到尊榮會員最高等級。尊享不定期 SPACE8 專屬品牌周邊饋贈。積分雙倍累積，並可以用以換購折扣劵，預約教練時段。為最投入的玩家而設。"
+    "maximum_highlight2": "品牌周邊",
+    "maximum_highlight3": "個人桿櫃",
+    "maximum_modal_body": "累積 6,000 積分達到尊榮會員最高等級。尊享不定期 SPACE8 專屬品牌周邊饋贈。個人桿櫃優先分配。新場地／新功能優先試用權。積分雙倍累積，為最投入的玩家而設。"
   }
 }
