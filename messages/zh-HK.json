@@ -1361,6 +1361,79 @@
     "group_nav_label": "導航",
     "group_legal_label": "法律"
   },
+  "home": {
+    "hero": {
+      "title": "每個細節，都讓你專注於桌球",
+      "subtitle": "SPACE8 · 香港新蒲崗自助無煙智能中式桌球室"
+    },
+    "features": {
+      "kicker": "SPACE8 特色",
+      "title": "專注桌球本質，一切自動化處理",
+      "cards": {
+        "room1": {
+          "category": "獨立球室",
+          "title": "1T 獨立球室 · 私密空間",
+          "description": "兩間獨立 1T 球室，配備專業檯球設備與智能燈光系統。"
+        },
+        "booking": {
+          "category": "即時預訂",
+          "title": "網上預訂 · 即時確認",
+          "description": "24/7 網上預訂系統，Apple Pay / Google Pay / Alipay / 信用卡即時付款。"
+        },
+        "access": {
+          "category": "無人自助",
+          "title": "QR Code 自助入場",
+          "description": "專屬會員 QR Code，掃描即開門，全程無需人工協助。"
+        },
+        "pilot": {
+          "category": "智能系統",
+          "title": "Space Pilot 智能小管家",
+          "description": "iPad 智能系統，記錄每場對戰，追蹤個人戰績。"
+        },
+        "equipment": {
+          "category": "專業設備",
+          "title": "專業桌球設備",
+          "description": "高品質球檯、標準公杆、特調燈光，營造專注氛圍。"
+        },
+        "location": {
+          "category": "交通便利",
+          "title": "新蒲崗核心地帶",
+          "description": "鄰近鑽石山及啟德地鐵站，提供便利停車位。"
+        }
+      }
+    },
+    "pricing": {
+      "kicker": "SPACE8",
+      "title": "彈性時段，透明收費",
+      "subtitle": "按時段計費，無隱藏費用。會員積分累積，享受更多優惠。",
+      "plans": {
+        "gold": {
+          "name": "黃金時段",
+          "time": "18:00 - 24:00 (星期一至五)",
+          "currency": "HK$",
+          "amount": "180",
+          "per": "/ 小時",
+          "cta": "立即預訂"
+        },
+        "morning": {
+          "name": "早晨時段",
+          "time": "06:00 - 12:00 (每日)",
+          "currency": "HK$",
+          "amount": "120",
+          "per": "/ 小時",
+          "cta": "立即預訂"
+        },
+        "noon": {
+          "name": "日間時段",
+          "time": "12:00 - 18:00 (每日)",
+          "currency": "HK$",
+          "amount": "150",
+          "per": "/ 小時",
+          "cta": "立即預訂"
+        }
+      }
+    }
+  },
   "profile": {
     "add_phone_title": "加入電話號碼",
     "add_phone_subtitle": "方便我們發送預訂提醒（可選）",

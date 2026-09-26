@@ -68,16 +68,12 @@ export function MemberCardFlipRedesign({ profile }: Props) {
         >
           {/* Top row: logo + tier pill — spans both columns */}
           <div className="col-span-2 flex items-center gap-3">
-            <svg
-              viewBox="0 0 2400 1000"
-              fill="currentColor"
-              className="text-white/90"
-              style={{ height: 'clamp(13px,3vw,16px)', width: 'auto' }}
-              aria-label="SPACE8"
-            >
-              <path d="M391.31,786.11c-94.11,0-155.08-68.48-155.08-173.16,0-66.9,31.81-112.55,75.55-129.08-35.79-13.38-66.27-49.59-66.27-122,0-97.6,61.63-147.97,155.08-147.97h198.81c93.44,0,155.74,50.37,155.74,147.97,0,72.41-31.15,108.62-66.93,122,43.74,16.53,75.55,62.18,75.55,129.08,0,104.68-60.97,173.16-155.08,173.16h-217.37ZM394.63,537.39c-47.05,0-73.56,26.76-73.56,73.99,0,49.59,37.77,74.77,90.79,74.77h176.28c53.02,0,90.79-25.19,90.79-74.77s-26.51-73.99-73.56-73.99h-210.74ZM416.5,313.07c-55.01,0-86.15,18.1-86.15,70.84,0,49.59,22.53,69.26,70.25,69.26h198.81c47.72,0,70.25-19.68,70.25-69.26,0-52.74-31.15-70.84-86.15-70.84h-167Z"/>
-              <text x="900" y="650" fill="currentColor" fontSize="420" fontWeight="300" letterSpacing="20" fontFamily="system-ui,-apple-system,sans-serif">SPACE8</text>
-            </svg>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logos/logo-white-horizontal.svg"
+              alt="SPACE8"
+              style={{ height: 'clamp(13px,3vw,16px)', width: 'auto', opacity: 0.9 }}
+            />
             <div className="flex-1" />
             <div
               className="flex items-center gap-[7px] rounded-full font-semibold"

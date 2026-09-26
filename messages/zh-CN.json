@@ -1361,6 +1361,79 @@
     "group_nav_label": "导航",
     "group_legal_label": "法律"
   },
+  "home": {
+    "hero": {
+      "title": "每个细节，都让你专注于桌球",
+      "subtitle": "SPACE8 · 香港新蒲岗自助无烟智能中式桌球室"
+    },
+    "features": {
+      "kicker": "SPACE8 特色",
+      "title": "专注桌球本质，一切自动化处理",
+      "cards": {
+        "room1": {
+          "category": "独立球室",
+          "title": "1T 独立球室 · 私密空间",
+          "description": "两间独立 1T 球室，配备专业台球设备与智能灯光系统。"
+        },
+        "booking": {
+          "category": "即时预订",
+          "title": "网上预订 · 即时确认",
+          "description": "24/7 网上预订系统，Apple Pay / Google Pay / Alipay / 信用卡即时付款。"
+        },
+        "access": {
+          "category": "无人自助",
+          "title": "QR Code 自助入场",
+          "description": "专属会员 QR Code，扫描即开门，全程无需人工协助。"
+        },
+        "pilot": {
+          "category": "智能系统",
+          "title": "Space Pilot 智能小管家",
+          "description": "iPad 智能系统，记录每场对战，追踪个人战绩。"
+        },
+        "equipment": {
+          "category": "专业设备",
+          "title": "专业桌球设备",
+          "description": "高品质球台、标准公杆、特调灯光，营造专注氛围。"
+        },
+        "location": {
+          "category": "交通便利",
+          "title": "新蒲岗核心地带",
+          "description": "邻近钻石山及启德地铁站，提供便利停车位。"
+        }
+      }
+    },
+    "pricing": {
+      "kicker": "SPACE8",
+      "title": "弹性时段，透明收费",
+      "subtitle": "按时段计费，无隐藏费用。会员积分累积，享受更多优惠。",
+      "plans": {
+        "gold": {
+          "name": "黄金时段",
+          "time": "18:00 - 24:00 (星期一至五)",
+          "currency": "HK$",
+          "amount": "180",
+          "per": "/ 小时",
+          "cta": "立即预订"
+        },
+        "morning": {
+          "name": "早晨时段",
+          "time": "06:00 - 12:00 (每日)",
+          "currency": "HK$",
+          "amount": "120",
+          "per": "/ 小时",
+          "cta": "立即预订"
+        },
+        "noon": {
+          "name": "日间时段",
+          "time": "12:00 - 18:00 (每日)",
+          "currency": "HK$",
+          "amount": "150",
+          "per": "/ 小时",
+          "cta": "立即预订"
+        }
+      }
+    }
+  },
   "profile": {
     "add_phone_title": "加入电话号码",
     "add_phone_subtitle": "方便我们发送预订提醒（可选）",

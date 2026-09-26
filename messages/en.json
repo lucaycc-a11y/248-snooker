@@ -1361,6 +1361,79 @@
     "group_nav_label": "Navigation",
     "group_legal_label": "Legal"
   },
+  "home": {
+    "hero": {
+      "title": "Every detail focused on the game",
+      "subtitle": "SPACE8 · Self-service smoke-free smart Chinese pool room in San Po Kong, Hong Kong"
+    },
+    "features": {
+      "kicker": "SPACE8 Features",
+      "title": "Focus on the game itself, everything else automated",
+      "cards": {
+        "room1": {
+          "category": "Private Rooms",
+          "title": "1T Private Rooms · Private Space",
+          "description": "Two private 1T rooms equipped with professional pool equipment and smart lighting systems."
+        },
+        "booking": {
+          "category": "Instant Booking",
+          "title": "Online Booking · Instant Confirmation",
+          "description": "24/7 online booking system with instant payment via Apple Pay / Google Pay / Alipay / Credit Card."
+        },
+        "access": {
+          "category": "Self-Service",
+          "title": "QR Code Self-Service Entry",
+          "description": "Exclusive member QR code, scan to open door, no staff assistance required."
+        },
+        "pilot": {
+          "category": "Smart System",
+          "title": "Space Pilot Smart Assistant",
+          "description": "iPad smart system that records every match and tracks personal performance."
+        },
+        "equipment": {
+          "category": "Professional Equipment",
+          "title": "Professional Pool Equipment",
+          "description": "High-quality tables, standard cues, custom lighting creating a focused atmosphere."
+        },
+        "location": {
+          "category": "Convenient Location",
+          "title": "Heart of San Po Kong",
+          "description": "Close to Diamond Hill and Kai Tak MTR stations with convenient parking."
+        }
+      }
+    },
+    "pricing": {
+      "kicker": "SPACE8",
+      "title": "Flexible slots, transparent pricing",
+      "subtitle": "Charged by time slot with no hidden fees. Earn member points and enjoy more benefits.",
+      "plans": {
+        "gold": {
+          "name": "Prime Time",
+          "time": "18:00 - 24:00 (Mon-Fri)",
+          "currency": "HK$",
+          "amount": "180",
+          "per": "/ hour",
+          "cta": "Book Now"
+        },
+        "morning": {
+          "name": "Morning Slot",
+          "time": "06:00 - 12:00 (Daily)",
+          "currency": "HK$",
+          "amount": "120",
+          "per": "/ hour",
+          "cta": "Book Now"
+        },
+        "noon": {
+          "name": "Daytime Slot",
+          "time": "12:00 - 18:00 (Daily)",
+          "currency": "HK$",
+          "amount": "150",
+          "per": "/ hour",
+          "cta": "Book Now"
+        }
+      }
+    }
+  },
   "profile": {
     "add_phone_title": "Add Phone Number",
     "add_phone_subtitle": "So we can send you booking reminders (optional)",

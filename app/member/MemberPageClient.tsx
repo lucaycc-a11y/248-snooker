@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { type MemberDashboardData } from '@/lib/data/memberRedesignTypes'
@@ -34,7 +33,6 @@ type Props = {
 
 export function MemberPageClient({ initialData }: Props) {
   const t = useTranslations('member')
-  const [cardFlipped, setCardFlipped] = useState(false)
   const { profile } = initialData
 
   return (
@@ -68,11 +66,7 @@ export function MemberPageClient({ initialData }: Props) {
           {/* LEFT — Member card (sticky on desktop, centered+capped on tablet) */}
           <div className="lg:sticky lg:top-[73px]">
             <div className="px-4 pt-4 sm:pt-6 md:mx-auto md:max-w-[480px] lg:mx-0 lg:max-w-none lg:px-0 lg:pt-0">
-              <MemberCardFlipRedesign
-                profile={profile}
-                flipped={cardFlipped}
-                onFlip={() => setCardFlipped(!cardFlipped)}
-              />
+              <MemberCardFlipRedesign profile={profile} />
             </div>
           </div>
 
