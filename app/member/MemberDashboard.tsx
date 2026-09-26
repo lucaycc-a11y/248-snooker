@@ -41,6 +41,7 @@ import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
 import { Logo } from "@/components/brand";
 import { HelpCentre } from "@/components/help/HelpCentre";
+import { MemberCardFlipRedesign } from "@/app/member/components/MemberCardFlipRedesign";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -291,92 +292,27 @@ export default function MemberDashboard({
         style={{ position: "relative", zIndex: 1 }}
       >
         <div className="member-dashboard-hero-grid">
-        {/* ── Membership card (club-card metaphor) ── */}
+        {/* ── Membership card (redesigned per 924_member_guide.html) ── */}
         <motion.div
-          className="member-dashboard-membership-card"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE }}
-          style={{
-            position: "relative",
-            borderRadius: "24px",
-            border: "1px solid rgba(34,184,107,0.15)",
-            background: `linear-gradient(160deg, rgba(44,44,48,0.92) 0%, rgba(10,10,10,1) 100%), ${TIER_GLOW[tierId] ?? TIER_GLOW.amateur}, ${GLASS_BG}`,
-            backdropFilter: GLASS_BLUR,
-            WebkitBackdropFilter: GLASS_BLUR,
-            padding: "26px 28px",
-            overflow: "hidden",
-            minHeight: 210,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-            gap: 28,
-          }}
         >
-          {/* Top: wordmark + tier */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <Logo variant="full" theme="dark" size={24} />
-              <div data-cms-key="member.card_label" className="font-label" style={{ fontSize: "10px", color: SUBTLE, marginTop: "6px" }}>
-                {t("card_label")}
-              </div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <FieldLabel>{t("card_tier")}</FieldLabel>
-              <div className="font-label" style={{ fontSize: "30px", color: accent, lineHeight: 1 }}>
-                {tierLabel(current.id, locale)}
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom: identity + QR */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 20 }}>
-            <div style={{ minWidth: 0 }}>
-              <FieldLabel>{t("card_passenger")}</FieldLabel>
-              <div style={{ fontSize: "22px", fontWeight: 700, letterSpacing: "-0.01em", color: INK, marginTop: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {user.display_name ?? "—"}
-              </div>
-              <div data-cms-key="member.card_member_no" style={{ marginTop: "10px" }}>
-                <FieldLabel>{t("card_member_no")}</FieldLabel>
-                <div
-                  className="font-code"
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: 600,
-                    color: GREEN,
-                    textShadow: "0 1px 1px rgba(0,0,0,0.55)",
-                    marginTop: "2px",
-                  }}
-                >
-                  {user.member_code}
-                </div>
-              </div>
-              <div style={{ fontSize: "12px", color: SUBTLE, marginTop: "10px" }}>
-                {t("card_member_since")} · {formatDate(user.created_at, locale)}
-              </div>
-            </div>
-
-            {/* Membership QR tile */}
-            <div
-              style={{
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "10px",
-                background: "#fdfcf8",
-                borderRadius: "12px",
-                boxShadow: "0 0 0 1px rgba(34,197,94,0.2), 0 0 20px rgba(34,197,94,0.15)",
-              }}
-            >
-              <QRCode
-                src={memberQrDataUrl}
-                size={76}
-                enlargeLabel={t("qr_tap_enlarge")}
-                closeLabel={t("close")}
-              />
-            </div>
-          </div>
+          <MemberCardFlipRedesign
+            profile={{
+              id: user.id,
+              display_name: user.display_name,
+              email: user.email,
+              phone: user.phone,
+              tier: current.id as 'amateur' | 'century' | 'maximum',
+              points: user.points,
+              member_code: user.member_code,
+              unread_notifications: unreadCount,
+              gender: null,
+              date_of_birth: null,
+              birthday_set: false,
+            }}
+          />
         </motion.div>
 
         <div className="member-dashboard-hero-side">
