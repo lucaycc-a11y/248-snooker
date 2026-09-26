@@ -119,3 +119,32 @@
 - ⏳ Vercel auto-deploy in progress
 
 **下一步**: 等待 Vercel 部署完成後在真實環境確認 `/api/member/bookings` 返回 200
+
+---
+
+## ✅ Phase C1 會員卡片重新設計 - 2026-09-25 18:00
+
+### 完成項目
+
+**Commit**: (pending)  
+**檔案**: [app/member/components/MemberCardFlip.tsx](app/member/components/MemberCardFlip.tsx)
+
+**實作內容**:
+1. ✅ 移除「248 MEMBER」標籤文字
+2. ✅ 替換為完整橫向 SPACE8 logo (含 "8" 圖標 + "SPACE8" 文字)
+3. ✅ 圓形進度環改為橫向進度條 (KABU PASS 風格):
+   - 兩端顯示當前與下一等級圖標 + 名稱
+   - 中間漸變填充進度條 (使用 tier gradient colors)
+   - 下方狀態文字「已消費 $X，再消費 $Y 可升級至{tier}」
+   - 最高等級會員顯示靜態文字,無進度條
+4. ✅ 底部加入「輕觸查看入場 QR code」提示 (tap 圖標 + 文字)
+5. ✅ 背景水印改用完整 SPACE8 logo (10% opacity)
+6. ✅ 積分數字移至右側並放大 (text-4xl)
+
+### 待處理項目
+- [ ] Good Times 字體應用 (需先確認字體授權來源)
+- [ ] 等級徽章文字 i18n (tierName 已用 getTierName helper)
+- [ ] 截圖確認 (需實機或 dev server 查看效果)
+
+### 下一步
+Phase C2: Space Pts 頁面重新設計

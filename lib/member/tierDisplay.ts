@@ -19,16 +19,16 @@ import type { Tier } from '@/lib/data/pricing'
 export type TierDisplayName = { zhHK: string; zhCN: string; en: string }
 
 export const TIER_DISPLAY: Record<Tier['id'], TierDisplayName> = {
-  amateur: { zhHK: '新星會員', zhCN: '新星会员', en: 'Nova Member' },
-  century: { zhHK: '鉑金會員', zhCN: '铂金会员', en: 'Platinum Member' },
-  maximum: { zhHK: '鑽石會員', zhCN: '钻石会员', en: 'Diamond Member' },
+  amateur: { zhHK: '標準會員', zhCN: '标准会员', en: 'Standard Member' },
+  century: { zhHK: '優越會員', zhCN: '优越会员', en: 'Premier Member' },
+  maximum: { zhHK: '尊榮會員', zhCN: '尊荣会员', en: 'Prestige Member' },
 }
 
 /** Short English labels for the admin backend (spec §9). */
 const TIER_SHORT_LABELS: Record<Tier['id'], string> = {
-  amateur: 'Nova',
-  century: 'Platinum',
-  maximum: 'Diamond',
+  amateur: 'Standard',
+  century: 'Premier',
+  maximum: 'Prestige',
 }
 
 const TIER_IDS = Object.keys(TIER_DISPLAY) as Tier['id'][]

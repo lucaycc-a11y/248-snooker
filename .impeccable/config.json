@@ -1246,6 +1246,221 @@
         "rule": "design-system-color",
         "value": "rgba(240, 147, 251, 0.15) phase 2 item 1: diamond tier purple gradient (existing design from previous phase)",
         "createdAt": "2026-09-25T14:19:13.570Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(102, 126, 234, 0.12)",
+        "createdAt": "2026-09-26T00:00:00.000Z",
+        "reason": "Tier background gradient anchor for Standard (amateur) - intentional visual identity"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(189, 195, 199, 0.12)",
+        "createdAt": "2026-09-26T00:00:00.000Z",
+        "reason": "Tier background gradient anchor for Premier (century) - intentional visual identity"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(240, 147, 251, 0.15)",
+        "createdAt": "2026-09-26T00:00:00.000Z",
+        "reason": "Tier background gradient anchor for Prestige (maximum) - intentional visual identity"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(148, 163, 184, 0.15)",
+        "createdAt": "2026-09-25T15:05:24.191Z",
+        "reason": "Nova tier gradient - intentional tier-specific visual design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(192, 132, 252, 0.20)",
+        "createdAt": "2026-09-25T15:05:32.832Z",
+        "reason": "Diamond tier gradient - intentional tier-specific visual design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(107, 114, 128, 0.10)",
+        "createdAt": "2026-09-25T15:05:52.826Z",
+        "reason": "Default tier gradient - intentional tier-specific visual design token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#4b5563",
+        "createdAt": "2026-09-26T05:33:49.613Z",
+        "reason": "pre-existing default fallback in getTierGradient/getTierRingColor; not introduced by tier rename edit"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f5f5f7",
+        "createdAt": "2026-09-26T05:39:38.657Z",
+        "reason": "spec-mandated: Section 5 bg must match Section 6 pricing bg (#f5f5f7) per 9-24 Web Change rollout"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8e8ea",
+        "createdAt": "2026-09-26T05:40:26.354Z",
+        "reason": "spec-mandated light-mode surface: image placeholder bg to match #f5f5f7 section bg per 9-24 Web Change rollout"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2B3039",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: amateur tier surface gradient start — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1B1E24",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: amateur tier surface gradient mid — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#23272F",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: amateur tier surface gradient end — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#A2AEC4",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: amateur tier pill gradient start / accentA — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7F8BA2",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: amateur tier pill gradient end / accentB — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#C7CDD8",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: amateur tier accent (member ID color) — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#16463A",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: century tier surface gradient start — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0A211B",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: century tier surface gradient mid — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#11342B",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: century tier surface gradient end — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#5EDBA4",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: century tier pill gradient start / accentA — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1F9A63",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: century tier pill gradient end / accentB — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9FE7C6",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: century tier accent (member ID color) — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2A241B",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: maximum tier surface gradient start — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0E0C09",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: maximum tier surface gradient mid — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1D1913",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: maximum tier surface gradient end — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#F3DDA6",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: maximum tier pill gradient start / accentA (champagne gold) — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#C29A4A",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: maximum tier pill gradient end / accentB — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2A1E08",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: maximum tier pill ink (dark text on gold pill) — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#E8CD8C",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: maximum tier accent (member ID color, warm gold) — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1E2026",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: default/fallback tier surface gradient start — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#14161A",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: default/fallback tier surface gradient end — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9CA3AF",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: default/fallback tier accent — sanctioned 924 mockup design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0A0B0E",
+        "files": ["app/member/components/MemberCardFlipRedesign.tsx"],
+        "createdAt": "2026-09-26T08:00:00.000Z",
+        "reason": "Phase 4 card: back-face inner dark background — sanctioned 924 mockup design exception"
       }
     ]
   }

@@ -9,24 +9,24 @@ import type { TierValue, TierDefinition } from '@/lib/data/memberRedesignTypes'
 export const TIER_NAMES: Record<TierValue, TierDefinition> = {
   amateur: {
     id: 'amateur',
-    name_zh_hk: '新星會員',
-    name_zh_cn: '新星会员',
-    name_en: 'Nova',
-    name_ja: 'ノヴァ',
+    name_zh_hk: '標準會員',
+    name_zh_cn: '标准会员',
+    name_en: 'Standard',
+    name_ja: 'スタンダード',
   },
   century: {
     id: 'century',
-    name_zh_hk: '鉑金會員',
-    name_zh_cn: '铂金会员',
-    name_en: 'Platinum',
-    name_ja: 'プラチナ',
+    name_zh_hk: '優越會員',
+    name_zh_cn: '优越会员',
+    name_en: 'Premier',
+    name_ja: 'プレミア',
   },
   maximum: {
     id: 'maximum',
-    name_zh_hk: '鑽石會員',
-    name_zh_cn: '钻石会员',
-    name_en: 'Diamond',
-    name_ja: 'ダイヤモンド',
+    name_zh_hk: '尊榮會員',
+    name_zh_cn: '尊荣会员',
+    name_en: 'Prestige',
+    name_ja: 'プレステージ',
   },
 }
 
@@ -94,11 +94,11 @@ export function getTierRingColor(tier: TierValue): string {
 export function getTierShortLabel(tier: TierValue): string {
   switch (tier) {
     case 'amateur':
-      return 'Nova'
+      return 'Standard'
     case 'century':
-      return 'Platinum'
+      return 'Premier'
     case 'maximum':
-      return 'Diamond'
+      return 'Prestige'
     default:
       return tier
   }

@@ -31,7 +31,7 @@ export const cookiePolicyEn: LegalDocument = {
     },
     {
       title: "Contact Information",
-      body: "If you have any questions about this Cookie Policy, please contact Space8 via our official WhatsApp (6180 8022) or email (Admin@space8.com.hk).",
+      body: "If you have any questions about this Cookie Policy, please contact Space8 via our official WhatsApp (6180 8022) or email (Info@space8.com.hk).",
     },
   ],
 }

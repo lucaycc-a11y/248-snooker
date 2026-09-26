@@ -520,7 +520,7 @@ export default function AboutContent() {
             style={{
               fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 900,
               fontSize: "clamp(1.9rem, 5.2vw, 3.4rem)", lineHeight: 1.32,
-              letterSpacing: "0.005em", color: "#f5f2ec", whiteSpace: "nowrap", marginBottom: 84,
+              letterSpacing: "0.005em", color: "#f5f2ec", marginBottom: 84,
             }}
           >
             {t("mission_statement")}

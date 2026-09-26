@@ -31,7 +31,7 @@ export const cookiePolicyZhCN: LegalDocument = {
     },
     {
       title: "联络方式",
-      body: "如对本 Cookie 政策有任何查询，请通过官方 WhatsApp（6180 8022）或电邮（Admin@space8.com.hk）联络 Space8。",
+      body: "如对本 Cookie 政策有任何查询，请通过官方 WhatsApp（6180 8022）或电邮（Info@space8.com.hk）联络 Space8。",
     },
   ],
 }

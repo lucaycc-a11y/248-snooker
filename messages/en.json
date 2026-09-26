@@ -269,15 +269,15 @@
     "benefits_title": "Member Benefits",
     "benefits": [
       {
-        "tier": "Nova",
+        "tier": "Standard",
         "desc": "Base points earning"
       },
       {
-        "tier": "Platinum",
+        "tier": "Premier",
         "desc": "1.5× points + priority booking"
       },
       {
-        "tier": "Diamond",
+        "tier": "Prestige",
         "desc": "2× points + one free extension/month"
       }
     ],
@@ -358,10 +358,10 @@
     "mission_items": [
       {
         "title": "Professional Equipment",
-        "body": "A Star Chinese pool table."
+        "body": "Curated gear, custom lighting, and thoughtful venue design."
       },
       {
-        "title": "Technology",
+        "title": "Technology Experience",
         "body": "Book in one minute, scan a QR code to enter."
       },
       {
@@ -504,7 +504,7 @@
     "subscribed": "You're on the list.",
     "err_email": "Enter a valid email address.",
     "err_generic": "Something went wrong. Please try again.",
-    "contact": "Questions? Contact Admin@space8.com.hk or WhatsApp +852 6180 8022."
+    "contact": "Questions? Contact Info@space8.com.hk or WhatsApp +852 6180 8022."
   },
   "memberPage": {
     "card_label": "MEMBER CARD",
@@ -694,7 +694,7 @@
     "step3_highlight": "more you save",
     "step3_modal_label": "Rewards",
     "step3_modal_title": "Earn Points",
-    "step3_modal_body": "Earn 1 point for every HK$1 spent and level up automatically. Three tiers — Nova, Platinum, Diamond — each unlocking exclusive benefits.",
+    "step3_modal_body": "Earn 1 point for every HK$1 spent and level up automatically. Three tiers — Standard, Premier, Prestige — each unlocking exclusive benefits.",
     "close": "Close",
     "qr_hint": "Tip: You can also use your member QR code to enter and leave the venue. Find it under “My Account” after signing in."
   },
@@ -894,7 +894,9 @@
       "spent_amount": "Spent ${spent}, spend ${remaining} more to upgrade to {tierName}",
       "max_tier_reached": "Top tier reached · Exclusive privileges",
       "tap_to_view_qr": "Tap to view entry QR code",
-      "scan_to_enter": "Scan to enter"
+      "scan_to_enter": "Scan to enter",
+      "membership_label": "Member",
+      "member_id_label": "Member ID"
     },
     "points_page": {
       "title": "Space Pts",
@@ -906,9 +908,9 @@
       "points_count": "{points} points",
       "points_to_next_short": "{points} points to next tier",
       "tier_benefits": "Tier Benefits",
-      "tier_nova": "Nova Member",
-      "tier_platinum": "Platinum Member",
-      "tier_diamond": "Diamond Member",
+      "tier_nova": "Standard Member",
+      "tier_platinum": "Premier Member",
+      "tier_diamond": "Prestige Member",
       "benefit_nova": "Basic points accumulation",
       "benefit_platinum": "1.5x points multiplier",
       "benefit_diamond": "2x points multiplier · Exclusive perks",
@@ -1004,29 +1006,29 @@
   "faq": {
     "title": "FAQ",
     "faq_booking_q": "How do I book a table?",
-    "faq_booking_a": "Select a date, time slot, and duration, then pay instantly with Apple Pay or a credit card. You'll receive a QR code immediately. No staff assistance required.",
+    "faq_booking_a": "Choose your date, time slot, and duration, then pay instantly with Apple Pay or credit card. You'll receive a QR code immediately. No staff assistance needed.",
     "faq_entry_q": "How do I enter after booking?",
-    "faq_entry_a": "After payment, you'll receive a unique QR code. Scan the door sensor on arrival and the system unlocks automatically — fully self-service.",
+    "faq_entry_a": "After payment is confirmed, you'll receive your unique QR code. Scan it at the door sensor on arrival and the system will open automatically — fully self-service.",
     "faq_cancel_q": "Can I cancel or get a refund?",
     "faq_cancel_a": "Once confirmed, bookings cannot be cancelled, rescheduled, or refunded (except under Typhoon Signal No. 8 or above / Black Rainstorm Warning, when a reschedule may be requested). For full details, see the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3) and [Section 6](/legal?doc=terms#section-6).",
     "faq_hours_q": "What are the opening hours?",
     "faq_hours_a": "SPACE8 is open daily from 06:00 to 24:00, year-round, including public holidays.",
-    "faq_smoking_q": "Is smoking prohibited inside the room?",
-    "faq_smoking_a": "The entire venue is strictly smoke-free (including cigarettes, e-cigarettes, and heated tobacco) to maintain the highest-quality smoke-free environment. If you need to smoke, please use the building's outdoor smoking area.",
-    "faq_weather_q": "What happens in bad weather?",
-    "faq_weather_a": "[Typhoon Signal No. 8 or above / Black Rainstorm Warning]\nOpen as usual: The venue's automated systems keep running, so you may come as planned once you've judged it safe to do so.\nReschedule policy: If you decide not to come, you must contact us via WhatsApp before your original booking start time to arrange a free reschedule within 7 days (no refund).\nLate requests: Requesting after the booking time has passed, or not using it within 7 days, is treated as forfeiting the entitlement.\n\n[General conditions / other weather (e.g. Signal No. 3, Red Rainstorm)]\nNo cancellation or change: Apart from the extreme-weather policy above, all confirmed bookings cannot be cancelled, rescheduled, or refunded.",
+    "faq_smoking_q": "Is smoking allowed in the room?",
+    "faq_smoking_a": "The entire venue is strictly smoke-free (including cigarettes, e-cigarettes, and heated tobacco products) to maintain the highest quality smoke-free environment. If you need to smoke, please use the outdoor area of the building.",
+    "faq_weather_q": "What happens during bad weather?",
+    "faq_weather_a": "【Typhoon Signal 8 or above / Black Rainstorm Warning】\nWe remain open: the venue's automated systems continue to operate normally. You may assess your safety and attend as usual.\nRescheduling: If you decide not to come, contact us via WhatsApp before your booking start time to arrange a free reschedule within 7 days (no refunds).\nLate requests: Requests made after the booking start time, or sessions not used within 7 days, are treated as forfeited.\n\n【Other conditions (e.g. Typhoon 3, Amber/Red rain)】\nNo changes: Aside from the extreme weather policy above, all bookings are non-cancellable, non-reschedulable, and non-refundable once confirmed.",
     "faq_overtime_q": "What if I run over time?",
     "faq_overtime_a": "If no other guests are booked after your slot, please leave within 15 minutes (if you keep using the facilities beyond 15 minutes' overtime, a full 1-hour rental charge applies). If the next slot is already booked, the system sends a friendly reminder on the concierge screen 5 minutes before your slot ends — please tidy up and leave before your booking time is over.",
     "faq_pricing_q": "How is pricing calculated?",
     "faq_pricing_a": "Rates are charged per hour and vary by time slot, with discounts for booking 2 or more consecutive hours; overtime stays incur an additional overtime charge. For full details, see the [Pricing page](/pricing) and the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3).",
     "faq_points_q": "How does the points system work?",
-    "faq_points_a": "Earn 1 point per HK$1 spent. Accumulated points upgrade you to Platinum and Diamond tiers with extra privileges. For full details, see the [Membership page](/membership).",
+    "faq_points_a": "Earn 1 point per HK$1 spent. Accumulated points upgrade you to Premier and Prestige tiers with extra privileges. For full details, see the [Membership page](/membership).",
     "faq_facilities_q": "What facilities are available?",
     "faq_facilities_a": "Professional pool tables, high-quality standard house cues, premium lighting, air conditioning, free Wi-Fi, and a self-serve water station.",
     "faq_guests_q": "Can I bring friends?",
     "faq_guests_a": "Yes, each session can accommodate multiple players. The session fee covers everyone — no extra charge per person.",
-    "faq_contact_q": "How can I contact you?",
-    "faq_contact_a": "Reach us via WhatsApp or email hello@space8.com.hk — we'll get back to you promptly.",
+    "faq_contact_q": "How do I get in touch?",
+    "faq_contact_a": "Reach us via WhatsApp or email at info@space8.com.hk and we'll get back to you as soon as possible.",
     "more": "Learn more"
   },
   "whatsapp": {
@@ -1271,7 +1273,7 @@
     "recovery_support_phone": "Call {phone}",
     "recovery_support_email": "Email {email}",
     "support_phone": "+852 6180 8022",
-    "support_email": "Admin@space8.com.hk"
+    "support_email": "Info@space8.com.hk"
   },
   "ticket": {
     "printer_aria": "Booking ticket printer",
@@ -1346,8 +1348,8 @@
     "map_cta": "Open in Google Maps",
     "hours_label": "Opening Hours",
     "hours": "Daily 06:00–24:00",
-    "seo_title": "Self-Service Chinese Pool Club in San Po Kong, Hong Kong",
-    "seo_blurb": "SPACE8 is a self-service, smoke-free Chinese pool club with private rooms in San Po Kong, Hong Kong — open daily 06:00–24:00 with online booking and QR-code self check-in, no waiting around. Minutes from Diamond Hill and Kai Tak MTR stations, it is the ideal home ground for pool players across Kowloon.",
+    "seo_title": "Self-Service Smoke-Free Smart Chinese Pool Room in San Po Kong, Hong Kong",
+    "seo_blurb": "SPACE8 is a self-service, smoke-free, smart Chinese pool room in San Po Kong, Hong Kong. Two private 1T rooms, open daily 06:00–24:00. Book online, enter by QR code. Professional equipment, smart systems — all focus on the game itself. Conveniently located near Diamond Hill and Kai Tak MTR stations with nearby parking.",
     "credits": "Credits",
     "credits_closing": "Made with care in Hong Kong. Every detail, every pixel.",
     "trust_ssl": "256-bit SSL Encryption — All connections encrypted",
@@ -1373,28 +1375,28 @@
     "facilities_title": "Facilities",
     "facilities": [
       {
-        "title": "Star Chinese Pool Table",
-        "body": "A hand-picked Star table for the truest feel."
+        "title": "Pro equipment",
+        "body": "Hand-picked tables, tournament balls"
       },
       {
-        "title": "Tournament Lighting",
-        "body": "Match-tuned lighting so you can focus on every shot."
+        "title": "Room details",
+        "body": "Quiet luxury, a tuned premium atmosphere"
       },
       {
-        "title": "Climate Control",
-        "body": "Constant temperature for comfort through long sessions."
+        "title": "Smart system",
+        "body": "An AI match host"
       },
       {
-        "title": "Free High-Speed WiFi",
-        "body": "Full coverage — share your best shots anytime."
+        "title": "Quick and easy",
+        "body": "Self check-in — scan and you're in"
       },
       {
-        "title": "Self-Service Drinks",
-        "body": "Grab a drink without leaving the venue."
+        "title": "Clean, smoke-free",
+        "body": "No smoking anywhere, cleaned regularly"
       },
       {
-        "title": "Smart QR Entry",
-        "body": "Get a QR code on confirmation; scan at the door to enter."
+        "title": "At ease",
+        "body": "A comfortable sofa lounge"
       }
     ],
     "services_title": "How It Works",
@@ -1419,11 +1421,11 @@
     "rules_title": "Good to Know",
     "rules": [
       "Maximum 8 people per room.",
-      "Strictly no smoking, including e-cigarettes and heated tobacco.",
-      "Under-12s must be accompanied by an adult (18+) at all times.",
-      "Please leave on time at the end of your slot; overtime beyond 15 minutes incurs an overtime fee.",
-      "Before leaving: return equipment, brush the table, replace the dust cover and switch off the lights.",
-      "Report any existing damage via WhatsApp within 10 minutes of entry."
+      "No smoking anywhere, including e-cigarettes and heated tobacco.",
+      "Anyone under 12 must be accompanied by an adult (18+) at all times.",
+      "Please leave on time at the end of your booking. Overstays beyond 15 minutes incur overtime charges.",
+      "Before leaving: 1. Return equipment (balls in tray, cues on rack) 2. Clean the table, take your rubbish 3. Turn off A/C (lights are auto-sensor). Thank you for helping maintain a quality space!",
+      "If you find damaged equipment after entry, report it via WhatsApp as soon as possible."
     ],
     "rules_link": "Read the full venue rules and terms",
     "weather_title": "Bad Weather & Special Arrangements",
@@ -1463,7 +1465,7 @@
   },
   "spacePilot": {
     "eyebrow": "SPACE8 SMART CONCIERGE",
-    "title": "Space Pilot, SPACE8’s smart concierge",
+    "title": "Where Technology Meets the Table",
     "intro": "A smarter self-service experience for every room, every match, and every member.",
     "scoreboard_kicker": "SPACE PILOT / LIVE SCOREBOARD",
     "scoreboard_title": "Every frame of the match, in sync.",
@@ -1508,24 +1510,24 @@
       "How to Play"
     ],
     "tier_title": "Membership.",
-    "tier_intro": "Every registered account automatically becomes a Nova member. No separate application is needed.",
-    "tier_join_note": "Every registered account automatically becomes a Nova member, with 50 points as a welcome bonus.",
+    "tier_intro": "Every registered account automatically becomes a Standard member. No separate application is needed.",
+    "tier_join_note": "Every registered account automatically becomes a Standard member, with 50 points as a welcome bonus.",
     "tier_cta": "Join Now",
     "cta_book": "Book now",
     "cta_login": "Member login",
     "tier_new": {
-      "title": "Nova",
+      "title": "Standard",
       "body": "HK$1 = 1 point. 50 points free on sign-up.",
-      "desc": "New users join the Nova tier automatically with 50 points as a welcome gift."
+      "desc": "New users join the Standard tier automatically with 50 points as a welcome gift."
     },
     "tier_platinum": {
-      "title": "Platinum",
+      "title": "Premier",
       "subtitle": "From 800 points",
       "body": "Thoughtful perks, points at 1.5x speed.",
       "desc": "Unlock a personalised light welcome, 2 complimentary bottles of premium water per session, and 1.5x point earning."
     },
     "tier_diamond": {
-      "title": "Diamond",
+      "title": "Prestige",
       "subtitle": "From 6,000 points",
       "badge": "Top Tier",
       "body": "The hall of dedicated players. Double points, premium privileges.",
@@ -1595,7 +1597,7 @@
       },
       {
         "title": "Wins that stack up",
-        "body": "Every result feeds your personal total, taking you from Nova to Platinum to Diamond. Now there's something to play for."
+        "body": "Every result feeds your personal total, taking you from Standard to Premier to Prestige. Now there's something to play for."
       },
       {
         "title": "Friends without memberships? No problem",
@@ -1638,7 +1640,7 @@
       },
       {
         "title": "Wins That Stack Up",
-        "body": "Every result feeds your personal total. Track your climb from Nova to Platinum to Diamond — every game counts."
+        "body": "Every result feeds your personal total. Track your climb from Standard to Premier to Prestige — every game counts."
       }
     ]
   },
@@ -2122,23 +2124,23 @@
     "cta_learn": "Learn More",
     "modal_label": "Membership Tier",
     "close_modal": "Close",
-    "amateur_title": "Nova Member",
-    "amateur_body": "HK$1 = 1 point. Get 50 points on signup.",
+    "amateur_title": "Standard Member",
+    "amateur_body": "HK$1 = 1 point. Get 50 points on sign-up.",
     "amateur_highlight": "50 points",
-    "amateur_modal_body": "New users automatically join as Nova Members and receive 50 points instantly. Earn 1 point for every HK$1 spent. Start your journey and accumulate with ease.",
-    "century_title": "Platinum Member",
+    "amateur_modal_body": "New users automatically join as Standard Members and receive 50 points instantly. Earn 1 point per HK$1 spent. Start your journey and accumulate easily.",
+    "century_title": "Premier Member",
     "century_subtitle": "From 800 points",
-    "century_body": "Thoughtful perks. 1.5× points acceleration.",
+    "century_body": "Thoughtful perks. 1.5× point acceleration.",
     "century_highlight1": "Thoughtful perks",
     "century_highlight2": "1.5×",
-    "century_modal_body": "Reach 800 points to unlock Platinum Member status. Get a custom LED welcome message. Each booking includes 2 complimentary premium bottled waters. Earn points 1.5× faster.",
-    "maximum_title": "Diamond Member",
+    "century_modal_body": "Reach 800 points to unlock Premier membership. Unlock a personalised lighting welcome sequence. Enjoy 2 complimentary bottles of water with every booking. Points accumulate 1.5× faster.",
+    "maximum_title": "Elite Member",
     "maximum_subtitle": "From 6,000 points",
-    "maximum_badge": "Highest Tier",
-    "maximum_body": "Elite player sanctuary, 2× points, exclusive VIP perks.",
-    "maximum_highlight1": "2× points",
-    "maximum_highlight2": "VIP perks",
-    "maximum_highlight3": "Coach slots",
-    "maximum_modal_body": "Reach 6,000 points to attain Diamond Member — our highest tier. Enjoy exclusive SPACE8 branded merchandise gifts. Earn points at 2× rate, redeem for discounts, and book premium coach sessions. Reserved for our most dedicated players."
+    "maximum_badge": "Top Tier",
+    "maximum_body": "The ultimate player's arena. Double points, exclusive privileges.",
+    "maximum_highlight1": "Double points",
+    "maximum_highlight2": "Exclusive privileges",
+    "maximum_highlight3": "Coaching sessions",
+    "maximum_modal_body": "Reach 6,000 points for Elite membership — the highest tier. Enjoy exclusive SPACE8 branded gifts. Earn double points and redeem for discount vouchers or coaching sessions. For the most dedicated players."
   }
 }

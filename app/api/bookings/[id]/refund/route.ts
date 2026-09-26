@@ -16,11 +16,11 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   return NextResponse.json(
     {
       error: 'Self-service cancellation not available',
-      message: '預訂一經確認，恕不設自助取消或退款。如有特殊情況，請透過 WhatsApp 6180 8022 或電郵 Admin@space8.com.hk 聯絡客服，並提供訂單編號（格式：SPACE8-XXXXX-C）。',
+      message: '預訂一經確認，恕不設自助取消或退款。如有特殊情況，請透過 WhatsApp 6180 8022 或電郵 Info@space8.com.hk 聯絡客服，並提供訂單編號（格式：SPACE8-XXXXX-C）。',
       contact: {
         whatsapp: '+852 6180 8022',
         whatsappUrl: 'https://wa.me/85261808022',
-        email: 'Admin@space8.com.hk',
+        email: 'Info@space8.com.hk',
       },
     },
     { status: 410 }

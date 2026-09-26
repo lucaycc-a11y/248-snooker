@@ -13,7 +13,7 @@ export const contactSupportEn: HelpArticleContent = {
         'Fastest response time: Usually within 10 minutes',
         '',
         '**Email**',
-        'Address: Admin@space8.com.hk',
+        'Address: Info@space8.com.hk',
         'Response time: Within 1 business day',
         '',
         {

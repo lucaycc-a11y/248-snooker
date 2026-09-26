@@ -1216,7 +1216,7 @@ export default function VenueContent() {
         <div className="hero-after-inner">
           <h2 className="hero-after-title">自助中式桌球<br />獨立球室</h2>
           <p className="hero-after-body">
-            獨立球室，無多餘干擾。一顆球、一支桿、一段<strong style={{color:"#fff",fontWeight:700}}>不被打斷的時間</strong>，掃碼開門，<strong style={{color:"#fff",fontWeight:700}}>燈光為你亮起</strong>。
+            獨立球室，無多餘干擾。一兩知已，一桌切磋、一段不被打斷的時間，掃碼開門，燈光為你亮起。
           </p>
         </div>
       </section>
@@ -1583,6 +1583,15 @@ export default function VenueContent() {
                 </ul>
               </div>
             </div>
+            <a
+              className="notes-link"
+              href="https://space8.com.hk/legal"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ marginTop: "28px", display: "inline-block" }}
+            >
+              {t("rules_link")}
+            </a>
           </div>
         </div>
       </section>

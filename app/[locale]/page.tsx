@@ -3,8 +3,6 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Hero from "@/components/landing/Hero";
 import HomeFacilities from "@/components/landing/HomeFacilities";
-import HomeRooms from "@/components/landing/HomeRooms";
-import HomeFocus from "@/components/landing/HomeFocus";
 import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
 import Section5Booking from "@/components/landing/Section5Booking";
 import Section6Pricing from "@/components/landing/Section6Pricing";
@@ -16,7 +14,6 @@ import Directions from "@/components/landing/Directions";
 import Footer from "@/components/layout/Footer";
 import ContactButton from "@/components/shared/ContactButton";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
-import Section2Value from "@/components/landing/Section2Value";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import HomepageParallax from "@/components/landing/HomepageParallax";
@@ -121,7 +118,6 @@ export default async function Home({
       <HomepageParallax />
       <Nav />
       <div data-home-parallax="hero"><Hero /></div>
-      <div data-home-parallax="value"><Section2Value /></div>
       <div data-home-parallax="facilities"><HomeFacilities /></div>
       <div data-home-parallax="rooms"><SpacePilotScoreboardExperience /></div>
       <div data-home-parallax="booking"><Section5Booking /></div>

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { type MemberDashboardData } from '@/lib/data/memberRedesignTypes'
@@ -23,9 +22,10 @@ const BottomLinks = dynamic(
 )
 
 // ════════════════════════════════════════════════════════════════════════════
-// MemberPageClient — Uber-Style Horizontal Scrolling Layout
-// Layout: Header → Member Card → Horizontal Action Tiles → Upcoming → Past → Footer
-// Each section is independently scrollable horizontally (Uber app style)
+// MemberPageClient — Uber Account-style layout
+// Mobile (<md): single column stack
+// Tablet (md–lg): card capped at 480px, centered; content below
+// Desktop (lg+): left = member card (sticky), right = actions + bookings
 // ════════════════════════════════════════════════════════════════════════════
 
 type Props = {
@@ -55,55 +55,60 @@ export function MemberPageClient({ initialData }: Props) {
             <h1 className="text-lg font-medium text-white">
               {t('dashboard.greeting', { name: profile.display_name ?? '會員' })}
             </h1>
-            <div className="w-6" /> {/* Spacer for center alignment */}
+            <div className="w-6" />
           </div>
         </div>
       </header>
 
       {/* Content */}
       <div className="mx-auto max-w-7xl pb-8">
-        <div className="space-y-6 sm:space-y-8">
-          {/* Member Card */}
-          <section className="px-4 pt-4 sm:pt-6">
-            <MemberCardFlipRedesign
-              profile={profile}
-              flipped={cardFlipped}
-              onFlip={() => setCardFlipped(!cardFlipped)}
-            />
-          </section>
+        {/* Two-column layout on lg+; centered card on md; single column below md */}
+        <div className="lg:grid lg:grid-cols-[minmax(0,440px)_1fr] lg:items-start lg:gap-8 lg:px-8 lg:pt-8">
 
-          {/* Quick Actions */}
-          <section>
-            <div className="px-4 mb-3 sm:mb-4">
-              <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.quick_actions')}</h2>
+          {/* LEFT — Member card (sticky on desktop, centered+capped on tablet) */}
+          <div className="lg:sticky lg:top-[73px]">
+            <div className="px-4 pt-4 sm:pt-6 md:mx-auto md:max-w-[480px] lg:mx-0 lg:max-w-none lg:px-0 lg:pt-0">
+              <MemberCardFlipRedesign
+                profile={profile}
+                flipped={cardFlipped}
+                onFlip={() => setCardFlipped(!cardFlipped)}
+              />
             </div>
-            <HorizontalActionTiles profile={profile} />
-          </section>
+          </div>
 
-          {/* Upcoming Booking */}
-          <section>
-            <div className="px-4 mb-3 sm:mb-4">
-              <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.upcoming')}</h2>
-            </div>
-            <div className="px-4">
-              <UpcomingBookingCard userId={profile.id} />
-            </div>
-          </section>
+          {/* RIGHT — Actions + bookings */}
+          <div className="mt-6 space-y-6 md:mx-auto md:max-w-[480px] lg:mx-0 lg:mt-0 lg:max-w-none">
+            {/* Action tiles — no section heading */}
+            <section>
+              <HorizontalActionTiles profile={profile} />
+            </section>
 
-          {/* Past Bookings */}
-          <section>
-            <div className="px-4 mb-3 sm:mb-4">
-              <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.history')}</h2>
-            </div>
-            <div className="px-4">
-              <PastBookingsList userId={profile.id} />
-            </div>
-          </section>
+            {/* Upcoming Booking */}
+            <section>
+              <div className="mb-3 px-4">
+                <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.upcoming')}</h2>
+              </div>
+              <div className="px-4">
+                <UpcomingBookingCard userId={profile.id} />
+              </div>
+            </section>
 
-          {/* Bottom Links - Account/Settings navigation */}
-          <section className="px-4 pt-4 sm:pt-6">
-            <BottomLinks />
-          </section>
+            {/* Past Bookings */}
+            <section>
+              <div className="mb-3 px-4">
+                <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.history')}</h2>
+              </div>
+              <div className="px-4">
+                <PastBookingsList userId={profile.id} />
+              </div>
+            </section>
+
+            {/* Bottom Links */}
+            <section className="px-4 pt-4">
+              <BottomLinks />
+            </section>
+          </div>
+
         </div>
       </div>
     </div>

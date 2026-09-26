@@ -23,7 +23,7 @@ export const privacyEn: LegalDocument = {
     },
     {
       title: "Your Rights",
-      body: "Under the Personal Data (Privacy) Ordinance, you have the right to:\nAccess the personal data the Company holds about you;\nRequest correction of inaccurate data;\nRequest that the Company cease using your data for direct marketing (where applicable).\nTo exercise these rights, you may submit a request to access, correct, or delete your data via official WhatsApp (6180 8022) or email (Admin@space8.com.hk). The Company will respond and process your request within 30 days of receipt. Where technical limitations or legal retention requirements apply (for example, transaction records that must be retained for a statutory period), the Company will explain any such restrictions to you.",
+      body: "Under the Personal Data (Privacy) Ordinance, you have the right to:\nAccess the personal data the Company holds about you;\nRequest correction of inaccurate data;\nRequest that the Company cease using your data for direct marketing (where applicable).\nTo exercise these rights, you may submit a request to access, correct, or delete your data via official WhatsApp (6180 8022) or email (Info@space8.com.hk). The Company will respond and process your request within 30 days of receipt. Where technical limitations or legal retention requirements apply (for example, transaction records that must be retained for a statutory period), the Company will explain any such restrictions to you.",
     },
     {
       title: "Data Security",
@@ -39,7 +39,7 @@ export const privacyEn: LegalDocument = {
     },
     {
       title: "Contact",
-      body: "If you have any enquiries regarding this Privacy Policy, please contact Space8 via official WhatsApp (6180 8022) or email (Admin@space8.com.hk).",
+      body: "If you have any enquiries regarding this Privacy Policy, please contact Space8 via official WhatsApp (6180 8022) or email (Info@space8.com.hk).",
     },
   ],
 }

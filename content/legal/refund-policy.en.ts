@@ -14,7 +14,7 @@ export const refundPolicyEn: LegalDocument = {
     {
       title: "Failed or Unsuccessful Payments",
       body:
-        "If your payment cannot be successfully completed (including but not limited to a declined credit card, a failed e-wallet transaction, cancellation initiated by you during the payment process, or payment interruption caused by network issues), the booking will not be treated as 'confirmed' and no charge will actually be incurred:\nIf no amount has been debited from your payment account, the booking will be marked by the system as 'payment failed' or 'cancelled'. You need not take any action, and no refund procedure is involved (as no money was actually deducted).\nYou may reselect a payment method on the website and attempt to book and pay again.\nIf you suspect that a payment has been deducted but the system does not show a successful booking, please contact the Company immediately via the official WhatsApp (6180 8022) or email (Admin@space8.com.hk) and provide your payment proof. The Company will process the matter as soon as possible after verification (see Section 05).",
+        "If your payment cannot be successfully completed (including but not limited to a declined credit card, a failed e-wallet transaction, cancellation initiated by you during the payment process, or payment interruption caused by network issues), the booking will not be treated as 'confirmed' and no charge will actually be incurred:\nIf no amount has been debited from your payment account, the booking will be marked by the system as 'payment failed' or 'cancelled'. You need not take any action, and no refund procedure is involved (as no money was actually deducted).\nYou may reselect a payment method on the website and attempt to book and pay again.\nIf you suspect that a payment has been deducted but the system does not show a successful booking, please contact the Company immediately via the official WhatsApp (6180 8022) or email (Info@space8.com.hk) and provide your payment proof. The Company will process the matter as soon as possible after verification (see Section 05).",
     },
     {
       title: "Rescheduling Due to Weather Conditions",
@@ -34,7 +34,7 @@ export const refundPolicyEn: LegalDocument = {
     {
       title: "Enquiries and Disputes",
       body:
-        "If you have any questions about charges or refund arrangements, please contact the Company's customer service via the official WhatsApp (6180 8022) or email (Admin@space8.com.hk), and provide the relevant order number (in the format SPACE8-XXXXX-C) for verification.",
+        "If you have any questions about charges or refund arrangements, please contact the Company's customer service via the official WhatsApp (6180 8022) or email (Info@space8.com.hk), and provide the relevant order number (in the format SPACE8-XXXXX-C) for verification.",
     },
     {
       title: "Amendments to this Policy",

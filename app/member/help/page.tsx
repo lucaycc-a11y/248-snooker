@@ -22,7 +22,7 @@ const REFUND_FAQ: FAQItem[] = [
   },
   {
     question: '點解我畀咗錢但見唔到預約？',
-    answer: '付款未完成的預約不會被視為「已確認」。如懷疑已扣款但系統未顯示成功，請經 WhatsApp（+852 6180 8022）或電郵（Admin@space8.com.hk）聯絡並提供付款憑證。',
+    answer: '付款未完成的預約不會被視為「已確認」。如懷疑已扣款但系統未顯示成功，請經 WhatsApp（+852 6180 8022）或電郵（Info@space8.com.hk）聯絡並提供付款憑證。',
   },
   {
     question: '打風落雨點算？',
@@ -38,7 +38,7 @@ const REFUND_FAQ: FAQItem[] = [
   },
   {
     question: '點樣查詢退款進度？',
-    answer: '透過 WhatsApp（+852 6180 8022）或電郵（Admin@space8.com.hk）聯絡，並提供訂單編號（格式如 SPACE8-XXXXX-C）。',
+    answer: '透過 WhatsApp（+852 6180 8022）或電郵（Info@space8.com.hk）聯絡，並提供訂單編號（格式如 SPACE8-XXXXX-C）。',
   },
 ]
 
@@ -136,7 +136,7 @@ export default function HelpPage() {
                 WhatsApp 聯絡我們
               </a>
               <a
-                href="mailto:Admin@space8.com.hk"
+                href="mailto:Info@space8.com.hk"
                 className="flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
               >
                 <Mail className="h-4 w-4" strokeWidth={1.5} />
@@ -156,7 +156,7 @@ export default function HelpPage() {
               />
               <HelpLink
                 title="會員等級"
-                subtitle="新星、鉑金、鑽石會員說明"
+                subtitle="標準、優越、尊榮會員說明"
                 href="/member/help/tiers"
               />
               <HelpLink
@@ -184,8 +184,8 @@ export default function HelpPage() {
               </p>
               <p>
                 <strong>電郵:</strong>{' '}
-                <a href="mailto:Admin@space8.com.hk" className="text-[#22c55e] underline">
-                  Admin@space8.com.hk
+                <a href="mailto:Info@space8.com.hk" className="text-[#22c55e] underline">
+                  Info@space8.com.hk
                 </a>
               </p>
               <p>

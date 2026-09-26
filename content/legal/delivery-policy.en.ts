@@ -19,7 +19,7 @@ export const deliveryPolicyEn: LegalDocument = {
     {
       title: "Handling of Failed Delivery",
       body:
-        "If you cannot view your entry credential in the Members' Area after completing payment, please contact the Company immediately via the official WhatsApp (6180 8022) or email (Admin@space8.com.hk), and provide your order number (in the format SPACE8-XXXXX-C) and payment proof. The Company will reissue the credential as soon as possible after verification.",
+        "If you cannot view your entry credential in the Members' Area after completing payment, please contact the Company immediately via the official WhatsApp (6180 8022) or email (Info@space8.com.hk), and provide your order number (in the format SPACE8-XXXXX-C) and payment proof. The Company will reissue the credential as soon as possible after verification.",
     },
     {
       title: "Statement on Physical Goods",

@@ -13,7 +13,7 @@ export const contactSupportZhHK: HelpArticleContent = {
         '最快回應時間: 通常 10 分鐘內',
         '',
         '**電郵**',
-        '地址: Admin@space8.com.hk',
+        '地址: Info@space8.com.hk',
         '回應時間: 1 個工作天內',
         '',
         {

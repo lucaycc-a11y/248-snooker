@@ -296,9 +296,9 @@ export default function PointsPage() {
 
 function getTierName(tier: string, locale: string): string {
   const names: Record<string, Record<string, string>> = {
-    amateur: { 'zh-HK': '新星會員', en: 'Nova' },
-    century: { 'zh-HK': '鉑金會員', en: 'Platinum' },
-    maximum: { 'zh-HK': '鑽石會員', en: 'Diamond' },
+    amateur: { 'zh-HK': '標準會員', en: 'Standard' },
+    century: { 'zh-HK': '優越會員', en: 'Premier' },
+    maximum: { 'zh-HK': '尊榮會員', en: 'Prestige' },
   }
   return names[tier]?.[locale] ?? tier
 }

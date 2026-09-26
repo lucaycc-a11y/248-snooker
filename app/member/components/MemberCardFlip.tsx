@@ -85,7 +85,7 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
 
             {/* Member identity row - name only, no "248 MEMBER" label */}
             <div className="flex-1 flex flex-col justify-center">
-              <h3 className="text-3xl font-bold leading-tight text-white">{profile.display_name ?? '會員'}</h3>
+              <h3 className="font-code text-3xl font-bold leading-tight text-white">{profile.display_name ?? '會員'}</h3>
 
               {/* Horizontal progress bar (KABU PASS style) - only for non-max tier */}
               {!isMaxTier && next && (
@@ -176,8 +176,8 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
           }}
         >
           <div className="flex h-full w-full flex-col items-center justify-center rounded-3xl bg-[#0F131C]/90 p-6 backdrop-blur-xl">
-            <div className="rounded-2xl bg-white p-4">
-              <QRCodeSVG value={profile.member_code} size={160} level="H" />
+            <div className="rounded-2xl bg-white p-3">
+              <QRCodeSVG value={profile.member_code} size={115} level="H" />
             </div>
             <p className="font-code mt-4 text-sm text-white">{profile.member_code}</p>
             <p className="mt-1 text-xs text-white/40">{t('scan_to_enter')}</p>
@@ -195,10 +195,13 @@ export function MemberCardFlip({ profile, flipped, onFlip }: Props) {
 function getTierRingColorPair(tier: string): [string, string] {
   switch (tier) {
     case 'amateur':
-      return ['rgba(102, 126, 234, 0.6)', 'rgba(118, 75, 162, 0.4)']
-    case 'century':
+      // Nova: Silver gradient (銀灰色系)
       return ['rgba(189, 195, 199, 0.6)', 'rgba(44, 62, 80, 0.4)']
+    case 'century':
+      // Platinum: Green gradient (綠色系)
+      return ['rgba(34, 197, 94, 0.6)', 'rgba(22, 163, 74, 0.4)']
     case 'maximum':
+      // Diamond: Purple gradient (紫色系)
       return ['rgba(240, 147, 251, 0.6)', 'rgba(245, 87, 108, 0.4)']
     default:
       return ['rgba(107, 114, 128, 0.6)', 'rgba(156, 163, 175, 0.4)']
@@ -221,13 +224,13 @@ function getTierIconComponent(tier: string, sizeClass: string = 'h-12 w-12'): JS
 function getTierBackgroundGradient(tier: string): string {
   switch (tier) {
     case 'amateur':
-      // Subtle blue-purple gradient for 新星會員
-      return 'linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.08) 50%, rgba(15, 19, 28, 0.95) 100%)'
-    case 'century':
-      // Subtle silver gradient for 鉑金會員
+      // Nova: Silver gradient (銀灰色系)
       return 'linear-gradient(135deg, rgba(189, 195, 199, 0.12) 0%, rgba(44, 62, 80, 0.08) 50%, rgba(15, 19, 28, 0.95) 100%)'
+    case 'century':
+      // Platinum: Green gradient (綠色系)
+      return 'linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(22, 163, 74, 0.08) 50%, rgba(15, 19, 28, 0.95) 100%)'
     case 'maximum':
-      // Subtle pink-purple gradient for 鑽石會員
+      // Diamond: Purple gradient (紫色系)
       return 'linear-gradient(135deg, rgba(240, 147, 251, 0.15) 0%, rgba(245, 87, 108, 0.10) 50%, rgba(15, 19, 28, 0.95) 100%)'
     default:
       return 'linear-gradient(135deg, rgba(107, 114, 128, 0.08) 0%, rgba(15, 19, 28, 0.95) 100%)'

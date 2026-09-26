@@ -51,8 +51,8 @@ export function PrivacyDataTab() {
             </p>
             <p className="mt-2 text-sm text-white">
               <strong>電郵:</strong>{' '}
-              <a href="mailto:Admin@space8.com.hk" className="text-[#22c55e] underline">
-                Admin@space8.com.hk
+              <a href="mailto:Info@space8.com.hk" className="text-[#22c55e] underline">
+                Info@space8.com.hk
               </a>
             </p>
             <p className="mt-3 text-xs text-white/40">

@@ -1,14 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { type ReactElement } from 'react'
 import { motion } from 'framer-motion'
 import { MessageCircle, Wallet, Gem, Inbox, CreditCard } from 'lucide-react'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
-// HorizontalActionTiles — Uber-style horizontal scrolling tiles
-// Replaces 2×2 grid with horizontal scroll: Help · Wallet · Space Pts · Inbox
-// Each tile is fixed width, scroll horizontally on mobile
+// HorizontalActionTiles — Uber Account-style 2×2 action grid
+// Icon left, label+subtitle right, no section heading
 // ════════════════════════════════════════════════════════════════════════════
 
 type Props = {
@@ -20,14 +20,10 @@ export function HorizontalActionTiles({ profile }: Props) {
   const [showWalletExplainer, setShowWalletExplainer] = useState(false)
 
   const handleWalletClick = async () => {
-    // Check if user is admin
     const isAdmin = await checkIsAdmin()
-
     if (isAdmin) {
-      // Admin sees real Wallet (stub for now)
       window.location.href = '/member/wallet'
     } else {
-      // Non-admin sees locked preview
       setShowWalletExplainer(true)
     }
   }
@@ -35,8 +31,6 @@ export function HorizontalActionTiles({ profile }: Props) {
   const handleNotifyToggle = async () => {
     const newValue = !walletNotifyMe
     setWalletNotifyMe(newValue)
-
-    // Save opt-in to DB
     try {
       await fetch('/api/member/wallet-notify', {
         method: 'POST',
@@ -44,40 +38,36 @@ export function HorizontalActionTiles({ profile }: Props) {
         body: JSON.stringify({ notify: newValue }),
       })
     } catch {
-      // Silent fail
+      // silent fail
     }
   }
 
   return (
     <>
-      {/* Horizontal scroll container */}
-      <div className="overflow-x-auto hide-scrollbar">
-        <div className="flex gap-4 px-4 pb-2">
+      <div className="px-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <ActionTile
-            icon={<MessageCircle className="h-8 w-8" strokeWidth={1.5} />}
+            icon={<MessageCircle className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
             title="Help"
             subtitle="幫助中心"
             href="/member/help"
           />
-
           <ActionTile
-            icon={<Wallet className="h-8 w-8" strokeWidth={1.5} />}
+            icon={<Wallet className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
             title="Wallet"
             subtitle="即將推出"
             onClick={handleWalletClick}
             locked
             beta
           />
-
           <ActionTile
-            icon={<Gem className="h-8 w-8" strokeWidth={1.5} />}
+            icon={<Gem className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
             title="Space Pts"
             subtitle="積分獎賞"
             href="/member/points"
           />
-
           <ActionTile
-            icon={<Inbox className="h-8 w-8" strokeWidth={1.5} />}
+            icon={<Inbox className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
             title="Inbox"
             subtitle="優惠資訊"
             href="/member/inbox"
@@ -86,7 +76,7 @@ export function HorizontalActionTiles({ profile }: Props) {
         </div>
       </div>
 
-      {/* Wallet Explainer Modal */}
+      {/* Wallet explainer modal */}
       {showWalletExplainer && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -110,7 +100,6 @@ export function HorizontalActionTiles({ profile }: Props) {
             <p className="mt-2 text-center text-sm text-white/60">
               我們正在開發全新的電子錢包功能，讓你更方便管理積分和優惠。
             </p>
-
             <div className="mt-6 flex items-center justify-between rounded-xl bg-white/5 p-4">
               <span className="text-sm text-white">開放時通知我</span>
               <button
@@ -126,7 +115,6 @@ export function HorizontalActionTiles({ profile }: Props) {
                 />
               </button>
             </div>
-
             <button
               onClick={() => setShowWalletExplainer(false)}
               className="mt-4 w-full rounded-full bg-white/10 py-3 font-code text-sm font-medium text-white transition-colors hover:bg-white/20"
@@ -141,11 +129,11 @@ export function HorizontalActionTiles({ profile }: Props) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// § ACTION TILE (Horizontal scroll variant)
+// § ACTION TILE — icon left, label+subtitle right
 // ────────────────────────────────────────────────────────────────────────────
 
 type ActionTileProps = {
-  icon: JSX.Element
+  icon: ReactElement
   title: string
   subtitle: string
   href?: string
@@ -157,36 +145,40 @@ type ActionTileProps = {
 
 function ActionTile({ icon, title, subtitle, href, onClick, locked, beta, badge }: ActionTileProps) {
   const content = (
-    <div className={`group relative h-36 w-40 flex-shrink-0 overflow-hidden rounded-2xl border p-4 transition-all ${
+    <div className={`group relative flex min-h-[56px] items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 transition-all ${
       locked
         ? 'border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent opacity-60'
         : 'border-white/10 bg-gradient-to-br from-white/5 to-transparent hover:border-white/20 hover:from-white/10'
     }`}>
+      {/* Icon */}
+      <div className={locked ? 'text-white/40' : 'text-white'}>{icon}</div>
+
+      {/* Label */}
+      <div className="min-w-0 flex-1">
+        <p className={`font-code text-sm font-bold leading-tight ${locked ? 'text-white/40' : 'text-white'}`}>
+          {title}
+        </p>
+        <p className={`mt-0.5 text-xs ${locked ? 'text-white/30' : 'text-white/50'}`}>{subtitle}</p>
+      </div>
+
+      {/* Badges */}
       {beta && (
-        <div className="absolute right-2 top-2 rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-code font-bold text-white/60">
+        <div className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-code font-bold text-white/60">
           BETA
         </div>
       )}
-      {badge && (
-        <div className="absolute right-2 top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-code font-bold text-white">
+      {badge != null && (
+        <div className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-code font-bold text-white">
           {badge > 9 ? '9+' : badge}
         </div>
       )}
-      <div className="flex h-full flex-col justify-between">
-        <div className={locked ? 'text-white/40' : 'text-white'}>{icon}</div>
-        <div>
-          <p className={`font-code text-lg font-bold leading-tight ${locked ? 'text-white/40' : 'text-white'}`}>{title}</p>
-          <p className={`mt-1 text-xs ${locked ? 'text-white/30' : 'text-white/50'}`}>{subtitle}</p>
-        </div>
-      </div>
     </div>
   )
 
   if (href) {
     return <a href={href}>{content}</a>
   }
-
-  return <button onClick={onClick}>{content}</button>
+  return <button className="w-full text-left" onClick={onClick}>{content}</button>
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -197,11 +189,11 @@ async function checkIsAdmin(): Promise<boolean> {
   try {
     const res = await fetch('/api/member/check-admin')
     if (res.ok) {
-      const data = await res.json()
+      const data = await res.json() as { isAdmin?: unknown }
       return data.isAdmin === true
     }
   } catch {
-    // Silent fail
+    // silent fail
   }
   return false
 }

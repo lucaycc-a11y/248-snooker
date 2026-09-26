@@ -134,9 +134,9 @@ export default function Section5Booking() {
 
   return (
     <section
-      data-nav-theme="dark"
+      data-nav-theme="light"
       aria-label="Booking process — three steps to play"
-      className="relative bg-black"
+      className="relative" style={{ background: "#f5f5f7" }}
     >
       <div className="s5-wrapper">
         {/* ── Parallax background layer (moves slower) ── */}
@@ -260,7 +260,7 @@ export default function Section5Booking() {
           font-size: clamp(1.7rem, 3.6vw, 2.5rem);
           font-weight: 900;
           letter-spacing: -0.02em;
-          color: #ffffff;
+          color: #1d1d1f;
           margin: 0;
           line-height: 1.2;
         }
@@ -303,11 +303,11 @@ export default function Section5Booking() {
           width: 42px;
           height: 42px;
           border-radius: 50%;
-          border: 1px solid rgba(255, 255, 255, 0.18);
+          border: 1px solid rgba(0, 0, 0, 0.18);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: rgba(255, 255, 255, 0.72);
+          color: rgba(0, 0, 0, 0.6);
           transition:
             background 0.45s ease,
             border-color 0.45s ease,
@@ -347,14 +347,14 @@ export default function Section5Booking() {
             "SF Pro Display", "Helvetica Neue", sans-serif;
           font-weight: 700;
           font-size: clamp(17px, 2vw, 20px);
-          color: rgba(255, 255, 255, 0.72);
+          color: rgba(0, 0, 0, 0.65);
           margin: 0 0 8px;
           transition: color 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
           line-height: 1.3;
         }
         .s5-step:hover .s5-step-title,
         .s5-step:focus-within .s5-step-title {
-          color: #ffffff;
+          color: #1d1d1f;
           transform: translateX(3px);
         }
         .s5-step-body {
@@ -363,14 +363,14 @@ export default function Section5Booking() {
             "SF Pro Display", "Helvetica Neue", sans-serif;
           font-size: 14.5px;
           line-height: 1.8;
-          color: rgba(255, 255, 255, 0.52);
+          color: rgba(0, 0, 0, 0.45);
           max-width: 34ch;
           margin: 0;
           transition: color 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
         }
         .s5-step:hover .s5-step-body,
         .s5-step:focus-within .s5-step-body {
-          color: rgba(255, 255, 255, 0.72);
+          color: rgba(0, 0, 0, 0.65);
           transform: translateX(3px);
         }
 
@@ -379,8 +379,8 @@ export default function Section5Booking() {
           position: relative;
           border-radius: 18px;
           overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: #0b0b0d;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: #e8e8ea;
           aspect-ratio: 4 / 3;
         }
         .s5-image {

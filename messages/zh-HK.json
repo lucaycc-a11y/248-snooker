@@ -269,15 +269,15 @@
     "benefits_title": "會員權益",
     "benefits": [
       {
-        "tier": "新星會員",
+        "tier": "標準會員",
         "desc": "基本積分累積"
       },
       {
-        "tier": "鉑金會員",
+        "tier": "優越會員",
         "desc": "1.5 倍積分 + 優先預訂"
       },
       {
-        "tier": "鑽石會員",
+        "tier": "尊榮會員",
         "desc": "2 倍積分 + 每月一次免費延時"
       }
     ],
@@ -358,10 +358,10 @@
     "mission_items": [
       {
         "title": "專業設備",
-        "body": "星牌中式桌球臺。"
+        "body": "精選桌球用品，特調燈光、場地裝修。"
       },
       {
-        "title": "科技体驗",
+        "title": "科技體驗",
         "body": "1 分鐘完成預訂，掃描 QR 碼即可入場。"
       },
       {
@@ -504,7 +504,7 @@
     "subscribed": "已為你登記。",
     "err_email": "請輸入正確的電子郵箱地址。",
     "err_generic": "出錯了，請重試。",
-    "contact": "如有疑問，請聯繫 Admin@space8.com.hk 或 WhatsApp +852 6180 8022。"
+    "contact": "如有疑問，請聯繫 Info@space8.com.hk 或 WhatsApp +852 6180 8022。"
   },
   "memberPage": {
     "card_label": "MEMBER CARD",
@@ -694,7 +694,7 @@
     "step3_highlight": "越打越划算",
     "step3_modal_label": "奖励",
     "step3_modal_title": "累積積分",
-    "step3_modal_body": "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 新星、鉑金、鑽石，解鎖不同專屬福利。",
+    "step3_modal_body": "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 標準、優越、尊榮，解鎖不同專屬福利。",
     "close": "關閉",
     "qr_hint": "提示：也可以用會員 QR code 進出場地，QR code 可以在登入后「我的帳戶」看到"
   },
@@ -894,7 +894,9 @@
       "spent_amount": "已消費 ${spent}，再消費 ${remaining} 可升級至{tierName}",
       "max_tier_reached": "已達最高等級 · 尊享特級禮遇",
       "tap_to_view_qr": "輕觸查看入場 QR code",
-      "scan_to_enter": "掃描入場"
+      "scan_to_enter": "掃描入場",
+      "membership_label": "會員",
+      "member_id_label": "會員編號"
     },
     "points_page": {
       "title": "Space Pts",
@@ -906,9 +908,9 @@
       "points_count": "{points} 積分",
       "points_to_next_short": "距離下一等級 {points} 分",
       "tier_benefits": "等級禮遇",
-      "tier_nova": "新星會員 (Nova)",
-      "tier_platinum": "鉑金會員 (Platinum)",
-      "tier_diamond": "鑽石會員 (Diamond)",
+      "tier_nova": "標準會員 (Standard)",
+      "tier_platinum": "優越會員 (Premier)",
+      "tier_diamond": "尊榮會員 (Prestige)",
       "benefit_nova": "基本積分累積",
       "benefit_platinum": "1.5x 積分倍數",
       "benefit_diamond": "2x 積分倍數 · 專屬優惠",
@@ -1006,27 +1008,27 @@
     "faq_booking_q": "如何預訂球桌？",
     "faq_booking_a": "選擇日期、時段及時長，以 Apple Pay 或信用卡即時付款，確認后即獲 QR 碼。全程不需人工協助。",
     "faq_entry_q": "預訂后如何入場？",
-    "faq_entry_a": "付款確認后，你將收到專屬 QR 碼。到場掃描門口感應器，繫統自動開門，全程自助。",
+    "faq_entry_a": "付款確認后，你將收到專屬 QR 碼。到場掃描門口感應器，系統自動開門，全程自助。",
     "faq_cancel_q": "可以取消或退款吗？",
     "faq_cancel_a": "所有預約一經確認，一律不設取消、改期或退款（臺風 8 號或以上／黑色暴雨警告除外，可申請改期）。詳情請参阅《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)及[第六條](/legal?doc=terms#section-6)。",
     "faq_hours_q": "營業時間是什么？",
     "faq_hours_a": "每日 06:00 至 24:00 營業，全年無休，包括公众假期。",
-    "faq_smoking_q": "球室内禁止吸煙吗？",
-    "faq_smoking_a": "本球室全區嚴格禁煙（包含紙煙、電子煙及加熱煙），旨在維護最高品質的無煙環境。若有吸煙需求，請至大厦戶外吸煙。",
-    "faq_weather_q": "惡劣天气怎麼辦？",
-    "faq_weather_a": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自動化繫統維持正常運作，閣下可評估安全后如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，將視為自動放弃權益。\n\n【一般情況 / 其它天气（如 3 號風球、紅雨）】\n不設退改：除上述極端天气守則外，所有預約一經確認，一律不接受取消、改期或退款。",
+    "faq_smoking_q": "球室内禁止吸煙嗎？",
+    "faq_smoking_a": "本球室全區嚴格禁煙（包含紙煙、電子煙及加熱煙），旨在維護最高品質的無煙環境。若有吸煙需求，請至大廈戶外吸煙。",
+    "faq_weather_q": "惡劣天氣怎麼辦？",
+    "faq_weather_a": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自動化系統維持正常運作，閣下可評估安全后如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天内免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天内使用，將視為自動放棄權益。\n\n【一般情況 / 其它天氣（如 3 號風球、紅雨）】\n不設退改：除上述極端天氣守則外，所有預約一經確認，一律不接受取消、改期或退款。",
     "faq_overtime_q": "如果超時了該怎麼辦？",
     "faq_overtime_a": "若您預約的時段后面無其他顧客，請在 15 分鐘内離開場地（如超時 15 分鐘后仍使用相關設施，需要繳付 1 小時的正價租用費用）；若下一時段已有預約，繫統會在結束前 5 分鐘會以小管家屏幕作溫馨提醒，請於預約時間結束前整理離場。",
     "faq_pricing_q": "收費如何計算？",
     "faq_pricing_a": "按時段每小時計費，不同時段費率不同，連續預訂 2 小時或以上可享優惠；超時逗留將另收超時費用。詳情請参阅[定價頁面](/pricing)及《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)。",
     "faq_points_q": "什么是積分制度？",
-    "faq_points_a": "每消費 HK$1 賺取 1 積分，累積積分可升級 鉑金 及 鑽石 會籍，尊享更多禮遇。詳情請参阅[會員頁面](/membership)。",
+    "faq_points_a": "每消費 HK$1 賺取 1 積分，累積積分可升級 優越 及 尊榮 會籍，尊享更多禮遇。詳情請参阅[會員頁面](/membership)。",
     "faq_facilities_q": "場地内有什么設施？",
     "faq_facilities_a": "專業桌球臺、高品質標準公杆、顶級燈光設備、冷气、免費 Wi-Fi，以及自助飲水區。",
     "faq_guests_q": "可以帶朋友一起來吗？",
     "faq_guests_a": "可以，每個時段可容納多人，費用按時段計算，無需額外收費。",
     "faq_contact_q": "有問題如何聯繫？",
-    "faq_contact_a": "可透過 WhatsApp 聯繫我們，或發送電郵至 hello@space8.com.hk，我們將盡快回復。",
+    "faq_contact_a": "可透過 WhatsApp 聯繫我們，或發送電郵至 info@space8.com.hk，我們將盡快回復。",
     "more": "了解更多"
   },
   "whatsapp": {
@@ -1271,7 +1273,7 @@
     "recovery_support_phone": "致電客服 {phone}",
     "recovery_support_email": "郵箱 {email}",
     "support_phone": "+852 6180 8022",
-    "support_email": "Admin@space8.com.hk"
+    "support_email": "Info@space8.com.hk"
   },
   "ticket": {
     "printer_aria": "訂桌出票機",
@@ -1346,8 +1348,8 @@
     "map_cta": "Google Maps 導航",
     "hours_label": "營業時間",
     "hours": "每日 06:00 至 24:00",
-    "seo_title": "香港新蒲岗自助中式桌球室",
-    "seo_blurb": "SPACE8 是香港新蒲岗自助無煙中式桌球獨立球室，每日 06:00 至 24:00 營業，網上預訂、二維碼自助入場，無需等候。鄰近鑽石山及啟德港鐵站，是九龙區桌球愛好者的理想主場。",
+    "seo_title": "香港新蒲崗自助無煙智能中式桌球室",
+    "seo_blurb": "SPACE8 是香港新蒲崗自助無煙智能中式桌球球室，兩間 1T 獨立球室，每日 06:00 至 24:00 營業。網上預訂、二維碼自助入場。專業設備，智能系統，聚光在桌球本身。鄰近鑽石山和啟德地鐵站，方便停車。",
     "credits": "制作團隊",
     "credits_closing": "於香港用心制作。每個细節，每個像素。",
     "trust_ssl": "256-bit SSL 加密 — 全站連線加密",
@@ -1373,28 +1375,28 @@
     "facilities_title": "場地設施",
     "facilities": [
       {
-        "title": "星牌中式桌球臺",
-        "body": "精選星牌桌球臺，確保最佳手感。"
+        "title": "專業設備",
+        "body": "精選桌球臺，比賽球"
       },
       {
-        "title": "專業級照明",
-        "body": "特調比賽燈光模式，專註於每一次出杆。"
+        "title": "場地細節",
+        "body": "靜奢，特調高級氛圍"
       },
       {
-        "title": "恒溫冷气",
-        "body": "全場恒溫，長時間對局依然舒適。"
+        "title": "智能系統",
+        "body": "AI 智能對戰管家"
       },
       {
-        "title": "免費高速 WiFi",
-        "body": "全場覆蓋，隨時分享你的精彩一杆。"
+        "title": "快捷方便",
+        "body": "全自助入場，掃碼即入"
       },
       {
-        "title": "自助飲品區",
-        "body": "自助售賣飲品，補給無需離場。"
+        "title": "無煙乾淨",
+        "body": "全面禁煙，定期清潔"
       },
       {
-        "title": "智能 QR 門禁",
-        "body": "預訂確認后獲發 QR 碼，到場掃描自動開門。"
+        "title": "舒適自在",
+        "body": "舒適沙發休息區"
       }
     ],
     "services_title": "服務說明",
@@ -1419,11 +1421,11 @@
     "rules_title": "留意事項",
     "rules": [
       "每間球室使用人數上限為 8 人。",
-      "場内全面禁煙，包括電子煙及加熱煙。",
-      "未滿 12 岁人士須由年滿 18 岁成人全程陪同。",
+      "場內全面禁煙，包括電子煙及加熱煙。",
+      "未滿 12 歲人士須由年滿 18 歲成人全程陪同。",
       "請於預約時段結束時準時離場，超時 15 分鐘將收取超時費用。",
-      "離場前請完成場地復原：歸位球具、清潔臺面、套回防塵罩、關閉電源。",
-      "進場后如發現設施損壞，請於 10 分鐘内通過 WhatsApp 向我們報告。"
+      "離場請配合：1. 球具歸位（桌球入器，球桿上架）2. 清潔檯面，帶走垃圾 3. 隨手關冷氣（燈光為自動感應）。感謝您的配合，共同維護優質環境！",
+      "進場後如發現設施損壞，請盡快通過 WhatsApp 向我們報告。"
     ],
     "rules_link": "查看完整場地使用守則及條款",
     "weather_title": "惡劣天气及特殊安排",
@@ -1463,7 +1465,7 @@
   },
   "spacePilot": {
     "eyebrow": "SPACE8 智能管家",
-    "title": "Space Pilot, SPACE8 的智能管家",
+    "title": "將科技融入桌球",
     "intro": "一套更聰明的自助体驗，讓每個球室、每場球局與每位會員都更流暢。",
     "scoreboard_kicker": "SPACE PILOT / 即時比分板",
     "scoreboard_title": "每一球，都與賽事同步。",
@@ -1508,24 +1510,24 @@
       "玩法介紹"
     ],
     "tier_title": "會員制度。",
-    "tier_intro": "註冊賬號即自動成為新星會員，無需另外申請。",
-    "tier_join_note": "註冊賬號即自動成為新星會員，無需另外申請，并獲贈 50 積分。",
+    "tier_intro": "註冊賬號即自動成為標準會員，無需另外申請。",
+    "tier_join_note": "註冊賬號即自動成為標準會員，無需另外申請，并獲贈 50 積分。",
     "tier_cta": "立即加入",
     "cta_book": "立即預訂",
     "cta_login": "登入會員中心",
     "tier_new": {
-      "title": "新星會員",
+      "title": "標準會員",
       "body": "HK$1 = 1 積分。註冊即送 50 積分。",
-      "desc": "新用戶自動成為新星會員，獲得 50 積分作為歡迎禮物。"
+      "desc": "新用戶自動成為標準會員，獲得 50 積分作為歡迎禮物。"
     },
     "tier_platinum": {
-      "title": "鉑金會員",
+      "title": "優越會員",
       "subtitle": "800 積分起",
       "body": "尊享禮遇，積分 1.5 倍加速。",
       "desc": "解鎖專屬燈光歡迎、每場獲贈兩支高級礦泉水，積分賺取倍率提升至 1.5 倍。"
     },
     "tier_diamond": {
-      "title": "鑽石會員",
+      "title": "尊榮會員",
       "subtitle": "6,000 積分起",
       "badge": "最高等級",
       "body": "極致玩家殿堂，積分雙倍，尊享特級禮遇。",
@@ -1595,7 +1597,7 @@
       },
       {
         "title": "戰绩自動累積",
-        "body": "每一場比賽結果都會記錄到你的個人戰绩，從新星到鉑金到鑽石，一路升級。"
+        "body": "每一場比賽結果都會記錄到你的個人戰绩，從標準到優越到尊榮，一路升級。"
       },
       {
         "title": "朋友沒會員？沒問題",
@@ -1638,7 +1640,7 @@
       },
       {
         "title": "戰绩自動累積",
-        "body": "每一場比賽結果都會記錄到你的個人戰绩，從新星到鉑金到鑽石，每一局都算數。"
+        "body": "每一場比賽結果都會記錄到你的個人戰绩，從標準到優越到尊榮，每一局都算數。"
       }
     ]
   },
@@ -2122,23 +2124,23 @@
     "cta_learn": "了解更多",
     "modal_label": "會員等級",
     "close_modal": "關閉",
-    "amateur_title": "新星會員",
+    "amateur_title": "標準會員",
     "amateur_body": "HK$1 = 1 積分。註冊即送 50 積分。",
     "amateur_highlight": "50 積分",
-    "amateur_modal_body": "新用戶自動加入新星會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。開始你的旅程，輕鬆累積。",
-    "century_title": "鉑金會員",
+    "amateur_modal_body": "新用戶自動加入標準會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。開始你的旅程，輕鬆累積。",
+    "century_title": "優越會員",
     "century_subtitle": "800 積分起",
     "century_body": "貼心補給。積分 1.5 倍加速。",
     "century_highlight1": "貼心補給",
     "century_highlight2": "1.5 倍",
-    "century_modal_body": "累積 800 積分晉升鉑金會員等級。解鎖「專屬燈光歡迎詞」。每場預約均免費隨附優質瓶裝水 2 支。積分以 1.5 倍速度累積，升級更快。",
-    "maximum_title": "鑽石會員",
+    "century_modal_body": "累積 800 積分晉升優越會員等級。解鎖「專屬燈光歡迎詞」。每場預約均免費隨附優質瓶裝水 2 支。積分以 1.5 倍速度累積，升級更快。",
+    "maximum_title": "尊榮會員",
     "maximum_subtitle": "6,000 積分起",
     "maximum_badge": "最高等級",
     "maximum_body": "極致玩家殿堂，積分雙倍，尊享特級禮遇。",
     "maximum_highlight1": "積分雙倍",
     "maximum_highlight2": "特級禮遇",
     "maximum_highlight3": "教練時段",
-    "maximum_modal_body": "累積 6,000 積分達到鑽石會員最高等級。尊享不定期 SPACE8 專屬品牌周邊饋贈。積分雙倍累積，並可以用以換購折扣劵，預約教練時段。為最投入的玩家而設。"
+    "maximum_modal_body": "累積 6,000 積分達到尊榮會員最高等級。尊享不定期 SPACE8 專屬品牌周邊饋贈。積分雙倍累積，並可以用以換購折扣劵，預約教練時段。為最投入的玩家而設。"
   }
 }

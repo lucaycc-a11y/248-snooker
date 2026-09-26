@@ -633,7 +633,7 @@ export default function MemberDashboard({
       <QrModal booking={qrBooking} memberCode={user.member_code} onClose={() => setQrBooking(null)} locale={locale} />
 
       {/* Self-service cancel/reschedule modals removed per business policy (2025-01) */}
-      {/* Users must contact customer service via WhatsApp 6180 8022 or Admin@space8.com.hk */}
+      {/* Users must contact customer service via WhatsApp 6180 8022 or Info@space8.com.hk */}
     </div>
   );
 }
@@ -1331,7 +1331,7 @@ function BookingSection({
                   )
                 )}
                 {/* Self-service cancel/reschedule removed per business policy (2025-01) */}
-                {/* Users must contact customer service via WhatsApp 6180 8022 or Admin@space8.com.hk */}
+                {/* Users must contact customer service via WhatsApp 6180 8022 or Info@space8.com.hk */}
                 <div style={{ marginLeft: "auto" }}>
                   <OverflowMenu
                     items={[

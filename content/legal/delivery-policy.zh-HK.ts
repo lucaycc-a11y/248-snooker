@@ -15,7 +15,7 @@ export const deliveryPolicyZhHK: LegalDocument = {
     },
     {
       title: "交付失敗之處理",
-      body: "如閣下完成付款後未能於會員專區查閱入場憑證，請立即透過官方 WhatsApp（6180 8022）或電郵（Admin@space8.com.hk）聯絡本公司，並提供訂單編號（格式如 SPACE8-XXXXX-C）及付款憑證，本公司將於核實後盡快補發。",
+      body: "如閣下完成付款後未能於會員專區查閱入場憑證，請立即透過官方 WhatsApp（6180 8022）或電郵（Info@space8.com.hk）聯絡本公司，並提供訂單編號（格式如 SPACE8-XXXXX-C）及付款憑證，本公司將於核實後盡快補發。",
     },
     {
       title: "實體貨品聲明",
