@@ -1405,7 +1405,7 @@
     "pricing": {
       "kicker": "SPACE8",
       "title": "Flexible slots, transparent pricing",
-      "subtitle": "Charged by time slot with no hidden fees. Earn member points and enjoy more benefits.",
+      "subtitle": "Two clean, smoke-free private rooms with one table each. Priced by time of day.",
       "plans": {
         "gold": {
           "name": "Prime Time",
@@ -1782,8 +1782,8 @@
     "subtitle": "A self-service, smoke-free Chinese eight-ball room. No distractions."
   },
   "homeVenue": {
-    "eyebrow": "SPACE8 VENUE",
-    "title": "Facilities",
+    "eyebrow": "SPACE8 · THE ROOM",
+    "title": "Every detail keeps you focused on the game.",
     "categories": {
       "equipment": "Equipment",
       "ambience": "Atmosphere",
@@ -1796,32 +1796,20 @@
     "pagination_item": "Go to facility {n}",
     "items": [
       {
-        "title": "Star Chinese Eight-Ball Table",
-        "body": "A hand-picked Star table for the truest feel."
+        "title": "Hand-picked Xing Pai tables",
+        "body": "Every room runs a professional Xing Pai table, for the best possible feel."
       },
       {
-        "title": "Professional Equipment",
-        "body": "Purpose-built interiors with match-tuned lighting and atmosphere."
+        "title": "Custom-built rooms, tuned lighting and atmosphere",
+        "body": "Specially tuned to cut distractions and help you focus. Under the spotlight, there's only the game."
       },
       {
-        "title": "Space Pilot",
-        "body": "An AI smart match concierge bringing technology into the traditional room."
+        "title": "An AI match host in every room",
+        "body": "Space Pilot checks you in with a scan, recommends the fairest format and scores live on the big screen. Every result is saved to your record, so you can look back on it later."
       },
       {
-        "title": "Self-Service Entry",
-        "body": "Receive a QR code after booking and scan to unlock the door on arrival."
-      },
-      {
-        "title": "Smoke-Free Zone",
-        "body": "The entire venue is smoke-free for a more comfortable game."
-      },
-      {
-        "title": "Professional Cues",
-        "body": "Quality pro cues for a truer stroke and feel."
-      },
-      {
-        "title": "Lounge Area",
-        "body": "Comfortable sofas to relax between matches."
+        "title": "Self check-in, clean and smoke-free",
+        "body": "Your member QR code lets you straight in. Every room is smoke-free and cleaned regularly, so you can play in comfort."
       },
       {
         "title": "Charging Station",
