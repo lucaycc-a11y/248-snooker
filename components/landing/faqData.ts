@@ -34,10 +34,11 @@ export function getFaqItems(t: (key: string) => string): FaqItem[] {
 // Homepage shows a curated 5-item subset (see components/landing/FAQ.tsx);
 // the full list above lives on /faq. Kept here so both the subset order and
 // the "learn more" affordance stay in one source of truth.
+// Per 9/24 spec: items 1, 2, 3, 10, 12 (booking, entry, cancel, weather, contact)
 export const HOMEPAGE_FAQ_IDS = [
   "faq-booking",
   "faq-entry",
-  "faq-smoking",
+  "faq-cancel",
   "faq-weather",
   "faq-contact",
 ] as const;
