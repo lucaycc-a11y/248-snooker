@@ -1517,17 +1517,26 @@
     "cta_login": "Member login",
     "tier_new": {
       "title": "Standard",
+      "threshold": "",
+      "at": "0",
+      "lead": "Sign up and earn points from day one — every session recorded, every visit counted.",
       "body": "HK$1 = 1 point. 50 points free on sign-up.",
       "desc": "New users join the Standard tier automatically with 50 points as a welcome gift."
     },
     "tier_platinum": {
       "title": "Premier",
+      "threshold": "From 800 points",
+      "at": "800",
+      "lead": "Points earn faster, and exclusive perks unlock at every session.",
       "subtitle": "From 800 points",
       "body": "Thoughtful perks, points at 1.5x speed.",
       "desc": "Unlock a personalised light welcome, 2 complimentary bottles of premium water per session, and 1.5x point earning."
     },
     "tier_diamond": {
       "title": "Prestige",
+      "threshold": "From 6,000 points",
+      "at": "6,000",
+      "lead": "The hall of dedicated players. Double points, premium privileges.",
       "subtitle": "From 6,000 points",
       "badge": "Top Tier",
       "body": "The hall of dedicated players. Double points, premium privileges.",
@@ -1558,10 +1567,30 @@
     ],
     "entry_title": "Entry guide",
     "entry_body": "After your booking is confirmed, you will receive a personal QR code. Scan it at the venue and the door will open automatically.",
-    "qr_title": "Member QR Code",
-    "qr_desc": "This is your exclusive member QR code. Door, locker, Smart Concierge Space Pilot — it all starts here. Every game you play is recorded through it.",
-    "qr_placeholder": "Illustration · Check your member page for your personal code",
-    "qr_cta": "Member Page",
+    "qr_title": "One QR Code. Your Entire SPACE8.",
+    "qr_desc": "Your exclusive member QR code. Unlock the door, launch Space Pilot — it all runs through this. Every match you play is recorded through it too.",
+    "qr_placeholder": "Illustration · Find your personal code on your member page",
+    "qr_cta": "Go to Member Page",
+    "qr_cta_record": "View My Match Record",
+    "qr_s1": "What this QR Code does",
+    "qr_s2": "Where to find it",
+    "qr_s3": "Tips for use",
+    "qr_uses": [
+      { "tag": "Entry", "title": "Unlock the door" },
+      { "tag": "Room system", "title": "Launch Space Pilot smart concierge" },
+      { "tag": "Match record", "title": "Log your match history" }
+    ],
+    "qr_steps": [
+      { "title": "Log in to the member site", "body": "Open www.space8.com.hk in your mobile browser and sign in with your account." },
+      { "title": "Go to your member page", "body": "After signing in, tap your avatar or \"My Member Card\" in the top-right corner to reach your member page." },
+      { "title": "Your QR Code is on the member card", "body": "Your personal QR Code sits in the bottom-right of the card, alongside your name, member code, and tier. We recommend screenshotting it or bookmarking the page for quick access." }
+    ],
+    "qr_tips": [
+      "Your QR Code is tied to your personal account — do not forward or share it with others.",
+      "No signal? No problem. The QR Code can be scanned without an internet connection.",
+      "If scanning fails, make sure the QR Code is fully visible on screen and not covered by the browser toolbar.",
+      "Switching phones or forgot your password? Just sign back in to retrieve it — your code never changes."
+    ],
     "pilot_title": "Space Pilot",
     "pilot_intro": "An iPad smart concierge in the room that records every game and applies member points automatically.",
     "pilot_items": [
