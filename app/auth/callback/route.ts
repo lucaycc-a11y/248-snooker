@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 import { getServiceSupabase } from '@/lib/supabase/service'
 
 function safeNextPath(value: string | null): string {
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = await createRouteHandlerClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
       return NextResponse.redirect(`${origin}/login?error=oauth&returnUrl=${encodeURIComponent(next)}`)
