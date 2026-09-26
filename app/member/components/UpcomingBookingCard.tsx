@@ -82,7 +82,7 @@ export function UpcomingBookingCard({ userId }: Props) {
         </div>
         <p className="mt-4 text-sm text-white/60">{t('upcoming_booking.no_booking')}</p>
         <a
-          href="/booking"
+          href="/book"
           className="mt-4 inline-block rounded-full bg-[#22c55e] px-6 py-2.5 font-code text-sm font-medium text-white transition-all hover:bg-[#16a34a]"
         >
           {t('upcoming_booking.book_now')}

@@ -72,7 +72,7 @@ export function MemberCardFlipRedesign({ profile }: Props) {
             <img
               src="/logos/logo-white-horizontal.svg"
               alt="SPACE8"
-              style={{ height: 'clamp(13px,3vw,16px)', width: 'auto', opacity: 0.9 }}
+              style={{ height: 'clamp(22px,5vw,32px)', width: 'auto', opacity: 0.9 }}
             />
             <div className="flex-1" />
             <div
@@ -111,7 +111,7 @@ export function MemberCardFlipRedesign({ profile }: Props) {
                 {t('member_id_label')}
               </p>
               <p
-                className="font-mono mt-[2px] tracking-[0.04em]"
+                className="font-code mt-[2px] tracking-[0.04em]"
                 style={{ fontSize: '12.5px', color: v.accent }}
               >
                 {profile.member_code}
