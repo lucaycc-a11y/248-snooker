@@ -6,7 +6,7 @@ import { useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Activity, BarChart3, Clock3, Trophy } from "lucide-react"
 
-const SCOREBOARD_IMAGE = "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp"
+const SCOREBOARD_IMAGE = "/gallery/spacepliot.png"
 const EASE = [0.16, 1, 0.3, 1] as const
 
 type SpacePilotScoreboardExperienceProps = {

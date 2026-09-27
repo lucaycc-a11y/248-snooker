@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import WhatsAppButton from "@/components/shared/WhatsAppButton";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import VenueContent from "./VenueContent";
+import VenueHeroBento from "@/components/venue/VenueHeroBento";
 
 const BASE = "https://space8.com.hk";
 
@@ -86,6 +87,7 @@ export default async function VenuePage({
     <main className="relative bg-black">
       <Nav />
       <script type="application/ld+json">{safeJsonLd(jsonLd)}</script>
+      <VenueHeroBento />
       <VenueContent />
       <Footer />
       <WhatsAppButton />

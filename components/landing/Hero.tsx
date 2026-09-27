@@ -38,6 +38,9 @@ export default function Hero() {
         width: "100%",
         height: "100dvh",
         minHeight: "100dvh",
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* Mobile: full-viewport edge-to-edge table */}
@@ -126,6 +129,10 @@ export default function Hero() {
       <div
         ref={heroContentRef}
         className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
+        style={{
+          paddingTop: "max(env(safe-area-inset-top), 80px)",
+          paddingBottom: "max(env(safe-area-inset-bottom), 120px)",
+        }}
       >
         {/* Constrained content column for large screens */}
         <div
@@ -148,7 +155,7 @@ export default function Hero() {
               style={{
                 ...HEADLINE_GRADIENT,
                 fontSize: "clamp(2.25rem, 5.5vw + 1rem, 4.5rem)", // 36px → 72px fluid
-                fontWeight: 600,
+                fontWeight: 700,
                 letterSpacing: "-0.015em",
                 lineHeight: 1.04,
                 margin: 0,

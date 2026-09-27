@@ -2261,5 +2261,35 @@
     "maximum_highlight2": "Exclusive privileges",
     "maximum_highlight3": "Coaching sessions",
     "maximum_modal_body": "Reach 6,000 points for Elite membership — the highest tier. Enjoy exclusive SPACE8 branded gifts. Earn double points and redeem for discount vouchers or coaching sessions. For the most dedicated players."
+  },
+  "venueBento": {
+    "title": "Our Venue.",
+  "room": {
+    "category": "Space Setup",
+    "title": "Lounge & Cue Rack",
+    "alt": "SPACE8 lounge sofa and cue rack"
+  },
+  "balls": {
+    "category": "Pro Equipment",
+    "title": "Aramith Tournament Balls",
+    "alt": "Aramith tournament-grade ball set"
+  },
+  "scan": {
+    "category": "Smart System",
+    "title": "QR Self Check-in"
+  },
+  "smoke": {
+    "category": "Environment",
+    "title": "100% Smoke-Free"
+  },
+  "score": {
+    "category": "Tech Experience",
+    "title": "Space Pilot Live Scoring",
+    "alt": "Space Pilot smart scoring system interface"
+  },
+  "sofa": {
+    "category": "Comfort",
+    "title": "Lounge & Storage"
   }
+}
 }

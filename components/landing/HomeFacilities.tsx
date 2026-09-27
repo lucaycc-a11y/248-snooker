@@ -5,15 +5,10 @@ import { useTranslations } from "next-intl";
 import { Carousel } from "@/components/ui/apple-cards-carousel";
 
 const FACILITY_IMAGES = [
-  "/gallery/table-poster.jpg",
-  "/gallery/Space8_Competition_Mode.PNG",
-  "/gallery/space-pilot-scoreboard.png",
-  "/gallery/Space8_Door.PNG",
-  "/gallery/Space_Infinity.PNG",
-  "/gallery/Space_Enternity.PNG",
-  "/gallery/space-pilot-scoreboard.png",
-  "/gallery/Space_Infinity.PNG",
-  "/gallery/Space_Enternity.PNG",
+  "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
+  "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp",
+  "/gallery/spacepliot.png",
+  "/images/qrcode-checkin-中八桌球-香港新蒲崗.webp",
 ] as const;
 
 const FACILITY_CATEGORIES = [
@@ -21,11 +16,6 @@ const FACILITY_CATEGORIES = [
   "categories.ambience",
   "categories.smart_system",
   "categories.entry",
-  "categories.ambience",
-  "categories.ambience",
-  "categories.smart_system",
-  "categories.amenities",
-  "categories.amenities",
 ] as const;
 
 type Facility = {

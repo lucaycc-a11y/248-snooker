@@ -2261,5 +2261,35 @@
     "maximum_highlight2": "特级礼遇",
     "maximum_highlight3": "教练时段",
     "maximum_modal_body": "累积 6,000 积分达到尊荣会员最高等级。尊享不定期 SPACE8 专属品牌周边馈赠。积分双倍累积，并可以用以换购折扣券，预约教练时段。为最投入的玩家而设。"
+  },
+  "venueBento": {
+    "title": "场地介绍。",
+  "room": {
+    "category": "空间配置",
+    "title": "沙发与球杆架",
+    "alt": "SPACE8 休息区沙发及球杆架"
+  },
+  "balls": {
+    "category": "专业装备",
+    "title": "Aramith 原厂比赛球",
+    "alt": "Aramith 比赛级桌球套装"
+  },
+  "scan": {
+    "category": "智能系统",
+    "title": "QR 自助入场"
+  },
+  "smoke": {
+    "category": "环境质素",
+    "title": "全场无烟区域"
+  },
+  "score": {
+    "category": "科技体验",
+    "title": "Space Pilot 即时计分",
+    "alt": "Space Pilot 智能计分系统界面"
+  },
+  "sofa": {
+    "category": "舒适配套",
+    "title": "休息区及储物空间"
   }
+}
 }
