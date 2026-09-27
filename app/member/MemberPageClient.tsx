@@ -77,15 +77,15 @@ export function MemberPageClient({ initialData }: Props) {
               <HorizontalActionTiles profile={profile} />
             </section>
 
-            {/* Upcoming Booking */}
-            <section>
+            {/* Upcoming Booking - Hidden */}
+            {/* <section>
               <div className="mb-3 px-4">
                 <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.upcoming')}</h2>
               </div>
               <div className="px-4">
                 <UpcomingBookingCard userId={profile.id} profile={profile} />
               </div>
-            </section>
+            </section> */}
 
             {/* Past Bookings */}
             <section>
