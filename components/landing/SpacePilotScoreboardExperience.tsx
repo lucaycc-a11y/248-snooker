@@ -6,7 +6,7 @@ import { useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Activity, BarChart3, Clock3, Trophy } from "lucide-react"
 
-const SCOREBOARD_IMAGE = "/gallery/space-pilot-scoreboard.png"
+const SCOREBOARD_IMAGE = "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp"
 const EASE = [0.16, 1, 0.3, 1] as const
 
 type SpacePilotScoreboardExperienceProps = {
@@ -61,8 +61,7 @@ export default function SpacePilotScoreboardExperience({
           </div>
           <Activity size={18} strokeWidth={1.6} className="shrink-0 text-[#22C55E]" aria-hidden="true" />
         </div>
-        <div className="relative aspect-[983/674] overflow-hidden rounded-[16px] border-8 border-[#090a0e] bg-black shadow-[0_18px_45px_rgba(0,0,0,0.45),inset_0_0_0_1px_rgba(255,255,255,0.12)] sm:rounded-[20px] sm:border-[10px]">
-          <div className="pointer-events-none absolute inset-x-1/2 top-1 z-20 h-0.5 w-8 -translate-x-1/2 rounded-full bg-white/20" aria-hidden="true" />
+        <div className="relative aspect-[983/674] overflow-hidden rounded-[16px] bg-black sm:rounded-[20px]">
           <Image
             src={SCOREBOARD_IMAGE}
             alt={t("scoreboard_alt")}
@@ -71,8 +70,6 @@ export default function SpacePilotScoreboardExperience({
             className="object-cover"
             draggable={false}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-white/[0.06]" aria-hidden="true" />
-          <div className="pointer-events-none absolute inset-x-1/2 bottom-1 z-20 h-0.5 w-10 -translate-x-1/2 rounded-full bg-white/25" aria-hidden="true" />
           <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-lg border border-white/15 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md">
             <span data-cms-key="spacePilot.scoreboard_live">{t("scoreboard_live")}</span>
             <span data-cms-key="spacePilot.scoreboard_match" className="flex items-center gap-1 text-[#22C55E]"><span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]" aria-hidden="true" />{t("scoreboard_match")}</span>
@@ -113,10 +110,9 @@ export default function SpacePilotScoreboardExperience({
             <motion.div
               style={reducedMotion ? undefined : { scale: imageScale, rotateX: imageRotate, y: imageY, opacity: imageOpacity }}
               transition={{ duration: 0.7, ease: EASE }}
-              className="relative z-10 mx-auto w-full max-w-5xl rounded-[30px] border border-white/20 bg-[#090a0e] p-2 shadow-[0_30px_90px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.16)] sm:p-3 md:rounded-[42px] md:border-2 md:p-4"
+              className="relative z-10 mx-auto w-full max-w-5xl overflow-hidden rounded-[30px] md:rounded-[42px]"
             >
-              <div className="pointer-events-none absolute inset-x-1/2 top-1.5 z-30 h-1 w-12 -translate-x-1/2 rounded-full bg-black/90 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] sm:top-2 md:top-3 md:h-1.5 md:w-16" aria-hidden="true" />
-              <div className="relative aspect-[983/674] overflow-hidden rounded-[22px] border border-black/80 bg-[#11131b] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] md:rounded-[30px]">
+              <div className="relative aspect-[983/674] bg-black">
                 <Image
                   src={SCOREBOARD_IMAGE}
                   alt={t("scoreboard_alt")}
@@ -126,7 +122,6 @@ export default function SpacePilotScoreboardExperience({
                   priority
                   draggable={false}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-white/[0.06]" aria-hidden="true" />
 
                 <motion.div
                   style={reducedMotion ? undefined : { x: leftPanelX }}
@@ -152,7 +147,6 @@ export default function SpacePilotScoreboardExperience({
                   <span data-cms-key="spacePilot.scoreboard_match" className="hidden text-white/45 sm:inline">{t("scoreboard_match")}</span>
                 </motion.div>
               </div>
-              <div className="mx-auto mt-2 h-1 w-12 rounded-full bg-white/20 md:mt-3 md:h-1.5 md:w-16" aria-hidden="true" />
             </motion.div>
 
             <div className="pointer-events-none absolute inset-x-0 -bottom-8 z-20 mx-auto flex max-w-5xl items-center gap-3 px-2 md:-bottom-10">
