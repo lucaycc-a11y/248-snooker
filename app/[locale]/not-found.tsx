@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
+import { Logo } from '@/components/brand/Logo'
 import { routing } from '@/i18n/routing'
 
 // not-found.tsx is a Next.js special file that runs outside the normal layout
@@ -48,12 +49,9 @@ export default async function NotFound() {
       </div>
 
       <section className="relative z-10 flex w-full max-w-2xl flex-col items-center text-center">
-        <p
-          data-cms-key="404.brand"
-          className="mb-5 text-[11px] font-medium uppercase tracking-[0.35em] text-white/65"
-        >
-          {t('brand')}
-        </p>
+        <div className="mb-5">
+          <Logo variant="full" theme="dark" size={40} />
+        </div>
         <h1
           data-cms-key="404.code"
           className="font-code text-[clamp(6rem,25vw,10rem)] leading-none text-[#22b86b] [text-shadow:0_0_32px_rgba(34,184,107,0.35)]"

@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { Logo } from '@/components/brand/Logo'
 
 export default function Error({
   reset,
@@ -42,12 +43,9 @@ export default function Error({
       </div>
 
       <section className="relative z-10 flex w-full max-w-2xl flex-col items-center text-center">
-        <p
-          data-cms-key="error.brand"
-          className="mb-5 text-[11px] font-medium uppercase tracking-[0.35em] text-white/65"
-        >
-          SPACE8
-        </p>
+        <div className="mb-5">
+          <Logo variant="full" theme="dark" size={40} />
+        </div>
         <h1
           data-cms-key="error.code"
           className="font-code text-[clamp(6rem,25vw,10rem)] leading-none text-[#22b86b] [text-shadow:0_0_32px_rgba(34,184,107,0.35)]"
