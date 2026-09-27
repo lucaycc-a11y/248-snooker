@@ -1492,6 +1492,16 @@
         "body": "如有查詢或需要協助，歡迎通過 WhatsApp 聯繫我們。"
       }
     ],
+    "facilities_bento_title": "場地設施",
+    "facilities_bento_sofa_cat": "舒適空間",
+    "facilities_bento_sofa_title": "高級沙發休息區",
+    "facilities_bento_sofa_alt": "SPACE8 舒適沙發休息區與球桿架 · 中八桌球 · 香港新蒲崗",
+    "facilities_bento_balls_cat": "專業器材",
+    "facilities_bento_balls_title": "比利時 Aramith 職業級桌球",
+    "facilities_bento_balls_alt": "比利時 Aramith 職業級桌球 · 中八桌球 · 香港新蒲崗",
+    "facilities_bento_chalk_cat": "專業器材",
+    "facilities_bento_chalk_title": "Triangle 頂級桌球粉",
+    "facilities_bento_chalk_alt": "Triangle 頂級桌球粉 · 中八桌球 · 香港新蒲崗",
     "rules_title": "留意事項",
     "rules": [
       "每間球室使用人數上限為 8 人。",

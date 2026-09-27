@@ -1164,19 +1164,19 @@
       },
       {
         "rule": "design-system-color",
-        "value": "#F4F4F6",
+        "value": "#f4f4f6",
         "createdAt": "2026-09-26T00:00:00.000Z",
         "reason": "924_member_guide.html reference token: --paper, QR section white panel background"
       },
       {
         "rule": "design-system-color",
-        "value": "#5B625C",
+        "value": "#5b625c",
         "createdAt": "2026-09-26T00:00:00.000Z",
         "reason": "924_member_guide.html reference token: --paper-muted, muted body text on light QR panel"
       },
       {
         "rule": "design-system-color",
-        "value": "#8A918B",
+        "value": "#8a918b",
         "createdAt": "2026-09-26T00:00:00.000Z",
         "reason": "924_member_guide.html reference token: --muted, secondary text color throughout membership page dark sections"
       },
@@ -1562,6 +1562,24 @@
         "value": "#c8d5c9",
         "createdAt": "2026-09-26T09:00:00.000Z",
         "reason": "924_member_guide.html reference token: secondary CTA outline border on white QR panel — sanctioned design exception"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#eef1ee",
+        "createdAt": "2026-09-26T18:32:04.989Z",
+        "reason": "matches reference HTML 924 場地 sessions.html --ink token"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "22px",
+        "createdAt": "2026-09-26T18:32:17.332Z",
+        "reason": "matches reference HTML 924 場地 sessions.html --r token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7be3a5",
+        "createdAt": "2026-09-26T18:32:21.786Z",
+        "reason": "matches reference HTML 924 場地 sessions.html photo tile green variant"
       }
     ]
   }

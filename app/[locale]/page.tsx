@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
-import Hero from "@/components/landing/Hero";
 import HomeFacilities from "@/components/landing/HomeFacilities";
 import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
 import Section5Booking from "@/components/landing/Section5Booking";
@@ -69,7 +68,7 @@ export async function generateMetadata({
       type: 'website',
       images: [
         {
-          url: 'https://space8.com.hk/og-image.png',
+          url: 'https://space8.com.hk/images/og-image-中八桌球-香港新蒲崗.png',
           width: 1200,
           height: 630,
           alt: 'SPACE8 Club Hong Kong',
@@ -80,7 +79,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: 'Space8',
       description: m.ogDesc,
-      images: ['https://space8.com.hk/og-image.png'],
+      images: ['https://space8.com.hk/images/og-image-中八桌球-香港新蒲崗.png'],
     },
     alternates: {
       canonical: m.canonical,
@@ -115,7 +114,6 @@ export default async function Home({
       />
       <AmbientGlow />
       <Nav />
-      <Hero />
       <HomeFacilities />
       <SpacePilotScoreboardExperience />
       <Section5Booking />

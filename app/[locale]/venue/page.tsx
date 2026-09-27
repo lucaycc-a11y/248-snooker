@@ -53,6 +53,20 @@ export async function generateMetadata({
       url: `${BASE}${path}`,
       siteName: "Space8",
       type: "website",
+      images: [
+        {
+          url: `${BASE}/images/og-image-中八桌球-香港新蒲崗.png`,
+          width: 1200,
+          height: 630,
+          alt: 'SPACE8 · 中八桌球 · 香港新蒲崗',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: m.title,
+      description: m.description,
+      images: [`${BASE}/images/og-image-中八桌球-香港新蒲崗.png`],
     },
     robots: { index: true, follow: true },
   };

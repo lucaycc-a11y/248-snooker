@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import SpacePilotSection from "@/components/landing/SpacePilotSection";
+import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
 import {
   Target,
   Lightbulb,
@@ -1300,6 +1301,9 @@ export default function VenueContent() {
           )}
         </div>
       </section>
+
+      {/* ── NEW: Bento-style facilities section (sofa, Aramith balls, Triangle chalk) ── */}
+      <VenueFacilitiesBento />
 
       <SpacePilotSection limit={4} compact />
 

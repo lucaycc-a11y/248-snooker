@@ -1492,6 +1492,16 @@
         "body": "如有查询或需要协助，欢迎通过 WhatsApp 联系我们。"
       }
     ],
+    "facilities_bento_title": "场地设施",
+    "facilities_bento_sofa_cat": "舒适空间",
+    "facilities_bento_sofa_title": "高级沙发休息区",
+    "facilities_bento_sofa_alt": "SPACE8 舒适沙发休息区与球杆架 · 中八台球 · 香港新蒲岗",
+    "facilities_bento_balls_cat": "专业器材",
+    "facilities_bento_balls_title": "比利时 Aramith 职业级台球",
+    "facilities_bento_balls_alt": "比利时 Aramith 职业级台球 · 中八台球 · 香港新蒲岗",
+    "facilities_bento_chalk_cat": "专业器材",
+    "facilities_bento_chalk_title": "Triangle 顶级台球粉",
+    "facilities_bento_chalk_alt": "Triangle 顶级台球粉 · 中八台球 · 香港新蒲岗",
     "rules_title": "留意事项",
     "rules": [
       "每间球室使用人数上限为 8 人。",

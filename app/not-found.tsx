@@ -1,6 +1,6 @@
 import { MessageCircle } from 'lucide-react'
-import BlackHole from '@/components/ui/black-hole'
 import { SITE_CONTACT } from '@/lib/site/contact'
+import Image from 'next/image'
 
 const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
 
@@ -10,8 +10,32 @@ export default function NotFound() {
       data-nav-theme="dark"
       className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6 py-16 text-white"
     >
-      <div className="pointer-events-none absolute inset-0">
-        <BlackHole />
+      {/* Desktop background */}
+      <div className="pointer-events-none absolute inset-0 hidden sm:block">
+        <Image
+          src="/images/404-desktop-中八桌球-香港新蒲崗.webp"
+          alt="404 background"
+          fill
+          className="object-cover"
+          style={{ objectPosition: 'center 40%' }}
+          priority
+          quality={90}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/70" />
+      </div>
+
+      {/* Mobile background */}
+      <div className="pointer-events-none absolute inset-0 sm:hidden">
+        <Image
+          src="/images/404-mobile-中八桌球-香港新蒲崗.webp"
+          alt="404 background"
+          fill
+          className="object-cover"
+          style={{ objectPosition: 'center 35%' }}
+          priority
+          quality={90}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/70" />
       </div>
 
       <section className="relative z-10 flex w-full max-w-2xl flex-col items-center text-center">
