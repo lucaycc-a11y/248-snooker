@@ -985,15 +985,14 @@
       "title": "即將到來的預約",
       "no_booking": "暫無預約",
       "book_now": "立即預訂",
-      "reschedule": "改期",
-      "cancel": "取消預約",
       "show_qr": "顯示 QR",
       "hide_qr": "隱藏 QR",
       "scan_hint": "入場時出示此碼",
       "time": "時間",
       "duration": "時長",
       "amount": "金額",
-      "hours": "小時"
+      "hours": "小時",
+      "contact_support": "如有問題，請聯絡客服"
     },
     "past_bookings": {
       "title": "過往預約",

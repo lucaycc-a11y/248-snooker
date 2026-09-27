@@ -985,15 +985,14 @@
       "title": "即将到来的预约",
       "no_booking": "暂无预约",
       "book_now": "立即预订",
-      "reschedule": "改期",
-      "cancel": "取消预约",
       "show_qr": "显示 QR",
       "hide_qr": "隐藏 QR",
       "scan_hint": "入场时出示此码",
       "time": "时间",
       "duration": "时长",
       "amount": "金额",
-      "hours": "小时"
+      "hours": "小时",
+      "contact_support": "如有问题，请联络客服"
     },
     "past_bookings": {
       "title": "过往预约",

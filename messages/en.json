@@ -985,15 +985,14 @@
       "title": "Upcoming Booking",
       "no_booking": "No upcoming bookings",
       "book_now": "Book Now",
-      "reschedule": "Reschedule",
-      "cancel": "Cancel Booking",
       "show_qr": "Show QR",
       "hide_qr": "Hide QR",
       "scan_hint": "Show this code at entry",
       "time": "Time",
       "duration": "Duration",
       "amount": "Amount",
-      "hours": "hr"
+      "hours": "hr",
+      "contact_support": "For assistance, please contact support"
     },
     "past_bookings": {
       "title": "Past Bookings",
