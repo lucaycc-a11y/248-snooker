@@ -269,7 +269,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         </label>
         {coverImageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={coverImageUrl} alt="" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: tokens.radius.input, marginBottom: tokens.spacing.sm }} />
+          <img src={coverImageUrl} alt="部落格文章封面圖片" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: tokens.radius.input, marginBottom: tokens.spacing.sm }} />
         )}
         <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap' }}>
           <label>

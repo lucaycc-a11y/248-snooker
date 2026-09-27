@@ -85,7 +85,7 @@ export default function Footer() {
       >
         <img
           src="/logos/logo-white-horizontal.svg"
-          alt=""
+          alt="SPACE8 香港自助中式桌球會所 Logo"
           style={{
             position: 'absolute',
             bottom: 0,

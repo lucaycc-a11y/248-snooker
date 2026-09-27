@@ -46,8 +46,7 @@ export default function Hero() {
       {/* Mobile: full-viewport edge-to-edge table */}
       <img
         src="/video/Space8_Main_Hero_Poster.jpg"
-        alt=""
-        aria-hidden="true"
+        alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
         className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_68%] md:hidden"
         style={{ filter: "brightness(1.3) contrast(1.05)" }}
       />
@@ -86,8 +85,7 @@ export default function Hero() {
       >
         <img
           src="/video/Space8_Main_Hero_Poster.jpg"
-          alt=""
-          aria-hidden="true"
+          alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
           className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_71%]"
           style={{ filter: "brightness(1.3) contrast(1.05)" }}
         />

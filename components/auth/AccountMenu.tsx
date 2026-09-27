@@ -146,7 +146,7 @@ export function AccountMenu({
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={avatarUrl}
-        alt=""
+        alt="會員頭像"
         style={{ width: size + 16, height: size + 16, borderRadius: "50%", objectFit: "cover" }}
       />
     ) : (

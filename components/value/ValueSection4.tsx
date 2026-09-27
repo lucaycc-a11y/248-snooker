@@ -69,7 +69,7 @@ export default function ValueSection4() {
           <img
             className="s4-photo s4-photo--table1"
             src="/images/space-infinity-room-中八桌球-香港新蒲崗.webp"
-            alt=""
+            alt="SPACE8 Space Infinity 房間 專業中式桌球枱 私人獨立空間"
           />
         </div>
 

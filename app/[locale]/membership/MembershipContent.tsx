@@ -399,7 +399,7 @@ function QRSection({ t }: { t: Translation }) {
                 <div className="p-6">
                   <div className="mb-4 flex items-center justify-between">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/logos/logo-white-horizontal.svg" alt="" className="h-4 w-auto opacity-90" />
+                    <img src="/logos/logo-white-horizontal.svg" alt="SPACE8 Logo" className="h-4 w-auto opacity-90" />
                     <div
                       className="rounded-full px-3 py-1 text-xs font-semibold text-white"
                       style={{ background: "linear-gradient(180deg,#A2AEC4,#7F8BA2)" }}
