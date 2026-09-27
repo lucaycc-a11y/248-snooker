@@ -6,10 +6,13 @@ import { QRCodeSVG } from 'qrcode.react'
 import { Calendar, CircleDot } from 'lucide-react'
 import { getTableName } from '@/lib/booking/constants'
 import { useLocale, useTranslations } from 'next-intl'
+import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
 // UpcomingBookingCard — Next booking with QR code
 // Shows venue, date, time, price — fetches from /api/member/bookings
+// QR displays member_code (same as member card), not booking.humanCode
+// No self-service reschedule/cancel — contact support only
 // ════════════════════════════════════════════════════════════════════════════
 
 type Booking = {
@@ -25,9 +28,10 @@ type Booking = {
 
 type Props = {
   userId: string
+  profile: MemberProfile
 }
 
-export function UpcomingBookingCard({ userId }: Props) {
+export function UpcomingBookingCard({ userId, profile }: Props) {
   const locale = useLocale()
   const t = useTranslations('member')
   const [booking, setBooking] = useState<Booking | null>(null)
@@ -148,20 +152,19 @@ export function UpcomingBookingCard({ userId }: Props) {
           </div>
         </div>
 
-        {/* Reschedule / Cancel Actions */}
-        <div className="mt-6 flex gap-3">
-          <a
-            href="/member/help"
-            className="flex-1 rounded-xl border border-white/20 bg-white/5 py-3.5 text-center font-medium text-white transition-colors hover:border-white/30 hover:bg-white/10"
-          >
-            {t('upcoming_booking.reschedule')}
-          </a>
-          <a
-            href="/member/help"
-            className="flex-1 rounded-xl border border-red-500/30 bg-red-500/10 py-3.5 text-center font-medium text-red-400 transition-colors hover:border-red-500/50 hover:bg-red-500/20"
-          >
-            {t('upcoming_booking.cancel')}
-          </a>
+        {/* Contact Support */}
+        <div className="mt-6 border-t border-white/10 pt-4 text-center">
+          <p className="text-xs text-white/50">
+            {t('upcoming_booking.contact_support')}
+            <a
+              href="https://wa.me/85261808022"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1 text-[#22c55e] underline"
+            >
+              WhatsApp
+            </a>
+          </p>
         </div>
 
         {showQR && (
@@ -171,9 +174,9 @@ export function UpcomingBookingCard({ userId }: Props) {
             className="mt-6 flex flex-col items-center border-t border-white/10 pt-6"
           >
             <div className="rounded-2xl bg-white p-4">
-              <QRCodeSVG value={booking.humanCode} size={160} level="H" />
+              <QRCodeSVG value={profile.member_code} size={160} level="H" />
             </div>
-            <p className="font-code mt-3 text-sm text-white">{booking.humanCode}</p>
+            <p className="font-code mt-3 text-sm text-white">{profile.member_code}</p>
             <p className="mt-1 text-xs text-white/40">{t('upcoming_booking.scan_hint')}</p>
           </motion.div>
         )}

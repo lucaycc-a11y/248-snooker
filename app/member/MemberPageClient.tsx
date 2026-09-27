@@ -83,7 +83,7 @@ export function MemberPageClient({ initialData }: Props) {
                 <h2 className="text-sm font-medium uppercase tracking-wide text-white/60">{t('dashboard.upcoming')}</h2>
               </div>
               <div className="px-4">
-                <UpcomingBookingCard userId={profile.id} />
+                <UpcomingBookingCard userId={profile.id} profile={profile} />
               </div>
             </section>
 
