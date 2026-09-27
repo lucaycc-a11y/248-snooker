@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import ValueSection4 from '@/components/value/ValueSection4';
+import ValueHeroSection4 from '@/components/value/ValueHeroSection4';
 
 export const metadata: Metadata = {
   title: 'Value | Space8',
@@ -9,7 +9,8 @@ export const metadata: Metadata = {
 export default function ValuePage() {
   return (
     <main className="min-h-screen bg-black">
-      <ValueSection4 />
+      <ValueHeroSection4 />
+      {/* Additional sections can be added here */}
     </main>
   );
 }

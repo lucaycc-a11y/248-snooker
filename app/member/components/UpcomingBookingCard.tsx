@@ -51,12 +51,15 @@ export function UpcomingBookingCard({ userId, profile }: Props) {
 
         // Find next upcoming confirmed booking
         const now = new Date()
+        now.setHours(0, 0, 0, 0) // Reset to start of day for date-only comparison
+
         const upcoming = bookings
-          .filter((b: Booking) =>
-            b.status === 'confirmed' &&
-            b.date &&
-            new Date(b.date) >= now
-          )
+          .filter((b: Booking) => {
+            if (b.status !== 'confirmed' || !b.date) return false
+            const bookingDate = new Date(b.date)
+            bookingDate.setHours(0, 0, 0, 0) // Reset to start of day
+            return bookingDate >= now
+          })
           .sort((a: Booking, b: Booking) =>
             new Date(a.date!).getTime() - new Date(b.date!).getTime()
           )[0]

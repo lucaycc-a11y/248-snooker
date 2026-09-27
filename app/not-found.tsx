@@ -1,97 +1,59 @@
-import { MessageCircle } from 'lucide-react'
-import { SITE_CONTACT } from '@/lib/site/contact'
-import Image from 'next/image'
-
-const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
+import { Snooker404Table } from './[locale]/Snooker404Table'
 
 export default function NotFound() {
   return (
     <main
       data-nav-theme="dark"
-      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6 py-16 text-white"
+      className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-black px-4 py-28 text-white sm:px-6"
     >
-      {/* Desktop background */}
-      <div className="pointer-events-none absolute inset-0 hidden sm:block">
-        <Image
-          src="/images/404-desktop-中八桌球-香港新蒲崗.webp"
-          alt="404 background"
-          fill
-          className="object-cover"
-          style={{ objectPosition: 'center 40%' }}
-          priority
-          quality={90}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/70" />
-      </div>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(34,197,94,0.16),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.06),transparent_28%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.86))]" />
 
-      {/* Mobile background */}
-      <div className="pointer-events-none absolute inset-0 sm:hidden">
-        <Image
-          src="/images/404-mobile-中八桌球-香港新蒲崗.webp"
-          alt="404 background"
-          fill
-          className="object-cover"
-          style={{ objectPosition: 'center 35%' }}
-          priority
-          quality={90}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/70" />
-      </div>
+      <section className="relative z-10 flex w-full max-w-3xl flex-col items-center gap-6 text-center">
+        <div>
+          <p
+            data-cms-key="404.title"
+            className="mb-3 text-[13px] font-medium uppercase tracking-[0.32em] text-white/45"
+          >
+            PAGE NOT FOUND
+          </p>
+          <h1
+            data-cms-key="404.code"
+            className="font-['Bebas_Neue',Impact,sans-serif] text-[clamp(80px,22vw,180px)] leading-none tracking-[-0.02em] text-white"
+          >
+            404
+          </h1>
+        </div>
 
-      <section className="relative z-10 flex w-full max-w-2xl flex-col items-center text-center">
-        <p
-          data-cms-key="404.brand"
-          className="mb-5 text-[11px] font-medium uppercase tracking-[0.35em] text-white/65"
-        >
-          SPACE8
-        </p>
-        <h1
-          data-cms-key="404.code"
-          className="font-code text-[clamp(6rem,25vw,10rem)] leading-none text-[#22b86b] [text-shadow:0_0_32px_rgba(34,184,107,0.35)]"
-        >
-          404
-        </h1>
         <p
           data-cms-key="404.subtitle"
-          className="mt-5 text-balance font-[var(--font-sans)] text-lg leading-relaxed text-white/80 sm:text-xl"
+          className="max-w-xl text-balance text-[17px] leading-relaxed text-white/55 sm:text-[19px]"
         >
-          找不到這個頁面
-        </p>
-        <p
-          data-cms-key="404.description"
-          className="mt-2 max-w-md font-[var(--font-sans)] text-sm leading-relaxed text-white/60 sm:text-base"
-        >
-          這個頁面可能已經移動或不存在。歡迎返回主頁，或立即預約您的桌球時段。
+          This page has gone off the table. Let's get you back in the game.
         </p>
 
-        <div className="mt-8 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+        <Snooker404Table
+          hint="Flick the balls around"
+          completedText="All potted!"
+          canvasLabel="Interactive snooker physics game"
+        />
+
+        <div className="flex w-full flex-col items-center gap-4 pt-2 sm:flex-row sm:justify-center">
           <a
             href="/book"
             data-cms-key="404.cta_book"
-            className="flex min-h-11 w-full items-center justify-center rounded-[14px] border border-[#25D366] bg-[#25D366] px-8 py-3 text-base font-bold text-black transition-[transform,background-color] duration-150 hover:scale-[1.02] hover:bg-[#1FB855] sm:w-auto"
+            className="flex min-h-11 w-full items-center justify-center rounded-full border border-[#22C55E] bg-[#22C55E] px-10 py-4 text-[17px] font-bold text-black transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03] hover:bg-[#2BE66A] sm:w-auto"
           >
-            立即預約
+            Book a Table
           </a>
           <a
             href="/"
             data-cms-key="404.cta_home"
-            className="flex min-h-11 w-full items-center justify-center rounded-[14px] border border-white/25 bg-transparent px-8 py-3 text-base font-medium text-white transition-colors duration-150 hover:border-white/60 hover:bg-white/10 sm:w-auto"
+            className="flex min-h-11 items-center justify-center rounded-full px-6 py-3 text-[15px] font-medium text-white/45 transition-colors duration-300 hover:text-white/75"
           >
-            回到主頁
+            Back to Home
           </a>
         </div>
-
-        <a
-          href={WHATSAPP_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-cms-key="404.whatsapp"
-          className="mt-8 inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm text-white/70 transition-colors hover:text-white"
-          aria-label="透過 WhatsApp 聯絡 Space8"
-        >
-          <MessageCircle size={18} strokeWidth={1.8} aria-hidden="true" />
-          聯絡客服
-        </a>
       </section>
     </main>
   )

@@ -128,6 +128,30 @@
         ],
         "createdAt": "2026-09-27T04:57:18.212Z",
         "reason": "Intentional hero headline gradient: decorative left-to-right gradient spanning brown to green"
+      },
+      {
+        "rule": "overused-font",
+        "value": "Inter",
+        "createdAt": "2026-09-27T12:00:00.000Z",
+        "reason": "924 HTML spec design system font - intentional choice for professional UI elements"
+      },
+      {
+        "rule": "side-tab",
+        "value": "border-left-width: 5px",
+        "files": [
+          "app/[locale]/venue/VenueContent.tsx"
+        ],
+        "createdAt": "2026-09-27T12:00:00.000Z",
+        "reason": "Comparison slider grip structural element - left border for before/after image slider handle"
+      },
+      {
+        "rule": "side-tab",
+        "value": "border-right-width: 5px",
+        "files": [
+          "app/[locale]/venue/VenueContent.tsx"
+        ],
+        "createdAt": "2026-09-27T12:00:00.000Z",
+        "reason": "Comparison slider grip structural element - right border for before/after image slider handle"
       }
     ]
   }

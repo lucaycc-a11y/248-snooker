@@ -137,8 +137,11 @@ The atmosphere is refined, tactile, and deliberate. Surfaces are layered through
 
 **Display Font:** Bebas Neue (sans-serif fallback)
 **Body Font:** SF Pro Text / system-ui, -apple-system, Helvetica Neue, sans-serif
+**Brand Font:** Good Times (used exclusively for "SPACE INFINITY" / "SPACE ETERNITY" logotypes and hero titles)
 
 **Character:** A two-voice system built for contrast. Bebas Neue delivers sharp, condensed, all-caps headlines — authoritative and spacious. SF Pro provides the neutral, highly legible reading face. The pairing is utilitarian with attitude: the display face says "this is the club," the body face says "here's how it works."
+
+Good Times is reserved exclusively for the Space8 sub-brand logotypes ("SPACE INFINITY", "SPACE ETERNITY") and should never be used for UI text, buttons, or general headings. Its geometric, wide letterforms create distinct visual lockups for premium room branding.
 
 ### Hierarchy
 - **Display** (400, `clamp(2.5rem, 7vw, 4.5rem)`, 1): Hero headlines, section titles. Bebas Neue, all-caps by nature. Generous letter-spacing for emphasis.
