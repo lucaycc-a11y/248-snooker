@@ -175,7 +175,7 @@ export function AccountMenu({
       <a href="/member" style={menuItemStyle} role="menuitem" data-cms-key="nav.my_account">
         <UserCircle size={17} /> {t("my_account")}
       </a>
-      <a href="/member?tab=settings" style={menuItemStyle} role="menuitem" data-cms-key="nav.settings">
+      <a href="/member/settings" style={menuItemStyle} role="menuitem" data-cms-key="nav.settings">
         <Settings size={17} /> {t("settings")}
       </a>
       {isAdmin && (
