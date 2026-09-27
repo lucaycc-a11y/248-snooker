@@ -131,7 +131,7 @@
       },
       {
         "rule": "overused-font",
-        "value": "Inter",
+        "value": "inter",
         "createdAt": "2026-09-27T12:00:00.000Z",
         "reason": "924 HTML spec design system font - intentional choice for professional UI elements"
       },
@@ -152,6 +152,18 @@
         ],
         "createdAt": "2026-09-27T12:00:00.000Z",
         "reason": "Comparison slider grip structural element - right border for before/after image slider handle"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "good times",
+        "createdAt": "2026-09-27T14:07:03.058Z",
+        "reason": "Project brand font, already loaded in globals.css"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgb(124, 120, 120)",
+        "createdAt": "2026-09-27T14:07:16.298Z",
+        "reason": "Step 3 spec-required metallic gradient colors (deep grey → light grey → deep grey)"
       }
     ]
   }
