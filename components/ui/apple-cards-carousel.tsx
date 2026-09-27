@@ -46,6 +46,7 @@ export function Carousel({ items }: CarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
   const activeItem = activeIndex === null ? null : items[activeIndex];
 
   const close = useCallback(() => setActiveIndex(null), []);
@@ -60,6 +61,27 @@ export function Carousel({ items }: CarouselProps) {
     };
   }, [activeItem]);
 
+  // Auto-scroll functionality
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || isPaused) return;
+
+    const scrollInterval = setInterval(() => {
+      const cardWidth = 336; // width + gap
+      const maxScroll = track.scrollWidth - track.clientWidth;
+
+      if (track.scrollLeft >= maxScroll) {
+        // Reset to start
+        track.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        // Scroll to next card
+        track.scrollBy({ left: cardWidth, behavior: "smooth" });
+      }
+    }, 3500); // Auto-advance every 3.5 seconds
+
+    return () => clearInterval(scrollInterval);
+  }, [isPaused]);
+
   const scroll = (direction: -1 | 1) => {
     trackRef.current?.scrollBy({ left: direction * 336, behavior: "smooth" });
   };
@@ -71,6 +93,10 @@ export function Carousel({ items }: CarouselProps) {
           ref={trackRef}
           className="facilities-carousel-track flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-5 no-scrollbar md:px-16"
           style={{ touchAction: "pan-x pan-y", overscrollBehaviorX: "contain", overscrollBehaviorY: "auto" }}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
         >
           {items.map((item, index) => (
             <Card key={`${item.title}-${index}`} item={item} index={index} onOpen={() => setActiveIndex(index)} />

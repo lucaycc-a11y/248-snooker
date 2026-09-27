@@ -26,6 +26,8 @@ type Facility = {
 export default function HomeFacilities() {
   const t = useTranslations("homeVenue");
   const facilities = t.raw("items") as Facility[];
+  // Only use first 4 items (exclude charging and storage)
+  const visibleFacilities = facilities.slice(0, 4);
 
   return (
     <section
@@ -50,7 +52,7 @@ export default function HomeFacilities() {
       </div>
 
       <Carousel
-        items={facilities.map((facility, index) => ({
+        items={visibleFacilities.map((facility, index) => ({
           src: FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0],
           title: facility.title,
           category: t(FACILITY_CATEGORIES[index] ?? FACILITY_CATEGORIES[0]),

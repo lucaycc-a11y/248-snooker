@@ -173,12 +173,12 @@ export default function ValueHeroSection4() {
       <div className="s4-photo-layer">
         <img
           className="s4-photo s4-photo--table1"
-          src="/images/space-infinity-room-中八桌球-香港新蒲崗.webp"
+          src="/images/pool-table-closeup-中八桌球-香港新蒲崗.webp"
           alt=""
         />
         <img
           className="s4-photo s4-photo--table2"
-          src="/images/space-eternity-room-中八桌球-香港新蒲崗.webp"
+          src="/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp"
           alt=""
         />
       </div>

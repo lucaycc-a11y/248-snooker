@@ -61,13 +61,13 @@ export default function SpacePilotScoreboardExperience({
           </div>
           <Activity size={18} strokeWidth={1.6} className="shrink-0 text-[#22C55E]" aria-hidden="true" />
         </div>
-        <div className="relative aspect-[983/674] overflow-hidden rounded-[16px] bg-black sm:rounded-[20px]">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-[16px] bg-black sm:rounded-[20px]">
           <Image
             src={SCOREBOARD_IMAGE}
             alt={t("scoreboard_alt")}
             fill
             sizes="(max-width: 768px) 100vw, 640px"
-            className="object-cover"
+            className="object-contain"
             draggable={false}
           />
           <div className="absolute inset-x-3 bottom-3 flex items-center justify-between rounded-lg border border-white/15 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md">
@@ -87,7 +87,7 @@ export default function SpacePilotScoreboardExperience({
       style={{ position: "relative" }}
     >
       <div className="sticky top-0 flex min-h-[100svh] items-center overflow-hidden px-4 py-16 md:px-8 md:py-20">
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-[1400px]">
           <div className="mb-8 flex items-end justify-between gap-6 md:mb-12">
             <div className="max-w-2xl">
               <p data-cms-key="spacePilot.scoreboard_kicker" className="font-label text-[10px] tracking-[0.2em] text-[#22C55E]">
@@ -112,20 +112,20 @@ export default function SpacePilotScoreboardExperience({
               transition={{ duration: 0.7, ease: EASE }}
               className="relative z-10 mx-auto w-full max-w-5xl overflow-hidden rounded-[30px] md:rounded-[42px]"
             >
-              <div className="relative aspect-[983/674] bg-black">
+              <div className="relative aspect-[4/3] bg-black">
                 <Image
                   src={SCOREBOARD_IMAGE}
                   alt={t("scoreboard_alt")}
                   fill
                   sizes="(max-width: 768px) 100vw, 1024px"
-                  className="object-cover"
+                  className="object-contain"
                   priority
                   draggable={false}
                 />
 
                 <motion.div
                   style={reducedMotion ? undefined : { x: leftPanelX }}
-                  className="absolute left-3 top-3 hidden items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md sm:flex md:left-6 md:top-6 md:px-4"
+                  className="absolute left-3 top-3 flex items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-xl md:left-6 md:top-6 md:px-4"
                 >
                   <Trophy size={14} className="text-[#F59E0B]" aria-hidden="true" />
                   <span data-cms-key="spacePilot.scoreboard_wins">{t("scoreboard_wins")}</span>
@@ -133,7 +133,7 @@ export default function SpacePilotScoreboardExperience({
 
                 <motion.div
                   style={reducedMotion ? undefined : { x: rightPanelX }}
-                  className="absolute right-3 top-3 hidden items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md sm:flex md:right-6 md:top-6 md:px-4"
+                  className="absolute right-3 top-3 flex items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-xl md:right-6 md:top-6 md:px-4"
                 >
                   <Clock3 size={14} className="text-[#60A5FA]" aria-hidden="true" />
                   <span data-cms-key="spacePilot.scoreboard_time">{t("scoreboard_time")}</span>
@@ -141,7 +141,7 @@ export default function SpacePilotScoreboardExperience({
 
                 <motion.div
                   style={reducedMotion ? undefined : { y: standingsY, opacity: standingsOpacity }}
-                  className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-black/75 px-3 py-2.5 text-[10px] text-white/80 backdrop-blur-md md:inset-x-6 md:bottom-6 md:px-4 md:py-3"
+                  className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-black/75 px-3 py-2.5 text-[10px] text-white/80 backdrop-blur-xl md:inset-x-6 md:bottom-6 md:px-4 md:py-3"
                 >
                   <span data-cms-key="spacePilot.scoreboard_standings" className="flex items-center gap-2"><BarChart3 size={14} className="text-[#A78BFA]" aria-hidden="true" />{t("scoreboard_standings")}</span>
                   <span data-cms-key="spacePilot.scoreboard_match" className="hidden text-white/45 sm:inline">{t("scoreboard_match")}</span>

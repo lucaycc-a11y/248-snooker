@@ -1,7 +1,7 @@
 {
   "app/member/MemberDashboard.tsx": {
-    "mtime": 1790438769.5486305,
-    "ast_hash": "d21249c0aca459b3ac1f45a658c71e6f",
+    "mtime": 1790311121.2406316,
+    "ast_hash": "e6d57cca7887da5a92c10558ff58ccf6",
     "semantic_hash": ""
   },
   "app/member/bookings/[id]/page.tsx": {
@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "app/member/MemberPageClient.tsx": {
-    "mtime": 1790485515.9681575,
-    "ast_hash": "b62e789a73fb39aa6f08b5e2e5aab578",
+    "mtime": 1790396227.4285846,
+    "ast_hash": "050c8ab41d051baeebbba7c21338be4d",
     "semantic_hash": ""
   },
   "app/member/NotificationSettings.tsx": {
@@ -65,8 +65,8 @@
     "semantic_hash": ""
   },
   "app/member/components/HorizontalActionTiles.tsx": {
-    "mtime": 1790403646.8564882,
-    "ast_hash": "bd9832e723ca2ba62854e2694f62ab3e",
+    "mtime": 1790348799.9409118,
+    "ast_hash": "30df453c6e1119dee6f8c55ee27843a8",
     "semantic_hash": ""
   },
   "app/member/components/MemberAuthGuard.tsx": {
@@ -75,7 +75,7 @@
     "semantic_hash": ""
   },
   "app/member/components/MemberCardFlip.tsx": {
-    "mtime": 1790401263.755617,
+    "mtime": 1790342293.427086,
     "ast_hash": "b34a5ea2f5cc5589602f7abb18876713",
     "semantic_hash": ""
   },
@@ -85,13 +85,13 @@
     "semantic_hash": ""
   },
   "app/member/components/UpcomingBookingCard.tsx": {
-    "mtime": 1790485507.240962,
-    "ast_hash": "4246e4dba1d99320adade53c036f0ec0",
+    "mtime": 1790396208.14759,
+    "ast_hash": "ed1f6890a56b054f551148db727891a0",
     "semantic_hash": ""
   },
   "app/member/help/page.tsx": {
-    "mtime": 1790403238.3853965,
-    "ast_hash": "3a19a081196fd48076fb06701f8271bc",
+    "mtime": 1790316485.6981,
+    "ast_hash": "e8c8bfdc40ecdd93e9ecead341656332",
     "semantic_hash": ""
   },
   "app/member/inbox/page.tsx": {
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "app/member/manage/tabs/PrivacyDataTab.tsx": {
-    "mtime": 1790401263.7561014,
-    "ast_hash": "5c812938fc0da40687a10e3efb60a13d",
+    "mtime": 1790311121.2423077,
+    "ast_hash": "7412660bb8db4f370b3a534c69c2115d",
     "semantic_hash": ""
   },
   "app/member/manage/tabs/SecurityTab.tsx": {
@@ -130,13 +130,13 @@
     "semantic_hash": ""
   },
   "app/member/points/page.tsx": {
-    "mtime": 1790403237.249511,
-    "ast_hash": "f6798eb2f4e70d67b67d1fa1f85bca2b",
+    "mtime": 1790336698.3476608,
+    "ast_hash": "176c5cdae824396fea4698dd159e7c32",
     "semantic_hash": ""
   },
   "app/member/safety/page.tsx": {
-    "mtime": 1790401263.7562506,
-    "ast_hash": "1d249883c2f02518d0f1c47e2838dcdb",
+    "mtime": 1790316485.6987789,
+    "ast_hash": "ca19463f4514a3409d9d30b9c93f788e",
     "semantic_hash": ""
   },
   "app/member/settings/page.tsx": {
@@ -1310,8 +1310,8 @@
     "semantic_hash": ""
   },
   ".impeccable/config.json": {
-    "mtime": 1790485038.214063,
-    "ast_hash": "329ad0a59f31afb2765a34c3ec86d821",
+    "mtime": 1790348752.8328884,
+    "ast_hash": "eecb2c84571df3d2aaeb4f140321e30c",
     "semantic_hash": ""
   },
   ".impeccable/design.json": {
@@ -1350,8 +1350,8 @@
     "semantic_hash": ""
   },
   "app/[locale]/about/AboutContent.tsx": {
-    "mtime": 1790401263.7539268,
-    "ast_hash": "1a93332bfcc0d3bbe1bd1595975f604c",
+    "mtime": 1789383883.3078866,
+    "ast_hash": "10a07af6aadf857ca4d8f8a427bafac5",
     "semantic_hash": ""
   },
   "app/[locale]/about/page.tsx": {
@@ -1445,13 +1445,13 @@
     "semantic_hash": ""
   },
   "app/[locale]/membership/MembershipContent.tsx": {
-    "mtime": 1790409396.4607942,
-    "ast_hash": "3a456134844ef8485e1c2db657bc3aa4",
+    "mtime": 1790241689.6431751,
+    "ast_hash": "e4ff9facbb7bda597c3b3f9a3c7d9d46",
     "semantic_hash": ""
   },
   "app/[locale]/membership/page.tsx": {
-    "mtime": 1790406213.7367408,
-    "ast_hash": "1aab582b9283991b0ca7267412693633",
+    "mtime": 1789383883.3284223,
+    "ast_hash": "7eaf92f90ed0034ea29bb832bb943762",
     "semantic_hash": ""
   },
   "app/[locale]/not-found.tsx": {
@@ -1460,8 +1460,8 @@
     "semantic_hash": ""
   },
   "app/[locale]/page.tsx": {
-    "mtime": 1790482145.5629385,
-    "ast_hash": "f487475db3763be9a3e393fab5a6ca9c",
+    "mtime": 1790241689.6441324,
+    "ast_hash": "b224f1e44ca1947d20d9f31271d50e2a",
     "semantic_hash": ""
   },
   "app/[locale]/pricing/PricingContent.tsx": {
@@ -1495,13 +1495,13 @@
     "semantic_hash": ""
   },
   "app/[locale]/venue/VenueContent.tsx": {
-    "mtime": 1790447660.4533205,
-    "ast_hash": "ec435c84283db63ab8530a0c498efe66",
+    "mtime": 1789383883.3170257,
+    "ast_hash": "36147f03ad66f031e76c3a45ef106373",
     "semantic_hash": ""
   },
   "app/[locale]/venue/page.tsx": {
-    "mtime": 1790484623.95422,
-    "ast_hash": "ec46e88c7143897fc3c037ec0cafbe87",
+    "mtime": 1789383883.3153615,
+    "ast_hash": "4907490c9c47ffb1a0014185f47fe2b5",
     "semantic_hash": ""
   },
   "app/_components-demo/page.tsx": {
@@ -2119,6 +2119,11 @@
     "ast_hash": "462b0ca28153c8cdf52a92f6f40f34e0",
     "semantic_hash": ""
   },
+  "app/api/booking/send-reminders/route.ts": {
+    "mtime": 1789383883.407309,
+    "ast_hash": "c4a05ac1d779150047bc1424c582e3da",
+    "semantic_hash": ""
+  },
   "app/api/booking/status/route.ts": {
     "mtime": 1789383883.4111266,
     "ast_hash": "988829af44a4b5c0c010b5eb2f5cac96",
@@ -2130,13 +2135,13 @@
     "semantic_hash": ""
   },
   "app/api/bookings/[id]/refund/route.ts": {
-    "mtime": 1790401263.7545297,
-    "ast_hash": "69081a41cbfa51ff56f4e2c2bdbe1210",
+    "mtime": 1790241689.649756,
+    "ast_hash": "19a41e57b598783c10cf38a943f57b26",
     "semantic_hash": ""
   },
   "app/api/bookings/[id]/reschedule/route.ts": {
-    "mtime": 1790401263.7546933,
-    "ast_hash": "3943171e791adcdf333c7886c9e6ca2e",
+    "mtime": 1790241689.6501858,
+    "ast_hash": "fc4462fd7b98a54b1f49e811fc819b39",
     "semantic_hash": ""
   },
   "app/api/checkout/cancel/route.ts": {
@@ -2740,8 +2745,8 @@
     "semantic_hash": ""
   },
   "app/member/components/MemberCardFlipRedesign.tsx": {
-    "mtime": 1790430420.2154975,
-    "ast_hash": "fd14d5d70bb5f5ccce1aa002cea7486e",
+    "mtime": 1790348591.7862973,
+    "ast_hash": "d6fa17993549864ec7a9b046ff21f71e",
     "semantic_hash": ""
   },
   "app/member/not-found.tsx": {
@@ -2750,8 +2755,8 @@
     "semantic_hash": ""
   },
   "app/not-found.tsx": {
-    "mtime": 1790447785.9812253,
-    "ast_hash": "dc1ce6c912a7d82f04e30961679dc691",
+    "mtime": 1789383882.9942305,
+    "ast_hash": "237f728b757f7d938e0f0abc6ec98e8b",
     "semantic_hash": ""
   },
   "app/robots.ts": {
@@ -3375,8 +3380,8 @@
     "semantic_hash": ""
   },
   "components/landing/Hero.tsx": {
-    "mtime": 1790485002.8393638,
-    "ast_hash": "7a5f991ad3b8a56d9e1a9521d65effaf",
+    "mtime": 1790338368.118234,
+    "ast_hash": "1cc4924628503eb14711497d329eb0e6",
     "semantic_hash": ""
   },
   "components/landing/HomeFAQ.tsx": {
@@ -3390,8 +3395,8 @@
     "semantic_hash": ""
   },
   "components/landing/HomeFacilities.tsx": {
-    "mtime": 1790484231.2449176,
-    "ast_hash": "e7aeae1238955b0585a5774356a54e68",
+    "mtime": 1789383883.0418503,
+    "ast_hash": "8cd833887a5d081e4c6e9ce4a80d454c",
     "semantic_hash": ""
   },
   "components/landing/HomeFocus 2.tsx": {
@@ -3465,8 +3470,8 @@
     "semantic_hash": ""
   },
   "components/landing/Section5Booking.tsx": {
-    "mtime": 1790401263.7564383,
-    "ast_hash": "cea182a5df4848e47a5221c5a2e9e305",
+    "mtime": 1789383883.0519993,
+    "ast_hash": "f8e4fc1cb495346f7fcced56c05655bc",
     "semantic_hash": ""
   },
   "components/landing/Section6Pricing.tsx": {
@@ -3480,8 +3485,8 @@
     "semantic_hash": ""
   },
   "components/landing/SpacePilotScoreboardExperience.tsx": {
-    "mtime": 1790485177.956088,
-    "ast_hash": "c845b4e5c0fb456644be850a938c5421",
+    "mtime": 1789383883.0475862,
+    "ast_hash": "d2074f11d34202137b378d57d59380b1",
     "semantic_hash": ""
   },
   "components/landing/SpacePilotScrollDemo.tsx": {
@@ -3495,8 +3500,8 @@
     "semantic_hash": ""
   },
   "components/landing/faqData.ts": {
-    "mtime": 1790431508.3578982,
-    "ast_hash": "aef539955a7308aa94adbc1db628271d",
+    "mtime": 1789383883.0635622,
+    "ast_hash": "2bb837fefc78a794b40055fda7282093",
     "semantic_hash": ""
   },
   "components/layout/AdminSidebar.tsx": {
@@ -3880,18 +3885,18 @@
     "semantic_hash": ""
   },
   "content/help/contact-support.en.ts": {
-    "mtime": 1790401263.7565987,
-    "ast_hash": "000bbaf4980f90ea3e4f9e8e2cd96c52",
+    "mtime": 1790241689.6689906,
+    "ast_hash": "e5c667dd3a61acb784f7692b151b51b2",
     "semantic_hash": ""
   },
   "content/help/contact-support.zh-CN.ts": {
-    "mtime": 1790401263.7568145,
-    "ast_hash": "4340b93bbe2a22593ea8604fe945a96c",
+    "mtime": 1790241689.6691341,
+    "ast_hash": "396645df8b5297df67f08971672a4ce7",
     "semantic_hash": ""
   },
   "content/help/contact-support.zh-HK.ts": {
-    "mtime": 1790401263.7570193,
-    "ast_hash": "449300b9cd36d2663c83b5736f60342e",
+    "mtime": 1790241689.6692588,
+    "ast_hash": "23dbc36c0e407635889e749afcc39dc7",
     "semantic_hash": ""
   },
   "content/help/entry-qr.en.ts": {
@@ -3970,132 +3975,142 @@
     "semantic_hash": ""
   },
   "content/legal/accessibility.en.ts": {
-    "mtime": 1790401263.757174,
-    "ast_hash": "0b8e2b35058180e42da40045bc5dd3ac",
+    "mtime": 1787067093.3202448,
+    "ast_hash": "4d6e03b71d3dc0cbba7f2faac41aece8",
     "semantic_hash": ""
   },
   "content/legal/accessibility.zh-CN.ts": {
-    "mtime": 1790401263.7573109,
-    "ast_hash": "c8b2ee01c98231b337a0875fe9c07716",
+    "mtime": 1787067082.8242774,
+    "ast_hash": "61b4609d738d68b3d31a757046601749",
     "semantic_hash": ""
   },
   "content/legal/accessibility.zh-HK.ts": {
-    "mtime": 1790401263.757444,
-    "ast_hash": "ca5f6e7537cd1cb4cedb4411f5d8b493",
+    "mtime": 1787067075.670498,
+    "ast_hash": "8f8c4830ea9fba7c67bf5ecc3498099a",
     "semantic_hash": ""
   },
   "content/legal/brand-statement.en.ts": {
-    "mtime": 1790401058.103136,
+    "mtime": 1788245284.823325,
     "ast_hash": "359135b1b023e1ba8df9f9e99189f1aa",
     "semantic_hash": ""
   },
   "content/legal/brand-statement.zh-CN.ts": {
-    "mtime": 1790401058.1064303,
+    "mtime": 1788245283.7345583,
     "ast_hash": "33d35830753bb8380e35bf5f128826a2",
     "semantic_hash": ""
   },
   "content/legal/brand-statement.zh-HK.ts": {
-    "mtime": 1790401058.1104658,
+    "mtime": 1788245020.4003565,
     "ast_hash": "f5a5a1b73caa0a9c9efcb132d91adb5b",
     "semantic_hash": ""
   },
   "content/legal/cookie-policy.en.ts": {
-    "mtime": 1790401263.7575963,
-    "ast_hash": "3f08aa33300d588e39f4138ef5d781fc",
+    "mtime": 1789836457.6127722,
+    "ast_hash": "fb7f087a24105afd10cca7bea47d478c",
+    "semantic_hash": ""
+  },
+  "content/legal/cookie-policy.zh-CN 2.ts": {
+    "mtime": 1790241689.6726377,
+    "ast_hash": "8a55891c4de22c20b4d601bb39cdc15d",
     "semantic_hash": ""
   },
   "content/legal/cookie-policy.zh-CN.ts": {
-    "mtime": 1790401263.7578516,
-    "ast_hash": "aab41e2fad1793482f071c5d62cb42d1",
+    "mtime": 1789836457.6128366,
+    "ast_hash": "8a55891c4de22c20b4d601bb39cdc15d",
+    "semantic_hash": ""
+  },
+  "content/legal/cookie-policy.zh-HK 2.ts": {
+    "mtime": 1790241689.672705,
+    "ast_hash": "2795e4c5fb9b23cd0a0445fe27d9ff94",
     "semantic_hash": ""
   },
   "content/legal/cookie-policy.zh-HK.ts": {
-    "mtime": 1790401263.7582648,
-    "ast_hash": "322d03a54cde487d3d83a7527d4744f6",
+    "mtime": 1789836457.61292,
+    "ast_hash": "2795e4c5fb9b23cd0a0445fe27d9ff94",
     "semantic_hash": ""
   },
   "content/legal/delivery-policy.en.ts": {
-    "mtime": 1790401263.7584841,
-    "ast_hash": "ed901bab30d19a267e154cc44719043e",
+    "mtime": 1788226982.5725482,
+    "ast_hash": "5783c6d3da1c9069724ac1d532658eea",
     "semantic_hash": ""
   },
   "content/legal/delivery-policy.zh-CN.ts": {
-    "mtime": 1790401263.7586176,
-    "ast_hash": "b3b0e122774f86c506a7f1fd19d6a46b",
+    "mtime": 1788226920.4483118,
+    "ast_hash": "261351b34a25c4b0fb4eb6bb8a37a679",
     "semantic_hash": ""
   },
   "content/legal/delivery-policy.zh-HK.ts": {
-    "mtime": 1790401263.7587764,
-    "ast_hash": "bd522c0e2f0c83d2c252d02f89acedd1",
+    "mtime": 1788226890.4578857,
+    "ast_hash": "10252a01b3ac3d1bba80a3b6936f45f9",
     "semantic_hash": ""
   },
   "content/legal/index.ts": {
-    "mtime": 1790401058.1425922,
+    "mtime": 1789836457.6130092,
     "ast_hash": "a9e571f026a727233e385fa646ecdefe",
     "semantic_hash": ""
   },
   "content/legal/privacy.en.ts": {
-    "mtime": 1790401263.759022,
-    "ast_hash": "2b46fee8704e543c9d2a17a7e4295059",
+    "mtime": 1789836457.6131175,
+    "ast_hash": "fb05aa71d2ed484f67c7906615e10a5f",
     "semantic_hash": ""
   },
   "content/legal/privacy.zh-CN.ts": {
-    "mtime": 1790401263.759268,
-    "ast_hash": "46b0537896855bd00a1c54b8fee526ad",
+    "mtime": 1789836457.6132202,
+    "ast_hash": "e7b2e648f0457d88160e5b40e7baad3b",
     "semantic_hash": ""
   },
   "content/legal/privacy.zh-HK.ts": {
-    "mtime": 1790401263.7595134,
-    "ast_hash": "23a903a272bb740867e2d9aa39bec389",
+    "mtime": 1789836457.6133301,
+    "ast_hash": "8b7bae235723b2cc87df352bd41d434d",
     "semantic_hash": ""
   },
   "content/legal/refund-policy.en.ts": {
-    "mtime": 1790401263.7597566,
-    "ast_hash": "befeaa1b0b25cb3c10a2546077337ef3",
+    "mtime": 1788226966.248895,
+    "ast_hash": "1f5bb69673b70114ccdb6642acb66fda",
     "semantic_hash": ""
   },
   "content/legal/refund-policy.zh-CN.ts": {
-    "mtime": 1790401263.7599907,
-    "ast_hash": "fafc7158cdfc714b7b80a00f17bde92d",
+    "mtime": 1788226906.1282012,
+    "ast_hash": "a5c58488f6b21efdc854c30f94d9c0bc",
     "semantic_hash": ""
   },
   "content/legal/refund-policy.zh-HK.ts": {
-    "mtime": 1790401263.7601516,
-    "ast_hash": "8c654f6fd0f3085fb77766f2e1b1dd83",
+    "mtime": 1788226181.9854522,
+    "ast_hash": "9ded2ead12564b465c574064efac9be7",
     "semantic_hash": ""
   },
   "content/legal/terms.en.ts": {
-    "mtime": 1790401058.176485,
+    "mtime": 1788227347.6114693,
     "ast_hash": "cfc0f9d969ddd72cd2e2b4babfc28c95",
     "semantic_hash": ""
   },
   "content/legal/terms.zh-CN.ts": {
-    "mtime": 1790401058.1822424,
+    "mtime": 1788227371.9893296,
     "ast_hash": "22a06ab132bcd3258b7ad7db5141573f",
     "semantic_hash": ""
   },
   "content/legal/terms.zh-HK.ts": {
-    "mtime": 1790401058.1849453,
+    "mtime": 1788227321.2862437,
     "ast_hash": "92974e2338d5683b82e59b09deea15fa",
     "semantic_hash": ""
   },
   "content/legal/types.ts": {
-    "mtime": 1790401058.1894987,
+    "mtime": 1785406307.0,
     "ast_hash": "a023fe2d47945ae3fbe6c7ebbb82d9f6",
     "semantic_hash": ""
   },
   "content/legal/website-terms.en.ts": {
-    "mtime": 1790401058.1920907,
+    "mtime": 1788227426.616733,
     "ast_hash": "5d276037c2f7d905c2efc028f05e8c8b",
     "semantic_hash": ""
   },
   "content/legal/website-terms.zh-CN.ts": {
-    "mtime": 1790401058.194424,
+    "mtime": 1788227409.1452417,
     "ast_hash": "a80df0d5df47a95c4df7b7dfdb900d57",
     "semantic_hash": ""
   },
   "content/legal/website-terms.zh-HK.ts": {
-    "mtime": 1790401058.19832,
+    "mtime": 1788227396.8302903,
     "ast_hash": "368e9d61744d7d1d6c7d70e107261061",
     "semantic_hash": ""
   },
@@ -4625,13 +4640,13 @@
     "semantic_hash": ""
   },
   "lib/member/tierDisplay.ts": {
-    "mtime": 1790403235.392542,
-    "ast_hash": "462f5f12915a86861dcf2248d4b38513",
+    "mtime": 1788511927.2204702,
+    "ast_hash": "5713f9d2d80f81e459611372a04dc7b7",
     "semantic_hash": ""
   },
   "lib/member/tierHelpers.ts": {
-    "mtime": 1790401263.7790968,
-    "ast_hash": "eb475ecaf7ffe0af016cd5f368081044",
+    "mtime": 1790241689.7089393,
+    "ast_hash": "ba1174dd0bf7524fbc437ad1424a3d7a",
     "semantic_hash": ""
   },
   "lib/nav-theme.test.ts": {
@@ -4750,8 +4765,8 @@
     "semantic_hash": ""
   },
   "lib/resend/template-send.ts": {
-    "mtime": 1790401263.7792995,
-    "ast_hash": "866a61d96a6daec299f23127a9970af9",
+    "mtime": 1789836457.6533237,
+    "ast_hash": "710a837ca6cc19da7c72cd56cd6f452e",
     "semantic_hash": ""
   },
   "lib/resend/templates/admin-invite.tsx": {
@@ -4777,6 +4792,11 @@
   "lib/resend/templates/booking-refunded.tsx": {
     "mtime": 1785406307.0,
     "ast_hash": "d0360c2754f6096b80ddcae7845a5bba",
+    "semantic_hash": ""
+  },
+  "lib/resend/templates/booking-reminder.ts": {
+    "mtime": 1785730429.0469265,
+    "ast_hash": "417b8c7d1cae7a336ecf736fa77bf22c",
     "semantic_hash": ""
   },
   "lib/resend/templates/booking-rescheduled.tsx": {
@@ -4825,8 +4845,8 @@
     "semantic_hash": ""
   },
   "lib/site/contact.ts": {
-    "mtime": 1790401263.7794466,
-    "ast_hash": "33f5c00c2b235ef58c916548a65305de",
+    "mtime": 1787066934.373347,
+    "ast_hash": "803992e1c09daab9b34ca3383b701f91",
     "semantic_hash": ""
   },
   "lib/stripe/client.ts": {
@@ -4950,18 +4970,23 @@
     "semantic_hash": ""
   },
   "messages/en.json": {
-    "mtime": 1790485455.7717738,
-    "ast_hash": "e727b5b59478037236e067c6c21e4b93",
+    "mtime": 1790396129.6757202,
+    "ast_hash": "8ee02c5d96b088f0796d1e6d140106ee",
     "semantic_hash": ""
   },
   "messages/zh-CN.json": {
-    "mtime": 1790485428.9254496,
-    "ast_hash": "a61b0e2e16dfda0b0fbdcee87c831d62",
+    "mtime": 1790396129.6738374,
+    "ast_hash": "b604741b893d488f2e44d83ac1640abc",
+    "semantic_hash": ""
+  },
+  "messages/zh-HK 2.json": {
+    "mtime": 1790241689.7126687,
+    "ast_hash": "47433bad5f3e8250c194d688b6a6133a",
     "semantic_hash": ""
   },
   "messages/zh-HK.json": {
-    "mtime": 1790485419.4535198,
-    "ast_hash": "a1833111c2e523995f3e4863a9741ef7",
+    "mtime": 1790396129.6717758,
+    "ast_hash": "06a40529478a1fe2cb0196a5ace5d213",
     "semantic_hash": ""
   },
   "messages/zh.json": {
@@ -5542,6 +5567,11 @@
   "supabase/migrations/0036_promotion_codes.sql": {
     "mtime": 1785743486.0246668,
     "ast_hash": "15be0c06ac4692ded8f5575b87cf1f20",
+    "semantic_hash": ""
+  },
+  "supabase/migrations/0037_reminder_email_cron.sql": {
+    "mtime": 1785664835.906779,
+    "ast_hash": "9e931f9e38dd7309acd7c7cc30ebbcfc",
     "semantic_hash": ""
   },
   "supabase/migrations/0038_expire_stale_bookings.sql": {
@@ -6995,7 +7025,7 @@
     "semantic_hash": ""
   },
   "_task/LEDGER.md": {
-    "mtime": 1790401263.7536917,
+    "mtime": 1790330521.6229954,
     "ast_hash": "f428858cf14843cbaf875d2cbcd7f457",
     "semantic_hash": ""
   },
@@ -7375,8 +7405,8 @@
     "semantic_hash": ""
   },
   "public/gallery/S2/part1_tap_to_enter.png": {
-    "mtime": 1790401263.7809322,
-    "ast_hash": "4dcd7e8b3d6662682218ffcf0b7816a0",
+    "mtime": 1787995775.4972744,
+    "ast_hash": "8d684f49260c34b3dc7b0bff753d7590",
     "semantic_hash": ""
   },
   "public/gallery/S2/part2_table_closeup 2.png": {
@@ -7385,8 +7415,8 @@
     "semantic_hash": ""
   },
   "public/gallery/S2/part2_table_closeup.png": {
-    "mtime": 1790401263.781553,
-    "ast_hash": "dd7790bd63fadf621d43f83166462c05",
+    "mtime": 1787995775.5075548,
+    "ast_hash": "2c25ffd175cf85afbbf506aff44f7e80",
     "semantic_hash": ""
   },
   "public/gallery/S2/part3_table_wide_room 2.png": {
@@ -7395,8 +7425,8 @@
     "semantic_hash": ""
   },
   "public/gallery/S2/part3_table_wide_room.png": {
-    "mtime": 1790401263.7823942,
-    "ast_hash": "9dc92967eba292d67a32cfc163213f26",
+    "mtime": 1787995775.5191045,
+    "ast_hash": "bb9ae51e9e1744853e301ce460b92065",
     "semantic_hash": ""
   },
   "public/gallery/Space8_Ball.png": {
@@ -7422,6 +7452,11 @@
   "public/gallery/Space_Infinity.PNG": {
     "mtime": 1785406307.0,
     "ast_hash": "8d1fba23b88bd4a8ac2e650f5482880f",
+    "semantic_hash": ""
+  },
+  "public/gallery/space-pilot-scoreboard.png": {
+    "mtime": 1787833277.9590428,
+    "ast_hash": "88d36c5d6668e830bbd8ef415c885123",
     "semantic_hash": ""
   },
   "public/gallery/table-poster.jpg": {
@@ -7497,6 +7532,11 @@
   "public/icons/payment/payme.png": {
     "mtime": 1786958001.5000067,
     "ast_hash": "0f342a39356debeac9122cfd69d9e7b6",
+    "semantic_hash": ""
+  },
+  "public/icons/payment/spacepilot.png": {
+    "mtime": 1787162224.2766352,
+    "ast_hash": "cf1170e5605eb8a77155c85f5549faa7",
     "semantic_hash": ""
   },
   "public/icons/payment/wechat.png": {
@@ -7742,356 +7782,6 @@
   "public/video/Venue_Hero/Venue_Hero_Mobile.mp4": {
     "mtime": 1785406307.0,
     "ast_hash": "b965e048d2ff56f26d7e5ac8678fad16",
-    "semantic_hash": ""
-  },
-  "app/[locale]/value/page.tsx": {
-    "mtime": 1790485306.1170313,
-    "ast_hash": "44e404be91c2c6d152d1715a79cc134d",
-    "semantic_hash": ""
-  },
-  "app/member/bookings/history/BookingHistoryClient.tsx": {
-    "mtime": 1790485568.3902996,
-    "ast_hash": "ed6aa973710d62a8655f3c0e100b9526",
-    "semantic_hash": ""
-  },
-  "app/member/bookings/history/page.tsx": {
-    "mtime": 1790485535.5199428,
-    "ast_hash": "3ee6c801955ee9a3a92936892f6e8545",
-    "semantic_hash": ""
-  },
-  "components/value/ValueHeroSection4.tsx": {
-    "mtime": 1790485314.194713,
-    "ast_hash": "4df8b78b960351ec1a04a73d46953c00",
-    "semantic_hash": ""
-  },
-  "components/venue/VenueFacilitiesBento.tsx": {
-    "mtime": 1790447505.4884489,
-    "ast_hash": "781bc03b1262c9292bde980a1670a051",
-    "semantic_hash": ""
-  },
-  "components/venue/VenueHeroBento.tsx": {
-    "mtime": 1790484412.927487,
-    "ast_hash": "b47eb5a6c158e3a4be500b6a45679817",
-    "semantic_hash": ""
-  },
-  "scripts/verify-value-section4.mjs": {
-    "mtime": 1790485450.5330458,
-    "ast_hash": "3ca3290b811fd8298fab967fad8272b9",
-    "semantic_hash": ""
-  },
-  "9-24 Home page sections.html": {
-    "mtime": 1790430607.8220444,
-    "ast_hash": "057e4e5f2366ddf131c933eb630e74b4",
-    "semantic_hash": ""
-  },
-  "924 Member QR card.html": {
-    "mtime": 1790430607.704172,
-    "ast_hash": "6dde6150f4cf09a2992045aecde228bd",
-    "semantic_hash": ""
-  },
-  "924 member guide.html": {
-    "mtime": 1790430607.7398589,
-    "ast_hash": "a707722d6ca959ae0c9175747545f511",
-    "semantic_hash": ""
-  },
-  "924 \u5834\u5730 sessions.html": {
-    "mtime": 1790430607.7798188,
-    "ast_hash": "08cbc566ea61ebb4a10c581db33f6abe",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/404pagebkimage/404desktop.jpg": {
-    "mtime": 1790444811.7568092,
-    "ast_hash": "836a4bdf1fa32c4d0a19ca249f383fb3",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/404pagebkimage/404moblie.jpg": {
-    "mtime": 1790444822.4389021,
-    "ast_hash": "9919bb4f1051545184f576d0adc648cc",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/cuestand.jpg": {
-    "mtime": 1790014910.0,
-    "ast_hash": "4b93d65af1cc83c04e39cd7b3fb025b1",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/homepage /PoolTablecloseup.jpg": {
-    "mtime": 1790014914.0,
-    "ast_hash": "3c9e629daf0f4aad1bc6ff3943843b96",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/homepage /pooltablecloseup2.jpg": {
-    "mtime": 1790014910.0,
-    "ast_hash": "0e55a5411dca5c0909faeff02345f30e",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/homepage /qrcode.jpg": {
-    "mtime": 1790014916.0,
-    "ast_hash": "728745bc7f61dc19e1c2d6364a1f6b31",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/homepage /space8cue.jpg": {
-    "mtime": 1790014914.0,
-    "ast_hash": "76d1bb31dffe4b5137dbc67c32cfa6ba",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/404-desktop-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447222.6277664,
-    "ast_hash": "004ad9b3d27f92fdbbeeafd003bdccc9",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/404-mobile-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447227.1052802,
-    "ast_hash": "5ea873aa334255bd10ebfac0323d3346",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/aramith-balls -box-2-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447170.2825131,
-    "ast_hash": "d3770e6deccc4b354d469237c4f9a7a1",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/aramith-balls-box-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447162.4534729,
-    "ast_hash": "3fd6c789287019d890838866dda417f9",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/chalk-trademark-registered-king-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447257.175088,
-    "ast_hash": "f470e24783d407047c4d47f88c0000f9",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/cue-stand-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447192.2671099,
-    "ast_hash": "424104958d2a1dc85e77d6c82f2fe6ac",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/og-image-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.png": {
-    "mtime": 1790483045.1763616,
-    "ast_hash": "5a7ad522b6922f9603565620c752f1e5",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/pool-table-closeup-2-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447210.4966931,
-    "ast_hash": "bae860dbd46f45d8bb28820ecc464c2e",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/pool-table-closeup-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447204.4366953,
-    "ast_hash": "263b8921c6ae4388838facecf5f40c36",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/qrcode-checkin-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447217.9696703,
-    "ast_hash": "e832b421f0ad5a300eb87c034b20294c",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/sofa-and-cue-stand-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447177.0196917,
-    "ast_hash": "7e627a48c0895a29c892ce1c800c1adc",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/sofa-lounge-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447184.824512,
-    "ast_hash": "4cfe0dab7ee5d1d726233d132933a858",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/space-eternity-room-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447148.309773,
-    "ast_hash": "9d8223275c7ae2a94ca776ee9cd55e4b",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/space-infinity-room-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447155.8497655,
-    "ast_hash": "bd56ec6ee878423f1d7ab33d0a85844a",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/public/images/space8-cue-stand-close-up-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447198.53311,
-    "ast_hash": "ec45c68780a1f2978457b290af452d1a",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/room photo/space eternity.jpg": {
-    "mtime": 1790014904.0,
-    "ast_hash": "572c3708598eac4debf5b839f5e52f90",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/room photo/space eternity2.jpg": {
-    "mtime": 1790014906.0,
-    "ast_hash": "052d2a9ce5cfcdc74de9f629f276bd53",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/room photo/space infinity 2.jpg": {
-    "mtime": 1790014908.0,
-    "ast_hash": "c4850e5bd932cac890adfaa080bfcac6",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/room photo/space infinity.jpg": {
-    "mtime": 1790014902.0,
-    "ast_hash": "b255f8665eb9a684c92cf2dc059fc47c",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/sofa2.jpg": {
-    "mtime": 1790014906.0,
-    "ast_hash": "8c6b784e372d698542e714f26e99de24",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/venue/DSC03714.jpg": {
-    "mtime": 1790014910.0,
-    "ast_hash": "43787f83841aff9882189d1602e0c5ad",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/venue/ballsandbox.jpg": {
-    "mtime": 1790014916.0,
-    "ast_hash": "35d6552682c6ba1ae3064a3e2edbaea0",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/venue/box only.jpg": {
-    "mtime": 1790014912.0,
-    "ast_hash": "1dcd9eba78fdce451514b73ad22dd0da",
-    "semantic_hash": ""
-  },
-  "public/gallery/final/venue/sofaandcuestand.jpg": {
-    "mtime": 1790014908.0,
-    "ast_hash": "aff8fc39b0437083bcedfc31a2f53cab",
-    "semantic_hash": ""
-  },
-  "public/gallery/spacepliot.png": {
-    "mtime": 1790408573.6731014,
-    "ast_hash": "1aea47a0619b5ef8d1daae7bde7ed618",
-    "semantic_hash": ""
-  },
-  "public/images/404-desktop-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447354.1677904,
-    "ast_hash": "004ad9b3d27f92fdbbeeafd003bdccc9",
-    "semantic_hash": ""
-  },
-  "public/images/404-mobile-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447354.1687584,
-    "ast_hash": "5ea873aa334255bd10ebfac0323d3346",
-    "semantic_hash": ""
-  },
-  "public/images/OGimage.png": {
-    "mtime": 1790447354.170101,
-    "ast_hash": "ffbb5b9214739a17a7bdad98d8150976",
-    "semantic_hash": ""
-  },
-  "public/images/aramith-balls-box-2-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790484290.0691648,
-    "ast_hash": "d3770e6deccc4b354d469237c4f9a7a1",
-    "semantic_hash": ""
-  },
-  "public/images/aramith-balls-box-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790484290.0647066,
-    "ast_hash": "3fd6c789287019d890838866dda417f9",
-    "semantic_hash": ""
-  },
-  "public/images/chalk-trademark-registered-king-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790484290.0739853,
-    "ast_hash": "f470e24783d407047c4d47f88c0000f9",
-    "semantic_hash": ""
-  },
-  "public/images/cue-stand-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447354.1739266,
-    "ast_hash": "424104958d2a1dc85e77d6c82f2fe6ac",
-    "semantic_hash": ""
-  },
-  "public/images/og-image-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.png": {
-    "mtime": 1790447354.1752014,
-    "ast_hash": "ffbb5b9214739a17a7bdad98d8150976",
-    "semantic_hash": ""
-  },
-  "public/images/pool-table-closeup-2-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790484213.0882452,
-    "ast_hash": "bae860dbd46f45d8bb28820ecc464c2e",
-    "semantic_hash": ""
-  },
-  "public/images/pool-table-closeup-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790484213.0854523,
-    "ast_hash": "263b8921c6ae4388838facecf5f40c36",
-    "semantic_hash": ""
-  },
-  "public/images/qrcode-checkin-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790484213.0968068,
-    "ast_hash": "e832b421f0ad5a300eb87c034b20294c",
-    "semantic_hash": ""
-  },
-  "public/images/sofa-and-cue-stand-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790484290.0588615,
-    "ast_hash": "7e627a48c0895a29c892ce1c800c1adc",
-    "semantic_hash": ""
-  },
-  "public/images/sofa-lounge-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447354.193137,
-    "ast_hash": "4cfe0dab7ee5d1d726233d132933a858",
-    "semantic_hash": ""
-  },
-  "public/images/space-eternity-room-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447354.1945868,
-    "ast_hash": "9d8223275c7ae2a94ca776ee9cd55e4b",
-    "semantic_hash": ""
-  },
-  "public/images/space-infinity-room-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447354.2003531,
-    "ast_hash": "bd56ec6ee878423f1d7ab33d0a85844a",
-    "semantic_hash": ""
-  },
-  "public/images/space-pilot-scoreboard-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790484598.3699996,
-    "ast_hash": "09d43bcdeb040b935ca36e263197d8b8",
-    "semantic_hash": ""
-  },
-  "public/images/triangle-chalk-box-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447354.2030745,
-    "ast_hash": "d3770e6deccc4b354d469237c4f9a7a1",
-    "semantic_hash": ""
-  },
-  "public/images/venue-interior-\u4e2d\u516b\u684c\u7403-\u9999\u6e2f\u65b0\u84b2\u5d17.webp": {
-    "mtime": 1790447354.203971,
-    "ast_hash": "f470e24783d407047c4d47f88c0000f9",
-    "semantic_hash": ""
-  },
-  "verification-desktop-part1-initial.png": {
-    "mtime": 1790485474.463153,
-    "ast_hash": "b8871bb5a4440e0724b6bd0f3df0d16c",
-    "semantic_hash": ""
-  },
-  "verification-desktop-part3-cutout.png": {
-    "mtime": 1790485475.661381,
-    "ast_hash": "b8871bb5a4440e0724b6bd0f3df0d16c",
-    "semantic_hash": ""
-  },
-  "verification-desktop-part4-metallic.png": {
-    "mtime": 1790485476.8424199,
-    "ast_hash": "b8871bb5a4440e0724b6bd0f3df0d16c",
-    "semantic_hash": ""
-  },
-  "verification-desktop-part5-subtitle.png": {
-    "mtime": 1790485478.0259237,
-    "ast_hash": "b8871bb5a4440e0724b6bd0f3df0d16c",
-    "semantic_hash": ""
-  },
-  "verification-desktop-part7-final.png": {
-    "mtime": 1790485479.7135074,
-    "ast_hash": "b8871bb5a4440e0724b6bd0f3df0d16c",
-    "semantic_hash": ""
-  },
-  "verification-homepage-unchanged.png": {
-    "mtime": 1790485544.1173463,
-    "ast_hash": "23571ee02a63b39a7f93f3c27f621751",
-    "semantic_hash": ""
-  },
-  "verification-mobile-part1-initial.png": {
-    "mtime": 1790485484.0519476,
-    "ast_hash": "a7a693f19843f19add1dc7280400d725",
-    "semantic_hash": ""
-  },
-  "verification-mobile-part3-cutout.png": {
-    "mtime": 1790485485.1016068,
-    "ast_hash": "a7a693f19843f19add1dc7280400d725",
-    "semantic_hash": ""
-  },
-  "verification-mobile-part7-final.png": {
-    "mtime": 1790485486.6510668,
-    "ast_hash": "a7a693f19843f19add1dc7280400d725",
     "semantic_hash": ""
   }
 }

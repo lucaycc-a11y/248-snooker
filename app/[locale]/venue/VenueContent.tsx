@@ -1149,66 +1149,7 @@ export default function VenueContent() {
             style={{ opacity: useTransform(scrollYProgress, [0.97, 1], [0, 1]) }}
           />
 
-          {/* Text overlay layer — sits above both videos, flex column with proper gaps */}
-          {!reduceMotion ? (
-            <motion.div
-              style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 10,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                textAlign: "center",
-                pointerEvents: "none",
-                padding: "0 24px",
-              }}
-            >
-              {/* Headline: pop in 0.25→0.32, fade out 0.55→0.62 */}
-              <motion.h1
-                className="hero-headline"
-                style={{
-                  margin: 0,
-                  opacity: useTransform(scrollYProgress, [0, 0.25, 0.32, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
-                  scale: useTransform(scrollYProgress, [0.25, 0.28, 0.32], [0.9, 1.04, 1]),
-                }}
-              >
-                空間全開，由你主場
-              </motion.h1>
-
-              {/* Tagline: pop in 0.30→0.37, fade out 0.55→0.62 */}
-              <motion.p
-                className="hero-tagline"
-                style={{
-                  marginTop: "clamp(16px, 2.5vw, 20px)",
-                  opacity: useTransform(scrollYProgress, [0, 0.30, 0.37, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
-                  scale: useTransform(scrollYProgress, [0.30, 0.33, 0.37], [0.95, 1.03, 1]),
-                }}
-              >
-                自助入場 · 無菸環境
-              </motion.p>
-
-              {/* CTA: pop in 0.34→0.40, fade out 0.55→0.62 */}
-              <motion.div
-                style={{
-                  marginTop: "clamp(28px, 4vw, 32px)",
-                  pointerEvents: "auto",
-                  opacity: useTransform(scrollYProgress, [0, 0.34, 0.40, 0.55, 0.62, 1], [0, 0, 1, 1, 0, 0]),
-                  scale: useTransform(scrollYProgress, [0.34, 0.37, 0.40], [0.85, 1.05, 1]),
-                }}
-              >
-                <Link href="/book" className="hero-cta">立即預訂</Link>
-              </motion.div>
-            </motion.div>
-          ) : (
-            /* Reduced motion: show static content immediately */
-            <div className="hero-video-overlay" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-              <h1 className="hero-headline" style={{ margin: 0 }}>空間全開，由你主場</h1>
-              <p className="hero-tagline" style={{ marginTop: "clamp(16px, 2.5vw, 20px)" }}>自助入場 · 無菸環境</p>
-              <Link href="/book" className="hero-cta" style={{ marginTop: "clamp(28px, 4vw, 32px)" }}>立即預訂</Link>
-            </div>
-          )}
+          {/* Video fades to black at end — no text overlay needed (homepage has this hero) */}
         </div>
       </div>
 
