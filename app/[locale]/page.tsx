@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
+import Hero from "@/components/landing/Hero";
 import HomeFacilities from "@/components/landing/HomeFacilities";
 import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
 import Section5Booking from "@/components/landing/Section5Booking";
@@ -114,6 +115,7 @@ export default async function Home({
       />
       <AmbientGlow />
       <Nav />
+      <Hero />
       <HomeFacilities />
       <SpacePilotScoreboardExperience />
       <Section5Booking />
