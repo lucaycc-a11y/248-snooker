@@ -42,13 +42,15 @@ export default function Hero() {
     >
       {/* Square photo container — height = 100dvh, width = height, centered.
           On narrow viewports it overflows left/right (clipped by section overflow:hidden).
-          On wide viewports it sits centered with black on either side. */}
+          On wide viewports it sits centered with black on either side.
+          Vertically: centered then nudged up ~8% so the subject sits mid-frame
+          without the snooker table dominating the lower half. */}
       <div
-        className="hero__bg absolute top-0 left-1/2 -translate-x-1/2"
+        className="hero__bg absolute top-1/2 left-1/2"
         style={{
-          // width = 100dvh makes it a square relative to viewport height
           width: "100dvh",
           height: "100dvh",
+          transform: "translate(-50%, calc(-50% - 8%))",
           pointerEvents: "none",
         }}
       >
