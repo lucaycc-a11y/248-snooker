@@ -421,7 +421,7 @@ export default function Section5Booking() {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: clamp(32px, 4vw, 72px);
-            align-items: center;
+            align-items: start;
             width: 100%;
             max-width: 1200px;
             margin-inline: auto;
@@ -429,7 +429,7 @@ export default function Section5Booking() {
 
           .flow-pin {
             position: sticky;
-            top: 80px;
+            top: calc(50vh - 220px);
             height: fit-content;
           }
 
