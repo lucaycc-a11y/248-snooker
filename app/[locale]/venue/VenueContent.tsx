@@ -263,7 +263,7 @@ const SITE_CSS = `
   transform: translateY(-46px) scale(1.05) rotate(-4deg);
   transform-origin: 50% 120%;
   transition: opacity .5s ease,
-              transform .78s cubic-bezier(.28,1.5,.52,1),
+              transform .78s cubic-bezier(0.16,1,0.3,1),
               box-shadow .35s ease,
               border-color .35s ease;
 }

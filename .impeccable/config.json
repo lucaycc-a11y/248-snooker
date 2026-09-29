@@ -191,6 +191,381 @@
         "value": "4px",
         "createdAt": "2026-09-29T10:40:47.220Z",
         "reason": "apple-cards-carousel intentional small element radius (scrollbar, dots)"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "16px",
+        "createdAt": "2026-09-29T10:47:09.518Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.85)",
+        "createdAt": "2026-09-29T10:47:09.552Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.08)",
+        "createdAt": "2026-09-29T10:47:09.585Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#22b86b",
+        "createdAt": "2026-09-29T10:47:09.621Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,242,236,0.5)",
+        "createdAt": "2026-09-29T10:47:09.655Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,242,236,0)",
+        "createdAt": "2026-09-29T10:47:31.409Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1d1d1f",
+        "createdAt": "2026-09-29T10:47:31.446Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#6e6e73",
+        "createdAt": "2026-09-29T10:47:31.480Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0,0,0,0.04)",
+        "createdAt": "2026-09-29T10:47:31.513Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0,0,0,0.06)",
+        "createdAt": "2026-09-29T10:47:31.546Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0,0,0,0.08)",
+        "createdAt": "2026-09-29T10:47:31.577Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0,0,0,0.12)",
+        "createdAt": "2026-09-29T10:47:31.607Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,242,236,0.8)",
+        "createdAt": "2026-09-29T10:47:31.635Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(29,29,31,0.06)",
+        "createdAt": "2026-09-29T10:47:31.666Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(29,29,31,0.08)",
+        "createdAt": "2026-09-29T10:47:31.695Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(29,29,31,0.12)",
+        "createdAt": "2026-09-29T10:48:44.743Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(29,29,31,0.04)",
+        "createdAt": "2026-09-29T10:48:44.776Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.15)",
+        "createdAt": "2026-09-29T10:48:44.810Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.12)",
+        "createdAt": "2026-09-29T10:48:44.847Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.2)",
+        "createdAt": "2026-09-29T10:48:44.880Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.1)",
+        "createdAt": "2026-09-29T10:48:44.913Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1a9d5c",
+        "createdAt": "2026-09-29T10:48:44.949Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.15)",
+        "createdAt": "2026-09-29T10:48:44.982Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.1)",
+        "createdAt": "2026-09-29T10:48:45.015Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,242,236,0.95)",
+        "createdAt": "2026-09-29T10:48:45.050Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,242,236,0.9)",
+        "createdAt": "2026-09-29T10:48:45.081Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,242,236,0.6)",
+        "createdAt": "2026-09-29T10:48:45.116Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "8px",
+        "createdAt": "2026-09-29T10:48:45.151Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "12px",
+        "createdAt": "2026-09-29T10:48:45.183Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "24px",
+        "createdAt": "2026-09-29T10:48:45.216Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0b0b0d",
+        "createdAt": "2026-09-29T10:51:05.643Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#0d0d0f",
+        "createdAt": "2026-09-29T10:51:05.680Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#111110",
+        "createdAt": "2026-09-29T10:51:05.718Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#137a46",
+        "createdAt": "2026-09-29T10:51:05.758Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#4ad48c",
+        "createdAt": "2026-09-29T10:51:05.793Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8e8e8",
+        "createdAt": "2026-09-29T10:51:05.824Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#eceae5",
+        "createdAt": "2026-09-29T10:51:05.857Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#22c55e",
+        "createdAt": "2026-09-29T10:51:05.887Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0,0,0,0.35)",
+        "createdAt": "2026-09-29T10:51:05.918Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.04)",
+        "createdAt": "2026-09-29T10:51:05.948Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.05)",
+        "createdAt": "2026-09-29T10:51:05.978Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.07)",
+        "createdAt": "2026-09-29T10:51:06.009Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.09)",
+        "createdAt": "2026-09-29T10:51:06.041Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.10)",
+        "createdAt": "2026-09-29T10:51:06.072Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.14)",
+        "createdAt": "2026-09-29T10:51:06.103Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.22)",
+        "createdAt": "2026-09-29T10:51:06.133Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.28)",
+        "createdAt": "2026-09-29T10:51:06.165Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.35)",
+        "createdAt": "2026-09-29T10:51:06.195Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.45)",
+        "createdAt": "2026-09-29T10:51:06.225Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.48)",
+        "createdAt": "2026-09-29T10:51:06.257Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.5)",
+        "createdAt": "2026-09-29T10:51:34.486Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.50)",
+        "createdAt": "2026-09-29T10:51:34.519Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(17,17,16,0.58)",
+        "createdAt": "2026-09-29T10:51:34.554Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,242,236,0.10)",
+        "createdAt": "2026-09-29T10:51:34.595Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,242,236,0.62)",
+        "createdAt": "2026-09-29T10:51:34.627Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,255,255,0.08)",
+        "createdAt": "2026-09-29T10:51:34.659Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,255,255,0.25)",
+        "createdAt": "2026-09-29T10:51:34.691Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,255,255,0.26)",
+        "createdAt": "2026-09-29T10:51:34.724Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,255,255,0.6)",
+        "createdAt": "2026-09-29T10:51:34.757Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,255,255,0.7)",
+        "createdAt": "2026-09-29T10:51:34.788Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.045)",
+        "createdAt": "2026-09-29T10:51:34.821Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.07)",
+        "createdAt": "2026-09-29T10:51:34.853Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.10)",
+        "createdAt": "2026-09-29T10:51:34.886Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.11)",
+        "createdAt": "2026-09-29T10:51:34.917Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.13)",
+        "createdAt": "2026-09-29T10:51:34.993Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.35)",
+        "createdAt": "2026-09-29T10:51:35.037Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.45)",
+        "createdAt": "2026-09-29T10:51:35.073Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.55)",
+        "createdAt": "2026-09-29T10:51:35.106Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.65)",
+        "createdAt": "2026-09-29T10:51:35.139Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(26,157,92,0.75)",
+        "createdAt": "2026-09-29T10:51:35.170Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.09)",
+        "createdAt": "2026-09-29T10:51:35.203Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.55)",
+        "createdAt": "2026-09-29T10:51:35.235Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,184,107,0.95)",
+        "createdAt": "2026-09-29T10:51:35.267Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,197,94,0.4)",
+        "createdAt": "2026-09-29T10:51:35.299Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(34,197,94,0.55)",
+        "createdAt": "2026-09-29T10:51:35.331Z"
       }
     ]
   }

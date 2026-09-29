@@ -1,6 +1,6 @@
 "use client"
 
-import { useLayoutEffect } from "react"
+import { useEffect } from "react"
 import gsap from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 
@@ -17,10 +17,9 @@ const SELECTORS = [
   "[data-home-parallax=footer]",
 ] as const
 
-gsap.registerPlugin(ScrollTrigger)
-
 export default function HomepageParallax() {
-  useLayoutEffect(() => {
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger)
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (reduced) return
 

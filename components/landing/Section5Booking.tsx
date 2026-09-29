@@ -473,7 +473,7 @@ export default function Section5Booking() {
             content: "";
             position: absolute;
             inset: 0;
-            background: #52c25f;
+            background: #22b86b;
             width: calc(var(--progress, 0) * 100%);
             transition: width 0.2s ease;
           }
@@ -514,8 +514,8 @@ export default function Section5Booking() {
           }
 
           .flow-step.active .flow-marker {
-            background: #52c25f;
-            border-color: #52c25f;
+            background: #22b86b;
+            border-color: #22b86b;
           }
 
           .flow-num {
@@ -563,7 +563,7 @@ export default function Section5Booking() {
             align-items: center;
             gap: 8px;
             padding: 10px 16px;
-            background: #52c25f;
+            background: #22b86b;
             color: #062b0d;
             text-decoration: none;
             border-radius: 6px;
@@ -578,7 +578,7 @@ export default function Section5Booking() {
           }
 
           .flow-cta:focus-visible {
-            outline: 2px solid #52c25f;
+            outline: 2px solid #22b86b;
             outline-offset: 4px;
           }
         }
@@ -663,7 +663,7 @@ export default function Section5Booking() {
           }
 
           .flow-mobile-step.active .flow-marker {
-            background: #52c25f;
+            background: #22b86b;
             border-color: #52c25f;
           }
 
@@ -711,7 +711,7 @@ export default function Section5Booking() {
             align-items: center;
             gap: 6px;
             padding: 8px 12px;
-            background: #52c25f;
+            background: #22b86b;
             color: #062b0d;
             text-decoration: none;
             border-radius: 4px;
@@ -725,7 +725,7 @@ export default function Section5Booking() {
           }
 
           .flow-cta:focus-visible {
-            outline: 2px solid #52c25f;
+            outline: 2px solid #22b86b;
             outline-offset: 2px;
           }
 
@@ -753,7 +753,7 @@ export default function Section5Booking() {
             content: "";
             position: absolute;
             inset: 0;
-            background: #52c25f;
+            background: #22b86b;
             width: calc(var(--progress, 0) * 100%);
             transition: width 0.2s ease;
           }
