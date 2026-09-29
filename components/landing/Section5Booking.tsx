@@ -1,446 +1,793 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
 
 /**
- * Section 5 — Booking Process (left-steps + right-image layout)
+ * Section 5 — Booking Flow (scroll-triggered redesign)
  *
- * Replaced GSAP pin+scrub with normal scroll + parallax depth.
- * Steps reveal on scroll via IntersectionObserver. Background moves
- * at a slower rate than foreground for parallax depth effect.
+ * Desktop (≥820px): Left image sticky, right steps scroll naturally.
+ *   - Active step determined by viewport centerline.
+ *   - Progress bar fills per step progress.
+ *   - Image crossfades when active step changes.
  *
- * Layout (matches reference 主頁web_final.html):
- *   - Desktop: grid 1fr 1.05fr (steps left, image right)
- *   - Mobile: stacked (image top, steps below)
- *   - No scroll-jacking — section scrolls naturally with the page
+ * Mobile (<820px): Entire section sticky (top: nav-height), content swaps.
+ *   - Scroll progress determines active step.
+ *   - Very short viewports (max-height: 520px): sequential layout, no pinning.
  */
 
-const STEPS = [
-  {
-    num: "01",
-    color: "#3B82F6",
-    titleKey: "step1_title" as const,
-    bodyKey: "step1_body" as const,
-    highlightKey: "step1_highlight" as const,
-  },
-  {
-    num: "02",
-    color: "#22C55E",
-    titleKey: "step2_title" as const,
-    bodyKey: "step2_body" as const,
-    highlightKey: "step2_highlight" as const,
-  },
-  {
-    num: "03",
-    color: "#F59E0B",
-    titleKey: "step3_title" as const,
-    bodyKey: "step3_body" as const,
-    highlightKey: "step3_highlight" as const,
-  },
-] as const
-
-const STEP_IMAGES = [
-  "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
-  "/images/qrcode-checkin-中八桌球-香港新蒲崗.webp",
-  "/gallery/spacepliot.png",
-] as const
-
-function highlight(text: string, word: string, color: string): React.ReactNode {
-  if (!word) return text
-  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  const parts = text.split(new RegExp(`(${escaped})`, "g"))
-  return parts.map((part, i) =>
-    part === word ? (
-      <span key={i} style={{ color, fontWeight: 700 }}>
-        {part}
-      </span>
-    ) : (
-      part
-    ),
-  )
+interface Step {
+  title: string
+  desc: string
+  art: string
+  cta?: { label: string; href: string }
 }
 
+const STEPS: Step[] = [
+  {
+    title: "選擇時段",
+    desc: "選擇日期、時間及時長。即時確認，無需等候。",
+    art: "",
+    cta: { label: "立即預訂", href: "/book" },
+  },
+  {
+    title: "掃碼入場",
+    desc: "預訂確認後即獲 QR 碼。到場掃描，自動開門。",
+    art: "",
+    cta: { label: "我的 QR 碼", href: "/membership" },
+  },
+  {
+    title: "累積積分",
+    desc: "每 HK$1 累積 1 積分。越打越划算。",
+    art: "",
+    cta: { label: "查看積分", href: "/membership" },
+  },
+] as const
+
+const NAV_HEIGHT = 64
+
 export default function Section5Booking() {
-  const tHow = useTranslations("how")
-  const stepsRef = useRef<HTMLDivElement>(null)
-  const bgRef = useRef<HTMLDivElement>(null)
-  const titleRef = useRef<HTMLDivElement>(null)
+  const t = useTranslations("how")
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const stepsContainerRef = useRef<HTMLDivElement>(null)
+  const progressBarRef = useRef<HTMLDivElement>(null)
 
+  const [isDesktop, setIsDesktop] = useState(false)
+  const [isShortViewport, setIsShortViewport] = useState(false)
+  const [activeIdx, setActiveIdx] = useState(0)
+  const [progressFills, setProgressFills] = useState<number[]>(
+    STEPS.map(() => 0)
+  )
+
+  // Determine layout: desktop (≥820px), mobile with/without short viewport
   useEffect(() => {
-    const steps = stepsRef.current
-    const bg = bgRef.current
-    const title = titleRef.current
-    if (!steps) return
+    const updateLayout = () => {
+      const mq = matchMedia("(min-width: 820px)")
+      setIsDesktop(mq.matches)
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (reduce) {
-      steps.querySelectorAll<HTMLElement>("[data-step]").forEach((el) => {
-        el.style.opacity = "1"
-        el.style.transform = "none"
-      })
-      return
+      const vh = window.innerHeight
+      const vw = window.innerWidth
+      const isShort = vw < 820 && vh > 520
+      setIsShortViewport(isShort)
     }
 
-    /* ── Step reveal via IntersectionObserver ── */
-    const stepEls = Array.from(steps.querySelectorAll<HTMLElement>("[data-step]"))
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const el = entry.target as HTMLElement
-            const idx = Number(el.getAttribute("data-step"))
-            el.style.transitionDelay = `${idx * 0.15}s`
-            el.classList.add("is-shown")
-            observer.unobserve(el)
-          }
-        })
-      },
-      { threshold: 0.2, rootMargin: "0px 0px -60px 0px" },
-    )
-    stepEls.forEach((el) => observer.observe(el))
-
-    /* ── Parallax depth — background moves slower than scroll ── */
-    let raf: number
-    const onScroll = () => {
-      raf = requestAnimationFrame(() => {
-        const rect = steps.getBoundingClientRect()
-        const viewH = window.innerHeight
-        if (rect.bottom < 0 || rect.top > viewH) return
-
-        // Progress: 0 when section top enters viewport, 1 when bottom leaves
-        const progress = 1 - rect.top / (rect.height + viewH)
-
-        // Parallax transforms at different rates
-        if (bg) {
-          bg.style.transform = `translateY(${progress * 60}px)`
-        }
-        if (title) {
-          title.style.transform = `translateY(${progress * -25}px)`
-        }
-      })
-    }
-
-    window.addEventListener("scroll", onScroll, { passive: true })
-    onScroll()
+    updateLayout()
+    const mq = matchMedia("(min-width: 820px)")
+    mq.addEventListener("change", updateLayout)
+    window.addEventListener("resize", updateLayout)
 
     return () => {
-      window.removeEventListener("scroll", onScroll)
-      cancelAnimationFrame(raf)
-      observer.disconnect()
+      mq.removeEventListener("change", updateLayout)
+      window.removeEventListener("resize", updateLayout)
     }
   }, [])
 
+  // Main scroll/layout logic
+  useEffect(() => {
+    const section = sectionRef.current
+    const stepsContainer = stepsContainerRef.current
+    if (!section || !stepsContainer) return
+
+    const prefersReducedMotion = matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+
+    let raf: number | null = null
+
+    const updateLayout = () => {
+      if (isDesktop) {
+        // Desktop: centerline logic
+        const steps = Array.from(stepsContainer.querySelectorAll<HTMLElement>(
+          "[data-step-idx]"
+        ))
+        const viewCenter = window.innerHeight / 2
+
+        let newActive = 0
+        let minDist = Infinity
+
+        steps.forEach((el, idx) => {
+          const rect = el.getBoundingClientRect()
+          const stepCenter = rect.top + rect.height / 2
+          const dist = Math.abs(stepCenter - viewCenter)
+
+          if (dist < minDist) {
+            minDist = dist
+            newActive = idx
+          }
+        })
+
+        setActiveIdx(newActive)
+
+        // Update progress fills
+        const newFills = steps.map((el, idx) => {
+          if (idx < newActive) return 1
+          if (idx > newActive) return 0
+
+          const rect = el.getBoundingClientRect()
+          const stepStart = rect.top
+          const stepEnd = rect.bottom
+          const progress =
+            (viewCenter - stepStart) / (stepEnd - stepStart)
+          return Math.max(0, Math.min(1, progress))
+        })
+
+        setProgressFills(newFills)
+      } else if (!isShortViewport) {
+        // Mobile short viewport: sequential layout (no pinning)
+        setActiveIdx(0)
+        setProgressFills(STEPS.map(() => 1))
+      } else {
+        // Mobile normal: scroll progress
+        const scrollH = document.documentElement.scrollHeight - window.innerHeight
+        const scrollProgress = window.scrollY / scrollH
+        const idx = Math.min(
+          STEPS.length - 1,
+          Math.floor(scrollProgress * STEPS.length)
+        )
+
+        setActiveIdx(idx)
+
+        // Progress within active step
+        const stepProgress =
+          (scrollProgress * STEPS.length - idx) / 1
+        const newFills = STEPS.map((_, i) => {
+          if (i < idx) return 1
+          if (i > idx) return 0
+          return Math.max(0, Math.min(1, stepProgress))
+        })
+
+        setProgressFills(newFills)
+      }
+    }
+
+    const onScroll = () => {
+      if (raf !== null) cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(updateLayout)
+    }
+
+    updateLayout()
+    window.addEventListener("scroll", onScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      if (raf !== null) cancelAnimationFrame(raf)
+    }
+  }, [isDesktop, isShortViewport])
+
+  // Progress bar click handler
+  const handleProgressClick = (idx: number) => {
+    const stepsContainer = stepsContainerRef.current
+    if (!stepsContainer) return
+
+    const targetStep = stepsContainer.querySelector(
+      `[data-step-idx="${idx}"]`
+    ) as HTMLElement | null
+    if (!targetStep) return
+
+    const prefersReducedMotion = matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches
+
+    if (isDesktop) {
+      // Desktop: scroll to center
+      const rect = targetStep.getBoundingClientRect()
+      const targetY =
+        window.scrollY +
+        rect.top +
+        rect.height / 2 -
+        window.innerHeight / 2
+
+      window.scrollTo({
+        top: targetY,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      })
+    } else if (!isShortViewport) {
+      // Mobile short: no scroll needed
+      return
+    } else {
+      // Mobile normal: scroll to step position
+      const targetY =
+        window.scrollY +
+        targetStep.getBoundingClientRect().top -
+        NAV_HEIGHT
+
+      window.scrollTo({
+        top: targetY,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      })
+    }
+  }
+
   return (
     <section
+      ref={sectionRef}
       data-nav-theme="light"
-      aria-label="Booking process — three steps to play"
-      className="relative" style={{ background: "#f5f5f7" }}
+      aria-labelledby="booking-flow-title"
+      className="booking-flow-section"
+      style={{
+        "--n": STEPS.length,
+        "--nav-h": `${NAV_HEIGHT}px`,
+        "--steps-top-pad": "22svh",
+        "--steps-bot-pad": "34svh",
+      } as React.CSSProperties & { [key: string]: string | number }}
     >
-      <div className="s5-wrapper">
-        {/* ── Parallax background layer (moves slower) ── */}
-        <div ref={bgRef} className="s5-bg" />
+      {/* Hidden title for a11y */}
+      <h2 id="booking-flow-title" style={{ display: "none" }}>
+        預訂流程
+      </h2>
 
-        {/* ── Title ── */}
-        <div ref={titleRef} className="s5-title-block">
-          <h2
-            className="s5-title"
-            data-cms-key="how.title"
-          >
-            {tHow("title")}
-          </h2>
-        </div>
-
-        {/* ── Grid: steps left, image right ── */}
-        <div ref={stepsRef} className="s5-grid">
-          <div className="s5-steps">
+      {/* Desktop: Two-column layout */}
+      <div className="flow-desktop">
+        {/* Left: Sticky image */}
+        <div className="flow-pin">
+          <div className="flow-image-wrap">
             {STEPS.map((step, i) => (
-              <div
-                key={step.num}
-                data-step={i}
-                className="s5-step"
-              >
-                <div className="s5-marker">
-                  <span className="s5-num">{step.num}</span>
-                </div>
-                {step.num === "02" ? (
-                  <Link href="/membership#entry-guide" className="s5-text s5-entry-link">
-                    <h3
-                      className="s5-step-title"
-                      data-cms-key={`how.${step.titleKey}`}
-                    >
-                      {highlight(
-                        tHow(step.titleKey),
-                        tHow(step.highlightKey),
-                        step.color,
-                      )}
-                    </h3>
-                    <p
-                      className="s5-step-body"
-                      data-cms-key={`how.${step.bodyKey}`}
-                    >
-                      {tHow(step.bodyKey)}
-                    </p>
-                  </Link>
-                ) : (
-                  <div className="s5-text">
-                    <h3
-                      className="s5-step-title"
-                      data-cms-key={`how.${step.titleKey}`}
-                    >
-                      {highlight(
-                        tHow(step.titleKey),
-                        tHow(step.highlightKey),
-                        step.color,
-                      )}
-                    </h3>
-                    <p
-                      className="s5-step-body"
-                      data-cms-key={`how.${step.bodyKey}`}
-                    >
-                      {tHow(step.bodyKey)}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div className="s5-image-wrap">
-            {STEP_IMAGES.map((src, i) => (
               <img
-                key={src}
-                src={src}
-                alt={tHow(STEPS[i].titleKey)}
-                className="s5-image"
+                key={i}
+                src={step.art || "/images/placeholder-art.svg"}
+                alt={step.title}
+                className={`flow-image ${i === activeIdx ? "active" : ""}`}
                 loading={i === 0 ? "eager" : "lazy"}
               />
             ))}
-            {/* Stacked images — opacity controlled by CSS :has() on step hover/focus */}
           </div>
+
+          {/* Progress bar */}
+          <div className="flow-progress-bar">
+            {STEPS.map((_, i) => (
+              <button
+                key={i}
+                className="flow-progress-segment"
+                onClick={() => handleProgressClick(i)}
+                aria-label={`Go to step ${i + 1}`}
+                style={{
+                  "--progress": progressFills[i] ?? 0,
+                } as React.CSSProperties & { [key: string]: number }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Right: Steps scroll naturally */}
+        <div ref={stepsContainerRef} className="flow-steps">
+          {STEPS.map((step, i) => (
+            <div
+              key={i}
+              data-step-idx={i}
+              className={`flow-step ${i === activeIdx ? "active" : ""}`}
+              aria-current={i === activeIdx ? "step" : undefined}
+            >
+              <div className="flow-marker">
+                <span className="flow-num">{String(i + 1).padStart(2, "0")}</span>
+              </div>
+
+              <div className="flow-content">
+                <h3 className="flow-title">{step.title}</h3>
+                <p className="flow-desc">{step.desc}</p>
+
+                {step.cta && i === activeIdx && (
+                  <Link href={step.cta.href} className="flow-cta">
+                    {step.cta.label}
+                  </Link>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
+      {/* Mobile: Pinned container with content swap */}
+      {!isDesktop && (
+        <div className="flow-mobile">
+          {isShortViewport ? (
+            /* Normal mobile: pinned */
+            <>
+              <div className="flow-mobile-image">
+                {STEPS.map((step, i) => (
+                  <img
+                    key={i}
+                    src={step.art || "/images/placeholder-art.svg"}
+                    alt={step.title}
+                    className={`flow-image ${i === activeIdx ? "active" : ""}`}
+                    loading={i === 0 ? "eager" : "lazy"}
+                  />
+                ))}
+              </div>
+
+              <div className="flow-mobile-steps">
+                {STEPS.map((step, i) => (
+                  <div
+                    key={i}
+                    className={`flow-mobile-step ${i === activeIdx ? "active" : ""}`}
+                    aria-current={i === activeIdx ? "step" : undefined}
+                  >
+                    <div className="flow-marker">
+                      <span className="flow-num">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                    </div>
+                    <div className="flow-content">
+                      <h3 className="flow-title">{step.title}</h3>
+                      <p className="flow-desc">{step.desc}</p>
+                      {step.cta && i === activeIdx && (
+                        <Link href={step.cta.href} className="flow-cta">
+                          {step.cta.label}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Mobile progress bar */}
+              <div className="flow-mobile-progress">
+                {STEPS.map((_, i) => (
+                  <button
+                    key={i}
+                    className="flow-progress-segment"
+                    onClick={() => handleProgressClick(i)}
+                    aria-label={`Go to step ${i + 1}`}
+                    style={{
+                      "--progress": progressFills[i] ?? 0,
+                    } as React.CSSProperties & { [key: string]: number }}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            /* Very short viewport: sequential */
+            <div className="flow-sequential">
+              {STEPS.map((step, i) => (
+                <div key={i} className="flow-step-seq" aria-current="step">
+                  <div className="flow-marker">
+                    <span className="flow-num">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <div className="flow-content">
+                    <h3 className="flow-title">{step.title}</h3>
+                    <p className="flow-desc">{step.desc}</p>
+                    {step.cta && (
+                      <Link href={step.cta.href} className="flow-cta">
+                        {step.cta.label}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <style jsx>{`
-        .s5-wrapper {
-          position: relative;
-          max-width: 1080px;
-          margin: 0 auto;
-          padding: clamp(72px, 10vh, 120px) clamp(20px, 5vw, 48px) clamp(64px, 8vh, 96px);
-          overflow: hidden;
-        }
-
-        /* ── Parallax background ── */
-        .s5-bg {
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(
-            ellipse 60% 50% at 70% 50%,
-            rgba(26, 157, 92, 0.06) 0%,
-            transparent 70%
-          );
-          pointer-events: none;
-          will-change: transform;
-          transform: translateY(0);
-        }
-
-        /* ── Title ── */
-        .s5-title-block {
-          text-align: center;
-          margin-bottom: clamp(32px, 5vw, 48px);
-          position: relative;
-          z-index: 2;
-          will-change: transform;
-          transform: translateY(0);
-        }
-        .s5-title {
-          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
-            "SF Pro Display", "Helvetica Neue", sans-serif;
-          font-size: clamp(1.7rem, 3.6vw, 2.5rem);
-          font-weight: 900;
-          letter-spacing: -0.02em;
+        .booking-flow-section {
+          background: #f3f3f5;
           color: #1d1d1f;
-          margin: 0;
-          line-height: 1.2;
-        }
-
-        /* ── Grid layout ── */
-        .s5-grid {
-          display: grid;
-          grid-template-columns: 1fr 1.05fr;
-          gap: 44px;
-          align-items: center;
           position: relative;
-          z-index: 2;
-        }
-
-        /* ── Steps list ── */
-        .s5-steps {
-          display: flex;
-          flex-direction: column;
-          gap: 30px;
-        }
-        .s5-step {
-          display: flex;
-          gap: 20px;
-          align-items: flex-start;
-          text-align: left;
-          opacity: 0;
-          transform: translateY(16px);
-          transition:
-            opacity 0.6s cubic-bezier(0.2, 0.7, 0.3, 1),
-            transform 0.6s cubic-bezier(0.2, 0.7, 0.3, 1);
-        }
-        :global(.s5-step.is-shown) {
-          opacity: 1 !important;
-          transform: none !important;
-        }
-
-        /* ── Step marker (circle) ── */
-        .s5-marker {
-          flex-shrink: 0;
-          width: 42px;
-          height: 42px;
-          border-radius: 50%;
-          border: 1px solid rgba(0, 0, 0, 0.18);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: rgba(0, 0, 0, 0.6);
-          transition:
-            background 0.45s ease,
-            border-color 0.45s ease,
-            color 0.45s ease,
-            transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
-          margin-top: 2px;
-        }
-        .s5-step:hover .s5-marker,
-        .s5-step:focus-within .s5-marker {
-          background: #22C55E;
-          border-color: #22C55E;
-          color: #ffffff;
-          transform: scale(1.06);
-        }
-        .s5-num {
-          font-family: "Inter", -apple-system, sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-        }
-
-        /* ── Step text ── */
-        .s5-text {
-          display: block;
-        }
-        .s5-entry-link {
-          color: inherit;
-          text-decoration: none;
-        }
-        .s5-entry-link:focus-visible {
-          outline: 2px solid #22C55E;
-          outline-offset: 6px;
-          border-radius: 4px;
-        }
-        .s5-step-title {
-          display: block;
-          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
-            "SF Pro Display", "Helvetica Neue", sans-serif;
-          font-weight: 700;
-          font-size: clamp(17px, 2vw, 20px);
-          color: rgba(0, 0, 0, 0.65);
-          margin: 0 0 8px;
-          transition: color 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
-          line-height: 1.3;
-        }
-        .s5-step:hover .s5-step-title,
-        .s5-step:focus-within .s5-step-title {
-          color: #1d1d1f;
-          transform: translateX(3px);
-        }
-        .s5-step-body {
-          display: block;
-          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont,
-            "SF Pro Display", "Helvetica Neue", sans-serif;
-          font-size: 14.5px;
-          line-height: 1.8;
-          color: rgba(0, 0, 0, 0.45);
-          max-width: 34ch;
-          margin: 0;
-          transition: color 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
-        }
-        .s5-step:hover .s5-step-body,
-        .s5-step:focus-within .s5-step-body {
-          color: rgba(0, 0, 0, 0.65);
-          transform: translateX(3px);
-        }
-
-        /* ── Right image column ── */
-        .s5-image-wrap {
-          position: relative;
-          border-radius: 18px;
-          overflow: hidden;
-          border: 1px solid rgba(0, 0, 0, 0.1);
-          background: #e8e8ea;
-          aspect-ratio: 4 / 3;
-        }
-        .s5-image {
-          position: absolute;
-          inset: 0;
           width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-          opacity: 0;
-          transform: scale(1.05);
-          transition: opacity 0.75s ease, transform 1.2s cubic-bezier(0.2, 0.7, 0.3, 1);
-        }
-        .s5-image:nth-child(1) {
-          opacity: 1;
-          transform: scale(1);
-        }
-        /* Show image on step hover — sibling selector via :has */
-        .s5-steps:has(.s5-step:nth-child(1):hover) .s5-image:nth-child(1),
-        .s5-steps:has(.s5-step:nth-child(1):focus-within) .s5-image:nth-child(1) {
-          opacity: 1;
-          transform: scale(1);
-        }
-        .s5-steps:has(.s5-step:nth-child(2):hover) .s5-image:nth-child(2),
-        .s5-steps:has(.s5-step:nth-child(2):focus-within) .s5-image:nth-child(2) {
-          opacity: 1;
-          transform: scale(1);
-        }
-        .s5-steps:has(.s5-step:nth-child(3):hover) .s5-image:nth-child(3),
-        .s5-steps:has(.s5-step:nth-child(3):focus-within) .s5-image:nth-child(3) {
-          opacity: 1;
-          transform: scale(1);
         }
 
-        /* ── Mobile ── */
-        @media (max-width: 860px) {
-          .s5-grid {
-            grid-template-columns: 1fr;
-            gap: 30px;
+        /* Desktop layout */
+        .flow-desktop {
+          display: none;
+        }
+
+        @media (min-width: 820px) {
+          .booking-flow-section {
+            padding: clamp(48px, 8vh, 80px) clamp(20px, 5vw, 48px);
           }
-          .s5-image-wrap {
-            order: -1;
+
+          .flow-desktop {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 48px;
+            align-items: start;
+            max-width: 1400px;
+            margin: 0 auto;
           }
-          .s5-steps {
+
+          .flow-pin {
+            position: sticky;
+            top: 80px;
+            height: fit-content;
+          }
+
+          .flow-image-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            border-radius: 28px;
+            overflow: hidden;
+            background: #e8e8ea;
+            margin-bottom: 24px;
+          }
+
+          .flow-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.55s ease;
+          }
+
+          .flow-image.active {
+            opacity: 1;
+          }
+
+          .flow-progress-bar {
+            display: flex;
+            gap: 8px;
+          }
+
+          .flow-progress-segment {
+            flex: 1;
+            height: 3px;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+          }
+
+          .flow-progress-segment::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: #52c25f;
+            width: calc(var(--progress, 0) * 100%);
+            transition: width 0.2s ease;
+          }
+
+          .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding-top: var(--steps-top-pad);
+            padding-bottom: var(--steps-bot-pad);
+          }
+
+          .flow-step {
+            display: flex;
             gap: 24px;
+            min-height: 38svh;
+            align-items: center;
+            padding: 0;
+            opacity: 0.38;
+            transition: opacity 0.3s ease;
           }
-          .s5-wrapper {
-            padding: 72px 20px 64px;
+
+          .flow-step.active {
+            opacity: 1;
+          }
+
+          .flow-marker {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+          }
+
+          .flow-step.active .flow-marker {
+            background: #52c25f;
+            border-color: #52c25f;
+          }
+
+          .flow-num {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.6);
+            transition: color 0.3s ease;
+          }
+
+          .flow-step.active .flow-num {
+            color: #062b0d;
+          }
+
+          .flow-content {
+            flex: 1;
+          }
+
+          .flow-title {
+            font-size: clamp(18px, 2vw, 24px);
+            font-weight: 700;
+            margin: 0 0 8px;
+            color: rgba(0, 0, 0, 0.65);
+            transition: color 0.3s ease;
+          }
+
+          .flow-step.active .flow-title {
+            color: #1d1d1f;
+          }
+
+          .flow-desc {
+            font-size: 14.5px;
+            line-height: 1.6;
+            color: rgba(0, 0, 0, 0.45);
+            margin: 0 0 16px;
+            max-width: 40ch;
+            transition: color 0.3s ease;
+          }
+
+          .flow-step.active .flow-desc {
+            color: rgba(0, 0, 0, 0.65);
+          }
+
+          .flow-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #52c25f;
+            color: #062b0d;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+          }
+
+          .flow-cta:hover {
+            background: #40a84a;
+            transform: translateX(2px);
+          }
+
+          .flow-cta:focus-visible {
+            outline: 2px solid #52c25f;
+            outline-offset: 4px;
           }
         }
-        @media (max-width: 560px) {
-          .s5-marker {
+
+        /* Mobile layout */
+        .flow-mobile {
+          display: block;
+        }
+
+        @media (max-width: 819px) {
+          .booking-flow-section {
+            padding: 0;
+          }
+
+          .flow-mobile {
+            position: sticky;
+            top: var(--nav-h);
+            height: calc(100svh - var(--nav-h));
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+          }
+
+          .flow-mobile-image {
+            position: relative;
+            flex-shrink: 0;
+            width: 100%;
+            height: clamp(190px, 36svh, 420px);
+            max-width: 520px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #e8e8ea;
+          }
+
+          .flow-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.55s ease;
+          }
+
+          .flow-image.active {
+            opacity: 1;
+          }
+
+          .flow-mobile-steps {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .flow-mobile-step {
+            display: flex;
+            gap: 16px;
+            opacity: 0.38;
+            transition: opacity 0.3s ease;
+          }
+
+          .flow-mobile-step.active {
+            opacity: 1;
+          }
+
+          .flow-marker {
+            flex-shrink: 0;
             width: 36px;
             height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid rgba(0, 0, 0, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-top: 2px;
           }
-          .s5-step {
-            gap: 15px;
+
+          .flow-mobile-step.active .flow-marker {
+            background: #52c25f;
+            border-color: #52c25f;
           }
-          .s5-step-body {
-            font-size: 13.5px;
+
+          .flow-num {
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(0, 0, 0, 0.6);
+            transition: color 0.3s ease;
+          }
+
+          .flow-mobile-step.active .flow-num {
+            color: #062b0d;
+          }
+
+          .flow-content {
+            flex: 1;
+          }
+
+          .flow-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 6px;
+            color: rgba(0, 0, 0, 0.65);
+            transition: color 0.3s ease;
+          }
+
+          .flow-mobile-step.active .flow-title {
+            color: #1d1d1f;
+          }
+
+          .flow-desc {
+            font-size: 13px;
+            line-height: 1.5;
+            color: rgba(0, 0, 0, 0.45);
+            margin: 0 0 12px;
+            transition: color 0.3s ease;
+          }
+
+          .flow-mobile-step.active .flow-desc {
+            color: rgba(0, 0, 0, 0.65);
+          }
+
+          .flow-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #52c25f;
+            color: #062b0d;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.2s ease;
+          }
+
+          .flow-cta:hover {
+            background: #40a84a;
+          }
+
+          .flow-cta:focus-visible {
+            outline: 2px solid #52c25f;
+            outline-offset: 2px;
+          }
+
+          .flow-mobile-progress {
+            flex-shrink: 0;
+            display: flex;
+            gap: 4px;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+          }
+
+          .flow-progress-segment {
+            flex: 1;
+            height: 2px;
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            cursor: pointer;
+            border-radius: 1px;
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+          }
+
+          .flow-progress-segment::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: #52c25f;
+            width: calc(var(--progress, 0) * 100%);
+            transition: width 0.2s ease;
+          }
+        }
+
+        /* Very short viewport: sequential layout */
+        @media (max-width: 819px) and (max-height: 520px) {
+          .flow-mobile {
+            position: static;
+            height: auto;
+            display: block;
+          }
+
+          .flow-mobile-image {
+            display: none;
+          }
+
+          .flow-mobile-steps {
+            padding: 20px;
+            flex: none;
+            overflow: visible;
+          }
+
+          .flow-mobile-progress {
+            display: none;
+          }
+
+          .flow-sequential {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 20px;
+          }
+
+          .flow-step-seq {
+            display: flex;
+            gap: 16px;
+          }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+          .flow-image,
+          .flow-progress-segment::before,
+          .flow-marker,
+          .flow-step,
+          .flow-cta {
+            transition: none !important;
           }
         }
       `}</style>

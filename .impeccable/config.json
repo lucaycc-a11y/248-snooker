@@ -164,6 +164,11 @@
         "value": "rgb(124, 120, 120)",
         "createdAt": "2026-09-27T14:07:16.298Z",
         "reason": "Step 3 spec-required metallic gradient colors (deep grey → light grey → deep grey)"
+      },
+      {
+        "rule": "app/[locale]/venue/venuecontent.tsx",
+        "value": "266 bounce-easing cubic-bezier(.28, 1.5, .52, 1)",
+        "createdAt": "2026-09-29T09:20:39.044Z"
       }
     ]
   }
