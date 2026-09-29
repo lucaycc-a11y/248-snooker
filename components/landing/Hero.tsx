@@ -42,15 +42,12 @@ export default function Hero() {
     >
       {/* Square photo container — height = 100dvh, width = height, centered.
           On narrow viewports it overflows left/right (clipped by section overflow:hidden).
-          On wide viewports it sits centered with black on either side.
-          Vertically: centered then nudged up ~8% so the subject sits mid-frame
-          without the snooker table dominating the lower half. */}
+          On wide viewports it sits centered with black on either side. */}
       <div
-        className="hero__bg absolute top-1/2 left-1/2"
+        className="hero__bg absolute top-0 left-1/2 -translate-x-1/2"
         style={{
           width: "100dvh",
           height: "100dvh",
-          transform: "translate(-50%, calc(-50% - 8%))",
           pointerEvents: "none",
         }}
       >
@@ -88,20 +85,20 @@ export default function Hero() {
         </video>
       </div>
 
-      {/* Text overlay — absolutely positioned on top of photo.
-          Sits in the upper portion of the frame to stay above the snooker table.
-          A subtle radial scrim behind the text block ensures legibility without
-          a hard-edged bar. */}
+      {/* Text overlay — vertically centered with a slight upward nudge so the
+          content sits mid-frame above the snooker table.
+          Scrim radiates outward from the text block for legibility. */}
       <div
         ref={heroContentRef}
-        className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 text-center"
+        className="absolute inset-x-0 z-10 flex flex-col items-center px-6 text-center"
         style={{
-          paddingTop: "clamp(88px, 13svh, 120px)",
-          // Scrim: darkens only behind the text block, fades out downward
+          top: "50%",
+          transform: "translateY(calc(-50% - 6svh))",
+          // Scrim: soft radial glow behind the text block only
           background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.28) 70%, transparent 100%)",
-          // Only as tall as the content needs to be
-          paddingBottom: "clamp(32px, 5svh, 56px)",
+            "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,0,0,0.45) 0%, transparent 100%)",
+          paddingTop: "clamp(24px, 4svh, 48px)",
+          paddingBottom: "clamp(24px, 4svh, 48px)",
           pointerEvents: "none",
         }}
       >
