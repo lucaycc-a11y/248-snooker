@@ -1,32 +1,46 @@
 "use client"
 
 import Image from "next/image"
-import { motion, useReducedMotion } from "framer-motion"
-import { useEffect, useRef, useState } from "react"
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion"
+import { useRef, useState } from "react"
+import { useTranslations } from "next-intl"
+import { BarChart3, Clock3, Trophy } from "lucide-react"
 
-// Screenshot real dimensions: 4269 × 2400 → aspect ratio 1.7788
+// Screenshot real dimensions: 4269 × 2400
 const SCREEN_IMAGE = "/gallery/spacepliot.png"
-const EASE: [number, number, number, number] = [0.2, 0.7, 0.3, 1]
+const EASE = [0.16, 1, 0.3, 1] as const
 
 type Props = { compact?: boolean }
 
 export default function SpacePilotScoreboardExperience({ compact = false }: Props) {
-  const reducedMotion = useReducedMotion()
+  const t = useTranslations("spacePilot")
   const sectionRef = useRef<HTMLElement>(null)
-  const [visible, setVisible] = useState(false)
+  const reducedMotion = useReducedMotion()
+  const [stage, setStage] = useState(0)
 
-  useEffect(() => {
-    const el = sectionRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
-      { threshold: 0.12 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"],
+  })
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 110,
+    damping: 28,
+    mass: 0.35,
+  })
 
-  const show = reducedMotion ? true : visible
+  const imageScale = useTransform(smoothProgress, [0, 0.42, 1], [0.82, 0.96, 1])
+  const imageRotate = useTransform(smoothProgress, [0, 0.42, 1], [7, 2, 0])
+  const imageY = useTransform(smoothProgress, [0, 0.42, 1], [80, 15, 0])
+  const imageOpacity = useTransform(smoothProgress, [0, 0.12, 1], [0.65, 1, 1])
+  const leftPanelX = useTransform(smoothProgress, [0.08, 0.42], [-48, 0])
+  const rightPanelX = useTransform(smoothProgress, [0.42, 0.78], [48, 0])
+  const standingsY = useTransform(smoothProgress, [0.62, 0.9], [42, 0])
+  const standingsOpacity = useTransform(smoothProgress, [0.58, 0.78], [0, 1])
+  const progressWidth = useTransform(smoothProgress, [0, 1], ["8%", "100%"])
+
+  useMotionValueEvent(smoothProgress, "change", (value) => {
+    setStage(value < 0.34 ? 0 : value < 0.68 ? 1 : 2)
+  })
 
   // Compact variant — used in member dashboard cards
   if (compact) {
@@ -36,14 +50,15 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
         className="mt-6 overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.04] p-4"
       >
         <div className="mb-4">
-          <p className="text-[10px] tracking-[0.18em] text-[#22C55E]" style={{ fontFamily: "inherit" }}>
-            Space Pilot
+          <p data-cms-key="spacePilot.scoreboard_kicker" className="font-label text-[10px] tracking-[0.18em] text-[#22C55E]">
+            {t("scoreboard_kicker")}
           </p>
           <h2
             id="member-space-pilot-title"
+            data-cms-key="spacePilot.scoreboard_title"
             className="mt-1 text-lg font-semibold text-[#F5F5F7]"
           >
-            敬請期待
+            {t("scoreboard_title")}
           </h2>
         </div>
         <div
@@ -52,7 +67,7 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
         >
           <Image
             src={SCREEN_IMAGE}
-            alt="Space Pilot 計分介面展示"
+            alt={t("scoreboard_alt")}
             fill
             sizes="(max-width: 768px) 100vw, 640px"
             className="object-contain"
@@ -66,157 +81,121 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
   return (
     <section
       ref={sectionRef}
-      aria-labelledby="space-pilot-section-title"
+      aria-labelledby="space-pilot-scoreboard-title"
       data-nav-theme="dark"
-      style={{
-        background: "#000",
-        color: "#fff",
-        minHeight: "100svh",
-        display: "flex",
-        alignItems: "center",
-        padding: "80px 20px",
-      }}
+      className="relative h-[220vh] overflow-clip bg-black"
     >
-      <div style={{ maxWidth: 1120, margin: "0 auto", width: "100%" }}>
+      <div className="sticky top-0 flex min-h-[100svh] items-center overflow-hidden px-4 py-16 md:px-8 md:py-20">
+        <div className="mx-auto w-full max-w-7xl">
 
-        {/* Eyebrow */}
-        <motion.p
-          data-cms-key="spacePilot.section_eyebrow"
-          initial={{ opacity: 0, y: 12 }}
-          animate={show ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.65, ease: EASE, delay: 0 }}
-          style={{
-            textAlign: "center",
-            fontSize: "clamp(15px, 1.1vw, 17px)",
-            color: "rgba(255,255,255,0.45)",
-            letterSpacing: "0.06em",
-            margin: "0 0 20px",
-            fontWeight: 400,
-          }}
-        >
-          Space Pilot
-        </motion.p>
-
-        {/* Headline */}
-        <motion.h2
-          id="space-pilot-section-title"
-          data-cms-key="spacePilot.section_headline"
-          initial={{ opacity: 0, y: 16 }}
-          animate={show ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: EASE, delay: 0.08 }}
-          style={{
-            textAlign: "center",
-            fontSize: "clamp(2.25rem, 5vw, 4.5rem)",
-            lineHeight: 1.1,
-            fontWeight: 600,
-            letterSpacing: "-0.02em",
-            margin: "0 0 56px",
-          }}
-        >
-          每一場對戰，<br />都值得被記錄。
-        </motion.h2>
-
-        {/* iPad frame */}
-        <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          animate={show ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.75, ease: EASE, delay: 0.18 }}
-          style={{
-            /* outer bezel */
-            margin: "0 auto",
-            width: "min(78%, 1100px)",
-            borderRadius: 28,
-            border: "2px solid rgba(255,255,255,0.18)",
-            background: "#0a0a0a",
-            padding: 10,
-          }}
-        >
-          {/* screen well — aspect matches the real screenshot */}
-          <div
-            style={{
-              borderRadius: 18,
-              overflow: "hidden",
-              position: "relative",
-              aspectRatio: "4269 / 2400",
-            }}
-          >
-            <Image
-              src={SCREEN_IMAGE}
-              alt="Space Pilot 計分介面展示"
-              fill
-              sizes="(max-width: 768px) 95vw, min(78vw, 1100px)"
-              className="object-cover"
-              priority
-              draggable={false}
-            />
-          </div>
-        </motion.div>
-
-        {/* Bottom two-column row */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={show ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: EASE, delay: 0.3 }}
-          className="mx-auto mt-20 grid max-w-[960px] grid-cols-1 gap-8 items-start md:grid-cols-[1fr_2fr] md:gap-x-14 md:gap-y-0"
-        >
-          {/* Left: stat block */}
-          <div>
-            <p
-              data-cms-key="spacePilot.stat_label"
-              style={{
-                fontSize: 12,
-                color: "rgba(255,255,255,0.4)",
-                letterSpacing: "0.06em",
-                margin: "0 0 10px",
-                textTransform: "uppercase",
-              }}
+          {/* Header row */}
+          <div className="mb-8 flex items-end justify-between gap-6 md:mb-12">
+            <div className="max-w-2xl">
+              <p
+                data-cms-key="spacePilot.scoreboard_kicker"
+                className="font-label text-[10px] tracking-[0.2em] text-[#22C55E]"
+              >
+                {t("scoreboard_kicker")}
+              </p>
+              <h2
+                id="space-pilot-scoreboard-title"
+                data-cms-key="spacePilot.scoreboard_title"
+                className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-6xl"
+              >
+                {t("scoreboard_title")}
+              </h2>
+              <p
+                data-cms-key="spacePilot.scoreboard_intro"
+                className="mt-4 max-w-xl text-sm leading-relaxed text-white/60 md:text-lg"
+              >
+                {t("scoreboard_intro")}
+              </p>
+            </div>
+            <div
+              data-cms-key="spacePilot.scoreboard_live"
+              className="hidden shrink-0 items-center gap-2 border-b border-white/20 pb-2 text-[10px] tracking-[0.18em] text-white/45 md:flex"
             >
-              Space Pilot 智能管家
-            </p>
-            <p
-              data-cms-key="spacePilot.stat_main"
-              style={{
-                fontSize: "clamp(1.5rem, 2.4vw, 2.25rem)",
-                fontWeight: 600,
-                lineHeight: 1.15,
-                margin: "0 0 10px",
-                letterSpacing: "-0.015em",
-              }}
-            >
-              敬請期待
-            </p>
-            <p
-              data-cms-key="spacePilot.stat_footnote"
-              style={{
-                fontSize: 13,
-                color: "rgba(255,255,255,0.38)",
-                lineHeight: 1.6,
-                margin: 0,
-              }}
-            >
-              功能開發中，詳情將於日後公佈
-            </p>
+              <span className="h-2 w-2 rounded-full bg-[#22C55E]" aria-hidden="true" />
+              {t("scoreboard_live")}
+            </div>
           </div>
 
-          {/* Right: paragraph */}
+          {/* Image with scroll-driven 3D perspective reveal */}
+          <div className="relative mx-auto max-w-6xl [perspective:1400px]">
+            <motion.div
+              style={reducedMotion ? undefined : { scale: imageScale, rotateX: imageRotate, y: imageY, opacity: imageOpacity }}
+              className="relative z-10 mx-auto aspect-[4269/2400] w-full max-w-5xl overflow-hidden rounded-[22px] border border-white/20 md:rounded-[30px] md:border-2"
+            >
+              <Image
+                src={SCREEN_IMAGE}
+                alt={t("scoreboard_alt")}
+                fill
+                sizes="(max-width: 768px) 100vw, 1024px"
+                className="object-cover"
+                priority
+                draggable={false}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-white/[0.06]" aria-hidden="true" />
+
+              {/* Floating widget: wins (slides in from left) */}
+              <motion.div
+                style={reducedMotion ? undefined : { x: leftPanelX }}
+                className="absolute left-3 top-3 hidden items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md sm:flex md:left-6 md:top-6 md:px-4"
+              >
+                <Trophy size={14} className="text-[#F59E0B]" aria-hidden="true" />
+                <span data-cms-key="spacePilot.scoreboard_wins">{t("scoreboard_wins")}</span>
+              </motion.div>
+
+              {/* Floating widget: session time (slides in from right) */}
+              <motion.div
+                style={reducedMotion ? undefined : { x: rightPanelX }}
+                className="absolute right-3 top-3 hidden items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-md sm:flex md:right-6 md:top-6 md:px-4"
+              >
+                <Clock3 size={14} className="text-[#60A5FA]" aria-hidden="true" />
+                <span data-cms-key="spacePilot.scoreboard_time">{t("scoreboard_time")}</span>
+              </motion.div>
+
+              {/* Floating widget: standings (rises up from bottom) */}
+              <motion.div
+                style={reducedMotion ? undefined : { y: standingsY, opacity: standingsOpacity }}
+                className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-black/75 px-3 py-2.5 text-[10px] text-white/80 backdrop-blur-md md:inset-x-6 md:bottom-6 md:px-4 md:py-3"
+              >
+                <span data-cms-key="spacePilot.scoreboard_standings" className="flex items-center gap-2">
+                  <BarChart3 size={14} className="text-[#A78BFA]" aria-hidden="true" />
+                  {t("scoreboard_standings")}
+                </span>
+                <span data-cms-key="spacePilot.scoreboard_match" className="hidden text-white/45 sm:inline">
+                  {t("scoreboard_match")}
+                </span>
+              </motion.div>
+            </motion.div>
+
+            {/* Progress bar + stage dots */}
+            <div className="pointer-events-none absolute inset-x-0 -bottom-8 z-20 mx-auto flex max-w-5xl items-center gap-3 px-2 md:-bottom-10">
+              <div className="h-px flex-1 bg-white/10">
+                <motion.div
+                  style={reducedMotion ? { width: "100%" } : { width: progressWidth }}
+                  className="h-full bg-[#22C55E]"
+                />
+              </div>
+              <div className="flex gap-1.5" aria-label={t("scoreboard_stage_label")}>
+                {[0, 1, 2].map((item) => (
+                  <span
+                    key={item}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${stage === item ? "w-8 bg-[#22C55E]" : "w-1.5 bg-white/25"}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
           <p
-            data-cms-key="spacePilot.section_body"
-            style={{
-              fontSize: "clamp(17px, 1.35vw, 21px)",
-              lineHeight: 1.65,
-              color: "rgba(255,255,255,0.58)",
-              margin: 0,
-            }}
+            data-cms-key="spacePilot.scoreboard_scroll_hint"
+            className="mx-auto mt-16 max-w-2xl text-center text-xs tracking-[0.08em] text-white/35 md:mt-20 md:text-sm"
           >
-            Space Pilot 將協助你
-            <strong style={{ color: "#fff", fontWeight: 600 }}>記錄每一場對戰</strong>
-            。透過 iPad 即時
-            <strong style={{ color: "#fff", fontWeight: 600 }}>計分</strong>
-            ，每一局的比分與勝負都會自動整理，讓你隨時回顧，並將每一場對戰變成
-            <strong style={{ color: "#fff", fontWeight: 600 }}>可追蹤的練習紀錄</strong>
-            。
+            {t("scoreboard_scroll_hint")}
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   )
