@@ -29,7 +29,7 @@ import manifest from "@/public/images/space8-about-photos/manifest.json";
 const ITEMS: SpaceWheelItem[] = manifest.items.map((item) => ({
   title: item.title,
   description: item.description,
-  image: `/${item.file.replace(/\.jpg$/, ".webp")}`,
+  image: `/images/space8-about-photos/${item.file.replace(/\.jpg$/, ".webp")}`,
   alt: item.alt,
 }));
 
