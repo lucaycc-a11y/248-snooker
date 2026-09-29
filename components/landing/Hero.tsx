@@ -24,56 +24,107 @@ export default function Hero() {
     duration: 900,
     distance: 18,
   });
-  const mobileVideoRef = useRef<HTMLVideoElement>(null);
-  const desktopVideoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [videoEnded, setVideoEnded] = useState(false);
   const t = useTranslations("hero");
 
   return (
+    // Section is exactly 100dvh tall, black background fills any horizontal
+    // space outside the square photo on wide viewports.
     <section
       data-nav-theme="dark"
-      className="relative overflow-hidden bg-black"
+      className="relative bg-black"
       style={{
         width: "100%",
-        minHeight: "100svh",
-        display: "grid",
-        gridTemplateRows: "auto 1fr",
+        height: "100dvh",
+        overflow: "hidden", // clips square photo that overflows on narrow viewports
       }}
     >
-      {/* Text content area — stays in normal flow, top of grid */}
+      {/* Square photo container — height = 100dvh, width = height, centered.
+          On narrow viewports it overflows left/right (clipped by section overflow:hidden).
+          On wide viewports it sits centered with black on either side. */}
+      <div
+        className="hero__bg absolute top-0 left-1/2 -translate-x-1/2"
+        style={{
+          // width = 100dvh makes it a square relative to viewport height
+          width: "100dvh",
+          height: "100dvh",
+          pointerEvents: "none",
+        }}
+      >
+        {/* Poster frame — shown until video loads */}
+        <img
+          src="/video/Space8_Main_Hero_Poster.jpg"
+          alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{
+            filter: "brightness(1.3) contrast(1.05)",
+            objectPosition: "center center",
+          }}
+        />
+
+        {/* Video — fades out once it ends so poster shows as a clean loop end */}
+        <video
+          ref={videoRef}
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{
+            filter: "brightness(1.3) contrast(1.05)",
+            objectPosition: "center center",
+            opacity: videoEnded ? 0 : 1,
+            transition: "opacity 1.6s ease-out",
+          }}
+          autoPlay
+          muted
+          playsInline
+          controls={false}
+          disablePictureInPicture
+          disableRemotePlayback
+          poster="/video/Space8_Main_Hero_Poster.jpg"
+          onEnded={() => setVideoEnded(true)}
+        >
+          <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
+        </video>
+      </div>
+
+      {/* Text overlay — absolutely positioned on top of photo.
+          Sits in the upper portion of the frame to stay above the snooker table.
+          A subtle radial scrim behind the text block ensures legibility without
+          a hard-edged bar. */}
       <div
         ref={heroContentRef}
-        className="pointer-events-none z-10 flex flex-col items-center px-6 text-center"
+        className="absolute inset-x-0 top-0 z-10 flex flex-col items-center px-6 text-center"
         style={{
           paddingTop: "clamp(88px, 13svh, 120px)",
-          paddingBottom: "clamp(8px, 1.6svh, 20px)",
+          // Scrim: darkens only behind the text block, fades out downward
+          background:
+            "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.28) 70%, transparent 100%)",
+          // Only as tall as the content needs to be
+          paddingBottom: "clamp(32px, 5svh, 56px)",
+          pointerEvents: "none",
         }}
       >
         <div
           className="flex w-full flex-col items-center"
           style={{
-            maxWidth: "min(720px, 90vw)",
-            gap: "clamp(8px, 1.6svh, 20px)",
+            maxWidth: "min(560px, 88vw)",
+            gap: "clamp(6px, 1.2svh, 16px)",
           }}
         >
           {/* SPACE8 Logo */}
-          <div
-            className="anime-reveal-wrapper"
-            data-anime-hero-item
-          >
-            <Logo variant="full" theme="dark" size={32} />
+          <div className="anime-reveal-wrapper" data-anime-hero-item>
+            <Logo variant="full" theme="dark" size={28} />
           </div>
 
-          {/* Headline — viewport-height-aware sizing */}
+          {/* Headline — reduced from previous size to avoid dominating at all viewports */}
           <div className="anime-reveal-wrapper">
             <h1
               data-anime-hero-item
               style={{
                 ...HEADLINE_GRADIENT,
-                fontSize: "clamp(36px, min(10vw, 7.5svh), 96px)",
+                fontSize: "clamp(28px, min(7.5vw, 6svh), 72px)",
                 fontWeight: 700,
                 letterSpacing: "-0.015em",
-                lineHeight: 1.04,
+                lineHeight: 1.06,
                 margin: 0,
                 whiteSpace: "normal",
                 fontFamily:
@@ -89,8 +140,8 @@ export default function Hero() {
             <p
               data-anime-hero-item
               style={{
-                fontSize: "clamp(14px, min(2.5vw, 2svh), 18px)",
-                color: "rgba(255,255,255,0.72)",
+                fontSize: "clamp(13px, min(2.2vw, 1.8svh), 16px)",
+                color: "rgba(255,255,255,0.78)",
                 fontWeight: 400,
                 letterSpacing: "-0.01em",
                 fontFamily:
@@ -109,7 +160,7 @@ export default function Hero() {
                 className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center"
                 style={{
                   gap: "clamp(10px, 1vw, 14px)",
-                  padding: "clamp(8px, 0.8svh, 12px)",
+                  paddingTop: "clamp(4px, 0.6svh, 10px)",
                 }}
               >
                 <Link
@@ -152,113 +203,6 @@ export default function Hero() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Background area — occupies remaining space, bottom-anchored */}
-      <div
-        className="hero__bg relative"
-        style={{
-          minHeight: "clamp(260px, 42svh, 560px)",
-          width: "100%",
-          pointerEvents: "none",
-          transition: "none !important",
-          animation: "none !important",
-          transform: "none !important",
-        }}
-      >
-        {/* Gradient mask — fades background into black at top */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 2,
-            pointerEvents: "none",
-            maskImage: "linear-gradient(to bottom, transparent 0%, #000 30%)",
-            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 30%)",
-          }}
-        />
-
-        {/* Mobile background — full viewport, bottom-anchored */}
-        <div
-          className="absolute inset-0 md:hidden"
-          style={{
-            pointerEvents: "none",
-            transition: "none !important",
-            animation: "none !important",
-            transform: "none !important",
-          }}
-        >
-          <img
-            src="/video/Space8_Main_Hero_Poster.jpg"
-            alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{
-              filter: "brightness(1.3) contrast(1.05)",
-              objectPosition: "center bottom",
-            }}
-          />
-          <video
-            ref={mobileVideoRef}
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{
-              filter: "brightness(1.3) contrast(1.05)",
-              objectPosition: "center bottom",
-              opacity: videoEnded ? 0 : 1,
-              transition: "opacity 1.6s ease-out",
-            }}
-            autoPlay
-            muted
-            playsInline
-            controls={false}
-            disablePictureInPicture
-            disableRemotePlayback
-            poster="/video/Space8_Main_Hero_Poster.jpg"
-            onEnded={() => setVideoEnded(true)}
-          >
-            <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
-          </video>
-        </div>
-
-        {/* Desktop background — large centered, bottom-anchored */}
-        <div
-          className="absolute inset-0 hidden md:block"
-          style={{
-            pointerEvents: "none",
-            transition: "none !important",
-            animation: "none !important",
-            transform: "none !important",
-          }}
-        >
-          <img
-            src="/video/Space8_Main_Hero_Poster.jpg"
-            alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{
-              filter: "brightness(1.3) contrast(1.05)",
-              objectPosition: "center bottom",
-            }}
-          />
-          <video
-            ref={desktopVideoRef}
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{
-              filter: "brightness(1.3) contrast(1.05)",
-              objectPosition: "center bottom",
-              opacity: videoEnded ? 0 : 1,
-              transition: "opacity 1.6s ease-out",
-            }}
-            autoPlay
-            muted
-            playsInline
-            controls={false}
-            disablePictureInPicture
-            disableRemotePlayback
-            poster="/video/Space8_Main_Hero_Poster.jpg"
-            onEnded={() => setVideoEnded(true)}
-          >
-            <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
-          </video>
         </div>
       </div>
     </section>
