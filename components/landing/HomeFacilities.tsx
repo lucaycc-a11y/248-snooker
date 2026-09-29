@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { Carousel } from "@/components/ui/apple-cards-carousel";
+import { AppleCarousel } from "@/components/ui/apple-cards-carousel";
 
 const FACILITY_IMAGES = [
   "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
@@ -18,13 +18,6 @@ const FACILITY_CATEGORIES = [
   "categories.entry",
 ] as const;
 
-const FACILITY_ASPECT_RATIOS = [
-  "aspect-[4/3]",    // pool table closeup
-  "aspect-[4/3]",    // pool table closeup 2
-  "aspect-[4/3]",    // Space Pilot iPad - wider to show full screen
-  "aspect-[4/3]",    // QR code
-] as const;
-
 type Facility = {
   title: string;
   body: string;
@@ -35,6 +28,15 @@ export default function HomeFacilities() {
   const facilities = t.raw("items") as Facility[];
   // Only use first 4 items (exclude charging and storage)
   const visibleFacilities = facilities.slice(0, 4);
+
+  const slides = visibleFacilities.map((facility, index) => ({
+    eyebrow: t(FACILITY_CATEGORIES[index] ?? FACILITY_CATEGORIES[0]),
+    title: facility.title,
+    desc: facility.body,
+    src: FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0],
+    alt: facility.title,
+    focus: "center" as const,
+  }));
 
   return (
     <section
@@ -58,13 +60,10 @@ export default function HomeFacilities() {
         </motion.div>
       </div>
 
-      <Carousel
-        items={visibleFacilities.map((facility, index) => ({
-          src: FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0],
-          title: facility.title,
-          category: t(FACILITY_CATEGORIES[index] ?? FACILITY_CATEGORIES[0]),
-          content: <p data-cms-key={`homeVenue.items.${index}.body`} className="m-0">{facility.body}</p>,
-        }))}
+      <AppleCarousel
+        slides={slides}
+        autoplayInterval={5000}
+        aspectRatio="3 / 4"
       />
     </section>
   );

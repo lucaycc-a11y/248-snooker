@@ -1,136 +1,559 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import Image from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useOutsideClick } from "@/hooks/use-outside-click";
+import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 
-type CarouselItem = {
-  src: string;
+/** Slide metadata — data-driven carousel */
+type Slide = {
+  eyebrow?: string;
   title: string;
-  category: string;
-  content: ReactNode;
+  desc?: string;
+  src: string;
+  alt?: string;
+  focus?: "center" | "center top" | "center bottom";
 };
 
-type CarouselProps = {
-  items: CarouselItem[];
+type AppleCarouselProps = {
+  slides: Slide[];
+  autoplayInterval?: number; // ms, default 5000
+  aspectRatio?: string; // CSS aspect-ratio, default "3 / 4.1"
+  onIndexChange?: (index: number) => void;
 };
 
-export function BlurImage({ src, alt }: { src: string; alt: string }) {
-  return <Image src={src} alt={alt} fill sizes="(max-width: 767px) 82vw, 320px" className="object-cover" />;
-}
-
-export function Card({ item, index, onOpen }: { item: CarouselItem; index: number; onOpen: () => void }) {
-  // Space Pilot slide gets wider aspect ratio to show full iPad screen
-  const isSpacePilot = item.src.includes('spacepliot');
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label={`${item.title} — ${item.category}`}
-      className={`group relative shrink-0 snap-start overflow-hidden rounded-[24px] bg-[#1d1d1f] text-left ${
-        isSpacePilot
-          ? 'h-[360px] w-[90vw] max-w-[480px] md:h-[400px] md:w-[480px]'
-          : 'h-[440px] w-[82vw] max-w-[320px] md:h-[500px] md:w-[320px]'
-      }`}
-    >
-      <BlurImage src={item.src} alt={item.title} />
-      <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
-      <span className="absolute inset-x-6 bottom-6">
-        <span data-cms-key={`homeVenue.items.${index}.category`} className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-white/65">
-          {item.category}
-        </span>
-        <span data-cms-key={`homeVenue.items.${index}.title`} className="block font-code text-[22px] font-bold leading-[1.15] text-white">
-          {item.title}
-        </span>
-      </span>
-    </button>
-  );
-}
-
-export function Carousel({ items }: CarouselProps) {
+/**
+ * Apple-style carousel: parallax text, auto-generated dots with progress bars,
+ * smart autoplay (pauses on hover/tab-hidden/out-of-viewport), video auto-play/pause.
+ */
+export function AppleCarousel({
+  slides,
+  autoplayInterval = 5000,
+  aspectRatio = "3 / 4.1",
+  onIndexChange,
+}: AppleCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number>();
+  const videoRefsMap = useRef<Map<number, HTMLVideoElement>>(new Map());
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
-  const activeItem = activeIndex === null ? null : items[activeIndex];
+  const [isInViewport, setIsInViewport] = useState(true);
+  const [parallaxData, setParallaxData] = useState<
+    Array<{ p: number; abs: number; progress: number }>
+  >(slides.map(() => ({ p: 0, abs: 0, progress: 0 })));
 
-  const close = useCallback(() => setActiveIndex(null), []);
-  useOutsideClick(modalRef, close);
-
+  // Prefers-reduced-motion check
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   useEffect(() => {
-    if (activeItem === null) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [activeItem]);
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(query.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    query.addEventListener("change", handler);
+    return () => query.removeEventListener("change", handler);
+  }, []);
 
-  // Auto-scroll functionality
+  // Autoplay state: track elapsed time (supports pause/resume)
+  const autoplayStateRef = useRef({ elapsedMs: 0, lastFrameTime: 0 });
+
+  // Pause autoplay if: hover, touch, tab hidden, out of viewport, user clicked pause
+  const shouldAutoplay = isPlaying && !isPaused && isInViewport && !document.hidden;
+
+  // Update active index based on scroll position (snap to center)
+  const updateActiveIndex = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const trackCenterX = track.scrollLeft + track.clientWidth / 2;
+    let closest = 0;
+    let minDist = Infinity;
+
+    Array.from(track.children).forEach((child, i) => {
+      const el = child as HTMLElement;
+      const childCenter = el.offsetLeft + el.offsetWidth / 2;
+      const dist = Math.abs(trackCenterX - childCenter);
+      if (dist < minDist) {
+        minDist = dist;
+        closest = i;
+      }
+    });
+
+    if (closest !== activeIndex) {
+      setActiveIndex(closest);
+      onIndexChange?.(closest);
+    }
+  }, [activeIndex, onIndexChange]);
+
+  // Parallax + progress calculation on scroll
+  const updateParallax = useCallback(() => {
+    const track = trackRef.current;
+    if (!track || prefersReducedMotion) return;
+
+    const trackCenterX = track.scrollLeft + track.clientWidth / 2;
+    const newData = Array.from(track.children).map((child, i) => {
+      const el = child as HTMLElement;
+      const childCenter = el.offsetLeft + el.offsetWidth / 2;
+      const childWidth = el.offsetWidth;
+
+      // p: -1 (left edge) to 1 (right edge), 0 = center
+      const p = (childCenter - trackCenterX) / (childWidth / 2);
+      const abs = Math.abs(Math.max(-1, Math.min(1, p)));
+
+      // Progress bar: 0 at left edge, 100% at center, then back down
+      const progress = Math.max(0, 1 - abs);
+
+      return { p, abs, progress };
+    });
+
+    setParallaxData(newData);
+    updateActiveIndex();
+  }, [updateActiveIndex, prefersReducedMotion]);
+
+  // Scroll snap listener
   useEffect(() => {
     const track = trackRef.current;
-    if (!track || isPaused) return;
+    if (!track) return;
 
-    const scrollInterval = setInterval(() => {
-      const cardWidth = 336; // width + gap
-      const maxScroll = track.scrollWidth - track.clientWidth;
+    const handleScroll = () => {
+      updateParallax();
+    };
 
-      if (track.scrollLeft >= maxScroll) {
-        // Reset to start
-        track.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        // Scroll to next card
-        track.scrollBy({ left: cardWidth, behavior: "smooth" });
+    track.addEventListener("scroll", handleScroll, { passive: true });
+    return () => track.removeEventListener("scroll", handleScroll);
+  }, [updateParallax]);
+
+  // IntersectionObserver: detect if carousel is in viewport
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInViewport(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  // Document.hidden listener
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // no-op, shouldAutoplay will re-evaluate
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
+
+  // Autoplay loop with requestAnimationFrame (proper pause/resume)
+  useEffect(() => {
+    if (!shouldAutoplay) {
+      autoplayStateRef.current.elapsedMs = 0;
+      return;
+    }
+
+    const autoplayTick = (now: number) => {
+      const state = autoplayStateRef.current;
+      if (state.lastFrameTime === 0) {
+        state.lastFrameTime = now;
       }
-    }, 3500); // Auto-advance every 3.5 seconds
 
-    return () => clearInterval(scrollInterval);
-  }, [isPaused]);
+      const delta = now - state.lastFrameTime;
+      state.lastFrameTime = now;
+      state.elapsedMs += delta;
 
-  const scroll = (direction: -1 | 1) => {
-    trackRef.current?.scrollBy({ left: direction * 336, behavior: "smooth" });
+      if (state.elapsedMs >= autoplayInterval) {
+        state.elapsedMs = 0;
+        state.lastFrameTime = now;
+
+        // Advance to next slide
+        setActiveIndex((prev) => {
+          const next = (prev + 1) % slides.length;
+          const track = trackRef.current;
+          if (track) {
+            const nextEl = track.children[next] as HTMLElement;
+            if (nextEl) {
+              nextEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+            }
+          }
+          return next;
+        });
+      }
+
+      rafRef.current = requestAnimationFrame(autoplayTick);
+    };
+
+    rafRef.current = requestAnimationFrame(autoplayTick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [shouldAutoplay, slides.length, autoplayInterval]);
+
+  // Video auto-play/pause: play if ≥60% in viewport, pause otherwise
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const checkVideos = () => {
+      const trackCenterX = track.scrollLeft + track.clientWidth / 2;
+
+      Array.from(track.children).forEach((child, i) => {
+        const el = child as HTMLElement;
+        const video = videoRefsMap.current.get(i);
+        if (!video) return;
+
+        const childLeft = el.offsetLeft;
+        const childRight = childLeft + el.offsetWidth;
+        const overlapStart = Math.max(childLeft, track.scrollLeft);
+        const overlapEnd = Math.min(childRight, track.scrollLeft + track.clientWidth);
+        const overlapWidth = Math.max(0, overlapEnd - overlapStart);
+        const visibilityRatio = overlapWidth / el.offsetWidth;
+
+        if (visibilityRatio >= 0.6) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    };
+
+    track.addEventListener("scroll", checkVideos, { passive: true });
+    checkVideos();
+    return () => track.removeEventListener("scroll", checkVideos);
+  }, []);
+
+  // Scroll slide into view by index
+  const scrollToSlide = (index: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const el = track.children[index] as HTMLElement;
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
   };
 
+  const toggleAutoplay = () => {
+    setIsPlaying((prev) => !prev);
+    autoplayStateRef.current.elapsedMs = 0;
+    autoplayStateRef.current.lastFrameTime = 0;
+  };
+
+  const isDesktop = typeof window !== "undefined" && window.innerWidth >= 900;
+
   return (
-    <>
-      <div className="relative">
-        <div
-          ref={trackRef}
-          className="facilities-carousel-track flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-5 no-scrollbar md:px-16"
-          style={{ touchAction: "pan-x pan-y", overscrollBehaviorX: "contain", overscrollBehaviorY: "auto" }}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-        >
-          {items.map((item, index) => (
-            <Card key={`${item.title}-${index}`} item={item} index={index} onOpen={() => setActiveIndex(index)} />
-          ))}
-        </div>
-        <div className="mt-5 hidden justify-end gap-2 px-16 md:flex">
-          <button type="button" onClick={() => scroll(-1)} aria-label="Previous facility" className="grid h-11 w-11 place-items-center rounded-full border border-black/10 bg-white text-[#111110] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105">
-            <ChevronLeft size={18} strokeWidth={1.6} />
-          </button>
-          <button type="button" onClick={() => scroll(1)} aria-label="Next facility" className="grid h-11 w-11 place-items-center rounded-full border border-black/10 bg-white text-[#111110] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105">
-            <ChevronRight size={18} strokeWidth={1.6} />
-          </button>
-        </div>
+    <div ref={containerRef} className="w-full">
+      <style jsx>{`
+        .carousel-track {
+          display: flex;
+          gap: 1rem;
+          overflow-x: auto;
+          scroll-snap-type: x mandatory;
+          overscroll-behavior-x: contain;
+          padding-left: clamp(20px, 5vw, 48px);
+          padding-right: clamp(20px, 5vw, 48px);
+          scroll-behavior: smooth;
+
+          /* iOS Safari: rounded + overflow fix */
+          transform: translateZ(0);
+          isolation: isolate;
+        }
+
+        .carousel-slide {
+          flex-shrink: 0;
+          width: min(82vw, 420px);
+          aspect-ratio: ${aspectRatio};
+          scroll-snap-align: center;
+          scroll-snap-stop: always;
+          border-radius: 32px;
+          overflow: hidden;
+          position: relative;
+
+          /* Allow parallax transform */
+          will-change: transform;
+        }
+
+        .carousel-media {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: ${slides[0]?.focus || "center"};
+        }
+
+        .carousel-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.85) 0%,
+            rgba(0, 0, 0, 0.1) 60%,
+            transparent 100%
+          );
+        }
+
+        .carousel-text {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          padding: 24px;
+          color: white;
+
+          /* Parallax text effect */
+          transform: translateX(calc(var(--p, 0) * -38%));
+          opacity: calc(1 - var(--abs, 0) * 0.85);
+
+          /* GPU acceleration */
+          will-change: transform, opacity;
+        }
+
+        .carousel-text-prefers-reduced-motion {
+          transform: none;
+          opacity: 1;
+        }
+
+        .carousel-eyebrow {
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.65);
+          margin-bottom: 8px;
+        }
+
+        .carousel-title {
+          font-size: 22px;
+          font-weight: 700;
+          line-height: 1.15;
+          margin-bottom: 4px;
+        }
+
+        .carousel-desc {
+          font-size: 14px;
+          line-height: 1.5;
+          color: rgba(255, 255, 255, 0.7);
+          max-width: 30ch;
+        }
+
+        /* Pagination dots */
+        .carousel-pagination {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 24px;
+          padding: 12px 16px;
+          background: rgba(0, 0, 0, 0.4);
+          border-radius: 999px;
+          width: fit-content;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .carousel-dot {
+          height: 8px;
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 300ms ease;
+          flex-shrink: 0;
+
+          /* Expand active dot */
+          width: ${activeIndex === slides.length ? "8px" : "8px"};
+        }
+
+        .carousel-dot.active {
+          width: 48px;
+          background: white;
+          position: relative;
+        }
+
+        .carousel-dot-progress {
+          position: absolute;
+          left: 0;
+          top: 0;
+          height: 100%;
+          background: rgba(37, 211, 102, 0.8);
+          border-radius: 4px;
+          transform-origin: left;
+          transform: scaleX(var(--progress, 0));
+          transition: transform 100ms linear;
+        }
+
+        .carousel-play-pause {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: white;
+          transition: all 200ms ease;
+          margin-left: 12px;
+          flex-shrink: 0;
+        }
+
+        .carousel-play-pause:hover {
+          background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Arrow buttons — desktop only */
+        .carousel-arrows {
+          display: none;
+          gap: 8px;
+          margin-top: 16px;
+          justify-content: center;
+        }
+
+        @media (min-width: 900px) {
+          .carousel-arrows {
+            display: flex;
+          }
+        }
+
+        .carousel-arrow {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: white;
+          transition: all 200ms ease;
+        }
+
+        .carousel-arrow:hover {
+          background: rgba(255, 255, 255, 0.2);
+          transform: scale(1.05);
+        }
+
+        .carousel-arrow:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+      `}</style>
+
+      {/* Track */}
+      <div
+        ref={trackRef}
+        className="carousel-track no-scrollbar"
+        role="region"
+        aria-label="Carousel"
+        aria-live="polite"
+      >
+        {slides.map((slide, i) => (
+          <div
+            key={i}
+            className="carousel-slide"
+            role="tabpanel"
+            aria-selected={i === activeIndex}
+          >
+            {/* Media */}
+            {slide.src.match(/\.(mp4|webm|mov)$/i) ? (
+              <video
+                ref={(el) => {
+                  if (el) videoRefsMap.current.set(i, el);
+                }}
+                src={slide.src}
+                muted
+                loop
+                playsInline
+                className="carousel-media"
+                aria-label={slide.alt || slide.title}
+              />
+            ) : (
+              <img
+                src={slide.src}
+                alt={slide.alt || slide.title}
+                loading={i === 0 ? "eager" : "lazy"}
+                decoding="async"
+                className="carousel-media"
+                style={{ objectPosition: slide.focus || "center" }}
+              />
+            )}
+
+            {/* Overlay */}
+            <div className="carousel-overlay" />
+
+            {/* Text with parallax */}
+            <div
+              className={`carousel-text ${prefersReducedMotion ? "carousel-text-prefers-reduced-motion" : ""}`}
+              style={{
+                "--p": prefersReducedMotion ? 0 : parallaxData[i]?.p,
+                "--abs": prefersReducedMotion ? 0 : parallaxData[i]?.abs,
+              } as React.CSSProperties}
+            >
+              {slide.eyebrow && <div className="carousel-eyebrow">{slide.eyebrow}</div>}
+              <h3 className="carousel-title">{slide.title}</h3>
+              {slide.desc && <p className="carousel-desc">{slide.desc}</p>}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {activeItem && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-black/60 p-5 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={activeItem.title}>
-          <div ref={modalRef} className="relative max-h-[min(680px,calc(100dvh-40px))] w-full max-w-lg overflow-y-auto rounded-[24px] bg-[#1d1d1f] p-7 text-white">
-            <button type="button" onClick={close} aria-label="Close facility details" className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full text-white/65 transition-colors hover:text-white">
-              <X size={20} strokeWidth={1.6} />
-            </button>
-            <p className="mb-3 pr-12 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/55">{activeItem.category}</p>
-            <h3 className="mb-5 pr-12 font-code text-[28px] font-bold leading-[1.15]">{activeItem.title}</h3>
-            <div className="text-[16px] leading-[1.75] text-white/70">{activeItem.content}</div>
-          </div>
-        </div>
-      )}
-    </>
+      {/* Pagination + Play/Pause */}
+      <div className="carousel-pagination">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            className={`carousel-dot ${i === activeIndex ? "active" : ""}`}
+            onClick={() => scrollToSlide(i)}
+            role="tab"
+            aria-selected={i === activeIndex}
+            aria-label={`Go to slide ${i + 1}`}
+          >
+            {i === activeIndex && (
+              <div
+                className="carousel-dot-progress"
+                style={{
+                  "--progress": shouldAutoplay
+                    ? autoplayStateRef.current.elapsedMs / autoplayInterval
+                    : 0,
+                } as React.CSSProperties}
+              />
+            )}
+          </button>
+        ))}
+
+        <button
+          className="carousel-play-pause"
+          onClick={toggleAutoplay}
+          aria-pressed={isPlaying}
+          aria-label={isPlaying ? "Pause carousel" : "Play carousel"}
+        >
+          {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+        </button>
+      </div>
+
+      {/* Arrow buttons — desktop */}
+      <div className="carousel-arrows">
+        <button
+          className="carousel-arrow"
+          onClick={() => scrollToSlide(Math.max(0, activeIndex - 1))}
+          disabled={activeIndex === 0}
+          aria-label="Previous slide"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          className="carousel-arrow"
+          onClick={() => scrollToSlide(Math.min(slides.length - 1, activeIndex + 1))}
+          disabled={activeIndex === slides.length - 1}
+          aria-label="Next slide"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
+    </div>
   );
 }
