@@ -8,7 +8,9 @@ import { useEffect, useRef, useState } from "react"
 const SCREEN_IMAGE = "/gallery/spacepliot.png"
 const EASE: [number, number, number, number] = [0.2, 0.7, 0.3, 1]
 
-export default function SpacePilotScoreboardExperience() {
+type Props = { compact?: boolean }
+
+export default function SpacePilotScoreboardExperience({ compact = false }: Props) {
   const reducedMotion = useReducedMotion()
   const sectionRef = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
@@ -25,6 +27,41 @@ export default function SpacePilotScoreboardExperience() {
   }, [])
 
   const show = reducedMotion ? true : visible
+
+  // Compact variant — used in member dashboard cards
+  if (compact) {
+    return (
+      <section
+        aria-labelledby="member-space-pilot-title"
+        className="mt-6 overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.04] p-4"
+      >
+        <div className="mb-4">
+          <p className="text-[10px] tracking-[0.18em] text-[#22C55E]" style={{ fontFamily: "inherit" }}>
+            Space Pilot
+          </p>
+          <h2
+            id="member-space-pilot-title"
+            className="mt-1 text-lg font-semibold text-[#F5F5F7]"
+          >
+            敬請期待
+          </h2>
+        </div>
+        <div
+          className="relative overflow-hidden rounded-[16px] bg-black"
+          style={{ aspectRatio: "4269 / 2400" }}
+        >
+          <Image
+            src={SCREEN_IMAGE}
+            alt="Space Pilot 計分介面展示"
+            fill
+            sizes="(max-width: 768px) 100vw, 640px"
+            className="object-contain"
+            draggable={false}
+          />
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section
@@ -120,15 +157,7 @@ export default function SpacePilotScoreboardExperience() {
           initial={{ opacity: 0, y: 20 }}
           animate={show ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, ease: EASE, delay: 0.3 }}
-          style={{
-            margin: "80px auto 0",
-            maxWidth: 960,
-            display: "grid",
-            gridTemplateColumns: "1fr 2fr",
-            gap: "40px 56px",
-            alignItems: "start",
-          }}
-          className="space-pilot-bottom-row"
+          className="mx-auto mt-20 grid max-w-[960px] grid-cols-1 gap-8 items-start md:grid-cols-[1fr_2fr] md:gap-x-14 md:gap-y-0"
         >
           {/* Left: stat block */}
           <div>
@@ -189,15 +218,6 @@ export default function SpacePilotScoreboardExperience() {
           </p>
         </motion.div>
       </div>
-
-      {/* Mobile stacking: stat block appears above body paragraph on small screens */}
-      <style>{`
-        @media (max-width: 640px) {
-          .space-pilot-bottom-row {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </section>
   )
 }
