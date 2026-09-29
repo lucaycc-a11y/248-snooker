@@ -1588,7 +1588,11 @@
       }
     ],
     "space_title": "Your space, fully open",
-    "space_subtitle": "Self-service entry, smoke-free surroundings, built entirely for the game."
+    "space_subtitle": "Self-service entry, smoke-free surroundings, built entirely for the game.",
+    "stat_label": "Space Pilot AI System",
+    "stat_main": "Coming soon",
+    "stat_footnote": "Feature in development — details to follow",
+    "section_body": "placeholder"
   },
   "membershipHub": {
     "tabs": [
