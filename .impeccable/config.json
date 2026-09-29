@@ -179,6 +179,18 @@
         "rule": "design-system-color",
         "value": "#f5f2ec",
         "createdAt": "2026-09-29T10:39:38.492Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "32px",
+        "createdAt": "2026-09-29T10:40:47.184Z",
+        "reason": "apple-cards-carousel intentional large card radius"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "4px",
+        "createdAt": "2026-09-29T10:40:47.220Z",
+        "reason": "apple-cards-carousel intentional small element radius (scrollbar, dots)"
       }
     ]
   }

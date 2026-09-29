@@ -61,7 +61,7 @@ export function AppleCarousel({
   const autoplayStateRef = useRef({ elapsedMs: 0, lastFrameTime: 0 });
 
   // Pause autoplay if: hover, touch, tab hidden, out of viewport, user clicked pause
-  const shouldAutoplay = isPlaying && !isPaused && isInViewport && !document.hidden;
+  const shouldAutoplay = isPlaying && !isPaused && isInViewport && !(typeof document !== 'undefined' && document.hidden);
 
   // Update active index based on scroll position (snap to center)
   const updateActiveIndex = useCallback(() => {
