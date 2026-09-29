@@ -480,8 +480,9 @@ export default function Section5Booking() {
             position: absolute;
             inset: 0;
             background: #22b86b;
-            width: calc(var(--progress, 0) * 100%);
-            transition: width 0.2s ease;
+            transform: scaleX(var(--progress, 0));
+            transform-origin: left center;
+            transition: transform 0.2s ease;
           }
 
           .flow-steps {
@@ -761,8 +762,9 @@ export default function Section5Booking() {
             position: absolute;
             inset: 0;
             background: #22b86b;
-            width: calc(var(--progress, 0) * 100%);
-            transition: width 0.2s ease;
+            transform: scaleX(var(--progress, 0));
+            transform-origin: left center;
+            transition: transform 0.2s ease;
           }
         }
 
