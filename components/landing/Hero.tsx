@@ -86,17 +86,14 @@ export default function Hero() {
       </div>
 
       {/* Text overlay — vertically centered with a slight upward nudge so the
-          content sits mid-frame above the snooker table.
-          Scrim radiates outward from the text block for legibility. */}
+          content sits mid-frame above the snooker table. No background scrim —
+          text sits directly on the photo. */}
       <div
         ref={heroContentRef}
         className="absolute inset-x-0 z-10 flex flex-col items-center px-6 text-center"
         style={{
           top: "50%",
           transform: "translateY(calc(-50% - 6svh))",
-          // Scrim: soft radial glow behind the text block only
-          background:
-            "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(0,0,0,0.45) 0%, transparent 100%)",
           paddingTop: "clamp(24px, 4svh, 48px)",
           paddingBottom: "clamp(24px, 4svh, 48px)",
           pointerEvents: "none",
