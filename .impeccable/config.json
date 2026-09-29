@@ -598,6 +598,36 @@
         "value": "rgba(82,194,95,0.4)",
         "createdAt": "2026-09-29T14:13:38.823Z",
         "reason": "Disabled-state tint of the Space8 brand green #52c25f on the primary submit button — intentional 40% opacity variant, not drift"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#062b0d",
+        "createdAt": "2026-09-29T15:34:20.758Z",
+        "reason": "Section5Booking intentional brand green — dark text on active state, pre-existing"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#40a84a",
+        "createdAt": "2026-09-29T15:34:20.810Z",
+        "reason": "Section5Booking intentional CTA hover green, pre-existing"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "2px",
+        "createdAt": "2026-09-29T15:34:20.854Z",
+        "reason": "Section5Booking progress bar nub radius, intentionally pill-shaped, pre-existing"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "6px",
+        "createdAt": "2026-09-29T15:34:20.905Z",
+        "reason": "Section5Booking CTA button radius, intentional small-radius token, pre-existing"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "1px",
+        "createdAt": "2026-09-29T15:34:52.372Z",
+        "reason": "Mobile progress bar nub radius, intentionally minimal, same family as 2px desktop variant — pre-existing"
       }
     ]
   }

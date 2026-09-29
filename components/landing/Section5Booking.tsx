@@ -401,6 +401,7 @@ export default function Section5Booking() {
           color: #1d1d1f;
           position: relative;
           width: 100%;
+          min-height: 100svh;
         }
 
         /* Desktop layout */
@@ -410,16 +411,20 @@ export default function Section5Booking() {
 
         @media (min-width: 820px) {
           .booking-flow-section {
-            padding: clamp(48px, 8vh, 80px) clamp(20px, 5vw, 48px);
+            padding: clamp(48px, 8vh, 80px) clamp(24px, 5vw, 64px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
 
           .flow-desktop {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 48px;
-            align-items: start;
-            max-width: 1400px;
-            margin: 0 auto;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(32px, 4vw, 72px);
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin-inline: auto;
           }
 
           .flow-pin {
@@ -428,14 +433,15 @@ export default function Section5Booking() {
             height: fit-content;
           }
 
+          /* Images are 1448×1086 — landscape 4:3 */
           .flow-image-wrap {
             position: relative;
             width: 100%;
-            aspect-ratio: 3 / 4;
-            border-radius: 28px;
+            aspect-ratio: 4 / 3;
+            border-radius: 20px;
             overflow: hidden;
             background: #e8e8ea;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
           }
 
           .flow-image {
@@ -605,10 +611,11 @@ export default function Section5Booking() {
           .flow-mobile-image {
             position: relative;
             flex-shrink: 0;
-            width: 100%;
-            height: clamp(190px, 36svh, 420px);
+            width: calc(100% - 32px);
+            /* Images are 1448×1086 — landscape 4:3 */
+            aspect-ratio: 4 / 3;
             max-width: 520px;
-            margin: 0 auto;
+            margin: 12px auto 0;
             border-radius: 16px;
             overflow: hidden;
             background: #e8e8ea;
