@@ -18,6 +18,13 @@ const FACILITY_CATEGORIES = [
   "categories.entry",
 ] as const;
 
+const FACILITY_ASPECT_RATIOS = [
+  "aspect-[4/3]",    // pool table closeup
+  "aspect-[4/3]",    // pool table closeup 2
+  "aspect-[4/3]",    // Space Pilot iPad - wider to show full screen
+  "aspect-[4/3]",    // QR code
+] as const;
+
 type Facility = {
   title: string;
   body: string;

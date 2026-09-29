@@ -79,27 +79,26 @@ export default function VenueFacilitiesBento() {
           color: #EEF1EE;
         }
 
-        /* Layout slots (mobile) */
-        .vf-sofa {
-          grid-column: 1/-1;
-          aspect-ratio: 4/3.1;
-        }
-        .vf-balls {
-          grid-row: span 2;
+        /* Layout slots (mobile) - 3 tiles in 2 columns */
+        .vf-chalk {
+          grid-column: 1;
+          grid-row: 1 / 3;
           min-height: 0;
         }
-        .vf-chalk {
+        .vf-balls {
+          grid-column: 2;
+          min-height: clamp(170px, 42vw, 220px);
+        }
+        .vf-balls-alt {
+          grid-column: 2;
           min-height: clamp(170px, 42vw, 220px);
         }
 
-        .vf-sofa .vf-ttl {
-          font-size: clamp(20px, 5.6vw, 26px);
-        }
         .vf-balls :global(img) {
           object-position: 50% 58%;
         }
 
-        /* Tablet / desktop: 4-column bento */
+        /* Tablet / desktop: 3-column layout */
         @media (min-width: 760px) {
           .venue-facilities-bento {
             padding: 110px 28px 130px;
@@ -108,8 +107,8 @@ export default function VenueFacilitiesBento() {
             padding: 56px 0 30px;
           }
           .vf-bento {
-            grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: minmax(clamp(190px, 18vw, 220px), auto);
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: minmax(clamp(240px, 22vw, 280px), auto);
             gap: 14px;
           }
           .vf-tile {
@@ -117,21 +116,19 @@ export default function VenueFacilitiesBento() {
             min-height: 0;
             aspect-ratio: auto;
           }
-          .vf-sofa {
-            grid-column: 1/3;
-            grid-row: 1/3;
+          .vf-chalk {
+            grid-column: 1;
+            grid-row: 1;
           }
           .vf-balls {
-            grid-column: 3;
-            grid-row: 1/3;
-          }
-          .vf-chalk {
-            grid-column: 4;
-            grid-row: 1/3;
+            grid-column: 2;
+            grid-row: 1;
             min-height: 0;
           }
-          .vf-sofa .vf-ttl {
-            font-size: 28px;
+          .vf-balls-alt {
+            grid-column: 3;
+            grid-row: 1;
+            min-height: 0;
           }
           .vf-ttl {
             font-size: 19px;
@@ -146,22 +143,22 @@ export default function VenueFacilitiesBento() {
 
       <div className="vf-inner">
         <header className="vf-head">
-          <h2 className="vf-h1">{t("facilities_bento_title")}</h2>
+          <h2 className="vf-h1">頂級設備，頂級桌球，助你更加專注</h2>
         </header>
         <div className="vf-bento">
-          {/* Sofa tile */}
-          <div className="vf-tile vf-sofa photo">
+          {/* Triangle chalk tile - moved to first position */}
+          <div className="vf-tile vf-chalk photo">
             <Image
-              src="/images/sofa-and-cue-stand-中八桌球-香港新蒲崗.webp"
-              alt={t("facilities_bento_sofa_alt")}
+              src="/images/triangle-chalk-box-中八桌球-香港新蒲崗.webp"
+              alt={t("facilities_bento_chalk_alt")}
               fill
-              sizes="(max-width: 760px) 100vw, 50vw"
+              sizes="(max-width: 760px) 50vw, 33vw"
               quality={90}
               priority
             />
             <div className="vf-txt">
-              <div className="vf-cat">{t("facilities_bento_sofa_cat")}</div>
-              <h3 className="vf-ttl">{t("facilities_bento_sofa_title")}</h3>
+              <div className="vf-cat">{t("facilities_bento_chalk_cat")}</div>
+              <h3 className="vf-ttl">{t("facilities_bento_chalk_title")}</h3>
             </div>
           </div>
 
@@ -171,7 +168,7 @@ export default function VenueFacilitiesBento() {
               src="/images/aramith-balls-box-中八桌球-香港新蒲崗.webp"
               alt={t("facilities_bento_balls_alt")}
               fill
-              sizes="(max-width: 760px) 50vw, 25vw"
+              sizes="(max-width: 760px) 50vw, 33vw"
               quality={90}
             />
             <div className="vf-txt">
@@ -180,18 +177,18 @@ export default function VenueFacilitiesBento() {
             </div>
           </div>
 
-          {/* Triangle chalk tile */}
-          <div className="vf-tile vf-chalk photo">
+          {/* Aramith balls closeup tile (using alternate image) */}
+          <div className="vf-tile vf-balls-alt photo">
             <Image
-              src="/images/triangle-chalk-box-中八桌球-香港新蒲崗.webp"
-              alt={t("facilities_bento_chalk_alt")}
+              src="/images/aramith-balls-box-2-中八桌球-香港新蒲崗.webp"
+              alt="比利時 Aramith 中八桌球球組"
               fill
-              sizes="(max-width: 760px) 50vw, 25vw"
+              sizes="(max-width: 760px) 50vw, 33vw"
               quality={90}
             />
             <div className="vf-txt">
-              <div className="vf-cat">{t("facilities_bento_chalk_cat")}</div>
-              <h3 className="vf-ttl">{t("facilities_bento_chalk_title")}</h3>
+              <div className="vf-cat">{t("facilities_bento_balls_cat")}</div>
+              <h3 className="vf-ttl">{t("facilities_bento_balls_title")}</h3>
             </div>
           </div>
         </div>

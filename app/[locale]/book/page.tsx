@@ -407,14 +407,14 @@ function DualTableGrid({
     () =>
       ({
         1: [
-          { src: "/gallery/Space_Infinity.PNG", alt: "Space Infinity — interior view" },
-          { src: "/gallery/S2/part3_table_wide_room.png", alt: "Space Infinity — wide angle" },
-          { src: "/gallery/S2/part2_table_closeup.png", alt: "Space Infinity — table closeup" },
+          { src: "/images/space-infinity-room-中八桌球-香港新蒲崗.webp", alt: "Space Infinity — interior view" },
+          { src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp", alt: "Space Infinity — table closeup" },
+          { src: "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp", alt: "Space Infinity — table detail" },
         ],
         2: [
-          { src: "/gallery/Space_Enternity.PNG", alt: "Space Eternity — interior view" },
-          { src: "/gallery/Space_Infinity.PNG", alt: "Space Eternity — alternate angle" },
-          { src: "/gallery/S2/part1_tap_to_enter.png", alt: "Space Eternity — entrance" },
+          { src: "/images/space-eternity-room-中八桌球-香港新蒲崗.webp", alt: "Space Eternity — interior view" },
+          { src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp", alt: "Space Eternity — table closeup" },
+          { src: "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp", alt: "Space Eternity — table detail" },
         ],
       } as const),
     [],

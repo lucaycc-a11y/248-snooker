@@ -42,9 +42,9 @@ const STEPS = [
 ] as const
 
 const STEP_IMAGES = [
-  "/gallery/Space8_Competition_Mode.PNG",
-  "/gallery/Space8_Door.PNG",
-  "/gallery/space-pilot-scoreboard.png",
+  "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
+  "/images/qrcode-checkin-中八桌球-香港新蒲崗.webp",
+  "/gallery/spacepliot.png",
 ] as const
 
 function highlight(text: string, word: string, color: string): React.ReactNode {

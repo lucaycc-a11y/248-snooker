@@ -21,12 +21,19 @@ export function BlurImage({ src, alt }: { src: string; alt: string }) {
 }
 
 export function Card({ item, index, onOpen }: { item: CarouselItem; index: number; onOpen: () => void }) {
+  // Space Pilot slide gets wider aspect ratio to show full iPad screen
+  const isSpacePilot = item.src.includes('spacepliot');
+
   return (
     <button
       type="button"
       onClick={onOpen}
       aria-label={`${item.title} — ${item.category}`}
-      className="group relative h-[440px] w-[82vw] max-w-[320px] shrink-0 snap-start overflow-hidden rounded-[24px] bg-[#1d1d1f] text-left md:h-[500px] md:w-[320px]"
+      className={`group relative shrink-0 snap-start overflow-hidden rounded-[24px] bg-[#1d1d1f] text-left ${
+        isSpacePilot
+          ? 'h-[360px] w-[90vw] max-w-[480px] md:h-[400px] md:w-[480px]'
+          : 'h-[440px] w-[82vw] max-w-[320px] md:h-[500px] md:w-[320px]'
+      }`}
     >
       <BlurImage src={item.src} alt={item.title} />
       <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />

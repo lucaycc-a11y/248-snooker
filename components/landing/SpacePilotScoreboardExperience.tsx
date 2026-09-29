@@ -112,20 +112,22 @@ export default function SpacePilotScoreboardExperience({
               transition={{ duration: 0.7, ease: EASE }}
               className="relative z-10 mx-auto w-full max-w-5xl overflow-hidden rounded-[30px] md:rounded-[42px]"
             >
+              {/* Enlarged device frame with more scale */}
               <div className="relative aspect-[4/3] bg-black">
                 <Image
                   src={SCOREBOARD_IMAGE}
                   alt={t("scoreboard_alt")}
                   fill
-                  sizes="(max-width: 768px) 100vw, 1024px"
-                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  className="object-contain scale-[1.15]"
                   priority
                   draggable={false}
                 />
 
+                {/* Glass-effect widgets with frosted glass treatment */}
                 <motion.div
                   style={reducedMotion ? undefined : { x: leftPanelX }}
-                  className="absolute left-3 top-3 flex items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-xl md:left-6 md:top-6 md:px-4"
+                  className="absolute left-3 top-3 flex items-center gap-2 rounded-xl border border-white/25 bg-white/[0.08] px-3 py-2 text-[10px] text-white/85 backdrop-blur-[12px] shadow-lg md:left-6 md:top-6 md:px-4"
                 >
                   <Trophy size={14} className="text-[#F59E0B]" aria-hidden="true" />
                   <span data-cms-key="spacePilot.scoreboard_wins">{t("scoreboard_wins")}</span>
@@ -133,7 +135,7 @@ export default function SpacePilotScoreboardExperience({
 
                 <motion.div
                   style={reducedMotion ? undefined : { x: rightPanelX }}
-                  className="absolute right-3 top-3 flex items-center gap-2 rounded-xl border border-white/20 bg-black/70 px-3 py-2 text-[10px] text-white/80 backdrop-blur-xl md:right-6 md:top-6 md:px-4"
+                  className="absolute right-3 top-3 flex items-center gap-2 rounded-xl border border-white/25 bg-white/[0.08] px-3 py-2 text-[10px] text-white/85 backdrop-blur-[12px] shadow-lg md:right-6 md:top-6 md:px-4"
                 >
                   <Clock3 size={14} className="text-[#60A5FA]" aria-hidden="true" />
                   <span data-cms-key="spacePilot.scoreboard_time">{t("scoreboard_time")}</span>
@@ -141,7 +143,7 @@ export default function SpacePilotScoreboardExperience({
 
                 <motion.div
                   style={reducedMotion ? undefined : { y: standingsY, opacity: standingsOpacity }}
-                  className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-white/20 bg-black/75 px-3 py-2.5 text-[10px] text-white/80 backdrop-blur-xl md:inset-x-6 md:bottom-6 md:px-4 md:py-3"
+                  className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 rounded-xl border border-white/25 bg-white/[0.08] px-3 py-2.5 text-[10px] text-white/85 backdrop-blur-[12px] shadow-lg md:inset-x-6 md:bottom-6 md:px-4 md:py-3"
                 >
                   <span data-cms-key="spacePilot.scoreboard_standings" className="flex items-center gap-2"><BarChart3 size={14} className="text-[#A78BFA]" aria-hidden="true" />{t("scoreboard_standings")}</span>
                   <span data-cms-key="spacePilot.scoreboard_match" className="hidden text-white/45 sm:inline">{t("scoreboard_match")}</span>

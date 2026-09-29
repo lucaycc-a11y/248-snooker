@@ -8,8 +8,8 @@ export default function VenueHeroBento() {
   const t = useTranslations("venueBento");
 
   return (
-    <section className="mx-auto max-w-[1120px] px-[14px] pt-8 pb-16 md:px-7 md:pt-14 md:pb-20">
-      {/* Header */}
+    <section className="mx-auto max-w-[1120px] px-[14px] pt-20 pb-16 md:px-7 md:pt-24 md:pb-20">
+      {/* Header with proper clearance from nav logo */}
       <div className="mb-6 px-1 md:mb-8">
         <h1 className="text-[clamp(28px,7.4vw,48px)] font-bold leading-[1.18] tracking-[-0.01em] text-[#EEF1EE]">
           {t("title")}
@@ -21,7 +21,7 @@ export default function VenueHeroBento() {
         {/* Room - Large photo tile */}
         <div className="photo-tile col-span-2 aspect-[4/3.1] md:col-start-1 md:col-span-2 md:row-start-1 md:row-span-2 md:aspect-auto">
           <Image
-            src="/images/sofa-and-cue-stand-中八桌球-香港新蒲崗.webp"
+            src="/images/sofa-lounge-中八桌球-香港新蒲崗.webp"
             alt={t("room.alt")}
             fill
             className="object-cover"
@@ -30,7 +30,7 @@ export default function VenueHeroBento() {
           />
           <div className="txt">
             <p className="cat">{t("room.category")}</p>
-            <h2 className="ttl text-[clamp(20px,5.6vw,26px)] md:text-[28px]">{t("room.title")}</h2>
+            <h2 className="ttl text-[clamp(20px,5.6vw,26px)] md:text-[28px]">休息區</h2>
           </div>
         </div>
 
