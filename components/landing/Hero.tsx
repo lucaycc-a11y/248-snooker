@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useAnimeEntrance } from "@/lib/anime-reveal";
@@ -36,123 +35,42 @@ export default function Hero() {
       className="relative overflow-hidden bg-black"
       style={{
         width: "100%",
-        height: "100dvh",
-        minHeight: "100dvh",
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
+        minHeight: "100svh",
+        display: "grid",
+        gridTemplateRows: "auto 1fr",
       }}
     >
-      {/* Mobile: full-viewport edge-to-edge table */}
-      <img
-        src="/video/Space8_Main_Hero_Poster.jpg"
-        alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
-        className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_68%] md:hidden"
-        style={{ filter: "brightness(1.3) contrast(1.05)" }}
-      />
-      <video
-        ref={mobileVideoRef}
-        className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_68%] md:hidden"
-        style={{
-          filter: "brightness(1.3) contrast(1.05)",
-          opacity: videoEnded ? 0 : 1,
-          transition: "opacity 1.6s ease-out",
-        }}
-        autoPlay
-        muted
-        playsInline
-        controls={false}
-        disablePictureInPicture
-        disableRemotePlayback
-        poster="/video/Space8_Main_Hero_Poster.jpg"
-        onEnded={() => setVideoEnded(true)}
-      >
-        <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
-      </video>
-
-      {/* Desktop: large perspective wedge occupying most of the hero area */}
-      <motion.div
-        className="absolute bottom-0 left-1/2 hidden aspect-square overflow-hidden md:block"
-        whileHover={{ scale: 1.025 }}
-        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          x: "-50%",
-          transformOrigin: "center bottom",
-          willChange: "transform",
-          width: "clamp(900px, 95vw, 1600px)",
-          height: "clamp(900px, 95vh, 1600px)",
-        }}
-      >
-        <img
-          src="/video/Space8_Main_Hero_Poster.jpg"
-          alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
-          className="absolute inset-0 h-full w-full translate-y-[4%] object-cover [object-position:center_71%]"
-          style={{ filter: "brightness(1.3) contrast(1.05)" }}
-        />
-        <video
-          ref={desktopVideoRef}
-          className="relative h-full w-full translate-y-[4%] object-cover [object-position:center_71%]"
-          style={{
-            filter: "brightness(1.3) contrast(1.05)",
-            opacity: videoEnded ? 0 : 1,
-            transition: "opacity 1.6s ease-out",
-          }}
-          autoPlay
-          muted
-          playsInline
-          controls={false}
-          disablePictureInPicture
-          disableRemotePlayback
-          poster="/video/Space8_Main_Hero_Poster.jpg"
-          onEnded={() => setVideoEnded(true)}
-        >
-          <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
-        </video>
-      </motion.div>
-
-      {/* Gradient overlay — ensures text readability over the large table */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 1,
-          pointerEvents: "none",
-          background:
-            "linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.3) 25%, rgba(0,0,0,0.15) 50%, transparent 70%, rgba(0,0,0,0.3) 100%)",
-        }}
-      />
-
-      {/* Content stack — centered in viewport, sitting on top of the large table.
-          Text block remains horizontally centered with constrained max-width for readability. */}
+      {/* Text content area — stays in normal flow, top of grid */}
       <div
         ref={heroContentRef}
-        className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center"
+        className="pointer-events-none z-10 flex flex-col items-center px-6 text-center"
         style={{
-          paddingTop: "max(env(safe-area-inset-top), 80px)",
-          paddingBottom: "max(env(safe-area-inset-bottom), 120px)",
+          paddingTop: "clamp(88px, 13svh, 120px)",
+          paddingBottom: "clamp(8px, 1.6svh, 20px)",
         }}
       >
-        {/* Constrained content column for large screens */}
         <div
           className="flex w-full flex-col items-center"
-          style={{ maxWidth: "min(720px, 90vw)" }}
+          style={{
+            maxWidth: "min(720px, 90vw)",
+            gap: "clamp(8px, 1.6svh, 20px)",
+          }}
         >
-          {/* SPACE8 Logo — centered above headline */}
+          {/* SPACE8 Logo */}
           <div
             className="anime-reveal-wrapper"
             data-anime-hero-item
-            style={{ marginBottom: "clamp(8px, 1.2vh, 16px)" }}
           >
             <Logo variant="full" theme="dark" size={32} />
           </div>
 
-          {/* Headline — fluid sizing, centered */}
+          {/* Headline — viewport-height-aware sizing */}
           <div className="anime-reveal-wrapper">
             <h1
               data-anime-hero-item
               style={{
                 ...HEADLINE_GRADIENT,
-                fontSize: "clamp(2.25rem, 5.5vw + 1rem, 4.5rem)", // 36px → 72px fluid
+                fontSize: "clamp(36px, min(10vw, 7.5svh), 96px)",
                 fontWeight: 700,
                 letterSpacing: "-0.015em",
                 lineHeight: 1.04,
@@ -166,37 +84,32 @@ export default function Hero() {
             </h1>
           </div>
 
-          {/* Subtext — fluid sizing */}
+          {/* Subtext */}
           <div className="anime-reveal-wrapper">
             <p
               data-anime-hero-item
               style={{
-                marginTop: "clamp(0.625rem, 1vh, 1rem)", // 10px → 16px
-                fontSize: "clamp(0.875rem, 0.8vw + 0.5rem, 1.125rem)", // 14px → 18px
+                fontSize: "clamp(14px, min(2.5vw, 2svh), 18px)",
                 color: "rgba(255,255,255,0.72)",
                 fontWeight: 400,
                 letterSpacing: "-0.01em",
                 fontFamily:
                   "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif",
+                margin: 0,
               }}
             >
               {t("subline")}
             </p>
           </div>
 
-          {/* CTA buttons — fluid sizing with enforced 44px tap targets */}
+          {/* CTA buttons */}
           <div className="anime-reveal-wrapper" data-anime-hero-item>
-            <div
-              className="pointer-events-auto"
-              style={{
-                marginTop: "clamp(1rem, 2vh, 1.5rem)", // 16px → 24px
-              }}
-            >
+            <div className="pointer-events-auto">
               <div
-                className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center rounded-full"
+                className="mx-auto flex w-fit flex-row flex-nowrap items-center justify-center"
                 style={{
-                  gap: "clamp(0.625rem, 1vw, 0.875rem)", // 10px → 14px
-                  padding: "clamp(0.5rem, 0.8vh, 0.75rem)",
+                  gap: "clamp(10px, 1vw, 14px)",
+                  padding: "clamp(8px, 0.8svh, 12px)",
                 }}
               >
                 <Link
@@ -206,8 +119,8 @@ export default function Hero() {
                   style={{
                     background: GREEN,
                     color: "#000",
-                    fontSize: "clamp(0.8125rem, 0.6vw + 0.5rem, 0.9375rem)", // 13px → 15px
-                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)", // Fixed py: 12px, fluid px
+                    fontSize: "clamp(13px, 0.6vw + 0.5rem, 15px)",
+                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)",
                     letterSpacing: "-0.01em",
                     textDecoration: "none",
                     minHeight: "44px",
@@ -226,8 +139,8 @@ export default function Hero() {
                     WebkitBackdropFilter: "blur(10px)",
                     border: "1px solid rgba(255,255,255,0.28)",
                     color: "rgba(255,255,255,0.82)",
-                    fontSize: "clamp(0.8125rem, 0.6vw + 0.5rem, 0.9375rem)", // 13px → 15px
-                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)", // Fixed py: 12px, fluid px
+                    fontSize: "clamp(13px, 0.6vw + 0.5rem, 15px)",
+                    padding: "0.75rem clamp(1.5rem, 2vw, 1.75rem)",
                     fontWeight: 400,
                     textDecoration: "none",
                     minHeight: "44px",
@@ -239,6 +152,113 @@ export default function Hero() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Background area — occupies remaining space, bottom-anchored */}
+      <div
+        className="hero__bg relative"
+        style={{
+          minHeight: "clamp(260px, 42svh, 560px)",
+          width: "100%",
+          pointerEvents: "none",
+          transition: "none !important",
+          animation: "none !important",
+          transform: "none !important",
+        }}
+      >
+        {/* Gradient mask — fades background into black at top */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            pointerEvents: "none",
+            maskImage: "linear-gradient(to bottom, transparent 0%, #000 30%)",
+            WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 30%)",
+          }}
+        />
+
+        {/* Mobile background — full viewport, bottom-anchored */}
+        <div
+          className="absolute inset-0 md:hidden"
+          style={{
+            pointerEvents: "none",
+            transition: "none !important",
+            animation: "none !important",
+            transform: "none !important",
+          }}
+        >
+          <img
+            src="/video/Space8_Main_Hero_Poster.jpg"
+            alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{
+              filter: "brightness(1.3) contrast(1.05)",
+              objectPosition: "center bottom",
+            }}
+          />
+          <video
+            ref={mobileVideoRef}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{
+              filter: "brightness(1.3) contrast(1.05)",
+              objectPosition: "center bottom",
+              opacity: videoEnded ? 0 : 1,
+              transition: "opacity 1.6s ease-out",
+            }}
+            autoPlay
+            muted
+            playsInline
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            poster="/video/Space8_Main_Hero_Poster.jpg"
+            onEnded={() => setVideoEnded(true)}
+          >
+            <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
+          </video>
+        </div>
+
+        {/* Desktop background — large centered, bottom-anchored */}
+        <div
+          className="absolute inset-0 hidden md:block"
+          style={{
+            pointerEvents: "none",
+            transition: "none !important",
+            animation: "none !important",
+            transform: "none !important",
+          }}
+        >
+          <img
+            src="/video/Space8_Main_Hero_Poster.jpg"
+            alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{
+              filter: "brightness(1.3) contrast(1.05)",
+              objectPosition: "center bottom",
+            }}
+          />
+          <video
+            ref={desktopVideoRef}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{
+              filter: "brightness(1.3) contrast(1.05)",
+              objectPosition: "center bottom",
+              opacity: videoEnded ? 0 : 1,
+              transition: "opacity 1.6s ease-out",
+            }}
+            autoPlay
+            muted
+            playsInline
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            poster="/video/Space8_Main_Hero_Poster.jpg"
+            onEnded={() => setVideoEnded(true)}
+          >
+            <source src="/video/Space8_Main_Hero.mp4" type="video/mp4" />
+          </video>
         </div>
       </div>
     </section>
