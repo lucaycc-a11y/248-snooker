@@ -10,17 +10,15 @@ import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
 import { DateInput } from "./DateInput"
 import { validateDateOfBirth } from "@/lib/auth/date-validation"
 
-// Matches the GREEN constant duplicated across every other auth-flow file
-// (AuthCard.tsx, AuthModal.tsx, AccountMenu.tsx, OtpInput.tsx,
-// SignInPrompt.tsx) — this file previously used its own unrelated "BRASS"
-// (#c9a876) gold constant instead, which is why this submit button kept
-// reverting to gold after earlier fixes: those fixes touched the other
-// auth buttons, never this file's hardcoded constant.
-// NOTE: this is intentionally NOT tokens.colors.brand (#25D366, WhatsApp
-// green) — every hand-rolled auth button in this flow uses #22c55e, so
-// matching that (not the shared Button component's token) is what keeps
-// this button visually consistent with its siblings.
-const GREEN = "#22c55e"
+// Space8 brand green for primary action buttons in the booking/auth flow.
+// Distinct from the generic Tailwind green-500 (#22c55e) used on secondary
+// elements such as the verified-phone badge and resend link.
+const GREEN = "#52c25f"
+const GREEN_TEXT = "#062b0d"
+
+// When false, only DD/MM are collected for the birthday field; set true to
+// also collect YYYY. Matches the ASK_YEAR constant in DateInput.tsx.
+const ASK_YEAR = false
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60
 
@@ -142,21 +140,31 @@ export function ProfileCompletion({
   const totalSteps = isReturningUser ? 2 : 3 // Returning: phone verify + DOB; New: phone verify + name+DOB + complete
   const currentStep = verifyMode === "phoneOtp" && !phoneConfirmed ? 1 : (isReturningUser ? 2 : 2)
 
-  // Validate date of birth separately
-  const dateValidation = dateOfBirth.day && dateOfBirth.month && dateOfBirth.year
+  // Birthday is optional. Three states: empty (skip entirely), partial
+  // (user started filling but didn't finish — block submit), or complete
+  // (validate the date). When ASK_YEAR is false, year defaults to 2000 (a
+  // leap year) so 29/02 is accepted.
+  const birthdayEmpty = !dateOfBirth.day && !dateOfBirth.month && (!ASK_YEAR || !dateOfBirth.year)
+  const birthdayPartial = !birthdayEmpty && (
+    !dateOfBirth.day || !dateOfBirth.month || (ASK_YEAR && !dateOfBirth.year)
+  )
+  const dateValidation = (!birthdayEmpty && !birthdayPartial)
     ? validateDateOfBirth(
         parseInt(dateOfBirth.day, 10),
         parseInt(dateOfBirth.month, 10),
-        parseInt(dateOfBirth.year, 10)
+        ASK_YEAR ? parseInt(dateOfBirth.year, 10) : 2000
       )
-    : { valid: false }
+    : { valid: birthdayEmpty, dateString: undefined }
 
   const validation = showName
     ? validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
     : missingContact === "phone"
       ? validateProfile({ name: name || " ", email: "x@x.com", phone: effectivePhone })
       : validateProfile({ name: name || " ", email: effectiveEmail, phone: "12345678" })
-  const canSubmit = validation.ok && dateValidation.valid && !saving
+  // Birthday is optional — only block if partially filled or completely filled
+  // but invalid (e.g. 31/02). An empty birthday is always acceptable.
+  const birthdayBlocking = birthdayPartial || (!birthdayEmpty && !dateValidation.valid)
+  const canSubmit = validation.ok && !birthdayBlocking && !saving
 
   const errorFor = (v: ProfileValidation): string => {
     if (v.ok) return ""
@@ -186,10 +194,11 @@ export function ProfileCompletion({
       return
     }
 
-    // Validate date of birth
-    if (!dateValidation.valid) {
+    // Birthday is optional — only block when partially filled or filled-but-invalid.
+    // Empty birthday passes through and is omitted from the payload entirely.
+    if (birthdayBlocking) {
       setErrField("date_of_birth")
-      setErrMsg(dateErrorMsg() ?? labels.err_date_of_birth)
+      setErrMsg(birthdayPartial ? labels.err_date_of_birth : (dateValidation.error ?? labels.err_date_of_birth))
       return
     }
 
@@ -204,7 +213,9 @@ export function ProfileCompletion({
           name,
           email: v.value.email,
           phone: v.value.phone,
-          date_of_birth: dateValidation.dateString
+          // Omit entirely when birthday was left blank — the backend must not
+          // receive an empty string or a fake placeholder date.
+          ...(dateValidation.dateString ? { date_of_birth: dateValidation.dateString } : {}),
         }),
       })
       if (!res.ok) {
@@ -540,6 +551,11 @@ export function ProfileCompletion({
           disabled={saving}
           label={labels.date_of_birth}
           hint={labels.date_of_birth_hint}
+          optional
+          askYear={ASK_YEAR}
+          optionalBadgeLabel={t("optional_badge")}
+          errorIncomplete={labels.err_date_of_birth}
+          errorInvalid={labels.err_date_of_birth}
         />
 
       </div>
@@ -564,8 +580,8 @@ export function ProfileCompletion({
           height: 52,
           border: "none",
           borderRadius: 12,
-          background: canSubmit ? GREEN : "rgba(34,197,94,0.5)",
-          color: "#000",
+          background: canSubmit ? GREEN : "rgba(82,194,95,0.4)",
+          color: GREEN_TEXT,
           fontWeight: 700,
           fontSize: 16,
           cursor: canSubmit ? "pointer" : "not-allowed",

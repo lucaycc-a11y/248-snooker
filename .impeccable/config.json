@@ -586,6 +586,18 @@
         "rule": "design-system-color",
         "value": "#e8e8ea",
         "createdAt": "2026-09-29T11:00:00.237Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f87171",
+        "createdAt": "2026-09-29T14:09:25.718Z",
+        "reason": "Error/danger red used across all auth components (ProfileCompletion.tsx, OtpVerification.tsx, etc.) — sanctioned design-system error state color"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(82,194,95,0.4)",
+        "createdAt": "2026-09-29T14:13:38.823Z",
+        "reason": "Disabled-state tint of the Space8 brand green #52c25f on the primary submit button — intentional 40% opacity variant, not drift"
       }
     ]
   }
