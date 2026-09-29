@@ -169,6 +169,16 @@
         "rule": "app/[locale]/venue/venuecontent.tsx",
         "value": "266 bounce-easing cubic-bezier(.28, 1.5, .52, 1)",
         "createdAt": "2026-09-29T09:20:39.044Z"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "noto sans tc",
+        "createdAt": "2026-09-29T10:39:38.456Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f5f2ec",
+        "createdAt": "2026-09-29T10:39:38.492Z"
       }
     ]
   }
