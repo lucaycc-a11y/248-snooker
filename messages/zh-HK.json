@@ -680,18 +680,21 @@
     "step1_title": "選擇時段",
     "step1_body": "選擇日期、時間及時長。即時確認，無需等候。",
     "step1_highlight": "即時確認",
+    "step1_alt": "SPACE8 預訂介面顯示時段選擇",
     "step1_modal_label": "預訂",
     "step1_modal_title": "選擇時段",
     "step1_modal_body": "全程在線預訂，三步完成。選擇日期、時間及時長后即時確認，無需等候人工回復。付款支持 Apple Pay、Visa、Mastercard 及银聯，安全快捷。",
     "step2_title": "掃碼入場",
     "step2_body": "預訂確認后即獲 QR 碼。到場掃描，自動開門。",
     "step2_highlight": "自動開門",
+    "step2_alt": "掃描 QR 碼進入 SPACE8 場地",
     "step2_modal_label": "入場",
     "step2_modal_title": "掃碼入場",
     "step2_modal_body": "預訂確認后即時獲發專屬 QR 碼，於預訂時段内有效。到場時於門鎖掃描即自動開門，全程無需工作人員協助。",
     "step3_title": "累積積分",
     "step3_body": "每 HK$1 累積 1 積分。越打越划算。",
     "step3_highlight": "越打越划算",
+    "step3_alt": "SPACE8 會員賺取積分和獎勵",
     "step3_modal_label": "奖励",
     "step3_modal_title": "累積積分",
     "step3_modal_body": "每消費 HK$1 即累積 1 積分，自動升級會員等級。三個等級 標準、優越、尊榮，解鎖不同專屬福利。",
@@ -2263,32 +2266,32 @@
   },
   "venueBento": {
     "title": "場地介紹。",
-  "room": {
-    "category": "空間配置",
-    "title": "沙發與球桿架",
-    "alt": "SPACE8 休息區沙發及球桿架"
-  },
-  "balls": {
-    "category": "專業裝備",
-    "title": "Aramith 原廠比賽球",
-    "alt": "Aramith 比賽級桌球套裝"
-  },
-  "scan": {
-    "category": "智能系統",
-    "title": "QR 自助入場"
-  },
-  "smoke": {
-    "category": "環境質素",
-    "title": "全場無煙區域"
-  },
-  "score": {
-    "category": "科技體驗",
-    "title": "Space Pilot 即時計分",
-    "alt": "Space Pilot 智能計分系統介面"
-  },
-  "sofa": {
-    "category": "舒適配套",
-    "title": "休息區及儲物空間"
+    "room": {
+      "category": "空間配置",
+      "title": "沙發與球桿架",
+      "alt": "SPACE8 休息區沙發及球桿架"
+    },
+    "balls": {
+      "category": "專業裝備",
+      "title": "Aramith 原廠比賽球",
+      "alt": "Aramith 比賽級桌球套裝"
+    },
+    "scan": {
+      "category": "智能系統",
+      "title": "QR 自助入場"
+    },
+    "smoke": {
+      "category": "環境質素",
+      "title": "全場無煙區域"
+    },
+    "score": {
+      "category": "科技體驗",
+      "title": "Space Pilot 即時計分",
+      "alt": "Space Pilot 智能計分系統介面"
+    },
+    "sofa": {
+      "category": "舒適配套",
+      "title": "休息區及儲物空間"
+    }
   }
-}
 }

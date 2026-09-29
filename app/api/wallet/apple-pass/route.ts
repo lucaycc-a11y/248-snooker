@@ -3,6 +3,9 @@ import { PKPass } from 'passkit-generator'
 import path from 'path'
 import { getWalletMember, TIER_DISPLAY } from '@/lib/wallet/shared'
 
+export const dynamic = 'force-dynamic'
+
+
 /**
  * GET /api/wallet/apple-pass
  *

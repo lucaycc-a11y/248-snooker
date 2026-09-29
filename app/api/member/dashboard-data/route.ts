@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getMemberDashboardData } from '@/lib/data/getMemberRedesign'
 
+export const dynamic = 'force-dynamic'
+
+
 // ════════════════════════════════════════════════════════════════════════════
 // GET /api/member/dashboard-data
 // Returns complete member dashboard data for client-side refresh

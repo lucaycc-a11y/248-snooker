@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getWalletMember, TIER_DISPLAY, WALLET_LABELS } from '@/lib/wallet/shared'
 
+export const dynamic = 'force-dynamic'
+
+
 // ── Types for the Google Wallet JWT payload ─────────────────────────────
 type LocalizedString = {
   defaultValue: { language: string; value: string }

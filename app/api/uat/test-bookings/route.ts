@@ -9,6 +9,9 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { requireActiveAdmin } from '@/lib/uat/admin-auth'
 
+export const dynamic = 'force-dynamic'
+
+
 export const runtime = 'nodejs'
 
 type BookingRow = {

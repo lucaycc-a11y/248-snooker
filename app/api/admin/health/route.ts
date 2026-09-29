@@ -13,6 +13,9 @@ import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
 
+export const dynamic = 'force-dynamic'
+
+
 type HealthStatus = 'ok' | 'warning' | 'error'
 
 type HealthCheck = {

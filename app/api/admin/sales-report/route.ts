@@ -13,6 +13,9 @@ import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
 
+export const dynamic = 'force-dynamic'
+
+
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
 }

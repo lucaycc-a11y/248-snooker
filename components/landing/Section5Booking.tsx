@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
@@ -21,6 +22,7 @@ interface Step {
   title: string
   desc: string
   art: string
+  altCmsKey?: string // for CMS sync on alt text
   cta?: { label: string; href: string }
 }
 
@@ -28,19 +30,22 @@ const STEPS: Step[] = [
   {
     title: "選擇時段",
     desc: "選擇日期、時間及時長。即時確認，無需等候。",
-    art: "",
+    art: "/images/space8-booking-interface-pick-slot.webp",
+    altCmsKey: "how.step1.alt",
     cta: { label: "立即預訂", href: "/book" },
   },
   {
     title: "掃碼入場",
     desc: "預訂確認後即獲 QR 碼。到場掃描，自動開門。",
-    art: "",
+    art: "/images/space8-qrcode-entry-system.webp",
+    altCmsKey: "how.step2.alt",
     cta: { label: "我的 QR 碼", href: "/membership" },
   },
   {
     title: "累積積分",
     desc: "每 HK$1 累積 1 積分。越打越划算。",
-    art: "",
+    art: "/images/space8-member-rewards-points.webp",
+    altCmsKey: "how.step3.alt",
     cta: { label: "查看積分", href: "/membership" },
   },
 ] as const
@@ -49,6 +54,7 @@ const NAV_HEIGHT = 64
 
 export default function Section5Booking() {
   const t = useTranslations("how")
+  const tCommon = useTranslations()
   const sectionRef = useRef<HTMLDivElement>(null)
   const stepsContainerRef = useRef<HTMLDivElement>(null)
   const progressBarRef = useRef<HTMLDivElement>(null)
@@ -243,12 +249,16 @@ export default function Section5Booking() {
         <div className="flow-pin">
           <div className="flow-image-wrap">
             {STEPS.map((step, i) => (
-              <img
+              <Image
                 key={i}
-                src={step.art || "/images/placeholder-art.svg"}
-                alt={step.title}
+                src={step.art}
+                alt={step.altCmsKey ? t(step.altCmsKey.split(".").pop() as any) : step.title}
+                data-cms-key={step.altCmsKey}
+                fill
+                sizes="(max-width: 1024px) 50vw, 420px"
+                priority={i === 0}
                 className={`flow-image ${i === activeIdx ? "active" : ""}`}
-                loading={i === 0 ? "eager" : "lazy"}
+                style={{ objectFit: "cover" }}
               />
             ))}
           </div>
@@ -305,12 +315,16 @@ export default function Section5Booking() {
             <>
               <div className="flow-mobile-image">
                 {STEPS.map((step, i) => (
-                  <img
+                  <Image
                     key={i}
-                    src={step.art || "/images/placeholder-art.svg"}
+                    src={step.art}
                     alt={step.title}
+                    data-cms-key={step.altCmsKey}
+                    fill
+                    sizes="100vw"
+                    priority={i === 0}
                     className={`flow-image ${i === activeIdx ? "active" : ""}`}
-                    loading={i === 0 ? "eager" : "lazy"}
+                    style={{ objectFit: "cover" }}
                   />
                 ))}
               </div>

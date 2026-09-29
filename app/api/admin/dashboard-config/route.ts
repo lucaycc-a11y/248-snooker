@@ -4,6 +4,9 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { DEFAULT_LAYOUT, VALID_WIDGET_IDS } from '@/lib/admin/widgetMeta'
 import type { LayoutItem, WidgetSize } from '@/lib/admin/widgetMeta'
 
+export const dynamic = 'force-dynamic'
+
+
 /**
  * Dashboard layout persistence — §3.2.
  *

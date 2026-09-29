@@ -3,6 +3,8 @@ import { getAdminData } from '@/lib/data/getAdmin'
 import { getAdminStats, getRevenueSeries } from '@/lib/data/getAdminStats'
 import { getVectorEngine, VectorEngineConfigError } from '@/lib/ai/vectorengine'
 
+export const dynamic = 'force-dynamic'
+
 // Admin-only "Today's summary" button. Auth-gated + low call volume (a human
 // clicking a button a few times a day) — no separate rate limit needed on top
 // of the admin guard, unlike the public chat/CMS-edit endpoints.

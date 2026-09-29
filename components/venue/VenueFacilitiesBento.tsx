@@ -151,6 +151,7 @@ export default function VenueFacilitiesBento() {
             <Image
               src="/images/triangle-chalk-box-中八桌球-香港新蒲崗.webp"
               alt={t("facilities_bento_chalk_alt")}
+              data-cms-key="venuePage.facilities_bento_chalk_alt"
               fill
               sizes="(max-width: 760px) 50vw, 33vw"
               quality={90}
@@ -167,6 +168,7 @@ export default function VenueFacilitiesBento() {
             <Image
               src="/images/aramith-balls-box-中八桌球-香港新蒲崗.webp"
               alt={t("facilities_bento_balls_alt")}
+              data-cms-key="venuePage.facilities_bento_balls_alt"
               fill
               sizes="(max-width: 760px) 50vw, 33vw"
               quality={90}
@@ -181,7 +183,8 @@ export default function VenueFacilitiesBento() {
           <div className="vf-tile vf-balls-alt photo">
             <Image
               src="/images/aramith-balls-box-2-中八桌球-香港新蒲崗.webp"
-              alt="比利時 Aramith 中八桌球球組"
+              alt={t("facilities_bento_balls_alt")}
+              data-cms-key="venuePage.facilities_bento_balls_alt"
               fill
               sizes="(max-width: 760px) 50vw, 33vw"
               quality={90}

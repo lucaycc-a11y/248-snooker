@@ -28,6 +28,9 @@ import { getAdminData } from '@/lib/data/getAdmin'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { str } from '@/lib/data/adminReadHelpers'
 
+export const dynamic = 'force-dynamic'
+
+
 export const runtime = 'nodejs'
 
 const PAGE_SIZE = 30

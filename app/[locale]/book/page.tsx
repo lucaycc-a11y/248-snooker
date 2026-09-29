@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
@@ -407,14 +408,14 @@ function DualTableGrid({
     () =>
       ({
         1: [
-          { src: "/images/space-infinity-room-中八桌球-香港新蒲崗.webp", alt: "Space Infinity — interior view" },
-          { src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp", alt: "Space Infinity — table closeup" },
-          { src: "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp", alt: "Space Infinity — table detail" },
+          { src: "/images/space-infinity-room-中八桌球-香港新蒲崗.webp", altCmsKey: "book.infinity.room" },
+          { src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp", altCmsKey: "book.infinity.table" },
+          { src: "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp", altCmsKey: "book.infinity.detail" },
         ],
         2: [
-          { src: "/images/space-eternity-room-中八桌球-香港新蒲崗.webp", alt: "Space Eternity — interior view" },
-          { src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp", alt: "Space Eternity — table closeup" },
-          { src: "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp", alt: "Space Eternity — table detail" },
+          { src: "/images/space-eternity-room-中八桌球-香港新蒲崗.webp", altCmsKey: "book.eternity.room" },
+          { src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp", altCmsKey: "book.eternity.table" },
+          { src: "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp", altCmsKey: "book.eternity.detail" },
         ],
       } as const),
     [],
@@ -839,13 +840,16 @@ function DualTableGrid({
               >
                 {galleryImages.map((img, i) => (
                   <div key={img.src} className="gallery-slide">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={img.src}
-                      alt={img.alt}
+                      alt={t(img.altCmsKey)}
+                      data-cms-key={img.altCmsKey}
                       draggable={false}
-                      loading="lazy"
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      fill
+                      sizes="(max-width: 768px) 90vw, 600px"
+                      priority={i === 0}
+                      className="gallery-image"
+                      style={{ objectFit: "cover" }}
                     />
                   </div>
                 ))}

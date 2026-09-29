@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getAdminDoorCards } from '@/lib/data/getAdminDoorCards'
 
+export const dynamic = 'force-dynamic'
+
+
 export async function GET() {
   try {
     const admin = await getAdminData()

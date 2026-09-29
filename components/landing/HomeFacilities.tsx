@@ -18,6 +18,13 @@ const FACILITY_CATEGORIES = [
   "categories.entry",
 ] as const;
 
+const FACILITY_ALT_CMS_KEYS = [
+  "homeVenue.items.0.alt",
+  "homeVenue.items.1.alt",
+  "homeVenue.items.2.alt",
+  "homeVenue.items.3.alt",
+] as const;
+
 type Facility = {
   title: string;
   body: string;
@@ -35,7 +42,10 @@ export default function HomeFacilities() {
     desc: facility.body,
     src: FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0],
     alt: facility.title,
+    altCmsKey: FACILITY_ALT_CMS_KEYS[index],
     focus: "center" as const,
+    width: 420,
+    height: 560,
   }));
 
   return (

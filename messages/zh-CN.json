@@ -696,7 +696,10 @@
     "step3_modal_title": "累积积分",
     "step3_modal_body": "每消费 HK$1 即累积 1 积分，自动升级会员等级。三个等级 标准、优越、尊荣，解锁不同专属福利。",
     "close": "关闭",
-    "qr_hint": "提示：也可以用会员 QR code 进出场地，QR code 可以在登录后「我的账户」看到"
+    "qr_hint": "提示：也可以用会员 QR code 进出场地，QR code 可以在登录后「我的账户」看到",
+    "step1_alt": "SPACE8 订票界面显示时段选择",
+    "step2_alt": "扫描二维码进入 SPACE8 场地",
+    "step3_alt": "SPACE8 会员赚取积分和奖励"
   },
   "member": {
     "tabs": {
@@ -2263,32 +2266,32 @@
   },
   "venueBento": {
     "title": "场地介绍。",
-  "room": {
-    "category": "空间配置",
-    "title": "沙发与球杆架",
-    "alt": "SPACE8 休息区沙发及球杆架"
-  },
-  "balls": {
-    "category": "专业装备",
-    "title": "Aramith 原厂比赛球",
-    "alt": "Aramith 比赛级桌球套装"
-  },
-  "scan": {
-    "category": "智能系统",
-    "title": "QR 自助入场"
-  },
-  "smoke": {
-    "category": "环境质素",
-    "title": "全场无烟区域"
-  },
-  "score": {
-    "category": "科技体验",
-    "title": "Space Pilot 即时计分",
-    "alt": "Space Pilot 智能计分系统界面"
-  },
-  "sofa": {
-    "category": "舒适配套",
-    "title": "休息区及储物空间"
+    "room": {
+      "category": "空间配置",
+      "title": "沙发与球杆架",
+      "alt": "SPACE8 休息区沙发及球杆架"
+    },
+    "balls": {
+      "category": "专业装备",
+      "title": "Aramith 原厂比赛球",
+      "alt": "Aramith 比赛级桌球套装"
+    },
+    "scan": {
+      "category": "智能系统",
+      "title": "QR 自助入场"
+    },
+    "smoke": {
+      "category": "环境质素",
+      "title": "全场无烟区域"
+    },
+    "score": {
+      "category": "科技体验",
+      "title": "Space Pilot 即时计分",
+      "alt": "Space Pilot 智能计分系统界面"
+    },
+    "sofa": {
+      "category": "舒适配套",
+      "title": "休息区及储物空间"
+    }
   }
-}
 }

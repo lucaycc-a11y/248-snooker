@@ -23,6 +23,7 @@ export default function VenueHeroBento() {
           <Image
             src="/images/sofa-lounge-中八桌球-香港新蒲崗.webp"
             alt={t("room.alt")}
+            data-cms-key="venueBento.room.alt"
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"
@@ -39,6 +40,7 @@ export default function VenueHeroBento() {
           <Image
             src="/images/aramith-balls-box-中八桌球-香港新蒲崗.webp"
             alt={t("balls.alt")}
+            data-cms-key="venueBento.balls.alt"
             fill
             className="object-cover"
             style={{ objectPosition: "50% 58%" }}
@@ -77,6 +79,7 @@ export default function VenueHeroBento() {
           <Image
             src="/gallery/spacepliot.png"
             alt={t("score.alt")}
+            data-cms-key="venueBento.score.alt"
             fill
             className="object-contain p-[6px_6px_58px] md:p-[16px_16px_16px_50%]"
             style={{ objectPosition: "right center" }}

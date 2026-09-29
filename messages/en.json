@@ -696,7 +696,10 @@
     "step3_modal_title": "Earn Points",
     "step3_modal_body": "Earn 1 point for every HK$1 spent and level up automatically. Three tiers — Standard, Premier, Prestige — each unlocking exclusive benefits.",
     "close": "Close",
-    "qr_hint": "Tip: You can also use your member QR code to enter and leave the venue. Find it under “My Account” after signing in."
+    "qr_hint": "Tip: You can also use your member QR code to enter and leave the venue. Find it under “My Account” after signing in.",
+    "step1_alt": "SPACE8 booking interface showing time slot selection",
+    "step2_alt": "Scanning QR code to enter SPACE8 venue",
+    "step3_alt": "SPACE8 member earning points and rewards"
   },
   "member": {
     "tabs": {
@@ -2263,32 +2266,32 @@
   },
   "venueBento": {
     "title": "Our Venue.",
-  "room": {
-    "category": "Space Setup",
-    "title": "Lounge & Cue Rack",
-    "alt": "SPACE8 lounge sofa and cue rack"
-  },
-  "balls": {
-    "category": "Pro Equipment",
-    "title": "Aramith Tournament Balls",
-    "alt": "Aramith tournament-grade ball set"
-  },
-  "scan": {
-    "category": "Smart System",
-    "title": "QR Self Check-in"
-  },
-  "smoke": {
-    "category": "Environment",
-    "title": "100% Smoke-Free"
-  },
-  "score": {
-    "category": "Tech Experience",
-    "title": "Space Pilot Live Scoring",
-    "alt": "Space Pilot smart scoring system interface"
-  },
-  "sofa": {
-    "category": "Comfort",
-    "title": "Lounge & Storage"
+    "room": {
+      "category": "Space Setup",
+      "title": "Lounge & Cue Rack",
+      "alt": "SPACE8 lounge sofa and cue rack"
+    },
+    "balls": {
+      "category": "Pro Equipment",
+      "title": "Aramith Tournament Balls",
+      "alt": "Aramith tournament-grade ball set"
+    },
+    "scan": {
+      "category": "Smart System",
+      "title": "QR Self Check-in"
+    },
+    "smoke": {
+      "category": "Environment",
+      "title": "100% Smoke-Free"
+    },
+    "score": {
+      "category": "Tech Experience",
+      "title": "Space Pilot Live Scoring",
+      "alt": "Space Pilot smart scoring system interface"
+    },
+    "sofa": {
+      "category": "Comfort",
+      "title": "Lounge & Storage"
+    }
   }
-}
 }

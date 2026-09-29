@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 
@@ -10,7 +11,10 @@ type Slide = {
   desc?: string;
   src: string;
   alt?: string;
+  altCmsKey?: string; // for CMS sync on alt text
   focus?: "center" | "center top" | "center bottom";
+  width?: number; // image dimensions for next/image
+  height?: number;
 };
 
 type AppleCarouselProps = {
@@ -472,13 +476,15 @@ export function AppleCarousel({
                 aria-label={slide.alt || slide.title}
               />
             ) : (
-              <img
+              <Image
                 src={slide.src}
                 alt={slide.alt || slide.title}
-                loading={i === 0 ? "eager" : "lazy"}
-                decoding="async"
+                data-cms-key={slide.altCmsKey}
+                fill
+                sizes="(max-width: 768px) 82vw, min(82vw, 420px)"
+                priority={i === 0}
                 className="carousel-media"
-                style={{ objectPosition: slide.focus || "center" }}
+                style={{ objectPosition: slide.focus || "center", objectFit: "cover" }}
               />
             )}
 
