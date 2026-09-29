@@ -15,6 +15,7 @@ type Slide = {
   focus?: "center" | "center top" | "center bottom";
   width?: number; // image dimensions for next/image
   height?: number;
+  aspectRatio?: string; // per-slide override; falls back to carousel-level aspectRatio prop
 };
 
 type AppleCarouselProps = {
@@ -267,7 +268,7 @@ export function AppleCarousel({
         .carousel-slide {
           flex-shrink: 0;
           width: min(82vw, 420px);
-          aspect-ratio: ${aspectRatio};
+          /* aspect-ratio is set per-slide via inline style to allow per-card overrides */
           scroll-snap-align: center;
           scroll-snap-stop: always;
           border-radius: 32px;
@@ -276,6 +277,11 @@ export function AppleCarousel({
 
           /* Allow parallax transform */
           will-change: transform;
+        }
+
+        /* Landscape slides (e.g. SpacePilot screenshot) get a wider width */
+        .carousel-slide[data-landscape="true"] {
+          width: min(92vw, 720px);
         }
 
         .carousel-media {
@@ -461,6 +467,8 @@ export function AppleCarousel({
             className="carousel-slide"
             role="tabpanel"
             aria-selected={i === activeIndex}
+            data-landscape={slide.aspectRatio ? (parseFloat(slide.aspectRatio.split("/")[0] ?? "1") > parseFloat(slide.aspectRatio.split("/")[1] ?? "1") ? "true" : "false") : "false"}
+            style={{ aspectRatio: slide.aspectRatio ?? aspectRatio }}
           >
             {/* Media */}
             {slide.src.match(/\.(mp4|webm|mov)$/i) ? (
