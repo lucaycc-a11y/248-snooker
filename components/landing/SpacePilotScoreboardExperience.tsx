@@ -8,7 +8,9 @@ import { useEffect, useRef, useState } from "react"
 const SCREEN_IMAGE = "/gallery/spacepliot.png"
 const EASE: [number, number, number, number] = [0.2, 0.7, 0.3, 1]
 
-export default function SpacePilotScoreboardExperience() {
+type Props = { compact?: boolean }
+
+export default function SpacePilotScoreboardExperience({ compact = false }: Props) {
   const reducedMotion = useReducedMotion()
   const sectionRef = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
