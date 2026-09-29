@@ -566,6 +566,26 @@
         "rule": "design-system-color",
         "value": "rgba(34,197,94,0.55)",
         "createdAt": "2026-09-29T10:51:35.331Z"
+      },
+      {
+        "rule": "layout-transition",
+        "value": "transition: width 0.2s ease",
+        "createdAt": "2026-09-29T11:00:00.138Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f3f3f5",
+        "createdAt": "2026-09-29T11:00:00.171Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "28px",
+        "createdAt": "2026-09-29T11:00:00.204Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8e8ea",
+        "createdAt": "2026-09-29T11:00:00.237Z"
       }
     ]
   }

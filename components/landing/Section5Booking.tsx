@@ -664,7 +664,7 @@ export default function Section5Booking() {
 
           .flow-mobile-step.active .flow-marker {
             background: #22b86b;
-            border-color: #52c25f;
+            border-color: #22b86b;
           }
 
           .flow-num {
