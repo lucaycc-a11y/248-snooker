@@ -256,7 +256,7 @@ export default function Section5Booking() {
                 data-cms-key={step.altCmsKey}
                 fill
                 sizes="(max-width: 1024px) 50vw, 420px"
-                priority={i === 0}
+                priority
                 className={`flow-image ${i === activeIdx ? "active" : ""}`}
                 style={{ objectFit: "cover" }}
               />
@@ -322,7 +322,7 @@ export default function Section5Booking() {
                     data-cms-key={step.altCmsKey}
                     fill
                     sizes="100vw"
-                    priority={i === 0}
+                    priority
                     className={`flow-image ${i === activeIdx ? "active" : ""}`}
                     style={{ objectFit: "cover" }}
                   />
@@ -451,11 +451,13 @@ export default function Section5Booking() {
             height: 100%;
             object-fit: cover;
             opacity: 0;
-            transition: opacity 0.55s ease;
+            z-index: 0;
+            transition: opacity 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
           }
 
           .flow-image.active {
             opacity: 1;
+            z-index: 1;
           }
 
           .flow-progress-bar {
@@ -629,11 +631,13 @@ export default function Section5Booking() {
             height: 100%;
             object-fit: cover;
             opacity: 0;
-            transition: opacity 0.55s ease;
+            z-index: 0;
+            transition: opacity 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
           }
 
           .flow-image.active {
             opacity: 1;
+            z-index: 1;
           }
 
           .flow-mobile-steps {
