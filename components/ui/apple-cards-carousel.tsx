@@ -16,6 +16,9 @@ type Slide = {
   width?: number; // image dimensions for next/image
   height?: number;
   aspectRatio?: string; // per-slide override; falls back to carousel-level aspectRatio prop
+  objectFit?: "cover" | "contain"; // default "cover"; use "contain" for app screenshots
+  badge?: string; // optional pill label (e.g. 「敬請期待」) rendered top-right
+  badgeBg?: string; // CSS background for the badge pill, default rgba(0,0,0,0.55)
 };
 
 type AppleCarouselProps = {
@@ -290,7 +293,12 @@ export function AppleCarousel({
           width: 100%;
           height: 100%;
           object-fit: cover;
-          object-position: ${slides[0]?.focus || "center"};
+          object-position: center;
+        }
+
+        /* contain variant — app screenshots, logos */
+        .carousel-media-contain {
+          object-fit: contain;
         }
 
         .carousel-overlay {
@@ -313,8 +321,8 @@ export function AppleCarousel({
           padding: 24px;
           color: white;
 
-          /* Parallax text effect */
-          transform: translateX(calc(var(--p, 0) * -38%));
+          /* Parallax text effect — capped at 18% so text stays inside the card */
+          transform: translateX(calc(var(--p, 0) * -18%));
           opacity: calc(1 - var(--abs, 0) * 0.85);
 
           /* GPU acceleration */
@@ -480,7 +488,7 @@ export function AppleCarousel({
                 muted
                 loop
                 playsInline
-                className="carousel-media"
+                className={`carousel-media${slide.objectFit === "contain" ? " carousel-media-contain" : ""}`}
                 aria-label={slide.alt || slide.title}
               />
             ) : (
@@ -491,9 +499,39 @@ export function AppleCarousel({
                 fill
                 sizes="(max-width: 768px) 82vw, min(82vw, 420px)"
                 priority={i === 0}
-                className="carousel-media"
-                style={{ objectPosition: slide.focus || "center", objectFit: "cover" }}
+                className={`carousel-media${slide.objectFit === "contain" ? " carousel-media-contain" : ""}`}
+                style={{
+                  objectPosition: slide.focus || "center",
+                  objectFit: slide.objectFit === "contain" ? "contain" : "cover",
+                  background: slide.objectFit === "contain" ? "#0a0a0a" : undefined,
+                }}
               />
+            )}
+
+            {/* Badge pill — top-right, e.g. 「敬請期待」 */}
+            {slide.badge && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: 16,
+                  right: 16,
+                  background: slide.badgeBg ?? "rgba(0,0,0,0.55)",
+                  backdropFilter: "blur(6px)",
+                  WebkitBackdropFilter: "blur(6px)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 999,
+                  padding: "4px 12px",
+                  color: "rgba(255,255,255,0.9)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: "0.08em",
+                  lineHeight: 1.5,
+                  pointerEvents: "none",
+                  zIndex: 10,
+                }}
+              >
+                {slide.badge}
+              </div>
             )}
 
             {/* Overlay */}

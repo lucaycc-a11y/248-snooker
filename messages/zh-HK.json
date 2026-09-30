@@ -322,7 +322,7 @@
         "a": "接受信用卡、Apple Pay、Google Pay、支付宝及微信支付。"
       }
     ],
-    "cta_section_title": "準備好開臺了吗？",
+    "cta_section_title": "準備好開臺了嗎？",
     "cta_section_button": "立即預訂",
     "period_morning_title": "上午時段",
     "period_morning_time": "每日 06:00–12:00",
@@ -445,7 +445,7 @@
         "body": "預訂確認后獲發 QR 碼，到場掃描自動開門。"
       }
     ],
-    "cta_title": "準備好開球了吗？",
+    "cta_title": "準備好開球了嗎？",
     "cta_subtitle": "一鍵預訂專屬球臺，隨時隨地開局。由預訂、付款到入場，全程自助，無需等候。",
     "cta_primary": "立即預訂",
     "cta_secondary": "查看價目",
@@ -482,7 +482,7 @@
         "value": "80",
         "unit": "",
         "suffix": "+",
-        "label": "累積体驗時數",
+        "label": "累積體驗時數",
         "live": "持續累積中"
       },
       {
@@ -538,10 +538,10 @@
     "section_recent_desc": "過去 7 天",
     "section_history": "歷史記錄",
     "no_bookings_title": "暫無預訂",
-    "no_bookings_desc": "當你完成預訂后，記錄會在這里顯示。準備好玩了吗？",
+    "no_bookings_desc": "當你完成預訂後，記錄會在這裡顯示。準備好玩了嗎？",
     "access_eyebrow": "會員入場",
     "access_title": "你的入場方式，隨時準備好。",
-    "access_intro": "準備好你的會員 QR code，享受 SPACE8 流暢的自助体驗。",
+    "access_intro": "準備好你的會員 QR code，享受 SPACE8 流暢的自助體驗。",
     "access_qr_label": "你的會員 QR code",
     "access_qr_title": "使用會員 QR code 掃描入場。",
     "access_qr_description": "使用你的會員 QR code 需要你有一個進行中已確認的預訂；開門時間由預訂時段開始前 5 分鐘開始，直到時段結束為止。",
@@ -552,7 +552,7 @@
     "access_feature_entry_body": "有進行中已確認的預訂時，在入口掃描你的會員 QR code。",
     "access_feature_locker_label": "02 / 儲物柜",
     "access_feature_locker_title": "使用儲物柜",
-    "access_feature_locker_body": "從到場到開始打球，使用同一套會員入場流程，顺暢完成整個体驗。",
+    "access_feature_locker_body": "從到場到開始打球，使用同一套會員入場流程，順暢完成整個體驗。",
     "access_feature_pilot_label": "03 / SPACE PILOT",
     "access_feature_pilot_title": "你的私人房間",
     "access_feature_pilot_body": "享受配合預訂時段的自助空間，無需在接待處等候。",
@@ -561,7 +561,7 @@
     "access_feature_records_body": "隨時在會員中心查看預訂和遊玩記錄。",
     "access_steps_title": "找到你的 QR code",
     "access_step_1_title": "打開會員中心",
-    "access_step_1_body": "登入后，在會員中心打開“入場指南”分頁。",
+    "access_step_1_body": "登入後，在會員中心打開「入場指南」分頁。",
     "access_step_2_title": "顯示 QR code",
     "access_step_2_body": "到場前在手機上準備好 QR code，并調高屏幕亮度。",
     "access_step_3_title": "掃描，開始打球",
@@ -1013,7 +1013,7 @@
     "faq_booking_q": "如何預訂球桌？",
     "faq_booking_a": "選擇日期、時段及時長，以 Apple Pay 或信用卡即時付款，確認后即獲 QR 碼。全程不需人工協助。",
     "faq_entry_q": "預訂后如何入場？",
-    "faq_entry_a": "付款確認后，你將收到專屬 QR 碼。到場掃描門口感應器，系統自動開門，全程自助。",
+    "faq_entry_a": "付款確認後，你將收到專屬 QR 碼。到場掃描門口感應器，系統自動開門，全程自助。",
     "faq_cancel_q": "可以取消或退款吗？",
     "faq_cancel_a": "所有預約一經確認，一律不設取消、改期或退款（臺風 8 號或以上／黑色暴雨警告除外，可申請改期）。詳情請参阅《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)及[第六條](/legal?doc=terms#section-6)。",
     "faq_hours_q": "營業時間是什么？",
@@ -1554,7 +1554,7 @@
   "spacePilot": {
     "eyebrow": "SPACE8 智能管家",
     "title": "將科技融入桌球",
-    "intro": "一套更聰明的自助体驗，讓每個球室、每場球局與每位會員都更流暢。",
+    "intro": "一套更聰明的自助體驗，讓每個球室、每場球局與每位會員都更流暢。",
     "scoreboard_kicker": "SPACE PILOT / 即時比分板",
     "scoreboard_title": "將科技融入桌球",
     "scoreboard_intro": "Space Pilot 將私人球室變成即時賽事中樞：比分、勝場、排名和剩餘時間清晰呈現，讓你專註於球臺。",
@@ -1566,8 +1566,8 @@
     "scoreboard_match": "SPACE8 比分板",
     "scoreboard_stage_label": "Space Pilot 動画進度",
     "scoreboard_scroll_hint": "向下滚動，從即時比分查看球員排名。",
-    "more": "探索完整 Space Pilot 体驗",
-    "cta_book": "立即訂場体驗",
+    "more": "探索完整 Space Pilot 體驗",
+    "cta_book": "立即訂場體驗",
     "cta_qr": "了解會員 QR Code",
     "features": [
       {
@@ -1658,7 +1658,7 @@
       }
     ],
     "entry_title": "入場指南",
-    "entry_body": "預約確認后，你會收到專屬 QR code。到達場地后掃描 QR code，大門便會自動開啟。",
+    "entry_body": "預約確認後，你會收到專屬 QR code。到達場地後掃描 QR code，大門便會自動開啟。",
     "qr_title": "一個 QR Code，解鎖整個 SPACE8",
     "qr_desc": "專屬會員 QR Code。解鎖大門、登入智能小管家 Space Pilot，全部靠它。你的每一場戰績，也是由它記錄下來的。",
     "qr_placeholder": "示意圖 · 你的專屬編碼請於會員頁面查看",
@@ -1724,7 +1724,7 @@
     "pilot_features": [
       {
         "title": "無人自助也有專屬招待",
-        "body": "掃碼進場后，屏幕即時顯示你的名字、等級和累積勝場，配合 450 句隨時段變化的歡迎詞，每次到訪都有新鮮感。"
+        "body": "掃碼進場後，屏幕即時顯示你的名字、等級和累積勝場，配合 450 句隨時段變化的歡迎詞，每次到訪都有新鮮感。"
       },
       {
         "title": "AI 幫你排賽程",
@@ -1756,10 +1756,10 @@
       },
       {
         "title": "三语切換",
-        "body": "繁体中文、简体中文、英文即時切換，本地常客和外地訪客都用得顺手。"
+        "body": "繁體中文、簡體中文、英文即時切換，本地常客和外地訪客都用得順手。"
       },
       {
-        "title": "兩間球室，一套体驗",
+        "title": "兩間球室，一套體驗",
         "body": "Space Infinity 和 Space Eternity，同樣流暢的智能繫統。"
       }
     ],
@@ -1863,7 +1863,7 @@
         "body": "自助，無煙，獨立球室，無多餘干擾。"
       },
       {
-        "title": "科技体驗",
+        "title": "科技體驗",
         "body": "掃碼全自助入場，配上智能對戰繫統"
       },
       {
@@ -2167,7 +2167,7 @@
   "qr_instruction_label": "您將看到一個二維碼，請使用微信支付掃描以完成付款",
   "cookie_consent": {
     "title": "我們使用 Cookies",
-    "message": "本網站使用必要 Cookies 以維持登入及預約功能，并使用分析 Cookies 改善使用体驗。",
+    "message": "本網站使用必要 Cookies 以維持登入及預約功能，並使用分析 Cookies 改善使用體驗。",
     "learn_more": "了解更多",
     "accept_all": "接受所有 Cookies",
     "necessary_only": "仅必要 Cookies",

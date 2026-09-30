@@ -46,15 +46,17 @@ export default function HomeFacilities() {
     focus: "center" as const,
     width: 420,
     height: 560,
-    // SpacePilot screenshot is 4269×2400 (landscape 16:9) — give it a wider card
+    // SpacePilot screenshot is 4269×2400 (landscape 16:9) — wider card, contain fit on dark bg
     aspectRatio: index === 2 ? "16 / 9" : undefined,
+    objectFit: (index === 2 ? "contain" : "cover") as "contain" | "cover",
+    badge: index === 2 ? t("stat_main") : undefined,
   }));
 
   return (
     <section
       aria-labelledby="home-facilities-title"
       data-nav-theme="light"
-      className="overflow-x-clip bg-[#f5f5f7] px-0 py-24 md:py-32 min-h-[100svh] flex flex-col justify-center"
+      className="overflow-x-clip bg-[#f5f5f7] px-0 py-24 md:py-32 pt-[calc(var(--nav-h,4rem)+2rem)] min-h-[100svh] flex flex-col justify-center"
     >
       <div className="mb-12 px-6 md:px-16">
         <motion.div
