@@ -589,8 +589,8 @@ export function AppleCarouselCentered({
                     src={currentSlide.src}
                     alt={currentSlide.alt || currentSlide.title}
                     fill
-                    sizes="(max-width: 768px) 92vw, (max-width: 1024px) 960px, (max-width: 1920px) 88vh, 100vh"
-                    quality={80}
+                    sizes="(max-width: 768px) 92vw, (max-width: 1440px) 1200px, (max-width: 2560px) 1600px, 2000px"
+                    quality={90}
                     style={{
                       objectFit: currentSlide.objectFit === "contain" ? "contain" : "cover",
                       objectPosition: currentSlide.focus || "center",
