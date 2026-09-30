@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useAnimeEntrance } from "@/lib/anime-reveal";
@@ -52,10 +53,14 @@ export default function Hero() {
         }}
       >
         {/* Poster frame — shown until video loads */}
-        <img
+        <Image
           src="/video/Space8_Main_Hero_Poster.jpg"
           alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          sizes="100vh"
+          quality={85}
+          priority
+          className="absolute inset-0 object-cover"
           style={{
             filter: "brightness(1.3) contrast(1.05)",
             objectPosition: "center center",
