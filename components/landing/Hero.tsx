@@ -57,7 +57,7 @@ export default function Hero() {
           src="/video/Space8_Main_Hero_Poster.jpg"
           alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
           fill
-          sizes="100vh"
+          sizes="100dvh"
           quality={85}
           priority
           className="absolute inset-0 object-cover"
