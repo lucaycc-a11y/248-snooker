@@ -244,7 +244,9 @@ export function SpaceWheelOutro() {
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            paddingTop: "clamp(170px, 19.33vw, 334px)", // ball height + 24px
+            // Ball centre is on band bottom edge → bottom half of ball (50%) overhangs white.
+            // Space from white edge to description top = half ball diameter + 24px gap.
+            paddingTop: "calc(clamp(170px, 19.33vw, 334px) / 2 + 24px)",
           }}
         >
           {/* ── Description ──────────────────────────────────────────────── */}

@@ -84,36 +84,27 @@ export function useSpaceWheelOutroAnim() {
         stagger: 0.04,
       });
 
-      // 2. Echo ghosts — opacity pulses 0 → peak → 0, y drifts downward only.
-      //    Two ghosts defined in the component (data-outro-echo="1" and "2").
-      const echoDuration = 0.85;
-      [1, 2].forEach((i) => {
-        const ghost = section.querySelector<HTMLElement>(
-          `[data-outro-echo="${i}"]`,
+      // 2. Echo ghosts — slide from behind the headline to their resting offsets
+      //    and stay there (they are part of the static design, not a transient effect).
+      //    Ghost 1: opacity 0→0.9, y 0→0.75em. Ghost 2: opacity 0→0.7, y 0→1.41em.
+      const echo1 = section.querySelector<HTMLElement>('[data-outro-echo="1"]');
+      const echo2 = section.querySelector<HTMLElement>('[data-outro-echo="2"]');
+      if (echo1) gsap.set(echo1, { opacity: 0, y: 0 });
+      if (echo2) gsap.set(echo2, { opacity: 0, y: 0 });
+      if (echo1) {
+        tl.to(
+          echo1,
+          { opacity: 0.9, y: "0.75em", duration: 0.9, ease: EASE },
+          "-=0.45",
         );
-        if (!ghost) return;
-        const peakOpacity = i === 1 ? 0.9 : 0.7;
-        const yTrail = `${i * 0.28}em`;
-        // Ghost 1 overlaps last char stagger; ghost 2 trails ghost 1.
-        const startOffset = i === 1 ? "-=0.45" : `>-=${echoDuration * 0.6}`;
-        tl.fromTo(
-          ghost,
-          { opacity: 0, y: 0 },
-          {
-            keyframes: [
-              {
-                opacity: peakOpacity,
-                y: yTrail,
-                duration: echoDuration * 0.55,
-              },
-              { opacity: 0, y: yTrail, duration: echoDuration * 0.45 },
-            ],
-            ease: EASE,
-            duration: echoDuration,
-          },
-          startOffset,
+      }
+      if (echo2) {
+        tl.to(
+          echo2,
+          { opacity: 0.7, y: "1.41em", duration: 0.9, ease: EASE },
+          "-=0.75",
         );
-      });
+      }
 
       // 3. Ball float-up — starts while headline chars are still landing
       if (ball) {
