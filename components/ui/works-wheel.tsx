@@ -54,7 +54,7 @@ const CARD_RATIO = 1.5;          // card width / height (3:2 to match photo rati
 const STEP = 40;                 // degrees between cards on the drum
 const DRUM = 2.22;               // drum radius, in card heights
 const LENS = 2.7;                // perspective distance, in card heights
-const RING_R = 1.30;             // ring radius, in card heights (adjusted for 4 items)
+const RING_R = 1.15;             // ring radius, in card heights (adjusted for 3 items in triangle)
 // The drum alone would hang items on a plumb line. BOW curves the strip around
 // an arc whose centre is off to the LEFT, so the front card sits at the arc's
 // near point (dead centre) and neighbours have already swung back as well as
@@ -273,9 +273,10 @@ export function SpaceWheel({
     <section
       aria-label="Space8 場地相片"
       className={cn(
-        "relative h-full min-h-[24rem] w-full overflow-hidden select-none bg-[#f3f3f5]",
+        "relative h-full min-h-[24rem] w-full overflow-hidden select-none",
         className,
       )}
+      style={{ backgroundColor: "#ffffff" }}
       {...props}
     >
       {/* ── Stage ── */}
@@ -342,20 +343,20 @@ export function SpaceWheel({
           className="pointer-events-none absolute left-0 right-0 opacity-0 flex flex-col items-center text-center px-6"
           style={{
             top: "58%",
-            background: "linear-gradient(to bottom, transparent 0%, #f3f3f5 45%)",
+            background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 45%)",
             paddingTop: "2rem",
             paddingBottom: "1.5rem",
           }}
         >
           <p
-            className="font-semibold leading-snug text-[#1d1d1f] mb-2"
-            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: metrics.title * 0.85 }}
+            className="font-semibold leading-snug"
+            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: metrics.title * 0.85, color: "#000000" }}
           >
             {activeItem?.title}
           </p>
           <p
-            className="text-[#1d1d1f]/70 leading-relaxed max-w-[85%]"
-            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600, fontSize: metrics.index * 1.1 }}
+            className="leading-relaxed max-w-[85%]"
+            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600, fontSize: metrics.index * 1.1, color: "rgba(0,0,0,0.6)" }}
           >
             {activeItem?.description}
           </p>
@@ -371,8 +372,8 @@ export function SpaceWheel({
             style={{ fontSize: metrics.title }}
           >
             <p
-              className="font-semibold leading-snug text-[#1d1d1f]"
-              style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
+              className="font-semibold leading-snug"
+              style={{ fontFamily: "'Noto Sans TC', sans-serif", color: "#000000" }}
             >
               {activeItem?.title}
             </p>
@@ -383,8 +384,8 @@ export function SpaceWheel({
             style={{ fontSize: metrics.index * 1.1 }}
           >
             <p
-              className="text-[#1d1d1f]/70 leading-relaxed"
-              style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600 }}
+              className="leading-relaxed"
+              style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600, color: "rgba(0,0,0,0.6)" }}
             >
               {activeItem?.description}
             </p>
@@ -392,7 +393,7 @@ export function SpaceWheel({
         </>
       )}
 
-      {/* ── Progress indicator: mobile thin line + "01/04", desktop vertical index ── */}
+      {/* ── Progress indicator: mobile thin line + "01/03", desktop vertical index ── */}
       {metrics.isMobile ? (
         <div
           ref={descRef}
@@ -406,15 +407,14 @@ export function SpaceWheel({
                 style={{
                   width: i === active ? 24 : 6,
                   height: 2,
-                  backgroundColor: i === active ? "#22c55e" : "rgba(29,29,31,0.2)",
+                  backgroundColor: i === active ? "#22c55e" : "rgba(0,0,0,0.2)",
                   borderRadius: 1,
                 }}
               />
             ))}
           </div>
           <p
-            className="text-[#1d1d1f]/50"
-            style={{ fontFamily: "'Good Times', monospace", fontSize: metrics.index * 0.9 }}
+            style={{ fontFamily: "'Good Times', monospace", fontSize: metrics.index * 0.9, color: "rgba(0,0,0,0.6)" }}
           >
             {String(active + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
           </p>
@@ -431,7 +431,7 @@ export function SpaceWheel({
                 className="block transition-colors duration-300"
                 style={{
                   fontFamily: "'Good Times', monospace",
-                  color: i === active ? "#22c55e" : "rgba(29,29,31,0.5)",
+                  color: i === active ? "#000000" : "rgba(0,0,0,0.45)",
                   fontWeight: i === active ? 600 : 400,
                 }}
               >

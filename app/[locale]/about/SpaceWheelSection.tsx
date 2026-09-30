@@ -17,6 +17,7 @@ import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Image from "next/image";
 
 import { SpaceWheel, type SpaceWheelItem } from "@/components/ui/works-wheel";
 
@@ -24,14 +25,20 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ─── Photo data ──────────────────────────────────────────────────────────────
 // Loaded from the manifest at build time. `file` points to the WebP.
+// Only 3 photos: indices 0 (about-01), 3 (about-04), 5 (about-06)
 import manifest from "@/public/images/space8-about-photos/manifest.json";
 
-const ITEMS: SpaceWheelItem[] = manifest.items.map((item) => ({
-  title: item.title,
-  description: item.description,
-  image: `/images/space8-about-photos/${item.file.replace(/\.jpg$/, ".webp")}`,
-  alt: item.alt,
-}));
+const PHOTO_INDICES = [0, 3, 5]; // about-01-table-eight-ball, about-04-cove-lighting, about-06-lounge
+
+const ITEMS: SpaceWheelItem[] = PHOTO_INDICES.map((idx) => {
+  const item = manifest.items[idx];
+  return {
+    title: item.title,
+    description: item.description,
+    image: `/images/space8-about-photos/${item.file.replace(/\.jpg$/, ".webp")}`,
+    alt: item.alt,
+  };
+});
 
 // Rotating words from i18n. Index 2 ("純粹玩樂") gets the green accent.
 const GREEN_WORD_INDEX = 2;
@@ -58,23 +65,35 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
 
   return (
     <div className="flex flex-col items-center gap-3 text-center pointer-events-none select-none">
-      {/* Eyebrow — Good Times */}
-      <p
-        className="text-xs tracking-[0.25em] uppercase text-white/50"
-        style={{ fontFamily: "'Good Times', monospace" }}
-      >
-        {t("mission_eyebrow")}
-      </p>
+      {/* Line 1: 「關於」 + Space8 logo */}
+      <div className="flex items-baseline gap-1 justify-center">
+        <span
+          className="font-semibold"
+          style={{
+            fontFamily: "'Noto Sans TC', sans-serif",
+            fontSize: "clamp(1.5rem, 7.5vw, 2.25rem)",
+            color: "#000000",
+            lineHeight: 1,
+          }}
+        >
+          關於
+        </span>
+        <div style={{ height: "0.95em", display: "flex", alignItems: "baseline" }}>
+          <Image
+            src="/logos/logo-black-horizontal.svg"
+            alt="SPACE8"
+            width={120}
+            height={40}
+            style={{
+              height: "1em",
+              width: "auto",
+            }}
+            priority
+          />
+        </div>
+      </div>
 
-      {/* Main title — Good Times */}
-      <h1
-        className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white"
-        style={{ fontFamily: "'Good Times', monospace" }}
-      >
-        {t("hero_title")}
-      </h1>
-
-      {/* Rotating word */}
+      {/* Line 2: Rotating word */}
       <div className="h-10 overflow-hidden flex items-center justify-center">
         <AnimatePresence mode="wait">
           <motion.span
@@ -86,7 +105,8 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
             className="text-2xl md:text-3xl font-semibold"
             style={{
               fontFamily: "'Noto Sans TC', sans-serif",
-              color: isGreen ? "#22c55e" : "rgba(255,255,255,0.85)",
+              color: isGreen ? "#22c55e" : "#000000",
+              fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)",
             }}
           >
             {activeWord}
@@ -94,12 +114,16 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
         </AnimatePresence>
       </div>
 
-      {/* Subtitle — Noto Sans TC */}
+      {/* Line 3: Short description */}
       <p
-        className="text-sm md:text-base text-white/60 max-w-xs leading-relaxed mt-1"
-        style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600 }}
+        className="leading-relaxed mt-1 font-semibold"
+        style={{
+          fontFamily: "'Noto Sans TC', sans-serif",
+          fontSize: "clamp(14px, 3.5vw, 15px)",
+          color: "#000000",
+        }}
       >
-        {t("hero_subtitle")}
+        好的中式八球室不應有多餘干擾。
       </p>
     </div>
   );
@@ -123,7 +147,8 @@ export function SpaceWheelSection() {
     if (!runway || !stage) return;
 
     // Map scroll progress 0→1 to turn 0→(count+1).
-    // count+1 lets the last item fully present before the pin releases.
+    // With 3 items, turn runs 0 to 4 (ring at 0, photos 1-3 at turns 1-3, release at 4).
+    // This stops the wheel at photo 3 and transitions to the next section.
     const tween = gsap.to(turnRef, {
       current: count + 1,
       ease: "none",
@@ -160,7 +185,8 @@ export function SpaceWheelSection() {
       {/* Sticky stage — fills viewport, GSAP pins it */}
       <div
         ref={stageRef}
-        className="sticky top-0 w-full h-[100svh] overflow-hidden bg-black"
+        className="sticky top-0 w-full h-[100svh] overflow-hidden"
+        style={{ backgroundColor: "#ffffff" }}
       >
         <SpaceWheel
           items={ITEMS}
@@ -173,6 +199,24 @@ export function SpaceWheelSection() {
               <RingCentre ringOpacity={ringOpacity} />
             </div>
           }
+        />
+
+        {/* Top fade overlay (8-10% of stage height) */}
+        <div
+          className="pointer-events-none absolute top-0 left-0 right-0 z-10"
+          style={{
+            height: "10%",
+            background: "linear-gradient(to bottom, #ffffff, rgba(255,255,255,0))",
+          }}
+        />
+
+        {/* Bottom fade overlay (18-25% of stage height) */}
+        <div
+          className="pointer-events-none absolute bottom-0 left-0 right-0 z-10"
+          style={{
+            height: "22%",
+            background: "linear-gradient(to bottom, rgba(255,255,255,0), #ffffff)",
+          }}
         />
       </div>
     </div>
