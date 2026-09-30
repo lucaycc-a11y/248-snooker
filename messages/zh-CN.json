@@ -1557,7 +1557,7 @@
     "intro": "一套更聪明的自助体验，让每个球室、每场球局与每位会员都更流畅。",
     "scoreboard_kicker": "SPACE PILOT / 即时比分板",
     "scoreboard_title": "将科技融入桌球",
-    "scoreboard_intro": "Space Pilot 将私人球室变成即时赛事中枢：比分、胜场、排名和剩余时间清晰呈现，让你专注于球台。",
+    "scoreboard_intro": "**Space Pilot 将私人球室变成即时赛事中枢**：比分、胜场、排名和剩余时间清晰呈现，**让你专注于球台**。",
     "scoreboard_alt": "SPACE8 Space Pilot 即时比分板，展示比赛比分、胜场统计、球员排名及剩余时段",
     "scoreboard_live": "即时赛事",
     "scoreboard_wins": "胜场记录",
@@ -1812,6 +1812,8 @@
     "intro": "每个细节，都让你专注于台球。",
     "pagination_label": "场地设施分页",
     "pagination_item": "前往第 {n} 项",
+    "viewDetails": "查看详情",
+    "close": "关闭",
     "items": [
       {
         "title": "精选星牌台球桌",

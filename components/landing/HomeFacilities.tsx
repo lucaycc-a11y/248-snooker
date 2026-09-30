@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { AppleCarousel } from "@/components/ui/apple-cards-carousel";
+import { AppleCarouselCentered } from "@/components/ui/apple-cards-carousel-centered";
 
 const FACILITY_IMAGES = [
   "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
@@ -32,6 +32,7 @@ type Facility = {
 
 export default function HomeFacilities() {
   const t = useTranslations("homeVenue");
+  const tSpacePilot = useTranslations("spacePilot");
   const facilities = t.raw("items") as Facility[];
   // Only use first 4 items (exclude charging and storage)
   const visibleFacilities = facilities.slice(0, 4);
@@ -40,6 +41,9 @@ export default function HomeFacilities() {
     eyebrow: t(FACILITY_CATEGORIES[index] ?? FACILITY_CATEGORIES[0]),
     title: facility.title,
     desc: facility.body,
+    detailedDesc: index === 2
+      ? "**Space Pilot 智能小管家**：掃碼報到、AI 推薦最公平的賽制、大螢幕即時比分，**每一場勝負記入戰績**，方便之後查看。"
+      : facility.body,
     src: FACILITY_IMAGES[index] ?? FACILITY_IMAGES[0],
     alt: facility.title,
     altCmsKey: FACILITY_ALT_CMS_KEYS[index],
@@ -49,7 +53,8 @@ export default function HomeFacilities() {
     // SpacePilot screenshot is 4269×2400 (landscape 16:9) — wider card, contain fit on dark bg
     aspectRatio: index === 2 ? "16 / 9" : undefined,
     objectFit: (index === 2 ? "contain" : "cover") as "contain" | "cover",
-    badge: index === 2 ? t("stat_main") : undefined,
+    badge: index === 2 ? tSpacePilot("stat_main") : undefined,
+    darkTheme: index === 2,
   }));
 
   return (
@@ -74,10 +79,12 @@ export default function HomeFacilities() {
         </motion.div>
       </div>
 
-      <AppleCarousel
+      <AppleCarouselCentered
         slides={slides}
         autoplayInterval={5000}
         aspectRatio="3 / 4"
+        viewDetailsLabel={t("viewDetails")}
+        closeLabel={t("close")}
       />
     </section>
   );

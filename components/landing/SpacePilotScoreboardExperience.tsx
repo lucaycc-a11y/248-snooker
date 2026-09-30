@@ -4,6 +4,7 @@ import Image from "next/image"
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion"
 import { useRef } from "react"
 import { useTranslations } from "next-intl"
+import { Emphasis } from "@/components/ui/Emphasis"
 
 // Screenshot real dimensions: 4269 × 2400
 const SCREEN_IMAGE = "/gallery/spacepliot.png"
@@ -28,7 +29,7 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
   // iPad-only scroll animation — all widget/progress/dot transforms removed
   const imageScale = useTransform(smoothProgress, [0, 0.42, 1], [0.82, 0.96, 1])
   const imageRotate = useTransform(smoothProgress, [0, 0.42, 1], [7, 2, 0])
-  const imageY = useTransform(smoothProgress, [0, 0.42, 1], [80, 15, 0])
+  const imageY = useTransform(smoothProgress, [0, 0.42, 1], [120, 22, 0])
   const imageOpacity = useTransform(smoothProgress, [0, 0.12, 1], [0.65, 1, 1])
 
   // Compact variant — used in member dashboard cards
@@ -92,13 +93,13 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
           <h2
             id="space-pilot-scoreboard-title"
             data-cms-key="spacePilot.scoreboard_title"
-            className="mb-14 text-center text-[clamp(2.25rem,5vw,4.5rem)] font-semibold leading-[1.1] tracking-tight text-white"
+            className="mb-8 text-center text-[clamp(2.25rem,5vw,4.5rem)] font-semibold leading-[1.1] tracking-tight text-white md:mb-12"
           >
             {t("scoreboard_title")}
           </h2>
 
           {/* iPad — bare, no border/frame wrapper, scroll-driven float-up */}
-          <div className="mx-auto w-[min(78%,1100px)] [perspective:1400px]">
+          <div className="mx-auto w-[92vw] sm:w-[78vw] lg:w-[min(60vw,1000px)] [perspective:1400px]">
             <motion.div
               style={
                 reducedMotion
@@ -111,7 +112,7 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
                 src={SCREEN_IMAGE}
                 alt={t("scoreboard_alt")}
                 fill
-                sizes="(max-width: 768px) 95vw, min(78vw, 1100px)"
+                sizes="(max-width: 639px) 92vw, (max-width: 1023px) 78vw, min(60vw, 1000px)"
                 className="object-cover"
                 priority
                 draggable={false}
@@ -120,7 +121,7 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
           </div>
 
           {/* Bottom two-column row */}
-          <div className="mx-auto mt-20 grid max-w-[960px] grid-cols-1 items-start gap-8 md:grid-cols-[1fr_2fr] md:gap-x-14">
+          <div className="mx-auto mt-12 grid max-w-[960px] grid-cols-1 items-start gap-8 md:mt-16 md:grid-cols-[1fr_2fr] md:gap-x-14">
 
             {/* Left: stat block */}
             <div>
@@ -145,12 +146,13 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
             </div>
 
             {/* Right: paragraph */}
-            <p
+            <Emphasis
               data-cms-key="spacePilot.scoreboard_intro"
-              className="text-[clamp(17px,1.35vw,21px)] leading-[1.65] text-white/58"
-            >
-              {t("scoreboard_intro")}
-            </p>
+              text={t("scoreboard_intro")}
+              className="text-[clamp(1.0625rem,1.5vw,1.5rem)] leading-[1.45] max-w-[40ch] text-white/60"
+              strongClassName="font-semibold text-white opacity-100"
+              dimClassName="font-normal opacity-100"
+            />
 
           </div>
         </div>

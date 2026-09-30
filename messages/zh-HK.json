@@ -1557,7 +1557,7 @@
     "intro": "一套更聰明的自助體驗，讓每個球室、每場球局與每位會員都更流暢。",
     "scoreboard_kicker": "SPACE PILOT / 即時比分板",
     "scoreboard_title": "將科技融入桌球",
-    "scoreboard_intro": "Space Pilot 將私人球室變成即時賽事中樞：比分、勝場、排名和剩餘時間清晰呈現，讓你專註於球臺。",
+    "scoreboard_intro": "**Space Pilot 將私人球室變成即時賽事中樞**：比分、勝場、排名和剩餘時間清晰呈現，**讓你專注於球臺**。",
     "scoreboard_alt": "SPACE8 Space Pilot 即時比分板，展示比賽比分、勝場統計、球員排名及剩餘時段",
     "scoreboard_live": "即時賽事",
     "scoreboard_wins": "勝場記錄",
@@ -1760,7 +1760,7 @@
       },
       {
         "title": "兩間球室，一套體驗",
-        "body": "Space Infinity 和 Space Eternity，同樣流暢的智能繫統。"
+        "body": "Space Infinity 和 Space Eternity，同樣流暢的智能系統。"
       }
     ],
     "play_title": "玩法介紹",
@@ -1805,13 +1805,15 @@
     "categories": {
       "equipment": "設備",
       "ambience": "氛圍",
-      "smart_system": "智能繫統",
+      "smart_system": "智能系統",
       "entry": "入場",
       "amenities": "配套"
     },
     "intro": "專業設備、智能系統，聚光在桌球本身。",
     "pagination_label": "場地設施分頁",
     "pagination_item": "前往第 {n} 項",
+    "viewDetails": "查看詳情",
+    "close": "關閉",
     "items": [
       {
         "title": "精選星牌桌球臺",

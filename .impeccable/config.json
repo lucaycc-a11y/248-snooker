@@ -628,6 +628,12 @@
         "value": "1px",
         "createdAt": "2026-09-29T15:34:52.372Z",
         "reason": "Mobile progress bar nub radius, intentionally minimal, same family as 2px desktop variant — pre-existing"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f5f5f7",
+        "createdAt": "2026-09-30T09:17:15.497Z",
+        "reason": "Apple design system standard - light-mode section background used throughout site (see HomeFacilities.tsx:59)"
       }
     ]
   }
