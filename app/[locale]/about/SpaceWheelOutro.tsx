@@ -1,268 +1,386 @@
 "use client";
 
-// Closing section — appears after the last SpaceWheel photo, before Contact Us.
+// Closing section — appears after SpaceWheel, before Contact Us.
 //
-// Layout:
-//   Dark gradient band (charcoal → near-black) with a soft green radial glow
-//   8-ball straddling the band's bottom edge (positioned absolutely)
-//   Eyebrow · Headline line 1 · Headline line 2 (echo target)
-//   Description (bold lead + grey remainder)
-//   Stats row (4 items, count-up on animation pass)
-//   Steps row
-//   Two CTA buttons
+// Design: white-to-green gradient band, headline with static echo ghosts,
+// 8-ball straddling the band's bottom edge, description, steps, CTA buttons.
+// Animation handled by useSpaceWheelOutroAnim (sibling file).
 //
-// All copy from existing i18n keys — no hardcoded strings.
-// Animation hooks: data-outro-* attributes; elements are visible by default.
-// Animation is handled by SpaceWheelOutroAnim (sibling, not yet applied).
+// Section-scoped CSS tokens (never touch global tokens):
+//   --closing-green: #199f02
+//   --closing-mint:  #93ff80
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useSpaceWheelOutroAnim } from "./useSpaceWheelOutroAnim";
 
-// ── Types matching the i18n shape ───────────────────────────────────────────
+// Ball image is 2000×2000px; visible ball fills ~83% of each dimension.
+// BALL_FILL = 0.83 → <img> is sized at 100%/BALL_FILL so the wrapper box
+// equals the visible ball diameter.
+const BALL_FILL = 0.831;
+
 type StepItem = { title: string; body: string };
-type StatItem = { value: string; unit: string; suffix: string; label: string };
 
 export function SpaceWheelOutro() {
   const t = useTranslations("aboutPage");
   useSpaceWheelOutroAnim();
 
+  // Steps: use array index for numeral (01/02/03), title from i18n.
   const steps = t.raw("cta_steps") as StepItem[];
-  const stats = t.raw("stats_items") as StatItem[];
-
-  // Split "零打擾，全專註。打造專屬中八空間。" → two lines on the full-stop.
-  // Works for all four locales: the sentence boundary is always a full-stop
-  // (。 or . followed by a space or end of string).
-  const fullStatement: string = t("mission_statement");
-  const sentenceSplit = fullStatement.match(/^(.+?[。.])(.+)$/);
-  const headlineL1 = sentenceSplit ? sentenceSplit[1].trim() : fullStatement;
-  const headlineL2 = sentenceSplit ? sentenceSplit[2].trim() : "";
-
-  // Description: use cta_subtitle; split bold lead (first sentence) from remainder.
-  const ctaSubtitle: string = t("cta_subtitle");
-  const descSplit = ctaSubtitle.match(/^(.+?[。.][）)，,]?)(.+)?$/s);
-  const descBold = descSplit ? descSplit[1].trim() : ctaSubtitle;
-  const descGrey = descSplit?.[2]?.trim() ?? "";
 
   return (
     <section
-      className="relative w-full overflow-hidden"
-      aria-labelledby="outro-heading"
-      data-nav-theme="dark"
+      className="relative w-full overflow-visible"
+      aria-labelledby="closing-heading"
+      data-nav-theme="light"
       data-outro-section
+      style={
+        {
+          "--closing-green": "#199f02",
+          "--closing-mint": "#93ff80",
+        } as React.CSSProperties
+      }
     >
-      {/* ── Gradient band ─────────────────────────────────────────────────── */}
+      {/* ── Gradient band ─────────────────────────────────────────────────────
+          Full-bleed. Height ~35vw, clamped to [520px, 640px].
+          Top edge is #ffffff so it joins the white SpaceWheel section above
+          with zero seam.
+      */}
       <div
-        className="relative w-full"
-        style={{
-          background:
-            "linear-gradient(180deg, #1a1a1c 0%, #111113 60%, #0a0a0b 100%)",
-          // Reserve space below for the ball overhang
-          paddingBottom: "clamp(80px, 14vw, 140px)",
-        }}
         data-outro-band
+        style={{
+          width: "100%",
+          height: "clamp(520px, 34.96vw, 640px)",
+          background:
+            "linear-gradient(180deg, #ffffff 1.4%, #93ff80 42.8%, #199f02 100%)",
+          position: "relative",
+          overflow: "visible",
+        }}
       >
-        {/* Soft green radial glow behind the ball */}
+        {/* ── Content column: max 1728px, centred ─────────────────────────── */}
         <div
-          aria-hidden="true"
-          data-outro-glow
           style={{
-            position: "absolute",
-            bottom: 0,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "min(560px, 90vw)",
-            height: "min(420px, 70vw)",
-            borderRadius: "50%",
-            background:
-              "radial-gradient(ellipse at center bottom, rgba(34,197,94,0.18) 0%, rgba(34,197,94,0.06) 45%, transparent 70%)",
-            pointerEvents: "none",
+            maxWidth: 1728,
+            margin: "0 auto",
+            height: "100%",
+            position: "relative",
           }}
-        />
-
-        {/* ── Text content ──────────────────────────────────────────────── */}
-        <div
-          className="relative z-10 mx-auto flex flex-col items-center gap-10 px-6 pt-20 text-center md:pt-28"
-          style={{ maxWidth: 720 }}
         >
-          {/* Eyebrow */}
-          <p
-            className="text-xs tracking-[0.28em] uppercase text-white/40"
-            style={{ fontFamily: "'Good Times', monospace" }}
-            data-outro-eyebrow
+          {/* ── Headline group (wrapper carries parallax scroll) ─────────── */}
+          <div
+            data-outro-headline-group
+            style={{
+              position: "absolute",
+              top: "43%", // ~262px / 604px ≈ 43.4%
+              left: 0,
+              right: 0,
+              textAlign: "center",
+              pointerEvents: "none",
+            }}
           >
-            {t("mission_eyebrow")}
-          </p>
-
-          {/* Headline */}
-          <div className="flex flex-col gap-1" data-outro-headline-group>
+            {/* Main headline — screen-reader label on the heading */}
             <h2
-              id="outro-heading"
-              className="text-[clamp(1.75rem,6vw,3.25rem)] font-semibold leading-tight text-white"
-              style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
-              data-outro-headline-1
+              id="closing-heading"
+              aria-label={t("closing_headline")}
+              data-outro-headline-chars
+              style={{
+                fontFamily: "'Noto Sans TC', sans-serif",
+                fontWeight: 800,
+                fontSize: "clamp(2.25rem, 3.703vw, 4rem)",
+                lineHeight: 1.2,
+                color: "#ffffff",
+                margin: 0,
+                position: "relative",
+                zIndex: 2,
+                letterSpacing: "-0.01em",
+              }}
             >
-              {headlineL1}
-            </h2>
-
-            {/* Line 2 — echo ghost target for animation pass */}
-            {headlineL2 && (
-              <div className="relative" data-outro-headline-2-wrap>
-                {/* Ghost copies (hidden; animation pass will show/fade them) */}
-                {[1, 2, 3, 4].map((i) => (
+              {/* Per-character spans for staggered entrance; aria-hidden */}
+              {t("closing_headline")
+                .split("")
+                .map((ch, i) => (
                   <span
                     key={i}
                     aria-hidden="true"
-                    data-outro-echo={i}
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      fontFamily: "'Noto Sans TC', sans-serif",
-                      fontSize: "clamp(1.75rem,6vw,3.25rem)",
-                      fontWeight: 600,
-                      lineHeight: "1.2",
-                      color: "white",
-                      opacity: 0,
-                      userSelect: "none",
-                      pointerEvents: "none",
-                      whiteSpace: "nowrap",
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
+                    data-outro-char={i}
+                    style={{ display: "inline-block" }}
                   >
-                    {headlineL2}
+                    {ch}
                   </span>
                 ))}
-                <h2
-                  className="text-[clamp(1.75rem,6vw,3.25rem)] font-semibold leading-tight text-white"
-                  style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
-                  data-outro-headline-2
-                >
-                  {headlineL2}
-                </h2>
-              </div>
-            )}
-          </div>
+            </h2>
 
-          {/* Description */}
-          <p
-            className="max-w-lg text-base leading-relaxed"
-            style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
-          >
-            <strong
-              className="font-semibold text-white"
-              data-outro-desc-bold
+            {/* Ghost 1 — 0.906× size, +0.75em below, opacity 0.9 at rest */}
+            <p
+              aria-hidden="true"
+              data-outro-echo="1"
+              style={{
+                fontFamily: "'Noto Sans TC', sans-serif",
+                fontWeight: 800,
+                fontSize: "clamp(2.04rem, 3.355vw, 3.625rem)", // 0.906×
+                lineHeight: 1.2,
+                margin: 0,
+                position: "absolute",
+                top: "calc(100% + 0.75em - 1.2em * 0.906)", // offset from heading baseline
+                left: 0,
+                right: 0,
+                textAlign: "center",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0) 8%, rgba(235,235,235,0.9) 92%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                color: "transparent",
+                opacity: 0.9,
+                userSelect: "none",
+                pointerEvents: "none",
+                zIndex: 1,
+              }}
             >
-              {descBold}
+              {t("closing_headline")}
+            </p>
+
+            {/* Ghost 2 — 0.8125× size, +1.41em below, opacity 0.7 at rest */}
+            <p
+              aria-hidden="true"
+              data-outro-echo="2"
+              style={{
+                fontFamily: "'Noto Sans TC', sans-serif",
+                fontWeight: 800,
+                fontSize: "clamp(1.83rem, 3.009vw, 3.25rem)", // 0.8125×
+                lineHeight: 1.2,
+                margin: 0,
+                position: "absolute",
+                top: "calc(100% + 1.41em - 1.2em * 0.8125)",
+                left: 0,
+                right: 0,
+                textAlign: "center",
+                background:
+                  "linear-gradient(180deg, rgba(255,255,255,0) 8%, rgba(235,235,235,0.7) 92%)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                color: "transparent",
+                opacity: 0.7,
+                userSelect: "none",
+                pointerEvents: "none",
+                zIndex: 1,
+              }}
+            >
+              {t("closing_headline")}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── White section below the band ────────────────────────────────────── */}
+      <div
+        style={{
+          background: "#ffffff",
+          position: "relative",
+          width: "100%",
+          paddingBottom: "clamp(96px, 12.9vw, 223px)",
+        }}
+      >
+        {/* ── 8-ball — centre on band bottom edge ───────────────────────────
+            Outer wrapper carries scroll-parallax Y.
+            Inner wrapper carries entrance Y + scale + opacity.
+            Ball visible diameter: clamp(170px, 19.33vw, 334px).
+            Image is 120.4% to compensate for the 83.1% fill ratio.
+        */}
+        <div
+          data-outro-ball-scroll
+          style={{
+            position: "absolute",
+            top: 0,
+            left: "50%",
+            transform: "translateX(-50%) translateY(-50%)",
+            width: "clamp(170px, 19.33vw, 334px)",
+            height: "clamp(170px, 19.33vw, 334px)",
+            zIndex: 10,
+          }}
+        >
+          <div
+            data-outro-ball-enter
+            style={{ width: "100%", height: "100%", position: "relative" }}
+          >
+            {/* Image is sized at 100%/BALL_FILL to crop the transparent padding */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                overflow: "visible",
+              }}
+            >
+              <Image
+                src="/images/space8-about-photos/images/about-8ball.webp"
+                alt=""
+                aria-hidden="true"
+                width={2000}
+                height={2000}
+                style={{
+                  position: "absolute",
+                  width: `${(1 / BALL_FILL) * 100}%`,
+                  height: `${(1 / BALL_FILL) * 100}%`,
+                  left: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
+                  top: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
+                  objectFit: "contain",
+                  userSelect: "none",
+                  pointerEvents: "none",
+                }}
+                priority={false}
+                sizes="(max-width: 767px) 170px, (max-width: 1728px) 19.33vw, 334px"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* ── Content column ──────────────────────────────────────────────── */}
+        <div
+          style={{
+            maxWidth: 1728,
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            paddingTop: "clamp(170px, 19.33vw, 334px)", // ball height + 24px
+          }}
+        >
+          {/* ── Description ──────────────────────────────────────────────── */}
+          <p
+            data-outro-desc
+            style={{
+              fontFamily: "'Noto Sans TC', sans-serif",
+              fontSize: "clamp(1rem, 1.389vw, 1.5rem)",
+              lineHeight: 1.6,
+              color: "#000000",
+              margin: 0,
+              marginTop: "clamp(12px, 1.389vw, 24px)",
+              padding: "0 24px",
+            }}
+          >
+            {/* Line 1: first clause normal weight, 隨時隨地開局。bold */}
+            <span style={{ color: "#2f2f2f", fontWeight: 500 }}>
+              一鍵預訂專屬球臺，
+            </span>
+            <strong style={{ fontWeight: 800, color: "#000000" }}>
+              隨時隨地開局。
             </strong>
-            {descGrey && (
-              <span
-                className="text-white/55"
-                data-outro-desc-grey
-              >
-                {" "}
-                {descGrey}
-              </span>
-            )}
+            <br />
+            {/* Line 2: entirely bold */}
+            <strong style={{ fontWeight: 800, color: "#000000" }}>
+              由預訂、付款到入場，全程自助，無需等候。
+            </strong>
           </p>
 
-          {/* Stats row */}
-          <ul
-            className="flex w-full flex-wrap justify-center gap-x-10 gap-y-6 border-t border-white/10 pt-8 list-none"
-            aria-label={t("mission_eyebrow")}
-            data-outro-stats
-          >
-            {stats.map((stat) => (
-              <li
-                key={stat.label}
-                className="flex flex-col items-center gap-0.5"
-                data-outro-stat
-              >
-                <span
-                  className="text-3xl font-bold tabular-nums text-white"
-                  style={{ fontFamily: "'Good Times', monospace" }}
-                >
-                  <span data-outro-stat-value={stat.value}>
-                    {stat.value}
-                  </span>
-                  {stat.unit && (
-                    <span className="ml-0.5 text-base font-normal text-white/50">
-                      {stat.unit}
-                    </span>
-                  )}
-                  {stat.suffix && (
-                    <span className="text-base font-normal text-white/50">
-                      {stat.suffix}
-                    </span>
-                  )}
-                </span>
-                <span
-                  className="text-xs text-white/50"
-                  style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
-                >
-                  {stat.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          {/* Steps row */}
-          <ol
-            className="flex flex-wrap justify-center gap-x-8 gap-y-3 list-none"
-            aria-label="預訂步驟"
+          {/* ── Steps ────────────────────────────────────────────────────── */}
+          <div
             data-outro-steps
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: "clamp(24px, 5.556vw, 96px)",
+              marginTop: "clamp(32px, 3.472vw, 60px)",
+              padding: "0 24px",
+              width: "100%",
+            }}
           >
             {steps.map((step, i) => (
-              <li
+              <div
                 key={step.title}
-                className="flex items-center gap-2.5"
-                data-outro-step
+                data-outro-step={i}
+                style={{ textAlign: "center" }}
               >
-                <span
-                  className="tabular-nums text-xs"
+                <p
                   style={{
                     fontFamily: "'Good Times', monospace",
-                    color: "#22c55e",
+                    fontWeight: 400,
+                    fontSize: "clamp(1.75rem, 2.315vw, 2.5rem)",
+                    color: "var(--closing-green, #199f02)",
+                    margin: 0,
+                    lineHeight: 1,
                   }}
                 >
                   {String(i + 1).padStart(2, "0")}
-                </span>
-                <span
-                  className="text-sm font-semibold text-white/80"
-                  style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
+                </p>
+                <p
+                  style={{
+                    fontFamily: "'Noto Sans TC', sans-serif",
+                    fontWeight: 500,
+                    fontSize: "clamp(0.9375rem, 1.389vw, 1.5rem)",
+                    color: "#000000",
+                    margin: "8px 0 0",
+                    lineHeight: 1.3,
+                  }}
                 >
                   {step.title}
-                </span>
-              </li>
+                </p>
+              </div>
             ))}
-          </ol>
+          </div>
 
-          {/* CTA buttons */}
+          {/* ── CTA Buttons ──────────────────────────────────────────────── */}
           <div
-            className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center"
             data-outro-buttons
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "clamp(12px, 6.424vw, 111px)",
+              marginTop: "clamp(40px, 4.63vw, 80px)",
+              padding: "0 24px",
+              flexWrap: "wrap",
+            }}
           >
             <Link
               href="/book"
-              className="inline-flex items-center justify-center rounded-full bg-[#22c55e] px-7 text-base font-semibold text-black transition hover:bg-[#16a34a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#22c55e]"
+              className="closing-btn-primary"
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontFamily: "'Noto Sans TC', sans-serif",
-                height: 48,
-                maxWidth: "min(100%, 320px)",
+                fontWeight: 500,
+                fontSize: "clamp(1rem, 1.389vw, 1.5rem)",
+                color: "#000000",
+                background: "var(--closing-green, #199f02)",
+                borderRadius: 9999,
+                border: "none",
+                cursor: "pointer",
+                textDecoration: "none",
+                minWidth: 150,
+                padding: "0 clamp(20px, 2.778vw, 48px)",
+                height: "clamp(52px, 3.993vw, 69px)",
+                transition:
+                  "background-color 200ms ease, transform 200ms ease, opacity 200ms ease",
               }}
-              data-outro-btn-primary
             >
               {t("cta_primary")}
             </Link>
+
             <Link
               href="/pricing"
-              className="inline-flex items-center justify-center rounded-full border border-white/20 px-7 text-base font-semibold text-white/70 transition hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
+              className="closing-btn-secondary"
               style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontFamily: "'Noto Sans TC', sans-serif",
-                height: 48,
-                maxWidth: "min(100%, 320px)",
+                fontWeight: 500,
+                fontSize: "clamp(1rem, 1.389vw, 1.5rem)",
+                color: "rgba(0,0,0,0.71)",
+                background: "transparent",
+                borderRadius: 9999,
+                border: "1px solid rgba(0,0,0,0.43)",
+                cursor: "pointer",
+                textDecoration: "none",
+                minWidth: 150,
+                padding: "0 clamp(20px, 2.778vw, 48px)",
+                height: "clamp(52px, 3.993vw, 69px)",
+                transition:
+                  "border-color 200ms ease, transform 200ms ease, opacity 200ms ease",
               }}
-              data-outro-btn-secondary
             >
               {t("cta_secondary")}
             </Link>
@@ -270,41 +388,38 @@ export function SpaceWheelOutro() {
         </div>
       </div>
 
-      {/* ── 8-ball — straddles the band's bottom edge ──────────────────────── */}
-      {/*
-        Outer wrapper: scroll-linked translateY (animation pass).
-        Inner wrapper: float-up entrance translateY (animation pass).
-        This keeps the two transforms on separate elements so they never fight.
-      */}
-      <div
-        aria-hidden="true"
-        data-outro-ball-scroll
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          // Ball is 180px tall; sits so 50% is below the band edge.
-          width: "clamp(140px, 22vw, 200px)",
-          height: "clamp(140px, 22vw, 200px)",
-          zIndex: 20,
-          // translateY on this wrapper is driven by scroll (animation pass).
-        }}
-      >
-        <div
-          data-outro-ball-enter
-          style={{ width: "100%", height: "100%" }}
-        >
-          <Image
-            src="/images/space8-about-photos/images/about-8ball.webp"
-            alt=""
-            fill
-            sizes="(max-width: 767px) 140px, (max-width: 1199px) 22vw, 200px"
-            style={{ objectFit: "contain" }}
-            priority={false}
-          />
-        </div>
-      </div>
+      {/* ── Button hover / focus styles injected once ─────────────────────── */}
+      <style>{`
+        .closing-btn-primary:hover {
+          background-color: #157a01 !important;
+          transform: translateY(-2px);
+        }
+        .closing-btn-primary:active {
+          transform: translateY(0);
+        }
+        .closing-btn-primary:focus-visible {
+          outline: 2px solid #199f02;
+          outline-offset: 3px;
+        }
+        .closing-btn-secondary:hover {
+          border-color: rgba(0,0,0,0.8) !important;
+          transform: translateY(-2px);
+        }
+        .closing-btn-secondary:active {
+          transform: translateY(0);
+        }
+        .closing-btn-secondary:focus-visible {
+          outline: 2px solid #199f02;
+          outline-offset: 3px;
+        }
+        @media (max-width: 479px) {
+          .closing-btn-primary,
+          .closing-btn-secondary {
+            min-width: 0;
+            width: min(100%, 320px);
+          }
+        }
+      `}</style>
     </section>
   );
 }
