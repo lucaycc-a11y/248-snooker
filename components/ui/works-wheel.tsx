@@ -336,29 +336,47 @@ export function SpaceWheel({
         {ringLabel}
       </div>
 
-      {/* ── Mobile text scrim (gradient below front card) ── */}
+      {/* ── Mobile text block (sits below front card on solid white) ── */}
       {metrics.isMobile && (
         <div
           ref={titleRef}
           className="pointer-events-none absolute left-0 right-0 opacity-0 flex flex-col items-center text-center px-6"
           style={{
-            top: "58%",
-            background: "linear-gradient(to bottom, rgba(255,255,255,0) 0%, #ffffff 45%)",
-            paddingTop: "2rem",
-            paddingBottom: "1.5rem",
+            top: "calc(52% + 24px)",
+            background: "#ffffff",
+            paddingTop: "1.5rem",
+            paddingBottom: "2rem",
           }}
         >
           <p
+            className="font-semibold leading-snug text-xs"
+            style={{
+              fontFamily: "'Good Times', monospace",
+              fontSize: "clamp(12px, 3vw, 13px)",
+              color: "rgba(0,0,0,0.45)",
+              marginBottom: "0.5rem",
+            }}
+          >
+            {String(active + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
+          </p>
+          <p
             className="font-semibold leading-snug"
-            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: metrics.title * 0.85, color: "#000000" }}
+            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: "clamp(1.5rem, 6.5vw, 2rem)", color: "#000000" }}
           >
             {activeItem?.title}
           </p>
           <p
-            className="leading-relaxed max-w-[85%]"
-            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600, fontSize: metrics.index * 1.1, color: "rgba(0,0,0,0.6)" }}
+            className="leading-relaxed mt-2 max-w-[90%]"
+            style={{
+              fontFamily: "'Noto Sans TC', sans-serif",
+              fontSize: "16px",
+              color: "#000000",
+            }}
           >
-            {activeItem?.description}
+            <span className="font-semibold">{activeItem?.description.split("。")[0]}。</span>
+            <span style={{ color: "rgba(0,0,0,0.6)" }}>
+              {activeItem?.description.split("。").slice(1).join("。")}
+            </span>
           </p>
         </div>
       )}
