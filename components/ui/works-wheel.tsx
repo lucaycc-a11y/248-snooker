@@ -43,13 +43,18 @@ export interface SpaceWheelProps
 // leaving a small card swinging on a huge drum. STEP/DRUM/LENS are tuned
 // together: STEP vs DRUM sets how hard neighbours rotate away, DRUM vs LENS
 // decides whether they land inside the frame or clip off it.
-const CARD_H = 0.38;      // front card height as a fraction of stage height
-const CARD_MAX_W = 0.34;  // never wider than this fraction of stage width
-const CARD_RATIO = 1.5;   // card width / height (3:2 to match photo ratio)
-const STEP = 40;           // degrees between cards on the drum
-const DRUM = 2.22;         // drum radius, in card heights
-const LENS = 2.7;          // perspective distance, in card heights
-const RING_R = 1.14;       // ring radius, in card heights
+
+// Mobile-first: larger cards on phones (~78% stage width), smaller on desktop
+const MOBILE_BREAKPOINT = 768;
+const CARD_H_MOBILE = 0.52;      // front card height (mobile) as fraction of stage height
+const CARD_MAX_W_MOBILE = 0.78;  // max width (mobile) as fraction of stage width
+const CARD_H_DESKTOP = 0.38;     // front card height (desktop)
+const CARD_MAX_W_DESKTOP = 0.34; // max width (desktop)
+const CARD_RATIO = 1.5;          // card width / height (3:2 to match photo ratio)
+const STEP = 40;                 // degrees between cards on the drum
+const DRUM = 2.22;               // drum radius, in card heights
+const LENS = 2.7;                // perspective distance, in card heights
+const RING_R = 1.30;             // ring radius, in card heights (adjusted for 4 items)
 // The drum alone would hang items on a plumb line. BOW curves the strip around
 // an arc whose centre is off to the LEFT, so the front card sits at the arc's
 // near point (dead centre) and neighbours have already swung back as well as
@@ -116,6 +121,7 @@ export function SpaceWheel({
   // the DOM so the rAF loop never triggers a render.
   const [active, setActive] = React.useState(0);
   const [stage, setStage] = React.useState<Stage>({ w: 0, h: 0 });
+  const [isVisible, setIsVisible] = React.useState(false);
 
   const count = items.length;
   const last = Math.max(count - 1, 0);
@@ -131,6 +137,18 @@ export function SpaceWheel({
     return () => q.removeEventListener("change", read);
   }, []);
 
+  // IntersectionObserver: pause rAF when off-screen for performance
+  React.useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => setIsVisible(entries[0]?.isIntersecting ?? false),
+      { threshold: 0.1 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   React.useEffect(() => {
     const el = stageRef.current;
     if (!el) return;
@@ -143,7 +161,10 @@ export function SpaceWheel({
 
   const metrics = React.useMemo(() => {
     const { w, h } = stage;
-    const cardW = Math.min(h * CARD_H * CARD_RATIO, w * CARD_MAX_W);
+    const isMobile = w <= MOBILE_BREAKPOINT;
+    const cardH_base = isMobile ? CARD_H_MOBILE : CARD_H_DESKTOP;
+    const cardMaxW_base = isMobile ? CARD_MAX_W_MOBILE : CARD_MAX_W_DESKTOP;
+    const cardW = Math.min(h * cardH_base * CARD_RATIO, w * cardMaxW_base);
     const cardH = cardW / CARD_RATIO;
     const drumR = cardH * DRUM;
     const ringR = cardH * RING_R;
@@ -162,6 +183,7 @@ export function SpaceWheel({
       depth: cardH * LENS,
       title: cardH * TITLE,
       index: cardH * INDEX,
+      isMobile,
     };
   }, [stage, count]);
 
@@ -169,7 +191,7 @@ export function SpaceWheel({
   const smooth = React.useRef(0);
 
   React.useEffect(() => {
-    if (!stage.h) return;
+    if (!stage.h || !isVisible) return;
     let frame = 0;
     const { ringR, ringScale, drumR, bow } = metrics;
 
@@ -205,8 +227,11 @@ export function SpaceWheel({
             bow,
             m,
           );
-          card.style.opacity = m > 0.5 && Math.abs(d) > CULL ? "0" : "1";
+          const cardOpacity = m > 0.5 && Math.abs(d) > CULL ? 0 : 1;
+          card.style.opacity = String(cardOpacity);
           card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
+          // Performance hint: only animate cards that are visible
+          card.style.willChange = cardOpacity > 0.1 ? 'transform' : 'auto';
         }
         const face = card?.firstElementChild as HTMLElement | null;
         if (face) face.style.transform = `scale(${lerp(ringScale, 1, m)})`;
@@ -225,7 +250,7 @@ export function SpaceWheel({
 
     frame = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(frame);
-  }, [metrics, stage.h, count, last, reduced, turnRef, onActiveChange]);
+  }, [metrics, stage.h, count, last, reduced, turnRef, onActiveChange, isVisible]);
 
   // Keyboard navigation — ArrowUp/Down move through items.
   const handleKeyDown = React.useCallback(
@@ -248,7 +273,7 @@ export function SpaceWheel({
     <section
       aria-label="Space8 場地相片"
       className={cn(
-        "relative h-full min-h-[24rem] w-full overflow-hidden select-none bg-black",
+        "relative h-full min-h-[24rem] w-full overflow-hidden select-none bg-[#f3f3f5]",
         className,
       )}
       {...props}
@@ -284,10 +309,10 @@ export function SpaceWheel({
                 marginTop: -metrics.cardH / 2,
               }}
             >
-              {/* Card face — 1 px border, no shadow (Space8 dark stage rule) */}
+              {/* Card face — 1 px border rgba(0,0,0,0.08) for white bg */}
               <span
                 className="relative block size-full overflow-hidden rounded-lg"
-                style={{ border: "1px solid rgba(255,255,255,0.12)" }}
+                style={{ border: "1px solid rgba(0,0,0,0.08)" }}
               >
                 <img
                   src={item.image}
@@ -310,56 +335,112 @@ export function SpaceWheel({
         {ringLabel}
       </div>
 
-      {/* ── Front-card title + description (fade in once drum is up) ── */}
-      <div
-        ref={titleRef}
-        className="pointer-events-none absolute top-1/2 left-[8%] -translate-y-1/2 opacity-0 max-w-[28%]"
-        style={{ fontSize: metrics.title }}
-      >
-        <p
-          className="font-semibold leading-snug text-white"
-          style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
+      {/* ── Mobile text scrim (gradient below front card) ── */}
+      {metrics.isMobile && (
+        <div
+          ref={titleRef}
+          className="pointer-events-none absolute left-0 right-0 opacity-0 flex flex-col items-center text-center px-6"
+          style={{
+            top: "58%",
+            background: "linear-gradient(to bottom, transparent 0%, #f3f3f5 45%)",
+            paddingTop: "2rem",
+            paddingBottom: "1.5rem",
+          }}
         >
-          {activeItem?.title}
-        </p>
-      </div>
-      <div
-        ref={descRef}
-        className="pointer-events-none absolute bottom-[12%] left-[8%] opacity-0 max-w-[36%]"
-        style={{ fontSize: metrics.index * 1.1 }}
-      >
-        <p
-          className="text-white/70 leading-relaxed"
-          style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600 }}
-        >
-          {activeItem?.description}
-        </p>
-      </div>
+          <p
+            className="font-semibold leading-snug text-[#1d1d1f] mb-2"
+            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: metrics.title * 0.85 }}
+          >
+            {activeItem?.title}
+          </p>
+          <p
+            className="text-[#1d1d1f]/70 leading-relaxed max-w-[85%]"
+            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600, fontSize: metrics.index * 1.1 }}
+          >
+            {activeItem?.description}
+          </p>
+        </div>
+      )}
 
-      {/* ── Right-hand index column ── */}
-      <ol
-        className="absolute top-[7.5%] right-[2.5%] text-right leading-[1.75]"
-        style={{ fontSize: metrics.index }}
-        aria-hidden="true"
-      >
-        {items.map((item, i) => (
-          <li key={item.title}>
-            <span
-              className="block transition-colors duration-300"
-              style={{
-                fontFamily: "'Good Times', monospace",
-                color:
-                  i === active
-                    ? "#22c55e"
-                    : "rgba(255,255,255,0.5)",
-                fontWeight: i === active ? 600 : 400,
-              }}
+      {/* ── Desktop text (left of card) ── */}
+      {!metrics.isMobile && (
+        <>
+          <div
+            ref={titleRef}
+            className="pointer-events-none absolute top-1/2 left-[8%] -translate-y-1/2 opacity-0 max-w-[28%]"
+            style={{ fontSize: metrics.title }}
+          >
+            <p
+              className="font-semibold leading-snug text-[#1d1d1f]"
+              style={{ fontFamily: "'Noto Sans TC', sans-serif" }}
             >
-              {String(i + 1).padStart(2, "0")}
-            </span>
-          </li>
-        ))}
-      </ol>
+              {activeItem?.title}
+            </p>
+          </div>
+          <div
+            ref={descRef}
+            className="pointer-events-none absolute bottom-[12%] left-[8%] opacity-0 max-w-[36%]"
+            style={{ fontSize: metrics.index * 1.1 }}
+          >
+            <p
+              className="text-[#1d1d1f]/70 leading-relaxed"
+              style={{ fontFamily: "'Noto Sans TC', sans-serif", fontWeight: 600 }}
+            >
+              {activeItem?.description}
+            </p>
+          </div>
+        </>
+      )}
+
+      {/* ── Progress indicator: mobile thin line + "01/04", desktop vertical index ── */}
+      {metrics.isMobile ? (
+        <div
+          ref={descRef}
+          className="pointer-events-none absolute top-[6%] left-1/2 -translate-x-1/2 opacity-0 flex flex-col items-center gap-2"
+        >
+          <div className="flex items-center gap-1">
+            {items.map((_, i) => (
+              <div
+                key={i}
+                className="transition-all duration-300"
+                style={{
+                  width: i === active ? 24 : 6,
+                  height: 2,
+                  backgroundColor: i === active ? "#22c55e" : "rgba(29,29,31,0.2)",
+                  borderRadius: 1,
+                }}
+              />
+            ))}
+          </div>
+          <p
+            className="text-[#1d1d1f]/50"
+            style={{ fontFamily: "'Good Times', monospace", fontSize: metrics.index * 0.9 }}
+          >
+            {String(active + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
+          </p>
+        </div>
+      ) : (
+        <ol
+          className="absolute top-[7.5%] right-[2.5%] text-right leading-[1.75]"
+          style={{ fontSize: metrics.index }}
+          aria-hidden="true"
+        >
+          {items.map((item, i) => (
+            <li key={item.title}>
+              <span
+                className="block transition-colors duration-300"
+                style={{
+                  fontFamily: "'Good Times', monospace",
+                  color: i === active ? "#22c55e" : "rgba(29,29,31,0.5)",
+                  fontWeight: i === active ? 600 : 400,
+                }}
+              >
+                {String(i + 1).padStart(2, "0")}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
     </section>
   );
 }
