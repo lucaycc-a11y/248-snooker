@@ -71,7 +71,7 @@ export function SpaceWheelOutro() {
             data-outro-headline-group
             style={{
               position: "absolute",
-              top: "43%", // ~262px / 604px ≈ 43.4%
+              top: "62%", // sits on dark green (#199f02 zone) — white text passes AA at large size
               left: 0,
               right: 0,
               textAlign: "center",

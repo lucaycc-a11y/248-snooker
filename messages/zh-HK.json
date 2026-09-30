@@ -246,7 +246,7 @@
     "period_afternoon_title": "下午時段",
     "period_afternoon_tagline": "午后慢慢打，讓節奏留給自己。",
     "period_afternoon_time": "每日 12:00–16:00",
-    "period_morning_tagline": "清醒開局，第一杆更專註。",
+    "period_morning_tagline": "清醒開局，第一杆更專注。",
     "period_evening_tagline": "燈光亮起，今晚適合一起上場。",
     "period_evening_title": "黃金時段",
     "period_evening_time": "每日 16:00–00:00",
@@ -356,8 +356,8 @@
     "hero_subtitle": "好的中式八球室不應有多餘干擾。SPACE8 自助無煙中式桌球獨立球室。隨時隨地，一鍵預訂專屬球臺。從預訂、付款到入場，全程自助，無需等候。",
     "scroll": "向下滑動",
     "mission_eyebrow": "我們的理念",
-    "mission_statement": "零打擾，全專註。打造專屬中八空間。",
-    "closing_headline": "零打擾，全專註。",
+    "mission_statement": "零打擾，全專注。打造專屬中八空間。",
+    "closing_headline": "零打擾，全專注。",
     "mission_items": [
       {
         "title": "專業設備",
@@ -427,7 +427,7 @@
       },
       {
         "title": "專業級照明",
-        "body": "特調比賽燈光模式，專註於每一次出杆。"
+        "body": "特調比賽燈光模式，專注於每一次出杆。"
       },
       {
         "title": "恒溫冷气",
@@ -1753,7 +1753,7 @@
       },
       {
         "title": "免打擾模式",
-        "body": "專註打球時，屏幕只顯示時間。最后五分鐘才會提示——更配合气氛，也更省電。"
+        "body": "專注打球時，屏幕只顯示時間。最后五分鐘才會提示——更配合气氛，也更省電。"
       },
       {
         "title": "三语切換",
@@ -1858,8 +1858,8 @@
     ]
   },
   "homeFocus": {
-    "eyebrow": "專註於每一球",
-    "title": "零打擾，全專註，打造專屬桌球空間。",
+    "eyebrow": "專注於每一球",
+    "title": "零打擾，全專注，打造專屬桌球空間。",
     "items": [
       {
         "title": "獨立空間",

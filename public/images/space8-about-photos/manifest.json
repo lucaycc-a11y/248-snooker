@@ -8,7 +8,7 @@
     { "order": 4, "file": "images/about-04-cove-lighting.jpg", "source": "DSC03991.jpg", "title": "氛圍", "description": "經過特別調校的燈光，減少干擾，營造專心的氛圍。", "alt": "球臺袋口與星牌標誌，背景為天花的暖色間接燈光" },
     { "order": 5, "file": "images/about-05-cue-rack.jpg", "source": "DSC04021.jpg", "title": "精選用品", "description": "精選桌球用品。", "alt": "牆邊的球杆架、兩張黑色高腳椅與置物桌" },
     { "order": 6, "file": "images/about-06-lounge.jpg", "source": "DSC03871.jpg", "title": "獨立空間", "description": "自助，無煙，獨立球室，無多餘干擾。", "alt": "球臺後方的休息區，設有扶手椅、沙發與小桌" },
-    { "order": 7, "file": "images/about-07-stools.jpg", "source": "DSC03805.jpg", "title": "零打擾，全專註", "description": "一個純粹玩樂的空間。", "alt": "球臺一角與兩張黑色高腳椅，背景為灰色吸音牆" },
+    { "order": 7, "file": "images/about-07-stools.jpg", "source": "DSC03805.jpg", "title": "零打擾，全專注", "description": "一個純粹玩樂的空間。", "alt": "球臺一角與兩張黑色高腳椅，背景為灰色吸音牆" },
     { "order": 8, "file": "images/about-08-ball-rack.jpg", "source": "DSC03865.jpg", "title": "一鍵預訂", "description": "隨時隨地，一鍵預訂專屬球臺。", "alt": "三角架內排好的彩色球" }
   ]
 }
