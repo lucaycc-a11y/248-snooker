@@ -424,7 +424,8 @@ export function AppleCarouselCentered({
               alt={slide.alt || slide.title}
               data-cms-key={slide.altCmsKey}
               fill
-              sizes="(max-width: 768px) 72vw, min(72vw, 560px)"
+              sizes="(max-width: 768px) 72vw, (max-width: 1024px) 560px, 720px"
+              quality={80}
               priority={i === 0}
               className={`carousel-media-centered${slide.objectFit === "contain" ? " carousel-media-contain" : ""}`}
               style={{
@@ -588,7 +589,8 @@ export function AppleCarouselCentered({
                     src={currentSlide.src}
                     alt={currentSlide.alt || currentSlide.title}
                     fill
-                    sizes="min(92vw, 960px)"
+                    sizes="(max-width: 768px) 92vw, (max-width: 1024px) 960px, (max-width: 1920px) 88vh, 100vh"
+                    quality={80}
                     style={{
                       objectFit: currentSlide.objectFit === "contain" ? "contain" : "cover",
                       objectPosition: currentSlide.focus || "center",
