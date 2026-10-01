@@ -2372,5 +2372,33 @@
       "book": "立即預訂",
       "login": "登入會員"
     }
+  },
+  "venueHero": {
+    "title": "場地設施",
+    "subtitle": "SPACE INFINITY · SPACE ETERNITY",
+    "segments": {
+      "0": "專業桌球臺與比賽用球",
+      "1": "特調燈光與氛圍",
+      "2": "AI 智能對戰管家",
+      "3": "全自助，掃碼即入",
+      "4": "讓你只專注於球。"
+    },
+    "photos": {
+      "0": {
+        "alt": "Space Infinity 包廂內景"
+      },
+      "1": {
+        "alt": "Space Eternity 包廂內景"
+      },
+      "2": {
+        "alt": "專業桌球臺特寫"
+      },
+      "3": {
+        "alt": "桌球臺與比賽用球"
+      },
+      "4": {
+        "alt": "場地內部環境"
+      }
+    }
   }
 }

@@ -215,10 +215,13 @@ export function AppleCarouselCentered({
   };
 
   const openSheet = (index: number, button: HTMLButtonElement) => {
+    console.log('[OpenSheet] Called with index:', index);
     // FLIP "First": measure the tapped card so the sheet can grow out of it.
     const card = button.closest(".carousel-slide-centered");
     setOriginRect(card ? card.getBoundingClientRect() : null);
+    console.log('[OpenSheet] Setting sheetSlideIndex to:', index);
     setSheetSlideIndex(index);
+    console.log('[OpenSheet] Setting sheetOpen to: true');
     setSheetOpen(true);
     setButtonThatOpenedSheet(button);
     // Pause autoplay while open, remembering whether it was running.
@@ -529,7 +532,27 @@ export function AppleCarouselCentered({
 
             <button
               className="carousel-plus-btn"
-              onClick={(e) => openSheet(i, e.currentTarget)}
+              style={{
+                position: 'absolute',
+                bottom: '24px',
+                right: '24px',
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                background: 'rgba(0, 0, 0, 0.7)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: 'white',
+                transition: 'all 200ms ease',
+                zIndex: 3,
+              }}
+              onClick={(e) => {
+                console.log('[Button] onClick fired for slide index:', i);
+                openSheet(i, e.currentTarget);
+              }}
               aria-label={viewDetailsLabel}
             >
               <Plus size={24} strokeWidth={2.5} />
@@ -572,9 +595,9 @@ export function AppleCarouselCentered({
         </button>
       </div>
 
-      <AnimatePresence>
-        {portalReady && sheetOpen && currentSlide && createPortal(
-          <div key="sheet-root">
+      {portalReady && sheetOpen && currentSlide && createPortal(
+        <AnimatePresence>
+          <motion.div key="sheet-root">
             <motion.div
               onClick={closeSheet}
               style={{
@@ -751,10 +774,10 @@ export function AppleCarouselCentered({
                 </div>
               </div>
             </motion.div>
-          </div>,
-          document.body
-        )}
-      </AnimatePresence>
+          </motion.div>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
