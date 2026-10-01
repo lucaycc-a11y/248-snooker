@@ -4,7 +4,7 @@ import Nav from "@/components/layout/Nav";
 import Hero from "@/components/landing/Hero";
 import HomeFacilities from "@/components/landing/HomeFacilities";
 import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
-import Section5Booking from "@/components/landing/Section5Booking";
+import Section5BookingNew from "@/components/landing/Section5BookingNew";
 import Section6Pricing from "@/components/landing/Section6Pricing";
 import { getConfig } from "@/lib/data/getConfig";
 import Member from "@/components/landing/Member";
@@ -118,7 +118,7 @@ export default async function Home({
       <Hero />
       <HomeFacilities />
       <SpacePilotScoreboardExperience />
-      <Section5Booking />
+      <Section5BookingNew />
       <Section6Pricing periods={config.periods} />
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}
