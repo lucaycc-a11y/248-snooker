@@ -2168,14 +2168,6 @@
   },
   "qr_instruction_label": "You will see a QR code. Please scan it with WeChat Pay to complete payment",
   "coming_soon_label": "This payment method is coming soon",
-  "cookie_consent": {
-    "title": "We Use Cookies",
-    "message": "This website uses necessary cookies to maintain login and booking functionality, and analytics cookies to improve user experience.",
-    "learn_more": "Learn more",
-    "accept_all": "Accept All Cookies",
-    "necessary_only": "Necessary Only",
-    "dismiss": "Dismiss"
-  },
   "help": {
     "title": "Support Center",
     "subtitle": "Find answers to common questions",
