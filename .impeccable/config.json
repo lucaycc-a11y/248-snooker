@@ -652,6 +652,12 @@
         "value": "#157a01",
         "createdAt": "2026-09-30T15:32:07.794Z",
         "reason": "Hover darken of --closing-green (#199f02 * 0.92); intentional spec button state"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "bowwobble",
+        "createdAt": "2026-10-01T14:00:58.418Z",
+        "reason": "Decorative SVG animation using ease-in-out timing, not spring/bounce easing - keyframe-based wobble for visual interest"
       }
     ]
   }
