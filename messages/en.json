@@ -2302,5 +2302,82 @@
       "category": "Comfort",
       "title": "Lounge & Storage"
     }
+  },
+  "memberIntro": {
+    "hero": {
+      "eyebrow": "SPACE8 MEMBERSHIP",
+      "title": "Spend and earn. Points are money.",
+      "subtitle": "Earn 1 point per HK$1 spent. Redeem 100 points for HK$10 venue credit. New members get 100 points welcome bonus.",
+      "ctaPrimary": "Join Now",
+      "ctaSecondary": "Sign In",
+      "note": "Must be 18+"
+    },
+    "pillar1": {
+      "lead": "Spend and earn.",
+      "body": "HK$1 = 1 point, auto-accumulated."
+    },
+    "pillar2": {
+      "lead": "Points are money.",
+      "body": "100 points = HK$10 venue credit."
+    },
+    "pillar3": {
+      "lead": "New member bonus.",
+      "body": "Sign up and get 100 points instantly."
+    },
+    "pillar4": {
+      "lead": "Reservation-based, QR self check-in.",
+      "body": "Book online, scan to enter, simple and safe."
+    },
+    "card": {
+      "title": "Your Member Card",
+      "hint": "Tap to flip and see QR code",
+      "sampleLabel": "Sample card, not real data"
+    },
+    "points": {
+      "title": "Points Program",
+      "stat1": {
+        "value": "HK$1 = 1 pt",
+        "label": "Earn 1 point per HK$1 spent"
+      },
+      "stat2": {
+        "value": "100 pts = HK$10",
+        "label": "Redeemable for HK$10 venue credit"
+      },
+      "stat3": {
+        "value": "100 pts",
+        "label": "New member welcome bonus"
+      },
+      "comingSoon": "Points redemption coming soon"
+    },
+    "safety": {
+      "title": "Safety & Support",
+      "pay": {
+        "title": "Secure Payment",
+        "body": "All transactions are processed through Stripe. We never store your credit card details. Apple Pay, Google Pay, and credit cards accepted."
+      },
+      "data": {
+        "title": "Privacy Protection",
+        "body": "Your personal data is strictly protected. We comply with Hong Kong's Personal Data (Privacy) Ordinance and will never sell or share your data with third parties."
+      },
+      "qr": {
+        "title": "QR Security",
+        "body": "Each QR code is single-use and time-limited. Your QR code is only visible when logged into your account, ensuring only you can use it."
+      },
+      "venue": {
+        "title": "Venue Safety",
+        "body": "Venue equipped with 24/7 CCTV surveillance and smart access control."
+      }
+    },
+    "support": {
+      "title": "Need Help?",
+      "body": "We're here to answer your questions.",
+      "faq": "FAQ",
+      "whatsapp": "WhatsApp Us"
+    },
+    "final": {
+      "title": "Ready to get started?",
+      "book": "Book Now",
+      "login": "Sign In"
+    }
   }
 }

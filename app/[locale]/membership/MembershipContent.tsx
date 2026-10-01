@@ -1,518 +1,574 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { QRCodeSVG } from "qrcode.react";
+import { cn } from "@/lib/utils";
+import Velaris from "@/components/ui/velaris";
 
-// ─── design tokens (matches 924_member_guide.html) ──────────────────────────
-const GREEN      = "#22C55E";
-const GREEN_INK  = "#15803D";
-const FELT       = "#0B5D34";
-const FELT_DEEP  = "#073D22";
-const MUTED      = "#8A918B";
-const BORDER     = "rgba(255,255,255,0.10)";
+// ─── Design tokens ───────────────────────────────────────────────────────────
+const COLORS = {
+  // Velaris green palette
+  green50: "#86efac",
+  green400: "#4ade80",
+  green600: "#059669",
+  // Brand CTA green
+  ctaGreen: "#22c55e",
+  // Light section contrast green
+  lightGreen: "#059669",
+  // Black
+  black: "#000000",
+  // Light section background
+  lightBg: "#F9FAFB",
+  lightText: "#111827",
+  lightTextMuted: "#6B7280",
+} as const;
 
-// Demo member code for the static QR explainer — not real user data
-const DEMO_CODE = "SP8-DEMO-0000";
+const EASING = {
+  reveal: "cubic-bezier(.2,.7,.3,1)" as const,
+  pop: "cubic-bezier(.34,1.56,.64,1)" as const,
+};
 
-type Translation = ReturnType<typeof useTranslations>;
-type UseItem = { tag: string; title: string };
-type StepItem = { title: string; body: string };
+// Demo member code for the card (not real user data)
+const DEMO_CODE = "SP8-DEMO-2024";
 
-// ─── shared fade-up reveal ───────────────────────────────────────────────────
-function Reveal({ children, index = 0 }: { children: React.ReactNode; index?: number }) {
+// ─── Reveal animation wrapper ─────────────────────────────────────────────────
+function Reveal({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.5, delay: index * 0.07, ease: [0.2, 0.7, 0.3, 1] }}
-      className="motion-reduce:!transform-none motion-reduce:!opacity-100"
+    <div
+      ref={ref}
+      className={cn(
+        "transition-all duration-700",
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
+        className
+      )}
+      style={{
+        transitionDelay: `${delay}ms`,
+        transitionTimingFunction: EASING.reveal,
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
-// ─── tier definitions ────────────────────────────────────────────────────────
-const TIERS = [
-  {
-    key:        "tier_new",
-    multiplier: "1X",
-    isTop:      false,
-  },
-  {
-    key:        "tier_platinum",
-    multiplier: "1.5X",
-    isTop:      false,
-  },
-  {
-    key:        "tier_diamond",
-    multiplier: "2X",
-    isTop:      true,                 // green felt treatment
-  },
-] as const;
+// ═══════════════════════════════════════════════════════════════════════════
+// § 1 — HERO (Apple Music style, Velaris background)
+// ═══════════════════════════════════════════════════════════════════════════
 
-// ════════════════════════════════════════════════════════════════════════════
-// § 1 — TIER LADDER
-//   Horizontal progress line connects 3 threshold nodes. Top tier (index 2)
-//   gets radial-gradient felt background matching 924_member_guide.html.
-// ════════════════════════════════════════════════════════════════════════════
-
-function TierLadder({ t }: { t: Translation }) {
+function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
-    <section id="membership-tiers" className="pb-16 pt-20 md:pb-24 md:pt-28">
-      {/* Section heading */}
-      <Reveal>
-        <h2
-          data-cms-key="membershipHub.tier_title"
-          className="mb-3 text-center text-3xl font-semibold tracking-tight text-white md:text-5xl"
-        >
-          {t("tier_title")}
-        </h2>
-        <p className="mx-auto mb-12 max-w-xl text-center text-base leading-7 text-white/55">
-          {t("tier_intro")}
-        </p>
-      </Reveal>
-
-      {/* Ladder progress line + nodes */}
-      <Reveal>
-        <div className="relative mb-0 hidden md:block">
-          {/* Horizontal gradient line */}
-          <div
-            className="absolute left-0 right-0 top-1/2 -translate-y-1/2"
-            style={{
-              height: 2,
-              background: `linear-gradient(to right, rgba(255,255,255,.10), ${GREEN} 50%, ${GREEN} 100%)`,
-            }}
-          />
-          <div className="grid grid-cols-3">
-            {TIERS.map((tier, i) => {
-              const at: string = t(`${tier.key}.at`);
-              const threshold: string = t(`${tier.key}.threshold`);
-              return (
-                <div key={tier.key} className="flex flex-col items-center gap-2 pb-6">
-                  {/* Circle node */}
-                  <div
-                    className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full"
-                    style={{
-                      background: i === 0 ? "rgba(255,255,255,.18)" : GREEN,
-                      boxShadow: i > 0 ? `0 0 12px ${GREEN}99` : "none",
-                    }}
-                  >
-                    <div className="h-2 w-2 rounded-full bg-white" />
-                  </div>
-                  {/* Threshold label */}
-                  {threshold ? (
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: GREEN, letterSpacing: "0.05em" }}
-                    >
-                      {threshold}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-white/30">—</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Reveal>
-
-      {/* Tier cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {TIERS.map((tier, i) => (
-          <TierCard key={tier.key} tierKey={tier.key} multiplier={tier.multiplier} isTop={tier.isTop} index={i} t={t} />
-        ))}
-      </div>
-
-      {/* CTAs */}
-      <Reveal index={4}>
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
-          <Link
-            href="/book"
-            className="rounded-full px-6 py-3 text-sm font-semibold transition hover:opacity-90"
-            style={{ background: GREEN, color: "#07130d" }}
-          >
-            {t("cta_book")}
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white transition hover:border-[#22C55E] hover:text-[#86efac]"
-          >
-            {t("cta_login")}
-          </Link>
-        </div>
-      </Reveal>
-    </section>
-  );
-}
-
-function TierCard({
-  tierKey, multiplier, isTop, index, t,
-}: {
-  tierKey: string;
-  multiplier: string;
-  isTop: boolean;
-  index: number;
-  t: Translation;
-}) {
-  const title: string     = t(`${tierKey}.title`);
-  const threshold: string = t(`${tierKey}.threshold`);
-  const lead: string      = t(`${tierKey}.lead`);
-  const desc: string      = t(`${tierKey}.desc`);
-
-  const surface = isTop
-    ? `radial-gradient(140% 100% at 20% 0%, ${FELT} 0%, ${FELT_DEEP} 50%, rgba(7,61,34,.25) 100%)`
-    : "rgba(255,255,255,0.025)";
-  const border  = isTop ? `1px solid ${GREEN}55` : `1px solid ${BORDER}`;
-  const mulColor = isTop ? GREEN : "rgba(255,255,255,0.55)";
-
-  return (
-    <Reveal index={index}>
-      <article
-        className="flex h-full flex-col rounded-2xl p-7 transition duration-300 hover:-translate-y-1"
-        style={{ background: surface, border }}
-      >
-        {/* Large multiplier — Good Times / font-code */}
-        <p
-          className="font-code leading-none"
-          style={{ fontSize: "clamp(64px,8vw,100px)", color: mulColor, opacity: 0.9 }}
-          aria-label={`積分倍率 ${multiplier}`}
-        >
-          {multiplier}
-        </p>
-
-        <h3
-          data-cms-key={`membershipHub.${tierKey}.title`}
-          className="mt-5 text-2xl font-semibold text-white"
-        >
-          {title}
-        </h3>
-
-        {threshold ? (
-          <p className="mt-1 text-sm font-medium" style={{ color: GREEN }}>
-            {threshold}
-          </p>
-        ) : null}
-
-        <p
-          data-cms-key={`membershipHub.${tierKey}.lead`}
-          className="mt-4 text-sm font-semibold leading-6 text-white/80"
-        >
-          {lead}
-        </p>
-
-        <p
-          data-cms-key={`membershipHub.${tierKey}.desc`}
-          className="mt-3 flex-1 text-sm leading-6"
-          style={{ color: MUTED }}
-        >
-          {desc}
-        </p>
-      </article>
-    </Reveal>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// § 2 — POINTS FLOW  (4-step numbered circles with horizontal connectors)
-// ════════════════════════════════════════════════════════════════════════════
-
-type FlowItem = { title: string; body: string };
-
-function FlowSection({
-  id, sectionTitle, items, cmsKey,
-}: {
-  id?: string;
-  sectionTitle: string;
-  items: FlowItem[];
-  cmsKey: string;
-}) {
-  return (
-    <section id={id} className="border-t border-white/10 pb-16 pt-20 md:pb-24 md:pt-28">
-      <Reveal>
-        <h2
-          data-cms-key={cmsKey}
-          className="mb-14 text-center text-3xl font-semibold tracking-tight text-white md:text-5xl"
-        >
-          {sectionTitle}
-        </h2>
-      </Reveal>
-
-      {/* Desktop: horizontal flow with connector lines */}
-      <div className="hidden md:block">
+    <Velaris
+      height="min(100svh, 820px)"
+      speed={1.0}
+      colors={[COLORS.green50, COLORS.green400, COLORS.green600, COLORS.black]}
+      className="flex items-center justify-center px-6"
+    >
+      <div className="flex flex-col items-center text-center" style={{ maxWidth: "56rem" }}>
+        {/* Eyebrow */}
         <Reveal>
-          <div className="relative grid grid-cols-4 gap-0">
-            {/* Connector line */}
-            <div
-              className="absolute left-[12.5%] right-[12.5%] top-[22px] -translate-y-1/2"
-              style={{ height: 1, background: `linear-gradient(to right, transparent, ${GREEN}66, transparent)` }}
-            />
-            {items.map((item, i) => (
-              <div key={item.title} className="flex flex-col items-center gap-5 px-4 text-center">
-                <div
-                  className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full font-code text-sm font-bold text-white"
-                  style={{ background: GREEN, boxShadow: `0 0 20px ${GREEN}55` }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6" style={{ color: MUTED }}>{item.body}</p>
-                </div>
-              </div>
-            ))}
+          <p
+            data-cms-key="memberIntro.hero.eyebrow"
+            className="mb-4 text-xs font-semibold uppercase tracking-widest"
+            style={{ color: "rgba(255,255,255,0.7)" }}
+          >
+            {t("hero.eyebrow")}
+          </p>
+        </Reveal>
+
+        {/* Title */}
+        <Reveal delay={100}>
+          <h1
+            data-cms-key="memberIntro.hero.title"
+            className="mb-6 font-bold leading-tight tracking-tight text-white"
+            style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}
+          >
+            {t("hero.title")}
+          </h1>
+        </Reveal>
+
+        {/* Subtitle */}
+        <Reveal delay={200}>
+          <p
+            data-cms-key="memberIntro.hero.subtitle"
+            className="mb-10 text-base leading-relaxed md:text-lg"
+            style={{ color: "rgba(255,255,255,0.75)", maxWidth: "36rem" }}
+          >
+            {t("hero.subtitle")}
+          </p>
+        </Reveal>
+
+        {/* CTAs */}
+        <Reveal delay={300}>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/join"
+              data-cms-key="memberIntro.hero.ctaPrimary"
+              className="rounded-full bg-white px-8 py-3.5 text-base font-semibold text-black transition hover:bg-white/90"
+            >
+              {t("hero.ctaPrimary")}
+            </Link>
+            <Link
+              href="/auth"
+              data-cms-key="memberIntro.hero.ctaSecondary"
+              className="group flex items-center gap-1 text-base font-medium text-white transition hover:text-white/80"
+            >
+              <span>{t("hero.ctaSecondary")}</span>
+              <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">›</span>
+            </Link>
           </div>
         </Reveal>
-      </div>
 
-      {/* Mobile: vertical list */}
-      <ol className="space-y-0 md:hidden">
-        {items.map((item, i) => (
-          <Reveal key={item.title} index={i}>
-            <li className="flex gap-5 pb-8 last:pb-0">
-              <div className="flex flex-col items-center">
-                <div
-                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-code text-sm font-bold text-white"
-                  style={{ background: GREEN, boxShadow: `0 0 16px ${GREEN}55` }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </div>
-                {i < items.length - 1 && (
-                  <div className="mt-2 w-px flex-1 bg-white/10" />
-                )}
-              </div>
-              <div className="pt-2">
-                <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6" style={{ color: MUTED }}>{item.body}</p>
-              </div>
-            </li>
+        {/* Note */}
+        <Reveal delay={400}>
+          <p
+            data-cms-key="memberIntro.hero.note"
+            className="mt-6 text-xs"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
+            {t("hero.note")}
+          </p>
+        </Reveal>
+      </div>
+    </Velaris>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// § 2 — STATEMENTS (Apple One style, light background)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  return (
+    <section style={{ background: COLORS.lightBg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-12">
+        {[1, 2, 3, 4].map((n, i) => (
+          <Reveal key={n} delay={i * 100} className="text-center">
+            <div className="space-y-2">
+              <p
+                data-cms-key={`memberIntro.pillar${n}.lead`}
+                className="text-3xl font-semibold leading-tight md:text-5xl"
+                style={{ color: COLORS.lightGreen }}
+              >
+                {t(`pillar${n}.lead`)}
+              </p>
+              <p
+                data-cms-key={`memberIntro.pillar${n}.body`}
+                className="text-3xl font-semibold leading-tight md:text-5xl"
+                style={{ color: COLORS.lightText }}
+              >
+                {t(`pillar${n}.body`)}
+              </p>
+            </div>
           </Reveal>
         ))}
-      </ol>
+      </div>
     </section>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// § 3 — QR ACCESS SECTION  (white "paper" background, 2-col layout)
-//   Left:  section heading + icon use-list + tips
-//   Right: demo member card + steps + 2 CTAs
-// ════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// § 3 — MEMBER CARD (dark background, interactive flip card)
+// ═══════════════════════════════════════════════════════════════════════════
 
-function QRSection({ t }: { t: Translation }) {
-  const uses  = t.raw("qr_uses")  as UseItem[];
-  const steps = t.raw("qr_steps") as StepItem[];
-  const tips  = t.raw("qr_tips")  as string[];
+function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const [isFlipped, setIsFlipped] = useState(false);
 
   return (
     <section
-      id="member-qr"
-      className="scroll-mt-24 border-t border-white/10"
+      style={{ background: COLORS.black, padding: "clamp(88px, 12vw, 140px) 24px" }}
     >
-      {/* Paper panel — light background matching reference .paper */}
-      <div
-        className="rounded-3xl px-6 py-14 md:px-12 md:py-20"
-        style={{ background: "#F4F4F6", color: "#141614" }}
-      >
+      <div className="mx-auto max-w-4xl">
         <Reveal>
           <h2
-            data-cms-key="membershipHub.qr_title"
-            className="mb-12 text-center text-3xl font-semibold tracking-tight md:text-5xl"
-            style={{ color: "#141614" }}
+            data-cms-key="memberIntro.card.title"
+            className="mb-3 text-center font-bold leading-tight tracking-tight text-white"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
-            {t("qr_title")}
+            {t("card.title")}
           </h2>
         </Reveal>
 
-        <div className="grid gap-12 md:grid-cols-2 md:gap-16 md:items-start">
+        <Reveal delay={100}>
+          <p
+            data-cms-key="memberIntro.card.hint"
+            className="mb-12 text-center text-sm"
+            style={{ color: "rgba(255,255,255,0.6)" }}
+          >
+            {t("card.hint")}
+          </p>
+        </Reveal>
 
-          {/* ── LEFT COLUMN ─────────────────────────────────────── */}
-          <div className="space-y-10">
-
-            {/* What the QR does — icon list */}
-            <div>
-              <h3
-                data-cms-key="membershipHub.qr_s1"
-                className="mb-5 text-lg font-semibold"
-                style={{ color: "#141614" }}
-              >
-                {t("qr_s1")}
-              </h3>
-              <ul className="space-y-3">
-                {uses.map((u, i) => (
-                  <Reveal key={i} index={i}>
-                    <li className="flex items-center gap-4">
-                      <span
-                        className="flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                        style={{ background: GREEN_INK, color: "#fff" }}
-                      >
-                        {u.tag}
-                      </span>
-                      <span className="text-sm font-medium" style={{ color: "#141614" }}>
-                        {u.title}
-                      </span>
-                    </li>
-                  </Reveal>
-                ))}
-              </ul>
-            </div>
-
-            {/* Tips */}
-            <div>
-              <h3
-                data-cms-key="membershipHub.qr_s3"
-                className="mb-4 text-lg font-semibold"
-                style={{ color: "#141614" }}
-              >
-                {t("qr_s3")}
-              </h3>
-              <ul className="space-y-2">
-                {tips.map((tip, i) => (
-                  <Reveal key={i} index={i}>
-                    <li className="flex gap-3 text-sm leading-6" style={{ color: "#5B625C" }}>
-                      <span className="mt-[5px] h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: GREEN }} />
-                      {tip}
-                    </li>
-                  </Reveal>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* ── RIGHT COLUMN ────────────────────────────────────── */}
-          <div className="space-y-8">
-
-            {/* Demo member card */}
-            <Reveal>
+        {/* Card */}
+        <Reveal delay={200}>
+          <div className="relative mx-auto" style={{ maxWidth: "380px", perspective: "1200px" }}>
+            <button
+              onClick={() => setIsFlipped(!isFlipped)}
+              className="relative w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50"
+              style={{
+                transformStyle: "preserve-3d",
+                transition: `transform 600ms ${EASING.pop}`,
+                transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                aspectRatio: "1.586",
+              }}
+              aria-label={isFlipped ? t("card.hint") : t("card.hint")}
+            >
+              {/* Front */}
               <div
-                className="mx-auto w-full max-w-[320px] overflow-hidden rounded-[20px]"
                 style={{
+                  position: "absolute",
+                  inset: 0,
+                  backfaceVisibility: "hidden",
                   background: "linear-gradient(150deg,#2B3039 0%,#1B1E24 55%,#23272F 100%)",
                   border: "1px solid rgba(255,255,255,.12)",
-                  boxShadow: "0 24px 60px rgba(0,0,0,.35)",
+                  boxShadow: "0 24px 60px rgba(0,0,0,.5)",
+                  borderRadius: "20px",
+                  padding: "32px",
                 }}
+                className="flex flex-col"
               >
-                <div className="p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/logos/logo-white-horizontal.svg" alt="SPACE8 Logo" className="h-4 w-auto opacity-90" />
-                    <div
-                      className="rounded-full px-3 py-1 text-xs font-semibold text-white"
-                      style={{ background: "linear-gradient(180deg,#A2AEC4,#7F8BA2)" }}
-                    >
-                      {t("tier_new.title")}
-                    </div>
+                <div className="mb-6 flex items-center justify-between">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/logos/logo-white-horizontal.svg" alt="SPACE8" className="h-5 w-auto opacity-90" />
+                  <div
+                    className="rounded-full px-3 py-1 text-xs font-semibold text-white"
+                    style={{ background: "linear-gradient(180deg,#A2AEC4,#7F8BA2)" }}
+                  >
+                    MEMBER
                   </div>
-                  <div className="flex justify-center">
-                    <div className="rounded-xl bg-white p-3 shadow-lg">
-                      <QRCodeSVG value={DEMO_CODE} size={130} level="H" />
-                    </div>
-                  </div>
-                  <div className="mt-4 space-y-1 text-center">
-                    <p className="font-code text-base font-semibold uppercase tracking-wide text-white">MEMBER NAME</p>
-                    <p className="font-code text-xs tracking-[0.06em] text-white/45">{DEMO_CODE}</p>
+                </div>
+                <div className="flex flex-1 items-center justify-center">
+                  <div className="text-center">
+                    <p className="font-code text-xl font-semibold uppercase tracking-wide text-white">MEMBER NAME</p>
+                    <p className="font-code mt-2 text-sm tracking-wide text-white/40">{DEMO_CODE}</p>
                   </div>
                 </div>
               </div>
-              <p
-                data-cms-key="membershipHub.qr_placeholder"
-                className="mt-3 text-center text-xs italic"
-                style={{ color: "#8A918B" }}
-              >
-                {t("qr_placeholder")}
-              </p>
-            </Reveal>
 
-            {/* How to find it — steps */}
-            <div>
-              <h3
-                data-cms-key="membershipHub.qr_s2"
-                className="mb-5 text-lg font-semibold"
-                style={{ color: "#141614" }}
+              {/* Back */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backfaceVisibility: "hidden",
+                  transform: "rotateY(180deg)",
+                  background: "linear-gradient(150deg,#2B3039 0%,#1B1E24 55%,#23272F 100%)",
+                  border: "1px solid rgba(255,255,255,.12)",
+                  boxShadow: "0 24px 60px rgba(0,0,0,.5)",
+                  borderRadius: "20px",
+                  padding: "32px",
+                }}
+                className="flex items-center justify-center"
               >
-                {t("qr_s2")}
-              </h3>
-              <ol className="space-y-5">
-                {steps.map((step, i) => (
-                  <Reveal key={i} index={i}>
-                    <li className="flex gap-4">
-                      <div
-                        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                        style={{ background: GREEN_INK }}
-                      >
-                        {i + 1}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: "#141614" }}>{step.title}</p>
-                        <p className="mt-1 text-sm leading-6" style={{ color: "#5B625C" }}>{step.body}</p>
-                      </div>
-                    </li>
-                  </Reveal>
-                ))}
-              </ol>
-            </div>
-
-            {/* CTAs */}
-            <Reveal index={4}>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/member"
-                  className="flex-1 rounded-full py-3 text-center text-sm font-semibold text-white transition hover:opacity-90"
-                  style={{ background: GREEN_INK }}
-                  data-cms-key="membershipHub.qr_cta"
-                >
-                  {t("qr_cta")}
-                </Link>
-                <Link
-                  href="/member"
-                  className="flex-1 rounded-full border py-3 text-center text-sm font-semibold transition hover:border-[#15803D]"
-                  style={{ borderColor: "#C8D5C9", color: "#141614" }}
-                  data-cms-key="membershipHub.qr_cta_record"
-                >
-                  {t("qr_cta_record")}
-                </Link>
+                <div className="rounded-xl bg-white p-4 shadow-lg">
+                  <QRCodeSVG value={DEMO_CODE} size={180} level="H" />
+                </div>
               </div>
-            </Reveal>
+            </button>
+
+            {/* Sample label */}
+            <p
+              data-cms-key="memberIntro.card.sampleLabel"
+              className="mt-4 text-center text-xs italic"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              {t("card.sampleLabel")}
+            </p>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// § 4 — POINTS (light background, 3-column stats)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  return (
+    <section style={{ background: COLORS.lightBg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+      <div className="mx-auto max-w-5xl">
+        <Reveal>
+          <h2
+            data-cms-key="memberIntro.points.title"
+            className="mb-16 text-center font-bold leading-tight tracking-tight"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.lightText }}
+          >
+            {t("points.title")}
+          </h2>
+        </Reveal>
+
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-0 md:divide-x md:divide-gray-200">
+          {[1, 2, 3].map((n, i) => (
+            <Reveal key={n} delay={i * 100}>
+              <div className="flex flex-col items-center text-center md:px-8">
+                <p
+                  data-cms-key={`memberIntro.points.stat${n}.value`}
+                  className="mb-3 text-4xl font-semibold md:text-5xl"
+                  style={{ color: COLORS.lightGreen }}
+                >
+                  {t(`points.stat${n}.value`)}
+                </p>
+                <p
+                  data-cms-key={`memberIntro.points.stat${n}.label`}
+                  className="text-sm"
+                  style={{ color: COLORS.lightTextMuted }}
+                >
+                  {t(`points.stat${n}.label`)}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        <Reveal delay={300}>
+          <p
+            data-cms-key="memberIntro.points.comingSoon"
+            className="mt-12 text-center text-sm"
+            style={{ color: COLORS.lightTextMuted }}
+          >
+            {t("points.comingSoon")}
+          </p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// § 5 — SAFETY & SUPPORT (dark background, expandable cards)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function SafetySection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const [openCard, setOpenCard] = useState<number | null>(null);
+
+  const cards = [
+    { key: "pay", hasLink: false },
+    { key: "data", hasLink: false },
+    { key: "qr", hasLink: false },
+    { key: "venue", hasLink: true, link: "/member/safety" },
+  ];
+
+  return (
+    <section style={{ background: COLORS.black, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <h2
+            data-cms-key="memberIntro.safety.title"
+            className="mb-16 text-center font-bold leading-tight tracking-tight text-white"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
+          >
+            {t("safety.title")}
+          </h2>
+        </Reveal>
+
+        {/* Cards grid */}
+        <div className="mb-16 grid grid-cols-1 gap-6 md:grid-cols-2">
+          {cards.map((card, i) => {
+            const isOpen = openCard === i;
+            return (
+              <Reveal key={card.key} delay={i * 80}>
+                <button
+                  onClick={() => setOpenCard(isOpen ? null : i)}
+                  className="group relative w-full overflow-hidden rounded-[28px] border p-8 text-left transition-all duration-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  style={{
+                    background: "#052e1f",
+                    borderColor: "rgba(34, 197, 94, 0.3)",
+                    minHeight: isOpen ? "auto" : "200px",
+                  }}
+                  aria-expanded={isOpen}
+                >
+                  <div className={cn("flex items-start justify-between", isOpen && "mb-6")}>
+                    <h3
+                      data-cms-key={`memberIntro.safety.${card.key}.title`}
+                      className="pr-4 text-xl font-semibold leading-snug text-white md:text-2xl"
+                    >
+                      {t(`safety.${card.key}.title`)}
+                    </h3>
+                    <div
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-all duration-400"
+                      style={{
+                        background: "rgba(255,255,255,0.15)",
+                        transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
+                      }}
+                    >
+                      <span className="text-2xl text-white">+</span>
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <div
+                      className="animate-in fade-in slide-in-from-top-2 duration-400"
+                      style={{ color: "rgba(255,255,255,0.75)" }}
+                    >
+                      {card.hasLink ? (
+                        <p data-cms-key={`memberIntro.safety.${card.key}.body`} className="text-base leading-relaxed">
+                          {t(`safety.${card.key}.body`)}{" "}
+                          <Link
+                            href={card.link!}
+                            className="underline hover:text-white"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {t("safety.venue.body")}
+                          </Link>
+                        </p>
+                      ) : (
+                        <p data-cms-key={`memberIntro.safety.${card.key}.body`} className="text-base leading-relaxed">
+                          {t(`safety.${card.key}.body`)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </button>
+              </Reveal>
+            );
+          })}
+        </div>
+
+        {/* Support card */}
+        <Reveal delay={320}>
+          <div
+            className="rounded-[28px] border p-8 md:flex md:items-center md:justify-between md:gap-8"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              borderColor: "rgba(255,255,255,0.1)",
+            }}
+          >
+            <div className="mb-6 md:mb-0">
+              <h3
+                data-cms-key="memberIntro.support.title"
+                className="mb-2 text-xl font-semibold text-white md:text-2xl"
+              >
+                {t("support.title")}
+              </h3>
+              <p
+                data-cms-key="memberIntro.support.body"
+                className="text-sm"
+                style={{ color: "rgba(255,255,255,0.6)" }}
+              >
+                {t("support.body")}
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row md:flex-shrink-0">
+              <Link
+                href="/faq"
+                data-cms-key="memberIntro.support.faq"
+                className="rounded-full bg-white px-6 py-3 text-center text-sm font-semibold text-black transition hover:bg-white/90"
+              >
+                {t("support.faq")}
+              </Link>
+              <a
+                href="https://wa.me/85261808022"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cms-key="memberIntro.support.whatsapp"
+                className="rounded-full border border-white/30 px-6 py-3 text-center text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+              >
+                {t("support.whatsapp")}
+              </a>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// § 6 — FINAL CTA (light background)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function FinalCTASection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  return (
+    <section style={{ background: COLORS.lightBg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+      <div className="mx-auto max-w-4xl text-center">
+        <Reveal>
+          <h2
+            data-cms-key="memberIntro.final.title"
+            className="mb-10 font-bold leading-tight tracking-tight"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.lightText }}
+          >
+            {t("final.title")}
+          </h2>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/book"
+              data-cms-key="memberIntro.final.book"
+              className="pbtn-primary rounded-full bg-black px-8 py-3.5 text-base font-semibold text-white transition hover:bg-black/90"
+            >
+              {t("final.book")}
+            </Link>
+            <Link
+              href="/member"
+              data-cms-key="memberIntro.final.login"
+              className="group flex items-center gap-1 text-base font-medium transition hover:text-black/70"
+              style={{ color: COLORS.lightText }}
+            >
+              <span>{t("final.login")}</span>
+              <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">›</span>
+            </Link>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // § ROOT EXPORT
-// ════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
 
-export default function MembershipContent() {
-  const t = useTranslations("membershipHub");
-
-  const howItems   = t.raw("how_items")   as FlowItem[];
-  const pilotItems = t.raw("pilot_items") as FlowItem[];
+export default function MembershipContentNew() {
+  const t = useTranslations("memberIntro");
 
   return (
     <div className="bg-black text-white" data-nav-theme="dark">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <TierLadder t={t} />
-        <FlowSection
-          sectionTitle={t("how_title")}
-          items={howItems}
-          cmsKey="membershipHub.how_title"
-        />
-        <div className="py-12 md:py-16">
-          <QRSection t={t} />
-        </div>
-        <FlowSection
-          id="smart-concierge"
-          sectionTitle={t("pilot_title")}
-          items={pilotItems}
-          cmsKey="membershipHub.pilot_title"
-        />
-      </div>
+      <HeroSection t={t} />
+      <StatementsSection t={t} />
+      <MemberCardSection t={t} />
+      <PointsSection t={t} />
+      <SafetySection t={t} />
+      <FinalCTASection t={t} />
     </div>
   );
 }

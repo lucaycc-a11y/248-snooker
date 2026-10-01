@@ -688,6 +688,12 @@
         "value": "#7f8ba2",
         "createdAt": "2026-10-01T14:12:33.087Z",
         "reason": "Spec-defined: Apple-style member badge gradient (darker steel blue)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#052e1f",
+        "createdAt": "2026-10-01T14:15:32.470Z",
+        "reason": "Spec-defined: dark green safety card background (brand green #059669 at 15% opacity on black)"
       }
     ]
   }

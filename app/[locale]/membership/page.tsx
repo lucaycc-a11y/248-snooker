@@ -9,19 +9,19 @@ const BASE = "https://space8.com.hk";
 
 const META: Record<string, { title: string; description: string }> = {
   "zh-HK": {
-    title: "會員制度｜SPACE8 積分等級",
+    title: "會員 · SPACE8",
     description:
-      "SPACE8 會員制度：每消費 HK$1 累積 1 積分，三個等級 標準、優越、尊榮，自動升級，解鎖專屬福利。全預約制，網上預訂、QR碼自助入場。",
+      "SPACE8 會員：每消費 HK$1 累積 1 積分，100 積分 = HK$10 場地抵用額。新會員即享 100 積分迎新獎賞。全預約制，QR 碼自助入場，安全可靠。",
   },
   "zh-CN": {
-    title: "会员制度｜SPACE8 积分等级",
+    title: "会员 · SPACE8",
     description:
-      "SPACE8 会员制度：每消费 HK$1 累积 1 积分，三个等级 标准、优越、尊荣，自动升级，解锁专属福利。全预约制，网上预订、QR码自助入场。",
+      "SPACE8 会员：每消费 HK$1 累积 1 积分，100 积分 = HK$10 场地抵用额。新会员即享 100 积分迎新奖赏。全预约制，QR 码自助入场，安全可靠。",
   },
   en: {
-    title: "Membership｜SPACE8 Points & Tiers",
+    title: "Membership · SPACE8",
     description:
-      "SPACE8 membership: earn 1 point per HK$1 spent across three tiers — Standard, Premier, Prestige — with automatic upgrades and exclusive benefits. Reservation-based — book online, self check-in via QR code.",
+      "SPACE8 membership: earn 1 point per HK$1, 100 points = HK$10 venue credit. New members get 100 points welcome bonus. Reservation-based, QR self check-in, safe & secure.",
   },
 };
 
