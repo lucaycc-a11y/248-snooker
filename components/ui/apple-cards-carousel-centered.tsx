@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Pause, Play, X, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -76,6 +77,14 @@ export function AppleCarouselCentered({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetSlideIndex, setSheetSlideIndex] = useState<number | null>(null);
   const [buttonThatOpenedSheet, setButtonThatOpenedSheet] = useState<HTMLButtonElement | null>(null);
+  const [originRect, setOriginRect] = useState<DOMRect | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
+
+  // Portal target is only available on the client, after hydration.
+  useEffect(() => setPortalReady(true), []);
+
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const wasPlayingRef = useRef(true);
 
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   useEffect(() => {
@@ -417,7 +426,11 @@ export function AppleCarouselCentered({
             role="tabpanel"
             aria-selected={i === activeIndex}
             data-landscape={slide.aspectRatio ? (parseFloat(slide.aspectRatio.split("/")[0] ?? "1") > parseFloat(slide.aspectRatio.split("/")[1] ?? "1") ? "true" : "false") : "false"}
-            style={{ aspectRatio: slide.aspectRatio ?? aspectRatio }}
+            style={{
+              aspectRatio: slide.aspectRatio ?? aspectRatio,
+              position: "relative", // CRITICAL: next/image fill needs a positioned parent
+              overflow: "hidden"
+            }}
           >
             <Image
               src={slide.src}
