@@ -3,6 +3,7 @@
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import { Link } from "@/i18n/navigation"
+import styles from "./Section5BookingNew.module.css"
 
 /**
  * Section 5 — How it works (scroll-driven, demo implementation)
@@ -147,373 +148,63 @@ export default function Section5BookingNew() {
   }
 
   return (
-    <>
-      <section
-        ref={wrapRef}
-        data-nav-theme="light"
-        aria-labelledby="how-it-works-title"
-        className="how-section"
-      >
-        <h2 id="how-it-works-title" className="sr-only">
-          如何使用
-        </h2>
+    <section
+      data-nav-theme="light"
+      aria-labelledby="how-it-works-title"
+      className={styles["how-section"]}
+    >
+      <h2 id="how-it-works-title" className={styles["sr-only"]}>
+        如何使用
+      </h2>
 
-        {/* Desktop: two-column */}
-        <div className="wrap">
-          <div ref={stageColRef} className="stage-col">
-            <div className="stage" aria-hidden="true">
-              {STEPS.map((step, i) => (
-                <Image
-                  key={i}
-                  src={step.image}
-                  alt={step.alt}
-                  fill
-                  sizes="(min-width: 1440px) 520px, (min-width: 1024px) 42vw, (min-width: 820px) 45vw, calc(24vh * 4 / 3)"
-                  quality={80}
-                  priority
-                  className={`stage-img ${i === activeIdx ? "on" : ""}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="steps">
+      {/* Desktop: two-column */}
+      <div ref={wrapRef} className={styles.wrap}>
+        <div ref={stageColRef} className={styles["stage-col"]}>
+          <div className={styles.stage} aria-hidden="true">
             {STEPS.map((step, i) => (
-              <button
+              <Image
                 key={i}
-                data-step={i}
-                className={`step ${i === activeIdx ? "on" : ""}`}
-                aria-current={i === activeIdx ? "step" : undefined}
-                onClick={() => handleStepClick(i)}
-              >
-                <div className="num">{String(i + 1).padStart(2, "0")}</div>
-                <div className="content">
-                  <h3 className="step-title">{step.title}</h3>
-                  <p className="step-desc">{step.desc}</p>
-                  {step.cta && (
-                    <Link
-                      href={step.cta.href}
-                      className="cta"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {step.cta.label}
-                    </Link>
-                  )}
-                </div>
-              </button>
+                src={step.image}
+                alt={step.alt}
+                fill
+                sizes="(min-width: 1440px) 520px, (min-width: 1024px) 42vw, (min-width: 820px) 45vw, calc(24vh * 4 / 3)"
+                quality={80}
+                priority
+                className={`${styles["stage-img"]} ${
+                  i === activeIdx ? styles.on : ""
+                }`}
+              />
             ))}
           </div>
         </div>
-      </section>
 
-      <style jsx>{`
-        .sr-only {
-          position: absolute;
-          width: 1px;
-          height: 1px;
-          padding: 0;
-          margin: -1px;
-          overflow: hidden;
-          clip: rect(0, 0, 0, 0);
-          white-space: nowrap;
-          border: 0;
-        }
-
-        .how-section {
-          background: #f3f3f5;
-          color: #17191c;
-          position: relative;
-        }
-
-        /* Desktop */
-        @media (min-width: 821px) {
-          .how-section {
-            padding: clamp(48px, 8vh, 96px) clamp(24px, 5vw, 64px);
-          }
-
-          .wrap {
-            display: grid;
-            grid-template-columns: minmax(0, 540px) minmax(0, 420px);
-            gap: 72px;
-            justify-content: center;
-            max-width: 1100px;
-            margin: 0 auto;
-            align-items: start;
-          }
-
-          .stage-col {
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            display: grid;
-            align-items: center;
-          }
-
-          .stage {
-            position: relative;
-            aspect-ratio: 4 / 3;
-            border-radius: 24px;
-            overflow: hidden;
-            background: #e8e8ea;
-          }
-
-          .stage-img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
-          }
-
-          .stage-img.on {
-            opacity: 1;
-          }
-
-          .steps {
-            display: flex;
-            flex-direction: column;
-          }
-
-          .step {
-            min-height: 100vh;
-            display: grid;
-            grid-template-columns: 40px 1fr;
-            gap: 20px;
-            align-content: center;
-            opacity: 0.3;
-            transition: opacity 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
-            background: none;
-            border: none;
-            padding: 0;
-            width: 100%;
-            text-align: left;
-            cursor: default;
-          }
-
-          .step.on {
-            opacity: 1;
-          }
-
-          .num {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            font-size: 13px;
-            font-weight: 500;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            color: rgba(0, 0, 0, 0.5);
-            transition: all 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
-          }
-
-          .step.on .num {
-            background: #4caf64;
-            border-color: #4caf64;
-            color: #fff;
-          }
-
-          .content {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-          }
-
-          .step-title {
-            font-size: 22px;
-            font-weight: 600;
-            line-height: 1.3;
-            margin: 0;
-          }
-
-          .step-desc {
-            font-size: 14px;
-            line-height: 1.7;
-            color: #6b6e74;
-            margin: 0;
-          }
-
-          .cta {
-            display: inline-block;
-            margin-top: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            color: #17191c;
-            text-decoration: none;
-            padding: 10px 18px;
-            background: #4caf64;
-            border-radius: 8px;
-            width: fit-content;
-            transition: all 0.2s ease;
-          }
-
-          .cta:hover {
-            background: #45a05b;
-            transform: translateX(2px);
-          }
-
-          .cta:focus-visible {
-            outline: 2px solid #4caf64;
-            outline-offset: 3px;
-          }
-        }
-
-        /* Mobile */
-        @media (max-width: 820px) {
-          .how-section {
-            padding: 0;
-            min-height: 260vh;
-          }
-
-          .wrap {
-            display: block;
-          }
-
-          .stage-col {
-            position: sticky;
-            top: var(--colh, 220px);
-            height: auto;
-            padding: 10px 16px 14px;
-            display: grid;
-            justify-items: center;
-            background: #f3f3f5;
-            z-index: 2;
-            pointer-events: none;
-          }
-
-          .stage {
-            position: relative;
-            border-radius: 14px;
-            width: min(100%, calc(24vh * 4 / 3));
-            aspect-ratio: 4 / 3;
-            overflow: hidden;
-            background: #e8e8ea;
-          }
-
-          .stage-img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
-          }
-
-          .stage-img.on {
-            opacity: 1;
-          }
-
-          .steps {
-            position: sticky;
-            top: var(--colh, 220px);
-            padding: 4px 24px 0;
-            max-width: 420px;
-            margin: 0 auto;
-          }
-
-          .step {
-            min-height: 0;
-            padding: 12px 0;
-            display: grid;
-            grid-template-columns: 1fr;
-            justify-items: center;
-            text-align: center;
-            gap: 8px;
-            align-content: start;
-            opacity: 0.28;
-            transition: opacity 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
-            cursor: pointer;
-            background: none;
-            border: none;
-            width: 100%;
-          }
-
-          .step.on {
-            opacity: 1;
-          }
-
-          .step:focus-visible {
-            outline: 2px solid #4caf64;
-            outline-offset: 4px;
-            border-radius: 8px;
-          }
-
-          .num {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            font-size: 12px;
-            font-weight: 500;
-            border: 1px solid rgba(0, 0, 0, 0.12);
-            color: rgba(0, 0, 0, 0.5);
-            transition: all 0.3s cubic-bezier(0.2, 0.7, 0.3, 1);
-          }
-
-          .step.on .num {
-            background: #4caf64;
-            border-color: #4caf64;
-            color: #fff;
-          }
-
-          .content {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-          }
-
-          .step-title {
-            font-size: 19px;
-            font-weight: 600;
-            line-height: 1.3;
-            margin: 0;
-          }
-
-          .step-desc {
-            font-size: 13px;
-            line-height: 1.6;
-            color: #6b6e74;
-            margin: 0;
-          }
-
-          .cta {
-            display: inline-block;
-            margin-top: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #17191c;
-            text-decoration: none;
-            padding: 8px 14px;
-            background: #4caf64;
-            border-radius: 6px;
-            width: fit-content;
-            transition: all 0.2s ease;
-          }
-
-          .cta:hover {
-            background: #45a05b;
-          }
-
-          .cta:focus-visible {
-            outline: 2px solid #4caf64;
-            outline-offset: 2px;
-          }
-        }
-
-        /* Reduced motion */
-        @media (prefers-reduced-motion: reduce) {
-          .stage-img,
-          .step,
-          .num,
-          .cta {
-            transition: none !important;
-          }
-        }
-      `}</style>
-    </>
+        <div className={styles.steps}>
+          {STEPS.map((step, i) => (
+            <button
+              key={i}
+              data-step={i}
+              className={`${styles.step} ${i === activeIdx ? styles.on : ""}`}
+              aria-current={i === activeIdx ? "step" : undefined}
+              onClick={() => handleStepClick(i)}
+            >
+              <div className={styles.num}>{String(i + 1).padStart(2, "0")}</div>
+              <div className={styles.content}>
+                <h3 className={styles["step-title"]}>{step.title}</h3>
+                <p className={styles["step-desc"]}>{step.desc}</p>
+                {step.cta && (
+                  <Link
+                    href={step.cta.href}
+                    className={styles.cta}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {step.cta.label}
+                  </Link>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }
