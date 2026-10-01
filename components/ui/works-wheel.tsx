@@ -287,7 +287,7 @@ export function SpaceWheel({
         aria-label="Space8 場地相片"
         aria-activedescendant={`space-wheel-item-${active}`}
         className="absolute inset-0 outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white/40"
-        style={{ perspective: `${metrics.depth}px` }}
+        style={{ perspective: `${metrics.depth}px`, overflowX: "clip" }}
         onKeyDown={handleKeyDown}
       >
         {/* ── Wheel hub ── */}
@@ -336,48 +336,62 @@ export function SpaceWheel({
         {ringLabel}
       </div>
 
-      {/* ── Mobile text block (sits below front card on solid white) ── */}
+      {/* ── Mobile text block (flexbox column: photo area on top, description at bottom) ── */}
       {metrics.isMobile && (
         <div
           ref={titleRef}
-          className="pointer-events-none absolute left-0 right-0 opacity-0 flex flex-col items-center text-center px-6"
+          className="pointer-events-none absolute left-0 right-0 top-0 bottom-0 opacity-0 flex flex-col"
           style={{
-            top: "calc(52% + 24px)",
             background: "#ffffff",
-            paddingTop: "1.5rem",
-            paddingBottom: "2rem",
           }}
         >
-          <p
-            className="font-semibold leading-snug text-xs"
+          {/* Photo area — takes up top half */}
+          <div style={{ flex: 1, minHeight: 0 }} />
+
+          {/* Description block — pinned to bottom with safe-area padding */}
+          <div
             style={{
-              fontFamily: "'Good Times', monospace",
-              fontSize: "clamp(12px, 3vw, 13px)",
-              color: "rgba(0,0,0,0.45)",
-              marginBottom: "0.5rem",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              paddingLeft: "1.5rem",
+              paddingRight: "1.5rem",
+              paddingTop: "1rem",
+              paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))",
             }}
           >
-            {String(active + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
-          </p>
-          <p
-            className="font-semibold leading-snug"
-            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: "clamp(1.5rem, 6.5vw, 2rem)", color: "#000000" }}
-          >
-            {activeItem?.title}
-          </p>
-          <p
-            className="leading-relaxed mt-2 max-w-[90%]"
-            style={{
-              fontFamily: "'Noto Sans TC', sans-serif",
-              fontSize: "16px",
-              color: "#000000",
-            }}
-          >
-            <span className="font-semibold">{activeItem?.description.split("。")[0]}。</span>
-            <span style={{ color: "rgba(0,0,0,0.6)" }}>
-              {activeItem?.description.split("。").slice(1).join("。")}
-            </span>
-          </p>
+            <p
+              className="font-semibold leading-snug text-xs"
+              style={{
+                fontFamily: "'Good Times', monospace",
+                fontSize: "clamp(12px, 3vw, 13px)",
+                color: "rgba(0,0,0,0.45)",
+                marginBottom: "0.5rem",
+              }}
+            >
+              {String(active + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
+            </p>
+            <p
+              className="font-semibold leading-snug"
+              style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: "clamp(1.5rem, 6.5vw, 2rem)", color: "#000000", marginBottom: "0.5rem" }}
+            >
+              {activeItem?.title}
+            </p>
+            <p
+              className="leading-relaxed max-w-[90%]"
+              style={{
+                fontFamily: "'Noto Sans TC', sans-serif",
+                fontSize: "16px",
+                color: "#000000",
+              }}
+            >
+              <span className="font-semibold">{activeItem?.description.split("。")[0]}。</span>
+              <span style={{ color: "rgba(0,0,0,0.6)" }}>
+                {activeItem?.description.split("。").slice(1).join("。")}
+              </span>
+            </p>
+          </div>
         </div>
       )}
 
@@ -416,6 +430,7 @@ export function SpaceWheel({
         <div
           ref={descRef}
           className="pointer-events-none absolute top-[6%] left-1/2 -translate-x-1/2 opacity-0 flex flex-col items-center gap-2"
+          style={{ visibility: "hidden" }}
         >
           <div className="flex items-center gap-1">
             {items.map((_, i) => (

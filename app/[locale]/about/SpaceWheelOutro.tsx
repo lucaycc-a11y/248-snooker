@@ -188,6 +188,7 @@ export function SpaceWheelOutro() {
             Inner wrapper carries entrance Y + scale + opacity.
             Ball visible diameter: clamp(170px, 19.33vw, 334px).
             Image is 120.4% to compensate for the 83.1% fill ratio.
+            Positioned at 50% of container (which is max-width 1728 centred).
         */}
         <div
           data-outro-ball-scroll
@@ -259,7 +260,7 @@ export function SpaceWheelOutro() {
               lineHeight: 1.6,
               color: "#000000",
               margin: 0,
-              marginTop: "clamp(12px, 1.389vw, 24px)",
+              marginTop: "clamp(12px, 1.389vw, 20px)",
               padding: "0 24px",
             }}
           >
@@ -284,7 +285,7 @@ export function SpaceWheelOutro() {
               display: "flex",
               justifyContent: "center",
               gap: "clamp(24px, 5.556vw, 96px)",
-              marginTop: "clamp(32px, 3.472vw, 60px)",
+              marginTop: "clamp(28px, 2.5vw, 48px)",
               padding: "0 24px",
               width: "100%",
             }}
@@ -331,7 +332,7 @@ export function SpaceWheelOutro() {
               justifyContent: "center",
               alignItems: "center",
               gap: "clamp(12px, 1.2vw, 20px)",
-              marginTop: "clamp(40px, 4.63vw, 80px)",
+              marginTop: "clamp(32px, 3.5vw, 64px)",
               padding: "0 24px",
               flexWrap: "wrap",
             }}

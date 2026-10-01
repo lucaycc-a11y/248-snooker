@@ -8,17 +8,26 @@ import { Emphasis } from "@/components/ui/Emphasis"
 
 // Screenshot real dimensions: 4269 × 2400
 const SCREEN_IMAGE = "/gallery/spacepliot.png"
+const IMAGE_WIDTH = 4269
+const IMAGE_HEIGHT = 2400
 
-type Props = { compact?: boolean }
+type Props = {
+  variant?: "full" | "compact" | "landing"
+  /** @deprecated Use variant="compact" instead */
+  compact?: boolean
+}
 
-export default function SpacePilotScoreboardExperience({ compact = false }: Props) {
+export default function SpacePilotScoreboardExperience({ variant = "full", compact = false }: Props) {
   const t = useTranslations("spacePilot")
   const sectionRef = useRef<HTMLElement>(null)
   const reducedMotion = useReducedMotion()
 
+  // Backward compat: compact prop maps to variant
+  const activeVariant = compact ? "compact" : variant
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ["start start", "end end"],
+    offset: activeVariant === "full" ? ["start start", "end end"] : ["start end", "end start"],
   })
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 110,
@@ -33,7 +42,7 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
   const imageOpacity = useTransform(smoothProgress, [0, 0.12, 1], [0.65, 1, 1])
 
   // Compact variant — used in member dashboard cards
-  if (compact) {
+  if (activeVariant === "compact") {
     return (
       <section
         aria-labelledby="member-space-pilot-title"
@@ -71,6 +80,99 @@ export default function SpacePilotScoreboardExperience({ compact = false }: Prop
     )
   }
 
+  // Landing variant — used in member landing page between Points and Safety
+  if (activeVariant === "landing") {
+    return (
+      <section
+        ref={sectionRef}
+        aria-labelledby="space-pilot-landing-title"
+        data-nav-theme="dark"
+        className="relative overflow-clip bg-black px-5 py-20 md:px-8 md:py-32"
+      >
+        <div className="mx-auto w-full max-w-[1120px]">
+
+          {/* Badge */}
+          <div className="mb-6 flex justify-center">
+            <span
+              data-cms-key="spacePilot.landing_badge"
+              className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-medium tracking-wide text-white/70"
+            >
+              {t("landing_badge")}
+            </span>
+          </div>
+
+          {/* Title */}
+          <h2
+            id="space-pilot-landing-title"
+            data-cms-key="spacePilot.landing_title"
+            className="mb-4 text-center text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.05] tracking-tight text-white"
+          >
+            {t("landing_title")}
+          </h2>
+
+          {/* Tagline */}
+          <p
+            data-cms-key="spacePilot.landing_tagline"
+            className="mx-auto mb-16 max-w-[42ch] text-center text-[clamp(1.0625rem,1.8vw,1.375rem)] leading-relaxed text-white/60"
+          >
+            {t("landing_tagline")}
+          </p>
+
+          {/* iPad — viewport-scroll-driven animation, no sticky */}
+          <div className="mx-auto mb-20 w-[92vw] sm:w-[78vw] lg:w-[min(60vw,1000px)] [perspective:1400px]">
+            <motion.div
+              style={
+                reducedMotion
+                  ? { aspectRatio: "4269 / 2400" }
+                  : { scale: imageScale, rotateX: imageRotate, y: imageY, opacity: imageOpacity, aspectRatio: "4269 / 2400" }
+              }
+              className="relative mx-auto"
+            >
+              <Image
+                src={SCREEN_IMAGE}
+                alt={t("scoreboard_alt")}
+                width={IMAGE_WIDTH}
+                height={IMAGE_HEIGHT}
+                sizes="(max-width: 639px) 92vw, (max-width: 1023px) 78vw, min(60vw, 1000px)"
+                className="h-auto w-full"
+                draggable={false}
+              />
+            </motion.div>
+          </div>
+
+          {/* Four steps — row on desktop, stacked on mobile, hairline dividers */}
+          <div className="mx-auto grid max-w-[1020px] grid-cols-1 gap-0 md:grid-cols-4">
+            {[1, 2, 3, 4].map((step, idx) => (
+              <motion.div
+                key={step}
+                initial={reducedMotion ? false : { opacity: 0, y: 24 }}
+                whileInView={reducedMotion ? {} : { opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ delay: idx * 0.12, duration: 0.7, ease: [0.2, 0.7, 0.3, 1] }}
+                className="border-white/10 py-8 md:border-l md:px-6 md:py-0 md:first:border-l-0"
+              >
+                <h3
+                  data-cms-key={`spacePilot.landing_step${step}_title`}
+                  className="mb-3 text-[15px] font-semibold leading-snug text-white"
+                >
+                  {t(`landing_step${step}_title`)}
+                </h3>
+                <p
+                  data-cms-key={`spacePilot.landing_step${step}_body`}
+                  className="text-[13px] leading-relaxed text-white/50"
+                >
+                  {t(`landing_step${step}_body`)}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+    )
+  }
+
+  // Full variant — homepage with 220vh sticky scroll (UNCHANGED from original)
   return (
     <section
       ref={sectionRef}

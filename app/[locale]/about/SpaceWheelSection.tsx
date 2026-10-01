@@ -65,7 +65,7 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
 
   return (
     <div className="flex flex-col items-center gap-3 text-center pointer-events-none select-none">
-      {/* Line 1: 「關於」 + Space8 logo */}
+      {/* Line 1: 「關於」 + Space8 logo (baseline-aligned, logo at ~65% of text height) */}
       <div className="flex items-baseline gap-1 justify-center">
         <span
           className="font-semibold"
@@ -78,14 +78,14 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
         >
           關於
         </span>
-        <div style={{ height: "0.95em", display: "flex", alignItems: "baseline" }}>
+        <div style={{ display: "inline-flex", alignItems: "baseline" }}>
           <Image
             src="/logos/logo-black-horizontal.svg"
             alt="SPACE8"
             width={120}
             height={40}
             style={{
-              height: "1em",
+              height: "0.65em",
               width: "auto",
             }}
             priority
@@ -179,7 +179,7 @@ export function SpaceWheelSection() {
     // Runway height: (count + 2) × 100svh gives GSAP enough scroll distance.
     <div
       ref={runwayRef}
-      style={{ height: `${count + 2}00svh` }}
+      style={{ height: `${count + 2}00svh`, background: "#ffffff" }}
       className="relative"
     >
       {/* Sticky stage — fills viewport, GSAP pins it */}
