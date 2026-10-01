@@ -49,7 +49,8 @@ export function SpaceWheelOutro() {
       <div
         data-outro-band
         style={{
-          width: "100%",
+          width: "100vw",
+          marginLeft: "calc(50% - 50vw)",
           height: "clamp(520px, 34.96vw, 640px)",
           background:
             "linear-gradient(180deg, #ffffff 1.4%, #93ff80 42.8%, #199f02 100%)",
@@ -71,7 +72,7 @@ export function SpaceWheelOutro() {
             data-outro-headline-group
             style={{
               position: "absolute",
-              top: "62%", // sits on dark green (#199f02 zone) — white text passes AA at large size
+              top: "54%", // moved up 8% from band top — keeps headline visible above ball
               left: 0,
               right: 0,
               textAlign: "center",
@@ -195,8 +196,8 @@ export function SpaceWheelOutro() {
             top: 0,
             left: "50%",
             transform: "translateX(-50%) translateY(-50%)",
-            width: "clamp(170px, 19.33vw, 334px)",
-            height: "clamp(170px, 19.33vw, 334px)",
+            width: "clamp(180px, 20vw, 345px)",
+            height: "clamp(180px, 20vw, 345px)",
             zIndex: 10,
           }}
         >
@@ -246,7 +247,7 @@ export function SpaceWheelOutro() {
             textAlign: "center",
             // Ball centre is on band bottom edge → bottom half of ball (50%) overhangs white.
             // Space from white edge to description top = half ball diameter + 24px gap.
-            paddingTop: "calc(clamp(170px, 19.33vw, 334px) / 2 + 24px)",
+            paddingTop: "calc(clamp(180px, 20vw, 345px) / 2 + 24px)",
           }}
         >
           {/* ── Description ──────────────────────────────────────────────── */}
@@ -329,7 +330,7 @@ export function SpaceWheelOutro() {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              gap: "clamp(12px, 6.424vw, 111px)",
+              gap: "clamp(12px, 1.2vw, 20px)",
               marginTop: "clamp(40px, 4.63vw, 80px)",
               padding: "0 24px",
               flexWrap: "wrap",
@@ -343,19 +344,18 @@ export function SpaceWheelOutro() {
                 alignItems: "center",
                 justifyContent: "center",
                 fontFamily: "'Noto Sans TC', sans-serif",
-                fontWeight: 500,
-                fontSize: "clamp(1rem, 1.389vw, 1.5rem)",
+                fontWeight: 600,
+                fontSize: "clamp(0.9375rem, 1.25vw, 1.125rem)",
                 color: "#000000",
                 background: "var(--closing-green, #199f02)",
                 borderRadius: 9999,
                 border: "none",
                 cursor: "pointer",
                 textDecoration: "none",
-                minWidth: 150,
-                padding: "0 clamp(20px, 2.778vw, 48px)",
-                height: "clamp(52px, 3.993vw, 69px)",
-                transition:
-                  "background-color 200ms ease, transform 200ms ease, opacity 200ms ease",
+                padding: "0 clamp(1.5rem, 2vw, 1.75rem)",
+                minHeight: "clamp(48px, 3.472vw, 60px)",
+                letterSpacing: "-0.01em",
+                transition: "transform 200ms ease, filter 200ms ease",
               }}
             >
               {t("cta_primary")}
@@ -370,18 +370,17 @@ export function SpaceWheelOutro() {
                 justifyContent: "center",
                 fontFamily: "'Noto Sans TC', sans-serif",
                 fontWeight: 500,
-                fontSize: "clamp(1rem, 1.389vw, 1.5rem)",
+                fontSize: "clamp(0.9375rem, 1.25vw, 1.125rem)",
                 color: "rgba(0,0,0,0.71)",
                 background: "transparent",
                 borderRadius: 9999,
                 border: "1px solid rgba(0,0,0,0.43)",
                 cursor: "pointer",
                 textDecoration: "none",
-                minWidth: 150,
-                padding: "0 clamp(20px, 2.778vw, 48px)",
-                height: "clamp(52px, 3.993vw, 69px)",
-                transition:
-                  "border-color 200ms ease, transform 200ms ease, opacity 200ms ease",
+                padding: "0 clamp(1.5rem, 2vw, 1.75rem)",
+                minHeight: "clamp(48px, 3.472vw, 60px)",
+                letterSpacing: "-0.01em",
+                transition: "border-color 200ms ease, transform 200ms ease",
               }}
             >
               {t("cta_secondary")}
@@ -393,14 +392,14 @@ export function SpaceWheelOutro() {
       {/* ── Button hover / focus styles injected once ─────────────────────── */}
       <style>{`
         .closing-btn-primary:hover {
-          background-color: #157a01 !important;
-          transform: translateY(-2px);
+          transform: scale(1.03);
+          filter: brightness(1.08);
         }
         .closing-btn-primary:active {
-          transform: translateY(0);
+          transform: scale(0.95);
         }
         .closing-btn-primary:focus-visible {
-          outline: 2px solid #199f02;
+          outline: 2px solid var(--closing-green, #199f02);
           outline-offset: 3px;
         }
         .closing-btn-secondary:hover {
@@ -411,13 +410,12 @@ export function SpaceWheelOutro() {
           transform: translateY(0);
         }
         .closing-btn-secondary:focus-visible {
-          outline: 2px solid #199f02;
+          outline: 2px solid var(--closing-green, #199f02);
           outline-offset: 3px;
         }
         @media (max-width: 479px) {
           .closing-btn-primary,
           .closing-btn-secondary {
-            min-width: 0;
             width: min(100%, 320px);
           }
         }

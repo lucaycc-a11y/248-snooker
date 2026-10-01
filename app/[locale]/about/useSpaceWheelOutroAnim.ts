@@ -84,9 +84,10 @@ export function useSpaceWheelOutroAnim() {
         stagger: 0.04,
       });
 
-      // 2. Echo ghosts — slide from behind the headline to their resting offsets
-      //    and stay there (they are part of the static design, not a transient effect).
-      //    Ghost 1: opacity 0→0.9, y 0→0.75em. Ghost 2: opacity 0→0.7, y 0→1.41em.
+      // 2. Echo ghosts — slide from headline to their resting offsets below it.
+      //    Ghost 1: opacity 0→0.9, y 0→0.75em.
+      //    Ghost 2: opacity 0→0.7, y 0→1.41em.
+      //    These offsets are relative to the headline's new top:54% position.
       const echo1 = section.querySelector<HTMLElement>('[data-outro-echo="1"]');
       const echo2 = section.querySelector<HTMLElement>('[data-outro-echo="2"]');
       if (echo1) gsap.set(echo1, { opacity: 0, y: 0 });
