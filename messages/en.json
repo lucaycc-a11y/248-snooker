@@ -2301,7 +2301,8 @@
       "title": "Spend and earn. Points are money",
       "subtitle": "Earn 1 point per HK$1 spent. Redeem 100 points for HK$10 venue credit. New members get 100 points welcome bonus.",
       "ctaPrimary": "Join Now",
-      "ctaSecondary": "Sign In"
+      "ctaSecondary": "Sign In",
+      "note": "A membership is required for every booking."
     },
     "pillar1": {
       "lead": "Spend and earn",
@@ -2332,7 +2333,8 @@
       },
       "stat2": {
         "value": "100 pts = HK$10",
-        "label": "Redeemable for HK$10 venue credit"
+        "label": "Redeemable for HK$10 venue credit",
+        "unit": "credit"
       },
       "stat3": {
         "value": "100 pts",
