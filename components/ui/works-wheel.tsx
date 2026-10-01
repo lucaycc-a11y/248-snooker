@@ -287,7 +287,7 @@ export function SpaceWheel({
         aria-label="Space8 場地相片"
         aria-activedescendant={`space-wheel-item-${active}`}
         className="absolute inset-0 outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white/40"
-        style={{ perspective: `${metrics.depth}px`, overflowX: "clip" }}
+        style={{ perspective: `${metrics.depth}px`, overflowX: "clip", overflowY: "clip" }}
         onKeyDown={handleKeyDown}
       >
         {/* ── Wheel hub ── */}
