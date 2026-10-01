@@ -2298,27 +2298,26 @@
   "memberIntro": {
     "hero": {
       "eyebrow": "SPACE8 MEMBERSHIP",
-      "title": "Spend and earn. Points are money.",
+      "title": "Spend and earn. Points are money",
       "subtitle": "Earn 1 point per HK$1 spent. Redeem 100 points for HK$10 venue credit. New members get 100 points welcome bonus.",
       "ctaPrimary": "Join Now",
-      "ctaSecondary": "Sign In",
-      "note": "Must be 18+"
+      "ctaSecondary": "Sign In"
     },
     "pillar1": {
-      "lead": "Spend and earn.",
-      "body": "HK$1 = 1 point, auto-accumulated."
+      "lead": "Spend and earn",
+      "body": "HK$1 = 1 point, auto-accumulated"
     },
     "pillar2": {
-      "lead": "Points are money.",
-      "body": "100 points = HK$10 venue credit."
+      "lead": "Points are money",
+      "body": "100 points = HK$10 venue credit"
     },
     "pillar3": {
-      "lead": "New member bonus.",
-      "body": "Sign up and get 100 points instantly."
+      "lead": "New member bonus",
+      "body": "Sign up and get 100 points instantly"
     },
     "pillar4": {
-      "lead": "Reservation-based, QR self check-in.",
-      "body": "Book online, scan to enter, simple and safe."
+      "lead": "Reservation-based, QR self check-in",
+      "body": "Book online, scan to open door, simple and safe"
     },
     "card": {
       "title": "Your Member Card",
@@ -2353,7 +2352,7 @@
       },
       "qr": {
         "title": "QR Security",
-        "body": "Each QR code is single-use and time-limited. Your QR code is only visible when logged into your account, ensuring only you can use it."
+        "body": "Each QR code is valid only for a specific time slot and table number, with time restrictions. Your QR code is only visible when logged into your account, ensuring only you can use it."
       },
       "venue": {
         "title": "Venue Safety",

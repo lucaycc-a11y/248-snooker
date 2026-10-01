@@ -9,20 +9,29 @@ import Velaris from "@/components/ui/velaris";
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const COLORS = {
-  // Velaris green palette
+  // Green palette (from #86efac → #22c55e → #059669 range)
   green50: "#86efac",
   green400: "#4ade80",
+  green500: "#22c55e",
   green600: "#059669",
-  // Brand CTA green
-  ctaGreen: "#22c55e",
-  // Light section contrast green
-  lightGreen: "#059669",
-  // Black
-  black: "#000000",
-  // Light section background
-  lightBg: "#F9FAFB",
-  lightText: "#111827",
-  lightTextMuted: "#6B7280",
+
+  // Dark theme tokens
+  dark: {
+    bg: "#000000",
+    text: "#ffffff",
+    textMuted: "rgba(255,255,255,0.6)",
+    cardBg: "linear-gradient(150deg,#2B3039 0%,#1B1E24 55%,#23272F 100%)",
+    cardBorder: "rgba(255,255,255,0.12)",
+    accent: "#22c55e", // Solid green for pills/accents
+  },
+
+  // Light theme tokens
+  light: {
+    bg: "#F9FAFB",
+    text: "#111827",
+    textMuted: "#6B7280",
+    accent: "#059669", // Darker green for light backgrounds
+  },
 } as const;
 
 const EASING = {
@@ -31,7 +40,7 @@ const EASING = {
 };
 
 // Demo member code for the card (not real user data)
-const DEMO_CODE = "SP8-DEMO-2024";
+const DEMO_CODE = "SPACE8-••••-••••";
 
 // ─── Reveal animation wrapper ─────────────────────────────────────────────────
 function Reveal({
@@ -97,16 +106,16 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
     <Velaris
       height="min(100svh, 820px)"
       speed={1.0}
-      colors={[COLORS.green50, COLORS.green400, COLORS.green600, COLORS.black]}
+      colors={[COLORS.green50, COLORS.green400, COLORS.green600, COLORS.dark.bg]}
       className="flex items-center justify-center px-6"
     >
-      <div className="flex flex-col items-center text-center" style={{ maxWidth: "56rem" }}>
+      <div className="flex flex-col items-center text-center w-full">
         {/* Eyebrow */}
         <Reveal>
           <p
             data-cms-key="memberIntro.hero.eyebrow"
             className="mb-4 text-xs font-semibold uppercase tracking-widest"
-            style={{ color: "rgba(255,255,255,0.7)" }}
+            style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'Good Times', sans-serif" }}
           >
             {t("hero.eyebrow")}
           </p>
@@ -176,7 +185,7 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 
 function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
-    <section style={{ background: COLORS.lightBg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+    <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-12">
         {[1, 2, 3, 4].map((n, i) => (
           <Reveal key={n} delay={i * 100} className="text-center">
@@ -184,14 +193,14 @@ function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
               <p
                 data-cms-key={`memberIntro.pillar${n}.lead`}
                 className="text-3xl font-semibold leading-tight md:text-5xl"
-                style={{ color: COLORS.lightGreen }}
+                style={{ color: COLORS.light.accent }}
               >
                 {t(`pillar${n}.lead`)}
               </p>
               <p
                 data-cms-key={`memberIntro.pillar${n}.body`}
                 className="text-3xl font-semibold leading-tight md:text-5xl"
-                style={{ color: COLORS.lightText }}
+                style={{ color: COLORS.light.text }}
               >
                 {t(`pillar${n}.body`)}
               </p>
@@ -212,7 +221,7 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 
   return (
     <section
-      style={{ background: COLORS.black, padding: "clamp(88px, 12vw, 140px) 24px" }}
+      style={{ background: COLORS.dark.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}
     >
       <div className="mx-auto max-w-4xl">
         <Reveal>
@@ -229,7 +238,7 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
           <p
             data-cms-key="memberIntro.card.hint"
             className="mb-12 text-center text-sm"
-            style={{ color: "rgba(255,255,255,0.6)" }}
+            style={{ color: COLORS.dark.textMuted, fontFamily: "'Good Times', sans-serif" }}
           >
             {t("card.hint")}
           </p>
@@ -255,8 +264,8 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
                   position: "absolute",
                   inset: 0,
                   backfaceVisibility: "hidden",
-                  background: "linear-gradient(150deg,#2B3039 0%,#1B1E24 55%,#23272F 100%)",
-                  border: "1px solid rgba(255,255,255,.12)",
+                  background: COLORS.dark.cardBg,
+                  border: `1px solid ${COLORS.dark.cardBorder}`,
                   boxShadow: "0 24px 60px rgba(0,0,0,.5)",
                   borderRadius: "20px",
                   padding: "32px",
@@ -268,7 +277,7 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
                   <img src="/logos/logo-white-horizontal.svg" alt="SPACE8" className="h-5 w-auto opacity-90" />
                   <div
                     className="rounded-full px-3 py-1 text-xs font-semibold text-white"
-                    style={{ background: "linear-gradient(180deg,#A2AEC4,#7F8BA2)" }}
+                    style={{ background: COLORS.dark.accent }}
                   >
                     MEMBER
                   </div>
@@ -288,8 +297,8 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
                   inset: 0,
                   backfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",
-                  background: "linear-gradient(150deg,#2B3039 0%,#1B1E24 55%,#23272F 100%)",
-                  border: "1px solid rgba(255,255,255,.12)",
+                  background: COLORS.dark.cardBg,
+                  border: `1px solid ${COLORS.dark.cardBorder}`,
                   boxShadow: "0 24px 60px rgba(0,0,0,.5)",
                   borderRadius: "20px",
                   padding: "32px",
@@ -306,7 +315,7 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
             <p
               data-cms-key="memberIntro.card.sampleLabel"
               className="mt-4 text-center text-xs italic"
-              style={{ color: "rgba(255,255,255,0.4)" }}
+              style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Good Times', sans-serif" }}
             >
               {t("card.sampleLabel")}
             </p>
@@ -323,13 +332,13 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 
 function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
-    <section style={{ background: COLORS.lightBg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+    <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
       <div className="mx-auto max-w-5xl">
         <Reveal>
           <h2
             data-cms-key="memberIntro.points.title"
             className="mb-16 text-center font-bold leading-tight tracking-tight"
-            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.lightText }}
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.light.text }}
           >
             {t("points.title")}
           </h2>
@@ -342,14 +351,14 @@ function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
                 <p
                   data-cms-key={`memberIntro.points.stat${n}.value`}
                   className="mb-3 text-4xl font-semibold md:text-5xl"
-                  style={{ color: COLORS.lightGreen }}
+                  style={{ color: COLORS.light.accent }}
                 >
                   {t(`points.stat${n}.value`)}
                 </p>
                 <p
                   data-cms-key={`memberIntro.points.stat${n}.label`}
                   className="text-sm"
-                  style={{ color: COLORS.lightTextMuted }}
+                  style={{ color: COLORS.light.textMuted, fontFamily: "'Good Times', sans-serif" }}
                 >
                   {t(`points.stat${n}.label`)}
                 </p>
@@ -362,7 +371,7 @@ function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
           <p
             data-cms-key="memberIntro.points.comingSoon"
             className="mt-12 text-center text-sm"
-            style={{ color: COLORS.lightTextMuted }}
+            style={{ color: COLORS.light.textMuted }}
           >
             {t("points.comingSoon")}
           </p>
@@ -387,7 +396,7 @@ function SafetySection({ t }: { t: ReturnType<typeof useTranslations> }) {
   ];
 
   return (
-    <section style={{ background: COLORS.black, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+    <section style={{ background: COLORS.dark.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <h2
@@ -436,7 +445,7 @@ function SafetySection({ t }: { t: ReturnType<typeof useTranslations> }) {
                   {isOpen && (
                     <div
                       className="animate-in fade-in slide-in-from-top-2 duration-400"
-                      style={{ color: "rgba(255,255,255,0.75)" }}
+                      style={{ color: COLORS.dark.textMuted }}
                     >
                       {card.hasLink ? (
                         <p data-cms-key={`memberIntro.safety.${card.key}.body`} className="text-base leading-relaxed">
@@ -481,7 +490,7 @@ function SafetySection({ t }: { t: ReturnType<typeof useTranslations> }) {
               <p
                 data-cms-key="memberIntro.support.body"
                 className="text-sm"
-                style={{ color: "rgba(255,255,255,0.6)" }}
+                style={{ color: COLORS.dark.textMuted }}
               >
                 {t("support.body")}
               </p>
@@ -517,13 +526,13 @@ function SafetySection({ t }: { t: ReturnType<typeof useTranslations> }) {
 
 function FinalCTASection({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
-    <section style={{ background: COLORS.lightBg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+    <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
       <div className="mx-auto max-w-4xl text-center">
         <Reveal>
           <h2
             data-cms-key="memberIntro.final.title"
             className="mb-10 font-bold leading-tight tracking-tight"
-            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.lightText }}
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.light.text }}
           >
             {t("final.title")}
           </h2>
@@ -534,15 +543,16 @@ function FinalCTASection({ t }: { t: ReturnType<typeof useTranslations> }) {
             <Link
               href="/book"
               data-cms-key="memberIntro.final.book"
-              className="pbtn-primary rounded-full bg-black px-8 py-3.5 text-base font-semibold text-white transition hover:bg-black/90"
+              className="rounded-full px-8 py-3.5 text-base font-semibold text-white transition hover:opacity-90"
+              style={{ background: COLORS.green500 }}
             >
               {t("final.book")}
             </Link>
             <Link
               href="/member"
               data-cms-key="memberIntro.final.login"
-              className="group flex items-center gap-1 text-base font-medium transition hover:text-black/70"
-              style={{ color: COLORS.lightText }}
+              className="group flex items-center gap-1 text-base font-medium transition hover:opacity-70"
+              style={{ color: COLORS.light.text }}
             >
               <span>{t("final.login")}</span>
               <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">›</span>
