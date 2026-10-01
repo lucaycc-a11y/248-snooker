@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { AppleCarouselCentered } from "@/components/ui/apple-cards-carousel-centered";
+import { useNavigationFlickerDetector } from "@/components/ui/apple-cards-carousel-centered-debug";
 
 const FACILITY_IMAGES = [
   "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
@@ -37,6 +38,10 @@ export default function HomeFacilities() {
   // Only use first 4 items (exclude charging and storage)
   const visibleFacilities = facilities.slice(0, 4);
 
+  // TEMPORARY DEBUG: Enable via URL ?debug=flicker
+  const debugEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
+  useNavigationFlickerDetector(debugEnabled);
+
   const slides = visibleFacilities.map((facility, index) => ({
     eyebrow: t(FACILITY_CATEGORIES[index] ?? FACILITY_CATEGORIES[0]),
     title: facility.title,
@@ -57,13 +62,16 @@ export default function HomeFacilities() {
     darkTheme: index === 2,
   }));
 
+  // Split heading at comma into two clauses to prevent orphaned characters
+  const headingClauses = t("intro").split("，");
+
   return (
     <section
       aria-labelledby="home-facilities-title"
       data-nav-theme="light"
-      className="overflow-x-clip bg-[#f5f5f7] px-0 py-24 md:py-32 pt-[calc(var(--nav-h,4rem)+2rem)] min-h-[100svh] flex flex-col justify-center"
+      className="overflow-x-clip bg-[#f5f5f7] px-0 py-24 md:py-32 pt-[calc(var(--nav-h,4rem)+3rem)] min-h-[100svh] flex flex-col justify-center"
     >
-      <div className="mb-12 px-6 md:px-16">
+      <div className="mb-12 px-6 md:px-16 lg:px-[max(1.5rem,calc((100vw-1200px)/2))]">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -73,8 +81,21 @@ export default function HomeFacilities() {
           <h2 id="home-facilities-title" data-cms-key="homeVenue.title" className="sr-only">
             {t("title")}
           </h2>
-          <p data-cms-key="homeVenue.intro" className="m-0 max-w-4xl text-[clamp(1.75rem,4vw,3.25rem)] font-semibold leading-[1.02] tracking-[-0.04em] text-[#111110]">
-            {t("intro")}
+          <p
+            data-cms-key="homeVenue.intro"
+            className="m-0 max-w-4xl text-[clamp(1.75rem,3.2vw,3rem)] font-bold leading-[1.2] tracking-[-0.04em] text-[#111110]"
+            style={{
+              textWrap: "balance",
+              lineBreak: "strict",
+            }}
+          >
+            <span className="inline-block md:whitespace-nowrap">{headingClauses[0]}</span>
+            {headingClauses[1] && (
+              <>
+                {"，"}
+                <span className="inline-block md:whitespace-nowrap">{headingClauses[1]}</span>
+              </>
+            )}
           </p>
         </motion.div>
       </div>

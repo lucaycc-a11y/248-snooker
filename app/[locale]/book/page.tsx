@@ -4071,10 +4071,9 @@ export default function BookPage() {
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
           background: ${tokens.colors.depth.elevated};
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
           z-index: 40;
+          isolation: isolate;
         }
 
         /* Confirm-pay bar. Same treatment as .mobile-cta but NOT hidden on
@@ -4087,10 +4086,9 @@ export default function BookPage() {
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
           background: ${tokens.colors.depth.elevated};
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
           z-index: 40;
+          isolation: isolate;
         }
         .pay-cta-inner {
           max-width: 480px;

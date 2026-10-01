@@ -670,19 +670,14 @@ export default function Member() {
           justify-content: center;
           padding: 24px;
           background: rgba(0, 0, 0, 0);
-          backdrop-filter: blur(0px);
-          -webkit-backdrop-filter: blur(0px);
           opacity: 0;
           pointer-events: none;
           transition:
             background 0.25s ease,
-            backdrop-filter 0.25s ease,
             opacity 0.25s ease;
         }
         .s7-modal-backdrop--open {
-          background: rgba(0, 0, 0, 0.6);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
+          background: rgba(0, 0, 0, 0.75);
           opacity: 1;
           pointer-events: auto;
         }

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Pause, Play, X, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useOpacityLogger, useLayerCounter } from "./apple-cards-carousel-centered-debug";
 
 type Slide = {
   eyebrow?: string;
@@ -80,6 +81,17 @@ export function AppleCarouselCentered({
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const [portalReady, setPortalReady] = useState(false);
 
+  // TEMPORARY DEBUG: Enable via URL ?debug=flicker
+  const debugEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
+
+  // TEMPORARY: Track opacity on cards 2, 3, 4
+  const card2Ref = useOpacityLogger(debugEnabled, "Card 2");
+  const card3Ref = useOpacityLogger(debugEnabled, "Card 3");
+  const card4Ref = useOpacityLogger(debugEnabled, "Card 4");
+
+  // TEMPORARY: Track layer count changes
+  useLayerCounter(debugEnabled);
+
   // Portal target is only available on the client, after hydration.
   useEffect(() => setPortalReady(true), []);
 
@@ -91,6 +103,17 @@ export function AppleCarouselCentered({
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(query.matches);
     const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    query.addEventListener("change", handler);
+    return () => query.removeEventListener("change", handler);
+  }, []);
+
+  // Phones get a near-full-screen sheet. Inline styles beat stylesheet rules,
+  // so the breakpoint has to be read in JS rather than expressed as a media query.
+  const [isMobileSheet, setIsMobileSheet] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    setIsMobileSheet(query.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobileSheet(e.matches);
     query.addEventListener("change", handler);
     return () => query.removeEventListener("change", handler);
   }, []);
@@ -204,16 +227,28 @@ export function AppleCarouselCentered({
   };
 
   const openSheet = (index: number, button: HTMLButtonElement) => {
+    // FLIP "First": measure the tapped card so the sheet can grow out of it.
+    const card = button.closest(".carousel-slide-centered");
+    setOriginRect(card ? card.getBoundingClientRect() : null);
     setSheetSlideIndex(index);
     setSheetOpen(true);
     setButtonThatOpenedSheet(button);
+    // Pause autoplay while open, remembering whether it was running.
+    wasPlayingRef.current = isPlaying;
+    setIsPlaying(false);
+    // Lock scroll without the layout shift a disappearing scrollbar causes.
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
   };
 
   const closeSheet = () => {
     setSheetOpen(false);
     setSheetSlideIndex(null);
     document.body.style.overflow = "";
+    document.body.style.paddingRight = "";
+    // Only resume if autoplay was running when the sheet opened.
+    if (wasPlayingRef.current) setIsPlaying(true);
     if (buttonThatOpenedSheet) {
       buttonThatOpenedSheet.focus();
       setButtonThatOpenedSheet(null);
@@ -224,9 +259,31 @@ export function AppleCarouselCentered({
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape" && sheetOpen) closeSheet();
     };
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab" || !sheetRef.current) return;
+      const focusables = sheetRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     if (sheetOpen) {
       document.addEventListener("keydown", handleEsc);
-      return () => document.removeEventListener("keydown", handleEsc);
+      document.addEventListener("keydown", handleTab);
+      // Move focus into the dialog so Tab cycles within it.
+      sheetRef.current?.querySelector<HTMLElement>("button")?.focus();
+      return () => {
+        document.removeEventListener("keydown", handleEsc);
+        document.removeEventListener("keydown", handleTab);
+      };
     }
   }, [sheetOpen]);
 
@@ -235,6 +292,10 @@ export function AppleCarouselCentered({
   const spacerWidth = Math.max(0, (viewportWidth - cardWidth) / 2);
 
   const currentSlide = sheetSlideIndex !== null ? slides[sheetSlideIndex] : null;
+
+  // Mobile: near-full-screen sheet; desktop: 960px max-width with 88svh cap
+  const sheetWidth = isMobileSheet ? "calc(100vw - 24px)" : "min(92vw, 960px)";
+  const sheetMaxHeight = isMobileSheet ? "92svh" : "88svh";
 
   return (
     <div ref={containerRef} className="w-full">
@@ -263,8 +324,10 @@ export function AppleCarouselCentered({
           border-radius: 32px;
           overflow: hidden;
           position: relative;
-          will-change: transform;
           border: 1px solid rgba(0, 0, 0, 0.08);
+          transform: translateZ(0);
+          backface-visibility: hidden;
+          isolation: isolate;
         }
 
         .carousel-slide-centered[data-landscape="true"] {
@@ -329,9 +392,7 @@ export function AppleCarouselCentered({
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          background: rgba(0, 0, 0, 0.55);
-          backdrop-filter: blur(10px);
-          -webkit-backdrop-filter: blur(10px);
+          background: rgba(0, 0, 0, 0.7);
           border: 1px solid rgba(255, 255, 255, 0.18);
           display: flex;
           align-items: center;
@@ -354,12 +415,12 @@ export function AppleCarouselCentered({
           gap: 8px;
           margin-top: 24px;
           padding: 12px 16px;
-          background: rgba(0, 0, 0, 0.4);
-          backdrop-filter: blur(10px);
+          background: rgba(0, 0, 0, 0.65);
           border-radius: 999px;
           width: fit-content;
           margin-left: auto;
           margin-right: auto;
+          isolation: isolate;
         }
 
         .carousel-dot-centered {
@@ -422,6 +483,7 @@ export function AppleCarouselCentered({
         {slides.map((slide, i) => (
           <div
             key={i}
+            ref={i === 1 ? card2Ref : i === 2 ? card3Ref : i === 3 ? card4Ref : undefined}
             className="carousel-slide-centered"
             role="tabpanel"
             aria-selected={i === activeIndex}
@@ -454,9 +516,7 @@ export function AppleCarouselCentered({
                   position: "absolute",
                   top: 16,
                   right: 16,
-                  background: slide.badgeBg ?? "rgba(0,0,0,0.55)",
-                  backdropFilter: "blur(6px)",
-                  WebkitBackdropFilter: "blur(6px)",
+                  background: slide.badgeBg ?? "rgba(0,0,0,0.7)",
                   border: "1px solid rgba(255,255,255,0.18)",
                   borderRadius: 999,
                   padding: "4px 12px",
@@ -526,43 +586,68 @@ export function AppleCarouselCentered({
       </div>
 
       <AnimatePresence>
-        {sheetOpen && currentSlide && (
-          <>
+        {portalReady && sheetOpen && currentSlide && createPortal(
+          <div key="sheet-root">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
               onClick={closeSheet}
               style={{
                 position: "fixed",
                 inset: 0,
                 background: "rgba(0, 0, 0, 0.75)",
                 zIndex: 9998,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "calc(clamp(12px, 4vw, 24px) + env(safe-area-inset-top, 0px)) calc(clamp(12px, 4vw, 24px) + env(safe-area-inset-right, 0px)) calc(clamp(12px, 4vw, 24px) + env(safe-area-inset-bottom, 0px)) calc(clamp(12px, 4vw, 24px) + env(safe-area-inset-left, 0px))",
               }}
             />
 
             <motion.div
+              ref={sheetRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby="sheet-title"
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92 }}
-              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, scale: 1 }}
-              exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92 }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.4, ease: [0.2, 0.7, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              initial={
+                prefersReducedMotion || !originRect
+                  ? { opacity: 0 }
+                  : {
+                      opacity: 0,
+                      x: originRect.left + originRect.width / 2 - window.innerWidth / 2,
+                      y: originRect.top + originRect.height / 2 - window.innerHeight / 2,
+                      scaleX: originRect.width / Math.min(window.innerWidth * 0.92, 960),
+                      scaleY: originRect.height / (window.innerHeight * 0.88),
+                    }
+              }
+              animate={
+                prefersReducedMotion || !originRect
+                  ? { opacity: 1 }
+                  : { opacity: 1, x: 0, y: 0, scaleX: 1, scaleY: 1 }
+              }
+              exit={
+                prefersReducedMotion || !originRect
+                  ? { opacity: 0 }
+                  : {
+                      opacity: 0,
+                      x: originRect.left + originRect.width / 2 - window.innerWidth / 2,
+                      y: originRect.top + originRect.height / 2 - window.innerHeight / 2,
+                      scaleX: originRect.width / Math.min(window.innerWidth * 0.92, 960),
+                      scaleY: originRect.height / (window.innerHeight * 0.88),
+                    }
+              }
+              transition={{
+                duration: prefersReducedMotion ? 0 : 0.45,
+                ease: [0.2, 0.7, 0.3, 1],
+              }}
               style={{
-                position: "fixed",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "min(90vw, 800px)",
-                maxHeight: "85vh",
+                position: "relative",
+                width: sheetWidth,
+                maxHeight: sheetMaxHeight,
                 background: currentSlide.darkTheme ? "#1a1a1a" : "#ffffff",
-                borderRadius: 32,
+                borderRadius: isMobileSheet ? 24 : 32,
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                zIndex: 9999,
                 border: currentSlide.darkTheme ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(0,0,0,0.08)",
               }}
             >
@@ -583,7 +668,7 @@ export function AppleCarouselCentered({
                   justifyContent: "center",
                   cursor: "pointer",
                   color: currentSlide.darkTheme ? "white" : "#111",
-                  transition: "all 200ms ease",
+                  transition: "background 200ms ease",
                   zIndex: 10,
                 }}
                 onMouseEnter={(e) => {
@@ -596,13 +681,21 @@ export function AppleCarouselCentered({
                 <X size={24} />
               </button>
 
-              <div style={{ overflowY: "auto", flex: 1 }}>
-                <div style={{ position: "relative", width: "100%", aspectRatio: currentSlide.aspectRatio ?? aspectRatio }}>
+              <div style={{ overflowY: "auto", flex: 1, overscrollBehavior: "contain", WebkitOverflowScrolling: "touch" }}>
+                <div
+                  style={{
+                    position: "relative",
+                    width: "100%",
+                    aspectRatio: currentSlide.aspectRatio ?? aspectRatio,
+                    maxHeight: "52svh",
+                    overflow: "hidden",
+                  }}
+                >
                   <Image
                     src={currentSlide.src}
                     alt={currentSlide.alt || currentSlide.title}
                     fill
-                    sizes="(max-width: 768px) 92vw, (max-width: 1440px) 1200px, (max-width: 2560px) 1600px, 2000px"
+                    sizes="(max-width: 768px) 92vw, 960px"
                     quality={90}
                     style={{
                       objectFit: currentSlide.objectFit === "contain" ? "contain" : "cover",
@@ -616,9 +709,7 @@ export function AppleCarouselCentered({
                         position: "absolute",
                         top: 16,
                         right: 72,
-                        background: currentSlide.badgeBg ?? "rgba(0,0,0,0.55)",
-                        backdropFilter: "blur(6px)",
-                        WebkitBackdropFilter: "blur(6px)",
+                        background: currentSlide.badgeBg ?? "rgba(0,0,0,0.7)",
                         border: "1px solid rgba(255,255,255,0.18)",
                         borderRadius: 999,
                         padding: "4px 12px",
@@ -673,7 +764,8 @@ export function AppleCarouselCentered({
                 </div>
               </div>
             </motion.div>
-          </>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>

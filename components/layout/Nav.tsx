@@ -36,13 +36,12 @@ const EASE = [0.16, 1, 0.3, 1] as const
 function pillStyle(theme: NavTheme): CSSProperties {
   const dark = theme === 'dark'
   return {
-    background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.76)',
+    background: dark ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.92)',
     border: `1px solid ${dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
-    backdropFilter: 'blur(24px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
     borderRadius: 999,
     pointerEvents: 'auto',
     transition: PILL_TRANSITION,
+    isolation: 'isolate' as const,
   }
 }
 
@@ -509,19 +508,18 @@ export default function Nav() {
             padding: 10px 14px !important;
             padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important;
             transform: none !important;
-            backdrop-filter: blur(20px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
             /* The surface follows the same data-nav-surface theme as the
                artwork and controls, so light legal content is not stuck in a
                dark mobile bar. */
             pointer-events: auto !important;
+            isolation: isolate;
           }
           .nav-bar[data-nav-surface='dark'] {
-            background: rgba(0, 0, 0, 0.72) !important;
+            background: rgba(0, 0, 0, 0.90) !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
           }
           .nav-bar[data-nav-surface='light'] {
-            background: rgba(255, 255, 255, 0.86) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
             border-bottom: 1px solid rgba(0, 0, 0, 0.10) !important;
           }
           /* Mobile wordmark: keep the full "SPACE8" lockup but scale it down
