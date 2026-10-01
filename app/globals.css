@@ -315,7 +315,7 @@ body {
    Shared frosted-glass surfaces. Values are copied EXACTLY from the
    Navbar's dark-theme pill (components/layout/Nav.tsx pillStyle(), lines
    35-46) — that is the reference implementation everything else must
-   match. background/border are IDENTICAL between
+   match. background/border/backdrop-filter are IDENTICAL between
    .glass-panel and .glass-panel-dark on purpose (per explicit
    instruction: only border-radius may differ, since that's a shape
    choice — pill vs card corners — not a transparency choice). The two
@@ -323,14 +323,26 @@ body {
    by name; they are not visually distinct anymore.
    Per the Apple-UI skill we use borders (not shadows) for elevation.
 
-   NOTE: backdrop-filter removed to eliminate compositor flicker during
-   scroll. Solid backgrounds used instead with higher opacity. */
+   Restored backdrop-filter with @supports fallback:
+   - Supporting browsers: frosted glass effect (blur + saturate)
+   - Non-supporting: solid background (graceful degradation)
+   - Includes -webkit- prefix for Safari compatibility
+   - isolation:isolate prevents backdrop-root breaker issues */
 .glass-panel {
   background: rgba(0, 0, 0, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 32px;
   isolation: isolate;
 }
+
+@supports (backdrop-filter: blur(24px)) {
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
+}
+
 /* Same recipe as .glass-panel — components using this variant set their
    own border-radius per instance (e.g. pill for a floating prompt, 16px
    for a dropdown), so no radius is set here. */
@@ -339,12 +351,29 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   isolation: isolate;
 }
+
+@supports (backdrop-filter: blur(24px)) {
+  .glass-panel-dark {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
+}
+
 /* Small controls (chips, back button, slot cells) — same background
    recipe; only used for lower-emphasis surfaces than a full panel. */
 .glass-control {
   background: rgba(0, 0, 0, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.1);
   isolation: isolate;
+}
+
+@supports (backdrop-filter: blur(24px)) {
+  .glass-control {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
 }
 
 
