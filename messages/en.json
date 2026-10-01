@@ -2372,5 +2372,33 @@
       "book": "Book Now",
       "login": "Sign In"
     }
+  },
+  "venueHero": {
+    "title": "Facilities",
+    "subtitle": "SPACE INFINITY · SPACE ETERNITY",
+    "segments": {
+      "0": "Pro tables, tournament balls",
+      "1": "tuned lighting",
+      "2": "an AI match host",
+      "3": "self check-in — scan and you're in",
+      "4": "so you can focus on the game."
+    },
+    "photos": {
+      "0": {
+        "alt": "Space Infinity room interior"
+      },
+      "1": {
+        "alt": "Space Eternity room interior"
+      },
+      "2": {
+        "alt": "Professional pool table closeup"
+      },
+      "3": {
+        "alt": "Pool table with tournament balls"
+      },
+      "4": {
+        "alt": "Venue interior environment"
+      }
+    }
   }
 }

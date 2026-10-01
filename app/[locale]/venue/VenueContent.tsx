@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-mot
 import { Link } from "@/i18n/navigation";
 import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
+import VenueHeroScroll from "@/components/venue/VenueHeroScroll";
 import {
   Target,
   Lightbulb,
@@ -981,49 +982,8 @@ export default function VenueContent() {
     <div style={{ fontFamily: FONT_FAMILY }}>
       <style>{SITE_CSS}</style>
 
-      {/* ── Video Hero: scroll-scrubbed, dual-video, white text on dark ── */}
-      <div ref={videoHeroWrapperRef} className="hero-video-wrapper" data-nav-theme="dark">
-        <div className="hero-video-sticky">
-          {/* Desktop video (hidden on mobile) */}
-          <video
-            ref={desktopVideoRef}
-            src="/video/Venue_Hero/Venue_Hero_Desktop.mp4"
-            className="hero-video-el hidden md:block"
-            muted
-            playsInline
-            preload="metadata"
-            poster="/video/Venue_Hero/Venue_Hero_Desktop_poster.jpg"
-          />
-          {/* Mobile video (hidden on desktop) */}
-          <video
-            ref={mobileVideoRef}
-            src="/video/Venue_Hero/Venue_Hero_Mobile.mp4"
-            className="hero-video-el block md:hidden"
-            muted
-            playsInline
-            preload="metadata"
-            poster="/video/Venue_Hero/Venue_Hero_Mobile_poster.jpg"
-          />
-
-          {/* Safety black overlay — fades in at the very end to guarantee a clean cut */}
-          <motion.div
-            className="hero-black-overlay"
-            style={{ opacity: useTransform(scrollYProgress, [0.97, 1], [0, 1]) }}
-          />
-
-          {/* Video fades to black at end — no text overlay needed (homepage has this hero) */}
-        </div>
-      </div>
-
-      {/* ── Below-hero content (after hero releases, before facility) ── */}
-      <section className="hero-after-section" data-nav-theme="dark">
-        <div className="hero-after-inner">
-          <h2 className="hero-after-title">自助中式桌球<br />獨立球室</h2>
-          <p className="hero-after-body">
-            獨立球室，無多餘干擾。一兩知已，一桌切磋、一段不被打斷的時間，掃碼開門，燈光為你亮起。
-          </p>
-        </div>
-      </section>
+      {/* ── New GSAP Hero with scroll animation ── */}
+      <VenueHeroScroll />
 
       {/* ── Facilities ── */}
       <section className="facility-section" data-nav-theme="dark">
