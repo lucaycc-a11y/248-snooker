@@ -50,6 +50,12 @@ const STEPS: Step[] = [
   },
 ] as const
 
+const ALT_TEXTS = [
+  "手機預訂介面：選擇時段",
+  "用手機掃描二維碼進場",
+  "會員積分與獎勵",
+] as const
+
 const NAV_HEIGHT = 64
 
 export default function Section5Booking() {
@@ -65,6 +71,7 @@ export default function Section5Booking() {
   const [progressFills, setProgressFills] = useState<number[]>(
     STEPS.map(() => 0)
   )
+  const [isProgrammaticScroll, setIsProgrammaticScroll] = useState(false)
 
   // Determine layout: desktop (≥820px), mobile with/without short viewport
   useEffect(() => {
@@ -102,6 +109,9 @@ export default function Section5Booking() {
     let raf: number | null = null
 
     const updateLayout = () => {
+      // Skip scroll-driven updates during programmatic scroll
+      if (isProgrammaticScroll) return
+
       if (isDesktop) {
         // Desktop: centerline logic
         const steps = Array.from(stepsContainer.querySelectorAll<HTMLElement>(
@@ -179,10 +189,20 @@ export default function Section5Booking() {
       window.removeEventListener("scroll", onScroll)
       if (raf !== null) cancelAnimationFrame(raf)
     }
-  }, [isDesktop, isShortViewport])
+  }, [isDesktop, isShortViewport, isProgrammaticScroll])
 
   // Progress bar click handler
   const handleProgressClick = (idx: number) => {
+    scrollToStep(idx)
+  }
+
+  // Step click handler
+  const handleStepClick = (idx: number) => {
+    scrollToStep(idx)
+  }
+
+  // Unified scroll-to-step logic
+  const scrollToStep = (idx: number) => {
     const stepsContainer = stepsContainerRef.current
     if (!stepsContainer) return
 
@@ -194,6 +214,10 @@ export default function Section5Booking() {
     const prefersReducedMotion = matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches
+
+    // Set programmatic scroll flag
+    setIsProgrammaticScroll(true)
+    setActiveIdx(idx)
 
     if (isDesktop) {
       // Desktop: scroll to center
@@ -209,7 +233,8 @@ export default function Section5Booking() {
         behavior: prefersReducedMotion ? "auto" : "smooth",
       })
     } else if (!isShortViewport) {
-      // Mobile short: no scroll needed
+      // Mobile short: no scroll needed, just update state
+      setIsProgrammaticScroll(false)
       return
     } else {
       // Mobile normal: scroll to step position
@@ -223,6 +248,12 @@ export default function Section5Booking() {
         behavior: prefersReducedMotion ? "auto" : "smooth",
       })
     }
+
+    // Clear flag after scroll completes (smooth scroll takes ~600-800ms)
+    const clearDelay = prefersReducedMotion ? 100 : 900
+    setTimeout(() => {
+      setIsProgrammaticScroll(false)
+    }, clearDelay)
   }
 
   return (
@@ -252,10 +283,11 @@ export default function Section5Booking() {
               <Image
                 key={i}
                 src={step.art}
-                alt={step.altCmsKey ? t(step.altCmsKey.split(".").pop() as any) : step.title}
+                alt={ALT_TEXTS[i]}
                 data-cms-key={step.altCmsKey}
                 fill
-                sizes="(max-width: 1024px) 50vw, 420px"
+                sizes="(min-width: 1440px) 520px, (min-width: 1024px) 42vw, (min-width: 820px) 45vw, 50vw"
+                quality={80}
                 priority
                 className={`flow-image ${i === activeIdx ? "active" : ""}`}
                 style={{ objectFit: "cover" }}
@@ -270,7 +302,7 @@ export default function Section5Booking() {
                 key={i}
                 className="flow-progress-segment"
                 onClick={() => handleProgressClick(i)}
-                aria-label={`Go to step ${i + 1}`}
+                aria-label={`前往步驟 ${i + 1}`}
                 style={{
                   "--progress": progressFills[i] ?? 0,
                 } as React.CSSProperties & { [key: string]: number }}
@@ -282,11 +314,12 @@ export default function Section5Booking() {
         {/* Right: Steps scroll naturally */}
         <div ref={stepsContainerRef} className="flow-steps">
           {STEPS.map((step, i) => (
-            <div
+            <button
               key={i}
               data-step-idx={i}
               className={`flow-step ${i === activeIdx ? "active" : ""}`}
               aria-current={i === activeIdx ? "step" : undefined}
+              onClick={() => handleStepClick(i)}
             >
               <div className="flow-marker">
                 <span className="flow-num">{String(i + 1).padStart(2, "0")}</span>
@@ -297,12 +330,16 @@ export default function Section5Booking() {
                 <p className="flow-desc">{step.desc}</p>
 
                 {step.cta && i === activeIdx && (
-                  <Link href={step.cta.href} className="flow-cta">
+                  <Link
+                    href={step.cta.href}
+                    className="flow-cta"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {step.cta.label}
                   </Link>
                 )}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -318,10 +355,11 @@ export default function Section5Booking() {
                   <Image
                     key={i}
                     src={step.art}
-                    alt={step.title}
+                    alt={ALT_TEXTS[i]}
                     data-cms-key={step.altCmsKey}
                     fill
-                    sizes="100vw"
+                    sizes="(min-width: 768px) 85vw, 92vw"
+                    quality={80}
                     priority
                     className={`flow-image ${i === activeIdx ? "active" : ""}`}
                     style={{ objectFit: "cover" }}
@@ -331,10 +369,11 @@ export default function Section5Booking() {
 
               <div className="flow-mobile-steps">
                 {STEPS.map((step, i) => (
-                  <div
+                  <button
                     key={i}
                     className={`flow-mobile-step ${i === activeIdx ? "active" : ""}`}
                     aria-current={i === activeIdx ? "step" : undefined}
+                    onClick={() => handleStepClick(i)}
                   >
                     <div className="flow-marker">
                       <span className="flow-num">
@@ -345,12 +384,16 @@ export default function Section5Booking() {
                       <h3 className="flow-title">{step.title}</h3>
                       <p className="flow-desc">{step.desc}</p>
                       {step.cta && i === activeIdx && (
-                        <Link href={step.cta.href} className="flow-cta">
+                        <Link
+                          href={step.cta.href}
+                          className="flow-cta"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {step.cta.label}
                         </Link>
                       )}
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
 
@@ -361,7 +404,7 @@ export default function Section5Booking() {
                     key={i}
                     className="flow-progress-segment"
                     onClick={() => handleProgressClick(i)}
-                    aria-label={`Go to step ${i + 1}`}
+                    aria-label={`前往步驟 ${i + 1}`}
                     style={{
                       "--progress": progressFills[i] ?? 0,
                     } as React.CSSProperties & { [key: string]: number }}
@@ -452,12 +495,18 @@ export default function Section5Booking() {
             object-fit: cover;
             opacity: 0;
             z-index: 0;
-            transition: opacity 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
+            transition: opacity 0.4s cubic-bezier(0.2, 0.7, 0.3, 1);
           }
 
           .flow-image.active {
             opacity: 1;
             z-index: 1;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .flow-image {
+              transition: none;
+            }
           }
 
           .flow-progress-bar {
@@ -468,6 +517,7 @@ export default function Section5Booking() {
           .flow-progress-segment {
             flex: 1;
             height: 3px;
+            min-height: 44px;
             background: rgba(0, 0, 0, 0.1);
             border: none;
             cursor: pointer;
@@ -475,6 +525,11 @@ export default function Section5Booking() {
             position: relative;
             overflow: hidden;
             padding: 0;
+          }
+
+          .flow-progress-segment:focus-visible {
+            outline: 2px solid #22b86b;
+            outline-offset: 2px;
           }
 
           .flow-progress-segment::before {
@@ -503,6 +558,17 @@ export default function Section5Booking() {
             padding: 0;
             opacity: 0.38;
             transition: opacity 0.3s ease;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+          }
+
+          .flow-step:focus-visible {
+            outline: 2px solid #22b86b;
+            outline-offset: 4px;
+            border-radius: 8px;
           }
 
           .flow-step.active {
@@ -632,12 +698,18 @@ export default function Section5Booking() {
             object-fit: cover;
             opacity: 0;
             z-index: 0;
-            transition: opacity 0.55s cubic-bezier(0.2, 0.7, 0.3, 1);
+            transition: opacity 0.4s cubic-bezier(0.2, 0.7, 0.3, 1);
           }
 
           .flow-image.active {
             opacity: 1;
             z-index: 1;
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .flow-image {
+              transition: none;
+            }
           }
 
           .flow-mobile-steps {
@@ -654,6 +726,18 @@ export default function Section5Booking() {
             gap: 16px;
             opacity: 0.38;
             transition: opacity 0.3s ease;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            padding: 8px 0;
+          }
+
+          .flow-mobile-step:focus-visible {
+            outline: 2px solid #22b86b;
+            outline-offset: 2px;
+            border-radius: 6px;
           }
 
           .flow-mobile-step.active {
@@ -752,6 +836,7 @@ export default function Section5Booking() {
           .flow-progress-segment {
             flex: 1;
             height: 2px;
+            min-height: 44px;
             background: rgba(0, 0, 0, 0.1);
             border: none;
             cursor: pointer;
@@ -759,6 +844,11 @@ export default function Section5Booking() {
             position: relative;
             overflow: hidden;
             padding: 0;
+          }
+
+          .flow-progress-segment:focus-visible {
+            outline: 2px solid #22b86b;
+            outline-offset: 2px;
           }
 
           .flow-progress-segment::before {
@@ -809,7 +899,6 @@ export default function Section5Booking() {
 
         /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
-          .flow-image,
           .flow-progress-segment::before,
           .flow-marker,
           .flow-step,
