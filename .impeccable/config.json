@@ -658,6 +658,36 @@
         "value": "bowwobble",
         "createdAt": "2026-10-01T14:00:58.418Z",
         "reason": "Decorative SVG animation using ease-in-out timing, not spring/bounce easing - keyframe-based wobble for visual interest"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2b3039",
+        "createdAt": "2026-10-01T14:12:15.773Z",
+        "reason": "Spec-defined: Apple-style member card gradient (dark slate)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1b1e24",
+        "createdAt": "2026-10-01T14:12:19.678Z",
+        "reason": "Spec-defined: Apple-style member card gradient (darker slate)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#23272f",
+        "createdAt": "2026-10-01T14:12:24.706Z",
+        "reason": "Spec-defined: Apple-style member card gradient (mid slate)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a2aec4",
+        "createdAt": "2026-10-01T14:12:29.714Z",
+        "reason": "Spec-defined: Apple-style member badge gradient (light steel blue)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f8ba2",
+        "createdAt": "2026-10-01T14:12:33.087Z",
+        "reason": "Spec-defined: Apple-style member badge gradient (darker steel blue)"
       }
     ]
   }

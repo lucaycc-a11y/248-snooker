@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Pause, Play, X, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useOpacityLogger, useLayerCounter } from "./apple-cards-carousel-centered-debug";
 
 type Slide = {
   eyebrow?: string;
@@ -80,17 +79,6 @@ export function AppleCarouselCentered({
   const [buttonThatOpenedSheet, setButtonThatOpenedSheet] = useState<HTMLButtonElement | null>(null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const [portalReady, setPortalReady] = useState(false);
-
-  // TEMPORARY DEBUG: Enable via URL ?debug=flicker
-  const debugEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
-
-  // TEMPORARY: Track opacity on cards 2, 3, 4
-  const card2Ref = useOpacityLogger(debugEnabled, "Card 2");
-  const card3Ref = useOpacityLogger(debugEnabled, "Card 3");
-  const card4Ref = useOpacityLogger(debugEnabled, "Card 4");
-
-  // TEMPORARY: Track layer count changes
-  useLayerCounter(debugEnabled);
 
   // Portal target is only available on the client, after hydration.
   useEffect(() => setPortalReady(true), []);
@@ -483,7 +471,6 @@ export function AppleCarouselCentered({
         {slides.map((slide, i) => (
           <div
             key={i}
-            ref={i === 1 ? card2Ref : i === 2 ? card3Ref : i === 3 ? card4Ref : undefined}
             className="carousel-slide-centered"
             role="tabpanel"
             aria-selected={i === activeIndex}

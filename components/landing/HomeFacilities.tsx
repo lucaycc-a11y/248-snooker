@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { AppleCarouselCentered } from "@/components/ui/apple-cards-carousel-centered";
-import { useNavigationFlickerDetector } from "@/components/ui/apple-cards-carousel-centered-debug";
 
 const FACILITY_IMAGES = [
   "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
@@ -37,10 +36,6 @@ export default function HomeFacilities() {
   const facilities = t.raw("items") as Facility[];
   // Only use first 4 items (exclude charging and storage)
   const visibleFacilities = facilities.slice(0, 4);
-
-  // TEMPORARY DEBUG: Enable via URL ?debug=flicker
-  const debugEnabled = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug');
-  useNavigationFlickerDetector(debugEnabled);
 
   const slides = visibleFacilities.map((facility, index) => ({
     eyebrow: t(FACILITY_CATEGORIES[index] ?? FACILITY_CATEGORIES[0]),
