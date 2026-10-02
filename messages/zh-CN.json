@@ -669,7 +669,8 @@
     "sign_out_error": "退出失败，请重试。",
     "venue": "场地",
     "membership": "会员",
-    "faq": "常见问题"
+    "faq": "常见问题",
+    "help": "帮助中心"
   },
   "hero": {
     "title": "SPACE8",
@@ -2171,6 +2172,10 @@
   "help": {
     "title": "支持中心",
     "subtitle": "查找常见问题的解答",
+    "meta": {
+      "title": "帮助中心 - Space8",
+      "description": "查找 Space8 常见问题解答、预订指南、会员信息及场地使用规则"
+    },
     "hero": {
       "title": "您好，有什么可以协助您？",
       "subtitle": "搜索常见问题或浏览下方主题"
@@ -2238,6 +2243,17 @@
         "title": "联络客服",
         "excerpt": "如何联络我们的客服团队获得协助"
       }
+    }
+  },
+  "venueHero": {
+    "title": "专业桌球场地",
+    "subtitle": "两间独立房间 · 顶级球桌 · 完善设施",
+    "segments": {
+      "0": "Space Infinity 及 Space Eternity 两间专属包房",
+      "1": "配备 Riley 及 Star 专业比赛级球桌",
+      "2": "全天然板岩台面，确保球路精准稳定",
+      "3": "恒温恒湿环境，24 小时新风系统",
+      "4": "免费泊车，邻近港铁站，交通便利"
     }
   },
   "memberShowcase": {

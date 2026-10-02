@@ -45,7 +45,7 @@ export default function Footer() {
     { label: t('nav.about'), href: '/about' },
     { label: t('nav.blog'), href: '/blog' },
     { label: t('nav.membership'), href: '/membership' },
-    { label: t('nav.faq'), href: '/faq' },
+    { label: t('nav.help'), href: '/help' },
     { label: t('footer.legal'), href: '/legal' },
     { label: t('footer.privacy'), href: '/privacy' },
   ]

@@ -669,7 +669,8 @@
     "sign_out_error": "Couldn't sign out. Please try again.",
     "venue": "Venue",
     "membership": "Membership",
-    "faq": "FAQ"
+    "faq": "FAQ",
+    "help": "Help Center"
   },
   "hero": {
     "title": "SPACE8",
@@ -2171,6 +2172,10 @@
   "help": {
     "title": "Support Center",
     "subtitle": "Find answers to common questions",
+    "meta": {
+      "title": "Help Center - Space8",
+      "description": "Find Space8 FAQs, booking guides, membership information, and venue usage policies"
+    },
     "hero": {
       "title": "Hello, how can we help you?",
       "subtitle": "Search for common questions or browse topics below"
@@ -2238,6 +2243,17 @@
         "title": "Contact support",
         "excerpt": "How to reach our support team for assistance"
       }
+    }
+  },
+  "venueHero": {
+    "title": "Professional Snooker Venue",
+    "subtitle": "Two Private Rooms · Premium Tables · Complete Facilities",
+    "segments": {
+      "0": "Space Infinity and Space Eternity - two exclusive private rooms",
+      "1": "Equipped with Riley and Star professional tournament-grade tables",
+      "2": "Natural slate surfaces ensuring precise and stable ball trajectory",
+      "3": "Climate-controlled environment with 24-hour fresh air system",
+      "4": "Free parking, near MTR station, convenient transportation"
     }
   },
   "memberShowcase": {

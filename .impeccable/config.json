@@ -694,6 +694,42 @@
         "value": "#052e1f",
         "createdAt": "2026-10-01T14:15:32.470Z",
         "reason": "Spec-defined: dark green safety card background (brand green #059669 at 15% opacity on black)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f3f7f4",
+        "createdAt": "2026-10-01T17:02:31.863Z",
+        "reason": "Help Center light theme per HELP_CENTER_STEP0_REPORT.md design decision"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8f0ea",
+        "createdAt": "2026-10-01T17:02:38.587Z",
+        "reason": "Help Center hero gradient per design spec"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#5b6764",
+        "createdAt": "2026-10-01T17:02:43.866Z",
+        "reason": "Help Center muted text per HELP_CENTER_STEP0_REPORT.md"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e3eae9",
+        "createdAt": "2026-10-01T17:02:50.081Z",
+        "reason": "Help Center border color per design spec"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#dc2626",
+        "createdAt": "2026-10-01T17:04:36.475Z",
+        "reason": "Negative feedback button color (thumbs down) - standard semantic red"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "sf mono",
+        "createdAt": "2026-10-01T17:04:41.396Z",
+        "reason": "System monospace font for code blocks - Apple platform standard"
       }
     ]
   }
