@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
+import { HELP_PATHS } from '@/lib/help/constants'
 import Fuse from 'fuse.js'
 
 // Help Center light theme colors
@@ -58,7 +59,7 @@ export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPage
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
-      router.push(`/help/search?q=${encodeURIComponent(query.trim())}`)
+      router.push(HELP_PATHS.search(query.trim()))
     }
   }
 
@@ -67,7 +68,7 @@ export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPage
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px' }}>
         {/* Breadcrumb */}
         <nav style={{ fontSize: '14px', color: HELP_COLORS.muted, marginBottom: '24px' }}>
-          <Link href="/help" style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
+          <Link href={HELP_PATHS.home} style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
             幫助中心
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>

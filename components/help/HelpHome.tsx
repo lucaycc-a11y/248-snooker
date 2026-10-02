@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { HelpContent } from '@/lib/help/content-loader'
+import { HELP_PATHS } from '@/lib/help/constants'
 import {
   BookingIcon,
   AccountIcon,
@@ -48,7 +49,7 @@ export function HelpHome({ content }: HelpHomeProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      router.push(`/help/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      router.push(HELP_PATHS.search(searchQuery.trim()))
     }
   }
 
@@ -240,7 +241,7 @@ export function HelpHome({ content }: HelpHomeProps) {
           {content.popularQuestions.map((q, i) => (
             <Link
               key={i}
-              href={`/help/${q.topic}/${q.article}`}
+              href={HELP_PATHS.article(q.topic, q.article)}
               style={{
                 padding: '16px 20px',
                 background: '#fff',
@@ -283,7 +284,7 @@ export function HelpHome({ content }: HelpHomeProps) {
             {content.announcements.map((announcement) => (
               <Link
                 key={announcement.id}
-                href={`/help/announcements/${announcement.id}`}
+                href={HELP_PATHS.announcement(announcement.id)}
                 style={{
                   padding: '20px 24px',
                   background: '#fff',

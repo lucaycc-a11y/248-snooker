@@ -1,10 +1,22 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getTopicData } from '@/lib/help/content-loader'
+import { getTopicData, getAllTopics } from '@/lib/help/content-loader'
 import { HelpTopicPage } from '@/components/help/HelpTopicPage'
 
 interface Props {
   params: { locale: string; topic: string }
+}
+
+export async function generateStaticParams() {
+  const topics = await getAllTopics()
+  const locales = ['zh-HK', 'zh-CN', 'en', 'ja']
+
+  return locales.flatMap((locale) =>
+    topics.map((topic) => ({
+      locale,
+      topic,
+    }))
+  )
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

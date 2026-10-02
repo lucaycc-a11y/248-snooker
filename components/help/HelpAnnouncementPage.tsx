@@ -2,6 +2,7 @@
 
 import { Link } from '@/i18n/navigation'
 import type { HelpAnnouncement } from '@/lib/help/content-loader'
+import { HELP_PATHS } from '@/lib/help/constants'
 import { Markdown } from './Markdown'
 
 // Help Center light theme colors
@@ -23,12 +24,12 @@ export function HelpAnnouncementPage({ announcement }: HelpAnnouncementPageProps
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px' }}>
         {/* Breadcrumb */}
         <nav style={{ fontSize: '14px', color: HELP_COLORS.muted, marginBottom: '24px' }}>
-          <Link href="/help" style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
+          <Link href={HELP_PATHS.home} style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
             幫助中心
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>
           <Link
-            href="/help#announcements"
+            href={`${HELP_PATHS.home}#announcements`}
             style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}
           >
             公告
@@ -108,7 +109,7 @@ export function HelpAnnouncementPage({ announcement }: HelpAnnouncementPageProps
 
         {/* Back Link */}
         <Link
-          href="/help#announcements"
+          href={`${HELP_PATHS.home}#announcements`}
           style={{
             display: 'inline-flex',
             alignItems: 'center',

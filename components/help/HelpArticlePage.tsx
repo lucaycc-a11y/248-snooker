@@ -58,12 +58,12 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px' }}>
         {/* Breadcrumb */}
         <nav style={{ fontSize: '14px', color: '#5b6764', marginBottom: '24px' }}>
-          <Link href="/help" style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
+          <Link href={HELP_PATHS.home} style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
             幫助中心
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>
           <Link
-            href={`/help/${topicId}`}
+            href={HELP_PATHS.topic(topicId)}
             style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}
           >
             {topicTitle}
@@ -216,7 +216,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
                 .map((a) => (
                   <Link
                     key={a.id}
-                    href={`/help/${topicId}/${a.id}`}
+                    href={HELP_PATHS.article(topicId, a.id)}
                     style={{
                       padding: '16px 20px',
                       background: '#fff',

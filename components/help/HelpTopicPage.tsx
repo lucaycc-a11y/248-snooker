@@ -2,6 +2,7 @@
 
 import { Link } from '@/i18n/navigation'
 import { HelpTopicData } from '@/lib/help/content-loader'
+import { HELP_PATHS } from '@/lib/help/constants'
 
 // Help Center light theme colors
 const HELP_COLORS = {
@@ -29,7 +30,7 @@ export function HelpTopicPage({ topicId, topicData }: HelpTopicPageProps) {
         }}
       >
         <nav style={{ fontSize: '14px', color: '#5b6764', marginBottom: '24px' }}>
-          <Link href="/help" style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
+          <Link href={HELP_PATHS.home} style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
             幫助中心
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>
@@ -80,7 +81,7 @@ export function HelpTopicPage({ topicId, topicData }: HelpTopicPageProps) {
             .map((article) => (
               <Link
                 key={article.id}
-                href={`/help/${topicId}/${article.id}`}
+                href={HELP_PATHS.article(topicId, article.id)}
                 style={{
                   padding: '20px 24px',
                   background: '#fff',

@@ -13,19 +13,27 @@ interface HeroPhoto {
   alt: string;
 }
 
+interface ThumbnailPosition {
+  x: number;
+  y: number;
+  scale: number;
+}
+
 export default function VenueHeroScrollAnimation() {
   const t = useTranslations("venueHero");
   const containerRef = useRef<HTMLDivElement>(null);
   const heroSectionRef = useRef<HTMLElement>(null);
-  const animatedIconsRef = useRef<HTMLDivElement>(null);
-  const heroHeaderRef = useRef<HTMLDivElement>(null);
-  const iconElementsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const runwayRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+
+  const thumbnailRowRef = useRef<HTMLDivElement>(null);
+  const thumbnailsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const headlinePlaceholdersRef = useRef<(HTMLDivElement | null)[]>([]);
   const textSegmentsRef = useRef<(HTMLSpanElement | null)[]>([]);
-  const placeholdersRef = useRef<(HTMLDivElement | null)[]>([]);
-  const duplicateIconsRef = useRef<HTMLElement[]>([]);
-  const textAnimationOrderRef = useRef<Array<{ segment: HTMLElement; originalIndex: number }>>([]);
-  const scrollTriggerContextRef = useRef<gsap.Context | null>(null);
-  const [scrollLength, setScrollLength] = useState(6);
+
+  const progressRef = useRef(0);
+  const contextRef = useRef<gsap.Context | null>(null);
+
   const [showStaticLayout, setShowStaticLayout] = useState(false);
 
   // Hero photos: 6 points with captions
@@ -81,526 +89,255 @@ export default function VenueHeroScrollAnimation() {
     }
   }, []);
 
-  // Determine scroll length based on viewport
+  // Main scroll animation setup — single timeline, like About page
   useEffect(() => {
-    const updateScrollLength = () => {
-      setScrollLength(window.innerWidth < 768 ? 4 : 6);
-    };
-    updateScrollLength();
-    window.addEventListener("resize", updateScrollLength);
-    return () => window.removeEventListener("resize", updateScrollLength);
-  }, []);
+    if (showStaticLayout || !heroSectionRef.current || !stageRef.current) return;
 
-  useEffect(() => {
-    if (showStaticLayout || !heroSectionRef.current) return;
-
-    const textSegments = textSegmentsRef.current.filter(Boolean) as HTMLElement[];
-    const animationOrder: Array<{ segment: HTMLElement; originalIndex: number }> = [];
-
-    textSegments.forEach((segment, index) => {
-      animationOrder.push({ segment, originalIndex: index });
-    });
-
-    // Fisher-Yates shuffle for random text fade-in order
-    for (let i = animationOrder.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [animationOrder[i], animationOrder[j]] = [animationOrder[j], animationOrder[i]];
+    // Kill previous context
+    if (contextRef.current) {
+      contextRef.current.revert();
     }
 
-    textAnimationOrderRef.current = animationOrder;
+    contextRef.current = gsap.context(() => {
+      const isMobile = window.innerWidth < 768;
+      const runway = runwayRef.current;
+      const stage = stageRef.current;
 
-    // Compute scale based on viewport
-    const isMobile = window.innerWidth < 768;
-    const headerIconSize = isMobile ? 35 : 60;
-    const currentIconSize = iconElementsRef.current[0]?.getBoundingClientRect().width || 1;
-    const exactScale = headerIconSize / currentIconSize;
+      if (!runway || !stage) return;
 
-    // Use gsap.context() to isolate this animation's ScrollTriggers
-    const ctx = gsap.context(() => {
-      const trigger = ScrollTrigger.create({
-        trigger: heroSectionRef.current!,
-        start: "top top",
-        end: `+=${window.innerHeight * scrollLength}px`,
-        pin: true,
-        pinSpacing: true,
-        scrub: 1,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          const progress = self.progress;
+      // Measure positions relative to pinned stage
+      const stageRect = stage.getBoundingClientRect();
+      const thumbnailPositions: ThumbnailPosition[] = [];
+      const headlineBounds: Array<{ x: number; y: number; width: number; height: number }> = [];
 
-          // Reset all text opacity
-          textSegments.forEach((segment) => {
-            gsap.set(segment, { opacity: 0 });
+      // Initial thumbnail positions (at bottom of screen)
+      thumbnailsRef.current.forEach((thumb, i) => {
+        if (thumb) {
+          const rect = thumb.getBoundingClientRect();
+          thumbnailPositions.push({
+            x: rect.left - stageRect.left,
+            y: rect.top - stageRect.top,
+            scale: 1,
           });
+        }
+      });
 
-          // Phase 1: Header moves up and fades out, icons move down
-          if (progress < 0.3) {
-            const moveProgress = progress / 0.3;
-            const containerMoveY = -window.innerHeight * 0.3 * moveProgress;
+      // Target headline placeholder positions
+      headlinePlaceholdersRef.current.forEach((placeholder) => {
+        if (placeholder) {
+          const rect = placeholder.getBoundingClientRect();
+          headlineBounds.push({
+            x: rect.left - stageRect.left,
+            y: rect.top - stageRect.top,
+            width: rect.width,
+            height: rect.height,
+          });
+        }
+      });
 
-            if (progress < 0.15) {
-              const headerProgress = progress / 0.15;
-              gsap.set(heroHeaderRef.current, {
-                transform: `translateY(${-50 * headerProgress}px)`,
-                opacity: 1 - headerProgress,
-              });
-            } else {
-              gsap.set(heroHeaderRef.current, {
-                transform: "translateY(-50px)",
-                opacity: 0,
-              });
-            }
-
-            // Clean up duplicate icons from previous phase
-            duplicateIconsRef.current.forEach((d) => d.parentNode?.removeChild(d));
-            duplicateIconsRef.current = [];
-
-            gsap.set(animatedIconsRef.current, {
-              x: 0,
-              y: containerMoveY,
-              scale: 1,
-              opacity: 1,
-            });
-
-            // Icons follow the container movement
-            iconElementsRef.current.forEach((icon, index) => {
-              if (icon) {
-                const staggerDelay = index * 0.1;
-                const iconProgress = gsap.utils.mapRange(
-                  staggerDelay,
-                  staggerDelay + 0.5,
-                  0,
-                  1,
-                  moveProgress
-                );
-                const clamped = Math.max(0, Math.min(1, iconProgress));
-                gsap.set(icon, {
-                  x: 0,
-                  y: (-containerMoveY) * (1 - clamped),
-                });
-              }
-            });
-
-            // Fade out scroll hint
-            gsap.set(".hero-scroll-hint", {
-              opacity: Math.max(0, 1 - moveProgress * 10),
-            });
-
-            // Phase 2: Icons scale to center
-          } else if (progress < 0.6) {
-            const scaleProgress = (progress - 0.3) / 0.3;
-
-            gsap.set(heroHeaderRef.current, {
-              transform: "translateY(-50px)",
-              opacity: 0,
-            });
-
-            duplicateIconsRef.current.forEach((d) => d.parentNode?.removeChild(d));
-            duplicateIconsRef.current = [];
-
-            const containerRect = animatedIconsRef.current!.getBoundingClientRect();
-            const deltaX =
-              (window.innerWidth / 2 -
-                (containerRect.left + containerRect.width / 2)) *
-              scaleProgress;
-            const deltaY =
-              (window.innerHeight / 2 -
-                (containerRect.top + containerRect.height / 2)) *
-              scaleProgress;
-
-            gsap.set(animatedIconsRef.current, {
-              x: deltaX,
-              y: -window.innerHeight * 0.3 + deltaY,
-              scale: 1 + (exactScale - 1) * scaleProgress,
-              opacity: 1,
-            });
-
-            iconElementsRef.current.forEach((icon) => {
-              if (icon) gsap.set(icon, { x: 0, y: 0 });
-            });
-
-            // Phase 3: Icons move to placeholder positions
-          } else if (progress < 0.75) {
-            const moveProgress = (progress - 0.6) / 0.15;
-
-            gsap.set(heroHeaderRef.current, {
-              transform: "translateY(-50px)",
-              opacity: 0,
-            });
-
-            const containerRect = animatedIconsRef.current!.getBoundingClientRect();
-            const deltaX =
-              window.innerWidth / 2 -
-              (containerRect.left + containerRect.width / 2);
-            const deltaY =
-              window.innerHeight / 2 -
-              (containerRect.top + containerRect.height / 2);
-
-            gsap.set(animatedIconsRef.current, {
-              x: deltaX,
-              y: -window.innerHeight * 0.3 + deltaY,
-              scale: exactScale,
-              opacity: 0,
-            });
-
-            iconElementsRef.current.forEach((icon) => {
-              if (icon) gsap.set(icon, { x: 0, y: 0 });
-            });
-
-            // Create duplicate icons positioned absolutely
-            if (duplicateIconsRef.current.length === 0) {
-              iconElementsRef.current.forEach((icon) => {
-                if (icon) {
-                  const duplicate = icon.cloneNode(true) as HTMLElement;
-                  duplicate.className = "duplicate-icon";
-                  Object.assign(duplicate.style, {
-                    position: "fixed",
-                    width: headerIconSize + "px",
-                    height: headerIconSize + "px",
-                    zIndex: "40",
-                    pointerEvents: "none",
-                  });
-                  document.body.appendChild(duplicate);
-                  duplicateIconsRef.current.push(duplicate);
-                }
-              });
-            }
-
-            // Animate duplicates to placeholders
-            duplicateIconsRef.current.forEach((duplicate, index) => {
-              if (index < placeholdersRef.current.length) {
-                const iconRect =
-                  iconElementsRef.current[index]!.getBoundingClientRect();
-                const startPageX =
-                  iconRect.left + iconRect.width / 2 + window.pageXOffset;
-                const startPageY =
-                  iconRect.top + iconRect.height / 2 + window.pageYOffset;
-
-                const targetRect = placeholdersRef.current[index]!.getBoundingClientRect();
-                const targetPageX =
-                  targetRect.left + targetRect.width / 2 + window.pageXOffset;
-                const targetPageY =
-                  targetRect.top + targetRect.height / 2 + window.pageYOffset;
-
-                const moveX = targetPageX - startPageX;
-                const moveY = targetPageY - startPageY;
-
-                let currentX = 0;
-                let currentY =
-                  moveProgress < 0.5
-                    ? moveY * (moveProgress / 0.5)
-                    : moveY;
-                if (moveProgress >= 0.5) {
-                  currentX = moveX * ((moveProgress - 0.5) / 0.5);
-                }
-
-                duplicate.style.left =
-                  startPageX + currentX - headerIconSize / 2 + "px";
-                duplicate.style.top =
-                  startPageY + currentY - headerIconSize / 2 + "px";
-                duplicate.style.opacity = "1";
-                duplicate.style.display = "flex";
-              }
-            });
-
-            // Phase 4: Text fades in
-          } else {
-            gsap.set(heroHeaderRef.current, {
-              transform: "translateY(-100px)",
-              opacity: 0,
-            });
-            gsap.set(animatedIconsRef.current, { opacity: 0 });
-
-            // Position duplicates at final placeholder locations
-            duplicateIconsRef.current.forEach((duplicate, index) => {
-              if (index < placeholdersRef.current.length) {
-                const targetRect = placeholdersRef.current[index]!.getBoundingClientRect();
-                const targetPageX =
-                  targetRect.left + targetRect.width / 2 + window.pageXOffset;
-                const targetPageY =
-                  targetRect.top + targetRect.height / 2 + window.pageYOffset;
-                duplicate.style.left =
-                  targetPageX - headerIconSize / 2 + "px";
-                duplicate.style.top =
-                  targetPageY - headerIconSize / 2 + "px";
-                duplicate.style.opacity = "1";
-                duplicate.style.display = "flex";
-              }
-            });
-
-            // Fade in text segments in random order
-            textAnimationOrderRef.current.forEach((item, randomIndex) => {
-              const segStart = 0.75 + randomIndex * 0.03;
-              const segProgress = gsap.utils.mapRange(
-                segStart,
-                segStart + 0.015,
-                0,
-                1,
-                progress
-              );
-              gsap.set(item.segment, {
-                opacity: Math.max(0, Math.min(1, segProgress)),
-              });
-            });
-          }
+      // Create ONE timeline driven by ScrollTrigger scrub
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: runway,
+          start: "top top",
+          end: `+=${window.innerHeight * (isMobile ? 5 : 6)}px`,
+          scrub: 0.6, // Match About page
+          pin: stage,
+          pinSpacing: false,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            progressRef.current = self.progress;
+          },
         },
       });
 
-      return () => {
-        trigger.kill();
-      };
-    }, heroSectionRef);
+      // PHASE 0 (0-0.15): Scroll hint fades, chevron animates
+      timeline.to(
+        ".hero-scroll-hint",
+        { opacity: 0, duration: 0.15, ease: "none" },
+        0
+      );
 
-    scrollTriggerContextRef.current = ctx;
+      // PHASE 1 (0.15-0.4): Thumbnails move to headline placeholders
+      // Stagger by 0.05 timeline duration = smoother wave
+      thumbnailsRef.current.forEach((thumb, i) => {
+        if (thumb && headlineBounds[i]) {
+          const targetX = headlineBounds[i].x + headlineBounds[i].width / 2 - thumbnailPositions[i].x;
+          const targetY = headlineBounds[i].y + headlineBounds[i].height / 2 - thumbnailPositions[i].y;
+
+          timeline.to(
+            thumb,
+            {
+              x: targetX,
+              y: targetY,
+              scale: 0.8,
+              opacity: 1,
+              ease: "power3.inOut",
+              duration: 0.25,
+            },
+            0.15 + i * 0.03 // Stagger by 0.03 per thumbnail
+          );
+        }
+      });
+
+      // PHASE 2 (0.4-0.75): Text segments fade in (reading order, not random)
+      textSegmentsRef.current.forEach((segment, i) => {
+        if (segment) {
+          timeline.to(
+            segment,
+            {
+              opacity: 1,
+              ease: "power2.inOut",
+              duration: 0.08,
+            },
+            0.4 + i * 0.04 // Stagger by 0.04 per segment
+          );
+        }
+      });
+
+      // PHASE 3 (0.75-1.0): Content settles
+      // (optional: scale thumbnails down further, fade others, etc.)
+
+      return () => {
+        timeline.kill();
+        ScrollTrigger.getAll().forEach((st) => {
+          if (st.trigger === runway) st.kill();
+        });
+      };
+    });
 
     return () => {
-      ctx.revert();
-      duplicateIconsRef.current.forEach((d) => d.parentNode?.removeChild(d));
+      if (contextRef.current) {
+        contextRef.current.revert();
+      }
     };
-  }, [showStaticLayout, scrollLength]);
+  }, [showStaticLayout]);
 
   if (showStaticLayout) {
+    // Static fallback layout
     return (
-      <div
-        ref={containerRef}
-        className="relative bg-black w-full"
-        style={{ minHeight: "100svh" }}
-      >
-        {/* Static layout for reduced motion */}
-        <div className="absolute inset-0 overflow-hidden">
-          <img
-            src={heroPhotos[0].src}
-            alt={heroPhotos[0].alt}
-            className="w-full h-full object-cover"
-          />
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.75))",
-            }}
-          />
-        </div>
-
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 py-12">
-          <h1 className="text-white text-3xl md:text-5xl font-black leading-tight mb-8">
-            {t("intro_title") || "場地介紹"}
-          </h1>
-          <p className="text-white/60 text-sm md:text-base mb-12 tracking-widest">
-            SPACE INFINITY · SPACE ETERNITY
-          </p>
-
-          <div className="space-y-4 max-w-2xl">
-            {headlines.map((headline, i) => (
-              <p
-                key={i}
-                className="text-white/90 text-sm md:text-base leading-relaxed"
-                style={{
-                  textWrap: "balance",
-                  lineBreak: "strict",
-                }}
-              >
-                {headline}
-              </p>
-            ))}
+      <section ref={heroSectionRef} className="relative w-full h-screen bg-black overflow-hidden">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center text-white">
+            <h1 className="text-4xl font-bold mb-4">{t("title") || "SPACE8 場地介紹"}</h1>
+            <p className="text-lg opacity-75">{captions.join(" • ")}</p>
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div ref={containerRef} className="relative w-full bg-black">
-      <style jsx>{`
-        @keyframes crossfade {
-          0% {
-            opacity: 0;
-          }
-          5% {
-            opacity: 1;
-          }
-          30% {
-            opacity: 1;
-          }
-          35% {
-            opacity: 0;
-          }
-          100% {
-            opacity: 0;
-          }
-        }
-
-        @keyframes pulse-chevron {
-          0%,
-          100% {
-            transform: translateY(0);
-            opacity: 0.6;
-          }
-          50% {
-            transform: translateY(6px);
-            opacity: 1;
-          }
-        }
-
-        .hero-photo {
-          animation: crossfade 19.2s linear infinite;
-        }
-
-        .hero-scroll-hint {
-          animation: pulse-chevron 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-          transition: opacity 0.3s ease;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .hero-photo {
-            animation: none !important;
-          }
-          .hero-scroll-hint {
-            animation: none !important;
-            opacity: 0.6 !important;
-          }
-        }
-      `}</style>
-
-      <section
-        ref={heroSectionRef}
-        className="relative w-full bg-black"
-        style={{ height: "100svh" }}
-        data-nav-theme="dark"
+    <>
+      {/* Runway: tall enough to give GSAP scroll room */}
+      <div
+        ref={runwayRef}
+        style={{ height: "600svh" }}
+        className="relative bg-black"
       >
-        {/* Slideshow layer */}
-        <div className="absolute inset-0 overflow-hidden">
-          {heroPhotos.map((photo, i) => (
-            <div
-              key={i}
-              className="hero-photo absolute inset-0"
+        {/* Sticky stage — GSAP pins it */}
+        <div
+          ref={stageRef}
+          className="sticky top-0 w-full h-[100svh] overflow-hidden bg-black"
+        >
+          {/* Hero section container */}
+          <section
+            ref={heroSectionRef}
+            className="relative w-full h-full flex flex-col items-center justify-center"
+            data-cms-key="venue_hero_section"
+          >
+            {/* Top fade overlay */}
+            <div className="pointer-events-none absolute top-0 left-0 right-0 z-10"
               style={{
-                backgroundImage: `url(${photo.src})`,
-                backgroundSize: "cover",
-                backgroundPosition:
-                  i === 0 ? "center 30%" : i === 1 ? "center 60%" : "center",
-                animation: `crossfade 19.2s ${i * 3.2}s linear infinite`,
-                opacity: i === 0 ? 1 : 0,
+                height: "10%",
+                background: "linear-gradient(to bottom, #000000, rgba(0,0,0,0))",
               }}
-              role="img"
-              aria-label={photo.alt}
             />
-          ))}
-        </div>
 
-        {/* Dark gradient overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.75))",
-          }}
-        />
+            {/* Hero content: thumbnails + headline placeholders */}
+            <div className="relative w-full h-full flex flex-col items-center justify-center px-4">
+              {/* Carousel carousel — visible at scroll start */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-75">
+                <div className="text-6xl font-bold text-white/20">SPACE8</div>
+              </div>
 
-        {/* Caption label (fades with photo) */}
-        <div className="absolute bottom-12 left-6 md:bottom-16 md:left-8 z-20">
-          <p
-            className="text-white/70 text-xs md:text-sm font-label tracking-widest"
-            style={{
-              opacity: 1,
-              transition: "opacity 3.2s linear",
-            }}
-          >
-            {captions[0]}
-          </p>
-        </div>
+              {/* Thumbnail row — starts at bottom, animates to headline */}
+              <div
+                ref={thumbnailRowRef}
+                className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-4 z-20"
+              >
+                {heroPhotos.map((photo, i) => (
+                  <div
+                    key={i}
+                    ref={(el) => { thumbnailsRef.current[i] = el; }}
+                    className="relative w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden flex-shrink-0 bg-gray-900"
+                    style={{
+                      opacity: 0.7,
+                      transform: "scale(1) translateX(0) translateY(0)",
+                    }}
+                  >
+                    <img
+                      src={photo.src}
+                      alt={photo.alt}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
 
-        {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
-          <p className="text-white/50 text-xs font-label tracking-widest hero-scroll-hint">
-            {t("scroll_hint") || "向下滑動"}
-          </p>
-          <ChevronDown className="w-4 h-4 text-white/50 hero-scroll-hint" />
-        </div>
-
-        {/* Header (fades out early) */}
-        <div
-          ref={heroHeaderRef}
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6"
-        >
-          <h1 className="text-white text-4xl md:text-6xl font-black leading-tight mb-3">
-            {t("intro_title") || "場地介紹"}
-          </h1>
-          <p className="text-white/60 text-xs md:text-sm font-label tracking-widest">
-            SPACE INFINITY · SPACE ETERNITY
-          </p>
-        </div>
-
-        {/* Thumbnail row (bottom, scales up and flies to text) */}
-        <div
-          ref={animatedIconsRef}
-          className="fixed bottom-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1 w-[90%] md:w-[80%] max-w-2xl"
-          style={{ pointerEvents: "none" }}
-        >
-          {heroPhotos.map((_, index) => (
-            <div
-              key={index}
-              ref={(el) => {
-                iconElementsRef.current[index] = el;
-              }}
-              className="flex-1 aspect-square rounded-lg md:rounded-xl overflow-hidden bg-gray-900 border border-white/10"
-              style={{
-                willChange: "transform, opacity",
-              }}
-            >
-              <img
-                src={heroPhotos[index].src}
-                alt={heroPhotos[index].alt}
-                className="w-full h-full object-cover"
-                loading={index === 0 ? "eager" : "lazy"}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Main headline with embedded placeholders */}
-        <div className="absolute inset-0 z-10 flex items-center justify-center px-6">
-          <h2
-            className="text-white text-2xl md:text-5xl font-black leading-tight text-center max-w-4xl"
-            style={{
-              textWrap: "balance",
-              lineBreak: "strict",
-            }}
-          >
-            {headlines.map((headline, i) => (
-              <span key={i}>
-                <span
-                  ref={(el) => {
-                    textSegmentsRef.current[i] = el;
-                  }}
-                  className="text-segment opacity-0"
-                  style={{
-                    transition: "opacity 0.3s ease",
-                  }}
-                >
-                  {headline}
-                </span>
-                <div
-                  ref={(el) => {
-                    placeholdersRef.current[i] = el;
-                  }}
-                  className="placeholder-icon mx-1 md:mx-2 md:my-1 w-6 h-6 md:w-12 md:h-12 inline-block align-middle rounded-lg overflow-hidden border border-white/10"
-                  style={{
-                    willChange: "transform, opacity",
-                  }}
-                >
-                  <img
-                    src={heroPhotos[i].src}
-                    alt={heroPhotos[i].alt}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
+              {/* Headline area with text segments and placeholders */}
+              <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-3xl px-4 z-20">
+                <div className="space-y-6 md:space-y-8">
+                  {headlines.map((headline, i) => (
+                    <div key={i} className="relative">
+                      {/* Placeholder marker for thumbnail endpoint (invisible) */}
+                      <div
+                        ref={(el) => { headlinePlaceholdersRef.current[i] = el; }}
+                        className="absolute w-1 h-1 pointer-events-none"
+                        style={{
+                          left: "0",
+                          top: "50%",
+                          transform: "translate(-20px, -50%)",
+                        }}
+                      />
+                      {/* Text segment */}
+                      <span
+                        ref={(el) => { textSegmentsRef.current[i] = el; }}
+                        className="block text-2xl md:text-3xl font-bold text-white opacity-0"
+                        data-cms-key={`venue_hero_segment_${i}`}
+                      >
+                        {headline}
+                      </span>
+                      {/* Caption */}
+                      <span className="block text-sm md:text-base text-white/60 mt-1">
+                        {captions[i]}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </span>
-            ))}
-          </h2>
+              </div>
+
+              {/* Scroll hint */}
+              <div className="hero-scroll-hint absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-20 opacity-100">
+                <span className="text-sm text-white/60 uppercase tracking-widest">
+                  {t("scroll_hint") || "向下滑動"}
+                </span>
+                <div className="animate-bounce">
+                  <ChevronDown className="w-6 h-6 text-green-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom fade overlay */}
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10"
+              style={{
+                height: "22%",
+                background: "linear-gradient(to bottom, rgba(0,0,0,0), #000000)",
+              }}
+            />
+          </section>
         </div>
-      </section>
-    </div>
+      </div>
+    </>
   );
 }

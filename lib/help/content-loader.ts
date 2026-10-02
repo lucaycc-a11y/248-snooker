@@ -177,6 +177,31 @@ export async function getAnnouncement(id: string, locale: string = 'zh-Hant'): P
 }
 
 /**
+ * Gets all topic IDs for static generation.
+ */
+export async function getAllTopics(): Promise<string[]> {
+  const content = await getHelpContent('zh-Hant')
+  return Object.keys(content.topics_data)
+}
+
+/**
+ * Gets all article IDs for a topic for static generation.
+ */
+export async function getAllArticles(topicId: string): Promise<string[]> {
+  const topicData = await getTopicData(topicId, 'zh-Hant')
+  if (!topicData) return []
+  return topicData.articles.filter((a) => a.published).map((a) => a.id)
+}
+
+/**
+ * Gets all announcement IDs for static generation.
+ */
+export async function getAllAnnouncementIds(): Promise<string[]> {
+  const announcements = await getAnnouncements('zh-Hant')
+  return announcements.map((a) => a.id)
+}
+
+/**
  * Gets all searchable content (articles + announcements).
  */
 export async function getSearchableContent(

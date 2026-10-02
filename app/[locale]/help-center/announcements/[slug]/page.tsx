@@ -1,10 +1,22 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getHelpContent } from '@/lib/help/content-loader'
+import { getHelpContent, getAllAnnouncementIds } from '@/lib/help/content-loader'
 import { HelpAnnouncementPage } from '@/components/help/HelpAnnouncementPage'
 
 interface Props {
   params: { locale: string; slug: string }
+}
+
+export async function generateStaticParams() {
+  const announcementIds = await getAllAnnouncementIds()
+  const locales = ['zh-HK', 'zh-CN', 'en', 'ja']
+
+  return locales.flatMap((locale) =>
+    announcementIds.map((slug) => ({
+      locale,
+      slug,
+    }))
+  )
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

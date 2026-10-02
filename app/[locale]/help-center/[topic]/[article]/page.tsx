@@ -1,10 +1,26 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getArticle, getTopicData } from '@/lib/help/content-loader'
+import { getArticle, getTopicData, getAllTopics, getAllArticles } from '@/lib/help/content-loader'
 import { HelpArticlePage } from '@/components/help/HelpArticlePage'
 
 interface Props {
   params: { locale: string; topic: string; article: string }
+}
+
+export async function generateStaticParams() {
+  const topics = await getAllTopics()
+  const locales = ['zh-HK', 'zh-CN', 'en', 'ja']
+
+  const params = []
+  for (const topic of topics) {
+    const articles = await getAllArticles(topic)
+    for (const locale of locales) {
+      for (const article of articles) {
+        params.push({ locale, topic, article })
+      }
+    }
+  }
+  return params
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
