@@ -9,6 +9,7 @@ import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
 import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
 import Reveal2 from "@/components/ui/reveal2";
+import { AppleCarouselCentered } from "@/components/ui/apple-cards-carousel-centered";
 import {
   Target,
   Lightbulb,
@@ -231,6 +232,28 @@ const SITE_CSS = `
   .room-comparison-row:last-child .room-comparison-value:last-child {
     border-bottom: none;
   }
+}
+
+/* ===== OTHER FACILITIES (04) ===== */
+.other-facilities-section {
+  background: #000000;
+  padding: 120px 24px;
+}
+.other-facilities-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.other-facilities-heading {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 64px;
+  text-align: center;
+  line-height: 1.2;
+}
+@media (max-width: 640px) {
+  .other-facilities-section { padding: 80px 24px; }
+  .other-facilities-heading { margin-bottom: 48px; }
 }
 
 /* ===== BELOW HERO ===== */
@@ -1472,6 +1495,52 @@ export default function VenueContent() {
               }}
             />
           </div>
+        </div>
+      </section>
+
+      {/* ── 04: 其他設施 carousel ── */}
+      <section className="other-facilities-section">
+        <div className="other-facilities-inner">
+          <h2 className="other-facilities-heading">其他設施</h2>
+          <AppleCarouselCentered
+            slides={[
+              {
+                title: "休息區梳化",
+                desc: "柔軟座椅，讓你與朋友在局與局之間輕鬆休息。",
+                src: "/images/sofa-lounge-中八桌球-香港新蒲崗.webp",
+                alt: "休息區梳化",
+                aspectRatio: "4 / 3",
+                objectFit: "cover",
+              },
+              {
+                title: "球桿架",
+                desc: "整齊擺放球桿，隨時取用，保持空間整潔。",
+                src: "/images/cue-stand-中八桌球-香港新蒲崗.webp",
+                alt: "球桿架設施",
+                aspectRatio: "3 / 4",
+                objectFit: "cover",
+              },
+              {
+                title: "Space Pilot 智能計分",
+                desc: "自動記錄賽果，輕鬆追蹤每一局進度。",
+                src: "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp",
+                alt: "Space Pilot 智能計分系統",
+                aspectRatio: "16 / 9",
+                objectFit: "cover",
+              },
+              {
+                title: "專業球臺細節",
+                desc: "星牌頂級桌面，提供穩定準確的擊球體驗。",
+                src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
+                alt: "專業球臺特寫",
+                aspectRatio: "3 / 2",
+                objectFit: "cover",
+              },
+            ]}
+            aspectRatio="3 / 4"
+            viewDetailsLabel="查看詳情"
+            closeLabel="關閉"
+          />
         </div>
       </section>
 
