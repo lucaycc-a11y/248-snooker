@@ -7,14 +7,6 @@ import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { getConfig } from "@/lib/data";
 
 // ── Heavy scroll animation components (lazy load) ───────────────────────────
-const ScrollChoreographyWrapper = dynamic(
-  () => import("@/components/venue/ScrollChoreographyWrapper"),
-  {
-    ssr: true,
-    loading: () => <div className="h-screen bg-black" /> // Preserve layout
-  }
-);
-
 const VenueContent = dynamic(
   () => import("./VenueContent"),
   { ssr: true }
@@ -106,7 +98,6 @@ export default async function VenuePage({
     <main className="relative bg-black">
       <Nav />
       <script type="application/ld+json">{safeJsonLd(jsonLd)}</script>
-      <ScrollChoreographyWrapper />
       <VenueContent />
       <Footer />
       <WhatsAppButton />
