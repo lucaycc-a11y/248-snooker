@@ -31,7 +31,7 @@ import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
 import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
-import SpaceWalletInput, { type WalletResult } from "@/components/checkout/SpaceWalletInput"
+import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/CheckoutWalletRow"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
@@ -2356,19 +2356,12 @@ function Screen3({
 
             {/* Space Wallet row — under promo code, mutually exclusive */}
             <div style={{ margin: "16px 0" }}>
-              <SpaceWalletInput
+              <CheckoutWalletRow
                 originalTotal={subtotal}
                 walletBalance={walletBalance}
                 onApply={onWalletChange}
                 onRemove={() => onWalletChange(null)}
                 activeWallet={walletApplied}
-                labels={{
-                  balanceLabel: t("wallet_balance_label") || "Space Wallet 可用餘額",
-                  applyButton: t("wallet_apply") || "套用",
-                  removeLink: t("wallet_remove") || "移除",
-                  appliedLabel: t("wallet_applied") || "已套用 Space Wallet",
-                  insufficientLabel: t("wallet_insufficient") || "Space Wallet 餘額不足",
-                }}
               />
             </div>
 

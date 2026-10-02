@@ -82,5 +82,14 @@
     "duration": "時長",
     "paid": "已付",
     "payment": "付款"
+  },
+  "checkout": {
+    "wallet": {
+      "applied": "已套用 Space Wallet",
+      "balance": "Space Wallet 可用餘額",
+      "apply": "套用",
+      "remove": "移除",
+      "insufficient": "Space Wallet 餘額不足"
+    }
   }
 }
