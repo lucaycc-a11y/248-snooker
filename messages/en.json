@@ -2314,8 +2314,8 @@
   "memberIntro": {
     "hero": {
       "eyebrow": "SPACE8 MEMBERSHIP",
-      "title": "Spend and earn. Points are money",
-      "subtitle": "Earn 1 point per HK$1 spent. Redeem 100 points for HK$10 venue credit. New members get 100 points welcome bonus.",
+      "title": "One membership. Every door open.",
+      "subtitle": "Earn 1 point per HK$1 spent. New members get 100 welcome points.",
       "ctaPrimary": "Join Now",
       "ctaSecondary": "Sign In",
       "note": "A membership is required for every booking."
@@ -2325,8 +2325,8 @@
       "body": "HK$1 = 1 point, auto-accumulated"
     },
     "pillar2": {
-      "lead": "Points are money",
-      "body": "100 points = HK$10 venue credit"
+      "lead": "Points that pay",
+      "body": "100 points = HK$10 venue credit, coming soon."
     },
     "pillar3": {
       "lead": "New member bonus",
@@ -2349,14 +2349,14 @@
       },
       "stat2": {
         "value": "100 pts = HK$10",
-        "label": "Redeemable for HK$10 venue credit",
+        "label": "per 100 points (coming soon)",
         "unit": "credit"
       },
       "stat3": {
         "value": "100 pts",
         "label": "New member welcome bonus"
       },
-      "comingSoon": "Points redemption coming soon"
+      "comingSoon": "Point redemption is coming soon"
     },
     "safety": {
       "title": "Safety & Support",
