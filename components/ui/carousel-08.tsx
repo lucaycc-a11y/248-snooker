@@ -15,6 +15,7 @@ interface CardItem {
   id: string;
   category?: string;
   title: ReactNode;
+  titleFont?: string;
   src: string;
   alt?: string;
   desc?: string;
@@ -93,7 +94,10 @@ const AppleCardCarousel = ({ cards, heading }: AppleCardCarouselProps) => {
                       {card.category}
                     </p>
                   )}
-                  <p className="text-2xl sm:text-3xl font-medium tracking-tight leading-tight">
+                  <p
+                    className="text-2xl sm:text-3xl font-medium tracking-tight leading-tight"
+                    style={card.titleFont ? { fontFamily: card.titleFont } : undefined}
+                  >
                     {card.title}
                   </p>
                 </div>
