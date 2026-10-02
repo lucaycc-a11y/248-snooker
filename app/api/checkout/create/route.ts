@@ -105,13 +105,18 @@ async function handleCheckoutCreate(req: Request) {
 
     const paymentMethod = method as PaymentMethod
 
-    // Discount selection. Promo code and points are mutually exclusive —
-    // prepare_checkout rejects the combination rather than silently dropping one.
+    // Discount selection. Promo code, points, and wallet credits are mutually exclusive —
+    // prepare_checkout rejects combinations rather than silently dropping one.
     const promoCode = typeof body?.promoCode === 'string' ? body.promoCode : null
     const rawPoints = body?.pointsAmount
     const pointsAmount = typeof rawPoints === 'number' ? rawPoints : Number(rawPoints ?? 0)
     if (!Number.isInteger(pointsAmount) || pointsAmount < 0) {
       return NextResponse.json({ error: 'Invalid pointsAmount' }, { status: 400 })
+    }
+    const rawWallet = body?.walletAmount
+    const walletAmount = typeof rawWallet === 'number' ? rawWallet : Number(rawWallet ?? 0)
+    if (!Number.isInteger(walletAmount) || walletAmount < 0) {
+      return NextResponse.json({ error: 'Invalid walletAmount' }, { status: 400 })
     }
 
     // ── UAT-ONLY PayMe test simulation selector ─────────────────────────────
@@ -348,6 +353,7 @@ async function handleCheckoutCreate(req: Request) {
         userId: user.id,
         promoCode,
         pointsAmount,
+        walletAmount,
         quotedTotal: totalAmount,
         isTest: isTest,
         durationHours: totalDurationHours,
@@ -479,6 +485,7 @@ async function handleCheckoutCreate(req: Request) {
       userId: user.id,
       promoCode,
       pointsAmount,
+      walletAmount,
       quotedTotal: booking.total_price,
       // The stored flag wins here: this booking may have been created on UAT (or
       // flagged by an admin) and is merely being resumed. Falling back to the
@@ -539,6 +546,7 @@ async function prepareForCheckout(args: {
   userId: string
   promoCode: string | null
   pointsAmount: number
+  walletAmount: number
   quotedTotal: number
   /** Server-derived test flag. When false the UAT override is never consulted. */
   isTest: boolean
@@ -548,7 +556,7 @@ async function prepareForCheckout(args: {
   bookingIds: string[]
 }): Promise<{ total: number } | { error: Response }> {
   const {
-    service, bookingId, userId, promoCode, pointsAmount, quotedTotal,
+    service, bookingId, userId, promoCode, pointsAmount, walletAmount, quotedTotal,
     isTest, durationHours, bookingIds,
   } = args
 
@@ -557,6 +565,7 @@ async function prepareForCheckout(args: {
     userId,
     promoCode,
     points: pointsAmount,
+    walletAmount,
   })
 
   if (!outcome.ok) {

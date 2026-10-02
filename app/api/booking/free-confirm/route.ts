@@ -31,7 +31,7 @@ function isValidBlock(b: unknown): b is Block {
   )
 }
 
-// POST /api/booking/free-confirm  { blocks: [...], promoCode }
+// POST /api/booking/free-confirm  { blocks: [...], promoCode, walletAmount }
 //
 // The self-serve zero-amount path. Neither Stripe nor KPay accepts a 0-amount
 // order, so a promo that covers the full subtotal cannot go through
@@ -40,7 +40,7 @@ function isValidBlock(b: unknown): b is Block {
 //
 // The amount is NEVER taken from the client. Slots are locked and priced
 // server-side, then prepare_checkout re-derives the subtotal, reserves the promo
-// usage, and writes the discounted total onto every row. Only if it reports
+// usage or wallet credits, and writes the discounted total onto every row. Only if it reports
 // total === 0 do we confirm; any other total means this request does not belong
 // on this route and the caller is sent back to the payment flow.
 export async function POST(req: Request) {
@@ -68,14 +68,15 @@ export async function POST(req: Request) {
       ? (body.blocks as unknown[]).filter(isValidBlock)
       : []
     const promoCode = typeof body?.promoCode === 'string' ? body.promoCode.trim() : ''
+    const walletAmount = typeof body?.walletAmount === 'number' && body.walletAmount > 0 ? body.walletAmount : 0
 
     if (blocks.length === 0) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
-    // A zero total can only come from a discount. Without a code there is nothing
+    // A zero total can only come from a discount or wallet. Without either there is nothing
     // that could have brought the price to 0, so this is a malformed request.
-    if (!promoCode) {
-      return NextResponse.json({ error: 'promo_code_required' }, { status: 400 })
+    if (!promoCode && walletAmount === 0) {
+      return NextResponse.json({ error: 'promo_code_or_wallet_required' }, { status: 400 })
     }
 
     console.log('[free-confirm] attempt', { userId: user.id, blocks: blocks.length })
@@ -171,12 +172,13 @@ export async function POST(req: Request) {
 
     const primaryBookingId = bookingIds[0]
 
-    // Reserve the promo and write the discounted total onto every row. This is the
+    // Reserve the promo/wallet and write the discounted total onto every row. This is the
     // ONLY authority on the amount — the client's claim of a $0 total is ignored.
     const outcome = await prepareCheckout(service, {
       bookingId: primaryBookingId,
       userId: user.id,
       promoCode,
+      walletAmount,
       points: 0,
     })
     if (!outcome.ok) {

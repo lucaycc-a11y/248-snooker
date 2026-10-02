@@ -72,6 +72,10 @@ type Props = {
    * prepare_checkout; the amount KPay charges comes back from that RPC, never
    * from this component. */
   pointsAmount?: number
+  /** Space Wallet credits to use, 0 = none. Re-validated and reserved server-side by
+   * prepare_checkout; the amount KPay charges comes back from that RPC, never
+   * from this component. */
+  walletAmount?: number
   /** Resume an in-progress payment after page refresh — skip order creation and
    * restore the existing bookingId/orderNo directly. */
   resumeBookingId?: string
@@ -236,6 +240,7 @@ export default function KPayPayment(props: Props) {
     resumeBookingId, resumeOrderNo, onBackToMethods, onSuccess,
   } = props
   const pointsAmount = props.pointsAmount ?? 0
+  const walletAmount = props.walletAmount ?? 0
 
   // ── UAT-ONLY PayMe test simulation selector ───────────────────────────────
   // Prefer the parent prop (from pre-checkout modal); fall back to URL param.
@@ -316,6 +321,9 @@ export default function KPayPayment(props: Props) {
       }
       if (pointsAmount > 0) {
         body.pointsAmount = pointsAmount
+      }
+      if (walletAmount > 0) {
+        body.walletAmount = walletAmount
       }
       // UAT-ONLY: include PayMe test simulation selector when present in URL
       if (uatPaymeSimulation) {
@@ -454,7 +462,7 @@ export default function KPayPayment(props: Props) {
       creatingRef.current = false
       setCreating(false)
     }
-  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode, pointsAmount, uatPaymeSimulation])
+  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode, pointsAmount, walletAmount, uatPaymeSimulation])
 
   const cancelBooking = useCallback(async () => {
     if (actionBusy) return
@@ -628,6 +636,7 @@ export default function KPayPayment(props: Props) {
           orderGroupId: resumeOrderNo ? undefined : localOrderGroupId,
         }
         if (pointsAmount > 0) body.pointsAmount = pointsAmount
+        if (walletAmount > 0) body.walletAmount = walletAmount
         // UAT-ONLY: include PayMe test simulation selector when present in URL
         if (uatPaymeSimulation) {
           body.uat_payme = uatPaymeSimulation

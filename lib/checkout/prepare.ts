@@ -74,18 +74,19 @@ export function prepareFailureStatus(reason: string): number {
   return 500
 }
 
-// Calls prepare_checkout and narrows its jsonb payload. Promo code and points are
-// mutually exclusive — the RPC rejects the combination rather than silently
+// Calls prepare_checkout and narrows its jsonb payload. Promo code, points, and wallet
+// credits are mutually exclusive — the RPC rejects combinations rather than silently
 // dropping one, so pass at most one of them.
 export async function prepareCheckout(
   service: ServiceClient,
-  args: { bookingId: string; userId: string; promoCode?: string | null; points?: number },
+  args: { bookingId: string; userId: string; promoCode?: string | null; points?: number; walletAmount?: number },
 ): Promise<PrepareCheckoutOutcome> {
   const { data, error } = await service.rpc('prepare_checkout', {
     p_booking_id: args.bookingId,
     p_user_id: args.userId,
     p_promo_code: args.promoCode && args.promoCode.trim() ? args.promoCode.trim().toUpperCase() : null,
     p_points: args.points ?? 0,
+    p_credits: args.walletAmount ?? 0,
   })
 
   if (error) {

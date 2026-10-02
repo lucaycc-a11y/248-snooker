@@ -31,6 +31,7 @@ import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
 import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
+import SpaceWalletInput, { type WalletResult } from "@/components/checkout/SpaceWalletInput"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
@@ -1854,6 +1855,8 @@ function Screen3({
   periods,
   promoCode,
   onPromoChange,
+  walletApplied,
+  onWalletChange,
   resumeBookingId,
   resumeOrderNo,
   removeRun,
@@ -1864,6 +1867,8 @@ function Screen3({
   periods: PricingPeriod[]
   promoCode: PromoResult | null
   onPromoChange: (p: PromoResult | null) => void
+  walletApplied: WalletResult | null
+  onWalletChange: (w: WalletResult | null) => void
   resumeBookingId?: string
   resumeOrderNo?: string
   removeRun?: (run: SelectedBlock) => void
@@ -2030,6 +2035,7 @@ function Screen3({
   const isFreeCheckout = subtotal > 0 && promoCode !== null && total === 0
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
+  const [walletBalance, setWalletBalance] = useState(0)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -2040,7 +2046,7 @@ function Screen3({
       if (!user || cancelled) return
       const { data } = await supabase
         .from("users")
-        .select("display_name, email, phone")
+        .select("display_name, email, phone, p_credits")
         .eq("id", user.id)
         .maybeSingle()
       if (cancelled) return
@@ -2049,6 +2055,7 @@ function Screen3({
         email: (data?.email as string) ?? user.email ?? "",
         phone: (data?.phone as string) ?? "",
       })
+      setWalletBalance((data?.p_credits as number) ?? 0)
     })()
     return () => { cancelled = true }
   }, [])
@@ -2104,6 +2111,7 @@ function Screen3({
           tableNumber: b.tableNumber
         })),
         promoCode: promoCode?.code,
+        walletAmount: walletApplied?.amount,
       }
       const res = await fetch("/api/booking/free-confirm", {
         method: "POST",
@@ -2113,12 +2121,13 @@ function Screen3({
       const json = await res.json()
       if (!res.ok) {
         // The route re-derives the total server-side. If it no longer lands on
-        // zero, the promo does not actually cover this cart — drop the code so
+        // zero, the promo/wallet does not actually cover this cart — drop the code so
         // the payment selector comes back rather than stranding the user on a
         // free-booking CTA that can never succeed.
         if (json.error === "payment_required") {
           onPromoChange(null)
-          setFreeError(t("promo_no_longer_free") || "This promo code no longer covers the full amount. Please select a payment method.")
+          onWalletChange(null)
+          setFreeError(t("promo_no_longer_free") || "This promo code or wallet no longer covers the full amount. Please select a payment method.")
           setFreeConfirming(false)
           return
         }
@@ -2130,7 +2139,9 @@ function Screen3({
               ? t("promo_invalid")
               : reason === "min_order_not_met"
                 ? t("promo_min_cart")
-                : null
+                : reason === "insufficient_points"
+                  ? t("wallet_insufficient_credits")
+                  : null
         setFreeError(mapped || json.detail || reason || "Free booking failed")
         setFreeConfirming(false)
         return
@@ -2141,7 +2152,7 @@ function Screen3({
       setFreeError((e as Error).message)
       setFreeConfirming(false)
     }
-  }, [blocks, promoCode, agreedToTerms, flagTermsRequired, onPromoChange, t])
+  }, [blocks, promoCode, walletApplied, agreedToTerms, flagTermsRequired, onPromoChange, onWalletChange, t])
 
   return (
     <div className={`screen-content${!testMode && !confirmed ? " pay-screen" : ""}`}>
@@ -2343,6 +2354,24 @@ function Screen3({
               />
             </div>
 
+            {/* Space Wallet row — under promo code, mutually exclusive */}
+            <div style={{ margin: "16px 0" }}>
+              <SpaceWalletInput
+                originalTotal={subtotal}
+                walletBalance={walletBalance}
+                onApply={onWalletChange}
+                onRemove={() => onWalletChange(null)}
+                activeWallet={walletApplied}
+                labels={{
+                  balanceLabel: t("wallet_balance_label") || "Space Wallet 可用餘額",
+                  applyButton: t("wallet_apply") || "套用",
+                  removeLink: t("wallet_remove") || "移除",
+                  appliedLabel: t("wallet_applied") || "已套用 Space Wallet",
+                  insufficientLabel: t("wallet_insufficient") || "Space Wallet 餘額不足",
+                }}
+              />
+            </div>
+
             {/* Points earned row */}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.points_earned_label">{t("points_earned_label")}</span>
@@ -2509,6 +2538,8 @@ function Screen3({
                     }))}
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
+                    pointsAmount={0}
+                    walletAmount={walletApplied?.amount}
                     agreedToTerms={agreedToTerms}
                     uatPaymeSimulation={paymeUatSim}
                     resumeBookingId={resumeBookingId}
@@ -3292,6 +3323,7 @@ export default function BookPage() {
   const [selectedSlotsByDate, setSelectedSlotsByDate] = useState<Map<string, Set<string>>>(new Map())
   const [bookingRef] = useState(() => genRef())
   const [promoCode, setPromoCode] = useState<PromoResult | null>(null)
+  const [walletApplied, setWalletApplied] = useState<WalletResult | null>(null)
   const paymentRef = useRef<HTMLDivElement>(null)
   // Stripe and KPay external-return confirmation state.
   const [confirmBookingId, setConfirmBookingId] = useState<string | null>(null)
@@ -3350,6 +3382,17 @@ export default function BookPage() {
   useEffect(() => {
     if (promoCode) sessionStorage.removeItem('pendingPromo')
   }, [promoCode])
+
+  // Wallet and promo are mutually exclusive
+  const handlePromoChange = useCallback((promo: PromoResult | null) => {
+    setPromoCode(promo)
+    if (promo) setWalletApplied(null)
+  }, [])
+
+  const handleWalletChange = useCallback((wallet: WalletResult | null) => {
+    setWalletApplied(wallet)
+    if (wallet) setPromoCode(null)
+  }, [])
 
   // Step navigation: advance to next screen
   const advance = useCallback(() => {
@@ -3869,7 +3912,9 @@ export default function BookPage() {
                   blocks={runs}
                   periods={periods}
                   promoCode={promoCode}
-                  onPromoChange={setPromoCode}
+                  onPromoChange={handlePromoChange}
+                  walletApplied={walletApplied}
+                  onWalletChange={handleWalletChange}
                   resumeBookingId={kpayResumeData?.bookingId}
                   resumeOrderNo={kpayResumeData?.orderNo}
                   removeRun={removeRun}
