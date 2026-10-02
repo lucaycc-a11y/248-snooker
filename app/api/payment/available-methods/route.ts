@@ -17,9 +17,9 @@ export async function GET() {
   try {
     const stripe = getStripe()
 
-    // Create a test intent with HKD 1.00 to probe available methods
+    // Create a test intent with HKD 4.00 to probe available methods (Stripe minimum)
     const testIntent = await stripe.paymentIntents.create({
-      amount: 100, // HK$1.00
+      amount: 400, // HK$4.00 (Stripe minimum for HKD)
       currency: 'hkd',
       automatic_payment_methods: { enabled: true },
       metadata: { probe: 'available_methods' },
