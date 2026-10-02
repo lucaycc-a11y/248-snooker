@@ -106,19 +106,6 @@
     "popularQuestions": "よくある質問",
     "browseTopics": "トピックを閲覧"
   },
-  "creditsPage": {
-    "flap_messages": [
-      "THIS SITE WAS BUILT SOLO BY LUCA YAU",
-      "PHOTOGRAPHY & DESIGN BY MIKE LAU",
-      "3 MONTHS. 100+ HOURS.",
-      "WANT A SITE THIS GOOD?",
-      "VISIT FORMHK.COM"
-    ],
-    "main_description_line1": "このウェブサイトは Luca Yau が一人でデザインと開発を担当しました。",
-    "main_description_line2": "写真と一部のデザインは Mike Lau が担当しました。",
-    "main_description_line3": "コンセプトから公開まで、約3ヶ月、100時間以上の開発時間を投入しました。",
-    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion"
-  },
   "supportPage": {
     "back_to_support": "サポートに戻る"
   },
