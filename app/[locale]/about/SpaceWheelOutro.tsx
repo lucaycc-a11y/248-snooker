@@ -276,8 +276,8 @@ export function SpaceWheelOutro() {
               color: "#000000",
               margin: 0,
               marginTop: "clamp(12px, 1.389vw, 20px)",
-              maxWidth: "min(100%, 1200px)",
-              padding: "0 24px",
+              width: "calc(100% - 48px)",
+              maxWidth: "1200px",
             }}
           >
             {/* Line 1: first clause normal weight, 隨時隨地開局。bold */}
@@ -302,8 +302,8 @@ export function SpaceWheelOutro() {
               justifyContent: "center",
               gap: "clamp(24px, 5.556vw, 96px)",
               marginTop: "clamp(28px, 2.5vw, 48px)",
-              maxWidth: "min(100%, 1200px)",
-              padding: "0 24px",
+              width: "calc(100% - 48px)",
+              maxWidth: "1200px",
             }}
           >
             {steps.map((step, i) => (
@@ -349,8 +349,8 @@ export function SpaceWheelOutro() {
               alignItems: "center",
               gap: "clamp(12px, 1.2vw, 20px)",
               marginTop: "clamp(32px, 3.5vw, 64px)",
-              maxWidth: "min(100%, 1200px)",
-              padding: "0 24px",
+              width: "calc(100% - 48px)",
+              maxWidth: "1200px",
               flexWrap: "wrap",
             }}
           >
