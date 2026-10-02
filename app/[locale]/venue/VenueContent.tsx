@@ -1062,10 +1062,18 @@ export default function VenueContent() {
   useEffect(() => {
     const fetchPricing = async () => {
       try {
-        const res = await fetch("/api/config");
+        const res = await fetch("/api/pricing");
         if (res.ok) {
           const data = await res.json();
-          setPeriods(data.pricing_periods || []);
+          const formattedPeriods = data.periods.map((period: any) => ({
+            name: period.name,
+            tagline: period.tagline,
+            time: `${period.startTime} – ${period.endTime}`,
+            rate: period.rate,
+            memberRate: period.memberRate,
+            bestValue: period.bestValue,
+          }));
+          setPeriods(formattedPeriods);
         }
       } catch (err) {
         console.error("Failed to fetch pricing:", err);

@@ -10,7 +10,7 @@ function localePath(locale: string, path: string): string {
 }
 
 // Full 4-locale + x-default hreflang alternates for a given root path (e.g.
-// '/', '/pricing'). Previously only zh-HK + a nonstandard 'en-HK' code were
+// '/', '/book'). Previously only zh-HK + a nonstandard 'en-HK' code were
 // listed here, missing zh-CN/ja entirely despite LOCALES covering all 4 —
 // inconsistent with the per-page generateMetadata functions.
 function alternatesFor(path: string) {
@@ -56,7 +56,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     staticEntry('/', 'weekly', 1, now),
     staticEntry('/book', 'daily', 0.9, now),
-    staticEntry('/pricing', 'weekly', 0.8, now),
     staticEntry('/venue', 'monthly', 0.7, now),
     staticEntry('/membership', 'monthly', 0.7, now),
     staticEntry('/about', 'monthly', 0.6, now),

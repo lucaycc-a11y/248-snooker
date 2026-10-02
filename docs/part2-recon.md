@@ -263,8 +263,27 @@
 
 ---
 
+## 9. Stage 0 & Hotfix Status (Applied)
+
+### Stage 0 — Paid-only bookings
+✅ **DONE:** Member booking API filters to `status = 'confirmed'` only; excludes `payment_method = 'test'` in production.
+
+### Hotfix — Broken readers applied
+✅ **DONE:** Deleted `/pricing` route (deleted app/[locale]/pricing/ directory)
+✅ **DONE:** Removed secondary CTA button from About page (SpaceWheelOutro.tsx)
+✅ **DONE:** Fixed `lib/uat/test-pricing.ts` — `getActiveTestPrice()` returns null (uat_test_pricing archived)
+✅ **DONE:** Fixed `app/api/checkout/redeem-points/route.ts` — handles missing points_holds table
+✅ **BUILD:** `npm run build` passes; `npx tsc --noEmit` passes
+
+### Verified readers removed/fixed
+- ✅ `/pricing` route deleted (L3 recon: metadata generation removed)
+- ✅ `/pricing` link in About removed (L1 recon: SpaceWheelOutro.tsx secondary button)
+- ✅ `uat_test_pricing` queries stopped (lib/uat/test-pricing.ts, app/api/checkout/redeem-points/)
+- ✅ `points_holds` queries stopped (app/api/checkout/redeem-points/)
+- ⚠️ **Still to fix (WS-A in Stage 3):** `rateFrom2h` removal from pricing display, `config.pricing` reads in lib/pricing.ts, lib/seo/jsonLd.ts, lib/help/config-loader.ts
+
 ## Gate 1 Status
 
-✅ **GATE PASSED** — Complete map of pricing displays, config readers, removed tables, and `/pricing` references documented.
+✅ **GATE PASSED** — Complete recon map + Stage 0 hotfix applied.
 
-**Blocker for Stage 2:** None. Proceed to Stage 2 Foundation.
+**Next:** Stage 2 Foundation (shared data layer, types, tests)
