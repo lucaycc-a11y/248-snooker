@@ -130,7 +130,7 @@ const SITE_CSS = `
   gap: 28px;
 }
 .facility-card {
-  border-radius: 18px;
+  border-radius: 20px;
   background: #1d1d1f;
   border: 1px solid rgba(255,255,255,0.12);
   padding: 40px 32px;
@@ -285,7 +285,7 @@ const SITE_CSS = `
   position: relative;
   background: #ffffff;
   border: 1px solid rgba(17,17,16,0.10);
-  border-radius: 18px;
+  border-radius: 20px;
   padding: 30px 26px 28px;
   box-shadow: 0 1px 2px rgba(17,17,16,0.04);
   opacity: 0;
@@ -311,7 +311,7 @@ const SITE_CSS = `
   box-shadow: 0 18px 40px -18px rgba(17,17,16,0.28);
 }
 .service-step {
-  font-family: 'JetBrains Mono', 'Noto Sans TC', monospace;
+  font-family: 'Courier New', monospace;
   font-size: 11px;
   letter-spacing: 0.14em;
   color: rgba(17,17,16,0.35);
@@ -739,7 +739,7 @@ const SITE_CSS = `
   .rate-section { padding: 80px 20px 96px; }
   .rate-layout { gap: 32px; }
   .rate-sub { font-size: 14px; margin-bottom: 24px; }
-  .rate-row { grid-template-columns: 1fr; gap: 0; padding: 24px; border-radius: 18px; /* ignore-value design-system-radius 18px */ border: 1px solid rgba(17,17,16,0.10); margin-bottom: 16px; }
+  .rate-row { grid-template-columns: 1fr; gap: 0; padding: 24px; border-radius: 20px; border: 1px solid rgba(17,17,16,0.10); margin-bottom: 16px; }
   .rate-row + .rate-row { border-top: 1px solid rgba(17,17,16,0.10); }
   .rate-row.is-best { border-color: rgba(26,157,92,0.35); }
   .rate-row.is-best::before { width: 100%; height: 3px; top: 0; bottom: auto; }
@@ -1030,7 +1030,7 @@ const SITE_CSS = `
 }
 @media (max-width: 560px) {
   .dir-section { padding: 80px 24px 96px; }
-  .dir-card { padding: 24px; border-radius: 18px; }
+  .dir-card { padding: 24px; border-radius: 20px; }
   .dir-header { gap: 12px; margin-bottom: 20px; }
   .dir-pin { width: 30px; height: 30px; }
   .dir-map { border-radius: 16px; }
