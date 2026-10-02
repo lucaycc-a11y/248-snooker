@@ -1098,8 +1098,8 @@ export default function VenueContent() {
                 desc: t("other_facilities_pilot_desc"),
                 src: "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp",
                 alt: "Space Pilot 智能計分系統",
-                aspectRatio: "16 / 9",
-                objectFit: "cover",
+                aspectRatio: "4 / 3",
+                objectFit: "contain",
               },
               {
                 title: t("other_facilities_table_title"),
@@ -1107,6 +1107,14 @@ export default function VenueContent() {
                 src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
                 alt: "專業球臺特寫",
                 aspectRatio: "3 / 2",
+                objectFit: "cover",
+              },
+              {
+                title: t("other_facilities_room_title"),
+                desc: t("other_facilities_room_desc"),
+                src: "/images/venue-page-infinity.jpg",
+                alt: "Space Infinity 包廂",
+                aspectRatio: "16 / 9",
                 objectFit: "cover",
               },
             ]}
