@@ -4,7 +4,6 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
 import {
-  parsePointsRules,
   prepareCheckout,
   prepareFailureStatus,
 } from '@/lib/checkout/prepare'

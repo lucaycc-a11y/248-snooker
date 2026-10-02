@@ -15,7 +15,7 @@ export type PreparedCheckout = {
   subtotal: number
   discountAmount: number
   total: number
-  kind: 'promo' | 'points' | 'none'
+  kind: 'promo' | 'points' | 'credits' | 'none'
   code: string | null
   points: number
 }
@@ -41,8 +41,8 @@ function asFiniteNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-function asKind(value: unknown): 'promo' | 'points' | 'none' {
-  return value === 'promo' || value === 'points' ? value : 'none'
+function asKind(value: unknown): 'promo' | 'points' | 'credits' | 'none' {
+  return value === 'promo' || value === 'points' || value === 'credits' ? value : 'none'
 }
 
 // Reasons that mean "the customer can fix this by choosing differently" (400)
@@ -52,6 +52,9 @@ const CLIENT_CORRECTABLE = new Set([
   'discounts_mutually_exclusive',
   'invalid_points',
   'insufficient_points',
+  'insufficient_credits',
+  'invalid_credits',
+  'credits_redemption_retired',
   'user_not_found',
   'invalid',
   'inactive',
@@ -159,17 +162,3 @@ export async function releaseCheckoutHolds(
 // and never a separate table.
 export type PointsRule = { points: number; discount: number }
 
-export function parsePointsRules(value: unknown): PointsRule[] {
-  if (!Array.isArray(value)) return []
-  const rules: PointsRule[] = []
-  for (const entry of value) {
-    const row = asRecord(entry)
-    if (!row) continue
-    const points = asFiniteNumber(row.points)
-    const discount = asFiniteNumber(row.discount)
-    if (points === null || discount === null) continue
-    if (points <= 0 || discount < 0) continue
-    rules.push({ points: Math.trunc(points), discount: Math.trunc(discount) })
-  }
-  return rules.sort((a, b) => a.points - b.points)
-}

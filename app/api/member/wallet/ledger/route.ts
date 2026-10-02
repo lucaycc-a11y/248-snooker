@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     // Fetch user's current wallet balance
     const { data: userData, error: userDataError } = await supabase
       .from('users')
-      .select('p_credits')
+      .select('credits')
       .eq('id', user.id)
       .single()
 
@@ -24,12 +24,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 })
     }
 
-    const balance = userData?.p_credits ?? 0
+    const balance = userData?.credits ?? 0
 
-    // Fetch ledger entries, newest first
+    // Fetch ledger entries with booking details, newest first
     const { data: ledger, error: ledgerError } = await supabase
       .from('credits_ledger')
-      .select('id, type, amount, balance_after, created_at, reference, description')
+      .select('id, type, amount, balance_after, created_at, reference_id, note, booking_id, bookings(id, date, start_time, period)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(100)

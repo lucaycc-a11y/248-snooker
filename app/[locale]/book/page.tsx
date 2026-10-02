@@ -2046,7 +2046,7 @@ function Screen3({
       if (!user || cancelled) return
       const { data } = await supabase
         .from("users")
-        .select("display_name, email, phone, p_credits")
+        .select("display_name, email, phone, credits")
         .eq("id", user.id)
         .maybeSingle()
       if (cancelled) return
@@ -2055,7 +2055,7 @@ function Screen3({
         email: (data?.email as string) ?? user.email ?? "",
         phone: (data?.phone as string) ?? "",
       })
-      setWalletBalance((data?.p_credits as number) ?? 0)
+      setWalletBalance((data?.credits as number) ?? 0)
     })()
     return () => { cancelled = true }
   }, [])

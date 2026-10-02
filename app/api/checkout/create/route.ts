@@ -87,9 +87,17 @@ async function handleCheckoutCreate(req: Request) {
     }
     const method = body?.method as string | undefined
     const mode: 'qr' | 'h5' = body?.mode === 'h5' ? 'h5' : 'qr'
-    const returnUrl = typeof body?.returnUrl === 'string' && /^https?:\/\//i.test(body.returnUrl)
+    // Restrict returnUrl to NEXT_PUBLIC_SITE_URL only (no open redirects)
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://space8.com.hk'
+    const returnUrl = typeof body?.returnUrl === 'string' && body.returnUrl.startsWith(siteUrl)
       ? body.returnUrl
       : undefined
+    if (typeof body?.returnUrl === 'string' && !body.returnUrl.startsWith(siteUrl)) {
+      return NextResponse.json(
+        { error: 'Invalid returnUrl domain' },
+        { status: 400 },
+      )
+    }
 
     // ── Explicit deny: Apple Pay / Google Pay are UI-only "coming soon" ────
     if (method === 'apple_pay' || method === 'google_pay') {
@@ -105,19 +113,11 @@ async function handleCheckoutCreate(req: Request) {
 
     const paymentMethod = method as PaymentMethod
 
-    // Discount selection. Promo code, points, and wallet credits are mutually exclusive —
+    // Discount selection. Promo code and wallet credits are mutually exclusive —
     // prepare_checkout rejects combinations rather than silently dropping one.
     const promoCode = typeof body?.promoCode === 'string' ? body.promoCode : null
-    const rawPoints = body?.pointsAmount
-    const pointsAmount = typeof rawPoints === 'number' ? rawPoints : Number(rawPoints ?? 0)
-    if (!Number.isInteger(pointsAmount) || pointsAmount < 0) {
-      return NextResponse.json({ error: 'Invalid pointsAmount' }, { status: 400 })
-    }
-    const rawWallet = body?.walletAmount
-    const walletAmount = typeof rawWallet === 'number' ? rawWallet : Number(rawWallet ?? 0)
-    if (!Number.isInteger(walletAmount) || walletAmount < 0) {
-      return NextResponse.json({ error: 'Invalid walletAmount' }, { status: 400 })
-    }
+    const useWallet = body?.useWallet === true
+
 
     // ── UAT-ONLY PayMe test simulation selector ─────────────────────────────
     // Read from request body: "success" or "fail". Only meaningful for PayMe
@@ -352,8 +352,7 @@ async function handleCheckoutCreate(req: Request) {
         bookingId: bookingIds[0],
         userId: user.id,
         promoCode,
-        pointsAmount,
-        walletAmount,
+        useWallet,
         quotedTotal: totalAmount,
         isTest: isTest,
         durationHours: totalDurationHours,
@@ -484,8 +483,7 @@ async function handleCheckoutCreate(req: Request) {
       bookingId,
       userId: user.id,
       promoCode,
-      pointsAmount,
-      walletAmount,
+      useWallet,
       quotedTotal: booking.total_price,
       // The stored flag wins here: this booking may have been created on UAT (or
       // flagged by an admin) and is merely being resumed. Falling back to the
@@ -545,8 +543,7 @@ async function prepareForCheckout(args: {
   bookingId: string
   userId: string
   promoCode: string | null
-  pointsAmount: number
-  walletAmount: number
+  useWallet: boolean
   quotedTotal: number
   /** Server-derived test flag. When false the UAT override is never consulted. */
   isTest: boolean
@@ -556,7 +553,7 @@ async function prepareForCheckout(args: {
   bookingIds: string[]
 }): Promise<{ total: number } | { error: Response }> {
   const {
-    service, bookingId, userId, promoCode, pointsAmount, walletAmount, quotedTotal,
+    service, bookingId, userId, promoCode, useWallet, quotedTotal,
     isTest, durationHours, bookingIds,
   } = args
 
@@ -564,8 +561,7 @@ async function prepareForCheckout(args: {
     bookingId,
     userId,
     promoCode,
-    points: pointsAmount,
-    walletAmount,
+    walletAmount: useWallet ? quotedTotal : 0,
   })
 
   if (!outcome.ok) {
