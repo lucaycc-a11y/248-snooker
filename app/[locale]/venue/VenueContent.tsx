@@ -3,10 +3,11 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { motion, useScroll, useTransform, useMotionValueEvent } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
+import VenueHeroScroll from "@/components/venue/VenueHeroScroll";
 import {
   Target,
   Lightbulb,
@@ -50,88 +51,8 @@ const SERVICE_ICON_CLASSES = ['si-badge', 'si-click', 'si-cal', 'si-message'];
 
 type TitledItem = { title: string; body: string };
 
-/* ── Injected CSS matching reference HTML exactly ── */
+/* ── Injected CSS ── */
 const SITE_CSS = `
-/* ===== VIDEO HERO (scroll-scrub) ===== */
-.hero-video-wrapper {
-  position: relative;
-  height: 400vh;
-}
-.hero-video-sticky {
-  position: sticky;
-  top: 0;
-  height: 100dvh;
-  overflow: hidden;
-}
-.hero-video-el {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.hero-video-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  pointer-events: none;
-  padding: 0 24px;
-}
-.hero-video-overlay * { pointer-events: auto; }
-.hero-headline {
-  font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 900;
-  font-size: clamp(2.5rem, 8vw, 5.5rem);
-  line-height: 1.15;
-  letter-spacing: 0.01em;
-  color: #ffffff;
-  margin: 0;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.35);
-}
-.hero-tagline {
-  font-family: 'SF Pro Text', 'Noto Sans TC', sans-serif;
-  font-weight: 500;
-  font-size: clamp(14px, 2.5vw, 18px);
-  color: rgba(255,255,255,0.7);
-  letter-spacing: 0.04em;
-  margin: 0;
-}
-.hero-cta {
-  display: inline-block;
-  font-family: 'Noto Sans TC', sans-serif;
-  font-size: clamp(15px, 2vw, 17px);
-  font-weight: 500;
-  padding: 15px 36px;
-  border-radius: 999px;
-  background: #22C55E;
-  color: #ffffff;
-  text-decoration: none;
-  box-shadow: 0 8px 30px -8px rgba(34,197,94,0.4);
-  transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .35s ease;
-  cursor: pointer;
-}
-.hero-cta:hover { transform: translateY(-2px); box-shadow: 0 12px 36px -6px rgba(34,197,94,0.55); }
-.hero-black-overlay {
-  position: absolute;
-  inset: 0;
-  background: #000000;
-  z-index: 5;
-  pointer-events: none;
-}
-@media (max-width: 768px) {
-  .hero-video-wrapper { height: 200vh; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-video-wrapper { height: auto; }
-  .hero-video-sticky { position: relative; height: auto; min-height: 100dvh; }
-  .hero-video-el { display: block; position: relative; height: 100dvh; }
-}
-
 /* ===== BELOW HERO ===== */
 .hero-after-section {
   background: #000000;
@@ -781,11 +702,6 @@ export default function VenueContent() {
   const services = t.raw("services") as TitledItem[];
   const rules = t.raw("rules") as string[];
 
-  /* ── Video hero scroll-scrub ── */
-  const videoHeroWrapperRef = useRef<HTMLDivElement>(null);
-  const desktopVideoRef = useRef<HTMLVideoElement>(null);
-  const mobileVideoRef = useRef<HTMLVideoElement>(null);
-  const [reduceMotion, setReduceMotion] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -794,31 +710,6 @@ export default function VenueContent() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduceMotion(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setReduceMotion(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
-  const { scrollYProgress } = useScroll({
-    target: videoHeroWrapperRef,
-    offset: ["start start", "end end"],
-  });
-
-  // Desktop scroll scrub: seek video directly on the animation frame.
-  // Framer Motion's on("change") already fires on the rAF loop, so wrapping
-  // in another requestAnimationFrame only adds a frame of seek latency,
-  // making the scrub feel one frame behind the finger. Direct seek = fluid.
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-    const activeVideo = isDesktop ? desktopVideoRef.current : mobileVideoRef.current;
-    if (activeVideo && activeVideo.duration) {
-      activeVideo.currentTime = latest * activeVideo.duration;
-    }
-  });
 
   /* ── Comparison slider (matches reference HTML exactly) ── */
   const compareRef = useRef<HTMLDivElement>(null);
@@ -981,49 +872,8 @@ export default function VenueContent() {
     <div style={{ fontFamily: FONT_FAMILY }}>
       <style>{SITE_CSS}</style>
 
-      {/* ── Video Hero: scroll-scrubbed, dual-video, white text on dark ── */}
-      <div ref={videoHeroWrapperRef} className="hero-video-wrapper" data-nav-theme="dark">
-        <div className="hero-video-sticky">
-          {/* Desktop video (hidden on mobile) */}
-          <video
-            ref={desktopVideoRef}
-            src="/video/Venue_Hero/Venue_Hero_Desktop.mp4"
-            className="hero-video-el hidden md:block"
-            muted
-            playsInline
-            preload="metadata"
-            poster="/video/Venue_Hero/Venue_Hero_Desktop_poster.jpg"
-          />
-          {/* Mobile video (hidden on desktop) */}
-          <video
-            ref={mobileVideoRef}
-            src="/video/Venue_Hero/Venue_Hero_Mobile.mp4"
-            className="hero-video-el block md:hidden"
-            muted
-            playsInline
-            preload="metadata"
-            poster="/video/Venue_Hero/Venue_Hero_Mobile_poster.jpg"
-          />
-
-          {/* Safety black overlay — fades in at the very end to guarantee a clean cut */}
-          <motion.div
-            className="hero-black-overlay"
-            style={{ opacity: useTransform(scrollYProgress, [0.97, 1], [0, 1]) }}
-          />
-
-          {/* Video fades to black at end — no text overlay needed (homepage has this hero) */}
-        </div>
-      </div>
-
-      {/* ── Below-hero content (after hero releases, before facility) ── */}
-      <section className="hero-after-section" data-nav-theme="dark">
-        <div className="hero-after-inner">
-          <h2 className="hero-after-title">自助中式桌球<br />獨立球室</h2>
-          <p className="hero-after-body">
-            獨立球室，無多餘干擾。一兩知已，一桌切磋、一段不被打斷的時間，掃碼開門，燈光為你亮起。
-          </p>
-        </div>
-      </section>
+      {/* ── New GSAP Scroll Hero ── */}
+      <VenueHeroScroll />
 
       {/* ── Facilities ── */}
       <section className="facility-section" data-nav-theme="dark">
