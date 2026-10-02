@@ -5,8 +5,6 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
-import SpacePilotSection from "@/components/landing/SpacePilotSection";
-import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
 import HomePricing from "@/components/landing/HomePricing";
 import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
 import Reveal2 from "@/components/ui/reveal2";
@@ -1188,88 +1186,6 @@ export default function VenueContent() {
       )}
 
       {/* ── Facilities (Apple 3-col) ── */}
-      <section className="facility-section" data-cms-key="facilities_section">
-        <div className="facility-inner">
-          <h2 className="facility-title" data-cms-key="facilities_title">{t("facilities_title")}</h2>
-          <div className="facility-grid">
-            {facilities.map((item, i) => {
-              const Icon = FACILITY_ICONS[i] ?? Target;
-              return (
-                <div key={item.title} className="facility-card">
-                  <div className="facility-icon">
-                    <Icon size={32} strokeWidth={1.5} />
-                  </div>
-                  <h3 data-cms-key={`facilities_${i}_title`}>{item.title}</h3>
-                  <p data-cms-key={`facilities_${i}_body`}>{item.body}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Room Comparison (Wipe Slider) ── */}
-      <section className="compare-section" data-cms-key="rooms_section">
-        <div className="compare-inner">
-          <h2 className="compare-title" data-cms-key="rooms_title">{t("rooms_title")}</h2>
-          <div className="compare-frame" ref={compareRef}>
-            <div className="compare-clip-outer">
-              <div className="compare-images">
-                <img
-                  src="/images/venue/space-infinity.jpg"
-                  alt={t("rooms.0.name")}
-                  className="compare-img-left"
-                />
-                <img
-                  src="/images/venue/space-eternity.jpg"
-                  alt={t("rooms.1.name")}
-                  className="compare-img-right"
-                />
-              </div>
-              <div
-                className="compare-clip-inner"
-                style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
-              >
-                <img
-                  src="/images/venue/space-infinity.jpg"
-                  alt={t("rooms.0.name")}
-                  className="compare-img-left"
-                />
-              </div>
-            </div>
-            <div
-              className="compare-handle"
-              style={{ left: `${sliderPos}%` }}
-              role="slider"
-              aria-valuenow={Math.round(sliderPos)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              tabIndex={0}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <polyline points="15 18 9 12 15 6" />
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </div>
-          </div>
-          <div className="compare-labels">
-            <div className="compare-label-left">
-              <p data-cms-key="rooms_0_name">{t("rooms.0.name")}</p>
-              <span data-cms-key="rooms_0_desc">{t("rooms.0.desc")}</span>
-            </div>
-            <div className="compare-label-right">
-              <p data-cms-key="rooms_1_name">{t("rooms.1.name")}</p>
-              <span data-cms-key="rooms_1_desc">{t("rooms.1.desc")}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── NEW: Bento-style facilities section (sofa, Aramith balls, Triangle chalk) ── */}
-      <VenueFacilitiesBento />
-
-      <SpacePilotSection limit={4} compact />
-
       {/* ── Info (Accordion) ── */}
       <section className="info-section" data-cms-key="info_section">
         <div className="info-inner">
