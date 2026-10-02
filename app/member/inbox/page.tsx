@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { motion } from 'framer-motion'
 import { Inbox } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Inbox Page — Member notifications with Realtime
@@ -25,6 +26,7 @@ type Notification = {
 }
 
 export default function InboxPage() {
+  const t = useTranslations()
   const supabase = createClient()
   const [userId, setUserId] = useState<string | null>(null)
   const [displayedNotifications, setDisplayedNotifications] = useState<Notification[]>([])
@@ -122,7 +124,7 @@ export default function InboxPage() {
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
               <Inbox className="h-10 w-10 text-white/30" strokeWidth={1.5} />
             </div>
-            <p className="mt-4 text-white/60">暫無通知</p>
+            <p className="mt-4 text-white/60">{t('inbox.empty_state')}</p>
           </div>
         ) : (
           <>
@@ -134,7 +136,7 @@ export default function InboxPage() {
                   disabled={isMarkingAll}
                   className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
                 >
-                  {isMarkingAll ? '處理中...' : '全部標為已讀'}
+                  {isMarkingAll ? t('common.loading') || '處理中...' : t('inbox.mark_all_read')}
                 </button>
               </div>
             )}
@@ -158,7 +160,7 @@ export default function InboxPage() {
                   disabled={page === 1}
                   className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
                 >
-                  上一頁
+                  {t('pagination.previous')}
                 </button>
                 <span className="text-sm text-white/60">
                   {page} / {totalPages}
@@ -168,7 +170,7 @@ export default function InboxPage() {
                   disabled={page === totalPages}
                   className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
                 >
-                  下一頁
+                  {t('pagination.next')}
                 </button>
               </div>
             )}
@@ -189,10 +191,11 @@ type NotificationCardProps = {
 }
 
 function NotificationCard({ notification, onMarkRead }: NotificationCardProps) {
+  const t = useTranslations()
   const isUnread = !notification.read
   const isCreditType = notification.type === 'credit'
 
-  const relativeTime = formatRelativeTime(new Date(notification.createdAt))
+  const relativeTime = formatRelativeTime(new Date(notification.createdAt), t)
 
   const content = (
     <div className={`rounded-2xl border p-4 transition-all ${
@@ -214,7 +217,7 @@ function NotificationCard({ notification, onMarkRead }: NotificationCardProps) {
             onClick={onMarkRead}
             className="ml-4 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/10"
           >
-            標記為已讀
+            {t('inbox.mark_as_read')}
           </button>
         )}
       </div>
@@ -244,7 +247,7 @@ function NotificationCard({ notification, onMarkRead }: NotificationCardProps) {
 // § HELPERS
 // ────────────────────────────────────────────────────────────────────────────
 
-function formatRelativeTime(date: Date): string {
+function formatRelativeTime(date: Date, t: any): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffSecs = Math.floor(diffMs / 1000)
@@ -252,10 +255,10 @@ function formatRelativeTime(date: Date): string {
   const diffHours = Math.floor(diffMins / 60)
   const diffDays = Math.floor(diffHours / 24)
 
-  if (diffMins < 1) return '剛才'
-  if (diffMins < 60) return `${diffMins} 分鐘前`
-  if (diffHours < 24) return `${diffHours} 小時前`
-  if (diffDays < 7) return `${diffDays} 天前`
+  if (diffMins < 1) return t('time.just_now')
+  if (diffMins < 60) return t('time.minutes_ago', { count: diffMins })
+  if (diffHours < 24) return t('time.hours_ago', { count: diffHours })
+  if (diffDays < 7) return t('time.days_ago', { count: diffDays })
 
   // Fallback: formatted date
   return date.toLocaleDateString('zh-HK', {
