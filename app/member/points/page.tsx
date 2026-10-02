@@ -74,8 +74,7 @@ export default function PointsPage() {
 
       const data = (await res.json()) as PointsData
       setPointsData(data)
-
-      await loadTransactions()
+      // Transactions will be loaded by the filter effect
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
       setPointsData(null)
@@ -84,7 +83,7 @@ export default function PointsPage() {
     }
   }
 
-  const loadTransactions = useCallback(async (filterType: typeof filter = filter, resetCursor = true) => {
+  const loadTransactions = useCallback(async (filterType: typeof filter, resetCursor = true) => {
     try {
       const params = new URLSearchParams()
       if (filterType !== 'all') params.append('filter', filterType)
@@ -106,7 +105,12 @@ export default function PointsPage() {
     } catch (err) {
       console.error('Failed to load transactions:', err)
     }
-  }, [filter, cursor])
+  }, [cursor])
+
+  // Load transactions when filter changes
+  useEffect(() => {
+    loadTransactions(filter, true)
+  }, [filter, loadTransactions])
 
   const handleFilterChange = (newFilter: typeof filter) => {
     setFilter(newFilter)

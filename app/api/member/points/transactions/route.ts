@@ -54,11 +54,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 })
     }
 
+    const totalCount = count ?? 0
+    const hasMore = offset + limit < totalCount
+    const nextCursor = hasMore ? `${offset + limit}` : undefined
+
     return NextResponse.json({
       transactions: ledger ?? [],
-      count: count ?? 0,
-      limit,
-      offset,
+      hasMore,
+      nextCursor,
     })
   } catch (err) {
     console.error('[points/transactions] error:', err)
