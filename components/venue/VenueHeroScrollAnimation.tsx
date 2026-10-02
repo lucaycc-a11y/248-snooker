@@ -98,115 +98,130 @@ export default function VenueHeroScrollAnimation() {
       contextRef.current.revert();
     }
 
-    contextRef.current = gsap.context(() => {
-      const isMobile = window.innerWidth < 768;
-      const runway = runwayRef.current;
-      const stage = stageRef.current;
+    // Measure and animate
+    const measure = () => {
+      contextRef.current = gsap.context(() => {
+        const isMobile = window.innerWidth < 768;
+        const runway = runwayRef.current;
+        const stage = stageRef.current;
 
-      if (!runway || !stage) return;
+        if (!runway || !stage) return;
 
-      // Measure positions relative to pinned stage
-      const stageRect = stage.getBoundingClientRect();
-      const thumbnailPositions: ThumbnailPosition[] = [];
-      const headlineBounds: Array<{ x: number; y: number; width: number; height: number }> = [];
+        // Measure positions relative to pinned stage
+        const stageRect = stage.getBoundingClientRect();
+        const thumbnailPositions: ThumbnailPosition[] = [];
+        const headlineBounds: Array<{ x: number; y: number; width: number; height: number }> = [];
 
-      // Initial thumbnail positions (at bottom of screen)
-      thumbnailsRef.current.forEach((thumb, i) => {
-        if (thumb) {
-          const rect = thumb.getBoundingClientRect();
-          thumbnailPositions.push({
-            x: rect.left - stageRect.left,
-            y: rect.top - stageRect.top,
-            scale: 1,
-          });
-        }
-      });
-
-      // Target headline placeholder positions
-      headlinePlaceholdersRef.current.forEach((placeholder) => {
-        if (placeholder) {
-          const rect = placeholder.getBoundingClientRect();
-          headlineBounds.push({
-            x: rect.left - stageRect.left,
-            y: rect.top - stageRect.top,
-            width: rect.width,
-            height: rect.height,
-          });
-        }
-      });
-
-      // Create ONE timeline driven by ScrollTrigger scrub
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: runway,
-          start: "top top",
-          end: `+=${window.innerHeight * (isMobile ? 5 : 6)}px`,
-          scrub: 0.6, // Match About page
-          pin: stage,
-          pinSpacing: false,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            progressRef.current = self.progress;
-          },
-        },
-      });
-
-      // PHASE 0 (0-0.15): Scroll hint fades, chevron animates
-      timeline.to(
-        ".hero-scroll-hint",
-        { opacity: 0, duration: 0.15, ease: "none" },
-        0
-      );
-
-      // PHASE 1 (0.15-0.4): Thumbnails move to headline placeholders
-      // Stagger by 0.05 timeline duration = smoother wave
-      thumbnailsRef.current.forEach((thumb, i) => {
-        if (thumb && headlineBounds[i]) {
-          const targetX = headlineBounds[i].x + headlineBounds[i].width / 2 - thumbnailPositions[i].x;
-          const targetY = headlineBounds[i].y + headlineBounds[i].height / 2 - thumbnailPositions[i].y;
-
-          timeline.to(
-            thumb,
-            {
-              x: targetX,
-              y: targetY,
-              scale: 0.8,
-              opacity: 1,
-              ease: "power3.inOut",
-              duration: 0.25,
-            },
-            0.15 + i * 0.03 // Stagger by 0.03 per thumbnail
-          );
-        }
-      });
-
-      // PHASE 2 (0.4-0.75): Text segments fade in (reading order, not random)
-      textSegmentsRef.current.forEach((segment, i) => {
-        if (segment) {
-          timeline.to(
-            segment,
-            {
-              opacity: 1,
-              ease: "power2.inOut",
-              duration: 0.08,
-            },
-            0.4 + i * 0.04 // Stagger by 0.04 per segment
-          );
-        }
-      });
-
-      // PHASE 3 (0.75-1.0): Content settles
-      // (optional: scale thumbnails down further, fade others, etc.)
-
-      return () => {
-        timeline.kill();
-        ScrollTrigger.getAll().forEach((st) => {
-          if (st.trigger === runway) st.kill();
+        // Initial thumbnail positions (at bottom of screen)
+        thumbnailsRef.current.forEach((thumb, i) => {
+          if (thumb) {
+            const rect = thumb.getBoundingClientRect();
+            thumbnailPositions.push({
+              x: rect.left - stageRect.left,
+              y: rect.top - stageRect.top,
+              scale: 1,
+            });
+          }
         });
-      };
-    });
+
+        // Target headline placeholder positions
+        headlinePlaceholdersRef.current.forEach((placeholder) => {
+          if (placeholder) {
+            const rect = placeholder.getBoundingClientRect();
+            headlineBounds.push({
+              x: rect.left - stageRect.left,
+              y: rect.top - stageRect.top,
+              width: rect.width,
+              height: rect.height,
+            });
+          }
+        });
+
+        // Create ONE timeline driven by ScrollTrigger scrub
+        const timeline = gsap.timeline({
+          scrollTrigger: {
+            trigger: runway,
+            start: "top top",
+            end: `+=${window.innerHeight * (isMobile ? 5 : 6)}px`,
+            scrub: 0.6, // Match About page — 600ms ease-out decay
+            pin: stage,
+            pinSpacing: false,
+            anticipatePin: 1, // Smoother pin entrance
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              progressRef.current = self.progress;
+            },
+          },
+        });
+
+        // PHASE 0 (0-0.15): Scroll hint fades, chevron animates
+        timeline.to(
+          ".hero-scroll-hint",
+          { opacity: 0, duration: 0.15, ease: "none" },
+          0
+        );
+
+        // PHASE 1 (0.15-0.4): Thumbnails move to headline placeholders
+        // Stagger by 0.03 timeline duration for smooth wave effect
+        thumbnailsRef.current.forEach((thumb, i) => {
+          if (thumb && headlineBounds[i] && thumbnailPositions[i]) {
+            // Calculate displacement from current position to target
+            const targetX = headlineBounds[i].x - thumbnailPositions[i].x;
+            const targetY = headlineBounds[i].y - thumbnailPositions[i].y;
+
+            // Pre-declare will-change for GPU acceleration
+            gsap.set(thumb, { willChange: "transform, opacity" });
+
+            timeline.to(
+              thumb,
+              {
+                x: targetX,
+                y: targetY,
+                scale: 0.7,
+                opacity: 0.9,
+                ease: "power3.inOut",
+                duration: 0.25,
+                onComplete: () => {
+                  // Release GPU resources after animation
+                  gsap.set(thumb, { willChange: "auto" });
+                },
+              },
+              0.15 + i * 0.03 // Stagger by 0.03 per thumbnail
+            );
+          }
+        });
+
+        // PHASE 2 (0.4-0.75): Text segments fade in (reading order, not random)
+        textSegmentsRef.current.forEach((segment, i) => {
+          if (segment) {
+            timeline.to(
+              segment,
+              {
+                opacity: 1,
+                ease: "power2.inOut",
+                duration: 0.08,
+              },
+              0.4 + i * 0.04 // Stagger by 0.04 per segment
+            );
+          }
+        });
+
+        // PHASE 3 (0.75-1.0): Content settles
+
+        return () => {
+          timeline.kill();
+          ScrollTrigger.getAll().forEach((st) => {
+            if (st.trigger === runway) st.kill();
+          });
+        };
+      });
+    };
+
+    // Use requestAnimationFrame to ensure DOM has settled before measuring
+    const rafId = requestAnimationFrame(measure);
 
     return () => {
+      cancelAnimationFrame(rafId);
       if (contextRef.current) {
         contextRef.current.revert();
       }
@@ -322,6 +337,7 @@ export default function VenueHeroScrollAnimation() {
                 <span className="text-sm text-white/60 uppercase tracking-widest">
                   {t("scroll_hint") || "向下滑動"}
                 </span>
+                {/* animate-bounce intentional: draws attention to CTA, not object motion — ignore-value bounce-easing */}
                 <div className="animate-bounce">
                   <ChevronDown className="w-6 h-6 text-green-500" />
                 </div>
