@@ -650,7 +650,9 @@
     "back": "返回",
     "greeting": "你好",
     "quick_view_details": "查看詳情",
-    "sending": "發送中…"
+    "sending": "發送中…",
+    "reschedule_previous_day": "上一日",
+    "reschedule_next_day": "下一日"
   },
   "nav": {
     "home": "主頁",
@@ -1008,7 +1010,50 @@
       "whatsapp_prompt": "需要改期或退款？",
       "whatsapp_cta": "WhatsApp 聯絡我們"
     },
-    "version_label": "版本"
+    "version_label": "版本",
+    "actions": {
+      "help": {
+        "title": "幫助中心",
+        "subtitle": "Help"
+      },
+      "wallet": {
+        "title": "電子錢包",
+        "subtitle": "Wallet"
+      },
+      "points": {
+        "title": "Space Pts",
+        "subtitle": "積分"
+      },
+      "inbox": {
+        "title": "收件箱",
+        "subtitle": "Inbox"
+      }
+    },
+    "wallet_explainer": {
+      "title": "電子錢包功能",
+      "description": "我們正在開發電子錢包功能，讓您可以更方便地管理儲值和消費。",
+      "notify_label": "開放時通知我",
+      "dismiss": "知道了"
+    },
+    "bottom_links": {
+      "settings": {
+        "title": "設定",
+        "subtitle": "帳戶設定"
+      },
+      "manage": {
+        "title": "管理帳戶",
+        "subtitle": "Manage Account"
+      },
+      "safety": {
+        "title": "安全守則",
+        "subtitle": "Safety"
+      },
+      "legal": {
+        "title": "法律條款",
+        "subtitle": "Legal"
+      },
+      "version": "版本"
+    }
   },
   "faq": {
     "title": "常見問題",
@@ -1052,7 +1097,8 @@
   "common": {
     "error": "出了点問題",
     "retry": "重試",
-    "not_found": "找不到此頁面"
+    "not_found": "找不到此頁面",
+    "loading": "載入中"
   },
   "book": {
     "title": "預訂時段",
@@ -1490,16 +1536,42 @@
         "desc": "副球室，同等設備規格，專屬私密空間。"
       }
     ],
-    "pricing_title": "定價。",
-    "pricing_subtitle": "時段制，連訂更抵玩。",
+    "pricing_title": "透明實惠，按時計費。",
+    "pricing_subtitle": "無隱藏收費。連訂 2 小時或以上享 10% 優惠。",
+    "pricing_eyebrow": "定價",
     "pricing_periods": [
-      { "name": "上午", "time": "06:00–12:00", "rate": "HK$60" },
-      { "name": "下午", "time": "12:00–16:00", "rate": "HK$90" },
-      { "name": "晚間", "time": "16:00–00:00", "rate": "HK$120" },
-      { "name": "深夜", "time": "00:00–06:00", "rate": "HK$80" }
+      {
+        "name": "上午",
+        "tagline": "清醒開局，第一杆更專注。",
+        "time": "每日 06:00–12:00",
+        "rate": "HK$60",
+        "memberRate": "HK$54/小時"
+      },
+      {
+        "name": "下午",
+        "tagline": "午后慢慢打，讓節奏留給自己。",
+        "time": "每日 12:00–16:00",
+        "rate": "HK$90",
+        "memberRate": "HK$81/小時",
+        "bestValue": true
+      },
+      {
+        "name": "晚間",
+        "tagline": "燈光亮起，今晚適合一起上場。",
+        "time": "每日 16:00–00:00",
+        "rate": "HK$120",
+        "memberRate": "HK$108/小時"
+      },
+      {
+        "name": "深夜",
+        "tagline": "寧靜時刻，屬於認真玩家。",
+        "time": "每日 00:00–06:00",
+        "rate": "HK$80",
+        "memberRate": "HK$72/小時"
+      }
     ],
-    "pricing_note": "連訂 2 小時或以上享折扣。",
-    "pricing_unit": "/ 小時",
+    "pricing_note": "連訂 2 小時或以上享 10% 優惠。會員額外享受專屬優惠。",
+    "pricing_unit": "/小時",
     "info_title": "場地守則及資訊。",
     "info_sections": [
       {
@@ -1834,7 +1906,8 @@
     "record": "記錄戰绩",
     "cta_primary": "開始探索",
     "cta_secondary": "查看會員頁面",
-    "tip": "在大門或智能小管家掃描此碼即可報到。"
+    "tip": "在大門或智能小管家掃描此碼即可報到。",
+    "close": "關閉"
   },
   "homeSlogan": {
     "eyebrow": "SPACE8",

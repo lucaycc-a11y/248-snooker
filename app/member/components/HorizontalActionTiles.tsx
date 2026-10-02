@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { type ReactElement } from 'react'
 import { motion } from 'framer-motion'
 import { MessageCircle, Wallet, Gem, Inbox, CreditCard } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -16,6 +17,7 @@ type Props = {
 }
 
 export function HorizontalActionTiles({ profile }: Props) {
+  const t = useTranslations('member')
   const [walletNotifyMe, setWalletNotifyMe] = useState(false)
   const [showWalletExplainer, setShowWalletExplainer] = useState(false)
 
@@ -48,28 +50,28 @@ export function HorizontalActionTiles({ profile }: Props) {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <ActionTile
             icon={<MessageCircle className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-            title="Help"
-            subtitle="幫助中心"
+            title={t('actions.help.title')}
+            subtitle={t('actions.help.subtitle')}
             href="/member/help"
           />
           <ActionTile
             icon={<Wallet className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-            title="Wallet"
-            subtitle="即將推出"
+            title={t('actions.wallet.title')}
+            subtitle={t('actions.wallet.subtitle')}
             onClick={handleWalletClick}
             locked
             beta
           />
           <ActionTile
             icon={<Gem className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-            title="Space Pts"
-            subtitle="積分獎賞"
+            title={t('actions.points.title')}
+            subtitle={t('actions.points.subtitle')}
             href="/member/points"
           />
           <ActionTile
             icon={<Inbox className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-            title="Inbox"
-            subtitle="優惠資訊"
+            title={t('actions.inbox.title')}
+            subtitle={t('actions.inbox.subtitle')}
             href="/member/inbox"
             badge={profile.unread_notifications > 0 ? profile.unread_notifications : undefined}
           />
@@ -96,12 +98,12 @@ export function HorizontalActionTiles({ profile }: Props) {
                 <CreditCard className="h-8 w-8 text-white" strokeWidth={1.5} />
               </div>
             </div>
-            <h3 className="text-center text-xl font-bold text-white">電子錢包功能</h3>
+            <h3 className="text-center text-xl font-bold text-white">{t('wallet_explainer.title')}</h3>
             <p className="mt-2 text-center text-sm text-white/60">
-              我們正在開發全新的電子錢包功能，讓你更方便管理積分和優惠。
+              {t('wallet_explainer.description')}
             </p>
             <div className="mt-6 flex items-center justify-between rounded-xl bg-white/5 p-4">
-              <span className="text-sm text-white">開放時通知我</span>
+              <span className="text-sm text-white">{t('wallet_explainer.notify_label')}</span>
               <button
                 onClick={handleNotifyToggle}
                 className={`relative h-6 w-11 rounded-full transition-colors ${
@@ -119,7 +121,7 @@ export function HorizontalActionTiles({ profile }: Props) {
               onClick={() => setShowWalletExplainer(false)}
               className="mt-4 w-full rounded-full bg-white/10 py-3 font-code text-sm font-medium text-white transition-colors hover:bg-white/20"
             >
-              Got it
+              {t('wallet_explainer.dismiss')}
             </button>
           </motion.div>
         </motion.div>

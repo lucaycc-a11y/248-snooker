@@ -28,26 +28,24 @@ export async function GET() {
 
     const service = getServiceSupabase()
 
-    const [{ data: userRow, error: userErr }, { data: holds, error: holdsErr }, { data: configRow }] =
+    const [{ data: userRow, error: userErr }] =
       await Promise.all([
         service.from('users').select('points').eq('id', user.id).maybeSingle(),
-        service.from('points_holds').select('points').eq('user_id', user.id).eq('status', 'held'),
-        service.from('config').select('value').eq('key', 'points_redemption').maybeSingle(),
       ])
 
     if (userErr) throw new Error(`points balance lookup failed: ${userErr.message}`)
-    if (holdsErr) throw new Error(`points holds lookup failed: ${holdsErr.message}`)
 
+    // DEPRECATED: points_holds table was archived and config.points_redemption removed.
+    // Points now auto-convert in the database (100 pts → HK$10 to wallet).
+    // This endpoint remains for backwards compatibility but returns no holds and no rules.
     const balance = typeof userRow?.points === 'number' ? userRow.points : 0
-    const heldPoints = (holds ?? []).reduce(
-      (sum, row) => sum + (typeof row.points === 'number' ? row.points : 0),
-      0,
-    )
+    const heldPoints = 0 // No holds table anymore; automatic conversion in database
+    const rules: unknown[] = [] // No redemption rules; conversion is automatic
 
     return NextResponse.json({
       balance,
       available: Math.max(0, balance - heldPoints),
-      rules: parsePointsRules(configRow?.value),
+      rules,
     })
   } catch (err) {
     const e = err as Error

@@ -369,30 +369,6 @@ export function SpaceWheelOutro() {
               {t("cta_primary")}
             </Link>
 
-            <Link
-              href="/pricing"
-              className="closing-btn-secondary"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: "'Noto Sans TC', sans-serif",
-                fontWeight: 500,
-                fontSize: "clamp(0.9375rem, 1.25vw, 1.125rem)",
-                color: "rgba(0,0,0,0.71)",
-                background: "transparent",
-                borderRadius: 9999,
-                border: "1px solid rgba(0,0,0,0.43)",
-                cursor: "pointer",
-                textDecoration: "none",
-                padding: "0 clamp(1.5rem, 2vw, 1.75rem)",
-                minHeight: "clamp(48px, 3.472vw, 60px)",
-                letterSpacing: "-0.01em",
-                transition: "border-color 200ms ease, transform 200ms ease",
-              }}
-            >
-              {t("cta_secondary")}
-            </Link>
           </div>
         </div>
       </div>

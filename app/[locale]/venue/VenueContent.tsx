@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
+import { ZoomParallax } from "@/components/ui/zoom-parallax";
 import {
   Target,
   Lightbulb,
@@ -1233,6 +1234,16 @@ export default function VenueContent() {
   return (
     <div style={{ fontFamily: FONT_FAMILY }}>
       <style>{SITE_CSS}</style>
+
+      {/* ── ZoomParallax Hero: Space Infinity ── */}
+      <ZoomParallax
+        images={[
+          {
+            src: "/images/venue/space-infinity.jpg",
+            alt: t("rooms.0.name"),
+          },
+        ]}
+      />
 
       {/* ── Hero After: Intro Statement (会员页 Statements 风格) ── */}
       <section className="hero-after-section">

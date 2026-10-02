@@ -50,34 +50,16 @@ function isTestPriceRow(value: unknown): value is {
 }
 
 /**
- * Read the single active override row. Returns null when none is configured or
- * the row is malformed — callers must treat null as "use the real price".
+ * DEPRECATED: uat_test_pricing table was archived on 2026-10-02.
+ * This function now always returns null, causing test bookings to use real pricing_rates.
  *
- * `amount` is numeric in Postgres, which supabase-js may hand back as a string;
- * it is normalised to a number here so callers never do that arithmetic on text.
+ * Historical context: Previously read the single active override row. Returns null when none is
+ * configured or the row is malformed — callers treat null as "use the real price".
  */
 export async function getActiveTestPrice(service: ServiceClient): Promise<UatTestPrice | null> {
-  const { data, error } = await service
-    .from('uat_test_pricing')
-    .select('id, mode, amount, label, updated_at')
-    .eq('is_active', true)
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
-  if (error) {
-    console.error('[uat/test-pricing] active_price_lookup_failed', { message: error.message })
-    return null
-  }
-  if (!isTestPriceRow(data)) return null
-
-  const amount = typeof data.amount === 'string' ? Number(data.amount) : data.amount
-  if (!Number.isFinite(amount) || amount < 0) {
-    console.error('[uat/test-pricing] active_price_malformed_amount', { id: data.id })
-    return null
-  }
-
-  return { id: data.id, mode: data.mode, amount, label: data.label, updatedAt: data.updated_at }
+  // Table is archived; fall back to real pricing instead of trying to query it
+  console.warn('[uat/test-pricing] uat_test_pricing table was archived; using real pricing_rates instead')
+  return null
 }
 
 /** flat => the whole booking costs `amount`. per_hour => `amount` * hours. */

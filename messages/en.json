@@ -650,7 +650,9 @@
     "back": "Back",
     "greeting": "Hello",
     "quick_view_details": "View details",
-    "sending": "Sending…"
+    "sending": "Sending…",
+    "reschedule_previous_day": "Previous day",
+    "reschedule_next_day": "Next day"
   },
   "nav": {
     "home": "Home",
@@ -1008,7 +1010,50 @@
       "whatsapp_prompt": "Need to reschedule or get a refund?",
       "whatsapp_cta": "Contact us on WhatsApp"
     },
-    "version_label": "Version"
+    "version_label": "Version",
+    "actions": {
+      "help": {
+        "title": "Help",
+        "subtitle": "幫助中心"
+      },
+      "wallet": {
+        "title": "Wallet",
+        "subtitle": "電子錢包"
+      },
+      "points": {
+        "title": "Space Pts",
+        "subtitle": "Points"
+      },
+      "inbox": {
+        "title": "Inbox",
+        "subtitle": "收件箱"
+      }
+    },
+    "wallet_explainer": {
+      "title": "Wallet Feature",
+      "description": "We are developing the wallet feature to help you manage your balance and spending more conveniently.",
+      "notify_label": "Notify me when available",
+      "dismiss": "Got it"
+    },
+    "bottom_links": {
+      "settings": {
+        "title": "Settings",
+        "subtitle": "Account Settings"
+      },
+      "manage": {
+        "title": "Manage Account",
+        "subtitle": "管理帳戶"
+      },
+      "safety": {
+        "title": "Safety",
+        "subtitle": "安全守則"
+      },
+      "legal": {
+        "title": "Legal",
+        "subtitle": "法律條款"
+      },
+      "version": "Version"
+    }
   },
   "faq": {
     "title": "FAQ",
@@ -1052,7 +1097,8 @@
   "common": {
     "error": "Something went wrong",
     "retry": "Try Again",
-    "not_found": "Page not found"
+    "not_found": "Page not found",
+    "loading": "Loading"
   },
   "book": {
     "title": "Book a Session",
@@ -1490,16 +1536,42 @@
         "desc": "Secondary room, identical setup, exclusive space."
       }
     ],
-    "pricing_title": "Pricing.",
-    "pricing_subtitle": "Hourly slots. Book longer, save more.",
+    "pricing_eyebrow": "Pricing",
+    "pricing_title": "Transparent, affordable, pay by the hour.",
+    "pricing_subtitle": "No hidden fees. Book 2+ hours and get 10% off.",
     "pricing_periods": [
-      { "name": "Morning", "time": "06:00–12:00", "rate": "HK$60" },
-      { "name": "Afternoon", "time": "12:00–16:00", "rate": "HK$90" },
-      { "name": "Evening", "time": "16:00–00:00", "rate": "HK$120" },
-      { "name": "Late night", "time": "00:00–06:00", "rate": "HK$80" }
+      {
+        "name": "Morning",
+        "tagline": "Start sharp, focus on every shot.",
+        "time": "Daily 06:00–12:00",
+        "rate": "HK$60",
+        "memberRate": "HK$54/hr"
+      },
+      {
+        "name": "Afternoon",
+        "tagline": "Slow afternoon pace, your rhythm.",
+        "time": "Daily 12:00–16:00",
+        "rate": "HK$90",
+        "memberRate": "HK$81/hr",
+        "bestValue": true
+      },
+      {
+        "name": "Evening",
+        "tagline": "Lights up, perfect for a group session.",
+        "time": "Daily 16:00–00:00",
+        "rate": "HK$120",
+        "memberRate": "HK$108/hr"
+      },
+      {
+        "name": "Late night",
+        "tagline": "Quiet hours for serious players.",
+        "time": "Daily 00:00–06:00",
+        "rate": "HK$80",
+        "memberRate": "HK$72/hr"
+      }
     ],
-    "pricing_note": "Book 2+ hours and save with our multi-hour discount.",
-    "pricing_unit": "/ hour",
+    "pricing_note": "Book 2+ hours and get 10% off. Members enjoy exclusive benefits.",
+    "pricing_unit": "/hr",
     "info_title": "Rules & Info.",
     "info_sections": [
       {
@@ -1834,7 +1906,8 @@
     "record": "Game record tracking",
     "cta_primary": "Start Exploring",
     "cta_secondary": "View Member Page",
-    "tip": "Scan this code at the door or with Space Pilot to check in."
+    "tip": "Scan this code at the door or with Space Pilot to check in.",
+    "close": "Close"
   },
   "homeSlogan": {
     "eyebrow": "SPACE8",

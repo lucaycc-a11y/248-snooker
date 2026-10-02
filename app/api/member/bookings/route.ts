@@ -19,12 +19,22 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch all confirmed bookings for this user
-  const { data: bookings, error } = await supabase
+  // Fetch confirmed bookings only (status = 'confirmed')
+  // Exclude test bookings (payment_method = 'test') in production; keep them in UAT/dev
+  const isProduction = process.env.NEXT_PUBLIC_APP_ENV === 'production'
+
+  let query = supabase
     .from('bookings')
-    .select('id, table_number, date, start_time, duration_hours, total_price, human_code, status')
+    .select('id, table_number, date, start_time, duration_hours, total_price, human_code, status, payment_method')
     .eq('user_id', user.id)
-    .order('date', { ascending: false })
+    .eq('status', 'confirmed')
+
+  // Exclude test payments in production
+  if (isProduction) {
+    query = query.neq('payment_method', 'test')
+  }
+
+  const { data: bookings, error } = await query.order('date', { ascending: false })
 
   if (error) {
     console.error('[member/bookings] Query failed:', {
