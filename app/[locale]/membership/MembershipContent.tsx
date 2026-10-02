@@ -154,7 +154,7 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
               {t("hero.ctaPrimary")}
             </Link>
             <Link
-              href="/auth"
+              href="/login"
               data-cms-key="memberIntro.hero.ctaSecondary"
               className="group flex items-center gap-1 text-base font-medium text-white transition hover:text-white/80"
             >
