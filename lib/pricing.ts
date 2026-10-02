@@ -102,12 +102,6 @@ export function calculatePrice(
   const breakdown: PriceLineItem[] = []
   let subtotal = 0
 
-  // Multi-hour (contiguous-block) discount: booking 2h+ in one block bills
-  // every hour whose period defines `rateFrom2h` at that discounted rate.
-  // Each contiguous block is priced by its own calculatePrice() call, so the
-  // discount never leaks across non-contiguous slots in the same order.
-  const multiHour = durationHours >= 2
-
   const cursor = new Date(slotStart)
   for (let i = 0; i < durationHours; i++) {
     const hourOfDay = cursor.getHours()
@@ -115,9 +109,7 @@ export function calculatePrice(
     // Fall back to the cheapest configured rate if no period matches (e.g. the
     // 06:00–12:00 morning gap) so we never bill HK$0 by accident.
     const rate = period
-      ? multiHour && period.rateFrom2h !== undefined
-        ? period.rateFrom2h
-        : period.rate
+      ? period.rate
       : Math.min(...periods.map((p) => p.rate))
     subtotal += rate
     breakdown.push({
@@ -205,6 +197,15 @@ export function quoteBlockTotal(
   return calculatePrice(slotStart, slotEnd, { discount: 1, multiplier: 1 }, periods).total
 }
 
+export function quoteBlockMinPoints(
+  date: string,
+  startHour: number,
+  durationHours: number,
+  periods: PricingPeriod[] = DEFAULT_PERIODS,
+): number {
+  return quoteBlockTotal(date, startHour, durationHours, periods)
+}
+
 export type BlockPriceDetail = {
   /** What the block actually costs (multi-hour discount applied). */
   total: number
@@ -240,23 +241,6 @@ export function quoteBlockDetail(
   }))
   const baseTotal = lines.reduce((sum, l) => sum + l.baseRate, 0)
   return { total: quote.total, baseTotal, saved: Math.max(0, baseTotal - quote.total), lines }
-}
-
-/**
- * Minimum points a block will earn, shown pre-login on the slot picker where
- * the visitor's real tier multiplier isn't known yet (Amateur 1× floor —
- * Century/Maximum members earn more once signed in, per applyTierPolicy).
- * With multiplier=1, pointsEarned === total, so this is quoteBlockTotal in
- * all but name — kept as its own export so call sites read as "points", not
- * an accidental reuse of a price number.
- */
-export function quoteBlockMinPoints(
-  date: string,
-  startHour: number,
-  durationHours: number,
-  periods: PricingPeriod[] = DEFAULT_PERIODS,
-): number {
-  return quoteBlockTotal(date, startHour, durationHours, periods)
 }
 
 /** Convenience for add-ons priced from the services config (lockers, cue hire). */

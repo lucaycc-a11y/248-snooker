@@ -19,6 +19,10 @@ import { useSpaceWheelOutroAnim } from "./useSpaceWheelOutroAnim";
 // equals the visible ball diameter.
 const BALL_FILL = 0.831;
 
+// Noto Sans TC「。」has ~0.375em trailing space → optically shift left
+// to centre the visible glyph (not its bounding box).
+const TRAILING_PUNCT_COMP = "0.375em";
+
 type StepItem = { title: string; body: string };
 
 export function SpaceWheelOutro() {
@@ -89,6 +93,7 @@ export function SpaceWheelOutro() {
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
+                paddingLeft: TRAILING_PUNCT_COMP,
               }}
             >
               {/* Split by comma to center on the comma itself */}
@@ -148,6 +153,7 @@ export function SpaceWheelOutro() {
                 userSelect: "none",
                 pointerEvents: "none",
                 zIndex: 1,
+                paddingLeft: TRAILING_PUNCT_COMP,
               }}
             >
               {t("closing_headline")}
@@ -178,6 +184,7 @@ export function SpaceWheelOutro() {
                 userSelect: "none",
                 pointerEvents: "none",
                 zIndex: 1,
+                paddingLeft: TRAILING_PUNCT_COMP,
               }}
             >
               {t("closing_headline")}
@@ -234,6 +241,10 @@ export function SpaceWheelOutro() {
                   objectFit: "contain",
                   userSelect: "none",
                   pointerEvents: "none",
+                  // Override Tailwind preflight's img { max-width: 100% } to preserve
+                  // the designed 120.3% width that achieves optical centering.
+                  maxWidth: "none",
+                  maxHeight: "none",
                 }}
                 priority={false}
                 sizes="(max-width: 767px) 170px, (max-width: 1728px) 19.33vw, 334px"
@@ -268,6 +279,7 @@ export function SpaceWheelOutro() {
               marginTop: "clamp(12px, 1.389vw, 20px)",
               width: "calc(100% - 48px)",
               maxWidth: "1200px",
+              paddingLeft: TRAILING_PUNCT_COMP,
             }}
           >
             {/* Line 1: first clause normal weight, 隨時隨地開局。bold */}

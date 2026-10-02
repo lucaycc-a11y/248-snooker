@@ -409,12 +409,7 @@
     "contact_hours_label": "营业时间",
     "contact_hours": "每日 06:00 至 24:00",
     "contact_cta": "WhatsApp 联系",
-    "hero_rotating_words": [
-      "创造奇迹",
-      "独享私密",
-      "纯粹玩乐",
-      "干净舒适"
-    ],
+    "hero_rotating_words": ["创造奇迹", "独享私密", "纯粹玩乐", "干净舒适"],
     "hero_prefix": "一个",
     "hero_suffix": "的空间",
     "hero_cta_primary": "立即预订",
@@ -1537,40 +1532,9 @@
       }
     ],
     "pricing_title": "透明实惠，按时计费。",
-    "pricing_subtitle": "无隐藏收费。连订 2 小时或以上享 10% 优惠。",
+    "pricing_subtitle": "无隐藏收费。",
     "pricing_eyebrow": "定价",
-    "pricing_periods": [
-      {
-        "name": "上午",
-        "tagline": "清醒开局，第一杆更专注。",
-        "time": "每日 06:00–12:00",
-        "rate": "HK$60",
-        "memberRate": "HK$54/小时"
-      },
-      {
-        "name": "下午",
-        "tagline": "午后慢慢打，让节奏留给自己。",
-        "time": "每日 12:00–16:00",
-        "rate": "HK$90",
-        "memberRate": "HK$81/小时",
-        "bestValue": true
-      },
-      {
-        "name": "晚间",
-        "tagline": "灯光亮起，今晚适合一起上场。",
-        "time": "每日 16:00–00:00",
-        "rate": "HK$120",
-        "memberRate": "HK$108/小时"
-      },
-      {
-        "name": "深夜",
-        "tagline": "宁静时刻，属于认真玩家。",
-        "time": "每日 00:00–06:00",
-        "rate": "HK$80",
-        "memberRate": "HK$72/小时"
-      }
-    ],
-    "pricing_note": "连订 2 小时或以上享 10% 优惠。会员额外享受专属优惠。",
+    "pricing_note": "会员额外享受专属优惠。",
     "pricing_unit": "/小时",
     "info_title": "场地守则及资讯。",
     "info_sections": [
@@ -1709,12 +1673,7 @@
     "section_body": "空格"
   },
   "membershipHub": {
-    "tabs": [
-      "会员制度",
-      "会员 QR Code",
-      "智能小管家",
-      "玩法介绍"
-    ],
+    "tabs": ["会员制度", "会员 QR Code", "智能小管家", "玩法介绍"],
     "tier_title": "会员制度。",
     "tier_intro": "注册账号即自动成为标准会员，无需另外申请。",
     "tier_join_note": "注册账号即自动成为标准会员，无需另外申请，并获赠 50 积分。",
@@ -2532,5 +2491,7 @@
     },
     "footnote": "*所有预约场次之用户均需注册成为会员",
     "ctaButton": "登录会员中心"
-  }
+  },
+  "pricing_subtitle": "无隐藏收费。",
+  "pricing_note": "会员额外享受专属优惠。"
 }

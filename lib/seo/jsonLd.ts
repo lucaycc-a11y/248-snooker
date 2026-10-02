@@ -57,7 +57,6 @@ export function buildSportsClubJsonLd(locale: string, path: string) {
 type OfferPeriod = {
   id: string;
   rate: number;
-  rateFrom2h?: number;
   start: string;
   end: string;
 };
@@ -78,7 +77,7 @@ export function buildPricingOffersJsonLd(
     offers: periods.map((p) => ({
       "@type": "Offer",
       name: labels.name(p.id),
-      price: String(p.rateFrom2h ?? p.rate),
+      price: String(p.rate),
       priceCurrency: "HKD",
       description: labels.description(p),
       availability: "https://schema.org/InStock",

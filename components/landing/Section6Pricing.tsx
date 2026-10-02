@@ -199,9 +199,8 @@ export default function Section6Pricing({
 
   /* ── Best value detection (from config, not hardcoded) ────────── */
 
-  const effectiveRate = (p: PricingPeriod) => p.rateFrom2h ?? p.rate
   const bestValueId = periods.reduce(
-    (best, p) => (effectiveRate(p) < effectiveRate(best) ? p : best),
+    (best, p) => (p.rate < best.rate ? p : best),
     periods[0],
   )?.id
 
@@ -598,22 +597,8 @@ function PricingCard({
       {/* Price with Good Times font for digits */}
       <PriceDisplay value={period.rate} unit={t("per_hour")} />
 
-      {/* Member rate pill — tier-colored background */}
-      {period.rateFrom2h !== undefined ? (
-        <span
-          className="s6-deal"
-          style={{
-            background: tier.accentBg,
-            color: tier.accent,
-          }}
-          data-cms-key="pricingPage.member_price_prefix"
-        >
-          {t("member_price_prefix")}{" "}
-          <strong>{`$${Math.round(period.rateFrom2h)}`}</strong>
-        </span>
-      ) : (
-        <div className="s6-spacer" />
-      )}
+      {/* Spacer for consistent card layout */}
+      <div className="s6-spacer" />
 
       {/* CTA button — tier accent color */}
       <Link

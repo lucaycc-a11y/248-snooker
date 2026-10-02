@@ -951,10 +951,8 @@ function SelectedPicksCard({
         runs.map((r) => {
           const [, m, d] = r.date.split("-")
           const dateLabel = multiDate ? `${Number(m)}月${Number(d)}日 ` : ""
-          // Apple-style discount display: when the contiguous block earns the
-          // 2h+ rate, show the undiscounted price struck through next to the
-          // charged price, plus a "you save" line — never just the final number.
-          const detail = quoteBlockDetail(r.date, r.startHour, r.duration, periods)
+          // Calculate the total price for this block
+          const blockQuote = quoteBlockDetail(r.date, r.startHour, r.duration, periods)
           return (
             <div
               key={`${r.date}-${r.tableNumber}-${r.startHour}`}
@@ -978,23 +976,10 @@ function SelectedPicksCard({
                 </div>
                 <div style={{ color: tokens.colors.textFaint, fontSize: 12, marginTop: 3 }}>
                   {getTableName(r.tableNumber, locale)} ·{" "}
-                  {detail.saved > 0 && (
-                    <s style={{ color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
-                      <BookingPrice amount={detail.baseTotal} />
-                    </s>
-                  )}{detail.saved > 0 && " "}
                   <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                    <BookingPrice amount={detail.total} />
+                    <BookingPrice amount={blockQuote.total} />
                   </span>
                 </div>
-                {detail.saved > 0 && (
-                  <div
-                    data-cms-key="book.block_saved_badge"
-                    style={{ color: tokens.colors.textFaint, fontSize: 12, marginTop: 2 }}
-                  >
-                    {t("block_saved_badge", { hours: r.duration, saved: detail.saved })}
-                  </div>
-                )}
               </div>
               <button
                 type="button"
@@ -1365,11 +1350,8 @@ function SummaryCard({
   const endHour = single ? single.startHour + single.duration : 0
   const crossDay = endHour >= 24
 
-  // Order-wide multi-hour savings — sum of each block's (base − discounted).
-  const totalSaved = runs.reduce(
-    (sum, r) => sum + quoteBlockDetail(r.date, r.startHour, r.duration, periods).saved,
-    0,
-  )
+  // Multi-hour discount removed — no savings calculation
+  const totalSaved = 0
 
   return (
     <Card
@@ -2035,10 +2017,8 @@ function Screen3({
   const tableNumber = primary?.tableNumber ?? 0
 
   const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
-  const totalSaved = blocks.reduce(
-    (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
-    0,
-  )
+  // Multi-hour discount removed — no savings calculation
+  const totalSaved = 0
   // Apply promo discount if present
   const promoDiscount = promoCode?.discount_amount ?? 0
   const total = Math.max(0, subtotal - promoDiscount)
@@ -2220,7 +2200,7 @@ function Screen3({
           >
             {blocks.map((b) => {
               const [, m, d] = b.date.split("-")
-              const detail = quoteBlockDetail(b.date, b.startHour, b.duration, periods)
+              const blockTotal = quoteBlockTotal(b.date, b.startHour, b.duration, periods)
               const blockEnd = b.startHour + b.duration
               const displayName = getTableName(b.tableNumber, locale) ?? `${t("table_label")} #${b.tableNumber}`
               return (
@@ -2249,10 +2229,7 @@ function Screen3({
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ fontSize: 18, fontWeight: 800, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
-                      {detail.saved > 0 && (
-                        <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
-                      )}
-                      <BookingPrice amount={detail.total} />
+                      <BookingPrice amount={blockTotal} />
                     </div>
                     {removeRun && blocks.length > 1 && (
                       <button

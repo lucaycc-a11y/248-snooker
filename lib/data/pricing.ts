@@ -10,32 +10,50 @@
 export type PricingPeriod = {
   id: 'morning' | 'afternoon' | 'evening' | 'latenight'
   rate: number // HK$ per hour
-  /** Discounted per-hour rate when the contiguous block is 2h or longer.
-      Omitted = no multi-hour discount for this period. */
-  rateFrom2h?: number
   start: string // 'HH:MM'
   end: string // 'HH:MM'
   days: 'weekday' | 'weekend' | 'all'
 }
 
 /** Shape of the `pricing_rates` config key — the single source of truth for
- * per-period rates (base = 1h rate, discount = 2h+ rate). */
-export type PricingRate = { base: number; discount: number; timeRange: string }
+ * per-period rates (base = 1h rate only; no multi-hour discount). */
+export type PricingRate = { base: number; timeRange: string }
 
-export type PricingRates = Record<string, PricingRate> & {
-  season?: 'high' | 'low'
-  highSeason?: Record<string, PricingRate>
-  lowSeason?: Record<string, PricingRate>
-}
+export type PricingRates = Record<string, any>
 
 /** Convert a `pricing_rates` value to the `PricingPeriod[]` array the rest of
- * the codebase uses. */
+ * the codebase uses. Accepts only entries that are objects with numeric `base`
+ * and a "HH:MM-HH:MM" `timeRange`; ignores everything else (currency,
+ * preauth_deposit, overstay_per_15min, season keys, etc.). Never throws. */
 export function pricingRatesToPeriods(rates: PricingRates): PricingPeriod[] {
-  const activeRates = rates[rates.season === 'high' ? 'highSeason' : 'lowSeason']
-  const source = activeRates && typeof activeRates === 'object' ? activeRates : rates
+  if (!rates || typeof rates !== 'object') {
+    console.warn('[pricing] invalid rates value, using defaults')
+    return DEFAULT_PERIODS
+  }
 
-  return Object.entries(source).filter(([id]) => !['season', 'highSeason', 'lowSeason'].includes(id)).map(([id, r]) => {
-    const [start, end] = r.timeRange.split('-')
+  const periods: PricingPeriod[] = []
+
+  for (const [id, value] of Object.entries(rates)) {
+    // Skip non-object values or reserved keys
+    if (!value || typeof value !== 'object') continue
+    if (['season', 'highSeason', 'lowSeason', 'currency', 'preauth_deposit', 'overstay_per_15min'].includes(id)) {
+      continue
+    }
+
+    const r = value as Record<string, any>
+
+    // Require numeric base
+    if (typeof r.base !== 'number' || r.base <= 0) continue
+
+    // Require timeRange to match "HH:MM-HH:MM" pattern
+    if (typeof r.timeRange !== 'string') continue
+    const match = r.timeRange.match(/^(\d{2}):(\d{2})-(\d{2}):(\d{2})$/)
+    if (!match) continue
+
+    const [, startHh, startMm, endHh, endMm] = match
+    const start = `${startHh}:${startMm}`
+    const end = `${endHh}:${endMm}`
+
     const period: PricingPeriod = {
       id: id as PricingPeriod['id'],
       rate: r.base,
@@ -43,10 +61,15 @@ export function pricingRatesToPeriods(rates: PricingRates): PricingPeriod[] {
       end,
       days: 'all',
     }
-    // discount is the 2h+ multi-hour rate
-    if (r.discount !== undefined) period.rateFrom2h = r.discount
-    return period
-  })
+    periods.push(period)
+  }
+
+  if (periods.length === 0) {
+    console.warn('[pricing] no valid periods found in config, using defaults')
+    return DEFAULT_PERIODS
+  }
+
+  return periods
 }
 
 export type Tier = {
@@ -80,8 +103,8 @@ export type SiteConfig = {
 }
 
 export const DEFAULT_PERIODS: PricingPeriod[] = [
-  { id: 'morning', rate: 88, rateFrom2h: 78, start: '06:00', end: '12:00', days: 'all' },
-  { id: 'afternoon', rate: 98, rateFrom2h: 88, start: '12:00', end: '16:00', days: 'all' },
+  { id: 'morning', rate: 88, start: '06:00', end: '12:00', days: 'all' },
+  { id: 'afternoon', rate: 98, start: '12:00', end: '16:00', days: 'all' },
   { id: 'evening', rate: 108, start: '16:00', end: '24:00', days: 'all' },
 ]
 

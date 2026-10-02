@@ -1538,39 +1538,6 @@
     ],
     "pricing_eyebrow": "Pricing",
     "pricing_title": "Transparent, affordable, pay by the hour.",
-    "pricing_subtitle": "No hidden fees. Book 2+ hours and get 10% off.",
-    "pricing_periods": [
-      {
-        "name": "Morning",
-        "tagline": "Start sharp, focus on every shot.",
-        "time": "Daily 06:00–12:00",
-        "rate": "HK$60",
-        "memberRate": "HK$54/hr"
-      },
-      {
-        "name": "Afternoon",
-        "tagline": "Slow afternoon pace, your rhythm.",
-        "time": "Daily 12:00–16:00",
-        "rate": "HK$90",
-        "memberRate": "HK$81/hr",
-        "bestValue": true
-      },
-      {
-        "name": "Evening",
-        "tagline": "Lights up, perfect for a group session.",
-        "time": "Daily 16:00–00:00",
-        "rate": "HK$120",
-        "memberRate": "HK$108/hr"
-      },
-      {
-        "name": "Late night",
-        "tagline": "Quiet hours for serious players.",
-        "time": "Daily 00:00–06:00",
-        "rate": "HK$80",
-        "memberRate": "HK$72/hr"
-      }
-    ],
-    "pricing_note": "Book 2+ hours and get 10% off. Members enjoy exclusive benefits.",
     "pricing_unit": "/hr",
     "info_title": "Rules & Info.",
     "info_sections": [
@@ -1709,12 +1676,7 @@
     "section_body": "placeholder"
   },
   "membershipHub": {
-    "tabs": [
-      "Membership",
-      "QR Code",
-      "Smart Concierge",
-      "How to Play"
-    ],
+    "tabs": ["Membership", "QR Code", "Smart Concierge", "How to Play"],
     "tier_title": "Membership.",
     "tier_intro": "Every registered account automatically becomes a Standard member. No separate application is needed.",
     "tier_join_note": "Every registered account automatically becomes a Standard member, with 50 points as a welcome bonus.",
@@ -2532,5 +2494,7 @@
     },
     "footnote": "*Everyone who books a session needs to register as a member.",
     "ctaButton": "Member Centre"
-  }
+  },
+  "pricing_subtitle": "No hidden fees.",
+  "pricing_note": "Members enjoy exclusive benefits."
 }

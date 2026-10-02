@@ -93,6 +93,7 @@
     "@types/three": "^0.160.0",
     "autoprefixer": "^10.4.19",
     "happy-dom": "^20.14.5",
+    "jimp": "^1.6.1",
     "patch-package": "^8.0.1",
     "playwright": "^1.62.1",
     "postcss": "^8.4.39",

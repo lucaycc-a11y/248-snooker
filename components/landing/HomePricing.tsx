@@ -52,9 +52,8 @@ function MoonIcon() {
 export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
   const t = useTranslations("pricingPage");
 
-  const effectiveRate = (p: PricingPeriod) => p.rateFrom2h ?? p.rate;
   const bestValueId = periods.reduce(
-    (best, p) => (effectiveRate(p) < effectiveRate(best) ? p : best),
+    (best, p) => (p.rate < best.rate ? p : best),
     periods[0],
   )?.id;
 
@@ -207,23 +206,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                   </span>
                 </div>
 
-                {period.rateFrom2h !== undefined ? (
-                  <span className="price-deal" style={{
-                    display: "inline-block",
-                    background: "rgba(26,157,92,0.13)",
-                    color: "#137a46",
-                    fontFamily: FONT_FAMILY,
-                    fontSize: 12.5,
-                    fontWeight: 500,
-                    padding: "8px 14px",
-                    borderRadius: 999,
-                    marginBottom: 26,
-                  }}>
-                    {t("member_price_prefix")} <b>{fmt(period.rateFrom2h)}</b>
-                  </span>
-                ) : (
-                  <div className="price-spacer" style={{ marginBottom: 26, height: 33 }} />
-                )}
+                <div className="price-spacer" style={{ marginBottom: 26, height: 33 }} />
 
                 <Link
                   href="/book"
