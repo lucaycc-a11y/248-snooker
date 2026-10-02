@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
-import { ZoomParallax } from "@/components/ui/zoom-parallax";
+import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
 import {
   Target,
   Lightbulb,
@@ -85,6 +85,57 @@ function AccordionItem({
 
 /* ── Injected CSS ── */
 const SITE_CSS = `
+/* ===== VENUE POINTS (02) ===== */
+.venue-points-section {
+  background: #000000;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 24px;
+}
+.venue-points-inner {
+  max-width: 42rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+.venue-point {
+  text-align: center;
+  opacity: 0;
+  animation: venuePointReveal 0.8s cubic-bezier(.2,.7,.3,1) forwards;
+}
+.venue-point:nth-child(1) { animation-delay: 0.1s; }
+.venue-point:nth-child(2) { animation-delay: 0.2s; }
+.venue-point:nth-child(3) { animation-delay: 0.3s; }
+.venue-point:nth-child(4) { animation-delay: 0.4s; }
+.venue-point:nth-child(5) { animation-delay: 0.5s; }
+.venue-point-title {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  font-weight: 600;
+  color: #1a9d5c;
+  margin: 0 0 12px;
+  letter-spacing: 0.02em;
+}
+.venue-point-desc {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.4;
+  max-width: 22ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+@keyframes venuePointReveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 640px) {
+  .venue-points-section { padding: 80px 24px; }
+  .venue-points-inner { gap: 48px; }
+}
+
 /* ===== BELOW HERO ===== */
 .hero-after-section {
   background: #000000;
@@ -1243,15 +1294,34 @@ export default function VenueContent() {
     <div style={{ fontFamily: FONT_FAMILY }}>
       <style>{SITE_CSS}</style>
 
-      {/* ── ZoomParallax Hero: Space Infinity ── */}
-      <ZoomParallax
-        images={[
-          {
-            src: "/images/venue/space-infinity.jpg",
-            alt: t("rooms.0.name"),
-          },
-        ]}
-      />
+      {/* ── 01: Cinematic Orbit Hero ── */}
+      <CinematicOrbitHero />
+
+      {/* ── 02: Venue Points (member-page style) ── */}
+      <section className="venue-points-section">
+        <div className="venue-points-inner">
+          <div className="venue-point">
+            <p className="venue-point-title">專業設備</p>
+            <p className="venue-point-desc">星牌球臺與專業用球，讓每一桿都穩定準確。</p>
+          </div>
+          <div className="venue-point">
+            <p className="venue-point-title">私人包廂</p>
+            <p className="venue-point-desc">兩個獨立包廂，專心打球，不受打擾。</p>
+          </div>
+          <div className="venue-point">
+            <p className="venue-point-title">全預約制，QR 自助入場</p>
+            <p className="venue-point-desc">網上預訂，掃碼開門，簡單安全。</p>
+          </div>
+          <div className="venue-point">
+            <p className="venue-point-title">無煙乾淨</p>
+            <p className="venue-point-desc">全場禁煙，空間整潔清新。</p>
+          </div>
+          <div className="venue-point">
+            <p className="venue-point-title">舒適自在</p>
+            <p className="venue-point-desc">空間寬敞，與朋友從容開局。</p>
+          </div>
+        </div>
+      </section>
 
       {/* ── Hero After: Intro Statement (会员页 Statements 风格) ── */}
       <section className="hero-after-section">
