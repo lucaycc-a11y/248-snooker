@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback, createContext, useContext } from "react";
 import { useTranslations } from "next-intl";
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import styles from "./FacilitiesCarousel.module.css";
+import Image from "next/image";
 
 const FACILITY_IMAGES = [
   "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
@@ -19,385 +19,179 @@ const FACILITY_CATEGORIES = [
   "categories.entry",
 ] as const;
 
-const AUTOPLAY_INTERVAL = 5000;
-
 type Facility = {
   title: string;
   body: string;
 };
 
-type CarouselContextType = {
-  activeIndex: number;
-  handlePrev: () => void;
-  handleNext: () => void;
-  scrollToCard: (index: number) => void;
-  setActiveIndex: (index: number) => void;
-};
-
-const CarouselContext = createContext<CarouselContextType | null>(null);
-
-function useCarouselContext() {
-  const ctx = useContext(CarouselContext);
-  if (!ctx) throw new Error("Carousel components must be used within CarouselContext");
-  return ctx;
-}
-
-function CarouselArrows() {
-  const { handlePrev, handleNext } = useCarouselContext();
-
-  return (
-    <div className={styles.arrows}>
-      <button
-        type="button"
-        className={styles.arr}
-        onClick={handlePrev}
-        aria-label="上一項"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M15 18l-6-6 6-6"/>
-        </svg>
-      </button>
-      <button
-        type="button"
-        className={styles.arr}
-        onClick={handleNext}
-        aria-label="下一項"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 6l6 6-6 6"/>
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-function FacilitiesCarouselInner({ trackRef }: { trackRef: React.RefObject<HTMLDivElement> }) {
+export default function FacilitiesCarousel() {
   const t = useTranslations("homeVenue");
+  const tSpacePilot = useTranslations("spacePilot");
   const facilities = t.raw("items") as Facility[];
   const visibleFacilities = facilities.slice(0, 4);
 
-  const { activeIndex, scrollToCard, setActiveIndex } = useCarouselContext();
-  const [isPaused, setIsPaused] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isTouching, setIsTouching] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<{
-    category: string;
-    title: string;
-    body: string;
-    image: string;
-    isSpacePilot: boolean;
-  } | null>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastFocusRef = useRef<HTMLElement | null>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [modalIndex, setModalIndex] = useState<number | null>(null);
 
-  const n = visibleFacilities.length;
-  const ctx = useCarouselContext();
-
-  // Check if reduced motion is preferred
-  const prefersReducedMotion = useRef(false);
-  useEffect(() => {
-    prefersReducedMotion.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  }, []);
-
-  // Update active index based on scroll position
-  const handleScroll = useCallback(() => {
+  const syncScroll = () => {
     if (!trackRef.current) return;
     const track = trackRef.current;
-    const scrollLeft = track.scrollLeft;
-    const cardWidth = track.children[0]?.getBoundingClientRect().width || 0;
-    const gap = 16;
-    const newIndex = Math.round(scrollLeft / (cardWidth + gap));
-    setActiveIndex(Math.min(Math.max(0, newIndex), n - 1));
-  }, [n, setActiveIndex, trackRef]);
+    const max = track.scrollWidth - track.clientWidth;
+    setCanScrollLeft(track.scrollLeft > 4);
+    setCanScrollRight(track.scrollLeft < max - 4);
+    const idx = max <= 0 ? 0 : Math.round((track.scrollLeft / max) * (visibleFacilities.length - 1));
+    setActiveIndex(idx);
+  };
 
-  // Dot navigation
-  const handleDotClick = useCallback((index: number) => {
-    setActiveIndex(index);
-    scrollToCard(index);
-  }, [scrollToCard, setActiveIndex]);
-
-  // Pause/play toggle
-  const togglePause = useCallback(() => {
-    setIsPaused(prev => !prev);
-  }, []);
-
-  // Open modal
-  const openModal = useCallback((index: number) => {
-    const facility = visibleFacilities[index];
-    if (!facility) return;
-
-    lastFocusRef.current = document.activeElement as HTMLElement;
-    setModalContent({
-      category: t(FACILITY_CATEGORIES[index]),
-      title: facility.title,
-      body: facility.body,
-      image: FACILITY_IMAGES[index],
-      isSpacePilot: index === 2,
-    });
-    setIsModalOpen(true);
-
-    requestAnimationFrame(() => {
-      dialogRef.current?.showModal();
-      document.documentElement.style.overflow = 'hidden';
-    });
-  }, [visibleFacilities, t]);
-
-  // Close modal
-  const closeModal = useCallback(() => {
-    dialogRef.current?.close();
-    setIsModalOpen(false);
-    document.documentElement.style.overflow = '';
-    lastFocusRef.current?.focus();
-    lastFocusRef.current = null;
-  }, []);
-
-  // Autoplay logic
   useEffect(() => {
-    if (prefersReducedMotion.current) return;
-    if (isPaused || isHovered || isTouching || isModalOpen) {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      return;
-    }
-
-    // Check if tab is visible
-    if (document.hidden) return;
-
-    const ctx = useCarouselContext();
-    timeoutRef.current = setTimeout(() => {
-      ctx.handleNext();
-    }, AUTOPLAY_INTERVAL);
-
+    const track = trackRef.current;
+    if (!track) return;
+    const handleScroll = () => requestAnimationFrame(syncScroll);
+    track.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", syncScroll);
+    syncScroll();
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      track.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", syncScroll);
     };
-  }, [isPaused, isHovered, isTouching, isModalOpen]);
+  }, [visibleFacilities.length]);
 
-  // Pause on visibility change
+  const getStepWidth = () => {
+    if (!trackRef.current) return 300;
+    const card = trackRef.current.querySelector(`.${styles.card}`) as HTMLElement;
+    return card ? card.getBoundingClientRect().width + 20 : 300;
+  };
+
+  const scrollPrev = () => {
+    trackRef.current?.scrollBy({ left: -getStepWidth(), behavior: "smooth" });
+  };
+
+  const scrollNext = () => {
+    trackRef.current?.scrollBy({ left: getStepWidth(), behavior: "smooth" });
+  };
+
+  const openModal = (index: number) => {
+    setModalIndex(index);
+  };
+
+  const closeModal = () => {
+    setModalIndex(null);
+  };
+
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (modalIndex !== null) {
+        if (e.key === "Escape") closeModal();
+        return;
       }
+      if (e.key === "ArrowRight") scrollNext();
+      if (e.key === "ArrowLeft") scrollPrev();
     };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, []);
-
-  // Intersection observer for off-screen pause
-  useEffect(() => {
-    if (!trackRef.current) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting && timeoutRef.current) {
-            clearTimeout(timeoutRef.current);
-            timeoutRef.current = null;
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(trackRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  // Dialog ESC and backdrop click handlers
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-
-    const handleCancel = (e: Event) => {
-      e.preventDefault();
-      closeModal();
-    };
-
-    const handleClick = (e: MouseEvent) => {
-      const rect = dialog.getBoundingClientRect();
-      const isInDialog = (
-        e.clientX >= rect.left &&
-        e.clientX <= rect.right &&
-        e.clientY >= rect.top &&
-        e.clientY <= rect.bottom
-      );
-      if (!isInDialog) {
-        closeModal();
-      }
-    };
-
-    dialog.addEventListener("cancel", handleCancel);
-    dialog.addEventListener("click", handleClick);
-
-    return () => {
-      dialog.removeEventListener("cancel", handleCancel);
-      dialog.removeEventListener("click", handleClick);
-    };
-  }, [closeModal]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [modalIndex]);
 
   return (
     <>
-      <div className={styles.track}
-        ref={trackRef}
-        onScroll={handleScroll}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onTouchStart={() => setIsTouching(true)}
-        onTouchEnd={() => setTimeout(() => setIsTouching(false), 300)}
-      >
+      <div className={styles.head}>
+        <div className={styles.txt}>
+          <div className={styles.kicker}>{t("subtitle")}</div>
+          <h2 className={styles.h1}>{t("intro")}</h2>
+        </div>
+        <div className={styles.arrows}>
+          <button
+            className={styles.arr}
+            onClick={scrollPrev}
+            disabled={!canScrollLeft}
+            aria-label="Previous"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <button
+            className={styles.arr}
+            onClick={scrollNext}
+            disabled={!canScrollRight}
+            aria-label="Next"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.track} ref={trackRef}>
         {visibleFacilities.map((facility, index) => {
           const isSpacePilot = index === 2;
           return (
-            <button
+            <article
               key={index}
-              type="button"
-              className={`${styles.card} ${isSpacePilot ? styles.contain : ""}`}
-              onClick={() => openModal(index)}
-              aria-haspopup="dialog"
+              className={`${styles.card}${isSpacePilot ? ` ${styles.contain}` : ""}`}
             >
               <Image
                 src={FACILITY_IMAGES[index]}
                 alt={facility.title}
                 fill
-                sizes="(max-width: 700px) 78vw, 27vw"
-                priority={index === 0}
                 className={styles.cardImage}
-                style={{
-                  objectFit: isSpacePilot ? "contain" : "cover",
-                }}
+                sizes="(max-width: 768px) 78vw, 372px"
               />
-              <span className={styles.cap}>
-                <span className={styles.cat}>{t(FACILITY_CATEGORIES[index])}</span>
-                <span className={styles.ttl}>{facility.title}</span>
-              </span>
-              <span className={styles.plus} aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-                  <path d="M12 5v14M5 12h14"/>
+              <div className={styles.cap}>
+                <div className={styles.cat}>{t(FACILITY_CATEGORIES[index])}</div>
+                <h3 className={styles.ttl}>{facility.title}</h3>
+              </div>
+              <button
+                className={styles.plus}
+                onClick={() => openModal(index)}
+                aria-label="View details"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+                  <path d="M12 5v14M5 12h14" />
                 </svg>
-              </span>
-            </button>
+              </button>
+            </article>
           );
         })}
       </div>
 
-      <div className={`${styles.pill} ${isHovered || isTouching ? styles.hold : ""}`} role="group" aria-label={t("pagination_label")}>
-        <div className={styles.dots}>
-          {visibleFacilities.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              className={`${styles.dot} ${activeIndex === index ? styles.on : ""} ${activeIndex === index && !isPaused && !isHovered && !isTouching && !isModalOpen && !prefersReducedMotion.current ? styles.run : ""}`}
-              onClick={() => handleDotClick(index)}
-              aria-label={t("pagination_item", { n: index + 1 })}
-            >
-              <i style={{ "--dur": `${AUTOPLAY_INTERVAL}ms` } as React.CSSProperties}></i>
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          className={styles.pp}
-          onClick={togglePause}
-          aria-label={isPaused ? "開始自動播放" : "暫停自動播放"}
-        >
-          {isPaused ? (
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/>
-              <rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/>
-            </svg>
-          )}
-        </button>
+      <div className={styles.dots}>
+        {visibleFacilities.map((_, index) => (
+          <i key={index} className={index === activeIndex ? styles.on : ""} />
+        ))}
       </div>
 
-      <dialog ref={dialogRef} className={styles.dlg} aria-labelledby="facilityDialogTitle">
-        <button
-          type="button"
-          className={styles.dx}
-          onClick={closeModal}
-          aria-label={t("close")}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18"/>
-          </svg>
-        </button>
-        {modalContent && (
-          <div className={styles.din}>
-            <div className={`${styles.dph} ${modalContent.isSpacePilot ? styles.contain : ""}`}>
+      {modalIndex !== null && (
+        <div className={styles.dlg} onClick={closeModal}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={`${styles.dph}${modalIndex === 2 ? ` ${styles.contain}` : ""}`}>
               <Image
-                src={modalContent.image}
-                alt={modalContent.title}
+                src={FACILITY_IMAGES[modalIndex]}
+                alt={visibleFacilities[modalIndex].title}
                 fill
-                sizes="(max-width: 900px) 100vw, 50vw"
-                style={{
-                  objectFit: modalContent.isSpacePilot ? "contain" : "cover",
-                }}
+                sizes="760px"
               />
             </div>
             <div className={styles.dbd}>
-              <div className={styles.dcat}>{modalContent.category}</div>
-              <h3 className={styles.dttl} id="facilityDialogTitle">{modalContent.title}</h3>
-              <p className={styles.dtxt}>{modalContent.body}</p>
+              <button className={styles.dx} onClick={closeModal} aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+              <div className={styles.dcat}>{t(FACILITY_CATEGORIES[modalIndex])}</div>
+              <h3 className={styles.dttl}>{visibleFacilities[modalIndex].title}</h3>
+              <p className={styles.dtxt}>
+                {modalIndex === 2
+                  ? "Space Pilot 智能小管家：掃碼報到、AI 推薦最公平的賽制、大螢幕即時比分，每一場勝負記入戰績，方便之後查看。"
+                  : visibleFacilities[modalIndex].body}
+              </p>
             </div>
           </div>
-        )}
-      </dialog>
+        </div>
+      )}
     </>
   );
 }
-
-export function FacilitiesCarousel() {
-  const t = useTranslations("homeVenue");
-  const facilities = t.raw("items") as Facility[];
-  const visibleFacilities = facilities.slice(0, 4);
-  const n = visibleFacilities.length;
-
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const prefersReducedMotion = useRef(false);
-  useEffect(() => {
-    prefersReducedMotion.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  }, []);
-
-  const scrollToCard = useCallback((index: number) => {
-    if (!trackRef.current) return;
-    const cards = trackRef.current.children;
-    if (cards[index]) {
-      (cards[index] as HTMLElement).scrollIntoView({
-        behavior: prefersReducedMotion.current ? "auto" : "smooth",
-        block: "nearest",
-        inline: "start",
-      });
-    }
-  }, []);
-
-  const handlePrev = useCallback(() => {
-    const newIndex = activeIndex > 0 ? activeIndex - 1 : n - 1;
-    setActiveIndex(newIndex);
-    scrollToCard(newIndex);
-  }, [activeIndex, n, scrollToCard]);
-
-  const handleNext = useCallback(() => {
-    const newIndex = activeIndex < n - 1 ? activeIndex + 1 : 0;
-    setActiveIndex(newIndex);
-    scrollToCard(newIndex);
-  }, [activeIndex, n, scrollToCard]);
-
-  return (
-    <CarouselContext.Provider value={{ activeIndex, handlePrev, handleNext, scrollToCard, setActiveIndex }}>
-      <FacilitiesCarouselInner trackRef={trackRef} />
-    </CarouselContext.Provider>
-  );
-}
-
-FacilitiesCarousel.Arrows = CarouselArrows;
