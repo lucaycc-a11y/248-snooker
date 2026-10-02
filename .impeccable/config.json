@@ -780,6 +780,21 @@
         "value": "#86868b",
         "createdAt": "2026-10-02T10:38:05.357Z",
         "reason": "Gate pages: intentional tertiary/icon color for close buttons and subtle UI elements"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f59e0b step 6 spec: distinct icon color for morning period (amber)",
+        "createdAt": "2026-10-02T14:19:12.038Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3b82f6 step 6 spec: distinct icon color for afternoon period (blue)",
+        "createdAt": "2026-10-02T14:19:12.076Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8b5cf6 step 6 spec: distinct icon color for evening period (purple)",
+        "createdAt": "2026-10-02T14:19:12.111Z"
       }
     ]
   }
