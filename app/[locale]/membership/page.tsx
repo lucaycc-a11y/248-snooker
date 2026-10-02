@@ -76,7 +76,7 @@ export default async function MembershipPage({
   setRequestLocale(locale);
 
   return (
-    <main className="relative bg-black">
+    <main className="relative bg-black overflow-x-hidden">
       <Nav />
       <MembershipContent />
       <Footer />
