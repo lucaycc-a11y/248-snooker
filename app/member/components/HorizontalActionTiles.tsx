@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { type ReactElement } from 'react'
 import { motion } from 'framer-motion'
 import { MessageCircle, Wallet, Gem, Inbox, CreditCard } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { createClient } from '@/lib/supabase/client'
+import { useUnreadCount } from '@/lib/inbox/useUnreadCount'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -20,6 +22,18 @@ export function HorizontalActionTiles({ profile }: Props) {
   const t = useTranslations('member')
   const [walletNotifyMe, setWalletNotifyMe] = useState(false)
   const [showWalletExplainer, setShowWalletExplainer] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const { unreadCount } = useUnreadCount(userId)
+
+  // Get user ID on mount
+  useEffect(() => {
+    const getUser = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      setUserId(session?.user.id ?? null)
+    }
+    getUser()
+  }, [])
 
   const handleWalletClick = async () => {
     const isAdmin = await checkIsAdmin()
@@ -73,7 +87,7 @@ export function HorizontalActionTiles({ profile }: Props) {
             title={t('actions.inbox.title')}
             subtitle={t('actions.inbox.subtitle')}
             href="/member/inbox"
-            badge={profile.unread_notifications > 0 ? profile.unread_notifications : undefined}
+            badge={unreadCount > 0 ? unreadCount : undefined}
           />
         </div>
       </div>
