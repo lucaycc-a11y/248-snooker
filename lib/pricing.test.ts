@@ -44,6 +44,19 @@ describe('calculatePrice', () => {
       { id: 'afternoon', rate: 98, start: '12:00', end: '18:00', days: 'all' },
       { id: 'evening', rate: 108, start: '18:00', end: '24:00', days: 'all' },
     ])
+
+    // Verify rates are 88/98/108 and ranges are correct
+    expect(DEFAULT_PERIODS[0].rate).toBe(88)
+    expect(DEFAULT_PERIODS[0].start).toBe('06:00')
+    expect(DEFAULT_PERIODS[0].end).toBe('12:00')
+
+    expect(DEFAULT_PERIODS[1].rate).toBe(98)
+    expect(DEFAULT_PERIODS[1].start).toBe('12:00')
+    expect(DEFAULT_PERIODS[1].end).toBe('18:00')
+
+    expect(DEFAULT_PERIODS[2].rate).toBe(108)
+    expect(DEFAULT_PERIODS[2].start).toBe('18:00')
+    expect(DEFAULT_PERIODS[2].end).toBe('24:00')
   })
 })
 

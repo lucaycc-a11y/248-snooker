@@ -113,6 +113,17 @@ export const DEFAULT_PERIODS: PricingPeriod[] = [
   { id: 'evening', rate: 108, start: '18:00', end: '24:00', days: 'all' },
 ]
 
+/**
+ * DEFAULT_PERIODS validation: must be 88/98/108 with correct time ranges.
+ * This guard prevents silent pricing bugs when defaults are used during loading or config fetch failure.
+ */
+if (DEFAULT_PERIODS.length !== 3 ||
+    DEFAULT_PERIODS[0].rate !== 88 || DEFAULT_PERIODS[0].start !== '06:00' || DEFAULT_PERIODS[0].end !== '12:00' ||
+    DEFAULT_PERIODS[1].rate !== 98 || DEFAULT_PERIODS[1].start !== '12:00' || DEFAULT_PERIODS[1].end !== '18:00' ||
+    DEFAULT_PERIODS[2].rate !== 108 || DEFAULT_PERIODS[2].start !== '18:00' || DEFAULT_PERIODS[2].end !== '24:00') {
+  throw new Error('DEFAULT_PERIODS corrupted: must be 88/98/108 at 06-12/12-18/18-24')
+}
+
 export const DEFAULT_TIERS: Tier[] = [
   { id: 'amateur', minPts: 0, discount: 1.0, multiplier: 1 },
   { id: 'century', minPts: 800, discount: 1.0, multiplier: 1.5 },
