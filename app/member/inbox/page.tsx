@@ -108,7 +108,7 @@ export default function InboxPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </a>
-            <h1 className="text-lg font-medium text-white">Inbox</h1>
+            <h1 className="text-lg font-medium text-white">{t('inbox.title')}</h1>
             <div className="w-6" />
           </div>
         </div>
