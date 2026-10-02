@@ -204,66 +204,56 @@ export function SpaceWheelOutro() {
           paddingBottom: "clamp(96px, 12.9vw, 223px)",
         }}
       >
-        {/* ── Content column for ball positioning ──────────────────────────── */}
+        {/* ── 8-ball — centre on band bottom edge at viewport center ───────────
+            Outer wrapper carries scroll-parallax Y.
+            Inner wrapper carries entrance Y + scale + opacity.
+            Ball visible diameter: clamp(170px, 19.33vw, 334px).
+            Image is 120.4% to compensate for the 83.1% fill ratio.
+            Positioned at 50% of viewport (not container) for true visual center.
+        */}
         <div
+          data-outro-ball-scroll
           style={{
-            maxWidth: 1728,
-            margin: "0 auto",
-            position: "relative",
-            width: "100%",
+            position: "absolute",
+            top: 0,
+            left: "50%",
+            transform: "translateX(-50%) translateY(-50%)",
+            width: "clamp(180px, 20vw, 345px)",
+            height: "clamp(180px, 20vw, 345px)",
+            zIndex: 10,
           }}
         >
-          {/* ── 8-ball — centre on band bottom edge within 1728px container ──
-              Outer wrapper carries scroll-parallax Y.
-              Inner wrapper carries entrance Y + scale + opacity.
-              Ball visible diameter: clamp(170px, 19.33vw, 334px).
-              Image is 120.4% to compensate for the 83.1% fill ratio.
-              Now positioned at 50% of the 1728px container (same reference as steps).
-          */}
           <div
-            data-outro-ball-scroll
-            style={{
-              position: "absolute",
-              top: 0,
-              left: "50%",
-              transform: "translateX(-50%) translateY(-50%)",
-              width: "clamp(180px, 20vw, 345px)",
-              height: "clamp(180px, 20vw, 345px)",
-              zIndex: 10,
-            }}
+            data-outro-ball-enter
+            style={{ width: "100%", height: "100%", position: "relative" }}
           >
+            {/* Image is sized at 100%/BALL_FILL to crop the transparent padding */}
             <div
-              data-outro-ball-enter
-              style={{ width: "100%", height: "100%", position: "relative" }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                overflow: "visible",
+              }}
             >
-              {/* Image is sized at 100%/BALL_FILL to crop the transparent padding */}
-              <div
+              <Image
+                src="/images/space8-about-photos/images/about-8ball.webp"
+                alt=""
+                aria-hidden="true"
+                width={2000}
+                height={2000}
                 style={{
                   position: "absolute",
-                  inset: 0,
-                  overflow: "visible",
+                  width: `${(1 / BALL_FILL) * 100}%`,
+                  height: `${(1 / BALL_FILL) * 100}%`,
+                  left: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
+                  top: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
+                  objectFit: "contain",
+                  userSelect: "none",
+                  pointerEvents: "none",
                 }}
-              >
-                <Image
-                  src="/images/space8-about-photos/images/about-8ball.webp"
-                  alt=""
-                  aria-hidden="true"
-                  width={2000}
-                  height={2000}
-                  style={{
-                    position: "absolute",
-                    width: `${(1 / BALL_FILL) * 100}%`,
-                    height: `${(1 / BALL_FILL) * 100}%`,
-                    left: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
-                    top: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
-                    objectFit: "contain",
-                    userSelect: "none",
-                    pointerEvents: "none",
-                  }}
-                  priority={false}
-                  sizes="(max-width: 767px) 170px, (max-width: 1728px) 19.33vw, 334px"
-                />
-              </div>
+                priority={false}
+                sizes="(max-width: 767px) 170px, (max-width: 1728px) 19.33vw, 334px"
+              />
             </div>
           </div>
         </div>
@@ -271,8 +261,7 @@ export function SpaceWheelOutro() {
         {/* ── Content column for text and buttons ─────────────────────────── */}
         <div
           style={{
-            maxWidth: 1728,
-            margin: "0 auto",
+            width: "100%",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
