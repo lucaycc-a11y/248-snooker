@@ -163,43 +163,29 @@ const SITE_CSS = `
   line-height: 1.6;
   max-width: 48ch;
 }
-.room-comparison-table {
+.room-comparison-features {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  overflow: hidden;
+  gap: 32px;
+  margin-top: 48px;
 }
-.room-comparison-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  background: #000000;
-  min-height: 56px;
-}
-.room-comparison-row:first-child {
-  background: #0a0a0a;
-}
-.room-comparison-label {
+.room-feature {
   display: flex;
-  align-items: center;
-  padding: 16px 20px;
-  font-size: 0.9375rem;
+  flex-direction: column;
+  gap: 8px;
+}
+.room-feature-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.room-feature-value {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
   font-weight: 600;
   color: #ffffff;
-  border-right: 1px solid #2a2a2a;
-}
-.room-comparison-value {
-  display: flex;
-  align-items: center;
-  padding: 16px 20px;
-  font-size: 0.9375rem;
-  color: rgba(255,255,255,0.75);
-  border-right: 1px solid #2a2a2a;
-}
-.room-comparison-value:last-child {
-  border-right: none;
+  line-height: 1.3;
 }
 .room-comparison-slider {
   width: 100%;
@@ -214,18 +200,7 @@ const SITE_CSS = `
 }
 @media (max-width: 640px) {
   .room-comparison-section { padding: 80px 24px; }
-  .room-comparison-row {
-    grid-template-columns: 1fr;
-  }
-  .room-comparison-label,
-  .room-comparison-value {
-    border-right: none;
-    border-bottom: 1px solid #2a2a2a;
-    padding: 12px 16px;
-  }
-  .room-comparison-row:last-child .room-comparison-value:last-child {
-    border-bottom: none;
-  }
+  .room-comparison-features { gap: 24px; margin-top: 32px; }
 }
 
 /* ===== OTHER FACILITIES (04) ===== */
@@ -1049,7 +1024,7 @@ export default function VenueContent() {
       {/* ── 03: Two-room comparison ── */}
       <section className="room-comparison-section">
         <div className="room-comparison-inner">
-          {/* Left column: heading + specs */}
+          {/* Left column: heading + features */}
           <div className="room-comparison-text">
             <h2 className="room-comparison-heading" data-cms-key="room_comparison_heading">
               {t("room_comparison_heading")}
@@ -1058,61 +1033,22 @@ export default function VenueContent() {
               {t("room_comparison_intro")}
             </p>
 
-            <div className="room-comparison-table">
-              <div className="room-comparison-row">
-                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_name">
-                  {t("room_comparison_table_label_name")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_infinity">
-                  {t("room_comparison_table_value_infinity")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_eternity">
-                  {t("room_comparison_table_value_eternity")}
-                </div>
+            <div className="room-comparison-features">
+              <div className="room-feature">
+                <div className="room-feature-label">同樣面積</div>
+                <div className="room-feature-value">約 90 平方呎</div>
               </div>
-              <div className="room-comparison-row">
-                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_area">
-                  {t("room_comparison_table_label_area")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_area">
-                  {t("room_comparison_table_value_area")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_area">
-                  {t("room_comparison_table_value_area")}
-                </div>
+              <div className="room-feature">
+                <div className="room-feature-label">同樣球臺</div>
+                <div className="room-feature-value">星牌中式八球臺</div>
               </div>
-              <div className="room-comparison-row">
-                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_table">
-                  {t("room_comparison_table_label_table")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_table">
-                  {t("room_comparison_table_value_table")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_table">
-                  {t("room_comparison_table_value_table")}
-                </div>
+              <div className="room-feature">
+                <div className="room-feature-label">同樣品質</div>
+                <div className="room-feature-value">專業用球與設備</div>
               </div>
-              <div className="room-comparison-row">
-                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_brand">
-                  {t("room_comparison_table_label_brand")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_brand">
-                  {t("room_comparison_table_value_brand")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_brand">
-                  {t("room_comparison_table_value_brand")}
-                </div>
-              </div>
-              <div className="room-comparison-row">
-                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_capacity">
-                  {t("room_comparison_table_label_capacity")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_capacity">
-                  {t("room_comparison_table_value_capacity")}
-                </div>
-                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_capacity">
-                  {t("room_comparison_table_value_capacity")}
-                </div>
+              <div className="room-feature">
+                <div className="room-feature-label">同樣容量</div>
+                <div className="room-feature-value">最多 6 人</div>
               </div>
             </div>
           </div>
