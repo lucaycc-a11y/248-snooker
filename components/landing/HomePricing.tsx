@@ -138,7 +138,7 @@ export default function HomePricing({ periods, variant = "light" }: { periods: P
                   alignItems: "center",
                   opacity: 0,
                   transform: "translateY(24px) scale(0.95)",
-                  transition: "opacity .55s cubic-bezier(.34,1.56,.64,1), transform .55s cubic-bezier(.34,1.56,.64,1), border-color .35s ease, box-shadow .35s ease",
+                  transition: "opacity .55s cubic-bezier(.16,1,.3,1), transform .55s cubic-bezier(.16,1,.3,1), border-color .35s ease, box-shadow .35s ease",
                 }}
               >
                 {isBestValue && (

@@ -159,7 +159,7 @@ const SITE_CSS = `
 }
 .room-comparison-intro {
   font-size: clamp(1rem, 2vw, 1.125rem);
-  color: #a0a0a0;
+  color: rgba(255,255,255,0.55);
   margin: 0;
   line-height: 1.6;
   max-width: 48ch;
@@ -196,7 +196,7 @@ const SITE_CSS = `
   align-items: center;
   padding: 16px 20px;
   font-size: 0.9375rem;
-  color: #d0d0d0;
+  color: rgba(255,255,255,0.75);
   border-right: 1px solid #2a2a2a;
 }
 .room-comparison-value:last-child {
