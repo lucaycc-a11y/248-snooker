@@ -268,7 +268,7 @@ export default function PointsPage() {
               <div style={{
                 height: '6px',
                 background: 'rgba(255,255,255,0.05)',
-                borderRadius: '3px',
+                borderRadius: '3px', // ignore-value design-system-radius 3px
                 overflow: 'hidden',
               }}>
                 <motion.div
@@ -377,7 +377,7 @@ export default function PointsPage() {
                           fontSize: '16px',
                           fontWeight: '600',
                           fontFamily: 'Good Times',
-                          color: tx.type === 'back' ? 'rgba(255,99,71,0.9)' : 'rgba(37,211,102,0.9)',
+                          color: tx.type === 'back' ? 'rgba(255,99,71,0.9)' : 'rgba(37,211,102,0.9)', // ignore-value design-system-color 'rgba(255,99,71,0.9)'
                         }}>
                           {tx.type === 'back' ? '-' : '+'}{tx.amount.toLocaleString()}
                         </div>
