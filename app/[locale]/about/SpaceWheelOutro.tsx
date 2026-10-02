@@ -204,25 +204,40 @@ export function SpaceWheelOutro() {
           paddingBottom: "clamp(96px, 12.9vw, 223px)",
         }}
       >
-        {/* ── 8-ball — centre on band bottom edge at viewport center ───────────
-            Outer wrapper carries scroll-parallax Y.
-            Inner wrapper carries entrance Y + scale + opacity.
-            Ball visible diameter: clamp(170px, 19.33vw, 334px).
-            Image is 120.4% to compensate for the 83.1% fill ratio.
-            Positioned at 50% of viewport (not container) for true visual center.
-        */}
+        {/* ── Content container (1200px max) — ball + text + buttons all inside ── */}
         <div
-          data-outro-ball-scroll
           style={{
-            position: "absolute",
-            top: 0,
-            left: "50%",
-            transform: "translateX(-50%) translateY(-50%)",
-            width: "clamp(180px, 20vw, 345px)",
-            height: "clamp(180px, 20vw, 345px)",
-            zIndex: 10,
+            maxWidth: 1200,
+            margin: "0 auto",
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            padding: "0 24px",
+            // Ball centre is on band bottom edge → bottom half of ball (50%) overhangs white.
+            // Space from white edge to description top = half ball diameter + 24px gap.
+            paddingTop: "calc(clamp(180px, 20vw, 345px) / 2 + 24px)",
           }}
         >
+          {/* ── 8-ball — centre within 1200px container (same alignment as "02") ──
+              Outer wrapper carries scroll-parallax Y.
+              Inner wrapper carries entrance Y + scale + opacity.
+              Ball visible diameter: clamp(170px, 19.33vw, 334px).
+              Image is 120.4% to compensate for the 83.1% fill ratio.
+          */}
+          <div
+            data-outro-ball-scroll
+            style={{
+              position: "absolute",
+              top: 0,
+              left: "50%",
+              transform: "translateX(-50%) translateY(-50%)",
+              width: "clamp(180px, 20vw, 345px)",
+              height: "clamp(180px, 20vw, 345px)",
+              zIndex: 10,
+            }}
+          >
           <div
             data-outro-ball-enter
             style={{ width: "100%", height: "100%", position: "relative" }}
@@ -258,19 +273,6 @@ export function SpaceWheelOutro() {
           </div>
         </div>
 
-        {/* ── Content column for text and buttons ─────────────────────────── */}
-        <div
-          style={{
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            textAlign: "center",
-            // Ball centre is on band bottom edge → bottom half of ball (50%) overhangs white.
-            // Space from white edge to description top = half ball diameter + 24px gap.
-            paddingTop: "calc(clamp(180px, 20vw, 345px) / 2 + 24px)",
-          }}
-        >
           {/* ── Description ──────────────────────────────────────────────── */}
           <p
             data-outro-desc
