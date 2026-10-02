@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
+import { getConfig } from "@/lib/data";
 
 // ── Heavy scroll animation components (lazy load) ───────────────────────────
 const ScrollChoreographyWrapper = dynamic(
@@ -98,7 +99,8 @@ export default async function VenuePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const jsonLd = buildSportsClubJsonLd(locale, "/venue");
+  const config = await getConfig();
+  const jsonLd = buildSportsClubJsonLd(locale, "/venue", config.periods);
 
   return (
     <main className="relative bg-black">

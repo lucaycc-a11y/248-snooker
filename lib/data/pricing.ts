@@ -102,10 +102,15 @@ export type SiteConfig = {
   services: ServiceFees
 }
 
+/**
+ * DEFAULT_PERIODS: Single source of truth for pricing rates.
+ * MUST match lib/pricing/config.ts DEFAULT_PRICING.periods exactly.
+ * Ranges: 06:00-12:00 (88), 12:00-18:00 (98), 18:00-24:00 (108)
+ */
 export const DEFAULT_PERIODS: PricingPeriod[] = [
   { id: 'morning', rate: 88, start: '06:00', end: '12:00', days: 'all' },
-  { id: 'afternoon', rate: 98, start: '12:00', end: '16:00', days: 'all' },
-  { id: 'evening', rate: 108, start: '16:00', end: '24:00', days: 'all' },
+  { id: 'afternoon', rate: 98, start: '12:00', end: '18:00', days: 'all' },
+  { id: 'evening', rate: 108, start: '18:00', end: '24:00', days: 'all' },
 ]
 
 export const DEFAULT_TIERS: Tier[] = [

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
+import { getConfig } from "@/lib/data";
 
 // ── Main content (lazy load) ────────────────────────────────────────────────
 const AboutContent = dynamic(
@@ -78,7 +79,8 @@ export default async function AboutPage({
 
   // LocalBusiness (SportsClub) structured data — shared builder, was previously
   // a diverging inline copy (different priceRange/closes time from the homepage's).
-  const jsonLd = buildSportsClubJsonLd(locale, "/about");
+  const config = await getConfig();
+  const jsonLd = buildSportsClubJsonLd(locale, "/about", config.periods);
 
   return (
     <main className="relative bg-black">

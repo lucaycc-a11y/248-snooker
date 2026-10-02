@@ -10,11 +10,11 @@ describe('calculatePrice', () => {
     expect(quote.total).toBe(186)
   })
 
-  it('17:00-19:00 = 216 (both hours evening 108)', () => {
+  it('17:00-19:00 = 206 (1h afternoon 98 + 1h evening 108)', () => {
     const slotStart = new Date('2026-01-15T17:00:00')
     const slotEnd = new Date('2026-01-15T19:00:00')
     const quote = calculatePrice(slotStart, slotEnd, { discount: 1, multiplier: 1 }, DEFAULT_PERIODS)
-    expect(quote.total).toBe(216)
+    expect(quote.total).toBe(206)
   })
 
   it('06:00-12:00 = 528 (6 hours morning 88/h)', () => {
@@ -37,4 +37,13 @@ describe('calculatePrice', () => {
     const quote = calculatePrice(slotStart, slotEnd, { discount: 1, multiplier: 1 }, DEFAULT_PERIODS)
     expect(quote.total).toBe(176) // 88 + 88, no discount
   })
+
+  it('DEFAULT_PERIODS has correct rates and ranges', () => {
+    expect(DEFAULT_PERIODS).toEqual([
+      { id: 'morning', rate: 88, start: '06:00', end: '12:00', days: 'all' },
+      { id: 'afternoon', rate: 98, start: '12:00', end: '18:00', days: 'all' },
+      { id: 'evening', rate: 108, start: '18:00', end: '24:00', days: 'all' },
+    ])
+  })
 })
+

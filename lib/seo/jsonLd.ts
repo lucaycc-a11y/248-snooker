@@ -16,7 +16,19 @@ const SAME_AS = ["https://www.instagram.com/248snooker"];
 // specific type for a bookable sports venue, so it satisfies both the
 // "LocalBusiness" rich-result family and sports-venue semantics. Includes
 // localised locality/region (新蒲崗 / 九龍), geo, and social sameAs for GEO.
-export function buildSportsClubJsonLd(locale: string, path: string) {
+export function buildSportsClubJsonLd(
+  locale: string,
+  path: string,
+  periods?: Array<{ id: string; rate: number; start: string; end: string }>
+) {
+  // Calculate price range from periods if provided, otherwise use defaults
+  let minPrice = 78
+  let maxPrice = 108
+  if (periods && periods.length > 0) {
+    minPrice = Math.min(...periods.map(p => p.rate))
+    maxPrice = Math.max(...periods.map(p => p.rate))
+  }
+
   return {
     "@context": "https://schema.org",
     "@type": ["SportsActivityLocation", "LocalBusiness"],
@@ -43,7 +55,7 @@ export function buildSportsClubJsonLd(locale: string, path: string) {
       opens: "06:00",
       closes: "24:00",
     },
-    priceRange: "$78-$108",
+    priceRange: `$${minPrice}-$${maxPrice}`,
     sameAs: SAME_AS,
     inLanguage: ["zh-HK", "zh-CN", "en"],
     amenityFeature: [

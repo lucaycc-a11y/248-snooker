@@ -140,8 +140,8 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`);
   const config = await getConfig();
+  const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, config.periods);
 
   return (
     <main className="relative bg-black" style={{ isolation: "isolate" }}>
