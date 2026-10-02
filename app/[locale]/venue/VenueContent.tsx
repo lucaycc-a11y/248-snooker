@@ -106,16 +106,17 @@ const SITE_CSS = `
 .venue-point:nth-child(4) { animation-delay: 0.4s; }
 .venue-point:nth-child(5) { animation-delay: 0.5s; }
 .venue-point-title {
-  font-size: clamp(1rem, 2vw, 1.125rem);
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
   font-weight: 600;
-  color: #1a9d5c;
-  margin: 0 0 12px;
-  letter-spacing: 0.02em;
+  color: #ffffff;
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 .venue-point-desc {
   font-size: clamp(1.5rem, 3.5vw, 2rem);
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 300;
+  color: rgba(255,255,255,0.65);
   margin: 0;
   line-height: 1.4;
   max-width: 22ch;
@@ -1024,23 +1025,23 @@ export default function VenueContent() {
         <div className="venue-points-inner">
           <div className="venue-point">
             <p className="venue-point-title">專業設備</p>
-            <p className="venue-point-desc">星牌球臺與專業用球，讓每一桿都穩定準確。</p>
+            <p className="venue-point-desc">星牌球臺與專業用球，讓每一桿都穩定準確</p>
           </div>
           <div className="venue-point">
             <p className="venue-point-title">私人包廂</p>
-            <p className="venue-point-desc">兩個獨立包廂，專心打球，不受打擾。</p>
+            <p className="venue-point-desc">兩個獨立包廂，專心打球，不受打擾</p>
           </div>
           <div className="venue-point">
             <p className="venue-point-title">全預約制，QR 自助入場</p>
-            <p className="venue-point-desc">網上預訂，掃碼開門，簡單安全。</p>
+            <p className="venue-point-desc">網上預訂，掃碼開門，簡單安全</p>
           </div>
           <div className="venue-point">
             <p className="venue-point-title">無煙乾淨</p>
-            <p className="venue-point-desc">全場禁煙，空間整潔清新。</p>
+            <p className="venue-point-desc">全場禁煙，空間整潔清新</p>
           </div>
           <div className="venue-point">
             <p className="venue-point-title">舒適自在</p>
-            <p className="venue-point-desc">空間寬敞，與朋友從容開局。</p>
+            <p className="venue-point-desc">空間寬敞，與朋友從容開局</p>
           </div>
         </div>
       </section>
