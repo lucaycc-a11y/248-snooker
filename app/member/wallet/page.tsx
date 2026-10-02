@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 
-type TabType = 'all' | 'use' | 'in' | 'offer'
+type TabType = 'all' | 'use' | 'in' | 'offers'
 type StateType = 'normal' | 'held' | 'new' | 'loading' | 'error'
 
 interface LedgerEntry {
@@ -216,7 +216,7 @@ export default function WalletPage() {
           <div id="listArea" className="col-r">
             <div className="sticky">
               <div className="tabs" role="tablist" aria-label="Space Wallet 紀錄">
-                {(['all', 'use', 'in', 'offer'] as const).map((t_) => (
+                {(['all', 'use', 'in', 'offers'] as const).map((t_) => (
                   <button
                     key={t_}
                     className="tab"
@@ -257,7 +257,7 @@ export default function WalletPage() {
                 </div>
               )}
 
-              {tab === 'offer' && offers && (
+              {tab === 'offers' && offers && (
                 <div>
                   <div className="rule">
                     <svg className="i" aria-hidden="true">
@@ -315,7 +315,7 @@ export default function WalletPage() {
                 </div>
               )}
 
-              {tab !== 'offer' && state !== 'loading' && (
+              {tab !== 'offers' && state !== 'loading' && (
                 <>
                   {filteredLedger.length === 0 ? (
                     <div className="empty">

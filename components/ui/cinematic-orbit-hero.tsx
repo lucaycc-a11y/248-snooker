@@ -11,6 +11,7 @@ import {
 } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 const IMAGES = [
   { src: "/images/space-infinity-room-中八桌球-香港新蒲崗.webp", alt: "Space Infinity 包廂內部全景" },
@@ -150,6 +151,7 @@ export default function CinematicOrbitHero() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const [isMobile, setIsMobile] = useState(false);
+  const t = useTranslations("venuePage");
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -193,7 +195,7 @@ export default function CinematicOrbitHero() {
               lineHeight: 1.35,
             }}
           >
-            兩個包廂，一種感覺
+            {t('hero_title')}
           </h1>
           <p
             className="mt-3 max-w-[50ch] text-xs md:text-[0.95vw] font-light opacity-70"
@@ -201,7 +203,7 @@ export default function CinematicOrbitHero() {
               fontFamily: "'Good Times', 'SF Pro Display', -apple-system, sans-serif",
             }}
           >
-            Space Infinity 與 Space Eternity，同樣寬敞，同樣專注。
+            {t('hero_subtitle')}
           </p>
         </motion.div>
 

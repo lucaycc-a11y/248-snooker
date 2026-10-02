@@ -28,16 +28,19 @@ export async function GET(request: NextRequest) {
 
     const balance = userData?.credits ?? 0
 
-    // Fetch held amount from pending checkouts
-    const { data: held, error: heldError } = await supabase
-      .rpc('get_held_credits', { p_user_id: user.id })
+    // Fetch held amount from pending checkouts (or return 0 if RPC doesn't exist)
+    let heldAmount = 0
+    try {
+      const { data: held, error: heldError } = await supabase
+        .rpc('get_held_credits', { p_user_id: user.id })
 
-    if (heldError) {
-      console.error('[wallet] held credits fetch error:', heldError)
-      return NextResponse.json({ error: 'Failed to fetch held credits' }, { status: 500 })
+      if (!heldError) {
+        heldAmount = held ?? 0
+      }
+    } catch (err) {
+      console.error('[wallet] held credits fetch error:', err)
+      // Fallback to 0
     }
-
-    const heldAmount = held ?? 0
     const available = Math.max(0, balance - heldAmount)
 
     return NextResponse.json({

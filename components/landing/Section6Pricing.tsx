@@ -41,7 +41,7 @@ const TIER_CONFIG: Record<
     accentHover: string
     accentBg: string
     iconBg: string
-    badge: string
+    badgeKey: "badge_morning" | "badge_afternoon" | "badge_evening"
     taglineKey: "period_morning_tagline" | "period_afternoon_tagline" | "period_evening_tagline"
   }
 > = {
@@ -50,7 +50,7 @@ const TIER_CONFIG: Record<
     accentHover: "#4b5563",
     accentBg: "rgba(107,114,128,0.08)",
     iconBg: "rgba(107,114,128,0.10)",
-    badge: "最佳時段",
+    badgeKey: "badge_morning",
     taglineKey: "period_morning_tagline",
   },
   afternoon: {
@@ -58,7 +58,7 @@ const TIER_CONFIG: Record<
     accentHover: "#15803d",
     accentBg: "rgba(22,163,74,0.08)",
     iconBg: "rgba(22,163,74,0.10)",
-    badge: "人氣之選",
+    badgeKey: "badge_afternoon",
     taglineKey: "period_afternoon_tagline",
   },
   evening: {
@@ -66,7 +66,7 @@ const TIER_CONFIG: Record<
     accentHover: "#7e22ce",
     accentBg: "rgba(147,51,234,0.08)",
     iconBg: "rgba(147,51,234,0.10)",
-    badge: "氣氛首選",
+    badgeKey: "badge_evening",
     taglineKey: "period_evening_tagline",
   },
 }

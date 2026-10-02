@@ -282,17 +282,17 @@ export function SpaceWheelOutro() {
               paddingLeft: TRAILING_PUNCT_COMP,
             }}
           >
-            {/* Line 1: first clause normal weight, 隨時隨地開局。bold */}
+            {/* Line 1: first clause normal weight, second part bold */}
             <span style={{ color: "#2f2f2f", fontWeight: 500 }}>
-              一鍵預訂專屬球臺，
+              {t("outro_cta_line1_part1")}
             </span>
             <strong style={{ fontWeight: 800, color: "#000000" }}>
-              隨時隨地開局。
+              {t("outro_cta_line1_part2")}
             </strong>
             <br />
             {/* Line 2: entirely bold */}
             <strong style={{ fontWeight: 800, color: "#000000" }}>
-              由預訂、付款到入場，全程自助，無需等候。
+              {t("outro_cta_line2")}
             </strong>
           </p>
 

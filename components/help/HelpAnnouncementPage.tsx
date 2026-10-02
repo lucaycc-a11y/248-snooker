@@ -1,6 +1,7 @@
 'use client'
 
 import { Link } from '@/i18n/navigation'
+import { useTranslations, useLocale } from 'next-intl'
 import type { HelpAnnouncement } from '@/lib/help/content-loader'
 import { HELP_PATHS } from '@/lib/help/constants'
 import { Markdown } from './Markdown'
@@ -19,20 +20,23 @@ interface HelpAnnouncementPageProps {
 }
 
 export function HelpAnnouncementPage({ announcement }: HelpAnnouncementPageProps) {
+  const t = useTranslations('help')
+  const locale = useLocale()
+
   return (
     <div style={{ background: HELP_COLORS.bg, minHeight: '100vh' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '24px' }}>
         {/* Breadcrumb */}
         <nav style={{ fontSize: '14px', color: HELP_COLORS.muted, marginBottom: '24px' }}>
           <Link href={HELP_PATHS.home} style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
-            幫助中心
+            {t('breadcrumb.home')}
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>
           <Link
             href={`${HELP_PATHS.home}#announcements`}
             style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}
           >
-            公告
+            {t('breadcrumb.announcements')}
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>
           <span>{announcement.title}</span>
@@ -59,7 +63,7 @@ export function HelpAnnouncementPage({ announcement }: HelpAnnouncementPageProps
               marginBottom: '16px',
             }}
           >
-            公告
+            {t('announcement.badge')}
           </div>
 
           <h1
@@ -82,7 +86,7 @@ export function HelpAnnouncementPage({ announcement }: HelpAnnouncementPageProps
               borderBottom: `1px solid ${HELP_COLORS.border}`,
             }}
           >
-            {new Date(announcement.date).toLocaleDateString('zh-HK', {
+            {new Date(announcement.date).toLocaleDateString(locale, {
               year: 'numeric',
               month: 'long',
               day: 'numeric',
@@ -125,7 +129,7 @@ export function HelpAnnouncementPage({ announcement }: HelpAnnouncementPageProps
           }}
           className="back-link"
         >
-          ← 返回幫助中心
+          {t('announcement.back_to_home')}
         </Link>
       </div>
 

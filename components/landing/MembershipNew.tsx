@@ -24,6 +24,7 @@ function MembershipCard({
   featured,
 }: MembershipCardProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations("membership");
 
   return (
     <>
@@ -58,7 +59,7 @@ function MembershipCard({
         </div>
 
         <div className="mt-auto flex items-center gap-2 text-sm font-medium text-gray-500">
-          <span>了解更多</span>
+          <span>{t("learn_more")}</span>
           <svg
             viewBox="0 0 24 24"
             fill="none"

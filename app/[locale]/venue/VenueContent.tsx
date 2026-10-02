@@ -35,7 +35,7 @@ const FONT_FAMILY =
 const EASE = [0.16, 1, 0.3, 1] as const;
 const VIEWPORT = { once: true, amount: 0.25 } as const;
 
-const ADDRESS = "香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室";
+// ADDRESS moved to i18n
 const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
   "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
 )}`;
@@ -797,11 +797,11 @@ export default function VenueContent() {
       <section style={{ background: '#F9FAFB', padding: 'clamp(88px, 12vw, 140px) 24px' }}>
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-12">
           {[
-            { lead: '專業設備', body: '星牌球臺與專業用球，讓每一桿都穩定準確' },
-            { lead: '私人包廂', body: '兩個獨立包廂，專心打球，不受打擾' },
-            { lead: '全預約制，QR 自助入場', body: '網上預訂，掃碼開門，簡單安全' },
-            { lead: '無煙乾淨', body: '全場禁煙，空間整潔清新' },
-            { lead: '舒適自在', body: '空間寬敞，與朋友從容開局' },
+            { lead: t('venue_point_1_lead'), body: t('venue_point_1_body') },
+            { lead: t('venue_point_2_lead'), body: t('venue_point_2_body') },
+            { lead: t('venue_point_3_lead'), body: t('venue_point_3_body') },
+            { lead: t('venue_point_4_lead'), body: t('venue_point_4_body') },
+            { lead: t('venue_point_5_lead'), body: t('venue_point_5_body') },
           ].map((point, i) => (
             <motion.div
               key={i}
@@ -844,20 +844,20 @@ export default function VenueContent() {
 
             <div className="room-comparison-features">
               <div className="room-feature">
-                <div className="room-feature-label">同樣面積</div>
-                <div className="room-feature-value">約 90 平方呎</div>
+                <div className="room-feature-label">{t('room_feature_area_label')}</div>
+                <div className="room-feature-value">{t('room_feature_area_value')}</div>
               </div>
               <div className="room-feature">
-                <div className="room-feature-label">同樣球臺</div>
-                <div className="room-feature-value">星牌中式八球臺</div>
+                <div className="room-feature-label">{t('room_feature_table_label')}</div>
+                <div className="room-feature-value">{t('room_feature_table_value')}</div>
               </div>
               <div className="room-feature">
-                <div className="room-feature-label">同樣品質</div>
-                <div className="room-feature-value">專業用球與設備</div>
+                <div className="room-feature-label">{t('room_feature_quality_label')}</div>
+                <div className="room-feature-value">{t('room_feature_quality_value')}</div>
               </div>
               <div className="room-feature">
-                <div className="room-feature-label">同樣容量</div>
-                <div className="room-feature-value">最多 6 人</div>
+                <div className="room-feature-label">{t('room_feature_capacity_label')}</div>
+                <div className="room-feature-value">{t('room_feature_capacity_value')}</div>
               </div>
             </div>
           </div>
@@ -973,29 +973,21 @@ export default function VenueContent() {
             <div className="weather-body">
               <div className="weather-block">
                 <p className="weather-head">
-                  颱風警告信號 No. 8 或以上 / 黑色暴雨警告
+                  {t('weather_severe_title')}
                 </p>
                 <ul className="weather-list">
-                  <li>
-                    <b>如常開放</b>：我們的場地自動化系統會維持正常運作。若您評估路面與天氣狀況安全，歡迎按原定時間前來。
-                  </li>
-                  <li>
-                    <b>貼心改期</b>：若您評估後希望留在室內休息，請於原本預約時間開始前透過 WhatsApp 聯絡線上客服。我們非常樂意為您安排在 7 天內免費改期一次（本方案不設退款）。
-                  </li>
-                  <li>
-                    <b>溫馨提示</b>：為確保預約系統運作順暢，改期申請須於預約時間前完成，並請於 7 天內完成使用，逾期將視為放棄該次預約資格權益喔！
-                  </li>
+                  <li>{t('weather_severe_point_1')}</li>
+                  <li>{t('weather_severe_point_2')}</li>
+                  <li>{t('weather_severe_point_3')}</li>
                 </ul>
               </div>
 
               <div className="weather-block">
                 <p className="weather-head">
-                  其他天氣狀況（如 3 號颱風信號、紅色暴雨警告等）
+                  {t('weather_normal_title')}
                 </p>
                 <ul className="weather-list">
-                  <li>
-                    除上述極端天氣情況外，場地服務將照常提供。所有已確認的預約，恕無法接受取消、改期或退款，感謝您的理解與配合。
-                  </li>
+                  <li>{t('weather_normal_point_1')}</li>
                 </ul>
               </div>
             </div>
@@ -1024,13 +1016,13 @@ export default function VenueContent() {
                 <h2 className="dir-title">{t("directions_title")}</h2>
               </div>
 
-              <p className="dir-address">{ADDRESS}</p>
+              <p className="dir-address">{t('address')}</p>
 
               <ul className="dir-notes">
-                <li>港鐵鑽石山站 A2 出口或啟德站 Airside C 出口步行約 8–10 分鐘</li>
-                <li>距離鑽石山站 A2 出口 500 米（建議路線）</li>
-                <li>亦可乘搭巴士或小巴至大有街附近下車</li>
-                <li>建議泊車：新科技廣場停車場（威信停車場）</li>
+                <li>{t('directions_note_1')}</li>
+                <li>{t('directions_note_2')}</li>
+                <li>{t('directions_note_3')}</li>
+                <li>{t('directions_note_4')}</li>
               </ul>
 
               <div className="dir-actions">
@@ -1041,7 +1033,7 @@ export default function VenueContent() {
                   rel="noopener noreferrer"
                 >
                   <MapPin size={17} strokeWidth={1.9} />
-                  Google Maps 導航
+                  {t('map_cta')}
                 </a>
                 <Link href="/book" className="dir-btn ghost">
                   {t("book_cta")}

@@ -1020,8 +1020,6 @@ function useTables() {
 }
 
 /* ─────────────────────────  Calendar  ───────────────────────── */
-const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
-
 function fmtYMD(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
@@ -1037,6 +1035,7 @@ function Calendar({
   monthAvailability: ReturnType<typeof useMonthAvailability>
   datesWithSelections: Set<string>
 }) {
+  const t = useTranslations("book")
   const today = useMemo(() => {
     const d = new Date()
     d.setHours(0, 0, 0, 0)
@@ -1139,7 +1138,7 @@ function Calendar({
             color: tokens.colors.text,
           }}
         >
-          {year}年{month + 1}月
+          {t("year_month_format", { year, month: month + 1 })}
         </span>
         <button
           type="button"
@@ -1179,9 +1178,9 @@ function Calendar({
           marginBottom: 8,
         }}
       >
-        {DAY_NAMES.map((d) => (
+        {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map((day) => (
           <div
-            key={d}
+            key={day}
             style={{
               textAlign: "center",
               fontSize: 11,
@@ -1192,7 +1191,7 @@ function Calendar({
               textTransform: "uppercase" as const,
             }}
           >
-            {d}
+            {t(`day_${day}`)}
           </div>
         ))}
       </div>
@@ -1385,7 +1384,10 @@ function SummaryCard({
             </span>
             <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint }}>
               {ready
-                ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`
+                ? t("year_month_format", {
+                    year: selectedDate.getFullYear(),
+                    month: selectedDate.getMonth() + 1
+                  }) + ` ${selectedDate.getDate()}日`
                 : dash}
             </span>
           </div>

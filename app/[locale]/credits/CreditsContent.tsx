@@ -9,16 +9,8 @@ import { tokens } from '@/app/styles/tokens'
 const EASE = [0.2, 0.7, 0.3, 1] as const
 const VIEWPORT = { once: true, amount: 0.25 } as const
 
-const FLAP_MESSAGES = [
-  'THIS SITE WAS BUILT SOLO BY LUCA YAU',
-  'PHOTOGRAPHY & DESIGN BY MIKE LAU',
-  '3 MONTHS. 100+ HOURS.',
-  'WANT A SITE THIS GOOD?',
-  'VISIT FORMHK.COM',
-]
-
 export default function CreditsContent() {
-  const t = useTranslations()
+  const t = useTranslations('creditsPage')
   const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
@@ -60,7 +52,7 @@ export default function CreditsContent() {
             </h1>
           ) : (
             <TextFlippingBoard
-              messages={FLAP_MESSAGES}
+              messages={t.raw('flap_messages') as string[]}
               interval={5000}
               lastMessageDuration={9000}
               lastMessageUrl="https://formhk.com"
@@ -108,11 +100,11 @@ export default function CreditsContent() {
                 margin: 0,
               }}
             >
-              這個網站由 Luca Yau 一手包辦設計與開發。
+              {t('main_description_line1')}
               <br />
-              攝影及部分設計由 Mike Lau 負責。
+              {t('main_description_line2')}
               <br />
-              由概念到上線，歷時約 3 個月，投入超過 100 小時開發時間。
+              {t('main_description_line3')}
             </p>
           </motion.div>
 
@@ -134,7 +126,7 @@ export default function CreditsContent() {
                 margin: 0,
               }}
             >
-              Built with Next.js · Supabase · Stripe · Framer Motion
+              {t('tech_stack')}
             </p>
           </motion.div>
 

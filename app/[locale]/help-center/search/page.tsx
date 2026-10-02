@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import { getSearchableContent } from '@/lib/help/content-loader'
 import { HelpSearchPage } from '@/components/help/HelpSearchPage'
 
@@ -7,11 +8,17 @@ interface Props {
   searchParams: { q?: string }
 }
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const t = await getTranslations({ locale: params.locale, namespace: 'help' })
   const query = searchParams.q || ''
+
+  const title = query
+    ? `${t('metadata.search_title_with_query', { query })} - ${t('metadata.suffix_help_center')}`
+    : `${t('metadata.search_title')} - ${t('metadata.suffix_help_center')}`
+
   return {
-    title: query ? `搜尋：${query} - 幫助中心` : '搜尋 - 幫助中心',
-    description: '搜尋 Space8 幫助文章和常見問題',
+    title,
+    description: t('metadata.search_description'),
   }
 }
 

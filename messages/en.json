@@ -196,7 +196,10 @@
     "change_phone_link_invalid_body": "This link is invalid or corrupted. Please request a new link.",
     "change_phone_success_title": "Phone Changed",
     "change_phone_success_body": "Redirecting…",
-    "change_phone_go_to_settings": "Go to Settings"
+    "change_phone_go_to_settings": "Go to Settings",
+    "err_email_in_retention": "This email address is already in use. Please login directly. If you previously deleted your account, please register again after 6 months.",
+    "err_phone_in_retention": "This phone number is already in use. Please login directly. If you previously deleted your account, please register again after 6 months.",
+    "err_apple_id_in_retention": "This Apple ID is already in use. Please login directly. If you previously deleted your account, please register again after 6 months."
   },
   "login": {
     "brand": "SPACE8",
@@ -257,6 +260,9 @@
     "duration_3h": "3 hours",
     "member_price_prefix": "Book 2h+ for",
     "badge_best_value": "Best value",
+    "badge_morning": "Best Time",
+    "badge_afternoon": "Most Popular",
+    "badge_evening": "Prime Atmosphere",
     "time_line1": "Your time,",
     "time_line2": "never wasted.",
     "cta_line1": "Tables available now.",
@@ -493,7 +499,12 @@
         "label": "players joined",
         "live": "Growing"
       }
-    ]
+    ],
+    "hero_description": "A good Chinese 8-ball room should have no unnecessary distractions.",
+    "wheel_section_description": "A good Chinese 8-ball room should have no unnecessary distractions.",
+    "outro_cta_line1_part1": "Book your dedicated table with one tap, ",
+    "outro_cta_line1_part2": "start playing anytime, anywhere.",
+    "outro_cta_line2": "From booking to payment to entry, fully self-service with no waiting."
   },
   "maintenance": {
     "title": "Under Maintenance",
@@ -679,7 +690,8 @@
     "tagline": "Your Home Ground",
     "cta_book": "Book Now",
     "cta_learn": "Learn More",
-    "subline": "A self-service, smoke-free Chinese eight-ball room. No distractions."
+    "subline": "A self-service, smoke-free Chinese eight-ball room. No distractions.",
+    "image_alt": "SPACE8 hero image"
   },
   "how": {
     "title": "How It Works",
@@ -1064,6 +1076,7 @@
   },
   "faq": {
     "title": "FAQ",
+    "subtitle": "Quick guide to using Space 8",
     "faq_booking_q": "How do I book a table?",
     "faq_booking_a": "Choose your date, time slot, and duration, then pay instantly with Apple Pay or credit card. You'll receive a QR code immediately. No staff assistance needed.",
     "faq_entry_q": "How do I enter after booking?",
@@ -1115,6 +1128,15 @@
     "snooker": "Chinese Pool",
     "available": "Available Now",
     "unavailable": "Not Available",
+    "day_sun": "Sun",
+    "day_mon": "Mon",
+    "day_tue": "Tue",
+    "day_wed": "Wed",
+    "day_thu": "Thu",
+    "day_fri": "Fri",
+    "day_sat": "Sat",
+    "year_month_format": "{month}/{year}",
+    "full_date_format": "{weekday}, {month}/{day}/{year}",
     "slot_taken": "This slot was just taken by someone else. Please go back and pick another time.",
     "back_to_slots": "Back to time slots",
     "booking_expired": "This booking has expired",
@@ -1640,7 +1662,38 @@
     "address": "Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",
     "directions_body": "About 10 minutes on foot from Diamond Hill or Kai Tak MTR station; buses and minibuses also stop near Tai Yau Street.",
     "map_cta": "Open in Google Maps",
-    "book_cta": "Book Now"
+    "book_cta": "Book Now",
+    "venue_point_1_lead": "Professional Equipment",
+    "venue_point_1_body": "Star Chinese 8-ball tables | Tournament lighting | Climate control",
+    "venue_point_2_lead": "Private Rooms",
+    "venue_point_2_body": "Independent rooms | Up to 6 people | Private & comfortable",
+    "venue_point_3_lead": "Reservation-only QR Self Check-in",
+    "venue_point_3_body": "Book online | QR code entry | No staff needed",
+    "venue_point_4_lead": "Smoke-free & Clean",
+    "venue_point_4_body": "Completely smoke-free | Regularly cleaned | Comfortable environment",
+    "venue_point_5_lead": "Comfortable & Relaxed",
+    "venue_point_5_body": "Sofa lounge area | Free WiFi | Self-service drinks",
+    "room_feature_area_label": "Same Area",
+    "room_feature_area_value": "Approx. 90 sq ft",
+    "room_feature_table_label": "Same Table",
+    "room_feature_table_value": "Star Chinese 8-ball table",
+    "room_feature_quality_label": "Same Quality",
+    "room_feature_quality_value": "Professional balls & equipment",
+    "room_feature_capacity_label": "Same Capacity",
+    "room_feature_capacity_value": "Up to 6 people",
+    "weather_severe_title": "【Typhoon Signal No. 8 or above / Black Rainstorm Warning】",
+    "weather_severe_point_1": "Open as usual: Our automated venue system operates normally. You may visit as scheduled if you assess the conditions as safe.",
+    "weather_severe_point_2": "Rescheduling: If you decide not to visit, contact customer service via WhatsApp before your booking time to reschedule once within 7 days at no charge (no refunds available).",
+    "weather_severe_point_3": "Late requests: Requests after booking time or unused within 7 days will be considered forfeited.",
+    "weather_normal_title": "【Normal conditions / Other weather (e.g. Signal No. 3, Red Rain)】",
+    "weather_normal_point_1": "No cancellations or changes: Except for the extreme weather policy above, all confirmed bookings cannot be cancelled, rescheduled, or refunded.",
+    "directions_note_1": "MTR Diamond Hill Station",
+    "directions_note_2": "About 7 minutes walk from Diamond Hill Station Exit C2.",
+    "directions_note_3": "Also accessible by buses 11B, 11C, 11D, 11X, 22M, 23M, 26M, 28, 29M, 42C, 61X, 62X, 69C, 74X, 83X, 89, 213X, 258D, 259D or minibuses near Tai Yau Street.",
+    "directions_note_4": "Recommended parking at \"Hollywood Plaza\" or \"Kai Tak The Spectacle\". Purchase parking coupons in advance for discounts.",
+    "hero_title": "Two rooms, one feeling",
+    "hero_subtitle": "Space Infinity and Space Eternity — equally spacious, equally focused.",
+    "og_alt": "SPACE8 · Chinese 8-Ball · San Po Kong Hong Kong"
   },
   "membershipPage": {
     "hero_title": "Membership",
@@ -1707,6 +1760,7 @@
     "space_title": "Your space, fully open",
     "space_subtitle": "Self-service entry, smoke-free surroundings, built entirely for the game.",
     "stat_label": "Space Pilot AI System",
+    "stat_label_text": "AI-powered match recommendations and live scoring",
     "stat_main": "Coming soon",
     "stat_footnote": "Feature in development — details to follow",
     "section_body": "placeholder"
@@ -2297,6 +2351,38 @@
       "title": "Hello, how can we help you?",
       "subtitle": "Search for common questions or browse topics below"
     },
+    "breadcrumb": {
+      "home": "Help Center",
+      "search": "Search",
+      "announcements": "Announcements"
+    },
+    "feedback": {
+      "thank_you": "Thank you for your feedback!",
+      "question": "Was this article helpful?",
+      "helpful": "Helpful",
+      "not_helpful": "Not Helpful",
+      "error": "Submission failed, please try again later"
+    },
+    "related_articles": "Related Articles",
+    "search": {
+      "placeholder": "Search help articles...",
+      "results_count": "Found {count} results",
+      "no_results": "No relevant results found, please try other search terms",
+      "empty_state": "Enter a search term to begin"
+    },
+    "announcement": {
+      "badge": "Announcement",
+      "back_to_home": "← Back to Help Center"
+    },
+    "metadata": {
+      "article_not_found": "Article Not Found",
+      "topic_not_found": "Topic Not Found",
+      "announcement_not_found": "Announcement Not Found",
+      "suffix_help_center": "Help Center",
+      "search_title": "Search",
+      "search_title_with_query": "Search: {query}",
+      "search_description": "Search Space8 help articles and FAQs"
+    },
     "searchPlaceholder": "Search articles...",
     "noResults": "No articles found",
     "backToSupport": "Back to Support",
@@ -2418,6 +2504,10 @@
     }
   },
   "memberIntro": {
+    "meta": {
+      "title": "Member · SPACE8",
+      "description": "SPACE8 Member: Earn 1 point for every HK$1 spent. 100 points = HK$10 venue credit. New members get 100 bonus points. Book online, QR code check-in, safe and convenient."
+    },
     "hero": {
       "eyebrow": "SPACE8 MEMBERSHIP",
       "title": "One membership. Every door open.",
@@ -2445,7 +2535,9 @@
     "card": {
       "title": "Your Member Card",
       "hint": "Tap to flip and see QR code",
-      "sampleLabel": "Sample card, not real data"
+      "sampleLabel": "Sample card, not real data",
+      "memberBadge": "MEMBER",
+      "memberNamePlaceholder": "MEMBER NAME"
     },
     "points": {
       "title": "Points Program",
@@ -2480,7 +2572,8 @@
       },
       "venue": {
         "title": "Venue Safety",
-        "body": "Venue equipped with 24/7 CCTV surveillance and smart access control."
+        "body": "Venue equipped with 24/7 CCTV surveillance and smart access control.",
+        "linkText": "Learn more"
       }
     },
     "support": {
@@ -2498,6 +2591,7 @@
   "membership": {
     "heading": "Membership.",
     "subtitle": "Create an account and you're a Space Member automatically — no application needed — with 100 points to start.",
+    "learn_more": "Learn more about our membership program",
     "cards": {
       "0": {
         "badge": "Same for everyone",
@@ -2647,5 +2741,61 @@
     "minutes_ago": "{count} minute(s) ago",
     "hours_ago": "{count} hour(s) ago",
     "days_ago": "{count} day(s) ago"
+  },
+  "creditsPage": {
+    "flap_messages": [
+      "THIS SITE WAS BUILT SOLO BY LUCA YAU",
+      "PHOTOGRAPHY & DESIGN BY MIKE LAU",
+      "3 MONTHS. 100+ HOURS.",
+      "WANT A SITE THIS GOOD?",
+      "VISIT FORMHK.COM"
+    ],
+    "main_description_line1": "This website was designed and developed solo by Luca Yau.",
+    "main_description_line2": "Photography and partial design by Mike Lau.",
+    "main_description_line3": "From concept to launch, approximately 3 months and over 100 hours of development time.",
+    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion"
+  },
+  "supportPage": {
+    "back_to_support": "Back to Support"
+  },
+  "legalPage": {
+    "date_year": "",
+    "date_month": "/",
+    "date_day": "/"
+  },
+  "homeBooking": {
+    "title": "How It Works",
+    "steps": {
+      "0": {
+        "title": "Pick a Slot",
+        "desc": "Choose date, time, and duration. Instant confirmation.",
+        "alt": "SPACE8 booking interface showing time slot selection",
+        "cta": "Book Now"
+      },
+      "1": {
+        "title": "Scan to Enter",
+        "desc": "Get your QR code instantly. Scan at the door. Auto-unlock.",
+        "alt": "Scanning QR code to enter SPACE8 venue"
+      },
+      "2": {
+        "title": "Earn Points",
+        "desc": "HK$1 = 1 point. The more you play, the more you save.",
+        "alt": "SPACE8 member earning points and rewards",
+        "cta": "View Membership"
+      }
+    }
+  },
+  "homeDirections": {
+    "address": "32 Tai Yau Street, San Po Kong, Hong Kong",
+    "directions": [
+      "7 minutes walk from MTR Diamond Hill Station Exit C2",
+      "Accessible by bus: 11B, 11C, 11D, 11X, 22M, 23M, 26M, 28, 29M, 42C, 61X, 62X, 69C, 74X, 83X, 89, 213X, 258D, 259D",
+      "Parking available at Hollywood Plaza or The Spectacle (advance booking available)"
+    ],
+    "cta_book": "Book Now"
+  },
+  "homeFAQ": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to common questions about SPACE8"
   }
 }

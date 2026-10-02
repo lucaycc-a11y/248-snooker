@@ -36,7 +36,6 @@ const COLORS = {
 
 const EASING = {
   reveal: "cubic-bezier(.2,.7,.3,1)" as const,
-  pop: "cubic-bezier(.34,1.56,.64,1)" as const,
 };
 
 // Demo member code for the card (not real user data)
@@ -275,7 +274,7 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
               style={{
                 transformStyle: "preserve-3d",
                 transition: isFlipped
-                  ? `transform 600ms ${EASING.pop}`
+                  ? `transform 600ms ${EASING.reveal}`
                   : 'transform 150ms ease-out',
                 transform: isFlipped
                   ? "rotateY(180deg)"
@@ -305,12 +304,12 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
                     className="rounded-full px-3 py-1 text-xs font-semibold text-white"
                     style={{ background: COLORS.dark.accent }}
                   >
-                    MEMBER
+                    {t("card.memberBadge")}
                   </div>
                 </div>
                 <div className="flex flex-1 items-center justify-center">
                   <div className="text-center">
-                    <p className="font-code text-xl font-semibold uppercase tracking-wide text-white">MEMBER NAME</p>
+                    <p className="font-code text-xl font-semibold uppercase tracking-wide text-white">{t("card.memberNamePlaceholder")}</p>
                     <p className="font-code mt-2 text-sm tracking-wide text-white/40">{DEMO_CODE}</p>
                   </div>
                 </div>
@@ -484,7 +483,7 @@ function SafetySection({ t }: { t: ReturnType<typeof useTranslations> }) {
                             className="underline hover:text-white"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {t("safety.venue.body")}
+                            {t("safety.venue.linkText")}
                           </Link>
                         </p>
                       ) : (

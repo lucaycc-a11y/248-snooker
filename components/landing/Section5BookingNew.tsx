@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
 import styles from "./Section5BookingNew.module.css"
 
@@ -25,30 +26,32 @@ interface Step {
   cta?: { label: string; href: string }
 }
 
-const STEPS: Step[] = [
-  {
-    title: "選擇時段",
-    desc: "選擇日期、時間及時長。即時確認，無需等候。",
-    image: "/images/space8-booking-interface-pick-slot.webp",
-    alt: "手機預訂介面：選擇時段",
-    cta: { label: "立即預訂", href: "/book" },
-  },
-  {
-    title: "掃碼入場",
-    desc: "預訂確認後即獲 QR 碼。到場掃描，自動開門。",
-    image: "/images/space8-qrcode-entry-system.webp",
-    alt: "用手機掃描二維碼進場",
-  },
-  {
-    title: "累積積分",
-    desc: "每次消費自動賺取積分，換取優惠及會員禮遇。",
-    image: "/images/space8-member-rewards-points.webp",
-    alt: "會員積分與獎勵",
-    cta: { label: "查看會員", href: "/membership" },
-  },
-]
-
 export default function Section5BookingNew() {
+  const t = useTranslations("homeBooking")
+
+  const STEPS: Step[] = [
+    {
+      title: t("steps.0.title"),
+      desc: t("steps.0.desc"),
+      image: "/images/space8-booking-interface-pick-slot.webp",
+      alt: t("steps.0.alt"),
+      cta: { label: t("steps.0.cta"), href: "/book" },
+    },
+    {
+      title: t("steps.1.title"),
+      desc: t("steps.1.desc"),
+      image: "/images/space8-qrcode-entry-system.webp",
+      alt: t("steps.1.alt"),
+    },
+    {
+      title: t("steps.2.title"),
+      desc: t("steps.2.desc"),
+      image: "/images/space8-member-rewards-points.webp",
+      alt: t("steps.2.alt"),
+      cta: { label: t("steps.2.cta"), href: "/membership" },
+    },
+  ]
+
   const wrapRef = useRef<HTMLDivElement>(null)
   const stageColRef = useRef<HTMLDivElement>(null)
   const [activeIdx, setActiveIdx] = useState(0)
@@ -154,7 +157,7 @@ export default function Section5BookingNew() {
       className={styles["how-section"]}
     >
       <h2 id="how-it-works-title" className={styles["sr-only"]}>
-        如何使用
+        {t("title")}
       </h2>
 
       {/* Desktop: two-column */}

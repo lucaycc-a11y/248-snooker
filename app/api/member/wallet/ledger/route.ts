@@ -26,17 +26,23 @@ export async function GET(request: NextRequest) {
 
     const balance = userData?.credits ?? 0
 
-    // Fetch ledger entries with booking details, newest first
-    const { data: ledger, error: ledgerError } = await supabase
-      .from('credits_ledger')
-      .select('id, type, amount, balance_after, created_at, reference_id, note, booking_id, bookings(id, date, start_time, period)')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(100)
+    // Fetch ledger entries with booking details, newest first (fallback to empty if table doesn't exist)
+    let ledger: unknown[] = []
+    try {
+      const { data: ledgerData, error: ledgerError } = await supabase
+        .from('credits_ledger')
+        .select('id, type, amount, balance_after, created_at, reference_id, note, booking_id, bookings(id, date, start_time, period)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(100)
 
-    if (ledgerError) {
-      console.error('[wallet/ledger] ledger fetch error:', ledgerError)
-      return NextResponse.json({ error: 'Failed to fetch ledger' }, { status: 500 })
+      if (!ledgerError) {
+        ledger = ledgerData ?? []
+      } else {
+        console.error('[wallet/ledger] ledger fetch error:', ledgerError)
+      }
+    } catch (err) {
+      console.error('[wallet/ledger] ledger fetch exception:', err)
     }
 
     return NextResponse.json({

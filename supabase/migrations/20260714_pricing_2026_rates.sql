@@ -4,8 +4,8 @@
 --
 -- New per-hour rates (all days; venue hours 06:00–24:00, no latenight period):
 --   morning   06:00–12:00  HK$88  (HK$78/h when the contiguous block is 2h+)
---   afternoon 12:00–16:00  HK$98  (HK$88/h when the contiguous block is 2h+)
---   evening   16:00–24:00  HK$108 (no multi-hour discount)
+--   afternoon 12:00–18:00  HK$98  (HK$88/h when the contiguous block is 2h+)
+--   evening   18:00–24:00  HK$108 (no multi-hour discount)
 --
 -- `rateFrom2h` is read by lib/pricing.calculatePrice(): a contiguous block of
 -- 2h+ bills every hour whose period defines it at the discounted rate. The
@@ -19,8 +19,8 @@ set value = jsonb_set(
   '{periods}',
   jsonb_build_array(
     jsonb_build_object('id','morning',  'rate',88,  'rateFrom2h',78, 'start','06:00','end','12:00','days','all'),
-    jsonb_build_object('id','afternoon','rate',98,  'rateFrom2h',88, 'start','12:00','end','16:00','days','all'),
-    jsonb_build_object('id','evening',  'rate',108,                  'start','16:00','end','24:00','days','all')
+    jsonb_build_object('id','afternoon','rate',98,  'rateFrom2h',88, 'start','12:00','end','18:00','days','all'),
+    jsonb_build_object('id','evening',  'rate',108,                  'start','18:00','end','24:00','days','all')
   )
 )
 where key = 'pricing';

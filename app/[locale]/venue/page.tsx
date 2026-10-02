@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
@@ -45,6 +45,7 @@ export async function generateMetadata({
   const { locale } = await params;
   const m = META[locale] ?? META["zh-HK"];
   const path = locale === "zh-HK" ? "/venue" : `/${locale}/venue`;
+  const t = await getTranslations({ locale, namespace: "venuePage" });
 
   return {
     title: m.title,
@@ -69,7 +70,7 @@ export async function generateMetadata({
           url: `${BASE}/images/og-image-中八桌球-香港新蒲崗.png`,
           width: 1200,
           height: 630,
-          alt: 'SPACE8 · 中八桌球 · 香港新蒲崗',
+          alt: t('og_alt'),
         },
       ],
     },

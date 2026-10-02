@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { getHelpContent, getAllAnnouncementIds } from '@/lib/help/content-loader'
 import { HelpAnnouncementPage } from '@/components/help/HelpAnnouncementPage'
 
@@ -21,16 +22,17 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = params
+  const t = await getTranslations({ locale, namespace: 'help' })
   const content = await getHelpContent(locale === 'zh-HK' ? 'zh-Hant' : locale)
 
   const announcement = content.announcements.find((a) => a.id === slug)
 
   if (!announcement) {
-    return { title: 'Announcement Not Found' }
+    return { title: t('metadata.announcement_not_found') }
   }
 
   return {
-    title: `${announcement.title} - 幫助中心`,
+    title: `${announcement.title} - ${t('metadata.suffix_help_center')}`,
     description: announcement.summary,
   }
 }

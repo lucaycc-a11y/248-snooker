@@ -1,4 +1,29 @@
 {
+  "memberIntro": {
+    "meta": {
+      "title": "会員 · SPACE8",
+      "description": "SPACE8 会員：HK$1 の消費ごとに 1 ポイント獲得、予約が簡単、専用特典をお楽しみください。"
+    },
+    "card": {
+      "title": "あなたの会員カード",
+      "hint": "タップして QR コードを表示",
+      "sampleLabel": "サンプルカード、実際のデータではありません",
+      "memberBadge": "MEMBER",
+      "memberNamePlaceholder": "MEMBER NAME"
+    },
+    "safety": {
+      "title": "安全とサポート",
+      "pay": {
+        "title": "安全な決済",
+        "body": "すべての取引は Stripe を通じて処理され、クレジットカード情報は保存されません。Apple Pay、Google Pay、クレジットカードに対応しています。"
+      },
+      "venue": {
+        "title": "施設のセキュリティ",
+        "body": "施設には 24 時間 CCTV 監視とスマートアクセス制御システムが装備されています。",
+        "linkText": "詳細を見る"
+      }
+    }
+  },
   "member": {
     "tabs": {
       "home": "ホーム",
@@ -7,245 +32,152 @@
       "inbox": "受信箱",
       "settings": "設定",
       "help": "ヘルプセンター"
-    },
-    "birthday_perk_active": "誕生日特典有効",
-    "stats": {
-      "available_points": "利用可能ポイント",
-      "lifetime_points": "累計ポイント",
-      "ready_offers": "利用可能な特典"
-    },
-    "home": {
-      "active_offers": "現在の特典",
-      "book_now": "今すぐ予約",
-      "book_now_desc": "テーブルを予約する",
-      "view_rewards": "特典を見る",
-      "view_rewards_desc": "ポイントと特典を確認"
-    },
-    "card": {
-      "member_code": "会員番号",
-      "available_points": "利用可能ポイント",
-      "tap_for_qr": "タップしてQRコードを表示",
-      "scan_to_verify": "会員資格を確認するためにスキャン"
-    },
-    "tier": {
-      "current": "現在のランク",
-      "lifetime_points": "累計ポイント",
-      "next_tier": "次のランク",
-      "points_away": "ポイント",
-      "max_tier_reached": "最高ランクに到達"
-    },
-    "offers": {
-      "state": {
-        "issued": "受取待ち",
-        "ready": "利用可能",
-        "reserved": "予約済み",
-        "used": "使用済み",
-        "expired": "期限切れ"
-      },
-      "expires": "有効期限",
-      "min_hours": "最小時間数",
-      "claim_now": "今すぐ受け取る",
-      "claiming": "受取中...",
-      "redeem_for": "交換に必要",
-      "points": "ポイント",
-      "redeeming": "交換中...",
-      "use_offer": "特典を使用",
-      "reserved_in_booking": "予約で予約済み",
-      "expired": "期限切れ",
-      "used_at": "使用日時",
-      "discount_types": {
-        "off": "割引",
-        "free": "無料",
-        "birthday_perk": "誕生日特典"
-      },
-      "units": {
-        "off": "割引",
-        "free": "無料",
-        "points": "ポイント"
-      },
-      "errors": {
-        "offer_not_found": "特典が見つかりません",
-        "offer_already_redeemed": "特典は既に交換済みです",
-        "offer_not_points_redeemable": "この特典はポイントで交換できません",
-        "insufficient_points": "ポイントが不足しています",
-        "offer_already_claimed": "特典は既に受け取られています",
-        "offer_not_claimable": "この特典は受け取れません",
-        "unknown_error": "不明なエラー",
-        "network_error": "ネットワークエラー"
-      }
-    },
-    "rewards": {
-      "overview": "概要",
-      "catalog": "ポイントショップ",
-      "history": "履歴",
-      "ready_offers": "利用可能な特典",
-      "claim_offers": "受取可能な特典",
-      "recent_points": "最近のポイント",
-      "points_shop": "ポイントショップ",
-      "no_catalog": "交換可能な特典はありません",
-      "offer_history": "特典履歴",
-      "no_history": "履歴はありません"
-    },
-    "bookings": {
-      "filters": {
-        "all": "全て",
-        "upcoming": "今後",
-        "past": "過去"
-      },
-      "empty_state": "予約履歴はありません",
-      "table": "テーブル番号",
-      "time": "時間",
-      "duration": "時間",
-      "price": "価格",
-      "reference": "参照番号",
-      "refunded_at": "返金日時",
-      "refund_amount": "返金額",
-      "fee": "手数料",
-      "rescheduled_at": "変更日時",
-      "scan_to_check_in": "スキャンしてチェックイン",
-      "status": {
-        "confirmed": "確認済み",
-        "pending": "保留中",
-        "payment_failed": "支払い失敗",
-        "cancelled": "キャンセル済み"
-      }
-    },
-    "points": {
-      "empty_state": "ポイント履歴はありません",
-      "balance": "残高"
-    },
-    "inbox": {
-      "title": "受信箱",
-      "unread": "件未読",
-      "mark_all_read": "全て既読にする",
-      "marking_all": "マーク中...",
-      "tabs": {
-        "all": "全て",
-        "offer": "特典",
-        "booking": "予約",
-        "system": "システム"
-      },
-      "empty_state": "通知はありません"
-    },
-    "settings": {
-      "title": "設定",
-      "personal": "個人情報",
-      "security": "セキュリティ",
-      "notifications": "通知",
-      "privacy": "プライバシー",
-      "display_name": "表示名",
-      "display_name_hint": "あなたの公開表示名",
-      "email": "メールアドレス",
-      "email_readonly": "メールアドレスは変更できません",
-      "phone": "電話番号",
-      "phone_readonly": "電話番号はメールで変更する必要があります",
-      "birth_month": "誕生月",
-      "birth_month_hint": "設定後は誕生日特典に使用（設定後は変更不可）",
-      "birth_month_locked": "設定済み（変更不可）",
-      "not_set": "未設定",
-      "set": "設定",
-      "confirm": "確認",
-      "cancel": "キャンセル",
-      "saving": "保存中...",
-      "member_since": "会員登録日",
-      "security": {
-        "change_password": "パスワードを変更",
-        "change_password_desc": "パスワード変更リンクをメールでお送りします",
-        "change_phone": "電話番号を変更",
-        "change_phone_desc": "電話番号変更リンクをメールでお送りします",
-        "two_factor": "二要素認証",
-        "two_factor_desc": "アカウントのセキュリティを強化",
-        "email_sent": "メール送信済み",
-        "sending": "送信中...",
-        "send_email": "メールを送信",
-        "coming_soon": "近日公開"
-      },
-      "notifications": {
-        "email_notifications": "メール通知",
-        "push_notifications": "プッシュ通知",
-        "booking_confirmed": "予約確認",
-        "booking_confirmed_desc": "予約が確認されたときに通知を受け取る",
-        "booking_reminder": "予約リマインダー",
-        "booking_reminder_desc": "予約前にリマインダーを受け取る",
-        "offers": "特典通知",
-        "offers_desc": "新しい特典と報酬の通知を受け取る",
-        "promotions": "プロモーション情報",
-        "promotions_desc": "プロモーション活動の情報を受け取る",
-        "push_booking_reminder": "予約リマインダー",
-        "push_booking_reminder_desc": "予約前のリマインダーをプッシュ",
-        "push_offers": "特典通知",
-        "push_offers_desc": "新しい特典通知をプッシュ",
-        "push_system": "システム通知",
-        "push_system_desc": "重要なシステム通知をプッシュ",
-        "save_preferences": "設定を保存",
-        "saving": "保存中...",
-        "saved": "保存しました"
-      },
-      "privacy_title": "プライバシー設定",
-      "privacy_desc": "個人情報とアカウントを管理",
-      "delete_account": "アカウントを削除",
-      "errors": {
-        "invalid_month": "無効な月",
-        "unauthorized": "未承認",
-        "already_set": "既に設定済み",
-        "unknown_error": "不明なエラー",
-        "network_error": "ネットワークエラー"
-      }
-    },
-    "help": {
-      "title": "ヘルプセンター",
-      "subtitle": "お手伝いさせていただきます",
-      "search_placeholder": "よくある質問を検索...",
-      "categories": {
-        "all": "全て",
-        "booking": "予約",
-        "points": "ポイント",
-        "payment": "支払い",
-        "account": "アカウント",
-        "general": "一般"
-      },
-      "no_results": "関連する結果が見つかりません",
-      "still_need_help": "まだサポートが必要ですか？",
-      "contact": {
-        "email": "メールサポート",
-        "phone": "電話サポート",
-        "hours": "営業時間",
-        "hours_detail": "月曜日〜日曜日 10:00 - 22:00"
-      },
-      "faq": {
-        "how_to_book": {
-          "question": "テーブルを予約する方法は？",
-          "answer": "ホームページで「今すぐ予約」をクリックし、日付、時間、テーブルを選択して支払いを完了してください。"
-        },
-        "cancel_booking": {
-          "question": "予約をキャンセルできますか？",
-          "answer": "確認済みの予約はキャンセルまたは返金できません。特別な事情がある場合は、カスタマーサービスにお問い合わせください。"
-        },
-        "earn_points": {
-          "question": "ポイントを獲得する方法は？",
-          "answer": "予約を完了するたびに、消費金額と会員ランクに応じて自動的にポイントを獲得します。より高いランクでは、より多くのポイント倍率を獲得できます。"
-        },
-        "redeem_points": {
-          "question": "ポイントの使い方は？",
-          "answer": "ポイントショップでポイントをクーポンに交換できます。クーポンは次回の予約時に割引を受けるために使用できます。"
-        },
-        "tier_upgrade": {
-          "question": "会員ランクをアップグレードする方法は？",
-          "answer": "会員ランクは累計ポイントに基づいて自動的にアップグレードされます。ランクは決して下がることはなく、上昇のみです。"
-        },
-        "payment_methods": {
-          "question": "どの支払い方法を受け付けていますか？",
-          "answer": "クレジットカード、FPS、Alipay、WeChatPayを受け付けています。"
-        },
-        "birthday_perk": {
-          "question": "誕生日特典の使い方は？",
-          "answer": "設定で誕生月を設定してください（設定後は変更不可）。毎年誕生月に一度、ダブルポイント特典をお楽しみいただけます。"
-        },
-        "change_password": {
-          "question": "パスワードを変更する方法は？",
-          "answer": "設定 > セキュリティに移動し、「パスワードを変更」をクリックしてください。安全なリンクをメールでお送りします。"
-        }
-      }
     }
+  },
+  "book": {
+    "title": "セッションを予約",
+    "close": "閉じる",
+    "select_table": "テーブルを選択",
+    "table_label": "テーブル",
+    "snooker": "中式ビリヤード",
+    "available": "利用可能",
+    "unavailable": "利用不可",
+    "day_sun": "日",
+    "day_mon": "月",
+    "day_tue": "火",
+    "day_wed": "水",
+    "day_thu": "木",
+    "day_fri": "金",
+    "day_sat": "土",
+    "year_month_format": "{year}年{month}月",
+    "full_date_format": "{year}年{month}月{day}日（{weekday}）",
+    "hours": "時間"
+  },
+  "help": {
+    "title": "サポートセンター",
+    "subtitle": "よくある質問の解答を見つける",
+    "meta": {
+      "title": "ヘルプセンター - Space8",
+      "description": "Space8 のよくある質問、予約ガイド、会員情報、施設利用規則を見つける"
+    },
+    "hero": {
+      "title": "こんにちは、何かお手伝いできますか？",
+      "subtitle": "よくある質問を検索するか、下記のトピックを閲覧してください"
+    },
+    "breadcrumb": {
+      "home": "ヘルプセンター",
+      "search": "検索",
+      "announcements": "お知らせ"
+    },
+    "feedback": {
+      "thank_you": "フィードバックをありがとうございます！",
+      "question": "この記事は役に立ちましたか？",
+      "helpful": "役に立った",
+      "not_helpful": "役に立たなかった",
+      "error": "送信に失敗しました。後でもう一度お試しください"
+    },
+    "related_articles": "関連記事",
+    "search": {
+      "placeholder": "ヘルプ記事を検索...",
+      "results_count": "{count} 件の結果が見つかりました",
+      "no_results": "関連する結果が見つかりませんでした。他の検索語をお試しください",
+      "empty_state": "検索語を入力して開始してください"
+    },
+    "announcement": {
+      "badge": "お知らせ",
+      "back_to_home": "← ヘルプセンターに戻る"
+    },
+    "metadata": {
+      "article_not_found": "Article Not Found",
+      "topic_not_found": "Topic Not Found",
+      "announcement_not_found": "Announcement Not Found",
+      "suffix_help_center": "ヘルプセンター",
+      "search_title": "検索",
+      "search_title_with_query": "検索：{query}",
+      "search_description": "Space8 ヘルプ記事とよくある質問を検索"
+    },
+    "searchPlaceholder": "記事を検索...",
+    "noResults": "記事が見つかりません",
+    "backToSupport": "サポートに戻る",
+    "backToHelp": "ヘルプに戻る",
+    "stillNeedHelp": "まだサポートが必要ですか？",
+    "stillNeedHelpDesc": "上記の情報で問題が解決しない場合は、サポートチームにお問い合わせください。",
+    "contactSupport": "サポートに問い合わせる",
+    "popularQuestions": "よくある質問",
+    "browseTopics": "トピックを閲覧"
+  },
+  "creditsPage": {
+    "flap_messages": [
+      "THIS SITE WAS BUILT SOLO BY LUCA YAU",
+      "PHOTOGRAPHY & DESIGN BY MIKE LAU",
+      "3 MONTHS. 100+ HOURS.",
+      "WANT A SITE THIS GOOD?",
+      "VISIT FORMHK.COM"
+    ],
+    "main_description_line1": "このウェブサイトは Luca Yau が一人でデザインと開発を担当しました。",
+    "main_description_line2": "写真と一部のデザインは Mike Lau が担当しました。",
+    "main_description_line3": "コンセプトから公開まで、約3ヶ月、100時間以上の開発時間を投入しました。",
+    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion"
+  },
+  "supportPage": {
+    "back_to_support": "サポートに戻る"
+  },
+  "legalPage": {
+    "date_year": "年",
+    "date_month": "月",
+    "date_day": "日"
+  },
+  "aboutPage": {
+    "wheel_section_description": "良い中国式ビリヤードルームには不必要な妨害があってはなりません。",
+    "outro_cta_line1_part1": "ワンタップで専用テーブルを予約、",
+    "outro_cta_line1_part2": "いつでもどこでもプレイ開始。",
+    "outro_cta_line2": "予約から決済、入場まで、完全セルフサービスで待ち時間なし。"
+  },
+  "auth": {
+    "err_email_in_retention": "このメールアドレスは既に使用されています。直接ログインしてください。以前にアカウントを削除した場合は、6ヶ月後に再登録してください。",
+    "err_phone_in_retention": "この電話番号は既に使用されています。直接ログインしてください。以前にアカウントを削除した場合は、6ヶ月後に再登録してください。",
+    "err_apple_id_in_retention": "この Apple ID は既に使用されています。直接ログインしてください。以前にアカウントを削除した場合は、6ヶ月後に再登録してください。"
+  },
+  "venuePage": {
+    "map_cta": "Google Maps でナビゲート",
+    "book_cta": "今すぐ予約",
+    "venue_point_1_lead": "プロ仕様の設備",
+    "venue_point_1_body": "星牌中式ビリヤード台 | プロ照明 | 空調完備",
+    "venue_point_2_lead": "プライベートルーム",
+    "venue_point_2_body": "独立個室 | 最大6名 | プライベート空間",
+    "venue_point_3_lead": "完全予約制 QRセルフチェックイン",
+    "venue_point_3_body": "オンライン予約 | QRコード入場 | スタッフ不要",
+    "venue_point_4_lead": "禁煙・清潔",
+    "venue_point_4_body": "全面禁煙 | 定期清掃 | 快適な環境",
+    "venue_point_5_lead": "快適でリラックス",
+    "venue_point_5_body": "ソファラウンジ | 無料WiFi | セルフドリンク",
+    "room_feature_area_label": "同じ面積",
+    "room_feature_area_value": "約90平方フィート",
+    "room_feature_table_label": "同じテーブル",
+    "room_feature_table_value": "星牌中式8ボール台",
+    "room_feature_quality_label": "同じ品質",
+    "room_feature_quality_value": "プロ仕様のボールと設備",
+    "room_feature_capacity_label": "同じ収容人数",
+    "room_feature_capacity_value": "最大6名",
+    "weather_severe_title": "【台風シグナル8以上 / 黒色暴雨警報】",
+    "weather_severe_point_1": "通常営業：施設の自動化システムは正常に稼働します。安全を評価の上、予定通りご来場いただけます。",
+    "weather_severe_point_2": "変更制度：来場を見合わせる場合は、予約時間開始前にWhatsAppでカスタマーサービスに連絡すれば、7日以内に1回無料で変更可能です（返金不可）。",
+    "weather_severe_point_3": "期限切れ：予約時間後の申請または7日以内に使用しない場合は、権利放棄とみなされます。",
+    "weather_normal_title": "【通常時 / その他の天候（シグナル3、赤色警報など）】",
+    "weather_normal_point_1": "変更・返金不可：上記の極端な天候ルール以外、すべての確定予約はキャンセル、変更、返金できません。",
+    "directions_note_1": "MTRダイヤモンドヒル駅",
+    "directions_note_2": "ダイヤモンドヒル駅C2出口から徒歩約7分。",
+    "directions_note_3": "11B、11C、11D、11X、22M、23M、26M、28、29M、42C、61X、62X、69C、74X、83X、89、213X、258D、259Dなどのバスまたはミニバスで大有街付近まで行くこともできます。",
+    "directions_note_4": "「ハリウッドプラザ」または「啟德 The Spectacle」での駐車をお勧めします。事前に駐車券を購入すると割引が受けられます。",
+    "hero_title": "2つの個室、1つの感覚",
+    "hero_subtitle": "Space InfinityとSpace Eternity、同じ広さ、同じ集中力。",
+    "og_alt": "SPACE8 · 中式8ボール · 香港新蒲崗",
+    "weather_title": "悪天候および特別な手配",
+    "directions_title": "アクセス方法",
+    "address_label": "住所",
+    "address": "香港新蒲崗大有街32号泰力工業中心3階05室",
+    "room_comparison_heading": "2つの個室、1つの基準",
+    "room_comparison_intro": "Space InfinityとSpace Eternityは全く同じ構成です。最適な時間帯を選ぶだけです。",
+    "rules_link": "完全な施設利用規則と条件を見る"
   }
 }

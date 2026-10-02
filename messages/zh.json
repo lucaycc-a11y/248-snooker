@@ -91,5 +91,10 @@
       "remove": "移除",
       "insufficient": "Space Wallet 餘額不足"
     }
+  },
+  "auth": {
+    "err_email_in_retention": "該電子郵件地址已被使用，請直接登入。如您曾刪除帳戶，請於 6 個月後再註冊。",
+    "err_phone_in_retention": "該手機號碼已被使用，請直接登入。如您曾刪除帳戶，請於 6 個月後再註冊。",
+    "err_apple_id_in_retention": "該 Apple ID 已被使用，請直接登入。如您曾刪除帳戶，請於 6 個月後再註冊。"
   }
 }

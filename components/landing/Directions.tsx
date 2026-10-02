@@ -7,7 +7,6 @@ import { Link } from "@/i18n/navigation";
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
-const ADDRESS = "香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室";
 const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
   "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
 )}`;
@@ -66,6 +65,7 @@ const DIR_CSS = `
 
 export default function Directions() {
   const t = useTranslations("venuePage");
+  const dirT = useTranslations("homeDirections");
   const secRef = useRef<HTMLElement>(null);
   const [isIn, setIsIn] = useState(false);
 
@@ -152,7 +152,7 @@ export default function Directions() {
               color: "#111110",
               marginBottom: 14,
             }}>
-              {t("address")}
+              {dirT("address")}
             </p>
 
             <ul className="dir-notes" style={{
@@ -160,49 +160,19 @@ export default function Directions() {
               marginBottom: 30,
               padding: 0,
             }}>
-              <li style={{
-                position: "relative",
-                paddingLeft: 17,
-                fontFamily: FONT_FAMILY,
-                fontSize: 13.8,
-                lineHeight: 1.75,
-                color: "rgba(17,17,16,0.58)",
-              }}>
-                港鐵鑽石山站 A2 出口或啟德站 Airside C 出口步行約 8–10 分鐘
-              </li>
-              <li style={{
-                position: "relative",
-                paddingLeft: 17,
-                fontFamily: FONT_FAMILY,
-                fontSize: 13.8,
-                lineHeight: 1.75,
-                color: "rgba(17,17,16,0.58)",
-                marginTop: 8,
-              }}>
-                距離鑽石山站 A2 出口 500 米（建議路線）
-              </li>
-              <li style={{
-                position: "relative",
-                paddingLeft: 17,
-                fontFamily: FONT_FAMILY,
-                fontSize: 13.8,
-                lineHeight: 1.75,
-                color: "rgba(17,17,16,0.58)",
-                marginTop: 8,
-              }}>
-                亦可乘搭巴士或小巴至大有街附近下車
-              </li>
-              <li style={{
-                position: "relative",
-                paddingLeft: 17,
-                fontFamily: FONT_FAMILY,
-                fontSize: 13.8,
-                lineHeight: 1.75,
-                color: "rgba(17,17,16,0.58)",
-                marginTop: 8,
-              }}>
-                建議泊車：新科技廣場停車場（威信停車場）
-              </li>
+              {dirT.raw("directions").map((direction: string, index: number) => (
+                <li key={index} style={{
+                  position: "relative",
+                  paddingLeft: 17,
+                  fontFamily: FONT_FAMILY,
+                  fontSize: 13.8,
+                  lineHeight: 1.75,
+                  color: "rgba(17,17,16,0.58)",
+                  marginTop: index === 0 ? 0 : 8,
+                }}>
+                  {direction}
+                </li>
+              ))}
             </ul>
 
             <div className="dir-actions" style={{
@@ -256,7 +226,7 @@ export default function Directions() {
                   border: "1px solid rgba(17,17,16,0.22)",
                 }}
               >
-                立即預訂
+                {dirT("cta_book")}
               </Link>
             </div>
           </div>

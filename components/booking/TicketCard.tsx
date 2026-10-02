@@ -10,8 +10,6 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { QRCode } from "@/components/shared/QRCode"
 import { getTableName } from "@/lib/booking/constants"
 
-const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
-
 function padTime(h: number): string {
   return String(((h % 24) + 24) % 24).padStart(2, "0") + ":00"
 }
@@ -87,7 +85,13 @@ export function TicketCard({
   const endHour = startHour + duration
   const crossDay = endHour >= 24
   const dateObj = new Date(`${date}T00:00:00`)
-  const dateStr = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日 星期${DAY_NAMES[dateObj.getDay()]}`
+  const weekdayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
+  const dateStr = t("full_date_format", {
+    year: dateObj.getFullYear(),
+    month: dateObj.getMonth() + 1,
+    day: dateObj.getDate(),
+    weekday: t(`day_${weekdayNames[dateObj.getDay()]}`)
+  })
   const tableName = getTableName(tableNumber, locale)
 
   // displayCode is what appears as human-readable text below the QR — customer-service reference only.

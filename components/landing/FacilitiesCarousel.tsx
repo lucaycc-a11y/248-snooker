@@ -183,9 +183,7 @@ export default function FacilitiesCarousel() {
               <div className={styles.dcat}>{t(FACILITY_CATEGORIES[modalIndex])}</div>
               <h3 className={styles.dttl}>{visibleFacilities[modalIndex].title}</h3>
               <p className={styles.dtxt}>
-                {modalIndex === 2
-                  ? "Space Pilot 智能小管家：掃碼報到、AI 推薦最公平的賽制、大螢幕即時比分，每一場勝負記入戰績，方便之後查看。"
-                  : visibleFacilities[modalIndex].body}
+                {visibleFacilities[modalIndex].body}
               </p>
             </div>
           </div>

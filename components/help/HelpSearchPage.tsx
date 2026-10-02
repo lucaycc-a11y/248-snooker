@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/navigation'
 import { HELP_PATHS } from '@/lib/help/constants'
 import Fuse from 'fuse.js'
@@ -28,6 +29,7 @@ interface HelpSearchPageProps {
 }
 
 export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPageProps) {
+  const t = useTranslations('help')
   const [query, setQuery] = useState(initialQuery)
   const [results, setResults] = useState<SearchableItem[]>([])
   const router = useRouter()
@@ -69,10 +71,10 @@ export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPage
         {/* Breadcrumb */}
         <nav style={{ fontSize: '14px', color: HELP_COLORS.muted, marginBottom: '24px' }}>
           <Link href={HELP_PATHS.home} style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
-            幫助中心
+            {t('breadcrumb.home')}
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>
-          <span>搜尋</span>
+          <span>{t('breadcrumb.search')}</span>
         </nav>
 
         {/* Search Form */}
@@ -91,7 +93,7 @@ export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPage
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="搜尋幫助文章..."
+              placeholder={t('search.placeholder')}
               autoFocus
               style={{
                 width: '100%',
@@ -117,7 +119,7 @@ export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPage
                 marginBottom: '16px',
               }}
             >
-              找到 {results.length} 個結果
+              {t('search.results_count', { count: results.length })}
             </h1>
 
             {results.length === 0 ? (
@@ -131,7 +133,7 @@ export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPage
                 }}
               >
                 <p style={{ fontSize: '15px', color: '#5b6764' }}>
-                  沒有找到相關結果，請嘗試其他搜尋詞
+                  {t('search.no_results')}
                 </p>
               </div>
             ) : (
@@ -161,7 +163,7 @@ export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPage
                             borderRadius: '4px',
                           }}
                         >
-                          公告
+                          {t('announcement.badge')}
                         </span>
                       </div>
                     )}
@@ -193,7 +195,7 @@ export function HelpSearchPage({ searchableItems, initialQuery }: HelpSearchPage
             }}
           >
             <p style={{ fontSize: '15px', color: '#5b6764' }}>
-              輸入搜尋詞以開始搜尋
+              {t('search.empty_state')}
             </p>
           </div>
         )}

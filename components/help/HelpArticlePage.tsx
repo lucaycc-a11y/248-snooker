@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Link } from '@/i18n/navigation'
+import { useTranslations } from 'next-intl'
 import { HelpArticle } from '@/lib/help/content-loader'
 import { HELP_PATHS } from '@/lib/help/constants'
 import { Markdown } from './Markdown'
@@ -24,6 +25,7 @@ interface HelpArticlePageProps {
 }
 
 export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: HelpArticlePageProps) {
+  const t = useTranslations('help')
   const [feedbackState, setFeedbackState] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [selectedFeedback, setSelectedFeedback] = useState<boolean | null>(null)
 
@@ -59,7 +61,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
         {/* Breadcrumb */}
         <nav style={{ fontSize: '14px', color: '#5b6764', marginBottom: '24px' }}>
           <Link href={HELP_PATHS.home} style={{ color: HELP_COLORS.accent, textDecoration: 'none' }}>
-            幫助中心
+            {t('breadcrumb.home')}
           </Link>
           <span style={{ margin: '0 8px' }}>/</span>
           <Link
@@ -122,7 +124,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
         >
           {feedbackState === 'success' ? (
             <p style={{ fontSize: '15px', color: '#111', textAlign: 'center' }}>
-              感謝你的回饋！
+              {t('feedback.thank_you')}
             </p>
           ) : (
             <>
@@ -134,7 +136,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
                   textAlign: 'center',
                 }}
               >
-                這篇文章有幫助嗎？
+                {t('feedback.question')}
               </p>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                 <button
@@ -156,7 +158,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
                   className="feedback-btn"
                 >
                   <ThumbsUp size={16} />
-                  有幫助
+                  {t('feedback.helpful')}
                 </button>
                 <button
                   onClick={() => handleFeedback(false)}
@@ -177,7 +179,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
                   className="feedback-btn"
                 >
                   <ThumbsDown size={16} />
-                  沒有幫助
+                  {t('feedback.not_helpful')}
                 </button>
               </div>
               {feedbackState === 'error' && (
@@ -189,7 +191,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
                     textAlign: 'center',
                   }}
                 >
-                  提交失敗，請稍後再試
+                  {t('feedback.error')}
                 </p>
               )}
             </>
@@ -207,7 +209,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
                 marginBottom: '16px',
               }}
             >
-              其他相關文章
+              {t('related_articles')}
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {allArticles

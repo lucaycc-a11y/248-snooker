@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import { getTranslations } from 'next-intl/server'
 import { getArticle, getTopicData, getAllTopics, getAllArticles } from '@/lib/help/content-loader'
 
 // ── Main content (lazy load) ────────────────────────────────────────────────
@@ -31,14 +32,15 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, topic, article } = params
+  const t = await getTranslations({ locale, namespace: 'help' })
   const articleData = await getArticle(topic, article, locale === 'zh-HK' ? 'zh-Hant' : locale)
 
   if (!articleData) {
-    return { title: 'Article Not Found' }
+    return { title: t('metadata.article_not_found') }
   }
 
   return {
-    title: `${articleData.title} - Help Center`,
+    title: `${articleData.title} - ${t('metadata.suffix_help_center')}`,
     description: articleData.summary,
   }
 }

@@ -123,7 +123,7 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
           color: "#000000",
         }}
       >
-        好的中式八球室不應有多餘干擾。
+        {t("wheel_section_description")}
       </p>
     </div>
   );

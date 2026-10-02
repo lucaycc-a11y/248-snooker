@@ -196,7 +196,10 @@
     "change_phone_link_invalid_body": "此链接无效或已损坏。请重新申请更改电话链接。",
     "change_phone_success_title": "电话已更改",
     "change_phone_success_body": "正在跳转…",
-    "change_phone_go_to_settings": "前往设定页面"
+    "change_phone_go_to_settings": "前往设定页面",
+    "err_email_in_retention": "该电子邮件地址已被使用，请直接登录。如您曾删除帐户，请于 6 个月后再注册。",
+    "err_phone_in_retention": "该手机号码已被使用，请直接登录。如您曾删除帐户，请于 6 个月后再注册。",
+    "err_apple_id_in_retention": "该 Apple ID 已被使用，请直接登录。如您曾删除帐户，请于 6 个月后再注册。"
   },
   "login": {
     "brand": "SPACE8",
@@ -257,6 +260,9 @@
     "duration_3h": "3 小时",
     "member_price_prefix": "连订 2 小时或以上",
     "badge_best_value": "最抵玩",
+    "badge_morning": "最佳时段",
+    "badge_afternoon": "人气之选",
+    "badge_evening": "氛围首选",
     "time_line1": "你的时间，",
     "time_line2": "不会白等。",
     "cta_line1": "现在有位，",
@@ -493,7 +499,12 @@
         "label": "热情球友加入",
         "live": "持续增加中"
       }
-    ]
+    ],
+    "hero_description": "好的中式八球室不应有多余干扰。",
+    "wheel_section_description": "好的中式八球室不应有多余干扰。",
+    "outro_cta_line1_part1": "一键预订专属球台，",
+    "outro_cta_line1_part2": "随时随地开局。",
+    "outro_cta_line2": "由预订、付款到入场，全程自助，无需等候。"
   },
   "maintenance": {
     "title": "系统维护中",
@@ -679,7 +690,8 @@
     "tagline": "属于你的主场",
     "cta_book": "立即预订",
     "cta_learn": "了解更多",
-    "subline": "自助无烟智能中式台球室，无多余干扰。"
+    "subline": "自助无烟智能中式台球室，无多余干扰。",
+    "image_alt": "SPACE8 主视觉图"
   },
   "how": {
     "title": "预订流程",
@@ -1062,8 +1074,94 @@
       "version": "版本"
     }
   },
+  "memberIntro": {
+    "meta": {
+      "title": "会员 · SPACE8",
+      "description": "SPACE8 会员：每消费 HK$1 累积 1 积分，100 积分 = HK$10 场地抵用额。新会员即享 100 积分迎新奖赏。全预约制，QR 码自助入场，安全可靠。"
+    },
+    "hero": {
+      "eyebrow": "SPACE8 会员计划",
+      "title": "一个会员，畅行无阻。",
+      "subtitle": "每消费 HK$1 累积 1 积分，新会员即享 100 积分迎新奖赏。",
+      "ctaPrimary": "立即加入",
+      "ctaSecondary": "登入帐户",
+      "note": "所有预约场次之用户均需注册成为会员。"
+    },
+    "pillar1": {
+      "lead": "消费即赚分",
+      "body": "每 HK$1 = 1 积分，自动累积"
+    },
+    "pillar2": {
+      "lead": "积分当钱使",
+      "body": "100 积分 = HK$10 场地抵用额，即将推出。"
+    },
+    "pillar3": {
+      "lead": "新会员奖赏",
+      "body": "注册即送 100 积分迎新礼遇"
+    },
+    "pillar4": {
+      "lead": "全预约制，QR 自助入场",
+      "body": "网上预订，扫码开门，简单安全"
+    },
+    "card": {
+      "title": "你的会员卡",
+      "hint": "点击翻转查看 QR 码",
+      "sampleLabel": "示范卡片，非真实数据",
+      "memberBadge": "MEMBER",
+      "memberNamePlaceholder": "MEMBER NAME"
+    },
+    "points": {
+      "title": "积分计划",
+      "stat1": {
+        "value": "HK$1 = 1 积分",
+        "label": "每消费 HK$1 累积 1 积分"
+      },
+      "stat2": {
+        "value": "100 积分 = HK$10",
+        "label": "每 100 积分可兑换（即将推出）",
+        "unit": "点数"
+      },
+      "stat3": {
+        "value": "100 积分",
+        "label": "新会员迎新奖赏"
+      },
+      "comingSoon": "积分兑换功能即将推出"
+    },
+    "safety": {
+      "title": "安全与支持",
+      "pay": {
+        "title": "安全支付",
+        "body": "所有交易均通过 Stripe 处理，我们不会储存你的信用卡资料。支持 Apple Pay、Google Pay 及信用卡付款。"
+      },
+      "data": {
+        "title": "隐私保障",
+        "body": "你的个人资料受到严格保护。我们遵守香港个人资料（隐私）条例，绝不会向第三方出售或分享你的资料。"
+      },
+      "qr": {
+        "title": "QR 码安全",
+        "body": "每个 QR 码只能用于指定时段及台号，并设有时效限制。你的 QR 码只显示于已登录账户，确保只有你本人可以使用。"
+      },
+      "venue": {
+        "title": "场地安全",
+        "body": "场地配备 24 小时闭路电视监控及智能门禁系统。",
+        "linkText": "了解更多"
+      }
+    },
+    "support": {
+      "title": "需要协助？",
+      "body": "我们随时为你解答疑问。",
+      "faq": "常见问题",
+      "whatsapp": "WhatsApp 查询"
+    },
+    "final": {
+      "title": "准备好开始了吗？",
+      "book": "立即预订",
+      "login": "登录会员"
+    }
+  },
   "faq": {
     "title": "常见问题",
+    "subtitle": "快速了解 Space 8 的使用方式",
     "faq_booking_q": "如何预订球桌？",
     "faq_booking_a": "选择日期、时段及时长，以 Apple Pay 或信用卡即时付款，确认后即获 QR 码。全程不需人工协助。",
     "faq_entry_q": "预订后如何入场？",
@@ -1115,6 +1213,15 @@
     "snooker": "中式桌球",
     "available": "现时可预订",
     "unavailable": "此时段已被预订",
+    "day_sun": "日",
+    "day_mon": "一",
+    "day_tue": "二",
+    "day_wed": "三",
+    "day_thu": "四",
+    "day_fri": "五",
+    "day_sat": "六",
+    "year_month_format": "{year}年{month}月",
+    "full_date_format": "{year}年{month}月{day}日 星期{weekday}",
     "slot_taken": "此时段刚刚被其他人预订了，请返回选择其他时段。",
     "back_to_slots": "返回选择时段",
     "booking_expired": "此预约时段已过期",
@@ -1642,7 +1749,38 @@
     "address": "香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室",
     "directions_body": "港铁钻石山站或启德站步行约 10 分钟；亦可乘搭巴士或小巴至大有街附近下车。",
     "map_cta": "Google Maps 导航",
-    "book_cta": "立即预订"
+    "book_cta": "立即预订",
+    "venue_point_1_lead": "专业设备",
+    "venue_point_1_body": "星牌中式台球台 | 专业照明 | 恒温冷气",
+    "venue_point_2_lead": "私人包厢",
+    "venue_point_2_body": "独立包厢 | 最多 6 人 | 私密舒适",
+    "venue_point_3_lead": "全预约制 QR 自助入场",
+    "venue_point_3_body": "网上预订 | QR 码入场 | 无需人手",
+    "venue_point_4_lead": "无烟干净",
+    "venue_point_4_body": "全场禁烟 | 定期清洁 | 舒适环境",
+    "venue_point_5_lead": "舒适自在",
+    "venue_point_5_body": "沙发休息区 | 免费 WiFi | 自助饮品",
+    "room_feature_area_label": "同样面积",
+    "room_feature_area_value": "约 90 平方呎",
+    "room_feature_table_label": "同样球台",
+    "room_feature_table_value": "星牌中式八球台",
+    "room_feature_quality_label": "同样品质",
+    "room_feature_quality_value": "专业用球与设备",
+    "room_feature_capacity_label": "同样容量",
+    "room_feature_capacity_value": "最多 6 人",
+    "weather_severe_title": "【8 号或以上台风信号 / 黑色暴雨警告】",
+    "weather_severe_point_1": "如常营业：场地自动化系统维持正常运作，阁下可评估安全后如常前往。",
+    "weather_severe_point_2": "改期机制：若决定不前往，必须于原预约时间开始前以 WhatsApp 联系客服，即可安排于 7 天内免费改期（不设退款）。",
+    "weather_severe_point_3": "逾期处理：超过预约时间才申请或未于 7 天内使用，将视为自动放弃权益。",
+    "weather_normal_title": "【一般情况 / 其它天气（如 3 号台风信号、红雨）】",
+    "weather_normal_point_1": "不设退改：除上述极端天气守则外，所有预约一经确认，一律不接受取消、改期或退款。",
+    "directions_note_1": "港铁钻石山站",
+    "directions_note_2": "距离钻石山站 C2 出口步行约 7 分钟。",
+    "directions_note_3": "亦可乘搭 11B、11C、11D、11X、22M、23M、26M、28、29M、42C、61X、62X、69C、74X、83X、89、213X、258D、259D 等巴士或小巴至大有街附近下车。",
+    "directions_note_4": "建议泊车于「荷李活广场」或「启德 The Spectacle」，预先购买泊车券可享折扣。",
+    "hero_title": "两个包厢，一种感觉",
+    "hero_subtitle": "Space Infinity 与 Space Eternity，同样宽敞，同样专注。",
+    "og_alt": "SPACE8 · 中八台球 · 香港新蒲岗"
   },
   "membershipPage": {
     "hero_title": "会员",
@@ -1709,6 +1847,7 @@
     "space_title": "空间全开，由你主场",
     "space_subtitle": "自助入场，无烟环境，专为台球而设",
     "stat_label": "Space Pilot 智能管家",
+    "stat_label_text": "AI 赛制推荐与即时计分系统",
     "stat_main": "敬请期待",
     "stat_footnote": "功能开发中，详情将于日后公布",
     "section_body": "空格"
@@ -2299,6 +2438,38 @@
       "title": "您好，有什么可以协助您？",
       "subtitle": "搜索常见问题或浏览下方主题"
     },
+    "breadcrumb": {
+      "home": "帮助中心",
+      "search": "搜索",
+      "announcements": "公告"
+    },
+    "feedback": {
+      "thank_you": "感谢你的反馈！",
+      "question": "这篇文章有帮助吗？",
+      "helpful": "有帮助",
+      "not_helpful": "没有帮助",
+      "error": "提交失败，请稍后再试"
+    },
+    "related_articles": "其他相关文章",
+    "search": {
+      "placeholder": "搜索帮助文章...",
+      "results_count": "找到 {count} 个结果",
+      "no_results": "没有找到相关结果，请尝试其他搜索词",
+      "empty_state": "输入搜索词以开始搜索"
+    },
+    "announcement": {
+      "badge": "公告",
+      "back_to_home": "← 返回帮助中心"
+    },
+    "metadata": {
+      "article_not_found": "Article Not Found",
+      "topic_not_found": "Topic Not Found",
+      "announcement_not_found": "Announcement Not Found",
+      "suffix_help_center": "帮助中心",
+      "search_title": "搜索",
+      "search_title_with_query": "搜索：{query}",
+      "search_description": "搜索 Space8 帮助文章和常见问题"
+    },
     "searchPlaceholder": "搜索文章...",
     "noResults": "找不到相关文章",
     "backToSupport": "返回支持中心",
@@ -2419,87 +2590,10 @@
       "title": "休息区及储物空间"
     }
   },
-  "memberIntro": {
-    "hero": {
-      "eyebrow": "SPACE8 会员计划",
-      "title": "一个会员，畅行无阻。",
-      "subtitle": "每消费 HK$1 累积 1 积分，新会员即享 100 积分迎新奖赏。",
-      "ctaPrimary": "立即加入",
-      "ctaSecondary": "登录账户",
-      "note": "所有预约场次之用户均需注册成为会员。"
-    },
-    "pillar1": {
-      "lead": "消费即赚分",
-      "body": "每 HK$1 = 1 积分，自动累积"
-    },
-    "pillar2": {
-      "lead": "积分当钱使",
-      "body": "100 积分 = HK$10 场地抵用额，即将推出。"
-    },
-    "pillar3": {
-      "lead": "新会员奖赏",
-      "body": "注册即送 100 积分迎新礼遇"
-    },
-    "pillar4": {
-      "lead": "全预约制，QR 自助入场",
-      "body": "网上预订，扫码开门，简单安全"
-    },
-    "card": {
-      "title": "你的会员卡",
-      "hint": "点击翻转查看 QR 码",
-      "sampleLabel": "示范卡片，非真实数据"
-    },
-    "points": {
-      "title": "积分计划",
-      "stat1": {
-        "value": "HK$1 = 1 积分",
-        "label": "每消费 HK$1 累积 1 积分"
-      },
-      "stat2": {
-        "value": "100 积分 = HK$10",
-        "label": "每 100 积分可兑换（即将推出）",
-        "unit": "点数"
-      },
-      "stat3": {
-        "value": "100 积分",
-        "label": "新会员迎新奖赏"
-      },
-      "comingSoon": "积分兑换功能即将推出"
-    },
-    "safety": {
-      "title": "安全与支持",
-      "pay": {
-        "title": "安全支付",
-        "body": "所有交易均通过 Stripe 处理，我们不会储存你的信用卡资料。支持 Apple Pay、Google Pay 及信用卡付款。"
-      },
-      "data": {
-        "title": "隐私保障",
-        "body": "你的个人资料受到严格保护。我们遵守香港个人资料（隐私）条例，绝不会向第三方出售或分享你的资料。"
-      },
-      "qr": {
-        "title": "QR 码安全",
-        "body": "每个 QR 码只能用于指定时段及台号，并设有时效限制。你的 QR 码只显示于已登录账户，确保只有你本人可以使用。"
-      },
-      "venue": {
-        "title": "场地安全",
-        "body": "场地配备 24 小时闭路电视监控及智能门禁系统。"
-      }
-    },
-    "support": {
-      "title": "需要协助？",
-      "body": "我们随时为你解答疑问。",
-      "faq": "常见问题",
-      "whatsapp": "WhatsApp 查询"
-    },
-    "final": {
-      "title": "准备好开始了吗？",
-      "book": "立即预订",
-      "login": "登录会员"
-    }
-  },
   "membership": {
     "heading": "会员制度。",
     "subtitle": "注册账号即自动成为优越会员，无需另外申请，并获赠 100 积分。",
+    "learn_more": "了解我们的会员计划详情",
     "cards": {
       "0": {
         "badge": "人人同享",
@@ -2649,5 +2743,61 @@
     "minutes_ago": "{count} 分钟前",
     "hours_ago": "{count} 小时前",
     "days_ago": "{count} 天前"
+  },
+  "creditsPage": {
+    "flap_messages": [
+      "THIS SITE WAS BUILT SOLO BY LUCA YAU",
+      "PHOTOGRAPHY & DESIGN BY MIKE LAU",
+      "3 MONTHS. 100+ HOURS.",
+      "WANT A SITE THIS GOOD?",
+      "VISIT FORMHK.COM"
+    ],
+    "main_description_line1": "这个网站由 Luca Yau 一手包办设计与开发。",
+    "main_description_line2": "摄影及部分设计由 Mike Lau 负责。",
+    "main_description_line3": "由概念到上线，历时约 3 个月，投入超过 100 小时开发时间。",
+    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion"
+  },
+  "supportPage": {
+    "back_to_support": "返回支持"
+  },
+  "legalPage": {
+    "date_year": "年",
+    "date_month": "月",
+    "date_day": "日"
+  },
+  "homeBooking": {
+    "title": "预订流程",
+    "steps": {
+      "0": {
+        "title": "选择时段",
+        "desc": "选择日期、时间和时长，即时确认。",
+        "alt": "SPACE8 预订界面展示时段选择",
+        "cta": "立即预订"
+      },
+      "1": {
+        "title": "扫码入场",
+        "desc": "即时获得专属 QR 码，到场扫门上感应器，自动开门。",
+        "alt": "扫描 QR 码进入 SPACE8 场地"
+      },
+      "2": {
+        "title": "赚取积分",
+        "desc": "每消费 HK$1 累积 1 积分，玩得越多省得越多。",
+        "alt": "SPACE8 会员赚取积分和奖励",
+        "cta": "查看会员"
+      }
+    }
+  },
+  "homeDirections": {
+    "address": "香港新蒲崗大有街 32 号泰力工业中心",
+    "directions": [
+      "距离 MTR 钻石山站 C2 出口约 7 分钟步行",
+      "可乘坐以下巴士：11B、11C、11D、11X、22M、23M、26M、28、29M、42C、61X、62X、69C、74X、83X、89、213X、258D、259D",
+      "停车位于好莱坞广场或 The Spectacle（支持网上预订停车券）"
+    ],
+    "cta_book": "立即预订"
+  },
+  "homeFAQ": {
+    "title": "常见问题",
+    "subtitle": "找到关于 SPACE8 的常见问题答案"
   }
 }
