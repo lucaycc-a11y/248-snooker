@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import '@/app/[locale]/value/value-s4.css';
@@ -8,6 +9,7 @@ import '@/app/[locale]/value/value-s4.css';
 gsap.registerPlugin(ScrollTrigger);
 
 export default function ValueSection4() {
+  const t = useTranslations('valuePage');
   const sectionRef = useRef<HTMLElement>(null);
   const rectRef = useRef<SVGRectElement>(null);
   const tweenRef = useRef<gsap.core.Tween | null>(null);
@@ -69,7 +71,8 @@ export default function ValueSection4() {
           <img
             className="s4-photo s4-photo--table1"
             src="/images/space-infinity-room-中八桌球-香港新蒲崗.webp"
-            alt="SPACE8 Space Infinity 房間 專業中式桌球枱 私人獨立空間"
+            alt={t('space_infinity_alt')}
+            data-cms-key="valuePage.space_infinity_alt"
           />
         </div>
 
@@ -92,8 +95,9 @@ export default function ValueSection4() {
                 fontWeight="400"
                 fontSize="128"
                 fill="black"
+                data-cms-key="valuePage.space_infinity"
               >
-                SPACE INFINITY
+                {t('space_infinity')}
               </text>
             </mask>
           </defs>

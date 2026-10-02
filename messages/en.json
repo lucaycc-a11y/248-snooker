@@ -2607,5 +2607,11 @@
     "error_state": "Unable to load notifications",
     "retry": "Retry",
     "unread_count": "Unread"
+  },
+  "valuePage": {
+    "meta_title": "Our Values | Space8",
+    "meta_description": "Space Infinity or Space Eternity — Premium snooker experiences",
+    "space_infinity": "SPACE INFINITY",
+    "space_infinity_alt": "SPACE8 Space Infinity room with professional Chinese snooker table in private space"
   }
 }

@@ -2609,5 +2609,11 @@
     "error_state": "無法載入通知",
     "retry": "重試",
     "unread_count": "未讀"
+  },
+  "valuePage": {
+    "meta_title": "我們的價值 | Space8",
+    "meta_description": "Space Infinity 或 Space Eternity — 專業桌球體驗",
+    "space_infinity": "SPACE INFINITY",
+    "space_infinity_alt": "SPACE8 Space Infinity 房間 專業中式桌球枱 私人獨立空間"
   }
 }
