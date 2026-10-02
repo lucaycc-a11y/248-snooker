@@ -860,15 +860,7 @@ export default function VenueContent() {
         const res = await fetch("/api/pricing");
         if (res.ok) {
           const data = await res.json();
-          const formattedPeriods = data.periods.map((period: any) => ({
-            name: period.name,
-            tagline: period.tagline,
-            time: `${period.startTime} – ${period.endTime}`,
-            rate: period.rate,
-            memberRate: period.memberRate,
-            bestValue: period.bestValue,
-          }));
-          setPeriods(formattedPeriods);
+          setPeriods(data.periods);
         }
       } catch (err) {
         console.error("Failed to fetch pricing:", err);

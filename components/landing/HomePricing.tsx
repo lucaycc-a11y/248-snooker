@@ -14,7 +14,7 @@ function fmt(value: number): string {
 
 function SunIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#1a9d5c", marginBottom: 20, display: "block", overflow: "visible" }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#f59e0b", marginBottom: 20, display: "block", overflow: "visible" }}>
       <circle className="pi-sun-core" cx="12" cy="12" r="4.1" />
       <g className="pi-sun-rays">
         <line x1="12" y1="1.6" x2="12" y2="3.8" />
@@ -32,7 +32,7 @@ function SunIcon() {
 
 function BoltIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#1a9d5c", marginBottom: 20, display: "block", overflow: "visible" }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#3b82f6", marginBottom: 20, display: "block", overflow: "visible" }}>
       <circle className="pi-bolt-glow" cx="12" cy="12" r="7" fill="currentColor" stroke="none" />
       <path className="pi-bolt" d="M14.6 2.6 6.4 13.4h5.2l-2.2 8 8.2-10.8h-5.2z" />
     </svg>
@@ -41,7 +41,7 @@ function BoltIcon() {
 
 function MoonIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#1a9d5c", marginBottom: 20, display: "block", overflow: "visible" }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#8b5cf6", marginBottom: 20, display: "block", overflow: "visible" }}>
       <path className="pi-moon" d="M20.4 14.6A8.6 8.6 0 0 1 9.4 3.6a8.6 8.6 0 1 0 11 11z" />
       <circle className="pi-star pi-star1" cx="17.6" cy="5.2" r="1" fill="currentColor" stroke="none" />
       <circle className="pi-star pi-star2" cx="20.4" cy="9.4" r="0.8" fill="currentColor" stroke="none" />
@@ -226,7 +226,6 @@ export default function HomePricing({ periods, variant = "light" }: { periods: P
                     padding: "13px 34px",
                     borderRadius: 999,
                     textDecoration: "none",
-                    boxShadow: "0 10px 26px -12px rgba(26,157,92,0.65)",
                   }}
                 >
                   {t("cta_book")}
