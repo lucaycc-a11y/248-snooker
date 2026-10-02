@@ -748,6 +748,11 @@
         ],
         "createdAt": "2026-10-02T07:30:46.148Z",
         "reason": "existing blog related-post gradient - matches original design in page.tsx:219"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34,1.56,.64,1) app/[locale]/membership/membershipcontent.tsx intentional overshoot for card flip animation — creates playful, engaging interaction",
+        "createdAt": "2026-10-02T07:58:54.856Z"
       }
     ]
   }
