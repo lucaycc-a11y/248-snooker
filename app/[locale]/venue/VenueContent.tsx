@@ -349,101 +349,261 @@ const SITE_CSS = `
 }
 
 /* ===== PRICING (FLUENT hero) ===== */
+/* ── PRICING (Section6Pricing dark theme) ── */
 .pricing-section {
   background: #000000;
-  padding: 96px 24px 120px;
+  padding: clamp(80px, 12vh, 140px) 24px;
+  overflow: hidden;
 }
-.pricing-inner { max-width: 1160px; margin: 0 auto; }
-.pricing-header {
-  margin-bottom: 72px;
+.pricing-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+.pricing-eyebrow {
+  font-family: ${FONT_FAMILY};
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.60);
+  margin: 0 0 12px;
+  text-align: center;
 }
 .pricing-title {
-  font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 900;
-  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
-  color: #f5f2ec;
-  margin-bottom: 16px;
-  letter-spacing: -0.02em;
+  font-family: ${FONT_FAMILY};
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #ffffff;
+  margin: 0 0 16px;
+  text-align: center;
 }
 .pricing-subtitle {
-  font-size: 16px;
-  line-height: 1.6;
-  color: rgba(255,255,255,0.64);
-  max-width: 50ch;
+  font-family: ${FONT_FAMILY};
+  font-size: clamp(14px, 1.6vw, 17px);
+  color: rgba(255,255,255,0.70);
+  margin: 0 0 clamp(40px, 6vw, 72px);
+  text-align: center;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
 }
+
+/* ── Card grid ── */
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
+  align-items: stretch;
 }
+@media (max-width: 1024px) {
+  .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .pricing-grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* ── Card styles ── */
 .pricing-card {
-  border-radius: 18px;
+  position: relative;
   background: #1d1d1f;
   border: 1px solid rgba(255,255,255,0.12);
-  padding: 40px 32px;
+  border-radius: 20px;
+  padding: 44px 28px 36px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: center;
+  opacity: 0;
+  transform: translateY(32px) scale(0.97);
+  transition:
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s ease;
+  box-shadow: none;
+  will-change: transform, opacity;
+  overflow: visible;
 }
-.pricing-card:hover {
-  border-color: rgba(255,255,255,0.18);
-  background: #232325;
+.pricing-card--in {
+  opacity: 1;
+  transform: none;
 }
-.pricing-period {
-  font-size: 14px;
-  color: rgba(255,255,255,0.54);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
+.pricing-card--in:hover {
+  transform: translateY(-6px) scale(1.01);
+  border-color: rgba(255, 255, 255, 0.20);
 }
-.pricing-time {
+
+/* ── Best value badge ── */
+.pricing-badge {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffffff;
+  font-family: ${FONT_FAMILY};
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+/* ── Icon container ── */
+.pricing-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+/* ── Card title ── */
+.pricing-card-title {
+  font-family: ${FONT_FAMILY};
+  font-weight: 700;
+  font-size: 20px;
+  color: #ffffff;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+
+/* ── Card tagline ── */
+.pricing-card-tagline {
+  font-family: ${FONT_FAMILY};
   font-size: 13px;
-  color: rgba(255,255,255,0.40);
+  color: rgba(255,255,255,0.60);
+  margin: 0 0 6px;
+  font-style: italic;
+}
+
+/* ── Time range ── */
+.pricing-card-time {
+  font-family: ${FONT_FAMILY};
+  font-size: 13px;
+  color: rgba(255,255,255,0.54);
+  margin: 0 0 28px;
+}
+
+/* ── Price display ── */
+.pricing-price {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px;
+  margin-bottom: 16px;
+  line-height: 1;
+}
+.pricing-price-currency {
+  font-family: ${FONT_FAMILY};
+  font-weight: 600;
+  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  color: #ffffff;
+  align-self: flex-start;
+  margin-top: 6px;
+}
+.pricing-price-digits {
+  font-family: ${FONT_FAMILY};
+  font-weight: 700;
+  font-size: clamp(2.8rem, 5vw, 3.6rem);
+  letter-spacing: 0.02em;
+  color: #25D366;
+  line-height: 1;
+}
+.pricing-price-unit {
+  font-family: ${FONT_FAMILY};
+  font-size: 13px;
+  color: rgba(255,255,255,0.54);
+  margin-left: 4px;
+  align-self: flex-end;
+  margin-bottom: 4px;
+}
+
+/* ── Member rate pill ── */
+.pricing-deal {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: ${FONT_FAMILY};
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 999px;
   margin-bottom: 24px;
 }
-.pricing-hero {
-  font-size: 56px;
+.pricing-deal strong {
   font-weight: 700;
-  color: #22b86b;
-  line-height: 1.1;
-  margin-bottom: 6px;
 }
-.pricing-unit {
-  font-size: 14px;
-  color: rgba(255,255,255,0.54);
+
+/* ── Spacer for cards without member rate ── */
+.pricing-spacer {
+  height: 37px;
+  margin-bottom: 24px;
 }
+
+/* ── CTA button ── */
+.pricing-cta {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ${FONT_FAMILY};
+  font-size: 15px;
+  font-weight: 600;
+  padding: 0 28px;
+  border-radius: 999px;
+  text-decoration: none;
+  min-height: 48px;
+  width: 100%;
+  background: #25D366;
+  color: #000000;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+  letter-spacing: -0.01em;
+}
+.pricing-cta:hover {
+  background: #1FB855;
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+}
+.pricing-cta:active {
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+/* ── Note ── */
 .pricing-note {
   margin-top: 48px;
   font-size: 15px;
   line-height: 1.6;
   color: rgba(255,255,255,0.54);
   max-width: 70ch;
+  text-align: center;
 }
-.pricing-cta {
-  display: inline-block;
-  margin-top: 48px;
-  padding: 16px 40px;
-  background: #22b86b;
-  color: #000;
-  border-radius: 12px;
-  font-weight: 600;
-  text-decoration: none;
-  font-size: 15px;
-  transition: all .3s cubic-bezier(0.16,1,0.3,1);
-}
-.pricing-cta:hover {
-  background: #2cc973;
-  transform: scale(1.03);
-}
-@media (max-width: 900px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) {
-  .pricing-grid { grid-template-columns: 1fr; }
-  .pricing-section { padding: 80px 24px 96px; }
-  .pricing-header { margin-bottom: 56px; }
-  .pricing-hero { font-size: 48px; }
-  .pricing-cta { width: 100%; text-align: center; }
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pricing-card {
+    opacity: 1;
+    transform: none;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .pricing-card:hover {
+    transform: none;
+  }
+  .pricing-cta:hover {
+    transform: none;
+  }
 }
 
 /* ===== INFO ACCORDION ===== */
@@ -884,17 +1044,33 @@ export default function VenueContent() {
   const t = useTranslations("venuePage");
   const facilities = t.raw("facilities") as TitledItem[];
   const services = t.raw("services") as TitledItem[];
-  const pricingPeriods = t.raw("pricing_periods") as Array<{ name: string; time: string; rate: string }>;
   const rules = t.raw("rules") as string[];
   const infoSections = t.raw("info_sections") as Array<{ title: string; content: string }>;
 
   const [isMobile, setIsMobile] = useState(false);
+  const [periods, setPeriods] = useState<any[]>([]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  /* ── Fetch pricing from config ── */
+  useEffect(() => {
+    const fetchPricing = async () => {
+      try {
+        const res = await fetch("/api/config");
+        if (res.ok) {
+          const data = await res.json();
+          setPeriods(data.pricing_periods || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch pricing:", err);
+      }
+    };
+    fetchPricing();
   }, []);
 
   /* ── Comparison slider (matches reference HTML exactly) ── */
@@ -1180,13 +1356,113 @@ export default function VenueContent() {
         </div>
       </section>
 
-      {/* ── Pricing (Apple FLUENT hero style) ── */}
+      {/* ── Pricing (disabled temporarily) ── */}
+      <section className="pricing-section" data-cms-key="pricing_section">
+        <div className="pricing-inner">
+          <p className="pricing-eyebrow" data-cms-key="pricing_eyebrow">
+            {t("pricing_eyebrow")}
+          </p>
+          <h2 className="pricing-title" data-cms-key="pricing_title">
+            {t("pricing_title")}
+          </h2>
+          <p className="pricing-subtitle" data-cms-key="pricing_subtitle">
+            {t("pricing_subtitle")}
+          </p>
+
+          <div className="pricing-grid">
+            {periods && periods.length > 0 ? (
+              periods.map((period, i) => (
+                <motion.div
+                  key={period.name}
+                  className="pricing-card"
+                  initial={{ opacity: 0, y: 32, scale: 0.97 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{
+                    duration: 0.65,
+                    delay: i * 0.08,
+                    ease: EASE,
+                  }}
+                  onAnimationComplete={() => {
+                    const el = document.querySelector(`[data-period-idx="${i}"]`);
+                    if (el) el.classList.add("pricing-card--in");
+                  }}
+                  data-period-idx={i}
+                >
+                  {period.bestValue && (
+                    <div
+                      className="pricing-badge"
+                      style={{
+                        background: "linear-gradient(135deg, #25D366 0%, #1FB855 100%)",
+                      }}
+                      data-cms-key="pricing_best_value"
+                    >
+                      {t("pricing_best_value")}
+                    </div>
+                  )}
+
+                  <h3 className="pricing-card-title" data-cms-key={`pricing_period_${i}_name`}>
+                    {period.name}
+                  </h3>
+
+                  {period.tagline && (
+                    <p className="pricing-card-tagline" data-cms-key={`pricing_period_${i}_tagline`}>
+                      {period.tagline}
+                    </p>
+                  )}
+
+                  <p className="pricing-card-time" data-cms-key={`pricing_period_${i}_time`}>
+                    {period.time}
+                  </p>
+
+                  <div className="pricing-price">
+                    <span className="pricing-price-currency">HK$</span>
+                    <span className="pricing-price-digits">{period.rate}</span>
+                    <span className="pricing-price-unit" data-cms-key="pricing_unit">
+                      {t("pricing_unit")}
+                    </span>
+                  </div>
+
+                  {period.memberRate ? (
+                    <div
+                      className="pricing-deal"
+                      style={{
+                        background: "rgba(37, 211, 102, 0.12)",
+                        color: "#25D366",
+                      }}
+                      data-cms-key={`pricing_period_${i}_member_rate`}
+                    >
+                      <span>會員價:</span>
+                      <strong>HK${period.memberRate}</strong>
+                    </div>
+                  ) : (
+                    <div className="pricing-spacer" />
+                  )}
+
+                  <Link href="/book" className="pricing-cta" data-cms-key="pricing_cta">
+                    {t("pricing_cta")}
+                  </Link>
+                </motion.div>
+              ))
+            ) : (
+              <p style={{ color: "rgba(255,255,255,0.54)", textAlign: "center" }}>
+                {t("pricing_loading_error")}
+              </p>
+            )}
+          </div>
+
+          <p className="pricing-note" data-cms-key="pricing_note">
+            {t("pricing_note")}
+          </p>
+        </div>
+      </section>
+
       {/* ── Info (Accordion) ── */}
       <section className="info-section" data-cms-key="info_section">
         <div className="info-inner">
           <h2 className="info-title" data-cms-key="info_title">{t("info_title")}</h2>
           <div className="info-accordion">
-            {t.raw("info_sections").map((section: any, i: number) => (
+            {infoSections.map((section: any, i: number) => (
               <AccordionItem
                 key={i}
                 title={section.title}
@@ -1196,39 +1472,6 @@ export default function VenueContent() {
               />
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ── Pricing (Apple FLUENT hero style) ── */}
-      <section className="pricing-section" data-cms-key="pricing_section">
-        <div className="pricing-inner">
-          <div className="pricing-header">
-            <h2 className="pricing-title" data-cms-key="pricing_title">{t("pricing_title")}</h2>
-            <p className="pricing-subtitle" data-cms-key="pricing_subtitle">{t("pricing_subtitle")}</p>
-          </div>
-
-          <div className="pricing-grid">
-            {pricingPeriods.map((period, i) => (
-              <div key={period.name} className="pricing-card">
-                <div className="pricing-label" data-cms-key={`pricing_period_${i}_name`}>
-                  {period.name}
-                </div>
-                <div className="pricing-time" data-cms-key={`pricing_period_${i}_time`}>
-                  {period.time}
-                </div>
-                <div className="pricing-hero">
-                  <div className="pricing-amount">{period.rate}</div>
-                  <div className="pricing-unit" data-cms-key="pricing_unit">/ 小時</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <p className="pricing-note" data-cms-key="pricing_note">{t("pricing_note")}</p>
-
-          <Link href="/book" className="pricing-cta">
-            立即預訂
-          </Link>
         </div>
       </section>
 
