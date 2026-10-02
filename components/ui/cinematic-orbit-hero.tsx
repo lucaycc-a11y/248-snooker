@@ -180,11 +180,11 @@ export default function CinematicOrbitHero() {
         </motion.div>
 
         <motion.div
-          className="pointer-events-none z-[5] flex flex-col items-center text-center px-6 mt-[-10vh] max-w-[90vw] md:max-w-[80vw]"
+          className="pointer-events-none z-[5] flex flex-col items-center text-center px-6 mt-[-10vh] max-w-[90vw] md:max-w-[60vw]"
           style={{ opacity: textOpacity, scale: textScale }}
         >
           <h1
-            className="text-4xl md:text-[6vw] font-medium tracking-normal"
+            className="text-3xl md:text-[3.5vw] font-medium tracking-normal"
             style={{
               background: "linear-gradient(to bottom, #ffffff 0%, #8a8a8a 100%)",
               WebkitBackgroundClip: "text",
@@ -195,7 +195,12 @@ export default function CinematicOrbitHero() {
           >
             兩個包廂，一種感覺
           </h1>
-          <p className="mt-4 max-w-[50ch] text-sm md:text-[1.2vw] font-light opacity-70">
+          <p
+            className="mt-3 max-w-[50ch] text-xs md:text-[0.95vw] font-light opacity-70"
+            style={{
+              fontFamily: "'Good Times', 'SF Pro Display', -apple-system, sans-serif",
+            }}
+          >
             Space Infinity 與 Space Eternity，同樣寬敞，同樣專注。
           </p>
         </motion.div>
