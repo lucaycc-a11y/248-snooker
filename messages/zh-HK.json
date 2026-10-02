@@ -833,7 +833,14 @@
         "booking": "訂場",
         "system": "繫統"
       },
-      "empty_state": "暫無通知"
+      "empty_state": "暫無通知",
+      "error": {
+        "markRead": "未能更新，請重試",
+        "markReadAll": "未能更新，請重試"
+      },
+      "success": {
+        "markedAll": "已全部標為已讀"
+      }
     },
     "settings": {
       "title": "設定",

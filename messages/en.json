@@ -833,7 +833,14 @@
         "booking": "Bookings",
         "system": "System"
       },
-      "empty_state": "No notifications"
+      "empty_state": "No notifications",
+      "error": {
+        "markRead": "Unable to update, please try again",
+        "markReadAll": "Unable to update, please try again"
+      },
+      "success": {
+        "markedAll": "All marked as read"
+      }
     },
     "settings": {
       "title": "Settings",
