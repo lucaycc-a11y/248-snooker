@@ -109,7 +109,7 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
       colors={[COLORS.green50, COLORS.green400, COLORS.green600, COLORS.dark.bg]}
       className="flex items-center justify-center px-6"
     >
-      <div className="flex flex-col items-center text-center w-full">
+      <div className="flex min-h-full flex-col items-center justify-center text-center w-full">
         {/* Eyebrow */}
         <Reveal>
           <p
@@ -218,6 +218,26 @@ function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 
 function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [rotateX, setRotateX] = useState(0);
+  const [rotateY, setRotateY] = useState(0);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateXVal = ((y - centerY) / centerY) * -8;
+    const rotateYVal = ((x - centerX) / centerX) * 8;
+    setRotateX(rotateXVal);
+    setRotateY(rotateYVal);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setRotateX(0);
+    setRotateY(0);
+  }, []);
 
   return (
     <section
@@ -249,11 +269,17 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
           <div className="relative mx-auto" style={{ maxWidth: "380px", perspective: "1200px" }}>
             <button
               onClick={() => setIsFlipped(!isFlipped)}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
               className="relative w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50"
               style={{
                 transformStyle: "preserve-3d",
-                transition: `transform 600ms ${EASING.pop}`,
-                transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                transition: isFlipped
+                  ? `transform 600ms ${EASING.pop}`
+                  : 'transform 150ms ease-out',
+                transform: isFlipped
+                  ? "rotateY(180deg)"
+                  : `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
                 aspectRatio: "1.586",
               }}
               aria-label={isFlipped ? t("card.hint") : t("card.hint")}

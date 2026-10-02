@@ -212,14 +212,16 @@ export function ScrollChoreography({
           <div className="text-xs text-white/40 uppercase tracking-wide">
             Scroll
           </div>
-          <svg
-            className="w-4 h-4 text-white/40 animate-bounce"
+          <motion.svg
+            className="w-4 h-4 text-white/40"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-          </svg>
+          </motion.svg>
         </motion.div>
 
         <motion.div
