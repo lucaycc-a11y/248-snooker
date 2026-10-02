@@ -24,7 +24,6 @@ function MembershipCard({
   featured,
 }: MembershipCardProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const t = useTranslations("ui");
 
   return (
     <>
@@ -59,7 +58,7 @@ function MembershipCard({
         </div>
 
         <div className="mt-auto flex items-center gap-2 text-sm font-medium text-gray-400">
-          <span>{t("learnMore")}</span>
+          <span>了解更多</span>
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -94,7 +93,7 @@ function MembershipCard({
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label={t("close")}
+                aria-label="關閉"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -243,7 +242,7 @@ export default function MembershipNew() {
 
           <div className="flex justify-center">
             <a
-              href="/membership"
+              href="/member"
               className="inline-flex items-center gap-3 px-8 py-4 bg-gray-900 text-white text-lg font-semibold rounded-full hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl"
             >
               {t("ctaButton")}

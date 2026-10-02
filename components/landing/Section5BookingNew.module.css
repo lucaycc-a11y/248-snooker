@@ -165,7 +165,7 @@
 
   .stage-col {
     position: sticky;
-    top: var(--colh, 220px);
+    top: 0;
     height: auto;
     padding: 10px 16px 14px;
     display: grid;
@@ -200,7 +200,7 @@
 
   .steps {
     position: sticky;
-    top: var(--colh, 220px);
+    top: calc(24vh + 34px);
     padding: 4px 24px 0;
     max-width: 420px;
     margin: 0 auto;

@@ -95,24 +95,44 @@ export function SpaceWheelOutro() {
                 position: "relative",
                 zIndex: 2,
                 letterSpacing: "-0.01em",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              {/* Per-character spans for staggered entrance; aria-hidden */}
-              {t("closing_headline")
-                .split("")
-                .map((ch, i) => (
+              {/* Split by comma to center on the comma itself */}
+              <span aria-hidden="true" style={{ display: "inline-flex" }}>
+                {"零打擾".split("").map((ch, i) => (
                   <span
                     key={i}
-                    aria-hidden="true"
                     data-outro-char={i}
                     style={{ display: "inline-block" }}
                   >
                     {ch}
                   </span>
                 ))}
+              </span>
+              <span
+                aria-hidden="true"
+                data-outro-char={3}
+                style={{ display: "inline-block" }}
+              >
+                ，
+              </span>
+              <span aria-hidden="true" style={{ display: "inline-flex" }}>
+                {"全專注。".split("").map((ch, i) => (
+                  <span
+                    key={i + 4}
+                    data-outro-char={i + 4}
+                    style={{ display: "inline-block" }}
+                  >
+                    {ch}
+                  </span>
+                ))}
+              </span>
             </h2>
 
-            {/* Ghost 1 — 0.906× size, +0.75em below, opacity 0.9 at rest */}
+            {/* Ghost 1 — 0.906× size, reduced spacing, opacity 0.9 at rest */}
             <p
               aria-hidden="true"
               data-outro-echo="1"
@@ -123,7 +143,7 @@ export function SpaceWheelOutro() {
                 lineHeight: 1.2,
                 margin: 0,
                 position: "absolute",
-                top: "calc(100% + 0.75em - 1.2em * 0.906)", // offset from heading baseline
+                top: "calc(100% + 0.45em - 1.2em * 0.906)", // reduced from 0.75em to 0.45em
                 left: 0,
                 right: 0,
                 textAlign: "center",
@@ -142,7 +162,7 @@ export function SpaceWheelOutro() {
               {t("closing_headline")}
             </p>
 
-            {/* Ghost 2 — 0.8125× size, +1.41em below, opacity 0.7 at rest */}
+            {/* Ghost 2 — 0.8125× size, reduced spacing, opacity 0.7 at rest */}
             <p
               aria-hidden="true"
               data-outro-echo="2"
@@ -153,7 +173,7 @@ export function SpaceWheelOutro() {
                 lineHeight: 1.2,
                 margin: 0,
                 position: "absolute",
-                top: "calc(100% + 1.41em - 1.2em * 0.8125)",
+                top: "calc(100% + 0.85em - 1.2em * 0.8125)", // reduced from 1.41em to 0.85em
                 left: 0,
                 right: 0,
                 textAlign: "center",
@@ -184,61 +204,71 @@ export function SpaceWheelOutro() {
           paddingBottom: "clamp(96px, 12.9vw, 223px)",
         }}
       >
-        {/* ── 8-ball — centre on band bottom edge ───────────────────────────
-            Outer wrapper carries scroll-parallax Y.
-            Inner wrapper carries entrance Y + scale + opacity.
-            Ball visible diameter: clamp(170px, 19.33vw, 334px).
-            Image is 120.4% to compensate for the 83.1% fill ratio.
-            Positioned at 50% of container (which is max-width 1728 centred).
-        */}
+        {/* ── Content column for ball positioning ──────────────────────────── */}
         <div
-          data-outro-ball-scroll
           style={{
-            position: "absolute",
-            top: 0,
-            left: "50%",
-            transform: "translateX(-50%) translateY(-50%)",
-            width: "clamp(180px, 20vw, 345px)",
-            height: "clamp(180px, 20vw, 345px)",
-            zIndex: 10,
+            maxWidth: 1728,
+            margin: "0 auto",
+            position: "relative",
+            width: "100%",
           }}
         >
+          {/* ── 8-ball — centre on band bottom edge within 1728px container ──
+              Outer wrapper carries scroll-parallax Y.
+              Inner wrapper carries entrance Y + scale + opacity.
+              Ball visible diameter: clamp(170px, 19.33vw, 334px).
+              Image is 120.4% to compensate for the 83.1% fill ratio.
+              Now positioned at 50% of the 1728px container (same reference as steps).
+          */}
           <div
-            data-outro-ball-enter
-            style={{ width: "100%", height: "100%", position: "relative" }}
+            data-outro-ball-scroll
+            style={{
+              position: "absolute",
+              top: 0,
+              left: "50%",
+              transform: "translateX(-50%) translateY(-50%)",
+              width: "clamp(180px, 20vw, 345px)",
+              height: "clamp(180px, 20vw, 345px)",
+              zIndex: 10,
+            }}
           >
-            {/* Image is sized at 100%/BALL_FILL to crop the transparent padding */}
             <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                overflow: "visible",
-              }}
+              data-outro-ball-enter
+              style={{ width: "100%", height: "100%", position: "relative" }}
             >
-              <Image
-                src="/images/space8-about-photos/images/about-8ball.webp"
-                alt=""
-                aria-hidden="true"
-                width={2000}
-                height={2000}
+              {/* Image is sized at 100%/BALL_FILL to crop the transparent padding */}
+              <div
                 style={{
                   position: "absolute",
-                  width: `${(1 / BALL_FILL) * 100}%`,
-                  height: `${(1 / BALL_FILL) * 100}%`,
-                  left: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
-                  top: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
-                  objectFit: "contain",
-                  userSelect: "none",
-                  pointerEvents: "none",
+                  inset: 0,
+                  overflow: "visible",
                 }}
-                priority={false}
-                sizes="(max-width: 767px) 170px, (max-width: 1728px) 19.33vw, 334px"
-              />
+              >
+                <Image
+                  src="/images/space8-about-photos/images/about-8ball.webp"
+                  alt=""
+                  aria-hidden="true"
+                  width={2000}
+                  height={2000}
+                  style={{
+                    position: "absolute",
+                    width: `${(1 / BALL_FILL) * 100}%`,
+                    height: `${(1 / BALL_FILL) * 100}%`,
+                    left: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
+                    top: `${((1 - 1 / BALL_FILL) / 2) * 100}%`,
+                    objectFit: "contain",
+                    userSelect: "none",
+                    pointerEvents: "none",
+                  }}
+                  priority={false}
+                  sizes="(max-width: 767px) 170px, (max-width: 1728px) 19.33vw, 334px"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── Content column ──────────────────────────────────────────────── */}
+        {/* ── Content column for text and buttons ─────────────────────────── */}
         <div
           style={{
             maxWidth: 1728,

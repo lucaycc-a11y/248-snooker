@@ -2407,5 +2407,46 @@
       "book": "Book Now",
       "login": "Sign In"
     }
+  },
+  "membership": {
+    "heading": "Membership.",
+    "subtitle": "Create an account and you're a Space Member automatically — no application needed — with 100 points to start.",
+    "cards": {
+      "0": {
+        "badge": "Same for everyone",
+        "title": "Space Member",
+        "subtitle": "A record of every match you play.",
+        "popup": "Every new sign-up becomes a Space Member, with full access to Space Pilot and your total wins tracked automatically. Everyone gets the same member benefits — your pool journey starts here!"
+      },
+      "1": {
+        "badge": "Redeem soon",
+        "title": "100 points on sign-up",
+        "subtitle": "Earn 1 point per HK$1 spent. Every 100 points converts into HK$10 venue credit.",
+        "popup": "New members get 100 points on sign-up. Earn 1 point for every HK$1 spent; every 100 points converts into HK$10 of venue credit. Redemption is coming soon, with time-slot discount vouchers and coaching offers to follow."
+      },
+      "2": {
+        "title": "Full Space Pilot access",
+        "subtitle": "The in-room iPad host that tracks your total wins.",
+        "popup": "Scan your member QR code to link to your booking slot, and every game is recorded across different match formats. Check today's results on the iPad, and your full match history on the website after your session."
+      }
+    },
+    "howToUse": "Earning and using points",
+    "steps": {
+      "0": {
+        "title": "Earn points",
+        "description": "Earn 1 point for every HK$1 spent. New members get 100 points on sign-up."
+      },
+      "1": {
+        "title": "Redeem and use",
+        "badge": "Coming soon",
+        "description": "Every 100 points converts into HK$10 of venue credit. Time-slot discount vouchers and coaching offers will follow."
+      },
+      "2": {
+        "title": "Track your balance",
+        "description": "Sign in to the member centre any time to check your points balance and booking history."
+      }
+    },
+    "footnote": "*Everyone who books a session needs to register as a member.",
+    "ctaButton": "Member Centre"
   }
 }

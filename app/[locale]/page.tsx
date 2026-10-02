@@ -34,8 +34,8 @@ const Section6Pricing = dynamic(
   { ssr: true }
 );
 
-const Member = dynamic(
-  () => import("@/components/landing/Member"),
+const MembershipNew = dynamic(
+  () => import("@/components/landing/MembershipNew"),
   { ssr: true }
 );
 
@@ -163,7 +163,7 @@ export default async function Home({
 
       {/* Membership - last section before footer */}
       <ErrorBoundary sectionName="會員制度">
-        <Member />
+        <MembershipNew />
       </ErrorBoundary>
 
       {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
