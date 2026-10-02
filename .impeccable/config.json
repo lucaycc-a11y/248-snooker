@@ -795,6 +795,16 @@
         "rule": "design-system-color",
         "value": "#8b5cf6 step 6 spec: distinct icon color for evening period (purple)",
         "createdAt": "2026-10-02T14:19:12.111Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#059669",
+        "createdAt": "2026-10-02T16:02:31.267Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#111827",
+        "createdAt": "2026-10-02T16:02:31.427Z"
       }
     ]
   }

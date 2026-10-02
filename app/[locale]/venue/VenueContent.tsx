@@ -8,7 +8,7 @@ import { Link } from "@/i18n/navigation";
 import HomePricing from "@/components/landing/HomePricing";
 import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
 import Reveal2 from "@/components/ui/reveal2";
-import { AppleCarouselCentered } from "@/components/ui/apple-cards-carousel-centered";
+import AppleCardCarousel from "@/components/ui/carousel-08";
 import {
   Target,
   Lightbulb,
@@ -18,7 +18,6 @@ import {
   QrCode,
   MapPin,
   CloudRain,
-  ChevronRight,
   Star,
   Sun,
   Moon,
@@ -45,38 +44,6 @@ const FACILITY_ICONS = [Target, Lightbulb, Thermometer, Wifi, CupSoda, QrCode];
 const FACILITY_ICON_CLASSES = ['si-target', 'si-bulb', 'si-therm', 'si-wifi', 'si-cup', 'si-qr'];
 
 type TitledItem = { title: string; body: string };
-
-/* ── Accordion Item Component ── */
-function AccordionItem({
-  title,
-  content,
-  titleKey,
-  contentKey,
-}: {
-  title: string;
-  content: string;
-  titleKey: string;
-  contentKey: string;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`accordion-item ${open ? "open" : ""}`}>
-      <button
-        className="accordion-button"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-      >
-        <span data-cms-key={titleKey}>{title}</span>
-        <ChevronRight className="accordion-icon" size={20} />
-      </button>
-      <div className="accordion-content">
-        <div className="accordion-text" data-cms-key={contentKey}>
-          {content}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ── Injected CSS ── */
 const SITE_CSS = `
@@ -149,28 +116,6 @@ const SITE_CSS = `
 @media (max-width: 640px) {
   .room-comparison-section { padding: 80px 24px; }
   .room-comparison-features { gap: 24px; margin-top: 32px; }
-}
-
-/* ===== OTHER FACILITIES (04) ===== */
-.other-facilities-section {
-  background: #000000;
-  padding: 120px 24px;
-}
-.other-facilities-inner {
-  max-width: 1400px;
-  margin: 0 auto;
-}
-.other-facilities-heading {
-  font-size: clamp(2rem, 4.5vw, 3rem);
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0 0 64px;
-  text-align: center;
-  line-height: 1.2;
-}
-@media (max-width: 640px) {
-  .other-facilities-section { padding: 80px 24px; }
-  .other-facilities-heading { margin-bottom: 48px; }
 }
 
 /* ===== BELOW HERO ===== */
@@ -351,92 +296,6 @@ const SITE_CSS = `
   .compare-label-right p { font-size: 16px; }
 }
 
-/* ===== INFO ACCORDION ===== */
-.info-section {
-  background: #f5f5f7;
-  padding: 96px 24px 120px;
-}
-.info-inner { max-width: 1160px; margin: 0 auto; }
-.info-title {
-  font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 900;
-  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
-  color: #1d1d1f;
-  margin-bottom: 56px;
-  letter-spacing: -0.02em;
-}
-.info-accordion {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 820px;
-}
-.accordion-item {
-  border-radius: 12px;
-  background: white;
-  border: 1px solid rgba(17,17,16,0.10);
-  overflow: hidden;
-  transition: border-color .3s, background .3s;
-}
-.accordion-item:hover {
-  border-color: rgba(37,211,102,0.18);
-  background: #fafafa;
-}
-.accordion-button {
-  width: 100%;
-  padding: 24px 32px;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 600;
-  font-size: 16px;
-  color: #1d1d1f;
-}
-.accordion-button:hover {
-  color: #22b86b;
-}
-.accordion-icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  color: #1a9d5c;
-  transition: transform .3s cubic-bezier(0.16,1,0.3,1);
-}
-.accordion-item.open .accordion-icon {
-  transform: rotate(180deg);
-}
-.accordion-content {
-  max-height: none;
-  overflow: visible;
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity .35s cubic-bezier(0.16,1,0.3,1), transform .35s cubic-bezier(0.16,1,0.3,1);
-  pointer-events: none;
-}
-.accordion-item.open .accordion-content {
-  max-height: none;
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-.accordion-text {
-  padding: 0 32px 24px;
-  font-size: 15px;
-  line-height: 1.7;
-  color: rgba(17,17,16,0.64);
-}
-@media (max-width: 560px) {
-  .info-section { padding: 80px 24px 96px; }
-  .info-title { margin-bottom: 40px; }
-  .accordion-button { padding: 20px 24px; font-size: 15px; }
-  .accordion-text { padding: 0 24px 20px; }
-}
   color: #fff;
   background: #1a9d5c;
   padding: 3px 9px;
@@ -789,7 +648,6 @@ export default function VenueContent() {
   const t = useTranslations("venuePage");
   const facilities = t.raw("facilities") as TitledItem[];
   const rules = t.raw("rules") as string[];
-  const infoSections = t.raw("info_sections") as Array<{ title: string; content: string }>;
 
   const [isMobile, setIsMobile] = useState(false);
   const [periods, setPeriods] = useState<any[]>([]);
@@ -1021,84 +879,61 @@ export default function VenueContent() {
       </section>
 
       {/* ── 04: 其他設施 carousel ── */}
-      <section className="other-facilities-section">
-        <div className="other-facilities-inner">
-          <h2 className="other-facilities-heading" data-cms-key="other_facilities_heading">
-            {t("other_facilities_heading")}
-          </h2>
-          <AppleCarouselCentered
-            slides={[
-              {
-                title: t("other_facilities_sofa_title"),
-                desc: t("other_facilities_sofa_desc"),
-                src: "/images/sofa-lounge-中八桌球-香港新蒲崗.webp",
-                alt: "休息區梳化",
-                aspectRatio: "4 / 3",
-                objectFit: "cover",
-              },
-              {
-                title: t("other_facilities_cue_title"),
-                desc: t("other_facilities_cue_desc"),
-                src: "/images/cue-stand-中八桌球-香港新蒲崗.webp",
-                alt: "球桿架設施",
-                aspectRatio: "3 / 4",
-                objectFit: "cover",
-              },
-              {
-                title: t("other_facilities_pilot_title"),
-                desc: t("other_facilities_pilot_desc"),
-                src: "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp",
-                alt: "Space Pilot 智能計分系統",
-                aspectRatio: "4 / 3",
-                objectFit: "contain",
-              },
-              {
-                title: t("other_facilities_table_title"),
-                desc: t("other_facilities_table_desc"),
-                src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
-                alt: "專業球臺特寫",
-                aspectRatio: "3 / 2",
-                objectFit: "cover",
-              },
-              {
-                title: t("other_facilities_room_title"),
-                desc: t("other_facilities_room_desc"),
-                src: "/images/venue-page-infinity.jpg",
-                alt: "Space Infinity 包廂",
-                aspectRatio: "16 / 9",
-                objectFit: "cover",
-              },
-            ]}
-            aspectRatio="3 / 4"
-            viewDetailsLabel="查看詳情"
-            closeLabel="關閉"
-          />
-        </div>
-      </section>
+      <AppleCardCarousel
+        heading={t("other_facilities_heading")}
+        cards={[
+          {
+            id: "1",
+            title: t("other_facilities_sofa_title"),
+            src: "/images/sofa-lounge-中八桌球-香港新蒲崗.webp",
+            alt: "休息區梳化",
+            aspectRatio: "4 / 3",
+            objectFit: "cover",
+            desc: t("other_facilities_sofa_desc"),
+          },
+          {
+            id: "2",
+            title: t("other_facilities_cue_title"),
+            src: "/images/cue-stand-中八桌球-香港新蒲崗.webp",
+            alt: "球桿架設施",
+            aspectRatio: "3 / 4",
+            objectFit: "cover",
+            desc: t("other_facilities_cue_desc"),
+          },
+          {
+            id: "3",
+            title: t("other_facilities_pilot_title"),
+            src: "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp",
+            alt: "Space Pilot 智能計分系統",
+            aspectRatio: "4 / 3",
+            objectFit: "contain",
+            desc: t("other_facilities_pilot_desc"),
+          },
+          {
+            id: "4",
+            title: t("other_facilities_table_title"),
+            src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
+            alt: "專業球臺特寫",
+            aspectRatio: "3 / 2",
+            objectFit: "cover",
+            desc: t("other_facilities_table_desc"),
+          },
+          {
+            id: "5",
+            title: t("other_facilities_room_title"),
+            src: "/images/venue-page-infinity.jpg",
+            alt: "Space Infinity 包廂",
+            aspectRatio: "16 / 9",
+            objectFit: "cover",
+            desc: t("other_facilities_room_desc"),
+          },
+        ]}
+      />
 
       {/* ── 05: Pricing (dark variant) ── */}
       {periods && periods.length > 0 && (
         <HomePricing periods={periods} variant="dark" />
       )}
-
-      {/* ── Facilities (Apple 3-col) ── */}
-      {/* ── Info (Accordion) ── */}
-      <section className="info-section" data-cms-key="info_section">
-        <div className="info-inner">
-          <h2 className="info-title" data-cms-key="info_title">{t("info_title")}</h2>
-          <div className="info-accordion">
-            {infoSections.map((section: any, i: number) => (
-              <AccordionItem
-                key={i}
-                title={section.title}
-                content={section.content}
-                titleKey={`info_section_${i}_title`}
-                contentKey={`info_section_${i}_content`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── Notes ── */}
       <section className="notes-section" data-nav-theme="dark">
