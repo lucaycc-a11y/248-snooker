@@ -634,7 +634,7 @@ const SITE_CSS = `
   transition: border-color .3s, background .3s;
 }
 .accordion-item:hover {
-  border-color: rgba(26,157,92,0.3);
+  border-color: rgba(37,211,102,0.18);
   background: #fafafa;
 }
 .accordion-button {
@@ -699,7 +699,7 @@ const SITE_CSS = `
   white-space: nowrap;
 }
 .rate-meta p {
-  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  font-family: system-ui, -apple-system, SF Pro Text, sans-serif;
   font-size: 13px;
   color: rgba(17,17,16,0.48);
   margin: 0;
@@ -718,7 +718,7 @@ const SITE_CSS = `
 .rate-price { text-align: right; white-space: nowrap; }
 .rate-price b {
   display: block;
-  font-family: 'Inter', 'Noto Sans TC', sans-serif;
+  font-family: system-ui, -apple-system, SF Pro Text, sans-serif;
   font-weight: 600;
   font-size: clamp(1.5rem, 2.6vw, 1.95rem);
   letter-spacing: -0.02em;
@@ -780,9 +780,9 @@ const SITE_CSS = `
   flex-shrink: 0;
   width: 26px; height: 26px;
   border-radius: 50%;
-  border: 1px solid rgba(34,184,107,0.55);
-  color: #22b86b;
-  font-family: 'Inter', sans-serif;
+  border: 1px solid rgba(37,211,102,0.3);
+  color: #25D366;
+  font-family: system-ui, -apple-system, SF Pro Text, sans-serif;
   font-size: 11.5px;
   font-weight: 600;
   display: flex; align-items: center; justify-content: center;
