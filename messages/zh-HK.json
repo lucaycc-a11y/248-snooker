@@ -409,7 +409,12 @@
     "contact_hours_label": "營業時間",
     "contact_hours": "每日 06:00 至 24:00",
     "contact_cta": "WhatsApp 聯繫",
-    "hero_rotating_words": ["創造奇迹", "獨享私密", "純粹玩樂", "乾淨舒適"],
+    "hero_rotating_words": [
+      "創造奇迹",
+      "獨享私密",
+      "純粹玩樂",
+      "乾淨舒適"
+    ],
     "hero_prefix": "一個",
     "hero_suffix": "的空間",
     "hero_cta_primary": "立即預訂",
@@ -1594,6 +1599,28 @@
       "進場後如發現設施損壞，請盡快通過 WhatsApp 向我們報告。"
     ],
     "rules_link": "查看完整場地使用守則及條款",
+    "room_comparison_heading": "兩個包廂，一個標準",
+    "room_comparison_intro": "Space Infinity 與 Space Eternity 配置完全相同，你只需選擇最適合的時段。",
+    "room_comparison_table_label_name": "包廂名稱",
+    "room_comparison_table_label_area": "佔地面積",
+    "room_comparison_table_label_table": "球臺尺寸",
+    "room_comparison_table_label_brand": "球臺品牌",
+    "room_comparison_table_label_capacity": "建議人數",
+    "room_comparison_table_value_infinity": "Space Infinity",
+    "room_comparison_table_value_eternity": "Space Eternity",
+    "room_comparison_table_value_area": "約 400 平方呎",
+    "room_comparison_table_value_table": "9 呎 x 4.5 呎",
+    "room_comparison_table_value_brand": "星牌",
+    "room_comparison_table_value_capacity": "2–6 人",
+    "other_facilities_heading": "其他設施",
+    "other_facilities_sofa_title": "休息區梳化",
+    "other_facilities_sofa_desc": "柔軟座椅，讓你與朋友在局與局之間輕鬆休息。",
+    "other_facilities_cue_title": "球桿架",
+    "other_facilities_cue_desc": "整齊擺放球桿，隨時取用，保持空間整潔。",
+    "other_facilities_pilot_title": "Space Pilot 智能計分",
+    "other_facilities_pilot_desc": "自動記錄賽果，輕鬆追蹤每一局進度。",
+    "other_facilities_table_title": "專業球臺細節",
+    "other_facilities_table_desc": "星牌頂級桌面，提供穩定準確的擊球體驗。",
     "weather_title": "惡劣天氣及特殊安排",
     "weather_body": "【8 號或以上風球 / 黑色暴雨警告】\n如常營業：場地自動化系統維持正常運作，閣下可評估安全後如常前往。\n改期機制：若決定不前往，必須於原預約時間開始前以 WhatsApp 聯繫客服，即可安排於 7 天內免費改期（不設退款）。\n逾期處理：超過預約時間才申請或未於 7 天內使用，將視為自動放棄權益。\n\n【一般情況 / 其它天氣（如 3 號風球、紅雨）】\n不設退改：除上述極端天氣守則外，所有預約一經確認，一律不接受取消、改期或退款。",
     "directions_title": "如何前往",
@@ -1673,7 +1700,12 @@
     "section_body": "空格"
   },
   "membershipHub": {
-    "tabs": ["會員制度", "會員 QR Code", "智能小管家", "玩法介紹"],
+    "tabs": [
+      "會員制度",
+      "會員 QR Code",
+      "智能小管家",
+      "玩法介紹"
+    ],
     "tier_title": "會員制度。",
     "tier_intro": "註冊賬號即自動成為標準會員，無需另外申請。",
     "tier_join_note": "註冊賬號即自動成為標準會員，無需另外申請，并獲贈 50 積分。",
@@ -2493,5 +2525,26 @@
     "ctaButton": "登入會員中心"
   },
   "pricing_subtitle": "無隱藏收費。",
-  "pricing_note": "會員額外享受專屬優惠。"
+  "pricing_note": "會員額外享受專屬優惠。",
+  "wallet": {
+    "title": "Space Wallet",
+    "balance_label": "可用餘額",
+    "transactions_label": "交易記錄",
+    "empty_state": "暫無交易記錄",
+    "earned": "收入",
+    "spent": "消費",
+    "credited": "充值",
+    "type": {
+      "booking_usage": "訂場使用",
+      "booking_earn": "訂場儲值",
+      "manual_credit": "手動充值",
+      "refund": "退款",
+      "adjustment": "調整"
+    },
+    "date": "日期",
+    "amount": "金額",
+    "balance_after": "餘額",
+    "reference": "參考編號",
+    "description": "說明"
+  }
 }

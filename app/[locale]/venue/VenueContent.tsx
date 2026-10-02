@@ -1052,36 +1052,68 @@ export default function VenueContent() {
         <div className="room-comparison-inner">
           {/* Left column: heading + specs */}
           <div className="room-comparison-text">
-            <h2 className="room-comparison-heading">兩個包廂，一個標準</h2>
-            <p className="room-comparison-intro">
-              Space Infinity 與 Space Eternity 配置完全相同，你只需選擇最適合的時段。
+            <h2 className="room-comparison-heading" data-cms-key="room_comparison_heading">
+              {t("room_comparison_heading")}
+            </h2>
+            <p className="room-comparison-intro" data-cms-key="room_comparison_intro">
+              {t("room_comparison_intro")}
             </p>
 
             <div className="room-comparison-table">
               <div className="room-comparison-row">
-                <div className="room-comparison-label">包廂名稱</div>
-                <div className="room-comparison-value">Space Infinity</div>
-                <div className="room-comparison-value">Space Eternity</div>
+                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_name">
+                  {t("room_comparison_table_label_name")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_infinity">
+                  {t("room_comparison_table_value_infinity")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_eternity">
+                  {t("room_comparison_table_value_eternity")}
+                </div>
               </div>
               <div className="room-comparison-row">
-                <div className="room-comparison-label">佔地面積</div>
-                <div className="room-comparison-value">約 400 平方呎</div>
-                <div className="room-comparison-value">約 400 平方呎</div>
+                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_area">
+                  {t("room_comparison_table_label_area")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_area">
+                  {t("room_comparison_table_value_area")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_area">
+                  {t("room_comparison_table_value_area")}
+                </div>
               </div>
               <div className="room-comparison-row">
-                <div className="room-comparison-label">球臺尺寸</div>
-                <div className="room-comparison-value">9 呎 x 4.5 呎</div>
-                <div className="room-comparison-value">9 呎 x 4.5 呎</div>
+                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_table">
+                  {t("room_comparison_table_label_table")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_table">
+                  {t("room_comparison_table_value_table")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_table">
+                  {t("room_comparison_table_value_table")}
+                </div>
               </div>
               <div className="room-comparison-row">
-                <div className="room-comparison-label">球臺品牌</div>
-                <div className="room-comparison-value">星牌</div>
-                <div className="room-comparison-value">星牌</div>
+                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_brand">
+                  {t("room_comparison_table_label_brand")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_brand">
+                  {t("room_comparison_table_value_brand")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_brand">
+                  {t("room_comparison_table_value_brand")}
+                </div>
               </div>
               <div className="room-comparison-row">
-                <div className="room-comparison-label">建議人數</div>
-                <div className="room-comparison-value">2–6 人</div>
-                <div className="room-comparison-value">2–6 人</div>
+                <div className="room-comparison-label" data-cms-key="room_comparison_table_label_capacity">
+                  {t("room_comparison_table_label_capacity")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_capacity">
+                  {t("room_comparison_table_value_capacity")}
+                </div>
+                <div className="room-comparison-value" data-cms-key="room_comparison_table_value_capacity">
+                  {t("room_comparison_table_value_capacity")}
+                </div>
               </div>
             </div>
           </div>
@@ -1105,36 +1137,38 @@ export default function VenueContent() {
       {/* ── 04: 其他設施 carousel ── */}
       <section className="other-facilities-section">
         <div className="other-facilities-inner">
-          <h2 className="other-facilities-heading">其他設施</h2>
+          <h2 className="other-facilities-heading" data-cms-key="other_facilities_heading">
+            {t("other_facilities_heading")}
+          </h2>
           <AppleCarouselCentered
             slides={[
               {
-                title: "休息區梳化",
-                desc: "柔軟座椅，讓你與朋友在局與局之間輕鬆休息。",
+                title: t("other_facilities_sofa_title"),
+                desc: t("other_facilities_sofa_desc"),
                 src: "/images/sofa-lounge-中八桌球-香港新蒲崗.webp",
                 alt: "休息區梳化",
                 aspectRatio: "4 / 3",
                 objectFit: "cover",
               },
               {
-                title: "球桿架",
-                desc: "整齊擺放球桿，隨時取用，保持空間整潔。",
+                title: t("other_facilities_cue_title"),
+                desc: t("other_facilities_cue_desc"),
                 src: "/images/cue-stand-中八桌球-香港新蒲崗.webp",
                 alt: "球桿架設施",
                 aspectRatio: "3 / 4",
                 objectFit: "cover",
               },
               {
-                title: "Space Pilot 智能計分",
-                desc: "自動記錄賽果，輕鬆追蹤每一局進度。",
+                title: t("other_facilities_pilot_title"),
+                desc: t("other_facilities_pilot_desc"),
                 src: "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp",
                 alt: "Space Pilot 智能計分系統",
                 aspectRatio: "16 / 9",
                 objectFit: "cover",
               },
               {
-                title: "專業球臺細節",
-                desc: "星牌頂級桌面，提供穩定準確的擊球體驗。",
+                title: t("other_facilities_table_title"),
+                desc: t("other_facilities_table_desc"),
                 src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
                 alt: "專業球臺特寫",
                 aspectRatio: "3 / 2",

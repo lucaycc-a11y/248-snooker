@@ -1597,6 +1597,28 @@
       "If you find damaged equipment after entry, report it via WhatsApp as soon as possible."
     ],
     "rules_link": "Read the full venue rules and terms",
+    "room_comparison_heading": "Two Rooms, One Standard",
+    "room_comparison_intro": "Space Infinity and Space Eternity are identically equipped. Choose the slot that works for you.",
+    "room_comparison_table_label_name": "Room Name",
+    "room_comparison_table_label_area": "Floor Area",
+    "room_comparison_table_label_table": "Table Size",
+    "room_comparison_table_label_brand": "Table Brand",
+    "room_comparison_table_label_capacity": "Capacity",
+    "room_comparison_table_value_infinity": "Space Infinity",
+    "room_comparison_table_value_eternity": "Space Eternity",
+    "room_comparison_table_value_area": "~400 sq ft",
+    "room_comparison_table_value_table": "9 ft × 4.5 ft",
+    "room_comparison_table_value_brand": "Xingpai",
+    "room_comparison_table_value_capacity": "2–6 people",
+    "other_facilities_heading": "Other Facilities",
+    "other_facilities_sofa_title": "Lounge Seating",
+    "other_facilities_sofa_desc": "Comfortable chairs for resting between games with friends.",
+    "other_facilities_cue_title": "Cue Rack",
+    "other_facilities_cue_desc": "Neatly organized cues, ready to use anytime, keeping the space tidy.",
+    "other_facilities_pilot_title": "Space Pilot Scoring",
+    "other_facilities_pilot_desc": "Automatic score tracking for every frame, effortlessly.",
+    "other_facilities_table_title": "Professional Table Detail",
+    "other_facilities_table_desc": "Xingpai premium surface delivers stable, accurate play.",
     "weather_title": "Bad Weather & Special Arrangements",
     "weather_body": "[Typhoon Signal No. 8 or above / Black Rainstorm Warning]\nOpen as usual: The venue's automated systems keep running, so you may come as planned once you've judged it safe to do so.\nReschedule policy: If you decide not to come, you must contact us via WhatsApp before your original booking start time to arrange a free reschedule within 7 days (no refund).\nLate requests: Requesting after the booking time has passed, or not using it within 7 days, is treated as forfeiting the entitlement.\n\n[General conditions / other weather (e.g. Signal No. 3, Red Rainstorm)]\nNo cancellation or change: Apart from the extreme-weather policy above, all confirmed bookings cannot be cancelled, rescheduled, or refunded.",
     "directions_title": "Getting Here",
@@ -1676,7 +1698,12 @@
     "section_body": "placeholder"
   },
   "membershipHub": {
-    "tabs": ["Membership", "QR Code", "Smart Concierge", "How to Play"],
+    "tabs": [
+      "Membership",
+      "QR Code",
+      "Smart Concierge",
+      "How to Play"
+    ],
     "tier_title": "Membership.",
     "tier_intro": "Every registered account automatically becomes a Standard member. No separate application is needed.",
     "tier_join_note": "Every registered account automatically becomes a Standard member, with 50 points as a welcome bonus.",
@@ -2496,5 +2523,26 @@
     "ctaButton": "Member Centre"
   },
   "pricing_subtitle": "No hidden fees.",
-  "pricing_note": "Members enjoy exclusive benefits."
+  "pricing_note": "Members enjoy exclusive benefits.",
+  "wallet": {
+    "title": "Space Wallet",
+    "balance_label": "Available Balance",
+    "transactions_label": "Transaction History",
+    "empty_state": "No transactions yet",
+    "earned": "Earned",
+    "spent": "Spent",
+    "credited": "Credited",
+    "type": {
+      "booking_usage": "Booking Usage",
+      "booking_earn": "Booking Earned",
+      "manual_credit": "Manual Credit",
+      "refund": "Refund",
+      "adjustment": "Adjustment"
+    },
+    "date": "Date",
+    "amount": "Amount",
+    "balance_after": "Balance",
+    "reference": "Reference",
+    "description": "Description"
+  }
 }
