@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
+import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
-import WhatsAppButton from "@/components/shared/WhatsAppButton";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
-import AboutContent from "./AboutContent";
+
+// ── Main content (lazy load) ────────────────────────────────────────────────
+const AboutContent = dynamic(
+  () => import("./AboutContent"),
+  { ssr: true }
+);
+
+const WhatsAppButton = dynamic(
+  () => import("@/components/shared/WhatsAppButton"),
+  { ssr: false } // Client-only
+);
 
 const BASE = "https://space8.com.hk";
 

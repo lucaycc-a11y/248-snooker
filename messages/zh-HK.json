@@ -2246,9 +2246,16 @@
     }
   },
   "venueHero": {
+    "eyebrow": "SPACE INFINITY",
+    "title": "場地介紹",
+    "subtitle": "兩間獨立包廂，寧靜舒適，讓你專注於每一桿。",
+    "scrollHint": "向下滑動",
     "intro_title": "場地介紹",
-    "subtitle": "兩間獨立房間 · 頂級球桌 · 完善設施",
     "scroll_hint": "向下滑動",
+    "altSpaceInfinity": "Space Infinity 更寬敞舒適的獨立包廂",
+    "altSpaceEternity": "Space Eternity 獨立包廂",
+    "altLounge": "舒適沙發休息區",
+    "altLighting": "特調燈光和氛圍",
     "segment_0": "精選桌球臺，比賽球",
     "segment_1": "特調燈光和氛圍",
     "segment_2": "AI 智能對戰管家",

@@ -1,21 +1,58 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
-import Hero from "@/components/landing/Hero";
-import HomeFacilities from "@/components/landing/HomeFacilities";
-import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
-import Section5BookingNew from "@/components/landing/Section5BookingNew";
-import Section6Pricing from "@/components/landing/Section6Pricing";
-import { getConfig } from "@/lib/data/getConfig";
-import Member from "@/components/landing/Member";
-import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
-import HomeFAQ from "@/components/landing/HomeFAQ";
-import Directions from "@/components/landing/Directions";
 import Footer from "@/components/layout/Footer";
-import ContactButton from "@/components/shared/ContactButton";
+import { getConfig } from "@/lib/data/getConfig";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
+
+// ── Critical above-the-fold components (eager load) ─────────────────────────
+import Hero from "@/components/landing/Hero";
+import HomeFacilities from "@/components/landing/HomeFacilities";
+
+// ── Heavy animation components (lazy load with priority) ────────────────────
+// SpacePilotScoreboardExperience uses framer-motion scroll animations
+const SpacePilotScoreboardExperience = dynamic(
+  () => import("@/components/landing/SpacePilotScoreboardExperience"),
+  {
+    ssr: true,
+    loading: () => <div className="h-screen" /> // Preserve layout while loading
+  }
+);
+
+// ── Below-the-fold components (lazy load) ───────────────────────────────────
+const Section5BookingNew = dynamic(
+  () => import("@/components/landing/Section5BookingNew"),
+  { ssr: true }
+);
+
+const Section6Pricing = dynamic(
+  () => import("@/components/landing/Section6Pricing"),
+  { ssr: true }
+);
+
+const Member = dynamic(
+  () => import("@/components/landing/Member"),
+  { ssr: true }
+);
+
+const HomeFAQ = dynamic(
+  () => import("@/components/landing/HomeFAQ"),
+  { ssr: true }
+);
+
+const Directions = dynamic(
+  () => import("@/components/landing/Directions"),
+  { ssr: true }
+);
+
+const ContactButton = dynamic(
+  () => import("@/components/shared/ContactButton"),
+  { ssr: false } // Client-only, no SSR needed
+);
 
 export async function generateMetadata({
   params,

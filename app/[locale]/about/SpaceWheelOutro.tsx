@@ -72,9 +72,10 @@ export function SpaceWheelOutro() {
             data-outro-headline-group
             style={{
               position: "absolute",
-              top: "54%", // moved up 8% from band top — keeps headline visible above ball
+              top: "50%", // centered vertically in band
               left: 0,
               right: 0,
+              transform: "translateY(-50%)", // true center
               textAlign: "center",
               pointerEvents: "none",
             }}

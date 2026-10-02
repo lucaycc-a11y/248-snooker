@@ -1,7 +1,13 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { getTopicData, getAllTopics } from '@/lib/help/content-loader'
-import { HelpTopicPage } from '@/components/help/HelpTopicPage'
+
+// ── Main content (lazy load) ────────────────────────────────────────────────
+const HelpTopicPage = dynamic(
+  () => import('@/components/help/HelpTopicPage').then(mod => ({ default: mod.HelpTopicPage })),
+  { ssr: true }
+)
 
 interface Props {
   params: { locale: string; topic: string }

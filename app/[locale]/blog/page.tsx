@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { getBlogPosts } from "@/lib/data/getBlog";
-import BlogList from "./BlogList";
+
+// ── Main content (lazy load) ────────────────────────────────────────────────
+const BlogList = dynamic(
+  () => import("./BlogList"),
+  { ssr: true }
+);
 
 const BASE = "https://space8.com.hk";
 

@@ -1,7 +1,13 @@
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
+import dynamic from 'next/dynamic'
 import { getHelpContent } from '@/lib/help/content-loader'
-import { HelpHome } from '@/components/help/HelpHome'
+
+// ── Main content (lazy load) ────────────────────────────────────────────────
+const HelpHome = dynamic(
+  () => import('@/components/help/HelpHome').then(mod => ({ default: mod.HelpHome })),
+  { ssr: true }
+)
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   const { locale } = params

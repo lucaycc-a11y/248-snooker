@@ -730,6 +730,24 @@
         "value": "sf mono",
         "createdAt": "2026-10-01T17:04:41.396Z",
         "reason": "System monospace font for code blocks - Apple platform standard"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#134e2a",
+        "files": [
+          "app/[locale]/blog/[slug]/BlogArticleContent.tsx"
+        ],
+        "createdAt": "2026-10-02T07:30:40.230Z",
+        "reason": "existing blog hero gradient - matches original design in page.tsx:123"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1a3a5c",
+        "files": [
+          "app/[locale]/blog/[slug]/BlogArticleContent.tsx"
+        ],
+        "createdAt": "2026-10-02T07:30:46.148Z",
+        "reason": "existing blog related-post gradient - matches original design in page.tsx:219"
       }
     ]
   }

@@ -1,11 +1,28 @@
 import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
+import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
-import WhatsAppButton from "@/components/shared/WhatsAppButton";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
-import VenueContent from "./VenueContent";
-import VenueHeroScrollAnimation from "@/components/venue/VenueHeroScrollAnimation";
+
+// ── Heavy scroll animation components (lazy load) ───────────────────────────
+const ScrollChoreographyWrapper = dynamic(
+  () => import("@/components/venue/ScrollChoreographyWrapper").then(mod => ({ default: mod.ScrollChoreographyWrapper })),
+  {
+    ssr: true,
+    loading: () => <div className="h-screen bg-black" /> // Preserve layout
+  }
+);
+
+const VenueContent = dynamic(
+  () => import("./VenueContent"),
+  { ssr: true }
+);
+
+const WhatsAppButton = dynamic(
+  () => import("@/components/shared/WhatsAppButton"),
+  { ssr: false } // Client-only
+);
 
 const BASE = "https://space8.com.hk";
 
@@ -87,7 +104,7 @@ export default async function VenuePage({
     <main className="relative bg-black">
       <Nav />
       <script type="application/ld+json">{safeJsonLd(jsonLd)}</script>
-      <VenueHeroScrollAnimation />
+      <ScrollChoreographyWrapper />
       <VenueContent />
       <Footer />
       <WhatsAppButton />

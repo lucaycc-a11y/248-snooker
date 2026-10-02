@@ -2246,9 +2246,16 @@
     }
   },
   "venueHero": {
+    "eyebrow": "SPACE INFINITY",
+    "title": "The space",
+    "subtitle": "Two private rooms, calm and comfortable, so you can focus on every shot.",
+    "scrollHint": "Scroll",
     "intro_title": "The space",
-    "subtitle": "Two private rooms · Premium tables · Complete facilities",
     "scroll_hint": "Scroll",
+    "altSpaceInfinity": "Space Infinity, spacious and secure",
+    "altSpaceEternity": "Space Eternity, spacious and comfortable",
+    "altLounge": "A comfortable sofa lounge",
+    "altLighting": "Tuned lighting and atmosphere",
     "segment_0": "Hand-picked tables, tournament balls",
     "segment_1": "Tuned lighting and atmosphere",
     "segment_2": "An AI match host",
