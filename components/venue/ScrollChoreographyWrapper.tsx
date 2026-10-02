@@ -1,52 +1,59 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ScrollChoreography } from "./ScrollChoreography";
+import ScrollChoreography from "./ScrollChoreography";
 
-export function ScrollChoreographyWrapper() {
-  const t = useTranslations("venueHero");
+interface ScrollChoreographyWrapperProps {
+  className?: string;
+}
+
+export default function ScrollChoreographyWrapper({
+  className,
+}: ScrollChoreographyWrapperProps) {
+  const t = useTranslations();
 
   const images = {
     topLeft: {
-      src: "/images/space-eternity-room-中八桌球-香港新蒲崗.webp",
-      alt: t("altSpaceEternity"),
+      src: "/images/venue/space-eternity.jpg",
+      alt: t("venueHero.alt_topLeft") || "Space Eternity room",
       objectPosition: "center",
     },
     topRight: {
-      src: "/images/space-infinity-room-中八桌球-香港新蒲崗.webp",
-      alt: t("altSpaceInfinity"),
+      src: "/images/venue/space-infinity.jpg",
+      alt: t("venueHero.alt_topRight") || "Space Infinity room",
       objectPosition: "center",
     },
     bottomLeft: {
-      src: "/images/space8-about-photos/images/about-06-lounge.webp",
-      alt: t("altLounge"),
+      src: "/images/venue/lounge.jpg",
+      alt: t("venueHero.alt_bottomLeft") || "Lounge area",
       objectPosition: "center",
     },
     bottomRight: {
-      src: "/images/space8-about-photos/images/about-04-cove-lighting.webp",
-      alt: t("altLighting"),
+      src: "/images/venue/atmosphere.jpg",
+      alt: t("venueHero.alt_bottomRight") || "Atmosphere and lighting",
       objectPosition: "center",
     },
   };
 
+  const overlay = (
+    <div className="w-full max-w-xl">
+      <div className="text-xs font-semibold tracking-widest text-white/60 uppercase mb-3">
+        {t("venueHero.eyebrow")}
+      </div>
+      <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+        {t("venueHero.title")}
+      </h1>
+      <p className="text-sm md:text-base text-white/70 leading-relaxed max-w-lg">
+        {t("venueHero.subtitle")}
+      </p>
+    </div>
+  );
+
   return (
     <ScrollChoreography
       images={images}
-      overlay={
-        <div className="flex flex-col gap-3">
-          <div className="text-xs font-semibold text-white/70 uppercase tracking-widest">
-            {t("eyebrow")}
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight">
-            {t("title")}
-          </h1>
-          <p className="text-sm sm:text-base text-white/80 max-w-xl leading-relaxed">
-            {t("subtitle")}
-          </p>
-        </div>
-      }
+      overlay={overlay}
+      className={className}
     />
   );
 }
-
-export default ScrollChoreographyWrapper;

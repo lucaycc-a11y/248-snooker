@@ -1315,6 +1315,20 @@
     "qr_tap_enlarge": "Tap to enlarge QR code",
     "close": "Close"
   },
+  "venueHero": {
+    "eyebrow": "SPACE INFINITY",
+    "title": "The Venue",
+    "subtitle": "Two independent smoke-free 1T rooms, each accommodating up to 6 people. Equipped with professional Star tables, premium lighting, and climate control.",
+    "scrollHint": "Scroll to explore",
+    "alt_topLeft": "Space Eternity room",
+    "alt_topRight": "Space Infinity main room",
+    "alt_bottomLeft": "Lounge area",
+    "alt_bottomRight": "Professional lighting system"
+  },
+  "heroAfter": {
+    "title": "The finest smoke-free self-service pool room",
+    "body": "SPACE8 is dedicated to delivering the highest quality game experience. Each room is independently designed with professional Star tables, premium lighting systems, climate control, and complimentary high-speed WiFi. All facilities are regularly maintained to ensure peak performance."
+  },
   "gallery": {
     "title": "The venue. Up close.",
     "goto": "Go to slide {n}",
@@ -1450,52 +1464,78 @@
     "skip": "Skip"
   },
   "venuePage": {
-    "hero_title": "The Venue",
-    "hero_subtitle": "A private, self-service, smoke-free Chinese eight-ball room. No distractions.",
-    "facilities_title": "Facilities",
+    "facilities_title": "Facilities.",
     "facilities": [
       {
-        "title": "Pro equipment",
-        "body": "Hand-picked tables, tournament balls"
+        "title": "Pro Equipment",
+        "body": "Star tables, pro lighting, climate control."
       },
       {
-        "title": "Room details",
-        "body": "Quiet luxury, a tuned premium atmosphere"
+        "title": "Smart Entry",
+        "body": "QR code self-check-in, Space Pilot match host."
       },
       {
-        "title": "Smart system",
-        "body": "An AI match host"
-      },
-      {
-        "title": "Quick and easy",
-        "body": "Self check-in — scan and you're in"
-      },
-      {
-        "title": "Clean, smoke-free",
-        "body": "No smoking anywhere, cleaned regularly"
-      },
-      {
-        "title": "At ease",
-        "body": "A comfortable sofa lounge"
+        "title": "Clean & Quiet",
+        "body": "No smoking, free WiFi, self-serve drinks."
       }
     ],
-    "services_title": "How It Works",
+    "rooms_title": "Two Private Rooms.",
+    "rooms": [
+      {
+        "name": "Space Infinity",
+        "desc": "Main room with premium Star tables and pro lighting."
+      },
+      {
+        "name": "Space Eternity",
+        "desc": "Secondary room, identical setup, exclusive space."
+      }
+    ],
+    "pricing_title": "Pricing.",
+    "pricing_subtitle": "Hourly slots. Book longer, save more.",
+    "pricing_periods": [
+      { "name": "Morning", "time": "06:00–12:00", "rate": "HK$60" },
+      { "name": "Afternoon", "time": "12:00–16:00", "rate": "HK$90" },
+      { "name": "Evening", "time": "16:00–00:00", "rate": "HK$120" },
+      { "name": "Late night", "time": "00:00–06:00", "rate": "HK$80" }
+    ],
+    "pricing_note": "Book 2+ hours and save with our multi-hour discount.",
+    "pricing_unit": "/ hour",
+    "info_title": "Rules & Info.",
+    "info_sections": [
+      {
+        "title": "Hours",
+        "content": "Open 06:00–24:00 daily. No holidays, no closures."
+      },
+      {
+        "title": "No Smoking",
+        "content": "Entire venue is 100% smoke-free (cigarettes, e-cigs, heat sticks)."
+      },
+      {
+        "title": "Weather",
+        "content": "Typhoon 8+ or black rainstorm warning? Apply for free reschedule within 7 days."
+      }
+    ],
+    "heroAfter": {
+      "title": "The most professional smoke-free self-service room",
+      "body": "SPACE8 is focused on giving you the highest quality game experience. Each room is independently designed and equipped with professional Star tables, premium lighting systems, climate control, and free high-speed WiFi. All facilities are regularly maintained to ensure top condition."
+    },
+    "services_title": "Why SPACE8",
     "services": [
       {
         "title": "Fully Self-Service",
-        "body": "Booking, payment and entry are all self-service — no staff on site."
+        "body": "QR code entry, no staff verification needed"
       },
       {
         "title": "Book Online",
-        "body": "Pick a date and time slot, pay instantly with Apple Pay or card."
+        "body": "Real-time availability, book anytime"
       },
       {
         "title": "Instant Confirmation",
-        "body": "Receive your confirmation email and entry QR code right away."
+        "body": "Get confirmed immediately after booking"
       },
       {
-        "title": "Support",
-        "body": "Questions? Reach us anytime on WhatsApp."
+        "title": "Round-the-Clock",
+        "body": "Open 24 hours, 365 days a year"
       }
     ],
     "facilities_bento_title": "Facilities",
@@ -1804,6 +1844,7 @@
   "homeVenue": {
     "eyebrow": "SPACE8 · THE ROOM",
     "title": "Every detail keeps you focused on the game.",
+    "subtitle": "Every detail, focused on the game.",
     "categories": {
       "equipment": "Equipment",
       "ambience": "Atmosphere",
@@ -2244,36 +2285,6 @@
         "excerpt": "How to reach our support team for assistance"
       }
     }
-  },
-  "venueHero": {
-    "eyebrow": "SPACE INFINITY",
-    "title": "The space",
-    "subtitle": "Two private rooms, calm and comfortable, so you can focus on every shot.",
-    "scrollHint": "Scroll",
-    "intro_title": "The space",
-    "scroll_hint": "Scroll",
-    "altSpaceInfinity": "Space Infinity, spacious and secure",
-    "altSpaceEternity": "Space Eternity, spacious and comfortable",
-    "altLounge": "A comfortable sofa lounge",
-    "altLighting": "Tuned lighting and atmosphere",
-    "segment_0": "Hand-picked tables, tournament balls",
-    "segment_1": "Tuned lighting and atmosphere",
-    "segment_2": "An AI match host",
-    "segment_3": "Self check-in — scan and you're in",
-    "segment_4": "No smoking anywhere, cleaned regularly",
-    "segment_5": "A comfortable sofa lounge",
-    "caption_1": "Pro equipment",
-    "caption_2": "The room",
-    "caption_3": "Tech-driven",
-    "caption_4": "Quick and easy",
-    "caption_5": "Clean, smoke-free",
-    "caption_6": "At ease",
-    "alt_1": "Belgian Aramith tournament balls on the table",
-    "alt_2": "SPACE8 room with Star table and tuned lighting",
-    "alt_3": "Space Pilot scoreboard showing match score",
-    "alt_4": "SPACE8 self-service entry system",
-    "alt_5": "SPACE8 spacious private snooker room",
-    "alt_6": "SPACE8 comfortable sofa lounge area"
   },
   "memberShowcase": {
     "title": "Membership",

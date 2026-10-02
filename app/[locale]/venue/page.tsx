@@ -7,7 +7,7 @@ import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 
 // ── Heavy scroll animation components (lazy load) ───────────────────────────
 const ScrollChoreographyWrapper = dynamic(
-  () => import("@/components/venue/ScrollChoreographyWrapper").then(mod => ({ default: mod.ScrollChoreographyWrapper })),
+  () => import("@/components/venue/ScrollChoreographyWrapper"),
   {
     ssr: true,
     loading: () => <div className="h-screen bg-black" /> // Preserve layout

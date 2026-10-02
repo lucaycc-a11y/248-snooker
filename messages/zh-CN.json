@@ -1315,6 +1315,20 @@
     "qr_tap_enlarge": "点击放大二维码",
     "close": "关闭"
   },
+  "venueHero": {
+    "eyebrow": "SPACE INFINITY",
+    "title": "场地介绍",
+    "subtitle": "两间独立无烟 1T 球室，各可容纳 6 人。配置专业星牌台球台、顶级灯光及恒温冷气。",
+    "scrollHint": "向下滑动",
+    "alt_topLeft": "Space Eternity 球室",
+    "alt_topRight": "Space Infinity 主球室",
+    "alt_bottomLeft": "休闲区",
+    "alt_bottomRight": "专业照明系统"
+  },
+  "heroAfter": {
+    "title": "最专业的无烟自助球室",
+    "body": "SPACE8 专注于给你最高品质的游戏体验。每间球室独立设计，配备星牌专业台球台、顶级照明系统、恒温冷气及免费高速 WiFi。所有设施定期维护，确保最佳状态。"
+  },
   "gallery": {
     "title": "场地。逐一看。",
     "goto": "前往第 {n} 张",
@@ -1450,52 +1464,78 @@
     "skip": "跳过"
   },
   "venuePage": {
-    "hero_title": "场地",
-    "hero_subtitle": "自助无烟中式桌球独立球室，无多余干扰。",
-    "facilities_title": "场地设施",
+    "facilities_title": "场地设施。",
     "facilities": [
       {
         "title": "专业设备",
-        "body": "精选台球桌，比赛球"
-      },
-      {
-        "title": "场地细节",
-        "body": "静奢，特调高级氛围"
+        "body": "星牌中式台球台、专业照明、恒温冷气。"
       },
       {
         "title": "智能系统",
-        "body": "AI 智能对战管家"
+        "body": "二维码自助入场、Space Pilot 对战小管家。"
       },
       {
-        "title": "快捷方便",
-        "body": "全自助入场，扫码即入"
-      },
-      {
-        "title": "无烟干净",
-        "body": "全面禁烟，定期清洁"
-      },
-      {
-        "title": "舒适自在",
-        "body": "舒适沙发休息区"
+        "title": "无烟舒适",
+        "body": "全场禁烟、免费 WiFi、自助饮品。"
       }
     ],
-    "services_title": "服务说明",
-    "services": [
+    "rooms_title": "两间独立球室。",
+    "rooms": [
       {
-        "title": "全自助运营",
-        "body": "由预订、付款到入场全程自助，场内不设常驻职员。"
+        "name": "Space Infinity",
+        "desc": "主球室，配备星牌顶级台球台及专业照明。"
       },
       {
-        "title": "网上预订",
-        "body": "于网站选择日期及时段，以 Apple Pay 或信用卡即时付款。"
+        "name": "Space Eternity",
+        "desc": "副球室，同等设备规格，专属私密空间。"
+      }
+    ],
+    "pricing_title": "定价。",
+    "pricing_subtitle": "时段制，连订更抵玩。",
+    "pricing_periods": [
+      { "name": "上午", "time": "06:00–12:00", "rate": "HK$60" },
+      { "name": "下午", "time": "12:00–16:00", "rate": "HK$90" },
+      { "name": "晚间", "time": "16:00–00:00", "rate": "HK$120" },
+      { "name": "深夜", "time": "00:00–06:00", "rate": "HK$80" }
+    ],
+    "pricing_note": "连订 2 小时或以上享折扣。",
+    "pricing_unit": "/ 小时",
+    "info_title": "场地守则及资讯。",
+    "info_sections": [
+      {
+        "title": "营业时间",
+        "content": "每日 06:00 至 24:00 营业，全年无休，包括公众假期。"
+      },
+      {
+        "title": "禁烟政策",
+        "content": "本球室全区严格禁烟（纸烟、电子烟、加热烟），维护无烟环境。"
+      },
+      {
+        "title": "天气备注",
+        "content": "8 号或以上风球／黑色暴雨警告可于原预约时间前申请 7 天内免费改期。"
+      }
+    ],
+    "heroAfter": {
+      "title": "最专业的无烟自助球室",
+      "body": "SPACE8 专注于给你最高品质的游戏体验。每间球室独立设计，配备星牌专业台球台、顶级照明系统、恒温冷气及免费高速 WiFi。所有设施定期维护，确保最佳状态。"
+    },
+    "services_title": "SPACE8 的优势",
+    "services": [
+      {
+        "title": "全自助系统",
+        "body": "二维码即入，无需人工验证"
+      },
+      {
+        "title": "线上预订",
+        "body": "即时查询，随时预约"
       },
       {
         "title": "即时确认",
-        "body": "付款后即时收到确认电邮及进场 QR 码。"
+        "body": "预订后立刻确认"
       },
       {
-        "title": "客户支持",
-        "body": "如有查询或需要协助，欢迎通过 WhatsApp 联系我们。"
+        "title": "全天服务",
+        "body": "24 小时开放，全年无休"
       }
     ],
     "facilities_bento_title": "场地设施",
@@ -1804,6 +1844,7 @@
   "homeVenue": {
     "eyebrow": "SPACE8 · 包厢体验",
     "title": "每个细节，都让你专注于台球。",
+    "subtitle": "每个细节，都让你专注于台球。",
     "categories": {
       "equipment": "设备",
       "ambience": "氛围",
@@ -2244,36 +2285,6 @@
         "excerpt": "如何联络我们的客服团队获得协助"
       }
     }
-  },
-  "venueHero": {
-    "eyebrow": "SPACE INFINITY",
-    "title": "场地介绍",
-    "subtitle": "两间独立包厢，宁静舒适，让你专注于每一杆。",
-    "scrollHint": "向下滑动",
-    "intro_title": "场地介绍",
-    "scroll_hint": "向下滑动",
-    "altSpaceInfinity": "Space Infinity 更宽敞舒适的独立包厢",
-    "altSpaceEternity": "Space Eternity 独立包厢",
-    "altLounge": "舒适沙发休息区",
-    "altLighting": "特调灯光和氛圍",
-    "segment_0": "精选台球桌，比赛球",
-    "segment_1": "特调灯光和氛围",
-    "segment_2": "AI 智能对战管家",
-    "segment_3": "全自助入场，扫码即入",
-    "segment_4": "全面禁烟，定期清洁",
-    "segment_5": "舒适沙发休息区",
-    "caption_1": "专业设备",
-    "caption_2": "场地装修",
-    "caption_3": "科技体验",
-    "caption_4": "快捷方便",
-    "caption_5": "无烟干净",
-    "caption_6": "舒适自在",
-    "alt_1": "球台上的比利时 Aramith 比赛球",
-    "alt_2": "SPACE8 包厢内的星牌台球台与特调灯光",
-    "alt_3": "Space Pilot 智能对战管家的比分画面",
-    "alt_4": "SPACE8 包厢入场自助系统",
-    "alt_5": "SPACE8 宽敞的私人台球包厢",
-    "alt_6": "SPACE8 舒适沙发休息区"
   },
   "memberShowcase": {
     "title": "会员制度",

@@ -7,7 +7,6 @@ import { motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
-import VenueHeroScroll from "@/components/venue/VenueHeroScroll";
 import {
   Target,
   Lightbulb,
@@ -51,6 +50,38 @@ const SERVICE_ICON_CLASSES = ['si-badge', 'si-click', 'si-cal', 'si-message'];
 
 type TitledItem = { title: string; body: string };
 
+/* ── Accordion Item Component ── */
+function AccordionItem({
+  title,
+  content,
+  titleKey,
+  contentKey,
+}: {
+  title: string;
+  content: string;
+  titleKey: string;
+  contentKey: string;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`accordion-item ${open ? "open" : ""}`}>
+      <button
+        className="accordion-button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+      >
+        <span data-cms-key={titleKey}>{title}</span>
+        <ChevronRight className="accordion-icon" size={20} />
+      </button>
+      <div className="accordion-content">
+        <div className="accordion-text" data-cms-key={contentKey}>
+          {content}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Injected CSS ── */
 const SITE_CSS = `
 /* ===== BELOW HERO ===== */
@@ -78,81 +109,157 @@ const SITE_CSS = `
   .hero-after-section { padding: 40px 24px 48px; }
 }
 
-/* ===== FACILITY ===== */
+/* ===== FACILITIES (Apple 3-col) ===== */
 .facility-section {
   background: #000000;
-  padding: 110px 24px 130px;
+  padding: 96px 24px 120px;
 }
-.facility-inner { max-width: 1100px; margin: 0 auto; }
+.facility-inner { max-width: 1160px; margin: 0 auto; }
 .facility-title {
   font-family: 'Noto Sans TC', sans-serif;
   font-weight: 900;
   font-size: clamp(1.7rem, 3.4vw, 2.4rem);
   color: #f5f2ec;
-  margin-bottom: 48px;
+  margin-bottom: 56px;
+  letter-spacing: -0.02em;
 }
 .facility-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 28px;
 }
 .facility-card {
-  position: relative;
-  border-radius: 16px;
-  background: #0d0d0f;
-  border: 1px solid rgba(255,255,255,0.08);
-  padding: 32px 28px 30px;
-  overflow: hidden;
+  border-radius: 18px;
+  background: #1d1d1f;
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 40px 32px;
 }
-.facility-card::before {
-  content: "";
-  position: absolute; inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: radial-gradient(260px circle at var(--mx,50%) var(--my,50%), rgba(34,184,107,0.85), transparent 62%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity .35s ease;
-  pointer-events: none;
+.facility-card:hover {
+  border-color: rgba(255,255,255,0.18);
+  background: #232325;
 }
-.facility-card::after {
-  content: "";
-  position: absolute; inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(320px circle at var(--mx,50%) var(--my,50%), rgba(34,184,107,0.08), transparent 65%);
-  opacity: 0;
-  transition: opacity .35s ease;
-  pointer-events: none;
-}
-.facility-card:hover::before,
-.facility-card:hover::after { opacity: 1; }
-.facility-icon { width: 26px; height: 26px; color: #22b86b; margin-bottom: 22px; }
-.facility-icon svg { width: 100%; height: 100%; display: block; }
+.facility-icon { width: 32px; height: 32px; color: #22b86b; margin-bottom: 24px; }
+.facility-icon svg { width: 100%; height: 100%; display: block; stroke-width: 1.5; }
 .facility-card h3 {
   font-family: 'Noto Sans TC', sans-serif;
   font-weight: 700;
-  font-size: 16.5px;
+  font-size: 18px;
   color: #f5f2ec;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  letter-spacing: -0.01em;
 }
 .facility-card p {
-  font-size: 13.5px;
-  line-height: 1.7;
-  color: rgba(245,242,236,0.5);
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.64);
   margin: 0;
 }
-@media (max-width: 860px) { .facility-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .facility-grid { grid-template-columns: 1fr; } }
-.facility-carousel-track::-webkit-scrollbar { display: none; }
-@media (max-width: 767px) {
-  .facility-section { padding: 96px 20px 96px; }
-  .facility-title { margin-bottom: 32px; }
-  .facility-card { min-width: 82vw; padding: 24px; border-radius: 20px; }
-  .facility-card h3 { font-size: 16px; }
-  .facility-card p { font-size: 13.5px; }
-  .facility-icon { margin-bottom: 14px; }
+@media (max-width: 900px) { .facility-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
+@media (max-width: 560px) {
+  .facility-grid { grid-template-columns: 1fr; }
+  .facility-section { padding: 80px 24px 96px; }
+  .facility-title { margin-bottom: 40px; }
+  .facility-card { padding: 32px 28px; }
+}
+
+/* ===== ROOM COMPARISON (WIPE SLIDER) ===== */
+.compare-section {
+  background: #000000;
+  padding: 96px 24px 120px;
+}
+.compare-inner { max-width: 1160px; margin: 0 auto; }
+.compare-title {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  color: #f5f2ec;
+  margin-bottom: 56px;
+  letter-spacing: -0.02em;
+}
+.compare-frame {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  aspect-ratio: 16 / 10;
+  margin: 0 auto 48px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #1d1d1f;
+  cursor: col-resize;
+}
+.compare-clip-outer {
+  position: absolute;
+  inset: 0;
+}
+.compare-images {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.compare-img-left,
+.compare-img-right {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.compare-clip-inner {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.compare-handle {
+  position: absolute;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  background: #22b86b;
+  transform: translateX(-50%);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.compare-handle svg {
+  width: 24px;
+  height: 24px;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.compare-labels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+.compare-label-left,
+.compare-label-right {
+  text-align: left;
+}
+.compare-label-right {
+  text-align: right;
+}
+.compare-label-left p,
+.compare-label-right p {
+  font-weight: 700;
+  font-size: clamp(16px, 2vw, 20px);
+  color: white;
+  margin: 0 0 8px;
+}
+.compare-label-left span,
+.compare-label-right span {
+  display: block;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.54);
+  margin: 0;
+}
+@media (max-width: 560px) {
+  .compare-section { padding: 80px 24px 96px; }
+  .compare-labels { gap: 24px; }
+  .compare-label-left p,
+  .compare-label-right p { font-size: 16px; }
 }
 
 /* ===== SERVICE ===== */
@@ -241,113 +348,184 @@ const SITE_CSS = `
   }
 }
 
-/* ===== PRICING ===== */
-.rate-section {
-  background: #e8e8e8;
-  padding: 120px 24px 130px;
+/* ===== PRICING (FLUENT hero) ===== */
+.pricing-section {
+  background: #000000;
+  padding: 96px 24px 120px;
 }
-.rate-inner { max-width: 1120px; margin: 0 auto; }
-.rate-layout {
-  display: grid;
-  grid-template-columns: 0.82fr 1.18fr;
-  gap: 56px;
-  align-items: start;
+.pricing-inner { max-width: 1160px; margin: 0 auto; }
+.pricing-header {
+  margin-bottom: 72px;
 }
-.rate-title {
+.pricing-title {
   font-family: 'Noto Sans TC', sans-serif;
   font-weight: 900;
-  font-size: clamp(1.8rem, 3.8vw, 2.6rem);
-  color: #111110;
-  margin-bottom: 14px;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  color: #f5f2ec;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
 }
-.rate-sub {
-  font-family: 'Noto Sans TC', sans-serif;
-  font-size: 14.5px;
-  line-height: 1.85;
-  color: rgba(17,17,16,0.58);
-  margin-bottom: 26px;
-  max-width: 30ch;
+.pricing-subtitle {
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.64);
+  max-width: 50ch;
 }
-.rate-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-family: 'Noto Sans TC', sans-serif;
-  font-size: 13px;
-  line-height: 1.75;
-  color: rgba(17,17,16,0.50);
-  padding: 14px 16px;
-  background: rgba(255,255,255,0.7);
-  border: 1px solid rgba(17,17,16,0.09);
-  border-radius: 12px;
-  margin-bottom: 28px;
-}
-.rate-note svg { width: 16px; height: 16px; flex-shrink: 0; color: #1a9d5c; margin-top: 2px; }
-.rate-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  background: linear-gradient(180deg, #22b86b, #1a9d5c);
-  color: #fff;
-  font-family: 'Noto Sans TC', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  padding: 15px 34px;
-  border-radius: 999px;
-  text-decoration: none;
-  box-shadow: 0 12px 30px -12px rgba(26,157,92,0.65);
-  transition: transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .35s ease;
-}
-.rate-cta:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -12px rgba(26,157,92,0.75); }
-.rate-cta svg { width: 16px; height: 16px; }
-.rate-panel {
-  background: #ffffff;
-  border: 1px solid rgba(17,17,16,0.10);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(17,17,16,0.05);
-}
-.rate-row {
-  position: relative;
+.pricing-grid {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 20px;
-  padding: 26px 28px;
-  transition: background .35s ease;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
 }
-.rate-row + .rate-row { border-top: 1px solid rgba(17,17,16,0.09); }
-.rate-row:hover { background: rgba(26,157,92,0.045); }
-.rate-row.is-best { background: rgba(26,157,92,0.07); }
-.rate-row.is-best:hover { background: rgba(26,157,92,0.10); }
-.rate-row.is-best::before {
-  content: "";
-  position: absolute; left: 0; top: 0; bottom: 0;
-  width: 3px; background: #1a9d5c;
+.pricing-card {
+  border-radius: 18px;
+  background: #1d1d1f;
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 40px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
-.rate-ic {
-  width: 42px; height: 42px;
+.pricing-card:hover {
+  border-color: rgba(255,255,255,0.18);
+  background: #232325;
+}
+.pricing-period {
+  font-size: 14px;
+  color: rgba(255,255,255,0.54);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+.pricing-time {
+  font-size: 13px;
+  color: rgba(255,255,255,0.40);
+  margin-bottom: 24px;
+}
+.pricing-hero {
+  font-size: 56px;
+  font-weight: 700;
+  color: #22b86b;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.pricing-unit {
+  font-size: 14px;
+  color: rgba(255,255,255,0.54);
+}
+.pricing-note {
+  margin-top: 48px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.54);
+  max-width: 70ch;
+}
+.pricing-cta {
+  display: inline-block;
+  margin-top: 48px;
+  padding: 16px 40px;
+  background: #22b86b;
+  color: #000;
   border-radius: 12px;
-  background: rgba(26,157,92,0.11);
-  color: #1a9d5c;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 15px;
+  transition: all .3s cubic-bezier(0.16,1,0.3,1);
 }
-.rate-ic svg { width: 21px; height: 21px; display: block; overflow: visible; }
-.rate-meta h3 {
+.pricing-cta:hover {
+  background: #2cc973;
+  transform: scale(1.03);
+}
+@media (max-width: 900px) { .pricing-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) {
+  .pricing-grid { grid-template-columns: 1fr; }
+  .pricing-section { padding: 80px 24px 96px; }
+  .pricing-header { margin-bottom: 56px; }
+  .pricing-hero { font-size: 48px; }
+  .pricing-cta { width: 100%; text-align: center; }
+}
+
+/* ===== INFO ACCORDION ===== */
+.info-section {
+  background: #f5f5f7;
+  padding: 96px 24px 120px;
+}
+.info-inner { max-width: 1160px; margin: 0 auto; }
+.info-title {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 900;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+  color: #1d1d1f;
+  margin-bottom: 56px;
+  letter-spacing: -0.02em;
+}
+.info-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 820px;
+}
+.accordion-item {
+  border-radius: 12px;
+  background: white;
+  border: 1px solid rgba(17,17,16,0.10);
+  overflow: hidden;
+  transition: border-color .3s, background .3s;
+}
+.accordion-item:hover {
+  border-color: rgba(26,157,92,0.3);
+  background: #fafafa;
+}
+.accordion-button {
+  width: 100%;
+  padding: 24px 32px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 9px;
+  justify-content: space-between;
+  gap: 20px;
   font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 700;
-  font-size: 16.5px;
-  color: #111110;
-  margin: 0 0 5px;
+  font-weight: 600;
+  font-size: 16px;
+  color: #1d1d1f;
 }
-.rate-tag {
-  font-family: 'Noto Sans TC', sans-serif;
-  font-size: 10.5px;
-  font-weight: 700;
+.accordion-button:hover {
+  color: #22b86b;
+}
+.accordion-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #1a9d5c;
+  transition: transform .3s cubic-bezier(0.16,1,0.3,1);
+}
+.accordion-item.open .accordion-icon {
+  transform: rotate(180deg);
+}
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .35s cubic-bezier(0.16,1,0.3,1);
+}
+.accordion-item.open .accordion-content {
+  max-height: 400px;
+}
+.accordion-text {
+  padding: 0 32px 24px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(17,17,16,0.64);
+}
+@media (max-width: 560px) {
+  .info-section { padding: 80px 24px 96px; }
+  .info-title { margin-bottom: 40px; }
+  .accordion-button { padding: 20px 24px; font-size: 15px; }
+  .accordion-text { padding: 0 24px 20px; }
+}
   color: #fff;
   background: #1a9d5c;
   padding: 3px 9px;
@@ -700,7 +878,9 @@ export default function VenueContent() {
   const t = useTranslations("venuePage");
   const facilities = t.raw("facilities") as TitledItem[];
   const services = t.raw("services") as TitledItem[];
+  const pricingPeriods = t.raw("pricing_periods") as Array<{ name: string; time: string; rate: string }>;
   const rules = t.raw("rules") as string[];
+  const infoSections = t.raw("info_sections") as Array<{ title: string; content: string }>;
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -872,86 +1052,89 @@ export default function VenueContent() {
     <div style={{ fontFamily: FONT_FAMILY }}>
       <style>{SITE_CSS}</style>
 
-      {/* ── New GSAP Scroll Hero ── */}
-      <VenueHeroScroll />
+      {/* ── Hero After: Intro Statement (会员页 Statements 风格) ── */}
+      <section className="hero-after-section">
+        <div className="hero-after-inner">
+          <h2 className="hero-after-title">{t("heroAfter.title")}</h2>
+          <p className="hero-after-body">{t("heroAfter.body")}</p>
+        </div>
+      </section>
 
-      {/* ── Facilities ── */}
-      <section className="facility-section" data-nav-theme="dark">
+      {/* ── Facilities (Apple 3-col) ── */}
+      <section className="facility-section" data-cms-key="facilities_section">
         <div className="facility-inner">
-          <h2 className="facility-title">{t("facilities_title")}</h2>
-          {isMobile ? (
-            <>
-              <div ref={facilityTrackRef} className="facility-carousel-track" style={{
-                display: "flex",
-                gap: 14,
-                overflowX: "auto",
-                scrollSnapType: "x mandatory",
-                WebkitOverflowScrolling: "touch",
-                scrollbarWidth: "none",
-                padding: "0 4px 8px",
-              }}>
-                {facilities.map((item, i) => {
-                  const Icon = FACILITY_ICONS[i] ?? Target;
-                  const iconClass = FACILITY_ICON_CLASSES[i] ?? '';
-                  return (
-                    <div key={item.title} className="facility-card" style={{
-                      minWidth: "82vw",
-                      scrollSnapAlign: "center",
-                      flexShrink: 0,
-                    }}>
-                      <div className={`facility-icon ${iconClass}`}>
-                        <Icon size={26} strokeWidth={1.8} />
-                      </div>
-                      <h3>{item.title}</h3>
-                      <p>{item.body}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Dot indicators */}
-              <div className="facility-dots" style={{
-                display: "flex",
-                justifyContent: "center",
-                gap: 8,
-                marginTop: 28,
-              }}>
-                {facilities.map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => scrollToFacility(i)}
-                    aria-label={`Facility ${i + 1}`}
-                    style={{
-                      width: i === facilityActive ? 28 : 8,
-                      height: 4,
-                      borderRadius: 4,
-                      border: 0,
-                      padding: 0,
-                      background: i === facilityActive ? "#22b86b" : "rgba(255,255,255,0.25)",
-                      transition: "all .3s ease",
-                      cursor: "pointer",
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="facility-grid">
-              {facilities.map((item, i) => {
-                const Icon = FACILITY_ICONS[i] ?? Target;
-                const iconClass = FACILITY_ICON_CLASSES[i] ?? '';
-                return (
-                  <div key={item.title} className="facility-card">
-                    <div className={`facility-icon ${iconClass}`}>
-                      <Icon size={26} strokeWidth={1.8} />
-                    </div>
-                    <h3>{item.title}</h3>
-                    <p>{item.body}</p>
+          <h2 className="facility-title" data-cms-key="facilities_title">{t("facilities_title")}</h2>
+          <div className="facility-grid">
+            {facilities.map((item, i) => {
+              const Icon = FACILITY_ICONS[i] ?? Target;
+              return (
+                <div key={item.title} className="facility-card">
+                  <div className="facility-icon">
+                    <Icon size={32} strokeWidth={1.5} />
                   </div>
-                );
-              })}
+                  <h3 data-cms-key={`facilities_${i}_title`}>{item.title}</h3>
+                  <p data-cms-key={`facilities_${i}_body`}>{item.body}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Room Comparison (Wipe Slider) ── */}
+      <section className="compare-section" data-cms-key="rooms_section">
+        <div className="compare-inner">
+          <h2 className="compare-title" data-cms-key="rooms_title">{t("rooms_title")}</h2>
+          <div className="compare-frame" ref={compareRef}>
+            <div className="compare-clip-outer">
+              <div className="compare-images">
+                <img
+                  src="/images/venue/space-infinity.jpg"
+                  alt={t("rooms.0.name")}
+                  className="compare-img-left"
+                />
+                <img
+                  src="/images/venue/space-eternity.jpg"
+                  alt={t("rooms.1.name")}
+                  className="compare-img-right"
+                />
+              </div>
+              <div
+                className="compare-clip-inner"
+                style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+              >
+                <img
+                  src="/images/venue/space-infinity.jpg"
+                  alt={t("rooms.0.name")}
+                  className="compare-img-left"
+                />
+              </div>
             </div>
-          )}
+            <div
+              className="compare-handle"
+              style={{ left: `${sliderPos}%` }}
+              role="slider"
+              aria-valuenow={Math.round(sliderPos)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              tabIndex={0}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <polyline points="15 18 9 12 15 6" />
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </div>
+          </div>
+          <div className="compare-labels">
+            <div className="compare-label-left">
+              <p data-cms-key="rooms_0_name">{t("rooms.0.name")}</p>
+              <span data-cms-key="rooms_0_desc">{t("rooms.0.desc")}</span>
+            </div>
+            <div className="compare-label-right">
+              <p data-cms-key="rooms_1_name">{t("rooms.1.name")}</p>
+              <span data-cms-key="rooms_1_desc">{t("rooms.1.desc")}</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -991,138 +1174,55 @@ export default function VenueContent() {
         </div>
       </section>
 
-      {/* ── Pricing (matches reference HTML) ── */}
-      <section className="rate-section" id="rateSection" data-nav-theme="light">
-        <div className="rate-inner">
-          <div className="rate-layout">
-            <div className="rate-intro">
-              <h2 className="rate-title">定價。</h2>
-              <p className="rate-sub">
-                按時段收費，愈連訂愈抵玩。所有時段均為獨立球室，價格已包全場設施。
-              </p>
-              <div className="rate-note">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.9"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="9.2" />
-                  <path d="M12 16v-4.5" />
-                  <path d="M12 8.2h.01" />
-                </svg>
-                <span>連訂 2 小時或以上可享優惠價，於預訂時自動計算。</span>
-              </div>
-              <Link href="/book" className="rate-cta">
-                立即預訂
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14" />
-                  <path d="m13 6 6 6-6 6" />
-                </svg>
-              </Link>
-            </div>
-
-            <div className="rate-panel">
-              <div className="rate-row is-best">
-                <div className="rate-ic">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="4.1" />
-                    <g>
-                      <line x1="12" y1="1.6" x2="12" y2="3.8" />
-                      <line x1="12" y1="20.2" x2="12" y2="22.4" />
-                      <line x1="1.6" y1="12" x2="3.8" y2="12" />
-                      <line x1="20.2" y1="12" x2="22.4" y2="12" />
-                      <line x1="4.6" y1="4.6" x2="6.2" y2="6.2" />
-                      <line x1="17.8" y1="17.8" x2="19.4" y2="19.4" />
-                      <line x1="4.6" y1="19.4" x2="6.2" y2="17.8" />
-                      <line x1="17.8" y1="6.2" x2="19.4" y2="4.6" />
-                    </g>
-                  </svg>
-                </div>
-                <div className="rate-meta">
-                  <h3>
-                    上午時段 <span className="rate-tag">最抵玩</span>
-                  </h3>
-                  <p>每日 06:00–12:00</p>
-                  <span className="rate-deal">
-                    連訂 2 小時或以上 <b>HK$78</b>
-                  </span>
-                </div>
-                <div className="rate-price">
-                  <b>HK$88</b>
-                  <span>/ 小時</span>
-                </div>
-              </div>
-
-              <div className="rate-row">
-                <div className="rate-ic">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="7" fill="currentColor" stroke="none" />
-                    <path d="M14.6 2.6 6.4 13.4h5.2l-2.2 8 8.2-10.8h-5.2z" />
-                  </svg>
-                </div>
-                <div className="rate-meta">
-                  <h3>下午時段</h3>
-                  <p>每日 12:00–16:00</p>
-                  <span className="rate-deal">
-                    連訂 2 小時或以上 <b>HK$88</b>
-                  </span>
-                </div>
-                <div className="rate-price">
-                  <b>HK$98</b>
-                  <span>/ 小時</span>
-                </div>
-              </div>
-
-              <div className="rate-row">
-                <div className="rate-ic">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M20.4 14.6A8.6 8.6 0 0 1 9.4 3.6a8.6 8.6 0 1 0 11 11z" />
-                    <circle cx="17.6" cy="5.2" r="1" fill="currentColor" stroke="none" />
-                    <circle cx="20.4" cy="9.4" r="0.8" fill="currentColor" stroke="none" />
-                  </svg>
-                </div>
-                <div className="rate-meta">
-                  <h3>黃金時段</h3>
-                  <p>每日 16:00–00:00</p>
-                </div>
-                <div className="rate-price">
-                  <b>HK$108</b>
-                  <span>/ 小時</span>
-                </div>
-              </div>
-            </div>
+      {/* ── Pricing (Apple FLUENT hero style) ── */}
+      {/* ── Info (Accordion) ── */}
+      <section className="info-section" data-cms-key="info_section">
+        <div className="info-inner">
+          <h2 className="info-title" data-cms-key="info_title">{t("info_title")}</h2>
+          <div className="info-accordion">
+            {t.raw("info_sections").map((section: any, i: number) => (
+              <AccordionItem
+                key={i}
+                title={section.title}
+                content={section.content}
+                titleKey={`info_section_${i}_title`}
+                contentKey={`info_section_${i}_content`}
+              />
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* ── Pricing (Apple FLUENT hero style) ── */}
+      <section className="pricing-section" data-cms-key="pricing_section">
+        <div className="pricing-inner">
+          <div className="pricing-header">
+            <h2 className="pricing-title" data-cms-key="pricing_title">{t("pricing_title")}</h2>
+            <p className="pricing-subtitle" data-cms-key="pricing_subtitle">{t("pricing_subtitle")}</p>
+          </div>
+
+          <div className="pricing-grid">
+            {pricingPeriods.map((period, i) => (
+              <div key={period.name} className="pricing-card">
+                <div className="pricing-label" data-cms-key={`pricing_period_${i}_name`}>
+                  {period.name}
+                </div>
+                <div className="pricing-time" data-cms-key={`pricing_period_${i}_time`}>
+                  {period.time}
+                </div>
+                <div className="pricing-hero">
+                  <div className="pricing-amount">{period.rate}</div>
+                  <div className="pricing-unit" data-cms-key="pricing_unit">/ 小時</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="pricing-note" data-cms-key="pricing_note">{t("pricing_note")}</p>
+
+          <Link href="/book" className="pricing-cta">
+            立即預訂
+          </Link>
         </div>
       </section>
 

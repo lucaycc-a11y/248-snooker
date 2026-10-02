@@ -41,7 +41,7 @@ export function ScrollChoreography({
 
       const isDesktop = vw >= 1024;
       const photoWidth = isDesktop
-        ? Math.min(stageRect.width * 0.36, vw * 0.36)
+        ? Math.min(stageRect.width * 0.28, vw * 0.28)
         : Math.min(stageRect.width * 0.52, vw * 0.52);
       const photoHeight = isDesktop ? photoWidth * (2 / 3) : photoWidth * (26 / 52);
 
