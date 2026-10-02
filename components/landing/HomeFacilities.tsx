@@ -63,8 +63,8 @@ export default function HomeFacilities() {
   return (
     <section
       aria-labelledby="home-facilities-title"
-      data-nav-theme="light"
-      className="overflow-x-clip bg-[#f5f5f7] px-0 py-24 md:py-32 pt-[calc(var(--nav-h,4rem)+3rem)] min-h-[100svh] flex flex-col justify-center"
+      data-nav-theme="dark"
+      className="overflow-x-clip bg-black px-0 py-24 md:py-32 pt-[calc(var(--nav-h,4rem)+3rem)] min-h-[100svh] flex flex-col justify-center"
     >
       <div className="mb-12 px-6 md:px-16 lg:px-[max(1.5rem,calc((100vw-1200px)/2))]">
         <motion.div
@@ -78,7 +78,7 @@ export default function HomeFacilities() {
           </h2>
           <p
             data-cms-key="homeVenue.intro"
-            className="m-0 max-w-4xl text-[clamp(1.75rem,3.2vw,3rem)] font-bold leading-[1.2] tracking-[-0.04em] text-[#111110]"
+            className="m-0 max-w-4xl text-[clamp(1.75rem,3.2vw,3rem)] font-bold leading-[1.2] tracking-[-0.04em] text-white"
             style={{
               textWrap: "balance",
               lineBreak: "strict",
