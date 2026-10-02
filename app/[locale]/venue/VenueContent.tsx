@@ -311,7 +311,7 @@ const SITE_CSS = `
   box-shadow: 0 18px 40px -18px rgba(17,17,16,0.28);
 }
 .service-step {
-  font-family: 'Courier New', monospace;
+  font-family: monospace;
   font-size: 11px;
   letter-spacing: 0.14em;
   color: rgba(17,17,16,0.35);
