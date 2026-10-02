@@ -2611,16 +2611,43 @@
     "title": "收件箱",
     "tab_all": "全部",
     "mark_all_read": "全部标为已读",
+    "mark_as_read": "标为已读",
     "empty_state": "暂无通知",
     "unknown_type": "公告",
     "error_state": "无法加载通知",
     "retry": "重试",
-    "unread_count": "未读"
+    "unread_count": "未读",
+    "error": {
+      "markRead": "更新失败，请重试",
+      "markReadAll": "更新失败，请重试"
+    },
+    "success": {
+      "markedAll": "已标为全部已读"
+    }
+  },
+  "pagination": {
+    "previous": "上一页",
+    "next": "下一页"
   },
   "valuePage": {
     "meta_title": "我们的价值 | Space8",
     "meta_description": "Space Infinity 或 Space Eternity — 专业桌球体验",
     "space_infinity": "SPACE INFINITY",
     "space_infinity_alt": "SPACE8 Space Infinity 房间 专业中式桌球台 私人独立空间"
+  },
+  "checkout": {
+    "wallet": {
+      "applied": "已套用 Space Wallet",
+      "balance": "Space Wallet 可用余额",
+      "apply": "套用",
+      "remove": "移除",
+      "insufficient": "Space Wallet 余额不足"
+    }
+  },
+  "time": {
+    "just_now": "刚才",
+    "minutes_ago": "{count} 分钟前",
+    "hours_ago": "{count} 小时前",
+    "days_ago": "{count} 天前"
   }
 }

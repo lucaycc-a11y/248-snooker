@@ -2609,16 +2609,43 @@
     "title": "Inbox",
     "tab_all": "All",
     "mark_all_read": "Mark all as read",
+    "mark_as_read": "Mark as read",
     "empty_state": "No notifications",
     "unknown_type": "Announcement",
     "error_state": "Unable to load notifications",
     "retry": "Retry",
-    "unread_count": "Unread"
+    "unread_count": "Unread",
+    "error": {
+      "markRead": "Failed to update, please try again",
+      "markReadAll": "Failed to update, please try again"
+    },
+    "success": {
+      "markedAll": "Marked all as read"
+    }
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
   },
   "valuePage": {
     "meta_title": "Our Values | Space8",
     "meta_description": "Space Infinity or Space Eternity — Premium snooker experiences",
     "space_infinity": "SPACE INFINITY",
     "space_infinity_alt": "SPACE8 Space Infinity room with professional Chinese snooker table in private space"
+  },
+  "checkout": {
+    "wallet": {
+      "applied": "Space Wallet applied",
+      "balance": "Available balance",
+      "apply": "Apply",
+      "remove": "Remove",
+      "insufficient": "Insufficient balance"
+    }
+  },
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "{count} minute(s) ago",
+    "hours_ago": "{count} hour(s) ago",
+    "days_ago": "{count} day(s) ago"
   }
 }

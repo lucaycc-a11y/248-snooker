@@ -1,363 +1,524 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Gem, Sparkles, Trophy, ChevronDown, Gift, ArrowLeft, History, X } from 'lucide-react'
+import { ChevronDown, ChevronRight, AlertCircle, RotateCcw } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { resolveTier, DEFAULT_TIERS } from '@/lib/data/pricing'
+import { useRouter } from 'next/navigation'
+
+const SPRING = { type: 'spring', damping: 20, stiffness: 300 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// Space Pts Page — Premium redesign with glassmorphism and smooth animations
+// Types
 // ════════════════════════════════════════════════════════════════════════════
 
-type MemberProfile = {
-  points: number
+interface PointsData {
+  lifetime: number
+  redeemable: number
+  converted: number
+  depositedToWallet: number
   tier: string
+  blockSize: number
+  creditsPerBlock: number
 }
 
-type PointsTransaction = {
+interface Transaction {
   id: string
-  points: number
+  type: 'earn' | 'convert' | 'wallet' | 'back'
+  amount: number
   description: string
   created_at: string
-  balance_after: number
-  category?: string
+  reference_id?: string
 }
 
+interface TransactionsResponse {
+  transactions: Transaction[]
+  hasMore: boolean
+  nextCursor?: string
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Main Component
+// ════════════════════════════════════════════════════════════════════════════
+
 export default function PointsPage() {
-  const t = useTranslations('member.points_page')
-  const [profile, setProfile] = useState<MemberProfile | null>(null)
+  const t = useTranslations()
+  const router = useRouter()
+
+  const [pointsData, setPointsData] = useState<PointsData | null>(null)
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
-  const [benefitsExpanded, setBenefitsExpanded] = useState(false)
-  const [showHistoryModal, setShowHistoryModal] = useState(false)
-  const [transactions, setTransactions] = useState<PointsTransaction[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [filter, setFilter] = useState<'all' | 'earn' | 'wallet' | 'back'>('all')
+  const [howExpanded, setHowExpanded] = useState(false)
+  const [cursor, setCursor] = useState<string | undefined>()
+  const [hasMore, setHasMore] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
-    loadProfile()
-    loadTransactions()
+    loadData()
   }, [])
 
-  const loadProfile = async () => {
+  const loadData = async () => {
+    setLoading(true)
+    setError(null)
     try {
-      const res = await fetch('/api/member/profile')
-      if (res.ok) {
-        const data = await res.json()
-        setProfile({
-          points: data.points || 0,
-          tier: data.tier || 'amateur',
-        })
+      const res = await fetch('/api/member/points')
+
+      if (res.status === 401) {
+        router.push('/login')
+        return
       }
-    } catch {
-      // Silent fail
+
+      if (!res.ok) throw new Error('Failed to load points')
+
+      const data = (await res.json()) as PointsData
+      setPointsData(data)
+
+      await loadTransactions()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+      setPointsData(null)
     } finally {
       setLoading(false)
     }
   }
 
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async (filterType: typeof filter = filter, resetCursor = true) => {
     try {
-      const res = await fetch('/api/member/points/transactions')
-      if (res.ok) {
-        const data = await res.json()
-        setTransactions(data.transactions || [])
+      const params = new URLSearchParams()
+      if (filterType !== 'all') params.append('filter', filterType)
+      if (!resetCursor && cursor) params.append('cursor', cursor)
+
+      const res = await fetch(`/api/member/points/transactions?${params}`)
+      if (!res.ok) throw new Error('Failed to load transactions')
+
+      const data = (await res.json()) as TransactionsResponse
+
+      if (resetCursor) {
+        setTransactions(data.transactions)
+      } else {
+        setTransactions(prev => [...prev, ...data.transactions])
       }
-    } catch {
-      // Silent fail
+
+      setHasMore(data.hasMore)
+      setCursor(data.nextCursor)
+    } catch (err) {
+      console.error('Failed to load transactions:', err)
     }
+  }, [filter, cursor])
+
+  const handleFilterChange = (newFilter: typeof filter) => {
+    setFilter(newFilter)
+    setCursor(undefined)
+    setTransactions([])
   }
+
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    await loadTransactions(filter, false)
+    setLoadingMore(false)
+  }
+
+  const handleRetry = () => {
+    loadData()
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Render: Loading state
+  // ──────────────────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+      <div className="app wide" style={{ minHeight: '100vh' }}>
+        <header className="top">
+          <div></div>
+          <h1 className="t gt">{t('member.points.title')}</h1>
+          <div></div>
+        </header>
+        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '20px' }}>
+          <div className="skel sk-card" style={{ height: '200px', marginBottom: '20px' }} />
+          <div className="skel" style={{ height: '40px', marginBottom: '20px' }} />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="skel" style={{ height: '60px', marginBottom: '12px' }} />
+          ))}
+        </div>
       </div>
     )
   }
 
-  if (!profile) {
+  // ──────────────────────────────────────────────────────────────────────────
+  // Render: Error state
+  // ──────────────────────────────────────────────────────────────────────────
+
+  if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
-        <p className="text-white/60">無法載入積分資料</p>
-      </div>
-    )
-  }
-
-  const { current, next, progress, pointsToNext } = resolveTier(profile.points, DEFAULT_TIERS)
-  const isMaxTier = !next
-  const tierRingColor = getTierRingColor(current.id)
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
-      {/* Header with glassmorphism */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-[#0A0D12]/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-3xl px-4 py-4">
-          <div className="flex items-center justify-between">
-            <a
-              href="/member"
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white/10"
-            >
-              <ArrowLeft className="h-5 w-5 text-white/60" />
-            </a>
-            <h1 className="text-lg font-semibold text-white">{t('title')}</h1>
-            <button
-              onClick={() => setShowHistoryModal(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white/10"
-            >
-              <History className="h-5 w-5 text-white/60" />
-            </button>
+      <div className="app wide" style={{ minHeight: '100vh' }}>
+        <header className="top">
+          <button className="icon-btn" onClick={() => router.back()} aria-label={t('common.back')}>
+            <svg className="i" aria-hidden="true">
+              <use href="#i-back" />
+            </svg>
+          </button>
+          <h1 className="t gt">{t('member.points.title')}</h1>
+          <span></span>
+        </header>
+        <div style={{ maxWidth: '520px', margin: '0 auto', padding: '20px' }}>
+          <div className="alert" role="alert">
+            <svg className="i" aria-hidden="true">
+              <use href="#i-alert" />
+            </svg>
+            <div>
+              <h3>{t('member.points.error_title')}</h3>
+              <p>{error}</p>
+              <button className="btn secondary sm" onClick={handleRetry}>
+                <svg className="i" aria-hidden="true">
+                  <use href="#i-refresh" />
+                </svg>
+                {t('common.retry')}
+              </button>
+            </div>
           </div>
         </div>
+      </div>
+    )
+  }
+
+  if (!pointsData) {
+    return (
+      <div className="app wide" style={{ minHeight: '100vh' }}>
+        <header className="top">
+          <button className="icon-btn" onClick={() => router.back()} aria-label={t('common.back')}>
+            <svg className="i" aria-hidden="true">
+              <use href="#i-back" />
+            </svg>
+          </button>
+          <h1 className="t gt">{t('member.points.title')}</h1>
+          <span></span>
+        </header>
+        <div style={{ textAlign: 'center', padding: '40px 20px', color: 'rgba(255,255,255,0.6)' }}>
+          {t('common.no_data')}
+        </div>
+      </div>
+    )
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Calculations
+  // ──────────────────────────────────────────────────────────────────────────
+
+  const redeemableProgress = pointsData.redeemable % 100
+  const blocksEarned = Math.floor(pointsData.redeemable / 100)
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Render: Main
+  // ──────────────────────────────────────────────────────────────────────────
+
+  return (
+    <div className="app wide" style={{ minHeight: '100vh' }}>
+      {/* Header */}
+      <header className="top">
+        <button className="icon-btn" onClick={() => router.back()} aria-label={t('common.back')}>
+          <svg className="i" aria-hidden="true">
+            <use href="#i-back" />
+          </svg>
+        </button>
+        <h1 className="t gt">{t('member.points.title')}</h1>
+        <span></span>
       </header>
 
-      {/* Main Content */}
-      <div className="mx-auto max-w-3xl px-4 pb-8 pt-8">
-        {/* Points Display Card - Hero */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent p-8 backdrop-blur-xl"
-        >
-          {/* Floating orbs background */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+      {/* Main grid: left = card, right = feed + sections */}
+      <div className="grid" id="grid">
+        {/* ────────────────────────────────────────────────────────────────────────── */}
+        {/* Left Column: Card */}
+        {/* ────────────────────────────────────────────────────────────────────────── */}
 
-          <div className="relative z-10">
+        <section className="col-l" aria-live="polite">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={SPRING}
+            className="card"
+            style={{
+              background: 'linear-gradient(135deg, rgba(37,211,102,0.08), rgba(37,211,102,0.02))',
+              border: '1px solid rgba(37,211,102,0.1)',
+              borderRadius: '20px',
+              padding: '24px',
+            }}
+          >
+            {/* Stat 1: Lifetime */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('member.points.lifetime')}
+              </div>
+              <div style={{ fontSize: '32px', fontWeight: '600', color: 'rgba(255,255,255,0.95)', fontFamily: 'Good Times' }}>
+                {pointsData.lifetime.toLocaleString()}
+              </div>
+            </div>
+
+            {/* Stat 2: Redeemable + Progress */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('member.points.redeemable')}
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: '600', color: 'rgba(37,211,102,0.95)', fontFamily: 'Good Times', marginBottom: '8px' }}>
+                {redeemableProgress} / 100
+              </div>
+              <div style={{
+                height: '6px',
+                background: 'rgba(255,255,255,0.05)',
+                borderRadius: '3px',
+                overflow: 'hidden',
+              }}>
+                <motion.div
+                  style={{
+                    height: '100%',
+                    background: '#25D366',
+                    width: `${redeemableProgress}%`,
+                  }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${redeemableProgress}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '24px 0' }} />
+
+            {/* Stat 3: Deposited */}
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('member.points.deposited_to_wallet')}
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: '600', color: 'rgba(255,255,255,0.95)', fontFamily: 'Good Times' }}>
+                HK${pointsData.depositedToWallet.toLocaleString()}
+              </div>
+            </div>
+
+            {/* Stat 4: Converted */}
+            <div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('member.points.converted')}
+              </div>
+              <div style={{ fontSize: '24px', fontWeight: '600', color: 'rgba(255,255,255,0.95)', fontFamily: 'Good Times' }}>
+                {pointsData.converted.toLocaleString()}
+              </div>
+            </div>
+
             {/* Tier Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-sm">
-              {getTierIcon(current.id, 'h-5 w-5')}
-              <span className="text-sm font-medium text-white">{getTierName(current.id, 'zh-HK')}</span>
+            <div style={{ marginTop: '24px', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', textAlign: 'center', fontSize: '12px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              {getTierBadge(pointsData.tier)}
             </div>
+          </motion.div>
+        </section>
 
-            {/* Points Display */}
-            <div className="mb-2">
-              <p className="text-sm font-medium uppercase tracking-wider text-white/50">
-                {t('available_points')}
-              </p>
-              <h2 className="font-code mt-2 text-6xl font-bold tracking-tight text-white">
-                {profile.points.toLocaleString()}
-              </h2>
+        {/* ────────────────────────────────────────────────────────────────────────── */}
+        {/* Right Column: Feed + Sections */}
+        {/* ────────────────────────────────────────────────────────────────────────── */}
+
+        <div id="listArea" className="col-r">
+          <div className="sticky" style={{ top: 0, zIndex: 10 }}>
+            {/* Filter Tabs */}
+            <div className="tabs" role="tablist" aria-label={t('member.points.filter')}>
+              {(['all', 'earn', 'wallet', 'back'] as const).map((f) => (
+                <button
+                  key={f}
+                  className="tab"
+                  role="tab"
+                  aria-selected={filter === f}
+                  data-tab={f}
+                  onClick={() => handleFilterChange(f)}
+                >
+                  {t(`member.points.filter_${f}`)}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* Progress Bar */}
-            {!isMaxTier && (
-              <div className="mt-8">
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="text-white/60">{getTierName(current.id, 'zh-HK')}</span>
-                  <span className="text-white/60">{getTierName(next!.id, 'zh-HK')}</span>
+          {/* Transactions Feed */}
+          <div id="panel" role="tabpanel">
+            {transactions.length === 0 ? (
+              <div className="empty" style={{ textAlign: 'center', padding: '40px 20px' }}>
+                <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>
+                  {t('member.points.no_transactions')}
                 </div>
-                <div className="relative h-2 overflow-hidden rounded-full bg-white/10">
-                  <motion.div
-                    className="h-full rounded-full"
-                    style={{ background: tierRingColor }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${progress * 100}%` }}
-                    transition={{ duration: 1, ease: [0.34, 1.56, 0.64, 1] }}
-                  />
-                </div>
-                <p className="mt-2 text-sm text-white/50">
-                  {t('points_to_next', {
-                    points: pointsToNext.toLocaleString(),
-                    tierName: getTierName(next!.id, 'zh-HK')
-                  })}
-                </p>
               </div>
-            )}
+            ) : (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {transactions.map((tx) => (
+                    <motion.div
+                      key={tx.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="row"
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '14px 16px',
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        borderRadius: '12px',
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.9)', fontWeight: '500' }}>
+                          {tx.description}
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                          {new Date(tx.created_at).toLocaleDateString('zh-HK')}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          fontFamily: 'Good Times',
+                          color: tx.type === 'back' ? 'rgba(255,99,71,0.9)' : 'rgba(37,211,102,0.9)',
+                        }}>
+                          {tx.type === 'back' ? '-' : '+'}{tx.amount.toLocaleString()}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
 
-            {isMaxTier && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-white/60">
-                <Sparkles className="h-4 w-4" />
-                <span>{t('max_tier_reached')}</span>
-              </div>
+                {hasMore && (
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    style={{
+                      width: '100%',
+                      marginTop: '16px',
+                      padding: '12px',
+                      background: 'rgba(37,211,102,0.1)',
+                      border: '1px solid rgba(37,211,102,0.2)',
+                      borderRadius: '12px',
+                      color: '#25D366',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      cursor: loadingMore ? 'not-allowed' : 'pointer',
+                      opacity: loadingMore ? 0.6 : 1,
+                    }}
+                  >
+                    {loadingMore ? t('common.loading') : t('common.load_more')}
+                  </button>
+                )}
+              </>
             )}
           </div>
-        </motion.div>
 
-        {/* Tier Benefits Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mt-6"
-        >
-          <button
-            onClick={() => setBenefitsExpanded(!benefitsExpanded)}
-            className="w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-colors hover:bg-white/10"
+          {/* 如何運作 Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            style={{ marginTop: '24px' }}
           >
-            <div className="flex items-center justify-between p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
-                  <Gift className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="text-base font-semibold text-white">{t('tier_benefits')}</h3>
-              </div>
-              <motion.div
-                animate={{ rotate: benefitsExpanded ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ChevronDown className="h-5 w-5 text-white/60" />
-              </motion.div>
-            </div>
-          </button>
-
-          <AnimatePresence>
-            {benefitsExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-                className="overflow-hidden"
-              >
-                <div className="mt-3 space-y-3">
-                  {/* Nova tier */}
-                  <div className="rounded-xl border border-white/10 bg-gradient-to-br from-blue-500/10 to-transparent p-4 backdrop-blur-sm">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-blue-400" />
-                      <h4 className="font-semibold text-white">{t('tier_nova')}</h4>
-                    </div>
-                    <p className="text-sm leading-relaxed text-white/70">{t('benefit_nova')}</p>
-                  </div>
-
-                  {/* Platinum tier */}
-                  <div className="rounded-xl border border-white/10 bg-gradient-to-br from-gray-400/10 to-transparent p-4 backdrop-blur-sm">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Trophy className="h-5 w-5 text-gray-300" />
-                      <h4 className="font-semibold text-white">{t('tier_platinum')}</h4>
-                    </div>
-                    <p className="text-sm leading-relaxed text-white/70">{t('benefit_platinum')}</p>
-                  </div>
-
-                  {/* Diamond tier */}
-                  <div className="rounded-xl border border-white/10 bg-gradient-to-br from-pink-500/10 to-transparent p-4 backdrop-blur-sm">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Gem className="h-5 w-5 text-pink-400" />
-                      <h4 className="font-semibold text-white">{t('tier_diamond')}</h4>
-                    </div>
-                    <p className="text-sm leading-relaxed text-white/70">{t('benefit_diamond')}</p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      </div>
-
-      {/* History Modal */}
-      <AnimatePresence>
-        {showHistoryModal && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
-              onClick={() => setShowHistoryModal(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, y: '100%' }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-hidden rounded-t-3xl border-t border-white/10 bg-[#0A0D12] backdrop-blur-xl"
+            <button
+              onClick={() => setHowExpanded(!howExpanded)}
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                borderRadius: '14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.02)'
+              }}
             >
-              {/* Modal Header */}
-              <div className="sticky top-0 z-10 border-b border-white/10 bg-[#0A0D12]/80 backdrop-blur-xl">
-                <div className="flex items-center justify-between px-6 py-4">
-                  <h2 className="text-lg font-semibold text-white">{t('history_button')}</h2>
-                  <button
-                    onClick={() => setShowHistoryModal(false)}
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-white/10"
-                  >
-                    <X className="h-5 w-5 text-white/60" />
-                  </button>
-                </div>
+              <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px', fontWeight: '500', textAlign: 'left' }}>
+                {t('member.points.how_it_works')}
               </div>
+              <motion.svg
+                className="i"
+                aria-hidden="true"
+                style={{ width: '20px', height: '20px', flex: 'none' }}
+                animate={{ rotate: howExpanded ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <use href="#i-chevron-down" />
+              </motion.svg>
+            </button>
 
-              {/* Modal Content */}
-              <div className="overflow-y-auto p-6" style={{ maxHeight: 'calc(85vh - 64px)' }}>
-                {transactions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
-                      <History className="h-10 w-10 text-white/30" />
-                    </div>
-                    <p className="text-white/60">暫無積分記錄</p>
+            <AnimatePresence>
+              {howExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{
+                    marginTop: '12px',
+                    padding: '16px',
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.7)',
+                    lineHeight: '1.6',
+                  }}>
+                    {t('member.points.how_it_works_content')}
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {transactions.map((tx, index) => (
-                      <motion.div
-                        key={tx.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
-                      >
-                        <div>
-                          <p className="font-medium text-white">{tx.description}</p>
-                          <p className="text-xs text-white/40">
-                            {new Date(tx.created_at).toLocaleDateString('zh-HK', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-code text-lg font-semibold ${tx.points > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {tx.points > 0 ? '+' : ''}{tx.points.toLocaleString()}
-                          </p>
-                          <p className="font-code text-xs text-white/40">
-                            {tx.balance_after.toLocaleString()}
-                          </p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* 等級禮遇 Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            style={{ marginTop: '24px' }}
+          >
+            <div style={{
+              padding: '16px',
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '14px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px', fontWeight: '500' }}>
+                {t('member.points.tier_perks')}
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {t('member.points.pending')}
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
     </div>
   )
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// § HELPERS
-// ────────────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+// Helpers
+// ════════════════════════════════════════════════════════════════════════════
 
-function getTierName(tier: string, locale: string): string {
-  const names: Record<string, Record<string, string>> = {
-    amateur: { 'zh-HK': '標準會員', en: 'Standard' },
-    century: { 'zh-HK': '優越會員', en: 'Premier' },
-    maximum: { 'zh-HK': '尊榮會員', en: 'Prestige' },
+function getTierBadge(tier: string): string {
+  const tierMap: Record<string, string> = {
+    bronze: '銅級會員',
+    silver: '銀級會員',
+    gold: '金級會員',
+    platinum: '白金會員',
   }
-  return names[tier]?.[locale] ?? tier
-}
-
-function getTierIcon(tier: string, sizeClass: string): JSX.Element {
-  switch (tier) {
-    case 'amateur':
-      return <Sparkles className={`${sizeClass} text-white`} strokeWidth={1.5} />
-    case 'century':
-      return <Trophy className={`${sizeClass} text-white`} strokeWidth={1.5} />
-    case 'maximum':
-      return <Gem className={`${sizeClass} text-white`} strokeWidth={1.5} />
-    default:
-      return <Sparkles className={`${sizeClass} text-white`} strokeWidth={1.5} />
-  }
-}
-
-function getTierRingColor(tier: string): string {
-  switch (tier) {
-    case 'amateur':
-      return 'linear-gradient(90deg, rgba(102, 126, 234, 0.8), rgba(118, 75, 162, 0.8))'
-    case 'century':
-      return 'linear-gradient(90deg, rgba(189, 195, 199, 0.8), rgba(149, 165, 166, 0.8))'
-    case 'maximum':
-      return 'linear-gradient(90deg, rgba(240, 147, 251, 0.8), rgba(245, 87, 108, 0.8))'
-    default:
-      return 'linear-gradient(90deg, rgba(107, 114, 128, 0.8), rgba(156, 163, 175, 0.8))'
-  }
+  return tierMap[tier] || tier
 }

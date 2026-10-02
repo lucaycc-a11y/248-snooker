@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { type ReactElement } from 'react'
-import { motion } from 'framer-motion'
-import { MessageCircle, Wallet, Gem, Inbox, CreditCard } from 'lucide-react'
+import { MessageCircle, Wallet, Gem, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useUnreadCount } from '@/lib/inbox/useUnreadCount'
@@ -20,127 +19,77 @@ type Props = {
 
 export function HorizontalActionTiles({ profile }: Props) {
   const t = useTranslations('member')
-  const [walletNotifyMe, setWalletNotifyMe] = useState(false)
-  const [showWalletExplainer, setShowWalletExplainer] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [walletBalance, setWalletBalance] = useState<number | null>(null)
+  const [pointsTotal, setPointsTotal] = useState<number | null>(null)
   const { unreadCount } = useUnreadCount(userId)
 
-  // Get user ID on mount
+  // Get user ID and fetch wallet/points data on mount
   useEffect(() => {
-    const getUser = async () => {
+    const init = async () => {
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       setUserId(session?.user.id ?? null)
+
+      // Fetch wallet balance
+      try {
+        const balRes = await fetch('/api/member/wallet-balance')
+        if (balRes.ok) {
+          const data = await balRes.json()
+          setWalletBalance(data.credits ?? 0)
+        }
+      } catch {
+        // silent fail
+      }
+
+      // Fetch points total
+      try {
+        const ptsRes = await fetch('/api/member/points-total')
+        if (ptsRes.ok) {
+          const data = await ptsRes.json()
+          setPointsTotal(data.points ?? 0)
+        }
+      } catch {
+        // silent fail
+      }
     }
-    getUser()
+    init()
   }, [])
 
-  const handleWalletClick = async () => {
-    const isAdmin = await checkIsAdmin()
-    if (isAdmin) {
-      window.location.href = '/member/wallet'
-    } else {
-      setShowWalletExplainer(true)
-    }
-  }
-
-  const handleNotifyToggle = async () => {
-    const newValue = !walletNotifyMe
-    setWalletNotifyMe(newValue)
-    try {
-      await fetch('/api/member/wallet-notify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notify: newValue }),
-      })
-    } catch {
-      // silent fail
-    }
-  }
-
   return (
-    <>
-      <div className="px-4">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <ActionTile
-            icon={<MessageCircle className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-            title={t('actions.help.title')}
-            subtitle={t('actions.help.subtitle')}
-            href="/member/help"
-          />
-          <ActionTile
-            icon={<Wallet className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-            title={t('actions.wallet.title')}
-            subtitle={t('actions.wallet.subtitle')}
-            onClick={handleWalletClick}
-            locked
-            beta
-          />
-          <ActionTile
-            icon={<Gem className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-            title={t('actions.points.title')}
-            subtitle={t('actions.points.subtitle')}
-            href="/member/points"
-          />
-          <ActionTile
-            icon={<Inbox className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-            title={t('actions.inbox.title')}
-            subtitle={t('actions.inbox.subtitle')}
-            href="/member/inbox"
-            badge={unreadCount > 0 ? unreadCount : undefined}
-          />
-        </div>
+    <div className="px-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <ActionTile
+          icon={<MessageCircle className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
+          title={t('actions.help.title')}
+          subtitle={t('actions.help.subtitle')}
+          href="/member/help"
+        />
+        <ActionTile
+          icon={<Wallet className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
+          title={t('actions.wallet.title')}
+          subtitle={t('actions.wallet.subtitle')}
+          href="/member/wallet"
+          badge={walletBalance !== null ? `HK$${walletBalance}` : undefined}
+          badgeIsText
+        />
+        <ActionTile
+          icon={<Gem className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
+          title={t('actions.points.title')}
+          subtitle={t('actions.points.subtitle')}
+          href="/member/points"
+          badge={pointsTotal !== null ? pointsTotal : undefined}
+          badgeIsText
+        />
+        <ActionTile
+          icon={<Inbox className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
+          title={t('actions.inbox.title')}
+          subtitle={t('actions.inbox.subtitle')}
+          href="/member/inbox"
+          badge={unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : undefined}
+        />
       </div>
-
-      {/* Wallet explainer modal */}
-      {showWalletExplainer && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={() => setShowWalletExplainer(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="mx-4 max-w-sm rounded-2xl bg-[#0F131C] p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
-                <CreditCard className="h-8 w-8 text-white" strokeWidth={1.5} />
-              </div>
-            </div>
-            <h3 className="text-center text-xl font-bold text-white">{t('wallet_explainer.title')}</h3>
-            <p className="mt-2 text-center text-sm text-white/60">
-              {t('wallet_explainer.description')}
-            </p>
-            <div className="mt-6 flex items-center justify-between rounded-xl bg-white/5 p-4">
-              <span className="text-sm text-white">{t('wallet_explainer.notify_label')}</span>
-              <button
-                onClick={handleNotifyToggle}
-                className={`relative h-6 w-11 rounded-full transition-colors ${
-                  walletNotifyMe ? 'bg-[#22c55e]' : 'bg-white/20'
-                }`}
-              >
-                <motion.div
-                  className="absolute top-1 h-4 w-4 rounded-full bg-white"
-                  animate={{ left: walletNotifyMe ? 24 : 4 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              </button>
-            </div>
-            <button
-              onClick={() => setShowWalletExplainer(false)}
-              className="mt-4 w-full rounded-full bg-white/10 py-3 font-code text-sm font-medium text-white transition-colors hover:bg-white/20"
-            >
-              {t('wallet_explainer.dismiss')}
-            </button>
-          </motion.div>
-        </motion.div>
-      )}
-    </>
+    </div>
   )
 }
 
@@ -156,10 +105,11 @@ type ActionTileProps = {
   onClick?: () => void
   locked?: boolean
   beta?: boolean
-  badge?: number
+  badge?: string | number
+  badgeIsText?: boolean
 }
 
-function ActionTile({ icon, title, subtitle, href, onClick, locked, beta, badge }: ActionTileProps) {
+function ActionTile({ icon, title, subtitle, href, onClick, locked, beta, badge, badgeIsText }: ActionTileProps) {
   const content = (
     <div className={`group relative flex min-h-[56px] items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 transition-all ${
       locked
@@ -183,9 +133,12 @@ function ActionTile({ icon, title, subtitle, href, onClick, locked, beta, badge 
           BETA
         </div>
       )}
-      {badge != null && (
+      {badge != null && badgeIsText && (
+        <div className="text-xs font-code font-bold text-white/70">{badge}</div>
+      )}
+      {badge != null && !badgeIsText && (
         <div className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-code font-bold text-white">
-          {badge > 9 ? '9+' : badge}
+          {typeof badge === 'number' && badge > 9 ? '9+' : badge}
         </div>
       )}
     </div>
@@ -200,16 +153,3 @@ function ActionTile({ icon, title, subtitle, href, onClick, locked, beta, badge 
 // ────────────────────────────────────────────────────────────────────────────
 // § HELPERS
 // ────────────────────────────────────────────────────────────────────────────
-
-async function checkIsAdmin(): Promise<boolean> {
-  try {
-    const res = await fetch('/api/member/check-admin')
-    if (res.ok) {
-      const data = await res.json() as { isAdmin?: unknown }
-      return data.isAdmin === true
-    }
-  } catch {
-    // silent fail
-  }
-  return false
-}
