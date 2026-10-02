@@ -49,7 +49,7 @@ function MoonIcon() {
   );
 }
 
-export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
+export default function HomePricing({ periods, variant = "light" }: { periods: PricingPeriod[]; variant?: "light" | "dark" }) {
   const t = useTranslations("pricingPage");
 
   const bestValueId = periods.reduce(
@@ -82,13 +82,15 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
     return <MoonIcon />;
   };
 
+  const isDark = variant === "dark";
+
   return (
     <section
       ref={secRef}
       className={`price-section ${isIn ? "is-in" : ""}`}
-      data-nav-theme="light"
+      data-nav-theme={isDark ? "dark" : "light"}
       style={{
-        background: "#ffffff",
+        background: isDark ? "#000000" : "#ffffff",
         padding: "120px 24px 130px",
       }}
     >
@@ -97,7 +99,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
           fontFamily: FONT_FAMILY,
           fontWeight: 900,
           fontSize: "clamp(1.8rem, 3.8vw, 2.6rem)",
-          color: "#111110",
+          color: isDark ? "#ffffff" : "#111110",
           marginBottom: 12,
         }}>
           {t("periods_title")}。
@@ -105,7 +107,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
         <p className="price-sub" style={{
           fontFamily: FONT_FAMILY,
           fontSize: 14.5,
-          color: "rgba(17,17,16,0.55)",
+          color: isDark ? "rgba(255,255,255,0.55)" : "rgba(17,17,16,0.55)",
           marginBottom: 56,
         }}>
           {t("periods_subtitle")}
@@ -126,8 +128,8 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                 className="price-card"
                 style={{
                   position: "relative",
-                  background: "#ffffff",
-                  border: "1px solid rgba(17,17,16,0.12)",
+                  background: isDark ? "#0a0a0a" : "#ffffff",
+                  border: isDark ? "1px solid #2a2a2a" : "1px solid rgba(17,17,16,0.12)",
                   borderRadius: 18,
                   padding: "44px 28px 34px",
                   textAlign: "center",
@@ -165,7 +167,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                   fontFamily: FONT_FAMILY,
                   fontWeight: 700,
                   fontSize: 19,
-                  color: "#111110",
+                  color: isDark ? "#ffffff" : "#111110",
                   marginBottom: 8,
                 }}>
                   {t(`period_${period.id}_title`)}
@@ -174,7 +176,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                 <p className="price-time" style={{
                   fontFamily: FONT_FAMILY,
                   fontSize: 13.5,
-                  color: "rgba(17,17,16,0.48)",
+                  color: isDark ? "rgba(255,255,255,0.48)" : "rgba(17,17,16,0.48)",
                   marginBottom: 24,
                 }}>
                   {t(`period_${period.id}_time`)}
@@ -192,7 +194,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                     fontWeight: 600,
                     fontSize: "clamp(2.1rem, 4.4vw, 2.9rem)",
                     letterSpacing: "-0.02em",
-                    color: "#111110",
+                    color: isDark ? "#ffffff" : "#111110",
                     lineHeight: 1,
                   }}>
                     {fmt(period.rate)}
@@ -200,7 +202,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                   <span style={{
                     fontFamily: FONT_FAMILY,
                     fontSize: 13.5,
-                    color: "rgba(17,17,16,0.45)",
+                    color: isDark ? "rgba(255,255,255,0.45)" : "rgba(17,17,16,0.45)",
                   }}>
                     {" "}{t("per_hour")}
                   </span>
@@ -240,7 +242,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
         .price-section.is-in .price-card:nth-child(1) { transition-delay: .06s; }
         .price-section.is-in .price-card:nth-child(2) { transition-delay: .18s; }
         .price-section.is-in .price-card:nth-child(3) { transition-delay: .30s; }
-        .price-card:hover { border-color: rgba(26,157,92,0.45) !important; box-shadow: 0 22px 46px -24px rgba(17,17,16,0.3) !important; }
+        .price-card:hover { border-color: rgba(26,157,92,0.45) !important; }
 
         @media (max-width: 860px) {
           .price-grid { grid-template-columns: 1fr !important; gap: 28px !important; max-width: 440px !important; margin: 0 auto !important; }

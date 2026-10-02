@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
+import HomePricing from "@/components/landing/HomePricing";
 import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
 import Reveal2 from "@/components/ui/reveal2";
 import { AppleCarouselCentered } from "@/components/ui/apple-cards-carousel-centered";
@@ -1543,6 +1544,11 @@ export default function VenueContent() {
           />
         </div>
       </section>
+
+      {/* ── 05: Pricing (dark variant) ── */}
+      {periods && periods.length > 0 && (
+        <HomePricing periods={periods} variant="dark" />
+      )}
 
       {/* ── Facilities (Apple 3-col) ── */}
       <section className="facility-section" data-cms-key="facilities_section">
