@@ -32,8 +32,8 @@ function MembershipCard({
         onClick={() => setIsOpen(true)}
         className={`relative flex flex-col items-start gap-4 p-8 rounded-3xl border transition-all duration-300 hover:scale-[1.02] ${
           featured
-            ? "bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200 shadow-lg"
-            : "bg-white border-gray-200 hover:border-gray-300"
+            ? "bg-gradient-to-br from-amber-900/40 to-orange-900/40 border-amber-700/50 shadow-lg"
+            : "bg-gray-900 border-gray-700 hover:border-gray-600"
         }`}
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.98 }}
@@ -42,22 +42,22 @@ function MembershipCard({
           <span
             className={`absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-full ${
               badgeDim
-                ? "bg-gray-100 text-gray-500"
-                : "bg-amber-100 text-amber-800"
+                ? "bg-gray-800 text-gray-400"
+                : "bg-amber-500/20 text-amber-300"
             }`}
           >
             {badge}
           </span>
         )}
 
-        <div className="text-gray-700">{icon}</div>
+        <div className="text-gray-300">{icon}</div>
 
         <div className="flex flex-col items-start gap-2 text-left">
-          <h3 className="text-2xl font-bold text-gray-900">{title}</h3>
-          <p className="text-sm text-gray-600 leading-relaxed">{subtitle}</p>
+          <h3 className="text-2xl font-bold text-white">{title}</h3>
+          <p className="text-sm text-gray-400 leading-relaxed">{subtitle}</p>
         </div>
 
-        <div className="mt-auto flex items-center gap-2 text-sm font-medium text-gray-400">
+        <div className="mt-auto flex items-center gap-2 text-sm font-medium text-gray-500">
           <span>了解更多</span>
           <svg
             viewBox="0 0 24 24"
@@ -86,13 +86,13 @@ function MembershipCard({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", duration: 0.3 }}
-              className="relative max-w-lg w-full bg-white rounded-3xl p-8 shadow-2xl"
+              className="relative max-w-lg w-full bg-gray-900 rounded-3xl p-8 shadow-2xl border border-gray-700"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute top-6 right-6 text-gray-500 hover:text-gray-300 transition-colors"
                 aria-label="關閉"
               >
                 <svg
@@ -108,9 +108,9 @@ function MembershipCard({
               </button>
 
               <div className="flex flex-col gap-6">
-                <div className="text-gray-700">{icon}</div>
-                <h3 className="text-3xl font-bold text-gray-900">{title}</h3>
-                <p className="text-base text-gray-700 leading-relaxed">
+                <div className="text-gray-300">{icon}</div>
+                <h3 className="text-3xl font-bold text-white">{title}</h3>
+                <p className="text-base text-gray-300 leading-relaxed">
                   {popupContent}
                 </p>
               </div>
@@ -191,13 +191,13 @@ export default function MembershipNew() {
   ];
 
   return (
-    <section className="relative py-24 px-6 bg-gradient-to-b from-white via-gray-50 to-white">
+    <section className="relative py-24 px-6 bg-gradient-to-b from-black via-gray-950 to-black">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col gap-4 mb-16 text-center">
-          <h2 className="text-5xl font-black text-gray-900 tracking-tight">
+          <h2 className="text-5xl font-black text-white tracking-tight">
             {t("heading")}
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
             {t("subtitle")}
           </p>
         </div>
@@ -209,26 +209,26 @@ export default function MembershipNew() {
         </div>
 
         <div className="max-w-3xl mx-auto space-y-12">
-          <h3 className="text-2xl font-bold text-gray-900 text-center">
+          <h3 className="text-2xl font-bold text-white text-center">
             {t("howToUse")}
           </h3>
 
           <ol className="space-y-8">
             {[0, 1, 2].map((i) => (
               <li key={i} className="flex gap-6">
-                <span className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-gray-900 text-white text-xl font-bold">
+                <span className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-full bg-white text-black text-xl font-bold">
                   {i + 1}
                 </span>
                 <div className="flex-1 pt-2">
-                  <h4 className="text-lg font-bold text-gray-900 mb-2">
+                  <h4 className="text-lg font-bold text-white mb-2">
                     {t(`steps.${i}.title`)}
                     {i === 1 && (
-                      <span className="ml-3 px-2 py-1 text-xs font-semibold bg-amber-100 text-amber-800 rounded-full">
+                      <span className="ml-3 px-2 py-1 text-xs font-semibold bg-amber-500/20 text-amber-300 rounded-full">
                         {t("steps.1.badge")}
                       </span>
                     )}
                   </h4>
-                  <p className="text-base text-gray-600 leading-relaxed">
+                  <p className="text-base text-gray-400 leading-relaxed">
                     {t(`steps.${i}.description`)}
                   </p>
                 </div>
@@ -243,7 +243,7 @@ export default function MembershipNew() {
           <div className="flex justify-center">
             <a
               href="/member"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gray-900 text-white text-lg font-semibold rounded-full hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-white text-black text-lg font-semibold rounded-full hover:bg-gray-100 transition-colors shadow-lg hover:shadow-xl"
             >
               {t("ctaButton")}
               <svg
