@@ -16,10 +16,10 @@ CREATE TABLE IF NOT EXISTS public.deleted_users (
   CONSTRAINT deleted_users_expires_at_check CHECK (expires_at > deleted_at)
 );
 
-CREATE INDEX IF NOT EXISTS deleted_users_email_idx ON public.deleted_users(email) WHERE expires_at > now();
-CREATE INDEX IF NOT EXISTS deleted_users_phone_idx ON public.deleted_users(phone) WHERE phone IS NOT NULL AND expires_at > now();
-CREATE INDEX IF NOT EXISTS deleted_users_apple_id_idx ON public.deleted_users(apple_id) WHERE apple_id IS NOT NULL AND expires_at > now();
-CREATE INDEX IF NOT EXISTS deleted_users_expires_at_idx ON public.deleted_users(expires_at) WHERE expires_at <= now();
+CREATE INDEX IF NOT EXISTS deleted_users_email_idx ON public.deleted_users(email, expires_at);
+CREATE INDEX IF NOT EXISTS deleted_users_phone_idx ON public.deleted_users(phone, expires_at) WHERE phone IS NOT NULL;
+CREATE INDEX IF NOT EXISTS deleted_users_apple_id_idx ON public.deleted_users(apple_id, expires_at) WHERE apple_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS deleted_users_expires_at_idx ON public.deleted_users(expires_at);
 
 COMMENT ON TABLE public.deleted_users IS
   'Stores deleted user identities for 6 months to prevent duplicate registration during retention period. Cleaned up automatically via pg_cron.';
@@ -299,8 +299,13 @@ DO $$
 BEGIN
   -- Check if pg_cron extension exists
   IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
-    -- Remove existing job if it exists
-    PERFORM cron.unschedule('cleanup_expired_deleted_users');
+    -- Remove existing job if it exists (ignore error if not found)
+    BEGIN
+      PERFORM cron.unschedule('cleanup_expired_deleted_users');
+    EXCEPTION WHEN OTHERS THEN
+      -- Job doesn't exist yet, that's fine
+      NULL;
+    END;
 
     -- Schedule new job
     PERFORM cron.schedule(
