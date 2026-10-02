@@ -252,17 +252,15 @@ export function SpaceWheelOutro() {
           </div>
         </div>
 
-        {/* ── Content container (1200px max) — description + steps + buttons ── */}
+        {/* ── Content container — all items center-aligned to 50vw (same as ball) ── */}
         <div
           style={{
-            maxWidth: 1200,
-            margin: "0 auto",
             position: "relative",
+            width: "100%",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            padding: "0 24px",
             // Ball centre is on band bottom edge → bottom half of ball (50%) overhangs white.
             // Space from white edge to description top = half ball diameter + 24px gap.
             paddingTop: "calc(clamp(180px, 20vw, 345px) / 2 + 24px)",
@@ -278,6 +276,7 @@ export function SpaceWheelOutro() {
               color: "#000000",
               margin: 0,
               marginTop: "clamp(12px, 1.389vw, 20px)",
+              maxWidth: "min(100%, 1200px)",
               padding: "0 24px",
             }}
           >
@@ -303,8 +302,8 @@ export function SpaceWheelOutro() {
               justifyContent: "center",
               gap: "clamp(24px, 5.556vw, 96px)",
               marginTop: "clamp(28px, 2.5vw, 48px)",
+              maxWidth: "min(100%, 1200px)",
               padding: "0 24px",
-              width: "100%",
             }}
           >
             {steps.map((step, i) => (
@@ -350,6 +349,7 @@ export function SpaceWheelOutro() {
               alignItems: "center",
               gap: "clamp(12px, 1.2vw, 20px)",
               marginTop: "clamp(32px, 3.5vw, 64px)",
+              maxWidth: "min(100%, 1200px)",
               padding: "0 24px",
               flexWrap: "wrap",
             }}
