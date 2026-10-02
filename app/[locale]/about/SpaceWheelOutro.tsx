@@ -58,28 +58,19 @@ export function SpaceWheelOutro() {
           overflow: "visible",
         }}
       >
-        {/* ── Content column: max 1728px, centred ─────────────────────────── */}
+        {/* ── Headline group (wrapper carries parallax scroll) ─────────── */}
         <div
+          data-outro-headline-group
           style={{
-            maxWidth: 1728,
-            margin: "0 auto",
-            height: "100%",
-            position: "relative",
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            textAlign: "center",
+            pointerEvents: "none",
+            width: "100%",
           }}
         >
-          {/* ── Headline group (wrapper carries parallax scroll) ─────────── */}
-          <div
-            data-outro-headline-group
-            style={{
-              position: "absolute",
-              top: "50%", // centered vertically in band
-              left: 0,
-              right: 0,
-              transform: "translateY(-50%)", // true center
-              textAlign: "center",
-              pointerEvents: "none",
-            }}
-          >
             {/* Main headline — screen-reader label on the heading */}
             <h2
               id="closing-heading"
@@ -192,7 +183,6 @@ export function SpaceWheelOutro() {
               {t("closing_headline")}
             </p>
           </div>
-        </div>
       </div>
 
       {/* ── White section below the band ────────────────────────────────────── */}
