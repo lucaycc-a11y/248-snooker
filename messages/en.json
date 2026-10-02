@@ -2753,7 +2753,10 @@
     "main_description_line1": "This website was designed and developed solo by Luca Yau.",
     "main_description_line2": "Photography and partial design by Mike Lau.",
     "main_description_line3": "From concept to launch, approximately 3 months and over 100 hours of development time.",
-    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion"
+    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion",
+    "footer": {
+      "credits_closing": "Thanks to everyone who made SPACE8 possible."
+    }
   },
   "supportPage": {
     "back_to_support": "Back to Support"

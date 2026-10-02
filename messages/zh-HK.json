@@ -2755,7 +2755,10 @@
     "main_description_line1": "這個網站由 Luca Yau 一手包辦設計與開發。",
     "main_description_line2": "攝影及部分設計由 Mike Lau 負責。",
     "main_description_line3": "由概念到上線，歷時約 3 個月，投入超過 100 小時開發時間。",
-    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion"
+    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion",
+    "footer": {
+      "credits_closing": "感謝所有參與者使 SPACE8 成為可能。"
+    }
   },
   "supportPage": {
     "back_to_support": "返回支援"
