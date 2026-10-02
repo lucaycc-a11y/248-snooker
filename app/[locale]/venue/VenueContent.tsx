@@ -907,7 +907,7 @@ export default function VenueContent() {
             src: "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp",
             alt: "Space Pilot 智能計分系統",
             aspectRatio: "3 / 4",
-            objectFit: "cover",
+            objectFit: "contain",
             desc: t("other_facilities_pilot_desc"),
           },
           {
@@ -922,7 +922,7 @@ export default function VenueContent() {
           {
             id: "5",
             title: t("other_facilities_room_title"),
-            src: "/images/room-interior-中八桌球-香港新蒲崗.webp",
+            src: "/images/space-infinity-room-中八桌球-香港新蒲崗.webp",
             alt: "包廂空間",
             aspectRatio: "3 / 4",
             objectFit: "cover",
