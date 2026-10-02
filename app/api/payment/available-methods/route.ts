@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe/server'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 // GET /api/payment/available-methods
 // Queries Stripe account to determine which payment methods are actually

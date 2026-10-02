@@ -1,18 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { useTranslations } from 'next-intl'
 
 /** Branded loading animation shared by route, booking, and auth loading states. */
-export function LoadingGif({ size = 140 }: { size?: number }) {
-  const t = useTranslations('common')
+export function LoadingGif({ size = 140, label = 'Loading' }: { size?: number; label?: string }) {
   const clampedSize = Math.max(120, Math.min(160, size))
   const [videoFailed, setVideoFailed] = useState(false)
 
   return (
     <div
       role="status"
-      aria-label={t('loading')}
+      aria-label={label}
       style={{
         width: clampedSize,
         height: clampedSize,
@@ -39,7 +37,7 @@ export function LoadingGif({ size = 140 }: { size?: number }) {
           loop
           muted
           playsInline
-          aria-label="Loading"
+          aria-label={label}
           onError={() => setVideoFailed(true)}
           style={{ width: clampedSize, height: clampedSize, objectFit: 'contain' }}
         >

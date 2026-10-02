@@ -1857,6 +1857,7 @@ function Screen3({
   resumeBookingId,
   resumeOrderNo,
   removeRun,
+  pricingReady,
 }: {
   blocks: SelectedBlock[]
   onBackToSlots?: () => void
@@ -1866,6 +1867,7 @@ function Screen3({
   resumeBookingId?: string
   resumeOrderNo?: string
   removeRun?: (run: SelectedBlock) => void
+  pricingReady: boolean
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
@@ -2306,7 +2308,13 @@ function Screen3({
           >
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.pay.subtotal">{t("subtotal")}</span>
-              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}><BookingPrice amount={subtotal + totalSaved} /></span>
+              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                {!pricingReady ? (
+                  <span style={{ background: '#333', height: 20, width: 60, display: 'inline-block', borderRadius: 4 }} />
+                ) : (
+                  <BookingPrice amount={subtotal + totalSaved} />
+                )}
+              </span>
             </div>
             {totalSaved > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
@@ -3149,6 +3157,7 @@ function ConfirmingPayment({
   onBackToSlots: () => void
 }) {
   const t = useTranslations("book")
+  const tCommon = useTranslations("common")
 
   if (reason) {
     return (
@@ -3195,7 +3204,7 @@ function ConfirmingPayment({
         padding: "24px 20px",
       }}
     >
-      <LoadingGif />
+      <LoadingGif label={tCommon("loading")} />
       <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
         {t("confirming")}
       </p>
@@ -3652,6 +3661,8 @@ export default function BookPage() {
   // back to DEFAULT_PERIODS until this resolves or if it fails, same fallback
   // contract as getConfig().
   const [periods, setPeriods] = useState<PricingPeriod[]>(DEFAULT_PERIODS)
+  const [pricingReady, setPricingReady] = useState(false)
+  const pricingFallbackWarningLogged = useRef(false)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -3664,6 +3675,14 @@ export default function BookPage() {
       const rates = data?.value as Record<string, { base: number; discount: number; timeRange: string }> | null
       if (!cancelled && !error && rates && typeof rates === 'object' && !Array.isArray(rates)) {
         setPeriods(pricingRatesToPeriods(rates))
+        setPricingReady(true)
+      } else if (!cancelled) {
+        // Fallback is being used
+        if (!pricingFallbackWarningLogged.current) {
+          console.warn('[booking] pricing_rates not found or invalid, using DEFAULT_PERIODS')
+          pricingFallbackWarningLogged.current = true
+        }
+        setPricingReady(true)
       }
     })()
     return () => {
@@ -3854,6 +3873,7 @@ export default function BookPage() {
                   resumeBookingId={kpayResumeData?.bookingId}
                   resumeOrderNo={kpayResumeData?.orderNo}
                   removeRun={removeRun}
+                  pricingReady={pricingReady}
                   onBackToSlots={() => {
                     // Refresh availability (the lock may have changed while on
                     // the payment step) but keep the user's selection intact —
