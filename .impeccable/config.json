@@ -768,6 +768,18 @@
         "rule": "app/[locale]/venue/venuecontent.tsx",
         "value": "design-system-font noto sans tc apple design chinese typography",
         "createdAt": "2026-10-02T09:13:45.839Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a1a1a6",
+        "createdAt": "2026-10-02T10:37:55.667Z",
+        "reason": "Gate pages: intentional secondary text color for descriptions and helper text, consistent across production and UAT gates"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#86868b",
+        "createdAt": "2026-10-02T10:38:05.357Z",
+        "reason": "Gate pages: intentional tertiary/icon color for close buttons and subtle UI elements"
       }
     ]
   }

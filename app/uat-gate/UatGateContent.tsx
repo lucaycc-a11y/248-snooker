@@ -186,10 +186,14 @@ export default function UatGateContent() {
                     <PasswordInput
                       data-testid="gate-password-input"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => setPassword(e.target.value.trim())}
                       placeholder="輸入密碼"
                       autoFocus
                       disabled={loading}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      autoComplete="off"
+                      enterKeyHint="go"
                       style={{
                         height: 52,
                         padding: '0 16px',
@@ -297,9 +301,13 @@ export default function UatGateContent() {
               <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
                 <PasswordInput
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value.trim())}
                   placeholder="Enter password"
                   autoFocus
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="off"
+                  enterKeyHint="go"
                   style={{
                     height: 52,
                     padding: '0 16px',

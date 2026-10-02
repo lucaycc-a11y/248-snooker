@@ -32,7 +32,34 @@ function WaitlistForm({ onSecretActivate }: { onSecretActivate: () => void }) {
   const longPressFired = useRef(false)
 
   async function submit() {
-    if (!isValidEmail(email)) {
+    const trimmedValue = email.trim()
+
+    // If the value doesn't contain @, try it as a gate password
+    if (!trimmedValue.includes('@')) {
+      setError(null)
+      setStatus('saving')
+      try {
+        const res = await fetch('/api/gate/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: trimmedValue }),
+        })
+        if (res.ok) {
+          window.location.href = '/'
+          return
+        }
+        // On failure, show the email error (don't reveal we tried a password)
+        setStatus('error')
+        setError(t('err_email'))
+      } catch {
+        setStatus('error')
+        setError(t('err_email'))
+      }
+      return
+    }
+
+    // Looks like an email, proceed with normal validation and waitlist
+    if (!isValidEmail(trimmedValue)) {
       setError(t('err_email'))
       return
     }
@@ -42,7 +69,7 @@ function WaitlistForm({ onSecretActivate }: { onSecretActivate: () => void }) {
       const res = await fetch('/api/gate/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: trimmedValue }),
       })
       if (!res.ok && res.status !== 429) throw new Error('failed')
       setStatus('done')
@@ -88,6 +115,9 @@ function WaitlistForm({ onSecretActivate }: { onSecretActivate: () => void }) {
         onChange={(e) => setEmail(e.target.value)}
         placeholder={t('email_placeholder')}
         data-cms-key="comingSoon.email_placeholder"
+        autoCapitalize="off"
+        autoCorrect="off"
+        spellCheck={false}
         style={{
           height: 52,
           padding: '0 16px',
@@ -194,9 +224,13 @@ function PasswordModal({ open, onClose }: { open: boolean; onClose: () => void }
             <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
               <PasswordInput
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value.trim())}
                 placeholder={t('password_placeholder')}
                 autoFocus
+                inputMode="numeric"
+                pattern="[0-9]*"
+                autoComplete="off"
+                enterKeyHint="go"
                 style={{
                   height: 52,
                   padding: '0 16px',

@@ -6,6 +6,20 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.12.9] - 2026-10-02
+
+### Added
+- **Gate pages (coming-soon, uat-gate)**: Numeric keypad on all password fields via `inputMode="numeric"`, `pattern="[0-9]*"`, `autoComplete="off"`, and `enterKeyHint="go"` props. Mobile devices now show the numeric keyboard for password entry while keeping characters masked.
+- **Coming Soon page**: Email input box now accepts the gate password as a fallback. If the trimmed input contains no `@`, it attempts password verification via `/api/gate/verify`. On success, redirects to `/` (same as modal). On failure, shows the standard email error message without revealing a password was attempted. Actual emails continue to join the waitlist normally.
+- **ComingSoonContent.test.tsx**: Unit tests covering password fallback behavior — verifies that values without `@` call `/api/gate/verify`, values with `@` call `/api/gate/waitlist`, failed password attempts show `err_email` and never call waitlist, and whitespace is trimmed before routing.
+
+### Changed
+- **Gate password fields**: All password inputs now trim whitespace on change to prevent accidental leading/trailing spaces.
+- **Coming Soon email input**: Added `autoCapitalize="off"`, `autoCorrect="off"`, and `spellCheck={false}` to prevent iOS/Android autocorrect interference when entering passwords.
+
+### Security
+- **Design system**: Suppressed impeccable findings for `#A1A1A6` (secondary text) and `#86868B` (tertiary/icon color) — these are intentional gate page colors, consistent across production and UAT.
+
 ## [3.12.8-uat.3] - 2026-09-21
 
 ### Fixed
