@@ -7,8 +7,7 @@ import { motion } from "framer-motion";
 import { Link } from "@/i18n/navigation";
 import SpacePilotSection from "@/components/landing/SpacePilotSection";
 import VenueFacilitiesBento from "@/components/venue/VenueFacilitiesBento";
-import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
-import Reveal2 from "@/components/ui/reveal2";
+import { ZoomParallax } from "@/components/ui/zoom-parallax";
 import {
   Target,
   Lightbulb,
@@ -86,153 +85,6 @@ function AccordionItem({
 
 /* ── Injected CSS ── */
 const SITE_CSS = `
-/* ===== VENUE POINTS (02) ===== */
-.venue-points-section {
-  background: #000000;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  padding: 120px 24px;
-}
-.venue-points-inner {
-  max-width: 42rem;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 64px;
-}
-.venue-point {
-  text-align: center;
-  opacity: 0;
-  animation: venuePointReveal 0.8s cubic-bezier(.2,.7,.3,1) forwards;
-}
-.venue-point:nth-child(1) { animation-delay: 0.1s; }
-.venue-point:nth-child(2) { animation-delay: 0.2s; }
-.venue-point:nth-child(3) { animation-delay: 0.3s; }
-.venue-point:nth-child(4) { animation-delay: 0.4s; }
-.venue-point:nth-child(5) { animation-delay: 0.5s; }
-.venue-point-title {
-  font-size: clamp(1rem, 2vw, 1.125rem);
-  font-weight: 600;
-  color: #1a9d5c;
-  margin: 0 0 12px;
-  letter-spacing: 0.02em;
-}
-.venue-point-desc {
-  font-size: clamp(1.5rem, 3.5vw, 2rem);
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  line-height: 1.4;
-  max-width: 22ch;
-  margin-left: auto;
-  margin-right: auto;
-}
-@keyframes venuePointReveal {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@media (max-width: 640px) {
-  .venue-points-section { padding: 80px 24px; }
-  .venue-points-inner { gap: 48px; }
-}
-
-/* ===== ROOM COMPARISON (03) ===== */
-.room-comparison-section {
-  background: #000000;
-  padding: 120px 24px;
-}
-.room-comparison-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 64px;
-}
-.room-comparison-text {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-.room-comparison-heading {
-  font-size: clamp(2rem, 4.5vw, 3rem);
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  line-height: 1.2;
-}
-.room-comparison-intro {
-  font-size: clamp(1rem, 2vw, 1.125rem);
-  color: #a0a0a0;
-  margin: 0;
-  line-height: 1.6;
-  max-width: 48ch;
-}
-.room-comparison-table {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  background: #1a1a1a;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.room-comparison-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  background: #000000;
-  min-height: 56px;
-}
-.room-comparison-row:first-child {
-  background: #0a0a0a;
-}
-.room-comparison-label {
-  display: flex;
-  align-items: center;
-  padding: 16px 20px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: #ffffff;
-  border-right: 1px solid #2a2a2a;
-}
-.room-comparison-value {
-  display: flex;
-  align-items: center;
-  padding: 16px 20px;
-  font-size: 0.9375rem;
-  color: #d0d0d0;
-  border-right: 1px solid #2a2a2a;
-}
-.room-comparison-value:last-child {
-  border-right: none;
-}
-.room-comparison-slider {
-  width: 100%;
-}
-
-@media (min-width: 1024px) {
-  .room-comparison-inner {
-    grid-template-columns: 5fr 7fr;
-    gap: 80px;
-    align-items: center;
-  }
-}
-@media (max-width: 640px) {
-  .room-comparison-section { padding: 80px 24px; }
-  .room-comparison-row {
-    grid-template-columns: 1fr;
-  }
-  .room-comparison-label,
-  .room-comparison-value {
-    border-right: none;
-    border-bottom: 1px solid #2a2a2a;
-    padding: 12px 16px;
-  }
-  .room-comparison-row:last-child .room-comparison-value:last-child {
-    border-bottom: none;
-  }
-}
-
 /* ===== BELOW HERO ===== */
 .hero-after-section {
   background: #000000;
@@ -1391,87 +1243,21 @@ export default function VenueContent() {
     <div style={{ fontFamily: FONT_FAMILY }}>
       <style>{SITE_CSS}</style>
 
-      {/* ── 01: Cinematic Orbit Hero ── */}
-      <CinematicOrbitHero />
+      {/* ── ZoomParallax Hero: Space Infinity ── */}
+      <ZoomParallax
+        images={[
+          {
+            src: "/images/venue/space-infinity.jpg",
+            alt: t("rooms.0.name"),
+          },
+        ]}
+      />
 
-      {/* ── 02: Venue Points (member-page style) ── */}
-      <section className="venue-points-section">
-        <div className="venue-points-inner">
-          <div className="venue-point">
-            <p className="venue-point-title">專業設備</p>
-            <p className="venue-point-desc">星牌球臺與專業用球，讓每一桿都穩定準確。</p>
-          </div>
-          <div className="venue-point">
-            <p className="venue-point-title">私人包廂</p>
-            <p className="venue-point-desc">兩個獨立包廂，專心打球，不受打擾。</p>
-          </div>
-          <div className="venue-point">
-            <p className="venue-point-title">全預約制，QR 自助入場</p>
-            <p className="venue-point-desc">網上預訂，掃碼開門，簡單安全。</p>
-          </div>
-          <div className="venue-point">
-            <p className="venue-point-title">無煙乾淨</p>
-            <p className="venue-point-desc">全場禁煙，空間整潔清新。</p>
-          </div>
-          <div className="venue-point">
-            <p className="venue-point-title">舒適自在</p>
-            <p className="venue-point-desc">空間寬敞，與朋友從容開局。</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 03: Two-room comparison ── */}
-      <section className="room-comparison-section">
-        <div className="room-comparison-inner">
-          {/* Left column: heading + specs */}
-          <div className="room-comparison-text">
-            <h2 className="room-comparison-heading">兩個包廂，一個標準</h2>
-            <p className="room-comparison-intro">
-              Space Infinity 與 Space Eternity 配置完全相同，你只需選擇最適合的時段。
-            </p>
-
-            <div className="room-comparison-table">
-              <div className="room-comparison-row">
-                <div className="room-comparison-label">包廂名稱</div>
-                <div className="room-comparison-value">Space Infinity</div>
-                <div className="room-comparison-value">Space Eternity</div>
-              </div>
-              <div className="room-comparison-row">
-                <div className="room-comparison-label">佔地面積</div>
-                <div className="room-comparison-value">約 400 平方呎</div>
-                <div className="room-comparison-value">約 400 平方呎</div>
-              </div>
-              <div className="room-comparison-row">
-                <div className="room-comparison-label">球臺尺寸</div>
-                <div className="room-comparison-value">9 呎 x 4.5 呎</div>
-                <div className="room-comparison-value">9 呎 x 4.5 呎</div>
-              </div>
-              <div className="room-comparison-row">
-                <div className="room-comparison-label">球臺品牌</div>
-                <div className="room-comparison-value">星牌</div>
-                <div className="room-comparison-value">星牌</div>
-              </div>
-              <div className="room-comparison-row">
-                <div className="room-comparison-label">建議人數</div>
-                <div className="room-comparison-value">2–6 人</div>
-                <div className="room-comparison-value">2–6 人</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right column: slider */}
-          <div className="room-comparison-slider">
-            <Reveal2
-              beforeImage={{
-                src: "/images/venue-page-infinity.jpg",
-                alt: "Space Infinity 包廂內部",
-              }}
-              afterImage={{
-                src: "/images/venue-page-eternity.jpg",
-                alt: "Space Eternity 包廂內部",
-              }}
-            />
-          </div>
+      {/* ── Hero After: Intro Statement (会员页 Statements 风格) ── */}
+      <section className="hero-after-section">
+        <div className="hero-after-inner">
+          <h2 className="hero-after-title">{t("heroAfter.title")}</h2>
+          <p className="hero-after-body">{t("heroAfter.body")}</p>
         </div>
       </section>
 
