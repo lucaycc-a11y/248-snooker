@@ -80,58 +80,6 @@ function AccordionItem({
 
 /* ── Injected CSS ── */
 const SITE_CSS = `
-/* ===== VENUE POINTS (02) ===== */
-.venue-points-section {
-  background: #000000;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  padding: 120px 24px;
-}
-.venue-points-inner {
-  max-width: 42rem;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 64px;
-}
-.venue-point {
-  text-align: center;
-  opacity: 0;
-  animation: venuePointReveal 0.8s cubic-bezier(.2,.7,.3,1) forwards;
-}
-.venue-point:nth-child(1) { animation-delay: 0.1s; }
-.venue-point:nth-child(2) { animation-delay: 0.2s; }
-.venue-point:nth-child(3) { animation-delay: 0.3s; }
-.venue-point:nth-child(4) { animation-delay: 0.4s; }
-.venue-point:nth-child(5) { animation-delay: 0.5s; }
-.venue-point-title {
-  font-size: clamp(1.5rem, 3.5vw, 2rem);
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0 0 16px;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-}
-.venue-point-desc {
-  font-size: clamp(1.5rem, 3.5vw, 2rem);
-  font-weight: 300;
-  color: rgba(255,255,255,0.65);
-  margin: 0;
-  line-height: 1.4;
-  max-width: 22ch;
-  margin-left: auto;
-  margin-right: auto;
-}
-@keyframes venuePointReveal {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@media (max-width: 640px) {
-  .venue-points-section { padding: 80px 24px; }
-  .venue-points-inner { gap: 48px; }
-}
-
 /* ===== ROOM COMPARISON (03) ===== */
 .room-comparison-section {
   background: #000000;
@@ -987,29 +935,40 @@ export default function VenueContent() {
       {/* ── 01: Cinematic Orbit Hero ── */}
       <CinematicOrbitHero />
 
-      {/* ── 02: Venue Points (member-page style) ── */}
-      <section className="venue-points-section">
-        <div className="venue-points-inner">
-          <div className="venue-point">
-            <p className="venue-point-title">專業設備</p>
-            <p className="venue-point-desc">星牌球臺與專業用球，讓每一桿都穩定準確</p>
-          </div>
-          <div className="venue-point">
-            <p className="venue-point-title">私人包廂</p>
-            <p className="venue-point-desc">兩個獨立包廂，專心打球，不受打擾</p>
-          </div>
-          <div className="venue-point">
-            <p className="venue-point-title">全預約制，QR 自助入場</p>
-            <p className="venue-point-desc">網上預訂，掃碼開門，簡單安全</p>
-          </div>
-          <div className="venue-point">
-            <p className="venue-point-title">無煙乾淨</p>
-            <p className="venue-point-desc">全場禁煙，空間整潔清新</p>
-          </div>
-          <div className="venue-point">
-            <p className="venue-point-title">舒適自在</p>
-            <p className="venue-point-desc">空間寬敞，與朋友從容開局</p>
-          </div>
+      {/* ── 02: Venue Points (membership-style statements) ── */}
+      <section style={{ background: '#F9FAFB', padding: 'clamp(88px, 12vw, 140px) 24px' }}>
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-12">
+          {[
+            { lead: '專業設備', body: '星牌球臺與專業用球，讓每一桿都穩定準確' },
+            { lead: '私人包廂', body: '兩個獨立包廂，專心打球，不受打擾' },
+            { lead: '全預約制，QR 自助入場', body: '網上預訂，掃碼開門，簡單安全' },
+            { lead: '無煙乾淨', body: '全場禁煙，空間整潔清新' },
+            { lead: '舒適自在', body: '空間寬敞，與朋友從容開局' },
+          ].map((point, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, delay: i * 0.1, ease: [0.2, 0.7, 0.3, 1] }}
+              className="text-center"
+            >
+              <div className="space-y-2">
+                <p
+                  className="text-3xl font-semibold leading-tight md:text-5xl"
+                  style={{ color: '#059669' }}
+                >
+                  {point.lead}
+                </p>
+                <p
+                  className="text-3xl font-semibold leading-tight md:text-5xl"
+                  style={{ color: '#111827' }}
+                >
+                  {point.body}
+                </p>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
