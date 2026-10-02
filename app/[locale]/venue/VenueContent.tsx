@@ -507,12 +507,18 @@ const SITE_CSS = `
   transform: rotate(180deg);
 }
 .accordion-content {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height .35s cubic-bezier(0.16,1,0.3,1);
+  max-height: none;
+  overflow: visible;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity .35s cubic-bezier(0.16,1,0.3,1), transform .35s cubic-bezier(0.16,1,0.3,1);
+  pointer-events: none;
 }
 .accordion-item.open .accordion-content {
-  max-height: 400px;
+  max-height: none;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 .accordion-text {
   padding: 0 32px 24px;

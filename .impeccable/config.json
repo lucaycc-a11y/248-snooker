@@ -753,6 +753,21 @@
         "rule": "bounce-easing",
         "value": "cubic-bezier(.34,1.56,.64,1) app/[locale]/membership/membershipcontent.tsx intentional overshoot for card flip animation — creates playful, engaging interaction",
         "createdAt": "2026-10-02T07:58:54.856Z"
+      },
+      {
+        "rule": "app/[locale]/venue/venuecontent.tsx",
+        "value": "design-system-radius 18px apple design card radius",
+        "createdAt": "2026-10-02T09:13:28.328Z"
+      },
+      {
+        "rule": "app/[locale]/venue/venuecontent.tsx",
+        "value": "design-system-radius 24px apple design modal radius",
+        "createdAt": "2026-10-02T09:13:35.495Z"
+      },
+      {
+        "rule": "app/[locale]/venue/venuecontent.tsx",
+        "value": "design-system-font noto sans tc apple design chinese typography",
+        "createdAt": "2026-10-02T09:13:45.839Z"
       }
     ]
   }
