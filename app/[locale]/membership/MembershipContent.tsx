@@ -458,8 +458,11 @@ function SafetySection({ t }: { t: ReturnType<typeof useTranslations> }) {
                       {t(`safety.${card.key}.title`)}
                     </h3>
                     <div
-                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-all duration-400"
+                      className="flex flex-shrink-0 items-center justify-center rounded-full transition-all duration-400"
                       style={{
+                        width: "44px",
+                        height: "44px",
+                        aspectRatio: "1",
                         background: "rgba(255,255,255,0.15)",
                         transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
                       }}
