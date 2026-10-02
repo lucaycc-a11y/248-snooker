@@ -2246,15 +2246,27 @@
     }
   },
   "venueHero": {
-    "title": "专业桌球场地",
+    "intro_title": "场地介绍",
     "subtitle": "两间独立房间 · 顶级球桌 · 完善设施",
-    "segments": {
-      "0": "Space Infinity 及 Space Eternity 两间专属包房",
-      "1": "配备 Riley 及 Star 专业比赛级球桌",
-      "2": "全天然板岩台面，确保球路精准稳定",
-      "3": "恒温恒湿环境，24 小时新风系统",
-      "4": "免费泊车，邻近港铁站，交通便利"
-    }
+    "scroll_hint": "向下滑动",
+    "segment_0": "精选台球桌，比赛球",
+    "segment_1": "特调灯光和氛围",
+    "segment_2": "AI 智能对战管家",
+    "segment_3": "全自助入场，扫码即入",
+    "segment_4": "全面禁烟，定期清洁",
+    "segment_5": "舒适沙发休息区",
+    "caption_1": "专业设备",
+    "caption_2": "场地装修",
+    "caption_3": "科技体验",
+    "caption_4": "快捷方便",
+    "caption_5": "无烟干净",
+    "caption_6": "舒适自在",
+    "alt_1": "球台上的比利时 Aramith 比赛球",
+    "alt_2": "SPACE8 包厢内的星牌台球台与特调灯光",
+    "alt_3": "Space Pilot 智能对战管家的比分画面",
+    "alt_4": "SPACE8 包厢入场自助系统",
+    "alt_5": "SPACE8 宽敞的私人台球包厢",
+    "alt_6": "SPACE8 舒适沙发休息区"
   },
   "memberShowcase": {
     "title": "会员制度",

@@ -2246,15 +2246,27 @@
     }
   },
   "venueHero": {
-    "title": "Professional Snooker Venue",
-    "subtitle": "Two Private Rooms · Premium Tables · Complete Facilities",
-    "segments": {
-      "0": "Space Infinity and Space Eternity - two exclusive private rooms",
-      "1": "Equipped with Riley and Star professional tournament-grade tables",
-      "2": "Natural slate surfaces ensuring precise and stable ball trajectory",
-      "3": "Climate-controlled environment with 24-hour fresh air system",
-      "4": "Free parking, near MTR station, convenient transportation"
-    }
+    "intro_title": "The space",
+    "subtitle": "Two private rooms · Premium tables · Complete facilities",
+    "scroll_hint": "Scroll",
+    "segment_0": "Hand-picked tables, tournament balls",
+    "segment_1": "Tuned lighting and atmosphere",
+    "segment_2": "An AI match host",
+    "segment_3": "Self check-in — scan and you're in",
+    "segment_4": "No smoking anywhere, cleaned regularly",
+    "segment_5": "A comfortable sofa lounge",
+    "caption_1": "Pro equipment",
+    "caption_2": "The room",
+    "caption_3": "Tech-driven",
+    "caption_4": "Quick and easy",
+    "caption_5": "Clean, smoke-free",
+    "caption_6": "At ease",
+    "alt_1": "Belgian Aramith tournament balls on the table",
+    "alt_2": "SPACE8 room with Star table and tuned lighting",
+    "alt_3": "Space Pilot scoreboard showing match score",
+    "alt_4": "SPACE8 self-service entry system",
+    "alt_5": "SPACE8 spacious private snooker room",
+    "alt_6": "SPACE8 comfortable sofa lounge area"
   },
   "memberShowcase": {
     "title": "Membership",

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { HelpArticle } from '@/lib/help/content-loader'
+import { HELP_PATHS } from '@/lib/help/constants'
 import { Markdown } from './Markdown'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
 
@@ -33,7 +34,7 @@ export function HelpArticlePage({ topicId, topicTitle, article, allArticles }: H
     setFeedbackState('submitting')
 
     try {
-      const res = await fetch('/api/help/feedback', {
+      const res = await fetch('/api/help-center/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
