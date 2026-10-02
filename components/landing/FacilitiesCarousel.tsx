@@ -98,7 +98,6 @@ export default function FacilitiesCarousel() {
     <>
       <div className={styles.head}>
         <div className={styles.txt}>
-          <div className={styles.kicker}>{t("subtitle")}</div>
           <h2 className={styles.h1}>{t("intro")}</h2>
         </div>
         <div className={styles.arrows}>
