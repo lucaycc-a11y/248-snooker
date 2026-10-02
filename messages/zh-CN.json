@@ -2744,22 +2744,6 @@
     "hours_ago": "{count} 小时前",
     "days_ago": "{count} 天前"
   },
-  "creditsPage": {
-    "flap_messages": [
-      "THIS SITE WAS BUILT SOLO BY LUCA YAU",
-      "PHOTOGRAPHY & DESIGN BY MIKE LAU",
-      "3 MONTHS. 100+ HOURS.",
-      "WANT A SITE THIS GOOD?",
-      "VISIT FORMHK.COM"
-    ],
-    "main_description_line1": "这个网站由 Luca Yau 一手包办设计与开发。",
-    "main_description_line2": "摄影及部分设计由 Mike Lau 负责。",
-    "main_description_line3": "由概念到上线，历时约 3 个月，投入超过 100 小时开发时间。",
-    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion",
-    "footer": {
-      "credits_closing": "感谢所有参与者使 SPACE8 成为可能。"
-    }
-  },
   "supportPage": {
     "back_to_support": "返回支持"
   },
