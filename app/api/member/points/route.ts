@@ -26,12 +26,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 })
     }
 
-    // Calculate lifetime points from points_ledger
+    // Calculate lifetime points: sum of all earning transactions only
+    // (booking_earned, referral, admin_grant) per schema contract
     const { data: ledgerSum, error: ledgerError } = await supabase
       .from('points_ledger')
       .select('points')
       .eq('user_id', user.id)
-      .gte('points', 0)
+      .in('type', ['booking_earned', 'referral', 'admin_grant'])
+
+    if (ledgerError) {
+      console.error('[points] ledger sum error:', ledgerError)
+      return NextResponse.json({ error: 'Failed to calculate lifetime points' }, { status: 500 })
+    }
 
     const lifetime = ledgerSum?.reduce((sum, row) => sum + (row.points ?? 0), 0) ?? 0
 

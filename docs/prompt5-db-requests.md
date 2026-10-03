@@ -11,3 +11,9 @@
 ### Blog posts translations (app/admin/blog/[id]/page.tsx)
 - Missing column: blog_posts.translation_group_id
 - Used by: Blog post translation management (admin-only)
+
+### Admin action log (app/admin/members/[id]/page.tsx)
+- Missing table: admin_action_log
+- Columns needed: id, action_type, before_jsonb, after_jsonb, created_at, user_id
+- Used by: Admin member account audit history
+
