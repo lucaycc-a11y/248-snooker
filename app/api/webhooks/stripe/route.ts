@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getStripe } from '@/lib/stripe/server'
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     console.log('[Stripe] webhook received', { type: event.type, id: event.id })
 
     // Idempotency: check if we've already processed this event
-    const supabase = getServiceSupabase()
+    const supabase = getLegacyServiceSupabase()
 
     const { data: existingEvent } = await supabase
       .from('webhook_events')

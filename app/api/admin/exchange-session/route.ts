@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServiceSupabase } from "@/lib/supabase/service"
+import { getLegacyServiceSupabase } from "@/lib/supabase/legacy"
 
 // Exchange a one-time code for a real Supabase session. The code is single-use
 // and short-lived (5 minutes). Even if the exchange fails midway, the code is
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "無效的交換碼" }, { status: 400 })
   }
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   // ── Look up the code ─────────────────────────────────────────────────
   const { data: exchangeRow, error: lookupError } = await service

@@ -2,7 +2,7 @@
 // Returns the device row if the token is valid and unrevoked; null otherwise.
 // All Pilot API routes call this so token validation lives in one place.
 
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export type PilotSession = {
   sessionId: string
@@ -16,7 +16,7 @@ export async function resolvePilotSession(authHeader: string | null): Promise<Pi
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
   if (!token) return null
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data, error } = await service
     .from('pilot_sessions')
     .select('id, pilot_device_id, pilot_devices(room_code, room_display_name, table_number)')

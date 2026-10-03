@@ -8,6 +8,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 import { withSecurity } from '@/lib/security/api-wrapper'
+import { parseRpc, isLockSlotResult, isLockSlotsResult } from '@/lib/supabase/rpc-parse'
 
 export const runtime = 'nodejs'
 
@@ -119,8 +120,9 @@ async function handleBookingLock(req: Request) {
           { status: conflict ? 409 : 500 },
         )
       }
-      if (!data?.success) {
-        return NextResponse.json({ error: 'Slot unavailable', reason: data?.reason ?? 'unavailable' }, { status: 409 })
+      const result = parseRpc('find_or_lock_slots', data, isLockSlotsResult)
+      if (!result.success) {
+        return NextResponse.json({ error: 'Slot unavailable', reason: result.reason ?? 'unavailable' }, { status: 409 })
       }
 
       // Mint the group id here (server-authoritative). The client threads it into
@@ -128,13 +130,13 @@ async function handleBookingLock(req: Request) {
       const orderGroupId = randomUUID()
       console.log('[booking/lock] multi success', {
         userId: user.id,
-        slots: (data.slot_ids as string[]).length,
+        slots: result.slot_ids?.length ?? 0,
         orderGroupId,
       })
       return NextResponse.json({
-        slotIds: data.slot_ids as string[],
+        slotIds: result.slot_ids ?? [],
         orderGroupId,
-        lockedUntil: data.locked_until,
+        lockedUntil: result.locked_until,
       })
     }
 
@@ -203,20 +205,21 @@ async function handleBookingLock(req: Request) {
         { status: 500 },
       )
     }
-    if (!data?.success) {
-      console.log('[booking/lock] rejected', { userId: user.id, reason: data?.reason ?? 'unavailable' })
+    const result = parseRpc('find_or_lock_slot', data, isLockSlotResult)
+    if (!result.success) {
+      console.log('[booking/lock] rejected', { userId: user.id, reason: result.reason ?? 'unavailable' })
       return NextResponse.json(
-        { error: 'Slot unavailable', reason: data?.reason ?? 'unavailable' },
+        { error: 'Slot unavailable', reason: result.reason ?? 'unavailable' },
         { status: 409 },
       )
     }
 
     console.log('[booking/lock] success', {
       userId: user.id,
-      slotId: data.slot_id,
-      lockedUntil: data.locked_until,
+      slotId: result.slot_id,
+      lockedUntil: result.locked_until,
     })
-    return NextResponse.json({ slotId: data.slot_id, lockedUntil: data.locked_until })
+    return NextResponse.json({ slotId: result.slot_id, lockedUntil: result.locked_until })
   } catch (err) {
     const e = err as Error
     const msg = e.message

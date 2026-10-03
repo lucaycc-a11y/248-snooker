@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str } from '@/lib/data/adminReadHelpers'
 
 export const runtime = 'nodejs'
@@ -36,7 +36,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized — admin only' }, { status: 401 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data, error } = await service
       .from('campaigns')
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Status must be draft, active, or ended' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const payload: Record<string, unknown> = {
       name,

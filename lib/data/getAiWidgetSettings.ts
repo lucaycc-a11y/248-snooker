@@ -1,4 +1,4 @@
-import { getPublicSupabase } from '@/lib/supabase/public'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 // Per-locale, admin-configurable AI widget content (greeting, quick-reply
 // prompts, tone, and an additive system-prompt override) — public-read via
@@ -39,8 +39,7 @@ function defaultsFor(locale: string): AiWidgetSettings {
 }
 
 export async function getAiWidgetSettings(locale = 'zh-HK'): Promise<AiWidgetSettings> {
-  const supabase = getPublicSupabase()
-  if (!supabase) return defaultsFor(locale)
+  const supabase = getLegacyServiceSupabase()
   try {
     const { data } = await supabase
       .from('ai_widget_settings')

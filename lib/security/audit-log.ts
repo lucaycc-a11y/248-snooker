@@ -1,4 +1,4 @@
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 /**
  * Security audit log event types.
@@ -36,7 +36,7 @@ export interface SecurityAuditEvent {
  */
 export async function logSecurityEvent(event: SecurityAuditEvent): Promise<void> {
   try {
-    const supabase = getServiceSupabase()
+    const supabase = getLegacyServiceSupabase()
     const { error } = await supabase.from('security_audit_log').insert({
       user_id: event.userId ?? null,
       event_type: event.eventType,

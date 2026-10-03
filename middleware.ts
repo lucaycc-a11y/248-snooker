@@ -91,8 +91,8 @@ async function logGateAccess(
   pathname: string
 ): Promise<void> {
   try {
-    const { getServiceSupabase } = await import('@/lib/supabase/service')
-    const supabase = getServiceSupabase()
+    const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
+    const supabase = getLegacyServiceSupabase()
     await supabase.from('site_gate_access_log').insert({
       ip_address: ip,
       method,
@@ -190,8 +190,8 @@ async function checkPasswordGate(
     if (!user) return null
 
     // Check if password is set
-    const { getServiceSupabase } = await import('@/lib/supabase/service')
-    const service = getServiceSupabase()
+    const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
+    const service = getLegacyServiceSupabase()
     const { data: status } = await service
       .from('user_password_status')
       .select('password_set')

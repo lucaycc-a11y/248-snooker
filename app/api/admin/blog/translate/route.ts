@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getVectorEngine, VectorEngineConfigError } from '@/lib/ai/vectorengine'
 import { rateLimit } from '@/lib/rate-limit'
 
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     const postId = body.post_id.trim()
     const targetLocale = body.target_locale as Locale
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const { data: source, error: sourceErr } = await service
       .from('blog_posts')
       .select('id, translation_group_id, title, excerpt, content, category, seo_title, seo_description, cover_image_url, og_image_url, author')

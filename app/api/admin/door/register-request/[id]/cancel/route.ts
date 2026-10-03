@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 type RequestRow = { id: string; status: string }
 
@@ -10,7 +10,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { id } = await params
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data: existing } = await service
       .from('door_card_registration_requests')

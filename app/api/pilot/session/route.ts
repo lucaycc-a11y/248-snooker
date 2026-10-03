@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     : ''
   if (!token) return NextResponse.json({ valid: false })
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data: session, error } = await service
     .from('pilot_sessions')
     .select('id, pilot_device_id, pilot_devices(room_code, room_display_name)')

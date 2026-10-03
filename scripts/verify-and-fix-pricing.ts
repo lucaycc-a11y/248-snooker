@@ -1,8 +1,8 @@
 // Script to verify and fix pricing time range inconsistency
-import { getServiceSupabase } from '../lib/supabase/service'
+import { getLegacyServiceSupabase } from '../lib/supabase/legacy'
 
 async function main() {
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
 
   console.log('=== CHECKING DATABASE PRICING CONFIG ===\n')
 

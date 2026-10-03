@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -21,7 +21,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const updates: Record<string, unknown> = {}
 
     if (typeof body.is_active === 'boolean') updates.is_active = body.is_active
@@ -56,7 +56,7 @@ export async function DELETE(
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   const { error } = await service
     .from('promotion_codes')

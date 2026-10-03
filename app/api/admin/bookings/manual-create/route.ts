@@ -14,7 +14,7 @@
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { calculatePrice } from '@/lib/pricing'
 import { loadPeriods, resolveTierForUser, slotBounds, periodForStart } from '@/lib/booking/server'
 import { humanReadableCode } from '@/lib/qr/jwt'
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
       paymentProvider: payment.provider,
     })
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const periods = await loadPeriods()
 
     // ── Recalculate price server-side (authoritative) ───────────────────

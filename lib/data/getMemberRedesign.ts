@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 
 import { type MemberDashboardData } from './memberRedesignTypes'
 
@@ -8,7 +8,7 @@ import { type MemberDashboardData } from './memberRedesignTypes'
 // ════════════════════════════════════════════════════════════════════════════
 
 export async function getMemberDashboardData(): Promise<MemberDashboardData | null> {
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
 
   // SECURITY: Use getUser() not getSession() for server-side auth decisions
   // getSession() reads cookies which can be forged; getUser() validates with auth server

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import type { SiteConfig, Tier } from '@/lib/data/pricing'
 import { withAdminSecurity } from '@/lib/security/admin-wrapper'
 
@@ -115,7 +115,7 @@ async function handleAdminConfigUpdate(req: Request) {
       return NextResponse.json({ error: `Invalid value for "${key}"` }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data: existing } = await service.from('config').select('value').eq('key', key).maybeSingle()
 

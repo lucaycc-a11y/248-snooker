@@ -8,7 +8,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { calculatePrice } from '@/lib/pricing'
 import { loadPeriods, resolveTierForUser, slotBounds } from '@/lib/booking/server'
 
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const periods = await loadPeriods()
 
     // Admin uses their own tier for price calculation

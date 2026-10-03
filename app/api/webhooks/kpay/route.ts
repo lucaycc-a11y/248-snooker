@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import crypto from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { verifyKpaySignature, toPem } from '@/lib/payments/kpay-sign'
 import { logSiteError } from '@/lib/errors/log'
 import { humanReadableCode } from '@/lib/qr/jwt'
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
   const isFailed = result === '3' || result === 'FAIL'
   const isRefunded = result === '4' || result === 'REFUND'
 
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
 
   // ── Idempotency claim ─────────────────────────────────────────────────
   // KPay has no Stripe-style event id, so we construct one from the order

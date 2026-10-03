@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -11,7 +11,7 @@ type Body = { room?: unknown; session?: unknown }
 // Called by /join after successful auth + profile completion.
 // Marks the matching pending guest_join_requests row completed. Best-effort — never blocks signup.
 export async function POST(request: Request) {
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ ok: false, error: 'not_authenticated' }, { status: 401 })
 
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const session = typeof body?.session === 'string' ? body.session : ''
   if (!room || !session) return NextResponse.json({ ok: false })
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   await service
     .from('guest_join_requests')
     .update({ status: 'completed', created_user_id: user.id })

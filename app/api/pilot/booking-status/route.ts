@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { resolvePilotSession } from '@/lib/pilot/session'
 
 export const runtime = 'nodejs'
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'invalid_table_number' }, { status: 400 })
   }
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   // HKT today as a date string (UTC+8).
   const nowHkt = new Date(Date.now() + 8 * 60 * 60 * 1000)

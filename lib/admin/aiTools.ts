@@ -5,7 +5,7 @@
  * Write-propose tools return pending_action ONLY, never execute.
  */
 
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { storePendingAction } from './aiSchema'
 import { genId, str, num } from '@/lib/data/adminReadHelpers'
 
@@ -169,7 +169,7 @@ export async function executeReadTool(
   toolName: string,
   input: ToolInput
 ): Promise<{ result: unknown; error?: string }> {
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   try {
     switch (toolName) {

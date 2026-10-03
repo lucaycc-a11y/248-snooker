@@ -1,4 +1,4 @@
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { str, type Row } from '@/lib/data/adminReadHelpers'
 
 export type DoorCardRow = {
@@ -13,7 +13,7 @@ export type DoorCardRow = {
 export type AdminDoorCardsResult = { cards: DoorCardRow[] }
 
 export async function getAdminDoorCards(): Promise<AdminDoorCardsResult> {
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   try {
     const { data, error } = await service

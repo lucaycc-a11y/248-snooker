@@ -18,8 +18,8 @@
 // never become a way to refund a paying customer's booking.
 
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getPaymentProvider } from '@/lib/payments'
 import { requireActiveAdmin, getClientIp } from '@/lib/uat/admin-auth'
 import { getHostname } from '@/lib/env/hostname'
@@ -29,7 +29,7 @@ export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
   try {
-    const supabase = await createClient()
+    const supabase = await getLegacyRouteHandlerClient()
     const auth = await requireActiveAdmin(supabase)
     if (!auth.isAdmin) {
       return NextResponse.json({ error: auth.error }, { status: 403 })
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'bookingId is required' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data: booking, error: loadErr } = await service
       .from('bookings')

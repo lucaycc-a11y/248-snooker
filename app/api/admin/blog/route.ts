@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 // Admin blog post list + create. Mirrors app/api/admin/ai-settings/route.ts's
 // shape (GET returns all rows for the admin UI, POST upserts + audit-logs).
@@ -27,7 +27,7 @@ export async function GET() {
   const admin = await getAdminData()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data, error } = await service
     .from('blog_posts')
     .select('id, slug, locale, title, excerpt, category, cover_image_url, author, published_at, ai_generated, created_at')
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     // "create sibling in another locale" flow that sets this.
     const translationGroupId = typeof body.translation_group_id === 'string' ? body.translation_group_id : null
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const { data, error } = await service
       .from('blog_posts')
       .insert({

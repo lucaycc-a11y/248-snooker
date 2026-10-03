@@ -1,8 +1,8 @@
 // Temporary script to check database pricing configuration
-import { getServiceSupabase } from '../lib/supabase/service'
+import { getLegacyServiceSupabase } from '../lib/supabase/legacy'
 
 async function main() {
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
 
   const { data, error } = await supabase
     .from('config')

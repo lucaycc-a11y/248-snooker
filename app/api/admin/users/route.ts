@@ -11,7 +11,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getAdminMembers } from '@/lib/data/getAdminMembers'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -83,7 +83,7 @@ export async function PATCH(req: Request) {
       )
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Fetch existing row for before/after audit
     const { data: existing, error: fetchErr } = await service

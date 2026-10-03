@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const label = isRecord(body) && typeof body.label === 'string' ? body.label.trim() : ''
     if (!label) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const { data, error } = await service
       .from('door_card_registration_requests')
       .insert({ label, requested_by: admin.userId })

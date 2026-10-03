@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 // Admin-configurable AI widget settings — Tier 1 per the spec ("改完即時生效,
 // 唔使confirm"): no draft/publish staging, unlike scalar CMS text. Available
@@ -17,7 +17,7 @@ export async function GET() {
   const admin = await getAdminData()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data } = await service
     .from('ai_widget_settings')
     .select('locale, greeting_message, suggested_prompts, system_prompt_override, tone')
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     }
     const systemPromptOverride = typeof body.system_prompt_override === 'string' ? body.system_prompt_override : null
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const { data: before } = await service
       .from('ai_widget_settings')
       .select('greeting_message, suggested_prompts, system_prompt_override, tone')

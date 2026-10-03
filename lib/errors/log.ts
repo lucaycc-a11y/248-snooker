@@ -1,4 +1,4 @@
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export type ErrorSeverity = 'error' | 'warning' | 'info'
 
@@ -15,7 +15,7 @@ export async function logSiteError(
   detail?: Record<string, unknown>,
 ): Promise<void> {
   try {
-    const supabase = getServiceSupabase()
+    const supabase = getLegacyServiceSupabase()
     const { error } = await supabase.from('site_error_log').insert({
       source,
       severity,

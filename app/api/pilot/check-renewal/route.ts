@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { resolvePilotSession } from '@/lib/pilot/session'
 
 export const runtime = 'nodejs'
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   const bookingId = typeof body?.booking_id === 'string' ? body.booking_id : ''
   if (!bookingId) return NextResponse.json({ error: 'missing booking_id' }, { status: 400 })
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   const { data: rpc, error: rpcErr } = await service.rpc('check_renewal_availability', {
     p_booking_id: bookingId,

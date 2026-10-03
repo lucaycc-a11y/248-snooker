@@ -13,7 +13,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str } from '@/lib/data/adminReadHelpers'
 import { withAdminSecurity } from '@/lib/security/admin-wrapper'
 
@@ -59,7 +59,7 @@ async function handleAdminBookingCancel(
       return NextResponse.json({ error: 'Points compensation must be positive' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // ── Fetch booking ──────────────────────────────────────────────────
     const { data: booking, error: fetchErr } = await service

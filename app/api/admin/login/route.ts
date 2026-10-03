@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { getServiceSupabase } from "@/lib/supabase/service"
+import { getLegacyRouteHandlerClient } from "@/lib/supabase/legacy"
+import { getLegacyServiceSupabase } from "@/lib/supabase/legacy"
 import crypto from "crypto"
 
 // Redirect-scheme allowlist — prevents open-redirect attacks.
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Authenticate via Supabase Auth ───────────────────────────────────
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
     email: normalizedEmail,
     password: password as string,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Check admin_users — must be active ───────────────────────────────
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data: adminRow } = await service
     .from("admin_users")
     .select("id, email, role, invite_status")

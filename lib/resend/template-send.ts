@@ -1,5 +1,5 @@
 import { getResend } from './client'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getTableName } from '@/lib/booking/constants'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import QRCode from 'qrcode'
@@ -109,7 +109,7 @@ async function formatPaymentMethod(
  */
 async function getWhatsAppNumber(): Promise<string> {
   try {
-    const supabase = getServiceSupabase()
+    const supabase = getLegacyServiceSupabase()
     const { data: config } = await supabase
       .from('bot_config')
       .select('value')
@@ -161,7 +161,7 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
   to: string
   locale: string
 }> {
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
 
   // ── Fetch booking ──────────────────────────────────────────────────────────
   const { data: booking, error: bookingErr } = await supabase
@@ -310,7 +310,7 @@ export async function sendBookingConfirmation(bookingId: string): Promise<void> 
   }
 
   const resend = getResend()
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
 
   await resend.emails.send({
     from: 'SPACE8 <no-reply@space8.com.hk>',

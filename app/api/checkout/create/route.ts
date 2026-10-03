@@ -22,6 +22,7 @@ import { getHostname } from '@/lib/env/hostname'
 import { isTestBooking } from '@/lib/env/test-booking'
 import { applyTestPriceOverride } from '@/lib/uat/test-pricing'
 import { withSecurity } from '@/lib/security/api-wrapper'
+import { parseRpc, isLockSlotResult, isLockSlotsResult } from '@/lib/supabase/rpc-parse'
 
 export const runtime = 'nodejs'
 
@@ -200,13 +201,20 @@ async function handleCheckoutCreate(req: Request) {
           p_lock_minutes: 15,
         })
         const conflict = error?.code === 'P0001' || /slot_unavailable|overlapping_request/.test(error?.message ?? '')
-        if (error || !data?.success) {
+        if (error) {
           return NextResponse.json(
-            { error: 'Slot unavailable', reason: data?.reason ?? 'unavailable' },
+            { error: 'Slot unavailable', reason: 'unavailable' },
             { status: conflict ? 409 : 500 },
           )
         }
-        slotIds = (data.slot_ids as string[]) ?? []
+        const result = parseRpc('find_or_lock_slots', data, isLockSlotsResult)
+        if (!result.success) {
+          return NextResponse.json(
+            { error: 'Slot unavailable', reason: result.reason ?? 'unavailable' },
+            { status: 409 },
+          )
+        }
+        slotIds = result.slot_ids ?? []
       } else {
         const b = blocks[0]
         const { data, error } = await service.rpc('find_or_lock_slot', {
@@ -219,13 +227,20 @@ async function handleCheckoutCreate(req: Request) {
           p_lock_minutes: 15,
         })
         const conflict = error?.code === 'P0001' || /slot_unavailable/.test(error?.message ?? '')
-        if (error || !data?.success) {
+        if (error) {
           return NextResponse.json(
-            { error: 'Slot unavailable', reason: data?.reason ?? 'unavailable' },
+            { error: 'Slot unavailable', reason: 'unavailable' },
             { status: conflict ? 409 : 500 },
           )
         }
-        slotIds = [data.slot_id]
+        const result = parseRpc('find_or_lock_slot', data, isLockSlotResult)
+        if (!result.success) {
+          return NextResponse.json(
+            { error: 'Slot unavailable', reason: result.reason ?? 'unavailable' },
+            { status: 409 },
+          )
+        }
+        slotIds = [result.slot_id!]
       }
 
       // UAT: stamp is_test on every locked slot so the availability queries can
@@ -754,7 +769,7 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
     })
     await service.rpc('fail_payment_attempt', {
       p_attempt_id: attemptId,
-      p_failure_code: null,
+      p_failure_code: undefined,
       p_failure_reason: e.message.slice(0, 240),
     })
     // No provider order exists, so the reservation must not keep the customer's

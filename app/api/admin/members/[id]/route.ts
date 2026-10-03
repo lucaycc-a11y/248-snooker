@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 
 // Manual member management — points adjustment, tier change, blacklist
@@ -25,7 +25,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
     const reason = body.reason.trim()
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const { data: existing } = await service
       .from('users')
       .select('id, points, tier, is_blacklisted')

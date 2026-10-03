@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 type RequestRow = {
   id: string
@@ -24,7 +24,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const label = isRecord(body) && typeof body.label === 'string' ? body.label.trim() : ''
     if (!label) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data: existing } = await service
       .from('door_card_registration_requests')

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'node:crypto'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getPaymentProvider, getPaymentMethodSettings } from '@/lib/payments'
 import { resolvePilotSession } from '@/lib/pilot/session'
 import { logSiteError } from '@/lib/errors/log'
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'payment_method_unavailable' }, { status: 400 })
   }
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   // Re-derive availability and amount server-side (never trust a client-sent amount).
   const { data: rpc, error: rpcErr } = await service.rpc('check_renewal_availability', {

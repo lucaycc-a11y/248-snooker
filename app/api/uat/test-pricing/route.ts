@@ -5,8 +5,8 @@
 // real money. This route controls how much. Every mutation is audit-logged.
 
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { requireActiveAdmin, getClientIp } from '@/lib/uat/admin-auth'
 import { getActiveTestPrice } from '@/lib/uat/test-pricing'
 
@@ -14,13 +14,13 @@ export const runtime = 'nodejs'
 
 export async function GET() {
   try {
-    const supabase = await createClient()
+    const supabase = await getLegacyRouteHandlerClient()
     const auth = await requireActiveAdmin(supabase)
     if (!auth.isAdmin) {
       return NextResponse.json({ error: auth.error }, { status: 403 })
     }
 
-    const active = await getActiveTestPrice(getServiceSupabase())
+    const active = await getActiveTestPrice(getLegacyServiceSupabase())
     return NextResponse.json({ active })
   } catch (error) {
     console.error('[uat/test-pricing] GET error:', error)
@@ -30,7 +30,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const supabase = await createClient()
+    const supabase = await getLegacyRouteHandlerClient()
     const auth = await requireActiveAdmin(supabase)
     if (!auth.isAdmin) {
       return NextResponse.json({ error: auth.error }, { status: 403 })
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'label must be a string' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Captured before the flip so audit_log records a real before/after pair.
     const before = await getActiveTestPrice(service)

@@ -2,7 +2,7 @@
 // ONLY accessible when NEXT_PUBLIC_APP_ENV === 'uat'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 
 export const runtime = 'edge'
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const supabase = await createClient()
+    const supabase = await getLegacyRouteHandlerClient()
     const clientIp = getClientIp(req)
 
     // Get current user

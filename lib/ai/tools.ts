@@ -3,7 +3,7 @@ import { getConfig } from '@/lib/data/getConfig'
 import { getAvailableTables } from '@/lib/booking/server'
 import { quoteBlockTotal } from '@/lib/pricing'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 // Tool-calling layer for the AI chat backend (app/api/ai/chat/route.ts).
 //
@@ -138,7 +138,7 @@ const proposeCmsEdit: ToolDef = {
     if (!fieldKey || !locale || newValue == null) return { error: 'invalid_input' }
     if (fieldKey === 'config' || fieldKey.startsWith('config.')) return { error: 'field_not_editable' }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const { data: existing } = await service
       .from('cms_content')
       .select('value')

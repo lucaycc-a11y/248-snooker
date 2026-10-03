@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { rateLimit } from '@/lib/rate-limit'
 
 interface FeedbackBody {
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Insert feedback
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
   const { error } = await supabase.from('help_feedback').insert({
     article_id: articleId,
     helpful,

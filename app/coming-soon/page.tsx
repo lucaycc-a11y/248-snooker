@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { resolveLocaleFromCookie, loadMessages } from '@/lib/i18n/serverLocale'
 import ComingSoonContent from './ComingSoonContent'
 import { safeJsonLd } from '@/lib/seo/jsonLd'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const metadata: Metadata = {
   title: 'SPACE8｜香港中八桌球室｜新蒲崗自助無煙獨立球室（即將開幕）',
@@ -25,7 +25,7 @@ export default async function ComingSoonPage() {
   const messages = await loadMessages(locale)
 
   // Read gate reason to determine if this is prelaunch or maintenance
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data: gateConfig } = await service
     .from('site_gate_config')
     .select('reason')

@@ -44,6 +44,7 @@ export async function POST(req: Request) {
 
     // Call the Supabase RPC with verification code
     const { data, error } = await supabase.rpc("request_member_data_deletion", {
+      // @ts-expect-error - verification_code parameter added in commit 04c57da, types not yet regenerated
       verification_code: verificationCode,
     });
 
