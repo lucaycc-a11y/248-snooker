@@ -158,7 +158,7 @@ function BookingCard({ booking, locale, isSelected, onToggleQR }: BookingCardPro
 
         {/* Details */}
         <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
-          <DetailItem label={t('time')} value={booking.startTime ?? '--'} />
+          <DetailItem label={t('time_label')} value={booking.startTime ?? '--'} />
           <DetailItem label={t('duration')} value={`${booking.durationHours}h`} />
           <DetailItem label={t('price')} value={`HK$${booking.price.toLocaleString()}`} />
           <DetailItem label={t('reference')} value={booking.humanCode} isCode />

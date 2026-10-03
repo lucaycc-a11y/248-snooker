@@ -2,10 +2,11 @@
 
 ## Non-member area schema drift
 
-### Admin AI settings (app/admin/ai-settings/page.tsx)
+### Admin AI settings (app/api/admin/ai-settings/route.ts)
 - Missing table: ai_widget_settings
-- Columns needed: locale, greeting_message, suggested_prompts, system_prompt_override, tone
-- Used by: AI widget configuration page (admin-only)
+- Columns needed: id (uuid, pk), locale (text), greeting_message (text), suggested_prompts (text[]), system_prompt_override (text, nullable), tone (text), updated_at (timestamp), updated_by (uuid)
+- Used by: Admin API for AI widget configuration (admin-only)
+- Current workaround: Route returns empty array until table exists
 
 
 ### Blog posts translations (app/admin/blog/[id]/page.tsx)

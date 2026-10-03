@@ -5,13 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "dev:debug": "next dev 2>&1 | grep -E '\\[booking|\\[payment|\\[webhook|\\[profile|ERROR'",
-    "build": "node scripts/check-i18n-keys.js && node scripts/check-zh-hk-traditional.js && node scripts/check-hooks.mjs && next build",
+    "build": "npx tsx scripts/check-i18n-keys.ts && node scripts/check-zh-hk-traditional.js && node scripts/check-hooks.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "node scripts/check-hooks.mjs && vitest run",
     "test:watch": "vitest",
     "cms:audit": "node scripts/cms-audit.mjs",
-    "check:i18n": "node scripts/check-i18n-keys.js",
+    "i18n:check": "npx tsx scripts/check-i18n-keys.ts",
+    "check:i18n": "npx tsx scripts/check-i18n-keys.ts",
     "cms:sync": "node scripts/cms-sync.mjs",
     "cms:seed": "node scripts/seed-cms-from-messages.mjs",
     "backfill:human-codes": "node scripts/backfill-human-codes.mjs",
@@ -103,6 +104,7 @@
     "postcss": "^8.4.39",
     "sharp": "^0.35.3",
     "tailwindcss": "^3.4.6",
+    "ts-morph": "^28.0.0",
     "typescript": "^5.5.3",
     "vitest": "^4.1.10"
   }

@@ -32,7 +32,133 @@
       "inbox": "受信箱",
       "settings": "設定",
       "help": "ヘルプセンター"
-    }
+    },
+    "card": {
+      "available_points": "利用可能ポイント",
+      "member_code": "会員コード",
+      "scan_to_verify": "スキャンして会員身分を確認",
+      "tap_for_qr": "タップしてQRコードを表示"
+    },
+    "dashboard": {
+      "greeting": "おかえりなさい",
+      "history": "予約履歴"
+    },
+    "tier": {
+      "current": "現在のレベル",
+      "current_points": "現在のポイント"
+    },
+    "actions": {
+      "help": {
+        "title": "ヘルプとサポート",
+        "subtitle": "サポートを受ける"
+      },
+      "wallet": {
+        "title": "ウォレット",
+        "subtitle": "クレジットを管理"
+      },
+      "points": {
+        "title": "ポイント",
+        "subtitle": "報酬を表示",
+        "converted": "ウォレットに変換済み",
+        "deposited_to_wallet": "ウォレットに入金済み",
+        "error_title": "ポイントを読み込めません",
+        "filter": "フィルター",
+        "how_it_works": "仕組み",
+        "how_it_works_content": "毎回の予約でポイントを獲得し、ウォレットクレジットに変換できます。",
+        "lifetime": "生涯獲得",
+        "no_transactions": "ポイント取引がありません",
+        "pending": "保留中",
+        "redeemable": "交換可能",
+        "tier_perks": "レベル特典"
+      },
+      "inbox": {
+        "title": "受信箱",
+        "subtitle": "通知を表示"
+      }
+    },
+    "wallet_explainer": {
+      "title": "ウォレットの仕組み",
+      "description": "将来の予約に使用するクレジットをチャージします。クレジットは有効期限がありません。",
+      "notify_label": "残高が少なくなったら通知する",
+      "dismiss": "わかりました"
+    },
+    "bottom_links": {
+      "settings": {
+        "title": "アカウント設定",
+        "subtitle": "アカウントを管理"
+      },
+      "manage": {
+        "title": "予約を管理",
+        "subtitle": "予約を表示・編集"
+      },
+      "safety": {
+        "title": "安全とプライバシー",
+        "subtitle": "データは安全です"
+      },
+      "legal": {
+        "title": "利用規約とポリシー",
+        "subtitle": "法務情報"
+      },
+      "version": "バージョン"
+    },
+    "past_bookings": {
+      "no_history": "過去の予約がありません",
+      "title": "過去の予約",
+      "view_all": "すべて表示",
+      "whatsapp_cta": "WhatsAppでチャット",
+      "whatsapp_prompt": "ご予約についてご不明な点はありますか？"
+    },
+    "upcoming_booking": {
+      "amount": "金額",
+      "book_now": "今すぐ予約",
+      "contact_support": "サポートに連絡",
+      "duration": "時間",
+      "hide_qr": "QRコードを非表示",
+      "hours": "時間",
+      "no_booking": "今後の予約がありません",
+      "scan_hint": "チェックイン時にこのQRコードをスタッフに提示してください",
+      "show_qr": "QRコードを表示",
+      "time": "時間",
+      "title": "今後の予約"
+    },
+    "access": {
+      "cta_member": "会員レコードを表示",
+      "cta_records": "すべてのレコードを表示",
+      "eyebrow": "クイックアクセス",
+      "footer": "フロントデスクでこのQRコードをスキャンしてください",
+      "intro": "デジタル会員カード",
+      "qr_description": "スタッフにこのQRコードを提示して、クイックチェックインしてください",
+      "qr_enlarge": "タップして拡大",
+      "qr_identity": "会員身分証明",
+      "qr_label": "QRコード",
+      "qr_title": "チェックイン用QRコード",
+      "steps_title": "チェックイン方法",
+      "tips_title": "クイックヒント",
+      "title": "会員アクセス"
+    },
+    "points": {
+      "title": "ポイント",
+      "error_title": "ポイントを読み込めません",
+      "filter": "フィルター",
+      "how_it_works": "仕組み",
+      "how_it_works_content": "毎回の予約でポイントを獲得し、ウォレットクレジットに変換できます。",
+      "lifetime": "生涯獲得",
+      "no_transactions": "ポイント取引がありません",
+      "pending": "保留中",
+      "redeemable": "交換可能",
+      "tier_perks": "レベル特典",
+      "converted": "ウォレットに変換済み",
+      "deposited_to_wallet": "ウォレットに入金済み"
+    },
+    "wallet": {
+      "title": "ウォレット",
+      "reserved": "予約済み",
+      "balance_label": "残高",
+      "offers_eligible": "オファー対象",
+      "offers_used": "オファー使用済み",
+      "how_it_works": "ウォレットの仕組み"
+    },
+    "member_id_label": "会員ID"
   },
   "book": {
     "title": "セッションを予約",
@@ -179,5 +305,253 @@
     "room_comparison_heading": "2つの個室、1つの基準",
     "room_comparison_intro": "Space InfinityとSpace Eternityは全く同じ構成です。最適な時間帯を選ぶだけです。",
     "rules_link": "完全な施設利用規則と条件を見る"
-  }
+  },
+  "common": {
+    "back": "戻る",
+    "load_more": "さらに読み込む",
+    "no_data": "利用可能なデータがありません",
+    "retry": "リトライ",
+    "loading": "Loading..."
+  },
+  "wallet": {
+    "title": "ウォレット",
+    "reserved": "予約済み",
+    "balance_label": "残高",
+    "offers_eligible": "オファー対象",
+    "offers_used": "オファー使用済み",
+    "how_it_works": "ウォレットの仕組み"
+  },
+  "inbox": {
+    "mark_as_read": "既読にする",
+    "title": "Inbox",
+    "empty_state": "No notifications",
+    "mark_all_read": "Mark all as read"
+  },
+  "pagination": {
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "empty_state": "No data available",
+  "table": "Table",
+  "duration": "Duration",
+  "price": "Price",
+  "reference": "Reference",
+  "refunded_at": "Refunded at",
+  "refund_amount": "Refund amount",
+  "fee": "Fee",
+  "rescheduled_at": "Rescheduled at",
+  "scan_to_check_in": "Scan to check in",
+  "card_points": "Points",
+  "back": "Back",
+  "tier_progress_title": "Tier Progress",
+  "points_to_next": "points to next tier",
+  "max_tier_reached": "Maximum tier reached",
+  "stat_bookings": "Bookings",
+  "stat_bookings_unit": "sessions",
+  "stat_hours": "Hours Played",
+  "stat_hours_unit": "hrs",
+  "greeting": "Welcome",
+  "status_confirmed": "Confirmed",
+  "status_cancelled": "Cancelled",
+  "status_completed": "Completed",
+  "status_refunded": "Refunded",
+  "status_pending": "Pending",
+  "status_payment_failed": "Payment Failed",
+  "section_upcoming": "Upcoming Bookings",
+  "no_upcoming_bookings": "No upcoming bookings",
+  "add_apple_wallet": "Add to Apple Wallet",
+  "add_google_wallet": "Add to Google Wallet",
+  "quick_view_details": "View Details",
+  "no_bookings_title": "No Bookings Yet",
+  "no_bookings_desc": "Book your first session to get started",
+  "section_upcoming_desc": "Next 30 days",
+  "section_recent": "Recent Bookings",
+  "section_recent_desc": "Your last 7 days",
+  "section_history": "History",
+  "booking_table": "Table",
+  "refund_success_toast": "Refund processed successfully",
+  "booking_retry_payment": "Retry Payment",
+  "booking_view_qr": "View QR Code",
+  "booking_add_calendar": "Add to Calendar",
+  "booking_more_actions": "More Actions",
+  "points_running_total": "Running Total",
+  "no_points": "No points history",
+  "points_earn_title": "Ways to Earn",
+  "settings_err_name": "Name cannot be empty",
+  "settings_err_generic": "Something went wrong. Please try again.",
+  "settings_change_rate_limited": "Too many requests. Try again later.",
+  "settings_change_no_email": "No email on file. Add one first.",
+  "settings_change_link_sent": "Verification link sent to your email",
+  "settings_display_name": "Display Name",
+  "settings_email": "Email",
+  "settings_phone": "Phone",
+  "settings_change_resend_in": "Resend in",
+  "sending": "Sending...",
+  "settings_change_phone": "Change Phone",
+  "settings_notifications": "Notifications",
+  "notif_booking": "Booking updates",
+  "notif_points": "Points updates",
+  "notif_promo": "Promotions",
+  "saved": "Saved",
+  "save": "Save",
+  "loading": "Loading...",
+  "close": "Close",
+  "coming_soon": "Coming Soon",
+  "email_notifications": "Email Notifications",
+  "email_sent": "Email sent",
+  "two_factor": "Two-Factor Authentication",
+  "two_factor_desc": "Add an extra layer of security",
+  "sign_out": "Sign Out",
+  "delete_account": "Delete Account",
+  "delete_confirm": "Are you sure? This cannot be undone.",
+  "change_password": "Change Password",
+  "change_password_desc": "Update your account password",
+  "change_phone": "Change Phone Number",
+  "change_phone_desc": "Update your phone number",
+  "danger_zone": "Danger Zone",
+  "settings_change_password": "Change Password",
+  "qr_modal_title": "Check-in QR Code",
+  "qr_reference": "Reference",
+  "qr_tap_enlarge": "Tap to enlarge",
+  "refund_modal_title": "Request Refund",
+  "refund_modal_reason_label": "Reason for cancellation",
+  "refund_modal_original_price": "Original Price",
+  "refund_modal_amount": "Refund Amount",
+  "refund_modal_fee": "Cancellation Fee",
+  "refund_modal_generic_error": "Unable to process refund. Please try again.",
+  "refund_modal_cutoff_error": "Refund cutoff time has passed",
+  "refund_modal_cancel": "Cancel",
+  "refund_modal_confirm": "Confirm Refund",
+  "reschedule_modal_title": "Reschedule Booking",
+  "reschedule_modal_date_label": "Select Date",
+  "reschedule_modal_table_label": "Table",
+  "reschedule_modal_time_label": "Time",
+  "reschedule_modal_generic_error": "Unable to reschedule. Please try again.",
+  "reschedule_modal_unavailable_error": "This time slot is no longer available",
+  "reschedule_modal_no_slots": "No available slots",
+  "reschedule_modal_cancel": "Cancel",
+  "reschedule_modal_confirm": "Confirm Reschedule",
+  "reschedule_previous_day": "Previous Day",
+  "reschedule_next_day": "Next Day",
+  "past_bookings": {
+    "no_history": "No past bookings",
+    "title": "Past Bookings",
+    "view_all": "View All",
+    "whatsapp_cta": "Chat on WhatsApp",
+    "whatsapp_prompt": "Questions about your booking?"
+  },
+  "upcoming_booking": {
+    "no_booking": "No upcoming booking",
+    "book_now": "Book Now",
+    "title": "Upcoming Booking",
+    "hide_qr": "Hide QR",
+    "show_qr": "Show QR",
+    "time": "Time",
+    "duration": "Duration",
+    "hours": "hours",
+    "amount": "Amount",
+    "contact_support": "Contact Support",
+    "scan_hint": "Show this QR code at check-in"
+  },
+  "actions": {
+    "help": {
+      "title": "Help & Support",
+      "subtitle": "Get assistance"
+    },
+    "wallet": {
+      "title": "Wallet",
+      "subtitle": "Manage credits"
+    },
+    "points": {
+      "title": "Points",
+      "subtitle": "View rewards"
+    },
+    "inbox": {
+      "title": "Inbox",
+      "subtitle": "View notifications"
+    }
+  },
+  "bottom_links": {
+    "settings": {
+      "title": "Account Settings",
+      "subtitle": "Manage your account"
+    },
+    "manage": {
+      "title": "Manage Bookings",
+      "subtitle": "View and edit bookings"
+    },
+    "safety": {
+      "title": "Safety & Privacy",
+      "subtitle": "Your data is safe"
+    },
+    "legal": {
+      "title": "Terms & Policies",
+      "subtitle": "Legal information"
+    },
+    "version": "Version"
+  },
+  "card": {
+    "available_points": "Available Points",
+    "member_code": "Member Code",
+    "scan_to_verify": "Scan to verify membership",
+    "tap_for_qr": "Tap for QR code"
+  },
+  "dashboard": {
+    "greeting": "Welcome back",
+    "history": "Booking History"
+  },
+  "tier": {
+    "current": "Current Tier",
+    "current_points": "Current Points"
+  },
+  "wallet_explainer": {
+    "title": "How Wallet Works",
+    "description": "Top up credits to use for future bookings. Credits never expire.",
+    "notify_label": "Notify me when balance is low",
+    "dismiss": "Got it"
+  },
+  "time": {
+    "just_now": "たった今",
+    "minutes_ago": "分前",
+    "hours_ago": "時間前",
+    "days_ago": "日前"
+  },
+  "access_cta_member": "View Member Records",
+  "access_cta_records": "View All Records",
+  "access_eyebrow": "Quick Access",
+  "access_footer": "Scan this QR code at the front desk",
+  "access_intro": "Your digital membership card",
+  "access_qr_description": "Show this QR code to staff for quick check-in",
+  "access_qr_enlarge": "Tap to enlarge",
+  "access_qr_identity": "Member Identity",
+  "access_qr_label": "QR Code",
+  "access_qr_title": "Check-in QR Code",
+  "access_steps_title": "How to Check In",
+  "access_tips_title": "Quick Tips",
+  "access_title": "Member Access",
+  "booking_confirmed": "Booking Confirmed",
+  "booking_confirmed_desc": "Your booking is confirmed. Check-in QR code is ready.",
+  "booking_reminder": "Booking Reminder",
+  "booking_reminder_desc": "Get reminded 1 hour before your booking",
+  "offers": "Special Offers",
+  "offers_desc": "Exclusive member deals",
+  "promotions": "Promotions",
+  "promotions_desc": "Latest offers and deals",
+  "push_notifications": "Push Notifications",
+  "push_booking_reminder": "Booking reminders",
+  "push_booking_reminder_desc": "Get notified before your session",
+  "push_offers": "Offers & Promotions",
+  "push_offers_desc": "Exclusive deals and discounts",
+  "push_system": "System notifications",
+  "push_system_desc": "Important account updates",
+  "save_preferences": "Save Preferences",
+  "saving": "Saving...",
+  "send_email": "Send Email",
+  "available_points": "利用可能なポイント",
+  "balance": "残高",
+  "member_id_label": "会員ID",
+  "scan_to_enter": "スキャンして入場",
+  "spent_amount": "使用済み金額",
+  "tap_to_view_qr": "タップしてQRコードを表示",
+  "time_label": "時間"
 }

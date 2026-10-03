@@ -728,7 +728,6 @@
       "settings": "Settings",
       "help": "Help Center"
     },
-    "birthday_perk_active": "Birthday Perk Active",
     "stats": {
       "available_points": "Available Points",
       "lifetime_points": "Lifetime Points",
@@ -752,47 +751,8 @@
       "lifetime_points": "Lifetime Points",
       "next_tier": "Next Tier",
       "points_away": "points away",
-      "max_tier_reached": "Max tier reached"
-    },
-    "offers": {
-      "state": {
-        "issued": "Issued",
-        "ready": "Ready",
-        "reserved": "Reserved",
-        "used": "Used",
-        "expired": "Expired"
-      },
-      "expires": "Expires",
-      "min_hours": "Min hours",
-      "claim_now": "Claim Now",
-      "claiming": "Claiming...",
-      "redeem_for": "Redeem for",
-      "points": "points",
-      "redeeming": "Redeeming...",
-      "use_offer": "Use Offer",
-      "reserved_in_booking": "Reserved in booking",
-      "expired": "Expired",
-      "used_at": "Used at",
-      "discount_types": {
-        "off": "Discount",
-        "free": "Free",
-        "birthday_perk": "Birthday Perk"
-      },
-      "units": {
-        "off": "off",
-        "free": "free",
-        "points": "pts"
-      },
-      "errors": {
-        "offer_not_found": "Offer not found",
-        "offer_already_redeemed": "Already redeemed",
-        "offer_not_points_redeemable": "Not points redeemable",
-        "insufficient_points": "Insufficient points",
-        "offer_already_claimed": "Already claimed",
-        "offer_not_claimable": "Not claimable",
-        "unknown_error": "Unknown error",
-        "network_error": "Network error"
-      }
+      "max_tier_reached": "Max tier reached",
+      "current_points": "Current Points"
     },
     "rewards": {
       "overview": "Overview",
@@ -832,7 +792,19 @@
     },
     "points": {
       "empty_state": "No points history",
-      "balance": "Balance"
+      "balance": "Balance",
+      "title": "Points",
+      "error_title": "Unable to Load Points",
+      "filter": "Filter",
+      "how_it_works": "How It Works",
+      "how_it_works_content": "Earn points with every booking and convert them to wallet credits.",
+      "lifetime": "Lifetime Earned",
+      "no_transactions": "No point transactions yet",
+      "pending": "Pending",
+      "redeemable": "Redeemable",
+      "tier_perks": "Tier Perks",
+      "converted": "Converted to Wallet",
+      "deposited_to_wallet": "Deposited to Wallet"
     },
     "inbox": {
       "title": "Inbox",
@@ -1004,75 +976,109 @@
       }
     },
     "dashboard": {
-      "greeting": "Hello, {name}",
+      "greeting": "Welcome back",
       "quick_actions": "Quick Actions",
       "upcoming": "Upcoming",
-      "history": "History"
+      "history": "Booking History"
     },
     "upcoming_booking": {
       "title": "Upcoming Booking",
-      "no_booking": "No upcoming bookings",
+      "no_booking": "No upcoming booking",
       "book_now": "Book Now",
       "show_qr": "Show QR",
       "hide_qr": "Hide QR",
-      "scan_hint": "Show this code at entry",
+      "scan_hint": "Show this QR code at check-in",
       "time": "Time",
       "duration": "Duration",
       "amount": "Amount",
-      "hours": "hr",
-      "contact_support": "For assistance, please contact support"
+      "hours": "hours",
+      "contact_support": "Contact Support"
     },
     "past_bookings": {
       "title": "Past Bookings",
       "view_all": "View All",
       "no_history": "No past bookings",
-      "whatsapp_prompt": "Need to reschedule or get a refund?",
-      "whatsapp_cta": "Contact us on WhatsApp"
+      "whatsapp_prompt": "Questions about your booking?",
+      "whatsapp_cta": "Chat on WhatsApp"
     },
-    "version_label": "Version",
     "actions": {
       "help": {
-        "title": "Help",
-        "subtitle": "幫助中心"
+        "title": "Help & Support",
+        "subtitle": "Get assistance"
       },
       "wallet": {
         "title": "Wallet",
-        "subtitle": "電子錢包"
+        "subtitle": "Manage credits"
       },
       "points": {
-        "title": "Space Pts",
-        "subtitle": "Points"
+        "title": "Points",
+        "subtitle": "View rewards",
+        "converted": "Converted to Wallet",
+        "deposited_to_wallet": "Deposited to Wallet",
+        "error_title": "Unable to Load Points",
+        "filter": "Filter",
+        "how_it_works": "How It Works",
+        "how_it_works_content": "Earn points with every booking and convert them to wallet credits.",
+        "lifetime": "Lifetime Earned",
+        "no_transactions": "No point transactions yet",
+        "pending": "Pending",
+        "redeemable": "Redeemable",
+        "tier_perks": "Tier Perks"
       },
       "inbox": {
         "title": "Inbox",
-        "subtitle": "收件箱"
+        "subtitle": "View notifications"
       }
     },
     "wallet_explainer": {
-      "title": "Wallet Feature",
-      "description": "We are developing the wallet feature to help you manage your balance and spending more conveniently.",
-      "notify_label": "Notify me when available",
+      "title": "How Wallet Works",
+      "description": "Top up credits to use for future bookings. Credits never expire.",
+      "notify_label": "Notify me when balance is low",
       "dismiss": "Got it"
     },
     "bottom_links": {
       "settings": {
-        "title": "Settings",
-        "subtitle": "Account Settings"
+        "title": "Account Settings",
+        "subtitle": "Manage your account"
       },
       "manage": {
-        "title": "Manage Account",
-        "subtitle": "管理帳戶"
+        "title": "Manage Bookings",
+        "subtitle": "View and edit bookings"
       },
       "safety": {
-        "title": "Safety",
-        "subtitle": "安全守則"
+        "title": "Safety & Privacy",
+        "subtitle": "Your data is safe"
       },
       "legal": {
-        "title": "Legal",
-        "subtitle": "法律條款"
+        "title": "Terms & Policies",
+        "subtitle": "Legal information"
       },
       "version": "Version"
-    }
+    },
+    "access": {
+      "cta_member": "View Member Records",
+      "cta_records": "View All Records",
+      "eyebrow": "Quick Access",
+      "footer": "Scan this QR code at the front desk",
+      "intro": "Your digital membership card",
+      "qr_description": "Show this QR code to staff for quick check-in",
+      "qr_enlarge": "Tap to enlarge",
+      "qr_identity": "Member Identity",
+      "qr_label": "QR Code",
+      "qr_title": "Check-in QR Code",
+      "steps_title": "How to Check In",
+      "tips_title": "Quick Tips",
+      "title": "Member Access"
+    },
+    "wallet": {
+      "title": "Wallet",
+      "reserved": "Reserved",
+      "balance_label": "Balance",
+      "offers_eligible": "Eligible for Offers",
+      "offers_used": "Offers Used",
+      "how_it_works": "How Wallet Works"
+    },
+    "member_id_label": "Member ID"
   },
   "faq": {
     "title": "FAQ",
@@ -1116,9 +1122,12 @@
   },
   "common": {
     "error": "Something went wrong",
-    "retry": "Try Again",
+    "retry": "Retry",
     "not_found": "Page not found",
-    "loading": "Loading"
+    "loading": "Loading...",
+    "back": "Back",
+    "load_more": "Load More",
+    "no_data": "No data available"
   },
   "book": {
     "title": "Book a Session",
@@ -2633,8 +2642,8 @@
   "pricing_subtitle": "No hidden fees.",
   "pricing_note": "Members enjoy exclusive benefits.",
   "wallet": {
-    "title": "Space Wallet",
-    "balance_label": "Available Balance",
+    "title": "Wallet",
+    "balance_label": "Balance",
     "transactions_label": "Transaction History",
     "empty_state": "No transactions yet",
     "earned": "Earned",
@@ -2665,11 +2674,11 @@
     "applied": "Space Wallet Applied",
     "insufficient": "Insufficient Balance",
     "offers_copy": "Copy Code",
-    "offers_used": "Used Offers",
-    "offers_eligible": "Available Offers",
+    "offers_used": "Offers Used",
+    "offers_eligible": "Eligible for Offers",
     "offers_title": "Offers",
-    "reserved": "Reserved at checkout",
-    "how_it_works": "How it works",
+    "reserved": "Reserved",
+    "how_it_works": "How Wallet Works",
     "no_data": "No transactions",
     "balance": "Available Balance"
   },
@@ -2703,7 +2712,7 @@
     "title": "Inbox",
     "tab_all": "All",
     "mark_all_read": "Mark all as read",
-    "mark_as_read": "Mark as read",
+    "mark_as_read": "Mark as Read",
     "empty_state": "No notifications",
     "unknown_type": "Announcement",
     "error_state": "Unable to load notifications",
@@ -2735,12 +2744,6 @@
       "remove": "Remove",
       "insufficient": "Insufficient balance"
     }
-  },
-  "time": {
-    "just_now": "Just now",
-    "minutes_ago": "{count} minute(s) ago",
-    "hours_ago": "{count} hour(s) ago",
-    "days_ago": "{count} day(s) ago"
   },
   "creditsPage": {
     "flap_messages": [
@@ -2797,5 +2800,228 @@
   "homeFAQ": {
     "title": "Frequently Asked Questions",
     "subtitle": "Find answers to common questions about SPACE8"
-  }
+  },
+  "empty_state": "No data available",
+  "table": "Table",
+  "duration": "Duration",
+  "price": "Price",
+  "reference": "Reference",
+  "refunded_at": "Refunded at",
+  "refund_amount": "Refund amount",
+  "fee": "Fee",
+  "rescheduled_at": "Rescheduled at",
+  "scan_to_check_in": "Scan to check in",
+  "card_points": "Points",
+  "back": "Back",
+  "tier_progress_title": "Tier Progress",
+  "points_to_next": "points to next tier",
+  "max_tier_reached": "Maximum tier reached",
+  "stat_bookings": "Bookings",
+  "stat_bookings_unit": "sessions",
+  "stat_hours": "Hours Played",
+  "stat_hours_unit": "hrs",
+  "greeting": "Welcome",
+  "status_confirmed": "Confirmed",
+  "status_cancelled": "Cancelled",
+  "status_completed": "Completed",
+  "status_refunded": "Refunded",
+  "status_pending": "Pending",
+  "status_payment_failed": "Payment Failed",
+  "section_upcoming": "Upcoming Bookings",
+  "no_upcoming_bookings": "No upcoming bookings",
+  "add_apple_wallet": "Add to Apple Wallet",
+  "add_google_wallet": "Add to Google Wallet",
+  "quick_view_details": "View Details",
+  "no_bookings_title": "No Bookings Yet",
+  "no_bookings_desc": "Book your first session to get started",
+  "section_upcoming_desc": "Next 30 days",
+  "section_recent": "Recent Bookings",
+  "section_recent_desc": "Your last 7 days",
+  "section_history": "History",
+  "booking_table": "Table",
+  "refund_success_toast": "Refund processed successfully",
+  "booking_retry_payment": "Retry Payment",
+  "booking_view_qr": "View QR Code",
+  "booking_add_calendar": "Add to Calendar",
+  "booking_more_actions": "More Actions",
+  "points_running_total": "Running Total",
+  "no_points": "No points history",
+  "points_earn_title": "Ways to Earn",
+  "settings_err_name": "Name cannot be empty",
+  "settings_err_generic": "Something went wrong. Please try again.",
+  "settings_change_rate_limited": "Too many requests. Try again later.",
+  "settings_change_no_email": "No email on file. Add one first.",
+  "settings_change_link_sent": "Verification link sent to your email",
+  "settings_display_name": "Display Name",
+  "settings_email": "Email",
+  "settings_phone": "Phone",
+  "settings_change_resend_in": "Resend in",
+  "sending": "Sending...",
+  "settings_change_phone": "Change Phone",
+  "settings_notifications": "Notifications",
+  "notif_booking": "Booking updates",
+  "notif_points": "Points updates",
+  "notif_promo": "Promotions",
+  "saved": "Saved",
+  "save": "Save",
+  "loading": "Loading...",
+  "close": "Close",
+  "coming_soon": "Coming Soon",
+  "email_notifications": "Email Notifications",
+  "email_sent": "Email sent",
+  "two_factor": "Two-Factor Authentication",
+  "two_factor_desc": "Add an extra layer of security",
+  "sign_out": "Sign Out",
+  "delete_account": "Delete Account",
+  "delete_confirm": "Are you sure? This cannot be undone.",
+  "change_password": "Change Password",
+  "change_password_desc": "Update your account password",
+  "change_phone": "Change Phone Number",
+  "change_phone_desc": "Update your phone number",
+  "danger_zone": "Danger Zone",
+  "settings_change_password": "Change Password",
+  "qr_modal_title": "Check-in QR Code",
+  "qr_reference": "Reference",
+  "qr_tap_enlarge": "Tap to enlarge",
+  "refund_modal_title": "Request Refund",
+  "refund_modal_reason_label": "Reason for cancellation",
+  "refund_modal_original_price": "Original Price",
+  "refund_modal_amount": "Refund Amount",
+  "refund_modal_fee": "Cancellation Fee",
+  "refund_modal_generic_error": "Unable to process refund. Please try again.",
+  "refund_modal_cutoff_error": "Refund cutoff time has passed",
+  "refund_modal_cancel": "Cancel",
+  "refund_modal_confirm": "Confirm Refund",
+  "reschedule_modal_title": "Reschedule Booking",
+  "reschedule_modal_date_label": "Select Date",
+  "reschedule_modal_table_label": "Table",
+  "reschedule_modal_time_label": "Time",
+  "reschedule_modal_generic_error": "Unable to reschedule. Please try again.",
+  "reschedule_modal_unavailable_error": "This time slot is no longer available",
+  "reschedule_modal_no_slots": "No available slots",
+  "reschedule_modal_cancel": "Cancel",
+  "reschedule_modal_confirm": "Confirm Reschedule",
+  "reschedule_previous_day": "Previous Day",
+  "reschedule_next_day": "Next Day",
+  "past_bookings": {
+    "no_history": "No past bookings",
+    "title": "Past Bookings",
+    "view_all": "View All",
+    "whatsapp_cta": "Chat on WhatsApp",
+    "whatsapp_prompt": "Questions about your booking?"
+  },
+  "upcoming_booking": {
+    "no_booking": "No upcoming booking",
+    "book_now": "Book Now",
+    "title": "Upcoming Booking",
+    "hide_qr": "Hide QR",
+    "show_qr": "Show QR",
+    "time": "Time",
+    "duration": "Duration",
+    "hours": "hours",
+    "amount": "Amount",
+    "contact_support": "Contact Support",
+    "scan_hint": "Show this QR code at check-in"
+  },
+  "access_cta_member": "View Member Records",
+  "access_cta_records": "View All Records",
+  "access_eyebrow": "Quick Access",
+  "access_footer": "Scan this QR code at the front desk",
+  "access_intro": "Your digital membership card",
+  "access_qr_description": "Show this QR code to staff for quick check-in",
+  "access_qr_enlarge": "Tap to enlarge",
+  "access_qr_identity": "Member Identity",
+  "access_qr_label": "QR Code",
+  "access_qr_title": "Check-in QR Code",
+  "access_steps_title": "How to Check In",
+  "access_tips_title": "Quick Tips",
+  "access_title": "Member Access",
+  "available_points": "Available Points",
+  "balance": "Balance",
+  "booking_confirmed": "Booking Confirmed",
+  "booking_confirmed_desc": "Your booking is confirmed. Check-in QR code is ready.",
+  "booking_reminder": "Booking Reminder",
+  "booking_reminder_desc": "Get reminded 1 hour before your booking",
+  "member_id_label": "Member ID",
+  "offers": "Special Offers",
+  "offers_desc": "Exclusive member deals",
+  "promotions": "Promotions",
+  "promotions_desc": "Latest offers and deals",
+  "push_booking_reminder": "Booking reminders",
+  "push_booking_reminder_desc": "Get notified before your session",
+  "push_notifications": "Push Notifications",
+  "push_offers": "Offers & Promotions",
+  "push_offers_desc": "Exclusive deals and discounts",
+  "push_system": "System notifications",
+  "push_system_desc": "Important account updates",
+  "save_preferences": "Save Preferences",
+  "saving": "Saving...",
+  "scan_to_enter": "Scan to enter",
+  "send_email": "Send Email",
+  "spent_amount": "Total Spent",
+  "tap_to_view_qr": "Tap to view QR code",
+  "actions": {
+    "help": {
+      "title": "Help & Support",
+      "subtitle": "Get assistance"
+    },
+    "wallet": {
+      "title": "Wallet",
+      "subtitle": "Manage credits"
+    },
+    "points": {
+      "title": "Points",
+      "subtitle": "View rewards"
+    },
+    "inbox": {
+      "title": "Inbox",
+      "subtitle": "View notifications"
+    }
+  },
+  "bottom_links": {
+    "settings": {
+      "title": "Account Settings",
+      "subtitle": "Manage your account"
+    },
+    "manage": {
+      "title": "Manage Bookings",
+      "subtitle": "View and edit bookings"
+    },
+    "safety": {
+      "title": "Safety & Privacy",
+      "subtitle": "Your data is safe"
+    },
+    "legal": {
+      "title": "Terms & Policies",
+      "subtitle": "Legal information"
+    },
+    "version": "Version"
+  },
+  "card": {
+    "available_points": "Available Points",
+    "member_code": "Member Code",
+    "scan_to_verify": "Scan to verify membership",
+    "tap_for_qr": "Tap for QR code"
+  },
+  "dashboard": {
+    "greeting": "Welcome back",
+    "history": "Booking History"
+  },
+  "tier": {
+    "current": "Current Tier",
+    "current_points": "Current Points"
+  },
+  "wallet_explainer": {
+    "title": "How Wallet Works",
+    "description": "Top up credits to use for future bookings. Credits never expire.",
+    "notify_label": "Notify me when balance is low",
+    "dismiss": "Got it"
+  },
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "minute(s) ago",
+    "hours_ago": "hour(s) ago",
+    "days_ago": "day(s) ago"
+  },
+  "time_label": "Time"
 }

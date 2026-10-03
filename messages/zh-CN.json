@@ -728,7 +728,6 @@
       "settings": "设定",
       "help": "帮助中心"
     },
-    "birthday_perk_active": "生日优惠已启用",
     "stats": {
       "available_points": "可用积分",
       "lifetime_points": "累积积分",
@@ -742,57 +741,18 @@
       "view_rewards_desc": "浏览积分和优惠"
     },
     "card": {
-      "member_code": "会员编号",
+      "member_code": "会员代码",
       "available_points": "可用积分",
-      "tap_for_qr": "点击查看二维码",
-      "scan_to_verify": "扫描验证会籍"
+      "tap_for_qr": "点击以查看二维码",
+      "scan_to_verify": "扫描以验证会员身份"
     },
     "tier": {
-      "current": "当前等级",
+      "current": "目前级别",
       "lifetime_points": "累积积分",
       "next_tier": "下一等级",
       "points_away": "分之遥",
-      "max_tier_reached": "已达最高等级"
-    },
-    "offers": {
-      "state": {
-        "issued": "待领取",
-        "ready": "可使用",
-        "reserved": "已预留",
-        "used": "已使用",
-        "expired": "已过期"
-      },
-      "expires": "有效期至",
-      "min_hours": "最少时数",
-      "claim_now": "立即领取",
-      "claiming": "领取中...",
-      "redeem_for": "兑换需",
-      "points": "积分",
-      "redeeming": "兑换中...",
-      "use_offer": "使用优惠",
-      "reserved_in_booking": "已在订单中预留",
-      "expired": "已过期",
-      "used_at": "使用时间",
-      "discount_types": {
-        "off": "折扣",
-        "free": "免费",
-        "birthday_perk": "生日优惠"
-      },
-      "units": {
-        "off": "折扣",
-        "free": "免费",
-        "points": "积分"
-      },
-      "errors": {
-        "offer_not_found": "找不到优惠",
-        "offer_already_redeemed": "优惠已兑换",
-        "offer_not_points_redeemable": "此优惠不可用积分兑换",
-        "insufficient_points": "积分不足",
-        "offer_already_claimed": "优惠已领取",
-        "offer_not_claimable": "此优惠不可领取",
-        "unknown_error": "未知错误",
-        "network_error": "网络错误"
-      }
+      "max_tier_reached": "已达最高等级",
+      "current_points": "目前积分"
     },
     "rewards": {
       "overview": "总览",
@@ -832,7 +792,19 @@
     },
     "points": {
       "empty_state": "暂无积分记录",
-      "balance": "余额"
+      "balance": "余额",
+      "title": "积分",
+      "error_title": "无法加载积分",
+      "filter": "筛选",
+      "how_it_works": "如何运作",
+      "how_it_works_content": "每次预订都可赚取积分，并将其转换为钱包额度。",
+      "lifetime": "终身赚取",
+      "no_transactions": "尚无积分交易",
+      "pending": "待处理",
+      "redeemable": "可兑换",
+      "tier_perks": "级别福利",
+      "converted": "已转换为钱包",
+      "deposited_to_wallet": "已存入钱包"
     },
     "inbox": {
       "title": "收件箱",
@@ -1004,75 +976,109 @@
       "close": "关闭"
     },
     "dashboard": {
-      "greeting": "你好，{name}",
+      "greeting": "欢迎回来",
       "quick_actions": "快捷操作",
       "upcoming": "即将到来",
-      "history": "历史记录"
+      "history": "预订历史"
     },
     "upcoming_booking": {
-      "title": "即将到来的预约",
-      "no_booking": "暂无预约",
+      "title": "即将进行的预订",
+      "no_booking": "没有即将进行的预订",
       "book_now": "立即预订",
-      "show_qr": "显示 QR",
-      "hide_qr": "隐藏 QR",
-      "scan_hint": "入场时出示此码",
+      "show_qr": "显示二维码",
+      "hide_qr": "隐藏二维码",
+      "scan_hint": "在入场时向工作人员出示此二维码",
       "time": "时间",
-      "duration": "时长",
+      "duration": "时间",
       "amount": "金额",
       "hours": "小时",
-      "contact_support": "如有问题，请联络客服"
+      "contact_support": "联系支持"
     },
     "past_bookings": {
-      "title": "过往预约",
+      "title": "过去的预订",
       "view_all": "查看全部",
-      "no_history": "暂无历史预约",
-      "whatsapp_prompt": "需要改期或退款？",
-      "whatsapp_cta": "WhatsApp 联系我们"
+      "no_history": "没有过去的预订",
+      "whatsapp_prompt": "对您的预订有疑问？",
+      "whatsapp_cta": "在 WhatsApp 上聊天"
     },
-    "version_label": "版本",
     "actions": {
       "help": {
-        "title": "帮助中心",
-        "subtitle": "Help"
+        "title": "帮助和支持",
+        "subtitle": "获得协助"
       },
       "wallet": {
-        "title": "电子钱包",
-        "subtitle": "Wallet"
+        "title": "钱包",
+        "subtitle": "管理额度"
       },
       "points": {
-        "title": "Space Pts",
-        "subtitle": "积分"
+        "title": "积分",
+        "subtitle": "查看奖励",
+        "converted": "已转换为钱包",
+        "deposited_to_wallet": "已存入钱包",
+        "error_title": "无法加载积分",
+        "filter": "筛选",
+        "how_it_works": "如何运作",
+        "how_it_works_content": "每次预订都可赚取积分，并将其转换为钱包额度。",
+        "lifetime": "终身赚取",
+        "no_transactions": "尚无积分交易",
+        "pending": "待处理",
+        "redeemable": "可兑换",
+        "tier_perks": "级别福利"
       },
       "inbox": {
         "title": "收件箱",
-        "subtitle": "Inbox"
+        "subtitle": "查看通知"
       }
     },
     "wallet_explainer": {
-      "title": "电子钱包功能",
-      "description": "我们正在开发电子钱包功能，让您可以更方便地管理储值和消费。",
-      "notify_label": "开放时通知我",
-      "dismiss": "知道了"
+      "title": "钱包运作方式",
+      "description": "充值额度用于未来预订。额度永不过期。",
+      "notify_label": "余额不足时通知我",
+      "dismiss": "明白"
     },
     "bottom_links": {
       "settings": {
-        "title": "设置",
-        "subtitle": "账户设置"
+        "title": "账户设置",
+        "subtitle": "管理您的账户"
       },
       "manage": {
-        "title": "管理账户",
-        "subtitle": "Manage Account"
+        "title": "管理预订",
+        "subtitle": "查看和编辑预订"
       },
       "safety": {
-        "title": "安全守则",
-        "subtitle": "Safety"
+        "title": "安全和隐私",
+        "subtitle": "您的数据是安全的"
       },
       "legal": {
-        "title": "法律条款",
-        "subtitle": "Legal"
+        "title": "条款和政策",
+        "subtitle": "法律信息"
       },
       "version": "版本"
-    }
+    },
+    "access": {
+      "cta_member": "查看会员记录",
+      "cta_records": "查看所有记录",
+      "eyebrow": "快速访问",
+      "footer": "在前台扫描此二维码",
+      "intro": "您的数字会员卡",
+      "qr_description": "向员工出示此二维码进行快速入场",
+      "qr_enlarge": "点击放大",
+      "qr_identity": "会员身份",
+      "qr_label": "二维码",
+      "qr_title": "入场二维码",
+      "steps_title": "如何入场",
+      "tips_title": "快速提示",
+      "title": "会员访问"
+    },
+    "wallet": {
+      "title": "钱包",
+      "reserved": "预留",
+      "balance_label": "余额",
+      "offers_eligible": "符合优惠资格",
+      "offers_used": "已使用优惠",
+      "how_it_works": "钱包运作方式"
+    },
+    "member_id_label": "会员 ID"
   },
   "memberIntro": {
     "meta": {
@@ -1203,7 +1209,10 @@
     "error": "出了点问题",
     "retry": "重试",
     "not_found": "找不到此页面",
-    "loading": "加载中"
+    "loading": "Loading...",
+    "back": "返回",
+    "load_more": "加载更多",
+    "no_data": "没有可用数据"
   },
   "book": {
     "title": "预订时段",
@@ -2635,8 +2644,8 @@
   "pricing_subtitle": "无隐藏收费。",
   "pricing_note": "会员额外享受专属优惠。",
   "wallet": {
-    "title": "Space Wallet",
-    "balance_label": "可用余额",
+    "title": "钱包",
+    "balance_label": "余额",
     "transactions_label": "交易记录",
     "empty_state": "暂无交易记录",
     "earned": "收入",
@@ -2668,10 +2677,10 @@
     "insufficient": "Space Wallet 余额不足",
     "offers_copy": "复制代码",
     "offers_used": "已使用优惠",
-    "offers_eligible": "可用优惠",
+    "offers_eligible": "符合优惠资格",
     "offers_title": "优惠",
-    "reserved": "结账预留中",
-    "how_it_works": "如何运作",
+    "reserved": "预留",
+    "how_it_works": "钱包运作方式",
     "no_data": "暂无交易记录",
     "balance": "可用余额"
   },
@@ -2702,11 +2711,11 @@
     "no_data": "暂无交易记录"
   },
   "inbox": {
-    "title": "收件箱",
+    "title": "Inbox",
     "tab_all": "全部",
-    "mark_all_read": "全部标为已读",
-    "mark_as_read": "标为已读",
-    "empty_state": "暂无通知",
+    "mark_all_read": "Mark all as read",
+    "mark_as_read": "标记为已读",
+    "empty_state": "No notifications",
     "unknown_type": "公告",
     "error_state": "无法加载通知",
     "retry": "重试",
@@ -2720,8 +2729,8 @@
     }
   },
   "pagination": {
-    "previous": "上一页",
-    "next": "下一页"
+    "previous": "Previous",
+    "next": "Next"
   },
   "valuePage": {
     "meta_title": "我们的价值 | Space8",
@@ -2737,12 +2746,6 @@
       "remove": "移除",
       "insufficient": "Space Wallet 余额不足"
     }
-  },
-  "time": {
-    "just_now": "刚才",
-    "minutes_ago": "{count} 分钟前",
-    "hours_ago": "{count} 小时前",
-    "days_ago": "{count} 天前"
   },
   "creditsPage": {
     "flap_messages": [
@@ -2799,5 +2802,228 @@
   "homeFAQ": {
     "title": "常见问题",
     "subtitle": "找到关于 SPACE8 的常见问题答案"
-  }
+  },
+  "empty_state": "No data available",
+  "table": "Table",
+  "duration": "Duration",
+  "price": "Price",
+  "reference": "Reference",
+  "refunded_at": "Refunded at",
+  "refund_amount": "Refund amount",
+  "fee": "Fee",
+  "rescheduled_at": "Rescheduled at",
+  "scan_to_check_in": "Scan to check in",
+  "card_points": "Points",
+  "back": "Back",
+  "tier_progress_title": "Tier Progress",
+  "points_to_next": "points to next tier",
+  "max_tier_reached": "Maximum tier reached",
+  "stat_bookings": "Bookings",
+  "stat_bookings_unit": "sessions",
+  "stat_hours": "Hours Played",
+  "stat_hours_unit": "hrs",
+  "greeting": "Welcome",
+  "status_confirmed": "Confirmed",
+  "status_cancelled": "Cancelled",
+  "status_completed": "Completed",
+  "status_refunded": "Refunded",
+  "status_pending": "Pending",
+  "status_payment_failed": "Payment Failed",
+  "section_upcoming": "Upcoming Bookings",
+  "no_upcoming_bookings": "No upcoming bookings",
+  "add_apple_wallet": "Add to Apple Wallet",
+  "add_google_wallet": "Add to Google Wallet",
+  "quick_view_details": "View Details",
+  "no_bookings_title": "No Bookings Yet",
+  "no_bookings_desc": "Book your first session to get started",
+  "section_upcoming_desc": "Next 30 days",
+  "section_recent": "Recent Bookings",
+  "section_recent_desc": "Your last 7 days",
+  "section_history": "History",
+  "booking_table": "Table",
+  "refund_success_toast": "Refund processed successfully",
+  "booking_retry_payment": "Retry Payment",
+  "booking_view_qr": "View QR Code",
+  "booking_add_calendar": "Add to Calendar",
+  "booking_more_actions": "More Actions",
+  "points_running_total": "Running Total",
+  "no_points": "No points history",
+  "points_earn_title": "Ways to Earn",
+  "settings_err_name": "Name cannot be empty",
+  "settings_err_generic": "Something went wrong. Please try again.",
+  "settings_change_rate_limited": "Too many requests. Try again later.",
+  "settings_change_no_email": "No email on file. Add one first.",
+  "settings_change_link_sent": "Verification link sent to your email",
+  "settings_display_name": "Display Name",
+  "settings_email": "Email",
+  "settings_phone": "Phone",
+  "settings_change_resend_in": "Resend in",
+  "sending": "Sending...",
+  "settings_change_phone": "Change Phone",
+  "settings_notifications": "Notifications",
+  "notif_booking": "Booking updates",
+  "notif_points": "Points updates",
+  "notif_promo": "Promotions",
+  "saved": "Saved",
+  "save": "Save",
+  "loading": "Loading...",
+  "close": "Close",
+  "coming_soon": "Coming Soon",
+  "email_notifications": "Email Notifications",
+  "email_sent": "Email sent",
+  "two_factor": "Two-Factor Authentication",
+  "two_factor_desc": "Add an extra layer of security",
+  "sign_out": "Sign Out",
+  "delete_account": "Delete Account",
+  "delete_confirm": "Are you sure? This cannot be undone.",
+  "change_password": "Change Password",
+  "change_password_desc": "Update your account password",
+  "change_phone": "Change Phone Number",
+  "change_phone_desc": "Update your phone number",
+  "danger_zone": "Danger Zone",
+  "settings_change_password": "Change Password",
+  "qr_modal_title": "Check-in QR Code",
+  "qr_reference": "Reference",
+  "qr_tap_enlarge": "Tap to enlarge",
+  "refund_modal_title": "Request Refund",
+  "refund_modal_reason_label": "Reason for cancellation",
+  "refund_modal_original_price": "Original Price",
+  "refund_modal_amount": "Refund Amount",
+  "refund_modal_fee": "Cancellation Fee",
+  "refund_modal_generic_error": "Unable to process refund. Please try again.",
+  "refund_modal_cutoff_error": "Refund cutoff time has passed",
+  "refund_modal_cancel": "Cancel",
+  "refund_modal_confirm": "Confirm Refund",
+  "reschedule_modal_title": "Reschedule Booking",
+  "reschedule_modal_date_label": "Select Date",
+  "reschedule_modal_table_label": "Table",
+  "reschedule_modal_time_label": "Time",
+  "reschedule_modal_generic_error": "Unable to reschedule. Please try again.",
+  "reschedule_modal_unavailable_error": "This time slot is no longer available",
+  "reschedule_modal_no_slots": "No available slots",
+  "reschedule_modal_cancel": "Cancel",
+  "reschedule_modal_confirm": "Confirm Reschedule",
+  "reschedule_previous_day": "Previous Day",
+  "reschedule_next_day": "Next Day",
+  "past_bookings": {
+    "no_history": "No past bookings",
+    "title": "Past Bookings",
+    "view_all": "View All",
+    "whatsapp_cta": "Chat on WhatsApp",
+    "whatsapp_prompt": "Questions about your booking?"
+  },
+  "upcoming_booking": {
+    "no_booking": "No upcoming booking",
+    "book_now": "Book Now",
+    "title": "Upcoming Booking",
+    "hide_qr": "Hide QR",
+    "show_qr": "Show QR",
+    "time": "Time",
+    "duration": "Duration",
+    "hours": "hours",
+    "amount": "Amount",
+    "contact_support": "Contact Support",
+    "scan_hint": "Show this QR code at check-in"
+  },
+  "actions": {
+    "help": {
+      "title": "Help & Support",
+      "subtitle": "Get assistance"
+    },
+    "wallet": {
+      "title": "Wallet",
+      "subtitle": "Manage credits"
+    },
+    "points": {
+      "title": "Points",
+      "subtitle": "View rewards"
+    },
+    "inbox": {
+      "title": "Inbox",
+      "subtitle": "View notifications"
+    }
+  },
+  "bottom_links": {
+    "settings": {
+      "title": "Account Settings",
+      "subtitle": "Manage your account"
+    },
+    "manage": {
+      "title": "Manage Bookings",
+      "subtitle": "View and edit bookings"
+    },
+    "safety": {
+      "title": "Safety & Privacy",
+      "subtitle": "Your data is safe"
+    },
+    "legal": {
+      "title": "Terms & Policies",
+      "subtitle": "Legal information"
+    },
+    "version": "Version"
+  },
+  "card": {
+    "available_points": "Available Points",
+    "member_code": "Member Code",
+    "scan_to_verify": "Scan to verify membership",
+    "tap_for_qr": "Tap for QR code"
+  },
+  "dashboard": {
+    "greeting": "Welcome back",
+    "history": "Booking History"
+  },
+  "tier": {
+    "current": "Current Tier",
+    "current_points": "Current Points"
+  },
+  "wallet_explainer": {
+    "title": "How Wallet Works",
+    "description": "Top up credits to use for future bookings. Credits never expire.",
+    "notify_label": "Notify me when balance is low",
+    "dismiss": "Got it"
+  },
+  "time": {
+    "just_now": "刚刚",
+    "minutes_ago": "分钟前",
+    "hours_ago": "小时前",
+    "days_ago": "天前"
+  },
+  "access_cta_member": "View Member Records",
+  "access_cta_records": "View All Records",
+  "access_eyebrow": "Quick Access",
+  "access_footer": "Scan this QR code at the front desk",
+  "access_intro": "Your digital membership card",
+  "access_qr_description": "Show this QR code to staff for quick check-in",
+  "access_qr_enlarge": "Tap to enlarge",
+  "access_qr_identity": "Member Identity",
+  "access_qr_label": "QR Code",
+  "access_qr_title": "Check-in QR Code",
+  "access_steps_title": "How to Check In",
+  "access_tips_title": "Quick Tips",
+  "access_title": "Member Access",
+  "booking_confirmed": "Booking Confirmed",
+  "booking_confirmed_desc": "Your booking is confirmed. Check-in QR code is ready.",
+  "booking_reminder": "Booking Reminder",
+  "booking_reminder_desc": "Get reminded 1 hour before your booking",
+  "offers": "Special Offers",
+  "offers_desc": "Exclusive member deals",
+  "promotions": "Promotions",
+  "promotions_desc": "Latest offers and deals",
+  "push_notifications": "Push Notifications",
+  "push_booking_reminder": "Booking reminders",
+  "push_booking_reminder_desc": "Get notified before your session",
+  "push_offers": "Offers & Promotions",
+  "push_offers_desc": "Exclusive deals and discounts",
+  "push_system": "System notifications",
+  "push_system_desc": "Important account updates",
+  "save_preferences": "Save Preferences",
+  "saving": "Saving...",
+  "send_email": "Send Email",
+  "available_points": "可用积分",
+  "balance": "余额",
+  "member_id_label": "会员 ID",
+  "scan_to_enter": "扫描进场",
+  "spent_amount": "已花费",
+  "tap_to_view_qr": "点击查看二维码",
+  "time_label": "时间"
 }
