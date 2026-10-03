@@ -13,7 +13,7 @@ export async function GET() {
 
   const service = getServiceSupabase()
   const { data, error } = await service
-    .from('notification_log')
+    .from('admin_notifications')
     .select('id, type, message, read, created_at')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
@@ -35,7 +35,7 @@ export async function PATCH() {
 
   const service = getServiceSupabase()
   await service
-    .from('notification_log')
+    .from('admin_notifications')
     .update({ read: true })
     .eq('user_id', user.id)
     .eq('read', false)

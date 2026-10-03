@@ -22,9 +22,9 @@ export type CreditLedgerEntry = {
 
 export type PointsLedgerEntry = {
   points: number // signed
-  type: 'booking' | 'signup' | 'reversal' | 'redeem' | 'manual'
+  type: string
   note: string | null
-  createdAt: string
+  createdAt: string | null
 }
 
 export async function getWalletSummary(userId: string): Promise<WalletSummary | null> {

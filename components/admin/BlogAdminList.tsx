@@ -16,8 +16,8 @@ type PostRow = {
   category: string | null
   cover_image_url: string | null
   published_at: string | null
-  ai_generated: boolean
-  created_at: string
+  ai_generated: boolean | null
+  created_at: string | null
 }
 
 export default function BlogAdminList({ initialPosts }: { initialPosts: PostRow[] }) {

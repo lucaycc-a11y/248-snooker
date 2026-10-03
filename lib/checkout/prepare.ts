@@ -87,9 +87,9 @@ export async function prepareCheckout(
   const { data, error } = await service.rpc('prepare_checkout', {
     p_booking_id: args.bookingId,
     p_user_id: args.userId,
-    p_promo_code: args.promoCode && args.promoCode.trim() ? args.promoCode.trim().toUpperCase() : null,
-    p_points: args.points ?? 0,
-    p_credits: args.walletAmount ?? 0,
+    p_promo_code: args.promoCode && args.promoCode.trim() ? args.promoCode.trim().toUpperCase() : undefined,
+    p_points: args.points ?? undefined,
+    p_credits: args.walletAmount ?? undefined,
   })
 
   if (error) {
@@ -144,7 +144,7 @@ export async function releaseCheckoutHolds(
 ): Promise<void> {
   const { error } = await service.rpc('release_checkout_holds', {
     p_booking_id: args.bookingId,
-    p_order_group_id: args.orderGroupId,
+    p_order_group_id: args.orderGroupId ?? undefined,
   })
   if (error) {
     // Never mask the original failure that triggered the release; the stale hold

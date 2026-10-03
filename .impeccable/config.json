@@ -805,6 +805,12 @@
         "rule": "design-system-color",
         "value": "#111827",
         "createdAt": "2026-10-02T16:02:31.427Z"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34, 1.56, .64, 1)",
+        "createdAt": "2026-10-03T02:11:18.191Z",
+        "reason": "EASE_SPRING constant used throughout app (40+ occurrences) for Framer Motion spring animations — standard spring curve, not bounce"
       }
     ]
   }

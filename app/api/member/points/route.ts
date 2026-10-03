@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     // Fetch user's tier and points info
     const { data: userData, error: userDataError } = await supabase
       .from('users')
-      .select('tier, points_lifetime, points_redeemable, points_converted, points_to_wallet')
+      .select('tier, points, points_converted')
       .eq('id', user.id)
       .single()
 
@@ -25,6 +25,15 @@ export async function GET(request: NextRequest) {
       console.error('[points] user fetch error:', userDataError)
       return NextResponse.json({ error: 'Failed to fetch user data' }, { status: 500 })
     }
+
+    // Calculate lifetime points from points_ledger
+    const { data: ledgerSum, error: ledgerError } = await supabase
+      .from('points_ledger')
+      .select('points')
+      .eq('user_id', user.id)
+      .gte('points', 0)
+
+    const lifetime = ledgerSum?.reduce((sum, row) => sum + (row.points ?? 0), 0) ?? 0
 
     // Fetch tier configuration for block size and credits per block
     const { data: tierConfig, error: tierError } = await supabase
@@ -48,11 +57,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const points = userData?.points ?? 0
+    const converted = userData?.points_converted ?? 0
+
     return NextResponse.json({
-      lifetime: userData?.points_lifetime ?? 0,
-      redeemable: userData?.points_redeemable ?? 0,
-      converted: userData?.points_converted ?? 0,
-      depositedToWallet: userData?.points_to_wallet ?? 0,
+      lifetime,
+      redeemable: points,
+      converted,
+      depositedToWallet: converted,
       tier: userData?.tier ?? 'standard',
       blockSize,
       creditsPerBlock,

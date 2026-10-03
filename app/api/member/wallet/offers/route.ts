@@ -1,5 +1,6 @@
-import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
+import { getServiceSupabase } from '@/lib/supabase/service'
 import { NextRequest, NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,60 +15,58 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch all active promo codes (fallback to empty if table doesn't exist)
-    let eligibleCodes: unknown[] = []
-    let usedCodes: unknown[] = []
+    const serviceSupabase = getServiceSupabase()
 
-    try {
-      const { data: codes, error: codesError } = await supabase
-        .from('promotion_codes')
-        .select('code, discount_type, discount_value, min_order_cents, expiry, usage_limit, usage_count')
-        .eq('active', true)
-        .or(`expiry.is.null,expiry.gte.${new Date().toISOString()}`)
-        .order('created_at', { ascending: false })
+    // Fetch all active promo codes (use service client to bypass RLS)
+    const { data: codes, error: codesError } = await serviceSupabase
+      .from('promotion_codes')
+      .select('code, discount_type, discount_value, min_cart_amount, max_uses, name')
+      .eq('is_active', true)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
 
-      if (codesError) {
-        console.error('[wallet/offers] promo codes fetch error:', codesError)
-      } else {
-        eligibleCodes = codes ?? []
-      }
-    } catch (err) {
-      console.error('[wallet/offers] promo codes fetch exception:', err)
+    if (codesError) {
+      console.error('[wallet/offers] promo codes fetch error:', codesError)
+      return NextResponse.json({ error: 'Failed to fetch promo codes' }, { status: 500 })
     }
 
-    // Fetch used promo codes by this user (fallback to empty if table doesn't exist)
-    try {
-      const { data: used, error: usedError } = await supabase
-        .from('promo_code_usages')
-        .select('code, redeemed_at')
-        .eq('user_id', user.id)
-        .order('redeemed_at', { ascending: false })
+    // Fetch used promo codes by this user (join to get the actual code string)
+    const { data: used, error: usedError } = await serviceSupabase
+      .from('promo_code_usages')
+      .select('redeemed_at, promo_code_id, promotion_codes!inner(code)')
+      .eq('user_id', user.id)
+      .not('redeemed_at', 'is', null)
+      .order('redeemed_at', { ascending: false })
 
-      if (usedError) {
-        console.error('[wallet/offers] used codes fetch error:', usedError)
-      } else {
-        usedCodes = used ?? []
-      }
-    } catch (err) {
-      console.error('[wallet/offers] used codes fetch exception:', err)
+    if (usedError) {
+      console.error('[wallet/offers] used codes fetch error:', usedError)
+      return NextResponse.json({ error: 'Failed to fetch used codes' }, { status: 500 })
     }
 
-    const usedSet = new Set((usedCodes ?? []).map((u: any) => u.code))
+    const usedSet = new Set(
+      (used ?? []).map(u => {
+        const promo = u.promotion_codes as unknown as { code: string } | { code: string }[]
+        return Array.isArray(promo) ? promo[0]?.code : promo?.code
+      }).filter(Boolean)
+    )
 
-    const eligible = (eligibleCodes ?? []).filter((code: any) => {
+    const eligible = (codes ?? []).filter(code => {
       if (usedSet.has(code.code)) return false
-      if (code.usage_limit && code.usage_count >= code.usage_limit) return false
       return true
     })
 
-    const used = (usedCodes ?? []).map((u: any) => ({
-      code: u.code,
-      usedAt: u.redeemed_at,
-    }))
+    const usedFormatted = (used ?? []).map(u => {
+      const promo = u.promotion_codes as unknown as { code: string } | { code: string }[]
+      const code = Array.isArray(promo) ? promo[0]?.code : promo?.code
+      return {
+        code: code ?? '',
+        usedAt: u.redeemed_at,
+      }
+    })
 
     return NextResponse.json({
       eligible,
-      used,
+      used: usedFormatted,
     })
   } catch (err) {
     console.error('[wallet/offers] error:', err)
