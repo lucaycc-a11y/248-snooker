@@ -1,0 +1,16 @@
+{
+  "quickActions": {
+    "help": {
+      "subtitle": "Help Center"
+    },
+    "wallet": {
+      "subtitle": "Wallet"
+    },
+    "points": {
+      "subtitle": "Points"
+    },
+    "inbox": {
+      "subtitle": "Inbox"
+    }
+  }
+}

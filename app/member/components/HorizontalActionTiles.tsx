@@ -9,8 +9,9 @@ import { useUnreadCount } from '@/lib/inbox/useUnreadCount'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
-// HorizontalActionTiles — Uber Account-style 2×2 action grid
-// Icon left, label+subtitle right, no section heading
+// HorizontalActionTiles — 4 quick action tiles matching member-quick-actions.html
+// 2×2 grid on mobile, 4 columns on desktop (≥640px)
+// All tiles same height/width with consistent padding
 // ════════════════════════════════════════════════════════════════════════════
 
 type Props = {
@@ -58,35 +59,36 @@ export function HorizontalActionTiles({ profile }: Props) {
 
   return (
     <div className="px-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <ActionTile
-          icon={<MessageCircle className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-          title={t('actions.help.title')}
+          icon={<MessageCircle className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} />}
+          title="Help"
           subtitle={t('actions.help.subtitle')}
           href="/member/help"
         />
         <ActionTile
-          icon={<Wallet className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-          title={t('actions.wallet.title')}
+          icon={<Wallet className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} />}
+          title="Wallet"
           subtitle={t('actions.wallet.subtitle')}
           href="/member/wallet"
           badge={walletBalance !== null ? `HK$${walletBalance}` : undefined}
-          badgeIsText
+          badgeType="text"
         />
         <ActionTile
-          icon={<Gem className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-          title={t('actions.points.title')}
+          icon={<Gem className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} />}
+          title="Space Pts"
           subtitle={t('actions.points.subtitle')}
           href="/member/points"
-          badge={pointsTotal !== null ? pointsTotal : undefined}
-          badgeIsText
+          badge={pointsTotal !== null ? String(pointsTotal) : undefined}
+          badgeType="text"
         />
         <ActionTile
-          icon={<Inbox className="h-6 w-6 flex-shrink-0" strokeWidth={1.5} />}
-          title={t('actions.inbox.title')}
+          icon={<Inbox className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} />}
+          title="Inbox"
           subtitle={t('actions.inbox.subtitle')}
           href="/member/inbox"
-          badge={unreadCount > 0 ? (unreadCount > 9 ? '9+' : unreadCount) : undefined}
+          badge={unreadCount > 0 ? (unreadCount > 9 ? '9+' : String(unreadCount)) : undefined}
+          badgeType="dot"
         />
       </div>
     </div>
@@ -94,7 +96,7 @@ export function HorizontalActionTiles({ profile }: Props) {
 }
 
 // ────────────────────────────────────────────────────────────────────────────
-// § ACTION TILE — icon left, label+subtitle right
+// § ACTION TILE — design parity with member-quick-actions.html
 // ────────────────────────────────────────────────────────────────────────────
 
 type ActionTileProps = {
@@ -103,44 +105,40 @@ type ActionTileProps = {
   subtitle: string
   href?: string
   onClick?: () => void
-  locked?: boolean
-  beta?: boolean
-  badge?: string | number
-  badgeIsText?: boolean
+  badge?: string
+  badgeType?: 'text' | 'dot'
 }
 
-function ActionTile({ icon, title, subtitle, href, onClick, locked, beta, badge, badgeIsText }: ActionTileProps) {
+function ActionTile({ icon, title, subtitle, href, onClick, badge, badgeType }: ActionTileProps) {
   const content = (
-    <div className={`group relative flex min-h-[56px] items-center gap-3 overflow-hidden rounded-2xl border px-4 py-3 transition-all ${
-      locked
-        ? 'border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent opacity-60'
-        : 'border-white/10 bg-gradient-to-br from-white/5 to-transparent hover:border-white/20 hover:from-white/10'
-    }`}>
-      {/* Icon */}
-      <div className={locked ? 'text-white/40' : 'text-white'}>{icon}</div>
+    <div className="relative flex min-h-[104px] flex-col justify-between overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-4 transition-all hover:border-white/[0.18] hover:bg-[#1a1a1a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25d366] active:scale-[0.97]">
+      {/* Icon at bottom-left */}
+      <div className="text-white">{icon}</div>
 
-      {/* Label */}
-      <div className="min-w-0 flex-1">
-        <p className={`font-code text-sm font-bold leading-tight ${locked ? 'text-white/40' : 'text-white'}`}>
+      {/* Top-right badge */}
+      {badge && (
+        <div className="absolute right-[14px] top-[14px] flex items-center gap-[6px]">
+          {badgeType === 'dot' ? (
+            <div className="flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#25d366] px-[6px] font-code text-[11px] leading-none text-black">
+              {badge}
+            </div>
+          ) : (
+            <div className="rounded-full border border-white/[0.18] px-[9px] py-[6px] font-code text-[11px] leading-none text-white/72">
+              {badge}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Label at bottom-right */}
+      <div>
+        <p className="overflow-hidden text-ellipsis whitespace-nowrap font-code text-[14px] leading-[1.2] text-white">
           {title}
         </p>
-        <p className={`mt-0.5 text-xs ${locked ? 'text-white/30' : 'text-white/50'}`}>{subtitle}</p>
+        <p className="mt-[3px] whitespace-nowrap text-[12.5px] text-white/52">
+          {subtitle}
+        </p>
       </div>
-
-      {/* Badges */}
-      {beta && (
-        <div className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-code font-bold text-white/60">
-          BETA
-        </div>
-      )}
-      {badge != null && badgeIsText && (
-        <div className="text-xs font-code font-bold text-white/70">{badge}</div>
-      )}
-      {badge != null && !badgeIsText && (
-        <div className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-code font-bold text-white">
-          {typeof badge === 'number' && badge > 9 ? '9+' : badge}
-        </div>
-      )}
     </div>
   )
 

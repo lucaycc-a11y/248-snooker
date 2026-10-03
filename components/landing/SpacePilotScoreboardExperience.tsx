@@ -231,7 +231,7 @@ export default function SpacePilotScoreboardExperience({ variant = "full", compa
                 data-cms-key="spacePilot.stat_label"
                 className="font-label mb-2.5 text-[12px] tracking-[0.06em] text-white/40"
               >
-                <span className="font-label">Space Pilot</span> {t("stat_label_text")}
+                {t("stat_label_text")}
               </p>
               <p
                 data-cms-key="spacePilot.stat_main"

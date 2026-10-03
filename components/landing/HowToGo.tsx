@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { tokens } from "@/app/styles/tokens";
 
@@ -77,25 +78,29 @@ const HOW_TO_GO_CSS = `
 
 type HowToGoProps = {
   theme?: "light" | "dark";
-  heading: string;
-  address: string;
-  directions: string[];
-  primaryCta: { label: string; href: string };
-  secondaryCta?: { label: string; href: string };
   map?: { embedUrl?: string };
   className?: string;
 };
 
 export default function HowToGo({
   theme = "light",
-  heading,
-  address,
-  directions,
-  primaryCta,
-  secondaryCta,
   map,
   className,
 }: HowToGoProps) {
+  const t = useTranslations();
+  const tHome = useTranslations("homeDirections");
+  const tVenue = useTranslations("venuePage");
+
+  const heading = tVenue("directions_title");
+  const address = tHome("address");
+  const directions = tHome.raw("directions") as string[];
+  const primaryCtaLabel = tVenue("map_cta");
+  const secondaryCtaLabel = tHome("cta_book");
+
+  const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
+  )}`;
+
   const secRef = useRef<HTMLElement>(null);
   const [isIn, setIsIn] = useState(false);
 
@@ -280,7 +285,7 @@ export default function HowToGo({
             >
               <a
                 className="how-to-go-btn primary"
-                href={primaryCta.href}
+                href={MAPS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
@@ -312,32 +317,30 @@ export default function HowToGo({
                   <path d="M20 10.5c0 5.4-8 12-8 12s-8-6.6-8-12a8 8 0 0 1 16 0z" />
                   <circle cx="12" cy="10.3" r="3" />
                 </svg>
-                {primaryCta.label}
+                {primaryCtaLabel}
               </a>
-              {secondaryCta && (
-                <Link
-                  href={secondaryCta.href}
-                  className="how-to-go-btn ghost"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 9,
-                    fontFamily: FONT_FAMILY,
-                    fontSize: 14.5,
-                    fontWeight: 500,
-                    padding: "14px 26px",
-                    borderRadius: 999,
-                    textDecoration: "none",
-                    cursor: "pointer",
-                    background: "transparent",
-                    color: ghostText,
-                    border: `1px solid ${ghostBorder}`,
-                    minHeight: 44,
-                  }}
-                >
-                  {secondaryCta.label}
-                </Link>
-              )}
+              <Link
+                href="/book"
+                className="how-to-go-btn ghost"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 9,
+                  fontFamily: FONT_FAMILY,
+                  fontSize: 14.5,
+                  fontWeight: 500,
+                  padding: "14px 26px",
+                  borderRadius: 999,
+                  textDecoration: "none",
+                  cursor: "pointer",
+                  background: "transparent",
+                  color: ghostText,
+                  border: `1px solid ${ghostBorder}`,
+                  minHeight: 44,
+                }}
+              >
+                {secondaryCtaLabel}
+              </Link>
             </div>
           </div>
 

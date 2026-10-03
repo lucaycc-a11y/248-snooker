@@ -1,0 +1,16 @@
+{
+  "quickActions": {
+    "help": {
+      "subtitle": "ヘルプセンター"
+    },
+    "wallet": {
+      "subtitle": "ウォレット"
+    },
+    "points": {
+      "subtitle": "ポイント"
+    },
+    "inbox": {
+      "subtitle": "受信トレイ"
+    }
+  }
+}

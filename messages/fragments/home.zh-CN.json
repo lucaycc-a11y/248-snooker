@@ -1,0 +1,16 @@
+{
+  "quickActions": {
+    "help": {
+      "subtitle": "帮助中心"
+    },
+    "wallet": {
+      "subtitle": "钱包"
+    },
+    "points": {
+      "subtitle": "积分"
+    },
+    "inbox": {
+      "subtitle": "收件箱"
+    }
+  }
+}

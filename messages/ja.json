@@ -553,5 +553,19 @@
   "scan_to_enter": "スキャンして入場",
   "spent_amount": "使用済み金額",
   "tap_to_view_qr": "タップしてQRコードを表示",
-  "time_label": "時間"
+  "time_label": "時間",
+  "quickActions": {
+    "help": {
+      "subtitle": "ヘルプセンター"
+    },
+    "wallet": {
+      "subtitle": "ウォレット"
+    },
+    "points": {
+      "subtitle": "ポイント"
+    },
+    "inbox": {
+      "subtitle": "受信トレイ"
+    }
+  }
 }
