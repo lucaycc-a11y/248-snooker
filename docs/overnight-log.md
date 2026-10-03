@@ -195,3 +195,25 @@ Now merging Agent B (points)...
 
 **Build gate:** ✓ i18n check passed, tsc passed, npm run build passed
 
+
+### Phase C.2 complete ✓
+
+Now merging Agent C (inbox)...
+
+
+## Phase C.3 - Agent C (Inbox) ✓
+
+**Agent C branch:** `worktree-agent-a22d386962c8a3e6d`
+
+**Commit:** "feat(prompt7-inbox): Inbox page"
+
+**Files merged:**
+- app/api/member/inbox/route.ts
+- app/api/member/inbox/mark-read/route.ts (NEW)
+- app/member/inbox/page.tsx
+- messages/fragments/inbox.{en,zh-CN,zh-HK}.json
+
+**Excluded:** inbox.ja.json (already deleted in Phase B), en.json.tmp (build artifact)
+
+**Build gate:** ✓ i18n check passed, tsc passed, npm run build passed
+

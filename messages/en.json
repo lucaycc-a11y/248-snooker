@@ -2764,21 +2764,21 @@
   },
   "inbox": {
     "title": "Inbox",
-    "tab_all": "All",
-    "mark_all_read": "Mark all as read",
-    "mark_as_read": "Mark as Read",
-    "empty_state": "No notifications",
-    "unknown_type": "Announcement",
-    "error_state": "Unable to load notifications",
+    "detailTitle": "Message Details",
+    "filterAll": "All",
+    "filterCredit": "Wallet",
+    "filterPromo": "Offers",
+    "filterSystem": "System",
+    "emptyTitle": "No Messages",
+    "emptyMessage": "You don't have any notifications yet",
+    "errorTitle": "Failed to Load",
+    "errorMessage": "Unable to load inbox, please try again later",
     "retry": "Retry",
-    "unread_count": "Unread",
-    "error": {
-      "markRead": "Failed to update, please try again",
-      "markReadAll": "Failed to update, please try again"
-    },
-    "success": {
-      "markedAll": "Marked all as read"
-    }
+    "typeCredit": "Wallet Notification",
+    "typePromo": "Promotional Offer",
+    "typeSystem": "System Notification",
+    "metaType": "Type",
+    "metaTime": "Time"
   },
   "pagination": {
     "previous": "Previous",

@@ -2765,22 +2765,22 @@
     }
   },
   "inbox": {
-    "title": "Inbox",
-    "tab_all": "全部",
-    "mark_all_read": "Mark all as read",
-    "mark_as_read": "标记为已读",
-    "empty_state": "No notifications",
-    "unknown_type": "公告",
-    "error_state": "无法加载通知",
+    "title": "收件箱",
+    "detailTitle": "消息详情",
+    "filterAll": "全部",
+    "filterCredit": "钱包",
+    "filterPromo": "优惠",
+    "filterSystem": "系统",
+    "emptyTitle": "暂无消息",
+    "emptyMessage": "您目前没有任何通知消息",
+    "errorTitle": "加载失败",
+    "errorMessage": "无法加载收件箱，请稍后再试",
     "retry": "重试",
-    "unread_count": "未读",
-    "error": {
-      "markRead": "更新失败，请重试",
-      "markReadAll": "更新失败，请重试"
-    },
-    "success": {
-      "markedAll": "已标为全部已读"
-    }
+    "typeCredit": "钱包通知",
+    "typePromo": "优惠活动",
+    "typeSystem": "系统通知",
+    "metaType": "类型",
+    "metaTime": "时间"
   },
   "pagination": {
     "previous": "Previous",

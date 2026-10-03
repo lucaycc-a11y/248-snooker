@@ -1,272 +1,308 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useInboxRealtime } from '@/lib/inbox/client'
-import { createClient } from '@/lib/supabase/client'
-import { motion } from 'framer-motion'
-import { Inbox } from 'lucide-react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-
-// ════════════════════════════════════════════════════════════════════════════
-// Inbox Page — Member notifications with Realtime
-// Route: /member/inbox
-// Features: list, mark read, mark-all-read, pagination, Realtime updates
-// ════════════════════════════════════════════════════════════════════════════
-
-const ITEMS_PER_PAGE = 20
-
-type Notification = {
-  id: string
-  title: string
-  message: string
-  type: string
-  read: boolean
-  createdAt: string
-}
+import type { InboxItem, InboxResponse } from '@/lib/member-contracts'
+import { relativeTime, dayGroupLabel } from '@/lib/member-format'
 
 export default function InboxPage() {
-  const t = useTranslations()
-  const supabase = createClient()
-  const [userId, setUserId] = useState<string | null>(null)
-  const [displayedNotifications, setDisplayedNotifications] = useState<Notification[]>([])
-  const [allNotifications, setAllNotifications] = useState<Notification[]>([])
-  const [page, setPage] = useState(1)
+  const t = useTranslations('inbox')
+  const [items, setItems] = useState<InboxItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [isMarkingAll, setIsMarkingAll] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedItem, setSelectedItem] = useState<InboxItem | null>(null)
+  const [filter, setFilter] = useState<'all' | 'credit' | 'promo' | 'system'>('all')
 
-  const { notifications: realtimeNotifications, loading: realtimeLoading } = useInboxRealtime(userId)
-
-  // Get user ID on mount
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUserId(session?.user.id ?? null)
+    fetchInbox()
+  }, [])
+
+  async function fetchInbox() {
+    try {
+      setLoading(true)
+      setError(null)
+      const res = await fetch('/api/member/inbox')
+      if (!res.ok) throw new Error('Failed to fetch inbox')
+      const data: InboxResponse = await res.json()
+      setItems(data.items)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+    } finally {
       setLoading(false)
     }
-    getUser()
-  }, [supabase])
+  }
 
-  // Update displayedNotifications when realtime notifications change
-  useEffect(() => {
-    setAllNotifications(realtimeNotifications)
-    setPage(1) // Reset to first page when new data arrives
-  }, [realtimeNotifications])
-
-  // Update displayed notifications based on current page
-  useEffect(() => {
-    const start = (page - 1) * ITEMS_PER_PAGE
-    const end = start + ITEMS_PER_PAGE
-    setDisplayedNotifications(allNotifications.slice(start, end))
-  }, [allNotifications, page])
-
-  const handleMarkRead = async (id: string) => {
+  async function markAsRead(id: string) {
     try {
-      await fetch('/api/member/inbox', {
-        method: 'PUT',
+      const res = await fetch('/api/member/inbox/mark-read', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ ids: [id] }),
       })
+      if (!res.ok) throw new Error('Failed to mark as read')
 
-      setAllNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      )
+      setItems(prev => prev.map(item =>
+        item.id === id ? { ...item, read: true } : item
+      ))
     } catch (err) {
-      console.error('[handleMarkRead]', err)
+      console.error('Mark as read failed:', err)
     }
   }
 
-  const handleMarkAllRead = async () => {
-    setIsMarkingAll(true)
-    try {
-      await fetch('/api/member/inbox/mark-all-read', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      setAllNotifications((prev) =>
-        prev.map((n) => ({ ...n, read: true }))
-      )
-    } catch (err) {
-      console.error('[handleMarkAllRead]', err)
-    } finally {
-      setIsMarkingAll(false)
+  function handleItemClick(item: InboxItem) {
+    setSelectedItem(item)
+    if (!item.read) {
+      markAsRead(item.id)
     }
   }
 
-  const hasUnread = allNotifications.some((n) => !n.read)
-  const totalPages = Math.ceil(allNotifications.length / ITEMS_PER_PAGE)
-
-  return (
-    <div className="m8 m8-inbox">
-      <div className="min-h-screen bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0D12]/80 backdrop-blur-xl">
-        <div className="mx-auto max-w-3xl px-4 py-4">
-          <div className="flex items-center justify-between">
-            <a href="/member" className="text-white/60 transition-colors hover:text-white">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </a>
-            <h1 className="text-lg font-medium text-white">{t('inbox.title')}</h1>
-            <div className="w-6" />
-          </div>
-        </div>
-      </header>
-
-      <div className="mx-auto max-w-3xl px-4 py-6">
-        {loading || realtimeLoading ? (
-          <div className="flex h-32 items-center justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-          </div>
-        ) : allNotifications.length === 0 ? (
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-12 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
-              <Inbox className="h-10 w-10 text-white/30" strokeWidth={1.5} />
-            </div>
-            <p className="mt-4 text-white/60">{t('inbox.empty_state')}</p>
-          </div>
-        ) : (
-          <>
-            {/* Mark all as read button */}
-            {hasUnread && (
-              <div className="mb-4 flex justify-end">
-                <button
-                  onClick={handleMarkAllRead}
-                  disabled={isMarkingAll}
-                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-                >
-                  {isMarkingAll ? t('common.loading') || '處理中...' : t('inbox.mark_all_read')}
-                </button>
-              </div>
-            )}
-
-            {/* Notifications list */}
-            <div className="space-y-3">
-              {displayedNotifications.map((notif) => (
-                <NotificationCard
-                  key={notif.id}
-                  notification={notif}
-                  onMarkRead={() => handleMarkRead(notif.id)}
-                />
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setPage(Math.max(1, page - 1))}
-                  disabled={page === 1}
-                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-                >
-                  {t('pagination.previous')}
-                </button>
-                <span className="text-sm text-white/60">
-                  {page} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage(Math.min(totalPages, page + 1))}
-                  disabled={page === totalPages}
-                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white transition-colors hover:bg-white/10 disabled:opacity-50"
-                >
-                  {t('pagination.next')}
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-    </div>
-  )
-}
-
-// ────────────────────────────────────────────────────────────────────────────
-// § NOTIFICATION CARD
-// ────────────────────────────────────────────────────────────────────────────
-
-type NotificationCardProps = {
-  notification: Notification
-  onMarkRead: () => void
-}
-
-function NotificationCard({ notification, onMarkRead }: NotificationCardProps) {
-  const t = useTranslations()
-  const isUnread = !notification.read
-  const isCreditType = notification.type === 'credit'
-
-  const relativeTime = formatRelativeTime(new Date(notification.createdAt), t)
-
-  const content = (
-    <div className={`rounded-2xl border p-4 transition-all ${
-      isUnread
-        ? 'border-[#22c55e]/20 bg-gradient-to-br from-[#22c55e]/10 to-transparent'
-        : 'border-white/10 bg-gradient-to-br from-white/5 to-transparent'
-    }`}>
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-bold text-white">{notification.title}</h3>
-            {isUnread && <span className="h-2 w-2 rounded-full bg-[#22c55e]" />}
-          </div>
-          <p className="mt-2 text-sm text-white/70">{notification.message}</p>
-          <p className="mt-2 text-xs text-white/40">{relativeTime}</p>
-        </div>
-        {isUnread && (
-          <button
-            onClick={onMarkRead}
-            className="ml-4 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/10"
-          >
-            {t('inbox.mark_as_read')}
-          </button>
-        )}
-      </div>
-    </div>
+  const filteredItems = items.filter(item =>
+    filter === 'all' || item.type === filter
   )
 
-  // Credit notices link to wallet
-  if (isCreditType) {
+  const groupedItems = groupByDay(filteredItems)
+
+  if (loading) {
     return (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <Link href="/member/wallet">
-          <div className="cursor-pointer">{content}</div>
-        </Link>
-      </motion.div>
+      <div className="app">
+        <div className="top">
+          <span />
+          <span className="t">{t('title')}</span>
+          <span />
+        </div>
+        <div className="sticky">
+          <div className="tabs">
+            <button className="tab" aria-selected="true">{t('filterAll')}</button>
+            <button className="tab">{t('filterCredit')}</button>
+            <button className="tab">{t('filterPromo')}</button>
+            <button className="tab">{t('filterSystem')}</button>
+          </div>
+        </div>
+        <div style={{ marginTop: '24px' }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="group" style={{ marginBottom: '12px' }}>
+              <div className="row">
+                <div className="skel" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+                <div style={{ flex: 1 }}>
+                  <div className="skel" style={{ width: '60%', height: '16px', marginBottom: '8px' }} />
+                  <div className="skel" style={{ width: '40%', height: '14px' }} />
+                </div>
+                <div className="skel" style={{ width: '60px', height: '14px' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     )
   }
 
-  // Other types are non-linking
+  if (error) {
+    return (
+      <div className="app">
+        <div className="top">
+          <span />
+          <span className="t">{t('title')}</span>
+          <span />
+        </div>
+        <div className="alert" style={{ marginTop: '24px' }}>
+          <svg className="i" viewBox="0 0 24 24">
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z" />
+            <path d="M12 8v4m0 4h.01" />
+          </svg>
+          <div>
+            <h3>{t('errorTitle')}</h3>
+            <p>{t('errorMessage')}</p>
+            <button className="btn secondary sm" onClick={fetchInbox}>
+              {t('retry')}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (selectedItem) {
+    return (
+      <div className="app">
+        <div className="top">
+          <button className="icon-btn" onClick={() => setSelectedItem(null)}>
+            <svg className="i" viewBox="0 0 24 24">
+              <path d="M19 12H5m0 0l7 7m-7-7l7-7" />
+            </svg>
+          </button>
+          <span className="t">{t('detailTitle')}</span>
+          <span />
+        </div>
+        <div className="msg-detail">
+          <div className="detail-header">
+            <div className="ic">
+              {getTypeIcon(selectedItem.type)}
+            </div>
+            <div className="badge">{getTypeBadgeText(selectedItem.type, t)}</div>
+          </div>
+          <div className="detail-meta">
+            <div className="meta-row">
+              <span className="meta-label">{t('metaType')}</span>
+              <span className="meta-value">{getTypeBadgeText(selectedItem.type, t)}</span>
+            </div>
+            <div className="meta-row">
+              <span className="meta-label">{t('metaTime')}</span>
+              <span className="meta-value">{formatFullTime(selectedItem.createdAt)}</span>
+            </div>
+          </div>
+          <div className="detail-content">
+            <h2>{selectedItem.title}</h2>
+            <p>{selectedItem.message}</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-      {content}
-    </motion.div>
+    <div className="app">
+      <div className="top">
+        <span />
+        <span className="t">{t('title')}</span>
+        <span />
+      </div>
+
+      <div className="sticky">
+        <div className="tabs">
+          <button
+            className="tab"
+            aria-selected={filter === 'all'}
+            onClick={() => setFilter('all')}
+          >
+            {t('filterAll')}
+          </button>
+          <button
+            className="tab"
+            aria-selected={filter === 'credit'}
+            onClick={() => setFilter('credit')}
+          >
+            {t('filterCredit')}
+          </button>
+          <button
+            className="tab"
+            aria-selected={filter === 'promo'}
+            onClick={() => setFilter('promo')}
+          >
+            {t('filterPromo')}
+          </button>
+          <button
+            className="tab"
+            aria-selected={filter === 'system'}
+            onClick={() => setFilter('system')}
+          >
+            {t('filterSystem')}
+          </button>
+        </div>
+      </div>
+
+      {filteredItems.length === 0 ? (
+        <div className="empty">
+          <div className="ic">
+            <svg className="i" viewBox="0 0 24 24">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="m3 7 9 6 9-6" />
+            </svg>
+          </div>
+          <h3>{t('emptyTitle')}</h3>
+          <p>{t('emptyMessage')}</p>
+        </div>
+      ) : (
+        Object.entries(groupedItems).map(([dayLabel, dayItems]) => (
+          <div key={dayLabel}>
+            <div className="month">{dayLabel}</div>
+            <div className="group">
+              {dayItems.map(item => (
+                <button
+                  key={item.id}
+                  className="row msg"
+                  onClick={() => handleItemClick(item)}
+                >
+                  <div className="ic icon">
+                    {getTypeIcon(item.type)}
+                  </div>
+                  <div className="info">
+                    <div className="r-t" style={{ fontWeight: item.read ? 400 : 600 }}>
+                      {item.title}
+                      {!item.read && <span className="unread" />}
+                    </div>
+                    <div className="r-s">{truncateMessage(item.message)}</div>
+                  </div>
+                  <div className="time">
+                    <small style={{ color: 'var(--faint)', fontSize: '13px' }}>
+                      {relativeTime(item.createdAt)}
+                    </small>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
   )
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// § HELPERS
-// ────────────────────────────────────────────────────────────────────────────
-
-function formatRelativeTime(date: Date, t: any): string {
+function groupByDay(items: InboxItem[]): Record<string, InboxItem[]> {
+  const groups: Record<string, InboxItem[]> = {}
   const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffSecs = Math.floor(diffMs / 1000)
-  const diffMins = Math.floor(diffSecs / 60)
-  const diffHours = Math.floor(diffMins / 60)
-  const diffDays = Math.floor(diffHours / 24)
 
-  if (diffMins < 1) return t('time.just_now')
-  if (diffMins < 60) return t('time.minutes_ago', { count: diffMins })
-  if (diffHours < 24) return t('time.hours_ago', { count: diffHours })
-  if (diffDays < 7) return t('time.days_ago', { count: diffDays })
+  for (const item of items) {
+    const label = dayGroupLabel(item.createdAt, now)
+    if (!groups[label]) groups[label] = []
+    groups[label].push(item)
+  }
 
-  // Fallback: formatted date
-  return date.toLocaleDateString('zh-HK', {
-    month: 'short',
+  return groups
+}
+
+function getTypeIcon(type: string) {
+  switch (type) {
+    case 'credit':
+      return (
+        <svg className="i" viewBox="0 0 24 24">
+          <path d="M19 21v-4a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      )
+    case 'promo':
+      return (
+        <svg className="i" viewBox="0 0 24 24">
+          <path d="M20 12v8H4v-8m16 0V6.828a2 2 0 0 0-.586-1.414l-2.828-2.828A2 2 0 0 0 15.172 2H8.828a2 2 0 0 0-1.414.586L4.586 5.414A2 2 0 0 0 4 6.828V12m16 0H4" />
+        </svg>
+      )
+    case 'system':
+    default:
+      return (
+        <svg className="i" viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m3 7 9 6 9-6" />
+        </svg>
+      )
+  }
+}
+
+function getTypeBadgeText(type: string, t: (key: string) => string): string {
+  return t(`type${type.charAt(0).toUpperCase()}${type.slice(1)}` as never)
+}
+
+function truncateMessage(msg: string, maxLength = 60): string {
+  return msg.length > maxLength ? `${msg.slice(0, maxLength)}...` : msg
+}
+
+function formatFullTime(isoString: string): string {
+  const date = new Date(isoString)
+  const formatter = new Intl.DateTimeFormat('zh-HK', {
+    year: 'numeric',
+    month: 'numeric',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'Asia/Hong_Kong',
   })
+  return formatter.format(date)
 }
