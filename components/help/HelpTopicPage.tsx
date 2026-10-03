@@ -18,9 +18,9 @@ interface HelpTopicPageProps {
   topicId: string
   topicData: HelpTopicData
 }
-  const t = useTranslations('help')
 
 export function HelpTopicPage({ topicId, topicData }: HelpTopicPageProps) {
+  const t = useTranslations('help')
   return (
     <div style={{ background: '#f3f7f4', minHeight: '100vh' }}>
       {/* Breadcrumb */}

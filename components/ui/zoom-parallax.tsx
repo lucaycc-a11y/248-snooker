@@ -21,9 +21,14 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 
   const scales = [4, 5, 6, 5, 6.5, 6, 7];
 
-  const scaleTransforms = scales.map((scale) =>
-    useTransform(scrollYProgress, [0, 1], [1, scale])
-  );
+  const scale0 = useTransform(scrollYProgress, [0, 1], [1, scales[0]]);
+  const scale1 = useTransform(scrollYProgress, [0, 1], [1, scales[1]]);
+  const scale2 = useTransform(scrollYProgress, [0, 1], [1, scales[2]]);
+  const scale3 = useTransform(scrollYProgress, [0, 1], [1, scales[3]]);
+  const scale4 = useTransform(scrollYProgress, [0, 1], [1, scales[4]]);
+  const scale5 = useTransform(scrollYProgress, [0, 1], [1, scales[5]]);
+  const scale6 = useTransform(scrollYProgress, [0, 1], [1, scales[6]]);
+  const scaleTransforms = [scale0, scale1, scale2, scale3, scale4, scale5, scale6];
 
   return (
     <div

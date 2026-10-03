@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { CircleCheck, CircleX } from 'lucide-react'
+import type { GPClient } from '@/lib/types/google'
 
 export type GooglePayBlock = {
   date: string
@@ -42,26 +43,6 @@ const TEXT_MUTED = 'rgba(255,255,255,0.72)'
 const BORDER = 'rgba(255,255,255,0.1)'
 const DANGER = '#FF453A'
 const EASE_SPRING = 'cubic-bezier(.34,1.56,.64,1)'
-
-type GPEnvironment = 'TEST' | 'PRODUCTION'
-
-declare global {
-  interface Window {
-    google?: {
-      payments: {
-        api: {
-          PaymentsClient: new (config: { environment: GPEnvironment }) => GPClient
-        }
-      }
-    }
-  }
-}
-
-type GPClient = {
-  isReadyToPay: (req: unknown) => Promise<{ result: boolean }>
-  loadPaymentData: (req: unknown) => Promise<{ paymentMethodData: { tokenizationData: { token: string } } }>
-  createButton: (config: { onClick: () => void; buttonType?: string; buttonColor?: string }) => HTMLElement
-}
 
 type State = 'idle' | 'loading_sdk' | 'ready' | 'processing' | 'success' | 'failed' | 'unavailable'
 
@@ -108,7 +89,7 @@ export default function GooglePayPayment(props: Props) {
       return
     }
 
-    const env: GPEnvironment = process.env.NODE_ENV === 'production' ? 'PRODUCTION' : 'TEST'
+    const env: 'TEST' | 'PRODUCTION' = process.env.NODE_ENV === 'production' ? 'PRODUCTION' : 'TEST'
     const client = new window.google.payments.api.PaymentsClient({ environment: env })
     clientRef.current = client
 

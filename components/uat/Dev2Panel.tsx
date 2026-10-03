@@ -1166,7 +1166,7 @@ function QuickActionsTab() {
               {label && (
                 <>
                   {' '}
-                  with label "<strong>{label}</strong>"
+                  with label &quot;<strong>{label}</strong>&quot;
                 </>
               )}
               ?

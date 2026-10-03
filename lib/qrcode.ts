@@ -100,7 +100,7 @@ export async function generateBookingQR(
 ): Promise<{ qrCode: string | Buffer; backupCode: string; jwt: string }> {
   const opts = { ...DEFAULT_OPTIONS, ...options }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for when door validation is fixed to verify JWTs again
+  // kept for when door validation is fixed to verify JWTs again
   const jwt = signQrToken(payload)
 
   // Generate human-readable backup code (also the QR image's encoded data)
