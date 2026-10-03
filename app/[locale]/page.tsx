@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
+import { periodsToSlots } from "@/lib/ui/pricing-adapter";
 
 // ── Critical above-the-fold components (eager load) ─────────────────────────
 import Hero from "@/components/landing/Hero";
@@ -29,8 +30,8 @@ const Section5BookingNew = dynamic(
   { ssr: true }
 );
 
-const Section6Pricing = dynamic(
-  () => import("@/components/landing/Section6Pricing"),
+const PricingCards = dynamic(
+  () => import("@/components/ui/pricing-cards"),
   { ssr: true }
 );
 
@@ -44,8 +45,8 @@ const HomeFAQ = dynamic(
   { ssr: true }
 );
 
-const Directions = dynamic(
-  () => import("@/components/landing/Directions"),
+const HowToGo = dynamic(
+  () => import("@/components/landing/HowToGo"),
   { ssr: true }
 );
 
@@ -140,8 +141,14 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = getTranslations();
   const config = await getConfig();
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, config.periods);
+
+  const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
+  )}`;
+  const EMBED_URL = "https://maps.google.com/maps?q=%E9%A6%99%E6%B8%AF%E6%96%B0%E8%92%B2%E5%B4%97%E5%A4%A7%E6%9C%89%E8%A1%9732%E8%99%9F%E6%B3%B0%E5%8A%9B%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83&t=&z=17&ie=UTF8&iwloc=&output=embed";
 
   return (
     <main className="relative bg-black" style={{ isolation: "isolate" }}>
