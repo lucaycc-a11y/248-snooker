@@ -405,19 +405,24 @@ export function AppleCardsCarousel({
           marginTop: "26px",
         }}
       >
-        {items.map((_, index) => (
-          <i
-            key={index}
-            style={{
-              display: "block",
-              width: index === activeIndex ? "22px" : "7px",
-              height: "7px",
-              borderRadius: "999px",
-              background: index === activeIndex ? tokens.dotActive : tokens.dotInactive,
-              transition: "width 0.3s ease, background 0.3s ease",
-            }}
-          />
-        ))}
+        {items.map((_, index) => {
+          const isActive = index === activeIndex;
+          return (
+            <i
+              key={index}
+              style={{
+                display: "block",
+                width: "7px",
+                height: "7px",
+                borderRadius: "999px",
+                background: isActive ? tokens.dotActive : tokens.dotInactive,
+                transform: isActive ? "scaleX(3.14)" : "scaleX(1)",
+                transformOrigin: "left center",
+                transition: "transform 0.3s ease, background 0.3s ease",
+              }}
+            />
+          );
+        })}
       </div>
 
       {/* Expanded Modal */}
