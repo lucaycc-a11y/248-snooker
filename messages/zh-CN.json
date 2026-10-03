@@ -663,7 +663,13 @@
     "quick_view_details": "查看详情",
     "sending": "发送中…",
     "reschedule_previous_day": "上一日",
-    "reschedule_next_day": "下一日"
+    "reschedule_next_day": "下一日",
+    "no_upcoming_bookings": "暂无即将到来的预约",
+    "settings_change_rate_limited": "操作过于频繁，请稍后再试",
+    "settings_change_no_email": "未能发送邮件，请稍后再试",
+    "settings_change_link_sent": "验证链接已发送至您的邮箱",
+    "settings_change_resend_in": "重新发送 ({seconds}秒)",
+    "settings_change_phone": "更改电话号码"
   },
   "nav": {
     "home": "主页",
@@ -788,7 +794,8 @@
         "pending": "待确认",
         "payment_failed": "付款失败",
         "cancelled": "已取消"
-      }
+      },
+      "time_label": "时间"
     },
     "points": {
       "empty_state": "暂无积分记录",
@@ -2687,32 +2694,7 @@
     "faq_4": "优惠码与 Space Wallet 只能择一使用。",
     "faq_5": "订单退款时，已使用的金额会全数退回 Space Wallet。"
   },
-  "points": {
-    "lifetime": "累积积分",
-    "redeemable": "可兑换",
-    "converted": "已存入钱包",
-    "tier": "当前等级",
-    "deposited": "已存入钱包",
-    "title": "积分",
-    "tab_all": "全部",
-    "tab_earn": "赚取",
-    "tab_wallet": "转账",
-    "tab_back": "回赠",
-    "tab_history": "历史",
-    "type_booking": "订场赢取",
-    "type_signup": "注册奖励",
-    "type_manual": "手动调整",
-    "type_reversal": "订单反转",
-    "type_convert": "转入 Space Wallet",
-    "how_it_works": "如何运作",
-    "tier_benefits": "等级礼遇",
-    "tier_benefits_pending": "待确认",
-    "block_to_next": "达到下一级还需",
-    "points_per_dollar": "每 HK$1 赚",
-    "block_size": "每",
-    "credits_per_block": "=",
-    "no_data": "暂无交易记录"
-  },
+  "points": "积分",
   "inbox": {
     "title": "Inbox",
     "tab_all": "全部",
@@ -2817,7 +2799,7 @@
   "rescheduled_at": "Rescheduled at",
   "scan_to_check_in": "Scan to check in",
   "card_points": "Points",
-  "back": "Back",
+  "back": "返回",
   "tier_progress_title": "Tier Progress",
   "points_to_next": "points to next tier",
   "max_tier_reached": "Maximum tier reached",
@@ -2869,7 +2851,7 @@
   "notif_promo": "Promotions",
   "saved": "Saved",
   "save": "Save",
-  "loading": "Loading...",
+  "loading": "载入中...",
   "close": "Close",
   "coming_soon": "Coming Soon",
   "email_notifications": "Email Notifications",
@@ -3028,5 +3010,125 @@
   "scan_to_enter": "扫描进场",
   "spent_amount": "已花费",
   "tap_to_view_qr": "点击查看二维码",
-  "time_label": "时间"
+  "time_label": "时间",
+  "quickActions": {
+    "help": {
+      "subtitle": "帮助中心"
+    },
+    "wallet": {
+      "subtitle": "钱包"
+    },
+    "points": {
+      "subtitle": "积分"
+    },
+    "inbox": {
+      "subtitle": "收件箱"
+    }
+  },
+  "bookNow": "立即预订",
+  "viewWallet": "查看钱包",
+  "activity": "积分动态",
+  "filterLabel": "筛选积分动态",
+  "loadMore": "加载更多",
+  "earned": "获得",
+  "deducted": "扣除",
+  "lifetimePoints": "累积积分",
+  "redeemablePoints": "可兑换积分",
+  "needMore": "再累积 {{points}} 积分，自动存入 HK${{amount}}",
+  "depositedToWallet": "已存入钱包",
+  "convertedPoints": "已兑换积分",
+  "tierAmateur": "业余会员",
+  "tierCentury": "尊荣会员",
+  "tierMaximum": "极致会员",
+  "filter": {
+    "all": "全部",
+    "earn": "获得",
+    "wallet": "存入钱包",
+    "back": "扣回"
+  },
+  "txType": {
+    "booking": "预约消费",
+    "signup": "迎新礼",
+    "bonus": "奖励积分",
+    "manual": "系统调整",
+    "convert": "积分存入 Space Wallet",
+    "redeem": "兑换使用",
+    "reversal": "退款扣回"
+  },
+  "empty": {
+    "all": {
+      "title": "未有积分动态",
+      "desc": "完成第一次预约后，积分会自动累积。"
+    },
+    "earn": {
+      "title": "未有获得记录",
+      "desc": "每次付款成功后，积分会按实付金额入账。"
+    },
+    "wallet": {
+      "title": "未有存入记录",
+      "desc": "每累积 100 积分，会自动存入 HK$10 至 Space Wallet。"
+    },
+    "back": {
+      "title": "未有扣回记录",
+      "desc": "只有订单退款时，积分才会被扣回。"
+    }
+  },
+  "error": {
+    "title": "暂时未能加载积分",
+    "desc": "你的积分不受影响。请检查网络后重试，如仍然失败，请联络我们。",
+    "retry": "重试"
+  },
+  "howItWorks": {
+    "title": "积分如何运作",
+    "rule1": "每消费 HK$1 累积 1 积分，以实付金额计算（已扣除优惠码或 Space Wallet 折抵）。",
+    "rule2": "每累积 100 积分，自动存入 HK$10 至你的 Space Wallet，无需任何操作。",
+    "rule3": "当次消费所得积分于付款成功后入账，不可用于本次订单。",
+    "rule4": "使用 Space Wallet 不会减少累积积分，亦不会影响会员级别。",
+    "rule5": "新会员完成注册即送 100 积分，并自动存入 HK$10。",
+    "rule6": "订单退款时，该订单所得积分会一并扣回。"
+  },
+  "tierBenefits": {
+    "title": "等级礼遇",
+    "desc": "各级别礼遇内容待确认。目前所有级别都按实付金额每 HK$1 累积 1 积分，没有额外倍数。"
+  },
+  "balance_label": "可用余额",
+  "balance_note": "1 元 = HK$1，付款时可直接抵扣预约费用",
+  "balance_aria": "可用余额 {amount} 港元",
+  "balance_after": "结存",
+  "held_label": "结账预留中",
+  "book_now": "立即预订",
+  "view_points": "查看积分",
+  "tabs_label": "Space Wallet 记录",
+  "tab_all": "全部",
+  "tab_use": "使用",
+  "tab_in": "入账",
+  "tab_offer": "优惠",
+  "type_convert": "积分存入",
+  "type_signup": "迎新礼",
+  "type_topup": "增值",
+  "type_refund": "退款退回",
+  "type_manual": "系统调整",
+  "type_redeem": "预约折抵",
+  "type_reversal": "退款调整",
+  "convert_subtitle": "{points} 积分",
+  "booking_reference": "预约编号",
+  "empty_title": "暂无记录",
+  "empty_message": "你的钱包交易记录会显示在这里",
+  "error_title": "暂时未能载入 Space Wallet",
+  "error_message": "你的余额不受影响。请检查网络后重试，如仍然失败，请联络我们。",
+  "retry": "重试",
+  "offers_available": "可用优惠",
+  "offers_used": "已使用",
+  "offer_discount_pct": "{value}% 折扣",
+  "offer_discount_fixed": "减 HK${value}",
+  "offer_used_date": "{date} 使用",
+  "offer_saved": "已省",
+  "offers_empty_title": "暂无优惠",
+  "offers_empty_message": "有新优惠时会显示在这里",
+  "faq_title": "Space Wallet 如何运作",
+  "faq_1": "每消费 HK$1 累积 1 积分，以实付金额计算。",
+  "faq_2": "每累积 100 积分，自动存入 HK$10 至 Space Wallet，无需任何操作。",
+  "faq_3": "当次消费所得积分于付款成功后入账，不可用于本次订单。",
+  "faq_4": "优惠码与 Space Wallet 只能择一使用。",
+  "faq_5": "订单退款时，已使用的金额会全数退回 Space Wallet。"
 }

@@ -7,8 +7,10 @@
 import { Project, SyntaxKind } from 'ts-morph'
 import * as fs from 'fs'
 import * as path from 'path'
+import { routing } from '../i18n/routing'
 
-const LOCALES = ['en', 'zh-HK', 'zh-CN', 'ja']
+const LOCALES = routing.locales // Live locales only: zh-HK, zh-CN, en
+const OPTIONAL_LOCALES = ['ja'] // Stub locales: log warnings but never fail
 const MEMBER_AREA_PATHS = [
   'app/member',
   'components/member',
@@ -127,15 +129,22 @@ function main() {
   const usedKeys = extractKeys(project)
   console.log(`Found ${usedKeys.length} i18n key usages\n`)
 
-  // Load all locale files
+  // Load live locale files
   const localeKeys: Record<string, Set<string>> = {}
   for (const locale of LOCALES) {
     localeKeys[locale] = loadLocaleKeys(locale)
     console.log(`Loaded ${localeKeys[locale].size} keys from ${locale}.json`)
   }
+
+  // Load optional locale files (ja)
+  const optionalLocaleKeys: Record<string, Set<string>> = {}
+  for (const locale of OPTIONAL_LOCALES) {
+    optionalLocaleKeys[locale] = loadLocaleKeys(locale)
+    console.log(`Loaded ${optionalLocaleKeys[locale].size} keys from ${locale}.json (optional)`)
+  }
   console.log()
 
-  // Find missing keys per locale
+  // Find missing keys per live locale
   const missingByLocale: Record<string, I18nKey[]> = {}
   let totalMissing = 0
 
@@ -144,12 +153,34 @@ function main() {
     totalMissing += missingByLocale[locale].length
   }
 
+  // Find missing keys in optional locales (warnings only)
+  const missingOptional: Record<string, I18nKey[]> = {}
+  let totalMissingOptional = 0
+
+  for (const locale of OPTIONAL_LOCALES) {
+    missingOptional[locale] = usedKeys.filter(({ key }) => !optionalLocaleKeys[locale].has(key))
+    totalMissingOptional += missingOptional[locale].length
+  }
+
+  // Report optional locale warnings first
+  if (totalMissingOptional > 0) {
+    console.log(`⚠️  ${totalMissingOptional} missing keys in optional locales (non-blocking):\n`)
+
+    for (const locale of OPTIONAL_LOCALES) {
+      const missing = missingOptional[locale]
+      if (missing.length === 0) continue
+
+      console.log(`${locale}.json — ${missing.length} missing (warning only)`)
+    }
+    console.log()
+  }
+
   if (totalMissing === 0) {
-    console.log('✅ All i18n keys are defined in all locales!')
+    console.log('✅ All i18n keys are defined in all live locales!')
     process.exit(0)
   }
 
-  console.log(`❌ Found ${totalMissing} missing keys across all locales:\n`)
+  console.log(`❌ Found ${totalMissing} missing keys in live locales:\n`)
 
   for (const locale of LOCALES) {
     const missing = missingByLocale[locale]

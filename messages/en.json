@@ -663,7 +663,13 @@
     "quick_view_details": "View details",
     "sending": "Sending…",
     "reschedule_previous_day": "Previous day",
-    "reschedule_next_day": "Next day"
+    "reschedule_next_day": "Next day",
+    "no_upcoming_bookings": "No upcoming bookings",
+    "settings_change_rate_limited": "Too many requests, please try again later",
+    "settings_change_no_email": "Failed to send email, please try again later",
+    "settings_change_link_sent": "Verification link sent to your email",
+    "settings_change_resend_in": "Resend in {seconds}s",
+    "settings_change_phone": "Change Phone Number"
   },
   "nav": {
     "home": "Home",
@@ -788,7 +794,8 @@
         "pending": "Pending",
         "payment_failed": "Payment Failed",
         "cancelled": "Cancelled"
-      }
+      },
+      "time_label": "Time"
     },
     "points": {
       "empty_state": "No points history",
@@ -2685,32 +2692,7 @@
     "faq_4": "Promo codes and Space Wallet credits cannot be combined.",
     "faq_5": "When you cancel a booking, any credits used will be fully refunded to your Space Wallet."
   },
-  "points": {
-    "lifetime": "Lifetime Points",
-    "redeemable": "Redeemable",
-    "converted": "Deposited to Wallet",
-    "tier": "Current Tier",
-    "deposited": "Deposited to Wallet",
-    "title": "Points",
-    "tab_all": "All",
-    "tab_earn": "Earned",
-    "tab_wallet": "Converted",
-    "tab_back": "Reversed",
-    "tab_history": "History",
-    "type_booking": "Booking Earned",
-    "type_signup": "Signup Bonus",
-    "type_manual": "Manual Adjustment",
-    "type_reversal": "Order Reversal",
-    "type_convert": "Converted to Wallet",
-    "how_it_works": "How it works",
-    "tier_benefits": "Tier Benefits",
-    "tier_benefits_pending": "Coming Soon",
-    "block_to_next": "Points to next tier",
-    "points_per_dollar": "Points per HK$1",
-    "block_size": "Every",
-    "credits_per_block": "=",
-    "no_data": "No transactions"
-  },
+  "points": "points",
   "inbox": {
     "title": "Inbox",
     "tab_all": "All",
@@ -3026,5 +3008,125 @@
     "hours_ago": "hour(s) ago",
     "days_ago": "day(s) ago"
   },
-  "time_label": "Time"
+  "time_label": "Time",
+  "quickActions": {
+    "help": {
+      "subtitle": "Help Center"
+    },
+    "wallet": {
+      "subtitle": "Wallet"
+    },
+    "points": {
+      "subtitle": "Points"
+    },
+    "inbox": {
+      "subtitle": "Inbox"
+    }
+  },
+  "bookNow": "Book Now",
+  "viewWallet": "View Wallet",
+  "activity": "Points Activity",
+  "filterLabel": "Filter points activity",
+  "loadMore": "Load More",
+  "earned": "Earned",
+  "deducted": "Deducted",
+  "lifetimePoints": "Lifetime Points",
+  "redeemablePoints": "Redeemable Points",
+  "needMore": "Earn {{points}} more points to auto-deposit HK${{amount}}",
+  "depositedToWallet": "Deposited to Wallet",
+  "convertedPoints": "Converted Points",
+  "tierAmateur": "Amateur Member",
+  "tierCentury": "Century Member",
+  "tierMaximum": "Maximum Member",
+  "filter": {
+    "all": "All",
+    "earn": "Earned",
+    "wallet": "Deposited",
+    "back": "Deducted"
+  },
+  "txType": {
+    "booking": "Booking Purchase",
+    "signup": "Welcome Bonus",
+    "bonus": "Bonus Points",
+    "manual": "System Adjustment",
+    "convert": "Points Deposited to Space Wallet",
+    "redeem": "Redemption",
+    "reversal": "Refund Reversal"
+  },
+  "empty": {
+    "all": {
+      "title": "No Points Activity",
+      "desc": "Points will accumulate automatically after your first booking."
+    },
+    "earn": {
+      "title": "No Earned Records",
+      "desc": "Points are credited based on the actual amount paid after each successful payment."
+    },
+    "wallet": {
+      "title": "No Deposit Records",
+      "desc": "For every 100 points accumulated, HK$10 is automatically deposited to Space Wallet."
+    },
+    "back": {
+      "title": "No Deduction Records",
+      "desc": "Points are only deducted when an order is refunded."
+    }
+  },
+  "error": {
+    "title": "Unable to Load Points",
+    "desc": "Your points are not affected. Please check your network and try again. If the problem persists, please contact us.",
+    "retry": "Retry"
+  },
+  "howItWorks": {
+    "title": "How Points Work",
+    "rule1": "Earn 1 point for every HK$1 spent, calculated on the actual amount paid (after deducting promo codes or Space Wallet credits).",
+    "rule2": "For every 100 points accumulated, HK$10 is automatically deposited to your Space Wallet with no action required.",
+    "rule3": "Points earned from a purchase are credited after payment is completed and cannot be used for that order.",
+    "rule4": "Using Space Wallet does not reduce accumulated points or affect membership tier.",
+    "rule5": "New members receive 100 points upon registration, with HK$10 automatically deposited.",
+    "rule6": "When an order is refunded, the points earned from that order are deducted accordingly."
+  },
+  "tierBenefits": {
+    "title": "Tier Benefits",
+    "desc": "Tier benefits are yet to be confirmed. Currently, all tiers earn 1 point per HK$1 spent with no additional multipliers."
+  },
+  "balance_label": "Available Balance",
+  "balance_note": "1 credit = HK$1, deductible directly at checkout",
+  "balance_aria": "Available balance {amount} Hong Kong dollars",
+  "balance_after": "Balance",
+  "held_label": "Held at checkout",
+  "book_now": "Book Now",
+  "view_points": "View Points",
+  "tabs_label": "Space Wallet Records",
+  "tab_all": "All",
+  "tab_use": "Used",
+  "tab_in": "Credited",
+  "tab_offer": "Offers",
+  "type_convert": "Points Deposited",
+  "type_signup": "Welcome Gift",
+  "type_topup": "Top-up",
+  "type_refund": "Refund",
+  "type_manual": "Adjustment",
+  "type_redeem": "Booking Payment",
+  "type_reversal": "Refund Reversal",
+  "convert_subtitle": "{points} points",
+  "booking_reference": "Booking Reference",
+  "empty_title": "No Records Yet",
+  "empty_message": "Your wallet transaction history will appear here",
+  "error_title": "Unable to Load Space Wallet",
+  "error_message": "Your balance is unaffected. Please check your connection and try again. If the issue persists, contact us.",
+  "retry": "Retry",
+  "offers_available": "Available Offers",
+  "offers_used": "Used",
+  "offer_discount_pct": "{value}% off",
+  "offer_discount_fixed": "HK${value} off",
+  "offer_used_date": "Used on {date}",
+  "offer_saved": "Saved",
+  "offers_empty_title": "No Offers Yet",
+  "offers_empty_message": "New offers will appear here",
+  "faq_title": "How Space Wallet Works",
+  "faq_1": "Earn 1 point for every HK$1 spent, based on actual payment amount.",
+  "faq_2": "Every 100 points automatically converts to HK$10 in your Space Wallet—no action needed.",
+  "faq_3": "Points earned from a booking are credited after payment and cannot be used for that booking.",
+  "faq_4": "Promo codes and Space Wallet credits cannot be combined.",
+  "faq_5": "When you cancel a booking, any credits used will be fully refunded to your Space Wallet."
 }

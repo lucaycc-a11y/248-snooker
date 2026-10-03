@@ -17,7 +17,8 @@ const rootDir = path.resolve(__dirname, '..')
 const messagesDir = path.join(rootDir, 'messages')
 const fragmentsDir = path.join(messagesDir, 'fragments')
 
-const LOCALES = ['zh-HK', 'zh-CN', 'en', 'ja']
+const LOCALES = ['zh-HK', 'zh-CN', 'en']
+const OPTIONAL_LOCALES = ['ja'] // Stub locale: merge if fragments exist, but don't require them
 
 function loadJson(filePath) {
   if (!fs.existsSync(filePath)) {
@@ -59,6 +60,7 @@ function main() {
 
   console.log(`Found ${fragmentFiles.length} fragment files`)
 
+  // Merge live locales (required)
   for (const locale of LOCALES) {
     const mainFile = path.join(messagesDir, `${locale}.json`)
     let mainMessages = loadJson(mainFile)
@@ -81,6 +83,31 @@ function main() {
 
     saveJson(mainFile, mainMessages)
     console.log(`  ${locale}: saved ${Object.keys(mainMessages).length} keys`)
+  }
+
+  // Merge optional locales (best-effort, no failure if missing)
+  for (const locale of OPTIONAL_LOCALES) {
+    const mainFile = path.join(messagesDir, `${locale}.json`)
+    let mainMessages = loadJson(mainFile)
+
+    // Find all fragments for this locale
+    const localeFragments = fragmentFiles.filter(f => f.endsWith(`.${locale}.json`))
+
+    if (localeFragments.length === 0) {
+      console.log(`  ${locale}: no fragments (optional, skipped)`)
+      continue
+    }
+
+    console.log(`  ${locale}: merging ${localeFragments.length} fragments (optional)`)
+
+    for (const fragmentFile of localeFragments) {
+      const fragmentPath = path.join(fragmentsDir, fragmentFile)
+      const fragment = loadJson(fragmentPath)
+      mainMessages = deepMerge(mainMessages, fragment)
+    }
+
+    saveJson(mainFile, mainMessages)
+    console.log(`  ${locale}: saved ${Object.keys(mainMessages).length} keys (optional)`)
   }
 
   console.log('✓ i18n fragments merged')
