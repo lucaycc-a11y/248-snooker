@@ -141,7 +141,8 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const t = getTranslations();
+  const t = getTranslations("venuePage");
+  const tHome = getTranslations("homeDirections");
   const config = await getConfig();
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, config.periods);
 
@@ -149,6 +150,8 @@ export default async function Home({
     "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
   )}`;
   const EMBED_URL = "https://maps.google.com/maps?q=%E9%A6%99%E6%B8%AF%E6%96%B0%E8%92%B2%E5%B4%97%E5%A4%A7%E6%9C%89%E8%A1%9732%E8%99%9F%E6%B3%B0%E5%8A%9B%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83&t=&z=17&ie=UTF8&iwloc=&output=embed";
+
+  const directions = tHome.raw("directions") as string[];
 
   return (
     <main className="relative bg-black" style={{ isolation: "isolate" }}>
@@ -177,7 +180,23 @@ export default async function Home({
           a "了解更多" link to the full /faq page. */}
       <HomeFAQ ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" />
 
-      <Directions />
+      <HowToGo
+        theme="light"
+        heading={t("directions_title")}
+        address={tHome("address")}
+        directions={directions}
+        primaryCta={{
+          label: t("map_cta"),
+          href: MAPS_URL,
+        }}
+        secondaryCta={{
+          label: tHome("cta_book"),
+          href: "/book",
+        }}
+        map={{
+          embedUrl: EMBED_URL,
+        }}
+      />
 
       <Footer />
 

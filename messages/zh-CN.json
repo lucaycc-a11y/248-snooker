@@ -3025,5 +3025,19 @@
   "scan_to_enter": "扫描进场",
   "spent_amount": "已花费",
   "tap_to_view_qr": "点击查看二维码",
-  "time_label": "时间"
+  "time_label": "时间",
+  "quickActions": {
+    "help": {
+      "subtitle": "帮助中心"
+    },
+    "wallet": {
+      "subtitle": "钱包"
+    },
+    "points": {
+      "subtitle": "积分"
+    },
+    "inbox": {
+      "subtitle": "收件箱"
+    }
+  }
 }

@@ -3026,5 +3026,19 @@
   "scan_to_enter": "掃描進場",
   "spent_amount": "已花費",
   "tap_to_view_qr": "點擊查看二維碼",
-  "time_label": "時間"
+  "time_label": "時間",
+  "quickActions": {
+    "help": {
+      "subtitle": "幫助中心"
+    },
+    "wallet": {
+      "subtitle": "錢包"
+    },
+    "points": {
+      "subtitle": "積分"
+    },
+    "inbox": {
+      "subtitle": "收件箱"
+    }
+  }
 }

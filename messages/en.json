@@ -3023,5 +3023,19 @@
     "hours_ago": "hour(s) ago",
     "days_ago": "day(s) ago"
   },
-  "time_label": "Time"
+  "time_label": "Time",
+  "quickActions": {
+    "help": {
+      "subtitle": "Help Center"
+    },
+    "wallet": {
+      "subtitle": "Wallet"
+    },
+    "points": {
+      "subtitle": "Points"
+    },
+    "inbox": {
+      "subtitle": "Inbox"
+    }
+  }
 }
