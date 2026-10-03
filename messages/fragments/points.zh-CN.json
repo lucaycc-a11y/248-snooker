@@ -1,0 +1,78 @@
+{
+  "back": "返回",
+  "bookNow": "立即预订",
+  "viewWallet": "查看钱包",
+  "activity": "积分动态",
+  "filterLabel": "筛选积分动态",
+  "loadMore": "加载更多",
+  "points": "积分",
+  "earned": "获得",
+  "deducted": "扣除",
+
+  "lifetimePoints": "累积积分",
+  "redeemablePoints": "可兑换积分",
+  "needMore": "再累积 {{points}} 积分，自动存入 HK${{amount}}",
+  "depositedToWallet": "已存入钱包",
+  "convertedPoints": "已兑换积分",
+
+  "tierAmateur": "业余会员",
+  "tierCentury": "尊荣会员",
+  "tierMaximum": "极致会员",
+
+  "filter": {
+    "all": "全部",
+    "earn": "获得",
+    "wallet": "存入钱包",
+    "back": "扣回"
+  },
+
+  "txType": {
+    "booking": "预约消费",
+    "signup": "迎新礼",
+    "bonus": "奖励积分",
+    "manual": "系统调整",
+    "convert": "积分存入 Space Wallet",
+    "redeem": "兑换使用",
+    "reversal": "退款扣回"
+  },
+
+  "empty": {
+    "all": {
+      "title": "未有积分动态",
+      "desc": "完成第一次预约后，积分会自动累积。"
+    },
+    "earn": {
+      "title": "未有获得记录",
+      "desc": "每次付款成功后，积分会按实付金额入账。"
+    },
+    "wallet": {
+      "title": "未有存入记录",
+      "desc": "每累积 100 积分，会自动存入 HK$10 至 Space Wallet。"
+    },
+    "back": {
+      "title": "未有扣回记录",
+      "desc": "只有订单退款时，积分才会被扣回。"
+    }
+  },
+
+  "error": {
+    "title": "暂时未能加载积分",
+    "desc": "你的积分不受影响。请检查网络后重试，如仍然失败，请联络我们。",
+    "retry": "重试"
+  },
+
+  "howItWorks": {
+    "title": "积分如何运作",
+    "rule1": "每消费 HK$1 累积 1 积分，以实付金额计算（已扣除优惠码或 Space Wallet 折抵）。",
+    "rule2": "每累积 100 积分，自动存入 HK$10 至你的 Space Wallet，无需任何操作。",
+    "rule3": "当次消费所得积分于付款成功后入账，不可用于本次订单。",
+    "rule4": "使用 Space Wallet 不会减少累积积分，亦不会影响会员级别。",
+    "rule5": "新会员完成注册即送 100 积分，并自动存入 HK$10。",
+    "rule6": "订单退款时，该订单所得积分会一并扣回。"
+  },
+
+  "tierBenefits": {
+    "title": "等级礼遇",
+    "desc": "各级别礼遇内容待确认。目前所有级别都按实付金额每 HK$1 累积 1 积分，没有额外倍数。"
+  }
+}

@@ -190,7 +190,7 @@ export default function WalletPage() {
   }
 
   return (
-    <>
+    <div className="m8 m8-wallet">
       <div className="top">
         <button className="icon-btn" onClick={() => router.back()} aria-label={t('back')}>
           <svg className="i" aria-hidden="true">
@@ -491,6 +491,6 @@ export default function WalletPage() {
           </symbol>
         </defs>
       </svg>
-    </>
+    </div>
   )
 }

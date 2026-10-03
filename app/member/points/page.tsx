@@ -220,7 +220,8 @@ export default function PointsPage() {
   // ──────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="app wide" style={{ minHeight: '100vh' }}>
+    <div className="m8 m8-points">
+      <div className="app wide" style={{ minHeight: '100vh' }}>
       {/* Header */}
       <header className="top">
         <button className="icon-btn" onClick={() => router.back()} aria-label={t('common.back')}>
@@ -509,6 +510,7 @@ export default function PointsPage() {
           </motion.div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

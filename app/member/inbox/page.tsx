@@ -98,7 +98,8 @@ export default function InboxPage() {
   const totalPages = Math.ceil(allNotifications.length / ITEMS_PER_PAGE)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
+    <div className="m8 m8-inbox">
+      <div className="min-h-screen bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0D12]/80 backdrop-blur-xl">
         <div className="mx-auto max-w-3xl px-4 py-4">
@@ -177,6 +178,7 @@ export default function InboxPage() {
           </>
         )}
       </div>
+    </div>
     </div>
   )
 }
