@@ -146,7 +146,9 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
 
+  const t = await getTranslations("pricingPage");
   const config = await getConfig();
+  const slots = periodsToSlots(config.periods, (key: string) => t(key));
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, config.periods);
 
   const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -167,7 +169,15 @@ export default async function Home({
       <HomeFacilities />
       <SpacePilotScoreboardExperience />
       <Section5BookingNew />
-      <Section6Pricing periods={config.periods} />
+
+      <PricingCards
+        theme="light"
+        heading={t("hero_title")}
+        subheading={t("hero_subtitle")}
+        slots={slots}
+        featuredId={slots.reduce((best, s) => s.price < best.price ? s : best, slots[0])?.id}
+        badge={t("badge_best_value")}
+      />
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />
