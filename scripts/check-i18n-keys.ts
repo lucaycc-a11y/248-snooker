@@ -23,6 +23,26 @@ interface I18nKey {
   line: number
 }
 
+function extractNamespace(sourceFile: any): string | null {
+  // Find useTranslations('namespace') calls
+  const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression)
+
+  for (const call of callExpressions) {
+    const expr = call.getExpression()
+    if (expr.getText() !== 'useTranslations') continue
+
+    const args = call.getArguments()
+    if (args.length === 0) continue
+
+    const firstArg = args[0]
+    if (firstArg.getKind() === SyntaxKind.StringLiteral) {
+      return firstArg.getText().replace(/['"]/g, '')
+    }
+  }
+
+  return null
+}
+
 function extractKeys(project: Project): I18nKey[] {
   const keys: I18nKey[] = []
   const sourceFiles = project.getSourceFiles()
@@ -32,6 +52,9 @@ function extractKeys(project: Project): I18nKey[] {
 
     // Only scan member area files
     if (!MEMBER_AREA_PATHS.some(p => filePath.includes(p))) continue
+
+    // Extract namespace from useTranslations() call
+    const namespace = extractNamespace(sourceFile)
 
     // Find all t('key') or t("key") calls
     const callExpressions = sourceFile.getDescendantsOfKind(SyntaxKind.CallExpression)
@@ -45,7 +68,13 @@ function extractKeys(project: Project): I18nKey[] {
 
       const firstArg = args[0]
       if (firstArg.getKind() === SyntaxKind.StringLiteral) {
-        const key = firstArg.getText().replace(/['"]/g, '')
+        let key = firstArg.getText().replace(/['"]/g, '')
+
+        // Prefix with namespace if present
+        if (namespace) {
+          key = `${namespace}.${key}`
+        }
+
         keys.push({
           key,
           file: path.relative(process.cwd(), filePath),
