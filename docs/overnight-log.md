@@ -74,3 +74,102 @@ Remove Japanese (ja) locale completely - it was added as optional stub but never
 Japanese locale completely removed. Only 3 live locales remain: zh-HK (default), zh-CN, en.
 
 Phase B complete.
+
+---
+
+## Phase C - Merge Remaining Agents
+
+### Goal:
+Merge agents D (home tiles), B (points), C (inbox) in separate commits. Re-audit Agent A (wallet). Remove all invented schema names.
+
+### Agent worktrees found:
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/agent-a22d386962c8a3e6d 9fe1f77 [worktree-agent-a22d386962c8a3e6d]
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/agent-a273d46c2b1c27128 4c06749 [worktree-agent-a273d46c2b1c27128]
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/agent-a6015d7b80388003e 854017e [prompt7-qa-harness]
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/agent-a88b7e8b33dfc6dcb a9e5539 [worktree-agent-a88b7e8b33dfc6dcb]
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/agent-a9e34b4b02ed22f18 7e87535 [worktree-agent-a9e34b4b02ed22f18]
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/agent-aaaef98efb25aee44 e02c6e0 [worktree-agent-aaaef98efb25aee44]
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/agent-aef05172f0174d944 7e87535 [worktree-agent-aef05172f0174d944]
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/agent-af25b056273e6138b d6d5456 [worktree-agent-af25b056273e6138b]
+/Users/lucayau/Documents/Space8_web/.claude/worktrees/prompt7-inbox           ed81edd [prompt7-inbox]
+
+### Identifying agent worktrees by commit subject:
+=== agent-a22d386962c8a3e6d ===
+9fe1f77 feat(prompt7-inbox): Inbox page
+app/api/member/inbox/mark-read/route.ts
+app/api/member/inbox/route.ts
+app/member/inbox/page.tsx
+app/member/member-ui.css
+messages/en.json
+
+=== agent-a273d46c2b1c27128 ===
+4c06749 feat(wallet): checkout integration with apply/remove API routes
+app/api/checkout/wallet/apply/route.ts
+app/api/checkout/wallet/remove/route.ts
+components/checkout/OrderSummary.tsx
+docs/part2-ws-b-report.md
+graphify-out/cache/last_query_stamp
+
+=== agent-a6015d7b80388003e ===
+854017e feat(prompt7-qa-harness): add visual regression tests
+package.json
+scripts/update-visual-baselines.mjs
+tests/visual/baseline/.gitkeep
+tests/visual/member-pages.spec.ts
+
+=== agent-a88b7e8b33dfc6dcb ===
+a9e5539 feat(prompt7-home-tiles): add quick action tiles
+app/member/components/HorizontalActionTiles.tsx
+graphify-out/cache/last_query_stamp
+messages/fragments/home.en.json
+messages/fragments/home.ja.json
+messages/fragments/home.zh-CN.json
+
+=== agent-a9e34b4b02ed22f18 ===
+7e87535 fix(payment): increase Stripe test intent amount to meet minimum
+app/api/payment/available-methods/route.ts
+graphify-out/cache/last_query_stamp
+
+=== agent-aaaef98efb25aee44 ===
+e02c6e0 feat(prompt7-wallet): Space Wallet page
+app/api/member/wallet/offers/route.ts
+app/api/member/wallet/route.ts
+app/member/wallet/page.tsx
+messages/en.json
+messages/fragments/wallet.en.json
+
+=== agent-aef05172f0174d944 ===
+7e87535 fix(payment): increase Stripe test intent amount to meet minimum
+app/api/payment/available-methods/route.ts
+app/member/inbox/page.tsx
+graphify-out/cache/last_query_stamp
+
+=== agent-af25b056273e6138b ===
+d6d5456 feat(prompt7-points): Space Pts page
+app/api/member/points/route.ts
+app/api/member/points/transactions/route.ts
+app/member/points/PointsPageClient.tsx
+app/member/points/page.tsx
+messages/en.json
+
+=== prompt7-inbox ===
+ed81edd feat(prompt7-stage1): shared foundations
+.impeccable/config.json
+app/member/layout.tsx
+lib/ledger-types.ts
+lib/member-contracts.ts
+lib/member-format.ts
+
+
+### Agent mapping identified:
+- Agent B (points): agent-af25b056273e6138b → branch worktree-agent-af25b056273e6138b
+- Agent C (inbox): agent-a22d386962c8a3e6d → branch worktree-agent-a22d386962c8a3e6d  
+- Agent D (home tiles): agent-a88b7e8b33dfc6dcb → branch worktree-agent-a88b7e8b33dfc6dcb
+- Agent E (wallet): agent-aaaef98efb25aee44 → already integrated in Phase A
+
+### Merge order per overnight goal:
+1. Agent D (home tiles) - HorizontalActionTiles.tsx
+2. Agent B (points) - points page redesign
+3. Agent C (inbox) - inbox page redesign
+
+Starting with Agent D merge...
