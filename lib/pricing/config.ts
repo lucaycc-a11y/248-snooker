@@ -4,7 +4,7 @@
  */
 
 import { unstable_cache } from 'next/cache'
-import { createClient } from '@/lib/supabase/server'
+import { getPublicSupabase } from '@/lib/supabase/public'
 
 export type PricingPeriod = {
   id: 'morning' | 'afternoon' | 'evening'
@@ -60,7 +60,13 @@ function parsePeriods(config: Partial<PricingConfig>): PricingPeriod[] {
 
 async function getPricingRaw(): Promise<Pricing> {
   try {
-    const supabase = await createClient()
+    const supabase = getPublicSupabase()
+
+    if (!supabase) {
+      console.warn('[pricing] no public Supabase client, using defaults')
+      return DEFAULT_PRICING
+    }
+
     const { data, error } = await supabase
       .from('config')
       .select('value')
