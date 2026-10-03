@@ -10,7 +10,7 @@ import * as path from 'path'
 import { routing } from '../i18n/routing'
 
 const LOCALES = routing.locales // Live locales only: zh-HK, zh-CN, en
-const OPTIONAL_LOCALES = ['ja'] // Stub locales: log warnings but never fail
+const OPTIONAL_LOCALES: string[] = [] // No optional locales
 const MEMBER_AREA_PATHS = [
   'app/member',
   'components/member',

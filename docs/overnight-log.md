@@ -45,3 +45,32 @@ These existed before Phase A and are outside the scope of this overnight work.
 - Design hook flagged 3 colors/radius from approved design HTML files (sanctioned)
 - Points page has 2 pre-existing design issues (outside Phase A scope)
 
+
+---
+
+## Phase B - Delete Japanese Locale
+
+### Goal:
+Remove Japanese (ja) locale completely - it was added as optional stub but never populated. Only zh-HK (default), zh-CN, and en are live.
+
+### Steps:
+1. Delete messages/ja.json
+2. Delete all messages/fragments/*.ja.json files
+3. Remove 'ja' from middleware.ts locales array
+4. Remove 'ja' from i18n.ts config
+5. Remove 'ja' from any other config files
+6. Verify with grep that 'ja' only appears in natural contexts (java, jar, etc.)
+7. Test that /ja returns 404, other locales still work
+
+
+### Completed:
+1. ✓ Deleted messages/ja.json
+2. ✓ Deleted messages/fragments/*.ja.json (4 files: home, points, wallet, base)
+3. ✓ Removed 'ja' from scripts/check-i18n-keys.ts OPTIONAL_LOCALES array
+4. ✓ Verified 'ja' was never in i18n/routing.ts or middleware.ts (already only zh-HK, zh-CN, en)
+5. ✓ Build gate passed: i18n ✓, tsc ✓, lint ✓, build ✓
+
+### Result:
+Japanese locale completely removed. Only 3 live locales remain: zh-HK (default), zh-CN, en.
+
+Phase B complete.
