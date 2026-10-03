@@ -15,7 +15,7 @@ import { createClient } from "@/lib/supabase/server";
  *
  * Returns: { success: boolean, message: string, requestId?: string }
  */
-export async function POST() {
+export async function POST(req: Request) {
   try {
     const supabase = await createClient();
 
@@ -31,8 +31,21 @@ export async function POST() {
       );
     }
 
-    // Call the Supabase RPC
-    const { data, error } = await supabase.rpc("request_member_data_deletion");
+    // Parse request body for verification code
+    const body = await req.json().catch(() => ({}));
+    const verificationCode = typeof body.verificationCode === 'string' ? body.verificationCode.trim() : '';
+
+    if (!verificationCode) {
+      return NextResponse.json(
+        { success: false, message: "Verification code required" },
+        { status: 400 }
+      );
+    }
+
+    // Call the Supabase RPC with verification code
+    const { data, error } = await supabase.rpc("request_member_data_deletion", {
+      verification_code: verificationCode,
+    });
 
     if (error) {
       console.error("[delete-data] RPC error:", error);
