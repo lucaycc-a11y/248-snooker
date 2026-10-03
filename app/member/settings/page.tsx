@@ -187,9 +187,204 @@ export default function SettingsPage() {
               登出所有其他裝置
             </button>
           </section>
+
+          {/* Delete Account */}
+          <DeleteAccountSection email={profile?.email} />
         </div>
       </div>
     </div>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// § DELETE ACCOUNT SECTION
+// ────────────────────────────────────────────────────────────────────────────
+
+type DeleteAccountProps = {
+  email: string | null | undefined
+}
+
+function DeleteAccountSection({ email }: DeleteAccountProps) {
+  const router = useRouter()
+  const [showModal, setShowModal] = useState(false)
+  const [step, setStep] = useState<'confirm' | 'verify' | 'processing'>('confirm')
+  const [verificationCode, setVerificationCode] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleConfirm = () => {
+    setStep('verify')
+    setError(null)
+  }
+
+  const handleVerify = async () => {
+    if (!verificationCode.trim()) {
+      setError('請輸入驗證碼')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/member/delete-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verificationCode }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        setError(result.message || '刪除失敗，請稍後重試')
+        setLoading(false)
+        return
+      }
+
+      setStep('processing')
+      // User will be signed out by backend; redirect after brief delay
+      setTimeout(() => {
+        router.push('/auth/login?deleted=true')
+      }, 2000)
+    } catch (err) {
+      setError('發生錯誤，請稍後重試')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => {
+          setShowModal(true)
+          setStep('confirm')
+          setError(null)
+          setVerificationCode('')
+        }}
+        className="w-full rounded-xl border border-red-500/40 bg-gradient-to-r from-red-500/10 to-transparent p-4 text-center font-medium text-red-400 transition-all hover:border-red-500/60 hover:from-red-500/20"
+      >
+        刪除帳戶
+      </button>
+
+      {showModal && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setShowModal(false)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="relative max-w-md rounded-2xl border border-white/10 bg-gradient-to-br from-[#1A1F2E] to-[#0F131C] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ scale: 0.95, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute right-4 top-4 text-white/40 hover:text-white/60"
+            >
+              ✕
+            </button>
+
+            {/* Step 1: Confirmation */}
+            {step === 'confirm' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4"
+              >
+                <h2 className="text-lg font-bold text-white">確認刪除帳戶</h2>
+                <div className="space-y-3 rounded-lg bg-red-500/5 p-3 text-sm text-red-300">
+                  <p>⚠️ 此操作不可逆轉。刪除帳戶將：</p>
+                  <ul className="list-inside space-y-1 pl-2">
+                    <li>• 永久刪除您的帳戶和個人資料</li>
+                    <li>• 保留歷史預訂記錄（法律要求）</li>
+                    <li>• 取消所有未完成預訂</li>
+                    <li>• 刪除所有積分和優惠券</li>
+                  </ul>
+                </div>
+                <p className="text-sm text-white/60">已激活的預訂必須先取消。</p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 rounded-lg border border-white/10 bg-white/5 py-2 text-white transition-all hover:bg-white/10"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleConfirm}
+                    className="flex-1 rounded-lg bg-red-600 py-2 font-medium text-white transition-all hover:bg-red-700"
+                  >
+                    繼續
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 2: Verification */}
+            {step === 'verify' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4"
+              >
+                <h2 className="text-lg font-bold text-white">驗證您的身份</h2>
+                <p className="text-sm text-white/60">
+                  驗證碼已發送至 <strong className="text-white">{email}</strong>
+                </p>
+                <input
+                  type="text"
+                  placeholder="輸入驗證碼"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder-white/30 focus:border-red-500 focus:outline-none"
+                  disabled={loading}
+                />
+                {error && <p className="text-sm text-red-400">{error}</p>}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setStep('confirm')}
+                    className="flex-1 rounded-lg border border-white/10 bg-white/5 py-2 text-white transition-all hover:bg-white/10"
+                    disabled={loading}
+                  >
+                    返回
+                  </button>
+                  <button
+                    onClick={handleVerify}
+                    disabled={loading || !verificationCode.trim()}
+                    className="flex-1 rounded-lg bg-red-600 py-2 font-medium text-white transition-all hover:bg-red-700 disabled:opacity-50"
+                  >
+                    {loading ? '處理中...' : '確認刪除'}
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 3: Processing */}
+            {step === 'processing' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-4 text-center"
+              >
+                <motion.div
+                  className="mx-auto h-12 w-12 rounded-full border-2 border-green-500/30 border-t-green-500"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                />
+                <h2 className="text-lg font-bold text-white">處理中...</h2>
+                <p className="text-sm text-white/60">正在刪除您的帳戶。您將被重新導向至登入頁面。</p>
+              </motion.div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </>
   )
 }
 
