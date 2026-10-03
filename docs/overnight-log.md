@@ -217,3 +217,41 @@ Now merging Agent C (inbox)...
 
 **Build gate:** ✓ i18n check passed, tsc passed, npm run build passed
 
+
+---
+
+## Phase C Complete ✓
+
+**Summary:**
+- Phase C.1: Merged Agent D (home tiles) - HorizontalActionTiles component
+- Phase C.2: Merged Agent B (points) - PointsPageClient architecture 
+- Phase C.3: Merged Agent C (inbox) - New mark-read endpoint
+
+All agents merged with Japanese locale exclusion (already deleted in Phase B).
+All build gates passed (i18n ✓, tsc ✓, next build ✓).
+
+**Next: Phase C.4 - Re-audit Agent A (wallet)**
+
+Per overnight goal:
+> "Phase C.4: Re-audit Agent A (wallet): restore contract routes, delete transactions route, rebuild from design DOM"
+
+Checking Agent A worktree...
+
+
+## Phase C.4 - Re-audit Agent A (wallet)
+
+**Current state analysis:**
+- Agent A: `agent-aaaef98efb25aee44` - "feat(prompt7-wallet): Space Wallet page"
+- Agent A has clean structure: only /api/member/wallet/route.ts + offers/route.ts
+- Current main has extra routes: transactions/, ledger/ that shouldn't exist
+
+**Actions per overnight goal:**
+1. Delete transactions route ✗ (currently exists)
+2. Restore contract routes ✓ (route.ts uses contracts)
+3. Rebuild from design DOM (merge Agent A's clean implementation)
+
+**Plan:**
+- Replace current wallet with Agent A's implementation
+- Delete transactions/ and ledger/ directories
+- Merge wallet fragments into locale files
+
