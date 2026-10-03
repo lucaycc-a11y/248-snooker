@@ -173,3 +173,25 @@ lib/member-format.ts
 3. Agent C (inbox) - inbox page redesign
 
 Starting with Agent D merge...
+
+### Agent D merge complete ✓
+
+Now merging Agent B (points)...
+
+## Phase C.2 - Agent B (Points) ✓
+
+**Agent B branch:** `worktree-agent-af25b056273e6138b`
+
+**Commit:** "feat(prompt7-points): Space Pts page"
+
+**Files merged:**
+- app/api/member/points/route.ts
+- app/api/member/points/transactions/route.ts
+- app/member/points/PointsPageClient.tsx (NEW)
+- app/member/points/page.tsx
+- messages/fragments/points.{en,zh-CN,zh-HK}.json
+
+**Excluded:** points.ja.json (already deleted in Phase B)
+
+**Build gate:** ✓ i18n check passed, tsc passed, npm run build passed
+
