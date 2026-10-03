@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
       .from('points_ledger')
       .select('id, type, points, created_at, reference_id, note', { count: 'exact' })
       .eq('user_id', user.id)
+      .not('points', 'eq', 0) // Filter out zero-point booking placeholders
 
     // Apply filter
     if (filter === 'earn') {
@@ -59,6 +60,7 @@ export async function GET(request: NextRequest) {
       id: string
       type: string
       amount: number
+      balance_after: number
       created_at: string
       reference_id: string | null
       note: string | null
@@ -67,7 +69,7 @@ export async function GET(request: NextRequest) {
     if (filter === 'wallet' || filter === 'all') {
       const { data: creditsData, error: creditsError } = await supabase
         .from('credits_ledger')
-        .select('id, type, amount, created_at, reference_id, note')
+        .select('id, type, amount, balance_after, created_at, reference_id, note')
         .eq('user_id', user.id)
         .eq('type', 'points_converted')
         .order('created_at', { ascending: false })
@@ -86,7 +88,7 @@ export async function GET(request: NextRequest) {
         id: row.id,
         type: row.type,
         amount: row.points ?? 0,
-        balance_after: null,
+        balance_after: null, // points_ledger doesn't have balance_after
         created_at: row.created_at,
         reference_id: row.reference_id,
         note: row.note,
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
         id: row.id,
         type: row.type,
         amount: row.amount,
-        balance_after: null,
+        balance_after: row.balance_after, // credits_ledger has balance_after
         created_at: row.created_at,
         reference_id: row.reference_id,
         note: row.note,
