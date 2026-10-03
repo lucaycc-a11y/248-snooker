@@ -829,6 +829,15 @@
         "value": "rgba(24,150,135,.30)",
         "createdAt": "2026-10-03T16:26:03.014Z",
         "reason": "Extracted from approved design HTML (space-wallet.html); brand gradient overlay"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "26px",
+        "files": [
+          "components/ui/apple-cards-carousel.tsx"
+        ],
+        "createdAt": "2026-10-03T17:00:53.662Z",
+        "reason": "Apple Cards Carousel reference design - matches Apple.com card radius standard"
       }
     ]
   }
