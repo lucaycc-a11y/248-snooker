@@ -1,6 +1,8 @@
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
+import MemberIcons from '@/components/member/MemberIcons'
+import './member-ui.css'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Member Layout — Provides NextIntlClientProvider for /member route
@@ -36,6 +38,7 @@ export default async function MemberLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
+      <MemberIcons />
       {children}
     </NextIntlClientProvider>
   )

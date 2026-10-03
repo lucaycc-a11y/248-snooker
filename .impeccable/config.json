@@ -811,6 +811,24 @@
         "value": "cubic-bezier(.34, 1.56, .64, 1)",
         "createdAt": "2026-10-03T02:11:18.191Z",
         "reason": "EASE_SPRING constant used throughout app (40+ occurrences) for Framer Motion spring animations — standard spring curve, not bounce"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "menlo",
+        "createdAt": "2026-10-03T16:25:54.878Z",
+        "reason": "Extracted from approved design HTML (space-wallet.html); monospace font for member code display"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9ee6b9",
+        "createdAt": "2026-10-03T16:25:58.577Z",
+        "reason": "Extracted from approved design HTML (space-wallet.html); skeleton loading state color"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(24,150,135,.30)",
+        "createdAt": "2026-10-03T16:26:03.014Z",
+        "reason": "Extracted from approved design HTML (space-wallet.html); brand gradient overlay"
       }
     ]
   }
