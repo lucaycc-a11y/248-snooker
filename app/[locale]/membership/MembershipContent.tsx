@@ -103,7 +103,7 @@ function Reveal({
 function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
     <Velaris
-      height="min(100svh, 820px)"
+      height="100svh"
       speed={1.0}
       colors={[COLORS.green50, COLORS.green400, COLORS.green600, COLORS.dark.bg]}
       className="flex items-center justify-center px-6"
@@ -179,44 +179,92 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// § 2 — STATEMENTS (Apple One style, light background)
+// § 2 — EARN POINTS (4-card grid, light background)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const cards = [
+    {
+      number: "1",
+      title: "賺取積分",
+      body: "每消費 HK$1 累積 1 積分，新會員註冊即送 100 積分。",
+    },
+    {
+      number: "2",
+      title: "積分兌換",
+      body: "每 100 積分可直接兌換 $10 元點數。",
+    },
+    {
+      number: "3",
+      title: "使用積分",
+      body: "積分可兌換點數直接使用，後續亦可兌換指定時段折扣券、教練課程優惠等（即將推出）。",
+    },
+    {
+      number: "4",
+      title: "查看進度",
+      body: "登入會員中心，隨時查看餘額、等級進度及預訂記錄。",
+    },
+  ];
+
   return (
     <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
-      <div className="mx-auto flex max-w-4xl flex-col items-center gap-12">
-        {[1, 2, 3, 4].map((n, i) => (
-          <Reveal key={n} delay={i * 100} className="text-center">
-            <div className="space-y-2">
-              <p
-                data-cms-key={`memberIntro.pillar${n}.lead`}
-                className="text-3xl font-semibold leading-tight md:text-5xl"
-                style={{ color: COLORS.light.accent }}
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <h2
+            data-cms-key="memberIntro.earnPoints.title"
+            className="mb-12 text-center font-bold leading-tight tracking-tight md:mb-16"
+            style={{ fontSize: "clamp(1.75rem, 5vw, 3.5rem)", color: COLORS.light.text }}
+          >
+            賺取與使用積分
+          </h2>
+        </Reveal>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+          {cards.map((card, i) => (
+            <Reveal key={card.number} delay={i * 100}>
+              <div
+                className="rounded-2xl border p-6 md:rounded-3xl md:p-8"
+                style={{
+                  background: "rgba(255,255,255,0.6)",
+                  borderColor: "rgba(5,150,105,0.2)",
+                }}
               >
-                {t(`pillar${n}.lead`)}
-              </p>
-              <p
-                data-cms-key={`memberIntro.pillar${n}.body`}
-                className="text-3xl font-semibold leading-tight md:text-5xl"
-                style={{ color: COLORS.light.text }}
-              >
-                {t(`pillar${n}.body`)}
-              </p>
-            </div>
-          </Reveal>
-        ))}
+                <div
+                  className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold text-white md:mb-4 md:h-12 md:w-12 md:text-xl"
+                  style={{ background: COLORS.light.accent }}
+                >
+                  {card.number}
+                </div>
+                <h3
+                  data-cms-key={`memberIntro.earnPoints.card${card.number}.title`}
+                  className="mb-2 text-lg font-semibold md:mb-3 md:text-2xl"
+                  style={{ color: COLORS.light.text }}
+                >
+                  {card.title}
+                </h3>
+                <p
+                  data-cms-key={`memberIntro.earnPoints.card${card.number}.body`}
+                  className="text-xs leading-relaxed md:text-base"
+                  style={{ color: COLORS.light.textMuted }}
+                >
+                  {card.body}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// § 3 — MEMBER CARD (dark background, interactive flip card)
+// § 3 — MEMBER CARD (dark background, demo card + QR modal)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
 
@@ -309,7 +357,7 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
                 </div>
                 <div className="flex flex-1 items-center justify-center">
                   <div className="text-center">
-                    <p className="font-code text-xl font-semibold uppercase tracking-wide text-white">{t("card.memberNamePlaceholder")}</p>
+                    <p className="font-code text-xl font-semibold uppercase tracking-wide text-white">DEMO</p>
                     <p className="font-code mt-2 text-sm tracking-wide text-white/40">{DEMO_CODE}</p>
                   </div>
                 </div>
@@ -346,6 +394,116 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
             </p>
           </div>
         </Reveal>
+
+        {/* Learn More + CTA */}
+        <Reveal delay={300}>
+          <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              data-cms-key="memberIntro.card.learnMore"
+              className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+            >
+              了解更多
+            </button>
+            <Link
+              href="/member"
+              data-cms-key="memberIntro.card.viewMyCard"
+              className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+            >
+              查看我的會員卡
+            </Link>
+          </div>
+        </Reveal>
+
+        {/* QR Code Info Modal */}
+        {isModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <div
+              className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border p-8"
+              style={{
+                background: COLORS.dark.cardBg,
+                borderColor: COLORS.dark.cardBorder,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-white transition hover:bg-white/10"
+                aria-label="Close"
+              >
+                ×
+              </button>
+
+              <h3
+                data-cms-key="memberIntro.qrModal.title"
+                className="mb-6 text-2xl font-bold text-white md:text-3xl"
+              >
+                一個 QR Code，解鎖整個 SPACE8
+              </h3>
+
+              <p
+                data-cms-key="memberIntro.qrModal.intro"
+                className="mb-8 text-base leading-relaxed"
+                style={{ color: COLORS.dark.textMuted }}
+              >
+                專屬會員 QR Code。解鎖大門、登入智能小管家 Space Pilot，全部靠它。你的每一場戰績，也是由它記錄下來的。
+              </p>
+
+              {/* What it does */}
+              <div className="mb-8">
+                <h4 className="mb-4 text-lg font-semibold text-white">這個 QR Code 能做什麼</h4>
+                <div className="space-y-3">
+                  {[
+                    { label: "入場", desc: "解鎖大門" },
+                    { label: "包廂系統", desc: "啟動 Space Pilot 智能小管家" },
+                    { label: "戰績累積", desc: "記錄你的對戰紀錄" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <div
+                        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                        style={{ background: COLORS.dark.accent }}
+                      >
+                        {i + 1}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-white">{item.label}</p>
+                        <p className="text-sm" style={{ color: COLORS.dark.textMuted }}>{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Where to find it */}
+              <div>
+                <h4 className="mb-4 text-lg font-semibold text-white">在哪裡找到它</h4>
+                <div className="space-y-4">
+                  <div>
+                    <p className="mb-1 font-semibold text-white">登入會員網站</p>
+                    <p className="text-sm" style={{ color: COLORS.dark.textMuted }}>
+                      用手機瀏覽器開啟 www.space8.com.hk，以你的帳號登入。
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-1 font-semibold text-white">進入會員頁面</p>
+                    <p className="text-sm" style={{ color: COLORS.dark.textMuted }}>
+                      登入後點選右上角頭像或「我的會員卡」，即可進入會員頁面。
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-1 font-semibold text-white">QR Code 就在會員卡上</p>
+                    <p className="text-sm" style={{ color: COLORS.dark.textMuted }}>
+                      你的專屬 QR Code 顯示在網頁版會員卡右下角，也在確認已付款email 上，方便隨時查看
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

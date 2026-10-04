@@ -12,14 +12,15 @@ export async function GET(request: NextRequest) {
 
   // Auth check
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (authError || !user) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
-  const userId = session.user.id
+  const userId = user.id
   const { searchParams } = new URL(request.url)
   const filter = searchParams.get('filter') // 'use' | 'in'
   const cursor = searchParams.get('cursor')
