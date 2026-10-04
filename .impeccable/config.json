@@ -962,6 +962,18 @@
         "value": "#8a8a8a",
         "createdAt": "2026-10-04T10:59:07.225Z",
         "reason": "Intentional gradient endpoint for cinematic hero heading text effect (white-to-gray fade)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,158,11,0.14)",
+        "createdAt": "2026-10-04T13:23:47.415Z",
+        "reason": "amber tier glow for century membership"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(167,139,250,0.16)",
+        "createdAt": "2026-10-04T13:23:47.475Z",
+        "reason": "purple tier glow for maximum membership"
       }
     ]
   }
