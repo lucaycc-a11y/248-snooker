@@ -898,6 +898,16 @@
         "rule": "app/member/member-ui.css:389:3px",
         "value": "agent a wallet card subtle accent radius from commit b0dee56",
         "createdAt": "2026-10-04T07:01:15.119Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:418:var(--spring)",
+        "value": "design spec intentional spring easing for buttons and toasts - confirmed in docs/design/space-wallet.html l57, l108",
+        "createdAt": "2026-10-04T07:04:15.374Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:389:side-tab",
+        "value": "design spec intentional 3px side-tab for selected inbox message - active selection affordance from docs/design/space-wallet.html",
+        "createdAt": "2026-10-04T07:04:28.611Z"
       }
     ]
   }
