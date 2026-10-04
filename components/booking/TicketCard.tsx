@@ -525,7 +525,7 @@ export function TicketCard({
                 {t_ticket("booking_ref")} {displayCode}
               </div>
 
-              <div style={{ display: "flex", gap: 12, position: "relative" }}>
+              <div style={{ display: "flex", gap: 12, position: "relative", overflow: "visible", zIndex: 40 }}>
                 <button
                   type="button"
                   onClick={handleAddCalendar}
@@ -533,6 +533,7 @@ export function TicketCard({
                   data-cms-key="book.ticket.add-calendar"
                   style={{
                     flex: 1,
+                    minWidth: 0,
                     height: 44,
                     display: "flex",
                     alignItems: "center",
@@ -547,7 +548,7 @@ export function TicketCard({
                     cursor: "pointer",
                   }}
                 >
-                  <CalendarPlus size={15} />
+                  <CalendarPlus size={15} style={{ flexShrink: 0 }} />
                   {t_ticket("add_calendar")}
                 </button>
                 <button
@@ -560,6 +561,7 @@ export function TicketCard({
                   aria-expanded={shareOpen}
                   style={{
                     flex: 1,
+                    minWidth: 0,
                     height: 44,
                     display: "flex",
                     alignItems: "center",
@@ -575,7 +577,7 @@ export function TicketCard({
                     opacity: shareBusy ? 0.55 : 1,
                   }}
                 >
-                  <Share2 size={15} />
+                  <Share2 size={15} style={{ flexShrink: 0 }} />
                   {shareBusy ? t_ticket("share_loading") : t_ticket("share")}
                 </button>
 

@@ -5,32 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import QRCodeLib from 'qrcode'
 import { X } from 'lucide-react'
 
-// Logo loaded from public directory using a properly encoded SVG data URI.
-// Browser compatibility: use charset=utf-8 with encodeURIComponent instead of base64
-// to avoid nested data URI rendering issues in Safari and some mobile browsers.
-let SPACE8_QR_LOGO_DATA_URI = ''
-
-async function loadLogoDataUri(): Promise<string> {
-  if (SPACE8_QR_LOGO_DATA_URI) return SPACE8_QR_LOGO_DATA_URI
-
-  try {
-    const response = await fetch('/logos/logo-white-mark.svg')
-    const logoSvg = await response.text()
-
-    // Encode SVG for embedding: replace quotes, compress whitespace
-    const escapedSvg = logoSvg
-      .replace(/"/g, "'")
-      .replace(/\s+/g, ' ')
-      .trim()
-
-    SPACE8_QR_LOGO_DATA_URI = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(escapedSvg)}`
-    return SPACE8_QR_LOGO_DATA_URI
-  } catch {
-    // Logo failed to load; QR will render without it
-    return ''
-  }
-}
-
 const SPRING = { type: 'spring', stiffness: 320, damping: 30 } as const
 
 async function renderQrDataUrl(data: string): Promise<string> {
@@ -41,17 +15,8 @@ async function renderQrDataUrl(data: string): Promise<string> {
     color: { dark: '#0a0a0a', light: '#ffffff' },
   })
 
-  const logoDataUri = await loadLogoDataUri()
-  if (!logoDataUri) {
-    // No logo available; return plain QR
-    return `data:image/svg+xml;base64,${btoa(svg)}`
-  }
-
-  const brandedSvg = svg.replace(
-    '</svg>',
-    `<rect x="42.5%" y="42.5%" width="15%" height="15%" rx="3" fill="#ffffff"/><image href="${logoDataUri}" x="44%" y="44%" width="12%" height="12%" preserveAspectRatio="xMidYMid meet"/></svg>`,
-  )
-  return `data:image/svg+xml;base64,${btoa(brandedSvg)}`
+  // Return plain QR code without logo overlay for better scannability
+  return `data:image/svg+xml;base64,${btoa(svg)}`
 }
 
 /**

@@ -1,37 +1,5 @@
 import QRCode from 'qrcode'
 import { signQrToken, humanReadableCode, type QrPayload } from './qr/jwt'
-import { readFileSync } from 'fs'
-import { join } from 'path'
-
-// Logo as PNG data URI — converted from SVG to ensure cross-browser compatibility.
-// The nested SVG data URI approach fails in some browsers; a rasterized PNG always works.
-let SPACE8_LOGO_PNG_DATA_URI: string | null = null
-
-function getLogoPngDataUri(): string {
-  if (SPACE8_LOGO_PNG_DATA_URI) return SPACE8_LOGO_PNG_DATA_URI
-
-  // In production/build, use the pre-converted PNG from public/logos
-  // In dev, fall back to reading the SVG and converting it
-  try {
-    const logoPath = join(process.cwd(), 'public', 'logos', 'logo-white-mark.svg')
-    const logoSvg = readFileSync(logoPath, 'utf-8')
-
-    // For now, use the SVG directly with proper encoding
-    // Browser compatibility: use xmlns explicitly and ensure proper escaping
-    const escapedSvg = logoSvg
-      .replace(/"/g, "'")
-      .replace(/\s+/g, ' ')
-      .trim()
-
-    SPACE8_LOGO_PNG_DATA_URI = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(escapedSvg)}`
-    return SPACE8_LOGO_PNG_DATA_URI
-  } catch {
-    // Fallback: return empty string if logo can't be loaded
-    // QR will still work, just without the logo
-    SPACE8_LOGO_PNG_DATA_URI = ''
-    return ''
-  }
-}
 
 // Unified QR code generation for SPACE8.
 // Generates scannable QR codes as data URLs or buffers for:
@@ -133,13 +101,12 @@ export async function generateMemberQR(
 }
 
 /**
- * Generate a branded member QR code as a data:image/svg+xml;base64 URL with
- * the SPACE8 logo centered. Uses error correction level 'H' (30%) so the logo
- * overlay does not compromise scannability.
+ * Generate a member QR code as a data URI.
+ * Returns a plain QR code without logo overlay for maximum scannability.
  *
  * @param memberCode - Member code from users.member_code
- * @param width - SVG canvas size in pixels (default 400)
- * @returns Branded QR as a data URI string
+ * @param width - QR canvas size in pixels (default 400)
+ * @returns QR as a data URI string
  */
 export async function generateMemberQRWithLogo(
   memberCode: string,
@@ -153,17 +120,8 @@ export async function generateMemberQRWithLogo(
     color: { dark: '#0a0a0a', light: '#ffffff' },
   })
 
-  const logoDataUri = getLogoPngDataUri()
-  if (!logoDataUri) {
-    // Logo failed to load; return QR without logo
-    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
-  }
-
-  const brandedSvg = svg.replace(
-    '</svg>',
-    `<rect x="42.5%" y="42.5%" width="15%" height="15%" rx="3" fill="#ffffff"/><image href="${logoDataUri}" x="44%" y="44%" width="12%" height="12%" preserveAspectRatio="xMidYMid meet"/></svg>`,
-  )
-  return `data:image/svg+xml;base64,${Buffer.from(brandedSvg).toString('base64')}`
+  // Return plain QR code as SVG data URI (no logo overlay for better scannability)
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
 }
 
 /**
