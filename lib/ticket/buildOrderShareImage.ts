@@ -54,7 +54,7 @@ export async function buildOrderShareImage(
 
   // Helper: draw mixed-font parts centered on one baseline
   const centerMixed = (
-    parts: Array<{ text: string; font: string; color: string }>,
+    parts: Array<{ text: string; font: string; color: string; w?: number }>,
     y: number
   ) => {
     ctx.textBaseline = "middle"
@@ -70,7 +70,7 @@ export async function buildOrderShareImage(
       ctx.font = p.font
       ctx.fillStyle = p.color
       ctx.fillText(p.text, x, y)
-      x += p.w
+      x += p.w ?? 0
     }
   }
 
