@@ -28,13 +28,18 @@ gsap.registerPlugin(ScrollTrigger);
 // Items with a `point` index are drum cards; others are ring-only.
 import manifest from "@/public/images/space8-about-photos/manifest.json";
 
-const ITEMS: SpaceWheelItem[] = manifest.items.map((item) => {
+// Photo mapping for the 3 points: [專業, 科技, 空間] → [about-08, about-04, about-06]
+const POINT_PHOTO_INDICES = [7, 3, 5] as const; // indices into manifest.items
+
+const ITEMS: SpaceWheelItem[] = manifest.items.map((item, idx) => {
+  const pointIdx = POINT_PHOTO_INDICES.indexOf(idx as never);
   return {
     title: item.title,
     description: item.description,
     image: `/images/space8-about-photos/${item.file.replace(/\.jpg$/, ".webp")}`,
     alt: item.alt,
-    // All 8 photos are ring-only; no point/drum items
+    // Only the 3 point photos have a point index; others are ring-only
+    point: pointIdx >= 0 ? pointIdx : undefined,
   };
 });
 
@@ -298,16 +303,19 @@ export function SpaceWheelSection() {
     cardHeight: 0,
   });
 
-  // No point items; all 8 photos are ring-only
+  // 3 point items in the drum; 8 total items in the ring
+  const pointCount = 3;
+  const totalCount = ITEMS.length;
+
   useEffect(() => {
     const runway = runwayRef.current;
     const stage = stageRef.current;
     if (!runway || !stage) return;
 
-    // Map scroll progress 0→1 to turn 0→1 (ring at 0, fully faded at 1).
-    // Runway height: 2 × 100svh gives enough scroll distance to fade ring.
+    // Map scroll progress 0→1 to turn 0→4 (ring at 0, points 0-2 at turns 1-3, release at 4).
+    // Runway height: (pointCount + 2) × 100svh gives GSAP enough scroll distance.
     const tween = gsap.to(turnRef, {
-      current: 1,
+      current: pointCount + 1,
       ease: "none",
       scrollTrigger: {
         trigger: runway,
@@ -330,7 +338,7 @@ export function SpaceWheelSection() {
         if (st.trigger === runway) st.kill();
       });
     };
-  }, []);
+  }, [pointCount]);
 
   // Centre block fit procedure (runs on resize and fallback changes)
   useEffect(() => {
@@ -391,10 +399,10 @@ export function SpaceWheelSection() {
   }, []);
 
   return (
-    // Runway height: 2 × 100svh gives GSAP enough scroll distance to fade the ring.
+    // Runway height: (pointCount + 2) × 100svh gives GSAP enough scroll distance.
     <div
       ref={runwayRef}
-      style={{ height: `200svh`, background: "#ffffff" }}
+      style={{ height: `${pointCount + 2}00svh`, background: "#ffffff" }}
       className="relative"
     >
       {/* Sticky stage — fills viewport minus nav, GSAP pins it */}

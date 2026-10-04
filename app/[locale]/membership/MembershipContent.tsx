@@ -179,80 +179,52 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// § 2 — EARN POINTS (4-card grid, light background)
+// § 2 — STATEMENTS (Apple One style, light background)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
-  const cards = [
+  const statements = [
     {
-      number: "1",
-      title: "賺取積分",
-      body: "每消費 HK$1 累積 1 積分，新會員註冊即送 100 積分。",
+      lead: "消費即賺分",
+      body: "每 HK$1 = 1 積分，自動累積",
     },
     {
-      number: "2",
-      title: "積分兌換",
-      body: "每 100 積分可直接兌換 $10 元點數。",
+      lead: "積分當錢使",
+      body: "100 積分 = HK$10 場地抵用額，即將推出。",
     },
     {
-      number: "3",
-      title: "使用積分",
-      body: "積分可兌換點數直接使用，後續亦可兌換指定時段折扣券、教練課程優惠等（即將推出）。",
+      lead: "新會員獎賞",
+      body: "註冊即送 100 積分迎新禮遇",
     },
     {
-      number: "4",
-      title: "查看進度",
-      body: "登入會員中心，隨時查看餘額、等級進度及預訂記錄。",
+      lead: "全預約制，QR 自助入場",
+      body: "網上預訂，掃碼開門，簡單安全",
     },
   ];
 
   return (
     <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
-      <div className="mx-auto max-w-6xl">
-        <Reveal>
-          <h2
-            data-cms-key="memberIntro.earnPoints.title"
-            className="mb-12 text-center font-bold leading-tight tracking-tight md:mb-16"
-            style={{ fontSize: "clamp(1.75rem, 5vw, 3.5rem)", color: COLORS.light.text }}
-          >
-            賺取與使用積分
-          </h2>
-        </Reveal>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-          {cards.map((card, i) => (
-            <Reveal key={card.number} delay={i * 100}>
-              <div
-                className="rounded-2xl border p-6 md:rounded-3xl md:p-8"
-                style={{
-                  background: "rgba(255,255,255,0.6)",
-                  borderColor: "rgba(5,150,105,0.2)",
-                }}
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-8 md:gap-12">
+        {statements.map((statement, i) => (
+          <Reveal key={i} delay={i * 100} className="text-center">
+            <div className="space-y-2">
+              <p
+                data-cms-key={`memberIntro.statement${i + 1}.lead`}
+                className="text-2xl font-semibold leading-tight md:text-4xl lg:text-5xl"
+                style={{ color: COLORS.light.accent }}
               >
-                <div
-                  className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full text-lg font-bold text-white md:mb-4 md:h-12 md:w-12 md:text-xl"
-                  style={{ background: COLORS.light.accent }}
-                >
-                  {card.number}
-                </div>
-                <h3
-                  data-cms-key={`memberIntro.earnPoints.card${card.number}.title`}
-                  className="mb-2 text-lg font-semibold md:mb-3 md:text-2xl"
-                  style={{ color: COLORS.light.text }}
-                >
-                  {card.title}
-                </h3>
-                <p
-                  data-cms-key={`memberIntro.earnPoints.card${card.number}.body`}
-                  className="text-xs leading-relaxed md:text-base"
-                  style={{ color: COLORS.light.textMuted }}
-                >
-                  {card.body}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+                {statement.lead}
+              </p>
+              <p
+                data-cms-key={`memberIntro.statement${i + 1}.body`}
+                className="text-2xl font-semibold leading-tight md:text-4xl lg:text-5xl"
+                style={{ color: COLORS.light.text }}
+              >
+                {statement.body}
+              </p>
+            </div>
+          </Reveal>
+        ))}
       </div>
     </section>
   );
