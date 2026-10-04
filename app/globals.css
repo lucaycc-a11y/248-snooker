@@ -50,6 +50,17 @@
   --duration-fast: 150ms;
   --duration-base: 250ms;
   --duration-slow: 380ms;
+
+  /* Tier colors (PREMIER = amateur tier blue-purple) */
+  --tier-premier-from: #667eea;
+  --tier-premier-to: #764ba2;
+  --tier-premier-from-alpha: rgba(102, 126, 234, 0.4);
+  --tier-premier-to-alpha: rgba(118, 75, 162, 0.4);
+  --tier-premier-border: rgba(102, 126, 234, 0.5);
+  --tier-premier-border-hover: rgba(102, 126, 234, 0.7);
+  --tier-premier-badge-bg: rgba(102, 126, 234, 0.2);
+  --tier-premier-badge-text: #a5b4fc;
+  --tier-premier-badge-border: rgba(102, 126, 234, 0.4);
 }
 
 /* Keep text rasterization stable while animated wrappers move. This is in the

@@ -33,9 +33,28 @@ function MembershipCard({
         onClick={() => setIsOpen(true)}
         className={`relative flex flex-col items-start gap-4 p-8 rounded-3xl border transition-all duration-300 hover:scale-[1.02] ${
           featured
-            ? "bg-gradient-to-br from-amber-900/40 to-orange-900/40 border-amber-700/50 shadow-lg"
+            ? "bg-gradient-to-br shadow-lg hover:shadow-xl"
             : "bg-gray-900 border-gray-700 hover:border-gray-600"
         }`}
+        style={
+          featured
+            ? {
+                backgroundImage:
+                  "linear-gradient(to bottom right, var(--tier-premier-from-alpha), var(--tier-premier-to-alpha))",
+                borderColor: "var(--tier-premier-border)",
+              }
+            : undefined
+        }
+        onMouseEnter={(e) => {
+          if (featured) {
+            e.currentTarget.style.borderColor = "var(--tier-premier-border-hover)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (featured) {
+            e.currentTarget.style.borderColor = "var(--tier-premier-border)";
+          }
+        }}
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.98 }}
       >
@@ -44,14 +63,23 @@ function MembershipCard({
             className={`absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-full ${
               badgeDim
                 ? "bg-gray-800 text-gray-400"
-                : "bg-amber-500/20 text-amber-300"
+                : ""
             }`}
+            style={
+              !badgeDim
+                ? {
+                    backgroundColor: "var(--tier-premier-badge-bg)",
+                    color: "var(--tier-premier-badge-text)",
+                    border: "1px solid var(--tier-premier-badge-border)",
+                  }
+                : undefined
+            }
           >
             {badge}
           </span>
         )}
 
-        <div className="text-gray-300">{icon}</div>
+        <div className={featured ? "text-indigo-300" : "text-gray-300"}>{icon}</div>
 
         <div className="flex flex-col items-start gap-2 text-left">
           <h3 className="text-2xl font-bold text-white">{title}</h3>
