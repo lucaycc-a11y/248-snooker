@@ -169,7 +169,11 @@ export default function InboxPage() {
     <div className="m8 m8-inbox">
       <main className="app">
         <div className="top">
-          <span />
+          <button className="icon-btn" onClick={() => window.location.href = '/member'}>
+            <svg className="i" viewBox="0 0 24 24">
+              <path d="M19 12H5m0 0l7 7m-7-7l7-7" />
+            </svg>
+          </button>
           <span className="t">{t('title')}</span>
           <span />
         </div>

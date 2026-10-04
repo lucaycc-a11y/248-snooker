@@ -245,7 +245,7 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                               <div
                                 className="absolute left-1/2 top-1/2 flex h-[36px] w-[56px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
                                 style={{
-                                  backgroundColor: '#0071e3',
+                                  backgroundColor: '#16a34a',
                                   transform: `translate(-50%, -50%) translateX(${(dividerPosition - 50) * 2}%)`,
                                 }}
                               >
@@ -297,7 +297,8 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                         src={images.infinity.image}
                         alt={images.infinity.alt}
                         fill
-                        className="object-cover"
+                        className="object-contain"
+                        style={{ aspectRatio: '4/3' }}
                         sizes="60vw"
                         priority={activePill === pills[0].id}
                         onError={(e) => {
@@ -313,7 +314,8 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                         src={images.eternity.image}
                         alt={images.eternity.alt}
                         fill
-                        className="object-cover"
+                        className="object-contain"
+                        style={{ aspectRatio: '4/3' }}
                         sizes="60vw"
                         priority={activePill === pills[0].id}
                         onError={(e) => {
@@ -371,17 +373,21 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                   </>
                 ) : (
                   sharedImage && (
-                    <Image
-                      src={sharedImage.image}
-                      alt={sharedImage.alt}
-                      fill
-                      className="object-cover"
-                      sizes="60vw"
-                      onError={(e) => {
-                        console.error(`Image failed to load: ${sharedImage.image}`)
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
+                    <div className="absolute inset-0 flex items-center justify-center p-8">
+                      <div className="relative" style={{ width: '70%', aspectRatio: '4/3' }}>
+                        <Image
+                          src={sharedImage.image}
+                          alt={sharedImage.alt}
+                          fill
+                          className="object-contain"
+                          sizes="60vw"
+                          onError={(e) => {
+                            console.error(`Image failed to load: ${sharedImage.image}`)
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
                   )
                 )}
               </motion.div>
@@ -425,7 +431,8 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                         src={images.infinity.image}
                         alt={images.infinity.alt}
                         fill
-                        className="object-cover"
+                        className="object-contain"
+                        style={{ aspectRatio: '4/3' }}
                         sizes="100vw"
                         onError={(e) => {
                           console.error(`Image failed to load: ${images.infinity.image}`)
@@ -438,7 +445,8 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                         src={images.eternity.image}
                         alt={images.eternity.alt}
                         fill
-                        className="object-cover"
+                        className="object-contain"
+                        style={{ aspectRatio: '4/3' }}
                         sizes="100vw"
                         onError={(e) => {
                           console.error(`Image failed to load: ${images.eternity.image}`)
@@ -489,17 +497,21 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                   </>
                 ) : (
                   sharedImage && (
-                    <Image
-                      src={sharedImage.image}
-                      alt={sharedImage.alt}
-                      fill
-                      className="object-cover"
-                      sizes="100vw"
-                      onError={(e) => {
-                        console.error(`Image failed to load: ${sharedImage.image}`)
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
+                    <div className="absolute inset-0 flex items-center justify-center p-8">
+                      <div className="relative" style={{ width: '70%', aspectRatio: '4/3' }}>
+                        <Image
+                          src={sharedImage.image}
+                          alt={sharedImage.alt}
+                          fill
+                          className="object-contain"
+                          sizes="100vw"
+                          onError={(e) => {
+                            console.error(`Image failed to load: ${sharedImage.image}`)
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      </div>
+                    </div>
                   )
                 )}
               </motion.div>

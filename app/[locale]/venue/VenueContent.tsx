@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { CloudRain } from "lucide-react";
+import { CloudRain, Calendar, Wind, Focus } from "lucide-react";
 import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
 import { RoomViewer } from "@/components/ui/RoomViewer";
 import { ThreePoints } from "@/components/ui/ThreePoints";
@@ -82,12 +82,27 @@ export default function VenueContent() {
     t("notes_item_06"),
   ];
 
-  // Why Us items for ThreePoints
-  const whyUsItems = tVenue.raw("whyUs.items") as Array<{
-    before: string;
-    accent: string;
-    after: string;
-  }>;
+  // Why Us items for ThreePoints with icons
+  const whyUsItems = [
+    {
+      before: "網上預訂，",
+      accent: "自助入場",
+      after: "。",
+      icon: <Calendar size={48} strokeWidth={1.5} />,
+    },
+    {
+      before: "",
+      accent: "全面禁煙",
+      after: "，定期清潔。",
+      icon: <Wind size={48} strokeWidth={1.5} />,
+    },
+    {
+      before: "",
+      accent: "零打擾，全專註",
+      after: "。",
+      icon: <Focus size={48} strokeWidth={1.5} />,
+    },
+  ];
 
   return (
     <div>

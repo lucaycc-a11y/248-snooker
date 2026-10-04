@@ -560,7 +560,7 @@ export default function MemberDashboard({
                   )}
                 </>
               )}
-              {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} />}
+              {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} tierId={tierId} />}
               {tab === "settings" && <SettingsTab user={user} bookings={bookings} onSignOut={signOut} />}
               {tab === "access" && (
                 <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
@@ -1490,7 +1490,7 @@ const POINTS_CATEGORY_STYLE: Record<
   manual: { icon: <Sparkles size={14} strokeWidth={2} />, color: SUBTLE },
 };
 
-function PointsTab({ points, balance, locale }: { points: import("@/lib/data/getMember").PointsEntry[]; balance: number; locale: string }) {
+function PointsTab({ points, balance, locale, tierId }: { points: import("@/lib/data/getMember").PointsEntry[]; balance: number; locale: string; tierId: string }) {
   const t = useTranslations("memberPage");
   const earn = t.raw("points_earn") as string[];
   const [totalConverted, setTotalConverted] = useState<number | null>(null);
@@ -1539,7 +1539,7 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
 
   return (
     <div>
-      {/* 優越會員 badge + Redeemable balance */}
+      {/* Tier badge + Redeemable and Redeemed points */}
       <div style={{ marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
           <span style={{
@@ -1551,7 +1551,7 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
             borderRadius: 12,
             fontFamily: "var(--gt)"
           }}>
-            優越會員
+            {tierLabel(tierId, locale)}
           </span>
         </div>
 
@@ -1581,6 +1581,23 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
         <div style={{ fontSize: "11px", color: SUBTLE, marginTop: "4px", textAlign: "right" }}>
           {100 - redeemableInRange} pts 至下一次兌換
         </div>
+
+        {/* Redeemed points display */}
+        {totalConverted !== null && totalConverted > 0 && (
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            marginTop: "16px",
+            paddingTop: "16px",
+            borderTop: `1px solid ${BORDER}`
+          }}>
+            <span style={{ fontSize: "14px", color: SUBTLE }}>已兌換積分</span>
+            <span className="font-code" style={{ fontSize: "20px", color: SUBTLE, letterSpacing: "0.02em" }}>
+              {totalConverted.toLocaleString()} <span style={{ fontSize: "12px", fontFamily: FONT_FAMILY }}>pts</span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Conversion notification */}

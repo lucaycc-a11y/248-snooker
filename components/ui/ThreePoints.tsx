@@ -8,6 +8,7 @@ interface ThreePointItem {
   before: string
   accent: string
   after: string
+  icon?: ReactNode
 }
 
 export interface ThreePointsProps {
@@ -95,6 +96,16 @@ export function ThreePoints({
                   }`,
                 }}
               >
+                {isObject && item.icon && (
+                  <div
+                    className="mb-6 inline-flex"
+                    style={{
+                      color: accentColor,
+                    }}
+                  >
+                    {item.icon}
+                  </div>
+                )}
                 <p
                   className="font-sans text-xl font-medium leading-snug md:text-2xl md:leading-snug lg:text-[28px] lg:leading-tight"
                   style={{
