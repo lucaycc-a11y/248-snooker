@@ -1012,6 +1012,16 @@
         "rule": "design-system-color",
         "value": "rgba(22,163,74,0.1) app/[locale]/venue/venuecontent.tsx",
         "createdAt": "2026-10-04T14:50:54.064Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#16a34a green-600 token used for cta and accent elements",
+        "createdAt": "2026-10-04T15:39:24.069Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22, 163, 74, 0.15) green-600 with 15% opacity for hover states",
+        "createdAt": "2026-10-04T15:39:24.111Z"
       }
     ]
   }
