@@ -41,7 +41,7 @@ import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
 import { Logo } from "@/components/brand";
 import { HelpCentre } from "@/components/help/HelpCentre";
-import { MemberCardPremier } from "@/member/components/MemberCardPremier";
+import { MemberCardPremier } from "./components/MemberCardPremier";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
