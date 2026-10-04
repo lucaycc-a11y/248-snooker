@@ -8,6 +8,7 @@ import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
 import { RoomViewer } from "@/components/ui/RoomViewer";
 import { ThreePoints } from "@/components/ui/ThreePoints";
 import HowToGo from "@/components/landing/HowToGo";
+import { AppleButton } from "@/components/ui/AppleButton";
 import { tokens } from "@/app/styles/tokens";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -16,6 +17,7 @@ const VIEWPORT = { once: true, amount: 0.25 } as const;
 export default function VenueContent() {
   const t = useTranslations("venuePage");
   const tVenue = useTranslations("venue");
+  const tButton = useTranslations("ui.button");
 
   const [periods, setPeriods] = useState<any[]>([]);
 
@@ -397,6 +399,15 @@ export default function VenueContent() {
                       / 小時
                     </span>
                   </div>
+                  <AppleButton
+                    variant="primary"
+                    size="md"
+                    theme="dark"
+                    accent={period.accent_color}
+                    href="/book"
+                  >
+                    {tButton("book_now")}
+                  </AppleButton>
                 </motion.div>
               ))}
             </div>

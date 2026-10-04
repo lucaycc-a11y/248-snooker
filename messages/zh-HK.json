@@ -3304,5 +3304,12 @@
       "body": "獨立包廂，自助入場，全天開放。"
     }
   },
+  "ui": {
+    "button": {
+      "book_now": "立即預訂",
+      "map_navigation": "Google Maps 導航",
+      "learn_more": "了解更多"
+    }
+  },
   "file": "messages/zh-HK.json"
 }
