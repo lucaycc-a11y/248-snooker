@@ -1571,10 +1571,11 @@ function PointsTab({ points, balance, locale }: { points: import("@/lib/data/get
           overflow: "hidden"
         }}>
           <div style={{
-            width: `${progressPercent}%`,
+            transform: `scaleX(${progressPercent / 100})`,
+            transformOrigin: "left",
             height: "100%",
             background: GREEN,
-            transition: "width 0.3s ease"
+            transition: "transform 0.3s ease"
           }} />
         </div>
         <div style={{ fontSize: "11px", color: SUBTLE, marginTop: "4px", textAlign: "right" }}>
