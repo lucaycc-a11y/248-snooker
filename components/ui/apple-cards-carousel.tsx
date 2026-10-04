@@ -12,6 +12,11 @@ type CarouselItem = {
   title: string;
   caption: ReactNode;
   detail?: ReactNode;
+  media?: {
+    fit?: "cover" | "contain";
+    padding?: string;
+    background?: string;
+  };
 };
 
 type AppleCardsCarouselProps = {
@@ -292,7 +297,7 @@ export function AppleCardsCarousel({
               borderRadius: "26px",
               overflow: "hidden",
               scrollSnapAlign: index === 0 ? "center" : "start",
-              background: tokens.surface,
+              background: item.media?.background ?? tokens.surface,
               transform: "translateZ(0)",
               transition: "transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1)",
               cursor: "pointer",
@@ -303,7 +308,10 @@ export function AppleCardsCarousel({
               alt={item.alt}
               fill
               sizes="(max-width: 768px) 78vw, 372px"
-              style={{ objectFit: "cover" }}
+              style={{
+                objectFit: item.media?.fit ?? "cover",
+                padding: item.media?.padding ?? "0",
+              }}
             />
             <div
               style={{

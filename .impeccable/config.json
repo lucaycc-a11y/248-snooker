@@ -944,6 +944,18 @@
         ],
         "createdAt": "2026-10-04T08:08:01.328Z",
         "reason": "Member card holographic parallax layers from reference design member-card (1).html - intentional premium card aesthetic with mesh gradients, foil sweep, rim light"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(88, 28, 135, 0.32)",
+        "createdAt": "2026-10-04T09:10:37.792Z",
+        "reason": "Space Pilot iPad glow effect - intentional purple-to-blue gradient matching device screen"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(37, 99, 235, 0.18)",
+        "createdAt": "2026-10-04T09:10:42.680Z",
+        "reason": "Space Pilot iPad glow effect - intentional purple-to-blue gradient matching device screen"
       }
     ]
   }

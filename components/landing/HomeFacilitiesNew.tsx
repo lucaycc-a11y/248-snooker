@@ -8,12 +8,14 @@ const FACILITY_IMAGES = [
   "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
   "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp",
   "/gallery/spacepliot.png",
+  "/images/qrcode-checkin-中八桌球-香港新蒲崗.webp",
 ] as const;
 
 const FACILITY_CATEGORIES = [
   "categories.equipment",
   "categories.ambience",
   "categories.smart_system",
+  "categories.entry",
 ] as const;
 
 type Facility = {
@@ -24,7 +26,7 @@ type Facility = {
 export default function HomeFacilitiesNew() {
   const t = useTranslations("homeVenue");
   const facilities = t.raw("items") as Facility[];
-  const visibleFacilities = facilities.slice(0, 3);
+  const visibleFacilities = facilities.slice(0, 4);
 
   const items = visibleFacilities.map((facility, index) => {
     const isSpacePilot = index === 2;
@@ -59,6 +61,13 @@ export default function HomeFacilitiesNew() {
         facility.title
       ),
       detail: facility.body,
+      ...(isSpacePilot && {
+        media: {
+          fit: "contain" as const,
+          padding: "48px 36px",
+          background: "radial-gradient(ellipse 60% 50% at center, rgba(88, 28, 135, 0.32) 0%, rgba(37, 99, 235, 0.18) 40%, rgba(0, 0, 0, 0.95) 80%)",
+        },
+      }),
     };
   });
 
