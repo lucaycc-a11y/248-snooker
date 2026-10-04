@@ -290,7 +290,7 @@ export default function VenueContent() {
       <CinematicOrbitHero />
 
       {/* ── 02: Room Viewer (dark) ── */}
-      <RoomViewer theme="dark" />
+      <RoomViewer />
 
       {/* ── 03: Why Us (light with sheet overlap) ── */}
       <div

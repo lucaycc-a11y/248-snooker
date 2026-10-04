@@ -499,13 +499,13 @@
     ],
     "hero_description": "好的中式八球室不應有多餘干擾。",
     "wheel_section_description": "好的中式八球室不應有多餘干擾。",
-    "hero.point_professional_title": "專業",
-    "hero.point_professional_description": "精選桌球枱・比賽球",
-    "hero.point_technology_title": "科技",
-    "hero.point_technology_description": "網上預訂，自助入場。\nAI 智能對戰管家",
-    "hero.point_technology_tag": "敬請期待",
-    "hero.point_space_title": "空間",
-    "hero.point_space_description": "特調燈光和氛圍。\n獨立球室，無多餘干擾。",
+    "hero_point_professional_title": "專業",
+    "hero_point_professional_description": "精選桌球枱・比賽球",
+    "hero_point_technology_title": "科技",
+    "hero_point_technology_description": "網上預訂，自助入場。\nAI 智能對戰管家",
+    "hero_point_technology_tag": "敬請期待",
+    "hero_point_space_title": "空間",
+    "hero_point_space_description": "特調燈光和氛圍。\n獨立球室，無多餘干擾。",
     "outro_cta_line1_part1": "一鍵預訂專屬球臺，",
     "outro_cta_line1_part2": "隨時隨地開局。",
     "outro_cta_line2": "由預訂、付款到入場，全程自助，無需等候。"
@@ -3242,41 +3242,36 @@
   "faq_5": "訂單退款時，已使用的金額會全數退回 Space Wallet。",
   "venue": {
     "rooms": {
-      "title": "一睹場地",
-      "slider": {
-        "label": "選擇房間"
-      },
+      "title": "兩間 1T 獨立球室",
+      "slider_hint": "拖動滑桿以觀看兩間球室",
       "pills": {
-        "label": "場地特色",
         "renovation": {
           "label": "場地裝修",
-          "main": "簡約工業風格，純黑配色。",
-          "small": "英式斯諾克球桌，專業 LED 照明。"
+          "main": "特調燈光和氛圍"
         },
         "comfort": {
           "label": "舒適自在",
-          "main": "真皮梳化及座椅，讓你放鬆休息。",
+          "main": "舒適沙發休息區",
           "small": {
             "infinity": "一張沙發，一張大凳",
-            "eternity": "一張沙發，兩張吧臺凳"
+            "eternity": "一張沙發，兩張吧台凳"
           }
         },
         "equipment": {
           "label": "專業設備",
-          "main": "Aramith 比賽級球組，英國 Riley 球桌。",
-          "small": "世界錦標賽指定用球。"
+          "main": "精選桌球枱・比賽球"
         },
         "technology": {
           "label": "科技體驗",
-          "main": "iPad 自助計分系統，即時賽況。",
-          "small": "Space Pilot 智能計分助理。"
+          "main": "AI 智能對戰管家",
+          "tag": "敬請期待"
         }
       },
       "infinity": {
-        "name": "Infinity"
+        "name": "Space Infinity・無限空間球室・Room 1"
       },
       "eternity": {
-        "name": "Eternity"
+        "name": "Space Eternity・永恆空間球室・Room 2"
       }
     },
     "whyUs": {
@@ -3300,8 +3295,9 @@
       ]
     },
     "hero": {
-      "heading": "專業無煙桌球室",
-      "body": "獨立包廂，自助入場，全天開放。"
+      "heading": "由球枱上第一次打破台起。",
+      "body_bold": "Space8 相信，",
+      "body_rest": "每個新手都可以成為高手。"
     }
   },
   "ui": {
