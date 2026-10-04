@@ -98,6 +98,11 @@ export function TicketCard({
   // memberCode is what gets encoded in the QR — never use humanCode/bookingRef for QR data.
   const displayCode = humanCode ?? bookingRef
 
+  // Fix 2: Log once if memberCode is missing (this should not happen in production).
+  if (!memberCode) {
+    console.warn("[TicketCard] Missing memberCode for booking", bookingRef)
+  }
+
   const handleAddCalendar = () => {
     const start = new Date(dateObj)
     start.setHours(startHour, 0, 0, 0)
@@ -454,41 +459,66 @@ export function TicketCard({
                 </div>
               </div>
 
-              {/* QR Code — per-ticket, door entry validates each independently.
-                  No wrapper/border — the QR sits directly on the page background
-                  with its own white background for scannability. */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <QRCode
-                  data={memberCode}
-                  size={QR_PX}
-                  enlargeLabel={t_ticket("qr_tap_enlarge")}
-                  closeLabel={t_ticket("close")}
-                />
-              </div>
+              {/* QR Code — encodes memberCode, not booking code.
+                  If memberCode is missing, show error instead of QR. */}
+              {memberCode ? (
+                <>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: 10,
+                    }}
+                  >
+                    <QRCode
+                      data={memberCode}
+                      size={QR_PX}
+                      enlargeLabel={t_ticket("qr_tap_enlarge")}
+                      closeLabel={t_ticket("close")}
+                    />
+                  </div>
 
-              <div
-                className="font-code"
-                style={{
-                  fontSize: 13,
-                  color: "rgba(255,255,255,0.6)",
-                  textAlign: "center",
-                  marginBottom: 6,
-                }}
-              >
-                {displayCode}
-              </div>
+                  <div
+                    className="font-code"
+                    style={{
+                      fontSize: 13,
+                      color: "rgba(255,255,255,0.6)",
+                      textAlign: "center",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {memberCode}
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: "rgba(255,100,100,0.8)",
+                    textAlign: "center",
+                    marginBottom: 16,
+                    padding: "12px 16px",
+                    border: "1px solid rgba(255,100,100,0.3)",
+                    borderRadius: 8,
+                    backgroundColor: "rgba(255,100,100,0.1)",
+                  }}
+                >
+                  {t_ticket("qr_error") || "QR code unavailable. Please contact support."}
+                </div>
+              )}
 
               <div
                 data-cms-key="book.ticket.footer"
                 style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", textAlign: "center", marginBottom: 16 }}
               >
                 {t("qr_hint")}
+              </div>
+
+              {/* Fix 2: Muted booking reference line for support */}
+              <div
+                style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textAlign: "center", marginBottom: 16 }}
+              >
+                {t_ticket("booking_ref")} {displayCode}
               </div>
 
               <div style={{ display: "flex", gap: 12, position: "relative" }}>
