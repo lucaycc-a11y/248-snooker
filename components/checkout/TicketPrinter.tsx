@@ -237,20 +237,25 @@ function OrderedTicketCard({
       />
 
       {/* Discounts (if any) */}
-      {(orderTicket.promoDiscount || orderTicket.creditDiscount) && (
-        <div style={{ marginBottom: 12 }}>
-          {orderTicket.creditDiscount && orderTicket.creditDiscount > 0 && (
-            <div style={{ fontSize: 12, color: tokens.colors.brand }}>
-              Space Wallet 折抵 HK${orderTicket.creditDiscount}
-            </div>
-          )}
-          {orderTicket.promoDiscount && orderTicket.promoDiscount > 0 && (
-            <div style={{ fontSize: 12, color: tokens.colors.brand }}>
-              優惠碼折扣 HK${orderTicket.promoDiscount}
-            </div>
-          )}
-        </div>
-      )}
+      {(() => {
+        const creditDiscount = Number(orderTicket.creditDiscount ?? 0)
+        const promoDiscount = Number(orderTicket.promoDiscount ?? 0)
+        const hasDiscount = creditDiscount > 0 || promoDiscount > 0
+        return hasDiscount ? (
+          <div style={{ marginBottom: 12 }}>
+            {creditDiscount > 0 ? (
+              <div style={{ fontSize: 12, color: tokens.colors.brand }}>
+                Space Wallet 折抵 HK${creditDiscount}
+              </div>
+            ) : null}
+            {promoDiscount > 0 ? (
+              <div style={{ fontSize: 12, color: tokens.colors.brand }}>
+                優惠碼折扣 HK${promoDiscount}
+              </div>
+            ) : null}
+          </div>
+        ) : null
+      })()}
 
       {/* Three-cell row: 時長 / 已付 / 付款 */}
       <div
