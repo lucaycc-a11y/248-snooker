@@ -28,18 +28,13 @@ gsap.registerPlugin(ScrollTrigger);
 // Items with a `point` index are drum cards; others are ring-only.
 import manifest from "@/public/images/space8-about-photos/manifest.json";
 
-// Photo mapping for the 3 points: [專業, 科技, 空間] → [about-08, about-04, about-06]
-const POINT_PHOTO_INDICES = [7, 3, 5] as const; // indices into manifest.items
-
-const ITEMS: SpaceWheelItem[] = manifest.items.map((item, idx) => {
-  const pointIdx = POINT_PHOTO_INDICES.indexOf(idx as never);
+const ITEMS: SpaceWheelItem[] = manifest.items.map((item) => {
   return {
     title: item.title,
     description: item.description,
     image: `/images/space8-about-photos/${item.file.replace(/\.jpg$/, ".webp")}`,
     alt: item.alt,
-    // Only the 3 point photos have a point index; others are ring-only
-    point: pointIdx >= 0 ? pointIdx : undefined,
+    // All 8 photos are ring-only; carousel by rotating the ring
   };
 });
 
