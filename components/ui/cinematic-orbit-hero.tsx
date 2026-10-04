@@ -14,13 +14,10 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 const IMAGES = [
-  { src: "/images/space-infinity-room-中八桌球-香港新蒲崗.webp", alt: "Space Infinity 包廂內部全景" },
-  { src: "/images/space-eternity-room-中八桌球-香港新蒲崗.webp", alt: "Space Eternity 包廂內部" },
   { src: "/images/venue-interior-中八桌球-香港新蒲崗.webp", alt: "場地內部環境" },
   { src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp", alt: "星牌桌球臺特寫" },
   { src: "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp", alt: "專業球臺細節" },
   { src: "/images/cue-stand-中八桌球-香港新蒲崗.webp", alt: "球桿架設施" },
-  { src: "/images/sofa-lounge-中八桌球-香港新蒲崗.webp", alt: "休息區梳化" },
 ];
 
 // Dynamically generate a 3D Elliptical Orbit
@@ -174,6 +171,7 @@ export default function CinematicOrbitHero() {
   return (
     <section ref={wrapRef} className="relative w-full h-[350vh] bg-black text-white">
       <div className="sticky top-0 h-[100svh] w-full overflow-hidden flex items-center justify-center">
+        {/* Background glow — z-index 0 (default) */}
         <motion.div
           className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-10 blur-[100px] md:blur-[120px] mix-blend-screen"
           style={{ scale: textScale }}
@@ -181,8 +179,25 @@ export default function CinematicOrbitHero() {
           <div className="w-[60vw] md:w-[40vw] h-[60vw] md:h-[40vw] rounded-full bg-white/80" />
         </motion.div>
 
+        {/* Photo orbit layer — z-[1], pointer-events-none */}
+        <div className="absolute inset-0 z-[1] pointer-events-none">
+          {CARDS.map((card, i) => (
+            <Card key={i} card={card} progress={progress} pointer={pointer} isSpreadActive={spread} isMobile={isMobile} />
+          ))}
+        </div>
+
+        {/* Subtle scrim for text readability — z-[2] */}
         <motion.div
-          className="pointer-events-none z-[5] flex flex-col items-center text-center px-6 mt-[-10vh] max-w-[90vw] md:max-w-[60vw]"
+          className="absolute inset-0 z-[2] pointer-events-none"
+          style={{
+            opacity: textOpacity,
+            background: "radial-gradient(ellipse 50% 40% at 50% 45%, rgba(0,0,0,0.65) 0%, transparent 70%)",
+          }}
+        />
+
+        {/* Text layer — z-[3], always above photos */}
+        <motion.div
+          className="relative z-[3] pointer-events-none flex flex-col items-center text-center px-6 mt-[-10vh] max-w-[90vw] md:max-w-[60vw]"
           style={{ opacity: textOpacity, scale: textScale }}
         >
           <h1
@@ -195,23 +210,18 @@ export default function CinematicOrbitHero() {
               lineHeight: 1.35,
             }}
           >
-            {t('hero_title')}
+            {t('hero.heading')}
           </h1>
           <p
-            className="mt-3 max-w-[50ch] text-xs md:text-[0.95vw] font-light opacity-70"
+            className="mt-3 max-w-[50ch] text-sm md:text-[1vw] font-light leading-relaxed"
             style={{
               fontFamily: "'Good Times', 'SF Pro Display', -apple-system, sans-serif",
             }}
           >
-            {t('hero_subtitle')}
+            <strong className="font-semibold">{t('hero.body_bold')}</strong>
+            {t('hero.body_rest')}
           </p>
         </motion.div>
-
-        <div className="absolute inset-0 z-10">
-          {CARDS.map((card, i) => (
-            <Card key={i} card={card} progress={progress} pointer={pointer} isSpreadActive={spread} isMobile={isMobile} />
-          ))}
-        </div>
       </div>
     </section>
   );

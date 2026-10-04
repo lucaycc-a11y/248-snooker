@@ -956,6 +956,12 @@
         "value": "rgba(37, 99, 235, 0.18)",
         "createdAt": "2026-10-04T09:10:42.680Z",
         "reason": "Space Pilot iPad glow effect - intentional purple-to-blue gradient matching device screen"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8a8a8a",
+        "createdAt": "2026-10-04T10:59:07.225Z",
+        "reason": "Intentional gradient endpoint for cinematic hero heading text effect (white-to-gray fade)"
       }
     ]
   }
