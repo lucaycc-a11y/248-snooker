@@ -86,6 +86,10 @@ body {
   letter-spacing: 0.08em;
 }
 
+.font-gt {
+  font-family: 'Good Times', 'JetBrains Mono', monospace;
+}
+
 /* Responsive pricing grid — mobile stacks vertically, desktop side-by-side */
 @media (max-width: 768px) {
   .responsive-pricing-grid {

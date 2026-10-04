@@ -202,7 +202,11 @@ function OrderedTicketCard({
       {/* Header with date */}
       <div style={{ marginBottom: 20 }}>
         <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 4 }}>
-          {dateStr}
+          {firstLine && (
+            <>
+              <span className="font-gt">{firstLine.date}</span> {t(`day_${weekdayNames[new Date(`${firstLine.date}T00:00:00`).getDay()]}`)}
+            </>
+          )}
         </div>
       </div>
 
@@ -222,7 +226,7 @@ function OrderedTicketCard({
                 lineHeight: 1.4,
               }}
             >
-              {start} – {end} · {tableName}
+              <span className="font-gt">{start} - {end}</span> · {tableName}
             </div>
           )
         })}
@@ -271,7 +275,7 @@ function OrderedTicketCard({
           <div style={{ color: tokens.colors.textMuted, marginBottom: 4 }}>
             {t_ticket("duration")}
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700 }}>
+          <div className="font-gt" style={{ fontSize: 18, fontWeight: 700 }}>
             {orderTicket.totalHours}
             {t_ticket("hours")}
           </div>
@@ -280,7 +284,7 @@ function OrderedTicketCard({
           <div style={{ color: tokens.colors.textMuted, marginBottom: 4 }}>
             {t_ticket("paid")}
           </div>
-          <div data-testid="total-price" style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.brand }}>
+          <div data-testid="total-price" className="font-gt" style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.brand }}>
             HK${orderTicket.totalPrice}
           </div>
         </div>
@@ -308,12 +312,12 @@ function OrderedTicketCard({
         >
           <QRCode data={orderTicket.memberCode} size={QR_PX} />
           <div
+            className="font-code"
             style={{
               fontSize: 12,
               fontWeight: 600,
               color: tokens.colors.text,
               marginTop: 12,
-              fontFamily: '"Source Code Pro", monospace',
               letterSpacing: 1,
             }}
           >
@@ -340,12 +344,12 @@ function OrderedTicketCard({
 
       {/* Booking references */}
       <div
+        className="font-code"
         style={{
           fontSize: 11,
           color: tokens.colors.textMuted,
           textAlign: "center",
           marginBottom: 20,
-          fontFamily: '"Source Code Pro", monospace',
         }}
       >
         預約編號 {orderTicket.lines.map((l) => l.humanCode ?? l.bookingRef).join(" · ")}
