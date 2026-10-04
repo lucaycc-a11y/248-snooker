@@ -226,23 +226,22 @@ export default function InboxPage() {
               {dayItems.map(item => (
                 <button
                   key={item.id}
-                  className="row msg"
+                  className={`msg${!item.read ? ' unread' : ''}`}
                   onClick={() => handleItemClick(item)}
+                  aria-current={false}
                 >
-                  <div className="ic icon">
+                  <div className={`ic${item.type === 'credit' ? ' k-credit' : ''}`}>
                     {getTypeIcon(item.type)}
                   </div>
-                  <div className="info">
-                    <div className="r-t" style={{ fontWeight: item.read ? 400 : 600 }}>
+                  <div>
+                    <div className="mt">
                       {item.title}
-                      {!item.read && <span className="unread" />}
+                      {!item.read && <span className="udot" />}
                     </div>
-                    <div className="r-s">{truncateMessage(item.message)}</div>
+                    <div className="mb">{truncateMessage(item.message)}</div>
                   </div>
-                  <div className="time">
-                    <small style={{ color: 'var(--faint)', fontSize: '13px' }}>
-                      {relativeTime(item.createdAt)}
-                    </small>
+                  <div className="tm">
+                    {relativeTime(item.createdAt)}
                   </div>
                 </button>
               ))}
