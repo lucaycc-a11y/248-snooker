@@ -320,14 +320,9 @@ export function SpaceWheel({
           card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
           card.style.willChange = cardOpacity > 0.1 ? 'transform' : 'auto';
         } else {
-          // Ring-only item: place on ring, fade out during transition
+          // Ring-only item: always visible on ring, no fade or shrinking
           const idx = ringOnlyIndex[i] ?? 0;
           const ringAngleDeg = ringOnlyCount > 0 ? idx * (360 / ringOnlyCount) : 0;
-
-          // Transition: fade out and shrink
-          const ringOnlyOpacity = Math.max(0, 1 - m * 2); // fade by m ≈ 0.5
-          const ringOnlyScale = lerp(1, 0.8, Math.min(m, 0.6) / 0.6); // shrink to 0.8 over first 60%
-          const isHidden = m >= 0.6;
 
           card.style.transform = place(
             ringAngleDeg,
@@ -338,10 +333,10 @@ export function SpaceWheel({
             0, // m=0 for ring state (no transition to drum)
             ringTilt,
           );
-          card.style.opacity = String(ringOnlyOpacity);
-          card.style.visibility = isHidden ? "hidden" : "visible";
+          card.style.opacity = String(1); // Always fully visible
+          card.style.visibility = "visible";
           card.style.zIndex = String(50); // Behind drum cards
-          card.style.willChange = m > 0 ? 'transform, opacity' : 'auto';
+          card.style.willChange = 'auto';
         }
 
         const face = card.firstElementChild as HTMLElement | null;
@@ -350,8 +345,8 @@ export function SpaceWheel({
             // Drum: card at full scale
             face.style.transform = `scale(1)`;
           } else {
-            // Ring: scale with ring scale
-            face.style.transform = `scale(${lerp(ringScale, 1, m)})`;
+            // Ring: always use ring scale, no animation
+            face.style.transform = `scale(${ringScale})`;
           }
           if (item.focalPoint) {
             face.style.objectPosition = item.focalPoint;
