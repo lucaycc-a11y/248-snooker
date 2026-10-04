@@ -1,153 +1,150 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { type ReactElement } from 'react'
-import { MessageCircle, Wallet, Gem, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/lib/supabase/client'
-import { useUnreadCount } from '@/lib/inbox/useUnreadCount'
-import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
-// ════════════════════════════════════════════════════════════════════════════
-// HorizontalActionTiles — 4 quick action tiles matching member-quick-actions.html
-// 2×2 grid on mobile, 4 columns on desktop (≥640px)
-// All tiles same height/width with consistent padding
-// ════════════════════════════════════════════════════════════════════════════
+/**
+ * HorizontalActionTiles — Quick Actions matching member-quick-actions.html
+ *
+ * 2×2 grid on mobile, 4 columns on desktop (≥640px)
+ * All tiles identical size with consistent padding
+ * Fetches from /api/member/wallet (balance), /api/member/points (lifetime),
+ * /api/member/inbox/unread-count
+ * Refreshes on focus and credit notice, no 10s polling
+ */
 
-type Props = {
-  profile: MemberProfile
+type TileData = {
+  balance: number | null
+  lifetime: number | null
+  unreadCount: number | null
 }
 
-export function HorizontalActionTiles({ profile }: Props) {
-  const t = useTranslations('member')
-  const [userId, setUserId] = useState<string | null>(null)
-  const [walletBalance, setWalletBalance] = useState<number | null>(null)
-  const [pointsTotal, setPointsTotal] = useState<number | null>(null)
-  const { unreadCount } = useUnreadCount(userId)
+export function HorizontalActionTiles() {
+  const t = useTranslations('member.actions')
+  const [data, setData] = useState<TileData>({
+    balance: null,
+    lifetime: null,
+    unreadCount: null,
+  })
 
-  // Get user ID and fetch wallet/points data on mount
-  useEffect(() => {
-    const init = async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      setUserId(session?.user.id ?? null)
-
+  async function loadData() {
+    try {
       // Fetch wallet balance
-      try {
-        const balRes = await fetch('/api/member/wallet-balance')
-        if (balRes.ok) {
-          const data = await balRes.json()
-          setWalletBalance(data.credits ?? 0)
-        }
-      } catch {
-        // silent fail
+      const walletRes = await fetch('/api/member/wallet')
+      if (walletRes.ok) {
+        const walletData = await walletRes.json()
+        setData((prev) => ({ ...prev, balance: walletData.balance ?? 0 }))
       }
 
-      // Fetch points total
-      try {
-        const ptsRes = await fetch('/api/member/points-total')
-        if (ptsRes.ok) {
-          const data = await ptsRes.json()
-          setPointsTotal(data.points ?? 0)
-        }
-      } catch {
-        // silent fail
+      // Fetch points lifetime
+      const pointsRes = await fetch('/api/member/points')
+      if (pointsRes.ok) {
+        const pointsData = await pointsRes.json()
+        setData((prev) => ({ ...prev, lifetime: pointsData.lifetime ?? 0 }))
       }
+
+      // Fetch inbox unread count
+      const inboxRes = await fetch('/api/member/inbox/unread-count')
+      if (inboxRes.ok) {
+        const inboxData = await inboxRes.json()
+        setData((prev) => ({ ...prev, unreadCount: inboxData.count ?? 0 }))
+      }
+    } catch (err) {
+      console.error('Failed to load quick actions data:', err)
     }
-    init()
+  }
+
+  useEffect(() => {
+    loadData()
+
+    // Refresh on window focus
+    const handleFocus = () => loadData()
+    window.addEventListener('focus', handleFocus)
+
+    // Refresh on credit notice (custom event from wallet operations)
+    const handleCreditNotice = () => loadData()
+    window.addEventListener('credit-notice', handleCreditNotice)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      window.removeEventListener('credit-notice', handleCreditNotice)
+    }
   }, [])
 
-  return (
-    <div className="px-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ActionTile
-          icon={<MessageCircle className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} />}
-          title="Help"
-          subtitle={t('actions.help.subtitle')}
-          href="/member/help"
-        />
-        <ActionTile
-          icon={<Wallet className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} />}
-          title="Wallet"
-          subtitle={t('actions.wallet.subtitle')}
-          href="/member/wallet"
-          badge={walletBalance !== null ? `HK$${walletBalance}` : undefined}
-          badgeType="text"
-        />
-        <ActionTile
-          icon={<Gem className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} />}
-          title="Space Pts"
-          subtitle={t('actions.points.subtitle')}
-          href="/member/points"
-          badge={pointsTotal !== null ? String(pointsTotal) : undefined}
-          badgeType="text"
-        />
-        <ActionTile
-          icon={<Inbox className="h-5 w-5 flex-shrink-0" strokeWidth={1.6} />}
-          title="Inbox"
-          subtitle={t('actions.inbox.subtitle')}
-          href="/member/inbox"
-          badge={unreadCount > 0 ? (unreadCount > 9 ? '9+' : String(unreadCount)) : undefined}
-          badgeType="dot"
-        />
-      </div>
-    </div>
-  )
-}
+  const formatBalance = (bal: number | null) =>
+    bal !== null ? `HK$${bal.toLocaleString('en-HK')}` : ''
 
-// ────────────────────────────────────────────────────────────────────────────
-// § ACTION TILE — design parity with member-quick-actions.html
-// ────────────────────────────────────────────────────────────────────────────
+  const formatPoints = (pts: number | null) =>
+    pts !== null ? pts.toLocaleString('en-HK') : ''
 
-type ActionTileProps = {
-  icon: ReactElement
-  title: string
-  subtitle: string
-  href?: string
-  onClick?: () => void
-  badge?: string
-  badgeType?: 'text' | 'dot'
-}
-
-function ActionTile({ icon, title, subtitle, href, onClick, badge, badgeType }: ActionTileProps) {
-  const content = (
-    <div className="relative flex min-h-[104px] flex-col justify-between overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-4 transition-all hover:border-white/[0.18] hover:bg-[#1a1a1a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#25d366] active:scale-[0.97]">
-      {/* Icon at bottom-left */}
-      <div className="text-white">{icon}</div>
-
-      {/* Top-right badge */}
-      {badge && (
-        <div className="absolute right-[14px] top-[14px] flex items-center gap-[6px]">
-          {badgeType === 'dot' ? (
-            <div className="flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#25d366] px-[6px] font-code text-[11px] leading-none text-black">
-              {badge}
-            </div>
-          ) : (
-            <div className="rounded-full border border-white/[0.18] px-[9px] py-[6px] font-code text-[11px] leading-none text-white/72">
-              {badge}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Label at bottom-right */}
-      <div>
-        <p className="overflow-hidden text-ellipsis whitespace-nowrap font-code text-[14px] leading-[1.2] text-white">
-          {title}
-        </p>
-        <p className="mt-[3px] whitespace-nowrap text-[12.5px] text-white/52">
-          {subtitle}
-        </p>
-      </div>
-    </div>
-  )
-
-  if (href) {
-    return <a href={href}>{content}</a>
+  const formatUnread = (count: number | null) => {
+    if (count === null || count === 0) return null
+    return count > 9 ? '9+' : String(count)
   }
-  return <button className="w-full text-left" onClick={onClick}>{content}</button>
-}
 
-// ────────────────────────────────────────────────────────────────────────────
-// § HELPERS
-// ────────────────────────────────────────────────────────────────────────────
+  return (
+    <div className="m8 m8-actions">
+      <div className="qa">
+        {/* Help */}
+        <a className="tile" href="/member/help">
+          <svg className="i" aria-hidden="true">
+            <use href="#i-help" />
+          </svg>
+          <span className="top-r"></span>
+          <span>
+            <span className="tt">Help</span>
+            <span className="ts">{t('help.subtitle')}</span>
+          </span>
+        </a>
+
+        {/* Wallet */}
+        <a className="tile" href="/member/wallet">
+          <svg className="i" aria-hidden="true">
+            <use href="#i-wallet" />
+          </svg>
+          <span className="top-r">
+            {data.balance !== null && (
+              <span className="chipb">{formatBalance(data.balance)}</span>
+            )}
+          </span>
+          <span>
+            <span className="tt">Wallet</span>
+            <span className="ts">{t('wallet.subtitle')}</span>
+          </span>
+        </a>
+
+        {/* Space Pts */}
+        <a className="tile" href="/member/points">
+          <svg className="i" aria-hidden="true">
+            <use href="#i-gem" />
+          </svg>
+          <span className="top-r">
+            {data.lifetime !== null && (
+              <span className="chipb">{formatPoints(data.lifetime)}</span>
+            )}
+          </span>
+          <span>
+            <span className="tt">Space Pts</span>
+            <span className="ts">{t('points.subtitle')}</span>
+          </span>
+        </a>
+
+        {/* Inbox */}
+        <a className="tile" href="/member/inbox">
+          <svg className="i" aria-hidden="true">
+            <use href="#i-inbox" />
+          </svg>
+          <span className="top-r">
+            {formatUnread(data.unreadCount) && (
+              <span className="dot">{formatUnread(data.unreadCount)}</span>
+            )}
+          </span>
+          <span>
+            <span className="tt">Inbox</span>
+            <span className="ts">{t('inbox.subtitle')}</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  )
+}
