@@ -3,7 +3,7 @@
 // Pinned scroll section — the SpaceWheel lives here.
 //
 // Structure:
-//   <runway>            — tall enough to give GSAP scroll room (count+2 × 100svh)
+//   <runway>            — tall enough to give GSAP scroll room (4 × 100svh for 3 points + release)
 //     <sticky stage>   — 100svh, position:sticky top:0
 //       <SpaceWheel>
 //       <ring centre>  — hero copy fades out as ring opens
@@ -24,19 +24,22 @@ import { SpaceWheel, type SpaceWheelItem } from "@/components/ui/works-wheel";
 gsap.registerPlugin(ScrollTrigger);
 
 // ─── Photo data ──────────────────────────────────────────────────────────────
-// Loaded from the manifest at build time. `file` points to the WebP.
-// Only 3 photos: indices 0 (about-01), 3 (about-04), 5 (about-06)
+// All 8 photos from the manifest at build time. `file` points to the WebP.
+// Items with a `point` index are drum cards; others are ring-only.
 import manifest from "@/public/images/space8-about-photos/manifest.json";
 
-const PHOTO_INDICES = [0, 3, 5]; // about-01-table-eight-ball, about-04-cove-lighting, about-06-lounge
+// Photo mapping for the 3 points: [專業, 科技, 空間] → [about-08, about-04, about-06]
+const POINT_PHOTO_INDICES = [7, 3, 5] as const; // indices into manifest.items
 
-const ITEMS: SpaceWheelItem[] = PHOTO_INDICES.map((idx) => {
-  const item = manifest.items[idx];
+const ITEMS: SpaceWheelItem[] = manifest.items.map((item, idx) => {
+  const pointIdx = POINT_PHOTO_INDICES.indexOf(idx as never);
   return {
     title: item.title,
     description: item.description,
     image: `/images/space8-about-photos/${item.file.replace(/\.jpg$/, ".webp")}`,
     alt: item.alt,
+    // Only the 3 point photos have a point index; others are ring-only
+    point: pointIdx >= 0 ? pointIdx : undefined,
   };
 });
 
@@ -65,66 +68,133 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
 
   return (
     <div className="flex flex-col items-center gap-3 text-center pointer-events-none select-none">
-      {/* Line 1: 「關於」 + Space8 logo (baseline-aligned, logo at ~65% of text height) */}
-      <div className="flex items-baseline gap-1 justify-center">
+      {/* Line 1: SPACE8 logo (removed "關於" prefix) */}
+      <div style={{ display: "inline-flex", alignItems: "baseline" }}>
+        <Image
+          src="/logos/logo-black-horizontal.svg"
+          alt="SPACE8"
+          width={120}
+          height={40}
+          style={{
+            height: "clamp(1.5rem, 7.5vw, 2.25rem)",
+            width: "auto",
+          }}
+          priority
+        />
+      </div>
+
+      {/* Line 2: "一個" + rotating word + "的空間" */}
+      <div className="flex items-center justify-center gap-1 flex-wrap">
         <span
           className="font-semibold"
           style={{
             fontFamily: "'Noto Sans TC', sans-serif",
-            fontSize: "clamp(1.5rem, 7.5vw, 2.25rem)",
+            fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)",
             color: "#000000",
-            lineHeight: 1,
           }}
         >
-          關於
+          一個
         </span>
-        <div style={{ display: "inline-flex", alignItems: "baseline" }}>
-          <Image
-            src="/logos/logo-black-horizontal.svg"
-            alt="SPACE8"
-            width={120}
-            height={40}
-            style={{
-              height: "0.65em",
-              width: "auto",
-            }}
-            priority
-          />
+        <div className="h-10 overflow-hidden flex items-center justify-center" style={{ minWidth: "clamp(120px, 30vw, 180px)" }}>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={wordIdx}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.35, ease: [0.2, 0.7, 0.3, 1] }}
+              className="font-semibold"
+              style={{
+                fontFamily: "'Noto Sans TC', sans-serif",
+                color: isGreen ? "#22c55e" : "#000000",
+                fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)",
+              }}
+            >
+              {activeWord}
+            </motion.span>
+          </AnimatePresence>
         </div>
+        <span
+          className="font-semibold"
+          style={{
+            fontFamily: "'Noto Sans TC', sans-serif",
+            fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)",
+            color: "#000000",
+          }}
+        >
+          的空間
+        </span>
       </div>
 
-      {/* Line 2: Rotating word */}
-      <div className="h-10 overflow-hidden flex items-center justify-center">
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={wordIdx}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35, ease: [0.2, 0.7, 0.3, 1] }}
-            className="text-2xl md:text-3xl font-semibold"
-            style={{
-              fontFamily: "'Noto Sans TC', sans-serif",
-              color: isGreen ? "#22c55e" : "#000000",
-              fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)",
-            }}
-          >
-            {activeWord}
-          </motion.span>
-        </AnimatePresence>
-      </div>
-
-      {/* Line 3: Short description */}
+      {/* Line 3: Body text */}
       <p
-        className="leading-relaxed mt-1 font-semibold"
+        className="leading-relaxed mt-2"
         style={{
           fontFamily: "'Noto Sans TC', sans-serif",
-          fontSize: "clamp(14px, 3.5vw, 15px)",
+          fontSize: "clamp(16px, 3.5vw, 18px)",
           color: "#000000",
+          maxWidth: "90%",
         }}
       >
-        {t("wheel_section_description")}
+        <span className="font-semibold">好的中式桌球室不應有多餘干擾。</span>
+        <span style={{ color: "rgba(0,0,0,0.72)" }}>
+          {" "}SPACE8 自助無煙中式桌球獨立球室。隨時隨地，網上預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。
+        </span>
       </p>
+
+      {/* Buttons: "立即預訂" (primary) and "查看場地" (secondary) */}
+      <div className="flex gap-3 justify-center mt-4 pointer-events-auto flex-wrap">
+        <button
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            background: "#22c55e",
+            color: "#000000",
+            fontWeight: 700,
+            fontSize: "16px",
+            padding: "12px 24px",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+            height: "44px",
+            minHeight: "44px",
+            fontFamily: "'Noto Sans TC', sans-serif",
+          }}
+          onClick={() => {
+            const bookPath = window.location.pathname.replace("/about", "/book");
+            window.location.href = bookPath;
+          }}
+        >
+          {t("hero_cta_primary")}
+        </button>
+        <button
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            background: "transparent",
+            color: "#000000",
+            fontWeight: 700,
+            fontSize: "16px",
+            padding: "12px 24px",
+            borderRadius: "8px",
+            border: "2px solid #000000",
+            cursor: "pointer",
+            height: "44px",
+            minHeight: "44px",
+            fontFamily: "'Noto Sans TC', sans-serif",
+          }}
+          onClick={() => {
+            const venuePath = window.location.pathname.replace("/about", "/venue");
+            window.location.href = venuePath;
+          }}
+        >
+          {t("hero_cta_secondary")}
+        </button>
+      </div>
     </div>
   );
 }
@@ -139,18 +209,19 @@ export function SpaceWheelSection() {
   // Mirror of the ring's m-value (0→ring, 1→drum) for fading the ring centre.
   const [ringOpacity, setRingOpacity] = useState(1);
 
-  const count = ITEMS.length;
+  // 3 point items in the drum; 8 total items in the ring
+  const pointCount = 3;
+  const totalCount = ITEMS.length;
 
   useEffect(() => {
     const runway = runwayRef.current;
     const stage = stageRef.current;
     if (!runway || !stage) return;
 
-    // Map scroll progress 0→1 to turn 0→(count+1).
-    // With 3 items, turn runs 0 to 4 (ring at 0, photos 1-3 at turns 1-3, release at 4).
-    // This stops the wheel at photo 3 and transitions to the next section.
+    // Map scroll progress 0→1 to turn 0→4 (ring at 0, points 0-2 at turns 1-3, release at 4).
+    // Runway height: (pointCount + 2) × 100svh gives GSAP enough scroll distance.
     const tween = gsap.to(turnRef, {
-      current: count + 1,
+      current: pointCount + 1,
       ease: "none",
       scrollTrigger: {
         trigger: runway,
@@ -173,13 +244,13 @@ export function SpaceWheelSection() {
         if (st.trigger === runway) st.kill();
       });
     };
-  }, [count]);
+  }, [pointCount]);
 
   return (
-    // Runway height: (count + 2) × 100svh gives GSAP enough scroll distance.
+    // Runway height: (pointCount + 2) × 100svh gives GSAP enough scroll distance.
     <div
       ref={runwayRef}
-      style={{ height: `${count + 2}00svh`, background: "#ffffff" }}
+      style={{ height: `${pointCount + 2}00svh`, background: "#ffffff" }}
       className="relative"
     >
       {/* Sticky stage — fills viewport, GSAP pins it */}
@@ -192,7 +263,8 @@ export function SpaceWheelSection() {
           items={ITEMS}
           turnRef={turnRef}
           className="absolute inset-0"
-          ringLabel={
+          ringTilt={0}
+          label={
             <div
               style={{ opacity: ringOpacity, transition: "opacity 0.1s linear" }}
             >
