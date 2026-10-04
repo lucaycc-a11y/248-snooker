@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false },
+      options: { shouldCreateUser: true },
     })
     if (error) {
       // Log the FULL error shape — Supabase can return non-standard error objects

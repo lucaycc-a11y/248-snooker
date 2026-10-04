@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
-import { validateProfile, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
+import { validateProfile, validateNamePhone, normalizeHkPhone, type ProfileValidation } from "@/lib/auth/profile"
 import { getRecaptchaToken } from "@/lib/recaptcha"
 import { createClient } from "@/lib/supabase/client"
 import { mapSupabaseSendError, mapSupabaseVerifyError, recaptchaError, networkError } from "@/lib/auth/otp-errors"
 import { OtpVerification, type OtpVerificationStatus } from "./OtpVerification"
-import { DateInput } from "./DateInput"
-import { validateDateOfBirth } from "@/lib/auth/date-validation"
 
 // Space8 brand green for primary action buttons in the booking/auth flow.
 // Distinct from the generic Tailwind green-500 (#22c55e) used on secondary
@@ -16,9 +14,6 @@ import { validateDateOfBirth } from "@/lib/auth/date-validation"
 const GREEN = "#52c25f"
 const GREEN_TEXT = "#062b0d"
 
-// When false, only DD/MM are collected for the birthday field; set true to
-// also collect YYYY. Matches the ASK_YEAR constant in DateInput.tsx.
-const ASK_YEAR = false
 const OTP_LENGTH = 6
 const RESEND_COOLDOWN = 60
 
@@ -97,9 +92,8 @@ export function ProfileCompletion({
   const [name, setName] = useState(initialName)
   const [email, setEmail] = useState(initialEmail)
   const [phone, setPhone] = useState(() => localHkPhoneValue(initialPhone))
-  const [dateOfBirth, setDateOfBirth] = useState({ day: "", month: "", year: "" })
   const [saving, setSaving] = useState(false)
-  const [errField, setErrField] = useState<"name" | "email" | "phone" | "date_of_birth" | null>(null)
+  const [errField, setErrField] = useState<"name" | "email" | "phone" | null>(null)
   const [errMsg, setErrMsg] = useState<string | null>(null)
 
   // Phone verification sub-step. True when an OTP was successfully redeemed via
@@ -140,46 +134,36 @@ export function ProfileCompletion({
   const totalSteps = isReturningUser ? 2 : 3 // Returning: phone verify + DOB; New: phone verify + name+DOB + complete
   const currentStep = verifyMode === "phoneOtp" && !phoneConfirmed ? 1 : (isReturningUser ? 2 : 2)
 
-  // Birthday is optional. Three states: empty (skip entirely), partial
-  // (user started filling but didn't finish — block submit), or complete
-  // (validate the date). When ASK_YEAR is false, year defaults to 2000 (a
-  // leap year) so 29/02 is accepted.
-  const birthdayEmpty = !dateOfBirth.day && !dateOfBirth.month && (!ASK_YEAR || !dateOfBirth.year)
-  const birthdayPartial = !birthdayEmpty && (
-    !dateOfBirth.day || !dateOfBirth.month || (ASK_YEAR && !dateOfBirth.year)
-  )
-  const dateValidation = (!birthdayEmpty && !birthdayPartial)
-    ? validateDateOfBirth(
-        parseInt(dateOfBirth.day, 10),
-        parseInt(dateOfBirth.month, 10),
-        ASK_YEAR ? parseInt(dateOfBirth.year, 10) : 2000
-      )
-    : { valid: birthdayEmpty, dateString: undefined }
+  // Validate only the fields being shown. When showName is false, the user
+  // already has a name, and we only collect the missing contact (email OR phone).
+  // Use validateNamePhone for name+phone, or just check email format for name+email.
+  let canSubmit = false
+  let phoneValid = false
+  let emailValid = false
 
-  const validation = showName
-    ? validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
-    : missingContact === "phone"
-      ? validateProfile({ name: name || " ", email: "x@x.com", phone: effectivePhone })
-      : validateProfile({ name: name || " ", email: effectiveEmail, phone: "12345678" })
-  // Birthday is optional — only block if partially filled or completely filled
-  // but invalid (e.g. 31/02). An empty birthday is always acceptable.
-  const birthdayBlocking = birthdayPartial || (!birthdayEmpty && !dateValidation.valid)
-  const canSubmit = validation.ok && !birthdayBlocking && !saving
+  if (showName) {
+    // Full gate: name + email + phone
+    const validation = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
+    canSubmit = validation.ok && !saving
+    phoneValid = validation.ok || (validation.ok === false && validation.field !== "phone")
+    emailValid = validation.ok || (validation.ok === false && validation.field !== "email")
+  } else if (missingContact === "phone") {
+    // Name exists, email exists, collecting phone only
+    const validation = validateNamePhone({ name: name || " ", phone: effectivePhone })
+    canSubmit = validation.ok && !saving
+    phoneValid = validation.ok || (validation.ok === false && validation.field !== "phone")
+    emailValid = true
+  } else {
+    // Name exists, phone exists, collecting email only
+    const email = effectiveEmail.trim().toLowerCase()
+    emailValid = email.length > 0 && email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    canSubmit = emailValid && !saving
+    phoneValid = true
+  }
 
   const errorFor = (v: ProfileValidation): string => {
     if (v.ok) return ""
     return v.field === "name" ? labels.err_name : v.field === "email" ? labels.err_email : labels.err_phone
-  }
-
-  // Helper to get date error message
-  const dateErrorMsg = (): string | null => {
-    if (!dateOfBirth.day || !dateOfBirth.month || !dateOfBirth.year) {
-      return labels.err_date_of_birth
-    }
-    if (!dateValidation.valid && dateValidation.error) {
-      return dateValidation.error
-    }
-    return null
   }
 
   // Authoritative finalize. Only runs once the phone has genuine proof (SMS
@@ -194,14 +178,6 @@ export function ProfileCompletion({
       return
     }
 
-    // Birthday is optional — only block when partially filled or filled-but-invalid.
-    // Empty birthday passes through and is omitted from the payload entirely.
-    if (birthdayBlocking) {
-      setErrField("date_of_birth")
-      setErrMsg(birthdayPartial ? labels.err_date_of_birth : (dateValidation.error ?? labels.err_date_of_birth))
-      return
-    }
-
     setErrField(null)
     setErrMsg(null)
     setSaving(true)
@@ -213,16 +189,13 @@ export function ProfileCompletion({
           name,
           email: v.value.email,
           phone: v.value.phone,
-          // Omit entirely when birthday was left blank — the backend must not
-          // receive an empty string or a fake placeholder date.
-          ...(dateValidation.dateString ? { date_of_birth: dateValidation.dateString } : {}),
         }),
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
         if (res.status === 422 && j.field) {
           setErrField(j.field)
-          setErrMsg(j.field === "name" ? labels.err_name : j.field === "email" ? labels.err_email : j.field === "phone" ? labels.err_phone : labels.err_date_of_birth)
+          setErrMsg(j.field === "name" ? labels.err_name : j.field === "email" ? labels.err_email : labels.err_phone)
         } else {
           setErrMsg(labels.err_generic)
         }
@@ -524,7 +497,7 @@ export function ProfileCompletion({
                 required
                 disabled={phoneConfirmed}
                 aria-label={labels.phone}
-                aria-invalid={errField === "phone" || (!validation.ok && validation.field === "phone")}
+                aria-invalid={errField === "phone" || !phoneValid}
                 style={{
                   ...fieldStyle("phone"),
                   flex: 1,
@@ -544,19 +517,6 @@ export function ProfileCompletion({
             )}
           </>
         )}
-
-        <DateInput
-          value={dateOfBirth}
-          onChange={setDateOfBirth}
-          disabled={saving}
-          label={labels.date_of_birth}
-          hint={labels.date_of_birth_hint}
-          optional
-          askYear={ASK_YEAR}
-          optionalBadgeLabel={t("optional_badge")}
-          errorIncomplete={labels.err_date_of_birth}
-          errorInvalid={labels.err_date_of_birth}
-        />
 
       </div>
 
