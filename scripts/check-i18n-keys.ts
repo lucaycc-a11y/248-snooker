@@ -7,9 +7,9 @@
 import { Project, SyntaxKind } from 'ts-morph'
 import * as fs from 'fs'
 import * as path from 'path'
-import { routing } from '../i18n/routing'
+import { ENABLED_LOCALES } from '../i18n/enabled-locales'
 
-const LOCALES = routing.locales // Live locales only: zh-HK, zh-CN, en
+const LOCALES = ENABLED_LOCALES // Live locales only
 const OPTIONAL_LOCALES: string[] = [] // No optional locales
 const MEMBER_AREA_PATHS = [
   'app/member',

@@ -1,13 +1,11 @@
 import { getRequestConfig } from 'next-intl/server'
-import { hasLocale } from 'next-intl'
-import { routing } from './routing'
+import { getActiveLocale, isValidLocale } from './enabled-locales'
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // requestLocale is set by the middleware; fall back to the default.
+  // If the requested locale is closed (zh-CN, en), fall back to zh-HK.
   const requested = await requestLocale
-  const locale = hasLocale(routing.locales, requested)
-    ? requested
-    : routing.defaultLocale
+  const locale = getActiveLocale(requested)
 
   // Messages are served entirely from the static messages/{locale}.json
   // bundles, built into the app. This used to be merged at request time with

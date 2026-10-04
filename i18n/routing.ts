@@ -1,10 +1,11 @@
 import { defineRouting } from 'next-intl/routing'
+import { ENABLED_LOCALES, DEFAULT_LOCALE, type EnabledLocale } from './enabled-locales'
 
 export const routing = defineRouting({
+  // Only enabled locales are routable. Closed locales (zh-CN, en) redirect to zh-HK.
   // zh-HK = no prefix (space8.com.hk/)
-  // zh-CN → /zh-CN, en → /en
-  locales: ['zh-HK', 'zh-CN', 'en'],
-  defaultLocale: 'zh-HK',
+  locales: ENABLED_LOCALES as unknown as string[],
+  defaultLocale: DEFAULT_LOCALE,
   localePrefix: 'as-needed',
   // localeDetection MUST be false: with it true, next-intl reads the
   // browser's Accept-Language header on first visit and redirects an
@@ -16,4 +17,4 @@ export const routing = defineRouting({
   localeDetection: false,
 })
 
-export type Locale = (typeof routing.locales)[number]
+export type Locale = EnabledLocale

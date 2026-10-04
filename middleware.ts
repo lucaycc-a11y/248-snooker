@@ -4,6 +4,7 @@ import { routing } from './i18n/routing'
 import { updateSession } from './lib/supabase/middleware'
 import { getSiteGate } from './lib/gate/config'
 import { GATE_COOKIE_NAME, verifyGateCookie } from './lib/gate/cookie'
+import { isValidLocale, getActiveLocale, isLocaleEnabled, ALL_LOCALES } from './i18n/enabled-locales'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -231,13 +232,15 @@ function isLocalized(pathname: string): boolean {
   if (BYPASS_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return false
 
   const segments = pathname.split('/').filter(Boolean)
-  if (segments[0] && routing.locales.includes(segments[0] as (typeof routing.locales)[number])) {
+
+  // Check if first segment is ANY valid locale (enabled or closed)
+  if (segments[0] && ALL_LOCALES.includes(segments[0] as typeof ALL_LOCALES[number])) {
     return true
   }
 
   // strip a leading locale prefix
   const stripped = pathname.replace(
-    new RegExp(`^/(${routing.locales.join('|')})(?=/|$)`),
+    new RegExp(`^/(${ALL_LOCALES.join('|')})(?=/|$)`),
     '',
   )
   const seg = stripped.split('/').filter(Boolean)[0]
@@ -260,6 +263,16 @@ export async function middleware(request: NextRequest) {
   // rebuilds the request and can strip these headers, breaking signature verification.
   if (request.nextUrl.pathname.startsWith('/api/webhooks/')) {
     return NextResponse.next()
+  }
+
+  // Redirect closed locales (zh-CN, en) to zh-HK equivalent
+  const segments = request.nextUrl.pathname.split('/').filter(Boolean)
+  if (segments[0] && isValidLocale(segments[0]) && !isLocaleEnabled(segments[0])) {
+    // Closed locale detected — redirect to zh-HK equivalent
+    const url = request.nextUrl.clone()
+    // Remove the closed locale prefix: /en/book → /book
+    url.pathname = '/' + segments.slice(1).join('/')
+    return NextResponse.redirect(url, { status: 301 })
   }
 
   // Non-localized routes (/api, /auth, /admin, /member, /login, /maintenance) are

@@ -6,6 +6,7 @@ import { AdminInviteEmail } from './templates/admin-invite'
 import { render } from '@react-email/render'
 import { generateBookingQR, generateMemberQRWithLogo, getRecommendedQRSize } from '@/lib/qrcode'
 import type { QrPayload } from '@/lib/qr/jwt'
+import { getActiveLocale, type EnabledLocale } from '@/i18n/enabled-locales'
 
 type SendReceiptParams = {
   to: string
@@ -29,6 +30,9 @@ type SendReceiptParams = {
 
 export async function sendBookingReceipt(params: SendReceiptParams) {
   const resend = getResend()
+
+  // Use active locale (fallback to zh-HK if closed)
+  const activeLocale = getActiveLocale(params.locale)
 
   // Use human_code (SPACE8-XXXXX-C format) as receipt number
   const receiptNumber = params.booking.human_code || `248-${params.booking.id.slice(0, 8).toUpperCase()}`
@@ -72,7 +76,7 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
   }
 
   const emailProps: BookingConfirmedEmailProps = {
-    locale: params.locale,
+    locale: activeLocale,
     customerName: params.customerName,
     customerEmail: params.to,
     customerPhone: params.customerPhone,
@@ -101,7 +105,7 @@ export async function sendBookingReceipt(params: SendReceiptParams) {
   await resend.emails.send({
     from: 'Space8 <no-reply@space8.com.hk>',
     to: params.to,
-    subject: subjectLines[params.locale],
+    subject: subjectLines[activeLocale],
     html,
   })
 }
@@ -127,10 +131,13 @@ type SendRefundedParams = {
 export async function sendBookingRefundedEmail(params: SendRefundedParams) {
   const resend = getResend()
 
+  // Use active locale (fallback to zh-HK if closed)
+  const activeLocale = getActiveLocale(params.locale)
+
   const receiptNumber = params.booking.human_code || `248-${params.booking.id.slice(0, 8).toUpperCase()}`
 
   const emailProps: BookingRefundedEmailProps = {
-    locale: params.locale,
+    locale: activeLocale,
     customerName: params.customerName,
     customerEmail: params.to,
     date: params.booking.date,
@@ -155,7 +162,7 @@ export async function sendBookingRefundedEmail(params: SendRefundedParams) {
   await resend.emails.send({
     from: 'Space8 <no-reply@space8.com.hk>',
     to: params.to,
-    subject: subjectLines[params.locale],
+    subject: subjectLines[activeLocale],
     html,
   })
 }
@@ -180,10 +187,13 @@ type SendRescheduledParams = {
 export async function sendBookingRescheduledEmail(params: SendRescheduledParams) {
   const resend = getResend()
 
+  // Use active locale (fallback to zh-HK if closed)
+  const activeLocale = getActiveLocale(params.locale)
+
   const receiptNumber = params.booking.human_code || `248-${params.booking.id.slice(0, 8).toUpperCase()}`
 
   const emailProps: BookingRescheduledEmailProps = {
-    locale: params.locale,
+    locale: activeLocale,
     customerName: params.customerName,
     customerEmail: params.to,
     oldDate: params.oldDate,
@@ -207,7 +217,7 @@ export async function sendBookingRescheduledEmail(params: SendRescheduledParams)
   await resend.emails.send({
     from: 'Space8 <no-reply@space8.com.hk>',
     to: params.to,
-    subject: subjectLines[params.locale],
+    subject: subjectLines[activeLocale],
     html,
   })
 }

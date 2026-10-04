@@ -1,20 +1,19 @@
 import { MetadataRoute } from 'next'
 import { getBlogPosts } from '@/lib/data/getBlog'
 import { getSiteGate } from '@/lib/gate/config'
+import { ENABLED_LOCALES, DEFAULT_LOCALE } from '@/i18n/enabled-locales'
 
 const BASE = 'https://space8.com.hk'
-const LOCALES = ['zh-HK', 'zh-CN', 'en']
 
 function localePath(locale: string, path: string): string {
-  return locale === 'zh-HK' ? path : `/${locale}${path}`
+  return locale === DEFAULT_LOCALE ? path : `/${locale}${path}`
 }
 
-// Full 4-locale + x-default hreflang alternates for a given root path (e.g.
-// '/', '/book'). Previously only zh-HK + a nonstandard 'en-HK' code were
-// listed here, missing zh-CN/ja entirely despite LOCALES covering all 4 —
-// inconsistent with the per-page generateMetadata functions.
+// hreflang alternates for enabled locales only
 function alternatesFor(path: string) {
-  const languages = Object.fromEntries(LOCALES.map((locale) => [locale, `${BASE}${localePath(locale, path)}`]))
+  const languages = Object.fromEntries(
+    ENABLED_LOCALES.map((locale) => [locale, `${BASE}${localePath(locale, path)}`])
+  )
   return { languages: { ...languages, 'x-default': `${BASE}${path}` } }
 }
 
@@ -39,10 +38,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const now = new Date()
 
-  const postsByLocale = await Promise.all(LOCALES.map((locale) => getBlogPosts(locale)))
+  const postsByLocale = await Promise.all(ENABLED_LOCALES.map((locale) => getBlogPosts(locale)))
   const postEntries: MetadataRoute.Sitemap = postsByLocale.flatMap((posts, i) =>
     posts.map((post) => ({
-      url: `${BASE}${localePath(LOCALES[i], `/blog/${post.slug}`)}`,
+      url: `${BASE}${localePath(ENABLED_LOCALES[i], `/blog/${post.slug}`)}`,
       lastModified: post.published_at ? new Date(post.published_at) : now,
       changeFrequency: 'monthly' as const,
       priority: 0.6,

@@ -11,7 +11,7 @@
 // Phrases are matched longest-first so a shorter phrase can never fragment
 // a longer one that contains it.
 
-import type { Locale } from "@/i18n/routing";
+import type { Locale } from "@/i18n/enabled-locales";
 
 const ZH_HK: string[] = [
   // amounts
