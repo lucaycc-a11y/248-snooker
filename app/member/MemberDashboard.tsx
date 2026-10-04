@@ -1493,12 +1493,109 @@ const POINTS_CATEGORY_STYLE: Record<
 function PointsTab({ points, balance, locale }: { points: import("@/lib/data/getMember").PointsEntry[]; balance: number; locale: string }) {
   const t = useTranslations("memberPage");
   const earn = t.raw("points_earn") as string[];
+  const [totalConverted, setTotalConverted] = useState<number | null>(null);
+  const [lastConversion, setLastConversion] = useState<{ amount: number; hkd: number } | null>(null);
+
+  // Fetch total converted points from wallet ledger
+  useEffect(() => {
+    const fetchConversions = async () => {
+      try {
+        const res = await fetch('/api/member/wallet');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        // Sum all converted points from ledger
+        let total = 0;
+        let latestConvert: { amount: number; hkd: number } | null = null;
+
+        if (data.ledger?.items) {
+          for (const item of data.ledger.items) {
+            if (item.type === 'convert' && item.pointsConverted) {
+              total += item.pointsConverted;
+              if (!latestConvert) {
+                // Latest conversion: pointsConverted pts → Math.abs(amount) HKD
+                latestConvert = {
+                  amount: item.pointsConverted,
+                  hkd: Math.abs(item.amount)
+                };
+              }
+            }
+          }
+        }
+
+        setTotalConverted(total);
+        setLastConversion(latestConvert);
+      } catch (err) {
+        console.error('Failed to fetch conversions:', err);
+      }
+    };
+    fetchConversions();
+  }, []);
+
+  // Calculate redeemable balance (0-99 range)
+  const redeemable = totalConverted !== null ? balance - totalConverted : balance;
+  const redeemableInRange = redeemable % 100; // 0-99
+  const progressPercent = redeemableInRange; // 0-99 maps directly to 0-99%
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "16px" }}>
-        <span style={{ fontSize: "14px", color: SUBTLE }} data-cms-key="member.points_running_total">{t("points_running_total")}</span>
-        <span className="font-code" style={{ fontSize: "30px", color: INK, letterSpacing: "0.02em" }}>{balance.toLocaleString()} <span style={{ fontSize: "13px", color: SUBTLE, fontFamily: FONT_FAMILY }}>pts</span></span>
+      {/* 優越會員 badge + Redeemable balance */}
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+          <span style={{
+            fontSize: "11px",
+            fontWeight: 600,
+            color: INK,
+            background: "rgba(255,255,255,0.1)",
+            padding: "4px 10px",
+            borderRadius: 12,
+            fontFamily: "var(--gt)"
+          }}>
+            優越會員
+          </span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "8px" }}>
+          <span style={{ fontSize: "14px", color: SUBTLE }}>可兌換積分</span>
+          <span className="font-code" style={{ fontSize: "30px", color: INK, letterSpacing: "0.02em" }}>
+            {redeemableInRange.toLocaleString()} <span style={{ fontSize: "13px", color: SUBTLE, fontFamily: FONT_FAMILY }}>pts</span>
+          </span>
+        </div>
+
+        {/* Progress bar toward next 100 */}
+        <div style={{
+          width: "100%",
+          height: "6px",
+          background: "rgba(255,255,255,0.1)",
+          borderRadius: "3px",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            width: `${progressPercent}%`,
+            height: "100%",
+            background: GREEN,
+            transition: "width 0.3s ease"
+          }} />
+        </div>
+        <div style={{ fontSize: "11px", color: SUBTLE, marginTop: "4px", textAlign: "right" }}>
+          {100 - redeemableInRange} pts 至下一次兌換
+        </div>
       </div>
+
+      {/* Conversion notification */}
+      {lastConversion && (
+        <div style={{
+          padding: "12px 16px",
+          background: "rgba(34,197,94,0.1)",
+          border: `1px solid rgba(34,197,94,0.3)`,
+          borderRadius: "12px",
+          marginBottom: "20px"
+        }}>
+          <div style={{ fontSize: "13px", color: INK }}>
+            上次兌換：{lastConversion.amount} pts → HK${lastConversion.hkd} 已存入錢包
+          </div>
+        </div>
+      )}
 
       {points.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column" }}>
