@@ -162,6 +162,16 @@ export function SpaceWheel({
   const drumEnd = hasPoints ? pointCount : count;
   const last = Math.max(drumEnd - 1, 0);
 
+  // Map global index to ring-only index for proper angle calculation
+  const ringOnlyIndex: number[] = [];
+  let ringIdx = 0;
+  for (let i = 0; i < count; i++) {
+    if (items[i]?.point === undefined) {
+      ringOnlyIndex[i] = ringIdx++;
+    }
+  }
+  const ringOnlyCount = ringIdx;
+
   // Read matchMedia after mount — the server has no matchMedia, and reading it
   // inline would be a hydration mismatch.
   const [reduced, setReduced] = React.useState(false);
@@ -311,7 +321,8 @@ export function SpaceWheel({
           card.style.willChange = cardOpacity > 0.1 ? 'transform' : 'auto';
         } else {
           // Ring-only item: place on ring, fade out during transition
-          const ringAngleDeg = i * (360 / count);
+          const idx = ringOnlyIndex[i] ?? 0;
+          const ringAngleDeg = ringOnlyCount > 0 ? idx * (360 / ringOnlyCount) : 0;
 
           // Transition: fade out and shrink
           const ringOnlyOpacity = Math.max(0, 1 - m * 2); // fade by m ≈ 0.5
