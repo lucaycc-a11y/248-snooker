@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 import type {
-  PointsTransactionItem,
-  PointsTransactionsResponse,
+  PointsSummary,
   ErrorResponse,
 } from '@/lib/member-contracts'
-import { parseConvertNote } from '@/lib/member-format'
 
 /**
- * GET /api/member/points/transactions?cursor=<timestamp>
+ * GET /api/member/points
  *
- * Paginated transactions endpoint (used by "Load More" button).
+ * Returns the summary for the points page:
+ * - lifetime: users.points (total earned)
+ * - redeemable: users.points - sum of N from credits_ledger convert notes
+ * - convertedPoints: sum of N from credits_ledger convert notes
+ * - depositedToWallet: sum of credits_ledger.amount for convert/signup
+ * - tier, blockSize, creditsPerBlock from config table
  */
 export async function GET(request: NextRequest) {
   try {
@@ -28,117 +31,105 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id
-    const searchParams = request.nextUrl.searchParams
-    const cursor = searchParams.get('cursor')
 
-    // 2. Fetch transactions
-    const transactions = await fetchTransactions(supabase, userId, cursor)
+    // 2. Fetch user profile
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('points')
+      .eq('id', userId)
+      .single()
 
-    return NextResponse.json(transactions)
+    if (userError || !user) {
+      console.error('Failed to fetch user:', userError)
+      return NextResponse.json<ErrorResponse>(
+        { error: 'user_not_found' },
+        { status: 404 }
+      )
+    }
+
+    const lifetime = user.points ?? 0
+
+    // 3. Fetch all convert entries from credits_ledger to calculate convertedPoints
+    const { data: convertRows, error: convertError } = await supabase
+      .from('credits_ledger')
+      .select('note, amount')
+      .eq('user_id', userId)
+      .in('type', ['convert', 'signup'])
+
+    if (convertError) {
+      console.error('Failed to fetch credits_ledger:', convertError)
+      return NextResponse.json<ErrorResponse>(
+        { error: 'server_error' },
+        { status: 500 }
+      )
+    }
+
+    // Parse convert notes to extract converted points
+    let convertedPoints = 0
+    let depositedToWallet = 0
+
+    for (const row of convertRows || []) {
+      // Add amount to depositedToWallet
+      depositedToWallet += row.amount
+
+      // Parse note for converted points (format: "Convert 100 pts → HK$10")
+      const note = row.note || ''
+      const match = note.match(/Convert (\d+) pts/)
+      if (match) {
+        const points = parseInt(match[1], 10)
+        if (!isNaN(points)) {
+          convertedPoints += points
+        }
+      }
+    }
+
+    // 4. Calculate redeemable
+    const redeemable = lifetime - convertedPoints
+
+    // 5. Fetch config values
+    const { data: configRows, error: configError } = await supabase
+      .from('config')
+      .select('key, value')
+      .in('key', ['points_tier', 'points_block_size', 'points_credits_per_block'])
+
+    if (configError) {
+      console.error('Failed to fetch config:', configError)
+      return NextResponse.json<ErrorResponse>(
+        { error: 'server_error' },
+        { status: 500 }
+      )
+    }
+
+    // Parse config
+    const configMap = new Map<string, string>()
+    for (const row of configRows || []) {
+      const value = row.value
+      if (typeof value === 'string') {
+        configMap.set(row.key, value)
+      }
+    }
+
+    const tier = configMap.get('points_tier') || 'standard'
+    const blockSize = parseInt(configMap.get('points_block_size') || '100', 10)
+    const creditsPerBlock = parseInt(configMap.get('points_credits_per_block') || '10', 10)
+
+    // 6. Return summary
+    const summary: PointsSummary = {
+      lifetime,
+      redeemable,
+      convertedPoints,
+      depositedToWallet,
+      tier,
+      blockSize,
+      creditsPerBlock,
+    }
+
+    return NextResponse.json(summary)
   } catch (err) {
-    console.error('GET /api/member/points/transactions error:', err)
+    console.error('GET /api/member/points error:', err)
     return NextResponse.json<ErrorResponse>(
       { error: 'server_error' },
       { status: 500 }
     )
-  }
-}
-
-/**
- * Fetch and merge points_ledger + credits_ledger (convert only)
- * Returns up to 20 items, newest first.
- */
-async function fetchTransactions(
-  supabase: any,
-  userId: string,
-  cursor: string | null
-): Promise<PointsTransactionsResponse> {
-  const limit = 20
-  let pointsQuery = supabase
-    .from('points_ledger')
-    .select('id, type, amount, created_at, note, booking_id')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(limit * 2) // Over-fetch to merge with credits
-
-  if (cursor) {
-    pointsQuery = pointsQuery.lt('created_at', cursor)
-  }
-
-  const { data: pointsRows, error: pointsError } = await pointsQuery
-
-  if (pointsError) {
-    console.error('Failed to fetch points_ledger:', pointsError)
-    throw pointsError
-  }
-
-  // Fetch credits_ledger (convert only)
-  let creditsQuery = supabase
-    .from('credits_ledger')
-    .select('id, type, amount, created_at, note')
-    .eq('user_id', userId)
-    .eq('type', 'convert')
-    .order('created_at', { ascending: false })
-    .limit(limit * 2)
-
-  if (cursor) {
-    creditsQuery = creditsQuery.lt('created_at', cursor)
-  }
-
-  const { data: creditsRows, error: creditsError } = await creditsQuery
-
-  if (creditsError) {
-    console.error('Failed to fetch credits_ledger:', creditsError)
-    throw creditsError
-  }
-
-  // Merge and sort
-  const merged: PointsTransactionItem[] = []
-
-  // Map points_ledger rows
-  for (const row of pointsRows || []) {
-    merged.push({
-      id: row.id,
-      source: 'points',
-      type: row.type,
-      points: row.amount,
-      depositedHkd: null,
-      paidHkd: null,
-      createdAt: row.created_at,
-      note: row.note || '',
-      bookingReference: null,
-    })
-  }
-
-  // Map credits_ledger (convert) rows
-  for (const row of creditsRows || []) {
-    const convertedPoints = parseConvertNote(row.note || '')
-    if (convertedPoints !== null) {
-      merged.push({
-        id: row.id,
-        source: 'credits',
-        type: 'convert',
-        points: -convertedPoints,
-        depositedHkd: row.amount,
-        paidHkd: null,
-        createdAt: row.created_at,
-        note: row.note || '',
-        bookingReference: null,
-      })
-    }
-  }
-
-  // Sort by created_at descending
-  merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
-  // Take first `limit` items
-  const items = merged.slice(0, limit)
-  const hasMore = merged.length > limit
-  const nextCursor = hasMore && items.length > 0 ? items[items.length - 1].createdAt : null
-
-  return {
-    items,
-    hasMore,
-    nextCursor,
   }
 }

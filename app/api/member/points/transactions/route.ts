@@ -5,12 +5,12 @@ import type {
   PointsTransactionsResponse,
   ErrorResponse,
 } from '@/lib/member-contracts'
-import { parseConvertNote } from '@/lib/member-format'
 
 /**
  * GET /api/member/points/transactions?cursor=<timestamp>
  *
  * Paginated transactions endpoint (used by "Load More" button).
+ * Merges points_ledger and credits_ledger (convert only) into a unified feed.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -54,9 +54,11 @@ async function fetchTransactions(
   cursor: string | null
 ): Promise<PointsTransactionsResponse> {
   const limit = 20
+
+  // Fetch points_ledger (correct columns: id, type, points, created_at, note, reference_id)
   let pointsQuery = supabase
     .from('points_ledger')
-    .select('id, type, amount, created_at, note, booking_id')
+    .select('id, type, points, created_at, note, reference_id')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(limit * 2) // Over-fetch to merge with credits
@@ -101,28 +103,32 @@ async function fetchTransactions(
       id: row.id,
       source: 'points',
       type: row.type,
-      points: row.amount,
+      points: row.points, // Correct column name
       depositedHkd: null,
       paidHkd: null,
       createdAt: row.created_at,
       note: row.note || '',
-      bookingReference: null,
+      bookingReference: null, // No booking_id column exists
     })
   }
 
   // Map credits_ledger (convert) rows
   for (const row of creditsRows || []) {
-    const convertedPoints = parseConvertNote(row.note || '')
-    if (convertedPoints !== null) {
+    // Parse note for converted points (format: "Convert 100 pts → HK$10")
+    const note = row.note || ''
+    const match = note.match(/Convert (\d+) pts/)
+    const convertedPoints = match ? parseInt(match[1], 10) : 0
+
+    if (convertedPoints > 0) {
       merged.push({
         id: row.id,
         source: 'credits',
         type: 'convert',
-        points: -convertedPoints,
+        points: -convertedPoints, // Negative because points were spent
         depositedHkd: row.amount,
         paidHkd: null,
         createdAt: row.created_at,
-        note: row.note || '',
+        note: note,
         bookingReference: null,
       })
     }
