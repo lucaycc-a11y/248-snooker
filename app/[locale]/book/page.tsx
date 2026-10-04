@@ -2576,8 +2576,9 @@ function Screen3({
                     }))}
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
-                    pointsAmount={0}
-                    walletAmount={walletApplied?.amount}
+                    useWallet={walletApplied !== null}
+                    promoCode={promoCode?.code ?? null}
+                    expectedTotal={total}
                     agreedToTerms={agreedToTerms}
                     uatPaymeSimulation={paymeUatSim}
                     resumeBookingId={resumeBookingId}

@@ -68,14 +68,12 @@ type Props = {
   mode: KPayMode
   labels: KPayLabels
   agreedToTerms: boolean
-  /** Member points to redeem, 0 = none. Re-validated and reserved server-side by
-   * prepare_checkout; the amount KPay charges comes back from that RPC, never
-   * from this component. */
-  pointsAmount?: number
-  /** Space Wallet credits to use, 0 = none. Re-validated and reserved server-side by
-   * prepare_checkout; the amount KPay charges comes back from that RPC, never
-   * from this component. */
-  walletAmount?: number
+  /** Whether Space Wallet discount is applied (server re-validates) */
+  useWallet?: boolean
+  /** Promo code to apply (server re-validates) */
+  promoCode?: string | null
+  /** Expected total after all discounts — validated server-side */
+  expectedTotal?: number
   /** Resume an in-progress payment after page refresh — skip order creation and
    * restore the existing bookingId/orderNo directly. */
   resumeBookingId?: string
@@ -239,8 +237,9 @@ export default function KPayPayment(props: Props) {
     blocks, bookingId, orderGroupId, method, mode, labels, agreedToTerms,
     resumeBookingId, resumeOrderNo, onBackToMethods, onSuccess,
   } = props
-  const pointsAmount = props.pointsAmount ?? 0
-  const walletAmount = props.walletAmount ?? 0
+  const useWallet = props.useWallet ?? false
+  const promoCode = props.promoCode ?? null
+  const expectedTotal = props.expectedTotal
 
   // ── UAT-ONLY PayMe test simulation selector ───────────────────────────────
   // Prefer the parent prop (from pre-checkout modal); fall back to URL param.
@@ -319,12 +318,8 @@ export default function KPayPayment(props: Props) {
         agreedToTerms,
         returnUrl: `${window.location.origin}${confirmPath}`,
       }
-      if (pointsAmount > 0) {
-        body.pointsAmount = pointsAmount
-      }
-      if (walletAmount > 0) {
-        body.walletAmount = walletAmount
-      }
+      if (useWallet) body.useWallet = true
+      if (promoCode) body.promoCode = promoCode
       // UAT-ONLY: include PayMe test simulation selector when present in URL
       if (uatPaymeSimulation) {
         body.uat_payme = uatPaymeSimulation
@@ -462,7 +457,7 @@ export default function KPayPayment(props: Props) {
       creatingRef.current = false
       setCreating(false)
     }
-  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode, pointsAmount, walletAmount, uatPaymeSimulation])
+  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode, useWallet, promoCode, uatPaymeSimulation])
 
   const cancelBooking = useCallback(async () => {
     if (actionBusy) return
@@ -635,8 +630,8 @@ export default function KPayPayment(props: Props) {
           bookingId: resumeBookingId,
           orderGroupId: resumeOrderNo ? undefined : localOrderGroupId,
         }
-        if (pointsAmount > 0) body.pointsAmount = pointsAmount
-        if (walletAmount > 0) body.walletAmount = walletAmount
+        if (useWallet) body.useWallet = true
+        if (promoCode) body.promoCode = promoCode
         // UAT-ONLY: include PayMe test simulation selector when present in URL
         if (uatPaymeSimulation) {
           body.uat_payme = uatPaymeSimulation
@@ -1333,7 +1328,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   uatLabel: {
     fontSize: 11,
-    color: '#888',
+    color: '#888', // ignore-value design-system-color — UAT-only testing UI
     fontWeight: 600,
     letterSpacing: '0.04em',
     textTransform: 'uppercase' as const,
@@ -1350,7 +1345,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
     background: '#1a1a1a',
-    color: '#666',
+    color: '#666', // ignore-value design-system-color — UAT-only testing UI
     border: 'none',
     transition: 'all 0.15s ease',
   },
@@ -1359,7 +1354,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#000',
   },
   uatToggleBtnActiveFail: {
-    background: '#e74c3c',
+    background: '#e74c3c', // ignore-value design-system-color — UAT-only testing UI
     color: '#fff',
   },
 }
