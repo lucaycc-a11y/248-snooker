@@ -143,7 +143,14 @@ export default async function Home({
 
   const t = await getTranslations("pricingPage");
   const config = await getConfig();
-  const slots = periodsToSlots(config.periods, (key: string) => t(key));
+
+  // Reorder periods: morning → afternoon → evening (explicit display order)
+  const PERIOD_ORDER = ['morning', 'afternoon', 'evening'] as const;
+  const orderedPeriods = PERIOD_ORDER
+    .map(id => config.periods.find(p => p.id === id))
+    .filter((p): p is NonNullable<typeof p> => p !== undefined);
+
+  const slots = periodsToSlots(orderedPeriods, (key: string) => t(key));
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, config.periods);
 
   const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
