@@ -6,8 +6,9 @@ export default async function PointsPage() {
   const t = await getTranslations('points')
 
   return (
-    <div className="app wide">
-      <header className="top">
+    <div className="m8 m8-points">
+      <main className="app wide">
+        <header className="top">
         <a className="icon-btn" href="/member" aria-label={t('back')}>
           <svg className="i" aria-hidden="true">
             <use href="#i-back" />
@@ -20,6 +21,7 @@ export default async function PointsPage() {
       <Suspense fallback={<PointsPageSkeleton />}>
         <PointsPageClient />
       </Suspense>
+      </main>
     </div>
   )
 }

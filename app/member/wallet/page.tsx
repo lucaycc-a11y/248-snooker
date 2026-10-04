@@ -190,8 +190,9 @@ export default function WalletPage() {
   }
 
   return (
-    <>
-      <div className="top">
+    <div className="m8 m8-wallet">
+      <main className="app wide">
+        <div className="top">
         <button className="icon-btn" onClick={() => router.back()} aria-label={t('back')}>
           <svg className="i" aria-hidden="true">
             <use href="#i-back" />
@@ -491,6 +492,7 @@ export default function WalletPage() {
           </symbol>
         </defs>
       </svg>
-    </>
+      </main>
+    </div>
   )
 }

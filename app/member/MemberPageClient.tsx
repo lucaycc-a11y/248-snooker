@@ -74,7 +74,9 @@ export function MemberPageClient({ initialData }: Props) {
           <div className="mt-6 space-y-6 md:mx-auto md:max-w-[480px] lg:mx-0 lg:mt-0 lg:max-w-none">
             {/* Action tiles — no section heading */}
             <section>
-              <HorizontalActionTiles profile={profile} />
+              <div className="m8 m8-actions">
+                <HorizontalActionTiles profile={profile} />
+              </div>
             </section>
 
             {/* Upcoming Booking - Hidden */}

@@ -64,75 +64,80 @@ export default function InboxPage() {
 
   if (loading) {
     return (
-      <div className="app">
-        <div className="top">
-          <span />
-          <span className="t">{t('title')}</span>
-          <span />
-        </div>
-        <div className="sticky">
-          <div className="tabs">
-            <button className="tab" aria-selected="true">{t('filterAll')}</button>
-            <button className="tab">{t('filterCredit')}</button>
-            <button className="tab">{t('filterPromo')}</button>
-            <button className="tab">{t('filterSystem')}</button>
+      <div className="m8 m8-inbox">
+        <main className="app">
+          <div className="top">
+            <span />
+            <span className="t">{t('title')}</span>
+            <span />
           </div>
-        </div>
-        <div style={{ marginTop: '24px' }}>
-          {[1, 2, 3].map(i => (
-            <div key={i} className="group" style={{ marginBottom: '12px' }}>
-              <div className="row">
-                <div className="skel" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
-                <div style={{ flex: 1 }}>
-                  <div className="skel" style={{ width: '60%', height: '16px', marginBottom: '8px' }} />
-                  <div className="skel" style={{ width: '40%', height: '14px' }} />
-                </div>
-                <div className="skel" style={{ width: '60px', height: '14px' }} />
-              </div>
+          <div className="sticky">
+            <div className="tabs">
+              <button className="tab" aria-selected="true">{t('filterAll')}</button>
+              <button className="tab">{t('filterCredit')}</button>
+              <button className="tab">{t('filterPromo')}</button>
+              <button className="tab">{t('filterSystem')}</button>
             </div>
-          ))}
-        </div>
+          </div>
+          <div style={{ marginTop: '24px' }}>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="group" style={{ marginBottom: '12px' }}>
+                <div className="row">
+                  <div className="skel" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+                  <div style={{ flex: 1 }}>
+                    <div className="skel" style={{ width: '60%', height: '16px', marginBottom: '8px' }} />
+                    <div className="skel" style={{ width: '40%', height: '14px' }} />
+                  </div>
+                  <div className="skel" style={{ width: '60px', height: '14px' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="app">
-        <div className="top">
-          <span />
-          <span className="t">{t('title')}</span>
-          <span />
-        </div>
-        <div className="alert" style={{ marginTop: '24px' }}>
-          <svg className="i" viewBox="0 0 24 24">
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z" />
-            <path d="M12 8v4m0 4h.01" />
-          </svg>
-          <div>
-            <h3>{t('errorTitle')}</h3>
-            <p>{t('errorMessage')}</p>
-            <button className="btn secondary sm" onClick={fetchInbox}>
-              {t('retry')}
-            </button>
+      <div className="m8 m8-inbox">
+        <main className="app">
+          <div className="top">
+            <span />
+            <span className="t">{t('title')}</span>
+            <span />
           </div>
-        </div>
+          <div className="alert" style={{ marginTop: '24px' }}>
+            <svg className="i" viewBox="0 0 24 24">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10Z" />
+              <path d="M12 8v4m0 4h.01" />
+            </svg>
+            <div>
+              <h3>{t('errorTitle')}</h3>
+              <p>{t('errorMessage')}</p>
+              <button className="btn secondary sm" onClick={fetchInbox}>
+                {t('retry')}
+              </button>
+            </div>
+          </div>
+        </main>
       </div>
     )
   }
 
   if (selectedItem) {
     return (
-      <div className="app">
-        <div className="top">
-          <button className="icon-btn" onClick={() => setSelectedItem(null)}>
-            <svg className="i" viewBox="0 0 24 24">
-              <path d="M19 12H5m0 0l7 7m-7-7l7-7" />
-            </svg>
-          </button>
-          <span className="t">{t('detailTitle')}</span>
-          <span />
-        </div>
+      <div className="m8 m8-inbox">
+        <main className="app">
+          <div className="top">
+            <button className="icon-btn" onClick={() => setSelectedItem(null)}>
+              <svg className="i" viewBox="0 0 24 24">
+                <path d="M19 12H5m0 0l7 7m-7-7l7-7" />
+              </svg>
+            </button>
+            <span className="t">{t('detailTitle')}</span>
+            <span />
+          </div>
         <div className="msg-detail">
           <div className="detail-header">
             <div className="ic">
@@ -155,17 +160,19 @@ export default function InboxPage() {
             <p>{selectedItem.message}</p>
           </div>
         </div>
+        </main>
       </div>
     )
   }
 
   return (
-    <div className="app">
-      <div className="top">
-        <span />
-        <span className="t">{t('title')}</span>
-        <span />
-      </div>
+    <div className="m8 m8-inbox">
+      <main className="app">
+        <div className="top">
+          <span />
+          <span className="t">{t('title')}</span>
+          <span />
+        </div>
 
       <div className="sticky">
         <div className="tabs">
@@ -243,6 +250,7 @@ export default function InboxPage() {
           </div>
         ))
       )}
+      </main>
     </div>
   )
 }
