@@ -4,8 +4,7 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { SITE_CONTACT } from "@/lib/site/contact";
 import { Clock, MapPin, MessageCircle, Mail } from "lucide-react";
-import { SpaceWheelHero } from "./SpaceWheelHero";
-import { DrumCarousel } from "./DrumCarousel";
+import { SpaceWheelSection } from "./SpaceWheelSection";
 import { SpaceWheelOutro } from "./SpaceWheelOutro";
 
 const GREEN = "#22C55E";
@@ -19,9 +18,8 @@ export default function AboutContent() {
 
   return (
     <div>
-      {/* ── SpaceWheel hero (8-photo ring) + Drum carousel (3-photo scroll) ── */}
-      <SpaceWheelHero />
-      <DrumCarousel />
+      {/* ── SpaceWheel gallery + outro (8-photo ring → 3-photo scroll) ── */}
+      <SpaceWheelSection />
       <SpaceWheelOutro />
 
       {/* ── Section 7: 聯絡我們 (kept unchanged) ── */}

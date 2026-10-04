@@ -320,7 +320,7 @@ export function SpaceWheel({
           card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
           card.style.willChange = cardOpacity > 0.1 ? 'transform' : 'auto';
         } else {
-          // Ring-only item: always visible on ring, no fade or shrinking
+          // Ring-only item: stays on ring, fades out as m increases
           const idx = ringOnlyIndex[i] ?? 0;
           const ringAngleDeg = ringOnlyCount > 0 ? idx * (360 / ringOnlyCount) : 0;
 
@@ -330,13 +330,13 @@ export function SpaceWheel({
             ringR,
             drumR,
             bow,
-            0, // m=0 for ring state (no transition to drum)
+            m, // Use actual m so ring items fade as scroll progresses
             ringTilt,
           );
-          card.style.opacity = String(1); // Always fully visible
-          card.style.visibility = "visible";
+          card.style.opacity = String(1 - m); // Fade out as m increases
+          card.style.visibility = m > 0.95 ? "hidden" : "visible"; // Hide when fully faded
           card.style.zIndex = String(50); // Behind drum cards
-          card.style.willChange = 'auto';
+          card.style.willChange = m > 0.05 ? 'transform' : 'auto';
         }
 
         const face = card.firstElementChild as HTMLElement | null;
