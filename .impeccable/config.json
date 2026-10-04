@@ -997,6 +997,11 @@
         "value": "9px",
         "createdAt": "2026-10-04T13:50:19.539Z",
         "reason": "custom micro-interaction radius, intentional design"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#16a34a app/[locale]/venue/venuecontent.tsx",
+        "createdAt": "2026-10-04T14:29:37.086Z"
       }
     ]
   }
