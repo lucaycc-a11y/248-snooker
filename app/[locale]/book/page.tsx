@@ -2336,70 +2336,44 @@ function Screen3({
               </div>
             )}
 
-            {/* STOP-GAP: Hide wallet and promo for Stripe/Google Pay until Items 1-3 are implemented
-                to prevent customers from being overcharged (displayed discount not applied to payment) */}
-            {(process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") !== "stripe" ? (
-              <>
-                {/* Promo code input */}
-                <div style={{ margin: "16px 0" }}>
-                  <PromoCodeInput
-                    originalTotal={subtotal}
-                    onApply={onPromoChange}
-                    onRemove={() => onPromoChange(null)}
-                    activeCode={promoCode}
-                    labels={{
-                      placeholder: t("promo_placeholder") || "優惠碼",
-                      applyLabel: t("promo_apply") || "應用",
-                      removeLabel: t("promo_remove") || "移除",
-                      discountLabel: t("promo_discount") || "折扣",
-                      invalidLabel: t("promo_invalid") || "無效代碼",
-                      expiredLabel: t("promo_expired") || "代碼已過期",
-                      minCartLabel: t("promo_min_cart") || "未達最低消費",
-                      validatingLabel: t("promo_validating") || "驗證中...",
-                    }}
-                  />
-                </div>
+            {/* Promo code input */}
+            <div style={{ margin: "16px 0" }}>
+              <PromoCodeInput
+                originalTotal={subtotal}
+                onApply={onPromoChange}
+                onRemove={() => onPromoChange(null)}
+                activeCode={promoCode}
+                labels={{
+                  placeholder: t("promo_placeholder") || "優惠碼",
+                  applyLabel: t("promo_apply") || "應用",
+                  removeLabel: t("promo_remove") || "移除",
+                  discountLabel: t("promo_discount") || "折扣",
+                  invalidLabel: t("promo_invalid") || "無效代碼",
+                  expiredLabel: t("promo_expired") || "代碼已過期",
+                  minCartLabel: t("promo_min_cart") || "未達最低消費",
+                  validatingLabel: t("promo_validating") || "驗證中...",
+                }}
+              />
+            </div>
 
-                {/* Space Wallet row — under promo code, mutually exclusive */}
-                <div style={{ margin: "16px 0" }}>
-                  <CheckoutWalletRow
-                    originalTotal={subtotal}
-                    walletBalance={walletBalance}
-                    onApply={onWalletChange}
-                    onRemove={() => onWalletChange(null)}
-                    activeWallet={walletApplied}
-                  />
-                </div>
+            {/* Space Wallet row — under promo code, mutually exclusive */}
+            <div style={{ margin: "16px 0" }}>
+              <CheckoutWalletRow
+                originalTotal={subtotal}
+                walletBalance={walletBalance}
+                onApply={onWalletChange}
+                onRemove={() => onWalletChange(null)}
+                activeWallet={walletApplied}
+              />
+            </div>
 
-                {/* Wallet applied display */}
-                {walletApplied && walletAppliedAmount > 0 && (
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
-                    <span>{t("wallet_applied") || "已套用 Space Wallet"}</span>
-                    <span style={{ color: "#22b86b", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                      <>−<BookingPrice amount={walletAppliedAmount} /></>
-                    </span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div style={{
-                margin: "16px 0",
-                padding: "12px 16px",
-                background: "rgba(255, 159, 10, 0.08)",
-                border: "1px solid rgba(255, 159, 10, 0.3)",
-                borderRadius: tokens.radius.input,
-                fontSize: 13,
-                color: tokens.colors.textMuted,
-                lineHeight: 1.5
-              }}>
-                <div style={{ fontWeight: 600, color: "rgba(255, 159, 10, 1)", marginBottom: 4 }}>
-                  {locale === "en" ? "Note" : locale === "zh-CN" ? "提示" : "提示"}
-                </div>
-                {locale === "en"
-                  ? "Wallet and promo codes are temporarily unavailable for card and Google Pay payments. We're working to enable them soon."
-                  : locale === "zh-CN"
-                  ? "钱包及优惠码暂不支持信用卡及 Google Pay 付款，我们正在开发中。"
-                  : "錢包及優惠碼暫不支援信用卡及 Google Pay 付款，我們正在開發中。"}
+            {/* Wallet applied display */}
+            {walletApplied && walletAppliedAmount > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
+                <span>{t("wallet_applied") || "已套用 Space Wallet"}</span>
+                <span style={{ color: "#22b86b", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                  <>−<BookingPrice amount={walletAppliedAmount} /></>
+                </span>
               </div>
             )}
 

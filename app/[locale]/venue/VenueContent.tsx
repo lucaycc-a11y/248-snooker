@@ -36,10 +36,7 @@ export default function VenueContent() {
             name: tPricing(`period_${period.id}_title`),
             time_label: tPricing(`period_${period.id}_time`),
             hourly_rate: period.rate,
-            accent_color:
-              period.id === 'morning' ? tokens.colors.blue[600] :
-              period.id === 'afternoon' ? tokens.colors.green[600] :
-              tokens.colors.purple[600],
+            accent_color: tokens.colors.green[600],
           }));
 
           setPeriods(transformed);

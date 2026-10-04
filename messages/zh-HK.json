@@ -3254,7 +3254,7 @@
           "main": "舒適沙發休息區",
           "small": {
             "infinity": "一張沙發，一張大凳",
-            "eternity": "一張沙發，兩張吧台凳"
+            "eternity": "一張沙發，兩張吧臺凳"
           }
         },
         "equipment": {
@@ -3295,7 +3295,7 @@
       ]
     },
     "hero": {
-      "heading": "由球枱上第一次打破台起。",
+      "heading": "由球枱上第一次打破臺起。",
       "body_bold": "Space8 相信，",
       "body_rest": "每個新手都可以成為高手。"
     }
