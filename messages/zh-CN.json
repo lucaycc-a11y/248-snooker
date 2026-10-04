@@ -247,12 +247,11 @@
     "hero_subtitle": "按需预订，无隐藏费用。",
     "per_hour": "／小时",
     "period_afternoon_title": "下午时段",
-    "period_afternoon_tagline": "午后慢慢打，让节奏留给自己。",
-    "period_afternoon_time": "每日 12:00–16:00",
-    "period_morning_tagline": "清醒开局，第一杆更专注。",
-    "period_evening_tagline": "灯光亮起，今晚适合一起上场。",
+    "period_afternoon_time": "每日 12:00–18:00",
+    "period_morning_title": "上午时段",
+    "period_morning_time": "每日 06:00–12:00",
     "period_evening_title": "黄金时段",
-    "period_evening_time": "每日 16:00–00:00",
+    "period_evening_time": "每日 18:00–00:00",
     "period_latenight_title": "深夜时段",
     "period_latenight_time": "12am – 6am",
     "duration_1h": "1 小时",
@@ -330,10 +329,8 @@
     ],
     "cta_section_title": "准备好开台了吗？",
     "cta_section_button": "立即预订",
-    "period_morning_title": "上午时段",
-    "period_morning_time": "每日 06:00–12:00",
-    "periods_title": "定价",
-    "periods_subtitle": "按时段收费，越连订越抵玩。"
+    "periods_title": "透明定价",
+    "periods_subtitle": "按需预订，无隐藏费用。"
   },
   "blog": {
     "title": "Blog",
@@ -1085,7 +1082,14 @@
       "offers_used": "已使用优惠",
       "how_it_works": "钱包运作方式"
     },
-    "member_id_label": "会员 ID"
+    "member_id_label": "会员 ID",
+    "card_premier": {
+      "title": "优越会员",
+      "member_id_label": "会员编号",
+      "tap_to_enlarge": "点击放大 QR 码",
+      "scan_tip": "出示此 QR 码以验证会籍",
+      "close": "关闭"
+    }
   },
   "memberIntro": {
     "meta": {
@@ -3199,5 +3203,6 @@
   "faq_2": "每累积 100 积分，自动存入 HK$10 至 Space Wallet，无需任何操作。",
   "faq_3": "当次消费所得积分于付款成功后入账，不可用于本次订单。",
   "faq_4": "优惠码与 Space Wallet 只能择一使用。",
-  "faq_5": "订单退款时，已使用的金额会全数退回 Space Wallet。"
+  "faq_5": "订单退款时，已使用的金额会全数退回 Space Wallet。",
+  "file": "messages/zh-CN.json"
 }

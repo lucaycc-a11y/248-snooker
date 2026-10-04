@@ -172,11 +172,9 @@ export default async function Home({
 
       <PricingCards
         theme="light"
-        heading={t("hero_title")}
-        subheading={t("hero_subtitle")}
+        heading={t("periods_title")}
+        subheading={t("periods_subtitle")}
         slots={slots}
-        featuredId={slots.reduce((best, s) => s.price < best.price ? s : best, slots[0])?.id}
-        badge={t("badge_best_value")}
       />
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}

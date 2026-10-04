@@ -81,20 +81,16 @@ const TIER_CONFIG: Record<
   TierId,
   {
     accent: string
-    taglineKey: "period_morning_tagline" | "period_afternoon_tagline" | "period_evening_tagline"
   }
 > = {
   morning: {
-    accent: "#6b7280",
-    taglineKey: "period_morning_tagline",
+    accent: "#6b7280", // grey
   },
   afternoon: {
-    accent: "#16a34a",
-    taglineKey: "period_afternoon_tagline",
+    accent: "#16a34a", // green
   },
   evening: {
-    accent: "#9333ea",
-    taglineKey: "period_evening_tagline",
+    accent: "#9333ea", // purple
   },
 }
 
@@ -108,7 +104,7 @@ type TranslationFn = (key: string) => string
 
 /**
  * Convert PricingPeriod[] from the config table into PricingSlot[] for the UI.
- * Uses i18n for names, taglines, time labels, and CTA text.
+ * Uses i18n for names, time labels, and CTA text. No taglines per spec.
  */
 export function periodsToSlots(
   periods: PricingPeriod[],
@@ -119,7 +115,6 @@ export function periodsToSlots(
     return {
       id: period.id,
       name: t(`period_${period.id}_title`),
-      tagline: t(tier.taglineKey),
       timeLabel: t(`period_${period.id}_time`),
       price: period.rate,
       unit: t("per_hour"),

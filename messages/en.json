@@ -247,12 +247,11 @@
     "hero_subtitle": "Book on demand. No hidden fees.",
     "per_hour": "/hr",
     "period_afternoon_title": "Afternoon",
-    "period_afternoon_tagline": "A slower afternoon, played your way.",
-    "period_afternoon_time": "Daily 12:00–16:00",
-    "period_morning_tagline": "Start clear. Let the first break set the tone.",
-    "period_evening_tagline": "When the lights come on, bring your people.",
+    "period_afternoon_time": "Daily 12:00–18:00",
+    "period_morning_title": "Morning",
+    "period_morning_time": "Daily 06:00–12:00",
     "period_evening_title": "Prime Time",
-    "period_evening_time": "Daily 16:00–00:00",
+    "period_evening_time": "Daily 18:00–00:00",
     "period_latenight_title": "Late Night",
     "period_latenight_time": "12am – 6am",
     "duration_1h": "1 hour",
@@ -330,10 +329,8 @@
     ],
     "cta_section_title": "Ready to play?",
     "cta_section_button": "Book Now",
-    "period_morning_title": "Morning",
-    "period_morning_time": "Daily 06:00–12:00",
-    "periods_title": "Pricing",
-    "periods_subtitle": "Charged by time period — the more you book, the better the rate."
+    "periods_title": "Transparent Pricing",
+    "periods_subtitle": "Book on demand. No hidden fees."
   },
   "blog": {
     "title": "Blog",
@@ -1085,7 +1082,14 @@
       "offers_used": "Offers Used",
       "how_it_works": "How Wallet Works"
     },
-    "member_id_label": "Member ID"
+    "member_id_label": "Member ID",
+    "card_premier": {
+      "title": "Premier Member",
+      "member_id_label": "Member ID",
+      "tap_to_enlarge": "Tap to enlarge QR code",
+      "scan_tip": "Show this QR code to verify membership",
+      "close": "Close"
+    }
   },
   "faq": {
     "title": "FAQ",
@@ -3197,5 +3201,6 @@
   "faq_2": "Every 100 points automatically converts to HK$10 in your Space Wallet—no action needed.",
   "faq_3": "Points earned from a booking are credited after payment and cannot be used for that booking.",
   "faq_4": "Promo codes and Space Wallet credits cannot be combined.",
-  "faq_5": "When you cancel a booking, any credits used will be fully refunded to your Space Wallet."
+  "faq_5": "When you cancel a booking, any credits used will be fully refunded to your Space Wallet.",
+  "file": "messages/en.json"
 }
