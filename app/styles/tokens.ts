@@ -88,6 +88,9 @@ export const tokens = {
   breakpoint: {
     mobile: 768,
   },
+  layout: {
+    navbarHeight: '64px',
+  },
   // Liquid Glass recipes — consolidates what was previously ~8 distinct
   // inline backdropFilter values scattered across Nav/Sheet/MemberDashboard/
   // AIChatWidget/AdminSidebar into named tiers. `surface` matches the

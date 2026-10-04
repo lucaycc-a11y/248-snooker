@@ -185,16 +185,16 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   const statements = [
     {
-      lead: "HK$1 = 1 積分",
-      body: "每消費 HK$1 累積 1 積分",
+      lead: "消費即賺分",
+      body: "每 HK$1 = 1 積分，自動累積",
     },
     {
-      lead: "100 積分 = HK$10",
-      body: "每 100 積分可兌換 (即將推出)",
+      lead: "積分當錢使",
+      body: "100 積分 = HK$10 場地抵用額",
     },
     {
-      lead: "100 積分",
-      body: "新會員迎新獎賞",
+      lead: "新會員獎賞",
+      body: "註冊即送 100 積分迎新禮遇",
     },
     {
       lead: "全預約制，QR 自助入場",
@@ -204,67 +204,30 @@ function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 
   return (
     <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
-      <div className="mx-auto flex max-w-4xl flex-col items-center gap-8 md:gap-12">
-        {/* Title */}
-        <Reveal>
-          <h2
-            data-cms-key="memberIntro.pointsProgram.title"
-            className="mb-4 text-center font-bold leading-tight tracking-tight"
-            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.light.text }}
-          >
-            積分計劃
-          </h2>
-        </Reveal>
-
-        {/* 3 columns on desktop, stacked on mobile */}
-        <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
-          {statements.slice(0, 3).map((statement, i) => (
-            <Reveal key={i} delay={i * 100} className="text-center">
-              <div className="space-y-2">
-                <p
-                  data-cms-key={`memberIntro.pointsProgram.stat${i + 1}.lead`}
-                  className="text-2xl font-semibold leading-tight md:text-3xl lg:text-4xl"
-                  style={{ color: COLORS.light.accent }}
-                >
-                  {statement.lead}
-                </p>
-                <p
-                  data-cms-key={`memberIntro.pointsProgram.stat${i + 1}.body`}
-                  className="text-sm leading-relaxed md:text-base"
-                  style={{ color: COLORS.light.textMuted }}
-                >
-                  {statement.body}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-
-        {/* Last statement - full width below */}
-        <Reveal delay={300} className="w-full text-center">
-          <div
-            className="mx-auto max-w-2xl rounded-3xl border p-6 md:p-8"
-            style={{
-              background: "rgba(255,255,255,0.6)",
-              borderColor: "rgba(5,150,105,0.2)",
-            }}
-          >
-            <p
-              data-cms-key="memberIntro.pointsProgram.stat4.lead"
-              className="mb-2 text-xl font-semibold leading-tight md:text-2xl lg:text-3xl"
-              style={{ color: COLORS.light.accent }}
-            >
-              {statements[3].lead}
-            </p>
-            <p
-              data-cms-key="memberIntro.pointsProgram.stat4.body"
-              className="text-sm leading-relaxed md:text-base"
-              style={{ color: COLORS.light.textMuted }}
-            >
-              {statements[3].body}
-            </p>
-          </div>
-        </Reveal>
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-12 md:gap-16">
+        {statements.map((statement, i) => (
+          <Reveal key={i} delay={i * 100} className="text-center">
+            <div className="space-y-3">
+              <p
+                data-cms-key={`memberIntro.statements.${i + 1}.lead`}
+                className="font-bold leading-tight tracking-tight"
+                style={{
+                  fontSize: "clamp(1.5rem, 4vw, 3rem)",
+                  color: COLORS.light.accent
+                }}
+              >
+                {statement.lead}
+              </p>
+              <p
+                data-cms-key={`memberIntro.statements.${i + 1}.body`}
+                className="mx-auto max-w-2xl text-base leading-relaxed md:text-xl"
+                style={{ color: COLORS.light.text }}
+              >
+                {statement.body}
+              </p>
+            </div>
+          </Reveal>
+        ))}
       </div>
     </section>
   );
@@ -304,7 +267,7 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
             className="mb-12 text-center font-bold leading-tight tracking-tight text-white"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
-            {t("card.title")}
+            一個 QR Code，解鎖整個 SPACE8
           </h2>
         </Reveal>
 
@@ -449,8 +412,8 @@ function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
         <Reveal>
           <h2
             data-cms-key="memberIntro.points.title"
-            className="mb-16 text-center font-bold leading-tight tracking-tight"
-            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.light.text }}
+            className="mb-12 text-center font-bold leading-tight tracking-tight md:mb-16"
+            style={{ fontSize: "clamp(1.75rem, 4.5vw, 3rem)", color: COLORS.light.text }}
           >
             {t("points.title")}
           </h2>
@@ -462,14 +425,14 @@ function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
               <div className="flex flex-col items-center text-center md:px-8">
                 <p
                   data-cms-key={`memberIntro.points.stat${n}.value`}
-                  className="mb-3 text-4xl font-semibold md:text-5xl"
+                  className="mb-3 text-3xl font-semibold md:text-4xl lg:text-5xl"
                   style={{ color: COLORS.light.accent }}
                 >
                   {t(`points.stat${n}.value`)}
                 </p>
                 <p
                   data-cms-key={`memberIntro.points.stat${n}.label`}
-                  className="text-sm"
+                  className="text-xs md:text-sm"
                   style={{ color: COLORS.light.textMuted, fontFamily: "'Good Times', sans-serif" }}
                 >
                   {t(`points.stat${n}.label`)}
@@ -482,7 +445,7 @@ function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
         <Reveal delay={300}>
           <p
             data-cms-key="memberIntro.points.comingSoon"
-            className="mt-12 text-center text-sm"
+            className="mt-10 text-center text-xs md:mt-12 md:text-sm"
             style={{ color: COLORS.light.textMuted }}
           >
             {t("points.comingSoon")}

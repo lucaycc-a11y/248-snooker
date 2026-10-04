@@ -328,7 +328,7 @@ export default function VenueContent() {
       {/* ── 04: Pricing (dark) ── */}
       {periods && periods.length > 0 && (
         <section style={{ background: tokens.colors.bg, padding: "120px 24px" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+          <div style={{ maxWidth: 1040, marginInline: "auto" }}>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}

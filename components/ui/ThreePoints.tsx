@@ -48,7 +48,13 @@ export function ThreePoints({
         paddingBottom: '120px',
       }}
     >
-      <div className="mx-auto max-w-7xl px-6 md:px-12">
+      <div
+        style={{
+          maxWidth: '1040px',
+          marginInline: 'auto',
+          paddingInline: '24px',
+        }}
+      >
         {heading && (
           <motion.h2
             initial={{ opacity: 0, y: 20 }}

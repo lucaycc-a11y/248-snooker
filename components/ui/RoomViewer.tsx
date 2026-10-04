@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { rooms, pills, type RoomId } from '@/lib/data/venue-rooms'
+import { tokens } from '@/app/styles/tokens'
 
 interface RoomViewerProps {
   initialRoom?: RoomId
@@ -138,8 +139,8 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
         backgroundColor: '#000000',
         color: '#ffffff',
         minHeight: '100svh',
-        paddingTop: 'calc(64px + 24px)',
-        scrollMarginTop: '64px',
+        paddingTop: `calc(${tokens.layout.navbarHeight} + 24px)`,
+        scrollMarginTop: tokens.layout.navbarHeight,
       }}
     >
       <div className="mx-auto max-w-[1440px] px-6 pb-12 lg:px-8">
@@ -282,8 +283,8 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
             className="relative overflow-hidden rounded-[28px]"
             style={{
               border: '1px solid rgba(255,255,255,0.08)',
-              minHeight: 'calc(100svh - 64px - 24px - 80px - 96px)',
-              maxHeight: 'calc(100svh - 64px - 24px - 96px)',
+              minHeight: `calc(100svh - ${tokens.layout.navbarHeight} - 24px - 80px - 96px)`,
+              maxHeight: `calc(100svh - ${tokens.layout.navbarHeight} - 24px - 96px)`,
             }}
           >
             <AnimatePresence mode="wait">
