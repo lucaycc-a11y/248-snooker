@@ -52,6 +52,27 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
   const t = useTranslations("aboutPage");
   const words = t.raw("hero_rotating_words") as string[];
   const [wordIdx, setWordIdx] = useState(0);
+  const [maxWordWidth, setMaxWordWidth] = useState(0);
+  const wordRef = useRef<HTMLSpanElement>(null);
+
+  // Measure the widest word to reserve space
+  useEffect(() => {
+    if (!wordRef.current) return;
+    let max = 0;
+    words.forEach((word) => {
+      const span = document.createElement("span");
+      span.textContent = word;
+      span.style.fontFamily = "'Noto Sans TC', sans-serif";
+      span.style.fontSize = "clamp(1.25rem, 5.5vw, 1.875rem)";
+      span.style.fontWeight = "700";
+      span.style.visibility = "hidden";
+      span.style.position = "absolute";
+      document.body.appendChild(span);
+      max = Math.max(max, span.offsetWidth);
+      document.body.removeChild(span);
+    });
+    setMaxWordWidth(max);
+  }, [words]);
 
   // Cycle words every 2.8s while ring is visible.
   useEffect(() => {
@@ -83,22 +104,30 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
         />
       </div>
 
-      {/* Line 2: "一個" + rotating word + "的空間" */}
-      <div className="flex items-center justify-center gap-1 flex-wrap">
+      {/* Line 2: "一個" + rotating word (with tight 0.25em gaps) + "的空間" */}
+      <div className="flex items-center justify-center gap-0 flex-wrap" style={{ fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)" }}>
         <span
           className="font-semibold"
           style={{
             fontFamily: "'Noto Sans TC', sans-serif",
-            fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)",
             color: "#000000",
+            lineHeight: 1.2,
+            marginRight: "0.25em",
           }}
         >
           一個
         </span>
-        <div className="h-10 overflow-hidden flex items-center justify-center" style={{ minWidth: "clamp(120px, 30vw, 180px)" }}>
+        <div
+          className="overflow-hidden flex items-center justify-center"
+          style={{
+            minWidth: Math.max(maxWordWidth, 100),
+            height: "1.4em",
+          }}
+        >
           <AnimatePresence mode="wait">
             <motion.span
               key={wordIdx}
+              ref={wordRef}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -107,7 +136,7 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
               style={{
                 fontFamily: "'Noto Sans TC', sans-serif",
                 color: isGreen ? "#22c55e" : "#000000",
-                fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)",
+                lineHeight: 1.2,
               }}
             >
               {activeWord}
@@ -118,8 +147,9 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
           className="font-semibold"
           style={{
             fontFamily: "'Noto Sans TC', sans-serif",
-            fontSize: "clamp(1.25rem, 5.5vw, 1.875rem)",
             color: "#000000",
+            lineHeight: 1.2,
+            marginLeft: "0.25em",
           }}
         >
           的空間
@@ -131,9 +161,10 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
         className="leading-relaxed mt-2"
         style={{
           fontFamily: "'Noto Sans TC', sans-serif",
-          fontSize: "clamp(16px, 3.5vw, 18px)",
+          fontSize: "clamp(14px, 3.5vw, 14px)",
           color: "#000000",
           maxWidth: "90%",
+          textWrap: "balance",
         }}
       >
         <span className="font-semibold">好的中式桌球室不應有多餘干擾。</span>
@@ -153,7 +184,7 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
             background: "#22c55e",
             color: "#000000",
             fontWeight: 700,
-            fontSize: "16px",
+            fontSize: "14px",
             padding: "12px 24px",
             borderRadius: "8px",
             border: "none",
@@ -178,7 +209,7 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
             background: "transparent",
             color: "#000000",
             fontWeight: 700,
-            fontSize: "16px",
+            fontSize: "14px",
             padding: "12px 24px",
             borderRadius: "8px",
             border: "2px solid #000000",
@@ -253,17 +284,23 @@ export function SpaceWheelSection() {
       style={{ height: `${pointCount + 2}00svh`, background: "#ffffff" }}
       className="relative"
     >
-      {/* Sticky stage — fills viewport, GSAP pins it */}
+      {/* Sticky stage — fills viewport minus nav, GSAP pins it */}
       <div
         ref={stageRef}
-        className="sticky top-0 w-full h-[100svh] overflow-hidden"
-        style={{ backgroundColor: "#ffffff" }}
+        className="sticky top-0 w-full overflow-hidden"
+        style={{
+          height: "calc(100svh - 64px)",
+          backgroundColor: "#ffffff",
+        }}
       >
         <SpaceWheel
           items={ITEMS}
           turnRef={turnRef}
           className="absolute inset-0"
-          ringTilt={0}
+          ringTilt={1}
+          ringOuterRatio={0.73}
+          ringCardWidthRatio={0.24}
+          navHeight={64}
           label={
             <div
               style={{ opacity: ringOpacity, transition: "opacity 0.1s linear" }}

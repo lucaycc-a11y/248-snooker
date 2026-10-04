@@ -45,6 +45,12 @@ export interface SpaceWheelProps
   ringTilt?: number;
   /** Custom index label renderer. Receives the point index (0-based). */
   indexLabel?: (pointIndex: number) => React.ReactNode;
+  /** Ring outer diameter as fraction of stage height (default: from cardH × RING_R × 2). About: 0.73 */
+  ringOuterRatio?: number;
+  /** Ring card width as fraction of ring outer diameter (default: from CARD_RATIO + CARD_H_DESKTOP). About: 0.24 */
+  ringCardWidthRatio?: number;
+  /** Nav bar height in pixels, subtracted from 100svh to get stage height (default: 64px for About). */
+  navHeight?: number;
 }
 
 // ─── Geometry ────────────────────────────────────────────────────────────────
@@ -126,6 +132,9 @@ export function SpaceWheel({
   onActiveChange,
   ringTilt = 1,
   indexLabel,
+  ringOuterRatio,
+  ringCardWidthRatio,
+  navHeight = 64,
   className,
   ...props
 }: SpaceWheelProps) {
@@ -187,33 +196,65 @@ export function SpaceWheel({
   }, []);
 
   const metrics = React.useMemo(() => {
-    const { w, h } = stage;
+    let { w, h } = stage;
+
+    // If navHeight is provided (About page), subtract it from h to get true stage height
+    // This accounts for the sticky nav that overlays the viewport
+    if (navHeight && h > 0) {
+      h = Math.max(h - navHeight, 0);
+    }
+
     const isMobile = w <= MOBILE_BREAKPOINT;
+
+    // Ring geometry: if props provided, override defaults
+    let ringOuter: number;
+    let cardW_ring: number;
+    let cardH_ring: number;
+
+    if (ringOuterRatio !== undefined && ringCardWidthRatio !== undefined && h > 0) {
+      // About page: explicit ring outer diameter and card width ratio
+      ringOuter = h * ringOuterRatio;
+      cardW_ring = ringOuter * ringCardWidthRatio;
+      cardH_ring = cardW_ring / CARD_RATIO;
+    } else {
+      // Default: use original formula
+      const cardH_base = isMobile ? CARD_H_MOBILE : CARD_H_DESKTOP;
+      const cardMaxW_base = isMobile ? CARD_MAX_W_MOBILE : CARD_MAX_W_DESKTOP;
+      cardW_ring = Math.min(h * cardH_base * CARD_RATIO, w * cardMaxW_base);
+      cardH_ring = cardW_ring / CARD_RATIO;
+      const ringR_base = cardH_ring * RING_R;
+      ringOuter = 2 * ringR_base;
+    }
+
+    // For drum (front card), use original formula
     const cardH_base = isMobile ? CARD_H_MOBILE : CARD_H_DESKTOP;
     const cardMaxW_base = isMobile ? CARD_MAX_W_MOBILE : CARD_MAX_W_DESKTOP;
-    const cardW = Math.min(h * cardH_base * CARD_RATIO, w * cardMaxW_base);
-    const cardH = cardW / CARD_RATIO;
-    const drumR = cardH * DRUM;
-    const ringR = cardH * RING_R;
+    const cardW_drum = Math.min(h * cardH_base * CARD_RATIO, w * cardMaxW_base);
+    const cardH_drum = cardW_drum / CARD_RATIO;
+
+    const drumR = cardH_drum * DRUM;
+    const ringR = ringOuter / 2;
 
     // For ring scaling: use total count (including ring-only items)
-    // This ensures all items fit in the ring layout
     const ringScale = count
-      ? clamp((((2 * Math.PI * ringR) / count) * 0.82) / (cardW || 1), 0.16, 1)
+      ? clamp((((2 * Math.PI * ringR) / count) * 0.82) / (cardW_ring || 1), 0.16, 1)
       : 1;
     return {
-      cardW,
-      cardH,
+      cardW: cardW_ring,  // Ring card width
+      cardW_drum,         // Drum front card width (separate)
+      cardH: cardH_ring,  // Ring card height
+      cardH_drum,
       ringR,
+      ringOuter,
       ringScale,
       drumR,
-      bow: cardH * BOW,
-      depth: cardH * LENS,
-      title: cardH * TITLE,
-      index: cardH * INDEX,
+      bow: cardH_drum * BOW,
+      depth: cardH_drum * LENS,
+      title: cardH_drum * TITLE,
+      index: cardH_drum * INDEX,
       isMobile,
     };
-  }, [stage, count]);
+  }, [stage, count, ringOuterRatio, ringCardWidthRatio, navHeight]);
 
   // Internal smooth position — eased toward whatever turnRef holds.
   const smooth = React.useRef(0);
