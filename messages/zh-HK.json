@@ -3206,5 +3206,27 @@
   "faq_3": "當次消費所得積分於付款成功後入帳，不可用於本次訂單。",
   "faq_4": "優惠碼與 Space Wallet 只能擇一使用。",
   "faq_5": "訂單退款時，已使用的金額會全數退回 Space Wallet。",
+  "venue": {
+    "whyUs": {
+      "heading": "為何選擇 SPACE8",
+      "items": [
+        {
+          "before": "網上預訂，",
+          "accent": "自助入場",
+          "after": "。"
+        },
+        {
+          "before": "",
+          "accent": "全面禁煙",
+          "after": "，定期清潔。"
+        },
+        {
+          "before": "",
+          "accent": "零打擾，全專注",
+          "after": "。"
+        }
+      ]
+    }
+  },
   "file": "messages/zh-HK.json"
 }
