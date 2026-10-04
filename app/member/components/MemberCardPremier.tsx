@@ -352,6 +352,25 @@ export function MemberCardPremier({ profile }: Props) {
                 transform: 'translateZ(38px)',
               }}
             >
+              {profile.display_name && (
+                <div
+                  style={{
+                    fontFamily: 'var(--gt)',
+                    fontSize: isEN ? '4.8cqw' : '7.1cqw',
+                    fontWeight: 400,
+                    letterSpacing: isEN ? '0.02em' : '0.08em',
+                    textTransform: 'uppercase',
+                    color: 'rgba(235,228,255,0.88)',
+                    marginBottom: '1.2cqw',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    maxWidth: '100%',
+                  }}
+                >
+                  {profile.display_name}
+                </div>
+              )}
               <h1
                 className={isEN ? 'font-label' : ''}
                 style={{
@@ -521,13 +540,28 @@ export function MemberCardPremier({ profile }: Props) {
               imageRendering: 'pixelated',
             }}
           />
+          {profile.display_name && (
+            <div
+              style={{
+                fontFamily: 'var(--gt)',
+                fontSize: '16px',
+                fontWeight: 400,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: '#555',
+                marginTop: '4px',
+              }}
+            >
+              {profile.display_name}
+            </div>
+          )}
           <div
             id="zName"
             style={{
               fontSize: '20px',
               fontWeight: 700,
               letterSpacing: '0.06em',
-              marginTop: '6px',
+              marginTop: profile.display_name ? '2px' : '6px',
             }}
           >
             {t('title')}
