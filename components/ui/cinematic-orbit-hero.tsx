@@ -14,10 +14,14 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 
 const IMAGES = [
+  { src: "/images/space-infinity-room-中八桌球-香港新蒲崗.webp", alt: "Space Infinity 包廂內部全景" },
+  { src: "/images/space-eternity-room-中八桌球-香港新蒲崗.webp", alt: "Space Eternity 包廂內部" },
   { src: "/images/venue-interior-中八桌球-香港新蒲崗.webp", alt: "場地內部環境" },
   { src: "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp", alt: "星牌桌球臺特寫" },
   { src: "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp", alt: "專業球臺細節" },
+  { src: "/images/space-pilot-scoreboard-中八桌球-香港新蒲崗.webp", alt: "Space Pilot 智能計分系統" },
   { src: "/images/cue-stand-中八桌球-香港新蒲崗.webp", alt: "球桿架設施" },
+  { src: "/images/sofa-lounge-中八桌球-香港新蒲崗.webp", alt: "休息區梳化" },
 ];
 
 // Dynamically generate a 3D Elliptical Orbit
