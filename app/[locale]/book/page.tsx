@@ -3159,6 +3159,7 @@ function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
   const locale = useLocale()
+  const router = useRouter()
 
   useEffect(() => {
     const timer = setTimeout(() => {
