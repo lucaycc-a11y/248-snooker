@@ -318,6 +318,7 @@ function OrderedTicketCard({
       ) : (
         <div
           style={{
+            // Error state styling: intentionally outside design system palette to highlight critical failures
             background: "rgba(255,100,100,0.1)",
             border: "1px solid rgba(255,100,100,0.3)",
             borderRadius: tokens.radius.input,
