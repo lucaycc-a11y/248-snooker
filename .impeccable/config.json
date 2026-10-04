@@ -974,6 +974,29 @@
         "value": "rgba(167,139,250,0.16)",
         "createdAt": "2026-10-04T13:23:47.475Z",
         "reason": "purple tier glow for maximum membership"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(244,241,234,0.75) app/member/memberdashboard.tsx",
+        "createdAt": "2026-10-04T13:25:51.706Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "3px",
+        "createdAt": "2026-10-04T13:50:19.457Z",
+        "reason": "progress bar container micro-radius, intentional design"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(244,241,234,0.75)",
+        "createdAt": "2026-10-04T13:50:19.505Z",
+        "reason": "custom overlay micro-interaction, intentional design"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "9px",
+        "createdAt": "2026-10-04T13:50:19.539Z",
+        "reason": "custom micro-interaction radius, intentional design"
       }
     ]
   }
