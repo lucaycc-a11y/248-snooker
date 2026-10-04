@@ -873,6 +873,16 @@
         "rule": "side-tab",
         "value": "3px agent c inbox active message indicator - intentional visual affordance from design dom",
         "createdAt": "2026-10-04T04:44:00.571Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:418:var(--spring)",
+        "value": "design spec uses spring easing for buttons and toasts - sanctioned",
+        "createdAt": "2026-10-04T06:40:41.471Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:389:3px colored left border",
+        "value": "side-tab pattern on selected inbox message - matches design intent for selection affordance",
+        "createdAt": "2026-10-04T06:46:54.300Z"
       }
     ]
   }

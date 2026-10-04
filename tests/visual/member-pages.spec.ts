@@ -51,6 +51,12 @@ const PAGES: PageConfig[] = [
   },
 ]
 
+const VIEWPORTS = [
+  { width: 390, height: 844, name: 'mobile' },
+  { width: 768, height: 1024, name: 'tablet' },
+  { width: 1440, height: 900, name: 'desktop' },
+]
+
 /**
  * Compare two PNG buffers and return the diff percentage
  */
@@ -96,73 +102,78 @@ function compareImages(
 }
 
 for (const pageConfig of PAGES) {
-  test(`Visual regression: ${pageConfig.description}`, async ({ page }) => {
-    // Login as test member
-    await loginAsMember(page, 'test@example.com')
+  for (const viewport of VIEWPORTS) {
+    test(`Visual regression: ${pageConfig.description} @ ${viewport.name} (${viewport.width}x${viewport.height})`, async ({ page }) => {
+      // Set viewport
+      await page.setViewportSize({ width: viewport.width, height: viewport.height })
 
-    // Navigate to page
-    await page.goto(pageConfig.url)
+      // Login as test member
+      await loginAsMember(page, 'test@example.com')
 
-    // Wait for content to load
-    try {
-      // Try multiple selectors (separated by comma)
-      const selectors = pageConfig.selector.split(',').map(s => s.trim())
-      let loaded = false
+      // Navigate to page
+      await page.goto(pageConfig.url)
 
-      for (const selector of selectors) {
-        try {
-          await page.waitForSelector(selector, { timeout: 5000 })
-          loaded = true
-          break
-        } catch {
-          // Try next selector
+      // Wait for content to load
+      try {
+        // Try multiple selectors (separated by comma)
+        const selectors = pageConfig.selector.split(',').map(s => s.trim())
+        let loaded = false
+
+        for (const selector of selectors) {
+          try {
+            await page.waitForSelector(selector, { timeout: 5000 })
+            loaded = true
+            break
+          } catch {
+            // Try next selector
+          }
         }
-      }
 
-      if (!loaded) {
-        // Fallback: just wait for network idle
+        if (!loaded) {
+          // Fallback: just wait for network idle
+          await page.waitForLoadState('networkidle')
+        }
+      } catch {
+        // Fallback: wait for network idle
         await page.waitForLoadState('networkidle')
       }
-    } catch {
-      // Fallback: wait for network idle
-      await page.waitForLoadState('networkidle')
-    }
 
-    // Small delay for animations to complete
-    await page.waitForTimeout(500)
+      // Small delay for animations to complete
+      await page.waitForTimeout(500)
 
-    // Take screenshot
-    const screenshot = await page.screenshot({ fullPage: true })
+      // Take screenshot
+      const screenshot = await page.screenshot({ fullPage: true })
 
-    const baselinePath = path.join(BASELINE_DIR, `${pageConfig.name}.png`)
-    const diffPath = path.join(DIFF_DIR, `${pageConfig.name}-diff.png`)
+      const baselinePath = path.join(BASELINE_DIR, `${pageConfig.name}-${viewport.name}.png`)
+      const diffPath = path.join(DIFF_DIR, `${pageConfig.name}-${viewport.name}-diff.png`)
 
-    // If baseline doesn't exist, create it
-    if (!fs.existsSync(baselinePath)) {
-      fs.writeFileSync(baselinePath, screenshot)
-      console.log(`✓ Baseline created for ${pageConfig.name}`)
-      test.skip() // Skip comparison on first run
-      return
-    }
+      // If baseline doesn't exist, create it
+      if (!fs.existsSync(baselinePath)) {
+        fs.writeFileSync(baselinePath, screenshot)
+        console.log(`✓ Baseline created for ${pageConfig.name} @ ${viewport.name}`)
+        test.skip() // Skip comparison on first run
+        return
+      }
 
-    // Load baseline
-    const baseline = fs.readFileSync(baselinePath)
+      // Load baseline
+      const baseline = fs.readFileSync(baselinePath)
 
-    // Compare images
-    const { diffPixels, totalPixels, diffPercentage } = compareImages(
-      screenshot,
-      baseline,
-      diffPath
-    )
+      // Compare images
+      const { diffPixels, totalPixels, diffPercentage } = compareImages(
+        screenshot,
+        baseline,
+        diffPath
+      )
 
-    console.log(`${pageConfig.name}: ${diffPixels} / ${totalPixels} pixels differ (${(diffPercentage * 100).toFixed(3)}%)`)
+      console.log(`${pageConfig.name} @ ${viewport.name}: ${diffPixels} / ${totalPixels} pixels differ (${(diffPercentage * 100).toFixed(3)}%)`)
 
-    // Assert diff is within threshold
-    expect(diffPercentage).toBeLessThanOrEqual(DIFF_THRESHOLD)
+      // Assert diff is within threshold
+      expect(diffPercentage).toBeLessThanOrEqual(DIFF_THRESHOLD)
 
-    // Clean up diff image if test passed
-    if (diffPercentage <= DIFF_THRESHOLD && fs.existsSync(diffPath)) {
-      fs.unlinkSync(diffPath)
-    }
-  })
+      // Clean up diff image if test passed
+      if (diffPercentage <= DIFF_THRESHOLD && fs.existsSync(diffPath)) {
+        fs.unlinkSync(diffPath)
+      }
+    })
+  }
 }
