@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
     const service = getServiceSupabase()
     const columns =
-      'id, status, booking_reference, qr_code, date, start_time, end_time, duration_hours, table_number, total_price, payment_method, order_group_id, human_code'
+      'id, status, booking_reference, qr_code, date, start_time, end_time, duration_hours, table_number, total_price, payment_method, order_group_id, human_code, promo_discount, credit_discount'
     const { data, error } = await service
       .from('bookings')
       .select(columns)

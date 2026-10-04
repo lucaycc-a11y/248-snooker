@@ -2336,44 +2336,70 @@ function Screen3({
               </div>
             )}
 
-            {/* Promo code input */}
-            <div style={{ margin: "16px 0" }}>
-              <PromoCodeInput
-                originalTotal={subtotal}
-                onApply={onPromoChange}
-                onRemove={() => onPromoChange(null)}
-                activeCode={promoCode}
-                labels={{
-                  placeholder: t("promo_placeholder") || "優惠碼",
-                  applyLabel: t("promo_apply") || "應用",
-                  removeLabel: t("promo_remove") || "移除",
-                  discountLabel: t("promo_discount") || "折扣",
-                  invalidLabel: t("promo_invalid") || "無效代碼",
-                  expiredLabel: t("promo_expired") || "代碼已過期",
-                  minCartLabel: t("promo_min_cart") || "未達最低消費",
-                  validatingLabel: t("promo_validating") || "驗證中...",
-                }}
-              />
-            </div>
+            {/* STOP-GAP: Hide wallet and promo for Stripe/Google Pay until Items 1-3 are implemented
+                to prevent customers from being overcharged (displayed discount not applied to payment) */}
+            {(process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") !== "stripe" ? (
+              <>
+                {/* Promo code input */}
+                <div style={{ margin: "16px 0" }}>
+                  <PromoCodeInput
+                    originalTotal={subtotal}
+                    onApply={onPromoChange}
+                    onRemove={() => onPromoChange(null)}
+                    activeCode={promoCode}
+                    labels={{
+                      placeholder: t("promo_placeholder") || "優惠碼",
+                      applyLabel: t("promo_apply") || "應用",
+                      removeLabel: t("promo_remove") || "移除",
+                      discountLabel: t("promo_discount") || "折扣",
+                      invalidLabel: t("promo_invalid") || "無效代碼",
+                      expiredLabel: t("promo_expired") || "代碼已過期",
+                      minCartLabel: t("promo_min_cart") || "未達最低消費",
+                      validatingLabel: t("promo_validating") || "驗證中...",
+                    }}
+                  />
+                </div>
 
-            {/* Space Wallet row — under promo code, mutually exclusive */}
-            <div style={{ margin: "16px 0" }}>
-              <CheckoutWalletRow
-                originalTotal={subtotal}
-                walletBalance={walletBalance}
-                onApply={onWalletChange}
-                onRemove={() => onWalletChange(null)}
-                activeWallet={walletApplied}
-              />
-            </div>
+                {/* Space Wallet row — under promo code, mutually exclusive */}
+                <div style={{ margin: "16px 0" }}>
+                  <CheckoutWalletRow
+                    originalTotal={subtotal}
+                    walletBalance={walletBalance}
+                    onApply={onWalletChange}
+                    onRemove={() => onWalletChange(null)}
+                    activeWallet={walletApplied}
+                  />
+                </div>
 
-            {/* Wallet applied display */}
-            {walletApplied && walletAppliedAmount > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
-                <span>{t("wallet_applied") || "已套用 Space Wallet"}</span>
-                <span style={{ color: "#22b86b", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                  <>−<BookingPrice amount={walletAppliedAmount} /></>
-                </span>
+                {/* Wallet applied display */}
+                {walletApplied && walletAppliedAmount > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
+                    <span>{t("wallet_applied") || "已套用 Space Wallet"}</span>
+                    <span style={{ color: "#22b86b", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                      <>−<BookingPrice amount={walletAppliedAmount} /></>
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{
+                margin: "16px 0",
+                padding: "12px 16px",
+                background: "rgba(255, 159, 10, 0.08)",
+                border: "1px solid rgba(255, 159, 10, 0.3)",
+                borderRadius: tokens.radius.input,
+                fontSize: 13,
+                color: tokens.colors.textMuted,
+                lineHeight: 1.5
+              }}>
+                <div style={{ fontWeight: 600, color: "rgba(255, 159, 10, 1)", marginBottom: 4 }}>
+                  {locale === "en" ? "Note" : locale === "zh-CN" ? "提示" : "提示"}
+                </div>
+                {locale === "en"
+                  ? "Wallet and promo codes are temporarily unavailable for card and Google Pay payments. We're working to enable them soon."
+                  : locale === "zh-CN"
+                  ? "钱包及优惠码暂不支持信用卡及 Google Pay 付款，我们正在开发中。"
+                  : "錢包及優惠碼暫不支援信用卡及 Google Pay 付款，我們正在開發中。"}
               </div>
             )}
 
@@ -3038,27 +3064,95 @@ function Screen3({
 }
 
 /* ─────────────────────────  Screen 4: Confirmation Tickets  ───────────────────────── */
-type ConfirmationTicket = {
+
+/** One room booking within an order (may be merged with adjacent hours). */
+type TicketLine = {
+  tableNumber: number
   date: string
   startHour: number
   duration: number
-  tableNumber: number
   bookingRef: string
   humanCode?: string
-  /** Universal member identifier — the value encoded in every QR code. */
-  memberCode: string
-  holderName: string | null
-  totalPrice: number
-  paymentMethod?: string | null
 }
 
-// Renders one TicketCard per booking from the checkout (Task 8 — a
-// non-contiguous multi-slot order produces N booking rows sharing an
-// order_group_id, so it must produce N independent, individually-scannable
-// tickets, not one screen that only shows the first). The first ticket opens
-// expanded so the confetti/QR reveal reads as "your booking is confirmed";
-// any additional tickets start collapsed to avoid a wall of QR codes.
-function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
+/** One order ticket containing all merged room lines. */
+export type OrderTicket = {
+  memberCode: string
+  orderRef: string
+  paymentMethod?: string | null
+  totalPrice: number
+  totalHours: number
+  lines: TicketLine[]
+  promoDiscount?: number
+  creditDiscount?: number
+}
+
+/**
+ * Merge adjacent hours of the same room on the same date.
+ */
+function mergeAdjacentLines(lines: TicketLine[]): TicketLine[] {
+  if (lines.length === 0) return []
+  const merged: TicketLine[] = []
+  for (const line of lines) {
+    const last = merged[merged.length - 1]
+    if (
+      last &&
+      last.tableNumber === line.tableNumber &&
+      last.date === line.date &&
+      last.startHour + last.duration === line.startHour
+    ) {
+      last.duration += line.duration
+    } else {
+      merged.push({ ...line })
+    }
+  }
+  return merged
+}
+
+/**
+ * Convert confirmed bookings to a single OrderTicket.
+ */
+function buildOrderTicket(bookings: ConfirmedBooking[]): OrderTicket | null {
+  if (bookings.length === 0) return null
+  const confirmed = bookings.filter((b) => b.status === "confirmed")
+  if (confirmed.length === 0) return null
+
+  const sorted = confirmed.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date)
+    if (a.start_time !== b.start_time) return a.start_time.localeCompare(b.start_time)
+    return a.table_number - b.table_number
+  })
+
+  const lines = sorted.map((b): TicketLine => ({
+    tableNumber: b.table_number,
+    date: b.date,
+    startHour: parseInt(b.start_time.slice(0, 2), 10),
+    duration: Number(b.duration_hours),
+    bookingRef: b.booking_reference ?? "",
+    humanCode: b.human_code,
+  }))
+
+  const merged = mergeAdjacentLines(lines)
+  const totalPrice = confirmed.reduce((sum, b) => sum + b.total_price, 0)
+  const totalHours = confirmed.reduce((sum, b) => sum + b.duration_hours, 0)
+  const orderRef = confirmed[0]?.order_group_id || confirmed[0]?.booking_reference || ""
+
+  return {
+    memberCode: confirmed[0]?.member_code ?? "",
+    orderRef,
+    paymentMethod: confirmed[0]?.payment_method ?? undefined,
+    totalPrice,
+    totalHours,
+    lines: merged,
+    promoDiscount: confirmed[0]?.promo_discount,
+    creditDiscount: confirmed[0]?.credit_discount,
+  }
+}
+
+/**
+ * Renders one consolidated order ticket with all merged room lines.
+ */
+function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
   const locale = useLocale()
@@ -3094,7 +3188,13 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
     }
   }, [])
 
-  const firstTicket = tickets[0]
+  if (!orderTicket) {
+    return (
+      <div className="screen-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: "calc(100dvh - 80px)", position: "relative", padding: "24px 20px" }}>
+        <div style={{ width: "100%", maxWidth: 400, margin: "0 auto", height: 420 }} />
+      </div>
+    )
+  }
 
   return (
     <div className="screen-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: "calc(100dvh - 80px)", position: "relative", padding: "24px 20px" }}>
@@ -3106,40 +3206,7 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
           </motion.div>
         </motion.div>
 
-        {firstTicket ? (
-          <TicketPrinter
-            date={firstTicket.date}
-            startHour={firstTicket.startHour}
-            duration={firstTicket.duration}
-            tableNumber={firstTicket.tableNumber}
-            bookingRef={firstTicket.bookingRef}
-            humanCode={firstTicket.humanCode}
-            memberCode={firstTicket.memberCode}
-            totalPrice={firstTicket.totalPrice}
-            paymentMethod={firstTicket.paymentMethod}
-          />
-        ) : (
-          <div style={{ height: 420 }} />
-        )}
-
-        {tickets.length > 1 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
-            {tickets.slice(1).map((ticket, i) => (
-              <TicketCard
-                key={ticket.bookingRef + i}
-                date={ticket.date}
-                startHour={ticket.startHour}
-                duration={ticket.duration}
-                tableNumber={ticket.tableNumber}
-                bookingRef={ticket.bookingRef}
-                humanCode={ticket.humanCode}
-                memberCode={ticket.memberCode}
-                totalPrice={ticket.totalPrice}
-                paymentMethod={ticket.paymentMethod}
-              />
-            ))}
-          </div>
-        )}
+        <TicketPrinter orderTicket={orderTicket} locale={locale} />
 
         <motion.a href="/member" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 4.7, duration: 0.4, ease: [0.16, 1, 0.3, 1] }} data-cms-key="book.ticket.member_cta" style={{ width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginBottom: 16, textDecoration: "none" }}>
           {t("go_to_member")}
@@ -3171,6 +3238,8 @@ type ConfirmedBooking = {
   /** Injected by /api/booking/status — the universal member QR identifier. */
   member_code?: string
   holder_name?: string | null
+  promo_discount?: number
+  credit_discount?: number
 }
 
 // Shown after an external payment return while the webhook commits the booking.
@@ -3965,40 +4034,12 @@ export default function BookPage() {
                     }}
                   />
                 ) : confirmedBooking ? (
-                  <Screen4
-                    tickets={confirmedBookings.map((b) => ({
-                      date: b.date,
-                      startHour: parseInt(b.start_time.slice(0, 2), 10),
-                      duration: Number(b.duration_hours),
-                      tableNumber: b.table_number,
-                      bookingRef: b.booking_reference ?? bookingRef,
-                      humanCode: b.human_code,
-                      memberCode: b.member_code ?? '',
-                      holderName: b.holder_name ?? null,
-                      totalPrice: b.total_price,
-                      paymentMethod: b.payment_method,
-                    }))}
-                  />
+                  <Screen4 orderTicket={buildOrderTicket(confirmedBookings)} />
                 ) : (
                   // Defensive fallback — the normal flow always sets confirmBookingId
                   // via the Stripe redirect-return effect before screen reaches 3, so
                   // this branch shouldn't render in practice.
-                  <Screen4
-                    tickets={
-                      runs.length > 0
-                        ? runs.map((r) => ({
-                            date: r.date,
-                            startHour: r.startHour,
-                            duration: r.duration,
-                            tableNumber: r.tableNumber,
-                            bookingRef,
-                            memberCode: '',
-                            holderName: null,
-                            totalPrice: quoteBlockTotal(r.date, r.startHour, r.duration, periods),
-                          }))
-                        : []
-                    }
-                  />
+                  <Screen4 orderTicket={null} />
                 )}
               </motion.div>
             )}
