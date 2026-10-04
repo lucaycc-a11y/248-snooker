@@ -12,7 +12,7 @@ import { periodsToSlots } from "@/lib/ui/pricing-adapter";
 
 // ── Critical above-the-fold components (eager load) ─────────────────────────
 import Hero from "@/components/landing/Hero";
-import HomeFacilities from "@/components/landing/HomeFacilities";
+import HomeFacilitiesNew from "@/components/landing/HomeFacilitiesNew";
 
 // ── Heavy animation components (lazy load with priority) ────────────────────
 // SpacePilotScoreboardExperience uses framer-motion scroll animations
@@ -161,7 +161,13 @@ export default async function Home({
       <AmbientGlow />
       <Nav />
       <Hero />
-      <HomeFacilities />
+      <section
+        aria-labelledby="home-facilities-title"
+        data-nav-theme="dark"
+        className="overflow-x-clip bg-black px-0 py-24 md:py-32 pt-[calc(var(--nav-h,4rem)+3rem)] min-h-[100svh] flex flex-col justify-center"
+      >
+        <HomeFacilitiesNew />
+      </section>
       <SpacePilotScoreboardExperience />
       <Section5BookingNew />
 
