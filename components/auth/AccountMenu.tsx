@@ -7,7 +7,7 @@ import { User, LogOut, UserCircle, Settings, ShieldCheck } from "lucide-react"
 import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { tierLabel } from "@/lib/member/tierDisplay"
+import { unifiedMembershipName } from "@/lib/member/tierDisplay"
 
 const GREEN = "#22c55e"
 // Dark-glass surface for floating menus (readable over arbitrary content),
@@ -167,7 +167,7 @@ export function AccountMenu({
               color: tierAccent,
             }}
           >
-            {tierLabel(profile.tier, locale)}
+            {unifiedMembershipName(locale)}
           </div>
         )}
       </div>

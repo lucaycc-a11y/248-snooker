@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { type MemberDashboardData } from '@/lib/data/memberRedesignTypes'
-import { MemberCardFlipRedesign } from './components/MemberCardFlipRedesign'
+import { MemberCardPremier } from './components/MemberCardPremier'
 import { HorizontalActionTiles } from './components/HorizontalActionTiles'
 
 // Lazy load below-fold components
@@ -66,7 +66,7 @@ export function MemberPageClient({ initialData }: Props) {
           {/* LEFT — Member card (sticky on desktop, centered+capped on tablet) */}
           <div className="lg:sticky lg:top-[73px]">
             <div className="px-4 pt-4 sm:pt-6 md:mx-auto md:max-w-[480px] lg:mx-0 lg:max-w-none lg:px-0 lg:pt-0">
-              <MemberCardFlipRedesign profile={profile} />
+              <MemberCardPremier profile={profile} />
             </div>
           </div>
 

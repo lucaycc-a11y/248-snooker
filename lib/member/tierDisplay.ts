@@ -55,3 +55,17 @@ export function tierShortLabel(id: string | null | undefined): string {
   if (!isTierId(id)) return id ?? ''
   return TIER_SHORT_LABELS[id]
 }
+
+/**
+ * Unified membership name — all members see "優越會員" / "Premier Member"
+ * regardless of their internal tier. Use this for all user-facing member card
+ * displays, account UI, and customer communications.
+ *
+ * Internal tier logic (amateur/century/maximum) stays in the database for
+ * pricing and access control, but the public-facing brand is now unified.
+ */
+export function unifiedMembershipName(locale: string): string {
+  if (locale.startsWith('zh-CN')) return '优越会员'
+  if (locale.startsWith('en')) return 'Premier Member'
+  return '優越會員' // zh-HK default
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MemberCardFlipRedesign } from '../components/MemberCardFlipRedesign'
+import { MemberCardPremier } from '../components/MemberCardPremier'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -87,11 +87,7 @@ export default function CardPreviewPage() {
 
       {/* Card Preview */}
       <div className="mx-auto mt-12 max-w-md">
-        <MemberCardFlipRedesign
-          profile={mockProfile}
-          flipped={false}
-          onFlip={() => {}}
-        />
+        <MemberCardPremier profile={mockProfile} />
       </div>
 
       {/* Design Notes */}

@@ -908,6 +908,42 @@
         "rule": "app/member/member-ui.css:389:side-tab",
         "value": "design spec intentional 3px side-tab for selected inbox message - active selection affordance from docs/design/space-wallet.html",
         "createdAt": "2026-10-04T07:04:28.611Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(104,52,200,0.55)",
+        "files": [
+          "app/member/components/MemberCardPremier.tsx"
+        ],
+        "createdAt": "2026-10-04T08:07:38.997Z",
+        "reason": "Member card holographic glow gradient from reference design member-card (1).html"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(36,92,52,0.28)",
+        "files": [
+          "app/member/components/MemberCardPremier.tsx"
+        ],
+        "createdAt": "2026-10-04T08:07:45.380Z",
+        "reason": "Member card holographic glow gradient from reference design member-card (1).html"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "5.6cqw",
+        "files": [
+          "app/member/components/MemberCardPremier.tsx"
+        ],
+        "createdAt": "2026-10-04T08:07:54.772Z",
+        "reason": "Member card corner radius uses container query units from reference design member-card (1).html"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "app/member/components/MemberCardPremier.tsx"
+        ],
+        "createdAt": "2026-10-04T08:08:01.328Z",
+        "reason": "Member card holographic parallax layers from reference design member-card (1).html - intentional premium card aesthetic with mesh gradients, foil sweep, rim light"
       }
     ]
   }
