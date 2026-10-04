@@ -838,6 +838,41 @@
         ],
         "createdAt": "2026-10-03T17:00:53.662Z",
         "reason": "Apple Cards Carousel reference design - matches Apple.com card radius standard"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "var(--spring) intentional spring physics for premium card feel",
+        "createdAt": "2026-10-03T18:55:05.189Z"
+      },
+      {
+        "rule": "side-tab",
+        "value": "border-left: 4px solid var(--accent) agent a design dom - wallet card accent",
+        "createdAt": "2026-10-03T18:55:08.806Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(66,104,170,.15) agent b tier badge - century tier color",
+        "createdAt": "2026-10-03T18:55:49.741Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(104,68,150,.17) agent b tier badge - maximum tier color",
+        "createdAt": "2026-10-03T18:55:53.757Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "3px wallet card subtle accent radius",
+        "createdAt": "2026-10-03T18:55:59.266Z"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "var(--spring) agent c inbox sheet animation - intentional spring physics matching ios native behavior",
+        "createdAt": "2026-10-04T04:43:56.585Z"
+      },
+      {
+        "rule": "side-tab",
+        "value": "3px agent c inbox active message indicator - intentional visual affordance from design dom",
+        "createdAt": "2026-10-04T04:44:00.571Z"
       }
     ]
   }
