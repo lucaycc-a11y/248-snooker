@@ -1032,6 +1032,11 @@
         "rule": "design-system-color",
         "value": "rgba(22,163,74,0.3) green-600 at 30% opacity for border accents",
         "createdAt": "2026-10-04T15:46:47.134Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "18px map pin icon radius in howtogo component - intentional non-standard shape for location marker visual metaphor",
+        "createdAt": "2026-10-04T23:56:05.988Z"
       }
     ]
   }
