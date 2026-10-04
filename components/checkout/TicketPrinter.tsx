@@ -293,6 +293,7 @@ function OrderedTicketCard({
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 1.2, type: "spring", stiffness: 200, damping: 20 }}
+          data-testid="qr-member-code"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -350,6 +351,7 @@ function OrderedTicketCard({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleAddCalendar}
+          data-testid="download-calendar"
           style={{
             flex: 1,
             background: "rgba(255,255,255,0.08)",
