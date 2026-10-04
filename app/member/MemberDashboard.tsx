@@ -927,15 +927,21 @@ function OverviewTab({
       transition={{ duration: 0.35, ease: EASE }}
     >
       {/* Quick actions — 4 tiles, 2×2 mobile, 1×4 desktop */}
-      <div style={{
-        display: 'grid',
-        gap: 12,
-        gridAutoRows: '1fr',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        marginBottom: 20,
-      }}
-      className="quick-actions-grid"
-      >
+      <style>{`
+        .quick-actions-grid {
+          display: grid;
+          gap: 12px;
+          grid-auto-rows: 1fr;
+          grid-template-columns: repeat(2, 1fr);
+          margin-bottom: 20px;
+        }
+        @media (min-width: 640px) {
+          .quick-actions-grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
+        }
+      `}</style>
+      <div className="quick-actions-grid">
         <QuickActionTile
           icon={<HelpCircle size={20} strokeWidth={2} />}
           title="Help"
@@ -1551,7 +1557,7 @@ function PointsTab({ points, balance, locale, tierId }: { points: import("@/lib/
             borderRadius: 12,
             fontFamily: "var(--gt)"
           }}>
-            {tierLabel(tierId, locale)}
+            優越會員
           </span>
         </div>
 

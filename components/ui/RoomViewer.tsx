@@ -84,6 +84,17 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
     thumbRef.current?.releasePointerCapture(e.pointerId)
   }
 
+  // Touch move handler for mobile
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!stageRef.current || !hasSlider) return
+
+    const touch = e.touches[0]
+    const rect = stageRef.current.getBoundingClientRect()
+    const x = touch.clientX - rect.left
+    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100))
+    setDividerPosition(percentage)
+  }
+
   // Keyboard navigation for pills
   const handlePillKeyDown = (e: React.KeyboardEvent, pillId: string) => {
     const currentIndex = pills.findIndex((p) => p.id === pillId)
@@ -288,47 +299,50 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                   <>
                     {/* Infinity (left side of divider) */}
                     <div
-                      className="absolute inset-0"
+                      className="absolute inset-0 flex items-center justify-center"
                       style={{
                         clipPath: `inset(0 ${100 - dividerPosition}% 0 0)`,
                       }}
                     >
-                      <Image
-                        src={images.infinity.image}
-                        alt={images.infinity.alt}
-                        fill
-                        className="object-contain"
-                        style={{ aspectRatio: '4/3' }}
-                        sizes="60vw"
-                        priority={activePill === pills[0].id}
-                        onError={(e) => {
-                          console.error(`Image failed to load: ${images.infinity.image}`)
-                          e.currentTarget.style.display = 'none'
-                        }}
-                      />
+                      <div className="relative" style={{ width: '85%', aspectRatio: '4/3' }}>
+                        <Image
+                          src={images.infinity.image}
+                          alt={images.infinity.alt}
+                          fill
+                          className="object-cover"
+                          sizes="60vw"
+                          priority={activePill === pills[0].id}
+                          onError={(e) => {
+                            console.error(`Image failed to load: ${images.infinity.image}`)
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      </div>
                     </div>
 
                     {/* Eternity (right side of divider) */}
-                    <div className="absolute inset-0">
-                      <Image
-                        src={images.eternity.image}
-                        alt={images.eternity.alt}
-                        fill
-                        className="object-contain"
-                        style={{ aspectRatio: '4/3' }}
-                        sizes="60vw"
-                        priority={activePill === pills[0].id}
-                        onError={(e) => {
-                          console.error(`Image failed to load: ${images.eternity.image}`)
-                          e.currentTarget.style.display = 'none'
-                        }}
-                      />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="relative" style={{ width: '85%', aspectRatio: '4/3' }}>
+                        <Image
+                          src={images.eternity.image}
+                          alt={images.eternity.alt}
+                          fill
+                          className="object-cover"
+                          sizes="60vw"
+                          priority={activePill === pills[0].id}
+                          onError={(e) => {
+                            console.error(`Image failed to load: ${images.eternity.image}`)
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      </div>
                     </div>
 
                     {/* Divider line and handle */}
                     <div
                       className="absolute inset-y-0 w-[1.5px] bg-white"
                       style={{ left: `${dividerPosition}%` }}
+                      onTouchMove={handleTouchMove}
                     >
                       <button
                         ref={thumbRef}
@@ -343,7 +357,7 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                         onPointerMove={handlePointerMove}
                         onPointerUp={handlePointerUp}
                         onKeyDown={handleSliderKeyDown}
-                        className="absolute left-1/2 top-1/2 h-[44px] w-[44px] -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full bg-white shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                        className="absolute left-1/2 top-1/2 h-[60px] w-[60px] -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full bg-white shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
                         style={{ touchAction: 'none' }}
                       />
                     </div>
@@ -497,13 +511,22 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                   </>
                 ) : (
                   sharedImage && (
-                    <div className="absolute inset-0 flex items-center justify-center p-8">
-                      <div className="relative" style={{ width: '70%', aspectRatio: '4/3' }}>
+                    <div
+                      className="absolute inset-0 flex items-center justify-center p-8"
+                      style={
+                        activePill === 'technology'
+                          ? {
+                              background: 'radial-gradient(ellipse at center, rgba(22, 163, 74, 0.15) 0%, rgba(0, 0, 0, 0) 70%)',
+                            }
+                          : undefined
+                      }
+                    >
+                      <div className="relative" style={{ width: '85%', aspectRatio: '4/3' }}>
                         <Image
                           src={sharedImage.image}
                           alt={sharedImage.alt}
                           fill
-                          className="object-contain"
+                          className="object-cover"
                           sizes="100vw"
                           onError={(e) => {
                             console.error(`Image failed to load: ${sharedImage.image}`)

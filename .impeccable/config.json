@@ -1002,6 +1002,11 @@
         "rule": "design-system-color",
         "value": "#16a34a app/[locale]/venue/venuecontent.tsx",
         "createdAt": "2026-10-04T14:29:37.086Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22,163,74,0.3) app/[locale]/venue/venuecontent.tsx",
+        "createdAt": "2026-10-04T14:46:11.945Z"
       }
     ]
   }

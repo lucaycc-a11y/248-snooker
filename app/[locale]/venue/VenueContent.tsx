@@ -226,6 +226,11 @@ export default function VenueContent() {
         }
         .notes-link:hover { color: #15803d; }
 
+        .weather-section .notes-link {
+          color: #22c55e;
+        }
+        .weather-section .notes-link:hover { color: #4ade80; }
+
         @media (max-width: 560px) {
           .notes-section { padding: 80px 24px; }
           .notes-title { margin-bottom: 32px; }
@@ -234,13 +239,13 @@ export default function VenueContent() {
         }
 
         .weather-section {
-          background: #ffffff;
+          background: #14161A;
           padding: 120px 24px;
         }
         .weather-inner { max-width: 1000px; margin: 0 auto; }
         .weather-card {
-          background: #ffffff;
-          border: 1px solid rgba(0,0,0,0.08);
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
           border-radius: 20px;
           padding: 46px 44px 48px;
         }
@@ -256,7 +261,7 @@ export default function VenueContent() {
           font-family: 'Noto Sans TC', sans-serif;
           font-weight: 900;
           font-size: clamp(1.4rem, 2.8vw, 1.95rem);
-          color: #1d1d1f;
+          color: #ffffff;
           line-height: 1.2;
           margin: 0;
         }
@@ -265,7 +270,7 @@ export default function VenueContent() {
           font-family: 'Noto Sans TC', sans-serif;
           font-weight: 700;
           font-size: 15.5px;
-          color: #1d1d1f;
+          color: #ffffff;
           margin: 0 0 14px;
         }
         .weather-list { list-style: none; margin: 0; padding: 0; }
@@ -275,7 +280,7 @@ export default function VenueContent() {
           font-family: 'Noto Sans TC', sans-serif;
           font-size: 14.5px;
           line-height: 1.9;
-          color: rgba(29,29,31,0.62);
+          color: rgba(255,255,255,0.62);
         }
         .weather-list li + li { margin-top: 10px; }
         .weather-list li::before {
@@ -287,7 +292,7 @@ export default function VenueContent() {
           border-radius: 50%;
           background: #16a34a;
         }
-        .weather-list li b { color: #1d1d1f; font-weight: 700; }
+        .weather-list li b { color: #ffffff; font-weight: 700; }
 
         @media (max-width: 560px) {
           .weather-section { padding: 80px 24px; }
@@ -480,8 +485,8 @@ export default function VenueContent() {
         </div>
       </section>
 
-      {/* ── 07: 惡劣天氣 (light) ── */}
-      <section className="weather-section" data-nav-theme="light">
+      {/* ── 07: 惡劣天氣 (dark) ── */}
+      <section className="weather-section" data-nav-theme="dark">
         <div className="weather-inner">
           <div className="weather-card">
             <div className="weather-header">
@@ -513,7 +518,7 @@ export default function VenueContent() {
               href="https://space8.com.hk/legal"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ marginTop: 28, display: "inline-block" }}
+              style={{ marginTop: 28, display: "inline-block", color: "#16a34a" }}
             >
               {t("rules_link")}
             </a>
