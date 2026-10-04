@@ -348,7 +348,7 @@ export default function MemberDashboard({
 
           <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", margin: "6px 0 20px" }}>
             <span className="font-code" style={{ fontSize: "52px", lineHeight: 0.9, color: accent }}>
-              {user.points.toLocaleString()}
+              {(user.points ?? 0).toLocaleString()}
             </span>
             <span style={{ fontSize: "14px", color: SUBTLE, marginBottom: "6px", letterSpacing: "0.08em" }}>PTS</span>
           </div>
@@ -968,7 +968,7 @@ function OverviewTab({
           }
           title="Space Pts"
           subtitle="積分"
-          badge={user.points.toLocaleString()}
+          badge={(user.points ?? 0).toLocaleString()}
           onClick={() => onSwitchTab('points')}
         />
         <QuickActionTile

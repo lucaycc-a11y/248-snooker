@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 import Velaris from "@/components/ui/velaris";
+import { MemberCardPremier } from "@/app/member/components/MemberCardPremier";
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
 const COLORS = {
@@ -185,16 +185,16 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   const statements = [
     {
-      lead: "消費即賺分",
-      body: "每 HK$1 = 1 積分，自動累積",
+      lead: "HK$1 = 1 積分",
+      body: "每消費 HK$1 累積 1 積分",
     },
     {
-      lead: "積分當錢使",
-      body: "100 積分 = HK$10 場地抵用額，即將推出。",
+      lead: "100 積分 = HK$10",
+      body: "每 100 積分可兌換 (即將推出)",
     },
     {
-      lead: "新會員獎賞",
-      body: "註冊即送 100 積分迎新禮遇",
+      lead: "100 積分",
+      body: "新會員迎新獎賞",
     },
     {
       lead: "全預約制，QR 自助入場",
@@ -205,171 +205,128 @@ function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
     <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-8 md:gap-12">
-        {statements.map((statement, i) => (
-          <Reveal key={i} delay={i * 100} className="text-center">
-            <div className="space-y-2">
-              <p
-                data-cms-key={`memberIntro.statement${i + 1}.lead`}
-                className="text-2xl font-semibold leading-tight md:text-4xl lg:text-5xl"
-                style={{ color: COLORS.light.accent }}
-              >
-                {statement.lead}
-              </p>
-              <p
-                data-cms-key={`memberIntro.statement${i + 1}.body`}
-                className="text-2xl font-semibold leading-tight md:text-4xl lg:text-5xl"
-                style={{ color: COLORS.light.text }}
-              >
-                {statement.body}
-              </p>
-            </div>
-          </Reveal>
-        ))}
+        {/* Title */}
+        <Reveal>
+          <h2
+            data-cms-key="memberIntro.pointsProgram.title"
+            className="mb-4 text-center font-bold leading-tight tracking-tight"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.light.text }}
+          >
+            積分計劃
+          </h2>
+        </Reveal>
+
+        {/* 3 columns on desktop, stacked on mobile */}
+        <div className="grid w-full grid-cols-1 gap-8 md:grid-cols-3 md:gap-6">
+          {statements.slice(0, 3).map((statement, i) => (
+            <Reveal key={i} delay={i * 100} className="text-center">
+              <div className="space-y-2">
+                <p
+                  data-cms-key={`memberIntro.pointsProgram.stat${i + 1}.lead`}
+                  className="text-2xl font-semibold leading-tight md:text-3xl lg:text-4xl"
+                  style={{ color: COLORS.light.accent }}
+                >
+                  {statement.lead}
+                </p>
+                <p
+                  data-cms-key={`memberIntro.pointsProgram.stat${i + 1}.body`}
+                  className="text-sm leading-relaxed md:text-base"
+                  style={{ color: COLORS.light.textMuted }}
+                >
+                  {statement.body}
+                </p>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* Last statement - full width below */}
+        <Reveal delay={300} className="w-full text-center">
+          <div
+            className="mx-auto max-w-2xl rounded-3xl border p-6 md:p-8"
+            style={{
+              background: "rgba(255,255,255,0.6)",
+              borderColor: "rgba(5,150,105,0.2)",
+            }}
+          >
+            <p
+              data-cms-key="memberIntro.pointsProgram.stat4.lead"
+              className="mb-2 text-xl font-semibold leading-tight md:text-2xl lg:text-3xl"
+              style={{ color: COLORS.light.accent }}
+            >
+              {statements[3].lead}
+            </p>
+            <p
+              data-cms-key="memberIntro.pointsProgram.stat4.body"
+              className="text-sm leading-relaxed md:text-base"
+              style={{ color: COLORS.light.textMuted }}
+            >
+              {statements[3].body}
+            </p>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// § 3 — MEMBER CARD (dark background, demo card + QR modal)
+// § 3 — MEMBER CARD (dark background, real card + minimal UI)
 // ═══════════════════════════════════════════════════════════════════════════
 
 function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
-  const [isFlipped, setIsFlipped] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [rotateX, setRotateX] = useState(0);
-  const [rotateY, setRotateY] = useState(0);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateXVal = ((y - centerY) / centerY) * -8;
-    const rotateYVal = ((x - centerX) / centerX) * 8;
-    setRotateX(rotateXVal);
-    setRotateY(rotateYVal);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setRotateX(0);
-    setRotateY(0);
-  }, []);
+  // Demo profile for card preview
+  const demoProfile = {
+    id: 'demo',
+    display_name: 'DEMO',
+    email: 'demo@space8.com.hk',
+    phone: null,
+    tier: 'amateur' as const,
+    points: 100,
+    member_code: 'SPACE8-DEMO-0000',
+    unread_notifications: 0,
+    gender: null,
+    date_of_birth: null,
+    birthday_set: false,
+  };
 
   return (
     <section
       style={{ background: COLORS.dark.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}
     >
       <div className="mx-auto max-w-4xl">
+        {/* Title */}
         <Reveal>
           <h2
             data-cms-key="memberIntro.card.title"
-            className="mb-3 text-center font-bold leading-tight tracking-tight text-white"
+            className="mb-12 text-center font-bold leading-tight tracking-tight text-white"
             style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
             {t("card.title")}
           </h2>
         </Reveal>
 
+        {/* Real Member Card (Demo Mode) */}
         <Reveal delay={100}>
+          <MemberCardPremier profile={demoProfile} />
+        </Reveal>
+
+        {/* Description */}
+        <Reveal delay={200}>
           <p
-            data-cms-key="memberIntro.card.hint"
-            className="mb-12 text-center text-sm"
-            style={{ color: COLORS.dark.textMuted, fontFamily: "'Good Times', sans-serif" }}
+            data-cms-key="memberIntro.card.description"
+            className="mt-8 text-center text-sm leading-relaxed"
+            style={{ color: COLORS.dark.textMuted }}
           >
-            {t("card.hint")}
+            專屬會員 QR Code。解鎖大門、登入智能小管家 Space Pilot，全部靠它。
           </p>
         </Reveal>
 
-        {/* Card */}
-        <Reveal delay={200}>
-          <div className="relative mx-auto" style={{ maxWidth: "380px", perspective: "1200px" }}>
-            <button
-              onClick={() => setIsFlipped(!isFlipped)}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={handleMouseLeave}
-              className="relative w-full cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/50"
-              style={{
-                transformStyle: "preserve-3d",
-                transition: isFlipped
-                  ? `transform 600ms ${EASING.reveal}`
-                  : 'transform 150ms ease-out',
-                transform: isFlipped
-                  ? "rotateY(180deg)"
-                  : `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
-                aspectRatio: "1.586",
-              }}
-              aria-label={isFlipped ? t("card.hint") : t("card.hint")}
-            >
-              {/* Front */}
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  backfaceVisibility: "hidden",
-                  background: COLORS.dark.cardBg,
-                  border: `1px solid ${COLORS.dark.cardBorder}`,
-                  boxShadow: "0 24px 60px rgba(0,0,0,.5)",
-                  borderRadius: "20px",
-                  padding: "32px",
-                }}
-                className="flex flex-col"
-              >
-                <div className="mb-6 flex items-center justify-between">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/logos/logo-white-horizontal.svg" alt="SPACE8" className="h-5 w-auto opacity-90" />
-                  <div
-                    className="rounded-full px-3 py-1 text-xs font-semibold text-white"
-                    style={{ background: COLORS.dark.accent }}
-                  >
-                    {t("card.memberBadge")}
-                  </div>
-                </div>
-                <div className="flex flex-1 items-center justify-center">
-                  <div className="text-center">
-                    <p className="font-code text-xl font-semibold uppercase tracking-wide text-white">DEMO</p>
-                    <p className="font-code mt-2 text-sm tracking-wide text-white/40">{DEMO_CODE}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Back */}
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  backfaceVisibility: "hidden",
-                  transform: "rotateY(180deg)",
-                  background: COLORS.dark.cardBg,
-                  border: `1px solid ${COLORS.dark.cardBorder}`,
-                  boxShadow: "0 24px 60px rgba(0,0,0,.5)",
-                  borderRadius: "20px",
-                  padding: "32px",
-                }}
-                className="flex items-center justify-center"
-              >
-                <div className="rounded-xl bg-white p-4 shadow-lg">
-                  <QRCodeSVG value={DEMO_CODE} size={180} level="H" />
-                </div>
-              </div>
-            </button>
-
-            {/* Sample label */}
-            <p
-              data-cms-key="memberIntro.card.sampleLabel"
-              className="mt-4 text-center text-xs italic"
-              style={{ color: "rgba(255,255,255,0.4)", fontFamily: "'Good Times', sans-serif" }}
-            >
-              {t("card.sampleLabel")}
-            </p>
-          </div>
-        </Reveal>
-
-        {/* Learn More + CTA */}
+        {/* CTAs */}
         <Reveal delay={300}>
-          <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <button
               onClick={() => setIsModalOpen(true)}
               data-cms-key="memberIntro.card.learnMore"
@@ -387,7 +344,7 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
           </div>
         </Reveal>
 
-        {/* QR Code Info Modal */}
+        {/* QR Code Info Modal (Hidden by default) */}
         {isModalOpen && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
