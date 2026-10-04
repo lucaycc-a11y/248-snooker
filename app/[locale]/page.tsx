@@ -35,11 +35,6 @@ const PricingCards = dynamic(
   { ssr: true }
 );
 
-const Section6Pricing = dynamic(
-  () => import("@/components/landing/Section6Pricing"),
-  { ssr: true }
-);
-
 const MembershipNew = dynamic(
   () => import("@/components/landing/MembershipNew"),
   { ssr: true }

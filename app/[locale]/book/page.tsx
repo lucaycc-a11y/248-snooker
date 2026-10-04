@@ -2025,16 +2025,16 @@ function Screen3({
   const duration = primary?.duration ?? 0
   const tableNumber = primary?.tableNumber ?? 0
 
+  // Client-side pricing calculation that includes wallet
   const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
-  // Multi-hour discount removed — no savings calculation
   const totalSaved = 0
-  // Apply promo discount if present
   const promoDiscount = promoCode?.discount_amount ?? 0
-  const total = Math.max(0, subtotal - promoDiscount)
-  // The zero-amount rail. Requires a real priced cart AND an applied code —
-  // `total === 0` alone is also true for an empty cart, which must not surface
-  // the free-booking CTA.
-  const isFreeCheckout = subtotal > 0 && promoCode !== null && total === 0
+  const walletAppliedAmount = walletApplied?.amount ?? 0
+  const total = Math.max(0, subtotal - promoDiscount - walletAppliedAmount)
+  const earnPoints = Math.round(total * 0.1)
+
+  // The zero-amount rail. Requires a real priced cart AND (promo code OR wallet applied)
+  const isFreeCheckout = total === 0 && subtotal > 0 && (promoCode !== null || walletApplied !== null)
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
   const [walletBalance, setWalletBalance] = useState(0)
@@ -2367,17 +2367,31 @@ function Screen3({
               />
             </div>
 
+            {/* Wallet applied display */}
+            {walletApplied && walletAppliedAmount > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
+                <span>{t("wallet_applied") || "已套用 Space Wallet"}</span>
+                <span style={{ color: "#22b86b", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                  <>−<BookingPrice amount={walletAppliedAmount} /></>
+                </span>
+              </div>
+            )}
+
             {/* Points earned row */}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.points_earned_label">{t("points_earned_label")}</span>
-              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>+{total} {t("points")}</span>
+              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                <>+{earnPoints} {t("points")}</>
+              </span>
             </div>
             <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
               <span style={{ display: "inline-flex", alignItems: "baseline", gap: 4, whiteSpace: "nowrap", fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
                 <span style={{ fontFamily: tokens.font.sans, fontSize: 16 }}>HK$</span>
-                <span style={{ fontFamily: tokens.font.display }}>{total}</span>
+                <span style={{ fontFamily: tokens.font.display }}>
+                  {total}
+                </span>
               </span>
             </div>
           </div>

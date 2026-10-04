@@ -41,7 +41,7 @@ import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
 import { Logo } from "@/components/brand";
 import { HelpCentre } from "@/components/help/HelpCentre";
-import { MemberCardFlipRedesign } from "@/app/member/components/MemberCardFlipRedesign";
+import { MemberCardPremier } from "@/app/member/components/MemberCardPremier";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -298,7 +298,7 @@ export default function MemberDashboard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE }}
         >
-          <MemberCardFlipRedesign
+          <MemberCardPremier
             profile={{
               id: user.id,
               display_name: user.display_name,
