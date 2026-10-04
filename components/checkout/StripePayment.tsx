@@ -92,6 +92,10 @@ type Props = {
   locale?: string
   onBackToMethods: () => void
   onSuccess: (bookingId?: string) => void
+  // Item 1: Discount parameters for server-side validation
+  useWallet?: boolean
+  promoCode?: string | null
+  expectedTotal?: number
 }
 
 // ── SessionStorage key for refresh recovery ─────────────────────────────────
@@ -293,6 +297,17 @@ export default function StripePayment(props: Props) {
           ? { slotIds: lockJson.slotIds, orderGroupId: lockJson.orderGroupId }
           : { slotId: lockJson.slotId ?? lockJson.slotIds?.[0] }
 
+      // Item 1: Add discount parameters for server-side validation
+      if (props.useWallet !== undefined) {
+        intentBody.useWallet = props.useWallet
+      }
+      if (props.promoCode) {
+        intentBody.promoCode = props.promoCode
+      }
+      if (props.expectedTotal !== undefined) {
+        intentBody.expectedTotal = props.expectedTotal
+      }
+
       const res = await fetch('/api/payment/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -301,6 +316,10 @@ export default function StripePayment(props: Props) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
+        // Item 1: Handle 409 price_changed from server
+        if (res.status === 409 && errorData.code === 'price_changed') {
+          throw new Error(`Price changed: server computed ${errorData.total}, client expected ${props.expectedTotal}`)
+        }
         throw new Error(errorData.error || 'Failed to create payment intent')
       }
 

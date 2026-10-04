@@ -2528,6 +2528,9 @@ function Screen3({
                   agreedToTerms={agreedToTerms}
                   returnUrl={`${window.location.origin}/${locale}/book`}
                   locale={locale}
+                  useWallet={walletApplied !== null}
+                  promoCode={promoCode?.code ?? null}
+                  expectedTotal={total}
                   onBackToMethods={() => {
                     clearStripePersistedState()
                     setConfirmed(false)
@@ -3208,9 +3211,17 @@ function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
 
         <TicketPrinter orderTicket={orderTicket} locale={locale} />
 
-        <motion.a href="/member" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 4.7, duration: 0.4, ease: [0.16, 1, 0.3, 1] }} data-cms-key="book.ticket.member_cta" style={{ width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginBottom: 16, textDecoration: "none" }}>
+        <motion.button
+          type="button"
+          onClick={() => router.push('/member')}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 4.7, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          data-cms-key="book.ticket.member_cta"
+          data-testid="go-to-member"
+          style={{ width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginBottom: 16, textDecoration: "none" }}>
           {t("go_to_member")}
-        </motion.a>
+        </motion.button>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 4.9, duration: 0.4 }} style={{ textAlign: "center" }}>
           <button type="button" onClick={() => (window.location.href = "/")} data-cms-key="book.ticket.home" style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer" }}>
             {t("back_home")}
