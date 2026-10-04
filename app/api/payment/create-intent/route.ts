@@ -69,6 +69,11 @@ async function handleCreateIntent(req: Request) {
       return NextResponse.json({ error: 'Missing orderGroupId for grouped booking' }, { status: 400 })
     }
 
+    // ── Item 1: Accept discount parameters from client ─────────────────────────
+    const useWallet = body?.useWallet === true
+    const requestedPromo = typeof body?.promoCode === 'string' ? body.promoCode : null
+    const expectedTotal = typeof body?.expectedTotal === 'number' ? body.expectedTotal : null
+
     console.log('[payment/create-intent] attempt', { userId: user.id, slotIds, orderGroupId })
 
     // ── Test-booking flag (SERVER-DERIVED ONLY) ─────────────────────────────
@@ -251,22 +256,30 @@ async function handleCreateIntent(req: Request) {
     // ── Discount reservation (server-side, never trust the client) ─────────────
     //
     // prepare_checkout both validates AND reserves: it holds the promo usage or
-    // the points and writes the discounted amount onto every booking row. That
-    // write matters — the webhook asserts paymentIntent.amount === total_price*100,
+    // the wallet credits and writes the discounted amount onto every booking row.
+    // That write matters — the webhook asserts paymentIntent.amount === total_price*100,
     // so discounting only the intent (as an earlier version did) made every
     // discounted payment fail confirmation.
-    const requestedPromo = typeof body?.promoCode === 'string' ? body.promoCode : null
-    const rawPoints = body?.pointsAmount
-    const pointsAmount = typeof rawPoints === 'number' ? rawPoints : Number(rawPoints ?? 0)
-    if (!Number.isInteger(pointsAmount) || pointsAmount < 0) {
-      return NextResponse.json({ error: 'Invalid pointsAmount' }, { status: 400 })
+    //
+    // Item 1: Compute wallet credits from available balance if useWallet is true.
+    let walletCredits = 0
+    if (useWallet) {
+      const { data: userData } = await service
+        .from('users')
+        .select('credits')
+        .eq('id', user.id)
+        .maybeSingle()
+      const walletBalance = userData?.credits ?? 0
+      // Credits capped at subtotal (sum of all booking base_prices)
+      const subtotal = amountInCents / 100
+      walletCredits = Math.min(walletBalance, subtotal)
     }
 
     const outcome = await prepareCheckout(service, {
       bookingId: primaryBookingId,
       userId: user.id,
       promoCode: requestedPromo,
-      points: pointsAmount,
+      walletAmount: walletCredits,
     })
     if (!outcome.ok) {
       const { reason, availablePoints } = outcome.failure
@@ -284,6 +297,27 @@ async function handleCreateIntent(req: Request) {
     const promoCode = prepared.kind === 'promo' ? prepared.code : null
     const discountCents = Math.round(prepared.discountAmount * 100)
     amountInCents = Math.round(prepared.total * 100)
+
+    // Item 1: Verify client's expectedTotal matches server-computed total (409 if mismatch)
+    if (expectedTotal !== null) {
+      const expectedCents = Math.round(expectedTotal * 100)
+      if (expectedCents !== amountInCents) {
+        console.log('[payment/create-intent] price_mismatch', {
+          bookingId: primaryBookingId,
+          expectedCents,
+          serverCents: amountInCents,
+        })
+        return NextResponse.json(
+          {
+            error: 'price_changed',
+            code: 'price_changed',
+            total: prepared.total,
+            walletApplied: prepared.kind === 'credits' ? prepared.points : 0,
+          },
+          { status: 409 },
+        )
+      }
+    }
 
     // Stripe rejects zero-amount intents, so a fully-discounted booking cannot be
     // completed through this path. The reservation is left in place: the row is
@@ -437,6 +471,10 @@ async function handleCreateIntent(req: Request) {
       orderGroupId,
       amount: amountInCents,
       currency: 'hkd',
+      // Item 1: Return server-computed totals and discount info
+      total: prepared.total,
+      walletApplied: prepared.kind === 'credits' ? prepared.points : 0,
+      kind: prepared.kind,
     })
   } catch (err) {
     const e = err as Error

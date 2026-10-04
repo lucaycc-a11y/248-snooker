@@ -189,6 +189,7 @@ function OrderedTicketCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4, duration: 0.5 }}
+      data-testid="order-ticket"
       style={{
         background: `linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)`,
         border: "1px solid rgba(255,255,255,0.1)",
@@ -274,7 +275,7 @@ function OrderedTicketCard({
           <div style={{ color: tokens.colors.textMuted, marginBottom: 4 }}>
             {t_ticket("paid")}
           </div>
-          <div style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.brand }}>
+          <div data-testid="total-price" style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.brand }}>
             HK${orderTicket.totalPrice}
           </div>
         </div>
@@ -372,6 +373,7 @@ function OrderedTicketCard({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setShareOpen(!shareOpen)}
+          data-testid="share-button"
           style={{
             flex: 1,
             background: "rgba(255,255,255,0.08)",
@@ -399,6 +401,7 @@ function OrderedTicketCard({
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
+            data-testid="share-dialog"
             style={{
               marginTop: 12,
               padding: 12,

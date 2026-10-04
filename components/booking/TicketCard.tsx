@@ -334,6 +334,7 @@ export function TicketCard({
   return (
     <motion.div
       data-ticket-card
+      data-testid="booking-line"
       layout
       style={{
         background: `${tokens.glassBg.dark}`,
@@ -464,6 +465,7 @@ export function TicketCard({
               {memberCode ? (
                 <>
                   <div
+                    data-testid="qr-member-code"
                     style={{
                       display: "flex",
                       justifyContent: "center",
@@ -525,6 +527,7 @@ export function TicketCard({
                 <button
                   type="button"
                   onClick={handleAddCalendar}
+                  data-testid="download-calendar"
                   data-cms-key="book.ticket.add-calendar"
                   style={{
                     flex: 1,
@@ -548,6 +551,7 @@ export function TicketCard({
                 <button
                   type="button"
                   onClick={() => { setShareOpen((o) => !o); setShareError(null) }}
+                  data-testid="share-button"
                   data-cms-key="book.ticket.share"
                   disabled={shareBusy}
                   aria-haspopup="menu"
