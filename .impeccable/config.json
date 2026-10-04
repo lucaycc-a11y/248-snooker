@@ -1022,6 +1022,16 @@
         "rule": "design-system-color",
         "value": "rgba(22, 163, 74, 0.15) green-600 with 15% opacity for hover states",
         "createdAt": "2026-10-04T15:39:24.111Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22,163,74,0.1) green-600 at 10% opacity for tag backgrounds",
+        "createdAt": "2026-10-04T15:46:47.102Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22,163,74,0.3) green-600 at 30% opacity for border accents",
+        "createdAt": "2026-10-04T15:46:47.134Z"
       }
     ]
   }
