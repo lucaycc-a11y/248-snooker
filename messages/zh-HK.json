@@ -1413,7 +1413,11 @@
     "confirmed": "已確認 ✓",
     "footer": "請於入場時出示此二維碼・客服熱線",
     "qr_tap_enlarge": "点擊放大二維碼",
-    "close": "關閉"
+    "close": "關閉",
+    "add_calendar": "加入日歷",
+    "share": "分享",
+    "hours": "小時",
+    "payment_method": "付款方式"
   },
   "gallery": {
     "title": "場地。逐一看。",

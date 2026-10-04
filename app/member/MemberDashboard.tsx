@@ -80,7 +80,7 @@ const TIER_GLOW: Record<string, string> = {
 // Display names for tier IDs — see lib/member/tierDisplay.ts (single source
 // of truth). This module renders localized long-form names via tierLabel().
 
-type TabId = "overview" | "bookings" | "points" | "settings" | "access" | "help";
+type TabId = "overview" | "bookings" | "wallet" | "points" | "settings" | "access" | "help";
 
 // Number of days after which a past booking moves to "History"
 const RECENT_DAYS = 30
@@ -249,16 +249,24 @@ export default function MemberDashboard({
   };
 
   return (
-    <div
-      style={{
-        fontFamily: FONT_FAMILY,
-        background: "#000",
-        minHeight: "100vh",
-        color: INK,
-        position: "relative",
-        isolation: "isolate",
-      }}
-    >
+    <>
+      <style jsx>{`
+        @media (min-width: 640px) {
+          .quick-actions-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+          }
+        }
+      `}</style>
+      <div
+        style={{
+          fontFamily: FONT_FAMILY,
+          background: "#000",
+          minHeight: "100vh",
+          color: INK,
+          position: "relative",
+          isolation: "isolate",
+        }}
+      >
       {/* Shared brand ambient orbs, layered behind the tier-coloured backdrop below. */}
       <AmbientGlow />
 
@@ -571,6 +579,7 @@ export default function MemberDashboard({
       {/* Self-service cancel/reschedule modals removed per business policy (2025-01) */}
       {/* Users must contact customer service via WhatsApp 6180 8022 or Info@space8.com.hk */}
     </div>
+    </>
   );
 }
 
@@ -881,6 +890,35 @@ function OverviewTab({
 }) {
   const t = useTranslations('memberPage');
   const locale = useLocale();
+  const router = useRouter();
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [unreadCount, setUnreadCount] = useState<number | null>(null);
+
+  // Fetch wallet balance and unread count
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [walletRes, inboxRes] = await Promise.all([
+          fetch('/api/member/wallet'),
+          fetch('/api/member/inbox/unread-count'),
+        ]);
+
+        if (walletRes.ok) {
+          const data = await walletRes.json();
+          setWalletBalance(data.balance ?? 0);
+        }
+
+        if (inboxRes.ok) {
+          const data = await inboxRes.json();
+          setUnreadCount(data.count ?? 0);
+        }
+      } catch (err) {
+        console.error('Failed to fetch quick action data:', err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <motion.div
@@ -888,23 +926,51 @@ function OverviewTab({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: EASE }}
     >
-      {/* Quick actions row */}
+      {/* Quick actions — 4 tiles, 2×2 mobile, 1×4 desktop */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20,
-      }}>
-        <QuickActionCard
-          icon={<Zap size={18} strokeWidth={2} />}
-          label={t('stat_bookings')}
-          value={`${stats.bookings}`}
-          accent={GREEN}
-          onClick={() => onSwitchTab('bookings')}
+        display: 'grid',
+        gap: 12,
+        gridAutoRows: '1fr',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        marginBottom: 20,
+      }}
+      className="quick-actions-grid"
+      >
+        <QuickActionTile
+          icon={<HelpCircle size={20} strokeWidth={2} />}
+          title="Help"
+          subtitle="幫助中心"
+          onClick={() => onSwitchTab('help')}
         />
-        <QuickActionCard
-          icon={<Coins size={18} strokeWidth={2} />}
-          label={t('card_points')}
-          value={`${user.points.toLocaleString()} pts`}
-          accent={accent}
+        <QuickActionTile
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="6" width="18" height="12" rx="2"/>
+              <path d="M3 10h18"/>
+            </svg>
+          }
+          title="Wallet"
+          subtitle="錢包"
+          badge={walletBalance !== null ? `HK$${walletBalance.toLocaleString()}` : undefined}
+          onClick={() => router.push('/member/wallet')}
+        />
+        <QuickActionTile
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          }
+          title="Space Pts"
+          subtitle="積分"
+          badge={user.points.toLocaleString()}
           onClick={() => onSwitchTab('points')}
+        />
+        <QuickActionTile
+          icon={<Bell size={20} strokeWidth={2} />}
+          title="Inbox"
+          subtitle="收件箱"
+          unreadCount={unreadCount ?? 0}
+          onClick={() => router.push('/member/inbox')}
         />
       </div>
 
@@ -1006,6 +1072,134 @@ function OverviewTab({
         </div>
       )}
     </motion.div>
+  );
+}
+
+/* ── Quick Action Tile — matching design spec for 4-tile home grid ── */
+function QuickActionTile({
+  icon,
+  title,
+  subtitle,
+  badge,
+  unreadCount,
+  onClick
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  badge?: string;
+  unreadCount?: number;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
+      style={{
+        minHeight: 104,
+        padding: 16,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        border: `1px solid ${BORDER}`,
+        borderRadius: 14,
+        background: GLASS_BG,
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'transform 0.15s ease, opacity 0.15s ease',
+        position: 'relative',
+      }}
+      onMouseDown={(e) => {
+        if (onClick) {
+          (e.currentTarget as HTMLDivElement).style.transform = 'scale(0.97)';
+        }
+      }}
+      onMouseUp={(e) => {
+        (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
+      }}
+    >
+      {/* Top row: icon + badge */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{
+          color: INK,
+          opacity: 0.8,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          {icon}
+        </div>
+
+        {/* Right-top badge or unread count */}
+        <div style={{ minHeight: 20 }}>
+          {badge && (
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: INK,
+              background: 'rgba(255,255,255,0.1)',
+              padding: '3px 8px',
+              borderRadius: 12,
+              whiteSpace: 'nowrap',
+            }}>
+              {badge}
+            </span>
+          )}
+          {unreadCount !== undefined && unreadCount > 0 && (
+            <span style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#fff',
+              background: DANGER,
+              padding: '2px 6px',
+              borderRadius: 10,
+              minWidth: 18,
+              display: 'inline-block',
+              textAlign: 'center',
+            }}>
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom: title + subtitle */}
+      <div>
+        <div
+          style={{
+            fontFamily: 'var(--gt)',
+            fontSize: 14,
+            fontWeight: 400,
+            letterSpacing: '0.02em',
+            color: INK,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            marginBottom: 2,
+          }}
+        >
+          {title}
+        </div>
+        <div style={{
+          fontSize: 12.5,
+          color: SUBTLE,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}>
+          {subtitle}
+        </div>
+      </div>
+    </div>
   );
 }
 

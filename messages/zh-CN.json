@@ -1498,7 +1498,11 @@
     "confirmed": "已确认 ✓",
     "footer": "请于入场时出示此二维码・客服热线",
     "qr_tap_enlarge": "点击放大二维码",
-    "close": "关闭"
+    "close": "关闭",
+    "add_calendar": "添加到日历",
+    "share": "分享",
+    "hours": "小时",
+    "payment_method": "付款方式"
   },
   "venueHero": {
     "eyebrow": "SPACE INFINITY",

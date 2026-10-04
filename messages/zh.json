@@ -81,7 +81,11 @@
   "ticket": {
     "duration": "時長",
     "paid": "已付",
-    "payment": "付款"
+    "payment": "付款",
+    "add_calendar": "加入日歷",
+    "share": "分享",
+    "hours": "小時",
+    "payment_method": "付款方式"
   },
   "checkout": {
     "wallet": {

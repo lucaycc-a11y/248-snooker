@@ -445,18 +445,20 @@ export function TicketCard({
 
             {/* Bottom stub */}
             <div style={{ padding: "0 20px 20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}>
-                <div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16, minWidth: 0 }}>
+                <div style={{ minWidth: 0 }}>
                   <div className="font-label" style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>{t_ticket("duration")}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{duration}{t("hours")}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", wordBreak: "break-word" }}>{duration} {t_ticket("hours")}</div>
                 </div>
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div className="font-label" style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>{t_ticket("paid")}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand }}>HK${totalPrice}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand, wordBreak: "break-word" }}>HK${totalPrice}</div>
                 </div>
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div className="font-label" style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>{t_ticket("payment")}</div>
-                  <PaymentMark method={paymentMethod} />
+                  <div style={{ minWidth: 0 }}>
+                    <PaymentMark method={paymentMethod} />
+                  </div>
                 </div>
               </div>
 
@@ -546,7 +548,7 @@ export function TicketCard({
                   }}
                 >
                   <CalendarPlus size={15} />
-                  {t("add_calendar")}
+                  {t_ticket("add_calendar")}
                 </button>
                 <button
                   type="button"
@@ -574,7 +576,7 @@ export function TicketCard({
                   }}
                 >
                   <Share2 size={15} />
-                  {shareBusy ? t("share_loading") : t("share")}
+                  {shareBusy ? t_ticket("share_loading") : t_ticket("share")}
                 </button>
 
                 <AnimatePresence>

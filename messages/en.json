@@ -1413,7 +1413,11 @@
     "confirmed": "Confirmed ✓",
     "footer": "Show this QR code at entry · support hotline",
     "qr_tap_enlarge": "Tap to enlarge QR code",
-    "close": "Close"
+    "close": "Close",
+    "add_calendar": "Add to calendar",
+    "share": "Share",
+    "hours": "hours",
+    "payment_method": "Payment method"
   },
   "venueHero": {
     "eyebrow": "SPACE INFINITY",

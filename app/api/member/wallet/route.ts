@@ -50,13 +50,6 @@ export async function GET(request: NextRequest) {
     const held = holds?.reduce((sum: number, h: { credits: number }) => sum + h.credits, 0) ?? 0
     const available = user.credits - held
 
-    const balance: WalletBalance = {
-      balance: user.credits,
-      held,
-      available,
-      memberCode: user.member_code ?? '',
-    }
-
     // Fetch ledger with filters
     let query = supabase
       .from('credits_ledger')
@@ -132,8 +125,13 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const response: { balance: WalletBalance; ledger: WalletLedgerResponse } = {
-      balance,
+    // Flatten response structure
+    const response = {
+      balance: user.credits,
+      currency: 'HKD',
+      held,
+      available,
+      memberCode: user.member_code ?? '',
       ledger: {
         items: ledgerItems,
         hasMore,
