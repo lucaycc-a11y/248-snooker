@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
-import { Link } from "@/i18n/navigation"
 import type { PricingPeriod } from "@/lib/data/pricing"
+import { AppleButton } from "@/components/ui/AppleButton"
 
 /**
  * Universal pricing cards component — reusable across Home (light) and Venue (dark).
@@ -384,33 +384,6 @@ export default function PricingCards({
           margin-bottom: 24px;
         }
 
-        /* ── CTA button ── */
-        .pricing-cta {
-          margin-top: auto;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          font-family: ${FONT_FAMILY};
-          font-size: 15px;
-          font-weight: 600;
-          padding: 0 28px;
-          border-radius: 999px;
-          text-decoration: none;
-          min-height: 48px;
-          width: 100%;
-          transition:
-            transform 0.15s ease,
-            opacity 0.2s ease;
-          letter-spacing: -0.01em;
-        }
-        .pricing-cta:hover {
-          transform: scale(1.03);
-          opacity: 0.9;
-        }
-        .pricing-cta:active {
-          transform: scale(0.97);
-        }
-
         /* ── Mobile adjustments ── */
         @media (max-width: 768px) {
           .pricing-card {
@@ -432,9 +405,6 @@ export default function PricingCards({
             transition: border-color 0.2s ease;
           }
           .pricing-card:hover {
-            transform: none;
-          }
-          .pricing-cta:hover {
             transform: none;
           }
         }
@@ -526,16 +496,15 @@ function PricingCard({
       <div className="pricing-spacer" />
 
       {/* CTA button — slot accent color */}
-      <Link
+      <AppleButton
+        variant="primary"
+        size="lg"
+        theme={theme}
+        accent={accentForDark}
         href={slot.ctaHref}
-        className="pricing-cta"
-        style={{
-          background: accentForDark,
-          color: colors.ctaText,
-        }}
       >
         {slot.ctaLabel}
-      </Link>
+      </AppleButton>
     </div>
   )
 }

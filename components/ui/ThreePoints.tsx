@@ -37,9 +37,14 @@ export function ThreePoints({
 
   return (
     <section
-      className="w-full py-16 md:py-24"
+      className="w-full"
       style={{
-        backgroundColor: isLight ? '#f5f5f7' : tokens.colors.bg,
+        backgroundColor: isLight ? '#ffffff' : tokens.colors.bg,
+        borderTopLeftRadius: isLight ? '32px' : 0,
+        borderTopRightRadius: isLight ? '32px' : 0,
+        borderTop: isLight ? '1px solid rgba(0,0,0,0.08)' : 'none',
+        paddingTop: isLight ? '80px' : '64px',
+        paddingBottom: '120px',
       }}
     >
       <div className="mx-auto max-w-7xl px-6 md:px-12">

@@ -18,6 +18,7 @@ export default function VenueContent() {
   const t = useTranslations("venuePage");
   const tVenue = useTranslations("venue");
   const tButton = useTranslations("ui.button");
+  const tPricing = useTranslations("pricingPage");
 
   const [periods, setPeriods] = useState<any[]>([]);
 
@@ -28,14 +29,27 @@ export default function VenueContent() {
         const res = await fetch("/api/pricing");
         if (res.ok) {
           const data = await res.json();
-          setPeriods(data.periods);
+
+          // Transform API response to match component expectations
+          const transformed = data.periods.map((period: any) => ({
+            id: period.id,
+            name: tPricing(`period_${period.id}_title`),
+            time_label: tPricing(`period_${period.id}_time`),
+            hourly_rate: period.rate,
+            accent_color:
+              period.id === 'morning' ? tokens.colors.blue[600] :
+              period.id === 'afternoon' ? tokens.colors.green[600] :
+              tokens.colors.purple[600],
+          }));
+
+          setPeriods(transformed);
         }
       } catch (err) {
         console.error("Failed to fetch pricing:", err);
       }
     };
     fetchPricing();
-  }, []);
+  }, [tPricing]);
 
   // Service instructions data
   const serviceSteps = [
@@ -386,7 +400,7 @@ export default function VenueContent() {
                         color: tokens.colors.text,
                       }}
                     >
-                      ${period.hourly_rate}
+                      HK${period.hourly_rate}
                     </span>
                     <span
                       style={{
