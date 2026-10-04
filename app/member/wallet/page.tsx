@@ -150,6 +150,26 @@ export default function WalletPage() {
     return false
   })
 
+  // Group ledger by month
+  const groupedByMonth = visibleItems.reduce((acc, item) => {
+    const date = new Date(item.createdAt)
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+    if (!acc[monthKey]) {
+      acc[monthKey] = []
+    }
+    acc[monthKey].push(item)
+    return acc
+  }, {} as Record<string, WalletLedgerItem[]>)
+
+  const monthKeys = Object.keys(groupedByMonth).sort((a, b) => b.localeCompare(a))
+
+  // Month heading formatter
+  const formatMonthHeading = (monthKey: string): string => {
+    const [year, month] = monthKey.split('-')
+    const date = new Date(Number(year), Number(month) - 1, 1)
+    return date.toLocaleDateString('zh-HK', { year: 'numeric', month: 'long' })
+  }
+
   // Ledger row icon
   const getIcon = (type: string): string => {
     const icons: Record<string, string> = {
@@ -301,45 +321,52 @@ export default function WalletPage() {
                   )}
 
                   {visibleItems.length > 0 && (
-                    <div className="group" style={{ marginTop: '16px' }}>
-                      {visibleItems.map((item, idx) => (
-                        <div key={item.id}>
-                          <button
-                            className="row"
-                            onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                            style={{ width: '100%', cursor: item.booking ? 'pointer' : 'default' }}
-                          >
-                            <div className={`ic ${item.amount > 0 ? 'pos' : ''}`}>
-                              <svg className="i" aria-hidden="true">
-                                <use href={`#i-${getIcon(item.type)}`} />
-                              </svg>
-                            </div>
-                            <div>
-                              <div className="r-t">{getTitle(item)}</div>
-                              <div className="r-s">{getSubtitle(item)}</div>
-                            </div>
-                            <div className="amt">
-                              <b className={item.amount > 0 ? 'pos' : ''}>
-                                {item.amount > 0 ? '+' : ''}
-                                {formatHkd(Math.abs(item.amount))}
-                              </b>
-                              <small>
-                                {t('balance_after')} <span className="gt">{formatHkd(item.balanceAfter)}</span>
-                              </small>
-                            </div>
-                          </button>
+                    <>
+                      {monthKeys.map((monthKey) => (
+                        <div key={monthKey}>
+                          <div className="month">{formatMonthHeading(monthKey)}</div>
+                          <div className="group">
+                            {groupedByMonth[monthKey].map((item) => (
+                              <div key={item.id}>
+                                <button
+                                  className="row"
+                                  onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+                                  style={{ width: '100%', cursor: item.booking ? 'pointer' : 'default' }}
+                                >
+                                  <div className={`ic ${item.amount > 0 ? 'pos' : ''}`}>
+                                    <svg className="i" aria-hidden="true">
+                                      <use href={`#i-${getIcon(item.type)}`} />
+                                    </svg>
+                                  </div>
+                                  <div>
+                                    <div className="r-t">{getTitle(item)}</div>
+                                    <div className="r-s">{getSubtitle(item)}</div>
+                                  </div>
+                                  <div className="amt">
+                                    <b className={item.amount > 0 ? 'pos' : ''}>
+                                      {item.amount > 0 ? '+' : ''}
+                                      {formatHkd(Math.abs(item.amount))}
+                                    </b>
+                                    <small>
+                                      {t('balance_after')} <span className="gt">{formatHkd(item.balanceAfter)}</span>
+                                    </small>
+                                  </div>
+                                </button>
 
-                          {expandedId === item.id && item.booking && (
-                            <div className="det" style={{ padding: '0 16px 16px', fontSize: '13px', color: 'var(--muted)' }}>
-                              <div style={{ marginBottom: '6px' }}>
-                                <strong style={{ color: 'var(--text)' }}>{t('booking_reference')}</strong> {item.booking.humanCode}
+                                {expandedId === item.id && item.booking && (
+                                  <div className="det" style={{ padding: '0 16px 16px', fontSize: '13px', color: 'var(--muted)' }}>
+                                    <div style={{ marginBottom: '6px' }}>
+                                      <strong style={{ color: 'var(--text)' }}>{t('booking_reference')}</strong> {item.booking.humanCode}
+                                    </div>
+                                    <div>{formatTimeRange(item.booking.startTime, item.booking.endTime)}</div>
+                                  </div>
+                                )}
                               </div>
-                              <div>{formatTimeRange(item.booking.startTime, item.booking.endTime)}</div>
-                            </div>
-                          )}
+                            ))}
+                          </div>
                         </div>
                       ))}
-                    </div>
+                    </>
                   )}
 
                   {hasMore && <div ref={observerTarget} style={{ height: '20px', margin: '16px 0' }} />}
