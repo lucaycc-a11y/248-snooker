@@ -29,14 +29,21 @@ export default function PointsPageClient() {
   async function loadData() {
     try {
       setState('loading')
-      const res = await fetch('/api/member/points')
-      if (!res.ok) throw new Error('Failed to fetch')
 
-      const data = await res.json()
-      setSummary(data.summary)
-      setTransactions(data.transactions.items)
-      setHasMore(data.transactions.hasMore)
-      setNextCursor(data.transactions.nextCursor)
+      // Fetch summary
+      const summaryRes = await fetch('/api/member/points')
+      if (!summaryRes.ok) throw new Error('Failed to fetch summary')
+      const summaryData: PointsSummary = await summaryRes.json()
+      setSummary(summaryData)
+
+      // Fetch transactions
+      const txRes = await fetch('/api/member/points/transactions')
+      if (!txRes.ok) throw new Error('Failed to fetch transactions')
+      const txData: PointsTransactionsResponse = await txRes.json()
+      setTransactions(txData.items)
+      setHasMore(txData.hasMore)
+      setNextCursor(txData.nextCursor)
+
       setState('ready')
     } catch (err) {
       setState('error')

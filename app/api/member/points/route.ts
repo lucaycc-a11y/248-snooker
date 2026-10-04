@@ -32,10 +32,10 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id
 
-    // 2. Fetch user profile
+    // 2. Fetch user profile with points_converted and tier
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('points')
+      .select('points, points_converted, tier')
       .eq('id', userId)
       .single()
 
@@ -48,8 +48,9 @@ export async function GET(request: NextRequest) {
     }
 
     const lifetime = user.points ?? 0
+    const pointsConverted = user.points_converted ?? 0
 
-    // 3. Fetch all convert entries from credits_ledger to calculate convertedPoints
+    // 3. Fetch all convert/signup entries from credits_ledger
     const { data: convertRows, error: convertError } = await supabase
       .from('credits_ledger')
       .select('note, amount')
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Parse convert notes to extract converted points
+    // Parse convert notes to extract converted points (for display)
     let convertedPoints = 0
     let depositedToWallet = 0
 
@@ -83,35 +84,46 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 4. Calculate redeemable
-    const redeemable = lifetime - convertedPoints
+    // 4. Calculate redeemable using users.points_converted
+    const redeemable = lifetime - pointsConverted
 
-    // 5. Fetch config values
-    const { data: configRows, error: configError } = await supabase
+    // 5. Fetch config points_system
+    const { data: configRow, error: configError } = await supabase
       .from('config')
-      .select('key, value')
-      .in('key', ['points_tier', 'points_block_size', 'points_credits_per_block'])
+      .select('value')
+      .eq('key', 'points_system')
+      .single()
 
     if (configError) {
-      console.error('Failed to fetch config:', configError)
+      console.error('Failed to fetch points_system config:', configError)
       return NextResponse.json<ErrorResponse>(
         { error: 'server_error' },
         { status: 500 }
       )
     }
 
-    // Parse config
-    const configMap = new Map<string, string>()
-    for (const row of configRows || []) {
-      const value = row.value
-      if (typeof value === 'string') {
-        configMap.set(row.key, value)
-      }
+    // Parse points_system config JSON
+    const pointsSystem = configRow?.value as any
+    if (!pointsSystem || typeof pointsSystem !== 'object') {
+      console.error('points_system config is missing or invalid')
+      return NextResponse.json<ErrorResponse>(
+        { error: 'server_error' },
+        { status: 500 }
+      )
     }
 
-    const tier = configMap.get('points_tier') || 'standard'
-    const blockSize = parseInt(configMap.get('points_block_size') || '100', 10)
-    const creditsPerBlock = parseInt(configMap.get('points_credits_per_block') || '10', 10)
+    const blockSize = pointsSystem.convert_points_block
+    const creditsPerBlock = pointsSystem.convert_credits_per_block
+
+    if (typeof blockSize !== 'number' || typeof creditsPerBlock !== 'number') {
+      console.error('points_system config missing convert_points_block or convert_credits_per_block')
+      return NextResponse.json<ErrorResponse>(
+        { error: 'server_error' },
+        { status: 500 }
+      )
+    }
+
+    const tier = user.tier ?? 'amateur'
 
     // 6. Return summary
     const summary: PointsSummary = {
