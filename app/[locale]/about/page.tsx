@@ -29,9 +29,9 @@ export async function generateMetadata({
 
   const meta: Record<string, { title: string; description: string }> = {
     "zh-HK": {
-      title: "關於我們｜SPACE8 無煙中八球室",
+      title: "關於我們｜SPACE8 無煙中式桌球室",
       description:
-        "SPACE8 是香港新蒲崗的自助無煙中八獨立球室，全預約制，網上預訂、QR碼自助入場，全程不需人手協助。近鑽石山、啟德港鐵站。",
+        "SPACE8 是香港新蒲崗的自助無煙中式桌球獨立球室，全預約制，網上預訂、QR碼自助入場，全程不需人手協助。近鑽石山、啟德港鐵站。",
     },
     "zh-CN": {
       title: "关于我们｜SPACE8 无烟中式八球室",

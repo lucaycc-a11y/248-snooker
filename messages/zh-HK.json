@@ -356,7 +356,7 @@
   },
   "aboutPage": {
     "hero_title": "關於 SPACE8",
-    "hero_subtitle": "好的中式八球室不應有多餘干擾。SPACE8 自助無煙中式桌球獨立球室。隨時隨地，一鍵預訂專屬球臺。從預訂、付款到入場，全程自助，無需等候。",
+    "hero_subtitle": "好的中式桌球室不應有多餘干擾。SPACE8 自助無煙中式桌球獨立球室。隨時隨地，一鍵預訂專屬球臺。從預訂、付款到入場，全程自助，無需等候。",
     "scroll": "向下滑動",
     "mission_eyebrow": "我們的理念",
     "mission_statement": "零打擾，全專註。打造專屬中八空間。",
@@ -376,7 +376,7 @@
       }
     ],
     "story_title": "關於 SPACE8",
-    "story_body": "好的中八球室不應有多餘干擾。SPACE8 自助無煙中式桌球獨立球室。隨時隨地，一鍵預訂專屬球臺。由預訂、付款到入場，全程自助，無需等候。",
+    "story_body": "好的中式桌球室不應有多餘干擾。SPACE8 自助無煙中式桌球獨立球室。隨時隨地，一鍵預訂專屬球臺。由預訂、付款到入場，全程自助，無需等候。",
     "venue_title": "場地設施",
     "venue_features": [
       "星牌中式桌球臺",
@@ -497,8 +497,10 @@
         "live": "持續增加中"
       }
     ],
-    "hero_description": "好的中式八球室不應有多餘干擾。",
-    "wheel_section_description": "好的中式八球室不應有多餘干擾。",
+    "hero_description": "好的中式桌球室不應有多餘干擾。",
+    "hero_description_full": "好的中式桌球室不應有多餘干擾。SPACE8 自助無煙中式桌球獨立球室。隨時隨地，網上預訂專屬球枱。由預訂、付款到入場，全程自助，毋需等候。",
+    "hero_coming_soon": "敬請期待",
+    "wheel_section_description": "好的中式桌球室不應有多餘干擾。",
     "hero_point_professional_title": "專業",
     "hero_point_professional_description": "精選桌球枱・比賽球",
     "hero_point_technology_title": "科技",
@@ -2074,7 +2076,7 @@
   "homeRooms": {
     "eyebrow": "獨立球室",
     "title": "兩間 1T 獨立無煙球室",
-    "body": "好的中式八球室不應有多餘干擾。SPACE8 自助無煙智能中式獨立球室。隨時隨地，一鍵預訂專屬球臺。由預訂、付款到入場，全程自助，無需等候。",
+    "body": "好的中式桌球室不應有多餘干擾。SPACE8 自助無煙智能中式獨立球室。隨時隨地，一鍵預訂專屬球臺。由預訂、付款到入場，全程自助，無需等候。",
     "items": [
       {
         "title": "Space Infinity",
