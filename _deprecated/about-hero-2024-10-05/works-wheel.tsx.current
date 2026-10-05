@@ -24,6 +24,10 @@ export interface SpaceWheelItem {
   description: string;
   image: string;
   alt: string;
+  /** If set, this item is a point card in the drum. 0-based index. Items without this field are ring-only. */
+  point?: number;
+  /** CSS object-position for focal point within the image. Default "center". */
+  focalPoint?: string;
 }
 
 export interface SpaceWheelProps
@@ -32,9 +36,21 @@ export interface SpaceWheelProps
   /** External turn position driven by the parent (GSAP ScrollTrigger). */
   turnRef: React.MutableRefObject<number>;
   /** Text that sits in the middle of the ring while it is at rest. */
+  label?: React.ReactNode;
+  /** @deprecated Use `label` instead. */
   ringLabel?: React.ReactNode;
-  /** Called whenever the active (front) item index changes. */
+  /** Called whenever the active (front) item index changes (point index only). */
   onActiveChange?: (index: number) => void;
+  /** Rotation tilt for ring cards: 0 = upright, 1 = tangent (default). */
+  ringTilt?: number;
+  /** Custom index label renderer. Receives the point index (0-based). */
+  indexLabel?: (pointIndex: number) => React.ReactNode;
+  /** Ring outer diameter as fraction of stage height (default: from cardH × RING_R × 2). About: 0.73 */
+  ringOuterRatio?: number;
+  /** Ring card width as fraction of ring outer diameter (default: from CARD_RATIO + CARD_H_DESKTOP). About: 0.24 */
+  ringCardWidthRatio?: number;
+  /** Nav bar height in pixels, subtracted from 100svh to get stage height (default: 64px for About). */
+  navHeight?: number;
 }
 
 // ─── Geometry ────────────────────────────────────────────────────────────────
@@ -82,6 +98,9 @@ const bowAt = (drumDeg: number, bow: number) =>
  * Both states in one transform chain. Ring terms fall away as `m` → 1 (drum),
  * drum terms are zero while the ring is up. The bow slides the card sideways
  * in the wheel's own plane before perspective shrinks it with distance.
+ *
+ * `ringTilt` (0-1): 0 = upright on ring, 1 = tangent (default). Counter-rotate
+ * the card face by -(1 - m) * ringDeg * (1 - ringTilt).
  */
 function place(
   ringDeg: number,
@@ -90,11 +109,14 @@ function place(
   drumR: number,
   bow: number,
   m: number,
+  ringTilt: number = 1,
 ): string {
+  const faceCounterRotate = -(1 - m) * ringDeg * (1 - ringTilt);
   return (
     `translateX(${m * bowAt(drumDeg, bow)}px)` +
     ` rotateZ(${(1 - m) * ringDeg}deg) translateY(${-(1 - m) * ringR}px)` +
-    ` rotateX(${m * drumDeg}deg) translateZ(${m * drumR}px)`
+    ` rotateX(${m * drumDeg}deg) translateZ(${m * drumR}px)` +
+    ` rotateZ(${faceCounterRotate}deg)`
   );
 }
 
@@ -105,8 +127,14 @@ type Stage = { w: number; h: number };
 export function SpaceWheel({
   items,
   turnRef,
+  label,
   ringLabel,
   onActiveChange,
+  ringTilt = 1,
+  indexLabel,
+  ringOuterRatio,
+  ringCardWidthRatio,
+  navHeight = 64,
   className,
   ...props
 }: SpaceWheelProps) {
@@ -124,7 +152,25 @@ export function SpaceWheel({
   const [isVisible, setIsVisible] = React.useState(false);
 
   const count = items.length;
-  const last = Math.max(count - 1, 0);
+
+  // Separate point items (drum) from ring-only items
+  const pointItems = items.filter((item) => item.point !== undefined).sort((a, b) => (a.point ?? 0) - (b.point ?? 0));
+  const pointCount = pointItems.length;
+  const hasPoints = pointCount > 0;
+
+  // If no point items, behave exactly as before (all items in drum, drum range 0 to count)
+  const drumEnd = hasPoints ? pointCount : count;
+  const last = Math.max(drumEnd - 1, 0);
+
+  // Map global index to ring-only index for proper angle calculation
+  const ringOnlyIndex: number[] = [];
+  let ringIdx = 0;
+  for (let i = 0; i < count; i++) {
+    if (items[i]?.point === undefined) {
+      ringOnlyIndex[i] = ringIdx++;
+    }
+  }
+  const ringOnlyCount = ringIdx;
 
   // Read matchMedia after mount — the server has no matchMedia, and reading it
   // inline would be a hydration mismatch.
@@ -160,32 +206,65 @@ export function SpaceWheel({
   }, []);
 
   const metrics = React.useMemo(() => {
-    const { w, h } = stage;
+    let { w, h } = stage;
+
+    // If navHeight is provided (About page), subtract it from h to get true stage height
+    // This accounts for the sticky nav that overlays the viewport
+    if (navHeight && h > 0) {
+      h = Math.max(h - navHeight, 0);
+    }
+
     const isMobile = w <= MOBILE_BREAKPOINT;
+
+    // Ring geometry: if props provided, override defaults
+    let ringOuter: number;
+    let cardW_ring: number;
+    let cardH_ring: number;
+
+    if (ringOuterRatio !== undefined && ringCardWidthRatio !== undefined && h > 0) {
+      // About page: explicit ring outer diameter and card width ratio
+      ringOuter = h * ringOuterRatio;
+      cardW_ring = ringOuter * ringCardWidthRatio;
+      cardH_ring = cardW_ring / CARD_RATIO;
+    } else {
+      // Default: use original formula
+      const cardH_base = isMobile ? CARD_H_MOBILE : CARD_H_DESKTOP;
+      const cardMaxW_base = isMobile ? CARD_MAX_W_MOBILE : CARD_MAX_W_DESKTOP;
+      cardW_ring = Math.min(h * cardH_base * CARD_RATIO, w * cardMaxW_base);
+      cardH_ring = cardW_ring / CARD_RATIO;
+      const ringR_base = cardH_ring * RING_R;
+      ringOuter = 2 * ringR_base;
+    }
+
+    // For drum (front card), use original formula
     const cardH_base = isMobile ? CARD_H_MOBILE : CARD_H_DESKTOP;
     const cardMaxW_base = isMobile ? CARD_MAX_W_MOBILE : CARD_MAX_W_DESKTOP;
-    const cardW = Math.min(h * cardH_base * CARD_RATIO, w * cardMaxW_base);
-    const cardH = cardW / CARD_RATIO;
-    const drumR = cardH * DRUM;
-    const ringR = cardH * RING_R;
-    // Shrink ring cards until the circle reads as a closed loop rather than
-    // beads on a wire, regardless of item count.
+    const cardW_drum = Math.min(h * cardH_base * CARD_RATIO, w * cardMaxW_base);
+    const cardH_drum = cardW_drum / CARD_RATIO;
+
+    const drumR = cardH_drum * DRUM;
+    const ringR = ringOuter / 2;
+
+    // For ring scaling: use total count (including ring-only items)
     const ringScale = count
-      ? clamp((((2 * Math.PI * ringR) / count) * 0.82) / (cardW || 1), 0.16, 1)
+      ? clamp((((2 * Math.PI * ringR) / count) * 0.82) / (cardW_ring || 1), 0.16, 1)
       : 1;
     return {
-      cardW,
-      cardH,
+      cardW: cardW_ring,  // Ring card width
+      cardW_drum,         // Drum front card width (separate)
+      cardH: cardH_ring,  // Ring card height
+      cardH_drum,
       ringR,
+      ringOuter,
       ringScale,
       drumR,
-      bow: cardH * BOW,
-      depth: cardH * LENS,
-      title: cardH * TITLE,
-      index: cardH * INDEX,
+      bow: cardH_drum * BOW,
+      depth: cardH_drum * LENS,
+      title: cardH_drum * TITLE,
+      index: cardH_drum * INDEX,
       isMobile,
     };
-  }, [stage, count]);
+  }, [stage, count, ringOuterRatio, ringCardWidthRatio, navHeight]);
 
   // Internal smooth position — eased toward whatever turnRef holds.
   const smooth = React.useRef(0);
@@ -207,50 +286,94 @@ export function SpaceWheel({
       const m = clamp(t, 0, 1);
       const pos = Math.max(0, t - 1);
 
-      // Pull the drum back so its front face lands on the picture plane;
-      // the set-back must arrive with the drum or the ring would sit far
-      // behind the perspective origin and appear at half size.
+      // Pull the drum back so its front face lands on the picture plane
       if (wheelRef.current) {
         wheelRef.current.style.transform = `translateZ(${-m * drumR}px)`;
       }
 
       for (let i = 0; i < count; i++) {
-        const d = i - pos;
-        const drumDeg = d * STEP;
+        const item = items[i];
         const card = cardRefs.current[i];
-        if (card) {
+        if (!card) continue;
+
+        const isPointItem = item.point !== undefined;
+
+        if (isPointItem) {
+          // Point item: place on drum
+          const pointIdx = item.point!;
+          const d = pointIdx - pos;
+          const drumDeg = d * STEP;
+          const ringDeg = 0; // Not used in drum mode, but kept for place() signature
+
           card.style.transform = place(
-            d * (360 / count),
+            ringDeg,
             drumDeg,
             ringR,
             drumR,
             bow,
             m,
+            ringTilt,
           );
+
           const cardOpacity = m > 0.5 && Math.abs(d) > CULL ? 0 : 1;
           card.style.opacity = String(cardOpacity);
           card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
-          // Performance hint: only animate cards that are visible
           card.style.willChange = cardOpacity > 0.1 ? 'transform' : 'auto';
+        } else {
+          // Ring-only item: rotate in carousel mode as turn increases
+          const idx = ringOnlyIndex[i] ?? 0;
+          // Carousel rotation: each item moves by -turn * (360/ringOnlyCount) degrees
+          const baseAngle = idx * (360 / ringOnlyCount);
+          const rotationOffset = -turnRef.current * (360 / ringOnlyCount);
+          const ringAngleDeg = baseAngle + rotationOffset;
+
+          card.style.transform = place(
+            ringAngleDeg,
+            0,
+            ringR,
+            drumR,
+            bow,
+            0, // Keep m=0 so items stay on ring (no drum transition)
+            ringTilt,
+          );
+          card.style.opacity = String(1); // Always visible in carousel
+          card.style.visibility = "visible";
+          card.style.zIndex = String(50);
+          card.style.willChange = turnRef.current > 0.05 ? 'transform' : 'auto';
         }
-        const face = card?.firstElementChild as HTMLElement | null;
-        if (face) face.style.transform = `scale(${lerp(ringScale, 1, m)})`;
+
+        const face = card.firstElementChild as HTMLElement | null;
+        if (face) {
+          if (isPointItem) {
+            // Drum: card at full scale
+            face.style.transform = `scale(1)`;
+          } else {
+            // Ring: always use ring scale, no animation
+            face.style.transform = `scale(${ringScale})`;
+          }
+          if (item.focalPoint) {
+            face.style.objectPosition = item.focalPoint;
+          }
+        }
       }
 
       if (labelRef.current) labelRef.current.style.opacity = String(1 - m);
       if (titleRef.current) titleRef.current.style.opacity = String(m);
       if (descRef.current) descRef.current.style.opacity = String(m);
 
-      const near = clamp(Math.round(pos), 0, last);
-      setActive((prev) => {
-        if (prev !== near) onActiveChange?.(near);
-        return prev === near ? prev : near;
-      });
+      // Active: only point items
+      if (hasPoints) {
+        const near = clamp(Math.round(pos), 0, last);
+        setActive((prev) => {
+          if (prev !== near) onActiveChange?.(near);
+          return prev === near ? prev : near;
+        });
+      }
     };
 
     frame = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(frame);
-  }, [metrics, stage.h, count, last, reduced, turnRef, onActiveChange, isVisible]);
+  }, [metrics, stage.h, count, last, reduced, turnRef, onActiveChange, isVisible, hasPoints, items, ringTilt]);
 
   // Keyboard navigation — ArrowUp/Down move through items.
   const handleKeyDown = React.useCallback(
@@ -333,11 +456,11 @@ export function SpaceWheel({
         className="pointer-events-none absolute inset-0 grid place-items-center"
         style={{ fontSize: metrics.title }}
       >
-        {ringLabel}
+        {label ?? ringLabel}
       </div>
 
       {/* ── Mobile text block (bottom-aligned description only, no flex layout) ── */}
-      {metrics.isMobile && (
+      {metrics.isMobile && hasPoints && (
         <div
           ref={titleRef}
           className="pointer-events-none absolute left-0 right-0 bottom-0 opacity-0"
@@ -361,7 +484,7 @@ export function SpaceWheel({
               marginBottom: "0.5rem",
             }}
           >
-            {String(active + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
+            {indexLabel ? indexLabel(active) : `${String(active + 1).padStart(2, "0")} / ${String(pointCount).padStart(2, "0")}`}
           </p>
           <p
             className="font-semibold leading-snug"
@@ -386,7 +509,7 @@ export function SpaceWheel({
       )}
 
       {/* ── Desktop text (left of card) ── */}
-      {!metrics.isMobile && (
+      {!metrics.isMobile && hasPoints && (
         <>
           <div
             ref={titleRef}
@@ -416,53 +539,55 @@ export function SpaceWheel({
       )}
 
       {/* ── Progress indicator: mobile thin line + "01/03", desktop vertical index ── */}
-      {metrics.isMobile ? (
-        <div
-          ref={descRef}
-          className="pointer-events-none absolute top-[6%] left-1/2 -translate-x-1/2 opacity-0 flex flex-col items-center gap-2"
-          style={{ visibility: "hidden" }}
-        >
-          <div className="flex items-center gap-1">
-            {items.map((_, i) => (
-              <div
-                key={i}
-                className="transition-all duration-300"
-                style={{
-                  width: i === active ? 24 : 6,
-                  height: 2,
-                  backgroundColor: i === active ? "#22c55e" : "rgba(0,0,0,0.2)",
-                  borderRadius: 1,
-                }}
-              />
-            ))}
-          </div>
-          <p
-            style={{ fontFamily: "'Good Times', monospace", fontSize: metrics.index * 0.9, color: "rgba(0,0,0,0.6)" }}
+      {hasPoints && (
+        metrics.isMobile ? (
+          <div
+            ref={descRef}
+            className="pointer-events-none absolute top-[6%] left-1/2 -translate-x-1/2 opacity-0 flex flex-col items-center gap-2"
+            style={{ visibility: "hidden" }}
           >
-            {String(active + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
-          </p>
-        </div>
-      ) : (
-        <ol
-          className="absolute top-[7.5%] right-[2.5%] text-right leading-[1.75]"
-          style={{ fontSize: metrics.index }}
-          aria-hidden="true"
-        >
-          {items.map((item, i) => (
-            <li key={item.title}>
-              <span
-                className="block transition-colors duration-300"
-                style={{
-                  fontFamily: "'Good Times', monospace",
-                  color: i === active ? "#000000" : "rgba(0,0,0,0.45)",
-                  fontWeight: i === active ? 600 : 400,
-                }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-            </li>
-          ))}
-        </ol>
+            <div className="flex items-center gap-1">
+              {pointItems.map((_, i) => (
+                <div
+                  key={i}
+                  className="transition-all duration-300"
+                  style={{
+                    width: i === active ? 24 : 6,
+                    height: 2,
+                    backgroundColor: i === active ? "#22c55e" : "rgba(0,0,0,0.2)",
+                    borderRadius: 1,
+                  }}
+                />
+              ))}
+            </div>
+            <p
+              style={{ fontFamily: "'Good Times', monospace", fontSize: metrics.index * 0.9, color: "rgba(0,0,0,0.6)" }}
+            >
+              {indexLabel ? indexLabel(active) : `${String(active + 1).padStart(2, "0")} / ${String(pointCount).padStart(2, "0")}`}
+            </p>
+          </div>
+        ) : (
+          <ol
+            className="absolute top-[7.5%] right-[2.5%] text-right leading-[1.75]"
+            style={{ fontSize: metrics.index }}
+            aria-hidden="true"
+          >
+            {pointItems.map((_, i) => (
+              <li key={i}>
+                <span
+                  className="block transition-colors duration-300"
+                  style={{
+                    fontFamily: "'Good Times', monospace",
+                    color: i === active ? "#000000" : "rgba(0,0,0,0.45)",
+                    fontWeight: i === active ? 600 : 400,
+                  }}
+                >
+                  {indexLabel ? indexLabel(i) : String(i + 1).padStart(2, "0")}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )
       )}
     </section>
   );

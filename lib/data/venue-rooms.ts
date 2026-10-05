@@ -52,10 +52,16 @@ export const pills: PillContent[] = [
     hasSlider: true,
     perRoom: {
       infinity: {
+        // TODO: Replace with text-free panorama. Current image has "SPACE INFINITY"
+        // baked into pixels. Luca to supply clean source. Cannot remove without
+        // new asset — do not cover/blur/crop as workaround.
         image: '/images/venue-page-infinity.jpg',
         alt: 'Space Infinity 球室裝修和燈光氛圍',
       },
       eternity: {
+        // TODO: Replace with text-free panorama. Current image has "SPACE ETERNITY"
+        // baked into pixels. Luca to supply clean source. Cannot remove without
+        // new asset — do not cover/blur/crop as workaround.
         image: '/images/venue-page-eternity.jpg',
         alt: 'Space Eternity 球室裝修和燈光氛圍',
       },

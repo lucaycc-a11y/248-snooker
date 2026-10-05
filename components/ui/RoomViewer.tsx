@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -12,13 +12,55 @@ interface RoomViewerProps {
   className?: string
 }
 
+// Image preloader with decode
+const preloadImage = (src: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image()
+    const timeout = setTimeout(() => {
+      reject(new Error('Image decode timeout'))
+    }, 2000)
+
+    img.onload = () => {
+      img
+        .decode()
+        .then(() => {
+          clearTimeout(timeout)
+          resolve()
+        })
+        .catch(() => {
+          clearTimeout(timeout)
+          resolve() // Don't block on decode failure
+        })
+    }
+    img.onerror = () => {
+      clearTimeout(timeout)
+      reject(new Error('Image load failed'))
+    }
+    img.src = src
+  })
+}
+
 export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
   const t = useTranslations()
   const [activePill, setActivePill] = useState(pills[0].id)
   const [dividerPosition, setDividerPosition] = useState(50) // 0-100
   const [isDragging, setIsDragging] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Dual-layer state for crossfade
+  const [frontLayer, setFrontLayer] = useState<{
+    pillId: string
+    images: { infinity?: string; eternity?: string; shared?: string }
+  }>({
+    pillId: pills[0].id,
+    images: {},
+  })
+  const [backLayer, setBackLayer] = useState<typeof frontLayer | null>(null)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
   const stageRef = useRef<HTMLDivElement>(null)
   const thumbRef = useRef<HTMLButtonElement>(null)
+  const preloadedRef = useRef<Set<string>>(new Set())
 
   // Initialize from URL param
   useEffect(() => {
@@ -36,25 +78,89 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
   const hasSlider = currentPill.hasSlider
 
   // Get images for current pill
-  const getImages = () => {
-    if (currentPill.perRoom) {
+  const getImages = (pillId: string) => {
+    const pill = pills.find((p) => p.id === pillId) ?? pills[0]
+    if (pill.perRoom) {
       return {
-        infinity: currentPill.perRoom.infinity,
-        eternity: currentPill.perRoom.eternity,
+        infinity: pill.perRoom.infinity.image,
+        eternity: pill.perRoom.eternity.image,
       }
     }
-    return null
+    return { shared: pill.shared?.image }
   }
 
-  const images = getImages()
-  const sharedImage = currentPill.shared
+  // Preload image on hover/focus
+  const handlePreload = useCallback(async (pillId: string) => {
+    const images = getImages(pillId)
+    const urls = Object.values(images).filter((url): url is string => !!url)
+
+    for (const url of urls) {
+      if (!preloadedRef.current.has(url)) {
+        try {
+          await preloadImage(url)
+          preloadedRef.current.add(url)
+        } catch (err) {
+          console.warn(`Preload failed for ${url}:`, err)
+        }
+      }
+    }
+  }, [])
+
+  // Preload all images after idle
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      pills.forEach((pill) => {
+        handlePreload(pill.id)
+      })
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [handlePreload])
+
+  // Change pill with crossfade
+  const changePill = useCallback(async (newPillId: string) => {
+    if (isTransitioning) return
+
+    const newImages = getImages(newPillId)
+    const urls = Object.values(newImages).filter((url): url is string => !!url)
+
+    setIsTransitioning(true)
+    setLoadError(null)
+
+    // Preload new images in back layer
+    try {
+      await Promise.all(urls.map((url) => preloadImage(url)))
+    } catch (err) {
+      console.error('Image load failed:', err)
+      setLoadError('無法載入相片')
+      setIsTransitioning(false)
+      return
+    }
+
+    // Set back layer with new images
+    setBackLayer({ pillId: newPillId, images: newImages })
+
+    // Wait for next frame, then crossfade
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        setFrontLayer({ pillId: newPillId, images: newImages })
+        setBackLayer(null)
+        setIsTransitioning(false)
+      }, 300)
+    })
+  }, [isTransitioning])
+
+  // Handle pill change
+  useEffect(() => {
+    if (activePill !== frontLayer.pillId) {
+      changePill(activePill)
+    }
+  }, [activePill, frontLayer.pillId, changePill])
 
   // Snap to room
   const snapToRoom = (roomId: RoomId) => {
     const newPosition = roomId === 'infinity' ? 100 : 0
     setDividerPosition(newPosition)
 
-    // Update URL
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href)
       url.searchParams.set('room', roomId)
@@ -85,7 +191,7 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
     thumbRef.current?.releasePointerCapture(e.pointerId)
   }
 
-  // Touch move handler for mobile
+  // Touch move handler
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!stageRef.current || !hasSlider) return
 
@@ -99,13 +205,31 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
   // Keyboard navigation for pills
   const handlePillKeyDown = (e: React.KeyboardEvent, pillId: string) => {
     const currentIndex = pills.findIndex((p) => p.id === pillId)
+    let nextIndex = currentIndex
 
-    if (e.key === 'ArrowDown' && currentIndex < pills.length - 1) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
       e.preventDefault()
-      setActivePill(pills[currentIndex + 1].id)
-    } else if (e.key === 'ArrowUp' && currentIndex > 0) {
+      nextIndex = (currentIndex + 1) % pills.length
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
       e.preventDefault()
-      setActivePill(pills[currentIndex - 1].id)
+      nextIndex = currentIndex - 1 < 0 ? pills.length - 1 : currentIndex - 1
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      nextIndex = 0
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      nextIndex = pills.length - 1
+    }
+
+    if (nextIndex !== currentIndex) {
+      setActivePill(pills[nextIndex].id)
+      // Focus the new pill
+      setTimeout(() => {
+        const nextPill = document.querySelector(
+          `[role="tab"][aria-controls="panel-${pills[nextIndex].id}"]`
+        ) as HTMLElement
+        nextPill?.focus()
+      }, 0)
     }
   }
 
@@ -113,47 +237,62 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
   const handleSliderKeyDown = (e: React.KeyboardEvent) => {
     if (!hasSlider) return
 
+    let newPosition = dividerPosition
+
     if (e.key === 'ArrowLeft') {
       e.preventDefault()
-      setDividerPosition((p) => Math.max(0, p - 5))
+      newPosition = Math.max(0, dividerPosition - 5)
     } else if (e.key === 'ArrowRight') {
       e.preventDefault()
-      setDividerPosition((p) => Math.min(100, p + 5))
+      newPosition = Math.min(100, dividerPosition + 5)
     } else if (e.key === 'Home') {
       e.preventDefault()
-      setDividerPosition(0)
+      newPosition = 0
     } else if (e.key === 'End') {
       e.preventDefault()
-      setDividerPosition(100)
+      newPosition = 100
+    }
+
+    if (newPosition !== dividerPosition) {
+      setDividerPosition(newPosition)
     }
   }
 
-  // Calculate label opacity
-  const leftOpacity = dividerPosition < 15 ? 0 : 1
-  const rightOpacity = dividerPosition > 85 ? 0 : 1
+  // Opacity for corner labels
+  const leftOpacity = Math.max(0, Math.min(1, dividerPosition / 15))
+  const rightOpacity = Math.max(0, Math.min(1, (100 - dividerPosition) / 15))
+
+  // Reduced motion
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   return (
     <section
       className={className}
       style={{
-        backgroundColor: '#000000',
+        backgroundColor: tokens.colors.bg,
         color: '#ffffff',
         minHeight: '100svh',
-        paddingTop: `calc(${tokens.layout.navbarHeight} + 24px)`,
+        paddingTop: `calc(${tokens.layout.navbarHeight} + 16px)`,
         scrollMarginTop: tokens.layout.navbarHeight,
       }}
     >
       <div className="mx-auto max-w-[1440px] px-6 pb-12 lg:px-8">
         {/* Heading */}
         <h2
-          className="mb-8 text-left text-[40px] font-semibold leading-tight lg:mb-12 lg:text-[56px]"
-          style={{ fontFamily: 'var(--font-display)' }}
+          className="mb-6 text-left leading-tight lg:mb-8"
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(30px, 4vw, 44px)',
+            fontWeight: 600,
+          }}
         >
           {t('venue.rooms.title')}
         </h2>
 
-        {/* Desktop layout */}
-        <div className="hidden lg:grid lg:grid-cols-[400px_1fr] lg:gap-8">
+        {/* Desktop/Tablet layout (768px+) */}
+        <div className="hidden md:grid md:gap-6 lg:gap-8" style={{ gridTemplateColumns: 'minmax(280px, 36%) 1fr' }}>
           {/* Left column: pills */}
           <div role="tablist" aria-label="房間特色" className="flex flex-col gap-3">
             {pills.map((pill) => {
@@ -172,6 +311,8 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                   aria-controls={`panel-${pill.id}`}
                   tabIndex={isActive ? 0 : -1}
                   onClick={() => setActivePill(pill.id)}
+                  onPointerEnter={() => handlePreload(pill.id)}
+                  onFocus={() => handlePreload(pill.id)}
                   onKeyDown={(e) => handlePillKeyDown(e, pill.id)}
                   layout
                   initial={false}
@@ -182,19 +323,17 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                     backgroundColor: isActive ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
                   }}
                   transition={{
-                    layout: { duration: 0.4, ease: [0.2, 0.7, 0.3, 1] },
+                    layout: { duration: prefersReducedMotion ? 0 : 0.4, ease: [0.2, 0.7, 0.3, 1] },
                     backgroundColor: { duration: 0.2 },
                   }}
                   className="relative overflow-hidden rounded-[28px] text-left outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                   style={{
                     border: '1px solid rgba(255,255,255,0.08)',
+                    minHeight: '44px',
                   }}
                 >
-                  <motion.div
-                    layout
-                    className="px-6 py-4"
-                  >
-                    {/* Collapsed state: icon + label */}
+                  <motion.div layout className="px-6 py-4">
+                    {/* Collapsed state */}
                     {!isActive && (
                       <div className="flex items-center gap-3">
                         <div
@@ -214,56 +353,80 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                       </div>
                     )}
 
-                    {/* Expanded state: card content */}
+                    {/* Expanded state */}
                     {isActive && (
                       <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3, delay: 0.1 }}
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: prefersReducedMotion ? 0 : 0.3, delay: 0.1 }}
+                        className="space-y-4"
                       >
-                        <div className="mb-4 flex items-center gap-2">
-                          <span className="text-[13px] font-medium uppercase tracking-wide text-[#86868b]">
-                            {t(pill.labelKey)}
-                          </span>
+                        {/* Label + tag */}
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="text-[20px] font-bold leading-tight">{t(pill.labelKey)}</h3>
                           {pill.tag && (
                             <span
-                              className="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
+                              className="rounded-full px-3 py-1 text-[11px] font-medium uppercase tracking-wide"
                               style={{
-                                backgroundColor: 'rgba(255,255,255,0.1)',
-                                color: '#86868b',
+                                backgroundColor: 'rgba(22,163,74,0.1)',
+                                color: '#16a34a',
+                                border: '1px solid rgba(22,163,74,0.3)',
                               }}
                             >
                               {t(pill.tag)}
                             </span>
                           )}
                         </div>
-                        <h3 className="mb-1 text-[20px] font-semibold leading-snug">
-                          {t(pill.mainLineKey)}
-                        </h3>
+
+                        {/* Main line */}
+                        <p className="text-[15px] leading-relaxed opacity-90">{t(pill.mainLineKey)}</p>
+
+                        {/* Small lines (per-room pills only) */}
                         {smallLineKey && (
-                          <p className="text-[14px] text-[#86868b]">{t(smallLineKey)}</p>
+                          <p className="text-[13px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                            {t(smallLineKey)}
+                          </p>
                         )}
 
-                        {/* Compare bar (in card) */}
-                        {pill.hasSlider && (
-                          <div className="mt-6">
-                            <p className="mb-3 text-[13px] text-[#86868b]">
-                              {t('venue.rooms.slider_hint')}
-                            </p>
-                            <div
-                              className="relative h-2 rounded-full"
-                              style={{ border: '1px solid rgba(255,255,255,0.2)' }}
+                        {/* Track for hasSlider pills */}
+                        {hasSlider && (
+                          <div className="relative mt-6 h-[6px] w-full overflow-hidden rounded-full bg-white/10">
+                            <motion.div
+                              className="absolute left-0 top-0 h-full rounded-full"
+                              style={{
+                                width: `${dividerPosition}%`,
+                                backgroundColor: tokens.colors.green[600],
+                              }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                            />
+                            <button
+                              ref={thumbRef}
+                              role="slider"
+                              aria-label="拖動以比較兩間球室"
+                              aria-valuemin={0}
+                              aria-valuemax={100}
+                              aria-valuenow={Math.round(dividerPosition)}
+                              aria-valuetext={`${Math.round(dividerPosition)}%`}
+                              tabIndex={-1}
+                              onPointerDown={handlePointerDown}
+                              onPointerMove={handlePointerMove}
+                              onPointerUp={handlePointerUp}
+                              className="absolute top-1/2 h-[36px] w-[56px] -translate-y-1/2 cursor-ew-resize rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                              style={{
+                                left: `${dividerPosition}%`,
+                                transform: `translate(-50%, -50%)`,
+                                backgroundColor: tokens.colors.green[600],
+                                touchAction: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '16px',
+                                fontWeight: 600,
+                                color: '#ffffff',
+                              }}
                             >
-                              <div
-                                className="absolute left-1/2 top-1/2 flex h-[36px] w-[56px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full"
-                                style={{
-                                  backgroundColor: '#16a34a',
-                                  transform: `translate(-50%, -50%) translateX(${(dividerPosition - 50) * 2}%)`,
-                                }}
-                              >
-                                <span className="text-[14px] font-medium">‹ ›</span>
-                              </div>
-                            </div>
+                              ‹ ›
+                            </button>
                           </div>
                         )}
                       </motion.div>
@@ -283,333 +446,339 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
             className="relative overflow-hidden rounded-[28px]"
             style={{
               border: '1px solid rgba(255,255,255,0.08)',
-              minHeight: `calc(100svh - ${tokens.layout.navbarHeight} - 24px - 80px - 96px)`,
-              maxHeight: `calc(100svh - ${tokens.layout.navbarHeight} - 24px - 96px)`,
+              aspectRatio: '4 / 3',
+              minWidth: '340px',
+              backgroundColor: currentPill.id === 'technology' ? '#0a0a0a' : '#000000',
+              // Gradient for technology pill
+              ...(currentPill.id === 'technology' && {
+                background: `
+                  radial-gradient(ellipse 50% 40% at 50% 50%, rgba(88, 28, 135, 0.32), transparent 70%),
+                  radial-gradient(ellipse 60% 50% at 50% 50%, rgba(37, 99, 235, 0.18), transparent 80%),
+                  linear-gradient(135deg, #1a0b2e 0%, #0f172a 50%, #0a0a0a 100%)
+                `,
+              }),
             }}
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${activePill}-${hasSlider ? 'slider' : 'shared'}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute inset-0"
-              >
-                {hasSlider && images ? (
-                  <>
-                    {/* Infinity (left side of divider) */}
-                    <div
-                      className="absolute inset-0 flex items-center justify-center"
-                      style={{
-                        clipPath: `inset(0 ${100 - dividerPosition}% 0 0)`,
-                      }}
-                    >
-                      <div className="relative" style={{ width: '85%', aspectRatio: '4/3' }}>
+            {/* Load error */}
+            {loadError && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="rounded-lg bg-black/60 px-4 py-3 text-center backdrop-blur-sm">
+                  <p className="text-sm text-white/80">{loadError}</p>
+                  <button
+                    onClick={() => {
+                      setLoadError(null)
+                      changePill(activePill)
+                    }}
+                    className="mt-2 text-xs underline opacity-70 hover:opacity-100"
+                  >
+                    重試
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Stage layers */}
+            {!loadError && (
+              <>
+                {/* Front layer (visible) */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    opacity: backLayer ? 0 : 1,
+                    transition: backLayer ? 'opacity 300ms ease-out' : 'none',
+                  }}
+                >
+                  {frontLayer.images.infinity && frontLayer.images.eternity ? (
+                    <>
+                      {/* Infinity layer */}
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          clipPath: `inset(0 ${100 - dividerPosition}% 0 0)`,
+                        }}
+                      >
                         <Image
-                          src={images.infinity.image}
-                          alt={images.infinity.alt}
+                          src={frontLayer.images.infinity}
+                          alt={t('venue.rooms.infinity.name')}
                           fill
                           className="object-cover"
-                          sizes="60vw"
-                          priority={activePill === pills[0].id}
-                          onError={(e) => {
-                            console.error(`Image failed to load: ${images.infinity.image}`)
-                            e.currentTarget.style.display = 'none'
-                          }}
+                          style={{ objectPosition: '50% 50%' }}
+                          sizes="(min-width: 768px) 60vw, 100vw"
+                          priority
                         />
                       </div>
-                    </div>
 
-                    {/* Eternity (right side of divider) */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="relative" style={{ width: '85%', aspectRatio: '4/3' }}>
+                      {/* Eternity layer */}
+                      <div className="absolute inset-0">
                         <Image
-                          src={images.eternity.image}
-                          alt={images.eternity.alt}
+                          src={frontLayer.images.eternity}
+                          alt={t('venue.rooms.eternity.name')}
                           fill
                           className="object-cover"
-                          sizes="60vw"
-                          priority={activePill === pills[0].id}
-                          onError={(e) => {
-                            console.error(`Image failed to load: ${images.eternity.image}`)
-                            e.currentTarget.style.display = 'none'
-                          }}
+                          style={{ objectPosition: '50% 50%' }}
+                          sizes="(min-width: 768px) 60vw, 100vw"
+                          priority
                         />
                       </div>
-                    </div>
 
-                    {/* Divider line and handle */}
-                    <div
-                      className="absolute inset-y-0 w-[1.5px] bg-white"
-                      style={{ left: `${dividerPosition}%` }}
-                      onTouchMove={handleTouchMove}
-                    >
+                      {/* Divider */}
+                      <div
+                        className="absolute inset-y-0 w-[2px] bg-white"
+                        style={{ left: `${dividerPosition}%` }}
+                        onTouchMove={handleTouchMove}
+                      >
+                        <button
+                          role="slider"
+                          aria-label="拖動以比較兩間球室"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={Math.round(dividerPosition)}
+                          aria-valuetext={`${Math.round(dividerPosition)}%`}
+                          tabIndex={0}
+                          onPointerDown={handlePointerDown}
+                          onPointerMove={handlePointerMove}
+                          onPointerUp={handlePointerUp}
+                          onKeyDown={handleSliderKeyDown}
+                          className="absolute left-1/2 top-1/2 h-[48px] w-[48px] -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full bg-white shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                          style={{
+                            touchAction: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '18px',
+                            fontWeight: 600,
+                            color: tokens.colors.text,
+                          }}
+                        >
+                          ‹ ›
+                        </button>
+                      </div>
+
+                      {/* Corner labels */}
                       <button
-                        ref={thumbRef}
-                        role="slider"
-                        aria-label="拖動以比較兩間球室"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={Math.round(dividerPosition)}
-                        aria-valuetext={`${Math.round(dividerPosition)}%`}
-                        tabIndex={0}
-                        onPointerDown={handlePointerDown}
-                        onPointerMove={handlePointerMove}
-                        onPointerUp={handlePointerUp}
-                        onKeyDown={handleSliderKeyDown}
-                        className="absolute left-1/2 top-1/2 h-[60px] w-[60px] -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full bg-white shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-                        style={{ touchAction: 'none' }}
-                      />
-                    </div>
+                        onClick={() => snapToRoom('infinity')}
+                        className="absolute bottom-6 left-6 rounded-lg bg-black/40 px-3 py-2 text-left text-[12px] font-medium leading-tight backdrop-blur-sm transition-opacity duration-200 hover:bg-black/50 lg:text-[13px]"
+                        style={{
+                          opacity: leftOpacity,
+                          fontFamily: 'var(--font-display)',
+                        }}
+                      >
+                        {t('venue.rooms.infinity.name')}
+                      </button>
 
-                    {/* Corner labels */}
-                    <button
-                      onClick={() => snapToRoom('infinity')}
-                      className="absolute bottom-6 left-6 rounded-lg bg-black/40 px-3 py-2 text-left text-[12px] font-medium leading-tight backdrop-blur-sm transition-opacity duration-200 hover:bg-black/50 lg:text-[13px]"
+                      <button
+                        onClick={() => snapToRoom('eternity')}
+                        className="absolute bottom-6 right-6 rounded-lg bg-black/40 px-3 py-2 text-right text-[12px] font-medium leading-tight backdrop-blur-sm transition-opacity duration-200 hover:bg-black/50 lg:text-[13px]"
+                        style={{
+                          opacity: rightOpacity,
+                          fontFamily: 'var(--font-display)',
+                        }}
+                      >
+                        {t('venue.rooms.eternity.name')}
+                      </button>
+                    </>
+                  ) : frontLayer.images.shared ? (
+                    <Image
+                      src={frontLayer.images.shared}
+                      alt={t(currentPill.labelKey)}
+                      fill
+                      className="object-cover"
                       style={{
-                        opacity: leftOpacity,
-                        fontFamily: 'var(--font-display)',
+                        objectPosition: currentPill.id === 'technology' ? '50% 50%' : '50% 50%',
+                        objectFit: currentPill.id === 'technology' ? 'contain' : 'cover',
+                        maxWidth: currentPill.id === 'technology' ? '52%' : 'none',
+                        maxHeight: currentPill.id === 'technology' ? '85%' : 'none',
+                        margin: currentPill.id === 'technology' ? 'auto' : '0',
                       }}
-                    >
-                      {t('venue.rooms.infinity.name')}
-                    </button>
+                      sizes="(min-width: 768px) 60vw, 100vw"
+                    />
+                  ) : null}
+                </div>
 
-                    <button
-                      onClick={() => snapToRoom('eternity')}
-                      className="absolute bottom-6 right-6 rounded-lg bg-black/40 px-3 py-2 text-right text-[12px] font-medium leading-tight backdrop-blur-sm transition-opacity duration-200 hover:bg-black/50 lg:text-[13px]"
-                      style={{
-                        opacity: rightOpacity,
-                        fontFamily: 'var(--font-display)',
-                      }}
-                    >
-                      {t('venue.rooms.eternity.name')}
-                    </button>
-                  </>
-                ) : (
-                  sharedImage && (
-                    <div className="absolute inset-0 flex items-center justify-center p-8">
-                      <div className="relative" style={{ width: '70%', aspectRatio: '4/3' }}>
-                        <Image
-                          src={sharedImage.image}
-                          alt={sharedImage.alt}
-                          fill
-                          className="object-contain"
-                          sizes="60vw"
-                          onError={(e) => {
-                            console.error(`Image failed to load: ${sharedImage.image}`)
-                            e.currentTarget.style.display = 'none'
+                {/* Back layer (preloading) */}
+                {backLayer && (
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      opacity: 1,
+                      transition: 'opacity 300ms ease-in',
+                    }}
+                  >
+                    {backLayer.images.infinity && backLayer.images.eternity ? (
+                      <>
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            clipPath: `inset(0 ${100 - dividerPosition}% 0 0)`,
                           }}
-                        />
-                      </div>
-                    </div>
-                  )
+                        >
+                          <Image
+                            src={backLayer.images.infinity}
+                            alt={t('venue.rooms.infinity.name')}
+                            fill
+                            className="object-cover"
+                            style={{ objectPosition: '50% 50%' }}
+                            sizes="(min-width: 768px) 60vw, 100vw"
+                          />
+                        </div>
+                        <div className="absolute inset-0">
+                          <Image
+                            src={backLayer.images.eternity}
+                            alt={t('venue.rooms.eternity.name')}
+                            fill
+                            className="object-cover"
+                            style={{ objectPosition: '50% 50%' }}
+                            sizes="(min-width: 768px) 60vw, 100vw"
+                          />
+                        </div>
+                      </>
+                    ) : backLayer.images.shared ? (
+                      <Image
+                        src={backLayer.images.shared}
+                        alt={t(currentPill.labelKey)}
+                        fill
+                        className="object-cover"
+                        style={{
+                          objectPosition: '50% 50%',
+                          objectFit: backLayer.pillId === 'technology' ? 'contain' : 'cover',
+                          maxWidth: backLayer.pillId === 'technology' ? '52%' : 'none',
+                          maxHeight: backLayer.pillId === 'technology' ? '85%' : 'none',
+                          margin: backLayer.pillId === 'technology' ? 'auto' : '0',
+                        }}
+                        sizes="(min-width: 768px) 60vw, 100vw"
+                      />
+                    ) : null}
+                  </div>
                 )}
-              </motion.div>
-            </AnimatePresence>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Mobile layout */}
-        <div className="lg:hidden">
+        {/* Mobile layout (<768px) */}
+        <div className="md:hidden">
           {/* Stage first */}
           <div
             id={`panel-${activePill}`}
             role="tabpanel"
             aria-labelledby={activePill}
-            ref={stageRef}
             className="relative mb-6 overflow-hidden rounded-[28px]"
             style={{
-              aspectRatio: '4/5',
-              maxHeight: '70svh',
               border: '1px solid rgba(255,255,255,0.08)',
+              aspectRatio: '4 / 3',
+              width: '100%',
+              backgroundColor: currentPill.id === 'technology' ? '#0a0a0a' : '#000000',
+              ...(currentPill.id === 'technology' && {
+                background: `
+                  radial-gradient(ellipse 50% 40% at 50% 50%, rgba(88, 28, 135, 0.32), transparent 70%),
+                  radial-gradient(ellipse 60% 50% at 50% 50%, rgba(37, 99, 235, 0.18), transparent 80%),
+                  linear-gradient(135deg, #1a0b2e 0%, #0f172a 50%, #0a0a0a 100%)
+                `,
+              }),
             }}
           >
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${activePill}-${hasSlider ? 'slider' : 'shared'}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35 }}
-                className="absolute inset-0"
-              >
-                {hasSlider && images ? (
-                  <>
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        clipPath: `inset(0 ${100 - dividerPosition}% 0 0)`,
-                      }}
-                    >
-                      <Image
-                        src={images.infinity.image}
-                        alt={images.infinity.alt}
-                        fill
-                        className="object-contain"
-                        style={{ aspectRatio: '4/3' }}
-                        sizes="100vw"
-                        onError={(e) => {
-                          console.error(`Image failed to load: ${images.infinity.image}`)
-                          e.currentTarget.style.display = 'none'
+            {/* Mobile stage content (same as desktop) */}
+            {!loadError && (
+              <>
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    opacity: backLayer ? 0 : 1,
+                    transition: backLayer ? 'opacity 300ms ease-out' : 'none',
+                  }}
+                >
+                  {frontLayer.images.infinity && frontLayer.images.eternity ? (
+                    <>
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          clipPath: `inset(0 ${100 - dividerPosition}% 0 0)`,
                         }}
-                      />
-                    </div>
-                    <div className="absolute inset-0">
-                      <Image
-                        src={images.eternity.image}
-                        alt={images.eternity.alt}
-                        fill
-                        className="object-contain"
-                        style={{ aspectRatio: '4/3' }}
-                        sizes="100vw"
-                        onError={(e) => {
-                          console.error(`Image failed to load: ${images.eternity.image}`)
-                          e.currentTarget.style.display = 'none'
-                        }}
-                      />
-                    </div>
-                    <div
-                      className="absolute inset-y-0 w-[1.5px] bg-white"
-                      style={{ left: `${dividerPosition}%` }}
-                    >
-                      <button
-                        ref={thumbRef}
-                        role="slider"
-                        aria-label="拖動以比較兩間球室"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={Math.round(dividerPosition)}
-                        tabIndex={0}
-                        onPointerDown={handlePointerDown}
-                        onPointerMove={handlePointerMove}
-                        onPointerUp={handlePointerUp}
-                        onKeyDown={handleSliderKeyDown}
-                        className="absolute left-1/2 top-1/2 h-[44px] w-[44px] -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full bg-white shadow-lg"
-                        style={{ touchAction: 'none' }}
-                      />
-                    </div>
-                    <button
-                      onClick={() => snapToRoom('infinity')}
-                      className="absolute bottom-4 left-4 rounded-lg bg-black/40 px-2.5 py-1.5 text-[11px] font-medium backdrop-blur-sm transition-opacity"
-                      style={{
-                        opacity: leftOpacity,
-                        fontFamily: 'var(--font-display)',
-                      }}
-                    >
-                      {t('venue.rooms.infinity.name')}
-                    </button>
-                    <button
-                      onClick={() => snapToRoom('eternity')}
-                      className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-2.5 py-1.5 text-[11px] font-medium backdrop-blur-sm transition-opacity"
-                      style={{
-                        opacity: rightOpacity,
-                        fontFamily: 'var(--font-display)',
-                      }}
-                    >
-                      {t('venue.rooms.eternity.name')}
-                    </button>
-                  </>
-                ) : (
-                  sharedImage && (
-                    <div
-                      className="absolute inset-0 flex items-center justify-center p-8"
-                      style={
-                        activePill === 'technology'
-                          ? {
-                              background: 'radial-gradient(ellipse at center, rgba(22, 163, 74, 0.15) 0%, rgba(0, 0, 0, 0) 70%)',
-                            }
-                          : undefined
-                      }
-                    >
-                      <div className="relative" style={{ width: '85%', aspectRatio: '4/3' }}>
+                      >
                         <Image
-                          src={sharedImage.image}
-                          alt={sharedImage.alt}
+                          src={frontLayer.images.infinity}
+                          alt={t('venue.rooms.infinity.name')}
                           fill
                           className="object-cover"
                           sizes="100vw"
-                          onError={(e) => {
-                            console.error(`Image failed to load: ${sharedImage.image}`)
-                            e.currentTarget.style.display = 'none'
-                          }}
+                          priority
                         />
                       </div>
-                    </div>
-                  )
-                )}
-              </motion.div>
-            </AnimatePresence>
+                      <div className="absolute inset-0">
+                        <Image
+                          src={frontLayer.images.eternity}
+                          alt={t('venue.rooms.eternity.name')}
+                          fill
+                          className="object-cover"
+                          sizes="100vw"
+                          priority
+                        />
+                      </div>
+
+                      {/* Mobile divider with thumb */}
+                      {hasSlider && (
+                        <div
+                          className="absolute inset-y-0 w-[2px] bg-white"
+                          style={{ left: `${dividerPosition}%` }}
+                          onTouchMove={handleTouchMove}
+                        >
+                          <div
+                            className="absolute left-1/2 top-1/2 h-[44px] w-[44px] -translate-x-1/2 -translate-y-1/2 cursor-ew-resize rounded-full bg-white shadow-lg"
+                            style={{
+                              touchAction: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '16px',
+                              fontWeight: 600,
+                              color: tokens.colors.text,
+                            }}
+                          >
+                            ‹ ›
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : frontLayer.images.shared ? (
+                    <Image
+                      src={frontLayer.images.shared}
+                      alt={t(currentPill.labelKey)}
+                      fill
+                      className="object-cover"
+                      style={{
+                        objectFit: currentPill.id === 'technology' ? 'contain' : 'cover',
+                        maxWidth: currentPill.id === 'technology' ? '52%' : 'none',
+                        maxHeight: currentPill.id === 'technology' ? '85%' : 'none',
+                        margin: currentPill.id === 'technology' ? 'auto' : '0',
+                      }}
+                      sizes="100vw"
+                    />
+                  ) : null}
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Horizontally scrollable pills */}
-          <div
-            role="tablist"
-            aria-label="房間特色"
-            className="-mx-6 mb-6 flex gap-2 overflow-x-auto px-6 pb-2"
-            style={{
-              scrollSnapType: 'x mandatory',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-            }}
-          >
+          {/* Pills below (mobile) */}
+          <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollSnapType: 'x mandatory' }}>
             {pills.map((pill) => (
               <button
                 key={pill.id}
                 role="tab"
                 aria-selected={activePill === pill.id}
                 onClick={() => setActivePill(pill.id)}
-                className="shrink-0 rounded-full px-5 py-3 text-[15px] font-semibold transition-all"
+                className="flex-shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
                 style={{
                   backgroundColor:
-                    activePill === pill.id ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.08)',
+                    activePill === pill.id ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.08)',
                   scrollSnapAlign: 'start',
+                  minWidth: 'fit-content',
                 }}
               >
                 {t(pill.labelKey)}
               </button>
             ))}
-          </div>
-
-          {/* Expanded card */}
-          <div
-            className="rounded-[28px] p-6"
-            style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-          >
-            <div className="mb-4 flex items-center gap-2">
-              <span className="text-[13px] font-medium uppercase tracking-wide text-[#86868b]">
-                {t(currentPill.labelKey)}
-              </span>
-              {currentPill.tag && (
-                <span
-                  className="rounded-full px-2.5 py-0.5 text-[11px] font-medium"
-                  style={{
-                    backgroundColor: 'rgba(255,255,255,0.1)',
-                    color: '#86868b',
-                  }}
-                >
-                  {t(currentPill.tag)}
-                </span>
-              )}
-            </div>
-            <h3 className="mb-1 text-[18px] font-semibold">{t(currentPill.mainLineKey)}</h3>
-            {currentPill.perRoom && (
-              <p className="text-[14px] text-[#86868b]">
-                {t(
-                  dividerPosition > 50
-                    ? currentPill.perRoom.infinity.smallLineKey!
-                    : currentPill.perRoom.eternity.smallLineKey!
-                )}
-              </p>
-            )}
-
-            {currentPill.hasSlider && (
-              <div className="mt-6">
-                <p className="mb-3 text-[13px] text-[#86868b]">
-                  {t('venue.rooms.slider_hint')}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -204,6 +204,7 @@ export function MemberCardPremier({ profile }: Props) {
             transformStyle: 'preserve-3d',
             transform: `rotateX(${tilt.rx}deg) rotateY(${tilt.ry}deg)`,
             willChange: 'transform',
+            isolation: 'isolate',
           }}
         >
           {/* Card face */}

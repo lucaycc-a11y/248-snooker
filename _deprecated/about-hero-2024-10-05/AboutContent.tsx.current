@@ -18,7 +18,7 @@ export default function AboutContent() {
 
   return (
     <div>
-      {/* ── SpaceWheel gallery + outro (replaces Sections 1, 2, 5, 6) ── */}
+      {/* ── SpaceWheel gallery + outro (8-photo ring → 3-photo scroll) ── */}
       <SpaceWheelSection />
       <SpaceWheelOutro />
 

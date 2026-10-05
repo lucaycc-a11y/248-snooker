@@ -35,6 +35,9 @@ export function ThreePoints({
   }
 
   const isLight = theme === 'light'
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   return (
     <section
@@ -50,17 +53,16 @@ export function ThreePoints({
     >
       <div
         style={{
-          maxWidth: '1040px',
+          width: 'min(100% - 48px, 1040px)',
           marginInline: 'auto',
-          paddingInline: '24px',
         }}
       >
         {heading && (
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.6, ease: tokens.easing.spring }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.6, ease: tokens.easing.spring }}
             className="mb-12 text-center font-sans text-2xl font-semibold md:mb-16 md:text-3xl"
             style={{
               color: isLight ? '#1d1d1f' : tokens.colors.text,
@@ -70,55 +72,150 @@ export function ThreePoints({
           </motion.h2>
         )}
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
+        <div
+          className="grid gap-5"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          }}
+        >
           {items.slice(0, 3).map((item, index) => {
             const isObject = item && typeof item === 'object' && 'before' in item
-            const content = isObject ? (
-              <>
-                <span>{item.before}</span>
-                <span style={{ color: accentColor }}>{item.accent}</span>
-                <span>{item.after}</span>
-              </>
-            ) : (
-              item
-            )
+
+            // Split text at full-width comma for two-line layout
+            const renderContent = () => {
+              if (isObject) {
+                const fullText = `${item.before}${item.accent}${item.after}`
+                const parts = fullText.split('，')
+
+                // Case 1: Two clauses separated by comma (e.g., "網上預訂，自助入場。")
+                if (parts.length === 2) {
+                  const firstClause = `${parts[0]}，`
+                  const secondClause = parts[1]
+
+                  // Determine which parts are accented
+                  const firstHasAccent = item.accent && firstClause.includes(item.accent)
+                  const secondHasAccent = item.accent && secondClause.includes(item.accent)
+
+                  return (
+                    <>
+                      <span
+                        style={{
+                          display: 'block',
+                          whiteSpace: 'nowrap',
+                          color: firstHasAccent ? accentColor : undefined,
+                        }}
+                      >
+                        {firstClause}
+                      </span>
+                      <span
+                        style={{
+                          display: 'block',
+                          whiteSpace: 'nowrap',
+                          color: secondHasAccent ? accentColor : undefined,
+                        }}
+                      >
+                        {secondClause}
+                      </span>
+                    </>
+                  )
+                }
+
+                // Case 2: Full sentence is accented (e.g., "零打擾，全專注。")
+                if (item.before === '' && item.after === '') {
+                  const clauses = item.accent.split('，')
+                  if (clauses.length === 2) {
+                    return (
+                      <>
+                        <span
+                          style={{
+                            display: 'block',
+                            whiteSpace: 'nowrap',
+                            color: accentColor,
+                          }}
+                        >
+                          {clauses[0]}，
+                        </span>
+                        <span
+                          style={{
+                            display: 'block',
+                            whiteSpace: 'nowrap',
+                            color: accentColor,
+                          }}
+                        >
+                          {clauses[1]}
+                        </span>
+                      </>
+                    )
+                  }
+                }
+
+                // Fallback: inline rendering
+                return (
+                  <>
+                    <span>{item.before}</span>
+                    <span style={{ color: accentColor }}>{item.accent}</span>
+                    <span>{item.after}</span>
+                  </>
+                )
+              }
+
+              return item
+            }
 
             return (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, scale: 0.92, y: 30 }}
+                initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.92, y: 30 }}
                 whileInView={{ opacity: 1, scale: 1, y: 0 }}
                 viewport={{ once: true, margin: '-80px' }}
                 transition={{
-                  duration: 0.5,
-                  delay: index * 0.12,
+                  duration: prefersReducedMotion ? 0 : 0.5,
+                  delay: prefersReducedMotion ? 0 : index * 0.12,
                   ease: popEasing,
                 }}
-                className="flex min-h-[280px] flex-col justify-end rounded-[20px] p-8 md:min-h-[320px] md:p-10"
                 style={{
+                  aspectRatio: '4 / 3',
+                  minHeight: '220px',
+                  padding: '28px',
+                  borderRadius: '24px',
                   backgroundColor: isLight ? '#ffffff' : tokens.colors.surface,
                   border: `1px solid ${
                     isLight ? 'rgba(0,0,0,0.08)' : tokens.colors.border
                   }`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
                 }}
               >
+                {/* Icon at TOP-LEFT */}
                 {isObject && item.icon && (
                   <div
-                    className="mb-6 inline-flex"
                     style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '50%',
+                      backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       color: accentColor,
+                      flexShrink: 0,
                     }}
                   >
                     {item.icon}
                   </div>
                 )}
+
+                {/* Text at BOTTOM-LEFT */}
                 <p
-                  className="font-sans text-xl font-medium leading-snug md:text-2xl md:leading-snug lg:text-[28px] lg:leading-tight"
+                  className="font-sans font-semibold"
                   style={{
+                    fontSize: 'clamp(20px, 2.2vw, 28px)',
+                    lineHeight: '1.25',
                     color: isLight ? '#1d1d1f' : tokens.colors.text,
                   }}
                 >
-                  {content}
+                  {renderContent()}
                 </p>
               </motion.div>
             )
