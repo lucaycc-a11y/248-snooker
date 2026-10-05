@@ -115,12 +115,14 @@ body{--stick:49px}
 .qa{display:grid;gap:12px;grid-auto-rows:1fr}
 .qa.c4{grid-template-columns:repeat(4,1fr)}
 .qa.c2{grid-template-columns:repeat(2,1fr)}
+.qa:not(.c4):not(.c2){grid-template-columns:repeat(2,1fr)}
+@media(min-width:640px){.qa:not(.c4):not(.c2){grid-template-columns:repeat(4,1fr)}}
 .tile{position:relative;min-height:104px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:20px;transition:transform .15s var(--spring),border-color .15s var(--ease),background .15s var(--ease)}
 .tile:hover{border-color:var(--line-strong);background:var(--elev)}
 .tile:active{transform:scale(.97)}
 .tile .top-r{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:6px}
-.tile .tt{font-family:var(--gt);font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tile .ts{font-size:12.5px;color:var(--faint);margin-top:3px;white-space:nowrap}
+.tile .tt{display:block;font-family:var(--gt);font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .ts{display:block;font-size:12.5px;color:var(--faint);margin-top:3px;white-space:nowrap}
 .chipb{font-family:var(--gt);font-size:11px;line-height:1;padding:6px 9px;border:1px solid var(--line-strong);border-radius:999px;color:var(--muted);white-space:nowrap}
 .dot{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--brand);color:#000;font-family:var(--gt);font-size:11px;display:grid;place-items:center}
 .note{font-size:13px;color:var(--muted);max-width:60ch;margin-top:14px}
