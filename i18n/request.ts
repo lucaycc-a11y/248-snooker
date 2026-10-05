@@ -19,5 +19,24 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     messages,
+    onError(error) {
+      // In development and tests, throw on missing keys to catch them early
+      if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+        throw error
+      }
+      // In production, log but don't crash
+      console.error('[i18n]', error.message)
+    },
+    getMessageFallback({ namespace, key }) {
+      // Return the key path as fallback so missing keys are visible
+      const path = namespace ? `${namespace}.${key}` : key
+
+      // In development and tests, throw to fail fast
+      if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+        throw new Error(`Missing translation: ${path}`)
+      }
+
+      return path
+    },
   }
 })
