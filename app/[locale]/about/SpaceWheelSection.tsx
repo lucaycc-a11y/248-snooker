@@ -25,12 +25,37 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ─── Photo data ──────────────────────────────────────────────────────────────
 // Loaded from the manifest at build time. `file` points to the WebP.
-// Only 3 photos: indices 0 (about-01), 3 (about-04), 5 (about-06)
 import manifest from "@/public/images/space8-about-photos/manifest.json";
 
-const PHOTO_INDICES = [0, 3, 5]; // about-01-table-eight-ball, about-04-cove-lighting, about-06-lounge
+// Ring intro uses all 8 photos in specific slots (0° = top, clockwise)
+// Slot assignments: clear orientation (room, stools, cue rack) at 0°, 45°, 315°
+// Direction-free details (felt, pocket, balls) at 135°, 180°, 225°
+// Keep existing 3 photos (0, 3, 5) positioned for short handover
+const RING_PHOTO_INDICES = [
+  0, // 0° - about-01-table-eight-ball (existing, full table, upright)
+  4, // 45° - about-05-cue-rack (clear vertical orientation)
+  3, // 90° - about-04-cove-lighting (existing, pocket detail, semi-directional)
+  1, // 135° - about-02-felt-xingpai (direction-free, logo readable any angle)
+  7, // 180° - about-08-ball-rack (direction-free, triangle works inverted)
+  2, // 225° - about-03-corner-pocket (direction-free)
+  5, // 270° - about-06-lounge (existing, lounge furniture, semi-directional)
+  6, // 315° - about-07-stools (clear vertical orientation)
+];
 
-const ITEMS: SpaceWheelItem[] = PHOTO_INDICES.map((idx) => {
+// Drum carousel uses only 3 photos (the existing ones)
+const DRUM_PHOTO_INDICES = [0, 3, 5]; // about-01, about-04, about-06
+
+const RING_ITEMS: SpaceWheelItem[] = RING_PHOTO_INDICES.map((idx) => {
+  const item = manifest.items[idx];
+  return {
+    title: item.title,
+    description: item.description,
+    image: `/images/space8-about-photos/${item.file.replace(/\.jpg$/, ".webp")}`,
+    alt: item.alt,
+  };
+});
+
+const DRUM_ITEMS: SpaceWheelItem[] = DRUM_PHOTO_INDICES.map((idx) => {
   const item = manifest.items[idx];
   return {
     title: item.title,
@@ -42,6 +67,7 @@ const ITEMS: SpaceWheelItem[] = PHOTO_INDICES.map((idx) => {
 
 // Rotating words from i18n. Index 2 ("純粹玩樂") gets the green accent.
 const GREEN_WORD_INDEX = 2;
+const NAVBAR_HEIGHT = 64; // px
 
 // ─── Ring centre ─────────────────────────────────────────────────────────────
 
@@ -139,7 +165,7 @@ export function SpaceWheelSection() {
   // Mirror of the ring's m-value (0→ring, 1→drum) for fading the ring centre.
   const [ringOpacity, setRingOpacity] = useState(1);
 
-  const count = ITEMS.length;
+  const count = DRUM_ITEMS.length;
 
   useEffect(() => {
     const runway = runwayRef.current;
@@ -189,7 +215,7 @@ export function SpaceWheelSection() {
         style={{ backgroundColor: "#ffffff" }}
       >
         <SpaceWheel
-          items={ITEMS}
+          items={DRUM_ITEMS}
           turnRef={turnRef}
           className="absolute inset-0"
           ringLabel={
