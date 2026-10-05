@@ -22,6 +22,7 @@ function staticEntry(
   changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'],
   priority: number,
   now: Date,
+  images?: { url: string }[]
 ): MetadataRoute.Sitemap[number] {
   return {
     url: `${BASE}${path}`,
@@ -29,6 +30,7 @@ function staticEntry(
     changeFrequency,
     priority,
     alternates: alternatesFor(path),
+    ...(images && { images }),
   }
 }
 
@@ -52,10 +54,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   )
 
+  // Venue page images (9 non-clean panorama images for Room Viewer section)
+  const venueImages = [
+    'space8-infinity-room-chinese-eight-ball-table-san-po-kong.webp',
+    'space8-eternity-room-chinese-eight-ball-table-san-po-kong.webp',
+    'space8-infinity-room-lounge-sofa-armchair-side-table.webp',
+    'space8-eternity-room-lounge-black-sofa.webp',
+    'space8-eternity-room-bar-counter-black-stools.webp',
+    'xing-pai-chinese-eight-ball-table-corner-pocket-hong-kong.webp',
+    'super-aramith-pro-tv-pro-cup-billiard-balls-space8.webp',
+    'triangle-chalk-billiard-cue-chalk-space8.webp',
+    'space8-cue-rack-professional-cues-close-up.webp',
+  ].map((file) => ({ url: `${BASE}/images/${file}` }))
+
   return [
     staticEntry('/', 'weekly', 1, now),
     staticEntry('/book', 'daily', 0.9, now),
-    staticEntry('/venue', 'monthly', 0.7, now),
+    staticEntry('/venue', 'monthly', 0.7, now, venueImages),
     staticEntry('/membership', 'monthly', 0.7, now),
     staticEntry('/about', 'monthly', 0.6, now),
     staticEntry('/faq', 'monthly', 0.6, now),

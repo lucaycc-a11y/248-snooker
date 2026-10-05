@@ -3253,19 +3253,64 @@
         "comfort": {
           "label": "舒適自在",
           "main": "舒適沙發休息區",
-          "small": {
-            "infinity": "一張沙發，一張大凳",
-            "eternity": "一張沙發，兩張吧臺凳"
+          "eternity_switch": {
+            "sofa": "沙發",
+            "bar": "吧臺"
           }
         },
         "equipment": {
           "label": "專業設備",
-          "main": "精選桌球枱・比賽球"
+          "main": "精選桌球枱・比賽球",
+          "views": {
+            "table": {
+              "label": "桌球枱",
+              "title": "星牌 XING PAI",
+              "detail": "每間球室配備一張星牌桌球枱。"
+            },
+            "balls": {
+              "label": "比賽球",
+              "title": "Super Aramith Pro",
+              "specs": [
+                ["品牌", "Aramith（比利時）"],
+                ["型號", "TV Pro-Cup"],
+                ["球組", "The Professional Tournament Set"]
+              ]
+            },
+            "chalk": {
+              "label": "巧粉",
+              "title": "Triangle Chalk",
+              "detail": "King of Them All"
+            },
+            "cue": {
+              "label": "球桿",
+              "title": "SPACE8 球桿架",
+              "detail": "配備專業球桿。"
+            }
+          }
         },
         "technology": {
           "label": "科技體驗",
           "main": "AI 智能對戰管家",
-          "tag": "敬請期待"
+          "tag": "敬請期待",
+          "intro": "一套聰明的自助體驗，讓每個球室，每個球局與每一位會員都有更順暢的體驗。",
+          "points": {
+            "ai": {
+              "name": "AI 對戰系統",
+              "desc": "系統會推薦最適合公平的賽制，從雙人對戰到三五好友都有最適合的玩法。"
+            },
+            "score": {
+              "name": "計分系統",
+              "desc": "自帶計分，計時，紅藍對戰雙方清晰醒目，隔著半個包廂也看得一清二楚。"
+            },
+            "stats": {
+              "name": "戰績自動累積",
+              "desc": "每一場勝負寫入個人總勝場，紀錄你的勝利時刻！"
+            },
+            "replay": {
+              "name": "高清入球回放",
+              "desc": "完整球局可以在對戰結束後回放，回看精彩入球。"
+            }
+          }
         }
       },
       "infinity": {
