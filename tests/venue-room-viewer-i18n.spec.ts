@@ -49,11 +49,11 @@ test.describe('Venue page i18n keys', () => {
     const hint = page.locator('text=拖動滑桿以觀看兩間球室')
     await expect(hint).toBeVisible()
 
-    // Check pill labels
-    await expect(page.locator('text=場地裝修')).toBeVisible()
-    await expect(page.locator('text=舒適自在')).toBeVisible()
-    await expect(page.locator('text=專業設備')).toBeVisible()
-    await expect(page.locator('text=科技體驗')).toBeVisible()
+    // Check pill labels (using role=tab for specificity)
+    await expect(page.getByRole('tab', { name: '場地裝修' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: '舒適自在' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: '專業設備' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: '科技體驗' })).toBeVisible()
 
     // Check room labels
     await expect(page.locator('text=Space Infinity')).toBeVisible()

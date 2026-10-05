@@ -35,7 +35,60 @@ export interface SpaceWheelProps
   ringLabel?: React.ReactNode;
   /** Called whenever the active (front) item index changes. */
   onActiveChange?: (index: number) => void;
+  /**
+   * Optional intro ring. When set, turn 0→1 is no longer the drum opening:
+   * it is a hand-off from a ring of `items` + `intro.extras` to the drum's
+   * first point. Omit it and the wheel behaves exactly as before.
+   */
+  intro?: SpaceWheelIntro;
 }
+
+export interface SpaceWheelIntro {
+  /** Ring-only photos; they drift out and fade during the hand-off. */
+  extras: SpaceWheelItem[];
+  /** Ring slot angle in degrees (0 = top, clockwise) for each of `items`. */
+  itemSlots: number[];
+  /** Ring slot angle in degrees for each of `extras`. */
+  extraSlots: number[];
+  /** Ring geometry in px, ring centre relative to the stage centre. */
+  geometry: { cx: number; cy: number; r: number; cardW: number } | null;
+  /** Called every frame with the intro progress t (0–1), already smoothed. */
+  onFrame?: (t: number) => void;
+}
+
+// Intro hand-off timeline, all in intro progress t (0–1).
+const INTRO_SPIN = 15;                      // ring turns this many degrees clockwise…
+const INTRO_SPIN_END = 0.2;                 // …over t 0 → 0.2
+const INTRO_TRAVEL: [number, number] = [0.15, 0.75];
+const INTRO_EXTRAS: [number, number] = [0.15, 0.6];
+const INTRO_EXTRA_DRIFT = 0.06;             // radial drift, fraction of ring radius
+const INTRO_EXTRA_SCALE = 0.8;
+const INTRO_LABELS: [number, number] = [0.65, 1];
+const INTRO_RISE = 12;                      // px the state-01 labels rise as they fade in
+const CARD_RADIUS = 20;                     // rounded-lg = var(--radius)
+
+/** cubic-bezier(.2,.7,.3,1) solved for y at x. */
+function easeOut(x: number): number {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const bx = (u: number) => 3 * u * (1 - u) ** 2 * 0.2 + 3 * u ** 2 * (1 - u) * 0.3 + u ** 3;
+  const by = (u: number) => 3 * u * (1 - u) ** 2 * 0.7 + 3 * u ** 2 * (1 - u) * 1 + u ** 3;
+  let lo = 0;
+  let hi = 1;
+  for (let k = 0; k < 24; k++) {
+    const mid = (lo + hi) / 2;
+    if (bx(mid) < x) lo = mid;
+    else hi = mid;
+  }
+  return by((lo + hi) / 2);
+}
+
+/** Linear 0→1 over [a, b]. */
+const span = (t: number, [a, b]: [number, number]) =>
+  Math.min(1, Math.max(0, (t - a) / (b - a)));
+
+/** Wrap degrees into (-180, 180] so ring cards unwind the short way. */
+const wrapDeg = (d: number) => ((((d + 180) % 360) + 360) % 360) - 180;
 
 // ─── Geometry ────────────────────────────────────────────────────────────────
 // The card is measured against the stage; everything else is measured against

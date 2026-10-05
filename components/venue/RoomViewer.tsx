@@ -500,7 +500,7 @@ export function RoomViewer({ initialRoom }: { initialRoom?: 'infinity' | 'eterni
                               <div className="slider-track-bg" />
                               <div
                                 className="slider-track-fill"
-                                style={{ width: `var(--p, 50)%` }}
+                                style={{ transform: `scaleX(calc(var(--p, 50) / 100))` }}
                               />
                               <input
                                 type="range"
@@ -577,20 +577,20 @@ export function RoomViewer({ initialRoom }: { initialRoom?: 'infinity' | 'eterni
                     }}
                   >
                     {!imageError.has(
-                      pill.eternityViews && eternityView !== 'sofa'
-                        ? pill.eternityViews.find((v) => v.key === eternityView)!.image.src
-                        : currentPill.perRoom.eternity.src
+                      currentPill.eternityViews && eternityView !== 'sofa'
+                        ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.src
+                        : currentPill.perRoom!.eternity.src
                     ) ? (
                       <Image
                         src={
                           currentPill.eternityViews && eternityView !== 'sofa'
                             ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.src
-                            : currentPill.perRoom.eternity.src
+                            : currentPill.perRoom!.eternity.src
                         }
                         alt={
                           currentPill.eternityViews && eternityView !== 'sofa'
                             ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.alt
-                            : currentPill.perRoom.eternity.alt
+                            : currentPill.perRoom!.eternity.alt
                         }
                         fill
                         sizes="(max-width: 1023px) 100vw, 65vw"
@@ -600,13 +600,13 @@ export function RoomViewer({ initialRoom }: { initialRoom?: 'infinity' | 'eterni
                           objectPosition:
                             currentPill.eternityViews && eternityView !== 'sofa'
                               ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.objectPosition
-                              : currentPill.perRoom.eternity.objectPosition,
+                              : currentPill.perRoom!.eternity.objectPosition,
                         }}
                         onError={() =>
                           handleImageError(
                             currentPill.eternityViews && eternityView !== 'sofa'
                               ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.src
-                              : currentPill.perRoom.eternity.src
+                              : currentPill.perRoom!.eternity.src
                           )
                         }
                       />
@@ -1037,7 +1037,8 @@ export function RoomViewer({ initialRoom }: { initialRoom?: 'infinity' | 'eterni
           height: 100%;
           border-radius: 999px;
           background: ${tokens.colors.green[600]};
-          transition: width 200ms ${EASE};
+          transform-origin: left center;
+          transition: transform 200ms ${EASE};
         }
 
         @media (prefers-reduced-motion: reduce) {
