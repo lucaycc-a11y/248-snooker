@@ -155,13 +155,12 @@
 @media (max-width: 820px) {
   .how-section {
     padding: 0;
+    min-height: 260vh;
   }
 
   .wrap {
     display: block;
-    /* Calculate height: viewport + enough scroll range for 3 step transitions
-       Each step gets ~80-100px of scroll range */
-    min-height: calc(100vh + 280px);
+    min-height: 260vh;
   }
 
   .stage-col {
@@ -201,11 +200,10 @@
 
   .steps {
     position: sticky;
-    top: calc(24vh + 120px);
-    padding: 20px 24px 40px;
+    top: calc(24vh + 114px);
+    padding: 4px 24px 0;
     max-width: 420px;
     margin: 0 auto;
-    background: #f3f3f5;
   }
 
   .step {

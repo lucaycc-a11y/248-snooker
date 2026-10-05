@@ -175,9 +175,14 @@ body {
   }
 }
 
+/* Horizontal-overflow guard lives on <body> ONLY. If both html and body set
+   a non-visible overflow, body stops propagating to the viewport and becomes
+   its own scroll container — every position:sticky then pins to body instead
+   of the viewport and silently stops locking (Space Pilot, booking flow,
+   Venue hero). With html left `visible`, body's overflow-x propagates to the
+   viewport: no horizontal scroll, no containing block, sticky works. */
 html {
   scroll-behavior: smooth;
-  overflow-x: hidden;
   background-color: #14161A;
 }
 

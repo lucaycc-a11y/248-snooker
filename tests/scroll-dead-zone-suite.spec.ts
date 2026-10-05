@@ -15,9 +15,9 @@ import { test, expect, type Page, devices } from '@playwright/test'
 // Use localhost for now, switch to production after verification
 const PRODUCTION_URL = process.env.TEST_URL || 'http://localhost:3000'
 
-// iPad Safari configuration (must be top-level)
+// iPad Pro 11 landscape, 1194×834, touch (must be top-level)
 test.use({
-  ...devices['iPad (gen 7)'],
+  ...devices['iPad Pro 11 landscape'],
   locale: 'zh-HK',
 })
 
