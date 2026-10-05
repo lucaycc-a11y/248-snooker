@@ -54,10 +54,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   )
 
-  // Venue page images (9 non-clean panorama images for Room Viewer section)
+  // Venue page images (Room Viewer section: 7 root images + 2 clean panoramas)
   const venueImages = [
-    'space8-infinity-room-chinese-eight-ball-table-san-po-kong.webp',
-    'space8-eternity-room-chinese-eight-ball-table-san-po-kong.webp',
     'space8-infinity-room-lounge-sofa-armchair-side-table.webp',
     'space8-eternity-room-lounge-black-sofa.webp',
     'space8-eternity-room-bar-counter-black-stools.webp',
@@ -65,6 +63,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     'super-aramith-pro-tv-pro-cup-billiard-balls-space8.webp',
     'triangle-chalk-billiard-cue-chalk-space8.webp',
     'space8-cue-rack-professional-cues-close-up.webp',
+    'clean-no-title/space8-infinity-room-chinese-eight-ball-table-san-po-kong-clean.webp',
+    'clean-no-title/space8-eternity-room-chinese-eight-ball-table-san-po-kong-clean.webp',
   ].map((file) => ({ url: `${BASE}/images/${file}` }))
 
   return [
