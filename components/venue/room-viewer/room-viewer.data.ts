@@ -77,7 +77,7 @@ export interface RoomViewerData {
  * 'titled' → the venue-page-*.jpg versions with "SPACE INFINITY / SPACE ETERNITY" printed in the picture.
  *            The divider cuts that text in half, so only use 'titled' if you do not use the compare.
  */
-const PANORAMA_SET: 'clean' | 'titled' = 'clean'
+const PANORAMA_SET: 'clean' | 'titled' = 'titled'
 
 const PANORAMA = {
   clean: {
@@ -98,14 +98,14 @@ const PANORAMA = {
   },
   titled: {
     infinity: {
-      src: '/images/space8-infinity-room-chinese-eight-ball-table-san-po-kong.webp',
+      src: '/images/venue-page-infinity.jpg',
       alt: 'Space Infinity 無限空間球室全景：新蒲崗自助中式桌球獨立球室，設星牌桌球枱及特調燈光',
       width: 2400,
       height: 1500,
       pos: '50% 56%',
     },
     eternity: {
-      src: '/images/space8-eternity-room-chinese-eight-ball-table-san-po-kong.webp',
+      src: '/images/venue-page-eternity.jpg',
       alt: 'Space Eternity 永恆空間球室全景：設星牌桌球枱及球桿架的中式桌球獨立球室',
       width: 2400,
       height: 1500,
