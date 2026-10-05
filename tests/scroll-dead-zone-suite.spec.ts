@@ -399,7 +399,7 @@ test.describe('Generic Scroll Regression Test', () => {
 
       expect(longDeadZones).toHaveLength(0)
 
-      // Check footer is reachable
+      // Check footer is reachable (allow 1px tolerance for subpixel rounding)
       await page.evaluate((scrollY) => window.scrollTo(0, scrollY), maxScroll)
       await page.waitForTimeout(100)
 
@@ -408,9 +408,13 @@ test.describe('Generic Scroll Regression Test', () => {
 
       if (footerBox) {
         const viewportHeight = page.viewportSize()?.height || 0
-        const footerFullyVisible = footerBox.y + footerBox.height <= viewportHeight
+        const footerBottom = footerBox.y + footerBox.height
+        const footerFullyVisible = footerBottom <= viewportHeight + 1 // Allow 1px tolerance
 
-        console.log(`Footer fully visible at maxScroll: ${footerFullyVisible}`)
+        console.log(
+          `Footer: top=${footerBox.y.toFixed(2)}, bottom=${footerBottom.toFixed(2)}, ` +
+            `viewport=${viewportHeight}, visible=${footerFullyVisible}`
+        )
         expect(footerFullyVisible).toBe(true)
       }
     })
