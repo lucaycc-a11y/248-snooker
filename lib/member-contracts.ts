@@ -65,6 +65,11 @@ export type WalletOffersResponse = {
   used: OfferUsed[]
 }
 
+export type WalletApiResponse = WalletBalance & {
+  currency: 'HKD'
+  ledger: WalletLedgerResponse
+}
+
 // ============================================================================
 // 4.2 Points API
 // ============================================================================

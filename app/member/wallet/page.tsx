@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import type {
+  WalletApiResponse,
   WalletBalance,
   WalletLedgerItem,
   WalletOffersResponse,
@@ -49,8 +50,7 @@ export default function WalletPage() {
         setBalanceState('error')
         return
       }
-      const data = await res.json()
-      // API returns flat { balance, held, available, memberCode, ledger }
+      const data: WalletApiResponse = await res.json()
       setBalance({
         balance: data.balance,
         held: data.held,
@@ -80,7 +80,7 @@ export default function WalletPage() {
         const res = await fetch(`/api/member/wallet?${params}`)
         if (!res.ok) return
 
-        const data = await res.json()
+        const data: WalletApiResponse = await res.json()
         if (cursor) {
           setLedgerItems((prev) => [...prev, ...data.ledger.items])
         } else {

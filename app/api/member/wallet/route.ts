@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
-import type { WalletBalance, WalletLedgerItem, WalletLedgerResponse } from '@/lib/member-contracts'
+import type { WalletApiResponse, WalletLedgerItem } from '@/lib/member-contracts'
 import { parseConvertNote } from '@/lib/member-format'
 
 const LEDGER_PAGE_SIZE = 20
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Flatten response structure
-    const response = {
+    const response: WalletApiResponse = {
       balance: user.credits,
       currency: 'HKD',
       held,

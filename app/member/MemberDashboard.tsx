@@ -904,7 +904,7 @@ function OverviewTab({
         ]);
 
         if (walletRes.ok) {
-          const data = await walletRes.json();
+          const data: import('@/lib/member-contracts').WalletApiResponse = await walletRes.json();
           setWalletBalance(data.balance ?? 0);
         }
 
@@ -1452,7 +1452,7 @@ function PointsTab({ points, balance, locale, tierId }: { points: import("@/lib/
       try {
         const res = await fetch('/api/member/wallet');
         if (!res.ok) return;
-        const data = await res.json();
+        const data: import('@/lib/member-contracts').WalletApiResponse = await res.json();
 
         // Sum all converted points from ledger
         let total = 0;
