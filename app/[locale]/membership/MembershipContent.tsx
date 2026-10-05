@@ -406,9 +406,16 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  // Split figures into intentional lines at "="
+  const figures = [
+    { lines: ["HK$1", "= 1 積分"], key: "stat1" },
+    { lines: ["100 積分", "= HK$10"], key: "stat2" },
+    { lines: ["100 積分"], key: "stat3" },
+  ];
+
   return (
     <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
-      <div className="mx-auto max-w-5xl">
+      <div style={{ width: "min(100% - 48px, 1100px)", marginInline: "auto" }}>
         <Reveal>
           <h2
             data-cms-key="memberIntro.points.title"
@@ -419,38 +426,58 @@ function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
           </h2>
         </Reveal>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-0 md:divide-x md:divide-gray-200">
-          {[1, 2, 3].map((n, i) => (
-            <Reveal key={n} delay={i * 100}>
-              <div className="flex flex-col items-center text-center md:px-8">
-                <p
-                  data-cms-key={`memberIntro.points.stat${n}.value`}
-                  className="mb-3 text-3xl font-semibold md:text-4xl lg:text-5xl"
-                  style={{ color: COLORS.light.accent }}
+        {/* Desktop: 3-column grid with vertical dividers */}
+        <div
+          className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-0"
+          style={{
+            gridTemplateRows: "auto auto",
+          }}
+        >
+          {figures.map((fig, i) => (
+            <Reveal key={fig.key} delay={i * 100}>
+              <div
+                style={{
+                  containerType: "inline-size",
+                  paddingInline: i === 0 ? "0 40px 0 0" : i === 2 ? "0 0 0 40px" : "0 40px",
+                  borderInlineStart: i > 0 ? `1px solid ${COLORS.light.textMuted}33` : undefined,
+                }}
+                className="flex flex-col items-center text-center md:grid md:grid-rows-subgrid md:row-span-2"
+              >
+                {/* Row 1: Figure (baseline-aligned) */}
+                <div
+                  data-cms-key={`memberIntro.points.${fig.key}.value`}
+                  className="mb-3 font-semibold md:mb-0 md:self-end"
+                  style={{
+                    fontSize: "clamp(28px, 11cqi, 64px)",
+                    lineHeight: 1.1,
+                    color: COLORS.light.accent,
+                    fontFamily: "'Good Times', sans-serif",
+                  }}
+                  aria-label={t(`points.${fig.key}.value`)}
                 >
-                  {t(`points.stat${n}.value`)}
-                </p>
+                  {fig.lines.map((line, j) => (
+                    <span key={j} style={{ display: "block", whiteSpace: "nowrap" }}>
+                      {line}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Row 2: Caption (top-aligned) */}
                 <p
-                  data-cms-key={`memberIntro.points.stat${n}.label`}
-                  className="text-xs md:text-sm"
-                  style={{ color: COLORS.light.textMuted, fontFamily: "'Good Times', sans-serif" }}
+                  data-cms-key={`memberIntro.points.${fig.key}.label`}
+                  className="text-sm md:text-base md:mt-4"
+                  style={{
+                    color: COLORS.light.textMuted,
+                    fontFamily: "system-ui, -apple-system, sans-serif",
+                    fontFeatureSettings: '"tnum"',
+                  }}
                 >
-                  {t(`points.stat${n}.label`)}
+                  {t(`points.${fig.key}.label`)}
                 </p>
               </div>
             </Reveal>
           ))}
         </div>
-
-        <Reveal delay={300}>
-          <p
-            data-cms-key="memberIntro.points.comingSoon"
-            className="mt-10 text-center text-xs md:mt-12 md:text-sm"
-            style={{ color: COLORS.light.textMuted }}
-          >
-            {t("points.comingSoon")}
-          </p>
-        </Reveal>
       </div>
     </section>
   );
