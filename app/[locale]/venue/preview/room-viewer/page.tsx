@@ -1,4 +1,4 @@
-import { RoomViewer } from '@/components/venue/RoomViewer'
+import { RoomViewer } from '@/components/venue/room-viewer'
 
 export default async function RoomViewerPreviewPage() {
   return (
