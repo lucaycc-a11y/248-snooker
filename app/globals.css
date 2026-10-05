@@ -177,7 +177,8 @@ body {
 
 html {
   scroll-behavior: smooth;
-  overflow-x: clip;
+  overflow-x: hidden;
+  background-color: #14161A;
 }
 
 body {
@@ -188,7 +189,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 /* Horizontal snap carousels (pricing/venue/gallery card strips).
