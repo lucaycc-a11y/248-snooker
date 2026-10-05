@@ -298,8 +298,7 @@ export function SpaceWheelSection() {
     cardHeight: 0,
   });
 
-  // 3 point items in the drum; 8 total items in the ring
-  const pointCount = 3;
+  // All 8 photos in ring carousel (no point items)
   const totalCount = ITEMS.length;
 
   useEffect(() => {
@@ -307,10 +306,10 @@ export function SpaceWheelSection() {
     const stage = stageRef.current;
     if (!runway || !stage) return;
 
-    // Map scroll progress 0→1 to turn 0→4 (ring at 0, points 0-2 at turns 1-3, release at 4).
-    // Runway height: (pointCount + 2) × 100svh gives GSAP enough scroll distance.
+    // Map scroll progress to turn 0→totalCount (ring carousel through all 8 items)
+    // Runway height: (totalCount + 1) × 100svh gives GSAP enough scroll distance.
     const tween = gsap.to(turnRef, {
-      current: pointCount + 1,
+      current: totalCount,
       ease: "none",
       scrollTrigger: {
         trigger: runway,
@@ -320,8 +319,8 @@ export function SpaceWheelSection() {
         pin: stage,
         pinSpacing: false,
         onUpdate: (self) => {
-          // m = clamp(turn, 0, 1)
-          const m = Math.min(1, Math.max(0, turnRef.current));
+          // Ring opacity fades as carousel starts scrolling
+          const m = Math.min(1, Math.max(0, turnRef.current / 2));
           setRingOpacity(1 - m);
         },
       },
@@ -333,7 +332,7 @@ export function SpaceWheelSection() {
         if (st.trigger === runway) st.kill();
       });
     };
-  }, [pointCount]);
+  }, [totalCount]);
 
   // Centre block fit procedure (runs on resize and fallback changes)
   useEffect(() => {
@@ -394,10 +393,10 @@ export function SpaceWheelSection() {
   }, []);
 
   return (
-    // Runway height: (pointCount + 2) × 100svh gives GSAP enough scroll distance.
+    // Runway height: (totalCount + 1) × 100svh gives GSAP enough scroll distance.
     <div
       ref={runwayRef}
-      style={{ height: `${pointCount + 2}00svh`, background: "#ffffff" }}
+      style={{ height: `${totalCount + 1}00svh`, background: "#ffffff" }}
       className="relative"
     >
       {/* Sticky stage — fills viewport minus nav, GSAP pins it */}

@@ -320,9 +320,12 @@ export function SpaceWheel({
           card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
           card.style.willChange = cardOpacity > 0.1 ? 'transform' : 'auto';
         } else {
-          // Ring-only item: stays on ring, fades out as m increases
+          // Ring-only item: rotate in carousel mode as turn increases
           const idx = ringOnlyIndex[i] ?? 0;
-          const ringAngleDeg = ringOnlyCount > 0 ? idx * (360 / ringOnlyCount) : 0;
+          // Carousel rotation: each item moves by -turn * (360/ringOnlyCount) degrees
+          const baseAngle = idx * (360 / ringOnlyCount);
+          const rotationOffset = -turnRef.current * (360 / ringOnlyCount);
+          const ringAngleDeg = baseAngle + rotationOffset;
 
           card.style.transform = place(
             ringAngleDeg,
@@ -330,13 +333,13 @@ export function SpaceWheel({
             ringR,
             drumR,
             bow,
-            m, // Use actual m so ring items fade as scroll progresses
+            0, // Keep m=0 so items stay on ring (no drum transition)
             ringTilt,
           );
-          card.style.opacity = String(1 - m); // Fade out as m increases
-          card.style.visibility = m > 0.95 ? "hidden" : "visible"; // Hide when fully faded
-          card.style.zIndex = String(50); // Behind drum cards
-          card.style.willChange = m > 0.05 ? 'transform' : 'auto';
+          card.style.opacity = String(1); // Always visible in carousel
+          card.style.visibility = "visible";
+          card.style.zIndex = String(50);
+          card.style.willChange = turnRef.current > 0.05 ? 'transform' : 'auto';
         }
 
         const face = card.firstElementChild as HTMLElement | null;
