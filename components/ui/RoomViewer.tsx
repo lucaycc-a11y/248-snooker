@@ -241,10 +241,10 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
 
     if (e.key === 'ArrowLeft') {
       e.preventDefault()
-      newPosition = Math.max(0, dividerPosition - 5)
+      newPosition = Math.max(0, dividerPosition - 10)
     } else if (e.key === 'ArrowRight') {
       e.preventDefault()
-      newPosition = Math.min(100, dividerPosition + 5)
+      newPosition = Math.min(100, dividerPosition + 10)
     } else if (e.key === 'Home') {
       e.preventDefault()
       newPosition = 0
@@ -273,7 +273,7 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
       style={{
         backgroundColor: tokens.colors.bg,
         color: '#ffffff',
-        minHeight: '100svh',
+        minHeight: '80svh',
         paddingTop: `calc(${tokens.layout.navbarHeight} + 16px)`,
         scrollMarginTop: tokens.layout.navbarHeight,
       }}
@@ -407,10 +407,11 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                               aria-valuemax={100}
                               aria-valuenow={Math.round(dividerPosition)}
                               aria-valuetext={`${Math.round(dividerPosition)}%`}
-                              tabIndex={-1}
+                              tabIndex={0}
                               onPointerDown={handlePointerDown}
                               onPointerMove={handlePointerMove}
                               onPointerUp={handlePointerUp}
+                              onKeyDown={handleSliderKeyDown}
                               className="absolute top-1/2 h-[36px] w-[56px] -translate-y-1/2 cursor-ew-resize rounded-full outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                               style={{
                                 left: `${dividerPosition}%`,
