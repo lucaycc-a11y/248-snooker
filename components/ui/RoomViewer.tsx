@@ -47,13 +47,25 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
 
+  // Get images for a pill
+  const getImages = (pillId: string) => {
+    const pill = pills.find((p) => p.id === pillId) ?? pills[0]
+    if (pill.perRoom) {
+      return {
+        infinity: pill.perRoom.infinity.image,
+        eternity: pill.perRoom.eternity.image,
+      }
+    }
+    return { shared: pill.shared?.image }
+  }
+
   // Dual-layer state for crossfade
   const [frontLayer, setFrontLayer] = useState<{
     pillId: string
     images: { infinity?: string; eternity?: string; shared?: string }
   }>({
     pillId: pills[0].id,
-    images: {},
+    images: getImages(pills[0].id),
   })
   const [backLayer, setBackLayer] = useState<typeof frontLayer | null>(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
@@ -76,18 +88,6 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
 
   const currentPill = pills.find((p) => p.id === activePill) ?? pills[0]
   const hasSlider = currentPill.hasSlider
-
-  // Get images for current pill
-  const getImages = (pillId: string) => {
-    const pill = pills.find((p) => p.id === pillId) ?? pills[0]
-    if (pill.perRoom) {
-      return {
-        infinity: pill.perRoom.infinity.image,
-        eternity: pill.perRoom.eternity.image,
-      }
-    }
-    return { shared: pill.shared?.image }
-  }
 
   // Preload image on hover/focus
   const handlePreload = useCallback(async (pillId: string) => {
@@ -297,11 +297,6 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
           <div role="tablist" aria-label="房間特色" className="flex flex-col gap-3">
             {pills.map((pill) => {
               const isActive = activePill === pill.id
-              const smallLineKey = pill.perRoom
-                ? dividerPosition > 50
-                  ? pill.perRoom.infinity.smallLineKey
-                  : pill.perRoom.eternity.smallLineKey
-                : undefined
 
               return (
                 <motion.button
@@ -382,11 +377,24 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                         <p className="text-[15px] leading-relaxed opacity-90">{t(pill.mainLineKey)}</p>
 
                         {/* Small lines (per-room pills only) */}
-                        {smallLineKey && (
-                          <p className="text-[13px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                            {t(smallLineKey)}
-                          </p>
-                        )}
+                        {pill.perRoom && pill.perRoom.infinity.smallLineKey && pill.perRoom.eternity.smallLineKey ? (
+                          <div className="flex flex-col gap-1 text-[13px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                            <p>
+                              <span style={{ fontFamily: 'var(--font-display)', fontSize: '12px' }}>
+                                Space Infinity
+                              </span>
+                              {' · '}
+                              {t(pill.perRoom.infinity.smallLineKey)}
+                            </p>
+                            <p>
+                              <span style={{ fontFamily: 'var(--font-display)', fontSize: '12px' }}>
+                                Space Eternity
+                              </span>
+                              {' · '}
+                              {t(pill.perRoom.eternity.smallLineKey)}
+                            </p>
+                          </div>
+                        ) : null}
 
                         {/* Track for hasSlider pills */}
                         {hasSlider && (
@@ -509,7 +517,12 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                       </div>
 
                       {/* Eternity layer */}
-                      <div className="absolute inset-0">
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          clipPath: `inset(0 0 0 ${dividerPosition}%)`,
+                        }}
+                      >
                         <Image
                           src={frontLayer.images.eternity}
                           alt={t('venue.rooms.eternity.name')}
@@ -621,7 +634,12 @@ export function RoomViewer({ initialRoom, className = '' }: RoomViewerProps) {
                             sizes="(min-width: 768px) 60vw, 100vw"
                           />
                         </div>
-                        <div className="absolute inset-0">
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            clipPath: `inset(0 0 0 ${dividerPosition}%)`,
+                          }}
+                        >
                           <Image
                             src={backLayer.images.eternity}
                             alt={t('venue.rooms.eternity.name')}
