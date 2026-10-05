@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { CloudRain, Calendar, Wind, Focus } from "lucide-react";
 import CinematicOrbitHero from "@/components/ui/cinematic-orbit-hero";
-import { RoomViewer } from "@/components/ui/RoomViewer";
+import { RoomViewer } from "@/components/venue/RoomViewer";
 import { ThreePoints } from "@/components/ui/ThreePoints";
 import HowToGo from "@/components/landing/HowToGo";
 import { AppleButton } from "@/components/ui/AppleButton";

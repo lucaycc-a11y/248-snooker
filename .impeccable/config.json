@@ -1037,6 +1037,51 @@
         "rule": "design-system-radius",
         "value": "18px map pin icon radius in howtogo component - intentional non-standard shape for location marker visual metaphor",
         "createdAt": "2026-10-04T23:56:05.988Z"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:00:00.000Z",
+        "reason": "Reference HTML --pop easing: approved spec for icon microinteraction (+ icon expand/collapse)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(124, 78, 255, 0.50)",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:01:00.000Z",
+        "reason": "Reference HTML 科技體驗 gradient: section-specific purple glow for iPad stage, not a global token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2b1269",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:01:00.000Z",
+        "reason": "Reference HTML 科技體驗 gradient: section-specific deep purple --pilot-a"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#142680",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:01:00.000Z",
+        "reason": "Reference HTML 科技體驗 gradient: section-specific blue --pilot-b"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#06061a",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:01:00.000Z",
+        "reason": "Reference HTML 科技體驗 gradient: section-specific near-black --pilot-c"
       }
     ]
   }
