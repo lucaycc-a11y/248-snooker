@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:debug": "next dev 2>&1 | grep -E '\\[booking|\\[payment|\\[webhook|\\[profile|ERROR'",
-    "build": "npx tsx scripts/check-i18n-keys.ts && node scripts/check-zh-hk-traditional.js && node scripts/check-hooks.mjs && next build",
+    "build": "npx tsx scripts/check-i18n-keys.ts && node scripts/check-zh-hk-traditional.js && node scripts/check-hooks.mjs && npx tsx scripts/check-images.ts && next build",
     "start": "next start",
     "lint": "next lint",
     "test": "node scripts/check-hooks.mjs && vitest run",
@@ -106,7 +106,7 @@
     "playwright": "^1.62.1",
     "pngjs": "^7.0.0",
     "postcss": "^8.4.39",
-    "sharp": "^0.35.3",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.4.6",
     "ts-morph": "^28.0.0",
     "typescript": "^5.5.3",

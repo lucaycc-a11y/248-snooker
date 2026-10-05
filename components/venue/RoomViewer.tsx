@@ -61,25 +61,49 @@ const preloadImage = (src: string): Promise<void> => {
   })
 }
 
-export function RoomViewer() {
+export function RoomViewer({ initialRoom }: { initialRoom?: 'infinity' | 'eternity' }) {
   const t = useTranslations('venue.rooms')
 
   const [activePill, setActivePill] = useState<PillId>('renovation')
-  const [dividerPosition, setDividerPosition] = useState(50) // 0-100
-  const [isDragging, setIsDragging] = useState(false)
   const [equipmentView, setEquipmentView] = useState<EquipmentViewKey>('table')
   const [eternityView, setEternityView] = useState<EternityViewKey>('sofa')
   const [touched, setTouched] = useState(false)
+  const [imageError, setImageError] = useState<Set<string>>(new Set())
 
+  const sectionRef = useRef<HTMLElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const pillsRef = useRef<HTMLDivElement>(null)
   const preloadedRef = useRef<Set<string>>(new Set())
+  const dividerPosRef = useRef(50)
   const rafRef = useRef<number>(0)
+  const driftRanRef = useRef(false)
+  const prefersReducedMotion = useRef(false)
 
   const currentPill = pills.find((p) => p.id === activePill) ?? pills[0]
-  const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width:1024px)').matches
-  const prefersReducedMotion =
-    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  // Read ?room= once on mount for initial position
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const room = params.get('room') || initialRoom
+    if (room === 'infinity') dividerPosRef.current = 100
+    else if (room === 'eternity') dividerPosRef.current = 0
+    else dividerPosRef.current = 50
+
+    prefersReducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (sectionRef.current) {
+      sectionRef.current.style.setProperty('--p', String(dividerPosRef.current))
+    }
+  }, [initialRoom])
+
+  // Update CSS custom property
+  const updateDividerCSS = useCallback((value: number) => {
+    dividerPosRef.current = value
+    if (sectionRef.current) {
+      sectionRef.current.style.setProperty('--p', String(value))
+    }
+  }, [])
 
   // Preload image with cache
   const handlePreload = useCallback(async (src: string) => {
@@ -88,7 +112,7 @@ export function RoomViewer() {
         await preloadImage(src)
         preloadedRef.current.add(src)
       } catch (err) {
-        console.warn(`Preload failed for ${src}:`, err)
+        console.error(`Preload failed for ${src}:`, err)
       }
     }
   }, [])
@@ -101,11 +125,11 @@ export function RoomViewer() {
           handlePreload(pill.perRoom.infinity.src)
           handlePreload(pill.perRoom.eternity.src)
         }
-        if (pill.eternityViews) {
-          pill.eternityViews.forEach((v) => handlePreload(v.image.src))
-        }
         if (pill.views) {
           pill.views.forEach((v) => handlePreload(v.image.src))
+        }
+        if (pill.eternityViews) {
+          pill.eternityViews.forEach((v) => handlePreload(v.image.src))
         }
         if (pill.pilotImage) {
           handlePreload(pill.pilotImage.src)
@@ -115,47 +139,60 @@ export function RoomViewer() {
     return () => clearTimeout(timer)
   }, [handlePreload])
 
-  // Tween divider position
+  // Tween divider (for drift and snaps)
   const tweenDivider = useCallback(
-    (to: number, ms = 360) => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      if (prefersReducedMotion) {
-        setDividerPosition(to)
-        return Promise.resolve()
-      }
-
-      const from = dividerPosition
-      const t0 = performance.now()
-
+    async (target: number, duration = 420) => {
       return new Promise<void>((resolve) => {
-        const step = (now: number) => {
-          const k = Math.min(1, (now - t0) / ms)
-          const e = 1 - Math.pow(1 - k, 3) // ease-out cubic
-          setDividerPosition(from + (to - from) * e)
+        const start = dividerPosRef.current
+        const distance = target - start
+        const startTime = performance.now()
 
-          if (k < 1) {
-            rafRef.current = requestAnimationFrame(step)
+        const animate = (now: number) => {
+          const elapsed = now - startTime
+          const progress = Math.min(elapsed / duration, 1)
+          const eased = 1 - Math.pow(1 - progress, 3)
+          const current = start + distance * eased
+
+          updateDividerCSS(current)
+
+          if (progress < 1) {
+            rafRef.current = requestAnimationFrame(animate)
           } else {
             resolve()
           }
         }
-        rafRef.current = requestAnimationFrame(step)
+
+        rafRef.current = requestAnimationFrame(animate)
       })
     },
-    [dividerPosition, prefersReducedMotion]
+    [updateDividerCSS]
   )
 
-  // Initial drift animation on first scroll into view
+  // Drift animation on first view (once per page load)
   useEffect(() => {
-    if (prefersReducedMotion || !stageRef.current) return
+    if (prefersReducedMotion.current || driftRanRef.current || !stageRef.current) return
+    if (currentPill.mode !== 'compare') return
 
     const observer = new IntersectionObserver(
       async (entries, obs) => {
-        if (!entries[0].isIntersecting) return
+        if (!entries[0].isIntersecting || driftRanRef.current) return
         obs.disconnect()
+        driftRanRef.current = true
+
+        // Wait for images to load before drifting
+        const { perRoom } = currentPill
+        if (!perRoom) return
+        try {
+          await Promise.all([
+            handlePreload(perRoom.infinity.src),
+            handlePreload(perRoom.eternity.src),
+          ])
+        } catch {
+          return
+        }
 
         setTimeout(async () => {
-          if (touched || currentPill.mode !== 'compare') return
+          if (touched) return
           await tweenDivider(36, 520)
           if (touched) return
           await tweenDivider(64, 760)
@@ -168,7 +205,7 @@ export function RoomViewer() {
 
     observer.observe(stageRef.current)
     return () => observer.disconnect()
-  }, [currentPill.mode, touched, tweenDivider, prefersReducedMotion])
+  }, [currentPill, touched, tweenDivider, handlePreload])
 
   // Handle divider drag
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -178,34 +215,47 @@ export function RoomViewer() {
 
     const x = e.clientX - rect.left
     // Touch: only drag near divider (within 44px); mouse/pen: anywhere
-    if (e.pointerType === 'touch' && Math.abs(x - (rect.width * dividerPosition) / 100) > 44) {
+    if (e.pointerType === 'touch' && Math.abs(x - (rect.width * dividerPosRef.current) / 100) > 44) {
       return
     }
 
     e.preventDefault()
-    setIsDragging(true)
     setTouched(true)
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     stageRef.current?.setPointerCapture(e.pointerId)
-    setDividerPosition((x / rect.width) * 100)
-  }
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging || !stageRef.current) return
-    const rect = stageRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    setDividerPosition(Math.max(0, Math.min(100, (x / rect.width) * 100)))
-  }
+    const drag = (ev: PointerEvent) => {
+      const r = stageRef.current?.getBoundingClientRect()
+      if (!r) return
+      const nx = ev.clientX - r.left
+      updateDividerCSS(Math.max(0, Math.min(100, (nx / r.width) * 100)))
+    }
 
-  const handlePointerUp = (e: React.PointerEvent) => {
-    setIsDragging(false)
-    stageRef.current?.releasePointerCapture(e.pointerId)
+    const up = (ev: PointerEvent) => {
+      stageRef.current?.releasePointerCapture(ev.pointerId)
+      window.removeEventListener('pointermove', drag)
+      window.removeEventListener('pointerup', up)
+    }
+
+    window.addEventListener('pointermove', drag)
+    window.addEventListener('pointerup', up)
+    drag(e.nativeEvent)
   }
 
   // Snap to room
   const snapToRoom = (room: 'infinity' | 'eternity') => {
     setTouched(true)
     tweenDivider(room === 'infinity' ? 100 : 0)
+  }
+
+  // Handle Eternity view switch
+  const handleEternitySwitch = (key: EternityViewKey) => {
+    if (key === eternityView) return
+    setEternityView(key)
+    // If divider shows mostly Infinity (>60%), ease it to show Eternity
+    if (dividerPosRef.current > 60) {
+      tweenDivider(40)
+    }
   }
 
   // Handle pill keyboard navigation
@@ -230,26 +280,21 @@ export function RoomViewer() {
     }
 
     setActivePill(ids[index])
-    setTimeout(() => {
-      const btn = document.querySelector(
-        `[role="tab"][aria-controls="panel-${ids[index]}"]`
-      ) as HTMLElement
-      btn?.focus()
-    }, 0)
+    // No focus() call - let browser handle focus naturally
   }
 
   // Handle slider keyboard navigation
   const handleSliderKeyDown = (e: React.KeyboardEvent) => {
     if (currentPill.mode !== 'compare') return
 
-    let newPos = dividerPosition
+    let newPos = dividerPosRef.current
 
     if (e.key === 'ArrowLeft') {
       e.preventDefault()
-      newPos = Math.max(0, dividerPosition - 10)
+      newPos = Math.max(0, dividerPosRef.current - 5)
     } else if (e.key === 'ArrowRight') {
       e.preventDefault()
-      newPos = Math.min(100, dividerPosition + 10)
+      newPos = Math.min(100, dividerPosRef.current + 5)
     } else if (e.key === 'Home') {
       e.preventDefault()
       newPos = 0
@@ -261,145 +306,76 @@ export function RoomViewer() {
     }
 
     setTouched(true)
-    setDividerPosition(newPos)
+    updateDividerCSS(newPos)
   }
 
-  // Handle Eternity view switch
-  const handleEternitySwitch = (key: EternityViewKey) => {
-    setEternityView(key)
-    setTouched(true)
-    // If Eternity is mostly hidden, ease to 40% so it's visible
-    if (dividerPosition > 60) {
-      tweenDivider(40)
-    }
+  // Describe position for a11y
+  const describePosition = (pos: number): string => {
+    if (pos < 20) return `${t('eternity.name')} 全景`
+    if (pos > 80) return `${t('infinity.name')} 全景`
+    return `${Math.round(pos)}% ${t('infinity.name')}`
   }
 
-  // Corner label opacity
-  const leftOpacity = Math.max(0, Math.min(1, dividerPosition / 15))
-  const rightOpacity = Math.max(0, Math.min(1, (100 - dividerPosition) / 15))
-
-  // Describe position for screen readers
-  const describePosition = (p: number) => {
-    if (p >= 96) return '只顯示 Space Infinity'
-    if (p <= 4) return '只顯示 Space Eternity'
-    return `左邊 Space Infinity，右邊 Space Eternity，分界線在 ${Math.round(p)}%`
+  // Handle image error
+  const handleImageError = (src: string) => {
+    console.error(`Image failed to load: ${src}`)
+    setImageError((prev) => new Set(prev).add(src))
   }
 
   return (
     <section
+      ref={sectionRef}
+      className="venue-room-viewer"
       style={{
-        backgroundColor: tokens.colors.bg,
+        minHeight: '100svh',
+        paddingTop: 'var(--navbar-height, 64px)',
+        paddingBottom: 'clamp(48px, 8vw, 96px)',
+        paddingInline: 'clamp(16px, 4vw, 48px)',
+        background: '#000',
         color: tokens.colors.text,
-        minHeight: `calc(100svh - ${tokens.layout.navbarHeight})`,
-        paddingTop: `calc(${tokens.layout.navbarHeight} + 12px)`,
-        paddingBottom: '56px',
-        scrollMarginTop: tokens.layout.navbarHeight,
-      }}
+        // CSS custom property for divider position
+        '--p': '50',
+      } as React.CSSProperties}
     >
-      <div
-        style={{
-          maxWidth: '1360px',
-          margin: '0 auto',
-          padding: '0 clamp(16px, 4vw, 48px)',
-        }}
-      >
-        {/* Heading */}
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(30px, 5vw, 56px)',
+            fontSize: 'clamp(28px, 4.4vw, 48px)',
             fontWeight: 700,
-            lineHeight: 1.1,
-            letterSpacing: '-0.01em',
+            letterSpacing: '-0.02em',
+            color: '#fff',
             margin: '0 0 clamp(18px, 2.6vw, 32px)',
           }}
         >
           {t('title')}
         </h2>
 
-        {/* Layout: desktop 2-column, mobile stack */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: isDesktop ? 'minmax(300px, 380px) 1fr' : '1fr',
-            gridTemplateAreas: isDesktop ? '"side stage"' : '"stage" "side"',
-            gap: '18px',
-          }}
-        >
-          {/* Side: Pills (desktop: left column, mobile: below stage) */}
+        {/* Layout: CSS-only responsive, no JS breakpoint */}
+        <div className="room-viewer-grid">
+          {/* Side: Pills */}
           <div
             ref={pillsRef}
             role="tablist"
             aria-label="房間特色"
-            style={{
-              gridArea: 'side',
-              display: 'flex',
-              flexDirection: isDesktop ? 'column' : 'row',
-              gap: isDesktop ? '12px' : '10px',
-              overflowX: isDesktop ? 'visible' : 'auto',
-              scrollSnapType: isDesktop ? 'none' : 'x proximity',
-              scrollbarWidth: 'none',
-              marginInline: isDesktop ? 0 : 'calc(-1 * clamp(16px, 4vw, 48px))',
-              paddingInline: isDesktop ? 0 : 'clamp(16px, 4vw, 48px)',
-            }}
+            className="pills-container"
           >
             {pills.map((pill) => {
-              const isActive = activePill === pill.id
-
+              const isActive = pill.id === activePill
               return (
-                <button
-                  key={pill.id}
-                  role="tab"
-                  aria-selected={isActive}
-                  aria-controls={`panel-${pill.id}`}
-                  tabIndex={isActive ? 0 : -1}
-                  onClick={() => setActivePill(pill.id)}
-                  onKeyDown={(e) => handlePillKeyDown(e, pill.id)}
-                  style={{
-                    minHeight: '44px',
-                    padding: isDesktop && isActive ? '24px' : '0 18px',
-                    borderRadius: isDesktop ? '28px' : '999px',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    background: isActive ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-                    color: tokens.colors.text,
-                    fontFamily: 'var(--font-cjk)',
-                    fontSize: '15px',
-                    fontWeight: 600,
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: `background ${tokens.duration.base} ${EASE}`,
-                    outline: 'none',
-                    flexShrink: 0,
-                    scrollSnapAlign: 'start',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.outline = `2px solid ${tokens.colors.green[600]}`
-                    e.currentTarget.style.outlineOffset = '2px'
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.outline = 'none'
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                    }}
+                <div key={pill.id} className="pill-wrapper">
+                  <button
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls={`panel-${pill.id}`}
+                    id={`tab-${pill.id}`}
+                    onClick={() => setActivePill(pill.id)}
+                    onKeyDown={(e) => handlePillKeyDown(e, pill.id)}
+                    className={`pill-button ${isActive ? 'active' : ''}`}
                   >
-                    {/* Icon (desktop only when inactive) */}
-                    {isDesktop && !isActive && (
-                      <div
-                        style={{
-                          width: '22px',
-                          height: '22px',
-                          borderRadius: '50%',
-                          border: '1.5px solid rgba(255,255,255,0.4)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
+                    <div className="pill-header">
+                      {/* Plus/minus icon (desktop only) */}
+                      <div className="pill-icon" aria-hidden="true">
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                           <path
                             d="M6 1v10M1 6h10"
@@ -409,786 +385,942 @@ export function RoomViewer() {
                           />
                         </svg>
                       </div>
-                    )}
 
-                    {/* Label */}
-                    <span>{t(pill.labelKey)}</span>
+                      {/* Label */}
+                      <span className="pill-label">{t(pill.labelKey)}</span>
 
-                    {/* Tag */}
-                    {pill.tag && (
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 500,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.05em',
-                          padding: '4px 9px',
-                          borderRadius: '999px',
-                          border: '1px solid rgba(255,255,255,0.24)',
-                          color: 'rgba(255,255,255,0.72)',
-                        }}
-                      >
-                        {t(pill.tag)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Expanded panel content (desktop only when active) */}
-                  {isDesktop && isActive && (
-                    <div style={{ marginTop: '16px' }}>
-                      <p
-                        style={{
-                          fontSize: '15px',
-                          lineHeight: 1.4,
-                          color: 'rgba(255,255,255,0.9)',
-                          margin: '0 0 16px',
-                        }}
-                      >
-                        {t(pill.mainLineKey)}
-                      </p>
-
-                      {/* Eternity switch (comfort pill) */}
-                      {pill.eternityViews && (
-                        <div
-                          role="group"
-                          aria-label="Space Eternity 檢視"
-                          style={{
-                            display: 'flex',
-                            gap: '4px',
-                            padding: '4px',
-                            borderRadius: '999px',
-                            background: 'rgba(255,255,255,0.06)',
-                            marginBottom: '16px',
-                          }}
-                        >
-                          {pill.eternityViews.map((v) => (
-                            <button
-                              key={v.key}
-                              type="button"
-                              aria-pressed={eternityView === v.key}
-                              onClick={() => handleEternitySwitch(v.key)}
-                              style={{
-                                flex: 1,
-                                minHeight: '44px',
-                                padding: '10px 16px',
-                                borderRadius: '999px',
-                                border: 'none',
-                                background:
-                                  eternityView === v.key ? tokens.colors.green[600] : 'transparent',
-                                color: eternityView === v.key ? '#000' : tokens.colors.text,
-                                fontFamily: 'var(--font-cjk)',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                transition: `all ${tokens.duration.base} ${EASE}`,
-                              }}
-                            >
-                              {t(v.labelKey)}
-                            </button>
-                          ))}
-                        </div>
+                      {/* Tag */}
+                      {pill.tag && (
+                        <span className="pill-tag">
+                          {t(pill.tag)}
+                        </span>
                       )}
+                    </div>
 
-                      {/* Equipment thumbnails */}
-                      {pill.views && (
-                        <div
-                          role="group"
-                          aria-label={t(pill.labelKey) + '相片'}
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
-                            gap: '8px',
-                            marginBottom: '16px',
-                          }}
-                        >
-                          {pill.views.map((v) => (
-                            <button
-                              key={v.key}
-                              type="button"
-                              aria-pressed={equipmentView === v.key}
-                              onClick={() => setEquipmentView(v.key)}
-                              style={{
-                                aspectRatio: '4 / 3',
-                                borderRadius: '12px',
-                                border: `2px solid ${
-                                  equipmentView === v.key
-                                    ? tokens.colors.green[600]
-                                    : 'rgba(255,255,255,0.1)'
-                                }`,
-                                overflow: 'hidden',
-                                cursor: 'pointer',
-                                position: 'relative',
-                                background: '#000',
-                                transition: `border-color ${tokens.duration.base} ${EASE}`,
-                              }}
-                            >
-                              <Image
-                                src={v.image.src}
-                                alt=""
-                                fill
-                                sizes="160px"
-                                style={{
-                                  objectFit: 'cover',
-                                  objectPosition: v.image.objectPosition,
-                                }}
-                              />
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  bottom: 0,
-                                  left: 0,
-                                  right: 0,
-                                  padding: '8px',
-                                  background:
-                                    'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
-                                  fontSize: '12px',
-                                  fontWeight: 600,
-                                  color: '#fff',
-                                }}
+                    {/* Expanded panel content (desktop only when active) */}
+                    {isActive && (
+                      <div className="pill-panel">
+                        <p className="pill-main">
+                          {t(pill.mainLineKey)}
+                        </p>
+
+                        {/* Eternity switch (comfort pill) */}
+                        {pill.eternityViews && (
+                          <div
+                            role="group"
+                            aria-label="Space Eternity 檢視"
+                            className="eternity-switch"
+                          >
+                            {pill.eternityViews.map((v) => (
+                              <button
+                                key={v.key}
+                                type="button"
+                                aria-pressed={eternityView === v.key}
+                                onClick={() => handleEternitySwitch(v.key)}
+                                className={`eternity-btn ${eternityView === v.key ? 'active' : ''}`}
                               >
                                 {t(v.labelKey)}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Equipment detail card */}
-                      {pill.views && (() => {
-                        const activeView = pill.views.find((v) => v.key === equipmentView)
-                        if (!activeView) return null
-
-                        return (
-                          <div
-                            aria-live="polite"
-                            style={{
-                              padding: '16px',
-                              borderRadius: '16px',
-                              background: 'rgba(255,255,255,0.04)',
-                              border: '1px solid rgba(255,255,255,0.08)',
-                            }}
-                          >
-                            <p
-                              style={{
-                                fontFamily: 'var(--font-display)',
-                                fontSize: '14px',
-                                fontWeight: 600,
-                                color: tokens.colors.green[600],
-                                margin: '0 0 8px',
-                              }}
-                            >
-                              {t(activeView.chipTitleKey)}
-                            </p>
-                            {activeView.detailTextKey && (
-                              <p
-                                style={{
-                                  fontSize: '13px',
-                                  lineHeight: 1.5,
-                                  color: 'rgba(255,255,255,0.82)',
-                                  margin: 0,
-                                }}
-                              >
-                                {t(activeView.detailTextKey)}
-                              </p>
-                            )}
-                            {activeView.specsKey && (() => {
-                              const specs = t.raw(activeView.specsKey) as [string, string][]
-                              return (
-                                <dl
-                                  style={{
-                                    display: 'grid',
-                                    gap: '8px',
-                                    margin: 0,
-                                    fontSize: '13px',
-                                  }}
-                                >
-                                  {specs.map(([key, val], i) => (
-                                    <div
-                                      key={i}
-                                      style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: 'auto 1fr',
-                                        gap: '12px',
-                                      }}
-                                    >
-                                      <dt style={{ color: 'rgba(255,255,255,0.6)' }}>{key}</dt>
-                                      <dd style={{ color: '#fff', margin: 0 }}>{val}</dd>
-                                    </div>
-                                  ))}
-                                </dl>
-                              )
-                            })()}
+                              </button>
+                            ))}
                           </div>
-                        )
-                      })()}
+                        )}
 
-                      {/* Technology intro + points */}
-                      {pill.introKey && pill.points && (
-                        <div>
-                          <p
-                            style={{
-                              fontSize: '14px',
-                              lineHeight: 1.6,
-                              color: 'rgba(255,255,255,0.82)',
-                              margin: '0 0 20px',
-                            }}
+                        {/* Equipment thumbnails */}
+                        {pill.views && (
+                          <div
+                            role="group"
+                            aria-label={t(pill.labelKey) + '相片'}
+                            className="equipment-thumbnails"
                           >
-                            {t(pill.introKey)}
-                          </p>
-                          <ul
-                            style={{
-                              listStyle: 'none',
-                              margin: 0,
-                              padding: 0,
-                              display: 'grid',
-                              gap: '14px',
-                            }}
-                          >
-                            {pill.points.map((pt, i) => (
-                              <li
-                                key={i}
-                                style={{
-                                  display: 'flex',
-                                  gap: '12px',
-                                  paddingBottom: '14px',
-                                  borderBottom:
-                                    i < pill.points!.length - 1
-                                      ? '1px solid rgba(255,255,255,0.06)'
-                                      : 'none',
-                                }}
+                            {pill.views.map((v) => (
+                              <button
+                                key={v.key}
+                                type="button"
+                                aria-pressed={equipmentView === v.key}
+                                onClick={() => setEquipmentView(v.key)}
+                                className={`equipment-thumb ${equipmentView === v.key ? 'active' : ''}`}
                               >
-                                <div
+                                <Image
+                                  src={v.image.src}
+                                  alt=""
+                                  fill
+                                  sizes="160px"
                                   style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    flexShrink: 0,
-                                    color: tokens.colors.green[600],
+                                    objectFit: 'cover',
+                                    objectPosition: v.image.objectPosition,
                                   }}
-                                  aria-hidden="true"
-                                >
-                                  {ICONS[pt.icon]}
+                                  onError={() => handleImageError(v.image.src)}
+                                />
+                                <div className="equipment-thumb-label">
+                                  {t(v.labelKey)}
                                 </div>
-                                <div style={{ flex: 1 }}>
-                                  <div
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '8px',
-                                      marginBottom: '4px',
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        fontSize: '14px',
-                                        fontWeight: 700,
-                                        color: '#fff',
-                                      }}
-                                    >
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Technology intro + points */}
+                        {pill.introKey && pill.points && (
+                          <div className="technology-panel">
+                            <p className="technology-intro">
+                              {t(pill.introKey)}
+                            </p>
+                            <ul className="technology-points">
+                              {pill.points.map((pt, i) => (
+                                <li key={i} className="technology-point">
+                                  <div className="technology-point-header">
+                                    <div className="technology-point-icon">
+                                      {ICONS[pt.icon]}
+                                    </div>
+                                    <span className="technology-point-name">
                                       {t(pt.nameKey)}
                                     </span>
                                     {pt.tag && (
-                                      <span
-                                        style={{
-                                          fontSize: '10px',
-                                          fontWeight: 500,
-                                          textTransform: 'uppercase',
-                                          letterSpacing: '0.05em',
-                                          padding: '3px 7px',
-                                          borderRadius: '999px',
-                                          border: '1px solid rgba(255,255,255,0.24)',
-                                          color: 'rgba(255,255,255,0.72)',
-                                        }}
-                                      >
+                                      <span className="pill-tag">
                                         {t(pt.tag)}
                                       </span>
                                     )}
                                   </div>
-                                  <p
-                                    style={{
-                                      fontSize: '13px',
-                                      lineHeight: 1.6,
-                                      color: 'rgba(255,255,255,0.7)',
-                                      margin: 0,
-                                    }}
-                                  >
+                                  <p className="technology-point-desc">
                                     {t(pt.descKey)}
                                   </p>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
 
-                      {/* Slider track (compare pills only) */}
-                      {pill.mode === 'compare' && (
-                        <div style={{ marginTop: '24px' }}>
-                          <p
-                            id={`hint-${pill.id}`}
-                            style={{
-                              fontSize: '12px',
-                              color: 'rgba(255,255,255,0.6)',
-                              margin: '0 0 10px',
-                            }}
-                          >
-                            {t('slider_hint')}
-                          </p>
-                          <div style={{ position: 'relative', height: '6px' }}>
-                            <div
-                              style={{
-                                position: 'absolute',
-                                inset: 0,
-                                borderRadius: '999px',
-                                background: 'rgba(255,255,255,0.1)',
-                              }}
-                            />
-                            <div
-                              style={{
-                                position: 'absolute',
-                                left: 0,
-                                top: 0,
-                                height: '100%',
-                                width: `${dividerPosition}%`,
-                                borderRadius: '999px',
-                                background: tokens.colors.green[600],
-                                transition: prefersReducedMotion
-                                  ? 'none'
-                                  : `width 200ms ${EASE}`,
-                              }}
-                            />
-                            <input
-                              type="range"
-                              min={0}
-                              max={100}
-                              step={0.5}
-                              value={dividerPosition}
-                              aria-labelledby={`hint-${pill.id}`}
-                              aria-valuetext={describePosition(dividerPosition)}
-                              onChange={(e) => {
-                                setTouched(true)
-                                if (rafRef.current) cancelAnimationFrame(rafRef.current)
-                                setDividerPosition(+e.target.value)
-                              }}
-                              onKeyDown={handleSliderKeyDown}
-                              style={{
-                                position: 'absolute',
-                                inset: 0,
-                                width: '100%',
-                                height: '100%',
-                                opacity: 0,
-                                cursor: 'ew-resize',
-                                zIndex: 2,
-                              }}
-                            />
-                            <div
-                              style={{
-                                position: 'absolute',
-                                left: `${dividerPosition}%`,
-                                top: '50%',
-                                width: '56px',
-                                height: '34px',
-                                transform: 'translate(-50%, -50%)',
-                                borderRadius: '999px',
-                                background: tokens.colors.green[600],
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '16px',
-                                fontWeight: 600,
-                                color: '#fff',
-                                pointerEvents: 'none',
-                                transition: prefersReducedMotion
-                                  ? 'none'
-                                  : `left 200ms ${EASE}`,
-                              }}
-                            >
-                              ‹ ›
+                        {/* Slider track (compare pills only) */}
+                        {pill.mode === 'compare' && (
+                          <div className="slider-track-wrapper">
+                            <p id={`hint-${pill.id}`} className="slider-hint">
+                              {t('slider_hint')}
+                            </p>
+                            <div className="slider-track">
+                              <div className="slider-track-bg" />
+                              <div
+                                className="slider-track-fill"
+                                style={{ width: `var(--p, 50)%` }}
+                              />
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={0.5}
+                                value={dividerPosRef.current}
+                                aria-labelledby={`hint-${pill.id}`}
+                                aria-valuetext={describePosition(dividerPosRef.current)}
+                                onChange={(e) => {
+                                  setTouched(true)
+                                  if (rafRef.current) cancelAnimationFrame(rafRef.current)
+                                  updateDividerCSS(+e.target.value)
+                                }}
+                                onKeyDown={handleSliderKeyDown}
+                                className="slider-input"
+                              />
+                              <div
+                                className="slider-thumb"
+                                style={{ left: `var(--p, 50)%` }}
+                              >
+                                ‹ ›
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </button>
+                        )}
+                      </div>
+                    )}
+                  </button>
+                </div>
               )
             })}
           </div>
 
-          {/* Stage */}
+          {/* Stage: Right column (desktop) / Top (mobile) */}
           <div
-            id={`panel-${activePill}`}
-            role="tabpanel"
-            aria-labelledby={activePill}
             ref={stageRef}
+            role="tabpanel"
+            id={`panel-${currentPill.id}`}
+            aria-labelledby={`tab-${currentPill.id}`}
+            className="stage"
             onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            style={{
-              gridArea: 'stage',
-              position: 'relative',
-              aspectRatio: isDesktop ? '3 / 2' : '4 / 3',
-              borderRadius: isDesktop ? '28px' : '20px',
-              border: '1px solid rgba(255,255,255,0.08)',
-              overflow: 'hidden',
-              isolation: 'isolate',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              touchAction: currentPill.mode === 'compare' ? 'pan-y' : 'auto',
-              cursor: isDragging ? 'ew-resize' : 'auto',
-              // Technology pill gradient background
-              ...(currentPill.id === 'technology' && {
-                background: `
-                  radial-gradient(58% 56% at 50% 54%, rgba(124, 78, 255, 0.50), transparent 70%),
-                  linear-gradient(150deg, #2b1269 0%, #142680 48%, #06061a 100%)
-                `,
-              }),
-              ...((currentPill.id !== 'technology') && {
-                background: '#09090a',
-              }),
-            }}
           >
-            {/* Compare mode (renovation, comfort) */}
-            {currentPill.mode === 'compare' && currentPill.perRoom && (
-              <>
-                {/* Infinity layer (left/bottom, clips from right) */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    clipPath: `inset(0 ${100 - dividerPosition}% 0 0)`,
-                    WebkitClipPath: `inset(0 ${100 - dividerPosition}% 0 0)`,
-                  }}
-                >
-                  <Image
-                    src={currentPill.perRoom.infinity.src}
-                    alt={currentPill.perRoom.infinity.alt}
-                    width={currentPill.perRoom.infinity.width}
-                    height={currentPill.perRoom.infinity.height}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      objectPosition: currentPill.perRoom.infinity.objectPosition,
-                    }}
-                    sizes={isDesktop ? '60vw' : '100vw'}
-                    priority
-                  />
-                </div>
+            <div className="stage-inner">
+              {/* Compare mode: two panoramas with divider */}
+              {currentPill.mode === 'compare' && currentPill.perRoom && (
+                <div className="compare-stage">
+                  {/* Bottom layer: Infinity */}
+                  <div className="compare-layer compare-layer-infinity">
+                    {!imageError.has(currentPill.perRoom.infinity.src) ? (
+                      <Image
+                        src={currentPill.perRoom.infinity.src}
+                        alt={currentPill.perRoom.infinity.alt}
+                        fill
+                        sizes="(max-width: 1023px) 100vw, 65vw"
+                        priority={currentPill.id === 'renovation'}
+                        style={{
+                          objectFit: 'cover',
+                          objectPosition: currentPill.perRoom.infinity.objectPosition,
+                        }}
+                        onError={() => handleImageError(currentPill.perRoom!.infinity.src)}
+                      />
+                    ) : (
+                      <div className="image-placeholder" />
+                    )}
+                  </div>
 
-                {/* Eternity layer (right/top, clips from left) */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    clipPath: `inset(0 0 0 ${dividerPosition}%)`,
-                    WebkitClipPath: `inset(0 0 0 ${dividerPosition}%)`,
-                  }}
-                >
-                  {currentPill.eternityViews ? (
-                    // Comfort pill: swap between sofa and bar
-                    <>
-                      {currentPill.eternityViews.map((v) => (
-                        <Image
-                          key={v.key}
-                          src={v.image.src}
-                          alt={v.image.alt}
-                          width={v.image.width}
-                          height={v.image.height}
-                          style={{
-                            position: 'absolute',
-                            inset: 0,
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            objectPosition: v.image.objectPosition,
-                            opacity: eternityView === v.key ? 1 : 0,
-                            transition: prefersReducedMotion
-                              ? 'none'
-                              : `opacity 350ms ${EASE}`,
-                          }}
-                          sizes={isDesktop ? '60vw' : '100vw'}
-                          priority
-                        />
-                      ))}
-                    </>
-                  ) : (
-                    // Renovation pill: single eternity image
-                    <Image
-                      src={currentPill.perRoom.eternity.src}
-                      alt={currentPill.perRoom.eternity.alt}
-                      width={currentPill.perRoom.eternity.width}
-                      height={currentPill.perRoom.eternity.height}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        objectPosition: currentPill.perRoom.eternity.objectPosition,
-                      }}
-                      sizes={isDesktop ? '60vw' : '100vw'}
-                      priority
-                    />
-                  )}
-                </div>
-
-                {/* Divider line */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    bottom: 0,
-                    left: `${dividerPosition}%`,
-                    width: '2px',
-                    background: 'rgba(255,255,255,0.92)',
-                    zIndex: 3,
-                  }}
-                >
-                  {/* Handle */}
-                  <button
-                    role="slider"
-                    aria-label="拖動以比較兩間球室"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(dividerPosition)}
-                    aria-valuetext={describePosition(dividerPosition)}
-                    tabIndex={0}
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onKeyDown={handleSliderKeyDown}
+                  {/* Top layer: Eternity (clipped from left) */}
+                  <div
+                    className="compare-layer compare-layer-eternity"
                     style={{
-                      position: 'absolute',
-                      left: '50%',
-                      top: '50%',
-                      width: isDesktop ? '48px' : '44px',
-                      height: isDesktop ? '72px' : '64px',
-                      transform: 'translate(-50%, -50%)',
-                      borderRadius: '999px',
-                      border: '1.5px solid rgba(255,255,255,0.95)',
-                      background: 'rgba(16,16,18,0.5)',
-                      backdropFilter: 'blur(14px)',
-                      WebkitBackdropFilter: 'blur(14px)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'ew-resize',
-                      touchAction: 'none',
-                      fontSize: '18px',
-                      fontWeight: 600,
-                      color: '#fff',
-                      outline: 'none',
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.outline = `2px solid ${tokens.colors.green[600]}`
-                      e.currentTarget.style.outlineOffset = '2px'
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.outline = 'none'
+                      clipPath: `inset(0 0 0 calc(var(--p, 50) * 1%))`,
+                      WebkitClipPath: `inset(0 0 0 calc(var(--p, 50) * 1%))`,
                     }}
                   >
-                    ‹ ›
+                    {!imageError.has(
+                      pill.eternityViews && eternityView !== 'sofa'
+                        ? pill.eternityViews.find((v) => v.key === eternityView)!.image.src
+                        : currentPill.perRoom.eternity.src
+                    ) ? (
+                      <Image
+                        src={
+                          currentPill.eternityViews && eternityView !== 'sofa'
+                            ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.src
+                            : currentPill.perRoom.eternity.src
+                        }
+                        alt={
+                          currentPill.eternityViews && eternityView !== 'sofa'
+                            ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.alt
+                            : currentPill.perRoom.eternity.alt
+                        }
+                        fill
+                        sizes="(max-width: 1023px) 100vw, 65vw"
+                        priority={currentPill.id === 'renovation'}
+                        style={{
+                          objectFit: 'cover',
+                          objectPosition:
+                            currentPill.eternityViews && eternityView !== 'sofa'
+                              ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.objectPosition
+                              : currentPill.perRoom.eternity.objectPosition,
+                        }}
+                        onError={() =>
+                          handleImageError(
+                            currentPill.eternityViews && eternityView !== 'sofa'
+                              ? currentPill.eternityViews.find((v) => v.key === eternityView)!.image.src
+                              : currentPill.perRoom.eternity.src
+                          )
+                        }
+                      />
+                    ) : (
+                      <div className="image-placeholder" />
+                    )}
+                  </div>
+
+                  {/* Divider handle */}
+                  <div
+                    className="divider-handle"
+                    style={{ left: `var(--p, 50)%` }}
+                    aria-hidden="true"
+                  >
+                    <div className="divider-line" />
+                    <div className="divider-capsule">‹ ›</div>
+                  </div>
+
+                  {/* Corner room labels */}
+                  <button
+                    type="button"
+                    onClick={() => snapToRoom('infinity')}
+                    className="room-label room-label-infinity"
+                    style={{
+                      opacity: dividerPosRef.current < 20 ? 0.4 : 1,
+                    }}
+                    aria-label={`顯示 ${t('infinity.name')}`}
+                  >
+                    <div className="room-label-english">{roomLabels.infinity.english}</div>
+                    <div className="room-label-chinese">{roomLabels.infinity.chinese}</div>
+                    <div className="room-label-room">{roomLabels.infinity.room}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => snapToRoom('eternity')}
+                    className="room-label room-label-eternity"
+                    style={{
+                      opacity: dividerPosRef.current > 80 ? 0.4 : 1,
+                    }}
+                    aria-label={`顯示 ${t('eternity.name')}`}
+                  >
+                    <div className="room-label-english">{roomLabels.eternity.english}</div>
+                    <div className="room-label-chinese">{roomLabels.eternity.chinese}</div>
+                    <div className="room-label-room">{roomLabels.eternity.room}</div>
                   </button>
                 </div>
+              )}
 
-                {/* Corner room labels */}
-                <button
-                  onClick={() => snapToRoom('infinity')}
-                  style={{
-                    position: 'absolute',
-                    bottom: 'clamp(10px, 2vw, 20px)',
-                    left: 'clamp(10px, 2vw, 20px)',
-                    padding: '9px 14px 10px',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255,255,255,0.16)',
-                    background: 'rgba(10,10,12,0.55)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    color: '#fff',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    opacity: leftOpacity,
-                    transition: `opacity 250ms ${EASE}`,
-                    zIndex: 4,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '12px',
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {roomLabels.infinity.english}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '12px',
-                      lineHeight: 1.2,
-                      color: 'rgba(255,255,255,0.82)',
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'baseline',
-                    }}
-                  >
-                    <span>{roomLabels.infinity.chinese}</span>
-                    <span
+              {/* Equipment mode: single image with chip + detail */}
+              {currentPill.mode === 'single' && currentPill.views && (
+                <div className="equipment-stage">
+                  {(() => {
+                    const view = currentPill.views.find((v) => v.key === equipmentView)!
+                    return (
+                      <>
+                        {!imageError.has(view.image.src) ? (
+                          <Image
+                            src={view.image.src}
+                            alt={view.image.alt}
+                            fill
+                            sizes="(max-width: 1023px) 100vw, 65vw"
+                            style={{
+                              objectFit: 'cover',
+                              objectPosition: view.image.objectPosition,
+                            }}
+                            onError={() => handleImageError(view.image.src)}
+                          />
+                        ) : (
+                          <div className="image-placeholder" />
+                        )}
+
+                        {/* Glass chip overlay */}
+                        <div className="equipment-chip">
+                          <div className="equipment-chip-label">{t(view.labelKey)}</div>
+                          <div className="equipment-chip-title">{t(view.chipTitleKey)}</div>
+                        </div>
+
+                        {/* Detail card (mobile only) */}
+                        <div className="equipment-detail-mobile">
+                          {view.detailTextKey && (
+                            <p className="equipment-detail-text">{t(view.detailTextKey)}</p>
+                          )}
+                          {view.specsKey && (
+                            <table className="equipment-specs">
+                              <tbody>
+                                {(t.raw(view.specsKey) as string[][]).map(([label, value], i) => (
+                                  <tr key={i}>
+                                    <th>{label}</th>
+                                    <td>{value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
+              )}
+
+              {/* Technology mode: gradient + iPad */}
+              {currentPill.mode === 'single' && currentPill.pilotImage && (
+                <div className="technology-stage">
+                  {!imageError.has(currentPill.pilotImage.src) ? (
+                    <Image
+                      src={currentPill.pilotImage.src}
+                      alt={currentPill.pilotImage.alt}
+                      width={currentPill.pilotImage.width}
+                      height={currentPill.pilotImage.height}
+                      className="technology-ipad"
                       style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '11px',
+                        width: '52%',
+                        height: 'auto',
+                        maxWidth: '480px',
                       }}
-                    >
-                      {roomLabels.infinity.room}
-                    </span>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => snapToRoom('eternity')}
-                  style={{
-                    position: 'absolute',
-                    bottom: 'clamp(10px, 2vw, 20px)',
-                    right: 'clamp(10px, 2vw, 20px)',
-                    padding: '9px 14px 10px',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(255,255,255,0.16)',
-                    background: 'rgba(10,10,12,0.55)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    color: '#fff',
-                    textAlign: 'right',
-                    cursor: 'pointer',
-                    opacity: rightOpacity,
-                    transition: `opacity 250ms ${EASE}`,
-                    zIndex: 4,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '12px',
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {roomLabels.eternity.english}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '12px',
-                      lineHeight: 1.2,
-                      color: 'rgba(255,255,255,0.82)',
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'baseline',
-                      justifyContent: 'flex-end',
-                    }}
-                  >
-                    <span>{roomLabels.eternity.chinese}</span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '11px',
-                      }}
-                    >
-                      {roomLabels.eternity.room}
-                    </span>
-                  </div>
-                </button>
-              </>
-            )}
-
-            {/* Equipment mode: single image with chip */}
-            {currentPill.id === 'equipment' && currentPill.views && (() => {
-              const activeView = currentPill.views.find((v) => v.key === equipmentView)
-              if (!activeView) return null
-
-              return (
-                <>
-                  <Image
-                    src={activeView.image.src}
-                    alt={activeView.image.alt}
-                    width={activeView.image.width}
-                    height={activeView.image.height}
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      objectPosition: activeView.image.objectPosition,
-                    }}
-                    sizes={isDesktop ? '60vw' : '100vw'}
-                  />
-                  {/* Chip (product name overlay) */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '20px',
-                      left: '20px',
-                      padding: '10px 16px',
-                      borderRadius: '999px',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      background: 'rgba(10,10,12,0.65)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '2px',
-                      transition: prefersReducedMotion ? 'none' : `opacity 140ms ${EASE}`,
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-cjk)',
-                        fontSize: '11px',
-                        color: 'rgba(255,255,255,0.7)',
-                      }}
-                    >
-                      {t(activeView.labelKey)}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-display)',
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        color: '#fff',
-                      }}
-                    >
-                      {t(activeView.chipTitleKey)}
-                    </span>
-                  </div>
-                </>
-              )
-            })()}
-
-            {/* Technology mode: iPad on gradient */}
-            {currentPill.id === 'technology' && currentPill.pilotImage && (
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0 22%',
-                }}
-              >
-                <Image
-                  src={currentPill.pilotImage.src}
-                  alt={currentPill.pilotImage.alt}
-                  width={currentPill.pilotImage.width}
-                  height={currentPill.pilotImage.height}
-                  style={{
-                    width: isDesktop ? '52%' : '64%',
-                    height: 'auto',
-                    maxWidth: '620px',
-                    objectFit: 'contain',
-                  }}
-                  sizes={isDesktop ? '400px' : '300px'}
-                />
-              </div>
-            )}
+                      onError={() => handleImageError(currentPill.pilotImage!.src)}
+                    />
+                  ) : (
+                    <div className="image-placeholder" style={{ width: '52%', aspectRatio: '3/4' }} />
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .room-viewer-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          grid-template-areas: 'stage' 'side';
+          gap: 18px;
+        }
+
+        @media (min-width: 1024px) {
+          .room-viewer-grid {
+            grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+            grid-template-areas: 'side stage';
+            gap: 32px;
+          }
+        }
+
+        .pills-container {
+          grid-area: side;
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          overflow-x: auto;
+          scroll-snap-type: x proximity;
+          scrollbar-width: none;
+          margin-inline: calc(-1 * clamp(16px, 4vw, 48px));
+          padding-inline: clamp(16px, 4vw, 48px);
+        }
+
+        .pills-container::-webkit-scrollbar {
+          display: none;
+        }
+
+        @media (min-width: 1024px) {
+          .pills-container {
+            flex-direction: column;
+            gap: 12px;
+            overflow-x: visible;
+            margin-inline: 0;
+            padding-inline: 0;
+          }
+        }
+
+        .pill-wrapper {
+          min-width: 0;
+          width: 100%;
+        }
+
+        @media (max-width: 1023px) {
+          .pill-wrapper {
+            min-width: 200px;
+            scroll-snap-align: start;
+          }
+        }
+
+        .pill-button {
+          width: 100%;
+          min-height: 44px;
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          color: rgba(255, 255, 255, 0.8);
+          font-family: var(--font-cjk);
+          font-size: 14px;
+          font-weight: 600;
+          text-align: left;
+          cursor: pointer;
+          transition: all ${tokens.duration.base} ${EASE};
+        }
+
+        .pill-button:hover {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(255, 255, 255, 0.16);
+        }
+
+        .pill-button.active {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: ${tokens.colors.green[600]};
+          color: #fff;
+        }
+
+        .pill-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .pill-icon {
+          display: none;
+        }
+
+        @media (min-width: 1024px) {
+          .pill-icon {
+            display: flex;
+            flex: none;
+            width: 18px;
+            height: 18px;
+            align-items: center;
+            justify-content: center;
+            color: currentColor;
+            transition: transform 160ms ${POP};
+          }
+
+          .pill-button.active .pill-icon {
+            transform: rotate(45deg);
+          }
+        }
+
+        .pill-label {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .pill-tag {
+          flex: none;
+          font-size: 11px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding: 4px 9px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          color: rgba(255, 255, 255, 0.72);
+          white-space: nowrap;
+        }
+
+        .pill-panel {
+          display: none;
+        }
+
+        @media (min-width: 1024px) {
+          .pill-button.active .pill-panel {
+            display: block;
+            margin-top: 16px;
+          }
+        }
+
+        .pill-main {
+          font-size: 15px;
+          line-height: 1.4;
+          color: rgba(255, 255, 255, 0.9);
+          margin: 0 0 16px;
+          overflow-wrap: anywhere;
+        }
+
+        .eternity-switch {
+          display: flex;
+          gap: 4px;
+          padding: 4px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.06);
+          margin-bottom: 16px;
+        }
+
+        .eternity-btn {
+          flex: 1;
+          min-height: 44px;
+          padding: 10px 16px;
+          border-radius: 999px;
+          border: none;
+          background: transparent;
+          color: ${tokens.colors.text};
+          font-family: var(--font-cjk);
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all ${tokens.duration.base} ${EASE};
+        }
+
+        .eternity-btn.active {
+          background: ${tokens.colors.green[600]};
+          color: #000;
+        }
+
+        .equipment-thumbnails {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+
+        .equipment-thumb {
+          aspect-ratio: 4 / 3;
+          border-radius: 12px;
+          border: 2px solid rgba(255, 255, 255, 0.1);
+          overflow: hidden;
+          cursor: pointer;
+          position: relative;
+          background: #000;
+          transition: border-color ${tokens.duration.base} ${EASE};
+        }
+
+        .equipment-thumb.active {
+          border-color: ${tokens.colors.green[600]};
+        }
+
+        .equipment-thumb-label {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 8px;
+          background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+          font-size: 12px;
+          font-weight: 600;
+          color: #fff;
+        }
+
+        .technology-panel {
+          min-width: 0;
+        }
+
+        .technology-intro {
+          font-size: 14px;
+          line-height: 1.6;
+          color: rgba(255, 255, 255, 0.8);
+          margin: 0 0 18px;
+          overflow-wrap: anywhere;
+        }
+
+        .technology-points {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+
+        .technology-point {
+          padding: 16px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .technology-point:last-child {
+          border-bottom: none;
+        }
+
+        .technology-point-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 8px;
+          min-width: 0;
+        }
+
+        .technology-point-icon {
+          flex: none;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          border: 1.5px solid rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        .technology-point-name {
+          flex: 1;
+          font-size: 14px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.95);
+          min-width: 0;
+        }
+
+        .technology-point-desc {
+          font-size: 13px;
+          line-height: 1.6;
+          color: rgba(255, 255, 255, 0.7);
+          margin: 0;
+          overflow-wrap: anywhere;
+        }
+
+        .slider-track-wrapper {
+          margin-top: 24px;
+        }
+
+        .slider-hint {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.6);
+          margin: 0 0 10px;
+        }
+
+        .slider-track {
+          position: relative;
+          height: 6px;
+        }
+
+        .slider-track-bg {
+          position: absolute;
+          inset: 0;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .slider-track-fill {
+          position: absolute;
+          left: 0;
+          top: 0;
+          height: 100%;
+          border-radius: 999px;
+          background: ${tokens.colors.green[600]};
+          transition: width 200ms ${EASE};
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .slider-track-fill {
+            transition: none;
+          }
+        }
+
+        .slider-input {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          cursor: ew-resize;
+          z-index: 2;
+        }
+
+        .slider-thumb {
+          position: absolute;
+          top: 50%;
+          width: 56px;
+          height: 34px;
+          transform: translate(-50%, -50%);
+          border-radius: 999px;
+          background: ${tokens.colors.green[600]};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          font-weight: 600;
+          color: #fff;
+          letter-spacing: 0.1em;
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        .stage {
+          grid-area: stage;
+          position: relative;
+        }
+
+        @media (min-width: 1024px) {
+          .stage {
+            position: sticky;
+            top: var(--navbar-height, 64px);
+            align-self: start;
+          }
+        }
+
+        .stage-inner {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 4 / 3;
+          background: #000;
+          border-radius: 16px;
+          overflow: hidden;
+        }
+
+        @media (max-width: 639px) {
+          .stage-inner {
+            aspect-ratio: 4 / 3;
+          }
+        }
+
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .stage-inner {
+            aspect-ratio: 3 / 2;
+          }
+        }
+
+        .compare-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .compare-layer {
+          position: absolute;
+          inset: 0;
+        }
+
+        .compare-layer-infinity {
+          z-index: 1;
+        }
+
+        .compare-layer-eternity {
+          z-index: 2;
+        }
+
+        .divider-handle {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          transform: translateX(-50%);
+          z-index: 10;
+          pointer-events: none;
+        }
+
+        .divider-line {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 50%;
+          width: 2px;
+          background: rgba(255, 255, 255, 0.95);
+          transform: translateX(-50%);
+        }
+
+        .divider-capsule {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 44px;
+          height: 64px;
+          transform: translate(-50%, -50%);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          font-weight: 600;
+          color: #fff;
+          letter-spacing: 0.1em;
+        }
+
+        .room-label {
+          position: absolute;
+          bottom: 16px;
+          padding: 10px 14px;
+          background: rgba(0, 0, 0, 0.72);
+          backdrop-filter: blur(8px);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          cursor: pointer;
+          transition: opacity 240ms ${EASE};
+          z-index: 5;
+        }
+
+        .room-label-infinity {
+          right: 16px;
+          text-align: right;
+        }
+
+        .room-label-eternity {
+          left: 16px;
+          text-align: left;
+        }
+
+        .room-label-english {
+          font-family: var(--font-display);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.7);
+          margin-bottom: 2px;
+        }
+
+        .room-label-chinese {
+          font-size: 13px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.95);
+          margin-bottom: 2px;
+        }
+
+        .room-label-room {
+          font-size: 10px;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .equipment-stage,
+        .technology-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        .equipment-chip {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          padding: 12px 18px;
+          background: rgba(0, 0, 0, 0.64);
+          backdrop-filter: blur(12px);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          z-index: 5;
+        }
+
+        .equipment-chip-label {
+          font-size: 11px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: rgba(255, 255, 255, 0.6);
+          margin-bottom: 4px;
+        }
+
+        .equipment-chip-title {
+          font-family: var(--font-display);
+          font-size: 16px;
+          font-weight: 700;
+          color: #fff;
+        }
+
+        .equipment-detail-mobile {
+          display: block;
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          padding: 20px;
+          background: linear-gradient(to top, rgba(0, 0, 0, 0.92), transparent);
+        }
+
+        @media (min-width: 1024px) {
+          .equipment-detail-mobile {
+            display: none;
+          }
+        }
+
+        .equipment-detail-text {
+          font-size: 14px;
+          line-height: 1.6;
+          color: rgba(255, 255, 255, 0.9);
+          margin: 0;
+        }
+
+        .equipment-specs {
+          width: 100%;
+          margin-top: 12px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.85);
+          border-collapse: collapse;
+        }
+
+        .equipment-specs th {
+          text-align: left;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.6);
+          padding: 6px 12px 6px 0;
+          white-space: nowrap;
+        }
+
+        .equipment-specs td {
+          padding: 6px 0;
+        }
+
+        .technology-stage {
+          display: grid;
+          place-items: center;
+          background: radial-gradient(
+              ellipse 60% 50% at 50% 48%,
+              rgba(124, 78, 255, 0.50),
+              transparent
+            ),
+            linear-gradient(135deg, #2b1269 0%, #142680 50%, #06061a 100%);
+        }
+
+        .technology-ipad {
+          object-fit: contain;
+          filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.4));
+        }
+
+        @media (max-width: 639px) {
+          .technology-ipad {
+            width: 64% !important;
+          }
+        }
+
+        .image-placeholder {
+          width: 100%;
+          height: 100%;
+          background: rgba(255, 255, 255, 0.02);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: rgba(255, 255, 255, 0.3);
+          font-size: 14px;
+        }
+      `}</style>
     </section>
   )
 }
