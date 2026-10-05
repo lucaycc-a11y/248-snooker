@@ -61,6 +61,15 @@
   --tier-premier-badge-bg: rgba(102, 126, 234, 0.2);
   --tier-premier-badge-text: #a5b4fc;
   --tier-premier-badge-border: rgba(102, 126, 234, 0.4);
+
+  /* Navbar height for scroll offset calculations */
+  --navbar-height: 96px;
+}
+
+@media (max-width: 1023.98px) {
+  :root {
+    --navbar-height: 72px;
+  }
 }
 
 /* Keep text rasterization stable while animated wrappers move. This is in the
