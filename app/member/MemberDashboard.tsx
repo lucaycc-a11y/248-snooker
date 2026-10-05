@@ -925,23 +925,10 @@ function OverviewTab({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: EASE }}
+      className="m8 m8-actions"
     >
       {/* Quick actions — 4 tiles, 2×2 mobile, 1×4 desktop */}
-      <style>{`
-        .quick-actions-grid {
-          display: grid;
-          gap: 12px;
-          grid-auto-rows: 1fr;
-          grid-template-columns: repeat(2, 1fr);
-          margin-bottom: 20px;
-        }
-        @media (min-width: 640px) {
-          .quick-actions-grid {
-            grid-template-columns: repeat(4, 1fr);
-          }
-        }
-      `}</style>
-      <div className="quick-actions-grid">
+      <div className="qa">
         <QuickActionTile
           icon={<HelpCircle size={20} strokeWidth={2} />}
           title="Help"
@@ -1099,6 +1086,7 @@ function QuickActionTile({
 }) {
   return (
     <div
+      className="tile"
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -1108,45 +1096,10 @@ function QuickActionTile({
           onClick();
         }
       } : undefined}
-      style={{
-        minHeight: 104,
-        padding: 16,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        border: `1px solid ${BORDER}`,
-        borderRadius: 14,
-        background: GLASS_BG,
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'transform 0.15s ease, opacity 0.15s ease',
-        position: 'relative',
-      }}
-      onMouseDown={(e) => {
-        if (onClick) {
-          (e.currentTarget as HTMLDivElement).style.transform = 'scale(0.97)';
-        }
-      }}
-      onMouseUp={(e) => {
-        (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.transform = 'scale(1)';
-      }}
     >
-      {/* Top row: icon + badge */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{
-          color: INK,
-          opacity: 0.8,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          {icon}
-        </div>
-
-        {/* Right-top badge or unread count */}
-        <div style={{ minHeight: 20 }}>
+      {/* Top-right badges */}
+      {(badge || (unreadCount !== undefined && unreadCount > 0)) && (
+        <div className="top-r">
           {badge && (
             <span style={{
               fontSize: 11,
@@ -1176,34 +1129,25 @@ function QuickActionTile({
             </span>
           )}
         </div>
+      )}
+
+      {/* Icon */}
+      <div style={{
+        color: INK,
+        opacity: 0.8,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 20,
+        height: 20,
+      }}>
+        {icon}
       </div>
 
       {/* Bottom: title + subtitle */}
       <div>
-        <div
-          style={{
-            fontFamily: 'var(--gt)',
-            fontSize: 14,
-            fontWeight: 400,
-            letterSpacing: '0.02em',
-            color: INK,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            marginBottom: 2,
-          }}
-        >
-          {title}
-        </div>
-        <div style={{
-          fontSize: 12.5,
-          color: SUBTLE,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}>
-          {subtitle}
-        </div>
+        <div className="tt">{title}</div>
+        <div className="ts">{subtitle}</div>
       </div>
     </div>
   );

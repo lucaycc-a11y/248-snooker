@@ -50,7 +50,13 @@ export default function WalletPage() {
         return
       }
       const data = await res.json()
-      setBalance(data.balance)
+      // API returns flat { balance, held, available, memberCode, ledger }
+      setBalance({
+        balance: data.balance,
+        held: data.held,
+        available: data.available,
+        memberCode: data.memberCode
+      })
       setLedgerItems(data.ledger.items)
       setHasMore(data.ledger.hasMore)
       setNextCursor(data.ledger.nextCursor)
