@@ -118,20 +118,20 @@ export default function DeleteDataModal({ isOpen, onClose }: DeleteDataModalProp
   };
 
   const btn = (primary: boolean, disabled: boolean): React.CSSProperties => ({
-    padding: "12px 20px", minHeight: 44, borderRadius: "10px", fontSize: "15px",
+    padding: "12px 20px", minHeight: 44, borderRadius: "14px", fontSize: "15px",
     fontWeight: primary ? 600 : 500, cursor: disabled ? "not-allowed" : "pointer",
-    border: primary ? "none" : "1px solid rgba(255,255,255,0.2)",
+    border: primary ? "none" : "1px solid rgba(255,255,255,0.18)",
     background: primary ? (disabled ? "rgba(255,69,58,0.35)" : "#FF453A") : "rgba(255,255,255,0.05)",
-    color: "#fff", opacity: disabled ? 0.6 : 1,
+    color: "#FFFFFF", opacity: disabled ? 0.6 : 1,
   });
-  const muted: React.CSSProperties = { fontSize: "15px", lineHeight: 1.6, color: "#A1A1A6" };
-  const titleStyle: React.CSSProperties = { fontSize: "22px", fontWeight: 600, color: "#f5f5f7", margin: "0 0 16px" };
+  const muted: React.CSSProperties = { fontSize: "15px", lineHeight: 1.6, color: "rgba(255,255,255,0.72)" };
+  const titleStyle: React.CSSProperties = { fontSize: "22px", fontWeight: 600, color: "#FFFFFF", margin: "0 0 16px" };
 
   const errorBox = error && (
-    <div role="alert" style={{ background: "rgba(255,69,58,0.1)", border: "1px solid rgba(255,69,58,0.3)", borderRadius: "8px", padding: "12px", margin: "0 0 16px", color: "#FF453A", fontSize: "14px" }}>
+    <div role="alert" style={{ background: "rgba(255,69,58,0.1)", border: "1px solid rgba(255,69,58,0.3)", borderRadius: "12px", padding: "12px", margin: "0 0 16px", color: "#FF453A", fontSize: "14px" }}>
       <p style={{ margin: 0 }}>{error}</p>
       {(errorCode === "active_bookings" || errorCode === "no_email" || errorCode === "email_failed") && (
-        <a href={SITE_CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: "8px", color: "#25d366", fontWeight: 600 }} data-cms-key="deleteAccount.contact_support">
+        <a href={SITE_CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-block", marginTop: "8px", color: "#25D366", fontWeight: 600 }} data-cms-key="deleteAccount.contact_support">
           {t("contact_support")}
         </a>
       )}
@@ -147,10 +147,10 @@ export default function DeleteDataModal({ isOpen, onClose }: DeleteDataModalProp
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-account-title"
-        style={{ position: "relative", background: "#1a1a1a", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.1)", maxWidth: "480px", width: "90%", padding: "32px", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
+        style={{ position: "relative", background: "#1A1A1A", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.1)", maxWidth: "480px", width: "90%", padding: "32px", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={handleClose} disabled={busy} aria-label={t("cancel")} style={{ position: "absolute", top: "12px", right: "12px", background: "transparent", border: "none", color: "#A1A1A6", cursor: busy ? "not-allowed" : "pointer", padding: "10px" }}>
+        <button onClick={handleClose} disabled={busy} aria-label={t("cancel")} style={{ position: "absolute", top: "12px", right: "12px", background: "transparent", border: "none", color: "rgba(255,255,255,0.72)", cursor: busy ? "not-allowed" : "pointer", padding: "10px" }}>
           <X size={20} />
         </button>
 
@@ -164,7 +164,7 @@ export default function DeleteDataModal({ isOpen, onClose }: DeleteDataModalProp
                   <li key={k} data-cms-key={`deleteAccount.${k}`}>{t(k)}</li>
                 ))}
               </ul>
-              <p style={{ margin: 0, color: "#f5f5f7" }} data-cms-key="deleteAccount.active_note">{t("active_note")}</p>
+              <p style={{ margin: 0, color: "#FFFFFF" }} data-cms-key="deleteAccount.active_note">{t("active_note")}</p>
             </div>
             {errorBox}
             <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
@@ -193,13 +193,13 @@ export default function DeleteDataModal({ isOpen, onClose }: DeleteDataModalProp
               placeholder={t("code_placeholder")}
               onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
               disabled={busy}
-              style={{ width: "100%", minHeight: 52, padding: "0 16px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.15)", background: "rgba(0,0,0,0.3)", color: "#fff", fontSize: "24px", letterSpacing: "8px", textAlign: "center", marginBottom: "12px", boxSizing: "border-box" }}
+              style={{ width: "100%", minHeight: 52, padding: "0 16px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.18)", background: "rgba(0,0,0,0.3)", color: "#FFFFFF", fontSize: "24px", letterSpacing: "8px", textAlign: "center", marginBottom: "12px", boxSizing: "border-box" }}
             />
             {errorBox}
             <button
               onClick={() => sendCode("verify")}
               disabled={busy || cooldown > 0}
-              style={{ background: "transparent", border: "none", color: cooldown > 0 ? "#6b6b70" : "#A1A1A6", fontSize: "14px", padding: "8px 0", marginBottom: "16px", cursor: busy || cooldown > 0 ? "default" : "pointer", textDecoration: "underline" }}
+              style={{ background: "transparent", border: "none", color: cooldown > 0 ? "rgba(255,255,255,0.52)" : "rgba(255,255,255,0.72)", fontSize: "14px", padding: "8px 0", marginBottom: "16px", cursor: busy || cooldown > 0 ? "default" : "pointer", textDecoration: "underline" }}
             >
               {cooldown > 0 ? t("resend_in", { seconds: cooldown }) : t("resend")}
             </button>

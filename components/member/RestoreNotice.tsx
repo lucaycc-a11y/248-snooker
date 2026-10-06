@@ -29,13 +29,13 @@ export default function RestoreNotice() {
   return (
     <div
       role="status"
-      style={{ position: "fixed", left: "50%", bottom: "24px", transform: "translateX(-50%)", zIndex: 9998, width: "min(440px, calc(100% - 32px))", background: "#1a1a1a", border: "1px solid rgba(34,197,94,0.35)", borderRadius: "16px", padding: "20px", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
+      style={{ position: "fixed", left: "50%", bottom: "24px", transform: "translateX(-50%)", zIndex: 9998, width: "min(440px, calc(100% - 32px))", background: "#1A1A1A", border: "1px solid rgba(37,211,102,0.12)", borderRadius: "20px", padding: "20px", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
     >
-      <p style={{ margin: "0 0 6px", color: "#f5f5f7", fontSize: "16px", fontWeight: 600 }} data-cms-key="deleteAccount.restored_title">{t("restored_title")}</p>
-      <p style={{ margin: "0 0 14px", color: "#A1A1A6", fontSize: "14px", lineHeight: 1.6 }} data-cms-key="deleteAccount.restored_body">{t("restored_body")}</p>
+      <p style={{ margin: "0 0 6px", color: "#FFFFFF", fontSize: "16px", fontWeight: 600 }} data-cms-key="deleteAccount.restored_title">{t("restored_title")}</p>
+      <p style={{ margin: "0 0 14px", color: "rgba(255,255,255,0.72)", fontSize: "14px", lineHeight: 1.6 }} data-cms-key="deleteAccount.restored_body">{t("restored_body")}</p>
       <button
         onClick={() => setShow(false)}
-        style={{ minHeight: 40, padding: "0 16px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "#f5f5f7", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
+        style={{ minHeight: 40, padding: "0 16px", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.18)", background: "transparent", color: "#FFFFFF", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
         data-cms-key="deleteAccount.dismiss"
       >
         {t("dismiss")}
