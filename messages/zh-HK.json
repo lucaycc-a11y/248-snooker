@@ -3415,6 +3415,7 @@
     "show_password": "顯示密碼",
     "hide_password": "隱藏密碼",
     "form_submit": "更新密碼",
+    "sending": "發送中…",
     "saving": "更新中…",
     "invalid_title": "連結已失效",
     "invalid_body": "此連結已過期或已被使用。請重新索取重設密碼連結。",

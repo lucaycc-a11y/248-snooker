@@ -6,9 +6,10 @@ import { requestResetForCurrentUser } from '@/app/reset-password/actions'
 
 // Settings「更改密碼」row. No current-password form: it emails the same reset
 // link as「忘記密碼？」to the account email, which is resolved server-side.
-export function ChangePasswordRow() {
+// Single i18n namespace on purpose: scripts/check-i18n-keys.ts resolves every
+// t() in a file against the first useTranslations() namespace it finds.
+export function ChangePasswordRow({ withSection = false }: { withSection?: boolean }) {
   const t = useTranslations('resetPassword')
-  const tAuth = useTranslations('auth')
   const inFlight = useRef(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -48,7 +49,7 @@ export function ChangePasswordRow() {
     }
   }
 
-  return (
+  const row = (
     <div>
       <button
         type="button"
@@ -58,7 +59,7 @@ export function ChangePasswordRow() {
         className="flex min-h-[44px] w-full items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-left text-white transition-colors hover:bg-white/10 disabled:cursor-default disabled:opacity-60"
       >
         <span className="text-sm">
-          {busy ? tAuth('sending') : cooldown > 0 ? t('resend_in', { seconds: cooldown }) : t('settings_row')}
+          {busy ? t('sending') : cooldown > 0 ? t('resend_in', { seconds: cooldown }) : t('settings_row')}
         </span>
         <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -68,5 +69,16 @@ export function ChangePasswordRow() {
         {message ?? t('settings_hint')}
       </p>
     </div>
+  )
+
+  if (!withSection) return row
+
+  return (
+    <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
+      <h2 data-cms-key="resetPassword.settings_section" className="mb-4 text-lg font-bold text-white">
+        {t('settings_section')}
+      </h2>
+      {row}
+    </section>
   )
 }

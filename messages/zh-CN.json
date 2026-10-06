@@ -3270,6 +3270,7 @@
     "show_password": "显示密码",
     "hide_password": "隐藏密码",
     "form_submit": "更新密码",
+    "sending": "发送中…",
     "saving": "更新中…",
     "invalid_title": "链接已失效",
     "invalid_body": "此链接已过期或已被使用。请重新获取重设密码链接。",

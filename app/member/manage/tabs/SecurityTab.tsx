@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
-import { useTranslations } from 'next-intl'
 import { ChangePasswordRow } from '@/components/member/change-password-row'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -18,7 +17,6 @@ type Identity = {
 }
 
 export function SecurityTab() {
-  const tReset = useTranslations('resetPassword')
   const supabase = createClient()
   const [identities, setIdentities] = useState<Identity[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,10 +51,7 @@ export function SecurityTab() {
   return (
     <div className="space-y-6">
       {/* Password */}
-      <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
-        <h2 data-cms-key="resetPassword.settings_section" className="mb-4 text-lg font-bold text-white">{tReset('settings_section')}</h2>
-        <ChangePasswordRow />
-      </section>
+      <ChangePasswordRow withSection />
 
       {/* Connected Social Apps */}
       <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">

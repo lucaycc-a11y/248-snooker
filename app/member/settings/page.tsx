@@ -15,7 +15,6 @@ import { ChangePasswordRow } from '@/components/member/change-password-row'
 // ════════════════════════════════════════════════════════════════════════════
 
 export default function SettingsPage() {
-  const tReset = useTranslations('resetPassword')
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
@@ -173,10 +172,7 @@ export default function SettingsPage() {
           </section>
 
           {/* Password — email-link reset only (Part B2) */}
-          <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
-            <h2 data-cms-key="resetPassword.settings_section" className="mb-4 text-lg font-bold text-white">{tReset('settings_section')}</h2>
-            <ChangePasswordRow />
-          </section>
+          <ChangePasswordRow withSection />
 
           {/* Sign Out */}
           <section className="space-y-3">

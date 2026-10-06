@@ -3268,6 +3268,7 @@
     "show_password": "Show password",
     "hide_password": "Hide password",
     "form_submit": "Update password",
+    "sending": "Sending…",
     "saving": "Updating…",
     "invalid_title": "Link no longer valid",
     "invalid_body": "This link has expired or was already used. Request a new reset link.",
