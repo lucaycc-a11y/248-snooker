@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { routing } from '@/i18n/routing'
 import MemberIcons from '@/components/member/MemberIcons'
+import RestoreNotice from '@/components/member/RestoreNotice'
 import './member-ui.css'
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -39,6 +40,7 @@ export default async function MemberLayout({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <MemberIcons />
+      <RestoreNotice />
       {children}
     </NextIntlClientProvider>
   )
