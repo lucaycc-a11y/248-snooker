@@ -207,7 +207,9 @@
     "subtitle": "Continue to your booking and member access.",
     "error_missing_code": "Sign-in didn't complete. Please try again.",
     "error_oauth": "We couldn't sign you in. Please try again.",
-    "error_generic": "Something went wrong. Please try again."
+    "error_generic": "Something went wrong. Please try again.",
+    "forgot_password": "Forgot password?",
+    "reset_success": "Password updated and every device signed out. Sign in with your new password."
   },
   "comingSoon": {
     "brand": "SPACE8",
@@ -3248,5 +3250,37 @@
     "err_code_expired": "That code has expired. Request a new one.",
     "err_too_many_attempts": "Too many attempts. Request a new code.",
     "err_generic": "Something went wrong. Please try again."
+  },
+  "resetPassword": {
+    "settings_section": "Password & security",
+    "request_title": "Forgot password",
+    "request_body": "Enter your account email and we'll send you a link to reset your password.",
+    "request_submit": "Send reset link",
+    "sent_title": "Check your email",
+    "sent_body": "If a Space8 account uses that address, we have sent instructions. The link expires in 60 minutes.",
+    "resend": "Send again",
+    "resend_in": "Send again in {seconds}s",
+    "back_to_login": "Back to sign in",
+    "form_title": "Set a new password",
+    "form_body": "Choose a new password for your Space8 account.",
+    "new_password": "New password",
+    "confirm_password": "Confirm new password",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "form_submit": "Update password",
+    "saving": "Updating…",
+    "invalid_title": "Link no longer valid",
+    "invalid_body": "This link has expired or was already used. Request a new reset link.",
+    "resend_link": "Send a new link",
+    "err_email": "Enter a valid email address.",
+    "err_mismatch": "The passwords don't match.",
+    "err_cooldown": "Please wait a moment before sending again.",
+    "err_rate_limited": "Too many attempts. Please try again later.",
+    "err_send": "We couldn't send the email right now. Please try again later.",
+    "err_update": "We couldn't update your password. Please try again.",
+    "settings_row": "Change password",
+    "settings_hint": "We'll email a change-password link to your account address.",
+    "settings_sent": "If your account has an email, the link is on its way. Check your inbox.",
+    "settings_no_email": "There's no email on this account, so we can't send a link. Please contact support."
   }
 }

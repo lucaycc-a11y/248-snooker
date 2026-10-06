@@ -1,48 +1,36 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { Resend } from 'resend'
+import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 import { withSecurity } from '@/lib/security/api-wrapper'
+import { clientIp } from '@/lib/rate-limit'
+import { requestPasswordReset, toEmailLocale } from '@/lib/auth/password-reset'
 
 // ════════════════════════════════════════════════════════════════════════════
 // POST /api/member/request-password-change
-// Sends magic link email for password change
+// Emails the signed-in user a password reset link via the single email-link
+// flow (lib/auth/password-reset.ts). Kept for older callers; it no longer
+// uses Supabase's built-in mailer.
 // ════════════════════════════════════════════════════════════════════════════
 
-async function handleRequestPasswordChange() {
+async function handleRequestPasswordChange(request: Request) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const supabase = await createRouteHandlerClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
     if (!user || !user.email) {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     }
 
-    // Generate password reset link via Supabase
-    const { data, error } = await supabase.auth.resetPasswordForEmail(user.email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
-    })
+    const locale = toEmailLocale((await cookies()).get('NEXT_LOCALE')?.value)
+    const result = await requestPasswordReset({ email: user.email, ip: clientIp(request), locale })
 
-    if (error) throw error
-
-    // Send email via Resend (instantiate inside handler to avoid build-time errors)
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    await resend.emails.send({
-      from: 'Space8 <noreply@space8.com.hk>',
-      to: user.email,
-      subject: '更改密碼 / Change Password',
-      html: `
-        <h2>更改密碼 / Change Password</h2>
-        <p>請點擊以下連結更改您的密碼 / Click the link below to change your password:</p>
-        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password">更改密碼 / Change Password</a>
-        <p>此連結將於 1 小時後失效 / This link expires in 1 hour.</p>
-      `,
-    })
-
-    return NextResponse.json({ success: true })
+    if (result.ok) return NextResponse.json({ success: true })
+    if (result.error === 'cooldown' || result.error === 'rate_limited') {
+      return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
+    }
+    return NextResponse.json({ error: 'send_failed' }, { status: 502 })
   } catch (error) {
-    console.error('[request-password-change] Error:', error)
+    console.error('[request-password-change] Error:', error instanceof Error ? error.message : 'unknown')
     return NextResponse.json({ error: 'server_error' }, { status: 500 })
   }
 }

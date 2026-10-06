@@ -61,6 +61,7 @@ export function AuthCard({
   onAuthComplete: () => void
 }) {
   const t = useTranslations("auth")
+  const tLogin = useTranslations("login")
   const [phase, setPhase] = useState<Phase>("methods")
   const [contact, setContact] = useState("")
   const [phone, setPhone] = useState("")
@@ -869,6 +870,14 @@ export function AuthCard({
             {busy ? t("sending") : t("sign_in_password")}
           </button>
           {error && <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
+          {/* Password reset is only possible through the emailed link (Part B2). */}
+          <a
+            href="/reset-password"
+            data-cms-key="login.forgot_password"
+            style={{ minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center", color: GREEN, fontSize: 13, textDecoration: "none" }}
+          >
+            {tLogin("forgot_password")}
+          </a>
           <button
             type="button"
             onClick={() => { setPhase("contact"); setError(null); setPassword("") }}

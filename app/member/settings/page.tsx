@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { IdentityLockedNote } from '@/components/member/IdentityLockedNote'
 import { useTranslations } from 'next-intl'
 import DeleteDataModal from '@/components/member/DeleteDataModal'
+import { ChangePasswordRow } from '@/components/member/change-password-row'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Settings Page — Name, phone (RO), email (RO), notifications, language, sign out
@@ -14,6 +15,7 @@ import DeleteDataModal from '@/components/member/DeleteDataModal'
 // ════════════════════════════════════════════════════════════════════════════
 
 export default function SettingsPage() {
+  const tReset = useTranslations('resetPassword')
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
@@ -168,6 +170,12 @@ export default function SettingsPage() {
                 </select>
               </div>
             </div>
+          </section>
+
+          {/* Password — email-link reset only (Part B2) */}
+          <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
+            <h2 data-cms-key="resetPassword.settings_section" className="mb-4 text-lg font-bold text-white">{tReset('settings_section')}</h2>
+            <ChangePasswordRow />
           </section>
 
           {/* Sign Out */}

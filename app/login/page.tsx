@@ -39,6 +39,7 @@ export default async function LoginPage({
   const errorParam = params.error;
   const returnUrl = safeReturnUrl(Array.isArray(returnUrlParam) ? returnUrlParam[0] : returnUrlParam ?? null);
   const error = Array.isArray(errorParam) ? errorParam[0] ?? null : errorParam ?? null;
+  const resetSuccess = params.reset === "success";
 
   // /login lives OUTSIDE the [locale] segment (bypassed by middleware), so the
   // intl request locale is never set. Resolve it from the NEXT_LOCALE cookie and
@@ -52,7 +53,7 @@ export default async function LoginPage({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <main className="relative flex min-h-screen items-center justify-center bg-black px-4 py-24 text-white" style={{ isolation: "isolate" }}>
         <AmbientGlow />
-        <LoginForm returnUrl={returnUrl} error={error} />
+        <LoginForm returnUrl={returnUrl} error={error} resetSuccess={resetSuccess} />
       </main>
     </NextIntlClientProvider>
   );

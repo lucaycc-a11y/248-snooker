@@ -207,7 +207,9 @@
     "subtitle": "繼續你的預訂和會員服務。",
     "error_missing_code": "登入未完成，請重試。",
     "error_oauth": "無法登入，請重試。",
-    "error_generic": "出錯了，請重試。"
+    "error_generic": "出錯了，請重試。",
+    "forgot_password": "忘記密碼？",
+    "reset_success": "密碼已更新，所有裝置已登出。請以新密碼登入。"
   },
   "comingSoon": {
     "brand": "SPACE8",
@@ -3395,5 +3397,37 @@
     "err_code_expired": "驗證碼已過期，請重新發送。",
     "err_too_many_attempts": "嘗試次數過多，請重新發送驗證碼。",
     "err_generic": "發生錯誤，請稍後再試。"
+  },
+  "resetPassword": {
+    "settings_section": "密碼與安全",
+    "request_title": "忘記密碼",
+    "request_body": "請輸入帳戶的電郵地址，我們會將重設密碼的連結發送給你。",
+    "request_submit": "發送重設連結",
+    "sent_title": "請查看電郵",
+    "sent_body": "如該電郵地址已註冊 Space8 帳戶，我們已發送相關指示。連結將於 60 分鐘後失效。",
+    "resend": "重新發送",
+    "resend_in": "{seconds} 秒後可重新發送",
+    "back_to_login": "返回登入",
+    "form_title": "設定新密碼",
+    "form_body": "請為你的 Space8 帳戶設定新密碼。",
+    "new_password": "新密碼",
+    "confirm_password": "確認新密碼",
+    "show_password": "顯示密碼",
+    "hide_password": "隱藏密碼",
+    "form_submit": "更新密碼",
+    "saving": "更新中…",
+    "invalid_title": "連結已失效",
+    "invalid_body": "此連結已過期或已被使用。請重新索取重設密碼連結。",
+    "resend_link": "重新發送連結",
+    "err_email": "請輸入有效的電郵地址。",
+    "err_mismatch": "兩次輸入的密碼不一致。",
+    "err_cooldown": "請稍候片刻再重新發送。",
+    "err_rate_limited": "嘗試次數過多，請稍後再試。",
+    "err_send": "暫時未能發送電郵，請稍後再試。",
+    "err_update": "未能更新密碼，請再試一次。",
+    "settings_row": "更改密碼",
+    "settings_hint": "我們會將更改密碼的連結發送至你的帳戶電郵。",
+    "settings_sent": "如帳戶已設定電郵，連結已發送，請查看收件箱。",
+    "settings_no_email": "帳戶未設定電郵，未能發送連結。請聯絡客服。"
   }
 }

@@ -33,9 +33,11 @@ function errorKey(error: string | null): string | null {
 export default function LoginForm({
   returnUrl,
   error = null,
+  resetSuccess = false,
 }: {
   returnUrl: string;
   error?: string | null;
+  resetSuccess?: boolean;
 }) {
   const router = useRouter();
   const t = useTranslations("login");
@@ -124,6 +126,26 @@ export default function LoginForm({
           }}
         >
           {t(errKey)}
+        </div>
+      )}
+
+      {resetSuccess && errKey === null && (
+        <div
+          role="status"
+          data-cms-key="login.reset_success"
+          style={{
+            marginBottom: 20,
+            padding: "10px 14px",
+            borderRadius: 12,
+            background: "rgba(34,197,94,0.08)",
+            border: "1px solid rgba(34,197,94,0.3)",
+            color: "#22c55e",
+            fontSize: 13,
+            textAlign: "center",
+            lineHeight: 1.5,
+          }}
+        >
+          {t("reset_success")}
         </div>
       )}
 

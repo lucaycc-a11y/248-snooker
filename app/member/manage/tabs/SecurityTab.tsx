@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslations } from 'next-intl'
+import { ChangePasswordRow } from '@/components/member/change-password-row'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Security Tab — Password, OAuth (Google + Apple), Login Activity (stub)
@@ -16,6 +18,7 @@ type Identity = {
 }
 
 export function SecurityTab() {
+  const tReset = useTranslations('resetPassword')
   const supabase = createClient()
   const [identities, setIdentities] = useState<Identity[]>([])
   const [loading, setLoading] = useState(true)
@@ -51,18 +54,8 @@ export function SecurityTab() {
     <div className="space-y-6">
       {/* Password */}
       <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
-        <h2 className="mb-4 text-lg font-bold text-white">密碼</h2>
-        <a
-          href="/auth/change-password"
-          className="block rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white transition-colors hover:bg-white/10"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm">更改密碼</span>
-            <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </a>
+        <h2 data-cms-key="resetPassword.settings_section" className="mb-4 text-lg font-bold text-white">{tReset('settings_section')}</h2>
+        <ChangePasswordRow />
       </section>
 
       {/* Connected Social Apps */}
