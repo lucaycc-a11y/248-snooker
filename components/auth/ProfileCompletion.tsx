@@ -122,7 +122,10 @@ export function ProfileCompletion({
   // optional in this mode since the user's identity is already established via auth.
   const showEmail = missingContact !== "phone" && !verifiedEmail
   const showPhone = missingContact !== "email" && !verifiedPhone
-  const showName = !missingContact // name only required in legacy (full-profile) mode
+  // Ask for the name only when the login method didn't supply one. submit()
+  // always validates name, so hiding an empty name field was a dead end for
+  // SMS users (Apple/Google pass full_name through).
+  const showName = !missingContact || !initialName.trim()
 
   const effectiveEmail = showEmail ? email : (verifiedEmail ?? initialEmail)
   const effectivePhone = showPhone ? phone : (verifiedPhone ?? initialPhone)
@@ -142,7 +145,7 @@ export function ProfileCompletion({
   let emailValid = false
 
   if (showName) {
-    // Full gate: name + email + phone
+    // Name is missing (or legacy full gate): validate exactly what submit() sends
     const validation = validateProfile({ name, email: effectiveEmail, phone: effectivePhone })
     canSubmit = validation.ok && !saving
     phoneValid = validation.ok || (validation.ok === false && validation.field !== "phone")
@@ -193,7 +196,10 @@ export function ProfileCompletion({
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
-        if (res.status === 422 && j.field) {
+        // Only label a field this form actually renders. An unknown field used to
+        // fall through to err_phone, which is how a server-side date_of_birth
+        // rejection surfaced as a phone error on the name step.
+        if (res.status === 422 && (j.field === "name" || j.field === "email" || j.field === "phone")) {
           setErrField(j.field)
           setErrMsg(j.field === "name" ? labels.err_name : j.field === "email" ? labels.err_email : labels.err_phone)
         } else {
@@ -488,12 +494,11 @@ export function ProfileCompletion({
               </span>
               <input
                 value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                onChange={(e) => setPhone(e.target.value)}
                 placeholder={labels.phone}
                 autoComplete="tel-national"
                 inputMode="numeric"
-                pattern="[0-9]{8}"
-                maxLength={8}
+                maxLength={20}
                 required
                 disabled={phoneConfirmed}
                 aria-label={labels.phone}
