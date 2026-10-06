@@ -2299,6 +2299,17 @@ export type Database = {
       }
     }
     Functions: {
+      admin_change_user_identity: {
+        Args: {
+          p_admin_user_id: string
+          p_new_email: string | null
+          p_new_phone: string | null
+          p_override?: boolean
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_unlock_phone: {
         Args: { p_phone: string }
         Returns: {

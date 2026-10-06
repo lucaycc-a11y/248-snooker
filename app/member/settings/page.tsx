@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { IdentityLockedNote } from '@/components/member/IdentityLockedNote'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Settings Page — Name, phone (RO), email (RO), notifications, language, sign out
@@ -125,16 +126,11 @@ export default function SettingsPage() {
               <div>
                 <label className="text-sm text-white/50">電話 (只讀)</label>
                 <p className="mt-1 text-white">{profile?.phone ?? '未設定'}</p>
-                <a href="/auth/change-phone" className="mt-1 text-xs text-[#22c55e] underline">
-                  更改電話
-                </a>
               </div>
               <div>
                 <label className="text-sm text-white/50">電郵 (只讀)</label>
                 <p className="mt-1 text-white">{profile?.email ?? '未設定'}</p>
-                <a href="/auth/change-email" className="mt-1 text-xs text-[#22c55e] underline">
-                  更改電郵
-                </a>
+                <IdentityLockedNote />
               </div>
             </div>
           </section>

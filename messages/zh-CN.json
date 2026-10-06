@@ -666,7 +666,9 @@
     "settings_change_no_email": "未能发送邮件，请稍后再试",
     "settings_change_link_sent": "验证链接已发送至您的邮箱",
     "settings_change_resend_in": "重新发送 ({seconds}秒)",
-    "settings_change_phone": "更改电话号码"
+    "settings_change_phone": "更改电话号码",
+    "settings_identity_locked_note": "如需更改电话或电邮，请通过 WhatsApp 联系客服。",
+    "settings_identity_locked_link": "WhatsApp 联系客服"
   },
   "nav": {
     "home": "主页",

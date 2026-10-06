@@ -1671,21 +1671,11 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
     setHasActiveBookings(hasActive);
   }, [bookings]);
 
-  // ── Email-link change requests (phone + password) ──────────────────────────
-  // Phone and password can no longer be changed from this form. Both route
-  // through /api/auth/change-request, which emails a single-use link to the
-  // address on the account. The change itself happens on the linked page.
-  const [phoneSending, setPhoneSending] = useState(false);
-  const [phoneMessage, setPhoneMessage] = useState<string | null>(null);
-  const [phoneCooldown, setPhoneCooldown] = useState(0);
+  // ── Email-link change requests (password only) ─────────────────────────────
+  // Password routes through /api/auth/change-request, which emails a single-use
+  // link to the address on the account. Phone/email are admin-only via WhatsApp
+  // support (see docs/admin-identity-change.md).
   const [pwCooldown, setPwCooldown] = useState(0);
-
-  // Visible countdown for the phone-change request button
-  useEffect(() => {
-    if (phoneCooldown <= 0) return;
-    const id = window.setTimeout(() => setPhoneCooldown((c) => c - 1), 1000);
-    return () => window.clearTimeout(id);
-  }, [phoneCooldown]);
 
   // Visible countdown for the password-change request button
   useEffect(() => {
@@ -1733,13 +1723,12 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
   };
 
   // ── Request a change link ─────────────────────────────────────────────────
-  // Both 更改電話 and 更改密碼 hit the same endpoint with a different purpose.
   // The response is deliberately identical whether or not an email exists, so
   // the UI shows the same confirmation either way (no account enumeration).
-  const requestChangeLink = async (purpose: "phone" | "password") => {
-    const setSending = purpose === "phone" ? setPhoneSending : setPwSending;
-    const setMessage = purpose === "phone" ? setPhoneMessage : setPwMessage;
-    const setCooldown = purpose === "phone" ? setPhoneCooldown : setPwCooldown;
+  const requestChangeLink = async (purpose: "password") => {
+    const setSending = setPwSending;
+    const setMessage = setPwMessage;
+    const setCooldown = setPwCooldown;
 
     setSending(true);
     setMessage(null);
@@ -1822,36 +1811,19 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
         <input value={user.phone ?? ""} readOnly style={{ ...inputStyle, color: SUBTLE, cursor: "not-allowed" }} inputMode="tel" aria-label={t("settings_phone")} />
       </Field>
 
-      {/* Change phone — emails a single-use link; the change happens there */}
-      <button
-        type="button"
-        onClick={() => requestChangeLink("phone")}
-        disabled={phoneSending || phoneCooldown > 0}
-        style={{
-          minHeight: 48,
-          borderRadius: "12px",
-          border: `1px solid ${BORDER}`,
-          background: "transparent",
-          color: phoneCooldown > 0 ? SUBTLE : INK,
-          fontSize: "15px",
-          fontWeight: 600,
-          cursor: phoneSending || phoneCooldown > 0 ? "default" : "pointer",
-          opacity: phoneSending ? 0.6 : 1,
-        }}
-        data-cms-key="member.settings_change_phone"
-      >
-        {phoneCooldown > 0
-          ? t("settings_change_resend_in", { seconds: phoneCooldown })
-          : phoneSending
-            ? t("sending")
-            : t("settings_change_phone")}
-      </button>
-
-      {phoneMessage && (
-        <p style={{ fontSize: "13px", color: SUBTLE, margin: 0 }} role="status">
-          {phoneMessage}
-        </p>
-      )}
+      {/* Phone/email changes are now admin-only via WhatsApp support (Part B1) */}
+      <p style={{ fontSize: "13px", color: SUBTLE, margin: 0 }} data-cms-key="memberPage.settings_identity_locked_note">
+        {t("settings_identity_locked_note")}{" "}
+        <a
+          href={SITE_CONTACT.whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: GREEN, textDecoration: "underline" }}
+          data-cms-key="memberPage.settings_identity_locked_link"
+        >
+          {t("settings_identity_locked_link")}
+        </a>
+      </p>
 
       {/* Notifications */}
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px" }}>

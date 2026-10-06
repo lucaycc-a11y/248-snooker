@@ -666,7 +666,9 @@
     "settings_change_no_email": "Failed to send email, please try again later",
     "settings_change_link_sent": "Verification link sent to your email",
     "settings_change_resend_in": "Resend in {seconds}s",
-    "settings_change_phone": "Change Phone Number"
+    "settings_change_phone": "Change Phone Number",
+    "settings_identity_locked_note": "To change your phone number or email, please contact customer service on WhatsApp.",
+    "settings_identity_locked_link": "Contact us on WhatsApp"
   },
   "nav": {
     "home": "Home",
