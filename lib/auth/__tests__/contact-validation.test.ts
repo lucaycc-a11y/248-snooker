@@ -11,7 +11,7 @@ import {
 describe('detectContactType', () => {
   it('detects phone numbers starting with digit', () => {
     expect(detectContactType('59114212')).toBe('phone')
-    expect(detectContactType('2123 4567')).toBe('phone')
+    expect(detectContactType('9123 4567')).toBe('phone')
   })
 
   it('detects phone numbers starting with +', () => {
@@ -50,18 +50,15 @@ describe('validateEmail', () => {
 describe('validateHkPhone', () => {
   it('validates correct HK phone numbers', () => {
     expect(validateHkPhone('59114212')).toBe(true)
-    expect(validateHkPhone('2123 4567')).toBe(true)
     expect(validateHkPhone('5911 4212')).toBe(true)
     expect(validateHkPhone('+85259114212')).toBe(true)
   })
 
-  it('validates all valid starting digits', () => {
-    expect(validateHkPhone('21234567')).toBe(true) // 2
-    expect(validateHkPhone('31234567')).toBe(true) // 3
+  // Mobile-only policy (owner decision 2026-10-06): 5/6/7/9.
+  it('validates all accepted starting digits', () => {
     expect(validateHkPhone('51234567')).toBe(true) // 5
     expect(validateHkPhone('61234567')).toBe(true) // 6
     expect(validateHkPhone('71234567')).toBe(true) // 7
-    expect(validateHkPhone('81234567')).toBe(true) // 8
     expect(validateHkPhone('91234567')).toBe(true) // 9
   })
 
@@ -69,7 +66,11 @@ describe('validateHkPhone', () => {
     expect(validateHkPhone('1234567')).toBe(false) // 7 digits
     expect(validateHkPhone('123456789')).toBe(false) // 9 digits
     expect(validateHkPhone('11234567')).toBe(false) // starts with 1
+    expect(validateHkPhone('21234567')).toBe(false) // landline 2
+    expect(validateHkPhone('2123 4567')).toBe(false) // landline 2, spaced
+    expect(validateHkPhone('31234567')).toBe(false) // landline 3
     expect(validateHkPhone('41234567')).toBe(false) // starts with 4
+    expect(validateHkPhone('81234567')).toBe(false) // starts with 8
     expect(validateHkPhone('abcd1234')).toBe(false) // contains letters
   })
 })

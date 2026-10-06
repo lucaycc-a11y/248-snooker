@@ -1,5 +1,5 @@
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { normalizePhone } from '@/lib/phone'
+import { normalizeHkPhone } from '@/lib/auth/phone-normalizer'
 
 export type PhoneBindingResult =
   | { ok: true; alreadyVerified?: boolean }
@@ -36,7 +36,9 @@ export async function bindVerifiedPhone(
   userId: string,
   rawPhone: string,
 ): Promise<PhoneBindingResult> {
-  const e164 = normalizePhone(rawPhone)
+  // Same rule as login and profile save; libphonenumber accepted numbers the
+  // rest of the flow rejects (and vice versa).
+  const e164 = normalizeHkPhone(rawPhone)
   if (!e164) {
     console.warn('[bindVerifiedPhone] normalize failed', { ts: Date.now() })
     return { ok: false, error: 'phone_invalid' }

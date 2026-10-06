@@ -328,52 +328,13 @@ export function AuthCard({
       return "email"
     }
 
-    // Phone detection: handle multiple formats for autofill compatibility
-    // 1. Pure 8 digits: 66009975
-    // 2. With 852 prefix: 85266009975 (11 digits starting with 852)
-    // 3. With +852 prefix: +85266009975 (autofill format)
-    const digitsOnly = trimmed.replace(/\D/g, "")
-
-    // Check: exactly 8 digits
-    if (digitsOnly.length === 8 && /^\d{8}$/.test(digitsOnly)) {
-      return "phone"
-    }
-
-    // Check: 11 digits starting with 852 (852 + 8 digits)
-    if (digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
-      return "phone"
-    }
-
-    // Check: +852 format (will be 12 chars with +, 11 digits without)
-    if (trimmed.startsWith("+852") && digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
-      return "phone"
-    }
-
-    return "unknown"
+    // Phone: same normaliser as profile save and the OTP routes, so a number the
+    // login screen accepts is always one the rest of the flow accepts too.
+    return normalizeHkPhone(trimmed) ? "phone" : "unknown"
   }
 
-  // Extract normalized phone number from various input formats
-  const extractPhoneNumber = (input: string): string => {
-    const trimmed = input.trim()
-    const digitsOnly = trimmed.replace(/\D/g, "")
-
-    // If it's 11 digits starting with 852, extract last 8 digits
-    if (digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
-      return `+852${digitsOnly.slice(3)}`
-    }
-
-    // If it's 8 digits, prepend +852
-    if (digitsOnly.length === 8) {
-      return `+852${digitsOnly}`
-    }
-
-    // Fallback: return as-is if already has +852
-    if (trimmed.startsWith("+852")) {
-      return trimmed
-    }
-
-    return `+852${digitsOnly}`
-  }
+  // Only called after detectContactType returned "phone", so this never yields "".
+  const extractPhoneNumber = (input: string): string => normalizeHkPhone(input) ?? ""
 
   // Unified send function that detects format and routes appropriately
   const sendContactOtp = async () => {
