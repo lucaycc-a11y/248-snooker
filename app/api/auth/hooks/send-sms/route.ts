@@ -111,22 +111,14 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // DEBUG: Log the phone format Supabase sent to the hook
-  console.log('[DEBUG send_sms_hook] Supabase sent phone:', JSON.stringify(user.phone))
-
   // Detect language from user metadata (set during profile completion)
   // or default to zh_HK
   const language = (user.user_metadata?.locale as string | undefined) || 'zh_HK'
 
-  // 🔍 DEBUG: Log the EXACT OTP code Supabase sent us
-  console.log('[DEBUG send_sms_hook] Supabase OTP code:', sms.otp)
-  console.log('[DEBUG send_sms_hook] Will send to Engagelab with variables.code:', sms.otp)
-
+  // Never log sms.otp: Vercel runtime logs are readable by every team member,
+  // and a logged code is a usable login for its 10-minute lifetime.
   try {
     const result = await sendSupabaseOtpViaEngagelab(user.phone, sms.otp, language)
-
-    // 🔍 DEBUG: Log Engagelab's complete response
-    console.log('[DEBUG send_sms_hook] Engagelab response:', JSON.stringify(result))
 
     console.info(JSON.stringify({
       event: 'send_sms_hook.success',
@@ -134,8 +126,6 @@ export async function POST(req: NextRequest) {
       phone: user.phone.replace(/\d{4}$/, '****'), // Mask last 4 digits for privacy
       messageId: result.message_id,
       channel: result.send_channel,
-      // 🔍 Keep OTP in log for debugging (mask in production later)
-      otpSent: sms.otp,
     }))
 
     // Supabase requires Content-Type: application/json header even for empty response
