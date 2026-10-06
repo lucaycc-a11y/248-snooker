@@ -1,3 +1,26 @@
+/**
+ * QR block, substituted into {{qrImageHtml}}. The image is an inline PNG attachment
+ * referenced by cid: — Gmail strips data: URIs and inline SVG. The white table uses a
+ * bgcolor attribute (not CSS only) so dark-mode clients don't invert the code.
+ */
+export const bookingConfirmationQrImageHtml = (cid: string) => `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="margin:0 auto;background-color:#ffffff;border-radius:16px;">
+                  <tr>
+                    <td bgcolor="#ffffff" style="padding:12px;background-color:#ffffff;border-radius:16px;">
+                      <img src="cid:${cid}" alt="Entry QR Code" width="240" height="240" style="display:block;width:240px;height:240px;border:0;outline:none;text-decoration:none;" />
+                    </td>
+                  </tr>
+                </table>
+                <p style="color:#a3a3a3;font-size:13px;margin:12px 0 0;line-height:1.5;">
+                  到場時掃描此 QR Code 即可開門入場<br/>
+                  Scan this QR code at the door for entry
+                </p>`
+
+/** Shown instead of the QR when generation/attachment fails — never a broken <img>. */
+export const bookingConfirmationQrUnavailableHtml = `<p style="color:#a3a3a3;font-size:13px;margin:0;line-height:1.5;">
+                  QR Code 暫時無法於電郵顯示，請前往會員頁查看<br/>
+                  QR code unavailable in this email — please view it in your member page
+                </p>`
+
 export const bookingConfirmationTemplate = `<!DOCTYPE html>
 <html lang="zh-HK">
 <head>
@@ -33,13 +56,12 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
                 <h2 style="color:#22c55e;font-size:16px;font-weight:600;margin:0 0 12px;">
                   入場 QR Code
                 </h2>
-                <div style="background-color:#ffffff;border-radius:16px;padding:16px;display:inline-block;box-shadow:0 0 20px rgba(34,197,94,0.15);">
-                  <img src="{{qrCodeUrl}}" alt="Entry QR Code" width="240" height="240" style="display:block;margin:0 auto;" />
+                {{qrImageHtml}}
+                <div style="text-align:center;margin-top:16px;">
+                  <a href="{{memberEntryUrl}}" style="display:inline-block;color:#22c55e;font-size:13px;font-weight:600;text-decoration:none;padding:8px 16px;border:1px solid #22c55e;border-radius:10px;">
+                    前往會員頁查看 View in Member Page
+                  </a>
                 </div>
-                <p style="color:#a3a3a3;font-size:13px;margin:12px 0 0;line-height:1.5;">
-                  到場時掃描此 QR Code 即可開門入場<br/>
-                  Scan this QR code at the door for entry
-                </p>
               </div>
 
               <!-- Room & Time -->

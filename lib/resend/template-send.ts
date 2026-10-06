@@ -4,7 +4,11 @@ import { getTableName } from '@/lib/booking/constants'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import QRCode from 'qrcode'
 import { getStripe } from '@/lib/stripe/server'
-import { bookingConfirmationTemplate } from './templates/booking-confirmation'
+import {
+  bookingConfirmationTemplate,
+  bookingConfirmationQrImageHtml,
+  bookingConfirmationQrUnavailableHtml,
+} from './templates/booking-confirmation'
 import { SITE_CONTACT } from '@/lib/site/contact'
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
@@ -12,6 +16,16 @@ import { SITE_CONTACT } from '@/lib/site/contact'
 const VENUE_ADDRESS = 'Room 05, 3/f, Laurels Industrial Centre, Tai Yau Street 32, San Po Kong, Hong Kong'
 const GOOGLE_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Tai+Lik+Industrial+Centre+32+Tai+Yau+Street+San+Po+Kong+Hong+Kong'
 const WHATSAPP_FALLBACK = SITE_CONTACT.phoneDigits
+const QR_CONTENT_ID = 'space8-entry-qr'
+/** Rendered at 240px in the email; 480px keeps it sharp on 2x displays. */
+const QR_PNG_WIDTH = 480
+
+type InlineAttachment = {
+  filename: string
+  content: Buffer
+  contentType: string
+  inlineContentId: string
+}
 
 /**
  * Human-readable labels for payment_method values.
@@ -124,6 +138,24 @@ async function getWhatsAppNumber(): Promise<string> {
   return WHATSAPP_FALLBACK
 }
 
+/** Record a QR failure in notification_log — non-fatal, never blocks the send. */
+async function logQrFailure(userId: string, bookingId: string, errorMessage: string): Promise<void> {
+  try {
+    const supabase = getLegacyServiceSupabase()
+    const { error } = await supabase.from('notification_log').insert({
+      user_id: userId,
+      booking_id: bookingId,
+      channel: 'email',
+      type: 'booking_confirmed_qr',
+      status: 'failed',
+      error_message: errorMessage.slice(0, 500),
+    })
+    if (error) console.error('[template-send] notification_log insert failed', { bookingId, error: error.message })
+  } catch (e) {
+    console.error('[template-send] notification_log insert threw', { bookingId, error: e instanceof Error ? e.message : String(e) })
+  }
+}
+
 /* ── Template rendering ───────────────────────────────────────────────────── */
 
 /**
@@ -160,6 +192,8 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
   subject: string
   to: string
   locale: string
+  attachments: InlineAttachment[]
+  userId: string
 }> {
   const supabase = getLegacyServiceSupabase()
 
@@ -219,45 +253,37 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     : ''
 
   // QR code image — encodes the user's member_code so every QR is the universal
-  // member identifier, not a booking-specific code.
+  // member identifier, not a booking-specific code (same value as the member card QR).
   const qrContent = user.member_code
   if (!qrContent) {
     throw new Error(`missing_member_code: user ${booking.user_id} has no member_code`)
   }
 
-  let qrCodeUrl: string
+  // PNG sent as an inline (cid:) attachment. Gmail strips data: URIs and inline SVG,
+  // and the payload must never appear in a public URL. On failure the email still
+  // sends with a text fallback instead of a broken <img>, and the error is logged.
+  let attachments: InlineAttachment[] = []
+  let qrImageHtml: string
   try {
-    // Generate QR as SVG with SPACE8 logo embedded
-    const svg = await QRCode.toString(qrContent, {
-      type: 'svg',
-      margin: 2,
-      errorCorrectionLevel: 'H', // High error correction needed for logo overlay
-      color: { dark: '#0a0a0a', light: '#ffffff' },
-      width: 500,
-    })
-
-    // Embed SPACE8 logo in the center with white backing.
-    // Logo is inlined as a base64 data URI — an external href would not resolve
-    // when the outer SVG is itself embedded as a data:image/svg+xml;base64,… URL.
-    const logoDataUri =
-      'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAwIDEwMDAiPgogIDxkZWZzPgogICAgPHN0eWxlPgogICAgICAuY2xzLTEgewogICAgICAgIGZpbGw6ICNmZmY7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM5MS4zMSw3ODYuMTFjLTk0LjExLDAtMTU1LjA4LTY4LjQ4LTE1NS4wOC0xNzMuMTYsMC02Ni45LDMxLjgxLTExMi41NSw3NS41NS0xMjkuMDgtMzUuNzktMTMuMzgtNjYuMjctNDkuNTktNjYuMjctMTIyLDAtOTcuNiw2MS42My0xNDcuOTcsMTU1LjA4LTE0Ny45N2gxOTguODFjOTMuNDQsMCwxNTUuNzQsNTAuMzcsMTU1Ljc0LDE0Ny45NywwLDcyLjQxLTMxLjE1LDEwOC42Mi02Ni45MywxMjIsNDMuNzQsMTYuNTMsNzUuNTUsNjIuMTgsNzUuNTUsMTI5LjA4LDAsMTA0LjY4LTYwLjk3LDE3My4xNi0xNTUuMDgsMTczLjE2aC0yMTcuMzdaTTM5NC42Myw1MzcuMzljLTQ3LjA1LDAtNzMuNTYsMjYuNzYtNzMuNTYsNzMuOTksMCw0OS41OSwzNy43Nyw3NC43Nyw5MC43OSw3NC43N2gxNzYuMjhjNTMuMDIsMCw5MC43OS0yNS4xOSw5MC43OS03NC43N3MtMjYuNTEtNzMuOTktNzMuNTYtNzMuOTloLTIxMC43NFpNNDE2LjUsMzEzLjA3Yy01NS4wMSwwLTg2LjE1LDE4LjEtODYuMTUsNzAuODQsMCw0OS41OSwyMi41Myw2OS4yNiw3MC4yNSw2OS4yNmgxOTguODFjNDcuNzIsMCw3MC4yNS0xOS42OCw3MC4yNS02OS4yNiwwLTUyLjc0LTMxLjE1LTcwLjg0LTg2LjE1LTcwLjg0aC0xNjdaIi8+CiAgPGc+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik01MDkuNCw1Mi4xNWMtMjE2LjIyLDAtMzk4LjMsMTQzLjI0LTQ1Mi44NCwzMzguMTZoLTE5Ljc5QzkwLjcsMTg0Ljg5LDI3Ny42NSwzMy4zNSw1MDAsMzMuMzVzNDA5LjMsMTUxLjUzLDQ2My4yNCwzNTYuOTZoLTFjLTU0LjU0LTE5NC45My0yMzYuNjItMzM4LjE2LTQ1Mi44NC0zMzguMTZaIi8+CiAgICA8cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik05NzkuMTUsNDAyLjU4aC0yNi4yMmwtMi41MS04Ljk2Yy01NC4yMy0xOTMuODMtMjM1LjU5LTMyOS4yLTQ0MS4wMi0zMjkuMlMxMjIuNiwxOTkuNzksNjguMzcsMzkzLjYybC0yLjUxLDguOTZIMjAuODVsNC4wNC0xNS4zOWMxMy42NS01MiwzNS42OS0xMDEuMTYsNjUuNTEtMTQ2LjExLDI5LjMzLTQ0LjIyLDY1LjQyLTgzLjI0LDEwNy4yNi0xMTUuOTYsNDIuMjYtMzMuMDUsODkuMjYtNTguNzgsMTM5LjY3LTc2LjQ3LDUyLjE2LTE4LjMsMTA2Ljg4LTI3LjU4LDE2Mi42Ni0yNy41OHMxMTAuNTEsOS4yOCwxNjIuNjYsMjcuNThjNTAuNDEsMTcuNjksOTcuNDEsNDMuNDIsMTM5LjY3LDc2LjQ3LDQxLjg0LDMyLjcyLDc3LjkzLDcxLjc0LDEwNy4yNiwxMTUuOTYsMjkuODIsNDQuOTUsNTEuODYsOTQuMTEsNjUuNTEsMTQ2LjExbDQuMDQsMTUuMzlaIi8+CiAgPC9nPgogIDxnPgogICAgPHBhdGggY2xhc3M9ImNscy0xIiBkPSJNNTA5LjQsOTQ3Ljg1Yy0yMTYuMjIsMC0zOTguMy0xNDMuMjQtNDUyLjg0LTMzOC4xNmgtMTkuNzljNTMuOTQsMjA1LjQzLDI0MC44OSwzNTYuOTYsNDYzLjI0LDM1Ni45NnM0MDkuMy0xNTEuNTMsNDYzLjI0LTM1Ni45NmgtMWMtNTQuNTQsMTk0LjkzLTIzNi42MiwzMzguMTYtNDUyLjg0LDMzOC4xNloiLz4KICAgIDxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTUwMCw5NzguOTJjLTU1Ljc4LDAtMTEwLjUxLTkuMjgtMTYyLjY2LTI3LjU4LTUwLjQxLTE3LjY5LTk3LjQxLTQzLjQyLTEzOS42Ny03Ni40Ny00MS44NC0zMi43Mi03Ny45My03MS43NC0xMDcuMjYtMTE1Ljk2LTI5LjgyLTQ0Ljk1LTUxLjg2LTk0LjExLTY1LjUxLTE0Ni4xMWwtNC4wNC0xNS4zOWg0NS4wMWwyLjUxLDguOTZjNTQuMjMsMTkzLjgzLDIzNS41OSwzMjkuMiw0NDEuMDMsMzI5LjJzMzg2Ljc5LTEzNS4zNyw0NDEuMDItMzI5LjJsMi41MS04Ljk2aDI2LjIybC00LjA0LDE1LjM5Yy0xMy42NSw1Mi0zNS42OSwxMDEuMTYtNjUuNTEsMTQ2LjExLTI5LjMzLDQ0LjIyLTY1LjQyLDgzLjI0LTEwNy4yNiwxMTUuOTYtNDIuMjYsMzMuMDUtODkuMjYsNTguNzgtMTM5LjY3LDc2LjQ3LTUyLjE2LDE4LjMtMTA2Ljg4LDI3LjU4LTE2Mi42NiwyNy41OFoiLz4KICA8L2c+Cjwvc3ZnPg=='
-    const brandedSvg = svg.replace(
-      '</svg>',
-      `<rect x="42.5%" y="42.5%" width="15%" height="15%" rx="3" fill="#ffffff"/><image href="${logoDataUri}" x="44%" y="44%" width="12%" height="12%" preserveAspectRatio="xMidYMid meet"/></svg>`,
-    )
-
-    // Convert SVG to data URL for email embedding
-    qrCodeUrl = `data:image/svg+xml;base64,${Buffer.from(brandedSvg).toString('base64')}`
-  } catch (qrErr) {
-    // Fallback to plain QR if logo embedding fails
-    console.warn('[template-send] QR generation failed, falling back to plain QR', { bookingId, error: (qrErr as Error).message })
-    qrCodeUrl = await QRCode.toDataURL(qrContent, {
-      errorCorrectionLevel: 'H',
-      type: 'image/png',
-      width: 500,
+    const png = await QRCode.toBuffer(qrContent, {
+      type: 'png',
+      errorCorrectionLevel: 'M',
       margin: 4,
-      color: { dark: '#0a0a0a', light: '#ffffff' },
+      width: QR_PNG_WIDTH,
+      color: { dark: '#000000', light: '#ffffff' },
     })
+    attachments = [{
+      filename: 'space8-entry-qr.png',
+      content: png,
+      contentType: 'image/png',
+      inlineContentId: QR_CONTENT_ID,
+    }]
+    qrImageHtml = bookingConfirmationQrImageHtml(QR_CONTENT_ID)
+  } catch (qrErr) {
+    const message = qrErr instanceof Error ? qrErr.message : String(qrErr)
+    console.error('[template-send] QR PNG generation failed, sending without QR', { bookingId, error: message })
+    await logQrFailure(booking.user_id, bookingId, `qr_generation_failed: ${message}`)
+    qrImageHtml = bookingConfirmationQrUnavailableHtml
   }
 
   // Booking detail URL — link to member dashboard
@@ -283,7 +309,7 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
     '{{durationHours}}': String(durationHours),
     '{{bookingReference}}': booking.booking_reference ?? '',
     '{{humanCode}}': booking.human_code ?? '',
-    '{{qrCodeUrl}}': qrCodeUrl,
+    '{{qrImageHtml}}': qrImageHtml,
     '{{totalPrice}}': String(totalPrice),
     '{{paymentMethod}}': paymentMethodDisplay,
     '{{paymentMethodIconHtml}}': paymentMethodIconHtml,
@@ -298,26 +324,40 @@ async function renderBookingConfirmationHtml(bookingId: string): Promise<{
 
   const subject = `預約確認 · Space8 · ${bookingDate} ${startTime}–${endTime}`
 
-  return { html, subject, to: customerEmail, locale }
+  return { html, subject, to: customerEmail, locale, attachments, userId: booking.user_id }
 }
 
-export async function sendBookingConfirmation(bookingId: string): Promise<void> {
-  const { html, subject, to } = await renderBookingConfirmationHtml(bookingId)
+export async function sendBookingConfirmation(bookingId: string): Promise<{ emailId: string | null }> {
+  const rendered = await renderBookingConfirmationHtml(bookingId)
+  const { subject, to, userId } = rendered
+  let { html, attachments } = rendered
 
   if (!to) {
     console.warn('[template-send] no recipient email, skipping send', { bookingId })
-    return
+    return { emailId: null }
   }
 
   const resend = getResend()
   const supabase = getLegacyServiceSupabase()
+  const from = 'SPACE8 <no-reply@space8.com.hk>'
 
-  await resend.emails.send({
-    from: 'SPACE8 <no-reply@space8.com.hk>',
-    to,
-    subject,
-    html,
-  })
+  let result = await resend.emails.send({ from, to, subject, html, attachments })
+
+  // If Resend rejected the request while an attachment was present, retry once
+  // without it (and without the cid: image) so the confirmation still arrives.
+  if (result.error && attachments.length > 0) {
+    const firstError = result.error.message
+    console.error('[template-send] send with QR attachment failed, retrying without QR', { bookingId, error: firstError })
+    await logQrFailure(userId, bookingId, `qr_attachment_failed: ${firstError}`)
+    html = html.replace(bookingConfirmationQrImageHtml(QR_CONTENT_ID), bookingConfirmationQrUnavailableHtml)
+    attachments = []
+    result = await resend.emails.send({ from, to, subject, html })
+  }
+
+  if (result.error) {
+    // Throw so callers' existing catch blocks log it instead of recording "sent".
+    throw new Error(`resend_send_failed: ${result.error.message}`)
+  }
 
   // Stamp sent time — non-fatal
   await supabase
@@ -325,6 +365,7 @@ export async function sendBookingConfirmation(bookingId: string): Promise<void> 
     .update({ confirmation_email_sent_at: new Date().toISOString() })
     .eq('id', bookingId)
 
-  console.log('[template-send] booking confirmation email sent', { bookingId, to })
+  const emailId = result.data?.id ?? null
+  console.log('[template-send] booking confirmation email sent', { bookingId, to, emailId, qrAttached: attachments.length > 0 })
+  return { emailId }
 }
-
