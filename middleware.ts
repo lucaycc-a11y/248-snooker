@@ -156,8 +156,8 @@ async function checkPasswordGate(
     const responseCookies = new Map<string, string>()
     response.headers.getSetCookie().forEach((cookie) => {
       const [nameValue] = cookie.split(';')
-      const [name, value] = nameValue.split('=')
-      if (name && value) responseCookies.set(name.trim(), value.trim())
+      const eq = nameValue.indexOf('=')
+      if (eq > 0) responseCookies.set(nameValue.slice(0, eq).trim(), nameValue.slice(eq + 1).trim())
     })
 
     const supabase = createServerClient(
@@ -194,17 +194,26 @@ async function checkPasswordGate(
     // Check if password is set
     const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
     const service = getLegacyServiceSupabase()
-    const { data: status } = await service
+    const { data: status, error: statusError } = await service
       .from('user_password_status')
       .select('password_set')
       .eq('user_id', user.id)
       .maybeSingle<{ password_set: boolean }>()
+    // Fail open: a DB blip must not force a user who has a password to set one again.
+    if (statusError) {
+      console.error('[password-gate] status lookup failed:', statusError.message)
+      return null
+    }
 
     // Password not set → check if user authenticated via OAuth
     if (!status?.password_set) {
       // OAuth users (Apple, Google) don't need passwords — allow them through
       // Only redirect if this is a non-OAuth account that hasn't set a password yet
-      const { data: authUser } = await service.auth.admin.getUserById(user.id)
+      const { data: authUser, error: authUserError } = await service.auth.admin.getUserById(user.id)
+      if (authUserError) {
+        console.error('[password-gate] getUserById failed:', authUserError.message)
+        return null
+      }
       const identities = authUser?.user?.identities || []
       const hasOAuth = identities.some(i => i.provider === 'google' || i.provider === 'apple')
 
