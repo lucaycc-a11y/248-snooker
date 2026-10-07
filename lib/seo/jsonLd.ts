@@ -5,6 +5,11 @@ const BASE = "https://space8.com.hk";
 const GEO = { lat: 22.3372097, lng: 114.1973068 };
 
 import { SITE_CONTACT } from "@/lib/site/contact";
+import { MAIN_PHOTOS } from "@/lib/seo/imageManifest";
+import { IN_LANGUAGE } from "@/lib/seo/site";
+
+// Raster logo (Google's logo guidelines prefer PNG/JPG over SVG).
+const LOGO_URL = `${BASE}/favicon/web-app-manifest-512x512.png`;
 
 const SAME_AS = ["https://www.instagram.com/248snooker"];
 
@@ -57,10 +62,11 @@ export function buildSportsClubJsonLd(
     },
     priceRange: `$${minPrice}-$${maxPrice}`,
     sameAs: SAME_AS,
-    inLanguage: ["zh-HK", "zh-CN", "en"],
+    image: MAIN_PHOTOS.map((src) => `${BASE}${encodeURI(src)}`),
+    logo: LOGO_URL,
+    inLanguage: IN_LANGUAGE,
     amenityFeature: [
       { "@type": "LocationFeatureSpecification", name: "Self-service booking", value: true },
-      { "@type": "LocationFeatureSpecification", name: "Apple Pay", value: true },
       { "@type": "LocationFeatureSpecification", name: "Smoke-free", value: true },
     ],
   };

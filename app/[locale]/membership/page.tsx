@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageAlternates } from "@/lib/seo/site";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
@@ -32,15 +33,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical: `${BASE}${path}`,
-      languages: {
-        "zh-HK": `${BASE}/membership`,
-        "zh-CN": `${BASE}/zh-CN/membership`,
-        en: `${BASE}/en/membership`,
-        "x-default": `${BASE}/membership`,
-      },
-    },
+    alternates: pageAlternates(locale, "/membership"),
     openGraph: {
       title,
       description,

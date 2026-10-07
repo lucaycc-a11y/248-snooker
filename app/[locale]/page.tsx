@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
@@ -120,15 +121,7 @@ export async function generateMetadata({
       description: m.ogDesc,
       images: ['https://space8.com.hk/images/og-image-中八桌球-香港新蒲崗.png'],
     },
-    alternates: {
-      canonical: m.canonical,
-      languages: {
-        'zh-HK': 'https://space8.com.hk',
-        'zh-CN': 'https://space8.com.hk/zh-CN',
-        en: 'https://space8.com.hk/en',
-        'x-default': 'https://space8.com.hk',
-      },
-    },
+    alternates: pageAlternates(locale, "/"),
     robots: { index: true, follow: true },
   };
 }
@@ -152,6 +145,9 @@ export default async function Home({
 
   const slots = periodsToSlots(orderedPeriods, (key: string) => t(key));
   const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, config.periods);
+  // FAQPage schema mirrors exactly the HomeFAQ subset rendered below.
+  const tFaq = await getTranslations("faq");
+  const faqJsonLd = getFaqJsonLd((key: string) => tFaq(key), HOMEPAGE_FAQ_IDS);
 
   const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
@@ -164,6 +160,10 @@ export default async function Home({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(sportsClubJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
       />
       <AmbientGlow />
       <Nav />

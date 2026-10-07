@@ -133,6 +133,8 @@ export default function Hero() {
               }}
             >
               {t("tagline")}
+              {/* Visually hidden: gives the h1 venue/中式桌球 context for search & AT. */}
+              <span className="sr-only" data-cms-key="hero.h1_seo">{t("h1_seo")}</span>
             </h1>
           </div>
 

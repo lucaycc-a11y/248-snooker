@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
@@ -21,12 +22,12 @@ const BASE = "https://space8.com.hk";
 
 const META: Record<string, { title: string; description: string }> = {
   "zh-HK": {
-    title: "場地介紹｜SPACE8 新蒲崗中八球室",
+    title: "場地介紹｜SPACE8 香港新蒲崗中八球室",
     description:
       "SPACE8 場地設施及服務介紹：星牌中八球枱、專業級照明、智能 QR 門禁。全預約制，網上預訂、QR碼自助入場。地址：香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室。",
   },
   "zh-CN": {
-    title: "场地介绍｜SPACE8 新蒲岗中式八球室",
+    title: "场地介绍｜SPACE8 香港新蒲岗中式八球室",
     description:
       "SPACE8 场地设施及服务介绍：星牌中式八球台、专业级照明、智能 QR 门禁。全预约制，网上预订、QR码自助入场。地址：香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室。",
   },
@@ -50,15 +51,7 @@ export async function generateMetadata({
   return {
     title: m.title,
     description: m.description,
-    alternates: {
-      canonical: `${BASE}${path}`,
-      languages: {
-        "zh-HK": `${BASE}/venue`,
-        "zh-CN": `${BASE}/zh-CN/venue`,
-        en: `${BASE}/en/venue`,
-        "x-default": `${BASE}/venue`,
-      },
-    },
+    alternates: pageAlternates(locale, "/venue"),
     openGraph: {
       title: m.title,
       description: m.description,

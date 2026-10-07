@@ -7,7 +7,18 @@ const nextConfig = {
   reactStrictMode: true,
   serverComponentsExternalPackages: ['passkit-generator'],
   async headers() {
+    const noindex = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]
     return [
+      // Staging and preview deployments must never be indexed: uat.* shares
+      // the production database (and its gate row), *.vercel.app mirrors prod.
+      { source: '/:path*', has: [{ type: 'host', value: 'uat.space8.com.hk' }], headers: noindex },
+      { source: '/:path*', has: [{ type: 'host', value: '(?<sub>.*)\\.vercel\\.app' }], headers: noindex },
+      // Private areas: also disallowed in robots.txt; the header covers links
+      // that reach them anyway (robots.txt alone does not prevent indexing).
+      ...['/member', '/admin', '/auth', '/login'].flatMap((p) => [
+        { source: p, headers: noindex },
+        { source: `${p}/:path*`, headers: noindex },
+      ]),
       // Password reset carries a token in its URL — never leak it as a referrer.
       {
         source: '/reset-password',

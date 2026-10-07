@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { pageAlternates } from "@/lib/seo/site";
 import { getTranslations } from 'next-intl/server'
 import dynamic from 'next/dynamic'
 import { getHelpContent } from '@/lib/help/content-loader'
@@ -16,6 +17,7 @@ export async function generateMetadata({ params }: { params: { locale: string } 
   return {
     title: t('meta.title'),
     description: t('meta.description'),
+    alternates: pageAlternates(locale, '/help-center'),
   }
 }
 

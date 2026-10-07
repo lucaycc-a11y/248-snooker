@@ -139,6 +139,8 @@ function HeroHeading({ layout, paused }: { layout: HeroLayout | null; paused: bo
           ))}
         </span>
         <span data-cms-key="aboutPage.hero_suffix">{t("hero_suffix")}</span>
+        {/* Visually hidden: gives the h1 venue/中式桌球 context for search & AT. */}
+        <span className="sr-only" data-cms-key="aboutPage.h1_seo">{t("h1_seo")}</span>
       </h1>
     </div>
   );

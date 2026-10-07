@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
@@ -33,15 +34,7 @@ export async function generateMetadata({
   return {
     title: `${t("page_title")} | Space8`,
     description,
-    alternates: {
-      canonical: `${BASE}${path}`,
-      languages: {
-        "zh-HK": `${BASE}/legal`,
-        "zh-CN": `${BASE}/zh-CN/legal`,
-        en: `${BASE}/en/legal`,
-        "x-default": `${BASE}/legal`,
-      },
-    },
+    alternates: pageAlternates(locale, "/legal"),
     openGraph: {
       title: `${t("page_title")} | Space8`,
       description,

@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://space8.com.hk"),
   title: "SPACE8 · 香港自助中式桌球 06:00-24:00",
   description:
-    "香港自助中式桌球會所。即時預訂，Apple Pay付款，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
+    "香港自助中式桌球會所。即時預訂，多種電子支付，掃碼入場。專業球枱，私人空間，每日 06:00 至 24:00 營業。",
   verification: {
     google: "t5MhRgSpnnNRfckNMeR0y2ycI_HGgay1IalMFu4sUDI",
   },
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "SPACE8",
-    description: "香港首間自助中式桌球會所",
+    description: "香港新蒲崗自助中式桌球會所",
     images: ["/og-image.png"],
   },
   icons: {

@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { pageAlternates } from '@/lib/seo/site'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { getHelpContent, getAllAnnouncementIds } from '@/lib/help/content-loader'
@@ -34,6 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${announcement.title} - ${t('metadata.suffix_help_center')}`,
     description: announcement.summary,
+    alternates: pageAlternates(locale, `/help-center/announcements/${slug}`, { hreflang: false }),
   }
 }
 

@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { pageAlternates } from "@/lib/seo/site";
 import { notFound } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { getTranslations } from 'next-intl/server'
@@ -42,6 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${articleData.title} - ${t('metadata.suffix_help_center')}`,
     description: articleData.summary,
+    alternates: pageAlternates(locale, `/help-center/${topic}/${article}`, { hreflang: false }),
   }
 }
 

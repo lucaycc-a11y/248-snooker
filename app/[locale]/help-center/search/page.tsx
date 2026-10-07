@@ -19,6 +19,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   return {
     title,
     description: t('metadata.search_description'),
+    // Internal search results are thin, query-dependent pages.
+    robots: { index: false, follow: true },
   }
 }
 
