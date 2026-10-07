@@ -71,14 +71,11 @@ export function ProfileCompletion({
     name: string
     email: string
     phone: string
-    date_of_birth: string
-    date_of_birth_hint: string
     submit: string
     saving: string
     err_name: string
     err_email: string
     err_phone: string
-    err_date_of_birth: string
     err_generic: string
     /** Shown when phone was already verified via SMS sign-in, e.g. "Verified". */
     phone_verified_badge: string
@@ -197,8 +194,8 @@ export function ProfileCompletion({
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
         // Only label a field this form actually renders. An unknown field used to
-        // fall through to err_phone, which is how a server-side date_of_birth
-        // rejection surfaced as a phone error on the name step.
+        // fall through to err_phone, which is how a server-side rejection of a
+        // field not on this form surfaced as a phone error on the name step.
         if (res.status === 422 && (j.field === "name" || j.field === "email" || j.field === "phone")) {
           setErrField(j.field)
           setErrMsg(j.field === "name" ? labels.err_name : j.field === "email" ? labels.err_email : labels.err_phone)

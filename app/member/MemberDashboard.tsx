@@ -317,7 +317,6 @@ export default function MemberDashboard({
               member_code: user.member_code,
               unread_notifications: unreadCount,
               gender: null,
-              date_of_birth: null,
               birthday_set: false,
             }}
           />

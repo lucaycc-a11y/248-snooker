@@ -251,7 +251,6 @@ function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
     member_code: 'SPACE8-DEMO-0000',
     unread_notifications: 0,
     gender: null,
-    date_of_birth: null,
     birthday_set: false,
   };
 

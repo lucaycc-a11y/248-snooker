@@ -22,7 +22,6 @@ export type MemberProfile = {
   member_code: string
   unread_notifications: number
   gender: string | null
-  date_of_birth: string | null // ISO date string (YYYY-MM-DD)
   birthday_set: boolean
 }
 

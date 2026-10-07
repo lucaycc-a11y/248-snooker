@@ -23,7 +23,6 @@ export default function CardPreviewPage() {
     email: 'preview@space8.com',
     phone: null,
     gender: null,
-    date_of_birth: null,
     birthday_set: false,
   }
 

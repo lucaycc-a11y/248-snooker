@@ -2071,7 +2071,6 @@ export type Database = {
           birthday_set: boolean
           created_at: string | null
           credits: number
-          date_of_birth: string | null
           display_name: string | null
           email: string | null
           email_verified_at: string | null
@@ -2099,7 +2098,6 @@ export type Database = {
           birthday_set?: boolean
           created_at?: string | null
           credits?: number
-          date_of_birth?: string | null
           display_name?: string | null
           email?: string | null
           email_verified_at?: string | null
@@ -2127,7 +2125,6 @@ export type Database = {
           birthday_set?: boolean
           created_at?: string | null
           credits?: number
-          date_of_birth?: string | null
           display_name?: string | null
           email?: string | null
           email_verified_at?: string | null
