@@ -210,8 +210,8 @@
   },
   "comingSoon": {
     "brand": "SPACE8",
-    "title": "Coming Soon",
-    "subtitle": "Hong Kong's self-service snooker club is almost ready.",
+    "title": "SPACE8",
+    "subtitle": "A self-service, smoke-free smart Chinese eight-ball room in San Po Kong, Hong Kong.",
     "email_placeholder": "Email address",
     "notify_me": "Notify Me",
     "subscribed": "You're on the list.",
@@ -334,6 +334,8 @@
   "blog": {
     "title": "Blog",
     "subtitle": "Snooker tips, venue news, and the latest events.",
+    "meta_description": "SPACE8 Blog: Chinese eight-ball tips, San Po Kong venue news and the latest events in Hong Kong.",
+    "meta_title": "Chinese Eight-Ball Blog | SPACE8 San Po Kong",
     "filter_all": "All",
     "filter_tutorial": "Tutorials",
     "filter_venue": "Venue",
@@ -419,6 +421,7 @@
     ],
     "hero_prefix": "A space for",
     "hero_suffix": ".",
+    "h1_seo": " | SPACE8 Chinese eight-ball room in San Po Kong, Hong Kong",
     "hero_cta_primary": "Book Now",
     "hero_cta_secondary": "View Venue",
     "facilities_title": "Facilities",
@@ -695,6 +698,7 @@
     "cta_book": "Book Now",
     "cta_learn": "Learn More",
     "subline": "A self-service, smoke-free Chinese eight-ball room. No distractions.",
+    "h1_seo": " | SPACE8 self-service Chinese eight-ball room in San Po Kong, Hong Kong",
     "image_alt": "SPACE8 hero image"
   },
   "how": {
@@ -1096,12 +1100,12 @@
     "title": "FAQ",
     "subtitle": "Quick guide to using Space 8",
     "faq_booking_q": "How do I book a table?",
-    "faq_booking_a": "Choose your date, time slot, and duration, then pay instantly with Apple Pay or credit card. You'll receive a QR code immediately. No staff assistance needed.",
+    "faq_booking_a": "Choose your date, time slot, and duration, then pay instantly by credit card or another electronic payment method. You'll receive a QR code immediately. No staff assistance needed.",
     "faq_entry_q": "How do I enter after booking?",
     "faq_entry_a": "After payment is confirmed, you'll receive your unique QR code. Scan it at the door sensor on arrival and the system will open automatically — fully self-service.",
     "faq_cancel_q": "Can I cancel or get a refund?",
     "faq_cancel_a": "Once confirmed, bookings cannot be cancelled, rescheduled, or refunded (except under Typhoon Signal No. 8 or above / Black Rainstorm Warning, when a reschedule may be requested). For full details, see the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3) and [Section 6](/legal?doc=terms#section-6).",
-    "faq_hours_q": "What are the opening hours?",
+    "faq_hours_q": "What are SPACE8's opening hours?",
     "faq_hours_a": "SPACE8 is open daily from 06:00 to 24:00, year-round, including public holidays.",
     "faq_smoking_q": "Is smoking allowed in the room?",
     "faq_smoking_a": "The entire venue is strictly smoke-free (including cigarettes, e-cigarettes, and heated tobacco products) to maintain the highest quality smoke-free environment. If you need to smoke, please use the outdoor area of the building.",
@@ -1119,6 +1123,14 @@
     "faq_guests_a": "Yes, each session can accommodate multiple players. The session fee covers everyone — no extra charge per person.",
     "faq_contact_q": "How do I get in touch?",
     "faq_contact_a": "Reach us via WhatsApp or email at info@space8.com.hk and we'll get back to you as soon as possible.",
+    "faq_zhongba_q": "What is Chinese eight-ball (中八)?",
+    "faq_zhongba_a": "Chinese eight-ball (中八) is an eight-ball game played on a Chinese-style table: each player takes solids or stripes, and the player who clears their group and then pots the black 8 wins. SPACE8's private rooms are fitted with Xing Pai (Star) Chinese eight-ball tables for practice and matches.",
+    "faq_sanpokong_q": "Where can I play Chinese eight-ball in San Po Kong?",
+    "faq_sanpokong_a": "SPACE8 is at Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong — a self-service, smoke-free private Chinese eight-ball room. Reservation only, near MTR Diamond Hill and Kai Tak stations.",
+    "faq_location_q": "Where is SPACE8 and how do I get there?",
+    "faq_location_a": "Address: Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong. About an 8–10 minute walk from MTR Diamond Hill Station Exit A2 or Kai Tak Station Exit C (Airside); Diamond Hill Exit A2 is about 500 m away (recommended route). You can also take a bus or minibus to Tai Yau Street. If driving, we suggest the New Tech Plaza car park (Wilson Parking).",
+    "faq_how_to_book_q": "How do I book and get in?",
+    "faq_how_to_book_a": "SPACE8 is reservation only, and every booking user must register as a member. Choose your date, time slot and duration online and complete payment; your unique QR code is sent to your registered email and is also available under My Bookings in your member account. On arrival, scan the QR code at the entrance to let yourself in.",
     "more": "Learn more"
   },
   "whatsapp": {
@@ -1143,6 +1155,9 @@
   },
   "book": {
     "title": "Book a Session",
+    "h1_seo": "Book a Chinese eight-ball table | SPACE8 San Po Kong, Hong Kong",
+    "meta_description": "Book a private SPACE8 Chinese eight-ball room online: choose your date, time slot and duration, then get a QR code for self check-in. In San Po Kong, Hong Kong, near Diamond Hill and Kai Tak MTR.",
+    "meta_title": "Book a Chinese Eight-Ball Room | SPACE8 San Po Kong",
     "close": "Close",
     "select_table": "Select Table",
     "table_label": "Table",
@@ -2369,8 +2384,8 @@
     "title": "Support Center",
     "subtitle": "Find answers to common questions",
     "meta": {
-      "title": "Help Center - Space8",
-      "description": "Find Space8 FAQs, booking guides, membership information, and venue usage policies"
+      "title": "Help Center | SPACE8 Chinese Eight-Ball, San Po Kong",
+      "description": "Help center for SPACE8, a self-service Chinese eight-ball room in San Po Kong, Hong Kong: FAQs, booking guides, membership information and venue policies."
     },
     "hero": {
       "title": "Hello, how can we help you?",
@@ -2530,7 +2545,7 @@
   },
   "memberIntro": {
     "meta": {
-      "title": "Member · SPACE8",
+      "title": "Membership | SPACE8 Chinese Eight-Ball, San Po Kong",
       "description": "SPACE8 Member: Earn 1 point for every HK$1 spent. 100 points = HK$10 venue credit. New members get 100 bonus points. Book online, QR code check-in, safe and convenient."
     },
     "hero": {

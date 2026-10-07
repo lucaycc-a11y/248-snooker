@@ -210,10 +210,10 @@
   },
   "comingSoon": {
     "brand": "SPACE8",
-    "title": "即将开幕",
-    "subtitle": "香港自助中式台球会所，即将开幕。",
+    "title": "SPACE8",
+    "subtitle": "香港新蒲岗自助无烟智能中式台球室。",
     "email_placeholder": "电子邮箱",
-    "notify_me": "开幕通知我",
+    "notify_me": "登记接收最新消息",
     "subscribed": "已为你登记。",
     "err_email": "请输入正确的电子邮箱地址。",
     "err_generic": "出错了，请重试。",
@@ -334,6 +334,8 @@
   "blog": {
     "title": "Blog",
     "subtitle": "台球技巧、场地信息与最新活动。",
+    "meta_description": "SPACE8 Blog：中式八球（中八）技巧、香港新蒲岗场地信息与最新活动。",
+    "meta_title": "中式台球文章｜SPACE8 香港新蒲岗",
     "filter_all": "全部",
     "filter_tutorial": "教学",
     "filter_venue": "场地信息",
@@ -419,6 +421,7 @@
     ],
     "hero_prefix": "一个",
     "hero_suffix": "的空间",
+    "h1_seo": "｜SPACE8 香港新蒲岗中式台球室",
     "hero_cta_primary": "立即预订",
     "hero_cta_secondary": "查看场地",
     "facilities_title": "场地设施",
@@ -695,6 +698,7 @@
     "cta_book": "立即预订",
     "cta_learn": "了解更多",
     "subline": "自助无烟智能中式台球室，无多余干扰。",
+    "h1_seo": "｜SPACE8 香港新蒲岗自助中式台球室",
     "image_alt": "SPACE8 主视觉图"
   },
   "how": {
@@ -1094,7 +1098,7 @@
   },
   "memberIntro": {
     "meta": {
-      "title": "会员 · SPACE8",
+      "title": "会员计划｜SPACE8 香港新蒲岗中式台球室",
       "description": "SPACE8 会员：每消费 HK$1 累积 1 积分，100 积分 = HK$10 场地抵用额。新会员即享 100 积分迎新奖赏。全预约制，QR 码自助入场，安全可靠。"
     },
     "hero": {
@@ -1181,12 +1185,12 @@
     "title": "常见问题",
     "subtitle": "快速了解 Space 8 的使用方式",
     "faq_booking_q": "如何预订球桌？",
-    "faq_booking_a": "选择日期、时段及时长，以 Apple Pay 或信用卡即时付款，确认后即获 QR 码。全程不需人工协助。",
+    "faq_booking_a": "选择日期、时段及时长，以信用卡或其他电子支付方式即时付款，确认后即获 QR 码。全程不需人工协助。",
     "faq_entry_q": "预订后如何入场？",
     "faq_entry_a": "付款确认后，你将收到专属 QR 码。到场扫描门口感应器，系统自动开门，全程自助。",
     "faq_cancel_q": "可以取消或退款吗？",
     "faq_cancel_a": "所有预约一经确认，一律不设取消、改期或退款（台风 8 号或以上／黑色暴雨警告除外，可申请改期）。详情请参阅《场地使用守则及条款》[第三条](/legal?doc=terms#section-3)及[第六条](/legal?doc=terms#section-6)。",
-    "faq_hours_q": "营业时间是什么？",
+    "faq_hours_q": "SPACE8 营业时间是什么？",
     "faq_hours_a": "每日 06:00 至 24:00 营业，全年无休，包括公众假期。",
     "faq_smoking_q": "球室内禁止吸烟吗？",
     "faq_smoking_a": "本球室全区严格禁烟（包含纸烟、电子烟及加热烟），旨在维护最高品质的无烟环境。若有吸烟需求，请至大厦户外吸烟。",
@@ -1204,6 +1208,14 @@
     "faq_guests_a": "可以，每个时段可容纳多人，费用按时段计算，无需额外收费。",
     "faq_contact_q": "有问题如何联系？",
     "faq_contact_a": "可透过 WhatsApp 联系我们，或发送电邮至 info@space8.com.hk，我们将尽快回复。",
+    "faq_zhongba_q": "什么是中八（中式八球）？",
+    "faq_zhongba_a": "中八即中式八球，是在中式台球桌上进行的八球玩法：双方分别击打全色球或花色球，清台后最后打进黑八者胜。SPACE8 的独立球室配备星牌中式台球桌，适合练习及对战。",
+    "faq_sanpokong_q": "新蒲岗哪里有中式台球室？",
+    "faq_sanpokong_a": "SPACE8 位于香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室，是自助无烟中式台球独立球室，全预约制，邻近港铁钻石山站及启德站。",
+    "faq_location_q": "SPACE8 地址在哪里？如何前往？",
+    "faq_location_a": "地址：香港新蒲岗大有街 32 号泰力工业中心 3 楼 05 室。港铁钻石山站 A2 出口或启德站 Airside C 出口步行约 8–10 分钟，距离钻石山站 A2 出口约 500 米（建议路线）；亦可乘搭巴士或小巴至大有街附近下车。驾车人士建议使用新科技广场停车场（威信停车场）。",
+    "faq_how_to_book_q": "如何预约及入场？",
+    "faq_how_to_book_a": "SPACE8 采用全预约制，所有预约用户均需注册成为会员。在网上选择日期、时段及时长并完成付款，系统会将专属 QR 码发送至你的注册电邮，也可在会员账户「我的预订」查看。到场后在入口扫描 QR 码即可自助入场。",
     "more": "了解更多"
   },
   "whatsapp": {
@@ -1228,6 +1240,9 @@
   },
   "book": {
     "title": "预订时段",
+    "h1_seo": "预约中式台球桌｜SPACE8 香港新蒲岗",
+    "meta_description": "在线预约 SPACE8 中式八球（中八）独立球室：选择日期、时段及时长，付款后即获 QR 码自助入场。位于香港新蒲岗，邻近钻石山及启德港铁站。",
+    "meta_title": "预约中式台球室｜SPACE8 香港新蒲岗",
     "close": "关闭",
     "select_table": "选择球台",
     "table_label": "台号",
@@ -2456,8 +2471,8 @@
     "title": "支持中心",
     "subtitle": "查找常见问题的解答",
     "meta": {
-      "title": "帮助中心 - Space8",
-      "description": "查找 Space8 常见问题解答、预订指南、会员信息及场地使用规则"
+      "title": "帮助中心｜SPACE8 香港新蒲岗中式台球室",
+      "description": "SPACE8 香港新蒲岗自助中式台球室帮助中心：常见问题、预订指南、会员信息及场地使用规则。"
     },
     "hero": {
       "title": "您好，有什么可以协助您？",

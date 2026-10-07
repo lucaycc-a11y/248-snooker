@@ -210,10 +210,10 @@
   },
   "comingSoon": {
     "brand": "SPACE8",
-    "title": "即將開幕",
-    "subtitle": "香港自助中式桌球會所，即將開幕。",
+    "title": "SPACE8",
+    "subtitle": "香港新蒲崗自助無煙智能中式桌球室。",
     "email_placeholder": "電子郵箱",
-    "notify_me": "開幕通知我",
+    "notify_me": "登記接收最新消息",
     "subscribed": "已為你登記。",
     "err_email": "請輸入正確的電子郵箱地址。",
     "err_generic": "出錯了，請重試。",
@@ -334,6 +334,8 @@
   "blog": {
     "title": "Blog",
     "subtitle": "桌球技巧、場地信息與最新活動。",
+    "meta_description": "SPACE8 Blog：中式桌球（中八）技巧、香港新蒲崗場地資訊與最新活動。",
+    "meta_title": "中式桌球文章｜SPACE8 香港新蒲崗",
     "filter_all": "全部",
     "filter_tutorial": "教学",
     "filter_venue": "場地信息",
@@ -419,6 +421,7 @@
     ],
     "hero_prefix": "一個",
     "hero_suffix": "的空間",
+    "h1_seo": "｜SPACE8 香港新蒲崗中式桌球室",
     "hero_cta_primary": "立即預訂",
     "hero_cta_secondary": "查看場地",
     "facilities_title": "場地設施",
@@ -704,6 +707,7 @@
     "cta_book": "立即預訂",
     "cta_learn": "了解更多",
     "subline": "自助無煙智能中式桌球室，無多餘干擾。",
+    "h1_seo": "｜SPACE8 香港新蒲崗自助中式桌球室",
     "image_alt": "SPACE8 香港自助中式桌球會所 專業球枱設施"
   },
   "how": {
@@ -1105,12 +1109,12 @@
     "title": "常見問題",
     "subtitle": "快速了解 Space 8 的使用方式",
     "faq_booking_q": "如何預訂球桌？",
-    "faq_booking_a": "選擇日期、時段及時長，以 Apple Pay 或信用卡即時付款，確認后即獲 QR 碼。全程不需人工協助。",
+    "faq_booking_a": "選擇日期、時段及時長，以信用卡或其他電子支付方式即時付款，確認後即獲 QR 碼。全程不需人工協助。",
     "faq_entry_q": "預訂后如何入場？",
     "faq_entry_a": "付款確認後，你將收到專屬 QR 碼。到場掃描門口感應器，系統自動開門，全程自助。",
     "faq_cancel_q": "可以取消或退款吗？",
     "faq_cancel_a": "所有預約一經確認，一律不設取消、改期或退款（臺風 8 號或以上／黑色暴雨警告除外，可申請改期）。詳情請参阅《場地使用守則及條款》[第三條](/legal?doc=terms#section-3)及[第六條](/legal?doc=terms#section-6)。",
-    "faq_hours_q": "營業時間是什么？",
+    "faq_hours_q": "SPACE8 營業時間是什麼？",
     "faq_hours_a": "每日 06:00 至 24:00 營業，全年無休，包括公众假期。",
     "faq_smoking_q": "球室内禁止吸煙嗎？",
     "faq_smoking_a": "本球室全區嚴格禁煙（包含紙煙、電子煙及加熱煙），旨在維護最高品質的無煙環境。若有吸煙需求，請至大廈戶外吸煙。",
@@ -1128,6 +1132,14 @@
     "faq_guests_a": "可以，每個時段可容納多人，費用按時段計算，無需額外收費。",
     "faq_contact_q": "有問題如何聯繫？",
     "faq_contact_a": "可透過 WhatsApp 聯繫我們，或發送電郵至 info@space8.com.hk，我們將盡快回復。",
+    "faq_zhongba_q": "什麼是中八（中式八球）？",
+    "faq_zhongba_a": "中八即中式八球，是在中式桌球枱上進行的八球玩法：雙方分別擊打全色球或花色球，清枱後最後打進黑八者勝。SPACE8 的獨立球室配備星牌中式桌球枱，適合練習及對戰。",
+    "faq_sanpokong_q": "新蒲崗哪裡有中式桌球室？",
+    "faq_sanpokong_a": "SPACE8 位於香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室，是自助無煙中式桌球獨立球室，全預約制，鄰近港鐵鑽石山站及啟德站。",
+    "faq_location_q": "SPACE8 地址在哪裡？如何前往？",
+    "faq_location_a": "地址：香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室。港鐵鑽石山站 A2 出口或啟德站 Airside C 出口步行約 8–10 分鐘，距離鑽石山站 A2 出口約 500 米（建議路線）；亦可乘搭巴士或小巴至大有街附近下車。駕車人士建議使用新科技廣場停車場（威信停車場）。",
+    "faq_how_to_book_q": "如何預約及入場？",
+    "faq_how_to_book_a": "SPACE8 採用全預約制，所有預約用戶均需註冊成為會員。於網上選擇日期、時段及時長並完成付款，系統會將專屬 QR 碼發送至你的註冊電郵，亦可在會員帳戶「我的預訂」查看。到場後在入口掃描 QR 碼即可自助入場。",
     "more": "了解更多"
   },
   "whatsapp": {
@@ -1152,6 +1164,9 @@
   },
   "book": {
     "title": "預訂時段",
+    "h1_seo": "預約中式桌球枱｜SPACE8 香港新蒲崗",
+    "meta_description": "網上預約 SPACE8 中式桌球（中八）獨立球室：選擇日期、時段及時長，付款後即獲 QR 碼自助入場。位於香港新蒲崗，鄰近鑽石山及啟德港鐵站。",
+    "meta_title": "預約中式桌球室｜SPACE8 香港新蒲崗",
     "close": "關閉",
     "select_table": "選擇球臺",
     "table_label": "臺號",
@@ -2404,8 +2419,8 @@
     "title": "支援中心",
     "subtitle": "查找常見問題的解答",
     "meta": {
-      "title": "幫助中心 - Space8",
-      "description": "查找 Space8 常見問題解答、預訂指南、會員資訊及場地使用規則"
+      "title": "幫助中心｜SPACE8 香港新蒲崗中式桌球室",
+      "description": "SPACE8 香港新蒲崗自助中式桌球室幫助中心：常見問題、預訂指南、會員資訊及場地使用規則。"
     },
     "hero": {
       "title": "您好，有什麼可以協助您？",
@@ -2565,7 +2580,7 @@
   },
   "memberIntro": {
     "meta": {
-      "title": "會員 · SPACE8",
+      "title": "會員計劃｜SPACE8 香港新蒲崗中式桌球室",
       "description": "SPACE8 會員：每消費 HK$1 累積 1 積分，100 積分 = HK$10 場地抵用額。新會員即享 100 積分迎新獎賞。全預約制，QR 碼自助入場，安全可靠。"
     },
     "hero": {
