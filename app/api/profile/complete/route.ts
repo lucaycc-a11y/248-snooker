@@ -49,7 +49,8 @@ export async function POST(req: Request) {
 
     if (!normalizeHkPhone(body?.phone ?? '')) {
       console.warn('[profile/complete] 400 phone_invalid', {
-        rawPhone: body?.phone ?? '(empty)',
+        // Last 3 chars only: a full number in Vercel logs is PII.
+        rawPhoneTail: typeof body?.phone === 'string' ? `***${body.phone.slice(-3)}` : '(empty)',
         phoneType: typeof body?.phone,
       })
       return NextResponse.json({ error: '請提供有效的電話號碼' }, { status: 400 })

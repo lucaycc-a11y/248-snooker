@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
+  maskPhone,
+  resolveHookPhone,
   sendSupabaseOtpViaEngagelab,
   verifySupabaseHookSignature,
   type SendSmsHookPayload,
@@ -98,12 +100,20 @@ export async function POST(req: NextRequest) {
   }
 
   const { user, sms } = payload
+  // Email-signup users adding a phone hit the phone-change flow, where the
+  // number is not in user.phone (Vercel 7 Oct: hasPhone:false hasOtp:true).
+  const phone = resolveHookPhone(payload)
+  const otp = sms?.otp
 
-  if (!user?.phone || !sms?.otp) {
+  if (!phone || !otp) {
+    // Key names only, never values, so one log line diagnoses the shape.
     console.error(JSON.stringify({
       event: 'send_sms_hook.missing_fields',
-      hasPhone: !!user?.phone,
-      hasOtp: !!sms?.otp,
+      hasPhone: !!phone,
+      hasOtp: !!otp,
+      payloadKeys: Object.keys(payload ?? {}),
+      userKeys: Object.keys(user ?? {}),
+      smsKeys: Object.keys(sms ?? {}),
     }))
     return NextResponse.json(
       { error: 'Missing required fields' },
@@ -113,17 +123,17 @@ export async function POST(req: NextRequest) {
 
   // Detect language from user metadata (set during profile completion)
   // or default to zh_HK
-  const language = (user.user_metadata?.locale as string | undefined) || 'zh_HK'
+  const language = (typeof user?.user_metadata?.locale === 'string' ? user.user_metadata.locale : undefined) || 'zh_HK'
 
   // Never log sms.otp: Vercel runtime logs are readable by every team member,
   // and a logged code is a usable login for its 10-minute lifetime.
   try {
-    const result = await sendSupabaseOtpViaEngagelab(user.phone, sms.otp, language)
+    const result = await sendSupabaseOtpViaEngagelab(phone, otp, language)
 
     console.info(JSON.stringify({
       event: 'send_sms_hook.success',
-      userId: user.id,
-      phone: user.phone.replace(/\d{4}$/, '****'), // Mask last 4 digits for privacy
+      userId: user?.id,
+      phone: maskPhone(phone),
       messageId: result.message_id,
       channel: result.send_channel,
     }))
@@ -134,8 +144,8 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     console.error(JSON.stringify({
       event: 'send_sms_hook.engagelab_failed',
-      userId: user.id,
-      phone: user.phone.replace(/\d{4}$/, '****'),
+      userId: user?.id,
+      phone: maskPhone(phone),
       error: error && typeof error === 'object' && 'message' in error
         ? (error as { message: string }).message
         : 'Unknown error',
