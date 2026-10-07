@@ -20,6 +20,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 
 import { SpaceWheel, type SpaceWheelItem } from "@/components/ui/works-wheel";
+import { SpaceWheelIntroSection } from "./space-wheel-intro-section";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -157,7 +158,15 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
 
 // ─── Section ─────────────────────────────────────────────────────────────────
 
-export function SpaceWheelSection() {
+/**
+ * `introRing` (default true) opens the page on the 8-photo ring hero and hands
+ * off into the carousel. `false` renders the section exactly as before.
+ */
+export function SpaceWheelSection({ introRing = true }: { introRing?: boolean } = {}) {
+  return introRing ? <SpaceWheelIntroSection /> : <SpaceWheelCarouselSection />;
+}
+
+function SpaceWheelCarouselSection() {
   const runwayRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   // GSAP writes to this ref every frame; SpaceWheel reads it in its rAF loop.
