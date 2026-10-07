@@ -5,6 +5,7 @@ import { updateSession } from './lib/supabase/middleware'
 import { getSiteGate } from './lib/gate/config'
 import { GATE_COOKIE_NAME, verifyGateCookie } from './lib/gate/cookie'
 import { isValidLocale, getActiveLocale, isLocaleEnabled, ALL_LOCALES } from './i18n/enabled-locales'
+import { checkOnboardingGate, isOnboardingGatedPath, type OnboardingRow } from './lib/auth/onboarding-gate'
 
 const intlMiddleware = createMiddleware(routing)
 
@@ -225,6 +226,70 @@ async function checkPasswordGate(
   }
 }
 
+// Onboarding gate: a signed-in user whose profile is not complete (Google/email
+// signup still missing its second identity) is sent to /login, where AuthCard
+// shows the profile step. Runs for /member and /book (incl. locale-prefixed
+// /zh-HK/book). Cookies are read from `response` when updateSession just
+// refreshed them, else from the request. Fails open; see lib/auth/onboarding-gate.ts.
+async function runOnboardingGate(
+  request: NextRequest,
+  response: NextResponse | null
+): Promise<NextResponse | null> {
+  const { pathname, search } = request.nextUrl
+  if (!isOnboardingGatedPath(pathname)) return null
+
+  const fresh = new Map<string, string>()
+  response?.headers.getSetCookie().forEach((cookie) => {
+    const [nameValue] = cookie.split(';')
+    const eq = nameValue.indexOf('=')
+    if (eq > 0) fresh.set(nameValue.slice(0, eq).trim(), nameValue.slice(eq + 1).trim())
+  })
+
+  const target = await checkOnboardingGate(pathname, search, {
+    getUserId: async () => {
+      const { createServerClient } = await import('@supabase/ssr')
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll: () => {
+              const merged = new Map(request.cookies.getAll().map((c) => [c.name, c.value]))
+              fresh.forEach((v, k) => merged.set(k, v))
+              return Array.from(merged, ([name, value]) => ({ name, value })).filter((c) => c.value)
+            },
+            setAll: () => {}, // Read-only
+          },
+        }
+      )
+      const { data: { user } } = await supabase.auth.getUser()
+      return user?.id ?? null
+    },
+    isActiveAdmin: async (userId) => {
+      const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
+      const { data } = await getLegacyServiceSupabase()
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .maybeSingle()
+      return data !== null
+    },
+    getOnboarding: async (userId) => {
+      const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
+      const { data, error } = await getLegacyServiceSupabase()
+        .from('users')
+        .select('onboarding_status, profile_complete')
+        .eq('id', userId)
+        .maybeSingle<OnboardingRow>()
+      if (error) throw new Error(`users lookup: ${error.message}`)
+      return data
+    },
+  })
+
+  return target ? NextResponse.redirect(new URL(target, request.url)) : null
+}
+
 function isLocalized(pathname: string): boolean {
   // Never rewrite auth/api routes — the OAuth callback must resolve as-is.
   // Segment-exact match: '/member' must NOT swallow '/membership' (a public
@@ -289,8 +354,15 @@ export async function middleware(request: NextRequest) {
     const passwordGateRedirect = await checkPasswordGate(request, response)
     if (passwordGateRedirect) return passwordGateRedirect
 
+    const onboardingRedirect = await runOnboardingGate(request, response)
+    if (onboardingRedirect) return onboardingRedirect
+
     return response
   }
+
+  // /book is localized, so it never reaches the branch above.
+  const onboardingRedirect = await runOnboardingGate(request, null)
+  if (onboardingRedirect) return onboardingRedirect
 
   // For localized routes, run intlMiddleware and ensure locale cookie is properly set
   const intlResponse = intlMiddleware(request)

@@ -27,8 +27,8 @@ function errorKey(error: string | null): string | null {
 // translucent-white blur card). AuthCard self-resolves an existing session on
 // mount and redirects via onAuthComplete, so a logged-in user never sees the form.
 //
-// Part 2(a) fix: Check session immediately on mount. If user is already logged in,
-// redirect to booking page instead of showing login form. This prevents the
+// Part 2(a) fix: Check session immediately on mount. If user is already logged in
+// with a complete profile, redirect to booking page instead of showing login form. This prevents the
 // "back button from booking lands on empty login page" issue.
 export default function LoginForm({
   returnUrl,
@@ -53,10 +53,22 @@ export default function LoginForm({
       if (cancelled) return;
 
       if (user) {
-        // User is already logged in - redirect to booking page or returnUrl
-        const redirectTarget = safeUrl === "/member" ? "/book" : safeUrl;
-        router.replace(redirectTarget);
-        return;
+        // Only a finished profile skips the card. /auth/callback and the
+        // onboarding gate send incomplete users (Google/email signup still
+        // missing a second identity) here on purpose; bouncing them to /book
+        // left them logged in but unable to book. Render AuthCard instead —
+        // its own mount check resolves straight to the profile step.
+        const { data } = await supabase
+          .from("users")
+          .select("onboarding_status, profile_complete")
+          .eq("id", user.id)
+          .maybeSingle<{ onboarding_status: string | null; profile_complete: boolean | null }>();
+        if (cancelled) return;
+        if (data?.onboarding_status === "complete" || data?.profile_complete === true) {
+          const redirectTarget = safeUrl === "/member" ? "/book" : safeUrl;
+          router.replace(redirectTarget);
+          return;
+        }
       }
 
       setCheckingSession(false);
