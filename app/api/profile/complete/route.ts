@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { validateProfile, normalizeHkPhone } from '@/lib/auth/profile'
 import { generateMemberCode } from '@/lib/member/planetSystem'
+import { bindVerifiedPhone } from '@/lib/auth/phone-binding'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
       .eq('id', user.id)
       .maybeSingle<{ member_code: string | null }>()
 
-    const { data: verifiedIdentity, error: identityError } = await service
+    let { data: verifiedIdentity, error: identityError } = await service
       .from('auth_identities')
       .select('verified_at')
       .eq('user_id', user.id)
@@ -102,6 +103,40 @@ export async function POST(req: Request) {
       .eq('identifier', result.value.phone)
       .eq('verified', true)
       .maybeSingle<{ verified_at: string | null }>()
+
+    // Phone-OTP sign-in verifies the number in GoTrue (auth.users.phone +
+    // phone_confirmed_at) but never writes the auth_identities ledger, so every
+    // phone-signup user 422'd here. Same proof as /bind-phone: the SESSION (fresh
+    // GoTrue read, not the request body) must show this exact phone confirmed.
+    if (!verifiedIdentity && !identityError) {
+      const sessionPhone = user.phone ? `+${user.phone.replace(/^\+/, '')}` : ''
+      const sessionPhoneConfirmed = Boolean(
+        (user as { phone_confirmed_at?: string | null }).phone_confirmed_at,
+      )
+      if (sessionPhoneConfirmed && sessionPhone === result.value.phone) {
+        const bound = await bindVerifiedPhone(user.id, result.value.phone)
+        if (!bound.ok) {
+          console.warn('[profile/complete] session-phone bind failed', {
+            userId: user.id,
+            error: bound.error,
+          })
+          if (bound.error === 'phone_taken') {
+            return NextResponse.json({ error: 'phone_taken', field: 'phone' }, { status: 409 })
+          }
+        } else {
+          const retry = await service
+            .from('auth_identities')
+            .select('verified_at')
+            .eq('user_id', user.id)
+            .eq('provider', 'phone')
+            .eq('identifier', result.value.phone)
+            .eq('verified', true)
+            .maybeSingle<{ verified_at: string | null }>()
+          verifiedIdentity = retry.data
+          identityError = retry.error
+        }
+      }
+    }
 
     if (identityError) {
       console.error('[profile/complete] phone identity lookup failed', {
@@ -174,6 +209,26 @@ export async function POST(req: Request) {
         })
         return NextResponse.json({ error: 'update_failed' }, { status: 500 })
       }
+    }
+
+    // Another account already owns this email → clear 422 instead of letting the
+    // unique index throw and surface as a generic 500 update_failed.
+    const { data: emailOwner, error: emailOwnerError } = await service
+      .from('users')
+      .select('id')
+      .ilike('email', result.value.email.replace(/[\\%_]/g, (c) => `\\${c}`))
+      .neq('id', user.id)
+      .limit(1)
+      .maybeSingle<{ id: string }>()
+    if (emailOwnerError) {
+      console.error('[profile/complete] email ownership lookup failed', {
+        message: emailOwnerError.message,
+        code: emailOwnerError.code,
+        userId: user.id,
+      })
+    } else if (emailOwner) {
+      console.warn('[profile/complete] 422 email_taken', { userId: user.id })
+      return NextResponse.json({ error: 'email_taken', field: 'email' }, { status: 422 })
     }
 
     const { error } = await service
