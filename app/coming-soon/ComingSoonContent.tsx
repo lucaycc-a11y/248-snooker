@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
@@ -12,10 +12,187 @@ import { PasswordInput } from '@/components/shared/PasswordInput'
 const GREEN = '#22c55e'
 const LONG_PRESS_MS = 2500
 
+// Must match the actual go-live time
+const LAUNCH_AT = '2026-10-13T10:00:00+08:00'
+
 type GateReason = 'prelaunch' | 'maintenance'
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+export function getRemaining(now: number, target: number): {
+  days: number
+  hours: number
+  minutes: number
+  seconds: number
+  total: number
+} {
+  const total = Math.max(0, target - now)
+  const days = Math.floor(total / (1000 * 60 * 60 * 24))
+  const hours = Math.floor((total % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const minutes = Math.floor((total % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((total % (1000 * 60)) / 1000)
+  return { days, hours, minutes, seconds, total }
+}
+
+function Countdown() {
+  const t = useTranslations('comingSoon')
+  const [mounted, setMounted] = useState(false)
+  const [remaining, setRemaining] = useState(() => getRemaining(Date.now(), new Date(LAUNCH_AT).getTime()))
+  const [isPolling, setIsPolling] = useState(false)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
+    const targetTime = new Date(LAUNCH_AT).getTime()
+
+    const tick = () => {
+      const now = Date.now()
+      const rem = getRemaining(now, targetTime)
+      setRemaining(rem)
+
+      if (rem.total === 0 && intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+        setIsPolling(true)
+      }
+    }
+
+    tick()
+    intervalRef.current = setInterval(tick, 1000)
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [mounted])
+
+  useEffect(() => {
+    if (!isPolling) return
+
+    const poll = async () => {
+      try {
+        const res = await fetch('/', { method: 'HEAD', redirect: 'manual' })
+        if (res.type !== 'opaqueredirect') {
+          window.location.assign('/')
+        }
+      } catch {
+        // Ignore
+      }
+    }
+
+    poll()
+    pollIntervalRef.current = setInterval(poll, 10000)
+
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current)
+    }
+  }, [isPolling])
+
+  if (!mounted) {
+    return <div style={{ height: 120 }} />
+  }
+
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  if (remaining.total === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center', marginBottom: 24 }}>
+        <p
+          data-cms-key="comingSoon.live_now"
+          style={{ color: GREEN, fontSize: 18, fontWeight: 600, textAlign: 'center' }}
+        >
+          {t('live_now')}
+        </p>
+        <a
+          href="/"
+          data-cms-key="comingSoon.enter_site"
+          style={{
+            display: 'inline-block',
+            padding: '12px 24px',
+            borderRadius: 9999,
+            background: GREEN,
+            color: '#000',
+            fontWeight: 700,
+            fontSize: 16,
+            textDecoration: 'none',
+          }}
+        >
+          {t('enter_site')}
+        </a>
+      </div>
+    )
+  }
+
+  const labelStyle: React.CSSProperties = {
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: GREEN,
+    fontWeight: 600,
+  }
+
+  const boxStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(34,197,94,0.2)',
+    borderRadius: 8,
+    padding: '12px 8px',
+    minWidth: 64,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+    transition: prefersReducedMotion ? 'none' : 'border-color 0.2s',
+  }
+
+  const numberStyle: React.CSSProperties = {
+    fontSize: 28,
+    fontWeight: 700,
+    color: '#fff',
+    fontVariantNumeric: 'tabular-nums',
+    lineHeight: 1,
+  }
+
+  return (
+    <div style={{ marginBottom: 24 }} aria-live="off">
+      <time dateTime={LAUNCH_AT} style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden' }}>
+        Launch: {LAUNCH_AT}
+      </time>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+        <div style={boxStyle}>
+          <div style={numberStyle}>{String(remaining.days).padStart(2, '0')}</div>
+          <div style={labelStyle} data-cms-key="comingSoon.cd_days">
+            {t('cd_days')}
+          </div>
+        </div>
+        <div style={boxStyle}>
+          <div style={numberStyle}>{String(remaining.hours).padStart(2, '0')}</div>
+          <div style={labelStyle} data-cms-key="comingSoon.cd_hours">
+            {t('cd_hours')}
+          </div>
+        </div>
+        <div style={boxStyle}>
+          <div style={numberStyle}>{String(remaining.minutes).padStart(2, '0')}</div>
+          <div style={labelStyle} data-cms-key="comingSoon.cd_minutes">
+            {t('cd_minutes')}
+          </div>
+        </div>
+        <div style={boxStyle}>
+          <div style={numberStyle}>{String(remaining.seconds).padStart(2, '0')}</div>
+          <div style={labelStyle} data-cms-key="comingSoon.cd_seconds">
+            {t('cd_seconds')}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // The "Notify Me" button doubles as the hidden gate trigger: holding it down
@@ -30,6 +207,8 @@ function WaitlistForm({ onSecretActivate }: { onSecretActivate: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const longPressFired = useRef(false)
+
+  const WHATSAPP_URL = 'https://wa.me/85261808022'
 
   async function submit() {
     const trimmedValue = email.trim()
@@ -162,6 +341,54 @@ function WaitlistForm({ onSecretActivate }: { onSecretActivate: () => void }) {
       >
         {t('notify_me')}
       </button>
+      <p
+        data-cms-key="comingSoon.waitlist_remove"
+        style={{
+          fontSize: 12,
+          color: '#A1A1A6',
+          opacity: 0.8,
+          textAlign: 'center',
+          lineHeight: 1.5,
+          margin: 0,
+        }}
+      >
+        {t.rich('waitlist_remove', {
+          email: (chunks) => (
+            <a
+              href="mailto:info@space8.com.hk"
+              style={{
+                color: '#A1A1A6',
+                textDecoration: 'underline',
+                transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = GREEN)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#A1A1A6')}
+              onFocus={(e) => (e.currentTarget.style.color = GREEN)}
+              onBlur={(e) => (e.currentTarget.style.color = '#A1A1A6')}
+            >
+              {chunks}
+            </a>
+          ),
+          whatsapp: (chunks) => (
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: '#A1A1A6',
+                textDecoration: 'underline',
+                transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = GREEN)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = '#A1A1A6')}
+              onFocus={(e) => (e.currentTarget.style.color = GREEN)}
+              onBlur={(e) => (e.currentTarget.style.color = '#A1A1A6')}
+            >
+              {chunks}
+            </a>
+          ),
+        })}
+      </p>
     </div>
   )
 }
@@ -301,7 +528,15 @@ export default function ComingSoonContent({ reason = 'prelaunch' }: { reason?: G
           </div>
           <h1
             data-cms-key="comingSoon.title"
-            style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 40, letterSpacing: '0.02em', color: '#fff', marginBottom: 12 }}
+            style={{
+              fontFamily: 'var(--font-noto-sans-tc), "Noto Sans TC", sans-serif',
+              fontSize: 32,
+              fontWeight: 700,
+              letterSpacing: '-0.01em',
+              color: '#fff',
+              marginBottom: 12,
+              lineHeight: 1.2,
+            }}
           >
             {isMaintenanceMode ? '網站維護中' : t('title')}
           </h1>
@@ -311,6 +546,7 @@ export default function ComingSoonContent({ reason = 'prelaunch' }: { reason?: G
               : t('subtitle')}
           </p>
         </div>
+        {!isMaintenanceMode && <Countdown />}
         {!isMaintenanceMode && <WaitlistForm onSecretActivate={() => setModalOpen(true)} />}
       </section>
       <PasswordModal open={modalOpen} onClose={() => setModalOpen(false)} />

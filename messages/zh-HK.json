@@ -210,8 +210,8 @@
   },
   "comingSoon": {
     "brand": "SPACE8",
-    "title": "SPACE8",
-    "subtitle": "香港新蒲崗自助無煙智能中式桌球室。",
+    "title": "你的空間，在此登場",
+    "subtitle": "SPACE8 是新蒲崗一間中式桌球室。網站預訂服務將於 10 月 13 日上午 10 時閃耀登場。",
     "email_placeholder": "電子郵箱",
     "notify_me": "登記接收最新消息",
     "subscribed": "已為你登記。",
@@ -221,7 +221,14 @@
     "unlock": "解鎖",
     "unlocking": "解鎖中…",
     "err_password": "密碼不正確。",
-    "err_rate_limited": "嘗試次數過多，請稍后再試。"
+    "err_rate_limited": "嘗試次數過多，請稍后再試。",
+    "cd_days": "日",
+    "cd_hours": "時",
+    "cd_minutes": "分",
+    "cd_seconds": "秒",
+    "live_now": "預訂服務現已開放",
+    "enter_site": "進入網站",
+    "waitlist_remove": "如需將你的電郵從候補名單移除，請聯絡 <email>info@space8.com.hk</email> 或 <whatsapp>WhatsApp</whatsapp>。"
   },
   "legal": {
     "page_title": "法律文件",

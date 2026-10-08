@@ -210,8 +210,8 @@
   },
   "comingSoon": {
     "brand": "SPACE8",
-    "title": "SPACE8",
-    "subtitle": "香港新蒲岗自助无烟智能中式台球室。",
+    "title": "你的空间，在此登场",
+    "subtitle": "SPACE8 是新蒲岗一间中式桌球室。网站预订服务将于 10 月 13 日上午 10 时闪耀登场。",
     "email_placeholder": "电子邮箱",
     "notify_me": "登记接收最新消息",
     "subscribed": "已为你登记。",
@@ -221,7 +221,14 @@
     "unlock": "解锁",
     "unlocking": "解锁中…",
     "err_password": "密码不正确。",
-    "err_rate_limited": "尝试次数过多，请稍后再试。"
+    "err_rate_limited": "尝试次数过多，请稍后再试。",
+    "cd_days": "日",
+    "cd_hours": "时",
+    "cd_minutes": "分",
+    "cd_seconds": "秒",
+    "live_now": "预订服务现已开放",
+    "enter_site": "进入网站",
+    "waitlist_remove": "如需将你的电邮从候补名单移除，请联系 <email>info@space8.com.hk</email> 或 <whatsapp>WhatsApp</whatsapp>。"
   },
   "legal": {
     "page_title": "法律文件",

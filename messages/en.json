@@ -210,8 +210,8 @@
   },
   "comingSoon": {
     "brand": "SPACE8",
-    "title": "SPACE8",
-    "subtitle": "A self-service, smoke-free smart Chinese eight-ball room in San Po Kong, Hong Kong.",
+    "title": "Your space, taking the stage.",
+    "subtitle": "SPACE8 is a Chinese-style pool hall in San Po Kong. Online booking goes live on 13 October at 10 AM.",
     "email_placeholder": "Email address",
     "notify_me": "Notify Me",
     "subscribed": "You're on the list.",
@@ -221,7 +221,14 @@
     "unlock": "Unlock",
     "unlocking": "Unlocking…",
     "err_password": "Incorrect password.",
-    "err_rate_limited": "Too many attempts. Please try again later."
+    "err_rate_limited": "Too many attempts. Please try again later.",
+    "cd_days": "Days",
+    "cd_hours": "Hours",
+    "cd_minutes": "Mins",
+    "cd_seconds": "Secs",
+    "live_now": "Online booking is now live",
+    "enter_site": "Enter Site",
+    "waitlist_remove": "To remove your email from the waitlist, please contact <email>info@space8.com.hk</email> or <whatsapp>WhatsApp</whatsapp>."
   },
   "legal": {
     "page_title": "Legal Documents",
