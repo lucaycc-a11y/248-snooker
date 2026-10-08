@@ -42,6 +42,7 @@ import { useOrderConfirmationPolling, type OrderHoldState } from "@/lib/booking/
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
+import { estimateEarnPoints } from "@/lib/points/estimate"
 import { formatPhoneDisplay } from "@/lib/phone-format"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
@@ -2031,7 +2032,9 @@ function Screen3({
   const promoDiscount = promoCode?.discount_amount ?? 0
   const walletAppliedAmount = walletApplied?.amount ?? 0
   const total = Math.max(0, subtotal - promoDiscount - walletAppliedAmount)
-  const earnPoints = Math.round(total * 0.1)
+  // Tier isn't loaded on this page, so estimate at the default multiplier (1);
+  // the server awards round(total × tier multiplier) on confirm.
+  const earnPoints = estimateEarnPoints(total)
 
   // The zero-amount rail. Requires a real priced cart AND (promo code OR wallet applied)
   const isFreeCheckout = total === 0 && subtotal > 0 && (promoCode !== null || walletApplied !== null)

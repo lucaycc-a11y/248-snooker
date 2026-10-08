@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { prepareCheckout, prepareFailureStatus } from '@/lib/checkout/prepare'
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { estimateEarnPoints, tierMultiplier } from '@/lib/points/estimate'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -68,7 +69,13 @@ export async function POST(req: NextRequest) {
     }
 
     const { prepared } = outcome
-    const earnPoints = Math.floor(prepared.total / 10) // Estimate: HK$10 = 1 point
+    // Mirror confirm_booking: round(amount paid × users.tier multiplier)
+    const { data: userRow } = await service
+      .from('users')
+      .select('tier')
+      .eq('id', user.id)
+      .maybeSingle()
+    const earnPoints = estimateEarnPoints(prepared.total, tierMultiplier(userRow?.tier))
 
     return NextResponse.json({
       subtotal,
