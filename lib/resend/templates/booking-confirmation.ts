@@ -6,7 +6,7 @@
 export const bookingConfirmationQrImageHtml = (cid: string) => `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" style="margin:0 auto;background-color:#ffffff;border-radius:16px;">
                   <tr>
                     <td bgcolor="#ffffff" style="padding:12px;background-color:#ffffff;border-radius:16px;">
-                      <img src="cid:${cid}" alt="Entry QR Code" width="240" height="240" style="display:block;width:240px;height:240px;border:0;outline:none;text-decoration:none;" />
+                      <img src="cid:${cid}" alt="你的專屬會員QR code" width="240" height="240" style="display:block;width:240px;height:240px;border:0;outline:none;text-decoration:none;" />
                     </td>
                   </tr>
                 </table>
@@ -54,7 +54,7 @@ export const bookingConfirmationTemplate = `<!DOCTYPE html>
               <!-- QR Code -->
               <div style="margin-bottom:32px;text-align:center;">
                 <h2 style="color:#22c55e;font-size:16px;font-weight:600;margin:0 0 12px;">
-                  入場 QR Code
+                  你的專屬會員QR code
                 </h2>
                 {{qrImageHtml}}
                 <div style="text-align:center;margin-top:16px;">
