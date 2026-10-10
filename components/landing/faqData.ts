@@ -28,7 +28,6 @@ export function getFaqItems(t: (key: string) => string): FaqItem[] {
     { id: "faq-weather",   question: t('faq_weather_q'),   answer: t('faq_weather_a') },
     { id: "faq-overtime",  question: t('faq_overtime_q'),  answer: t('faq_overtime_a') },
     { id: "faq-contact",   question: t('faq_contact_q'),   answer: t('faq_contact_a') },
-    { id: "faq-zhongba",   question: t('faq_zhongba_q'),   answer: t('faq_zhongba_a') },
     { id: "faq-sanpokong", question: t('faq_sanpokong_q'), answer: t('faq_sanpokong_a') },
     { id: "faq-location",  question: t('faq_location_q'),  answer: t('faq_location_a') },
     { id: "faq-how-to-book", question: t('faq_how_to_book_q'), answer: t('faq_how_to_book_a') },
@@ -39,10 +38,9 @@ export function getFaqItems(t: (key: string) => string): FaqItem[] {
 // the full list above lives on /faq. Kept here so both the subset order and
 // the "learn more" affordance stay in one source of truth.
 // Per 9/24 spec: items 1, 2, 3, 10, 12 (booking, entry, cancel, weather, contact),
-// plus the venue/中八 entries (SEO launch) so they are both visible and in the
+// plus the venue entries (SEO launch) so they are both visible and in the
 // homepage FAQPage schema.
 export const HOMEPAGE_FAQ_IDS = [
-  "faq-zhongba",
   "faq-sanpokong",
   "faq-location",
   "faq-how-to-book",

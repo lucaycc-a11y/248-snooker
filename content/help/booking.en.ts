@@ -24,7 +24,7 @@ export const bookingEn: HelpArticleContent = {
       title: 'Time Slot Usage and Departure',
       content: [
         'Please depart the venue promptly at your booking end time.',
-        'If you remain on the premises 15 minutes after your booking end time, the Company may charge you an overtime fee. Overtime fees are calculated at the booking rate per hour (any partial hour counts as a full hour).',
+        'If you remain on the premises 10 minutes after your booking end time, the Company may charge you an overtime fee. Overtime fees are calculated at the booking rate per hour (any partial hour counts as a full hour).',
         {
           type: 'callout',
           variant: 'warning',
