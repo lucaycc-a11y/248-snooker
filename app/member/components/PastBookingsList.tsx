@@ -5,9 +5,11 @@ import { motion } from 'framer-motion'
 import { FileText, CircleDot } from 'lucide-react'
 import { getTableName } from '@/lib/booking/constants'
 import { useLocale, useTranslations } from 'next-intl'
+import { splitMemberBookings } from '@/lib/booking/member-booking-split'
 
 // ════════════════════════════════════════════════════════════════════════════
-// PastBookingsList — Read-only history link
+// PastBookingsList — Upcoming + past bookings (read-only, no QR here — the
+// member card already shows it; see 495f4b4 for why the QR card is hidden)
 // No self-serve cancel/reschedule — per refund policy, direct to WhatsApp
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -30,6 +32,7 @@ export function PastBookingsList({ userId }: Props) {
   const locale = useLocale()
   const t = useTranslations('member')
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [upcoming, setUpcoming] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -43,21 +46,11 @@ export function PastBookingsList({ userId }: Props) {
         const data = await res.json()
         const all = data.bookings ?? []
 
-        // Past = completed or date in past
-        const now = new Date()
-        const past = all
-          .filter((b: Booking) => {
-            if (b.status === 'completed') return true
-            if (b.date && new Date(b.date) < now) return true
-            return false
-          })
-          .sort((a: Booking, b: Booking) => {
-            const dateA = a.date ? new Date(a.date).getTime() : 0
-            const dateB = b.date ? new Date(b.date).getTime() : 0
-            return dateB - dateA // newest first
-          })
-          .slice(0, 5) // Show last 5
+        // Upcoming = slot not yet ended (HKT); past = ended or completed
+        const split = splitMemberBookings<Booking>(all)
+        const past = split.past.slice(0, 5) // Show last 5
 
+        setUpcoming(split.upcoming)
         setBookings(past)
       }
     } catch {
@@ -75,7 +68,7 @@ export function PastBookingsList({ userId }: Props) {
     )
   }
 
-  if (bookings.length === 0) {
+  if (bookings.length === 0 && upcoming.length === 0) {
     return (
       <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
@@ -86,11 +79,54 @@ export function PastBookingsList({ userId }: Props) {
     )
   }
 
+  const renderRow = (booking: Booking) => {
+    const bookingDate = booking.date ? new Date(booking.date) : null
+
+    return (
+      <motion.div
+        key={booking.id}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="p-4 transition-colors hover:bg-white/5"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <CircleDot className="h-5 w-5 text-white" strokeWidth={1.5} />
+              <p className="font-medium text-white">
+                {booking.tableId ? getTableName(parseInt(booking.tableId), locale) : '--'}
+              </p>
+            </div>
+            {bookingDate && (
+              <p className="mt-1 text-xs text-white/50">
+                {bookingDate.toLocaleDateString('zh-HK', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+                {' · '}
+                {booking.startTime}
+              </p>
+            )}
+          </div>
+          <div className="text-right">
+            <p className="font-code text-sm font-medium text-white">
+              HK${booking.price.toLocaleString()}
+            </p>
+            <p className="font-code text-xs text-white/40">{booking.durationHours}小時</p>
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent">
       <div className="border-b border-white/10 bg-white/5 px-4 py-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-white/80">{t('past_bookings.title')}</h3>
+          <h3 className="text-sm font-medium text-white/80">
+            {upcoming.length > 0 ? t('upcoming_booking.title') : t('past_bookings.title')}
+          </h3>
           <a
             href="/member/bookings/history"
             className="-my-2 py-2 px-1 text-xs text-white/60 transition-colors hover:text-white"
@@ -100,48 +136,24 @@ export function PastBookingsList({ userId }: Props) {
         </div>
       </div>
 
-      <div className="divide-y divide-white/5">
-        {bookings.map((booking) => {
-          const bookingDate = booking.date ? new Date(booking.date) : null
+      {upcoming.length > 0 && (
+        <>
+          <div className="divide-y divide-white/5 border-b border-white/10">
+            {upcoming.map(renderRow)}
+          </div>
+        </>
+      )}
 
-          return (
-            <motion.div
-              key={booking.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="p-4 transition-colors hover:bg-white/5"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <CircleDot className="h-5 w-5 text-white" strokeWidth={1.5} />
-                    <p className="font-medium text-white">
-                      {booking.tableId ? getTableName(parseInt(booking.tableId), locale) : '--'}
-                    </p>
-                  </div>
-                  {bookingDate && (
-                    <p className="mt-1 text-xs text-white/50">
-                      {bookingDate.toLocaleDateString('zh-HK', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
-                      {' · '}
-                      {booking.startTime}
-                    </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="font-code text-sm font-medium text-white">
-                    HK${booking.price.toLocaleString()}
-                  </p>
-                  <p className="font-code text-xs text-white/40">{booking.durationHours}小時</p>
-                </div>
-              </div>
-            </motion.div>
-          )
-        })}
-      </div>
+      {upcoming.length > 0 && (
+        <p className="border-b border-white/5 px-4 pb-2 pt-3 text-xs font-medium text-white/50">{t('past_bookings.title')}</p>
+      )}
+      {bookings.length > 0 ? (
+        <div className="divide-y divide-white/5">
+          {bookings.map(renderRow)}
+        </div>
+      ) : (
+        <p className="p-4 text-center text-xs text-white/50">{t('past_bookings.no_history')}</p>
+      )}
 
       <div className="border-t border-white/10 bg-white/5 p-4 text-center">
         <p className="text-xs text-white/50">

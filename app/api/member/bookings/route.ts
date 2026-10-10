@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { MEMBER_VISIBLE_BOOKING_STATUSES } from '@/lib/data/getMember'
 
 // ════════════════════════════════════════════════════════════════════════════
 // GET /api/member/bookings — Fetch user's bookings (upcoming + past)
@@ -19,22 +20,15 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Fetch confirmed bookings only (status = 'confirmed')
-  // Exclude test bookings (payment_method = 'test') in production; keep them in UAT/dev
-  const isProduction = process.env.NEXT_PUBLIC_APP_ENV === 'production'
-
-  let query = supabase
+  // All of the member's own real bookings (upcoming + past). No payment_method
+  // filter: admin test bookings are the member's own, and neq() would also
+  // drop rows whose payment_method IS NULL. See MEMBER_VISIBLE_BOOKING_STATUSES.
+  const { data: bookings, error } = await supabase
     .from('bookings')
     .select('id, table_number, date, start_time, duration_hours, total_price, human_code, status, payment_method')
     .eq('user_id', user.id)
-    .eq('status', 'confirmed')
-
-  // Exclude test payments in production
-  if (isProduction) {
-    query = query.neq('payment_method', 'test')
-  }
-
-  const { data: bookings, error } = await query.order('date', { ascending: false })
+    .in('status', [...MEMBER_VISIBLE_BOOKING_STATUSES])
+    .order('date', { ascending: false })
 
   if (error) {
     console.error('[member/bookings] Query failed:', {

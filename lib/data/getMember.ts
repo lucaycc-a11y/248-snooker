@@ -2,6 +2,15 @@ import { createClient } from '@/lib/supabase/server'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { type Row, num, str, genId } from './adminReadHelpers'
 
+// Booking statuses a member sees as a real booking of theirs (upcoming + past).
+// The bookings_status_check constraint currently allows only 'confirmed' among
+// these; 'completed' is listed so a future post-session state is not silently
+// hidden again. Cancelled/refunded/pending/payment_* are intentionally excluded.
+// Never filter member views on payment_method: admin test bookings
+// (payment_method='test') are still the member's own bookings, and
+// neq('payment_method', ...) in PostgREST also drops rows where it IS NULL.
+export const MEMBER_VISIBLE_BOOKING_STATUSES = ['confirmed', 'completed'] as const
+
 // The member dashboard reads from `users` (known shape from the auth callback)
 // plus `bookings` and `points_ledger` (schema unverified). Every related query
 // is defensive: any failure (missing table/column, RLS) degrades to an empty
@@ -185,7 +194,7 @@ export async function getMemberData(): Promise<MemberData | null> {
       .from('bookings')
       .select('*')
       .eq('user_id', user.id)
-      .eq('status', 'confirmed')
+      .in('status', [...MEMBER_VISIBLE_BOOKING_STATUSES])
       .order('created_at', { ascending: false })
       .limit(50)
     if (Array.isArray(data)) bookings = data.map((r) => normalizeBooking(r as Row))
@@ -198,7 +207,7 @@ export async function getMemberData(): Promise<MemberData | null> {
       .from('bookings')
       .select('*')
       .eq('user_id', user.id)
-      .eq('status', 'confirmed')
+      .in('status', [...MEMBER_VISIBLE_BOOKING_STATUSES])
     if (confirmedError) throw confirmedError
     if (Array.isArray(confirmedData)) {
       confirmedBookingsForStats = confirmedData.map((r) => normalizeBooking(r as Row))
@@ -209,7 +218,9 @@ export async function getMemberData(): Promise<MemberData | null> {
 
   // If the confirmed-only query is unavailable, use only confirmed rows from
   // the already-loaded list rather than allowing failed rows into the totals.
-  const confirmedBookings = confirmedBookingsForStats ?? bookings.filter((booking) => booking.status === 'confirmed')
+  const confirmedBookings = confirmedBookingsForStats ?? bookings.filter((booking) =>
+    (MEMBER_VISIBLE_BOOKING_STATUSES as readonly string[]).includes(booking.status),
+  )
   const stats = {
     bookings: confirmedBookings.length,
     hours: confirmedBookings.reduce((sum, b) => sum + (b.durationHours || 0), 0),
