@@ -3,12 +3,17 @@ import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
-import { getConfigValue } from "@/lib/data/getConfig";
 import { getAllLegalDocuments, type LegalDocId } from "@/content/legal";
 import type { Locale } from "@/i18n/routing";
 import LegalContent from "./LegalContent";
 
 const BASE = "https://space8.com.hk";
+
+// Effective/last-updated date for EVERY legal document tab (incl. privacy).
+// Deliberately a code-level constant: the old `legal.updatedAt` config row
+// (seeded 2026-06-29) is no longer read, so a stale DB value can never
+// override the published date. Bump this when the legal text changes.
+const LEGAL_UPDATED_AT = "2026-10-13";
 
 const DOC_IDS: LegalDocId[] = ["terms", "website_terms", "privacy", "accessibility", "refund_policy", "delivery_policy", "brand_statement", "cookie_policy"];
 
@@ -59,13 +64,9 @@ export default async function LegalPage({
 
   const initialDoc = resolveDocId(doc);
 
-  // Last-updated date is editable from the config table (key: legal.updatedAt).
-  // This is booking/site CONFIG (see lib/data/getConfig.ts), not CMS page
-  // copy — unrelated to the cms_content/cms_list_items tables this page no
-  // longer reads from. See content/legal/index.ts for the actual document
-  // text, which is now a static, build-time import (no runtime DB fetch).
-  const legalCfg = await getConfigValue<{ updatedAt?: string }>("legal", {});
-  const lastUpdated = legalCfg.updatedAt ?? "2026-07-14";
+  // See LEGAL_UPDATED_AT above — one date for all tabs, never from config.
+  // Document text is a static build-time import (content/legal/index.ts).
+  const lastUpdated = LEGAL_UPDATED_AT;
 
   const t = await getTranslations({ locale, namespace: "legal" });
   const documents = getAllLegalDocuments(locale as Locale);
