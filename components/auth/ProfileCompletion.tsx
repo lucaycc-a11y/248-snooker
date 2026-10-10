@@ -394,10 +394,13 @@ export function ProfileCompletion({
         >
           {isReturningUser && initialName ? t("profile_welcome_back", { name: initialName }) : labels.title}
         </h2>
-        <p data-cms-key="auth.profile.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
+        <p data-cms-key="auth.profile.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 8 }}>
           {otpChannel === "whatsapp"
             ? t("otp_subtitle_whatsapp", { phone })
             : t("otp_subtitle", { phone })}
+        </p>
+        <p data-cms-key="auth.otp_delivery_note" data-testid="otp-delivery-note" style={{ fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+          {t("otp_delivery_note")}
         </p>
 
         <OtpVerification

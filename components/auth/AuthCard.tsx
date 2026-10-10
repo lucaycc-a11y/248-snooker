@@ -769,7 +769,12 @@ export function AuthCard({
             abandons to the method picker rather than offering a dead-end back. */}
         <button type="button" onClick={() => { setPhase(phoneStep ? "methods" : "signup"); setError(null); setOtpStatus("input") }} aria-label={t("back")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}><ChevronLeft size={16} /> {t("back")}</button>
         <h2 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>{phoneStep ? t("signup_phone_title") : t("signup_email_title")}</h2>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>{phoneStep ? `${t("otp_sent_to")} ${maskContact(signupPhone, "sms")}` : `${t("otp_sent_to")} ${maskContact(signupEmail, "email")}`}</p>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: phoneStep ? 8 : 24 }}>{phoneStep ? `${t("otp_sent_to")} ${maskContact(signupPhone, "sms")}` : `${t("otp_sent_to")} ${maskContact(signupEmail, "email")}`}</p>
+        {phoneStep && (
+          <p data-cms-key="auth.otp_delivery_note" data-testid="otp-delivery-note" style={{ fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+            {t("otp_delivery_note")}
+          </p>
+        )}
         <OtpVerification length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={phoneStep ? verifySignupPhone : verifySignupEmail} status={otpStatus} error={error} onReset={() => { setOtp([]); setError(null); setOtpStatus("input") }} disabled={busy} onGoBack={() => { setPhase(phoneStep ? "methods" : "signup"); setError(null); setOtpStatus("input") }} />
       </motion.div>
     )
@@ -789,13 +794,18 @@ export function AuthCard({
         <h2 data-cms-key="auth.otp.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>
           {t("otp_title")}
         </h2>
-        <p data-cms-key="auth.otp.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
+        <p data-cms-key="auth.otp.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: otpChannel === "email" ? 24 : 8 }}>
           {otpChannel === "email"
             ? `${t("otp_sent_to")} ${maskContact(email, "email")}`
             : otpDeliveryChannel === "whatsapp"
               ? `${t("otp_sent_to")} ${maskContact(phone, "sms")} (WhatsApp)`
               : `${t("otp_sent_to")} ${maskContact(phone, "sms")}`}
         </p>
+        {otpChannel !== "email" && (
+          <p data-cms-key="auth.otp_delivery_note" data-testid="otp-delivery-note" style={{ fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+            {t("otp_delivery_note")}
+          </p>
+        )}
 
           <OtpVerification
             length={OTP_LENGTH}
