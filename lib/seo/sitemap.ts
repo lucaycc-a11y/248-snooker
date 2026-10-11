@@ -1,6 +1,5 @@
 import { getBlogPosts } from '@/lib/data/getBlog'
 import { getSiteGate } from '@/lib/gate/config'
-import { getHelpContent } from '@/lib/help/content-loader'
 import { ENABLED_LOCALES } from '@/i18n/enabled-locales'
 import { absoluteUrl, hreflangLanguages, SITE_URL } from '@/lib/seo/site'
 import { imagesForPage } from '@/lib/seo/imageManifest'
@@ -35,12 +34,6 @@ function staticEntry(path: string, changeFrequency: ChangeFrequency, priority: n
     languages: hreflangLanguages(path),
     ...(images.length > 0 && { images }),
   }
-}
-
-// Help Center entries are no longer indexed; /help-center redirects to /faq.
-// Kept as a stub in case it needs to be restored.
-async function helpCenterEntries(now: Date): Promise<SitemapEntry[]> {
-  return []
 }
 
 // Public, indexable pages. /help-center redirects to /faq, /credits redirects to /.
@@ -79,17 +72,8 @@ export async function buildSitemapEntries(): Promise<SitemapEntry[]> {
     }))
   )
 
-  // A Help Center read failure must not drop the core pages from the sitemap.
-  let helpEntries: SitemapEntry[] = []
-  try {
-    helpEntries = await helpCenterEntries(now)
-  } catch (err) {
-    console.error('[sitemap] help center entries failed', err)
-  }
-
   return [
     ...STATIC_PAGES.map(([path, freq, priority]) => staticEntry(path, freq, priority, now)),
-    ...helpEntries,
     ...postEntries,
   ]
 }

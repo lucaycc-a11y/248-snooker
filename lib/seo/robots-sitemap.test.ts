@@ -89,17 +89,16 @@ describe('sitemap.xml', () => {
     expect(renderSitemapXml([])).not.toContain('<url>')
   })
 
-  it('gate off → every public page, help articles, manifest images; no private paths', async () => {
+  it('gate off → every public page incl. /faq, manifest images; no help-center, credits or private paths', async () => {
     gate.enabled = false
     const entries = await buildSitemapEntries()
     const urls = entries.map((e) => e.url)
     for (const [path] of STATIC_PAGES) {
       expect(urls).toContain(path === '/' ? 'https://space8.com.hk' : `https://space8.com.hk${path}`)
     }
-    expect(urls).toContain('https://space8.com.hk/help-center/booking/how-to-book')
-    expect(urls).not.toContain('https://space8.com.hk/help-center/booking/draft')
-    expect(urls).not.toContain('https://space8.com.hk/help-center/booking/gated')
-    expect(urls.some((u) => /\/(member|login|admin|auth|faq)(\/|$)/.test(u))).toBe(false)
+    expect(urls).toContain('https://space8.com.hk/faq')
+    expect(urls.some((u) => /\/(help-center|credits)(\/|$)/.test(u))).toBe(false)
+    expect(urls.some((u) => /\/(member|login|admin|auth)(\/|$)/.test(u))).toBe(false)
 
     const xml = renderSitemapXml(entries)
     expect(xml).toContain('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"')
