@@ -275,7 +275,7 @@ const Velaris = ({
     <div
       ref={containerRef}
       style={{ height }}
-      className={cn("relative w-full overflow-hidden overflow-x-hidden", className)}
+      className={cn("relative w-full overflow-hidden", className)}
     >
       {/* Static gradient fallback - visible until canvas renders */}
       <div
@@ -283,8 +283,9 @@ const Velaris = ({
         style={{
           background: fallbackGradient,
           width: '100%',
+          minWidth: '100%',
           left: 0,
-          right: 0
+          right: 0,
         }}
         aria-hidden="true"
       />
@@ -298,8 +299,9 @@ const Velaris = ({
         )}
         style={{
           width: '100%',
+          minWidth: '100%',
           left: 0,
-          right: 0
+          right: 0,
         }}
         aria-hidden="true"
       />
