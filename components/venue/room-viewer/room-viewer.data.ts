@@ -197,11 +197,6 @@ export const ROOM_VIEWER_DATA: RoomViewerData = {
           pos: '55% 50%',
           title: 'Super Aramith Pro',
           sub: 'Aramith 比賽球',
-          rows: [
-            ['品牌', 'Aramith（比利時）'],
-            ['型號', 'TV Pro-Cup'],
-            ['球組', 'The Professional Tournament Set'],
-          ],
         },
         {
           key: 'chalk',
@@ -212,7 +207,7 @@ export const ROOM_VIEWER_DATA: RoomViewerData = {
           height: 1600,
           pos: '44% 52%',
           title: 'Triangle Chalk',
-          sub: '經典 Triangle 品牌巧克粉・King of Them All',
+          sub: '經典 Triangle 品牌巧克粉',
         },
         {
           key: 'cue',
