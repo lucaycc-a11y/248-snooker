@@ -15,7 +15,6 @@ export type PublicPath =
   | '/venue'
   | '/about'
   | '/membership'
-  | '/help-center'
   | '/blog'
   | '/book'
 
@@ -68,7 +67,7 @@ export const IMAGE_MANIFEST: readonly ManifestImage[] = [
   { src: '/images/space8-about-photos/images/about-08-ball-rack.webp', alt: '三角架內排好的彩色桌球', pages: ['/about'] },
 ]
 
-const PUBLIC_PATHS: readonly PublicPath[] = ['/', '/venue', '/about', '/membership', '/help-center', '/blog', '/book']
+const PUBLIC_PATHS: readonly PublicPath[] = ['/', '/venue', '/about', '/membership', '/blog', '/book']
 
 export function isPublicPath(path: string): path is PublicPath {
   return (PUBLIC_PATHS as readonly string[]).includes(path)

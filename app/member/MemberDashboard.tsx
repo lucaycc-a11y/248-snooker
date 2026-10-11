@@ -932,7 +932,7 @@ function OverviewTab({
           icon={<HelpCircle size={20} strokeWidth={2} />}
           title="Help"
           subtitle="幫助中心"
-          onClick={() => onSwitchTab('help')}
+          onClick={() => router.push('/faq')}
         />
         <QuickActionTile
           icon={

@@ -37,33 +37,22 @@ function staticEntry(path: string, changeFrequency: ChangeFrequency, priority: n
   }
 }
 
+// Help Center entries are no longer indexed; /help-center redirects to /faq.
+// Kept as a stub in case it needs to be restored.
 async function helpCenterEntries(now: Date): Promise<SitemapEntry[]> {
-  const content = await getHelpContent('zh-Hant')
-  return Object.entries(content.topics_data).flatMap(([topic, data]) => [
-    { url: absoluteUrl(ENABLED_LOCALES[0], `/help-center/${topic}`), lastModified: now, changeFrequency: 'monthly' as const, priority: 0.5 },
-    ...data.articles
-      .filter((a) => a.published && !a.gate)
-      .map((a) => ({
-        url: absoluteUrl(ENABLED_LOCALES[0], `/help-center/${topic}/${a.id}`),
-        lastModified: now,
-        changeFrequency: 'monthly' as const,
-        priority: 0.4,
-      })),
-  ])
+  return []
 }
 
-// Public, indexable pages. /faq is a 308 to /help-center (next.config.js), so
-// only the target is listed. /login, /member, /admin, /auth and booking steps
-// are private and never listed.
+// Public, indexable pages. /help-center redirects to /faq, /credits redirects to /.
+// /login, /member, /admin, /auth and booking steps are private and never listed.
 export const STATIC_PAGES: Array<[path: string, freq: ChangeFrequency, priority: number]> = [
   ['/', 'weekly', 1],
   ['/book', 'daily', 0.9],
   ['/venue', 'monthly', 0.8],
   ['/membership', 'monthly', 0.7],
   ['/about', 'monthly', 0.7],
-  ['/help-center', 'monthly', 0.6],
+  ['/faq', 'monthly', 0.6],
   ['/blog', 'weekly', 0.6],
-  ['/credits', 'yearly', 0.3],
   ['/legal', 'yearly', 0.3],
 ]
 

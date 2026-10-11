@@ -40,44 +40,70 @@ const nextConfig = {
       { source: '/auth/change-password', destination: '/reset-password', permanent: false },
       { source: '/auth/reset-password', destination: '/reset-password', permanent: false },
 
-      // /help → /help-center (bare + locale-prefixed)
+      // /help → /faq (bare + locale-prefixed)
       {
         source: '/help',
-        destination: '/help-center',
+        destination: '/faq',
         permanent: true,
         statusCode: 308,
       },
       ...locales.map((locale) => ({
         source: `/${locale}/help`,
-        destination: `/${locale}/help-center`,
+        destination: `/${locale}/faq`,
         permanent: true,
         statusCode: 308,
       })),
 
-      // /help/* → /help-center/* (bare + locale-prefixed)
+      // /help/* → /faq (bare + locale-prefixed)
       {
         source: '/help/:path*',
-        destination: '/help-center/:path*',
+        destination: '/faq',
         permanent: true,
         statusCode: 308,
       },
       ...locales.map((locale) => ({
         source: `/${locale}/help/:path*`,
-        destination: `/${locale}/help-center/:path*`,
+        destination: `/${locale}/faq`,
         permanent: true,
         statusCode: 308,
       })),
 
-      // /faq → /help-center (bare + locale-prefixed)
+      // /help-center and /help-center/* → /faq (bare + locale-prefixed)
       {
-        source: '/faq',
-        destination: '/help-center',
+        source: '/help-center',
+        destination: '/faq',
         permanent: true,
         statusCode: 308,
       },
       ...locales.map((locale) => ({
-        source: `/${locale}/faq`,
-        destination: `/${locale}/help-center`,
+        source: `/${locale}/help-center`,
+        destination: `/${locale}/faq`,
+        permanent: true,
+        statusCode: 308,
+      })),
+      {
+        source: '/help-center/:path*',
+        destination: '/faq',
+        permanent: true,
+        statusCode: 308,
+      },
+      ...locales.map((locale) => ({
+        source: `/${locale}/help-center/:path*`,
+        destination: `/${locale}/faq`,
+        permanent: true,
+        statusCode: 308,
+      })),
+
+      // /credits → / (bare + locale-prefixed)
+      {
+        source: '/credits',
+        destination: '/',
+        permanent: true,
+        statusCode: 308,
+      },
+      ...locales.map((locale) => ({
+        source: `/${locale}/credits`,
+        destination: `/${locale}`,
         permanent: true,
         statusCode: 308,
       })),

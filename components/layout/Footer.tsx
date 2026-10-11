@@ -7,7 +7,6 @@ import { tokens } from '@/app/styles/tokens'
 import { useTranslations, useLocale } from 'next-intl'
 import { Logo } from '@/components/brand'
 import { SITE_CONTACT } from '@/lib/site/contact'
-import { HELP_PATHS } from '@/lib/help/constants'
 
 const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
 const INSTAGRAM_URL = 'https://instagram.com/space8.com.hk'
@@ -47,7 +46,7 @@ export default function Footer() {
     { label: t('nav.about'), href: '/about' },
     { label: t('nav.blog'), href: '/blog' },
     { label: t('nav.membership'), href: '/membership' },
-    { label: t('nav.help'), href: HELP_PATHS.home },
+    { label: '常見問題', href: '/faq' },
     { label: t('footer.legal'), href: '/legal' },
     { label: t('footer.privacy'), href: '/privacy' },
   ]
@@ -514,16 +513,6 @@ export default function Footer() {
               }}
             >
               {t('footer.privacy')}
-            </Link>
-            <Link
-              href="/credits"
-              style={{
-                fontSize: '13px',
-                color: tokens.colors.textFaint,
-                textDecoration: 'none',
-              }}
-            >
-              {t('footer.credits')}
             </Link>
           </div>
         </div>
