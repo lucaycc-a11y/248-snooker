@@ -2698,7 +2698,6 @@
       },
       "1": {
         "title": "兌換與使用",
-        "badge": "即將推出",
         "description": "每 100 積分可兌換 HK$10 場地抵用額，後續亦可兌換指定時段折扣券及教練課程優惠。"
       },
       "2": {
@@ -3417,7 +3416,6 @@
     "err_generic": "發生錯誤，請稍後再試。"
   },
   "resetPassword": {
-    "settings_section": "密碼與安全",
     "request_title": "忘記密碼",
     "request_body": "請輸入帳戶的電郵地址，我們會將重設密碼的連結發送給你。",
     "request_submit": "發送重設連結",
@@ -3443,10 +3441,6 @@
     "err_cooldown": "請稍候片刻再重新發送。",
     "err_rate_limited": "嘗試次數過多，請稍後再試。",
     "err_send": "暫時未能發送電郵，請稍後再試。",
-    "err_update": "未能更新密碼，請再試一次。",
-    "settings_row": "更改密碼",
-    "settings_hint": "我們會將更改密碼的連結發送至你的帳戶電郵。",
-    "settings_sent": "如帳戶已設定電郵，連結已發送，請查看收件箱。",
-    "settings_no_email": "帳戶未設定電郵，未能發送連結。請聯絡客服。"
+    "err_update": "未能更新密碼，請再試一次。"
   }
 }

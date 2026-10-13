@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { IdentityLockedNote } from '@/components/member/IdentityLockedNote'
 import { useTranslations } from 'next-intl'
 import DeleteDataModal from '@/components/member/DeleteDataModal'
-import { ChangePasswordRow } from '@/components/member/change-password-row'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Settings Page — Name, phone (RO), email (RO), notifications, language, sign out
@@ -170,9 +169,6 @@ export default function SettingsPage() {
               </div>
             </div>
           </section>
-
-          {/* Password — email-link reset only (Part B2) */}
-          <ChangePasswordRow withSection />
 
           {/* Sign Out */}
           <section className="space-y-3">

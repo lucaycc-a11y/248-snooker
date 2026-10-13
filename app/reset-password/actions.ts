@@ -10,8 +10,8 @@ import {
   type RequestResetResult,
 } from '@/lib/auth/password-reset'
 
-// Server actions for /reset-password and the Settings「更改密碼」row. Next.js
-// rejects cross-origin action POSTs (Origin vs Host), which covers CSRF.
+// Server actions for /reset-password. Next.js rejects cross-origin action POSTs
+// (Origin vs Host), which covers CSRF.
 
 async function requestContext() {
   const h = await headers()
@@ -25,16 +25,6 @@ async function requestContext() {
 export async function requestResetByEmail(email: string): Promise<RequestResetResult> {
   const { ip, locale } = await requestContext()
   return requestPasswordReset({ email, ip, locale })
-}
-
-/** Settings「更改密碼」: no input — the account email is read server-side. */
-export async function requestResetForCurrentUser(): Promise<RequestResetResult | { ok: false; error: 'unauthorized' | 'no_email' }> {
-  const supabase = await createRouteHandlerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false, error: 'unauthorized' }
-  if (!user.email) return { ok: false, error: 'no_email' }
-  const { ip, locale } = await requestContext()
-  return requestPasswordReset({ email: user.email, ip, locale })
 }
 
 /** Reset page submit: verify token + set password + sign out everywhere. */

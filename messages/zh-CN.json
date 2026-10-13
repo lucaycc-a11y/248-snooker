@@ -2667,7 +2667,6 @@
       },
       "1": {
         "title": "兑换与使用",
-        "badge": "即将推出",
         "description": "每 100 积分可兑换 HK$10 场地抵用额，后续亦可兑换指定时段折扣券及教练课程优惠。"
       },
       "2": {
@@ -3272,7 +3271,6 @@
     "err_generic": "发生错误，请稍后再试。"
   },
   "resetPassword": {
-    "settings_section": "密码与安全",
     "request_title": "忘记密码",
     "request_body": "请输入账户的邮箱地址，我们会将重设密码的链接发送给你。",
     "request_submit": "发送重设链接",
@@ -3298,10 +3296,6 @@
     "err_cooldown": "请稍候片刻再重新发送。",
     "err_rate_limited": "尝试次数过多，请稍后再试。",
     "err_send": "暂时无法发送邮件，请稍后再试。",
-    "err_update": "未能更新密码，请再试一次。",
-    "settings_row": "更改密码",
-    "settings_hint": "我们会将更改密码的链接发送至你的账户邮箱。",
-    "settings_sent": "如账户已设定邮箱，链接已发送，请查看收件箱。",
-    "settings_no_email": "账户未设定邮箱，无法发送链接。请联系客服。"
+    "err_update": "未能更新密码，请再试一次。"
   }
 }

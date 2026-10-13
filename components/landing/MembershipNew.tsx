@@ -251,11 +251,6 @@ export default function MembershipNew() {
                 <div className="flex-1 pt-2">
                   <h4 className="text-lg font-bold text-white mb-2">
                     {t(`steps.${i}.title`)}
-                    {i === 1 && (
-                      <span className="ml-3 px-2 py-1 text-xs font-semibold bg-amber-500/20 text-amber-300 rounded-full">
-                        {t("steps.1.badge")}
-                      </span>
-                    )}
                   </h4>
                   <p className="text-base text-gray-400 leading-relaxed">
                     {t(`steps.${i}.description`)}

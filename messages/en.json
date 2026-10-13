@@ -2665,7 +2665,6 @@
       },
       "1": {
         "title": "Redeem and use",
-        "badge": "Coming soon",
         "description": "Every 100 points converts into HK$10 of venue credit. Time-slot discount vouchers and coaching offers will follow."
       },
       "2": {
@@ -3270,7 +3269,6 @@
     "err_generic": "Something went wrong. Please try again."
   },
   "resetPassword": {
-    "settings_section": "Password & security",
     "request_title": "Forgot password",
     "request_body": "Enter your account email and we'll send you a link to reset your password.",
     "request_submit": "Send reset link",
@@ -3296,10 +3294,6 @@
     "err_cooldown": "Please wait a moment before sending again.",
     "err_rate_limited": "Too many attempts. Please try again later.",
     "err_send": "We couldn't send the email right now. Please try again later.",
-    "err_update": "We couldn't update your password. Please try again.",
-    "settings_row": "Change password",
-    "settings_hint": "We'll email a change-password link to your account address.",
-    "settings_sent": "If your account has an email, the link is on its way. Check your inbox.",
-    "settings_no_email": "There's no email on this account, so we can't send a link. Please contact support."
+    "err_update": "We couldn't update your password. Please try again."
   }
 }

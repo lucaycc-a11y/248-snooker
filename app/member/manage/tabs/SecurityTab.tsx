@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
-import { ChangePasswordRow } from '@/components/member/change-password-row'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Security Tab — Password, OAuth (Google + Apple), Login Activity (stub)
@@ -50,9 +49,6 @@ export function SecurityTab() {
 
   return (
     <div className="space-y-6">
-      {/* Password */}
-      <ChangePasswordRow withSection />
-
       {/* Connected Social Apps */}
       <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
         <h2 className="mb-4 text-lg font-bold text-white">已連接的社交帳戶</h2>
