@@ -38,11 +38,11 @@ type Panel = {
 
 const PANELS: readonly Panel[] = [
   /* 0 — 快捷/掃碼即入: TAP TO ENTER */
-  { src: "/gallery/S2/part1_tap_to_enter.png", position: "50% 50%", alt: "SPACE8 掃碼即入 自助進場 無需等待" },
+  { src: "/gallery/S2/part1_tap_to_enter.webp", position: "50% 50%", alt: "SPACE8 掃碼即入 自助進場 無需等待" },
   /* 1 — 獨立/一房一枱: wide room */
-  { src: "/gallery/S2/part3_table_wide_room.png", position: "50% 42%", alt: "SPACE8 獨立房間 一房一枱 私人空間" },
+  { src: "/gallery/S2/part3_table_wide_room.webp", position: "50% 42%", alt: "SPACE8 獨立房間 一房一枱 私人空間" },
   /* 2 — 設備/專業球枱: table closeup */
-  { src: "/gallery/S2/part2_table_closeup.png", position: "50% 50%", alt: "SPACE8 專業中式桌球枱 比賽級設備" },
+  { src: "/gallery/S2/part2_table_closeup.webp", position: "50% 50%", alt: "SPACE8 專業中式桌球枱 比賽級設備" },
 ];
 
 /** Distance between adjacent crossfade peaks in progress units. */

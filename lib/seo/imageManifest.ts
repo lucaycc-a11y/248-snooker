@@ -31,7 +31,7 @@ export const IMAGE_MANIFEST: readonly ManifestImage[] = [
   { src: '/images/space8-booking-interface-pick-slot.webp', alt: '手機網上預訂介面選擇時段插圖', pages: ['/'] },
   { src: '/images/space8-qrcode-entry-system.webp', alt: '手機掃描二維碼自助入場插圖', pages: ['/'] },
   { src: '/images/space8-member-rewards-points.webp', alt: 'SPACE8 會員積分與獎勵插圖', pages: ['/'] },
-  { src: '/gallery/spacepliot.png', alt: 'AI 智能對戰管家 iPad 計分畫面', pages: ['/', '/venue'] },
+  { src: '/gallery/spacepliot.webp', alt: 'AI 智能對戰管家 iPad 計分畫面', pages: ['/', '/venue'] },
 
   // ── Shared venue photos (home / venue / book) ───────────────────────────
   { src: '/images/pool-table-closeup-中八桌球-香港新蒲崗.webp', alt: '星牌桌球枱球袋與枱面上的球', pages: ['/', '/venue', '/book'] },

@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import { Emphasis } from "@/components/ui/Emphasis"
 
 // Screenshot real dimensions: 4269 × 2400
-const SCREEN_IMAGE = "/gallery/spacepliot.png"
+const SCREEN_IMAGE = "/gallery/spacepliot.webp"
 const IMAGE_WIDTH = 4269
 const IMAGE_HEIGHT = 2400
 

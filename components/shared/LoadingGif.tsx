@@ -41,7 +41,7 @@ export function LoadingGif({ size = 140, label = 'Loading' }: { size?: number; l
           onError={() => setVideoFailed(true)}
           style={{ width: clampedSize, height: clampedSize, objectFit: 'contain' }}
         >
-          <source src="/video/Loading/space8_loading_transparent.webm" type="video/webm" />
+          <source src="/video/Loading/space8_loading_320.webm" type="video/webm" />
         </video>
       )}
     </div>

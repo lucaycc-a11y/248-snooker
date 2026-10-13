@@ -7,11 +7,10 @@ import { tokens } from '@/app/styles/tokens'
 import { useTranslations, useLocale } from 'next-intl'
 import { Logo } from '@/components/brand'
 import { SITE_CONTACT } from '@/lib/site/contact'
+import { MAPS_URL } from '@/lib/site/nap'
 
 const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
 const INSTAGRAM_URL = 'https://instagram.com/space8.com.hk'
-const MAP_QUERY = '泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong'
-const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(MAP_QUERY)}`
 
 // Free CARTO Dark Matter tile map — no API key, no billing account needed
 // (replaces the old Google Maps Static API thumbnail). Leaflet touches

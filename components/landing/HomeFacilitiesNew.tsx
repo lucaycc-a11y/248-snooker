@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 const FACILITY_IMAGES = [
   "/images/pool-table-closeup-中八桌球-香港新蒲崗.webp",
   "/images/pool-table-closeup-2-中八桌球-香港新蒲崗.webp",
-  "/gallery/spacepliot.png",
+  "/gallery/spacepliot.webp",
   "/images/qrcode-checkin-中八桌球-香港新蒲崗.webp",
 ] as const;
 

@@ -12,7 +12,10 @@ type ChangeFrequency = 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'y
 
 export type SitemapEntry = {
   url: string
-  lastModified: Date
+  /** Omit for static pages: a lastmod equal to the render time is a lying
+   *  timestamp Google explicitly warns against. Blog posts carry their real
+   *  published_at. */
+  lastModified?: Date
   changeFrequency: ChangeFrequency
   priority: number
   languages?: Record<string, string>
@@ -24,11 +27,10 @@ export function imageUrl(src: string): string {
   return `${SITE_URL}${encodeURI(src)}`
 }
 
-function staticEntry(path: string, changeFrequency: ChangeFrequency, priority: number, now: Date): SitemapEntry {
+function staticEntry(path: string, changeFrequency: ChangeFrequency, priority: number): SitemapEntry {
   const images = imagesForPage(path).map((img) => imageUrl(img.src))
   return {
     url: absoluteUrl(ENABLED_LOCALES[0], path),
-    lastModified: now,
     changeFrequency,
     priority,
     languages: hreflangLanguages(path),
@@ -73,7 +75,7 @@ export async function buildSitemapEntries(): Promise<SitemapEntry[]> {
   )
 
   return [
-    ...STATIC_PAGES.map(([path, freq, priority]) => staticEntry(path, freq, priority, now)),
+    ...STATIC_PAGES.map(([path, freq, priority]) => staticEntry(path, freq, priority)),
     ...postEntries,
   ]
 }
@@ -97,8 +99,8 @@ export function renderSitemapXml(entries: SitemapEntry[]): string {
     for (const [lang, href] of Object.entries(e.languages ?? {})) {
       lines.push(`<xhtml:link rel="alternate" hreflang="${xmlEscape(lang)}" href="${xmlEscape(href)}" />`)
     }
+    if (e.lastModified) lines.push(`<lastmod>${e.lastModified.toISOString()}</lastmod>`)
     lines.push(
-      `<lastmod>${e.lastModified.toISOString()}</lastmod>`,
       `<changefreq>${e.changeFrequency}</changefreq>`,
       `<priority>${e.priority}</priority>`,
     )

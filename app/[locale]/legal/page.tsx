@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { indexingMeta } from "@/lib/env/app-env";
 import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import Nav from "@/components/layout/Nav";
@@ -47,7 +48,7 @@ export async function generateMetadata({
       siteName: "Space8",
       type: "website",
     },
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   };
 }
 

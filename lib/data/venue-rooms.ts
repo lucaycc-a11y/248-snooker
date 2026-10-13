@@ -102,7 +102,7 @@ export const pills: PillContent[] = [
     tag: 'venue.rooms.pills.technology.tag',
     hasSlider: false,
     shared: {
-      image: '/gallery/spacepliot.png',
+      image: '/gallery/spacepliot.webp',
       alt: 'Space Pilot AI 智能對戰管家 iPad 介面',
     },
   },

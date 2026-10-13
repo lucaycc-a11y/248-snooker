@@ -10,11 +10,14 @@ import {
   bookingConfirmationQrUnavailableHtml,
 } from './templates/booking-confirmation'
 import { SITE_CONTACT } from '@/lib/site/contact'
+import { ADDRESS, MAPS_URL } from '@/lib/site/nap'
 
 /* ── Constants ────────────────────────────────────────────────────────────── */
 
-const VENUE_ADDRESS = 'Room 05, 3/f, Laurels Industrial Centre, Tai Yau Street 32, San Po Kong, Hong Kong'
-const GOOGLE_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Tai+Lik+Industrial+Centre+32+Tai+Yau+Street+San+Po+Kong+Hong+Kong'
+// Address + map link come from lib/site/nap so transactional email, the footer
+// and JSON-LD cannot drift. This previously said "Tai Lik Industrial Centre".
+const VENUE_ADDRESS = ADDRESS.displayEn
+const GOOGLE_MAPS_URL = MAPS_URL
 const WHATSAPP_FALLBACK = SITE_CONTACT.phoneDigits
 const QR_CONTENT_ID = 'space8-entry-qr'
 /** Rendered at 240px in the email; 480px keeps it sharp on 2x displays. */

@@ -93,9 +93,12 @@ interface CardProps {
   pointer: { x: any; y: any };
   isSpreadActive: boolean;
   isMobile: boolean;
+  /** First orbit card — this is the Lighthouse LCP element, so it must never
+   *  lazy-load. Lazy-loading the LCP is what pushed mobile LCP past 9s. */
+  isLcp: boolean;
 }
 
-function Card({ card, progress, pointer, isSpreadActive, isMobile }: CardProps) {
+function Card({ card, progress, pointer, isSpreadActive, isMobile, isLcp }: CardProps) {
   const { item, linearOffset, linearRotate, z } = card;
   const activeTarget = isMobile ? card.targetSm : card.target;
   const depthFactor = 0.2 + z / 200;
@@ -140,8 +143,8 @@ function Card({ card, progress, pointer, isSpreadActive, isMobile }: CardProps) 
           sizes="(max-width: 768px) 32vw, 15vw"
           className="object-cover"
           draggable={false}
-          priority={z > 150}
-          loading={z > 150 ? "eager" : "lazy"}
+          priority={isLcp || z > 150}
+          loading={isLcp || z > 150 ? "eager" : "lazy"}
         />
       </div>
     </motion.div>
@@ -186,7 +189,7 @@ export default function CinematicOrbitHero() {
         {/* Photo orbit layer — z-[1], pointer-events-none */}
         <div className="absolute inset-0 z-[1] pointer-events-none">
           {CARDS.map((card, i) => (
-            <Card key={i} card={card} progress={progress} pointer={pointer} isSpreadActive={spread} isMobile={isMobile} />
+            <Card key={i} card={card} progress={progress} pointer={pointer} isSpreadActive={spread} isMobile={isMobile} isLcp={i === 0} />
           ))}
         </div>
 

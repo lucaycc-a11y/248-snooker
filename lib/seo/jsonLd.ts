@@ -1,68 +1,96 @@
-const BASE = "https://space8.com.hk";
-
-// Venue geo — same coordinates the footer map marker uses
-// (components/layout/FooterMap.tsx SPACE8_COORDS).
-const GEO = { lat: 22.3372097, lng: 114.1973068 };
-
-import { SITE_CONTACT } from "@/lib/site/contact";
+import {
+  ADDRESS,
+  GEO,
+  GOOGLE_MAPS_PLACE_URL,
+  VENUE_NAME,
+  SITE_CONTACT,
+  formatOpeningHours,
+} from "@/lib/site/nap";
 import { MAIN_PHOTOS } from "@/lib/seo/imageManifest";
-import { IN_LANGUAGE } from "@/lib/seo/site";
+import { IN_LANGUAGE, SITE_URL } from "@/lib/seo/site";
 
 // Raster logo (Google's logo guidelines prefer PNG/JPG over SVG).
-const LOGO_URL = `${BASE}/favicon/web-app-manifest-512x512.png`;
+const LOGO_URL = `${SITE_URL}/favicon/web-app-manifest-512x512.png`;
 
 const SAME_AS = ["https://www.instagram.com/248snooker"];
 
-// Single source of truth for the venue schema — was previously duplicated
-// (and drifting: different priceRange/closes time) between app/layout.tsx and
-// app/[locale]/about/page.tsx.
-//
-// @type is SportsActivityLocation (a LocalBusiness subtype): it's the most
-// specific type for a bookable sports venue, so it satisfies both the
-// "LocalBusiness" rich-result family and sports-venue semantics. Includes
-// localised locality/region (新蒲崗 / 九龍), geo, and social sameAs for GEO.
+type OfferPeriod = {
+  id: string;
+  rate: number;
+  rateFrom2h?: number;
+  start: string;
+  end: string;
+};
+
+function localisedAddress(locale: string) {
+  const zh = locale.startsWith("zh");
+  return {
+    "@type": "PostalAddress",
+    streetAddress: zh ? ADDRESS.streetAddressZh : ADDRESS.streetAddressEn,
+    addressLocality: zh ? ADDRESS.addressLocality : ADDRESS.addressLocalityEn,
+    addressRegion: zh ? ADDRESS.addressRegion : ADDRESS.addressRegionEn,
+    addressCountry: ADDRESS.addressCountry,
+  };
+}
+
+// priceRange must describe the venue's actual rate span. The conventional form
+// is "$" repeated to a band; we derive the band from the config-backed rates so
+// the schema and the UI cannot drift.
+function priceRangeFromPeriods(periods: OfferPeriod[]): string {
+  const rates = periods.flatMap((p) => (p.rateFrom2h ? [p.rate, p.rateFrom2h] : [p.rate]));
+  const min = Math.min(...rates);
+  return min >= 300 ? "$$$$" : min >= 100 ? "$$$" : min >= 30 ? "$$" : "$";
+}
+
+/**
+ * Venue schema — the single LocalBusiness representation, rendered on the home
+ * page and /venue. @type is SportsActivityLocation (a LocalBusiness subtype):
+ * the most specific type for a bookable sports venue, so it satisfies both the
+ * LocalBusiness rich-result family and sports-venue semantics.
+ *
+ * `periods` and `openHour`/`closeHour` flow from the same `config` rows the
+ * pricing cards render from — never hardcoded.
+ */
 export function buildSportsClubJsonLd(
   locale: string,
   path: string,
-  periods?: Array<{ id: string; rate: number; start: string; end: string }>
+  options: {
+    periods?: OfferPeriod[];
+    openHour?: number;
+    closeHour?: number;
+  } = {}
 ) {
-  // Calculate price range from periods if provided, otherwise use defaults
-  let minPrice = 78
-  let maxPrice = 108
-  if (periods && periods.length > 0) {
-    minPrice = Math.min(...periods.map(p => p.rate))
-    maxPrice = Math.max(...periods.map(p => p.rate))
-  }
+  const { periods, openHour = 6, closeHour = 24 } = options;
+  const hours = formatOpeningHours(openHour, closeHour);
 
   return {
     "@context": "https://schema.org",
     "@type": ["SportsActivityLocation", "LocalBusiness"],
-    name: "SPACE8",
+    name: VENUE_NAME,
     description: "香港新蒲崗自助無煙中八獨立球室，全預約制",
-    url: `${BASE}${locale === "zh-HK" ? path : `/${locale}${path}`}`,
+    url: `${SITE_URL}${locale === "zh-HK" ? path : `/${locale}${path}`}`,
     telephone: SITE_CONTACT.phone,
     email: SITE_CONTACT.email,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "大有街32號泰力工業中心3樓05室",
-      addressLocality: "新蒲崗",
-      addressRegion: "九龍",
-      addressCountry: "HK",
-    },
+    address: localisedAddress(locale),
     geo: {
       "@type": "GeoCoordinates",
       latitude: GEO.lat,
       longitude: GEO.lng,
     },
+    hasMap: GOOGLE_MAPS_PLACE_URL,
+    areaServed: [
+      { "@type": "City", name: "香港" },
+      { "@type": "Place", name: "九龍" },
+    ],
     openingHoursSpecification: {
       "@type": "OpeningHoursSpecification",
-      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      opens: "06:00",
-      closes: "24:00",
+      dayOfWeek: hours.days,
+      opens: hours.opens,
+      closes: hours.closes,
     },
-    priceRange: `$${minPrice}-$${maxPrice}`,
+    ...(periods && periods.length > 0 && { priceRange: priceRangeFromPeriods(periods) }),
     sameAs: SAME_AS,
-    image: MAIN_PHOTOS.map((src) => `${BASE}${encodeURI(src)}`),
+    image: MAIN_PHOTOS.map((src) => `${SITE_URL}${encodeURI(src)}`),
     logo: LOGO_URL,
     inLanguage: IN_LANGUAGE,
     amenityFeature: [
@@ -72,12 +100,54 @@ export function buildSportsClubJsonLd(
   };
 }
 
-type OfferPeriod = {
-  id: string;
-  rate: number;
-  start: string;
-  end: string;
-};
+/**
+ * Organization schema for the home page. Organization is the entity Google
+ * resolves the favicon/logo and knowledge panel from.
+ */
+export function buildOrganizationJsonLd(locale: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${SITE_URL}/#organization`,
+    name: VENUE_NAME,
+    url: SITE_URL,
+    logo: LOGO_URL,
+    email: SITE_CONTACT.email,
+    telephone: SITE_CONTACT.phone,
+    address: localisedAddress(locale),
+    sameAs: SAME_AS,
+  };
+}
+
+export function buildWebSiteJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
+    url: SITE_URL,
+    name: VENUE_NAME,
+    inLanguage: IN_LANGUAGE,
+    publisher: { "@id": `${SITE_URL}/#organization` },
+  };
+}
+
+/**
+ * FAQPage schema. Emit ONLY for Q&A that is visibly rendered on the page —
+ * Google penalises schema for content the user cannot see.
+ */
+export function buildFaqPageJsonLd(
+  items: ReadonlyArray<{ question: string; answer: string }>
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: { "@type": "Answer", text: item.answer },
+    })),
+  };
+}
 
 // Per-period Offer schema for /pricing. Rates flow from the same config the
 // pricing cards render from (never hardcoded) so schema + UI can't drift.
@@ -99,7 +169,7 @@ export function buildPricingOffersJsonLd(
       priceCurrency: "HKD",
       description: labels.description(p),
       availability: "https://schema.org/InStock",
-      url: `${BASE}/book`,
+      url: `${SITE_URL}/book`,
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: String(p.rate),
@@ -111,17 +181,21 @@ export function buildPricingOffersJsonLd(
   };
 }
 
-// Render JSON-LD structured data safely as escaped <script> children.
+// Serialize JSON-LD as a <script> body.
 //
 // React escapes text children, but inside <script> the browser does not decode
 // HTML entities — so a raw `&`/`<`/`>` in dynamic JSON (e.g. a post title) would
 // either break the JSON or allow a `</script>` breakout. We escape those three
 // characters to their \uXXXX JSON forms, which crawlers parse back correctly and
-// which contain no HTML-significant characters. Use as:
-//   <script type="application/ld+json">{safeJsonLd(data)}</script>
+// which contain no HTML-significant characters.
+//
+// MUST be injected as raw script text (see the home page's JSON-LD block for the
+// established pattern), never as a React text child: a text child makes React
+// HTML-escape the quotes to &quot;, which the browser does not decode inside
+// <script> — the JSON becomes unparseable. That silently broke /venue and /about.
 export function safeJsonLd(data: unknown): string {
   return JSON.stringify(data)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')
-    .replace(/&/g, '\\u0026')
+    .replace(/&/g, '\\u0026');
 }

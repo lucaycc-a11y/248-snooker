@@ -223,7 +223,7 @@ export const pills: Pill[] = [
       },
     ],
     pilotImage: {
-      src: '/gallery/spacepliot.png',
+      src: '/gallery/spacepliot.webp',
       alt: 'Space Pilot AI 智能對戰管家 iPad 介面',
       width: 2048,
       height: 2732,

@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next'
-import { headers } from 'next/headers'
 import { unstable_noStore as noStore } from 'next/cache'
 import { getSiteGate } from '@/lib/gate/config'
-import { isProductionHost, SITE_URL } from '@/lib/seo/site'
+import { isProductionEnv } from '@/lib/env/app-env'
+import { SITE_URL } from '@/lib/seo/site'
 
 // Rendered per request: the gate flag and the Host header both decide the
 // output, so a build-time or data-cached robots.txt could keep serving
@@ -36,10 +36,11 @@ const AI_USER_AGENTS = [
 export default async function robots(): Promise<MetadataRoute.Robots> {
   noStore()
 
-  // Only the production host may be crawled. uat.space8.com.hk shares the
-  // gate row with production, so without this it would become crawlable
-  // duplicate content the moment the gate goes off.
-  if (!isProductionHost(headers().get('host'))) return DISALLOW_ALL
+  // Only the production deployment may be crawled. uat shares the gate row
+  // with production, so without this it would become crawlable duplicate
+  // content the moment the gate goes off. Detection is env-based
+  // (NEXT_PUBLIC_APP_ENV), never hostname-based — see lib/env/app-env.ts.
+  if (!isProductionEnv()) return DISALLOW_ALL
 
   // While the pre-launch site gate is on, every real page 302s to
   // /coming-soon for any crawler without a bypass cookie — so robots.txt

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { indexingMeta } from "@/lib/env/app-env";
 import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import dynamic from "next/dynamic";
@@ -10,6 +11,7 @@ import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { periodsToSlots } from "@/lib/ui/pricing-adapter";
+import { MAP_QUERY } from "@/lib/site/nap";
 
 // ── Critical above-the-fold components (eager load) ─────────────────────────
 import Hero from "@/components/landing/Hero";
@@ -63,12 +65,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
 
-  const meta: Record<string, { title: string; description: string; keywords: string[]; ogTitle: string; ogDesc: string; canonical: string; ogLocale: string }> = {
+  const meta: Record<string, { title: string; description: string; keywords: string[]; ogDesc: string; canonical: string; ogLocale: string }> = {
     'zh-HK': {
       title: 'SPACE8｜香港中八桌球室｜新蒲崗自助無煙獨立球室',
       description: 'SPACE8 是香港新蒲崗自助無煙中八獨立球室，全預約制，網上預訂、QR碼自助入場。鄰近鑽石山及啟德港鐵站，九龍區中八愛好者主場。',
       keywords: ['中八', '中式八球', '中式桌球', '香港中八', '新蒲崗桌球', '鑽石山桌球', '九龍桌球', '自助桌球', '無煙桌球室'],
-      ogTitle: 'SPACE8',
       ogDesc: '香港中八桌球室 · 新蒲崗自助無煙獨立球室 · 全預約制',
       canonical: 'https://space8.com.hk',
       ogLocale: 'zh_HK',
@@ -77,7 +78,6 @@ export async function generateMetadata({
       title: 'SPACE8｜香港中式八球台球室｜新蒲岗自助无烟独立球室',
       description: 'SPACE8 是香港新蒲岗自助无烟中式八球独立球室，全预约制，网上预订、QR码自助入场。邻近钻石山及启德港铁站，九龙区中式八球爱好者主场。',
       keywords: ['中式八球', '中八', '中式台球', '香港中式八球', '新蒲岗台球', '钻石山台球', '九龙台球', '自助台球', '无烟台球室'],
-      ogTitle: 'SPACE8',
       ogDesc: '香港中式八球台球室 · 新蒲岗自助无烟独立球室 · 全预约制',
       canonical: 'https://space8.com.hk/zh-CN',
       ogLocale: 'zh_CN',
@@ -86,7 +86,6 @@ export async function generateMetadata({
       title: 'SPACE8｜Hong Kong Chinese Eight-Ball Club｜Self-Service Private Rooms in San Po Kong',
       description: 'SPACE8 is a self-service, smoke-free Chinese eight-ball club in San Po Kong, Hong Kong. Reservation-based, book online with QR code check-in. Near Diamond Hill and Kai Tak MTR stations.',
       keywords: ['Chinese eight-ball', 'Chinese 8-ball pool', 'Chinese eight-ball Hong Kong', 'San Po Kong pool', 'Kowloon pool', 'self service pool', 'smoke-free pool room'],
-      ogTitle: 'SPACE8',
       ogDesc: 'Hong Kong Chinese Eight-Ball Club · San Po Kong · Reservation-Based',
       canonical: 'https://space8.com.hk/en',
       ogLocale: 'en_HK',
@@ -100,7 +99,9 @@ export async function generateMetadata({
     description: m.description,
     keywords: m.keywords,
     openGraph: {
-      title: m.ogTitle,
+      // og:title must match the title text exactly — a bare brand name here
+      // is what produced "No information is available for this page" on GSC.
+      title: m.title,
       description: m.ogDesc,
       url: m.canonical,
       siteName: 'Space8',
@@ -117,12 +118,12 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Space8',
+      title: m.title,
       description: m.ogDesc,
       images: ['https://space8.com.hk/images/og-image-中八桌球-香港新蒲崗.png'],
     },
     alternates: pageAlternates(locale, "/"),
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   };
 }
 
@@ -144,15 +145,16 @@ export default async function Home({
     .filter((p): p is NonNullable<typeof p> => p !== undefined);
 
   const slots = periodsToSlots(orderedPeriods, (key: string) => t(key));
-  const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, config.periods);
+  const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, {
+    periods: config.periods,
+    openHour: config.openHour,
+    closeHour: config.closeHour,
+  });
   // FAQPage schema mirrors exactly the HomeFAQ subset rendered below.
   const tFaq = await getTranslations("faq");
   const faqJsonLd = getFaqJsonLd((key: string) => tFaq(key), HOMEPAGE_FAQ_IDS);
 
-  const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
-  )}`;
-  const EMBED_URL = "https://maps.google.com/maps?q=%E9%A6%99%E6%B8%AF%E6%96%B0%E8%92%B2%E5%B4%97%E5%A4%A7%E6%9C%89%E8%A1%9732%E8%99%9F%E6%B3%B0%E5%8A%9B%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83&t=&z=17&ie=UTF8&iwloc=&output=embed";
+  const EMBED_URL = `https://maps.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
 
   return (
     <main className="relative bg-black" style={{ isolation: "isolate" }}>

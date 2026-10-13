@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { indexingMeta } from "@/lib/env/app-env";
 import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
@@ -58,7 +59,7 @@ export async function generateMetadata({
       siteName: "Space8",
       type: "website",
     },
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   };
 }
 
@@ -73,7 +74,11 @@ export default async function AboutPage({
   // LocalBusiness (SportsClub) structured data — shared builder, was previously
   // a diverging inline copy (different priceRange/closes time from the homepage's).
   const config = await getConfig();
-  const jsonLd = buildSportsClubJsonLd(locale, "/about", config.periods);
+  const jsonLd = buildSportsClubJsonLd(locale, "/about", {
+    periods: config.periods,
+    openHour: config.openHour,
+    closeHour: config.closeHour,
+  });
 
   return (
     <main className="relative bg-black">

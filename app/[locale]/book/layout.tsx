@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { indexingMeta } from "@/lib/env/app-env";
 import { getTranslations } from "next-intl/server";
 import { pageAlternates } from "@/lib/seo/site";
 
@@ -15,7 +16,7 @@ export async function generateMetadata({
     title: t("meta_title"),
     description: t("meta_description"),
     alternates: pageAlternates(params.locale, "/book"),
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   };
 }
 

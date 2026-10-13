@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { resolveLocaleFromCookie, loadMessages } from '@/lib/i18n/serverLocale'
 import ComingSoonContent from './ComingSoonContent'
 import { safeJsonLd } from '@/lib/seo/jsonLd'
+import { ADDRESS } from '@/lib/site/nap'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const metadata: Metadata = {
@@ -42,10 +43,10 @@ export default async function ComingSoonPage() {
     description: "香港新蒲崗自助無煙中八獨立球室，全預約制",
     address: {
       "@type": "PostalAddress",
-      streetAddress: "大有街32號泰力工業中心3樓05室",
-      addressLocality: "新蒲崗",
-      addressRegion: "九龍",
-      addressCountry: "HK",
+      streetAddress: ADDRESS.streetAddressZh,
+      addressLocality: ADDRESS.addressLocality,
+      addressRegion: ADDRESS.addressRegion,
+      addressCountry: ADDRESS.addressCountry,
     },
     url: "https://space8.com.hk",
   }

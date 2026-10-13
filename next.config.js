@@ -28,6 +28,15 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'no-store' },
         ],
       },
+
+      // Static brand/media assets are content-stable: git history shows every
+      // file under these trees is added once and never overwritten in place, so
+      // a year of immutable caching cannot pin a stale edit. If a design asset
+      // must change, change its filename.
+      ...['/images', '/logos', '/video', '/gallery', '/fonts'].map((p) => ({
+        source: `${p}/:path*`,
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      })),
     ]
   },
   async redirects() {

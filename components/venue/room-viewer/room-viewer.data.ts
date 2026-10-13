@@ -115,7 +115,7 @@ const PANORAMA = {
 } satisfies Record<string, { infinity: Img; eternity: Img }>
 
 const IPAD: Img = {
-  src: '/gallery/spacepliot.png',
+  src: '/gallery/spacepliot.webp',
   alt: 'AI 智能對戰管家 iPad 畫面',
   width: 4269,
   height: 2400,

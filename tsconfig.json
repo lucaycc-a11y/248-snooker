@@ -19,5 +19,22 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "supabase/functions", "**/*.spec.ts", "**/*.e2e.ts", "playwright.config.ts", "tests/**/*"]
+  "exclude": [
+    "node_modules",
+    "supabase/functions",
+    "**/*.spec.ts",
+    "**/*.e2e.ts",
+    "playwright.config.ts",
+    "tests/**/*",
+    "**/* 2.ts",
+    "**/* 2.tsx",
+    "**/* 3.ts",
+    "**/* 3.tsx",
+    "**/* 2.js",
+    "**/* 3.js",
+    "**/* 2.css",
+    "**/* 3.css",
+    "**/* 2.json",
+    "**/* 3.json"
+  ]
 }

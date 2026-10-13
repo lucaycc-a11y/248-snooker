@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { indexingMeta } from "@/lib/env/app-env";
 import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import dynamic from "next/dynamic";
@@ -73,7 +74,7 @@ export async function generateMetadata({
       description: m.description,
       images: [`${BASE}/images/og-image-中八桌球-香港新蒲崗.png`],
     },
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   };
 }
 
@@ -86,7 +87,11 @@ export default async function VenuePage({
   setRequestLocale(locale);
 
   const config = await getConfig();
-  const jsonLd = buildSportsClubJsonLd(locale, "/venue", config.periods);
+  const jsonLd = buildSportsClubJsonLd(locale, "/venue", {
+    periods: config.periods,
+    openHour: config.openHour,
+    closeHour: config.closeHour,
+  });
 
   return (
     <main className="relative bg-black">

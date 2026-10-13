@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { indexingMeta } from "@/lib/env/app-env";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import dynamic from "next/dynamic";
@@ -56,7 +57,7 @@ export async function generateMetadata({
       description,
       images: ogImage ? [ogImage] : undefined,
     },
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   };
 }
 

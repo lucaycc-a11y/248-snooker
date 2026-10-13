@@ -3,14 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { MAP_QUERY, MAPS_URL } from "@/lib/site/nap";
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
-const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-  "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
-)}`;
-const EMBED_URL = "https://maps.google.com/maps?q=%E9%A6%99%E6%B8%AF%E6%96%B0%E8%92%B2%E5%B4%97%E5%A4%A7%E6%9C%89%E8%A1%9732%E8%99%9F%E6%B3%B0%E5%8A%9B%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83&t=&z=17&ie=UTF8&iwloc=&output=embed";
+const EMBED_URL = `https://maps.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
 
 const DIR_CSS = `
 .dir-section.is-in .dir-card { opacity: 1 !important; transform: none !important; }

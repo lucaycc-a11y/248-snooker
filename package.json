@@ -22,6 +22,15 @@
     "remotion:studio": "remotion studio remotion/index.ts",
     "remotion:render": "remotion render remotion/index.ts"
   },
+  "browserslist": [
+    "chrome >= 97",
+    "edge >= 97",
+    "firefox >= 93",
+    "safari >= 15.4",
+    "ios_saf >= 15.4",
+    "not dead",
+    "not op_mini all"
+  ],
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",
     "@base-ui/react": "^1.8.0",
