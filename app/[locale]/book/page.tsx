@@ -3187,8 +3187,6 @@ function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
           </motion.div>
         </motion.div>
 
-        <TicketPrinter orderTicket={orderTicket} locale={locale} />
-
         {/* Plain <a>, not the i18n Link: /member lives at app/member (outside [locale]) and
             middleware bypasses it, so it must never get a locale prefix. position+zIndex lift
             it above .ticket-printer-scene, whose -96px bottom margin overlaps this slot and
@@ -3198,17 +3196,18 @@ function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
           href="/member"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 4.7, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.3, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           data-cms-key="book.ticket.member_cta"
           data-testid="go-to-member"
-          style={{ position: "relative", zIndex: 1, width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginBottom: 16, textDecoration: "none" }}>
+          style={{ position: "relative", zIndex: 1, width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginBottom: 12, textDecoration: "none" }}>
           {t("go_to_member")}
         </motion.a>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 4.9, duration: 0.4 }} style={{ textAlign: "center" }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.4 }} style={{ textAlign: "center", marginBottom: 16 }}>
           <button type="button" onClick={() => (window.location.href = "/")} data-cms-key="book.ticket.home" style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer" }}>
             {t("back_home")}
           </button>
         </motion.div>
+        <TicketPrinter orderTicket={orderTicket} locale={locale} />
       </div>
     </div>
   )
