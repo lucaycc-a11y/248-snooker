@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
 import { isSlotStillBookable, slotStartInHongKong } from "@/lib/booking/slot-cutoff"
+import { formatHkd } from "@/lib/member-format"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { LoadingGif } from "@/components/shared/LoadingGif"
@@ -60,6 +61,24 @@ function BookingPrice({ amount }: { amount: number }) {
       <span style={{ fontFamily: tokens.font.display }}>{amount}</span>
     </span>
   )
+}
+
+// prepare_checkout only allows a card charge of $0 (fully waived) or >= HK$10.
+// When applying credit would leave $1-$9 owing, it applies $10 less credit and the
+// rest stays on the account — e.g. $98 with $90 credit charges $18, not $8.
+// This mirrors that rule for DISPLAY only so the preview equals what Stripe will
+// charge. The DB function stays authoritative at payment time (create-intent sends
+// min(balance, subtotal) and prepare_checkout applies this same reduction).
+const CREDIT_MIN_CARD_CHARGE = 10
+
+function creditUsedAfterMinCharge(price: number, creditAvailable: number, creditApplied: boolean): number {
+  if (!creditApplied || price <= 0 || creditAvailable <= 0) return 0
+  const wanted = Math.min(creditAvailable, price)
+  const remainder = price - wanted
+  if (remainder > 0 && remainder < CREDIT_MIN_CARD_CHARGE) {
+    return Math.max(0, wanted - CREDIT_MIN_CARD_CHARGE)
+  }
+  return wanted
 }
 
 /* ─────────────────────────  Config  ───────────────────────── */
@@ -2026,19 +2045,6 @@ function Screen3({
   const duration = primary?.duration ?? 0
   const tableNumber = primary?.tableNumber ?? 0
 
-  // Client-side pricing calculation that includes wallet
-  const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
-  const totalSaved = 0
-  const promoDiscount = promoCode?.discount_amount ?? 0
-  const walletAppliedAmount = walletApplied?.amount ?? 0
-  const total = Math.max(0, subtotal - promoDiscount - walletAppliedAmount)
-  // Tier isn't loaded on this page, so estimate at the default multiplier (1);
-  // the server awards round(total × tier multiplier) on confirm.
-  const earnPoints = estimateEarnPoints(total)
-
-  // The zero-amount rail. Requires a real priced cart AND (promo code OR wallet applied)
-  const isFreeCheckout = total === 0 && subtotal > 0 && (promoCode !== null || walletApplied !== null)
-
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
   const [walletBalance, setWalletBalance] = useState(0)
   useEffect(() => {
@@ -2064,6 +2070,29 @@ function Screen3({
     })()
     return () => { cancelled = true }
   }, [])
+
+  // Client-side pricing calculation that includes wallet
+  const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
+  const totalSaved = 0
+  const promoDiscount = promoCode?.discount_amount ?? 0
+  // Displayed credit is the amount prepare_checkout will actually apply, not the
+  // requested min(balance, subtotal) — see creditUsedAfterMinCharge.
+  const walletAppliedAmount = creditUsedAfterMinCharge(subtotal, walletBalance, walletApplied !== null)
+  // Credit the customer keeps because of the HK$10 minimum card charge.
+  const walletCreditLeft = Math.max(0, walletBalance - walletAppliedAmount)
+  // Under-deducted: credit left on the account AND the charge is not a full waiver.
+  const showCreditMinNote =
+    walletApplied !== null &&
+    walletAppliedAmount > 0 &&
+    walletCreditLeft > 0 &&
+    walletAppliedAmount < subtotal
+  const total = Math.max(0, subtotal - promoDiscount - walletAppliedAmount)
+  // Tier isn't loaded on this page, so estimate at the default multiplier (1);
+  // the server awards round(total × tier multiplier) on confirm.
+  const earnPoints = estimateEarnPoints(total)
+
+  // The zero-amount rail. Requires a real priced cart AND (promo code OR wallet applied)
+  const isFreeCheckout = total === 0 && subtotal > 0 && (promoCode !== null || walletApplied !== null)
 
   // Admin test confirm handler
   const handleTestConfirm = useCallback(async () => {
@@ -2378,6 +2407,26 @@ function Screen3({
                   <>−<BookingPrice amount={walletAppliedAmount} /></>
                 </span>
               </div>
+            )}
+
+            {/* Friendly note when the HK$10 minimum card charge left credit unused */}
+            {showCreditMinNote && (
+              <p
+                data-cms-key="book.credit_min_payment_note"
+                style={{
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                  color: tokens.colors.textMuted,
+                  margin: "-4px 0 12px",
+                  maxWidth: "100%",
+                  overflowWrap: "anywhere",
+                }}
+              >
+                {t("credit_min_payment_note", {
+                  used: formatHkd(walletAppliedAmount),
+                  left: formatHkd(walletCreditLeft),
+                })}
+              </p>
             )}
 
             {/* Points earned row */}

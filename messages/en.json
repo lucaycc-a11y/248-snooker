@@ -1402,6 +1402,7 @@
     "wallet_available": "Available Balance",
     "use_wallet": "Apply",
     "wallet_applied": "Space Wallet Applied",
+    "credit_min_payment_note": "Card payments start from HK$10, so we used {used} credit this time. Your other {left} credit stays in your account.",
     "wallet_remove": "Remove"
   },
   "ticket": {
@@ -2568,7 +2569,7 @@
     },
     "pillar2": {
       "lead": "Points that pay",
-      "body": "100 points = HK$10 venue credit, coming soon."
+      "body": "100 points = HK$10 venue credit"
     },
     "pillar3": {
       "lead": "New member bonus",
@@ -2593,14 +2594,13 @@
       },
       "stat2": {
         "value": "100 pts = HK$10",
-        "label": "per 100 points (coming soon)",
+        "label": "per 100 points",
         "unit": "credit"
       },
       "stat3": {
         "value": "100 pts",
         "label": "New member welcome bonus"
-      },
-      "comingSoon": "Point redemption is coming soon"
+      }
     },
     "safety": {
       "title": "Safety & Support",
@@ -2646,10 +2646,9 @@
         "popup": "Every new sign-up becomes a Space Member, with full access to Space Pilot and your total wins tracked automatically. Everyone gets the same member benefits — your pool journey starts here!"
       },
       "1": {
-        "badge": "Redeem soon",
         "title": "100 points on sign-up",
         "subtitle": "Earn 1 point per HK$1 spent. Every 100 points converts into HK$10 venue credit.",
-        "popup": "New members get 100 points on sign-up. Earn 1 point for every HK$1 spent; every 100 points converts into HK$10 of venue credit. Redemption is coming soon, with time-slot discount vouchers and coaching offers to follow."
+        "popup": "New members get 100 points on sign-up. Earn 1 point for every HK$1 spent; every 100 points converts into HK$10 of venue credit, with time-slot discount vouchers and coaching offers to follow."
       },
       "2": {
         "title": "Full Space Pilot access",
