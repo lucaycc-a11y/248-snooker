@@ -249,7 +249,7 @@ export default function ReschedulePicker({
                 <button
                   type="button"
                   onClick={() => shiftDate(-1)}
-                  aria-label="Previous day"
+                  aria-label={t("reschedule_previous_day")}
                   style={{ width: 36, height: 36, borderRadius: "50%", border: `1px solid ${BORDER}`, background: "transparent", color: INK, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
                 >
                   <ChevronLeft size={16} />
@@ -260,7 +260,7 @@ export default function ReschedulePicker({
                 <button
                   type="button"
                   onClick={() => shiftDate(1)}
-                  aria-label="Next day"
+                  aria-label={t("reschedule_next_day")}
                   style={{ width: 36, height: 36, borderRadius: "50%", border: `1px solid ${BORDER}`, background: "transparent", color: INK, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
                 >
                   <ChevronRight size={16} />

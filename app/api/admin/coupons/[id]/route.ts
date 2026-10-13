@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { str } from '@/lib/data/adminReadHelpers'
 
 export const runtime = 'nodejs'
@@ -28,7 +28,7 @@ export async function PATCH(req: Request, { params }: Params) {
     const body = await req.json().catch(() => null)
     const raw = (body ?? {}) as Record<string, unknown>
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Fetch existing row for before_jsonb snapshot
     const { data: existing, error: fetchErr } = await service
@@ -119,7 +119,7 @@ export async function DELETE(req: Request, { params }: Params) {
 
     const { id } = await params
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Fetch existing for before_jsonb
     const { data: existing, error: fetchErr } = await service

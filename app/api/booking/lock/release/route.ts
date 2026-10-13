@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { rateLimit } from '@/lib/rate-limit'
 import { withSecurity } from '@/lib/security/api-wrapper'
+import { parseRpc, isReleaseLockResult } from '@/lib/supabase/rpc-parse'
 
 export const runtime = 'nodejs'
 
@@ -33,7 +34,8 @@ async function handleLockRelease() {
       return NextResponse.json({ error: 'Internal error' }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, released: data?.released ?? 0 })
+    const result = parseRpc('release_my_locks', data, isReleaseLockResult)
+    return NextResponse.json({ success: true, released: result.released })
   } catch (err) {
     console.error('[booking/lock/release] error', { message: (err as Error).message })
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

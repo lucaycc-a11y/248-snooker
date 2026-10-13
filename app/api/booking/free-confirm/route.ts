@@ -15,6 +15,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import { logSiteError } from '@/lib/errors/log'
+import { parseRpc, isLockSlotResult, isConfirmBookingResult, isConfirmBookingGroupResult } from '@/lib/supabase/rpc-parse'
 
 export const runtime = 'nodejs'
 
@@ -31,7 +32,7 @@ function isValidBlock(b: unknown): b is Block {
   )
 }
 
-// POST /api/booking/free-confirm  { blocks: [...], promoCode }
+// POST /api/booking/free-confirm  { blocks: [...], promoCode, walletAmount }
 //
 // The self-serve zero-amount path. Neither Stripe nor KPay accepts a 0-amount
 // order, so a promo that covers the full subtotal cannot go through
@@ -40,7 +41,7 @@ function isValidBlock(b: unknown): b is Block {
 //
 // The amount is NEVER taken from the client. Slots are locked and priced
 // server-side, then prepare_checkout re-derives the subtotal, reserves the promo
-// usage, and writes the discounted total onto every row. Only if it reports
+// usage or wallet credits, and writes the discounted total onto every row. Only if it reports
 // total === 0 do we confirm; any other total means this request does not belong
 // on this route and the caller is sent back to the payment flow.
 export async function POST(req: Request) {
@@ -68,14 +69,15 @@ export async function POST(req: Request) {
       ? (body.blocks as unknown[]).filter(isValidBlock)
       : []
     const promoCode = typeof body?.promoCode === 'string' ? body.promoCode.trim() : ''
+    const walletAmount = typeof body?.walletAmount === 'number' && body.walletAmount > 0 ? body.walletAmount : 0
 
     if (blocks.length === 0) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
-    // A zero total can only come from a discount. Without a code there is nothing
+    // A zero total can only come from a discount or wallet. Without either there is nothing
     // that could have brought the price to 0, so this is a malformed request.
-    if (!promoCode) {
-      return NextResponse.json({ error: 'promo_code_required' }, { status: 400 })
+    if (!promoCode && walletAmount === 0) {
+      return NextResponse.json({ error: 'promo_code_or_wallet_required' }, { status: 400 })
     }
 
     console.log('[free-confirm] attempt', { userId: user.id, blocks: blocks.length })
@@ -112,12 +114,17 @@ export async function POST(req: Request) {
         p_price: quote.total,
         p_lock_minutes: 15,
       })
-      if (lockError || !lockData?.success) {
-        console.error('[free-confirm] lock_failed', { message: lockError?.message, block })
-        return NextResponse.json({ error: 'Could not lock slot', detail: lockError?.message }, { status: 409 })
+      if (lockError) {
+        console.error('[free-confirm] lock_failed', { message: lockError.message, block })
+        return NextResponse.json({ error: 'Could not lock slot', detail: lockError.message }, { status: 409 })
+      }
+      const lockResult = parseRpc('find_or_lock_slot', lockData, isLockSlotResult)
+      if (!lockResult.success) {
+        console.error('[free-confirm] lock_rejected', { reason: lockResult.reason, block })
+        return NextResponse.json({ error: 'Could not lock slot', detail: lockResult.reason }, { status: 409 })
       }
 
-      const slotId = lockData.slot_id as string
+      const slotId = lockResult.slot_id!
       const period = periodForStart(
         block.startHour,
         slotStart.getDay() === 0 || slotStart.getDay() === 6,
@@ -171,12 +178,13 @@ export async function POST(req: Request) {
 
     const primaryBookingId = bookingIds[0]
 
-    // Reserve the promo and write the discounted total onto every row. This is the
+    // Reserve the promo/wallet and write the discounted total onto every row. This is the
     // ONLY authority on the amount — the client's claim of a $0 total is ignored.
     const outcome = await prepareCheckout(service, {
       bookingId: primaryBookingId,
       userId: user.id,
       promoCode,
+      walletAmount,
       points: 0,
     })
     if (!outcome.ok) {
@@ -217,15 +225,15 @@ export async function POST(req: Request) {
         p_payment_intent_id: `promo_${primaryBookingId}`,
         p_payment_method: 'free',
         p_qr_codes: qrCodes,
-        p_event_id: null,
+        p_event_id: undefined,
       })
       if (confirmError) {
         console.error('[free-confirm] confirm_group_failed', { orderGroupId, message: confirmError.message })
         return NextResponse.json({ error: 'Confirm failed', detail: confirmError.message }, { status: 500 })
       }
-      const result = rawResult as { success?: boolean; reason?: string }
-      if (result?.success === false) {
-        return NextResponse.json({ error: 'Confirm rejected', detail: result.reason }, { status: 500 })
+      const result = parseRpc('confirm_booking_group', rawResult, isConfirmBookingGroupResult)
+      if (!result.success) {
+        return NextResponse.json({ error: 'Confirm rejected', detail: result.error }, { status: 500 })
       }
     } else {
       const { data: rawResult, error: confirmError } = await service.rpc('confirm_booking', {
@@ -233,15 +241,15 @@ export async function POST(req: Request) {
         p_payment_intent_id: `promo_${primaryBookingId}`,
         p_payment_method: 'free',
         p_qr_code: humanReadableCode(primaryBookingId),
-        p_event_id: null,
+        p_event_id: undefined,
       })
       if (confirmError) {
         console.error('[free-confirm] confirm_failed', { bookingId: primaryBookingId, message: confirmError.message })
         return NextResponse.json({ error: 'Confirm failed', detail: confirmError.message }, { status: 500 })
       }
-      const result = rawResult as { success?: boolean; reason?: string }
-      if (result?.success === false) {
-        return NextResponse.json({ error: 'Confirm rejected', detail: result.reason }, { status: 500 })
+      const result = parseRpc('confirm_booking', rawResult, isConfirmBookingResult)
+      if (!result.success) {
+        return NextResponse.json({ error: 'Confirm rejected', detail: result.error }, { status: 500 })
       }
     }
 

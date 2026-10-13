@@ -3,11 +3,9 @@ import AiSettingsForm from '@/components/admin/AiSettingsForm'
 import { tokens } from '@/app/styles/tokens'
 
 async function getInitialSettings() {
-  const service = getServiceSupabase()
-  const { data } = await service
-    .from('ai_widget_settings')
-    .select('locale, greeting_message, suggested_prompts, system_prompt_override, tone')
-  return data ?? []
+  // TODO: ai_widget_settings table doesn't exist yet (see docs/prompt5-db-requests.md)
+  // Return empty array until table is created
+  return []
 }
 
 export default async function AdminAiSettingsPage() {

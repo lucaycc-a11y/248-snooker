@@ -1,4 +1,4 @@
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 
 // Shared query logic for /admin/members. Aggregates per-user spend/booking
@@ -29,7 +29,7 @@ export type AdminMembersResult = { members: AdminMemberRow[]; total: number; pag
 export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMembersResult> {
   const page = Math.max(1, query.page ?? 1)
   const search = query.search?.trim()
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const from = (page - 1) * PAGE_SIZE
   const to = page * PAGE_SIZE - 1
 

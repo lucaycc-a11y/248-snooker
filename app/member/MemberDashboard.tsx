@@ -41,7 +41,7 @@ import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { QRCode } from "@/components/shared/QRCode";
 import { Logo } from "@/components/brand";
 import { HelpCentre } from "@/components/help/HelpCentre";
-import { MemberCardFlipRedesign } from "@/app/member/components/MemberCardFlipRedesign";
+import { MemberCardPremier } from "./components/MemberCardPremier";
 
 // ── Landing-aligned palette: black + liquid glass, green/amber/purple tiers. ──
 const DEEP = "#0a0a0a"; // near-black base (QR modal)
@@ -80,7 +80,7 @@ const TIER_GLOW: Record<string, string> = {
 // Display names for tier IDs — see lib/member/tierDisplay.ts (single source
 // of truth). This module renders localized long-form names via tierLabel().
 
-type TabId = "overview" | "bookings" | "points" | "settings" | "access" | "help";
+type TabId = "overview" | "bookings" | "wallet" | "points" | "settings" | "access" | "help";
 
 // Number of days after which a past booking moves to "History"
 const RECENT_DAYS = 30
@@ -249,16 +249,24 @@ export default function MemberDashboard({
   };
 
   return (
-    <div
-      style={{
-        fontFamily: FONT_FAMILY,
-        background: "#000",
-        minHeight: "100vh",
-        color: INK,
-        position: "relative",
-        isolation: "isolate",
-      }}
-    >
+    <>
+      <style jsx>{`
+        @media (min-width: 640px) {
+          .quick-actions-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+          }
+        }
+      `}</style>
+      <div
+        style={{
+          fontFamily: FONT_FAMILY,
+          background: "#000",
+          minHeight: "100vh",
+          color: INK,
+          position: "relative",
+          isolation: "isolate",
+        }}
+      >
       {/* Shared brand ambient orbs, layered behind the tier-coloured backdrop below. */}
       <AmbientGlow />
 
@@ -298,7 +306,7 @@ export default function MemberDashboard({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: EASE }}
         >
-          <MemberCardFlipRedesign
+          <MemberCardPremier
             profile={{
               id: user.id,
               display_name: user.display_name,
@@ -309,7 +317,6 @@ export default function MemberDashboard({
               member_code: user.member_code,
               unread_notifications: unreadCount,
               gender: null,
-              date_of_birth: null,
               birthday_set: false,
             }}
           />
@@ -340,7 +347,7 @@ export default function MemberDashboard({
 
           <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", margin: "6px 0 20px" }}>
             <span className="font-code" style={{ fontSize: "52px", lineHeight: 0.9, color: accent }}>
-              {user.points.toLocaleString()}
+              {(user.points ?? 0).toLocaleString()}
             </span>
             <span style={{ fontSize: "14px", color: SUBTLE, marginBottom: "6px", letterSpacing: "0.08em" }}>PTS</span>
           </div>
@@ -552,7 +559,7 @@ export default function MemberDashboard({
                   )}
                 </>
               )}
-              {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} />}
+              {tab === "points" && <PointsTab points={points} balance={user.points} locale={locale} tierId={tierId} />}
               {tab === "settings" && <SettingsTab user={user} bookings={bookings} onSignOut={signOut} />}
               {tab === "access" && (
                 <MemberQrGuide memberCode={user.member_code} qrDataUrl={memberQrDataUrl} />
@@ -571,6 +578,7 @@ export default function MemberDashboard({
       {/* Self-service cancel/reschedule modals removed per business policy (2025-01) */}
       {/* Users must contact customer service via WhatsApp 6180 8022 or Info@space8.com.hk */}
     </div>
+    </>
   );
 }
 
@@ -881,30 +889,80 @@ function OverviewTab({
 }) {
   const t = useTranslations('memberPage');
   const locale = useLocale();
+  const router = useRouter();
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [unreadCount, setUnreadCount] = useState<number | null>(null);
+
+  // Fetch wallet balance and unread count
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [walletRes, inboxRes] = await Promise.all([
+          fetch('/api/member/wallet'),
+          fetch('/api/member/inbox/unread-count'),
+        ]);
+
+        if (walletRes.ok) {
+          const data: import('@/lib/member-contracts').WalletApiResponse = await walletRes.json();
+          setWalletBalance(data.balance ?? 0);
+        }
+
+        if (inboxRes.ok) {
+          const data = await inboxRes.json();
+          setUnreadCount(data.count ?? 0);
+        }
+      } catch (err) {
+        console.error('Failed to fetch quick action data:', err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: EASE }}
+      className="m8 m8-actions"
     >
-      {/* Quick actions row */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 20,
-      }}>
-        <QuickActionCard
-          icon={<Zap size={18} strokeWidth={2} />}
-          label={t('stat_bookings')}
-          value={`${stats.bookings}`}
-          accent={GREEN}
-          onClick={() => onSwitchTab('bookings')}
+      {/* Quick actions — 4 tiles, 2×2 mobile, 1×4 desktop */}
+      <div className="qa">
+        <QuickActionTile
+          icon={<HelpCircle size={20} strokeWidth={2} />}
+          title="Help"
+          subtitle="幫助中心"
+          onClick={() => router.push('/faq')}
         />
-        <QuickActionCard
-          icon={<Coins size={18} strokeWidth={2} />}
-          label={t('card_points')}
-          value={`${user.points.toLocaleString()} pts`}
-          accent={accent}
+        <QuickActionTile
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="6" width="18" height="12" rx="2"/>
+              <path d="M3 10h18"/>
+            </svg>
+          }
+          title="Wallet"
+          subtitle="錢包"
+          badge={walletBalance !== null ? `HK$${walletBalance.toLocaleString()}` : undefined}
+          onClick={() => router.push('/member/wallet')}
+        />
+        <QuickActionTile
+          icon={
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          }
+          title="Space Pts"
+          subtitle="積分"
+          badge={(user.points ?? 0).toLocaleString()}
           onClick={() => onSwitchTab('points')}
+        />
+        <QuickActionTile
+          icon={<Bell size={20} strokeWidth={2} />}
+          title="Inbox"
+          subtitle="收件箱"
+          unreadCount={unreadCount ?? 0}
+          onClick={() => router.push('/member/inbox')}
         />
       </div>
 
@@ -1006,6 +1064,91 @@ function OverviewTab({
         </div>
       )}
     </motion.div>
+  );
+}
+
+/* ── Quick Action Tile — matching design spec for 4-tile home grid ── */
+function QuickActionTile({
+  icon,
+  title,
+  subtitle,
+  badge,
+  unreadCount,
+  onClick
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  badge?: string;
+  unreadCount?: number;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      className="tile"
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      } : undefined}
+    >
+      {/* Top-right badges */}
+      {(badge || (unreadCount !== undefined && unreadCount > 0)) && (
+        <div className="top-r">
+          {badge && (
+            <span style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: INK,
+              background: 'rgba(255,255,255,0.1)',
+              padding: '3px 8px',
+              borderRadius: 12,
+              whiteSpace: 'nowrap',
+            }}>
+              {badge}
+            </span>
+          )}
+          {unreadCount !== undefined && unreadCount > 0 && (
+            <span style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#fff',
+              background: DANGER,
+              padding: '2px 6px',
+              borderRadius: 10,
+              minWidth: 18,
+              display: 'inline-block',
+              textAlign: 'center',
+            }}>
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Icon */}
+      <div style={{
+        color: INK,
+        opacity: 0.8,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 20,
+        height: 20,
+      }}>
+        {icon}
+      </div>
+
+      {/* Bottom: title + subtitle */}
+      <div>
+        <div className="tt">{title}</div>
+        <div className="ts">{subtitle}</div>
+      </div>
+    </div>
   );
 }
 
@@ -1296,15 +1439,130 @@ const POINTS_CATEGORY_STYLE: Record<
   manual: { icon: <Sparkles size={14} strokeWidth={2} />, color: SUBTLE },
 };
 
-function PointsTab({ points, balance, locale }: { points: import("@/lib/data/getMember").PointsEntry[]; balance: number; locale: string }) {
+function PointsTab({ points, balance, locale, tierId }: { points: import("@/lib/data/getMember").PointsEntry[]; balance: number; locale: string; tierId: string }) {
   const t = useTranslations("memberPage");
   const earn = t.raw("points_earn") as string[];
+  const [totalConverted, setTotalConverted] = useState<number | null>(null);
+  const [lastConversion, setLastConversion] = useState<{ amount: number; hkd: number } | null>(null);
+
+  // Fetch total converted points from wallet ledger
+  useEffect(() => {
+    const fetchConversions = async () => {
+      try {
+        const res = await fetch('/api/member/wallet');
+        if (!res.ok) return;
+        const data: import('@/lib/member-contracts').WalletApiResponse = await res.json();
+
+        // Sum all converted points from ledger
+        let total = 0;
+        let latestConvert: { amount: number; hkd: number } | null = null;
+
+        if (data.ledger?.items) {
+          for (const item of data.ledger.items) {
+            if (item.type === 'convert' && item.pointsConverted) {
+              total += item.pointsConverted;
+              if (!latestConvert) {
+                // Latest conversion: pointsConverted pts → Math.abs(amount) HKD
+                latestConvert = {
+                  amount: item.pointsConverted,
+                  hkd: Math.abs(item.amount)
+                };
+              }
+            }
+          }
+        }
+
+        setTotalConverted(total);
+        setLastConversion(latestConvert);
+      } catch (err) {
+        console.error('Failed to fetch conversions:', err);
+      }
+    };
+    fetchConversions();
+  }, []);
+
+  // Calculate redeemable balance (0-99 range)
+  const redeemable = totalConverted !== null ? balance - totalConverted : balance;
+  const redeemableInRange = redeemable % 100; // 0-99
+  const progressPercent = redeemableInRange; // 0-99 maps directly to 0-99%
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "16px" }}>
-        <span style={{ fontSize: "14px", color: SUBTLE }} data-cms-key="member.points_running_total">{t("points_running_total")}</span>
-        <span className="font-code" style={{ fontSize: "30px", color: INK, letterSpacing: "0.02em" }}>{balance.toLocaleString()} <span style={{ fontSize: "13px", color: SUBTLE, fontFamily: FONT_FAMILY }}>pts</span></span>
+      {/* Tier badge + Redeemable and Redeemed points */}
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+          <span style={{
+            fontSize: "11px",
+            fontWeight: 600,
+            color: INK,
+            background: "rgba(255,255,255,0.1)",
+            padding: "4px 10px",
+            borderRadius: 12,
+            fontFamily: "var(--gt)"
+          }}>
+            優越會員
+          </span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "8px" }}>
+          <span style={{ fontSize: "14px", color: SUBTLE }}>可兌換積分</span>
+          <span className="font-code" style={{ fontSize: "30px", color: INK, letterSpacing: "0.02em" }}>
+            {redeemableInRange.toLocaleString()} <span style={{ fontSize: "13px", color: SUBTLE, fontFamily: FONT_FAMILY }}>pts</span>
+          </span>
+        </div>
+
+        {/* Progress bar toward next 100 */}
+        <div style={{
+          width: "100%",
+          height: "6px",
+          background: "rgba(255,255,255,0.1)",
+          borderRadius: "3px",
+          overflow: "hidden"
+        }}>
+          <div style={{
+            transform: `scaleX(${progressPercent / 100})`,
+            transformOrigin: "left",
+            height: "100%",
+            background: GREEN,
+            transition: "transform 0.3s ease"
+          }} />
+        </div>
+        <div style={{ fontSize: "11px", color: SUBTLE, marginTop: "4px", textAlign: "right" }}>
+          {100 - redeemableInRange} pts 至下一次兌換
+        </div>
+
+        {/* Redeemed points display */}
+        {totalConverted !== null && totalConverted > 0 && (
+          <div style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            marginTop: "16px",
+            paddingTop: "16px",
+            borderTop: `1px solid ${BORDER}`
+          }}>
+            <span style={{ fontSize: "14px", color: SUBTLE }}>已兌換積分</span>
+            <span className="font-code" style={{ fontSize: "20px", color: SUBTLE, letterSpacing: "0.02em" }}>
+              {totalConverted.toLocaleString()} <span style={{ fontSize: "12px", fontFamily: FONT_FAMILY }}>pts</span>
+            </span>
+          </div>
+        )}
       </div>
+
+      {/* Conversion notification */}
+      {lastConversion && (
+        <div style={{
+          padding: "12px 16px",
+          background: "rgba(34,197,94,0.1)",
+          border: `1px solid rgba(34,197,94,0.3)`,
+          borderRadius: "12px",
+          marginBottom: "20px"
+        }}>
+          <div style={{ fontSize: "13px", color: INK }}>
+            上次兌換：{lastConversion.amount} pts → HK${lastConversion.hkd} 已存入錢包
+          </div>
+        </div>
+      )}
 
       {points.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -1412,21 +1670,11 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
     setHasActiveBookings(hasActive);
   }, [bookings]);
 
-  // ── Email-link change requests (phone + password) ──────────────────────────
-  // Phone and password can no longer be changed from this form. Both route
-  // through /api/auth/change-request, which emails a single-use link to the
-  // address on the account. The change itself happens on the linked page.
-  const [phoneSending, setPhoneSending] = useState(false);
-  const [phoneMessage, setPhoneMessage] = useState<string | null>(null);
-  const [phoneCooldown, setPhoneCooldown] = useState(0);
+  // ── Email-link change requests (password only) ─────────────────────────────
+  // Password routes through /api/auth/change-request, which emails a single-use
+  // link to the address on the account. Phone/email are admin-only via WhatsApp
+  // support (see docs/admin-identity-change.md).
   const [pwCooldown, setPwCooldown] = useState(0);
-
-  // Visible countdown for the phone-change request button
-  useEffect(() => {
-    if (phoneCooldown <= 0) return;
-    const id = window.setTimeout(() => setPhoneCooldown((c) => c - 1), 1000);
-    return () => window.clearTimeout(id);
-  }, [phoneCooldown]);
 
   // Visible countdown for the password-change request button
   useEffect(() => {
@@ -1474,13 +1722,12 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
   };
 
   // ── Request a change link ─────────────────────────────────────────────────
-  // Both 更改電話 and 更改密碼 hit the same endpoint with a different purpose.
   // The response is deliberately identical whether or not an email exists, so
   // the UI shows the same confirmation either way (no account enumeration).
-  const requestChangeLink = async (purpose: "phone" | "password") => {
-    const setSending = purpose === "phone" ? setPhoneSending : setPwSending;
-    const setMessage = purpose === "phone" ? setPhoneMessage : setPwMessage;
-    const setCooldown = purpose === "phone" ? setPhoneCooldown : setPwCooldown;
+  const requestChangeLink = async (purpose: "password") => {
+    const setSending = setPwSending;
+    const setMessage = setPwMessage;
+    const setCooldown = setPwCooldown;
 
     setSending(true);
     setMessage(null);
@@ -1563,36 +1810,19 @@ function SettingsTab({ user, bookings, onSignOut }: { user: MemberData["user"]; 
         <input value={user.phone ?? ""} readOnly style={{ ...inputStyle, color: SUBTLE, cursor: "not-allowed" }} inputMode="tel" aria-label={t("settings_phone")} />
       </Field>
 
-      {/* Change phone — emails a single-use link; the change happens there */}
-      <button
-        type="button"
-        onClick={() => requestChangeLink("phone")}
-        disabled={phoneSending || phoneCooldown > 0}
-        style={{
-          minHeight: 48,
-          borderRadius: "12px",
-          border: `1px solid ${BORDER}`,
-          background: "transparent",
-          color: phoneCooldown > 0 ? SUBTLE : INK,
-          fontSize: "15px",
-          fontWeight: 600,
-          cursor: phoneSending || phoneCooldown > 0 ? "default" : "pointer",
-          opacity: phoneSending ? 0.6 : 1,
-        }}
-        data-cms-key="member.settings_change_phone"
-      >
-        {phoneCooldown > 0
-          ? t("settings_change_resend_in", { seconds: phoneCooldown })
-          : phoneSending
-            ? t("sending")
-            : t("settings_change_phone")}
-      </button>
-
-      {phoneMessage && (
-        <p style={{ fontSize: "13px", color: SUBTLE, margin: 0 }} role="status">
-          {phoneMessage}
-        </p>
-      )}
+      {/* Phone/email changes are now admin-only via WhatsApp support (Part B1) */}
+      <p style={{ fontSize: "13px", color: SUBTLE, margin: 0 }} data-cms-key="memberPage.settings_identity_locked_note">
+        {t("settings_identity_locked_note")}{" "}
+        <a
+          href={SITE_CONTACT.whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: GREEN, textDecoration: "underline" }}
+          data-cms-key="memberPage.settings_identity_locked_link"
+        >
+          {t("settings_identity_locked_link")}
+        </a>
+      </p>
 
       {/* Notifications */}
       <div style={{ border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "20px" }}>

@@ -1,0 +1,181 @@
+{
+  "hero": {
+    "title": "帮助中心",
+    "subtitle": "我们随时为您提供协助",
+    "searchPlaceholder": "搜索帮助文章...",
+    "image": {
+      "src": "/images/help-hero-800.webp",
+      "srcset": "/images/help-hero-800.webp 800w, /images/help-hero-1600.webp 1600w",
+      "alt": "帮助中心"
+    }
+  },
+  "topics": [
+    {
+      "id": "booking",
+      "title": "预订及付款",
+      "description": "了解如何预订台位、付款方式及取消政策",
+      "icon": "booking",
+      "href": "/help/booking"
+    },
+    {
+      "id": "account",
+      "title": "账户管理",
+      "description": "管理个人资料、密码及偏好设置",
+      "icon": "account",
+      "href": "/help/account"
+    },
+    {
+      "id": "membership",
+      "title": "会籍方案",
+      "description": "会籍等级、积分系统及专属优惠",
+      "icon": "membership",
+      "href": "/help/membership"
+    },
+    {
+      "id": "venue",
+      "title": "场地信息",
+      "description": "场地位置、设施及开放时间",
+      "icon": "venue",
+      "href": "/help/venue"
+    },
+    {
+      "id": "entry",
+      "title": "入场及 QR Code",
+      "description": "如何使用 QR Code 进场及相关问题",
+      "icon": "entry",
+      "href": "/help/entry"
+    },
+    {
+      "id": "rules",
+      "title": "使用守则",
+      "description": "场地使用规则及注意事项",
+      "icon": "rules",
+      "href": "/help/rules"
+    },
+    {
+      "id": "technical",
+      "title": "技术支持",
+      "description": "应用程序使用问题及技术故障排解",
+      "icon": "technical",
+      "href": "/help/technical"
+    },
+    {
+      "id": "safety",
+      "title": "安全及保险",
+      "description": "安全措施、保险信息及紧急应变",
+      "icon": "safety",
+      "href": "/help/safety"
+    },
+    {
+      "id": "contact",
+      "title": "联络我们",
+      "description": "联络方式及营业时间",
+      "icon": "contact",
+      "href": "/help/contact",
+      "span": 2,
+      "image": {
+        "src": "/images/help-contact-800.webp",
+        "srcset": "/images/help-contact-800.webp 800w, /images/help-contact-1600.webp 1600w",
+        "alt": "联络我们"
+      }
+    }
+  ],
+  "popularQuestionsTitle": "热门问题",
+  "popularQuestions": [
+    {
+      "question": "如何预订台位？",
+      "topic": "booking",
+      "article": "how-to-book"
+    },
+    {
+      "question": "如何重设密码？",
+      "topic": "account",
+      "article": "reset-password"
+    }
+  ],
+  "announcementsTitle": "最新公告",
+  "announcements": [
+    {
+      "id": "welcome",
+      "date": "2024-10-01",
+      "title": "欢迎使用帮助中心",
+      "summary": "我们全新的帮助中心现已上线",
+      "content": "## 欢迎使用帮助中心\n\n我们很高兴推出全新的帮助中心，为您提供更完善的支持服务。\n\n如有任何疑问，欢迎随时联络我们。",
+      "published": true
+    }
+  ],
+  "browseTopicsTitle": "浏览主题",
+  "searchResultsTitle": "搜索结果",
+  "noResultsTitle": "没有找到结果",
+  "noResultsMessage": "请尝试其他搜索词",
+  "topics_data": {
+    "booking": {
+      "title": "预订及付款",
+      "description": "了解如何预订台位、付款方式及取消政策",
+      "articles": [
+        {
+          "id": "how-to-book",
+          "title": "如何预订台位？",
+          "summary": "了解完整的预订流程",
+          "content": "## 如何预订台位\n\n1. 前往预订页面\n2. 选择日期和时间\n3. 选择台位\n4. 完成付款\n\n预订成功后，您会收到确认讯息。",
+          "published": true,
+          "gate": null
+        }
+      ]
+    },
+    "account": {
+      "title": "账户管理",
+      "description": "管理个人资料、密码及偏好设置",
+      "articles": [
+        {
+          "id": "reset-password",
+          "title": "如何重设密码？",
+          "summary": "重设您的账户密码",
+          "content": "## 重设密码\n\n1. 点击登录页面的「忘记密码」\n2. 输入您的邮箱地址\n3. 查收重设密码的邮件\n4. 点击链接设置新密码",
+          "published": true,
+          "gate": null
+        }
+      ]
+    },
+    "membership": {
+      "title": "会籍方案",
+      "description": "会籍等级、积分系统及专属优惠",
+      "articles": []
+    },
+    "venue": {
+      "title": "场地信息",
+      "description": "场地位置、设施及开放时间",
+      "articles": []
+    },
+    "entry": {
+      "title": "入场及 QR Code",
+      "description": "如何使用 QR Code 进场及相关问题",
+      "articles": []
+    },
+    "rules": {
+      "title": "使用守则",
+      "description": "场地使用规则及注意事项",
+      "articles": []
+    },
+    "technical": {
+      "title": "技术支持",
+      "description": "应用程序使用问题及技术故障排解",
+      "articles": []
+    },
+    "safety": {
+      "title": "安全及保险",
+      "description": "安全措施、保险信息及紧急应变",
+      "articles": []
+    },
+    "contact": {
+      "title": "联络我们",
+      "description": "联络方式及营业时间",
+      "articles": []
+    }
+  },
+  "tokenMap": {
+    "support_email": "help.support_email",
+    "support_phone": "help.support_phone",
+    "support_whatsapp": "help.support_whatsapp"
+  }
+}

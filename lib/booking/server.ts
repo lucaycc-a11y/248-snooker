@@ -1,5 +1,5 @@
 import { getPublicSupabase } from '@/lib/supabase/public'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import {
   DEFAULT_PERIODS,
   DEFAULT_TIERS,
@@ -33,7 +33,7 @@ export async function loadPeriods(): Promise<PricingPeriod[]> {
 /** Resolve a member's tier from their points balance. Guests → Amateur (base tier). */
 export async function resolveTierForUser(userId?: string | null): Promise<Tier> {
   if (!userId) return DEFAULT_TIERS[0]
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
   // users.points is the running balance (verified). The update_tier_trigger keeps
   // users.tier in sync, but we resolve from points here so pricing stays a pure
   // function of the ledger.
@@ -89,7 +89,7 @@ export async function getAvailableTables(
   durationHours: number,
 ): Promise<number[]> {
   const { slotStart: reqStart, slotEnd: reqEnd } = slotBounds(date, startHour, durationHours)
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
   const { data, error } = await supabase
     .from('slots')
     .select('table_number, date, start_time, duration_hours, status, locked_until')
@@ -165,7 +165,7 @@ export async function getDaySlots(date: string, userId: string | null = null): P
   const next = new Date(base)
   next.setDate(next.getDate() + 1)
 
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
   const { data, error } = await supabase
     .from('slots')
     .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
@@ -200,7 +200,7 @@ export async function getRangeSlots(
   const to = new Date(base)
   to.setDate(to.getDate() + days) // exclusive end already pads the high edge
 
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
   const { data, error } = await supabase
     .from('slots')
     .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
@@ -233,7 +233,7 @@ export async function validateSlotLock(
   slotId: string,
   userId: string,
 ): Promise<LockedSlot | null> {
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
   const { data: s, error } = await supabase
     .from('slots')
     .select('id, date, start_time, end_time, duration_hours, table_number, price, status, locked_by, locked_until')

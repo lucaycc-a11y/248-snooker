@@ -1,7 +1,7 @@
 // Route guard utilities for authentication and authorization
 // Used in middleware and server components to protect routes
 
-import { createClient } from "@/lib/supabase/server"
+import { getLegacyRouteHandlerClient } from "@/lib/supabase/legacy"
 import { redirect } from "next/navigation"
 
 /**
@@ -9,7 +9,7 @@ import { redirect } from "next/navigation"
  * Use in server components and route handlers that require authentication.
  */
 export async function requireAuth(redirectTo?: string) {
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -26,7 +26,7 @@ export async function requireAuth(redirectTo?: string) {
  */
 export async function requireCompleteProfile() {
   const user = await requireAuth()
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
 
   const { data: profile } = await supabase
     .from('users')

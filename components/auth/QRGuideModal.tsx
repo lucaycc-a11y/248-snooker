@@ -162,7 +162,7 @@ export function QRGuideModal({ memberCode, onClose }: QRGuideModalProps) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("close")}
             style={{
               position: "absolute",
               top: "16px",

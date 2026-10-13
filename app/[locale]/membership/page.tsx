@@ -1,29 +1,23 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { indexingMeta } from "@/lib/env/app-env";
+import { pageAlternates } from "@/lib/seo/site";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
-import WhatsAppButton from "@/components/shared/WhatsAppButton";
-import MembershipContent from "./MembershipContent";
+
+// ── Main content (lazy load) ────────────────────────────────────────────────
+const MembershipContent = dynamic(
+  () => import("./MembershipContent"),
+  { ssr: true }
+);
+
+const WhatsAppButton = dynamic(
+  () => import("@/components/shared/WhatsAppButton"),
+  { ssr: false } // Client-only
+);
 
 const BASE = "https://space8.com.hk";
-
-const META: Record<string, { title: string; description: string }> = {
-  "zh-HK": {
-    title: "會員制度｜SPACE8 積分等級",
-    description:
-      "SPACE8 會員制度：每消費 HK$1 累積 1 積分，三個等級 標準、優越、尊榮，自動升級，解鎖專屬福利。全預約制，網上預訂、QR碼自助入場。",
-  },
-  "zh-CN": {
-    title: "会员制度｜SPACE8 积分等级",
-    description:
-      "SPACE8 会员制度：每消费 HK$1 累积 1 积分，三个等级 标准、优越、尊荣，自动升级，解锁专属福利。全预约制，网上预订、QR码自助入场。",
-  },
-  en: {
-    title: "Membership｜SPACE8 Points & Tiers",
-    description:
-      "SPACE8 membership: earn 1 point per HK$1 spent across three tiers — Standard, Premier, Prestige — with automatic upgrades and exclusive benefits. Reservation-based — book online, self check-in via QR code.",
-  },
-};
 
 export async function generateMetadata({
   params,
@@ -31,29 +25,24 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const m = META[locale] ?? META["zh-HK"];
+  const t = await getTranslations({ locale, namespace: "memberIntro" });
+
+  const title = t("meta.title");
+  const description = t("meta.description");
   const path = locale === "zh-HK" ? "/membership" : `/${locale}/membership`;
 
   return {
-    title: m.title,
-    description: m.description,
-    alternates: {
-      canonical: `${BASE}${path}`,
-      languages: {
-        "zh-HK": `${BASE}/membership`,
-        "zh-CN": `${BASE}/zh-CN/membership`,
-        en: `${BASE}/en/membership`,
-        "x-default": `${BASE}/membership`,
-      },
-    },
+    title,
+    description,
+    alternates: pageAlternates(locale, "/membership"),
     openGraph: {
-      title: m.title,
-      description: m.description,
+      title,
+      description,
       url: `${BASE}${path}`,
       siteName: "Space8",
       type: "website",
     },
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   };
 }
 
@@ -66,7 +55,7 @@ export default async function MembershipPage({
   setRequestLocale(locale);
 
   return (
-    <main className="relative bg-black">
+    <main className="relative bg-black overflow-x-hidden">
       <Nav />
       <MembershipContent />
       <Footer />

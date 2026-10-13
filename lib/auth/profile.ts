@@ -22,15 +22,15 @@ export type ProfileValidation =
 
 /**
  * Normalize a Hong Kong phone number to E.164 (+852XXXXXXXX), or null if invalid.
- * Accepts optional +852/852 prefix and common separators. HK numbers are 8 digits
- * and start 2–9 (landline 2/3, mobile 5/6/9, newer ranges 4/7/8).
+ *
+ * Accepted local first digits: 5/6/7/9 (mobile only). Accepts optional
+ * +852/852 prefix and common separators (spaces, dashes, parens).
+ * Returns E.164 format or null if invalid.
+ *
+ * This is now a re-export from phone-normalizer.ts (single source of truth).
  */
-export function normalizeHkPhone(raw: string): string | null {
-  if (!raw) return null
-  const digits = raw.replace(/[\s\-()]/g, '').replace(/^\+?852/, '')
-  if (!/^[2-9]\d{7}$/.test(digits)) return null
-  return `+852${digits}`
-}
+import { normalizeHkPhone } from './phone-normalizer'
+export { normalizeHkPhone }
 
 // Pragmatic email check — rejects the obvious-invalid without the false negatives
 // of an over-strict RFC regex.

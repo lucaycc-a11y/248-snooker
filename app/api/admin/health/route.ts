@@ -11,7 +11,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +31,7 @@ export async function GET() {
     const admin = await getAdminData()
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const checks: HealthCheck[] = []
 
     // ── 1. DB connectivity ────────────────────────────────

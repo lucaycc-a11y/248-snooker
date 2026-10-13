@@ -19,7 +19,7 @@ export const privacyEn: LegalDocument = {
     },
     {
       title: "Data Retention Period",
-      body: "The Company will retain your personal data for the reasonable period necessary to achieve the purposes for which it was collected, after which it will be deleted or anonymised in accordance with internal policy. CCTV footage will be retained for the period specified under the Company's internal security policy, save that the Company may need to extend such retention where a dispute investigation, security incident, or legal requirement is involved.",
+      body: "The Company will retain your personal data for the reasonable period necessary to achieve the purposes for which it was collected, after which it will be deleted or anonymised in accordance with internal policy. CCTV footage will be retained for the period specified under the Company's internal security policy, save that the Company may need to extend such retention where a dispute investigation, security incident, or legal requirement is involved.\n\nAfter you voluntarily delete your member account with the Company, the Company shall, in accordance with applicable laws and statutory requirements, properly retain your personal data for a maximum period of six (6) months for the purposes of internal auditing, dispute resolution, prevention of account abuse or fraudulent activities, and operational record-keeping. During this retention period, if you re-apply for registration using the same personal data, the Company may cross-reference such data to verify account status. Upon expiry of this period, the relevant data will be permanently deleted or anonymized.",
     },
     {
       title: "Your Rights",

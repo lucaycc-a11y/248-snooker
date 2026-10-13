@@ -3,11 +3,12 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { validateProfile, normalizeHkPhone } from '@/lib/auth/profile'
 import { generateMemberCode } from '@/lib/member/planetSystem'
+import { bindVerifiedPhone } from '@/lib/auth/phone-binding'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic' // reads auth cookies — never prerender
 
-// POST /api/profile/complete  { name, email, phone, date_of_birth }
+// POST /api/profile/complete  { name, email, phone }
 // The authoritative server-side half of the mandatory profile-completion step.
 // Requires a valid session; re-validates every field with the SAME validator the
 // client uses (never trusts client-side validation); writes the normalized values
@@ -44,59 +45,16 @@ export async function POST(req: Request) {
       name: body?.name ? (body.name as string).slice(0, 2) + '***' : undefined,
       email: body?.email ? `***@${(body.email as string).split('@')[1]}` : undefined,
       phone: body?.phone ? `***${(body.phone as string).slice(-3)}` : undefined,
-      date_of_birth: body?.date_of_birth ? 'YYYY-MM-DD' : undefined,
       bodyType: typeof body,
     })
 
     if (!normalizeHkPhone(body?.phone ?? '')) {
       console.warn('[profile/complete] 400 phone_invalid', {
-        rawPhone: body?.phone ?? '(empty)',
+        // Last 3 chars only: a full number in Vercel logs is PII.
+        rawPhoneTail: typeof body?.phone === 'string' ? `***${body.phone.slice(-3)}` : '(empty)',
         phoneType: typeof body?.phone,
       })
       return NextResponse.json({ error: '請提供有效的電話號碼' }, { status: 400 })
-    }
-
-    // Validate date_of_birth format (YYYY-MM-DD)
-    const dateOfBirth = body?.date_of_birth as string | undefined
-    if (!dateOfBirth || !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
-      console.warn('[profile/complete] 422 date_of_birth_invalid', {
-        rawDate: dateOfBirth ?? '(empty)',
-        dateType: typeof dateOfBirth,
-      })
-      return NextResponse.json(
-        { error: '請提供有效的出生日期', field: 'date_of_birth' },
-        { status: 422 },
-      )
-    }
-
-    // Validate date_of_birth constraints (not future, not before 1900)
-    const dobDate = new Date(dateOfBirth)
-    const minDate = new Date('1900-01-01')
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    if (isNaN(dobDate.getTime())) {
-      console.warn('[profile/complete] 422 date_of_birth_invalid_date', { dateOfBirth })
-      return NextResponse.json(
-        { error: '請輸入有效的日期', field: 'date_of_birth' },
-        { status: 422 },
-      )
-    }
-
-    if (dobDate < minDate) {
-      console.warn('[profile/complete] 422 date_of_birth_too_early', { dateOfBirth })
-      return NextResponse.json(
-        { error: '年份不得早於 1900 年', field: 'date_of_birth' },
-        { status: 422 },
-      )
-    }
-
-    if (dobDate > today) {
-      console.warn('[profile/complete] 422 date_of_birth_future', { dateOfBirth })
-      return NextResponse.json(
-        { error: '出生日期不得為未來日期', field: 'date_of_birth' },
-        { status: 422 },
-      )
     }
 
     const result = validateProfile({
@@ -137,7 +95,7 @@ export async function POST(req: Request) {
       .eq('id', user.id)
       .maybeSingle<{ member_code: string | null }>()
 
-    const { data: verifiedIdentity, error: identityError } = await service
+    let { data: verifiedIdentity, error: identityError } = await service
       .from('auth_identities')
       .select('verified_at')
       .eq('user_id', user.id)
@@ -145,6 +103,40 @@ export async function POST(req: Request) {
       .eq('identifier', result.value.phone)
       .eq('verified', true)
       .maybeSingle<{ verified_at: string | null }>()
+
+    // Phone-OTP sign-in verifies the number in GoTrue (auth.users.phone +
+    // phone_confirmed_at) but never writes the auth_identities ledger, so every
+    // phone-signup user 422'd here. Same proof as /bind-phone: the SESSION (fresh
+    // GoTrue read, not the request body) must show this exact phone confirmed.
+    if (!verifiedIdentity && !identityError) {
+      const sessionPhone = user.phone ? `+${user.phone.replace(/^\+/, '')}` : ''
+      const sessionPhoneConfirmed = Boolean(
+        (user as { phone_confirmed_at?: string | null }).phone_confirmed_at,
+      )
+      if (sessionPhoneConfirmed && sessionPhone === result.value.phone) {
+        const bound = await bindVerifiedPhone(user.id, result.value.phone)
+        if (!bound.ok) {
+          console.warn('[profile/complete] session-phone bind failed', {
+            userId: user.id,
+            error: bound.error,
+          })
+          if (bound.error === 'phone_taken') {
+            return NextResponse.json({ error: 'phone_taken', field: 'phone' }, { status: 409 })
+          }
+        } else {
+          const retry = await service
+            .from('auth_identities')
+            .select('verified_at')
+            .eq('user_id', user.id)
+            .eq('provider', 'phone')
+            .eq('identifier', result.value.phone)
+            .eq('verified', true)
+            .maybeSingle<{ verified_at: string | null }>()
+          verifiedIdentity = retry.data
+          identityError = retry.error
+        }
+      }
+    }
 
     if (identityError) {
       console.error('[profile/complete] phone identity lookup failed', {
@@ -219,6 +211,26 @@ export async function POST(req: Request) {
       }
     }
 
+    // Another account already owns this email → clear 422 instead of letting the
+    // unique index throw and surface as a generic 500 update_failed.
+    const { data: emailOwner, error: emailOwnerError } = await service
+      .from('users')
+      .select('id')
+      .ilike('email', result.value.email.replace(/[\\%_]/g, (c) => `\\${c}`))
+      .neq('id', user.id)
+      .limit(1)
+      .maybeSingle<{ id: string }>()
+    if (emailOwnerError) {
+      console.error('[profile/complete] email ownership lookup failed', {
+        message: emailOwnerError.message,
+        code: emailOwnerError.code,
+        userId: user.id,
+      })
+    } else if (emailOwner) {
+      console.warn('[profile/complete] 422 email_taken', { userId: user.id })
+      return NextResponse.json({ error: 'email_taken', field: 'email' }, { status: 422 })
+    }
+
     const { error } = await service
       .from('users')
       .upsert(
@@ -227,7 +239,6 @@ export async function POST(req: Request) {
           display_name: result.value.display_name,
           email: result.value.email,
           phone,
-          date_of_birth: dateOfBirth,
           member_code: memberCode,
           email_verified_at: emailVerifiedAt,
           phone_verified_at: phoneVerifiedAt,

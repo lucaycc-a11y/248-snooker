@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 
 const execAsync = promisify(exec)
 
 async function checkAdminAuth() {
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -25,7 +25,7 @@ async function checkAdminAuth() {
 }
 
 async function auditLog(userId: string, action: string, details: any) {
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
   await supabase.from('audit_log').insert({
     user_id: userId,
     action,
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         // Push to main
         await execAsync('git push origin main')
 
-        const supabase = await createClient()
+        const supabase = await getLegacyRouteHandlerClient()
 
         // Update gate based on enableGate param
         await supabase
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         })
       } else {
         // This is a gate-only toggle (go-live action)
-        const supabase = await createClient()
+        const supabase = await getLegacyRouteHandlerClient()
         await supabase
           .from('site_gate_config')
           .update({ enabled: false, reason: null })

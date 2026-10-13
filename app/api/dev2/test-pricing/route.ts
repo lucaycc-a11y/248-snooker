@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const runtime = 'edge'
 
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid amount: must be >= 0' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Call the set_uat_test_price() function (deactivates old, activates new)
     const { data: newPrice, error } = await service.rpc('set_uat_test_price', {

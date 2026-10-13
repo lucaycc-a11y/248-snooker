@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 import WidgetCard from './WidgetCard'
 import type { WidgetProps } from '@/lib/admin/widgetRegistry'
 
@@ -26,10 +26,10 @@ export default function AnomalyWidget({ size }: WidgetProps) {
 
   useEffect(() => {
     let cancelled = false
-    const supabase = createClient()
 
     async function fetchAnomalies() {
       try {
+        const supabase = await getLegacyRouteHandlerClient()
         // Payments that exist but have no matching confirmed booking
         const { data } = await supabase
           .from('payment_attempts')

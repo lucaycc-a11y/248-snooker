@@ -4,14 +4,13 @@ import dynamic from 'next/dynamic'
 import { Link } from '@/i18n/navigation'
 import { Clock, Instagram, Mail, MapPin, MessageCircle, Phone } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Logo } from '@/components/brand'
 import { SITE_CONTACT } from '@/lib/site/contact'
+import { MAPS_URL } from '@/lib/site/nap'
 
 const WHATSAPP_URL = SITE_CONTACT.whatsappUrl
 const INSTAGRAM_URL = 'https://instagram.com/space8.com.hk'
-const MAP_QUERY = '泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong'
-const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(MAP_QUERY)}`
 
 // Free CARTO Dark Matter tile map — no API key, no billing account needed
 // (replaces the old Google Maps Static API thumbnail). Leaflet touches
@@ -38,6 +37,7 @@ const FooterMap = dynamic(
 
 export default function Footer() {
   const t = useTranslations()
+  const locale = useLocale()
 
   const navLinks: { label: string; href: string }[] = [
     { label: t('nav.book'), href: '/book' },
@@ -45,7 +45,7 @@ export default function Footer() {
     { label: t('nav.about'), href: '/about' },
     { label: t('nav.blog'), href: '/blog' },
     { label: t('nav.membership'), href: '/membership' },
-    { label: t('nav.faq'), href: '/faq' },
+    { label: '常見問題', href: '/faq' },
     { label: t('footer.legal'), href: '/legal' },
     { label: t('footer.privacy'), href: '/privacy' },
   ]
@@ -268,29 +268,88 @@ export default function Footer() {
             <h2
               data-cms-key="footer.seo_title"
               itemProp="name"
-              className="font-label"
               style={{
-                fontSize: '13px',
-                fontWeight: 400,
-                color: tokens.colors.textMuted,
-                margin: '0 0 12px',
+                fontSize: '14px',
+                fontWeight: 500,
+                color: tokens.colors.text,
+                margin: '0 0 14px',
+                lineHeight: 1.5,
               }}
             >
               {t('footer.seo_title')}
             </h2>
-            <p
+            <div
               data-cms-key="footer.seo_blurb"
               itemProp="description"
               style={{
                 fontSize: '13px',
                 color: tokens.colors.textMuted,
-                lineHeight: 1.7,
+                lineHeight: 1.75,
                 margin: 0,
                 maxWidth: '46ch',
               }}
             >
-              {t('footer.seo_blurb')}
-            </p>
+              {locale === 'zh-HK' && (
+                <>
+                  <div style={{ marginBottom: '8px' }}>
+                    SPACE8 是香港新蒲崗自助無煙智能中式桌球球室，
+                  </div>
+                  <div style={{ marginBottom: '8px' }}>
+                    兩間1T獨立球室，
+                    <span style={{ fontWeight: 500 }}>每日 06:00 至 24:00 營業</span>
+                    。
+                  </div>
+                  <div style={{ marginBottom: '8px' }}>
+                    <span style={{ fontWeight: 500 }}>網上預訂、二維碼自助入場</span>
+                    。專業設備，智能系統，聚光在桌球本身。
+                  </div>
+                  <div>
+                    <span style={{ fontWeight: 500 }}>鄰近鑽石山和啟德地鐵站</span>
+                    ，方便停車。
+                  </div>
+                </>
+              )}
+              {locale === 'zh-CN' && (
+                <>
+                  <div style={{ marginBottom: '8px' }}>
+                    SPACE8 是香港新蒲岗自助无烟智能中式桌球球室，
+                  </div>
+                  <div style={{ marginBottom: '8px' }}>
+                    两间1T独立球室，
+                    <span style={{ fontWeight: 500 }}>每日 06:00 至 24:00 营业</span>
+                    。
+                  </div>
+                  <div style={{ marginBottom: '8px' }}>
+                    <span style={{ fontWeight: 500 }}>网上预订、二维码自助入场</span>
+                    。专业设备，智能系统，聚光在桌球本身。
+                  </div>
+                  <div>
+                    <span style={{ fontWeight: 500 }}>邻近钻石山和启德地铁站</span>
+                    ，方便停车。
+                  </div>
+                </>
+              )}
+              {locale === 'en' && (
+                <>
+                  <div style={{ marginBottom: '8px' }}>
+                    SPACE8 is a self-service, smoke-free, smart Chinese pool room in San Po Kong, Hong Kong.
+                  </div>
+                  <div style={{ marginBottom: '8px' }}>
+                    Two private 1T rooms,
+                    <span style={{ fontWeight: 500 }}> open daily 06:00–24:00</span>
+                    .
+                  </div>
+                  <div style={{ marginBottom: '8px' }}>
+                    <span style={{ fontWeight: 500 }}>Book online, enter by QR code</span>
+                    . Professional equipment, smart systems — all focus on the game itself.
+                  </div>
+                  <div>
+                    <span style={{ fontWeight: 500 }}>Conveniently located near Diamond Hill and Kai Tak MTR stations</span>
+                    {' '}with nearby parking.
+                  </div>
+                </>
+              )}
+            </div>
             <meta itemProp="address" content={t('footer.address')} />
             <meta itemProp="openingHours" content="Mo-Su 06:00-24:00" />
           </section>
@@ -453,16 +512,6 @@ export default function Footer() {
               }}
             >
               {t('footer.privacy')}
-            </Link>
-            <Link
-              href="/credits"
-              style={{
-                fontSize: '13px',
-                color: tokens.colors.textFaint,
-                textDecoration: 'none',
-              }}
-            >
-              {t('footer.credits')}
             </Link>
           </div>
         </div>

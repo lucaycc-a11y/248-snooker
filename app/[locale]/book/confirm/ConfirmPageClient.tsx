@@ -11,6 +11,7 @@ type Props = { bookingId: string }
 
 export default function ConfirmPageClient({ bookingId }: Props) {
   const t = useTranslations("book")
+  const tCommon = useTranslations("common")
   const [retrying, setRetrying] = useState(false)
   const [retryError, setRetryError] = useState<string | null>(null)
   const result = useOrderConfirmationPolling(bookingId)
@@ -110,7 +111,7 @@ export default function ConfirmPageClient({ bookingId }: Props) {
   return (
     <main style={styles.wrap}>
       <section style={styles.card} role="status" aria-live="polite">
-        <LoadingGif />
+        <LoadingGif label={tCommon("loading")} />
         <h1 style={styles.title} data-cms-key="book.confirm.pending_title">{t("confirming")}</h1>
         <p style={styles.text} data-cms-key="book.confirm.pending_desc">{t("kpay_pending_confirmation_desc")}</p>
       </section>

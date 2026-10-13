@@ -467,6 +467,9 @@ export default function ChangePhonePage() {
               {t("change_phone_otp_subtitle")}
               <br />
               <strong style={{ color: INK, fontSize: 15 }}>{normalizeHkPhone(newPhone)}</strong>
+              <span data-cms-key="auth.otp_delivery_note" data-testid="otp-delivery-note" style={{ display: "block", marginTop: 8, fontSize: 12, lineHeight: 1.5, color: SUBTLE, opacity: 0.8 }}>
+                {t("otp_delivery_note")}
+              </span>
             </div>
 
             <label style={{ display: "block", marginBottom: 20 }}>

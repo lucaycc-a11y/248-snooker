@@ -2,7 +2,7 @@
 // Admin-only, with in-flight lock to prevent concurrent merges
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 
 export const runtime = 'edge'
 
@@ -14,7 +14,7 @@ function getClientIp(req: NextRequest): string {
   )
 }
 
-async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function checkAdminAuth(supabase: Awaited<ReturnType<typeof getLegacyRouteHandlerClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -38,7 +38,7 @@ async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>
   }
 }
 
-async function checkMergeLock(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+async function checkMergeLock(supabase: Awaited<ReturnType<typeof getLegacyRouteHandlerClient>>): Promise<boolean> {
   // Check if a merge is already in progress (simple lock via config table)
   const { data: config } = await supabase
     .from('config')
@@ -64,7 +64,7 @@ async function checkMergeLock(supabase: Awaited<ReturnType<typeof createClient>>
   return true
 }
 
-async function acquireMergeLock(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+async function acquireMergeLock(supabase: Awaited<ReturnType<typeof getLegacyRouteHandlerClient>>): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('config')
@@ -78,7 +78,7 @@ async function acquireMergeLock(supabase: Awaited<ReturnType<typeof createClient
   }
 }
 
-async function releaseMergeLock(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function releaseMergeLock(supabase: Awaited<ReturnType<typeof getLegacyRouteHandlerClient>>) {
   await supabase
     .from('config')
     .update({ value: { locked: false, timestamp: 0 } })
@@ -86,7 +86,7 @@ async function releaseMergeLock(supabase: Awaited<ReturnType<typeof createClient
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
 
   try {
     const auth = await checkAdminAuth(supabase)

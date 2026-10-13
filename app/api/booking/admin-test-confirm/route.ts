@@ -5,6 +5,7 @@ import { getAdminData } from '@/lib/data/getAdmin'
 import { calculatePrice } from '@/lib/pricing'
 import { loadPeriods, resolveTierForUser, slotBounds, periodForStart } from '@/lib/booking/server'
 import { humanReadableCode } from '@/lib/qr/jwt'
+import { parseRpc, isLockSlotResult, isConfirmBookingResult } from '@/lib/supabase/rpc-parse'
 
 export const runtime = 'nodejs'
 
@@ -77,12 +78,17 @@ export async function POST(req: Request) {
         p_price: quote.total,
         p_lock_minutes: 15,
       })
-      if (lockError || !lockData?.success) {
-        console.error('[admin-test-confirm] lock_failed', { message: lockError?.message, block })
-        return NextResponse.json({ error: 'Could not lock slot', detail: lockError?.message }, { status: 409 })
+      if (lockError) {
+        console.error('[admin-test-confirm] lock_failed', { message: lockError.message, block })
+        return NextResponse.json({ error: 'Could not lock slot', detail: lockError.message }, { status: 409 })
+      }
+      const lockResult = parseRpc('find_or_lock_slot', lockData, isLockSlotResult)
+      if (!lockResult.success) {
+        console.error('[admin-test-confirm] lock_rejected', { reason: lockResult.reason, block })
+        return NextResponse.json({ error: 'Could not lock slot', detail: lockResult.reason }, { status: 409 })
       }
 
-      const slotId = lockData.slot_id as string
+      const slotId = lockResult.slot_id!
       const period = periodForStart(
         block.startHour,
         slotStart.getDay() === 0 || slotStart.getDay() === 6,
@@ -129,15 +135,15 @@ export async function POST(req: Request) {
         p_payment_intent_id: `test_${randomUUID()}`,
         p_payment_method: 'test',
         p_qr_code: humanCode,
-        p_event_id: null,
+        p_event_id: undefined,
       })
       if (confirmError) {
         console.error('[admin-test-confirm] confirm_failed', { bookingId, message: confirmError.message })
         return NextResponse.json({ error: 'Confirm failed', detail: confirmError.message }, { status: 500 })
       }
-      const result = confirmResult as { success?: boolean; reason?: string }
-      if (result?.success === false) {
-        return NextResponse.json({ error: 'Confirm rejected', detail: result.reason }, { status: 500 })
+      const result = parseRpc('confirm_booking', confirmResult, isConfirmBookingResult)
+      if (!result.success) {
+        return NextResponse.json({ error: 'Confirm rejected', detail: result.error }, { status: 500 })
       }
     }
 

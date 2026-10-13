@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react'
 import { Clock, CheckCircle, XCircle } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 import WidgetCard from './WidgetCard'
 import type { WidgetProps } from '@/lib/admin/widgetRegistry'
 
@@ -34,10 +34,10 @@ export default function PendingWidget({ size }: WidgetProps) {
 
   useEffect(() => {
     let cancelled = false
-    const supabase = createClient()
 
     async function fetchPending() {
       try {
+        const supabase = await getLegacyRouteHandlerClient()
         const { data } = await supabase
           .from('admin_action_log')
           .select('id, action_type, target_table, target_id, risk_level, created_at')

@@ -1,4 +1,4 @@
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 
 // Shared query logic for /admin/bookings — used directly by the Server
@@ -66,7 +66,7 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
   // spec's "show test bookings" toggle defaulting to off.
   const isTest = query.isTest ?? false
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const from = (page - 1) * PAGE_SIZE
   const to = page * PAGE_SIZE - 1
 

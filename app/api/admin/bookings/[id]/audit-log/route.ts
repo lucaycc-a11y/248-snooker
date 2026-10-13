@@ -8,7 +8,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 type Row = Record<string, unknown>
 
@@ -24,7 +24,7 @@ export async function GET(
 
     const { id } = await params
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const entries: {
       id: string
       adminEmail: string

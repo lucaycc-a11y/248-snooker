@@ -61,8 +61,6 @@
     "profile_name": "Full name",
     "profile_email": "Email address",
     "profile_phone": "Phone number",
-    "profile_date_of_birth": "Date of Birth",
-    "profile_date_of_birth_hint": "Share your birthday to unlock exclusive offers",
     "optional_badge": "Optional",
     "profile_welcome_back": "Welcome back, {name}",
     "profile_step": "Step",
@@ -71,7 +69,6 @@
     "err_phone": "Enter a valid Hong Kong phone number.",
     "err_name": "Please enter your name.",
     "err_email": "Enter a valid email address.",
-    "err_date_of_birth": "Please enter a valid date of birth",
     "err_send": "Couldn't send the code. Please try again.",
     "err_missing_param": "Request parameters are incomplete. Please try again.",
     "err_network": "Connection issue. Please try again.",
@@ -84,6 +81,7 @@
     "email_continue": "Continue with Email",
     "otp_subtitle_email": "We sent a 6-digit code to {email}",
     "otp_subtitle_whatsapp": "We sent a 6-digit code to +852 {phone} on WhatsApp",
+    "otp_delivery_note": "Your code will be sent via WhatsApp or SMS. Please allow a moment for it to arrive.",
     "otp_verifying": "Verifying…",
     "otp_verified": "Verified Successfully",
     "otp_try_again": "Try again",
@@ -196,7 +194,10 @@
     "change_phone_link_invalid_body": "This link is invalid or corrupted. Please request a new link.",
     "change_phone_success_title": "Phone Changed",
     "change_phone_success_body": "Redirecting…",
-    "change_phone_go_to_settings": "Go to Settings"
+    "change_phone_go_to_settings": "Go to Settings",
+    "err_email_in_retention": "This email address is already in use. Please login directly. If you previously deleted your account, please register again after 6 months.",
+    "err_phone_in_retention": "This phone number is already in use. Please login directly. If you previously deleted your account, please register again after 6 months.",
+    "err_apple_id_in_retention": "This Apple ID is already in use. Please login directly. If you previously deleted your account, please register again after 6 months."
   },
   "login": {
     "brand": "SPACE8",
@@ -204,12 +205,14 @@
     "subtitle": "Continue to your booking and member access.",
     "error_missing_code": "Sign-in didn't complete. Please try again.",
     "error_oauth": "We couldn't sign you in. Please try again.",
-    "error_generic": "Something went wrong. Please try again."
+    "error_generic": "Something went wrong. Please try again.",
+    "forgot_password": "Forgot password?",
+    "reset_success": "Password updated and every device signed out. Sign in with your new password."
   },
   "comingSoon": {
     "brand": "SPACE8",
-    "title": "Coming Soon",
-    "subtitle": "Hong Kong's self-service snooker club is almost ready.",
+    "title": "Your space, taking the stage.",
+    "subtitle": "SPACE8 is a Chinese-style pool hall in San Po Kong. Online booking goes live on 13 October at 10 AM.",
     "email_placeholder": "Email address",
     "notify_me": "Notify Me",
     "subscribed": "You're on the list.",
@@ -219,7 +222,14 @@
     "unlock": "Unlock",
     "unlocking": "Unlocking…",
     "err_password": "Incorrect password.",
-    "err_rate_limited": "Too many attempts. Please try again later."
+    "err_rate_limited": "Too many attempts. Please try again later.",
+    "cd_days": "Days",
+    "cd_hours": "Hours",
+    "cd_minutes": "Mins",
+    "cd_seconds": "Secs",
+    "live_now": "Online booking is now live",
+    "enter_site": "Enter Site",
+    "waitlist_remove": "To remove your email from the waitlist, please contact <email>info@space8.com.hk</email> or <whatsapp>WhatsApp</whatsapp>."
   },
   "legal": {
     "page_title": "Legal Documents",
@@ -244,12 +254,11 @@
     "hero_subtitle": "Book on demand. No hidden fees.",
     "per_hour": "/hr",
     "period_afternoon_title": "Afternoon",
-    "period_afternoon_tagline": "A slower afternoon, played your way.",
-    "period_afternoon_time": "Daily 12:00–16:00",
-    "period_morning_tagline": "Start clear. Let the first break set the tone.",
-    "period_evening_tagline": "When the lights come on, bring your people.",
+    "period_afternoon_time": "Daily 12:00–18:00",
+    "period_morning_title": "Morning",
+    "period_morning_time": "Daily 06:00–12:00",
     "period_evening_title": "Prime Time",
-    "period_evening_time": "Daily 16:00–00:00",
+    "period_evening_time": "Daily 18:00–00:00",
     "period_latenight_title": "Late Night",
     "period_latenight_time": "12am – 6am",
     "duration_1h": "1 hour",
@@ -257,6 +266,9 @@
     "duration_3h": "3 hours",
     "member_price_prefix": "Book 2h+ for",
     "badge_best_value": "Best value",
+    "badge_morning": "Best Time",
+    "badge_afternoon": "Most Popular",
+    "badge_evening": "Prime Atmosphere",
     "time_line1": "Your time,",
     "time_line2": "never wasted.",
     "cta_line1": "Tables available now.",
@@ -324,14 +336,14 @@
     ],
     "cta_section_title": "Ready to play?",
     "cta_section_button": "Book Now",
-    "period_morning_title": "Morning",
-    "period_morning_time": "Daily 06:00–12:00",
-    "periods_title": "Pricing",
-    "periods_subtitle": "Charged by time period — the more you book, the better the rate."
+    "periods_title": "Transparent Pricing",
+    "periods_subtitle": "Book on demand. No hidden fees."
   },
   "blog": {
     "title": "Blog",
     "subtitle": "Snooker tips, venue news, and the latest events.",
+    "meta_description": "SPACE8 Blog: Chinese eight-ball tips, San Po Kong venue news and the latest events in Hong Kong.",
+    "meta_title": "Chinese Eight-Ball Blog | SPACE8 San Po Kong",
     "filter_all": "All",
     "filter_tutorial": "Tutorials",
     "filter_venue": "Venue",
@@ -417,6 +429,7 @@
     ],
     "hero_prefix": "A space for",
     "hero_suffix": ".",
+    "h1_seo": " | SPACE8 Chinese eight-ball room in San Po Kong, Hong Kong",
     "hero_cta_primary": "Book Now",
     "hero_cta_secondary": "View Venue",
     "facilities_title": "Facilities",
@@ -493,7 +506,12 @@
         "label": "players joined",
         "live": "Growing"
       }
-    ]
+    ],
+    "hero_description": "A good Chinese 8-ball room should have no unnecessary distractions.",
+    "wheel_section_description": "A good Chinese 8-ball room should have no unnecessary distractions.",
+    "outro_cta_line1_part1": "Book your dedicated table with one tap, ",
+    "outro_cta_line1_part2": "start playing anytime, anywhere.",
+    "outro_cta_line2": "From booking to payment to entry, fully self-service with no waiting."
   },
   "maintenance": {
     "title": "Under Maintenance",
@@ -650,7 +668,17 @@
     "back": "Back",
     "greeting": "Hello",
     "quick_view_details": "View details",
-    "sending": "Sending…"
+    "sending": "Sending…",
+    "reschedule_previous_day": "Previous day",
+    "reschedule_next_day": "Next day",
+    "no_upcoming_bookings": "No upcoming bookings",
+    "settings_change_rate_limited": "Too many requests, please try again later",
+    "settings_change_no_email": "Failed to send email, please try again later",
+    "settings_change_link_sent": "Verification link sent to your email",
+    "settings_change_resend_in": "Resend in {seconds}s",
+    "settings_change_phone": "Change Phone Number",
+    "settings_identity_locked_note": "To change your phone number or email, please contact customer service on WhatsApp.",
+    "settings_identity_locked_link": "Contact us on WhatsApp"
   },
   "nav": {
     "home": "Home",
@@ -669,14 +697,17 @@
     "sign_out_error": "Couldn't sign out. Please try again.",
     "venue": "Venue",
     "membership": "Membership",
-    "faq": "FAQ"
+    "faq": "FAQ",
+    "help": "Help Center"
   },
   "hero": {
     "title": "SPACE8",
     "tagline": "Your Home Ground",
     "cta_book": "Book Now",
     "cta_learn": "Learn More",
-    "subline": "A self-service, smoke-free Chinese eight-ball room. No distractions."
+    "subline": "A self-service, smoke-free Chinese eight-ball room. No distractions.",
+    "h1_seo": " | SPACE8 self-service Chinese eight-ball room in San Po Kong, Hong Kong",
+    "image_alt": "SPACE8 hero image"
   },
   "how": {
     "title": "How It Works",
@@ -713,7 +744,6 @@
       "settings": "Settings",
       "help": "Help Center"
     },
-    "birthday_perk_active": "Birthday Perk Active",
     "stats": {
       "available_points": "Available Points",
       "lifetime_points": "Lifetime Points",
@@ -737,47 +767,8 @@
       "lifetime_points": "Lifetime Points",
       "next_tier": "Next Tier",
       "points_away": "points away",
-      "max_tier_reached": "Max tier reached"
-    },
-    "offers": {
-      "state": {
-        "issued": "Issued",
-        "ready": "Ready",
-        "reserved": "Reserved",
-        "used": "Used",
-        "expired": "Expired"
-      },
-      "expires": "Expires",
-      "min_hours": "Min hours",
-      "claim_now": "Claim Now",
-      "claiming": "Claiming...",
-      "redeem_for": "Redeem for",
-      "points": "points",
-      "redeeming": "Redeeming...",
-      "use_offer": "Use Offer",
-      "reserved_in_booking": "Reserved in booking",
-      "expired": "Expired",
-      "used_at": "Used at",
-      "discount_types": {
-        "off": "Discount",
-        "free": "Free",
-        "birthday_perk": "Birthday Perk"
-      },
-      "units": {
-        "off": "off",
-        "free": "free",
-        "points": "pts"
-      },
-      "errors": {
-        "offer_not_found": "Offer not found",
-        "offer_already_redeemed": "Already redeemed",
-        "offer_not_points_redeemable": "Not points redeemable",
-        "insufficient_points": "Insufficient points",
-        "offer_already_claimed": "Already claimed",
-        "offer_not_claimable": "Not claimable",
-        "unknown_error": "Unknown error",
-        "network_error": "Network error"
-      }
+      "max_tier_reached": "Max tier reached",
+      "current_points": "Current Points"
     },
     "rewards": {
       "overview": "Overview",
@@ -813,11 +804,24 @@
         "pending": "Pending",
         "payment_failed": "Payment Failed",
         "cancelled": "Cancelled"
-      }
+      },
+      "time_label": "Time"
     },
     "points": {
       "empty_state": "No points history",
-      "balance": "Balance"
+      "balance": "Balance",
+      "title": "Points",
+      "error_title": "Unable to Load Points",
+      "filter": "Filter",
+      "how_it_works": "How It Works",
+      "how_it_works_content": "Earn points with every booking and convert them to wallet credits.",
+      "lifetime": "Lifetime Earned",
+      "no_transactions": "No point transactions yet",
+      "pending": "Pending",
+      "redeemable": "Redeemable",
+      "tier_perks": "Tier Perks",
+      "converted": "Converted to Wallet",
+      "deposited_to_wallet": "Deposited to Wallet"
     },
     "inbox": {
       "title": "Inbox",
@@ -830,7 +834,14 @@
         "booking": "Bookings",
         "system": "System"
       },
-      "empty_state": "No notifications"
+      "empty_state": "No notifications",
+      "error": {
+        "markRead": "Unable to update, please try again",
+        "markReadAll": "Unable to update, please try again"
+      },
+      "success": {
+        "markedAll": "All marked as read"
+      }
     },
     "settings": {
       "title": "Settings",
@@ -982,49 +993,134 @@
       }
     },
     "dashboard": {
-      "greeting": "Hello, {name}",
+      "greeting": "Welcome back",
       "quick_actions": "Quick Actions",
       "upcoming": "Upcoming",
-      "history": "History"
+      "history": "Booking History"
     },
     "upcoming_booking": {
       "title": "Upcoming Booking",
-      "no_booking": "No upcoming bookings",
+      "no_booking": "No upcoming booking",
       "book_now": "Book Now",
       "show_qr": "Show QR",
       "hide_qr": "Hide QR",
-      "scan_hint": "Show this code at entry",
+      "scan_hint": "Show this QR code at check-in",
       "time": "Time",
       "duration": "Duration",
       "amount": "Amount",
-      "hours": "hr",
-      "contact_support": "For assistance, please contact support"
+      "hours": "hours",
+      "contact_support": "Contact Support"
     },
     "past_bookings": {
       "title": "Past Bookings",
       "view_all": "View All",
       "no_history": "No past bookings",
-      "whatsapp_prompt": "Need to reschedule or get a refund?",
-      "whatsapp_cta": "Contact us on WhatsApp"
+      "whatsapp_prompt": "Questions about your booking?",
+      "whatsapp_cta": "Chat on WhatsApp"
     },
-    "version_label": "Version"
+    "actions": {
+      "help": {
+        "title": "Help & Support",
+        "subtitle": "Get assistance"
+      },
+      "wallet": {
+        "title": "Wallet",
+        "subtitle": "Manage credits"
+      },
+      "points": {
+        "title": "Points",
+        "subtitle": "View rewards",
+        "converted": "Converted to Wallet",
+        "deposited_to_wallet": "Deposited to Wallet",
+        "error_title": "Unable to Load Points",
+        "filter": "Filter",
+        "how_it_works": "How It Works",
+        "how_it_works_content": "Earn points with every booking and convert them to wallet credits.",
+        "lifetime": "Lifetime Earned",
+        "no_transactions": "No point transactions yet",
+        "pending": "Pending",
+        "redeemable": "Redeemable",
+        "tier_perks": "Tier Perks"
+      },
+      "inbox": {
+        "title": "Inbox",
+        "subtitle": "View notifications"
+      }
+    },
+    "wallet_explainer": {
+      "title": "How Wallet Works",
+      "description": "Top up credits to use for future bookings. Credits never expire.",
+      "notify_label": "Notify me when balance is low",
+      "dismiss": "Got it"
+    },
+    "bottom_links": {
+      "settings": {
+        "title": "Account Settings",
+        "subtitle": "Manage your account"
+      },
+      "manage": {
+        "title": "Manage Bookings",
+        "subtitle": "View and edit bookings"
+      },
+      "safety": {
+        "title": "Safety & Privacy",
+        "subtitle": "Your data is safe"
+      },
+      "legal": {
+        "title": "Terms & Policies",
+        "subtitle": "Legal information"
+      },
+      "version": "Version"
+    },
+    "access": {
+      "cta_member": "View Member Records",
+      "cta_records": "View All Records",
+      "eyebrow": "Quick Access",
+      "footer": "Scan this QR code at the front desk",
+      "intro": "Your digital membership card",
+      "qr_description": "Show this QR code to staff for quick check-in",
+      "qr_enlarge": "Tap to enlarge",
+      "qr_identity": "Member Identity",
+      "qr_label": "QR Code",
+      "qr_title": "Check-in QR Code",
+      "steps_title": "How to Check In",
+      "tips_title": "Quick Tips",
+      "title": "Member Access"
+    },
+    "wallet": {
+      "title": "Wallet",
+      "reserved": "Reserved",
+      "balance_label": "Balance",
+      "offers_eligible": "Eligible for Offers",
+      "offers_used": "Offers Used",
+      "how_it_works": "How Wallet Works"
+    },
+    "member_id_label": "Member ID",
+    "card_premier": {
+      "title": "Premier Member",
+      "member_id_label": "Member ID",
+      "tap_to_enlarge": "Tap to enlarge QR code",
+      "scan_tip": "Show this QR code to verify membership",
+      "close": "Close"
+    }
   },
   "faq": {
     "title": "FAQ",
+    "subtitle": "Quick guide to using Space 8",
     "faq_booking_q": "How do I book a table?",
-    "faq_booking_a": "Choose your date, time slot, and duration, then pay instantly with Apple Pay or credit card. You'll receive a QR code immediately. No staff assistance needed.",
+    "faq_booking_a": "Choose your date, time slot, and duration, then pay instantly by credit card or another electronic payment method. You'll receive a QR code immediately. No staff assistance needed.",
     "faq_entry_q": "How do I enter after booking?",
     "faq_entry_a": "After payment is confirmed, you'll receive your unique QR code. Scan it at the door sensor on arrival and the system will open automatically — fully self-service.",
     "faq_cancel_q": "Can I cancel or get a refund?",
     "faq_cancel_a": "Once confirmed, bookings cannot be cancelled, rescheduled, or refunded (except under Typhoon Signal No. 8 or above / Black Rainstorm Warning, when a reschedule may be requested). For full details, see the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3) and [Section 6](/legal?doc=terms#section-6).",
-    "faq_hours_q": "What are the opening hours?",
+    "faq_hours_q": "What are SPACE8's opening hours?",
     "faq_hours_a": "SPACE8 is open daily from 06:00 to 24:00, year-round, including public holidays.",
     "faq_smoking_q": "Is smoking allowed in the room?",
     "faq_smoking_a": "The entire venue is strictly smoke-free (including cigarettes, e-cigarettes, and heated tobacco products) to maintain the highest quality smoke-free environment. If you need to smoke, please use the outdoor area of the building.",
     "faq_weather_q": "What happens during bad weather?",
     "faq_weather_a": "【Typhoon Signal 8 or above / Black Rainstorm Warning】\nWe remain open: the venue's automated systems continue to operate normally. You may assess your safety and attend as usual.\nRescheduling: If you decide not to come, contact us via WhatsApp before your booking start time to arrange a free reschedule within 7 days (no refunds).\nLate requests: Requests made after the booking start time, or sessions not used within 7 days, are treated as forfeited.\n\n【Other conditions (e.g. Typhoon 3, Amber/Red rain)】\nNo changes: Aside from the extreme weather policy above, all bookings are non-cancellable, non-reschedulable, and non-refundable once confirmed.",
     "faq_overtime_q": "What if I run over time?",
-    "faq_overtime_a": "If no other guests are booked after your slot, please leave within 15 minutes (if you keep using the facilities beyond 15 minutes' overtime, a full 1-hour rental charge applies). If the next slot is already booked, the system sends a friendly reminder on the concierge screen 5 minutes before your slot ends — please tidy up and leave before your booking time is over.",
+    "faq_overtime_a": "If no other guests are booked after your slot, please leave within 10 minutes (if you keep using the facilities beyond 10 minutes' overtime, a full 1-hour rental charge applies). If the next slot is already booked, the system sends a friendly reminder on the concierge screen 5 minutes before your slot ends — please tidy up and leave before your booking time is over.",
     "faq_pricing_q": "How is pricing calculated?",
     "faq_pricing_a": "Rates are charged per hour and vary by time slot, with discounts for booking 2 or more consecutive hours; overtime stays incur an additional overtime charge. For full details, see the [Pricing page](/pricing) and the Venue Rules and Terms, [Section 3](/legal?doc=terms#section-3).",
     "faq_points_q": "How does the points system work?",
@@ -1035,6 +1131,12 @@
     "faq_guests_a": "Yes, each session can accommodate multiple players. The session fee covers everyone — no extra charge per person.",
     "faq_contact_q": "How do I get in touch?",
     "faq_contact_a": "Reach us via WhatsApp or email at info@space8.com.hk and we'll get back to you as soon as possible.",
+    "faq_sanpokong_q": "Where can I play Chinese eight-ball in San Po Kong?",
+    "faq_sanpokong_a": "SPACE8 is at Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong — a self-service, smoke-free private Chinese eight-ball room. Reservation only, near MTR Diamond Hill and Kai Tak stations.",
+    "faq_location_q": "Where is SPACE8 and how do I get there?",
+    "faq_location_a": "Address: Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong. About an 8–10 minute walk from MTR Diamond Hill Station Exit A2 or Kai Tak Station Exit C (Airside); Diamond Hill Exit A2 is about 500 m away (recommended route). You can also take a bus or minibus to Tai Yau Street. If driving, we suggest the New Tech Plaza car park (Wilson Parking).",
+    "faq_how_to_book_q": "How do I book and get in?",
+    "faq_how_to_book_a": "SPACE8 is reservation only, and every booking user must register as a member. Choose your date, time slot and duration online and complete payment; your unique QR code is sent to your registered email and is also available under My Bookings in your member account. On arrival, scan the QR code at the entrance to let yourself in.",
     "more": "Learn more"
   },
   "whatsapp": {
@@ -1050,17 +1152,33 @@
   },
   "common": {
     "error": "Something went wrong",
-    "retry": "Try Again",
-    "not_found": "Page not found"
+    "retry": "Retry",
+    "not_found": "Page not found",
+    "loading": "Loading...",
+    "back": "Back",
+    "load_more": "Load More",
+    "no_data": "No data available"
   },
   "book": {
     "title": "Book a Session",
+    "h1_seo": "Book a Chinese eight-ball table | SPACE8 San Po Kong, Hong Kong",
+    "meta_description": "Book a private SPACE8 Chinese eight-ball room online: choose your date, time slot and duration, then get a QR code for self check-in. In San Po Kong, Hong Kong, near Diamond Hill and Kai Tak MTR.",
+    "meta_title": "Book a Chinese Eight-Ball Room | SPACE8 San Po Kong",
     "close": "Close",
     "select_table": "Select Table",
     "table_label": "Table",
     "snooker": "Chinese Pool",
     "available": "Available Now",
     "unavailable": "Not Available",
+    "day_sun": "Sun",
+    "day_mon": "Mon",
+    "day_tue": "Tue",
+    "day_wed": "Wed",
+    "day_thu": "Thu",
+    "day_fri": "Fri",
+    "day_sat": "Sat",
+    "year_month_format": "{month}/{year}",
+    "full_date_format": "{weekday}, {month}/{day}/{year}",
     "slot_taken": "This slot was just taken by someone else. Please go back and pick another time.",
     "back_to_slots": "Back to time slots",
     "booking_expired": "This booking has expired",
@@ -1279,7 +1397,12 @@
     "recovery_support_phone": "Call {phone}",
     "recovery_support_email": "Email {email}",
     "support_phone": "+852 6180 8022",
-    "support_email": "Info@space8.com.hk"
+    "support_email": "Info@space8.com.hk",
+    "wallet_balance_label": "Space Wallet Available",
+    "wallet_available": "Available Balance",
+    "use_wallet": "Apply",
+    "wallet_applied": "Space Wallet Applied",
+    "wallet_remove": "Remove"
   },
   "ticket": {
     "printer_aria": "Booking ticket printer",
@@ -1312,7 +1435,25 @@
     "confirmed": "Confirmed ✓",
     "footer": "Show this QR code at entry · support hotline",
     "qr_tap_enlarge": "Tap to enlarge QR code",
-    "close": "Close"
+    "close": "Close",
+    "add_calendar": "Add to calendar",
+    "share": "Share",
+    "hours": "hours",
+    "payment_method": "Payment method"
+  },
+  "venueHero": {
+    "eyebrow": "SPACE INFINITY",
+    "title": "The Venue",
+    "subtitle": "Two independent smoke-free 1T rooms, each accommodating up to 6 people. Equipped with professional Star tables, premium lighting, and climate control.",
+    "scrollHint": "Scroll to explore",
+    "alt_topLeft": "Space Eternity room",
+    "alt_topRight": "Space Infinity main room",
+    "alt_bottomLeft": "Lounge area",
+    "alt_bottomRight": "Professional lighting system"
+  },
+  "heroAfter": {
+    "title": "The finest smoke-free self-service pool room",
+    "body": "SPACE8 is dedicated to delivering the highest quality game experience. Each room is independently designed with professional Star tables, premium lighting systems, climate control, and complimentary high-speed WiFi. All facilities are regularly maintained to ensure peak performance."
   },
   "gallery": {
     "title": "The venue. Up close.",
@@ -1449,52 +1590,71 @@
     "skip": "Skip"
   },
   "venuePage": {
-    "hero_title": "The Venue",
-    "hero_subtitle": "A private, self-service, smoke-free Chinese eight-ball room. No distractions.",
-    "facilities_title": "Facilities",
+    "facilities_title": "Facilities.",
     "facilities": [
       {
-        "title": "Pro equipment",
-        "body": "Hand-picked tables, tournament balls"
+        "title": "Pro Equipment",
+        "body": "Star tables, pro lighting, climate control."
       },
       {
-        "title": "Room details",
-        "body": "Quiet luxury, a tuned premium atmosphere"
+        "title": "Smart Entry",
+        "body": "QR code self-check-in, Space Pilot match host."
       },
       {
-        "title": "Smart system",
-        "body": "An AI match host"
-      },
-      {
-        "title": "Quick and easy",
-        "body": "Self check-in — scan and you're in"
-      },
-      {
-        "title": "Clean, smoke-free",
-        "body": "No smoking anywhere, cleaned regularly"
-      },
-      {
-        "title": "At ease",
-        "body": "A comfortable sofa lounge"
+        "title": "Clean & Quiet",
+        "body": "No smoking, free WiFi, self-serve drinks."
       }
     ],
-    "services_title": "How It Works",
+    "rooms_title": "Two Private Rooms.",
+    "rooms": [
+      {
+        "name": "Space Infinity",
+        "desc": "Main room with premium Star tables and pro lighting."
+      },
+      {
+        "name": "Space Eternity",
+        "desc": "Secondary room, identical setup, exclusive space."
+      }
+    ],
+    "pricing_eyebrow": "Pricing",
+    "pricing_title": "Transparent, affordable, pay by the hour.",
+    "pricing_unit": "/hr",
+    "info_title": "Rules & Info.",
+    "info_sections": [
+      {
+        "title": "Hours",
+        "content": "Open 06:00–24:00 daily. No holidays, no closures."
+      },
+      {
+        "title": "No Smoking",
+        "content": "Entire venue is 100% smoke-free (cigarettes, e-cigs, heat sticks)."
+      },
+      {
+        "title": "Weather",
+        "content": "Typhoon 8+ or black rainstorm warning? Apply for free reschedule within 7 days."
+      }
+    ],
+    "heroAfter": {
+      "title": "The most professional smoke-free self-service room",
+      "body": "SPACE8 is focused on giving you the highest quality game experience. Each room is independently designed and equipped with professional Star tables, premium lighting systems, climate control, and free high-speed WiFi. All facilities are regularly maintained to ensure top condition."
+    },
+    "services_title": "Why SPACE8",
     "services": [
       {
         "title": "Fully Self-Service",
-        "body": "Booking, payment and entry are all self-service — no staff on site."
+        "body": "QR code entry, no staff verification needed"
       },
       {
         "title": "Book Online",
-        "body": "Pick a date and time slot, pay instantly with Apple Pay or card."
+        "body": "Real-time availability, book anytime"
       },
       {
         "title": "Instant Confirmation",
-        "body": "Receive your confirmation email and entry QR code right away."
+        "body": "Get confirmed immediately after booking"
       },
       {
-        "title": "Support",
-        "body": "Questions? Reach us anytime on WhatsApp."
+        "title": "Round-the-Clock",
+        "body": "Open 24 hours, 365 days a year"
       }
     ],
     "facilities_bento_title": "Facilities",
@@ -1512,11 +1672,35 @@
       "Maximum 8 people per room.",
       "No smoking anywhere, including e-cigarettes and heated tobacco.",
       "Anyone under 12 must be accompanied by an adult (18+) at all times.",
-      "Please leave on time at the end of your booking. Overstays beyond 15 minutes incur overtime charges.",
+      "Please leave on time at the end of your booking. Overstays beyond 10 minutes incur overtime charges.",
       "Before leaving: 1. Return equipment (balls in tray, cues on rack) 2. Clean the table, take your rubbish 3. Turn off A/C (lights are auto-sensor). Thank you for helping maintain a quality space!",
       "If you find damaged equipment after entry, report it via WhatsApp as soon as possible."
     ],
     "rules_link": "Read the full venue rules and terms",
+    "room_comparison_heading": "Two Rooms, One Standard",
+    "room_comparison_intro": "Space Infinity and Space Eternity are identically equipped. Choose the slot that works for you.",
+    "room_comparison_table_label_name": "Room Name",
+    "room_comparison_table_label_area": "Floor Area",
+    "room_comparison_table_label_table": "Table Size",
+    "room_comparison_table_label_brand": "Table Brand",
+    "room_comparison_table_label_capacity": "Capacity",
+    "room_comparison_table_value_infinity": "Space Infinity",
+    "room_comparison_table_value_eternity": "Space Eternity",
+    "room_comparison_table_value_area": "~400 sq ft",
+    "room_comparison_table_value_table": "9 ft × 4.5 ft",
+    "room_comparison_table_value_brand": "Xingpai",
+    "room_comparison_table_value_capacity": "2–6 people",
+    "other_facilities_heading": "Other Facilities",
+    "other_facilities_sofa_title": "Lounge Seating",
+    "other_facilities_sofa_desc": "Comfortable chairs for resting between games with friends.",
+    "other_facilities_cue_title": "Cue Rack",
+    "other_facilities_cue_desc": "Neatly organized cues, ready to use anytime, keeping the space tidy.",
+    "other_facilities_pilot_title": "Space Pilot Scoring",
+    "other_facilities_pilot_desc": "Automatic score tracking for every frame, effortlessly.",
+    "other_facilities_table_title": "Professional Table Detail",
+    "other_facilities_table_desc": "Xingpai premium surface delivers stable, accurate play.",
+    "other_facilities_room_title": "Private Room",
+    "other_facilities_room_desc": "Exclusive private room for focused, undisturbed play.",
     "weather_title": "Bad Weather & Special Arrangements",
     "weather_body": "[Typhoon Signal No. 8 or above / Black Rainstorm Warning]\nOpen as usual: The venue's automated systems keep running, so you may come as planned once you've judged it safe to do so.\nReschedule policy: If you decide not to come, you must contact us via WhatsApp before your original booking start time to arrange a free reschedule within 7 days (no refund).\nLate requests: Requesting after the booking time has passed, or not using it within 7 days, is treated as forfeiting the entitlement.\n\n[General conditions / other weather (e.g. Signal No. 3, Red Rainstorm)]\nNo cancellation or change: Apart from the extreme-weather policy above, all confirmed bookings cannot be cancelled, rescheduled, or refunded.",
     "directions_title": "Getting Here",
@@ -1524,7 +1708,38 @@
     "address": "Room 05, 3/F, Laurels Industrial Centre, 32 Tai Yau Street, San Po Kong, Hong Kong",
     "directions_body": "About 10 minutes on foot from Diamond Hill or Kai Tak MTR station; buses and minibuses also stop near Tai Yau Street.",
     "map_cta": "Open in Google Maps",
-    "book_cta": "Book Now"
+    "book_cta": "Book Now",
+    "venue_point_1_lead": "Professional Equipment",
+    "venue_point_1_body": "Star Chinese 8-ball tables | Tournament lighting | Climate control",
+    "venue_point_2_lead": "Private Rooms",
+    "venue_point_2_body": "Independent rooms | Up to 6 people | Private & comfortable",
+    "venue_point_3_lead": "Reservation-only QR Self Check-in",
+    "venue_point_3_body": "Book online | QR code entry | No staff needed",
+    "venue_point_4_lead": "Smoke-free & Clean",
+    "venue_point_4_body": "Completely smoke-free | Regularly cleaned | Comfortable environment",
+    "venue_point_5_lead": "Comfortable & Relaxed",
+    "venue_point_5_body": "Sofa lounge area | Free WiFi | Self-service drinks",
+    "room_feature_area_label": "Same Area",
+    "room_feature_area_value": "Approx. 90 sq ft",
+    "room_feature_table_label": "Same Table",
+    "room_feature_table_value": "Star Chinese 8-ball table",
+    "room_feature_quality_label": "Same Quality",
+    "room_feature_quality_value": "Professional balls & equipment",
+    "room_feature_capacity_label": "Same Capacity",
+    "room_feature_capacity_value": "Up to 6 people",
+    "weather_severe_title": "【Typhoon Signal No. 8 or above / Black Rainstorm Warning】",
+    "weather_severe_point_1": "Open as usual: Our automated venue system operates normally. You may visit as scheduled if you assess the conditions as safe.",
+    "weather_severe_point_2": "Rescheduling: If you decide not to visit, contact customer service via WhatsApp before your booking time to reschedule once within 7 days at no charge (no refunds available).",
+    "weather_severe_point_3": "Late requests: Requests after booking time or unused within 7 days will be considered forfeited.",
+    "weather_normal_title": "【Normal conditions / Other weather (e.g. Signal No. 3, Red Rain)】",
+    "weather_normal_point_1": "No cancellations or changes: Except for the extreme weather policy above, all confirmed bookings cannot be cancelled, rescheduled, or refunded.",
+    "directions_note_1": "MTR Diamond Hill Station",
+    "directions_note_2": "About 7 minutes walk from Diamond Hill Station Exit C2.",
+    "directions_note_3": "Also accessible by buses 11B, 11C, 11D, 11X, 22M, 23M, 26M, 28, 29M, 42C, 61X, 62X, 69C, 74X, 83X, 89, 213X, 258D, 259D or minibuses near Tai Yau Street.",
+    "directions_note_4": "Recommended parking at \"Hollywood Plaza\" or \"Kai Tak The Spectacle\". Purchase parking coupons in advance for discounts.",
+    "hero_title": "Two rooms, one feeling",
+    "hero_subtitle": "Space Infinity and Space Eternity — equally spacious, equally focused.",
+    "og_alt": "SPACE8 · Chinese 8-Ball · San Po Kong Hong Kong"
   },
   "membershipPage": {
     "hero_title": "Membership",
@@ -1591,6 +1806,7 @@
     "space_title": "Your space, fully open",
     "space_subtitle": "Self-service entry, smoke-free surroundings, built entirely for the game.",
     "stat_label": "Space Pilot AI System",
+    "stat_label_text": "AI-powered match recommendations and live scoring",
     "stat_main": "Coming soon",
     "stat_footnote": "Feature in development — details to follow",
     "section_body": "placeholder"
@@ -1793,7 +2009,8 @@
     "record": "Game record tracking",
     "cta_primary": "Start Exploring",
     "cta_secondary": "View Member Page",
-    "tip": "Scan this code at the door or with Space Pilot to check in."
+    "tip": "Scan this code at the door or with Space Pilot to check in.",
+    "close": "Close"
   },
   "homeSlogan": {
     "eyebrow": "SPACE8",
@@ -1803,6 +2020,7 @@
   "homeVenue": {
     "eyebrow": "SPACE8 · THE ROOM",
     "title": "Every detail keeps you focused on the game.",
+    "subtitle": "Every detail, focused on the game.",
     "categories": {
       "equipment": "Equipment",
       "ambience": "Atmosphere",
@@ -2168,20 +2386,48 @@
   },
   "qr_instruction_label": "You will see a QR code. Please scan it with WeChat Pay to complete payment",
   "coming_soon_label": "This payment method is coming soon",
-  "cookie_consent": {
-    "title": "We Use Cookies",
-    "message": "This website uses necessary cookies to maintain login and booking functionality, and analytics cookies to improve user experience.",
-    "learn_more": "Learn more",
-    "accept_all": "Accept All Cookies",
-    "necessary_only": "Necessary Only",
-    "dismiss": "Dismiss"
-  },
   "help": {
     "title": "Support Center",
     "subtitle": "Find answers to common questions",
+    "meta": {
+      "title": "Help Center | SPACE8 Chinese Eight-Ball, San Po Kong",
+      "description": "Help center for SPACE8, a self-service Chinese eight-ball room in San Po Kong, Hong Kong: FAQs, booking guides, membership information and venue policies."
+    },
     "hero": {
       "title": "Hello, how can we help you?",
       "subtitle": "Search for common questions or browse topics below"
+    },
+    "breadcrumb": {
+      "home": "Help Center",
+      "search": "Search",
+      "announcements": "Announcements"
+    },
+    "feedback": {
+      "thank_you": "Thank you for your feedback!",
+      "question": "Was this article helpful?",
+      "helpful": "Helpful",
+      "not_helpful": "Not Helpful",
+      "error": "Submission failed, please try again later"
+    },
+    "related_articles": "Related Articles",
+    "search": {
+      "placeholder": "Search help articles...",
+      "results_count": "Found {count} results",
+      "no_results": "No relevant results found, please try other search terms",
+      "empty_state": "Enter a search term to begin"
+    },
+    "announcement": {
+      "badge": "Announcement",
+      "back_to_home": "← Back to Help Center"
+    },
+    "metadata": {
+      "article_not_found": "Article Not Found",
+      "topic_not_found": "Topic Not Found",
+      "announcement_not_found": "Announcement Not Found",
+      "suffix_help_center": "Help Center",
+      "search_title": "Search",
+      "search_title_with_query": "Search: {query}",
+      "search_description": "Search Space8 help articles and FAQs"
     },
     "searchPlaceholder": "Search articles...",
     "noResults": "No articles found",
@@ -2302,5 +2548,752 @@
       "category": "Comfort",
       "title": "Lounge & Storage"
     }
+  },
+  "memberIntro": {
+    "meta": {
+      "title": "Membership | SPACE8 Chinese Eight-Ball, San Po Kong",
+      "description": "SPACE8 Member: Earn 1 point for every HK$1 spent. 100 points = HK$10 venue credit. New members get 100 bonus points. Book online, QR code check-in, safe and convenient."
+    },
+    "hero": {
+      "eyebrow": "SPACE8 MEMBERSHIP",
+      "title": "One membership. Every door open.",
+      "subtitle": "Earn 1 point per HK$1 spent. New members get 100 welcome points.",
+      "ctaPrimary": "Join Now",
+      "ctaSecondary": "Sign In",
+      "note": "A membership is required for every booking."
+    },
+    "pillar1": {
+      "lead": "Spend and earn",
+      "body": "HK$1 = 1 point, auto-accumulated"
+    },
+    "pillar2": {
+      "lead": "Points that pay",
+      "body": "100 points = HK$10 venue credit, coming soon."
+    },
+    "pillar3": {
+      "lead": "New member bonus",
+      "body": "Sign up and get 100 points instantly"
+    },
+    "pillar4": {
+      "lead": "Reservation-based, QR self check-in",
+      "body": "Book online, scan to open door, simple and safe"
+    },
+    "card": {
+      "title": "Your Member Card",
+      "hint": "Tap to flip and see QR code",
+      "sampleLabel": "Sample card, not real data",
+      "memberBadge": "MEMBER",
+      "memberNamePlaceholder": "MEMBER NAME"
+    },
+    "points": {
+      "title": "Points Program",
+      "stat1": {
+        "value": "HK$1 = 1 pt",
+        "label": "Earn 1 point per HK$1 spent"
+      },
+      "stat2": {
+        "value": "100 pts = HK$10",
+        "label": "per 100 points (coming soon)",
+        "unit": "credit"
+      },
+      "stat3": {
+        "value": "100 pts",
+        "label": "New member welcome bonus"
+      },
+      "comingSoon": "Point redemption is coming soon"
+    },
+    "safety": {
+      "title": "Safety & Support",
+      "pay": {
+        "title": "Secure Payment",
+        "body": "All transactions are processed through Stripe. We never store your credit card details. Apple Pay, Google Pay, and credit cards accepted."
+      },
+      "data": {
+        "title": "Privacy Protection",
+        "body": "Your personal data is strictly protected. We comply with Hong Kong's Personal Data (Privacy) Ordinance and will never sell or share your data with third parties."
+      },
+      "qr": {
+        "title": "QR Security",
+        "body": "Each QR code is valid only for a specific time slot and table number, with time restrictions. Your QR code is only visible when logged into your account, ensuring only you can use it."
+      },
+      "venue": {
+        "title": "Venue Safety",
+        "body": "Venue equipped with 24/7 CCTV surveillance and smart access control.",
+        "linkText": "Learn more"
+      }
+    },
+    "support": {
+      "title": "Need Help?",
+      "body": "We're here to answer your questions.",
+      "faq": "FAQ",
+      "whatsapp": "WhatsApp Us"
+    },
+    "final": {
+      "title": "Ready to get started?",
+      "book": "Book Now",
+      "login": "Sign In"
+    }
+  },
+  "membership": {
+    "heading": "Membership.",
+    "subtitle": "Create an account and you're a Space Member automatically — no application needed — with 100 points to start.",
+    "learn_more": "Learn more about our membership program",
+    "cards": {
+      "0": {
+        "badge": "Same for everyone",
+        "title": "Space Member",
+        "subtitle": "A record of every match you play.",
+        "popup": "Every new sign-up becomes a Space Member, with full access to Space Pilot and your total wins tracked automatically. Everyone gets the same member benefits — your pool journey starts here!"
+      },
+      "1": {
+        "badge": "Redeem soon",
+        "title": "100 points on sign-up",
+        "subtitle": "Earn 1 point per HK$1 spent. Every 100 points converts into HK$10 venue credit.",
+        "popup": "New members get 100 points on sign-up. Earn 1 point for every HK$1 spent; every 100 points converts into HK$10 of venue credit. Redemption is coming soon, with time-slot discount vouchers and coaching offers to follow."
+      },
+      "2": {
+        "title": "Full Space Pilot access",
+        "subtitle": "The in-room iPad host that tracks your total wins.",
+        "popup": "Scan your member QR code to link to your booking slot, and every game is recorded across different match formats. Check today's results on the iPad, and your full match history on the website after your session."
+      }
+    },
+    "howToUse": "Earning and using points",
+    "steps": {
+      "0": {
+        "title": "Earn points",
+        "description": "Earn 1 point for every HK$1 spent. New members get 100 points on sign-up."
+      },
+      "1": {
+        "title": "Redeem and use",
+        "description": "Every 100 points converts into HK$10 of venue credit. Time-slot discount vouchers and coaching offers will follow."
+      },
+      "2": {
+        "title": "Track your balance",
+        "description": "Sign in to the member centre any time to check your points balance and booking history."
+      }
+    },
+    "footnote": "*Everyone who books a session needs to register as a member.",
+    "ctaButton": "Member Centre"
+  },
+  "pricing_subtitle": "No hidden fees.",
+  "pricing_note": "Members enjoy exclusive benefits.",
+  "wallet": {
+    "back": "Back",
+    "balance_label": "Available Balance",
+    "balance_note": "1 credit = HK$1, deductible directly at checkout",
+    "balance_aria": "Available balance {amount} Hong Kong dollars",
+    "balance_after": "Balance",
+    "held_label": "Held at checkout",
+    "book_now": "Book Now",
+    "view_points": "View Points",
+    "tabs_label": "Space Wallet Records",
+    "tab_all": "All",
+    "tab_use": "Used",
+    "tab_in": "Credited",
+    "tab_offer": "Offers",
+    "type_convert": "Points Deposited",
+    "type_signup": "Welcome Gift",
+    "type_topup": "Top-up",
+    "type_refund": "Refund",
+    "type_manual": "Adjustment",
+    "type_redeem": "Booking Payment",
+    "type_reversal": "Refund Reversal",
+    "convert_subtitle": "{points} points",
+    "booking_reference": "Booking Reference",
+    "empty_title": "No Records Yet",
+    "empty_message": "Your wallet transaction history will appear here",
+    "loading": "Loading...",
+    "error_title": "Unable to Load Space Wallet",
+    "error_message": "Your balance is unaffected. Please check your connection and try again. If the issue persists, contact us.",
+    "retry": "Retry",
+    "offers_available": "Available Offers",
+    "offers_used": "Used",
+    "offer_discount_pct": "{value}% off",
+    "offer_discount_fixed": "HK${value} off",
+    "offer_used_date": "Used on {date}",
+    "offer_saved": "Saved",
+    "offers_empty_title": "No Offers Yet",
+    "offers_empty_message": "New offers will appear here",
+    "faq_title": "How Space Wallet Works",
+    "faq_1": "Earn 1 point for every HK$1 spent, based on actual payment amount.",
+    "faq_2": "Every 100 points automatically converts to HK$10 in your Space Wallet—no action needed.",
+    "faq_3": "Points earned from a booking are credited after payment and cannot be used for that booking.",
+    "faq_4": "Promo codes and Space Wallet credits cannot be combined.",
+    "faq_5": "When you cancel a booking, any credits used will be fully refunded to your Space Wallet."
+  },
+  "points": {
+    "back": "Back",
+    "bookNow": "Book Now",
+    "viewWallet": "View Wallet",
+    "activity": "Points Activity",
+    "filterLabel": "Filter points activity",
+    "loadMore": "Load More",
+    "points": "points",
+    "earned": "Earned",
+    "deducted": "Deducted",
+    "lifetimePoints": "Lifetime Points",
+    "redeemablePoints": "Redeemable Points",
+    "needMore": "Earn {{points}} more points to auto-deposit HK${{amount}}",
+    "depositedToWallet": "Deposited to Wallet",
+    "convertedPoints": "Converted Points",
+    "tierAmateur": "Amateur Member",
+    "tierCentury": "Century Member",
+    "tierMaximum": "Maximum Member",
+    "filter": {
+      "all": "All",
+      "earn": "Earned",
+      "wallet": "Deposited",
+      "back": "Deducted"
+    },
+    "txType": {
+      "booking": "Booking Purchase",
+      "signup": "Welcome Bonus",
+      "bonus": "Bonus Points",
+      "manual": "System Adjustment",
+      "convert": "Points Deposited to Space Wallet",
+      "redeem": "Redemption",
+      "reversal": "Refund Reversal"
+    },
+    "empty": {
+      "all": {
+        "title": "No Points Activity",
+        "desc": "Points will accumulate automatically after your first booking."
+      },
+      "earn": {
+        "title": "No Earned Records",
+        "desc": "Points are credited based on the actual amount paid after each successful payment."
+      },
+      "wallet": {
+        "title": "No Deposit Records",
+        "desc": "For every 100 points accumulated, HK$10 is automatically deposited to Space Wallet."
+      },
+      "back": {
+        "title": "No Deduction Records",
+        "desc": "Points are only deducted when an order is refunded."
+      }
+    },
+    "error": {
+      "title": "Unable to Load Points",
+      "desc": "Your points are not affected. Please check your network and try again. If the problem persists, please contact us.",
+      "retry": "Retry"
+    },
+    "howItWorks": {
+      "title": "How Points Work",
+      "rule1": "Earn 1 point for every HK$1 spent, calculated on the actual amount paid (after deducting promo codes or Space Wallet credits).",
+      "rule2": "For every 100 points accumulated, HK$10 is automatically deposited to your Space Wallet with no action required.",
+      "rule3": "Points earned from a purchase are credited after payment is completed and cannot be used for that order.",
+      "rule4": "Using Space Wallet does not reduce accumulated points or affect membership tier.",
+      "rule5": "New members receive 100 points upon registration, with HK$10 automatically deposited.",
+      "rule6": "When an order is refunded, the points earned from that order are deducted accordingly."
+    },
+    "tierBenefits": {
+      "title": "Tier Benefits",
+      "desc": "Tier benefits are yet to be confirmed. Currently, all tiers earn 1 point per HK$1 spent with no additional multipliers."
+    }
+  },
+  "inbox": {
+    "title": "Inbox",
+    "detailTitle": "Message Details",
+    "filterAll": "All",
+    "filterCredit": "Wallet",
+    "filterPromo": "Offers",
+    "filterSystem": "System",
+    "emptyTitle": "No Messages",
+    "emptyMessage": "You don't have any notifications yet",
+    "errorTitle": "Failed to Load",
+    "errorMessage": "Unable to load inbox, please try again later",
+    "retry": "Retry",
+    "typeCredit": "Wallet Notification",
+    "typePromo": "Promotional Offer",
+    "typeSystem": "System Notification",
+    "metaType": "Type",
+    "metaTime": "Time"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "valuePage": {
+    "meta_title": "Our Values | Space8",
+    "meta_description": "Space Infinity or Space Eternity — Premium snooker experiences",
+    "space_infinity": "SPACE INFINITY",
+    "space_infinity_alt": "SPACE8 Space Infinity room with professional Chinese snooker table in private space"
+  },
+  "checkout": {
+    "wallet": {
+      "applied": "Space Wallet applied",
+      "balance": "Available balance",
+      "apply": "Apply",
+      "remove": "Remove",
+      "insufficient": "Insufficient balance"
+    }
+  },
+  "creditsPage": {
+    "flap_messages": [
+      "THIS SITE WAS BUILT SOLO BY LUCA YAU",
+      "PHOTOGRAPHY & DESIGN BY MIKE LAU",
+      "3 MONTHS. 100+ HOURS.",
+      "WANT A SITE THIS GOOD?",
+      "VISIT FORMHK.COM"
+    ],
+    "main_description_line1": "This website was designed and developed solo by Luca Yau.",
+    "main_description_line2": "Photography and partial design by Mike Lau.",
+    "main_description_line3": "From concept to launch, approximately 3 months and over 100 hours of development time.",
+    "tech_stack": "Built with Next.js · Supabase · Stripe · Framer Motion"
+  },
+  "supportPage": {
+    "back_to_support": "Back to Support"
+  },
+  "legalPage": {
+    "date_year": "",
+    "date_month": "/",
+    "date_day": "/"
+  },
+  "homeBooking": {
+    "title": "How It Works",
+    "steps": {
+      "0": {
+        "title": "Pick a Slot",
+        "desc": "Choose date, time, and duration. Instant confirmation.",
+        "alt": "SPACE8 booking interface showing time slot selection",
+        "cta": "Book Now"
+      },
+      "1": {
+        "title": "Scan to Enter",
+        "desc": "Get your QR code instantly. Scan at the door. Auto-unlock.",
+        "alt": "Scanning QR code to enter SPACE8 venue"
+      },
+      "2": {
+        "title": "Earn Points",
+        "desc": "HK$1 = 1 point. The more you play, the more you save.",
+        "alt": "SPACE8 member earning points and rewards",
+        "cta": "View Membership"
+      }
+    }
+  },
+  "homeDirections": {
+    "address": "32 Tai Yau Street, San Po Kong, Hong Kong",
+    "directions": [
+      "7 minutes walk from MTR Diamond Hill Station Exit C2",
+      "Accessible by bus: 11B, 11C, 11D, 11X, 22M, 23M, 26M, 28, 29M, 42C, 61X, 62X, 69C, 74X, 83X, 89, 213X, 258D, 259D",
+      "Parking available at Hollywood Plaza or The Spectacle (advance booking available)"
+    ],
+    "cta_book": "Book Now"
+  },
+  "homeFAQ": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to common questions about SPACE8"
+  },
+  "empty_state": "No data available",
+  "table": "Table",
+  "duration": "Duration",
+  "price": "Price",
+  "reference": "Reference",
+  "refunded_at": "Refunded at",
+  "refund_amount": "Refund amount",
+  "fee": "Fee",
+  "rescheduled_at": "Rescheduled at",
+  "scan_to_check_in": "Scan to check in",
+  "card_points": "Points",
+  "back": "Back",
+  "tier_progress_title": "Tier Progress",
+  "points_to_next": "points to next tier",
+  "max_tier_reached": "Maximum tier reached",
+  "stat_bookings": "Bookings",
+  "stat_bookings_unit": "sessions",
+  "stat_hours": "Hours Played",
+  "stat_hours_unit": "hrs",
+  "greeting": "Welcome",
+  "status_confirmed": "Confirmed",
+  "status_cancelled": "Cancelled",
+  "status_completed": "Completed",
+  "status_refunded": "Refunded",
+  "status_pending": "Pending",
+  "status_payment_failed": "Payment Failed",
+  "section_upcoming": "Upcoming Bookings",
+  "no_upcoming_bookings": "No upcoming bookings",
+  "add_apple_wallet": "Add to Apple Wallet",
+  "add_google_wallet": "Add to Google Wallet",
+  "quick_view_details": "View Details",
+  "no_bookings_title": "No Bookings Yet",
+  "no_bookings_desc": "Book your first session to get started",
+  "section_upcoming_desc": "Next 30 days",
+  "section_recent": "Recent Bookings",
+  "section_recent_desc": "Your last 7 days",
+  "section_history": "History",
+  "booking_table": "Table",
+  "refund_success_toast": "Refund processed successfully",
+  "booking_retry_payment": "Retry Payment",
+  "booking_view_qr": "View QR Code",
+  "booking_add_calendar": "Add to Calendar",
+  "booking_more_actions": "More Actions",
+  "points_running_total": "Running Total",
+  "no_points": "No points history",
+  "points_earn_title": "Ways to Earn",
+  "settings_err_name": "Name cannot be empty",
+  "settings_err_generic": "Something went wrong. Please try again.",
+  "settings_change_rate_limited": "Too many requests. Try again later.",
+  "settings_change_no_email": "No email on file. Add one first.",
+  "settings_change_link_sent": "Verification link sent to your email",
+  "settings_display_name": "Display Name",
+  "settings_email": "Email",
+  "settings_phone": "Phone",
+  "settings_change_resend_in": "Resend in",
+  "sending": "Sending...",
+  "settings_change_phone": "Change Phone",
+  "settings_notifications": "Notifications",
+  "notif_booking": "Booking updates",
+  "notif_points": "Points updates",
+  "notif_promo": "Promotions",
+  "saved": "Saved",
+  "save": "Save",
+  "loading": "Loading...",
+  "close": "Close",
+  "coming_soon": "Coming Soon",
+  "email_notifications": "Email Notifications",
+  "email_sent": "Email sent",
+  "two_factor": "Two-Factor Authentication",
+  "two_factor_desc": "Add an extra layer of security",
+  "sign_out": "Sign Out",
+  "delete_account": "Delete Account",
+  "delete_confirm": "Are you sure? This cannot be undone.",
+  "change_password": "Change Password",
+  "change_password_desc": "Update your account password",
+  "change_phone": "Change Phone Number",
+  "change_phone_desc": "Update your phone number",
+  "danger_zone": "Danger Zone",
+  "settings_change_password": "Change Password",
+  "qr_modal_title": "Check-in QR Code",
+  "qr_reference": "Reference",
+  "qr_tap_enlarge": "Tap to enlarge",
+  "refund_modal_title": "Request Refund",
+  "refund_modal_reason_label": "Reason for cancellation",
+  "refund_modal_original_price": "Original Price",
+  "refund_modal_amount": "Refund Amount",
+  "refund_modal_fee": "Cancellation Fee",
+  "refund_modal_generic_error": "Unable to process refund. Please try again.",
+  "refund_modal_cutoff_error": "Refund cutoff time has passed",
+  "refund_modal_cancel": "Cancel",
+  "refund_modal_confirm": "Confirm Refund",
+  "reschedule_modal_title": "Reschedule Booking",
+  "reschedule_modal_date_label": "Select Date",
+  "reschedule_modal_table_label": "Table",
+  "reschedule_modal_time_label": "Time",
+  "reschedule_modal_generic_error": "Unable to reschedule. Please try again.",
+  "reschedule_modal_unavailable_error": "This time slot is no longer available",
+  "reschedule_modal_no_slots": "No available slots",
+  "reschedule_modal_cancel": "Cancel",
+  "reschedule_modal_confirm": "Confirm Reschedule",
+  "reschedule_previous_day": "Previous Day",
+  "reschedule_next_day": "Next Day",
+  "past_bookings": {
+    "no_history": "No past bookings",
+    "title": "Past Bookings",
+    "view_all": "View All",
+    "whatsapp_cta": "Chat on WhatsApp",
+    "whatsapp_prompt": "Questions about your booking?"
+  },
+  "upcoming_booking": {
+    "no_booking": "No upcoming booking",
+    "book_now": "Book Now",
+    "title": "Upcoming Booking",
+    "hide_qr": "Hide QR",
+    "show_qr": "Show QR",
+    "time": "Time",
+    "duration": "Duration",
+    "hours": "hours",
+    "amount": "Amount",
+    "contact_support": "Contact Support",
+    "scan_hint": "Show this QR code at check-in"
+  },
+  "access_cta_member": "View Member Records",
+  "access_cta_records": "View All Records",
+  "access_eyebrow": "Quick Access",
+  "access_footer": "Scan this QR code at the front desk",
+  "access_intro": "Your digital membership card",
+  "access_qr_description": "Show this QR code to staff for quick check-in",
+  "access_qr_enlarge": "Tap to enlarge",
+  "access_qr_identity": "Member Identity",
+  "access_qr_label": "QR Code",
+  "access_qr_title": "Check-in QR Code",
+  "access_steps_title": "How to Check In",
+  "access_tips_title": "Quick Tips",
+  "access_title": "Member Access",
+  "available_points": "Available Points",
+  "balance": "Balance",
+  "booking_confirmed": "Booking Confirmed",
+  "booking_confirmed_desc": "Your booking is confirmed. Check-in QR code is ready.",
+  "booking_reminder": "Booking Reminder",
+  "booking_reminder_desc": "Get reminded 1 hour before your booking",
+  "member_id_label": "Member ID",
+  "offers": "Special Offers",
+  "offers_desc": "Exclusive member deals",
+  "promotions": "Promotions",
+  "promotions_desc": "Latest offers and deals",
+  "push_booking_reminder": "Booking reminders",
+  "push_booking_reminder_desc": "Get notified before your session",
+  "push_notifications": "Push Notifications",
+  "push_offers": "Offers & Promotions",
+  "push_offers_desc": "Exclusive deals and discounts",
+  "push_system": "System notifications",
+  "push_system_desc": "Important account updates",
+  "save_preferences": "Save Preferences",
+  "saving": "Saving...",
+  "scan_to_enter": "Scan to enter",
+  "send_email": "Send Email",
+  "spent_amount": "Total Spent",
+  "tap_to_view_qr": "Tap to view QR code",
+  "actions": {
+    "help": {
+      "title": "Help & Support",
+      "subtitle": "Get assistance"
+    },
+    "wallet": {
+      "title": "Wallet",
+      "subtitle": "Manage credits"
+    },
+    "points": {
+      "title": "Points",
+      "subtitle": "View rewards"
+    },
+    "inbox": {
+      "title": "Inbox",
+      "subtitle": "View notifications"
+    }
+  },
+  "bottom_links": {
+    "settings": {
+      "title": "Account Settings",
+      "subtitle": "Manage your account"
+    },
+    "manage": {
+      "title": "Manage Bookings",
+      "subtitle": "View and edit bookings"
+    },
+    "safety": {
+      "title": "Safety & Privacy",
+      "subtitle": "Your data is safe"
+    },
+    "legal": {
+      "title": "Terms & Policies",
+      "subtitle": "Legal information"
+    },
+    "version": "Version"
+  },
+  "card": {
+    "available_points": "Available Points",
+    "member_code": "Member Code",
+    "scan_to_verify": "Scan to verify membership",
+    "tap_for_qr": "Tap for QR code"
+  },
+  "dashboard": {
+    "greeting": "Welcome back",
+    "history": "Booking History"
+  },
+  "tier": {
+    "current": "Current Tier",
+    "current_points": "Current Points"
+  },
+  "wallet_explainer": {
+    "title": "How Wallet Works",
+    "description": "Top up credits to use for future bookings. Credits never expire.",
+    "notify_label": "Notify me when balance is low",
+    "dismiss": "Got it"
+  },
+  "time": {
+    "just_now": "Just now",
+    "minutes_ago": "minute(s) ago",
+    "hours_ago": "hour(s) ago",
+    "days_ago": "day(s) ago"
+  },
+  "time_label": "Time",
+  "quickActions": {
+    "help": {
+      "subtitle": "Help Center"
+    },
+    "wallet": {
+      "subtitle": "Wallet"
+    },
+    "points": {
+      "subtitle": "Points"
+    },
+    "inbox": {
+      "subtitle": "Inbox"
+    }
+  },
+  "bookNow": "Book Now",
+  "viewWallet": "View Wallet",
+  "activity": "Points Activity",
+  "filterLabel": "Filter points activity",
+  "loadMore": "Load More",
+  "earned": "Earned",
+  "deducted": "Deducted",
+  "lifetimePoints": "Lifetime Points",
+  "redeemablePoints": "Redeemable Points",
+  "needMore": "Earn {{points}} more points to auto-deposit HK${{amount}}",
+  "depositedToWallet": "Deposited to Wallet",
+  "convertedPoints": "Converted Points",
+  "tierAmateur": "Amateur Member",
+  "tierCentury": "Century Member",
+  "tierMaximum": "Maximum Member",
+  "filter": {
+    "all": "All",
+    "earn": "Earned",
+    "wallet": "Deposited",
+    "back": "Deducted"
+  },
+  "txType": {
+    "booking": "Booking Purchase",
+    "signup": "Welcome Bonus",
+    "bonus": "Bonus Points",
+    "manual": "System Adjustment",
+    "convert": "Points Deposited to Space Wallet",
+    "redeem": "Redemption",
+    "reversal": "Refund Reversal"
+  },
+  "empty": {
+    "all": {
+      "title": "No Points Activity",
+      "desc": "Points will accumulate automatically after your first booking."
+    },
+    "earn": {
+      "title": "No Earned Records",
+      "desc": "Points are credited based on the actual amount paid after each successful payment."
+    },
+    "wallet": {
+      "title": "No Deposit Records",
+      "desc": "For every 100 points accumulated, HK$10 is automatically deposited to Space Wallet."
+    },
+    "back": {
+      "title": "No Deduction Records",
+      "desc": "Points are only deducted when an order is refunded."
+    }
+  },
+  "error": {
+    "title": "Unable to Load Points",
+    "desc": "Your points are not affected. Please check your network and try again. If the problem persists, please contact us.",
+    "retry": "Retry"
+  },
+  "howItWorks": {
+    "title": "How Points Work",
+    "rule1": "Earn 1 point for every HK$1 spent, calculated on the actual amount paid (after deducting promo codes or Space Wallet credits).",
+    "rule2": "For every 100 points accumulated, HK$10 is automatically deposited to your Space Wallet with no action required.",
+    "rule3": "Points earned from a purchase are credited after payment is completed and cannot be used for that order.",
+    "rule4": "Using Space Wallet does not reduce accumulated points or affect membership tier.",
+    "rule5": "New members receive 100 points upon registration, with HK$10 automatically deposited.",
+    "rule6": "When an order is refunded, the points earned from that order are deducted accordingly."
+  },
+  "tierBenefits": {
+    "title": "Tier Benefits",
+    "desc": "Tier benefits are yet to be confirmed. Currently, all tiers earn 1 point per HK$1 spent with no additional multipliers."
+  },
+  "balance_label": "Available Balance",
+  "balance_note": "1 credit = HK$1, deductible directly at checkout",
+  "balance_aria": "Available balance {amount} Hong Kong dollars",
+  "balance_after": "Balance",
+  "held_label": "Held at checkout",
+  "book_now": "Book Now",
+  "view_points": "View Points",
+  "tabs_label": "Space Wallet Records",
+  "tab_all": "All",
+  "tab_use": "Used",
+  "tab_in": "Credited",
+  "tab_offer": "Offers",
+  "type_convert": "Points Deposited",
+  "type_signup": "Welcome Gift",
+  "type_topup": "Top-up",
+  "type_refund": "Refund",
+  "type_manual": "Adjustment",
+  "type_redeem": "Booking Payment",
+  "type_reversal": "Refund Reversal",
+  "convert_subtitle": "{points} points",
+  "booking_reference": "Booking Reference",
+  "empty_title": "No Records Yet",
+  "empty_message": "Your wallet transaction history will appear here",
+  "error_title": "Unable to Load Space Wallet",
+  "error_message": "Your balance is unaffected. Please check your connection and try again. If the issue persists, contact us.",
+  "retry": "Retry",
+  "offers_available": "Available Offers",
+  "offers_used": "Used",
+  "offer_discount_pct": "{value}% off",
+  "offer_discount_fixed": "HK${value} off",
+  "offer_used_date": "Used on {date}",
+  "offer_saved": "Saved",
+  "offers_empty_title": "No Offers Yet",
+  "offers_empty_message": "New offers will appear here",
+  "faq_title": "How Space Wallet Works",
+  "faq_1": "Earn 1 point for every HK$1 spent, based on actual payment amount.",
+  "faq_2": "Every 100 points automatically converts to HK$10 in your Space Wallet—no action needed.",
+  "faq_3": "Points earned from a booking are credited after payment and cannot be used for that booking.",
+  "faq_4": "Promo codes and Space Wallet credits cannot be combined.",
+  "faq_5": "When you cancel a booking, any credits used will be fully refunded to your Space Wallet.",
+  "file": "messages/en.json",
+  "deleteAccount": {
+    "title": "Delete account",
+    "intro": "Once you confirm, your account will be:",
+    "point_deactivate": "Deactivated immediately and signed out on all devices",
+    "point_purge": "Permanently deleted, with your personal data, after 180 days",
+    "point_restore": "Restored automatically if you sign in again within 180 days",
+    "point_frozen": "Points and coupons are frozen during that period and removed on permanent deletion",
+    "point_history": "Booking history is kept as required by law",
+    "point_cancel": "Unfinished (unpaid) bookings are cancelled",
+    "active_note": "Active bookings must be cancelled before you can delete your account.",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "sending": "Sending code…",
+    "verify_title": "Verify it's you",
+    "verify_sent": "We sent a code to {email}. It expires in 10 minutes.",
+    "code_placeholder": "6-digit code",
+    "resend": "Resend code",
+    "resend_in": "Resend in {seconds}s",
+    "back": "Back",
+    "confirm": "Delete account",
+    "processing": "Processing…",
+    "done_title": "Account deactivated",
+    "done_body": "Your personal data will be permanently deleted on {date}. Sign in before then to restore your account. A confirmation email is on its way.",
+    "restored_title": "Welcome back",
+    "restored_body": "Your account has been restored and your points and coupons are available again. Bookings cancelled at deactivation stay cancelled.",
+    "dismiss": "Got it",
+    "contact_support": "Contact support on WhatsApp",
+    "err_active_bookings": "You have an active booking. Cancel it first, or contact support for help.",
+    "err_admin_account": "Admin accounts can't be deleted here. Please contact the owner.",
+    "err_already_deleted": "This account is already deactivated.",
+    "err_no_email": "There's no email on this account, so we can't send a code. Please contact support.",
+    "err_cooldown": "Please wait a moment before requesting another code.",
+    "err_rate_limited": "Too many codes requested this hour. Please try again later.",
+    "err_email_failed": "We couldn't send the code. Try again later or contact support.",
+    "err_code_wrong": "That code is incorrect. {remaining} attempts left.",
+    "err_code_invalid": "That code is no longer valid. Request a new one.",
+    "err_code_expired": "That code has expired. Request a new one.",
+    "err_too_many_attempts": "Too many attempts. Request a new code.",
+    "err_generic": "Something went wrong. Please try again."
+  },
+  "resetPassword": {
+    "request_title": "Forgot password",
+    "request_body": "Enter your account email and we'll send you a link to reset your password.",
+    "request_submit": "Send reset link",
+    "sent_title": "Check your email",
+    "sent_body": "If a Space8 account uses that address, we have sent instructions. The link expires in 60 minutes.",
+    "resend": "Send again",
+    "resend_in": "Send again in {seconds}s",
+    "back_to_login": "Back to sign in",
+    "form_title": "Set a new password",
+    "form_body": "Choose a new password for your Space8 account.",
+    "new_password": "New password",
+    "confirm_password": "Confirm new password",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "form_submit": "Update password",
+    "sending": "Sending…",
+    "saving": "Updating…",
+    "invalid_title": "Link no longer valid",
+    "invalid_body": "This link has expired or was already used. Request a new reset link.",
+    "resend_link": "Send a new link",
+    "err_email": "Enter a valid email address.",
+    "err_mismatch": "The passwords don't match.",
+    "err_cooldown": "Please wait a moment before sending again.",
+    "err_rate_limited": "Too many attempts. Please try again later.",
+    "err_send": "We couldn't send the email right now. Please try again later.",
+    "err_update": "We couldn't update your password. Please try again."
   }
 }

@@ -23,7 +23,6 @@ export default function ManageAccountPage() {
     email: string | null
     phone: string | null
     gender: string | null
-    date_of_birth: string | null
     birthday_set: boolean
   } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -41,7 +40,7 @@ export default function ManageAccountPage() {
 
     const { data } = await supabase
       .from('users')
-      .select('display_name, email, phone, gender, date_of_birth, birthday_set')
+      .select('display_name, email, phone, gender, birthday_set')
       .eq('id', session.user.id)
       .single()
 

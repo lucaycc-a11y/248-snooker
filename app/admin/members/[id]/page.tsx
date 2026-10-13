@@ -56,13 +56,8 @@ async function getMemberDetail(id: string) {
         .order('created_at', { ascending: false })
         .limit(50),
 
-      service
-        .from('admin_action_log')
-        .select('id, action_type, before_jsonb, after_jsonb, created_at')
-        .eq('target_id', id)
-        .eq('target_table', 'users')
-        .order('created_at', { ascending: false })
-        .limit(20),
+      // TODO: admin_action_log table doesn't exist yet - return empty
+      Promise.resolve({ data: [], error: null }),
 
       // Count cancelled bookings for this user
       service

@@ -16,12 +16,12 @@ import { resolve } from 'path'
 // Load environment variables from .env.local
 config({ path: resolve(__dirname, '../.env.local') })
 
-import { getServiceSupabase } from '../lib/supabase/service'
+import { getLegacyServiceSupabase } from '../lib/supabase/legacy'
 import { getStripe } from '../lib/stripe/server'
 import { humanReadableCode } from '../lib/qr/jwt'
 
 async function reconcileBooking(bookingId: string) {
-  const supabase = getServiceSupabase()
+  const supabase = getLegacyServiceSupabase()
   const stripe = getStripe()
 
   // Fetch booking details
@@ -171,7 +171,7 @@ async function main() {
   } else {
     // Find and reconcile all stuck bookings
     console.log(`🔍 Finding stuck Stripe bookings...`)
-    const supabase = getServiceSupabase()
+    const supabase = getLegacyServiceSupabase()
 
     const { data: stuckBookings, error } = await supabase
       .from('bookings')

@@ -9,7 +9,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { str } from '@/lib/data/adminReadHelpers'
 
 export const runtime = 'nodejs'
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'paymentId and bookingId are required' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // ── Verify the payment attempt exists ─────────────────────────────────
     const { data: payment, error: payErr } = await service

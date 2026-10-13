@@ -55,7 +55,7 @@ export default function Hero() {
         {/* Poster frame — shown until video loads */}
         <Image
           src="/video/Space8_Main_Hero_Poster.jpg"
-          alt="SPACE8 香港自助中式桌球會所 專業球枱設施"
+          alt={t("image_alt")}
           fill
           sizes="100dvh"
           quality={85}
@@ -133,6 +133,8 @@ export default function Hero() {
               }}
             >
               {t("tagline")}
+              {/* Visually hidden: gives the h1 venue/中式桌球 context for search & AT. */}
+              <span className="sr-only" data-cms-key="hero.h1_seo">{t("h1_seo")}</span>
             </h1>
           </div>
 

@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { IdentityLockedNote } from '@/components/member/IdentityLockedNote'
+import { useTranslations } from 'next-intl'
+import DeleteDataModal from '@/components/member/DeleteDataModal'
 
 // ════════════════════════════════════════════════════════════════════════════
 // Settings Page — Name, phone (RO), email (RO), notifications, language, sign out
@@ -125,16 +128,11 @@ export default function SettingsPage() {
               <div>
                 <label className="text-sm text-white/50">電話 (只讀)</label>
                 <p className="mt-1 text-white">{profile?.phone ?? '未設定'}</p>
-                <a href="/auth/change-phone" className="mt-1 text-xs text-[#22c55e] underline">
-                  更改電話
-                </a>
               </div>
               <div>
                 <label className="text-sm text-white/50">電郵 (只讀)</label>
                 <p className="mt-1 text-white">{profile?.email ?? '未設定'}</p>
-                <a href="/auth/change-email" className="mt-1 text-xs text-[#22c55e] underline">
-                  更改電郵
-                </a>
+                <IdentityLockedNote />
               </div>
             </div>
           </section>
@@ -187,9 +185,34 @@ export default function SettingsPage() {
               登出所有其他裝置
             </button>
           </section>
+
+          {/* Delete Account */}
+          <DeleteAccountSection />
         </div>
       </div>
     </div>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// § DELETE ACCOUNT SECTION — shared modal; all rules enforced server-side
+// ────────────────────────────────────────────────────────────────────────────
+
+function DeleteAccountSection() {
+  const t = useTranslations('deleteAccount')
+  const [open, setOpen] = useState(false)
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full rounded-xl border border-red-500/40 bg-gradient-to-r from-red-500/10 to-transparent p-4 text-center font-medium text-red-400 transition-all hover:border-red-500/60 hover:from-red-500/20"
+        data-cms-key="deleteAccount.title"
+      >
+        {t('title')}
+      </button>
+      <DeleteDataModal isOpen={open} onClose={() => setOpen(false)} hasActiveBookings={false} />
+    </>
   )
 }
 

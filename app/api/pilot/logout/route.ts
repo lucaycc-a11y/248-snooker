@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 type LogoutBody = { session_token?: unknown; password?: unknown }
 
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   const password = typeof body?.password === 'string' ? body.password : ''
   if (!token || !password) return NextResponse.json({ error: 'invalid_request' }, { status: 400 })
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data: session, error: sessionError } = await service
     .from('pilot_sessions')
     .select('id, pilot_device_id, revoked_at')

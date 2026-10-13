@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
+import { indexingMeta } from "@/lib/env/app-env";
+import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { getBlogPosts } from "@/lib/data/getBlog";
-import BlogList from "./BlogList";
+
+// ── Main content (lazy load) ────────────────────────────────────────────────
+const BlogList = dynamic(
+  () => import("./BlogList"),
+  { ssr: true }
+);
 
 const BASE = "https://space8.com.hk";
 
@@ -17,25 +25,17 @@ export async function generateMetadata({
   const path = locale === "zh-HK" ? "/blog" : `/${locale}/blog`;
 
   return {
-    title: `${t("title")} | Space8`,
-    description: t("subtitle"),
-    alternates: {
-      canonical: `${BASE}${path}`,
-      languages: {
-        "zh-HK": `${BASE}/blog`,
-        "zh-CN": `${BASE}/zh-CN/blog`,
-        en: `${BASE}/en/blog`,
-        "x-default": `${BASE}/blog`,
-      },
-    },
+    title: t("meta_title"),
+    description: t("meta_description"),
+    alternates: pageAlternates(locale, "/blog"),
     openGraph: {
-      title: `${t("title")} | Space8`,
-      description: t("subtitle"),
+      title: t("meta_title"),
+      description: t("meta_description"),
       url: `${BASE}${path}`,
       siteName: "Space8",
       type: "website",
     },
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   };
 }
 

@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { Database } from './database.types'
 
 // SERVER-ONLY service-role client for privileged writes that must bypass RLS:
 // the Stripe webhook (booking confirmation, queue inserts) and the rate-limit
@@ -7,9 +8,9 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 //
 // Throws (rather than returning null) when the key is missing, so a misconfigured
 // deployment fails loudly at first use instead of silently skipping security.
-let cached: SupabaseClient | null = null
+let cached: SupabaseClient<Database> | null = null
 
-export function getServiceSupabase(): SupabaseClient {
+export function getServiceSupabase(): SupabaseClient<Database> {
   if (cached) return cached
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -38,7 +39,7 @@ export function getServiceSupabase(): SupabaseClient {
     console.error('[supabase/service] SUPABASE_SERVICE_ROLE_KEY is not a valid JWT')
   }
 
-  cached = createClient(url, key, {
+  cached = createClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   })
   return cached

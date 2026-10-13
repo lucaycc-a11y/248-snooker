@@ -1,518 +1,688 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { QRCodeSVG } from "qrcode.react";
+import { cn } from "@/lib/utils";
+import Velaris from "@/components/ui/velaris";
+import { MemberCardPremier } from "@/app/member/components/MemberCardPremier";
 
-// ─── design tokens (matches 924_member_guide.html) ──────────────────────────
-const GREEN      = "#22C55E";
-const GREEN_INK  = "#15803D";
-const FELT       = "#0B5D34";
-const FELT_DEEP  = "#073D22";
-const MUTED      = "#8A918B";
-const BORDER     = "rgba(255,255,255,0.10)";
+// ─── Design tokens ───────────────────────────────────────────────────────────
+const COLORS = {
+  // Green palette (from #86efac → #22c55e → #059669 range)
+  green50: "#86efac",
+  green400: "#4ade80",
+  green500: "#22c55e",
+  green600: "#059669",
 
-// Demo member code for the static QR explainer — not real user data
-const DEMO_CODE = "SP8-DEMO-0000";
+  // Dark theme tokens
+  dark: {
+    bg: "#000000",
+    text: "#ffffff",
+    textMuted: "rgba(255,255,255,0.6)",
+    cardBg: "linear-gradient(150deg,#2B3039 0%,#1B1E24 55%,#23272F 100%)",
+    cardBorder: "rgba(255,255,255,0.12)",
+    accent: "#22c55e", // Solid green for pills/accents
+  },
 
-type Translation = ReturnType<typeof useTranslations>;
-type UseItem = { tag: string; title: string };
-type StepItem = { title: string; body: string };
+  // Light theme tokens
+  light: {
+    bg: "#F9FAFB",
+    text: "#111827",
+    textMuted: "#6B7280",
+    accent: "#059669", // Darker green for light backgrounds
+  },
+} as const;
 
-// ─── shared fade-up reveal ───────────────────────────────────────────────────
-function Reveal({ children, index = 0 }: { children: React.ReactNode; index?: number }) {
+const EASING = {
+  reveal: "cubic-bezier(.2,.7,.3,1)" as const,
+};
+
+// Demo member code for the card (not real user data)
+const DEMO_CODE = "SPACE8-••••-••••";
+
+// ─── Reveal animation wrapper ─────────────────────────────────────────────────
+function Reveal({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.5, delay: index * 0.07, ease: [0.2, 0.7, 0.3, 1] }}
-      className="motion-reduce:!transform-none motion-reduce:!opacity-100"
+    <div
+      ref={ref}
+      className={cn(
+        "transition-all duration-700",
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
+        className
+      )}
+      style={{
+        transitionDelay: `${delay}ms`,
+        transitionTimingFunction: EASING.reveal,
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
-// ─── tier definitions ────────────────────────────────────────────────────────
-const TIERS = [
-  {
-    key:        "tier_new",
-    multiplier: "1X",
-    isTop:      false,
-  },
-  {
-    key:        "tier_platinum",
-    multiplier: "1.5X",
-    isTop:      false,
-  },
-  {
-    key:        "tier_diamond",
-    multiplier: "2X",
-    isTop:      true,                 // green felt treatment
-  },
-] as const;
+// ═══════════════════════════════════════════════════════════════════════════
+// § 1 — HERO (Apple Music style, Velaris background)
+// ═══════════════════════════════════════════════════════════════════════════
 
-// ════════════════════════════════════════════════════════════════════════════
-// § 1 — TIER LADDER
-//   Horizontal progress line connects 3 threshold nodes. Top tier (index 2)
-//   gets radial-gradient felt background matching 924_member_guide.html.
-// ════════════════════════════════════════════════════════════════════════════
-
-function TierLadder({ t }: { t: Translation }) {
+function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
-    <section id="membership-tiers" className="pb-16 pt-20 md:pb-24 md:pt-28">
-      {/* Section heading */}
-      <Reveal>
-        <h2
-          data-cms-key="membershipHub.tier_title"
-          className="mb-3 text-center text-3xl font-semibold tracking-tight text-white md:text-5xl"
-        >
-          {t("tier_title")}
-        </h2>
-        <p className="mx-auto mb-12 max-w-xl text-center text-base leading-7 text-white/55">
-          {t("tier_intro")}
-        </p>
-      </Reveal>
-
-      {/* Ladder progress line + nodes */}
-      <Reveal>
-        <div className="relative mb-0 hidden md:block">
-          {/* Horizontal gradient line */}
-          <div
-            className="absolute left-0 right-0 top-1/2 -translate-y-1/2"
-            style={{
-              height: 2,
-              background: `linear-gradient(to right, rgba(255,255,255,.10), ${GREEN} 50%, ${GREEN} 100%)`,
-            }}
-          />
-          <div className="grid grid-cols-3">
-            {TIERS.map((tier, i) => {
-              const at: string = t(`${tier.key}.at`);
-              const threshold: string = t(`${tier.key}.threshold`);
-              return (
-                <div key={tier.key} className="flex flex-col items-center gap-2 pb-6">
-                  {/* Circle node */}
-                  <div
-                    className="relative z-10 flex h-5 w-5 items-center justify-center rounded-full"
-                    style={{
-                      background: i === 0 ? "rgba(255,255,255,.18)" : GREEN,
-                      boxShadow: i > 0 ? `0 0 12px ${GREEN}99` : "none",
-                    }}
-                  >
-                    <div className="h-2 w-2 rounded-full bg-white" />
-                  </div>
-                  {/* Threshold label */}
-                  {threshold ? (
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: GREEN, letterSpacing: "0.05em" }}
-                    >
-                      {threshold}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-white/30">—</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Reveal>
-
-      {/* Tier cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {TIERS.map((tier, i) => (
-          <TierCard key={tier.key} tierKey={tier.key} multiplier={tier.multiplier} isTop={tier.isTop} index={i} t={t} />
-        ))}
-      </div>
-
-      {/* CTAs */}
-      <Reveal index={4}>
-        <div className="mt-10 flex flex-wrap justify-center gap-3">
-          <Link
-            href="/book"
-            className="rounded-full px-6 py-3 text-sm font-semibold transition hover:opacity-90"
-            style={{ background: GREEN, color: "#07130d" }}
-          >
-            {t("cta_book")}
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white transition hover:border-[#22C55E] hover:text-[#86efac]"
-          >
-            {t("cta_login")}
-          </Link>
-        </div>
-      </Reveal>
-    </section>
-  );
-}
-
-function TierCard({
-  tierKey, multiplier, isTop, index, t,
-}: {
-  tierKey: string;
-  multiplier: string;
-  isTop: boolean;
-  index: number;
-  t: Translation;
-}) {
-  const title: string     = t(`${tierKey}.title`);
-  const threshold: string = t(`${tierKey}.threshold`);
-  const lead: string      = t(`${tierKey}.lead`);
-  const desc: string      = t(`${tierKey}.desc`);
-
-  const surface = isTop
-    ? `radial-gradient(140% 100% at 20% 0%, ${FELT} 0%, ${FELT_DEEP} 50%, rgba(7,61,34,.25) 100%)`
-    : "rgba(255,255,255,0.025)";
-  const border  = isTop ? `1px solid ${GREEN}55` : `1px solid ${BORDER}`;
-  const mulColor = isTop ? GREEN : "rgba(255,255,255,0.55)";
-
-  return (
-    <Reveal index={index}>
-      <article
-        className="flex h-full flex-col rounded-2xl p-7 transition duration-300 hover:-translate-y-1"
-        style={{ background: surface, border }}
-      >
-        {/* Large multiplier — Good Times / font-code */}
-        <p
-          className="font-code leading-none"
-          style={{ fontSize: "clamp(64px,8vw,100px)", color: mulColor, opacity: 0.9 }}
-          aria-label={`積分倍率 ${multiplier}`}
-        >
-          {multiplier}
-        </p>
-
-        <h3
-          data-cms-key={`membershipHub.${tierKey}.title`}
-          className="mt-5 text-2xl font-semibold text-white"
-        >
-          {title}
-        </h3>
-
-        {threshold ? (
-          <p className="mt-1 text-sm font-medium" style={{ color: GREEN }}>
-            {threshold}
-          </p>
-        ) : null}
-
-        <p
-          data-cms-key={`membershipHub.${tierKey}.lead`}
-          className="mt-4 text-sm font-semibold leading-6 text-white/80"
-        >
-          {lead}
-        </p>
-
-        <p
-          data-cms-key={`membershipHub.${tierKey}.desc`}
-          className="mt-3 flex-1 text-sm leading-6"
-          style={{ color: MUTED }}
-        >
-          {desc}
-        </p>
-      </article>
-    </Reveal>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// § 2 — POINTS FLOW  (4-step numbered circles with horizontal connectors)
-// ════════════════════════════════════════════════════════════════════════════
-
-type FlowItem = { title: string; body: string };
-
-function FlowSection({
-  id, sectionTitle, items, cmsKey,
-}: {
-  id?: string;
-  sectionTitle: string;
-  items: FlowItem[];
-  cmsKey: string;
-}) {
-  return (
-    <section id={id} className="border-t border-white/10 pb-16 pt-20 md:pb-24 md:pt-28">
-      <Reveal>
-        <h2
-          data-cms-key={cmsKey}
-          className="mb-14 text-center text-3xl font-semibold tracking-tight text-white md:text-5xl"
-        >
-          {sectionTitle}
-        </h2>
-      </Reveal>
-
-      {/* Desktop: horizontal flow with connector lines */}
-      <div className="hidden md:block">
+    <Velaris
+      height="100svh"
+      speed={1.0}
+      colors={[COLORS.green50, COLORS.green400, COLORS.green600, COLORS.dark.bg]}
+      className="flex items-center justify-center px-6"
+    >
+      <div className="flex min-h-full flex-col items-center justify-center text-center w-full">
+        {/* Eyebrow */}
         <Reveal>
-          <div className="relative grid grid-cols-4 gap-0">
-            {/* Connector line */}
-            <div
-              className="absolute left-[12.5%] right-[12.5%] top-[22px] -translate-y-1/2"
-              style={{ height: 1, background: `linear-gradient(to right, transparent, ${GREEN}66, transparent)` }}
-            />
-            {items.map((item, i) => (
-              <div key={item.title} className="flex flex-col items-center gap-5 px-4 text-center">
-                <div
-                  className="relative z-10 flex h-11 w-11 items-center justify-center rounded-full font-code text-sm font-bold text-white"
-                  style={{ background: GREEN, boxShadow: `0 0 20px ${GREEN}55` }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6" style={{ color: MUTED }}>{item.body}</p>
-                </div>
-              </div>
-            ))}
+          <p
+            data-cms-key="memberIntro.hero.eyebrow"
+            className="mb-4 text-xs font-semibold uppercase tracking-widest"
+            style={{ color: "rgba(255,255,255,0.7)", fontFamily: "'Good Times', sans-serif" }}
+          >
+            {t("hero.eyebrow")}
+          </p>
+        </Reveal>
+
+        {/* Title */}
+        <Reveal delay={100}>
+          <h1
+            data-cms-key="memberIntro.hero.title"
+            className="mb-6 font-bold leading-tight tracking-tight text-white"
+            style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}
+          >
+            {t("hero.title")}
+          </h1>
+        </Reveal>
+
+        {/* Subtitle */}
+        <Reveal delay={200}>
+          <p
+            data-cms-key="memberIntro.hero.subtitle"
+            className="mb-10 text-base leading-relaxed md:text-lg"
+            style={{ color: "rgba(255,255,255,0.75)", maxWidth: "36rem" }}
+          >
+            {t("hero.subtitle")}
+          </p>
+        </Reveal>
+
+        {/* CTAs */}
+        <Reveal delay={300}>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/join"
+              data-cms-key="memberIntro.hero.ctaPrimary"
+              className="rounded-full bg-white px-8 py-3.5 text-base font-semibold text-black transition hover:bg-white/90"
+            >
+              {t("hero.ctaPrimary")}
+            </Link>
+            <Link
+              href="/login"
+              data-cms-key="memberIntro.hero.ctaSecondary"
+              className="group flex items-center gap-1 text-base font-medium text-white transition hover:text-white/80"
+            >
+              <span>{t("hero.ctaSecondary")}</span>
+              <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">›</span>
+            </Link>
           </div>
         </Reveal>
-      </div>
 
-      {/* Mobile: vertical list */}
-      <ol className="space-y-0 md:hidden">
-        {items.map((item, i) => (
-          <Reveal key={item.title} index={i}>
-            <li className="flex gap-5 pb-8 last:pb-0">
-              <div className="flex flex-col items-center">
-                <div
-                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full font-code text-sm font-bold text-white"
-                  style={{ background: GREEN, boxShadow: `0 0 16px ${GREEN}55` }}
-                >
-                  {String(i + 1).padStart(2, "0")}
-                </div>
-                {i < items.length - 1 && (
-                  <div className="mt-2 w-px flex-1 bg-white/10" />
-                )}
-              </div>
-              <div className="pt-2">
-                <h3 className="text-base font-semibold text-white">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6" style={{ color: MUTED }}>{item.body}</p>
-              </div>
-            </li>
+        {/* Note */}
+        <Reveal delay={400}>
+          <p
+            data-cms-key="memberIntro.hero.note"
+            className="mt-6 text-xs"
+            style={{ color: "rgba(255,255,255,0.5)" }}
+          >
+            {t("hero.note")}
+          </p>
+        </Reveal>
+      </div>
+    </Velaris>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// § 2 — STATEMENTS (Apple One style, light background)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function StatementsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const statements = [
+    {
+      lead: "消費即賺分",
+      body: "每 HK$1 = 1 積分，自動累積",
+    },
+    {
+      lead: "積分當錢使",
+      body: "100 積分 = HK$10 場地抵用額",
+    },
+    {
+      lead: "新會員獎賞",
+      body: "註冊即送 100 積分迎新禮遇",
+    },
+    {
+      lead: "全預約制，QR 自助入場",
+      body: "網上預訂，掃碼開門，簡單安全",
+    },
+  ];
+
+  return (
+    <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+      <div className="mx-auto flex max-w-4xl flex-col items-center gap-12 md:gap-16">
+        {statements.map((statement, i) => (
+          <Reveal key={i} delay={i * 100} className="text-center">
+            <div className="space-y-3">
+              <p
+                data-cms-key={`memberIntro.statements.${i + 1}.lead`}
+                className="font-bold leading-tight tracking-tight"
+                style={{
+                  fontSize: "clamp(1.5rem, 4vw, 3rem)",
+                  color: COLORS.light.accent
+                }}
+              >
+                {statement.lead}
+              </p>
+              <p
+                data-cms-key={`memberIntro.statements.${i + 1}.body`}
+                className="mx-auto max-w-2xl text-base leading-relaxed md:text-xl"
+                style={{ color: COLORS.light.text }}
+              >
+                {statement.body}
+              </p>
+            </div>
           </Reveal>
         ))}
-      </ol>
+      </div>
     </section>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════════════
-// § 3 — QR ACCESS SECTION  (white "paper" background, 2-col layout)
-//   Left:  section heading + icon use-list + tips
-//   Right: demo member card + steps + 2 CTAs
-// ════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// § 3 — MEMBER CARD (dark background, real card + minimal UI)
+// ═══════════════════════════════════════════════════════════════════════════
 
-function QRSection({ t }: { t: Translation }) {
-  const uses  = t.raw("qr_uses")  as UseItem[];
-  const steps = t.raw("qr_steps") as StepItem[];
-  const tips  = t.raw("qr_tips")  as string[];
+function MemberCardSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Demo profile for card preview
+  const demoProfile = {
+    id: 'demo',
+    display_name: 'DEMO',
+    email: 'demo@space8.com.hk',
+    phone: null,
+    tier: 'amateur' as const,
+    points: 100,
+    member_code: 'SPACE8-DEMO-0000',
+    unread_notifications: 0,
+    gender: null,
+    birthday_set: false,
+  };
 
   return (
     <section
-      id="member-qr"
-      className="scroll-mt-24 border-t border-white/10"
+      style={{ background: COLORS.dark.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}
     >
-      {/* Paper panel — light background matching reference .paper */}
-      <div
-        className="rounded-3xl px-6 py-14 md:px-12 md:py-20"
-        style={{ background: "#F4F4F6", color: "#141614" }}
-      >
+      <div className="mx-auto max-w-4xl">
+        {/* Title */}
         <Reveal>
           <h2
-            data-cms-key="membershipHub.qr_title"
-            className="mb-12 text-center text-3xl font-semibold tracking-tight md:text-5xl"
-            style={{ color: "#141614" }}
+            data-cms-key="memberIntro.card.title"
+            className="mb-12 text-center font-bold leading-tight tracking-tight text-white"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
           >
-            {t("qr_title")}
+            一個 QR Code，解鎖整個 SPACE8
           </h2>
         </Reveal>
 
-        <div className="grid gap-12 md:grid-cols-2 md:gap-16 md:items-start">
+        {/* Real Member Card (Demo Mode) */}
+        <Reveal delay={100}>
+          <MemberCardPremier profile={demoProfile} />
+        </Reveal>
 
-          {/* ── LEFT COLUMN ─────────────────────────────────────── */}
-          <div className="space-y-10">
+        {/* Description */}
+        <Reveal delay={200}>
+          <p
+            data-cms-key="memberIntro.card.description"
+            className="mt-8 text-center text-sm leading-relaxed"
+            style={{ color: COLORS.dark.textMuted }}
+          >
+            專屬會員 QR Code。解鎖大門、登入智能小管家 Space Pilot，全部靠它。
+          </p>
+        </Reveal>
 
-            {/* What the QR does — icon list */}
-            <div>
-              <h3
-                data-cms-key="membershipHub.qr_s1"
-                className="mb-5 text-lg font-semibold"
-                style={{ color: "#141614" }}
-              >
-                {t("qr_s1")}
-              </h3>
-              <ul className="space-y-3">
-                {uses.map((u, i) => (
-                  <Reveal key={i} index={i}>
-                    <li className="flex items-center gap-4">
-                      <span
-                        className="flex-shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                        style={{ background: GREEN_INK, color: "#fff" }}
-                      >
-                        {u.tag}
-                      </span>
-                      <span className="text-sm font-medium" style={{ color: "#141614" }}>
-                        {u.title}
-                      </span>
-                    </li>
-                  </Reveal>
-                ))}
-              </ul>
-            </div>
-
-            {/* Tips */}
-            <div>
-              <h3
-                data-cms-key="membershipHub.qr_s3"
-                className="mb-4 text-lg font-semibold"
-                style={{ color: "#141614" }}
-              >
-                {t("qr_s3")}
-              </h3>
-              <ul className="space-y-2">
-                {tips.map((tip, i) => (
-                  <Reveal key={i} index={i}>
-                    <li className="flex gap-3 text-sm leading-6" style={{ color: "#5B625C" }}>
-                      <span className="mt-[5px] h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: GREEN }} />
-                      {tip}
-                    </li>
-                  </Reveal>
-                ))}
-              </ul>
-            </div>
+        {/* CTAs */}
+        <Reveal delay={300}>
+          <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              data-cms-key="memberIntro.card.learnMore"
+              className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+            >
+              了解更多
+            </button>
+            <Link
+              href="/member"
+              data-cms-key="memberIntro.card.viewMyCard"
+              className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:bg-white/90"
+            >
+              查看我的會員卡
+            </Link>
           </div>
+        </Reveal>
 
-          {/* ── RIGHT COLUMN ────────────────────────────────────── */}
-          <div className="space-y-8">
-
-            {/* Demo member card */}
-            <Reveal>
-              <div
-                className="mx-auto w-full max-w-[320px] overflow-hidden rounded-[20px]"
-                style={{
-                  background: "linear-gradient(150deg,#2B3039 0%,#1B1E24 55%,#23272F 100%)",
-                  border: "1px solid rgba(255,255,255,.12)",
-                  boxShadow: "0 24px 60px rgba(0,0,0,.35)",
-                }}
+        {/* QR Code Info Modal (Hidden by default) */}
+        {isModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <div
+              className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border p-8"
+              style={{
+                background: COLORS.dark.cardBg,
+                borderColor: COLORS.dark.cardBorder,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-white transition hover:bg-white/10"
+                aria-label="Close"
               >
-                <div className="p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/logos/logo-white-horizontal.svg" alt="SPACE8 Logo" className="h-4 w-auto opacity-90" />
-                    <div
-                      className="rounded-full px-3 py-1 text-xs font-semibold text-white"
-                      style={{ background: "linear-gradient(180deg,#A2AEC4,#7F8BA2)" }}
-                    >
-                      {t("tier_new.title")}
-                    </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <div className="rounded-xl bg-white p-3 shadow-lg">
-                      <QRCodeSVG value={DEMO_CODE} size={130} level="H" />
-                    </div>
-                  </div>
-                  <div className="mt-4 space-y-1 text-center">
-                    <p className="font-code text-base font-semibold uppercase tracking-wide text-white">MEMBER NAME</p>
-                    <p className="font-code text-xs tracking-[0.06em] text-white/45">{DEMO_CODE}</p>
-                  </div>
-                </div>
-              </div>
-              <p
-                data-cms-key="membershipHub.qr_placeholder"
-                className="mt-3 text-center text-xs italic"
-                style={{ color: "#8A918B" }}
-              >
-                {t("qr_placeholder")}
-              </p>
-            </Reveal>
+                ×
+              </button>
 
-            {/* How to find it — steps */}
-            <div>
               <h3
-                data-cms-key="membershipHub.qr_s2"
-                className="mb-5 text-lg font-semibold"
-                style={{ color: "#141614" }}
+                data-cms-key="memberIntro.qrModal.title"
+                className="mb-6 text-2xl font-bold text-white md:text-3xl"
               >
-                {t("qr_s2")}
+                一個 QR Code，解鎖整個 SPACE8
               </h3>
-              <ol className="space-y-5">
-                {steps.map((step, i) => (
-                  <Reveal key={i} index={i}>
-                    <li className="flex gap-4">
+
+              <p
+                data-cms-key="memberIntro.qrModal.intro"
+                className="mb-8 text-base leading-relaxed"
+                style={{ color: COLORS.dark.textMuted }}
+              >
+                專屬會員 QR Code。解鎖大門、登入智能小管家 Space Pilot，全部靠它。你的每一場戰績，也是由它記錄下來的。
+              </p>
+
+              {/* What it does */}
+              <div className="mb-8">
+                <h4 className="mb-4 text-lg font-semibold text-white">這個 QR Code 能做什麼</h4>
+                <div className="space-y-3">
+                  {[
+                    { label: "入場", desc: "解鎖大門" },
+                    { label: "包廂系統", desc: "啟動 Space Pilot 智能小管家" },
+                    { label: "戰績累積", desc: "記錄你的對戰紀錄" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
                       <div
-                        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                        style={{ background: GREEN_INK }}
+                        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                        style={{ background: COLORS.dark.accent }}
                       >
                         {i + 1}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold" style={{ color: "#141614" }}>{step.title}</p>
-                        <p className="mt-1 text-sm leading-6" style={{ color: "#5B625C" }}>{step.body}</p>
+                        <p className="font-semibold text-white">{item.label}</p>
+                        <p className="text-sm" style={{ color: COLORS.dark.textMuted }}>{item.desc}</p>
                       </div>
-                    </li>
-                  </Reveal>
-                ))}
-              </ol>
-            </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            {/* CTAs */}
-            <Reveal index={4}>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/member"
-                  className="flex-1 rounded-full py-3 text-center text-sm font-semibold text-white transition hover:opacity-90"
-                  style={{ background: GREEN_INK }}
-                  data-cms-key="membershipHub.qr_cta"
+              {/* Where to find it */}
+              <div>
+                <h4 className="mb-4 text-lg font-semibold text-white">在哪裡找到它</h4>
+                <div className="space-y-4">
+                  <div>
+                    <p className="mb-1 font-semibold text-white">登入會員網站</p>
+                    <p className="text-sm" style={{ color: COLORS.dark.textMuted }}>
+                      用手機瀏覽器開啟 www.space8.com.hk，以你的帳號登入。
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-1 font-semibold text-white">進入會員頁面</p>
+                    <p className="text-sm" style={{ color: COLORS.dark.textMuted }}>
+                      登入後點選右上角頭像或「我的會員卡」，即可進入會員頁面。
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-1 font-semibold text-white">QR Code 就在會員卡上</p>
+                    <p className="text-sm" style={{ color: COLORS.dark.textMuted }}>
+                      你的專屬 QR Code 顯示在網頁版會員卡右下角，也在確認已付款email 上，方便隨時查看
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// § 4 — POINTS (light background, 3-column stats)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function PointsSection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  // Split figures into intentional lines at "="
+  const figures = [
+    { lines: ["HK$1", "= 1 積分"], key: "stat1" },
+    { lines: ["100 積分", "= HK$10"], key: "stat2" },
+    { lines: ["100 積分"], key: "stat3" },
+  ];
+
+  return (
+    <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+      <div style={{ width: "min(100% - 48px, 1100px)", marginInline: "auto" }}>
+        <Reveal>
+          <h2
+            data-cms-key="memberIntro.points.title"
+            className="mb-12 text-center font-bold leading-tight tracking-tight md:mb-16"
+            style={{ fontSize: "clamp(1.75rem, 4.5vw, 3rem)", color: COLORS.light.text }}
+          >
+            {t("points.title")}
+          </h2>
+        </Reveal>
+
+        {/* Desktop: 3-column grid with vertical dividers */}
+        <div
+          className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-0"
+          style={{
+            gridTemplateRows: "auto auto",
+          }}
+        >
+          {figures.map((fig, i) => (
+            <Reveal key={fig.key} delay={i * 100}>
+              <div
+                style={{
+                  containerType: "inline-size",
+                  paddingInline: i === 0 ? "0 40px 0 0" : i === 2 ? "0 0 0 40px" : "0 40px",
+                  borderInlineStart: i > 0 ? `1px solid ${COLORS.light.textMuted}33` : undefined,
+                }}
+                className="flex flex-col items-center text-center md:grid md:grid-rows-subgrid md:row-span-2"
+              >
+                {/* Row 1: Figure (baseline-aligned) */}
+                <div
+                  data-cms-key={`memberIntro.points.${fig.key}.value`}
+                  className="mb-3 font-semibold md:mb-0 md:self-end"
+                  style={{
+                    fontSize: "clamp(28px, 11cqi, 64px)",
+                    lineHeight: 1.1,
+                    color: COLORS.light.accent,
+                    fontFamily: "'Good Times', sans-serif",
+                  }}
+                  aria-label={t(`points.${fig.key}.value`)}
                 >
-                  {t("qr_cta")}
-                </Link>
-                <Link
-                  href="/member"
-                  className="flex-1 rounded-full border py-3 text-center text-sm font-semibold transition hover:border-[#15803D]"
-                  style={{ borderColor: "#C8D5C9", color: "#141614" }}
-                  data-cms-key="membershipHub.qr_cta_record"
+                  {fig.lines.map((line, j) => (
+                    <span key={j} style={{ display: "block", whiteSpace: "nowrap" }}>
+                      {line}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Row 2: Caption (top-aligned) */}
+                <p
+                  data-cms-key={`memberIntro.points.${fig.key}.label`}
+                  className="text-sm md:text-base md:mt-4"
+                  style={{
+                    color: COLORS.light.textMuted,
+                    fontFamily: "system-ui, -apple-system, sans-serif",
+                    fontFeatureSettings: '"tnum"',
+                  }}
                 >
-                  {t("qr_cta_record")}
-                </Link>
+                  {t(`points.${fig.key}.label`)}
+                </p>
               </div>
             </Reveal>
-          </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-// ════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
+// § 5 — SAFETY & SUPPORT (dark background, expandable cards)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function SafetySection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  const [openCard, setOpenCard] = useState<number | null>(null);
+
+  const cards = [
+    { key: "pay", hasLink: false },
+    { key: "data", hasLink: false },
+    { key: "qr", hasLink: false },
+    { key: "venue", hasLink: true, link: "/member/safety" },
+  ];
+
+  return (
+    <section style={{ background: COLORS.dark.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <h2
+            data-cms-key="memberIntro.safety.title"
+            className="mb-16 text-center font-bold leading-tight tracking-tight text-white"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
+          >
+            {t("safety.title")}
+          </h2>
+        </Reveal>
+
+        {/* Cards grid */}
+        <div className="mb-16 grid grid-cols-1 gap-6 md:grid-cols-2">
+          {cards.map((card, i) => {
+            const isOpen = openCard === i;
+            return (
+              <Reveal key={card.key} delay={i * 80}>
+                <button
+                  onClick={() => setOpenCard(isOpen ? null : i)}
+                  className="group relative w-full overflow-hidden rounded-[28px] border p-8 text-left transition-all duration-400 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  style={{
+                    background: "#052e1f",
+                    borderColor: "rgba(34, 197, 94, 0.3)",
+                    minHeight: isOpen ? "auto" : "200px",
+                  }}
+                  aria-expanded={isOpen}
+                >
+                  <div className={cn("flex items-start justify-between", isOpen && "mb-6")}>
+                    <h3
+                      data-cms-key={`memberIntro.safety.${card.key}.title`}
+                      className="pr-4 text-xl font-semibold leading-snug text-white md:text-2xl"
+                    >
+                      {t(`safety.${card.key}.title`)}
+                    </h3>
+                    <div
+                      className="flex flex-shrink-0 items-center justify-center rounded-full transition-all duration-400"
+                      style={{
+                        width: "44px",
+                        height: "44px",
+                        aspectRatio: "1",
+                        background: "rgba(255,255,255,0.15)",
+                        transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
+                      }}
+                    >
+                      <span className="text-2xl text-white">+</span>
+                    </div>
+                  </div>
+
+                  {isOpen && (
+                    <div
+                      className="animate-in fade-in slide-in-from-top-2 duration-400"
+                      style={{ color: COLORS.dark.textMuted }}
+                    >
+                      {card.hasLink ? (
+                        <p data-cms-key={`memberIntro.safety.${card.key}.body`} className="text-base leading-relaxed">
+                          {t(`safety.${card.key}.body`)}{" "}
+                          <Link
+                            href={card.link!}
+                            className="underline hover:text-white"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {t("safety.venue.linkText")}
+                          </Link>
+                        </p>
+                      ) : (
+                        <p data-cms-key={`memberIntro.safety.${card.key}.body`} className="text-base leading-relaxed">
+                          {t(`safety.${card.key}.body`)}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </button>
+              </Reveal>
+            );
+          })}
+        </div>
+
+        {/* Support card */}
+        <Reveal delay={320}>
+          <div
+            className="rounded-[28px] border p-8 md:flex md:items-center md:justify-between md:gap-8"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              borderColor: "rgba(255,255,255,0.1)",
+            }}
+          >
+            <div className="mb-6 md:mb-0">
+              <h3
+                data-cms-key="memberIntro.support.title"
+                className="mb-2 text-xl font-semibold text-white md:text-2xl"
+              >
+                {t("support.title")}
+              </h3>
+              <p
+                data-cms-key="memberIntro.support.body"
+                className="text-sm"
+                style={{ color: COLORS.dark.textMuted }}
+              >
+                {t("support.body")}
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row md:flex-shrink-0">
+              <Link
+                href="/faq"
+                data-cms-key="memberIntro.support.faq"
+                className="rounded-full bg-white px-6 py-3 text-center text-sm font-semibold text-black transition hover:bg-white/90"
+              >
+                {t("support.faq")}
+              </Link>
+              <a
+                href="https://wa.me/85261808022"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cms-key="memberIntro.support.whatsapp"
+                className="rounded-full border border-white/30 px-6 py-3 text-center text-sm font-semibold text-white transition hover:border-white/50 hover:bg-white/5"
+              >
+                {t("support.whatsapp")}
+              </a>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// § 6 — FINAL CTA (light background)
+// ═══════════════════════════════════════════════════════════════════════════
+
+function FinalCTASection({ t }: { t: ReturnType<typeof useTranslations> }) {
+  return (
+    <section style={{ background: COLORS.light.bg, padding: "clamp(88px, 12vw, 140px) 24px" }}>
+      <div className="mx-auto max-w-4xl text-center">
+        <Reveal>
+          <h2
+            data-cms-key="memberIntro.final.title"
+            className="mb-10 font-bold leading-tight tracking-tight"
+            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", color: COLORS.light.text }}
+          >
+            {t("final.title")}
+          </h2>
+        </Reveal>
+
+        <Reveal delay={100}>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/book"
+              data-cms-key="memberIntro.final.book"
+              className="rounded-full px-8 py-3.5 text-base font-semibold text-white transition hover:opacity-90"
+              style={{ background: COLORS.green500 }}
+            >
+              {t("final.book")}
+            </Link>
+            <Link
+              href="/member"
+              data-cms-key="memberIntro.final.login"
+              className="group flex items-center gap-1 text-base font-medium transition hover:opacity-70"
+              style={{ color: COLORS.light.text }}
+            >
+              <span>{t("final.login")}</span>
+              <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">›</span>
+            </Link>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // § ROOT EXPORT
-// ════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════
 
-export default function MembershipContent() {
-  const t = useTranslations("membershipHub");
-
-  const howItems   = t.raw("how_items")   as FlowItem[];
-  const pilotItems = t.raw("pilot_items") as FlowItem[];
+export default function MembershipContentNew() {
+  const t = useTranslations("memberIntro");
 
   return (
     <div className="bg-black text-white" data-nav-theme="dark">
-      <div className="mx-auto max-w-6xl px-5 md:px-8">
-        <TierLadder t={t} />
-        <FlowSection
-          sectionTitle={t("how_title")}
-          items={howItems}
-          cmsKey="membershipHub.how_title"
-        />
-        <div className="py-12 md:py-16">
-          <QRSection t={t} />
-        </div>
-        <FlowSection
-          id="smart-concierge"
-          sectionTitle={t("pilot_title")}
-          items={pilotItems}
-          cmsKey="membershipHub.pilot_title"
-        />
-      </div>
+      <HeroSection t={t} />
+      <StatementsSection t={t} />
+      <MemberCardSection t={t} />
+      <PointsSection t={t} />
+      <SafetySection t={t} />
+      <FinalCTASection t={t} />
     </div>
   );
 }

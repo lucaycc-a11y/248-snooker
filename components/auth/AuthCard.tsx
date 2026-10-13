@@ -61,6 +61,7 @@ export function AuthCard({
   onAuthComplete: () => void
 }) {
   const t = useTranslations("auth")
+  const tLogin = useTranslations("login")
   const [phase, setPhase] = useState<Phase>("methods")
   const [contact, setContact] = useState("")
   const [phone, setPhone] = useState("")
@@ -328,52 +329,13 @@ export function AuthCard({
       return "email"
     }
 
-    // Phone detection: handle multiple formats for autofill compatibility
-    // 1. Pure 8 digits: 66009975
-    // 2. With 852 prefix: 85266009975 (11 digits starting with 852)
-    // 3. With +852 prefix: +85266009975 (autofill format)
-    const digitsOnly = trimmed.replace(/\D/g, "")
-
-    // Check: exactly 8 digits
-    if (digitsOnly.length === 8 && /^\d{8}$/.test(digitsOnly)) {
-      return "phone"
-    }
-
-    // Check: 11 digits starting with 852 (852 + 8 digits)
-    if (digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
-      return "phone"
-    }
-
-    // Check: +852 format (will be 12 chars with +, 11 digits without)
-    if (trimmed.startsWith("+852") && digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
-      return "phone"
-    }
-
-    return "unknown"
+    // Phone: same normaliser as profile save and the OTP routes, so a number the
+    // login screen accepts is always one the rest of the flow accepts too.
+    return normalizeHkPhone(trimmed) ? "phone" : "unknown"
   }
 
-  // Extract normalized phone number from various input formats
-  const extractPhoneNumber = (input: string): string => {
-    const trimmed = input.trim()
-    const digitsOnly = trimmed.replace(/\D/g, "")
-
-    // If it's 11 digits starting with 852, extract last 8 digits
-    if (digitsOnly.length === 11 && digitsOnly.startsWith("852")) {
-      return `+852${digitsOnly.slice(3)}`
-    }
-
-    // If it's 8 digits, prepend +852
-    if (digitsOnly.length === 8) {
-      return `+852${digitsOnly}`
-    }
-
-    // Fallback: return as-is if already has +852
-    if (trimmed.startsWith("+852")) {
-      return trimmed
-    }
-
-    return `+852${digitsOnly}`
-  }
+  // Only called after detectContactType returned "phone", so this never yields "".
+  const extractPhoneNumber = (input: string): string => normalizeHkPhone(input) ?? ""
 
   // Unified send function that detects format and routes appropriately
   const sendContactOtp = async () => {
@@ -757,14 +719,11 @@ export function AuthCard({
           name: t("profile_name"),
           email: t("profile_email"),
           phone: t("profile_phone"),
-          date_of_birth: t("profile_date_of_birth"),
-          date_of_birth_hint: t("profile_date_of_birth_hint"),
           submit: t("profile_submit"),
           saving: t("saving"),
           err_name: t("err_name"),
           err_email: t("err_email"),
           err_phone: t("err_phone"),
-          err_date_of_birth: t("err_date_of_birth"),
           err_generic: t("err_generic"),
           phone_verified_badge: t("profile_phone_verified_badge"),
           phone_send_code: t("profile_phone_send_code"),
@@ -810,7 +769,12 @@ export function AuthCard({
             abandons to the method picker rather than offering a dead-end back. */}
         <button type="button" onClick={() => { setPhase(phoneStep ? "methods" : "signup"); setError(null); setOtpStatus("input") }} aria-label={t("back")} style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", marginBottom: 16, fontSize: 14 }}><ChevronLeft size={16} /> {t("back")}</button>
         <h2 style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>{phoneStep ? t("signup_phone_title") : t("signup_email_title")}</h2>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>{phoneStep ? `${t("otp_sent_to")} ${maskContact(signupPhone, "sms")}` : `${t("otp_sent_to")} ${maskContact(signupEmail, "email")}`}</p>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: phoneStep ? 8 : 24 }}>{phoneStep ? `${t("otp_sent_to")} ${maskContact(signupPhone, "sms")}` : `${t("otp_sent_to")} ${maskContact(signupEmail, "email")}`}</p>
+        {phoneStep && (
+          <p data-cms-key="auth.otp_delivery_note" data-testid="otp-delivery-note" style={{ fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+            {t("otp_delivery_note")}
+          </p>
+        )}
         <OtpVerification length={OTP_LENGTH} value={otp} onChange={setOtp} onComplete={phoneStep ? verifySignupPhone : verifySignupEmail} status={otpStatus} error={error} onReset={() => { setOtp([]); setError(null); setOtpStatus("input") }} disabled={busy} onGoBack={() => { setPhase(phoneStep ? "methods" : "signup"); setError(null); setOtpStatus("input") }} />
       </motion.div>
     )
@@ -830,13 +794,18 @@ export function AuthCard({
         <h2 data-cms-key="auth.otp.title" style={{ fontFamily: '"Bebas Neue", sans-serif', fontSize: 30, color: "#fff", marginBottom: 6 }}>
           {t("otp_title")}
         </h2>
-        <p data-cms-key="auth.otp.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: 24 }}>
+        <p data-cms-key="auth.otp.subtitle" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginBottom: otpChannel === "email" ? 24 : 8 }}>
           {otpChannel === "email"
             ? `${t("otp_sent_to")} ${maskContact(email, "email")}`
             : otpDeliveryChannel === "whatsapp"
               ? `${t("otp_sent_to")} ${maskContact(phone, "sms")} (WhatsApp)`
               : `${t("otp_sent_to")} ${maskContact(phone, "sms")}`}
         </p>
+        {otpChannel !== "email" && (
+          <p data-cms-key="auth.otp_delivery_note" data-testid="otp-delivery-note" style={{ fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>
+            {t("otp_delivery_note")}
+          </p>
+        )}
 
           <OtpVerification
             length={OTP_LENGTH}
@@ -908,6 +877,14 @@ export function AuthCard({
             {busy ? t("sending") : t("sign_in_password")}
           </button>
           {error && <p data-cms-key="auth.error" style={{ fontSize: 13, color: "#f87171", textAlign: "center" }}>{error}</p>}
+          {/* Password reset is only possible through the emailed link (Part B2). */}
+          <a
+            href="/reset-password"
+            data-cms-key="login.forgot_password"
+            style={{ minHeight: 44, display: "flex", alignItems: "center", justifyContent: "center", color: GREEN, fontSize: 13, textDecoration: "none" }}
+          >
+            {tLogin("forgot_password")}
+          </a>
           <button
             type="button"
             onClick={() => { setPhase("contact"); setError(null); setPassword("") }}

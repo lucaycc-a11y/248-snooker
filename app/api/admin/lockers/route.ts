@@ -12,7 +12,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 type Row = Record<string, unknown>
 
@@ -36,7 +36,7 @@ export async function GET() {
     const admin = await getAdminData()
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Fetch all lockers
     const { data: lockerData, error: lockerErr } = await service
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
       : 'available'
     const label = typeof body.label === 'string' ? body.label.trim() || null : null
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Check for duplicate number
     const { data: existing } = await service
@@ -162,7 +162,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'id is required' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Fetch current state for audit log
     const { data: currentData } = await service
@@ -248,7 +248,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'id query param required' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Fetch before state
     const { data: beforeData } = await service

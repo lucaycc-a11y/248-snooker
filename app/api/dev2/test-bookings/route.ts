@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getPaymentProvider } from '@/lib/payments'
 
 export const runtime = 'nodejs'
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const onlyMine = searchParams.get('onlyMine') === 'true'
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     let query = service
       .from('bookings')
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid confirmation' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Verify it's a test booking
     const { data: booking } = await service
@@ -175,7 +175,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Delete only this admin's test bookings
     const { data: deleted, error } = await service

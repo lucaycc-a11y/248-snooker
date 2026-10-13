@@ -10,8 +10,6 @@ import { Starfield } from "@/app/[locale]/Starfield"
 import { QRCode } from "@/components/shared/QRCode"
 import { getTableName } from "@/lib/booking/constants"
 
-const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
-
 function padTime(h: number): string {
   return String(((h % 24) + 24) % 24).padStart(2, "0") + ":00"
 }
@@ -87,12 +85,23 @@ export function TicketCard({
   const endHour = startHour + duration
   const crossDay = endHour >= 24
   const dateObj = new Date(`${date}T00:00:00`)
-  const dateStr = `${dateObj.getFullYear()}年${dateObj.getMonth() + 1}月${dateObj.getDate()}日 星期${DAY_NAMES[dateObj.getDay()]}`
+  const weekdayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
+  const dateStr = t("full_date_format", {
+    year: dateObj.getFullYear(),
+    month: dateObj.getMonth() + 1,
+    day: dateObj.getDate(),
+    weekday: t(`day_${weekdayNames[dateObj.getDay()]}`)
+  })
   const tableName = getTableName(tableNumber, locale)
 
   // displayCode is what appears as human-readable text below the QR — customer-service reference only.
   // memberCode is what gets encoded in the QR — never use humanCode/bookingRef for QR data.
   const displayCode = humanCode ?? bookingRef
+
+  // Fix 2: Log once if memberCode is missing (this should not happen in production).
+  if (!memberCode) {
+    console.warn("[TicketCard] Missing memberCode for booking", bookingRef)
+  }
 
   const handleAddCalendar = () => {
     const start = new Date(dateObj)
@@ -325,6 +334,7 @@ export function TicketCard({
   return (
     <motion.div
       data-ticket-card
+      data-testid="booking-line"
       layout
       style={{
         background: `${tokens.glassBg.dark}`,
@@ -435,50 +445,71 @@ export function TicketCard({
 
             {/* Bottom stub */}
             <div style={{ padding: "0 20px 20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 16 }}>
-                <div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16, minWidth: 0 }}>
+                <div style={{ minWidth: 0 }}>
                   <div className="font-label" style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>{t_ticket("duration")}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{duration}{t("hours")}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", wordBreak: "break-word" }}>{duration} {t_ticket("hours")}</div>
                 </div>
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div className="font-label" style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>{t_ticket("paid")}</div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand }}>HK${totalPrice}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: tokens.colors.brand, wordBreak: "break-word" }}>HK${totalPrice}</div>
                 </div>
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div className="font-label" style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>{t_ticket("payment")}</div>
-                  <PaymentMark method={paymentMethod} />
+                  <div style={{ minWidth: 0 }}>
+                    <PaymentMark method={paymentMethod} />
+                  </div>
                 </div>
               </div>
 
-              {/* QR Code — per-ticket, door entry validates each independently.
-                  No wrapper/border — the QR sits directly on the page background
-                  with its own white background for scannability. */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: 10,
-                }}
-              >
-                <QRCode
-                  data={memberCode}
-                  size={QR_PX}
-                  enlargeLabel={t_ticket("qr_tap_enlarge")}
-                  closeLabel={t_ticket("close")}
-                />
-              </div>
+              {/* QR Code — encodes memberCode, not booking code.
+                  If memberCode is missing, show error instead of QR. */}
+              {memberCode ? (
+                <>
+                  <div
+                    data-testid="qr-member-code"
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: 10,
+                    }}
+                  >
+                    <QRCode
+                      data={memberCode}
+                      size={QR_PX}
+                      enlargeLabel={t_ticket("qr_tap_enlarge")}
+                      closeLabel={t_ticket("close")}
+                    />
+                  </div>
 
-              <div
-                className="font-code"
-                style={{
-                  fontSize: 13,
-                  color: "rgba(255,255,255,0.6)",
-                  textAlign: "center",
-                  marginBottom: 6,
-                }}
-              >
-                {displayCode}
-              </div>
+                  <div
+                    className="font-code"
+                    style={{
+                      fontSize: 13,
+                      color: "rgba(255,255,255,0.6)",
+                      textAlign: "center",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {memberCode}
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: "rgba(255,100,100,0.8)",
+                    textAlign: "center",
+                    marginBottom: 16,
+                    padding: "12px 16px",
+                    border: "1px solid rgba(255,100,100,0.3)",
+                    borderRadius: 8,
+                    backgroundColor: "rgba(255,100,100,0.1)",
+                  }}
+                >
+                  {t_ticket("qr_error") || "QR code unavailable. Please contact support."}
+                </div>
+              )}
 
               <div
                 data-cms-key="book.ticket.footer"
@@ -487,13 +518,22 @@ export function TicketCard({
                 {t("qr_hint")}
               </div>
 
-              <div style={{ display: "flex", gap: 12, position: "relative" }}>
+              {/* Fix 2: Muted booking reference line for support */}
+              <div
+                style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textAlign: "center", marginBottom: 16 }}
+              >
+                {t_ticket("booking_ref")} {displayCode}
+              </div>
+
+              <div style={{ display: "flex", gap: 12, position: "relative", overflow: "visible", zIndex: 40 }}>
                 <button
                   type="button"
                   onClick={handleAddCalendar}
+                  data-testid="download-calendar"
                   data-cms-key="book.ticket.add-calendar"
                   style={{
                     flex: 1,
+                    minWidth: 0,
                     height: 44,
                     display: "flex",
                     alignItems: "center",
@@ -508,18 +548,20 @@ export function TicketCard({
                     cursor: "pointer",
                   }}
                 >
-                  <CalendarPlus size={15} />
-                  {t("add_calendar")}
+                  <CalendarPlus size={15} style={{ flexShrink: 0 }} />
+                  {t_ticket("add_calendar")}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setShareOpen((o) => !o); setShareError(null) }}
+                  data-testid="share-button"
                   data-cms-key="book.ticket.share"
                   disabled={shareBusy}
                   aria-haspopup="menu"
                   aria-expanded={shareOpen}
                   style={{
                     flex: 1,
+                    minWidth: 0,
                     height: 44,
                     display: "flex",
                     alignItems: "center",
@@ -535,8 +577,8 @@ export function TicketCard({
                     opacity: shareBusy ? 0.55 : 1,
                   }}
                 >
-                  <Share2 size={15} />
-                  {shareBusy ? t("share_loading") : t("share")}
+                  <Share2 size={15} style={{ flexShrink: 0 }} />
+                  {shareBusy ? t_ticket("share_loading") : t_ticket("share")}
                 </button>
 
                 <AnimatePresence>

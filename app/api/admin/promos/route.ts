@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -10,7 +10,7 @@ export async function GET() {
   const admin = await getAdminData()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data, error } = await service
     .from('promotion_codes')
     .select('*')
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Resolve admin id from admin_users
     const { data: adminUser } = await service

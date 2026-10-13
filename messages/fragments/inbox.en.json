@@ -1,0 +1,18 @@
+{
+  "title": "Inbox",
+  "detailTitle": "Message Details",
+  "filterAll": "All",
+  "filterCredit": "Wallet",
+  "filterPromo": "Offers",
+  "filterSystem": "System",
+  "emptyTitle": "No Messages",
+  "emptyMessage": "You don't have any notifications yet",
+  "errorTitle": "Failed to Load",
+  "errorMessage": "Unable to load inbox, please try again later",
+  "retry": "Retry",
+  "typeCredit": "Wallet Notification",
+  "typePromo": "Promotional Offer",
+  "typeSystem": "System Notification",
+  "metaType": "Type",
+  "metaTime": "Time"
+}

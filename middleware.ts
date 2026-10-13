@@ -4,16 +4,18 @@ import { routing } from './i18n/routing'
 import { updateSession } from './lib/supabase/middleware'
 import { getSiteGate } from './lib/gate/config'
 import { GATE_COOKIE_NAME, verifyGateCookie } from './lib/gate/cookie'
+import { isValidLocale, getActiveLocale, isLocaleEnabled, ALL_LOCALES } from './i18n/enabled-locales'
+import { checkOnboardingGate, isOnboardingGatedPath, type OnboardingRow } from './lib/auth/onboarding-gate'
 
 const intlMiddleware = createMiddleware(routing)
 
 // Public routes that have localized ([locale]) variants. Everything else
 // (admin, auth, member, login, maintenance, api, static) is single-language
 // and must bypass the intl rewrite so it keeps resolving at the root.
-const LOCALIZED_ROOTS = ['book', 'pricing', 'about', 'faq', 'legal', 'terms', 'privacy', 'blog', 'venue', 'membership', 'credits', 'value']
+const LOCALIZED_ROOTS = ['book', 'pricing', 'about', 'faq', 'legal', 'terms', 'privacy', 'blog', 'venue', 'membership', 'value']
 
 // Routes that must never be rewritten by intl middleware.
-const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/maintenance', '/coming-soon', '/style-guide-preview']
+const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/reset-password', '/maintenance', '/coming-soon', '/style-guide-preview']
 
 // Routes the site gate never blocks: admin (needs to reach the toggle even
 // while gated), the API (the gate's own verify/waitlist endpoints live here,
@@ -91,8 +93,8 @@ async function logGateAccess(
   pathname: string
 ): Promise<void> {
   try {
-    const { getServiceSupabase } = await import('@/lib/supabase/service')
-    const supabase = getServiceSupabase()
+    const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
+    const supabase = getLegacyServiceSupabase()
     await supabase.from('site_gate_access_log').insert({
       ip_address: ip,
       method,
@@ -154,8 +156,8 @@ async function checkPasswordGate(
     const responseCookies = new Map<string, string>()
     response.headers.getSetCookie().forEach((cookie) => {
       const [nameValue] = cookie.split(';')
-      const [name, value] = nameValue.split('=')
-      if (name && value) responseCookies.set(name.trim(), value.trim())
+      const eq = nameValue.indexOf('=')
+      if (eq > 0) responseCookies.set(nameValue.slice(0, eq).trim(), nameValue.slice(eq + 1).trim())
     })
 
     const supabase = createServerClient(
@@ -190,19 +192,28 @@ async function checkPasswordGate(
     if (!user) return null
 
     // Check if password is set
-    const { getServiceSupabase } = await import('@/lib/supabase/service')
-    const service = getServiceSupabase()
-    const { data: status } = await service
+    const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
+    const service = getLegacyServiceSupabase()
+    const { data: status, error: statusError } = await service
       .from('user_password_status')
       .select('password_set')
       .eq('user_id', user.id)
       .maybeSingle<{ password_set: boolean }>()
+    // Fail open: a DB blip must not force a user who has a password to set one again.
+    if (statusError) {
+      console.error('[password-gate] status lookup failed:', statusError.message)
+      return null
+    }
 
     // Password not set → check if user authenticated via OAuth
     if (!status?.password_set) {
       // OAuth users (Apple, Google) don't need passwords — allow them through
       // Only redirect if this is a non-OAuth account that hasn't set a password yet
-      const { data: authUser } = await service.auth.admin.getUserById(user.id)
+      const { data: authUser, error: authUserError } = await service.auth.admin.getUserById(user.id)
+      if (authUserError) {
+        console.error('[password-gate] getUserById failed:', authUserError.message)
+        return null
+      }
       const identities = authUser?.user?.identities || []
       const hasOAuth = identities.some(i => i.provider === 'google' || i.provider === 'apple')
 
@@ -224,6 +235,70 @@ async function checkPasswordGate(
   }
 }
 
+// Onboarding gate: a signed-in user whose profile is not complete (Google/email
+// signup still missing its second identity) is sent to /login, where AuthCard
+// shows the profile step. Runs for /member and /book (incl. locale-prefixed
+// /zh-HK/book). Cookies are read from `response` when updateSession just
+// refreshed them, else from the request. Fails open; see lib/auth/onboarding-gate.ts.
+async function runOnboardingGate(
+  request: NextRequest,
+  response: NextResponse | null
+): Promise<NextResponse | null> {
+  const { pathname, search } = request.nextUrl
+  if (!isOnboardingGatedPath(pathname)) return null
+
+  const fresh = new Map<string, string>()
+  response?.headers.getSetCookie().forEach((cookie) => {
+    const [nameValue] = cookie.split(';')
+    const eq = nameValue.indexOf('=')
+    if (eq > 0) fresh.set(nameValue.slice(0, eq).trim(), nameValue.slice(eq + 1).trim())
+  })
+
+  const target = await checkOnboardingGate(pathname, search, {
+    getUserId: async () => {
+      const { createServerClient } = await import('@supabase/ssr')
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll: () => {
+              const merged = new Map(request.cookies.getAll().map((c) => [c.name, c.value]))
+              fresh.forEach((v, k) => merged.set(k, v))
+              return Array.from(merged, ([name, value]) => ({ name, value })).filter((c) => c.value)
+            },
+            setAll: () => {}, // Read-only
+          },
+        }
+      )
+      const { data: { user } } = await supabase.auth.getUser()
+      return user?.id ?? null
+    },
+    isActiveAdmin: async (userId) => {
+      const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
+      const { data } = await getLegacyServiceSupabase()
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .maybeSingle()
+      return data !== null
+    },
+    getOnboarding: async (userId) => {
+      const { getLegacyServiceSupabase } = await import('@/lib/supabase/legacy')
+      const { data, error } = await getLegacyServiceSupabase()
+        .from('users')
+        .select('onboarding_status, profile_complete')
+        .eq('id', userId)
+        .maybeSingle<OnboardingRow>()
+      if (error) throw new Error(`users lookup: ${error.message}`)
+      return data
+    },
+  })
+
+  return target ? NextResponse.redirect(new URL(target, request.url)) : null
+}
+
 function isLocalized(pathname: string): boolean {
   // Never rewrite auth/api routes — the OAuth callback must resolve as-is.
   // Segment-exact match: '/member' must NOT swallow '/membership' (a public
@@ -231,13 +306,15 @@ function isLocalized(pathname: string): boolean {
   if (BYPASS_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return false
 
   const segments = pathname.split('/').filter(Boolean)
-  if (segments[0] && routing.locales.includes(segments[0] as (typeof routing.locales)[number])) {
+
+  // Check if first segment is ANY valid locale (enabled or closed)
+  if (segments[0] && ALL_LOCALES.includes(segments[0] as typeof ALL_LOCALES[number])) {
     return true
   }
 
   // strip a leading locale prefix
   const stripped = pathname.replace(
-    new RegExp(`^/(${routing.locales.join('|')})(?=/|$)`),
+    new RegExp(`^/(${ALL_LOCALES.join('|')})(?=/|$)`),
     '',
   )
   const seg = stripped.split('/').filter(Boolean)[0]
@@ -262,6 +339,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Redirect closed locales (zh-CN, en) to zh-HK equivalent
+  const segments = request.nextUrl.pathname.split('/').filter(Boolean)
+  if (segments[0] && isValidLocale(segments[0]) && !isLocaleEnabled(segments[0])) {
+    // Closed locale detected — redirect to zh-HK equivalent
+    const url = request.nextUrl.clone()
+    // Remove the closed locale prefix: /en/book → /book
+    url.pathname = '/' + segments.slice(1).join('/')
+    return NextResponse.redirect(url, { status: 301 })
+  }
+
   // Non-localized routes (/api, /auth, /admin, /member, /login, /maintenance) are
   // exactly the auth-sensitive ones — refresh the Supabase session here so a
   // single token rotation happens before any handler/RSC calls getUser(). This
@@ -276,8 +363,15 @@ export async function middleware(request: NextRequest) {
     const passwordGateRedirect = await checkPasswordGate(request, response)
     if (passwordGateRedirect) return passwordGateRedirect
 
+    const onboardingRedirect = await runOnboardingGate(request, response)
+    if (onboardingRedirect) return onboardingRedirect
+
     return response
   }
+
+  // /book is localized, so it never reaches the branch above.
+  const onboardingRedirect = await runOnboardingGate(request, null)
+  if (onboardingRedirect) return onboardingRedirect
 
   // For localized routes, run intlMiddleware and ensure locale cookie is properly set
   const intlResponse = intlMiddleware(request)

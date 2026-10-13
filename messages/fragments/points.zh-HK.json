@@ -1,0 +1,78 @@
+{
+  "back": "返回",
+  "bookNow": "立即預訂",
+  "viewWallet": "查看錢包",
+  "activity": "積分動態",
+  "filterLabel": "篩選積分動態",
+  "loadMore": "載入更多",
+  "points": "積分",
+  "earned": "獲得",
+  "deducted": "扣除",
+
+  "lifetimePoints": "累積積分",
+  "redeemablePoints": "可兌換積分",
+  "needMore": "再累積 {{points}} 積分，自動存入 HK${{amount}}",
+  "depositedToWallet": "已存入錢包",
+  "convertedPoints": "已兌換積分",
+
+  "tierAmateur": "業餘會員",
+  "tierCentury": "尊榮會員",
+  "tierMaximum": "極致會員",
+
+  "filter": {
+    "all": "全部",
+    "earn": "獲得",
+    "wallet": "存入錢包",
+    "back": "扣回"
+  },
+
+  "txType": {
+    "booking": "預約消費",
+    "signup": "迎新禮",
+    "bonus": "獎勵積分",
+    "manual": "系統調整",
+    "convert": "積分存入 Space Wallet",
+    "redeem": "兌換使用",
+    "reversal": "退款扣回"
+  },
+
+  "empty": {
+    "all": {
+      "title": "未有積分動態",
+      "desc": "完成第一次預約後，積分會自動累積。"
+    },
+    "earn": {
+      "title": "未有獲得紀錄",
+      "desc": "每次付款成功後，積分會按實付金額入帳。"
+    },
+    "wallet": {
+      "title": "未有存入紀錄",
+      "desc": "每累積 100 積分，會自動存入 HK$10 至 Space Wallet。"
+    },
+    "back": {
+      "title": "未有扣回紀錄",
+      "desc": "只有訂單退款時，積分才會被扣回。"
+    }
+  },
+
+  "error": {
+    "title": "暫時未能載入積分",
+    "desc": "你的積分不受影響。請檢查網絡後重試，如仍然失敗，請聯絡我們。",
+    "retry": "重試"
+  },
+
+  "howItWorks": {
+    "title": "積分如何運作",
+    "rule1": "每消費 HK$1 累積 1 積分，以實付金額計算（已扣除優惠碼或 Space Wallet 折抵）。",
+    "rule2": "每累積 100 積分，自動存入 HK$10 至你的 Space Wallet，無需任何操作。",
+    "rule3": "當次消費所得積分於付款成功後入帳，不可用於本次訂單。",
+    "rule4": "使用 Space Wallet 不會減少累積積分，亦不會影響會員級別。",
+    "rule5": "新會員完成註冊即送 100 積分，並自動存入 HK$10。",
+    "rule6": "訂單退款時，該訂單所得積分會一併扣回。"
+  },
+
+  "tierBenefits": {
+    "title": "等級禮遇",
+    "desc": "各級別禮遇內容待確認。目前所有級別都按實付金額每 HK$1 累積 1 積分，沒有額外倍數。"
+  }
+}

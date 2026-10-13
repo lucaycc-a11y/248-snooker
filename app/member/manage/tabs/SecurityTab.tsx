@@ -49,22 +49,6 @@ export function SecurityTab() {
 
   return (
     <div className="space-y-6">
-      {/* Password */}
-      <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
-        <h2 className="mb-4 text-lg font-bold text-white">密碼</h2>
-        <a
-          href="/auth/change-password"
-          className="block rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white transition-colors hover:bg-white/10"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-sm">更改密碼</span>
-            <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </a>
-      </section>
-
       {/* Connected Social Apps */}
       <section className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6">
         <h2 className="mb-4 text-lg font-bold text-white">已連接的社交帳戶</h2>

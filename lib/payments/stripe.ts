@@ -29,16 +29,15 @@ function requireEnv(name: string): string {
 
 export class StripeProvider implements PaymentProvider {
   readonly name = 'stripe'
-  private readonly stripe: any
+  private readonly stripe: import('stripe').Stripe
 
   constructor() {
     const secretKey = requireEnv('STRIPE_SECRET_KEY')
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Stripe = require('stripe')
     this.stripe = new Stripe(secretKey, {
       apiVersion: '2026-06-24.dahlia',
       typescript: true,
-    })
+    }) as import('stripe').Stripe
   }
 
   // ── createOrder ────────────────────────────────────────────
@@ -130,7 +129,7 @@ export class StripeProvider implements PaymentProvider {
     return {
       success: refund.status === 'succeeded' || refund.status === 'pending',
       providerRefundNo: refund.id,
-      message: refund.status,
+      message: refund.status ?? undefined,
     }
   }
 

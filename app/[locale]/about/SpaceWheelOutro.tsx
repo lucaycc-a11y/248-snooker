@@ -19,6 +19,10 @@ import { useSpaceWheelOutroAnim } from "./useSpaceWheelOutroAnim";
 // equals the visible ball diameter.
 const BALL_FILL = 0.831;
 
+// Noto Sans TC「。」has ~0.375em trailing space → optically shift left
+// to centre the visible glyph (not its bounding box).
+const TRAILING_PUNCT_COMP = "0.375em";
+
 type StepItem = { title: string; body: string };
 
 export function SpaceWheelOutro() {
@@ -49,7 +53,8 @@ export function SpaceWheelOutro() {
       <div
         data-outro-band
         style={{
-          width: "100%",
+          width: "100vw",
+          marginLeft: "calc(50% - 50vw)",
           height: "clamp(520px, 34.96vw, 640px)",
           background:
             "linear-gradient(180deg, #ffffff 1.4%, #93ff80 42.8%, #199f02 100%)",
@@ -57,27 +62,19 @@ export function SpaceWheelOutro() {
           overflow: "visible",
         }}
       >
-        {/* ── Content column: max 1728px, centred ─────────────────────────── */}
+        {/* ── Headline group (wrapper carries parallax scroll) ─────────── */}
         <div
+          data-outro-headline-group
           style={{
-            maxWidth: 1728,
-            margin: "0 auto",
-            height: "100%",
-            position: "relative",
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            textAlign: "center",
+            pointerEvents: "none",
+            width: "100%",
           }}
         >
-          {/* ── Headline group (wrapper carries parallax scroll) ─────────── */}
-          <div
-            data-outro-headline-group
-            style={{
-              position: "absolute",
-              top: "62%", // sits on dark green (#199f02 zone) — white text passes AA at large size
-              left: 0,
-              right: 0,
-              textAlign: "center",
-              pointerEvents: "none",
-            }}
-          >
             {/* Main headline — screen-reader label on the heading */}
             <h2
               id="closing-heading"
@@ -93,24 +90,45 @@ export function SpaceWheelOutro() {
                 position: "relative",
                 zIndex: 2,
                 letterSpacing: "-0.01em",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                paddingLeft: TRAILING_PUNCT_COMP,
               }}
             >
-              {/* Per-character spans for staggered entrance; aria-hidden */}
-              {t("closing_headline")
-                .split("")
-                .map((ch, i) => (
+              {/* Split by comma to center on the comma itself */}
+              <span aria-hidden="true" style={{ display: "inline-flex" }}>
+                {"零打擾".split("").map((ch, i) => (
                   <span
                     key={i}
-                    aria-hidden="true"
                     data-outro-char={i}
                     style={{ display: "inline-block" }}
                   >
                     {ch}
                   </span>
                 ))}
+              </span>
+              <span
+                aria-hidden="true"
+                data-outro-char={3}
+                style={{ display: "inline-block" }}
+              >
+                ，
+              </span>
+              <span aria-hidden="true" style={{ display: "inline-flex" }}>
+                {"全專注。".split("").map((ch, i) => (
+                  <span
+                    key={i + 4}
+                    data-outro-char={i + 4}
+                    style={{ display: "inline-block" }}
+                  >
+                    {ch}
+                  </span>
+                ))}
+              </span>
             </h2>
 
-            {/* Ghost 1 — 0.906× size, +0.75em below, opacity 0.9 at rest */}
+            {/* Ghost 1 — 0.906× size, reduced spacing, opacity 0.9 at rest */}
             <p
               aria-hidden="true"
               data-outro-echo="1"
@@ -121,7 +139,7 @@ export function SpaceWheelOutro() {
                 lineHeight: 1.2,
                 margin: 0,
                 position: "absolute",
-                top: "calc(100% + 0.75em - 1.2em * 0.906)", // offset from heading baseline
+                top: "calc(100% + 0.45em - 1.2em * 0.906)", // reduced from 0.75em to 0.45em
                 left: 0,
                 right: 0,
                 textAlign: "center",
@@ -135,12 +153,13 @@ export function SpaceWheelOutro() {
                 userSelect: "none",
                 pointerEvents: "none",
                 zIndex: 1,
+                paddingLeft: TRAILING_PUNCT_COMP,
               }}
             >
               {t("closing_headline")}
             </p>
 
-            {/* Ghost 2 — 0.8125× size, +1.41em below, opacity 0.7 at rest */}
+            {/* Ghost 2 — 0.8125× size, reduced spacing, opacity 0.7 at rest */}
             <p
               aria-hidden="true"
               data-outro-echo="2"
@@ -151,7 +170,7 @@ export function SpaceWheelOutro() {
                 lineHeight: 1.2,
                 margin: 0,
                 position: "absolute",
-                top: "calc(100% + 1.41em - 1.2em * 0.8125)",
+                top: "calc(100% + 0.85em - 1.2em * 0.8125)", // reduced from 1.41em to 0.85em
                 left: 0,
                 right: 0,
                 textAlign: "center",
@@ -165,12 +184,12 @@ export function SpaceWheelOutro() {
                 userSelect: "none",
                 pointerEvents: "none",
                 zIndex: 1,
+                paddingLeft: TRAILING_PUNCT_COMP,
               }}
             >
               {t("closing_headline")}
             </p>
           </div>
-        </div>
       </div>
 
       {/* ── White section below the band ────────────────────────────────────── */}
@@ -182,12 +201,7 @@ export function SpaceWheelOutro() {
           paddingBottom: "clamp(96px, 12.9vw, 223px)",
         }}
       >
-        {/* ── 8-ball — centre on band bottom edge ───────────────────────────
-            Outer wrapper carries scroll-parallax Y.
-            Inner wrapper carries entrance Y + scale + opacity.
-            Ball visible diameter: clamp(170px, 19.33vw, 334px).
-            Image is 120.4% to compensate for the 83.1% fill ratio.
-        */}
+        {/* ── 8-ball — absolute positioned to viewport center, independent of content flow ── */}
         <div
           data-outro-ball-scroll
           style={{
@@ -195,8 +209,8 @@ export function SpaceWheelOutro() {
             top: 0,
             left: "50%",
             transform: "translateX(-50%) translateY(-50%)",
-            width: "clamp(170px, 19.33vw, 334px)",
-            height: "clamp(170px, 19.33vw, 334px)",
+            width: "clamp(180px, 20vw, 345px)",
+            height: "clamp(180px, 20vw, 345px)",
             zIndex: 10,
           }}
         >
@@ -227,6 +241,10 @@ export function SpaceWheelOutro() {
                   objectFit: "contain",
                   userSelect: "none",
                   pointerEvents: "none",
+                  // Override Tailwind preflight's img { max-width: 100% } to preserve
+                  // the designed 120.3% width that achieves optical centering.
+                  maxWidth: "none",
+                  maxHeight: "none",
                 }}
                 priority={false}
                 sizes="(max-width: 767px) 170px, (max-width: 1728px) 19.33vw, 334px"
@@ -235,18 +253,18 @@ export function SpaceWheelOutro() {
           </div>
         </div>
 
-        {/* ── Content column ──────────────────────────────────────────────── */}
+        {/* ── Content container — all items center-aligned to 50vw (same as ball) ── */}
         <div
           style={{
-            maxWidth: 1728,
-            margin: "0 auto",
+            position: "relative",
+            width: "100%",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
             // Ball centre is on band bottom edge → bottom half of ball (50%) overhangs white.
             // Space from white edge to description top = half ball diameter + 24px gap.
-            paddingTop: "calc(clamp(170px, 19.33vw, 334px) / 2 + 24px)",
+            paddingTop: "calc(clamp(180px, 20vw, 345px) / 2 + 24px)",
           }}
         >
           {/* ── Description ──────────────────────────────────────────────── */}
@@ -258,21 +276,23 @@ export function SpaceWheelOutro() {
               lineHeight: 1.6,
               color: "#000000",
               margin: 0,
-              marginTop: "clamp(12px, 1.389vw, 24px)",
-              padding: "0 24px",
+              marginTop: "clamp(12px, 1.389vw, 20px)",
+              width: "calc(100% - 48px)",
+              maxWidth: "1200px",
+              paddingLeft: TRAILING_PUNCT_COMP,
             }}
           >
-            {/* Line 1: first clause normal weight, 隨時隨地開局。bold */}
+            {/* Line 1: first clause normal weight, second part bold */}
             <span style={{ color: "#2f2f2f", fontWeight: 500 }}>
-              一鍵預訂專屬球臺，
+              {t("outro_cta_line1_part1")}
             </span>
             <strong style={{ fontWeight: 800, color: "#000000" }}>
-              隨時隨地開局。
+              {t("outro_cta_line1_part2")}
             </strong>
             <br />
             {/* Line 2: entirely bold */}
             <strong style={{ fontWeight: 800, color: "#000000" }}>
-              由預訂、付款到入場，全程自助，無需等候。
+              {t("outro_cta_line2")}
             </strong>
           </p>
 
@@ -283,9 +303,9 @@ export function SpaceWheelOutro() {
               display: "flex",
               justifyContent: "center",
               gap: "clamp(24px, 5.556vw, 96px)",
-              marginTop: "clamp(32px, 3.472vw, 60px)",
-              padding: "0 24px",
-              width: "100%",
+              marginTop: "clamp(28px, 2.5vw, 48px)",
+              width: "calc(100% - 48px)",
+              maxWidth: "1200px",
             }}
           >
             {steps.map((step, i) => (
@@ -329,9 +349,10 @@ export function SpaceWheelOutro() {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              gap: "clamp(12px, 6.424vw, 111px)",
-              marginTop: "clamp(40px, 4.63vw, 80px)",
-              padding: "0 24px",
+              gap: "clamp(12px, 1.2vw, 20px)",
+              marginTop: "clamp(32px, 3.5vw, 64px)",
+              width: "calc(100% - 48px)",
+              maxWidth: "1200px",
               flexWrap: "wrap",
             }}
           >
@@ -343,49 +364,23 @@ export function SpaceWheelOutro() {
                 alignItems: "center",
                 justifyContent: "center",
                 fontFamily: "'Noto Sans TC', sans-serif",
-                fontWeight: 500,
-                fontSize: "clamp(1rem, 1.389vw, 1.5rem)",
+                fontWeight: 600,
+                fontSize: "clamp(0.9375rem, 1.25vw, 1.125rem)",
                 color: "#000000",
                 background: "var(--closing-green, #199f02)",
                 borderRadius: 9999,
                 border: "none",
                 cursor: "pointer",
                 textDecoration: "none",
-                minWidth: 150,
-                padding: "0 clamp(20px, 2.778vw, 48px)",
-                height: "clamp(52px, 3.993vw, 69px)",
-                transition:
-                  "background-color 200ms ease, transform 200ms ease, opacity 200ms ease",
+                padding: "0 clamp(1.5rem, 2vw, 1.75rem)",
+                minHeight: "clamp(48px, 3.472vw, 60px)",
+                letterSpacing: "-0.01em",
+                transition: "transform 200ms ease, filter 200ms ease",
               }}
             >
               {t("cta_primary")}
             </Link>
 
-            <Link
-              href="/pricing"
-              className="closing-btn-secondary"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: "'Noto Sans TC', sans-serif",
-                fontWeight: 500,
-                fontSize: "clamp(1rem, 1.389vw, 1.5rem)",
-                color: "rgba(0,0,0,0.71)",
-                background: "transparent",
-                borderRadius: 9999,
-                border: "1px solid rgba(0,0,0,0.43)",
-                cursor: "pointer",
-                textDecoration: "none",
-                minWidth: 150,
-                padding: "0 clamp(20px, 2.778vw, 48px)",
-                height: "clamp(52px, 3.993vw, 69px)",
-                transition:
-                  "border-color 200ms ease, transform 200ms ease, opacity 200ms ease",
-              }}
-            >
-              {t("cta_secondary")}
-            </Link>
           </div>
         </div>
       </div>
@@ -393,14 +388,14 @@ export function SpaceWheelOutro() {
       {/* ── Button hover / focus styles injected once ─────────────────────── */}
       <style>{`
         .closing-btn-primary:hover {
-          background-color: #157a01 !important;
-          transform: translateY(-2px);
+          transform: scale(1.03);
+          filter: brightness(1.08);
         }
         .closing-btn-primary:active {
-          transform: translateY(0);
+          transform: scale(0.95);
         }
         .closing-btn-primary:focus-visible {
-          outline: 2px solid #199f02;
+          outline: 2px solid var(--closing-green, #199f02);
           outline-offset: 3px;
         }
         .closing-btn-secondary:hover {
@@ -411,13 +406,12 @@ export function SpaceWheelOutro() {
           transform: translateY(0);
         }
         .closing-btn-secondary:focus-visible {
-          outline: 2px solid #199f02;
+          outline: 2px solid var(--closing-green, #199f02);
           outline-offset: 3px;
         }
         @media (max-width: 479px) {
           .closing-btn-primary,
           .closing-btn-secondary {
-            min-width: 0;
             width: min(100%, 320px);
           }
         }

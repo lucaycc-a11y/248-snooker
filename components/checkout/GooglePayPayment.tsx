@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { CircleCheck, CircleX } from 'lucide-react'
+import type { GPClient } from '@/lib/types/google'
 
 export type GooglePayBlock = {
   date: string
@@ -30,6 +31,12 @@ type Props = {
   countryCode: string
   labels: GooglePayLabels
   agreedToTerms: boolean
+  /** Whether Space Wallet discount is applied (server re-validates) */
+  useWallet?: boolean
+  /** Promo code to apply (server re-validates) */
+  promoCode?: string | null
+  /** Expected total after all discounts — validated server-side */
+  expectedTotal: number
   onBackToMethods: () => void
   onSuccess: (bookingId?: string) => void
 }
@@ -43,26 +50,6 @@ const BORDER = 'rgba(255,255,255,0.1)'
 const DANGER = '#FF453A'
 const EASE_SPRING = 'cubic-bezier(.34,1.56,.64,1)'
 
-type GPEnvironment = 'TEST' | 'PRODUCTION'
-
-declare global {
-  interface Window {
-    google?: {
-      payments: {
-        api: {
-          PaymentsClient: new (config: { environment: GPEnvironment }) => GPClient
-        }
-      }
-    }
-  }
-}
-
-type GPClient = {
-  isReadyToPay: (req: unknown) => Promise<{ result: boolean }>
-  loadPaymentData: (req: unknown) => Promise<{ paymentMethodData: { tokenizationData: { token: string } } }>
-  createButton: (config: { onClick: () => void; buttonType?: string; buttonColor?: string }) => HTMLElement
-}
-
 type State = 'idle' | 'loading_sdk' | 'ready' | 'processing' | 'success' | 'failed' | 'unavailable'
 
 export default function GooglePayPayment(props: Props) {
@@ -74,6 +61,9 @@ export default function GooglePayPayment(props: Props) {
     countryCode,
     labels,
     agreedToTerms,
+    useWallet,
+    promoCode,
+    expectedTotal,
     onBackToMethods,
     onSuccess,
   } = props
@@ -108,7 +98,7 @@ export default function GooglePayPayment(props: Props) {
       return
     }
 
-    const env: GPEnvironment = process.env.NODE_ENV === 'production' ? 'PRODUCTION' : 'TEST'
+    const env: 'TEST' | 'PRODUCTION' = process.env.NODE_ENV === 'production' ? 'PRODUCTION' : 'TEST'
     const client = new window.google.payments.api.PaymentsClient({ environment: env })
     clientRef.current = client
 
@@ -174,20 +164,24 @@ export default function GooglePayPayment(props: Props) {
     const token = paymentData.paymentMethodData.tokenizationData.token
 
     try {
+      const body: Record<string, unknown> = {
+        method: 'google_pay',
+        agreedToTerms,
+        googlePayToken: token,
+        blocks: blocks.map((b) => ({
+          date: b.date,
+          startHour: b.startHour,
+          duration: b.duration,
+          tableNumber: b.tableNumber,
+        })),
+      }
+      if (useWallet) body.useWallet = true
+      if (promoCode) body.promoCode = promoCode
+
       const res = await fetch('/api/checkout/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'google_pay',
-          agreedToTerms,
-          googlePayToken: token,
-          blocks: blocks.map((b) => ({
-            date: b.date,
-            startHour: b.startHour,
-            duration: b.duration,
-            tableNumber: b.tableNumber,
-          })),
-        }),
+        body: JSON.stringify(body),
       })
 
       if (!res.ok) {
@@ -209,14 +203,26 @@ export default function GooglePayPayment(props: Props) {
 
   async function fetchAmount(): Promise<string | null> {
     try {
+      const body: Record<string, unknown> = { blocks }
+      if (useWallet) body.useWallet = true
+      if (promoCode) body.promoCode = promoCode
+
       const res = await fetch('/api/checkout/quote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blocks }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) return null
       const { total } = await res.json()
-      return typeof total === 'number' ? total.toFixed(2) : String(total)
+
+      // Server-authoritative: validate the returned total matches our expectedTotal
+      const serverTotal = typeof total === 'number' ? total : parseFloat(String(total))
+      if (Math.abs(serverTotal - expectedTotal) > 0.01) {
+        console.error('[GooglePay] Server total mismatch', { serverTotal, expectedTotal })
+        return null
+      }
+
+      return serverTotal.toFixed(2)
     } catch {
       return null
     }

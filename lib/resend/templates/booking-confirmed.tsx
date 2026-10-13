@@ -29,7 +29,7 @@ const LOCALE_TEXT = {
     total: '總計',
     paymentMethod: '付款方式',
     transactionId: '交易編號',
-    qrTitle: '入場QR Code',
+    qrTitle: '你的專屬會員QR code',
     qrInstructions: '到場時掃描此QR Code即可開門入場',
     backupCodeLabel: '後備密碼',
     backupCodeInstructions: '如QR Code無法掃描，請向職員提供此密碼',
@@ -46,7 +46,7 @@ const LOCALE_TEXT = {
     total: '总计',
     paymentMethod: '付款方式',
     transactionId: '交易编号',
-    qrTitle: '入场QR Code',
+    qrTitle: '你的专属会员QR code',
     qrInstructions: '到场时扫描此QR Code即可开门入场',
     backupCodeLabel: '备用密码',
     backupCodeInstructions: '如QR Code无法扫描，请向职员提供此密码',
@@ -63,7 +63,7 @@ const LOCALE_TEXT = {
     total: 'Total',
     paymentMethod: 'Payment Method',
     transactionId: 'Transaction ID',
-    qrTitle: 'Entry QR Code',
+    qrTitle: 'Your member QR code',
     qrInstructions: 'Scan this QR code at the door for entry',
     backupCodeLabel: 'Backup Code',
     backupCodeInstructions: 'If QR code fails to scan, provide this code to staff',
@@ -141,7 +141,7 @@ export function BookingConfirmedEmail({
                   }}>
                     <img
                       src={qrCodeDataUrl}
-                      alt="Booking QR Code"
+                      alt={t.qrTitle}
                       width="240"
                       height="240"
                       style={{ display: 'block', margin: '0 auto' }}

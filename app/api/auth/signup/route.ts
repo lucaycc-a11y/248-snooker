@@ -5,6 +5,7 @@ import { normalizeHkPhone } from '@/lib/auth/profile'
 import { validatePassword } from '@/lib/auth/password'
 import { createVerificationCode, sendEmailVerificationCode } from '@/lib/auth/verification'
 import { setSignupSecretCookie } from '@/lib/auth/signup-secret'
+import { checkRegistrationAllowed } from '@/lib/auth/deleted-user-check'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -42,6 +43,21 @@ export async function POST(request: Request) {
     if (!okIp) return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
 
     const service = getServiceSupabase()
+
+    // ── Check if email/phone are in deleted_users retention period (6 months)
+    // Block re-registration during retention to comply with deletion request
+    const deletedCheck = await checkRegistrationAllowed(service, email, phone)
+    if (!deletedCheck.allowed) {
+      const errorMessages = {
+        email_deleted: 'email_in_retention',
+        phone_deleted: 'phone_in_retention',
+        apple_id_deleted: 'apple_id_in_retention',
+      }
+      return NextResponse.json(
+        { error: errorMessages[deletedCheck.reason] },
+        { status: 403 }
+      )
+    }
 
     // ── Duplicate-check against auth_identities (the canonical identity ledger).
     // Only `verified = true` rows block registration — unverified rows from

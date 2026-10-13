@@ -1,0 +1,181 @@
+{
+  "hero": {
+    "title": "Help Center",
+    "subtitle": "We're here to help you",
+    "searchPlaceholder": "Search help articles...",
+    "image": {
+      "src": "/images/help-hero-800.webp",
+      "srcset": "/images/help-hero-800.webp 800w, /images/help-hero-1600.webp 1600w",
+      "alt": "Help Center"
+    }
+  },
+  "topics": [
+    {
+      "id": "booking",
+      "title": "Booking & Payment",
+      "description": "Learn how to book tables, payment methods, and cancellation policies",
+      "icon": "booking",
+      "href": "/help/booking"
+    },
+    {
+      "id": "account",
+      "title": "Account Management",
+      "description": "Manage your profile, password, and preferences",
+      "icon": "account",
+      "href": "/help/account"
+    },
+    {
+      "id": "membership",
+      "title": "Membership Plans",
+      "description": "Membership tiers, points system, and exclusive benefits",
+      "icon": "membership",
+      "href": "/help/membership"
+    },
+    {
+      "id": "venue",
+      "title": "Venue Information",
+      "description": "Venue location, facilities, and opening hours",
+      "icon": "venue",
+      "href": "/help/venue"
+    },
+    {
+      "id": "entry",
+      "title": "Entry & QR Code",
+      "description": "How to use QR codes for entry and related issues",
+      "icon": "entry",
+      "href": "/help/entry"
+    },
+    {
+      "id": "rules",
+      "title": "Usage Rules",
+      "description": "Venue rules and important guidelines",
+      "icon": "rules",
+      "href": "/help/rules"
+    },
+    {
+      "id": "technical",
+      "title": "Technical Support",
+      "description": "App issues and troubleshooting",
+      "icon": "technical",
+      "href": "/help/technical"
+    },
+    {
+      "id": "safety",
+      "title": "Safety & Insurance",
+      "description": "Safety measures, insurance info, and emergency response",
+      "icon": "safety",
+      "href": "/help/safety"
+    },
+    {
+      "id": "contact",
+      "title": "Contact Us",
+      "description": "Contact methods and business hours",
+      "icon": "contact",
+      "href": "/help/contact",
+      "span": 2,
+      "image": {
+        "src": "/images/help-contact-800.webp",
+        "srcset": "/images/help-contact-800.webp 800w, /images/help-contact-1600.webp 1600w",
+        "alt": "Contact Us"
+      }
+    }
+  ],
+  "popularQuestionsTitle": "Popular Questions",
+  "popularQuestions": [
+    {
+      "question": "How to book a table?",
+      "topic": "booking",
+      "article": "how-to-book"
+    },
+    {
+      "question": "How to reset password?",
+      "topic": "account",
+      "article": "reset-password"
+    }
+  ],
+  "announcementsTitle": "Latest Announcements",
+  "announcements": [
+    {
+      "id": "welcome",
+      "date": "2024-10-01",
+      "title": "Welcome to Help Center",
+      "summary": "Our new help center is now live",
+      "content": "## Welcome to Help Center\n\nWe're excited to launch our new help center to provide you with better support services.\n\nIf you have any questions, feel free to contact us anytime.",
+      "published": true
+    }
+  ],
+  "browseTopicsTitle": "Browse Topics",
+  "searchResultsTitle": "Search Results",
+  "noResultsTitle": "No Results Found",
+  "noResultsMessage": "Please try different search terms",
+  "topics_data": {
+    "booking": {
+      "title": "Booking & Payment",
+      "description": "Learn how to book tables, payment methods, and cancellation policies",
+      "articles": [
+        {
+          "id": "how-to-book",
+          "title": "How to book a table?",
+          "summary": "Learn the complete booking process",
+          "content": "## How to Book a Table\n\n1. Go to the booking page\n2. Select date and time\n3. Choose a table\n4. Complete payment\n\nYou will receive a confirmation message after successful booking.",
+          "published": true,
+          "gate": null
+        }
+      ]
+    },
+    "account": {
+      "title": "Account Management",
+      "description": "Manage your profile, password, and preferences",
+      "articles": [
+        {
+          "id": "reset-password",
+          "title": "How to reset password?",
+          "summary": "Reset your account password",
+          "content": "## Reset Password\n\n1. Click 'Forgot Password' on the login page\n2. Enter your email address\n3. Check your email for the reset link\n4. Click the link to set a new password",
+          "published": true,
+          "gate": null
+        }
+      ]
+    },
+    "membership": {
+      "title": "Membership Plans",
+      "description": "Membership tiers, points system, and exclusive benefits",
+      "articles": []
+    },
+    "venue": {
+      "title": "Venue Information",
+      "description": "Venue location, facilities, and opening hours",
+      "articles": []
+    },
+    "entry": {
+      "title": "Entry & QR Code",
+      "description": "How to use QR codes for entry and related issues",
+      "articles": []
+    },
+    "rules": {
+      "title": "Usage Rules",
+      "description": "Venue rules and important guidelines",
+      "articles": []
+    },
+    "technical": {
+      "title": "Technical Support",
+      "description": "App issues and troubleshooting",
+      "articles": []
+    },
+    "safety": {
+      "title": "Safety & Insurance",
+      "description": "Safety measures, insurance info, and emergency response",
+      "articles": []
+    },
+    "contact": {
+      "title": "Contact Us",
+      "description": "Contact methods and business hours",
+      "articles": []
+    }
+  },
+  "tokenMap": {
+    "support_email": "help.support_email",
+    "support_phone": "help.support_phone",
+    "support_whatsapp": "help.support_whatsapp"
+  }
+}

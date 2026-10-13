@@ -35,7 +35,75 @@ export interface SpaceWheelProps
   ringLabel?: React.ReactNode;
   /** Called whenever the active (front) item index changes. */
   onActiveChange?: (index: number) => void;
+  /**
+   * Optional intro ring. When set, turn 0→1 is no longer the drum opening:
+   * it is a hand-off from a ring of `items` + `intro.extras` to the drum's
+   * first point. Omit it and the wheel behaves exactly as before.
+   */
+  intro?: SpaceWheelIntro;
 }
+
+export interface SpaceWheelIntro {
+  /** Ring-only photos; they drift out and fade during the hand-off. */
+  extras: SpaceWheelItem[];
+  /** Ring slot angle in degrees (0 = top, clockwise) for each of `items`. */
+  itemSlots: number[];
+  /** Ring slot angle in degrees for each of `extras`. */
+  extraSlots: number[];
+  /**
+   * Ring geometry in px: `offsetY` moves the ring centre off the stage centre,
+   * `r` is the card-centre radius, `cardW` the ring card width.
+   */
+  geometry: { offsetY: number; r: number; cardW: number } | null;
+  /** Called every frame with the intro progress t (0–1), already smoothed. */
+  onFrame?: (t: number) => void;
+  /** Set true to snap to turnRef on the next frame (e.g. a restored scroll). */
+  jumpRef?: React.MutableRefObject<boolean>;
+}
+
+// Intro hand-off timeline, all in intro progress t (0–1).
+const INTRO_SPIN = 15;                      // ring turns this many degrees clockwise…
+const INTRO_SPIN_END = 0.2;                 // …over t 0 → 0.2
+const INTRO_TRAVEL: [number, number] = [0.15, 0.75];
+const INTRO_EXTRAS: [number, number] = [0.15, 0.6];
+const INTRO_EXTRA_DRIFT = 0.06;             // radial drift, fraction of ring radius
+const INTRO_EXTRA_SCALE = 0.8;
+const INTRO_LABELS: [number, number] = [0.65, 1];
+const INTRO_RISE = 12;                      // px the state-01 labels rise as they fade in
+const INTRO_TEXT_OUT: [number, number] = [0, 0.2];
+const INTRO_TEXT_DRIFT = 24;                // px the hero text drifts up as it fades
+// Cards the drum culls (|d| > CULL) fade over this stretch of the morph
+// instead of popping out at m = 0.5.
+const INTRO_CULL_FADE: [number, number] = [0.35, 0.6];
+
+/** cubic-bezier(.2,.7,.3,1) solved for y at x. */
+function easeOut(x: number): number {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const bx = (u: number) => 3 * u * (1 - u) ** 2 * 0.2 + 3 * u ** 2 * (1 - u) * 0.3 + u ** 3;
+  const by = (u: number) => 3 * u * (1 - u) ** 2 * 0.7 + 3 * u ** 2 * (1 - u) * 1 + u ** 3;
+  let lo = 0;
+  let hi = 1;
+  for (let k = 0; k < 24; k++) {
+    const mid = (lo + hi) / 2;
+    if (bx(mid) < x) lo = mid;
+    else hi = mid;
+  }
+  return by((lo + hi) / 2);
+}
+
+/** Linear 0→1 over [a, b]. */
+const span = (t: number, [a, b]: [number, number]) =>
+  Math.min(1, Math.max(0, (t - a) / (b - a)));
+
+/** Wrap degrees into (-180, 180] so ring cards unwind the short way. */
+const wrapDeg = (d: number) => ((((d + 180) % 360) + 360) % 360) - 180;
+
+/** Eased travel progress of the hand-off at intro progress t (0–1). */
+export const introTravel = (t: number) => easeOut(span(t, INTRO_TRAVEL));
+
+/** Hero-text fade-out progress at intro progress t; shared with the parent. */
+export const introTextFade = (t: number) => span(t, INTRO_TEXT_OUT);
 
 // ─── Geometry ────────────────────────────────────────────────────────────────
 // The card is measured against the stage; everything else is measured against
@@ -107,15 +175,22 @@ export function SpaceWheel({
   turnRef,
   ringLabel,
   onActiveChange,
+  intro,
   className,
   ...props
 }: SpaceWheelProps) {
   const stageRef = React.useRef<HTMLDivElement>(null);
   const wheelRef = React.useRef<HTMLDivElement>(null);
   const cardRefs = React.useRef<(HTMLElement | null)[]>([]);
+  const extraRefs = React.useRef<(HTMLElement | null)[]>([]);
   const labelRef = React.useRef<HTMLDivElement>(null);
   const titleRef = React.useRef<HTMLDivElement>(null);
   const descRef = React.useRef<HTMLDivElement>(null);
+  const indexRef = React.useRef<HTMLOListElement>(null);
+  // Latest intro without restarting the rAF loop on every parent render.
+  const introRef = React.useRef(intro);
+  introRef.current = intro;
+  const hasIntro = intro !== undefined;
 
   // `active` is the only React state; everything else is written straight to
   // the DOM so the rAF loop never triggers a render.
@@ -199,19 +274,38 @@ export function SpaceWheel({
       frame = requestAnimationFrame(draw);
 
       const target = clamp(turnRef.current, 0, last + 1);
+      const jump = introRef.current?.jumpRef;
+      if (jump?.current) {
+        jump.current = false;
+        smooth.current = target;
+      }
       const gap = target - smooth.current;
       if (Math.abs(gap) < 0.0005) smooth.current = target;
       else smooth.current += gap * (reduced ? 1 : EASE);
 
       const t = smooth.current;
-      const m = clamp(t, 0, 1);
       const pos = Math.max(0, t - 1);
+
+      // Intro hand-off: turn 0→1 is the intro progress, and the drum morph
+      // follows the eased travel curve instead of t itself. From t = 1 on
+      // both paths are identical, so the carousel is untouched.
+      const it = clamp(t, 0, 1);
+      const inIntro = hasIntro && t < 1;
+      const m = hasIntro ? introTravel(it) : it;
+      const geo = introRef.current?.geometry;
+      const offY = inIntro && geo ? (1 - m) * geo.offsetY : 0;
+      const introR = geo?.r ?? ringR;
+      const introScale = geo ? geo.cardW / (metrics.cardW || 1) : ringScale;
+      const spin = easeOut(span(it, [0, INTRO_SPIN_END])) * INTRO_SPIN;
+      if (hasIntro) introRef.current?.onFrame?.(it);
 
       // Pull the drum back so its front face lands on the picture plane;
       // the set-back must arrive with the drum or the ring would sit far
       // behind the perspective origin and appear at half size.
       if (wheelRef.current) {
-        wheelRef.current.style.transform = `translateZ(${-m * drumR}px)`;
+        wheelRef.current.style.transform = inIntro
+          ? `translateY(${offY}px) translateZ(${-m * drumR}px)`
+          : `translateZ(${-m * drumR}px)`;
       }
 
       for (let i = 0; i < count; i++) {
@@ -219,27 +313,72 @@ export function SpaceWheel({
         const drumDeg = d * STEP;
         const card = cardRefs.current[i];
         if (card) {
-          card.style.transform = place(
-            d * (360 / count),
-            drumDeg,
-            ringR,
-            drumR,
-            bow,
-            m,
-          );
-          const cardOpacity = m > 0.5 && Math.abs(d) > CULL ? 0 : 1;
+          let cardOpacity: number;
+          if (inIntro) {
+            const slot = introRef.current?.itemSlots[i] ?? i * (360 / count);
+            card.style.transform = place(wrapDeg(slot + spin), drumDeg, introR, drumR, bow, m);
+            cardOpacity = Math.abs(d) > CULL ? 1 - span(m, INTRO_CULL_FADE) : 1;
+          } else {
+            card.style.transform = place(
+              d * (360 / count),
+              drumDeg,
+              ringR,
+              drumR,
+              bow,
+              m,
+            );
+            cardOpacity = m > 0.5 && Math.abs(d) > CULL ? 0 : 1;
+          }
           card.style.opacity = String(cardOpacity);
           card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
           // Performance hint: only animate cards that are visible
           card.style.willChange = cardOpacity > 0.1 ? 'transform' : 'auto';
         }
         const face = card?.firstElementChild as HTMLElement | null;
-        if (face) face.style.transform = `scale(${lerp(ringScale, 1, m)})`;
+        if (face) {
+          face.style.transform = `scale(${lerp(inIntro ? introScale : ringScale, 1, m)})`;
+        }
       }
 
-      if (labelRef.current) labelRef.current.style.opacity = String(1 - m);
-      if (titleRef.current) titleRef.current.style.opacity = String(m);
-      if (descRef.current) descRef.current.style.opacity = String(m);
+      // Ring-only cards drift outward, shrink and fade; translateZ cancels
+      // the hub's drum set-back so they stay on the ring, not in the centre.
+      const extraSlots = introRef.current?.extraSlots ?? [];
+      const e = span(it, INTRO_EXTRAS);
+      for (let i = 0; i < extraSlots.length; i++) {
+        const card = extraRefs.current[i];
+        if (!card) continue;
+        if (inIntro && e < 1) {
+          const r = introR * (1 + INTRO_EXTRA_DRIFT * easeOut(e));
+          const s = introScale * lerp(1, INTRO_EXTRA_SCALE, easeOut(e));
+          card.style.transform =
+            `rotateZ(${wrapDeg((extraSlots[i] ?? 0) + spin)}deg) translateY(${-r}px)` +
+            ` translateZ(${m * drumR}px) scale(${s})`;
+          card.style.opacity = String(1 - e);
+          card.style.visibility = "visible";
+        } else {
+          card.style.visibility = "hidden";
+        }
+      }
+
+      if (hasIntro) {
+        const out = introTextFade(it);
+        const labelIn = span(it, INTRO_LABELS);
+        const rise = `0 ${(1 - labelIn) * INTRO_RISE}px`;
+        if (labelRef.current) {
+          labelRef.current.style.opacity = String(1 - out);
+          labelRef.current.style.transform = `translateY(${offY - out * INTRO_TEXT_DRIFT}px)`;
+        }
+        // `translate` composes with Tailwind's -translate-* transforms.
+        for (const el of [titleRef.current, descRef.current, indexRef.current]) {
+          if (!el) continue;
+          el.style.opacity = String(labelIn);
+          el.style.translate = rise;
+        }
+      } else {
+        if (labelRef.current) labelRef.current.style.opacity = String(1 - m);
+        if (titleRef.current) titleRef.current.style.opacity = String(m);
+        if (descRef.current) descRef.current.style.opacity = String(m);
+      }
 
       const near = clamp(Math.round(pos), 0, last);
       setActive((prev) => {
@@ -250,7 +389,7 @@ export function SpaceWheel({
 
     frame = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(frame);
-  }, [metrics, stage.h, count, last, reduced, turnRef, onActiveChange, isVisible]);
+  }, [metrics, stage.h, count, last, reduced, turnRef, onActiveChange, isVisible, hasIntro]);
 
   // Keyboard navigation — ArrowUp/Down move through items.
   const handleKeyDown = React.useCallback(
@@ -287,7 +426,7 @@ export function SpaceWheel({
         aria-label="Space8 場地相片"
         aria-activedescendant={`space-wheel-item-${active}`}
         className="absolute inset-0 outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white/40"
-        style={{ perspective: `${metrics.depth}px` }}
+        style={{ perspective: `${metrics.depth}px`, overflowX: "clip", overflowY: "clip" }}
         onKeyDown={handleKeyDown}
       >
         {/* ── Wheel hub ── */}
@@ -324,6 +463,33 @@ export function SpaceWheel({
               </span>
             </div>
           ))}
+          {/* Ring-only intro photos (not drum options). */}
+          {intro?.extras.map((item, i) => (
+            <div
+              key={item.image}
+              ref={(node) => { extraRefs.current[i] = node; }}
+              className="absolute [backface-visibility:hidden]"
+              style={{
+                width: metrics.cardW,
+                height: metrics.cardH,
+                marginLeft: -metrics.cardW / 2,
+                marginTop: -metrics.cardH / 2,
+                visibility: "hidden",
+              }}
+            >
+              <span
+                className="relative block size-full overflow-hidden rounded-lg"
+                style={{ border: "1px solid rgba(0,0,0,0.08)" }}
+              >
+                <img
+                  src={item.image}
+                  alt={item.alt}
+                  draggable={false}
+                  className="size-full object-cover"
+                />
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -336,16 +502,20 @@ export function SpaceWheel({
         {ringLabel}
       </div>
 
-      {/* ── Mobile text block (sits below front card on solid white) ── */}
+      {/* ── Mobile text block (bottom-aligned description only, no flex layout) ── */}
       {metrics.isMobile && (
         <div
           ref={titleRef}
-          className="pointer-events-none absolute left-0 right-0 opacity-0 flex flex-col items-center text-center px-6"
+          className="pointer-events-none absolute left-0 right-0 bottom-0 opacity-0"
           style={{
-            top: "calc(52% + 24px)",
-            background: "#ffffff",
-            paddingTop: "1.5rem",
-            paddingBottom: "2rem",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            paddingLeft: "1.5rem",
+            paddingRight: "1.5rem",
+            paddingTop: "1rem",
+            paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))",
           }}
         >
           <p
@@ -361,12 +531,12 @@ export function SpaceWheel({
           </p>
           <p
             className="font-semibold leading-snug"
-            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: "clamp(1.5rem, 6.5vw, 2rem)", color: "#000000" }}
+            style={{ fontFamily: "'Noto Sans TC', sans-serif", fontSize: "clamp(1.5rem, 6.5vw, 2rem)", color: "#000000", marginBottom: "0.5rem" }}
           >
             {activeItem?.title}
           </p>
           <p
-            className="leading-relaxed mt-2 max-w-[90%]"
+            className="leading-relaxed max-w-[90%]"
             style={{
               fontFamily: "'Noto Sans TC', sans-serif",
               fontSize: "16px",
@@ -416,6 +586,7 @@ export function SpaceWheel({
         <div
           ref={descRef}
           className="pointer-events-none absolute top-[6%] left-1/2 -translate-x-1/2 opacity-0 flex flex-col items-center gap-2"
+          style={{ visibility: "hidden" }}
         >
           <div className="flex items-center gap-1">
             {items.map((_, i) => (
@@ -439,8 +610,9 @@ export function SpaceWheel({
         </div>
       ) : (
         <ol
+          ref={indexRef}
           className="absolute top-[7.5%] right-[2.5%] text-right leading-[1.75]"
-          style={{ fontSize: metrics.index }}
+          style={{ fontSize: metrics.index, opacity: hasIntro ? 0 : undefined }}
           aria-hidden="true"
         >
           {items.map((item, i) => (

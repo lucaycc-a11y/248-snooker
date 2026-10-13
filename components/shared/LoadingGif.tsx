@@ -3,14 +3,14 @@
 import { useState } from 'react'
 
 /** Branded loading animation shared by route, booking, and auth loading states. */
-export function LoadingGif({ size = 140 }: { size?: number }) {
+export function LoadingGif({ size = 140, label = 'Loading' }: { size?: number; label?: string }) {
   const clampedSize = Math.max(120, Math.min(160, size))
   const [videoFailed, setVideoFailed] = useState(false)
 
   return (
     <div
       role="status"
-      aria-label="Loading"
+      aria-label={label}
       style={{
         width: clampedSize,
         height: clampedSize,
@@ -37,11 +37,11 @@ export function LoadingGif({ size = 140 }: { size?: number }) {
           loop
           muted
           playsInline
-          aria-label="Loading"
+          aria-label={label}
           onError={() => setVideoFailed(true)}
           style={{ width: clampedSize, height: clampedSize, objectFit: 'contain' }}
         >
-          <source src="/video/Loading/space8_loading_transparent.webm" type="video/webm" />
+          <source src="/video/Loading/space8_loading_320.webm" type="video/webm" />
         </video>
       )}
     </div>

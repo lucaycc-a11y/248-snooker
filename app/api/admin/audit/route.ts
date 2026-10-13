@@ -10,7 +10,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
     const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10) || 1)
     const offset = (page - 1) * PAGE_SIZE
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     // Build query
     let query = service

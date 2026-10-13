@@ -2,7 +2,7 @@
 // Admin-only
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 
 export const runtime = 'edge'
 
@@ -14,7 +14,7 @@ function getClientIp(req: NextRequest): string {
   )
 }
 
-async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function checkAdminAuth(supabase: Awaited<ReturnType<typeof getLegacyRouteHandlerClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -40,7 +40,7 @@ async function checkAdminAuth(supabase: Awaited<ReturnType<typeof createClient>>
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createClient()
+    const supabase = await getLegacyRouteHandlerClient()
     const auth = await checkAdminAuth(supabase)
 
     if (!auth.isAdmin || !auth.user) {

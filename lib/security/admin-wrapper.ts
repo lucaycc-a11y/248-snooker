@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 import { withSecurity, SecurityOptions } from './api-wrapper'
 
 /**
@@ -51,7 +51,7 @@ export function withAdminSecurity(
   // Wrap with base security (CSRF + rate limiting)
   return withSecurity(async (req: Request, context?: { params: Record<string, string> }) => {
     // Admin-specific checks: authentication + role verification
-    const supabase = await createClient()
+    const supabase = await getLegacyRouteHandlerClient()
     const {
       data: { user },
     } = await supabase.auth.getUser()

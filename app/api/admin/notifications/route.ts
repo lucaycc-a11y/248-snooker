@@ -12,7 +12,7 @@
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 type Row = Record<string, unknown>
 
@@ -31,7 +31,7 @@ export async function GET() {
     const admin = await getAdminData()
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data, error } = await service
       .from('notification_templates')
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid channel' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data, error } = await service
       .from('notification_templates')
@@ -146,7 +146,7 @@ export async function PUT(req: Request) {
 
     updates.updated_at = new Date().toISOString()
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data, error } = await service
       .from('notification_templates')
@@ -179,7 +179,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'id query param required' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { error } = await service
       .from('notification_templates')

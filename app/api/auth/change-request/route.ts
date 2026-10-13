@@ -4,6 +4,7 @@ import { createServerClient } from '@supabase/ssr'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 import crypto from 'crypto'
+import { requestPasswordReset, toEmailLocale } from '@/lib/auth/password-reset'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -41,6 +42,18 @@ export async function POST(request: Request) {
 
     if (!purpose || (purpose !== 'password' && purpose !== 'phone')) {
       return NextResponse.json({ error: 'invalid_purpose' }, { status: 422 })
+    }
+
+    // Password changes use the single email-link reset flow (Part B2).
+    if (purpose === 'password') {
+      if (!user.email) return NextResponse.json({ error: 'no_email_on_account' }, { status: 422 })
+      const locale = toEmailLocale(cookieStore.get('NEXT_LOCALE')?.value)
+      const result = await requestPasswordReset({ email: user.email, ip: clientIp(request), locale })
+      if (result.ok) return NextResponse.json({ ok: true, message: 'email_sent' })
+      if (result.error === 'cooldown' || result.error === 'rate_limited') {
+        return NextResponse.json({ error: 'rate_limited' }, { status: 429 })
+      }
+      return NextResponse.json({ error: 'send_failed' }, { status: 502 })
     }
 
     // Rate limit: 3 per user per hour
@@ -110,7 +123,7 @@ export async function POST(request: Request) {
     // Audit log
     await service.from('account_change_audit').insert({
       user_id: user.id,
-      action: purpose === 'password' ? 'request_password_change' : 'request_phone_change',
+      action: 'request_phone_change',
       request_id: changeRequest.id,
       request_ip: ip,
     })
@@ -127,14 +140,14 @@ export async function POST(request: Request) {
       await resend.emails.send({
         from: 'Space8 <noreply@space8.com.hk>',
         to: email,
-        subject: purpose === 'password' ? '更改密碼確認 / Password Change Confirmation' : '更改電話號碼確認 / Phone Change Confirmation',
+        subject: '更改電話號碼確認 / Phone Change Confirmation',
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #22c55e;">Space8</h2>
-            <h3>${purpose === 'password' ? '更改密碼確認 / Password Change Confirmation' : '更改電話號碼確認 / Phone Change Confirmation'}</h3>
+            <h3>更改電話號碼確認 / Phone Change Confirmation</h3>
 
             <p><strong>繁體中文</strong></p>
-            <p>你已請求更改${purpose === 'password' ? '密碼' : '電話號碼'}。請點擊以下連結完成更改：</p>
+            <p>你已請求更改電話號碼。請點擊以下連結完成更改：</p>
             <p><a href="${changeUrl}" style="display: inline-block; background: #22c55e; color: #000; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">確認更改</a></p>
             <p>此連結將於 30 分鐘後失效。</p>
             <p><strong>如非本人操作，請忽略此電郵並盡快更改密碼。</strong></p>
@@ -142,7 +155,7 @@ export async function POST(request: Request) {
             <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">
 
             <p><strong>English</strong></p>
-            <p>You have requested to change your ${purpose === 'password' ? 'password' : 'phone number'}. Click the link below to complete the change:</p>
+            <p>You have requested to change your phone number. Click the link below to complete the change:</p>
             <p><a href="${changeUrl}" style="display: inline-block; background: #22c55e; color: #000; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">Confirm Change</a></p>
             <p>This link will expire in 30 minutes.</p>
             <p><strong>If this wasn't you, please ignore this email and change your password immediately.</strong></p>

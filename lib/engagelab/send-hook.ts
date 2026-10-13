@@ -1,17 +1,44 @@
 // Supabase Send SMS Hook adapter — forwards Supabase's OTP requests to Engagelab
 // https://supabase.com/docs/guides/auth/auth-hooks/send-sms-hook
 
+// GoTrue serialises models.User, so a pending phone change arrives as
+// `new_phone` (DB column `phone_change`). `sms.phone` is the destination GoTrue
+// itself chose and is present on current GoTrue for every flow. `phone_change`
+// and `email_change` are accepted defensively in case a version sends DB names.
+// Source: supabase/auth internal/models/user.go, internal/hooks/v0hooks/v0hooks.go
 export interface SendSmsHookPayload {
-  user: {
-    id: string
-    phone: string
+  user?: {
+    id?: string
+    phone?: string
+    new_phone?: string
+    phone_change?: string
     email?: string
+    new_email?: string
+    email_change?: string
     app_metadata?: Record<string, unknown>
     user_metadata?: Record<string, unknown>
   }
-  sms: {
-    otp: string
+  sms?: {
+    otp?: string
+    phone?: string
+    sms_type?: string
   }
+}
+
+/** Destination phone for this OTP, across signup, login and phone change. */
+export function resolveHookPhone(payload: SendSmsHookPayload): string | null {
+  const phone =
+    payload.sms?.phone ||
+    payload.user?.phone ||
+    payload.user?.new_phone ||
+    payload.user?.phone_change
+  return phone ? phone : null
+}
+
+/** Mask a phone to its last 3 digits for logs, e.g. "*****975". */
+export function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  return digits.length <= 3 ? '***' : `${'*'.repeat(digits.length - 3)}${digits.slice(-3)}`
 }
 
 export interface EngagelabCustomOtpResponse {
@@ -75,9 +102,8 @@ export async function sendSupabaseOtpViaEngagelab(
     },
   }
 
-  // 🔍 DEBUG: Log the EXACT request body we're sending to Engagelab
-  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Supabase OTP code:', otpCode)
-  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Request body:', JSON.stringify(requestBody))
+  // Never log otpCode or requestBody: both contain a live login code and the
+  // full phone number, and Vercel runtime logs are readable by the whole team.
 
   // Official endpoint for "自訂驗證碼下發" (Custom OTP Send)
   const res = await fetch('https://otp.api.engagelab.cc/v1/codes', {
@@ -89,20 +115,13 @@ export async function sendSupabaseOtpViaEngagelab(
     body: JSON.stringify(requestBody),
   })
 
-  // 🔍 CRITICAL: Get raw text FIRST — don't assume it's valid JSON
+  // Get raw text first — don't assume it's valid JSON
   const rawText = await res.text()
-  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Engagelab response status:', res.status)
-  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Engagelab RAW response text:', rawText)
-  console.log('[DEBUG sendSupabaseOtpViaEngagelab] Response length:', rawText.length, 'bytes')
 
-  // Try to parse as JSON, but handle failure gracefully
-  let data: any
+  let data: EngagelabCustomOtpResponse
   try {
-    data = JSON.parse(rawText)
-    console.log('[DEBUG sendSupabaseOtpViaEngagelab] Successfully parsed as JSON:', JSON.stringify(data))
-  } catch (parseError) {
-    console.error('[DEBUG sendSupabaseOtpViaEngagelab] JSON parse FAILED:', parseError)
-    console.error('[DEBUG sendSupabaseOtpViaEngagelab] First 200 chars of raw text:', rawText.substring(0, 200))
+    data = JSON.parse(rawText) as EngagelabCustomOtpResponse
+  } catch {
     throw {
       code: -1,
       message: `Engagelab returned non-JSON response: ${rawText.substring(0, 100)}`,

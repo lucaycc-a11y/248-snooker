@@ -10,7 +10,7 @@ import { Link, usePathname, useRouter } from '@/i18n/navigation'
 // next-intl Link prefixes the active locale (/en/member), which 404s since those
 // routes live at the root, outside [locale].
 import PlainLink from 'next/link'
-import { routing } from '@/i18n/routing'
+import { ENABLED_LOCALES, DEFAULT_LOCALE } from '@/i18n/enabled-locales'
 import { tokens } from '@/app/styles/tokens'
 import { Logo } from '@/components/brand'
 import { Button } from '@/components/ui/button'
@@ -36,13 +36,12 @@ const EASE = [0.16, 1, 0.3, 1] as const
 function pillStyle(theme: NavTheme): CSSProperties {
   const dark = theme === 'dark'
   return {
-    background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.76)',
+    background: dark ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.92)',
     border: `1px solid ${dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
-    backdropFilter: 'blur(24px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
     borderRadius: 999,
     pointerEvents: 'auto',
     transition: PILL_TRANSITION,
+    isolation: 'isolate' as const,
   }
 }
 
@@ -63,7 +62,7 @@ export default function Nav() {
   const t = useTranslations('nav')
 
   // Locale-aware returnUrl for OAuth redirects (re-attaches locale prefix for non-default locales)
-  const returnUrl = locale === routing.defaultLocale ? pathname : `/${locale}${pathname}`
+  const returnUrl = locale === DEFAULT_LOCALE ? pathname : `/${locale}${pathname}`
 
   const navText = (key: string, fallback: string) => {
     const value = t.has(key) ? t(key) : fallback
@@ -75,8 +74,12 @@ export default function Nav() {
     en: 'EN',
   }
 
+  // Only show language switcher if more than one locale is enabled
+  const showLanguageSwitcher = ENABLED_LOCALES.length > 1
+
   const toggleLocale = () => {
-    const locales = routing.locales
+    if (!showLanguageSwitcher) return
+    const locales = ENABLED_LOCALES
     const idx = locales.indexOf(locale as (typeof locales)[number])
     const next = locales[(idx + 1) % locales.length]
     router.replace(pathname, { locale: next })
@@ -375,34 +378,38 @@ export default function Nav() {
             )
           })}
 
-          <span
-            style={{
-              width: 1,
-              height: 14,
-              background: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
-              margin: '0 2px',
-              flexShrink: 0,
-            }}
-          />
+          {showLanguageSwitcher && (
+            <>
+              <span
+                style={{
+                  width: 1,
+                  height: 14,
+                  background: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+                  margin: '0 2px',
+                  flexShrink: 0,
+                }}
+              />
 
-          <button
-            onClick={toggleLocale}
-            aria-label="Switch language"
-            style={{
-              color: linkColor,
-              fontSize: 13,
-              fontWeight: 500,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              borderRadius: 6,
-              opacity: 0.7,
-              transition: PILL_TRANSITION,
-            }}
-          >
-            {LOCALE_LABELS[locale] ?? '中'}
-          </button>
+              <button
+                onClick={toggleLocale}
+                aria-label="Switch language"
+                style={{
+                  color: linkColor,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  opacity: 0.7,
+                  transition: PILL_TRANSITION,
+                }}
+              >
+                {LOCALE_LABELS[locale] ?? '中'}
+              </button>
+            </>
+          )}
         </div>
 
         <div
@@ -509,19 +516,18 @@ export default function Nav() {
             padding: 10px 14px !important;
             padding-top: calc(10px + env(safe-area-inset-top, 0px)) !important;
             transform: none !important;
-            backdrop-filter: blur(20px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
             /* The surface follows the same data-nav-surface theme as the
                artwork and controls, so light legal content is not stuck in a
                dark mobile bar. */
             pointer-events: auto !important;
+            isolation: isolate;
           }
           .nav-bar[data-nav-surface='dark'] {
-            background: rgba(0, 0, 0, 0.72) !important;
+            background: rgba(0, 0, 0, 0.90) !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
           }
           .nav-bar[data-nav-surface='light'] {
-            background: rgba(255, 255, 255, 0.86) !important;
+            background: rgba(255, 255, 255, 0.95) !important;
             border-bottom: 1px solid rgba(0, 0, 0, 0.10) !important;
           }
           /* Mobile wordmark: keep the full "SPACE8" lockup but scale it down
@@ -640,26 +646,28 @@ export default function Nav() {
                 </PlainLink>
               )}
 
-              <button
-                onClick={() => {
-                  setMenuOpen(false)
-                  toggleLocale()
-                }}
-                aria-label="Switch language"
-                style={{
-                  marginTop: 8,
-                  minHeight: 44,
-                  fontSize: 18,
-                  fontWeight: 500,
-                  color: tokens.colors.brand,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 8,
-                }}
-              >
-                {locale === 'zh-HK' ? '繁中' : locale === 'zh-CN' ? '简中' : 'English'}
-              </button>
+              {showLanguageSwitcher && (
+                <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    toggleLocale()
+                  }}
+                  aria-label="Switch language"
+                  style={{
+                    marginTop: 8,
+                    minHeight: 44,
+                    fontSize: 18,
+                    fontWeight: 500,
+                    color: tokens.colors.brand,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 8,
+                  }}
+                >
+                  {locale === 'zh-HK' ? '繁中' : locale === 'zh-CN' ? '简中' : 'English'}
+                </button>
+              )}
             </div>
 
             <div style={{ width: '100%', paddingTop: 24 }}>

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -13,7 +13,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data, error } = await service.from('blog_posts').select('*').eq('id', id).maybeSingle()
   if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ post: data })
@@ -33,7 +33,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const body: unknown = await req.json().catch(() => null)
     if (!isRecord(body)) return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const { data: existing } = await service.from('blog_posts').select('*').eq('id', id).maybeSingle()
     if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -94,7 +94,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { id } = await params
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
     const { data: existing } = await service.from('blog_posts').select('title, slug').eq('id', id).maybeSingle()
     if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 

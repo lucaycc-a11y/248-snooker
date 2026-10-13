@@ -14,7 +14,7 @@ function fmt(value: number): string {
 
 function SunIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#1a9d5c", marginBottom: 20, display: "block", overflow: "visible" }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#f59e0b", marginBottom: 20, display: "block", overflow: "visible" }}>
       <circle className="pi-sun-core" cx="12" cy="12" r="4.1" />
       <g className="pi-sun-rays">
         <line x1="12" y1="1.6" x2="12" y2="3.8" />
@@ -32,7 +32,7 @@ function SunIcon() {
 
 function BoltIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#1a9d5c", marginBottom: 20, display: "block", overflow: "visible" }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#3b82f6", marginBottom: 20, display: "block", overflow: "visible" }}>
       <circle className="pi-bolt-glow" cx="12" cy="12" r="7" fill="currentColor" stroke="none" />
       <path className="pi-bolt" d="M14.6 2.6 6.4 13.4h5.2l-2.2 8 8.2-10.8h-5.2z" />
     </svg>
@@ -41,7 +41,7 @@ function BoltIcon() {
 
 function MoonIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#1a9d5c", marginBottom: 20, display: "block", overflow: "visible" }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="price-ic" style={{ width: 30, height: 30, color: "#8b5cf6", marginBottom: 20, display: "block", overflow: "visible" }}>
       <path className="pi-moon" d="M20.4 14.6A8.6 8.6 0 0 1 9.4 3.6a8.6 8.6 0 1 0 11 11z" />
       <circle className="pi-star pi-star1" cx="17.6" cy="5.2" r="1" fill="currentColor" stroke="none" />
       <circle className="pi-star pi-star2" cx="20.4" cy="9.4" r="0.8" fill="currentColor" stroke="none" />
@@ -49,12 +49,11 @@ function MoonIcon() {
   );
 }
 
-export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
+export default function HomePricing({ periods, variant = "light" }: { periods: PricingPeriod[]; variant?: "light" | "dark" }) {
   const t = useTranslations("pricingPage");
 
-  const effectiveRate = (p: PricingPeriod) => p.rateFrom2h ?? p.rate;
   const bestValueId = periods.reduce(
-    (best, p) => (effectiveRate(p) < effectiveRate(best) ? p : best),
+    (best, p) => (p.rate < best.rate ? p : best),
     periods[0],
   )?.id;
 
@@ -83,13 +82,15 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
     return <MoonIcon />;
   };
 
+  const isDark = variant === "dark";
+
   return (
     <section
       ref={secRef}
       className={`price-section ${isIn ? "is-in" : ""}`}
-      data-nav-theme="light"
+      data-nav-theme={isDark ? "dark" : "light"}
       style={{
-        background: "#ffffff",
+        background: isDark ? "#000000" : "#ffffff",
         padding: "120px 24px 130px",
       }}
     >
@@ -98,7 +99,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
           fontFamily: FONT_FAMILY,
           fontWeight: 900,
           fontSize: "clamp(1.8rem, 3.8vw, 2.6rem)",
-          color: "#111110",
+          color: isDark ? "#ffffff" : "#111110",
           marginBottom: 12,
         }}>
           {t("periods_title")}。
@@ -106,7 +107,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
         <p className="price-sub" style={{
           fontFamily: FONT_FAMILY,
           fontSize: 14.5,
-          color: "rgba(17,17,16,0.55)",
+          color: isDark ? "rgba(255,255,255,0.55)" : "rgba(17,17,16,0.55)",
           marginBottom: 56,
         }}>
           {t("periods_subtitle")}
@@ -127,8 +128,8 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                 className="price-card"
                 style={{
                   position: "relative",
-                  background: "#ffffff",
-                  border: "1px solid rgba(17,17,16,0.12)",
+                  background: isDark ? "#0a0a0a" : "#ffffff",
+                  border: isDark ? "1px solid #2a2a2a" : "1px solid rgba(17,17,16,0.12)",
                   borderRadius: 18,
                   padding: "44px 28px 34px",
                   textAlign: "center",
@@ -137,7 +138,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                   alignItems: "center",
                   opacity: 0,
                   transform: "translateY(24px) scale(0.95)",
-                  transition: "opacity .55s cubic-bezier(.34,1.56,.64,1), transform .55s cubic-bezier(.34,1.56,.64,1), border-color .35s ease, box-shadow .35s ease",
+                  transition: "opacity .55s cubic-bezier(.16,1,.3,1), transform .55s cubic-bezier(.16,1,.3,1), border-color .35s ease, box-shadow .35s ease",
                 }}
               >
                 {isBestValue && (
@@ -166,7 +167,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                   fontFamily: FONT_FAMILY,
                   fontWeight: 700,
                   fontSize: 19,
-                  color: "#111110",
+                  color: isDark ? "#ffffff" : "#111110",
                   marginBottom: 8,
                 }}>
                   {t(`period_${period.id}_title`)}
@@ -175,7 +176,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                 <p className="price-time" style={{
                   fontFamily: FONT_FAMILY,
                   fontSize: 13.5,
-                  color: "rgba(17,17,16,0.48)",
+                  color: isDark ? "rgba(255,255,255,0.48)" : "rgba(17,17,16,0.48)",
                   marginBottom: 24,
                 }}>
                   {t(`period_${period.id}_time`)}
@@ -193,7 +194,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                     fontWeight: 600,
                     fontSize: "clamp(2.1rem, 4.4vw, 2.9rem)",
                     letterSpacing: "-0.02em",
-                    color: "#111110",
+                    color: isDark ? "#ffffff" : "#111110",
                     lineHeight: 1,
                   }}>
                     {fmt(period.rate)}
@@ -201,29 +202,13 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                   <span style={{
                     fontFamily: FONT_FAMILY,
                     fontSize: 13.5,
-                    color: "rgba(17,17,16,0.45)",
+                    color: isDark ? "rgba(255,255,255,0.45)" : "rgba(17,17,16,0.45)",
                   }}>
                     {" "}{t("per_hour")}
                   </span>
                 </div>
 
-                {period.rateFrom2h !== undefined ? (
-                  <span className="price-deal" style={{
-                    display: "inline-block",
-                    background: "rgba(26,157,92,0.13)",
-                    color: "#137a46",
-                    fontFamily: FONT_FAMILY,
-                    fontSize: 12.5,
-                    fontWeight: 500,
-                    padding: "8px 14px",
-                    borderRadius: 999,
-                    marginBottom: 26,
-                  }}>
-                    {t("member_price_prefix")} <b>{fmt(period.rateFrom2h)}</b>
-                  </span>
-                ) : (
-                  <div className="price-spacer" style={{ marginBottom: 26, height: 33 }} />
-                )}
+                <div className="price-spacer" style={{ marginBottom: 26, height: 33 }} />
 
                 <Link
                   href="/book"
@@ -241,7 +226,6 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
                     padding: "13px 34px",
                     borderRadius: 999,
                     textDecoration: "none",
-                    boxShadow: "0 10px 26px -12px rgba(26,157,92,0.65)",
                   }}
                 >
                   {t("cta_book")}
@@ -257,7 +241,7 @@ export default function HomePricing({ periods }: { periods: PricingPeriod[] }) {
         .price-section.is-in .price-card:nth-child(1) { transition-delay: .06s; }
         .price-section.is-in .price-card:nth-child(2) { transition-delay: .18s; }
         .price-section.is-in .price-card:nth-child(3) { transition-delay: .30s; }
-        .price-card:hover { border-color: rgba(26,157,92,0.45) !important; box-shadow: 0 22px 46px -24px rgba(17,17,16,0.3) !important; }
+        .price-card:hover { border-color: rgba(26,157,92,0.45) !important; }
 
         @media (max-width: 860px) {
           .price-grid { grid-template-columns: 1fr !important; gap: 28px !important; max-width: 440px !important; margin: 0 auto !important; }

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import crypto from 'node:crypto'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { clientIp, rateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: INVALID_CREDENTIALS }, { status: 401 })
   }
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
   const { data: device, error: deviceError } = await service
     .from('pilot_devices')
     .select('id, room_code, room_display_name, password_hash')

@@ -1,0 +1,45 @@
+/* AppleButton hover, active, focus states */
+
+.apple-button {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hover states */
+.apple-button--primary:hover:not([aria-disabled="true"]) {
+  filter: brightness(1.08);
+}
+
+.apple-button--secondary.apple-button--dark:hover:not([aria-disabled="true"]) {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.apple-button--secondary.apple-button--light:hover:not([aria-disabled="true"]) {
+  border-color: rgba(17, 17, 16, 0.32);
+}
+
+.apple-button--link:hover:not([aria-disabled="true"]) {
+  text-decoration: underline;
+}
+
+/* Active state */
+.apple-button:active:not([aria-disabled="true"]) {
+  transform: scale(0.98);
+}
+
+/* Focus-visible (keyboard navigation) */
+.apple-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .apple-button {
+    transition: none !important;
+  }
+
+  .apple-button:active {
+    transform: none !important;
+  }
+}

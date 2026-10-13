@@ -1,13 +1,11 @@
 import { getRequestConfig } from 'next-intl/server'
-import { hasLocale } from 'next-intl'
-import { routing } from './routing'
+import { getActiveLocale, isValidLocale } from './enabled-locales'
 
 export default getRequestConfig(async ({ requestLocale }) => {
   // requestLocale is set by the middleware; fall back to the default.
+  // If the requested locale is closed (zh-CN, en), fall back to zh-HK.
   const requested = await requestLocale
-  const locale = hasLocale(routing.locales, requested)
-    ? requested
-    : routing.defaultLocale
+  const locale = getActiveLocale(requested)
 
   // Messages are served entirely from the static messages/{locale}.json
   // bundles, built into the app. This used to be merged at request time with
@@ -21,5 +19,24 @@ export default getRequestConfig(async ({ requestLocale }) => {
   return {
     locale,
     messages,
+    onError(error) {
+      // In development and tests, throw on missing keys to catch them early
+      if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+        throw error
+      }
+      // In production, log but don't crash
+      console.error('[i18n]', error.message)
+    },
+    getMessageFallback({ namespace, key }) {
+      // Return the key path as fallback so missing keys are visible
+      const path = namespace ? `${namespace}.${key}` : key
+
+      // In development and tests, throw to fail fast
+      if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+        throw new Error(`Missing translation: ${path}`)
+      }
+
+      return path
+    },
   }
 })

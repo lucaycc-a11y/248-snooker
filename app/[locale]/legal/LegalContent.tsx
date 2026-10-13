@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
+import { useTranslations } from "next-intl"
 import type { LegalDocId } from "@/content/legal"
 import type { LegalDocument } from "@/content/legal/types"
 import type { Locale } from "@/i18n/routing"
@@ -32,11 +33,12 @@ export default function LegalContent({
   nav: Record<LegalDocId, string>
   documents: Record<LegalDocId, LegalDocument>
 }) {
+  const t = useTranslations('legalPage')
   const router = useRouter()
   const pathname = usePathname()
   const [activeDoc, setActiveDoc] = useState<LegalDocId>(initialDoc)
   const [y, m, d] = lastUpdated.split("-").map(Number)
-  const formattedUpdated = y && m && d ? `${y}年${m}月${d}日` : lastUpdated
+  const formattedUpdated = y && m && d ? `${y}${t('date_year')}${m}${t('date_month')}${d}${t('date_day')}` : lastUpdated
   const tabs: { id: LegalDocId; label: string }[] = [
     { id: "terms", label: nav.terms },
     { id: "website_terms", label: nav.website_terms },

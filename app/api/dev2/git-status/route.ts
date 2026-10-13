@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 const execAsync = promisify(exec)
 
 async function checkAdminAuth() {
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -46,7 +46,7 @@ export async function GET() {
     }
 
     // Get gate status
-    const supabase = await createClient()
+    const supabase = await getLegacyRouteHandlerClient()
     const { data: gateData } = await supabase
       .from('site_gate_config')
       .select('enabled')

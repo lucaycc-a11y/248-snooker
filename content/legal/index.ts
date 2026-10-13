@@ -1,4 +1,4 @@
-import type { Locale } from '@/i18n/routing'
+import type { Locale } from '@/i18n/enabled-locales'
 import type { LegalDocument } from './types'
 import { termsZhHK } from './terms.zh-HK'
 import { termsZhCN } from './terms.zh-CN'
@@ -33,6 +33,10 @@ import { cookiePolicyEn } from './cookie-policy.en'
 // These are plain build-time constants — no runtime DB fetch. See
 // content/legal/verify-section-counts.ts for the structural parity check
 // that must pass across all 3 locales for each document.
+//
+// Note: Locale type includes ALL_LOCALES (zh-HK, zh-CN, en) even though only
+// zh-HK is currently enabled. Legal documents remain accessible via direct URL
+// but closed locales redirect to zh-HK at the middleware level.
 
 export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy' | 'brand_statement' | 'cookie_policy'
 

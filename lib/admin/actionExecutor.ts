@@ -5,7 +5,7 @@
  * executes DB changes within a transaction, and logs to admin_action_log.
  */
 
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { consumePendingAction, type PendingAction } from './aiSchema'
 import { num } from '@/lib/data/adminReadHelpers'
 
@@ -50,7 +50,7 @@ export async function executeAction(
     return { success: false, message: `Unknown action type: ${action.type}` }
   }
 
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   try {
     let result: ExecutionResult
@@ -97,7 +97,7 @@ export async function executeAction(
 // ── Individual executors ───────────────────────────────────────────────────
 
 async function executeAddPoints(
-  service: ReturnType<typeof getServiceSupabase>,
+  service: ReturnType<typeof getLegacyServiceSupabase>,
   action: PendingAction
 ): Promise<ExecutionResult> {
   const { userId, points, reason } = action.payload as {
@@ -151,7 +151,7 @@ async function executeAddPoints(
 }
 
 async function executeCancelBooking(
-  service: ReturnType<typeof getServiceSupabase>,
+  service: ReturnType<typeof getLegacyServiceSupabase>,
   action: PendingAction
 ): Promise<ExecutionResult> {
   const { bookingId, reason, compensationType, compensationValue } = action.payload as {
@@ -218,7 +218,7 @@ async function executeCancelBooking(
 }
 
 async function executeCreateCoupon(
-  service: ReturnType<typeof getServiceSupabase>,
+  service: ReturnType<typeof getLegacyServiceSupabase>,
   action: PendingAction
 ): Promise<ExecutionResult> {
   const { name, discountType, discountValue, maxUses, validFrom, validUntil } = action.payload as {
@@ -261,7 +261,7 @@ async function executeCreateCoupon(
 }
 
 async function executeUpdateUser(
-  service: ReturnType<typeof getServiceSupabase>,
+  service: ReturnType<typeof getLegacyServiceSupabase>,
   action: PendingAction
 ): Promise<ExecutionResult> {
   const { userId, changes, reason } = action.payload as {
@@ -311,7 +311,7 @@ async function executeUpdateUser(
 }
 
 async function executeBlockUser(
-  service: ReturnType<typeof getServiceSupabase>,
+  service: ReturnType<typeof getLegacyServiceSupabase>,
   action: PendingAction
 ): Promise<ExecutionResult> {
   const { userId, reason } = action.payload as { userId: string; reason: string }

@@ -81,7 +81,7 @@ export default function HomeFAQ({
             lineHeight: 1.8,
             color: "rgba(17,17,16,0.58)",
           }}>
-            預訂、入場與場地守則，這裡都有答案。
+            {t("subtitle")}
           </p>
         </div>
 

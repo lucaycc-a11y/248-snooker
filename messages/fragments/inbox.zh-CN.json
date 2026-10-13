@@ -1,0 +1,18 @@
+{
+  "title": "收件箱",
+  "detailTitle": "消息详情",
+  "filterAll": "全部",
+  "filterCredit": "钱包",
+  "filterPromo": "优惠",
+  "filterSystem": "系统",
+  "emptyTitle": "暂无消息",
+  "emptyMessage": "您目前没有任何通知消息",
+  "errorTitle": "加载失败",
+  "errorMessage": "无法加载收件箱，请稍后再试",
+  "retry": "重试",
+  "typeCredit": "钱包通知",
+  "typePromo": "优惠活动",
+  "typeSystem": "系统通知",
+  "metaType": "类型",
+  "metaTime": "时间"
+}

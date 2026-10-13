@@ -92,6 +92,10 @@ type Props = {
   locale?: string
   onBackToMethods: () => void
   onSuccess: (bookingId?: string) => void
+  // Item 1: Discount parameters for server-side validation
+  useWallet?: boolean
+  promoCode?: string | null
+  expectedTotal?: number
 }
 
 // ── SessionStorage key for refresh recovery ─────────────────────────────────
@@ -255,6 +259,17 @@ export default function StripePayment(props: Props) {
   const stateRef = useRef<StripeState>(state)
   const onSuccessRef = useRef(onSuccess)
 
+  // Item 2: Track discount state to detect changes after PaymentIntent creation
+  const lastDiscountRef = useRef<{
+    useWallet: boolean | undefined
+    promoCode: string | null | undefined
+    expectedTotal: number | undefined
+  }>({
+    useWallet: props.useWallet,
+    promoCode: props.promoCode,
+    expectedTotal: props.expectedTotal,
+  })
+
   useEffect(() => { stateRef.current = state }, [state])
   useEffect(() => { onSuccessRef.current = onSuccess }, [onSuccess])
 
@@ -293,6 +308,17 @@ export default function StripePayment(props: Props) {
           ? { slotIds: lockJson.slotIds, orderGroupId: lockJson.orderGroupId }
           : { slotId: lockJson.slotId ?? lockJson.slotIds?.[0] }
 
+      // Item 1: Add discount parameters for server-side validation
+      if (props.useWallet !== undefined) {
+        intentBody.useWallet = props.useWallet
+      }
+      if (props.promoCode) {
+        intentBody.promoCode = props.promoCode
+      }
+      if (props.expectedTotal !== undefined) {
+        intentBody.expectedTotal = props.expectedTotal
+      }
+
       const res = await fetch('/api/payment/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -301,6 +327,10 @@ export default function StripePayment(props: Props) {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}))
+        // Item 1: Handle 409 price_changed from server
+        if (res.status === 409 && errorData.code === 'price_changed') {
+          throw new Error(`Price changed: server computed ${errorData.total}, client expected ${props.expectedTotal}`)
+        }
         throw new Error(errorData.error || 'Failed to create payment intent')
       }
 
@@ -338,7 +368,41 @@ export default function StripePayment(props: Props) {
       setCreating(false)
       creatingRef.current = false
     }
-  }, [blocks, method, agreedToTerms, labels.terms_required])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocks, method, props.useWallet, props.promoCode, props.expectedTotal])
+
+  // Item 2: Detect discount changes after PaymentIntent exists
+  useEffect(() => {
+    const last = lastDiscountRef.current
+    const discountChanged =
+      last.useWallet !== props.useWallet ||
+      last.promoCode !== props.promoCode ||
+      last.expectedTotal !== props.expectedTotal
+
+    if (discountChanged && clientSecret !== null && !creatingRef.current) {
+      // Discount changed after PaymentIntent was created → recreate intent
+      console.log('[stripe] discount_changed_recreating_intent', {
+        old: last,
+        new: { useWallet: props.useWallet, promoCode: props.promoCode, expectedTotal: props.expectedTotal },
+      })
+
+      // Update ref before recreating
+      lastDiscountRef.current = {
+        useWallet: props.useWallet,
+        promoCode: props.promoCode,
+        expectedTotal: props.expectedTotal,
+      }
+
+      // Clear existing intent and recreate
+      setClientSecret(null)
+      setServerAmount(null)
+      setState('idle')
+      setError(null)
+
+      // Recreate intent with new discount parameters
+      createPaymentIntent()
+    }
+  }, [props.useWallet, props.promoCode, props.expectedTotal, clientSecret, createPaymentIntent])
 
   // ── Initialize: create PaymentIntent or restore from session ────────────
 

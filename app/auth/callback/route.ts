@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { checkDeletedEmail, checkDeletedAppleId } from '@/lib/auth/deleted-user-check'
 
 function safeNextPath(value: string | null): string {
   if (!value) return '/member'
@@ -29,6 +30,28 @@ export async function GET(request: Request) {
     if (user) {
       const service = getServiceSupabase()
 
+      // --- Check if user identity is in deleted_users retention period ---
+      // Block OAuth login if email or Apple ID is in 6-month retention period
+      const oauthProvider = (user.app_metadata?.provider as string) ?? 'unknown'
+
+      if (user.email) {
+        const emailDeleted = await checkDeletedEmail(service, user.email.toLowerCase())
+        if (emailDeleted) {
+          return NextResponse.redirect(`${origin}/login?error=email_in_retention&returnUrl=${encodeURIComponent(next)}`)
+        }
+      }
+
+      if (oauthProvider === 'apple') {
+        // For Apple Sign-In, check if the Apple ID (sub claim) is in retention
+        const appleSub = user.user_metadata?.sub as string | undefined
+        if (appleSub) {
+          const appleIdDeleted = await checkDeletedAppleId(service, appleSub)
+          if (appleIdDeleted) {
+            return NextResponse.redirect(`${origin}/login?error=apple_id_in_retention&returnUrl=${encodeURIComponent(next)}`)
+          }
+        }
+      }
+
       // --- Core judgment logic: check existing onboarding status ---
       const { data: existingUser } = await service
         .from('users')
@@ -42,7 +65,6 @@ export async function GET(request: Request) {
       }
 
       // --- Upsert profile row with onboarding_status ---
-      const oauthProvider = (user.app_metadata?.provider as string) ?? 'unknown'
       const profile = {
         id: user.id,
         email: user.email ?? null,

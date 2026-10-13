@@ -254,18 +254,6 @@ export function SpaceWheelOutro() {
             >
               {t("cta_primary")}
             </Link>
-            <Link
-              href="/pricing"
-              className="inline-flex items-center justify-center rounded-full border border-white/20 px-7 text-base font-semibold text-white/70 transition hover:border-white/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
-              style={{
-                fontFamily: "'Noto Sans TC', sans-serif",
-                height: 48,
-                maxWidth: "min(100%, 320px)",
-              }}
-              data-outro-btn-secondary
-            >
-              {t("cta_secondary")}
-            </Link>
           </div>
         </div>
       </div>

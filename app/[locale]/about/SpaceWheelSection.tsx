@@ -20,17 +20,43 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 
 import { SpaceWheel, type SpaceWheelItem } from "@/components/ui/works-wheel";
+import { SpaceWheelIntroSection } from "./space-wheel-intro-section";
 
 gsap.registerPlugin(ScrollTrigger);
 
 // ─── Photo data ──────────────────────────────────────────────────────────────
 // Loaded from the manifest at build time. `file` points to the WebP.
-// Only 3 photos: indices 0 (about-01), 3 (about-04), 5 (about-06)
 import manifest from "@/public/images/space8-about-photos/manifest.json";
 
-const PHOTO_INDICES = [0, 3, 5]; // about-01-table-eight-ball, about-04-cove-lighting, about-06-lounge
+// Ring intro uses all 8 photos in specific slots (0° = top, clockwise)
+// Slot assignments: clear orientation (room, stools, cue rack) at 0°, 45°, 315°
+// Direction-free details (felt, pocket, balls) at 135°, 180°, 225°
+// Keep existing 3 photos (0, 3, 5) positioned for short handover
+const RING_PHOTO_INDICES = [
+  0, // 0° - about-01-table-eight-ball (existing, full table, upright)
+  4, // 45° - about-05-cue-rack (clear vertical orientation)
+  3, // 90° - about-04-cove-lighting (existing, pocket detail, semi-directional)
+  1, // 135° - about-02-felt-xingpai (direction-free, logo readable any angle)
+  7, // 180° - about-08-ball-rack (direction-free, triangle works inverted)
+  2, // 225° - about-03-corner-pocket (direction-free)
+  5, // 270° - about-06-lounge (existing, lounge furniture, semi-directional)
+  6, // 315° - about-07-stools (clear vertical orientation)
+];
 
-const ITEMS: SpaceWheelItem[] = PHOTO_INDICES.map((idx) => {
+// Drum carousel uses only 3 photos (the existing ones)
+const DRUM_PHOTO_INDICES = [0, 3, 5]; // about-01, about-04, about-06
+
+const RING_ITEMS: SpaceWheelItem[] = RING_PHOTO_INDICES.map((idx) => {
+  const item = manifest.items[idx];
+  return {
+    title: item.title,
+    description: item.description,
+    image: `/images/space8-about-photos/${item.file.replace(/\.jpg$/, ".webp")}`,
+    alt: item.alt,
+  };
+});
+
+const DRUM_ITEMS: SpaceWheelItem[] = DRUM_PHOTO_INDICES.map((idx) => {
   const item = manifest.items[idx];
   return {
     title: item.title,
@@ -42,6 +68,7 @@ const ITEMS: SpaceWheelItem[] = PHOTO_INDICES.map((idx) => {
 
 // Rotating words from i18n. Index 2 ("純粹玩樂") gets the green accent.
 const GREEN_WORD_INDEX = 2;
+const NAVBAR_HEIGHT = 64; // px
 
 // ─── Ring centre ─────────────────────────────────────────────────────────────
 
@@ -65,7 +92,7 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
 
   return (
     <div className="flex flex-col items-center gap-3 text-center pointer-events-none select-none">
-      {/* Line 1: 「關於」 + Space8 logo */}
+      {/* Line 1: 「關於」 + Space8 logo (baseline-aligned, logo at ~65% of text height) */}
       <div className="flex items-baseline gap-1 justify-center">
         <span
           className="font-semibold"
@@ -78,14 +105,14 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
         >
           關於
         </span>
-        <div style={{ height: "0.95em", display: "flex", alignItems: "baseline" }}>
+        <div style={{ display: "inline-flex", alignItems: "baseline" }}>
           <Image
             src="/logos/logo-black-horizontal.svg"
             alt="SPACE8"
             width={120}
             height={40}
             style={{
-              height: "1em",
+              height: "0.65em",
               width: "auto",
             }}
             priority
@@ -123,7 +150,7 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
           color: "#000000",
         }}
       >
-        好的中式八球室不應有多餘干擾。
+        {t("wheel_section_description")}
       </p>
     </div>
   );
@@ -131,7 +158,15 @@ function RingCentre({ ringOpacity }: { ringOpacity: number }) {
 
 // ─── Section ─────────────────────────────────────────────────────────────────
 
-export function SpaceWheelSection() {
+/**
+ * `introRing` (default true) opens the page on the 8-photo ring hero and hands
+ * off into the carousel. `false` renders the section exactly as before.
+ */
+export function SpaceWheelSection({ introRing = true }: { introRing?: boolean } = {}) {
+  return introRing ? <SpaceWheelIntroSection /> : <SpaceWheelCarouselSection />;
+}
+
+function SpaceWheelCarouselSection() {
   const runwayRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   // GSAP writes to this ref every frame; SpaceWheel reads it in its rAF loop.
@@ -139,7 +174,7 @@ export function SpaceWheelSection() {
   // Mirror of the ring's m-value (0→ring, 1→drum) for fading the ring centre.
   const [ringOpacity, setRingOpacity] = useState(1);
 
-  const count = ITEMS.length;
+  const count = DRUM_ITEMS.length;
 
   useEffect(() => {
     const runway = runwayRef.current;
@@ -179,7 +214,7 @@ export function SpaceWheelSection() {
     // Runway height: (count + 2) × 100svh gives GSAP enough scroll distance.
     <div
       ref={runwayRef}
-      style={{ height: `${count + 2}00svh` }}
+      style={{ height: `${count + 2}00svh`, background: "#ffffff" }}
       className="relative"
     >
       {/* Sticky stage — fills viewport, GSAP pins it */}
@@ -189,7 +224,7 @@ export function SpaceWheelSection() {
         style={{ backgroundColor: "#ffffff" }}
       >
         <SpaceWheel
-          items={ITEMS}
+          items={DRUM_ITEMS}
           turnRef={turnRef}
           className="absolute inset-0"
           ringLabel={

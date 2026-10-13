@@ -26,7 +26,7 @@ type BlogPost = {
   og_image_url: string | null
   author: string | null
   published_at: string | null
-  translation_group_id: string | null
+  translation_group_id?: string | null // Optional until column exists
 }
 
 type SiblingPost = { id: string; locale: string }

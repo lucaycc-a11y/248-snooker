@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
 
 import { type MemberDashboardData } from './memberRedesignTypes'
 
@@ -8,7 +8,7 @@ import { type MemberDashboardData } from './memberRedesignTypes'
 // ════════════════════════════════════════════════════════════════════════════
 
 export async function getMemberDashboardData(): Promise<MemberDashboardData | null> {
-  const supabase = await createClient()
+  const supabase = await getLegacyRouteHandlerClient()
 
   // SECURITY: Use getUser() not getSession() for server-side auth decisions
   // getSession() reads cookies which can be forged; getUser() validates with auth server
@@ -24,7 +24,7 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
   // Fetch profile with points, tier, member_code
   const { data: profile, error: profileError } = await supabase
     .from('users')
-    .select('id, display_name, email, phone, tier, points, member_code, gender, date_of_birth, birthday_set')
+    .select('id, display_name, email, phone, tier, points, member_code, gender, birthday_set')
     .eq('id', user.id)
     .single()
 
@@ -64,7 +64,6 @@ export async function getMemberDashboardData(): Promise<MemberDashboardData | nu
       member_code: profile.member_code ?? '',
       unread_notifications: unreadCount ?? 0,
       gender: profile.gender,
-      date_of_birth: profile.date_of_birth,
       birthday_set: profile.birthday_set ?? false,
     },
   }

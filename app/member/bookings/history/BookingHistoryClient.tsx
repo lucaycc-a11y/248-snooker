@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { CircleDot, Calendar } from 'lucide-react'
 import { getTableName } from '@/lib/booking/constants'
 import { useLocale, useTranslations } from 'next-intl'
+import { splitMemberBookings } from '@/lib/booking/member-booking-split'
 
 // ════════════════════════════════════════════════════════════════════════════
 // BookingHistoryClient — Full booking history list
@@ -43,19 +44,8 @@ export function BookingHistoryClient({ userId }: Props) {
         const data = await res.json()
         const all = data.bookings ?? []
 
-        // All past bookings (completed or date in past)
-        const now = new Date()
-        const past = all
-          .filter((b: Booking) => {
-            if (b.status === 'completed') return true
-            if (b.date && new Date(b.date) < now) return true
-            return false
-          })
-          .sort((a: Booking, b: Booking) => {
-            const dateA = a.date ? new Date(a.date).getTime() : 0
-            const dateB = b.date ? new Date(b.date).getTime() : 0
-            return dateB - dateA // newest first
-          })
+        // All past bookings (slot ended in HKT, or completed), newest first
+        const { past } = splitMemberBookings<Booking>(all)
 
         setBookings(past)
       }

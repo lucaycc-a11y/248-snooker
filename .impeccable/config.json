@@ -652,6 +652,436 @@
         "value": "#157a01",
         "createdAt": "2026-09-30T15:32:07.794Z",
         "reason": "Hover darken of --closing-green (#199f02 * 0.92); intentional spec button state"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "bowwobble",
+        "createdAt": "2026-10-01T14:00:58.418Z",
+        "reason": "Decorative SVG animation using ease-in-out timing, not spring/bounce easing - keyframe-based wobble for visual interest"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2b3039",
+        "createdAt": "2026-10-01T14:12:15.773Z",
+        "reason": "Spec-defined: Apple-style member card gradient (dark slate)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1b1e24",
+        "createdAt": "2026-10-01T14:12:19.678Z",
+        "reason": "Spec-defined: Apple-style member card gradient (darker slate)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#23272f",
+        "createdAt": "2026-10-01T14:12:24.706Z",
+        "reason": "Spec-defined: Apple-style member card gradient (mid slate)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a2aec4",
+        "createdAt": "2026-10-01T14:12:29.714Z",
+        "reason": "Spec-defined: Apple-style member badge gradient (light steel blue)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#7f8ba2",
+        "createdAt": "2026-10-01T14:12:33.087Z",
+        "reason": "Spec-defined: Apple-style member badge gradient (darker steel blue)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#052e1f",
+        "createdAt": "2026-10-01T14:15:32.470Z",
+        "reason": "Spec-defined: dark green safety card background (brand green #059669 at 15% opacity on black)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f3f7f4",
+        "createdAt": "2026-10-01T17:02:31.863Z",
+        "reason": "Help Center light theme per HELP_CENTER_STEP0_REPORT.md design decision"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e8f0ea",
+        "createdAt": "2026-10-01T17:02:38.587Z",
+        "reason": "Help Center hero gradient per design spec"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#5b6764",
+        "createdAt": "2026-10-01T17:02:43.866Z",
+        "reason": "Help Center muted text per HELP_CENTER_STEP0_REPORT.md"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e3eae9",
+        "createdAt": "2026-10-01T17:02:50.081Z",
+        "reason": "Help Center border color per design spec"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#dc2626",
+        "createdAt": "2026-10-01T17:04:36.475Z",
+        "reason": "Negative feedback button color (thumbs down) - standard semantic red"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "sf mono",
+        "createdAt": "2026-10-01T17:04:41.396Z",
+        "reason": "System monospace font for code blocks - Apple platform standard"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#134e2a",
+        "files": [
+          "app/[locale]/blog/[slug]/BlogArticleContent.tsx"
+        ],
+        "createdAt": "2026-10-02T07:30:40.230Z",
+        "reason": "existing blog hero gradient - matches original design in page.tsx:123"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#1a3a5c",
+        "files": [
+          "app/[locale]/blog/[slug]/BlogArticleContent.tsx"
+        ],
+        "createdAt": "2026-10-02T07:30:46.148Z",
+        "reason": "existing blog related-post gradient - matches original design in page.tsx:219"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34,1.56,.64,1) app/[locale]/membership/membershipcontent.tsx intentional overshoot for card flip animation — creates playful, engaging interaction",
+        "createdAt": "2026-10-02T07:58:54.856Z"
+      },
+      {
+        "rule": "app/[locale]/venue/venuecontent.tsx",
+        "value": "design-system-radius 18px apple design card radius",
+        "createdAt": "2026-10-02T09:13:28.328Z"
+      },
+      {
+        "rule": "app/[locale]/venue/venuecontent.tsx",
+        "value": "design-system-radius 24px apple design modal radius",
+        "createdAt": "2026-10-02T09:13:35.495Z"
+      },
+      {
+        "rule": "app/[locale]/venue/venuecontent.tsx",
+        "value": "design-system-font noto sans tc apple design chinese typography",
+        "createdAt": "2026-10-02T09:13:45.839Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#a1a1a6",
+        "createdAt": "2026-10-02T10:37:55.667Z",
+        "reason": "Gate pages: intentional secondary text color for descriptions and helper text, consistent across production and UAT gates"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#86868b",
+        "createdAt": "2026-10-02T10:38:05.357Z",
+        "reason": "Gate pages: intentional tertiary/icon color for close buttons and subtle UI elements"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#f59e0b step 6 spec: distinct icon color for morning period (amber)",
+        "createdAt": "2026-10-02T14:19:12.038Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#3b82f6 step 6 spec: distinct icon color for afternoon period (blue)",
+        "createdAt": "2026-10-02T14:19:12.076Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8b5cf6 step 6 spec: distinct icon color for evening period (purple)",
+        "createdAt": "2026-10-02T14:19:12.111Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#059669",
+        "createdAt": "2026-10-02T16:02:31.267Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#111827",
+        "createdAt": "2026-10-02T16:02:31.427Z"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.34, 1.56, .64, 1)",
+        "createdAt": "2026-10-03T02:11:18.191Z",
+        "reason": "EASE_SPRING constant used throughout app (40+ occurrences) for Framer Motion spring animations — standard spring curve, not bounce"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "menlo",
+        "createdAt": "2026-10-03T16:25:54.878Z",
+        "reason": "Extracted from approved design HTML (space-wallet.html); monospace font for member code display"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#9ee6b9",
+        "createdAt": "2026-10-03T16:25:58.577Z",
+        "reason": "Extracted from approved design HTML (space-wallet.html); skeleton loading state color"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(24,150,135,.30)",
+        "createdAt": "2026-10-03T16:26:03.014Z",
+        "reason": "Extracted from approved design HTML (space-wallet.html); brand gradient overlay"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "26px",
+        "files": [
+          "components/ui/apple-cards-carousel.tsx"
+        ],
+        "createdAt": "2026-10-03T17:00:53.662Z",
+        "reason": "Apple Cards Carousel reference design - matches Apple.com card radius standard"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "var(--spring) intentional spring physics for premium card feel",
+        "createdAt": "2026-10-03T18:55:05.189Z"
+      },
+      {
+        "rule": "side-tab",
+        "value": "border-left: 4px solid var(--accent) agent a design dom - wallet card accent",
+        "createdAt": "2026-10-03T18:55:08.806Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(66,104,170,.15) agent b tier badge - century tier color",
+        "createdAt": "2026-10-03T18:55:49.741Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(104,68,150,.17) agent b tier badge - maximum tier color",
+        "createdAt": "2026-10-03T18:55:53.757Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "3px wallet card subtle accent radius",
+        "createdAt": "2026-10-03T18:55:59.266Z"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "var(--spring) agent c inbox sheet animation - intentional spring physics matching ios native behavior",
+        "createdAt": "2026-10-04T04:43:56.585Z"
+      },
+      {
+        "rule": "side-tab",
+        "value": "3px agent c inbox active message indicator - intentional visual affordance from design dom",
+        "createdAt": "2026-10-04T04:44:00.571Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:418:var(--spring)",
+        "value": "design spec uses spring easing for buttons and toasts - sanctioned",
+        "createdAt": "2026-10-04T06:40:41.471Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:389:3px colored left border",
+        "value": "side-tab pattern on selected inbox message - matches design intent for selection affordance",
+        "createdAt": "2026-10-04T06:46:54.300Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:237:rgba(66,104,170,.15)",
+        "value": "agent b tier badge - century tier color from commit b0dee56",
+        "createdAt": "2026-10-04T07:00:51.325Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:237:rgba(104,68,150,.17)",
+        "value": "agent b tier badge - maximum tier color from commit b0dee56",
+        "createdAt": "2026-10-04T07:01:03.556Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:389:3px",
+        "value": "agent a wallet card subtle accent radius from commit b0dee56",
+        "createdAt": "2026-10-04T07:01:15.119Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:418:var(--spring)",
+        "value": "design spec intentional spring easing for buttons and toasts - confirmed in docs/design/space-wallet.html l57, l108",
+        "createdAt": "2026-10-04T07:04:15.374Z"
+      },
+      {
+        "rule": "app/member/member-ui.css:389:side-tab",
+        "value": "design spec intentional 3px side-tab for selected inbox message - active selection affordance from docs/design/space-wallet.html",
+        "createdAt": "2026-10-04T07:04:28.611Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(104,52,200,0.55)",
+        "files": [
+          "app/member/components/MemberCardPremier.tsx"
+        ],
+        "createdAt": "2026-10-04T08:07:38.997Z",
+        "reason": "Member card holographic glow gradient from reference design member-card (1).html"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(36,92,52,0.28)",
+        "files": [
+          "app/member/components/MemberCardPremier.tsx"
+        ],
+        "createdAt": "2026-10-04T08:07:45.380Z",
+        "reason": "Member card holographic glow gradient from reference design member-card (1).html"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "5.6cqw",
+        "files": [
+          "app/member/components/MemberCardPremier.tsx"
+        ],
+        "createdAt": "2026-10-04T08:07:54.772Z",
+        "reason": "Member card corner radius uses container query units from reference design member-card (1).html"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "app/member/components/MemberCardPremier.tsx"
+        ],
+        "createdAt": "2026-10-04T08:08:01.328Z",
+        "reason": "Member card holographic parallax layers from reference design member-card (1).html - intentional premium card aesthetic with mesh gradients, foil sweep, rim light"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(88, 28, 135, 0.32)",
+        "createdAt": "2026-10-04T09:10:37.792Z",
+        "reason": "Space Pilot iPad glow effect - intentional purple-to-blue gradient matching device screen"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(37, 99, 235, 0.18)",
+        "createdAt": "2026-10-04T09:10:42.680Z",
+        "reason": "Space Pilot iPad glow effect - intentional purple-to-blue gradient matching device screen"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#8a8a8a",
+        "createdAt": "2026-10-04T10:59:07.225Z",
+        "reason": "Intentional gradient endpoint for cinematic hero heading text effect (white-to-gray fade)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(245,158,11,0.14)",
+        "createdAt": "2026-10-04T13:23:47.415Z",
+        "reason": "amber tier glow for century membership"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(167,139,250,0.16)",
+        "createdAt": "2026-10-04T13:23:47.475Z",
+        "reason": "purple tier glow for maximum membership"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(244,241,234,0.75) app/member/memberdashboard.tsx",
+        "createdAt": "2026-10-04T13:25:51.706Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "3px",
+        "createdAt": "2026-10-04T13:50:19.457Z",
+        "reason": "progress bar container micro-radius, intentional design"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(244,241,234,0.75)",
+        "createdAt": "2026-10-04T13:50:19.505Z",
+        "reason": "custom overlay micro-interaction, intentional design"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "9px",
+        "createdAt": "2026-10-04T13:50:19.539Z",
+        "reason": "custom micro-interaction radius, intentional design"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#16a34a app/[locale]/venue/venuecontent.tsx",
+        "createdAt": "2026-10-04T14:29:37.086Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22,163,74,0.3) app/[locale]/venue/venuecontent.tsx",
+        "createdAt": "2026-10-04T14:46:11.945Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22,163,74,0.1) app/[locale]/venue/venuecontent.tsx",
+        "createdAt": "2026-10-04T14:50:54.064Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#16a34a green-600 token used for cta and accent elements",
+        "createdAt": "2026-10-04T15:39:24.069Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22, 163, 74, 0.15) green-600 with 15% opacity for hover states",
+        "createdAt": "2026-10-04T15:39:24.111Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22,163,74,0.1) green-600 at 10% opacity for tag backgrounds",
+        "createdAt": "2026-10-04T15:46:47.102Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(22,163,74,0.3) green-600 at 30% opacity for border accents",
+        "createdAt": "2026-10-04T15:46:47.134Z"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "18px map pin icon radius in howtogo component - intentional non-standard shape for location marker visual metaphor",
+        "createdAt": "2026-10-04T23:56:05.988Z"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:00:00.000Z",
+        "reason": "Reference HTML --pop easing: approved spec for icon microinteraction (+ icon expand/collapse)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(124, 78, 255, 0.50)",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:01:00.000Z",
+        "reason": "Reference HTML 科技體驗 gradient: section-specific purple glow for iPad stage, not a global token"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#2b1269",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:01:00.000Z",
+        "reason": "Reference HTML 科技體驗 gradient: section-specific deep purple --pilot-a"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#142680",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:01:00.000Z",
+        "reason": "Reference HTML 科技體驗 gradient: section-specific blue --pilot-b"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#06061a",
+        "files": [
+          "components/venue/RoomViewer.tsx"
+        ],
+        "createdAt": "2026-10-05T00:01:00.000Z",
+        "reason": "Reference HTML 科技體驗 gradient: section-specific near-black --pilot-c"
       }
     ]
   }

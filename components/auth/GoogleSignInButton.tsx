@@ -50,8 +50,7 @@ export function GoogleSignInButton({
     let cancelled = false
 
     const init = () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const google = (window as any).google
+      const google = window.google
       if (!google?.accounts?.id || !gisRef.current || cancelled) return
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,

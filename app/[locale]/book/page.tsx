@@ -31,6 +31,7 @@ import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
 import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
+import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/CheckoutWalletRow"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
@@ -41,6 +42,7 @@ import { useOrderConfirmationPolling, type OrderHoldState } from "@/lib/booking/
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
+import { estimateEarnPoints } from "@/lib/points/estimate"
 import { formatPhoneDisplay } from "@/lib/phone-format"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
@@ -951,10 +953,8 @@ function SelectedPicksCard({
         runs.map((r) => {
           const [, m, d] = r.date.split("-")
           const dateLabel = multiDate ? `${Number(m)}月${Number(d)}日 ` : ""
-          // Apple-style discount display: when the contiguous block earns the
-          // 2h+ rate, show the undiscounted price struck through next to the
-          // charged price, plus a "you save" line — never just the final number.
-          const detail = quoteBlockDetail(r.date, r.startHour, r.duration, periods)
+          // Calculate the total price for this block
+          const blockQuote = quoteBlockDetail(r.date, r.startHour, r.duration, periods)
           return (
             <div
               key={`${r.date}-${r.tableNumber}-${r.startHour}`}
@@ -978,23 +978,10 @@ function SelectedPicksCard({
                 </div>
                 <div style={{ color: tokens.colors.textFaint, fontSize: 12, marginTop: 3 }}>
                   {getTableName(r.tableNumber, locale)} ·{" "}
-                  {detail.saved > 0 && (
-                    <s style={{ color: tokens.colors.textFaint, fontVariantNumeric: "tabular-nums" }}>
-                      <BookingPrice amount={detail.baseTotal} />
-                    </s>
-                  )}{detail.saved > 0 && " "}
                   <span style={{ color: "#fff", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                    <BookingPrice amount={detail.total} />
+                    <BookingPrice amount={blockQuote.total} />
                   </span>
                 </div>
-                {detail.saved > 0 && (
-                  <div
-                    data-cms-key="book.block_saved_badge"
-                    style={{ color: tokens.colors.textFaint, fontSize: 12, marginTop: 2 }}
-                  >
-                    {t("block_saved_badge", { hours: r.duration, saved: detail.saved })}
-                  </div>
-                )}
               </div>
               <button
                 type="button"
@@ -1034,8 +1021,6 @@ function useTables() {
 }
 
 /* ─────────────────────────  Calendar  ───────────────────────── */
-const DAY_NAMES = ["日", "一", "二", "三", "四", "五", "六"]
-
 function fmtYMD(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 }
@@ -1051,6 +1036,7 @@ function Calendar({
   monthAvailability: ReturnType<typeof useMonthAvailability>
   datesWithSelections: Set<string>
 }) {
+  const t = useTranslations("book")
   const today = useMemo(() => {
     const d = new Date()
     d.setHours(0, 0, 0, 0)
@@ -1153,7 +1139,7 @@ function Calendar({
             color: tokens.colors.text,
           }}
         >
-          {year}年{month + 1}月
+          {t("year_month_format", { year, month: month + 1 })}
         </span>
         <button
           type="button"
@@ -1193,9 +1179,9 @@ function Calendar({
           marginBottom: 8,
         }}
       >
-        {DAY_NAMES.map((d) => (
+        {["sun", "mon", "tue", "wed", "thu", "fri", "sat"].map((day) => (
           <div
-            key={d}
+            key={day}
             style={{
               textAlign: "center",
               fontSize: 11,
@@ -1206,7 +1192,7 @@ function Calendar({
               textTransform: "uppercase" as const,
             }}
           >
-            {d}
+            {t(`day_${day}`)}
           </div>
         ))}
       </div>
@@ -1365,11 +1351,8 @@ function SummaryCard({
   const endHour = single ? single.startHour + single.duration : 0
   const crossDay = endHour >= 24
 
-  // Order-wide multi-hour savings — sum of each block's (base − discounted).
-  const totalSaved = runs.reduce(
-    (sum, r) => sum + quoteBlockDetail(r.date, r.startHour, r.duration, periods).saved,
-    0,
-  )
+  // Multi-hour discount removed — no savings calculation
+  const totalSaved = 0
 
   return (
     <Card
@@ -1402,7 +1385,10 @@ function SummaryCard({
             </span>
             <span style={{ fontSize: 15, fontWeight: 600, color: ready ? tokens.colors.text : tokens.colors.textFaint }}>
               {ready
-                ? `${selectedDate.getFullYear()}年${selectedDate.getMonth() + 1}月${selectedDate.getDate()}日`
+                ? t("year_month_format", {
+                    year: selectedDate.getFullYear(),
+                    month: selectedDate.getMonth() + 1
+                  }) + ` ${selectedDate.getDate()}日`
                 : dash}
             </span>
           </div>
@@ -1872,18 +1858,24 @@ function Screen3({
   periods,
   promoCode,
   onPromoChange,
+  walletApplied,
+  onWalletChange,
   resumeBookingId,
   resumeOrderNo,
   removeRun,
+  pricingReady,
 }: {
   blocks: SelectedBlock[]
   onBackToSlots?: () => void
   periods: PricingPeriod[]
   promoCode: PromoResult | null
   onPromoChange: (p: PromoResult | null) => void
+  walletApplied: WalletResult | null
+  onWalletChange: (w: WalletResult | null) => void
   resumeBookingId?: string
   resumeOrderNo?: string
   removeRun?: (run: SelectedBlock) => void
+  pricingReady: boolean
 }) {
   const t = useTranslations("book")
   const locale = useLocale()
@@ -2034,20 +2026,21 @@ function Screen3({
   const duration = primary?.duration ?? 0
   const tableNumber = primary?.tableNumber ?? 0
 
+  // Client-side pricing calculation that includes wallet
   const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
-  const totalSaved = blocks.reduce(
-    (sum, b) => sum + quoteBlockDetail(b.date, b.startHour, b.duration, periods).saved,
-    0,
-  )
-  // Apply promo discount if present
+  const totalSaved = 0
   const promoDiscount = promoCode?.discount_amount ?? 0
-  const total = Math.max(0, subtotal - promoDiscount)
-  // The zero-amount rail. Requires a real priced cart AND an applied code —
-  // `total === 0` alone is also true for an empty cart, which must not surface
-  // the free-booking CTA.
-  const isFreeCheckout = subtotal > 0 && promoCode !== null && total === 0
+  const walletAppliedAmount = walletApplied?.amount ?? 0
+  const total = Math.max(0, subtotal - promoDiscount - walletAppliedAmount)
+  // Tier isn't loaded on this page, so estimate at the default multiplier (1);
+  // the server awards round(total × tier multiplier) on confirm.
+  const earnPoints = estimateEarnPoints(total)
+
+  // The zero-amount rail. Requires a real priced cart AND (promo code OR wallet applied)
+  const isFreeCheckout = total === 0 && subtotal > 0 && (promoCode !== null || walletApplied !== null)
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
+  const [walletBalance, setWalletBalance] = useState(0)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -2058,7 +2051,7 @@ function Screen3({
       if (!user || cancelled) return
       const { data } = await supabase
         .from("users")
-        .select("display_name, email, phone")
+        .select("display_name, email, phone, credits")
         .eq("id", user.id)
         .maybeSingle()
       if (cancelled) return
@@ -2067,6 +2060,7 @@ function Screen3({
         email: (data?.email as string) ?? user.email ?? "",
         phone: (data?.phone as string) ?? "",
       })
+      setWalletBalance((data?.credits as number) ?? 0)
     })()
     return () => { cancelled = true }
   }, [])
@@ -2122,6 +2116,7 @@ function Screen3({
           tableNumber: b.tableNumber
         })),
         promoCode: promoCode?.code,
+        walletAmount: walletApplied?.amount,
       }
       const res = await fetch("/api/booking/free-confirm", {
         method: "POST",
@@ -2131,12 +2126,13 @@ function Screen3({
       const json = await res.json()
       if (!res.ok) {
         // The route re-derives the total server-side. If it no longer lands on
-        // zero, the promo does not actually cover this cart — drop the code so
+        // zero, the promo/wallet does not actually cover this cart — drop the code so
         // the payment selector comes back rather than stranding the user on a
         // free-booking CTA that can never succeed.
         if (json.error === "payment_required") {
           onPromoChange(null)
-          setFreeError(t("promo_no_longer_free") || "This promo code no longer covers the full amount. Please select a payment method.")
+          onWalletChange(null)
+          setFreeError(t("promo_no_longer_free") || "This promo code or wallet no longer covers the full amount. Please select a payment method.")
           setFreeConfirming(false)
           return
         }
@@ -2148,7 +2144,9 @@ function Screen3({
               ? t("promo_invalid")
               : reason === "min_order_not_met"
                 ? t("promo_min_cart")
-                : null
+                : reason === "insufficient_points"
+                  ? t("wallet_insufficient_credits")
+                  : null
         setFreeError(mapped || json.detail || reason || "Free booking failed")
         setFreeConfirming(false)
         return
@@ -2159,7 +2157,7 @@ function Screen3({
       setFreeError((e as Error).message)
       setFreeConfirming(false)
     }
-  }, [blocks, promoCode, agreedToTerms, flagTermsRequired, onPromoChange, t])
+  }, [blocks, promoCode, walletApplied, agreedToTerms, flagTermsRequired, onPromoChange, onWalletChange, t])
 
   return (
     <div className={`screen-content${!testMode && !confirmed ? " pay-screen" : ""}`}>
@@ -2220,7 +2218,7 @@ function Screen3({
           >
             {blocks.map((b) => {
               const [, m, d] = b.date.split("-")
-              const detail = quoteBlockDetail(b.date, b.startHour, b.duration, periods)
+              const blockTotal = quoteBlockTotal(b.date, b.startHour, b.duration, periods)
               const blockEnd = b.startHour + b.duration
               const displayName = getTableName(b.tableNumber, locale) ?? `${t("table_label")} #${b.tableNumber}`
               return (
@@ -2249,10 +2247,7 @@ function Screen3({
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ fontSize: 18, fontWeight: 800, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>
-                      {detail.saved > 0 && (
-                        <s style={{ fontSize: 14, fontWeight: 400, color: tokens.colors.textFaint, marginRight: 6 }}><BookingPrice amount={detail.baseTotal} /></s>
-                      )}
-                      <BookingPrice amount={detail.total} />
+                      <BookingPrice amount={blockTotal} />
                     </div>
                     {removeRun && blocks.length > 1 && (
                       <button
@@ -2329,7 +2324,13 @@ function Screen3({
           >
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.pay.subtotal">{t("subtotal")}</span>
-              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}><BookingPrice amount={subtotal + totalSaved} /></span>
+              <span style={{ color: tokens.colors.text, fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                {!pricingReady ? (
+                  <span style={{ background: '#333', height: 20, width: 60, display: 'inline-block', borderRadius: 4 }} />
+                ) : (
+                  <BookingPrice amount={subtotal + totalSaved} />
+                )}
+              </span>
             </div>
             {totalSaved > 0 && (
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
@@ -2358,17 +2359,42 @@ function Screen3({
               />
             </div>
 
+            {/* Space Wallet row — under promo code, mutually exclusive */}
+            <div style={{ margin: "16px 0" }}>
+              <CheckoutWalletRow
+                originalTotal={subtotal}
+                walletBalance={walletBalance}
+                onApply={onWalletChange}
+                onRemove={() => onWalletChange(null)}
+                activeWallet={walletApplied}
+              />
+            </div>
+
+            {/* Wallet applied display */}
+            {walletApplied && walletAppliedAmount > 0 && (
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
+                <span>{t("wallet_applied") || "已套用 Space Wallet"}</span>
+                <span style={{ color: "#22b86b", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                  <>−<BookingPrice amount={walletAppliedAmount} /></>
+                </span>
+              </div>
+            )}
+
             {/* Points earned row */}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
               <span data-cms-key="book.points_earned_label">{t("points_earned_label")}</span>
-              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>+{total} {t("points")}</span>
+              <span style={{ color: tokens.colors.link, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+                <>+{earnPoints} {t("points")}</>
+              </span>
             </div>
             <div style={{ borderTop: `1px dashed ${tokens.colors.borderStrong}`, margin: "16px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <span style={{ fontSize: 15, fontWeight: 700 }}>{t("total")}</span>
               <span style={{ display: "inline-flex", alignItems: "baseline", gap: 4, whiteSpace: "nowrap", fontSize: 30, color: tokens.colors.link, fontVariantNumeric: "tabular-nums" }}>
                 <span style={{ fontFamily: tokens.font.sans, fontSize: 16 }}>HK$</span>
-                <span style={{ fontFamily: tokens.font.display }}>{total}</span>
+                <span style={{ fontFamily: tokens.font.display }}>
+                  {total}
+                </span>
               </span>
             </div>
           </div>
@@ -2479,6 +2505,9 @@ function Screen3({
                   agreedToTerms={agreedToTerms}
                   returnUrl={`${window.location.origin}/${locale}/book`}
                   locale={locale}
+                  useWallet={walletApplied !== null}
+                  promoCode={promoCode?.code ?? null}
+                  expectedTotal={total}
                   onBackToMethods={() => {
                     clearStripePersistedState()
                     setConfirmed(false)
@@ -2524,6 +2553,9 @@ function Screen3({
                     }))}
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
+                    useWallet={walletApplied !== null}
+                    promoCode={promoCode?.code ?? null}
+                    expectedTotal={total}
                     agreedToTerms={agreedToTerms}
                     uatPaymeSimulation={paymeUatSim}
                     resumeBookingId={resumeBookingId}
@@ -3013,27 +3045,95 @@ function Screen3({
 }
 
 /* ─────────────────────────  Screen 4: Confirmation Tickets  ───────────────────────── */
-type ConfirmationTicket = {
+
+/** One room booking within an order (may be merged with adjacent hours). */
+type TicketLine = {
+  tableNumber: number
   date: string
   startHour: number
   duration: number
-  tableNumber: number
   bookingRef: string
   humanCode?: string
-  /** Universal member identifier — the value encoded in every QR code. */
-  memberCode: string
-  holderName: string | null
-  totalPrice: number
-  paymentMethod?: string | null
 }
 
-// Renders one TicketCard per booking from the checkout (Task 8 — a
-// non-contiguous multi-slot order produces N booking rows sharing an
-// order_group_id, so it must produce N independent, individually-scannable
-// tickets, not one screen that only shows the first). The first ticket opens
-// expanded so the confetti/QR reveal reads as "your booking is confirmed";
-// any additional tickets start collapsed to avoid a wall of QR codes.
-function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
+/** One order ticket containing all merged room lines. */
+export type OrderTicket = {
+  memberCode: string
+  orderRef: string
+  paymentMethod?: string | null
+  totalPrice: number
+  totalHours: number
+  lines: TicketLine[]
+  promoDiscount?: number
+  creditDiscount?: number
+}
+
+/**
+ * Merge adjacent hours of the same room on the same date.
+ */
+function mergeAdjacentLines(lines: TicketLine[]): TicketLine[] {
+  if (lines.length === 0) return []
+  const merged: TicketLine[] = []
+  for (const line of lines) {
+    const last = merged[merged.length - 1]
+    if (
+      last &&
+      last.tableNumber === line.tableNumber &&
+      last.date === line.date &&
+      last.startHour + last.duration === line.startHour
+    ) {
+      last.duration += line.duration
+    } else {
+      merged.push({ ...line })
+    }
+  }
+  return merged
+}
+
+/**
+ * Convert confirmed bookings to a single OrderTicket.
+ */
+function buildOrderTicket(bookings: ConfirmedBooking[]): OrderTicket | null {
+  if (bookings.length === 0) return null
+  const confirmed = bookings.filter((b) => b.status === "confirmed")
+  if (confirmed.length === 0) return null
+
+  const sorted = confirmed.sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date)
+    if (a.start_time !== b.start_time) return a.start_time.localeCompare(b.start_time)
+    return a.table_number - b.table_number
+  })
+
+  const lines = sorted.map((b): TicketLine => ({
+    tableNumber: b.table_number,
+    date: b.date,
+    startHour: parseInt(b.start_time.slice(0, 2), 10),
+    duration: Number(b.duration_hours),
+    bookingRef: b.booking_reference ?? "",
+    humanCode: b.human_code,
+  }))
+
+  const merged = mergeAdjacentLines(lines)
+  const totalPrice = confirmed.reduce((sum, b) => sum + b.total_price, 0)
+  const totalHours = confirmed.reduce((sum, b) => sum + b.duration_hours, 0)
+  const orderRef = confirmed[0]?.order_group_id || confirmed[0]?.booking_reference || ""
+
+  return {
+    memberCode: confirmed[0]?.member_code ?? "",
+    orderRef,
+    paymentMethod: confirmed[0]?.payment_method ?? undefined,
+    totalPrice,
+    totalHours,
+    lines: merged,
+    promoDiscount: confirmed[0]?.promo_discount,
+    creditDiscount: confirmed[0]?.credit_discount,
+  }
+}
+
+/**
+ * Renders one consolidated order ticket with all merged room lines.
+ */
+function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
   const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
   const locale = useLocale()
@@ -3069,7 +3169,13 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
     }
   }, [])
 
-  const firstTicket = tickets[0]
+  if (!orderTicket) {
+    return (
+      <div className="screen-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: "calc(100dvh - 80px)", position: "relative", padding: "24px 20px" }}>
+        <div style={{ width: "100%", maxWidth: 400, margin: "0 auto", height: 420 }} />
+      </div>
+    )
+  }
 
   return (
     <div className="screen-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", minHeight: "calc(100dvh - 80px)", position: "relative", padding: "24px 20px" }}>
@@ -3081,42 +3187,21 @@ function Screen4({ tickets }: { tickets: ConfirmationTicket[] }) {
           </motion.div>
         </motion.div>
 
-        {firstTicket ? (
-          <TicketPrinter
-            date={firstTicket.date}
-            startHour={firstTicket.startHour}
-            duration={firstTicket.duration}
-            tableNumber={firstTicket.tableNumber}
-            bookingRef={firstTicket.bookingRef}
-            humanCode={firstTicket.humanCode}
-            memberCode={firstTicket.memberCode}
-            totalPrice={firstTicket.totalPrice}
-            paymentMethod={firstTicket.paymentMethod}
-          />
-        ) : (
-          <div style={{ height: 420 }} />
-        )}
+        <TicketPrinter orderTicket={orderTicket} locale={locale} />
 
-        {tickets.length > 1 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 24 }}>
-            {tickets.slice(1).map((ticket, i) => (
-              <TicketCard
-                key={ticket.bookingRef + i}
-                date={ticket.date}
-                startHour={ticket.startHour}
-                duration={ticket.duration}
-                tableNumber={ticket.tableNumber}
-                bookingRef={ticket.bookingRef}
-                humanCode={ticket.humanCode}
-                memberCode={ticket.memberCode}
-                totalPrice={ticket.totalPrice}
-                paymentMethod={ticket.paymentMethod}
-              />
-            ))}
-          </div>
-        )}
-
-        <motion.a href="/member" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 4.7, duration: 0.4, ease: [0.16, 1, 0.3, 1] }} data-cms-key="book.ticket.member_cta" style={{ width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginBottom: 16, textDecoration: "none" }}>
+        {/* Plain <a>, not the i18n Link: /member lives at app/member (outside [locale]) and
+            middleware bypasses it, so it must never get a locale prefix. position+zIndex lift
+            it above .ticket-printer-scene, whose -96px bottom margin overlaps this slot and
+            (being a positioned, isolated layer) swallowed every click once the entry
+            animation finished and Framer reset transform to none. */}
+        <motion.a
+          href="/member"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 4.7, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          data-cms-key="book.ticket.member_cta"
+          data-testid="go-to-member"
+          style={{ position: "relative", zIndex: 1, width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginBottom: 16, textDecoration: "none" }}>
           {t("go_to_member")}
         </motion.a>
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 4.9, duration: 0.4 }} style={{ textAlign: "center" }}>
@@ -3146,6 +3231,8 @@ type ConfirmedBooking = {
   /** Injected by /api/booking/status — the universal member QR identifier. */
   member_code?: string
   holder_name?: string | null
+  promo_discount?: number
+  credit_discount?: number
 }
 
 // Shown after an external payment return while the webhook commits the booking.
@@ -3172,6 +3259,7 @@ function ConfirmingPayment({
   onBackToSlots: () => void
 }) {
   const t = useTranslations("book")
+  const tCommon = useTranslations("common")
 
   if (reason) {
     return (
@@ -3218,7 +3306,7 @@ function ConfirmingPayment({
         padding: "24px 20px",
       }}
     >
-      <LoadingGif />
+      <LoadingGif label={tCommon("loading")} />
       <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
         {t("confirming")}
       </p>
@@ -3306,6 +3394,7 @@ export default function BookPage() {
   const [selectedSlotsByDate, setSelectedSlotsByDate] = useState<Map<string, Set<string>>>(new Map())
   const [bookingRef] = useState(() => genRef())
   const [promoCode, setPromoCode] = useState<PromoResult | null>(null)
+  const [walletApplied, setWalletApplied] = useState<WalletResult | null>(null)
   const paymentRef = useRef<HTMLDivElement>(null)
   // Stripe and KPay external-return confirmation state.
   const [confirmBookingId, setConfirmBookingId] = useState<string | null>(null)
@@ -3364,6 +3453,17 @@ export default function BookPage() {
   useEffect(() => {
     if (promoCode) sessionStorage.removeItem('pendingPromo')
   }, [promoCode])
+
+  // Wallet and promo are mutually exclusive
+  const handlePromoChange = useCallback((promo: PromoResult | null) => {
+    setPromoCode(promo)
+    if (promo) setWalletApplied(null)
+  }, [])
+
+  const handleWalletChange = useCallback((wallet: WalletResult | null) => {
+    setWalletApplied(wallet)
+    if (wallet) setPromoCode(null)
+  }, [])
 
   // Step navigation: advance to next screen
   const advance = useCallback(() => {
@@ -3675,6 +3775,8 @@ export default function BookPage() {
   // back to DEFAULT_PERIODS until this resolves or if it fails, same fallback
   // contract as getConfig().
   const [periods, setPeriods] = useState<PricingPeriod[]>(DEFAULT_PERIODS)
+  const [pricingReady, setPricingReady] = useState(false)
+  const pricingFallbackWarningLogged = useRef(false)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -3687,6 +3789,14 @@ export default function BookPage() {
       const rates = data?.value as Record<string, { base: number; discount: number; timeRange: string }> | null
       if (!cancelled && !error && rates && typeof rates === 'object' && !Array.isArray(rates)) {
         setPeriods(pricingRatesToPeriods(rates))
+        setPricingReady(true)
+      } else if (!cancelled) {
+        // Fallback is being used
+        if (!pricingFallbackWarningLogged.current) {
+          console.warn('[booking] pricing_rates not found or invalid, using DEFAULT_PERIODS')
+          pricingFallbackWarningLogged.current = true
+        }
+        setPricingReady(true)
       }
     })()
     return () => {
@@ -3777,6 +3887,8 @@ export default function BookPage() {
         <Starfield />
       </div>
       <div className="book-container" style={{ position: "relative", zIndex: 1 }}>
+        {/* Page had no h1; visually hidden so the layout is unchanged. */}
+        <h1 className="sr-only" data-cms-key="book.h1_seo">{t("h1_seo")}</h1>
         {/* Progress — back arrow (hidden on the confirmation screen; booking is
             done, Screen4 offers a deliberate "Back to Home" instead) shares the
             same row as the stepper so it never overlaps it. */}
@@ -3873,10 +3985,13 @@ export default function BookPage() {
                   blocks={runs}
                   periods={periods}
                   promoCode={promoCode}
-                  onPromoChange={setPromoCode}
+                  onPromoChange={handlePromoChange}
+                  walletApplied={walletApplied}
+                  onWalletChange={handleWalletChange}
                   resumeBookingId={kpayResumeData?.bookingId}
                   resumeOrderNo={kpayResumeData?.orderNo}
                   removeRun={removeRun}
+                  pricingReady={pricingReady}
                   onBackToSlots={() => {
                     // Refresh availability (the lock may have changed while on
                     // the payment step) but keep the user's selection intact —
@@ -3914,40 +4029,12 @@ export default function BookPage() {
                     }}
                   />
                 ) : confirmedBooking ? (
-                  <Screen4
-                    tickets={confirmedBookings.map((b) => ({
-                      date: b.date,
-                      startHour: parseInt(b.start_time.slice(0, 2), 10),
-                      duration: Number(b.duration_hours),
-                      tableNumber: b.table_number,
-                      bookingRef: b.booking_reference ?? bookingRef,
-                      humanCode: b.human_code,
-                      memberCode: b.member_code ?? '',
-                      holderName: b.holder_name ?? null,
-                      totalPrice: b.total_price,
-                      paymentMethod: b.payment_method,
-                    }))}
-                  />
+                  <Screen4 orderTicket={buildOrderTicket(confirmedBookings)} />
                 ) : (
                   // Defensive fallback — the normal flow always sets confirmBookingId
                   // via the Stripe redirect-return effect before screen reaches 3, so
                   // this branch shouldn't render in practice.
-                  <Screen4
-                    tickets={
-                      runs.length > 0
-                        ? runs.map((r) => ({
-                            date: r.date,
-                            startHour: r.startHour,
-                            duration: r.duration,
-                            tableNumber: r.tableNumber,
-                            bookingRef,
-                            memberCode: '',
-                            holderName: null,
-                            totalPrice: quoteBlockTotal(r.date, r.startHour, r.duration, periods),
-                          }))
-                        : []
-                    }
-                  />
+                  <Screen4 orderTicket={null} />
                 )}
               </motion.div>
             )}
@@ -4071,10 +4158,9 @@ export default function BookPage() {
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
           background: ${tokens.colors.depth.elevated};
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
           z-index: 40;
+          isolation: isolate;
         }
 
         /* Confirm-pay bar. Same treatment as .mobile-cta but NOT hidden on
@@ -4087,10 +4173,9 @@ export default function BookPage() {
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
           background: ${tokens.colors.depth.elevated};
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
           border-top: 1px solid rgba(255,255,255,0.08);
           z-index: 40;
+          isolation: isolate;
         }
         .pay-cta-inner {
           max-width: 480px;

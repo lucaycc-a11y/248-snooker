@@ -240,12 +240,24 @@ async function handleStripeStatus(booking: any, service: any, userId: string) {
             }
           }
         } catch (amountCheckErr) {
-          // If amount check fails (e.g., Stripe API error), log but don't block confirmation
-          console.error('[Stripe] proactive polling: amount check failed', {
+          // If amount check fails (e.g., Stripe API error), FAIL-CLOSED: do not confirm
+          console.error('[Stripe] proactive polling: amount check failed — FAILING CLOSED', {
             bookingId: booking.id,
             error: (amountCheckErr as Error).message,
           })
-          // Continue to confirmation - webhook's amount check is the primary safeguard
+          // Park in payment_review until support reconciles
+          await service
+            .from('bookings')
+            .update({ status: 'payment_review' })
+            .eq('id', booking.id)
+          logResult({ status: 'payment_review', providerStatus: 'amount_check_error' })
+          return NextResponse.json({
+            bookingId: booking.id,
+            status: 'payment_review',
+            providerStatus: 'amount_check_error',
+            holdActive: false,
+            holdExpiresAt: null,
+          })
         }
 
         try {
@@ -438,6 +450,9 @@ async function handleKPayStatus(booking: any, service: any, userId: string) {
   switch (orderStatus.status) {
     case 'success':
       if (booking.status !== 'confirmed') {
+        // Note: KPay's queryOrder does not return the captured amount, so we cannot
+        // perform amount reconciliation here. The webhook's amount check is the primary
+        // safeguard. Confirm the booking if KPay reports success.
         try {
           if (booking.order_group_id) {
             const { data: rows, error: rowsErr } = await service

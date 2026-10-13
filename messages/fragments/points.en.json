@@ -1,0 +1,78 @@
+{
+  "back": "Back",
+  "bookNow": "Book Now",
+  "viewWallet": "View Wallet",
+  "activity": "Points Activity",
+  "filterLabel": "Filter points activity",
+  "loadMore": "Load More",
+  "points": "points",
+  "earned": "Earned",
+  "deducted": "Deducted",
+
+  "lifetimePoints": "Lifetime Points",
+  "redeemablePoints": "Redeemable Points",
+  "needMore": "Earn {{points}} more points to auto-deposit HK${{amount}}",
+  "depositedToWallet": "Deposited to Wallet",
+  "convertedPoints": "Converted Points",
+
+  "tierAmateur": "Amateur Member",
+  "tierCentury": "Century Member",
+  "tierMaximum": "Maximum Member",
+
+  "filter": {
+    "all": "All",
+    "earn": "Earned",
+    "wallet": "Deposited",
+    "back": "Deducted"
+  },
+
+  "txType": {
+    "booking": "Booking Purchase",
+    "signup": "Welcome Bonus",
+    "bonus": "Bonus Points",
+    "manual": "System Adjustment",
+    "convert": "Points Deposited to Space Wallet",
+    "redeem": "Redemption",
+    "reversal": "Refund Reversal"
+  },
+
+  "empty": {
+    "all": {
+      "title": "No Points Activity",
+      "desc": "Points will accumulate automatically after your first booking."
+    },
+    "earn": {
+      "title": "No Earned Records",
+      "desc": "Points are credited based on the actual amount paid after each successful payment."
+    },
+    "wallet": {
+      "title": "No Deposit Records",
+      "desc": "For every 100 points accumulated, HK$10 is automatically deposited to Space Wallet."
+    },
+    "back": {
+      "title": "No Deduction Records",
+      "desc": "Points are only deducted when an order is refunded."
+    }
+  },
+
+  "error": {
+    "title": "Unable to Load Points",
+    "desc": "Your points are not affected. Please check your network and try again. If the problem persists, please contact us.",
+    "retry": "Retry"
+  },
+
+  "howItWorks": {
+    "title": "How Points Work",
+    "rule1": "Earn 1 point for every HK$1 spent, calculated on the actual amount paid (after deducting promo codes or Space Wallet credits).",
+    "rule2": "For every 100 points accumulated, HK$10 is automatically deposited to your Space Wallet with no action required.",
+    "rule3": "Points earned from a purchase are credited after payment is completed and cannot be used for that order.",
+    "rule4": "Using Space Wallet does not reduce accumulated points or affect membership tier.",
+    "rule5": "New members receive 100 points upon registration, with HK$10 automatically deposited.",
+    "rule6": "When an order is refunded, the points earned from that order are deducted accordingly."
+  },
+
+  "tierBenefits": {
+    "title": "Tier Benefits",
+    "desc": "Tier benefits are yet to be confirmed. Currently, all tiers earn 1 point per HK$1 spent with no additional multipliers."
+  }
+}

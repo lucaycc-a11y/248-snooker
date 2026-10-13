@@ -11,6 +11,8 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./', import.meta.url)),
     },
   },
+  // tsconfig uses "jsx": "preserve" for Next; tests need the transformer to compile JSX itself.
+  oxc: { jsx: { runtime: 'automatic' } },
   test: {
     environment: 'happy-dom',
     include: ['{app,lib,components}/**/*.test.{ts,tsx}'],

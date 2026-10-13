@@ -3,15 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { MAP_QUERY, MAPS_URL } from "@/lib/site/nap";
 
 const FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Noto Sans TC', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
-const ADDRESS = "香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室";
-const MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-  "泰力工業中心 32 Tai Yau Street, San Po Kong, Hong Kong",
-)}`;
-const EMBED_URL = "https://maps.google.com/maps?q=%E9%A6%99%E6%B8%AF%E6%96%B0%E8%92%B2%E5%B4%97%E5%A4%A7%E6%9C%89%E8%A1%9732%E8%99%9F%E6%B3%B0%E5%8A%9B%E5%B7%A5%E6%A5%AD%E4%B8%AD%E5%BF%83&t=&z=17&ie=UTF8&iwloc=&output=embed";
+const EMBED_URL = `https://maps.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
 
 const DIR_CSS = `
 .dir-section.is-in .dir-card { opacity: 1 !important; transform: none !important; }
@@ -66,6 +63,7 @@ const DIR_CSS = `
 
 export default function Directions() {
   const t = useTranslations("venuePage");
+  const dirT = useTranslations("homeDirections");
   const secRef = useRef<HTMLElement>(null);
   const [isIn, setIsIn] = useState(false);
 
@@ -152,7 +150,7 @@ export default function Directions() {
               color: "#111110",
               marginBottom: 14,
             }}>
-              {t("address")}
+              {dirT("address")}
             </p>
 
             <ul className="dir-notes" style={{
@@ -160,49 +158,19 @@ export default function Directions() {
               marginBottom: 30,
               padding: 0,
             }}>
-              <li style={{
-                position: "relative",
-                paddingLeft: 17,
-                fontFamily: FONT_FAMILY,
-                fontSize: 13.8,
-                lineHeight: 1.75,
-                color: "rgba(17,17,16,0.58)",
-              }}>
-                港鐵鑽石山站 A2 出口或啟德站 Airside C 出口步行約 8–10 分鐘
-              </li>
-              <li style={{
-                position: "relative",
-                paddingLeft: 17,
-                fontFamily: FONT_FAMILY,
-                fontSize: 13.8,
-                lineHeight: 1.75,
-                color: "rgba(17,17,16,0.58)",
-                marginTop: 8,
-              }}>
-                距離鑽石山站 A2 出口 500 米（建議路線）
-              </li>
-              <li style={{
-                position: "relative",
-                paddingLeft: 17,
-                fontFamily: FONT_FAMILY,
-                fontSize: 13.8,
-                lineHeight: 1.75,
-                color: "rgba(17,17,16,0.58)",
-                marginTop: 8,
-              }}>
-                亦可乘搭巴士或小巴至大有街附近下車
-              </li>
-              <li style={{
-                position: "relative",
-                paddingLeft: 17,
-                fontFamily: FONT_FAMILY,
-                fontSize: 13.8,
-                lineHeight: 1.75,
-                color: "rgba(17,17,16,0.58)",
-                marginTop: 8,
-              }}>
-                建議泊車：新科技廣場停車場（威信停車場）
-              </li>
+              {dirT.raw("directions").map((direction: string, index: number) => (
+                <li key={index} style={{
+                  position: "relative",
+                  paddingLeft: 17,
+                  fontFamily: FONT_FAMILY,
+                  fontSize: 13.8,
+                  lineHeight: 1.75,
+                  color: "rgba(17,17,16,0.58)",
+                  marginTop: index === 0 ? 0 : 8,
+                }}>
+                  {direction}
+                </li>
+              ))}
             </ul>
 
             <div className="dir-actions" style={{
@@ -256,7 +224,7 @@ export default function Directions() {
                   border: "1px solid rgba(17,17,16,0.22)",
                 }}
               >
-                立即預訂
+                {dirT("cta_book")}
               </Link>
             </div>
           </div>

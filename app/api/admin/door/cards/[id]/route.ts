@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
 type CardRow = { id: string; uid: string; label: string; active: boolean }
 
@@ -19,7 +19,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
 
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data: existing } = await service
       .from('staff_nfc_cards')
@@ -58,7 +58,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { id } = await params
-    const service = getServiceSupabase()
+    const service = getLegacyServiceSupabase()
 
     const { data: existing } = await service
       .from('staff_nfc_cards')

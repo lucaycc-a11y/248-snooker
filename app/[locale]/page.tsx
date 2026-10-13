@@ -1,21 +1,62 @@
 import type { Metadata } from "next";
+import { indexingMeta } from "@/lib/env/app-env";
+import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
-import Hero from "@/components/landing/Hero";
-import HomeFacilities from "@/components/landing/HomeFacilities";
-import SpacePilotScoreboardExperience from "@/components/landing/SpacePilotScoreboardExperience";
-import Section5Booking from "@/components/landing/Section5Booking";
-import Section6Pricing from "@/components/landing/Section6Pricing";
-import { getConfig } from "@/lib/data/getConfig";
-import Member from "@/components/landing/Member";
-import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
-import HomeFAQ from "@/components/landing/HomeFAQ";
-import Directions from "@/components/landing/Directions";
 import Footer from "@/components/layout/Footer";
-import ContactButton from "@/components/shared/ContactButton";
+import { getConfig } from "@/lib/data/getConfig";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
+import { periodsToSlots } from "@/lib/ui/pricing-adapter";
+import { MAP_QUERY } from "@/lib/site/nap";
+
+// ── Critical above-the-fold components (eager load) ─────────────────────────
+import Hero from "@/components/landing/Hero";
+import HomeFacilitiesNew from "@/components/landing/HomeFacilitiesNew";
+
+// ── Heavy animation components (lazy load with priority) ────────────────────
+// SpacePilotScoreboardExperience uses framer-motion scroll animations
+const SpacePilotScoreboardExperience = dynamic(
+  () => import("@/components/landing/SpacePilotScoreboardExperience"),
+  {
+    ssr: true,
+    loading: () => <div className="h-screen" /> // Preserve layout while loading
+  }
+);
+
+// ── Below-the-fold components (lazy load) ───────────────────────────────────
+const Section5BookingNew = dynamic(
+  () => import("@/components/landing/Section5BookingNew"),
+  { ssr: true }
+);
+
+const PricingCards = dynamic(
+  () => import("@/components/ui/pricing-cards"),
+  { ssr: true }
+);
+
+const MembershipNew = dynamic(
+  () => import("@/components/landing/MembershipNew"),
+  { ssr: true }
+);
+
+const HomeFAQ = dynamic(
+  () => import("@/components/landing/HomeFAQ"),
+  { ssr: true }
+);
+
+const HowToGo = dynamic(
+  () => import("@/components/landing/HowToGo"),
+  { ssr: true }
+);
+
+const ContactButton = dynamic(
+  () => import("@/components/shared/ContactButton"),
+  { ssr: false } // Client-only, no SSR needed
+);
 
 export async function generateMetadata({
   params,
@@ -24,12 +65,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
 
-  const meta: Record<string, { title: string; description: string; keywords: string[]; ogTitle: string; ogDesc: string; canonical: string; ogLocale: string }> = {
+  const meta: Record<string, { title: string; description: string; keywords: string[]; ogDesc: string; canonical: string; ogLocale: string }> = {
     'zh-HK': {
       title: 'SPACE8｜香港中八桌球室｜新蒲崗自助無煙獨立球室',
       description: 'SPACE8 是香港新蒲崗自助無煙中八獨立球室，全預約制，網上預訂、QR碼自助入場。鄰近鑽石山及啟德港鐵站，九龍區中八愛好者主場。',
       keywords: ['中八', '中式八球', '中式桌球', '香港中八', '新蒲崗桌球', '鑽石山桌球', '九龍桌球', '自助桌球', '無煙桌球室'],
-      ogTitle: 'SPACE8',
       ogDesc: '香港中八桌球室 · 新蒲崗自助無煙獨立球室 · 全預約制',
       canonical: 'https://space8.com.hk',
       ogLocale: 'zh_HK',
@@ -38,7 +78,6 @@ export async function generateMetadata({
       title: 'SPACE8｜香港中式八球台球室｜新蒲岗自助无烟独立球室',
       description: 'SPACE8 是香港新蒲岗自助无烟中式八球独立球室，全预约制，网上预订、QR码自助入场。邻近钻石山及启德港铁站，九龙区中式八球爱好者主场。',
       keywords: ['中式八球', '中八', '中式台球', '香港中式八球', '新蒲岗台球', '钻石山台球', '九龙台球', '自助台球', '无烟台球室'],
-      ogTitle: 'SPACE8',
       ogDesc: '香港中式八球台球室 · 新蒲岗自助无烟独立球室 · 全预约制',
       canonical: 'https://space8.com.hk/zh-CN',
       ogLocale: 'zh_CN',
@@ -47,7 +86,6 @@ export async function generateMetadata({
       title: 'SPACE8｜Hong Kong Chinese Eight-Ball Club｜Self-Service Private Rooms in San Po Kong',
       description: 'SPACE8 is a self-service, smoke-free Chinese eight-ball club in San Po Kong, Hong Kong. Reservation-based, book online with QR code check-in. Near Diamond Hill and Kai Tak MTR stations.',
       keywords: ['Chinese eight-ball', 'Chinese 8-ball pool', 'Chinese eight-ball Hong Kong', 'San Po Kong pool', 'Kowloon pool', 'self service pool', 'smoke-free pool room'],
-      ogTitle: 'SPACE8',
       ogDesc: 'Hong Kong Chinese Eight-Ball Club · San Po Kong · Reservation-Based',
       canonical: 'https://space8.com.hk/en',
       ogLocale: 'en_HK',
@@ -61,7 +99,9 @@ export async function generateMetadata({
     description: m.description,
     keywords: m.keywords,
     openGraph: {
-      title: m.ogTitle,
+      // og:title must match the title text exactly — a bare brand name here
+      // is what produced "No information is available for this page" on GSC.
+      title: m.title,
       description: m.ogDesc,
       url: m.canonical,
       siteName: 'Space8',
@@ -78,20 +118,12 @@ export async function generateMetadata({
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Space8',
+      title: m.title,
       description: m.ogDesc,
       images: ['https://space8.com.hk/images/og-image-中八桌球-香港新蒲崗.png'],
     },
-    alternates: {
-      canonical: m.canonical,
-      languages: {
-        'zh-HK': 'https://space8.com.hk',
-        'zh-CN': 'https://space8.com.hk/zh-CN',
-        en: 'https://space8.com.hk/en',
-        'x-default': 'https://space8.com.hk',
-      },
-    },
-    robots: { index: true, follow: true },
+    alternates: pageAlternates(locale, "/"),
+    robots: indexingMeta(),
   };
 }
 
@@ -103,8 +135,26 @@ export default async function Home({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`);
+  const t = await getTranslations("pricingPage");
   const config = await getConfig();
+
+  // Reorder periods: morning → afternoon → evening (explicit display order)
+  const PERIOD_ORDER = ['morning', 'afternoon', 'evening'] as const;
+  const orderedPeriods = PERIOD_ORDER
+    .map(id => config.periods.find(p => p.id === id))
+    .filter((p): p is NonNullable<typeof p> => p !== undefined);
+
+  const slots = periodsToSlots(orderedPeriods, (key: string) => t(key));
+  const sportsClubJsonLd = buildSportsClubJsonLd(locale, locale === "zh-HK" ? "/" : `/${locale}`, {
+    periods: config.periods,
+    openHour: config.openHour,
+    closeHour: config.closeHour,
+  });
+  // FAQPage schema mirrors exactly the HomeFAQ subset rendered below.
+  const tFaq = await getTranslations("faq");
+  const faqJsonLd = getFaqJsonLd((key: string) => tFaq(key), HOMEPAGE_FAQ_IDS);
+
+  const EMBED_URL = `https://maps.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&t=&z=17&ie=UTF8&iwloc=&output=embed`;
 
   return (
     <main className="relative bg-black" style={{ isolation: "isolate" }}>
@@ -113,27 +163,43 @@ export default async function Home({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(sportsClubJsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
+      />
       <AmbientGlow />
       <Nav />
       <Hero />
-      <HomeFacilities />
+      <section
+        aria-labelledby="home-facilities-title"
+        data-nav-theme="dark"
+        className="overflow-x-clip bg-black px-0 py-24 md:py-32 pt-[calc(var(--nav-h,4rem)+3rem)] min-h-[100svh] flex flex-col justify-center"
+      >
+        <HomeFacilitiesNew />
+      </section>
       <SpacePilotScoreboardExperience />
-      <Section5Booking />
-      <Section6Pricing periods={config.periods} />
+      <Section5BookingNew />
+
+      <PricingCards
+        theme="light"
+        heading={t("periods_title")}
+        subheading={t("periods_subtitle")}
+        slots={slots}
+      />
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />
 
       {/* Membership - last section before footer */}
       <ErrorBoundary sectionName="會員制度">
-        <Member />
+        <MembershipNew />
       </ErrorBoundary>
 
       {/* FAQ — above the footer. Homepage shows a curated 5-item subset with
           a "了解更多" link to the full /faq page. */}
       <HomeFAQ ids={HOMEPAGE_FAQ_IDS} moreHref="/faq" />
 
-      <Directions />
+      <HowToGo theme="light" map={{ embedUrl: EMBED_URL }} />
 
       <Footer />
 

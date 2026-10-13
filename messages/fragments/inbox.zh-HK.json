@@ -1,0 +1,18 @@
+{
+  "title": "收件匣",
+  "detailTitle": "訊息詳情",
+  "filterAll": "全部",
+  "filterCredit": "錢包",
+  "filterPromo": "優惠",
+  "filterSystem": "系統",
+  "emptyTitle": "暫無訊息",
+  "emptyMessage": "您目前沒有任何通知訊息",
+  "errorTitle": "載入失敗",
+  "errorMessage": "無法載入收件匣，請稍後再試",
+  "retry": "重試",
+  "typeCredit": "錢包通知",
+  "typePromo": "優惠活動",
+  "typeSystem": "系統通知",
+  "metaType": "類型",
+  "metaTime": "時間"
+}

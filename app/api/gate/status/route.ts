@@ -3,11 +3,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServiceSupabase } from '@/lib/supabase/service'
+import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { cookies } from 'next/headers'
 
 export async function GET(request: NextRequest) {
-  const service = getServiceSupabase()
+  const service = getLegacyServiceSupabase()
 
   // Get gate config
   const { data: gateConfig } = await service

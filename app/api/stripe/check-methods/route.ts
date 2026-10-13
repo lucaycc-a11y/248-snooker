@@ -5,6 +5,8 @@
 
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const secretKey = process.env.STRIPE_SECRET_KEY
@@ -15,12 +17,11 @@ export async function GET() {
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Stripe = require('stripe')
     const stripe = new Stripe(secretKey, {
       apiVersion: '2026-06-24.dahlia',
       typescript: true,
-    })
+    }) as import('stripe').Stripe
 
     // Create a temporary PaymentIntent to discover available methods
     const intent = await stripe.paymentIntents.create({
@@ -36,16 +37,17 @@ export async function GET() {
       raw_intent_id: intent.id,
       note: 'This shows which payment methods are enabled in your Stripe Dashboard for HKD currency',
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const err = error as { message?: string; type?: string; code?: string }
     console.error('[stripe/check-methods] error', {
-      message: error.message,
-      type: error.type,
-      code: error.code,
+      message: err.message,
+      type: err.type,
+      code: err.code,
     })
     return NextResponse.json(
       {
         error: 'Failed to check Stripe payment methods',
-        detail: error.message,
+        detail: err.message || 'Unknown error',
       },
       { status: 500 }
     )

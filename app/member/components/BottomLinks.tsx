@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { Settings, User, Shield, FileText, type LucideIcon } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 // ════════════════════════════════════════════════════════════════════════════
 // BottomLinks — Settings / Manage Account / Safety / Legal + version
 // ════════════════════════════════════════════════════════════════════════════
 
 export function BottomLinks() {
+  const t = useTranslations('member')
   const [version, setVersion] = useState<string>('')
 
   useEffect(() => {
@@ -30,16 +32,36 @@ export function BottomLinks() {
     <div className="space-y-4 pb-12">
       {/* Primary Links */}
       <div className="space-y-2">
-        <BottomLink href="/member/settings" icon={Settings} title="Settings" subtitle="帳戶設定" />
-        <BottomLink href="/member/manage" icon={User} title="Manage Account" subtitle="管理帳戶" />
-        <BottomLink href="/member/safety" icon={Shield} title="Safety" subtitle="安全守則" />
-        <BottomLink href="/member/legal" icon={FileText} title="Legal" subtitle="法律條款" />
+        <BottomLink
+          href="/member/settings"
+          icon={Settings}
+          title={t('bottom_links.settings.title')}
+          subtitle={t('bottom_links.settings.subtitle')}
+        />
+        <BottomLink
+          href="/member/manage"
+          icon={User}
+          title={t('bottom_links.manage.title')}
+          subtitle={t('bottom_links.manage.subtitle')}
+        />
+        <BottomLink
+          href="/member/safety"
+          icon={Shield}
+          title={t('bottom_links.safety.title')}
+          subtitle={t('bottom_links.safety.subtitle')}
+        />
+        <BottomLink
+          href="/member/legal"
+          icon={FileText}
+          title={t('bottom_links.legal.title')}
+          subtitle={t('bottom_links.legal.subtitle')}
+        />
       </div>
 
       {/* Version */}
       {version && (
         <div className="text-center">
-          <p className="text-xs text-white/30">版本 {version}</p>
+          <p className="text-xs text-white/30">{t('bottom_links.version')} {version}</p>
         </div>
       )}
     </div>

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { indexingMeta } from "@/lib/env/app-env";
+import { pageAlternates } from "@/lib/seo/site";
 import { setRequestLocale } from 'next-intl/server'
 import Nav from '@/components/layout/Nav'
 import Footer from '@/components/layout/Footer'
@@ -34,15 +36,7 @@ export async function generateMetadata({
   return {
     title: m.title,
     description: m.description,
-    alternates: {
-      canonical: `${BASE}${path}`,
-      languages: {
-        'zh-HK': `${BASE}/credits`,
-        'zh-CN': `${BASE}/zh-CN/credits`,
-        en: `${BASE}/en/credits`,
-        'x-default': `${BASE}/credits`,
-      },
-    },
+    alternates: pageAlternates(locale, "/credits"),
     openGraph: {
       title: m.title,
       description: m.description,
@@ -50,7 +44,7 @@ export async function generateMetadata({
       siteName: 'Space8',
       type: 'website',
     },
-    robots: { index: true, follow: true },
+    robots: indexingMeta(),
   }
 }
 
