@@ -21,6 +21,8 @@ export type PromoResult = {
   discount_value: number
   discount_amount: number
   final_amount: number
+  /** False when the code cannot be combined with Space Wallet credit. */
+  stackable_with_credits: boolean
 }
 
 type Props = {
@@ -36,6 +38,7 @@ type Props = {
     invalidLabel: string
     expiredLabel: string
     minCartLabel: string
+    notStartedLabel?: string
     validatingLabel: string
   }
 }
@@ -48,6 +51,7 @@ const DEFAULT_LABELS = {
   invalidLabel: 'Invalid code',
   expiredLabel: 'Code expired',
   minCartLabel: 'Minimum order not met',
+  notStartedLabel: 'This code is not active yet',
   validatingLabel: 'Checking...',
 }
 
@@ -87,6 +91,7 @@ export default function PromoCodeInput({ originalTotal, onApply, onRemove, activ
             discount_value: data.discount_value as number,
             discount_amount: data.discount_amount as number,
             final_amount: data.final_amount as number,
+            stackable_with_credits: data.stackable_with_credits === true,
           })
         }
       } catch {} finally {
@@ -114,8 +119,9 @@ export default function PromoCodeInput({ originalTotal, onApply, onRemove, activ
       if (!data.valid) {
         const reason = data.reason
         setError(
-          reason === 'invalid_or_expired' ? L.expiredLabel
-            : reason === 'min_cart_not_met' ? L.minCartLabel
+          reason === 'invalid_or_expired' || reason === 'expired' ? L.expiredLabel
+            : reason === 'not_started' ? (L.notStartedLabel ?? L.invalidLabel)
+            : reason === 'min_cart_not_met' || reason === 'min_order_not_met' ? L.minCartLabel
             : L.invalidLabel
         )
         return
@@ -127,6 +133,7 @@ export default function PromoCodeInput({ originalTotal, onApply, onRemove, activ
         discount_value: data.discount_value as number,
         discount_amount: data.discount_amount as number,
         final_amount: data.final_amount as number,
+        stackable_with_credits: data.stackable_with_credits === true,
       })
       setCode('')
       setError(null)

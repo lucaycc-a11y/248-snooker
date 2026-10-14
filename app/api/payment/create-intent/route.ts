@@ -294,7 +294,7 @@ async function handleCreateIntent(req: Request) {
     }
 
     const prepared = outcome.prepared
-    const promoCode = prepared.kind === 'promo' ? prepared.code : null
+    const promoCode = prepared.kind === 'promo' || prepared.kind === 'both' ? prepared.code : null
     const discountCents = Math.round(prepared.discountAmount * 100)
     amountInCents = Math.round(prepared.total * 100)
 
@@ -312,7 +312,7 @@ async function handleCreateIntent(req: Request) {
             error: 'price_changed',
             code: 'price_changed',
             total: prepared.total,
-            walletApplied: prepared.kind === 'credits' ? prepared.points : 0,
+            walletApplied: prepared.creditDiscount,
           },
           { status: 409 },
         )
@@ -473,7 +473,7 @@ async function handleCreateIntent(req: Request) {
       currency: 'hkd',
       // Item 1: Return server-computed totals and discount info
       total: prepared.total,
-      walletApplied: prepared.kind === 'credits' ? prepared.points : 0,
+      walletApplied: prepared.creditDiscount,
       kind: prepared.kind,
     })
   } catch (err) {

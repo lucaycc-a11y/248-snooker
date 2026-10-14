@@ -1351,6 +1351,7 @@
     "promo_invalid": "無效代碼",
     "promo_expired": "代碼已過期",
     "promo_min_cart": "未達最低消費",
+    "promo_not_started": "優惠碼尚未生效",
     "promo_validating": "驗證中…",
     "free_booking_title": "免費預訂",
     "free_booking_desc": "您的優惠碼已完全抵扣訂單金額。点擊下方按钮確認預訂 — 無需付款。",
@@ -2859,7 +2860,9 @@
       "balance": "Space Wallet 可用餘額",
       "apply": "套用",
       "remove": "移除",
-      "insufficient": "Space Wallet 餘額不足"
+      "insufficient": "Space Wallet 餘額不足",
+      "not_stackable": "此優惠碼不可與 Space Wallet 併用",
+      "min_note": "信用卡付款最低為 HK$10，所以今次用咗 HK${used} Space Wallet，其餘 HK${left} 會保留喺你戶口。"
     }
   },
   "creditsPage": {

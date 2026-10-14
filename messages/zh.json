@@ -93,7 +93,9 @@
       "balance": "Space Wallet 可用餘額",
       "apply": "套用",
       "remove": "移除",
-      "insufficient": "Space Wallet 餘額不足"
+      "insufficient": "Space Wallet 餘額不足",
+      "not_stackable": "此優惠碼不可與 Space Wallet 併用",
+      "min_note": "信用卡付款最低為 HK$10，所以今次用咗 HK${used} Space Wallet，其餘 HK${left} 會保留喺你戶口。"
     }
   },
   "auth": {

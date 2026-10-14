@@ -32,6 +32,7 @@ import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
 import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
 import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/CheckoutWalletRow"
+import { creditToApply } from "@/lib/checkout/credit-rule"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
@@ -2030,17 +2031,23 @@ function Screen3({
   const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
   const totalSaved = 0
   const promoDiscount = promoCode?.discount_amount ?? 0
-  const walletAppliedAmount = walletApplied?.amount ?? 0
+  const [walletBalance, setWalletBalance] = useState(0)
+  // Promo applies first, then Space Wallet credit on what is left — same rule as the
+  // server (prepare_checkout), including the HK$10 minimum card payment.
+  const walletAppliedAmount = walletApplied
+    ? creditToApply({ subtotal, promoDiscount, balance: walletBalance })
+    : 0
   const total = Math.max(0, subtotal - promoDiscount - walletAppliedAmount)
+  // The applied promo code forbids combining with Space Wallet credit.
+  const walletBlockedByPromo = promoCode !== null && promoCode.stackable_with_credits !== true
   // Tier isn't loaded on this page, so estimate at the default multiplier (1);
   // the server awards round(total × tier multiplier) on confirm.
   const earnPoints = estimateEarnPoints(total)
 
   // The zero-amount rail. Requires a real priced cart AND (promo code OR wallet applied)
-  const isFreeCheckout = total === 0 && subtotal > 0 && (promoCode !== null || walletApplied !== null)
+  const isFreeCheckout = total === 0 && subtotal > 0 && (promoCode !== null || walletAppliedAmount > 0)
 
   const [profile, setProfile] = useState<{ name: string; email: string; phone: string } | null>(null)
-  const [walletBalance, setWalletBalance] = useState(0)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -2116,7 +2123,7 @@ function Screen3({
           tableNumber: b.tableNumber
         })),
         promoCode: promoCode?.code,
-        walletAmount: walletApplied?.amount,
+        walletAmount: walletAppliedAmount > 0 ? walletAppliedAmount : undefined,
       }
       const res = await fetch("/api/booking/free-confirm", {
         method: "POST",
@@ -2157,7 +2164,7 @@ function Screen3({
       setFreeError((e as Error).message)
       setFreeConfirming(false)
     }
-  }, [blocks, promoCode, walletApplied, agreedToTerms, flagTermsRequired, onPromoChange, onWalletChange, t])
+  }, [blocks, promoCode, walletAppliedAmount, agreedToTerms, flagTermsRequired, onPromoChange, onWalletChange, t])
 
   return (
     <div className={`screen-content${!testMode && !confirmed ? " pay-screen" : ""}`}>
@@ -2354,19 +2361,26 @@ function Screen3({
                   invalidLabel: t("promo_invalid") || "無效代碼",
                   expiredLabel: t("promo_expired") || "代碼已過期",
                   minCartLabel: t("promo_min_cart") || "未達最低消費",
+                  notStartedLabel: t("promo_not_started") || "優惠碼尚未生效",
                   validatingLabel: t("promo_validating") || "驗證中...",
                 }}
               />
             </div>
 
-            {/* Space Wallet row — under promo code, mutually exclusive */}
+            {/* Space Wallet row — under promo code. Can be combined with a promo code
+                unless that code is set to stackable_with_credits = false. */}
             <div style={{ margin: "16px 0" }}>
               <CheckoutWalletRow
-                originalTotal={subtotal}
+                originalTotal={subtotal - promoDiscount}
+                blockedByPromo={walletBlockedByPromo}
                 walletBalance={walletBalance}
                 onApply={onWalletChange}
                 onRemove={() => onWalletChange(null)}
-                activeWallet={walletApplied}
+                activeWallet={
+                  walletApplied && walletAppliedAmount > 0
+                    ? { amount: walletAppliedAmount, balance_after: walletBalance - walletAppliedAmount }
+                    : null
+                }
               />
             </div>
 
@@ -2505,7 +2519,7 @@ function Screen3({
                   agreedToTerms={agreedToTerms}
                   returnUrl={`${window.location.origin}/${locale}/book`}
                   locale={locale}
-                  useWallet={walletApplied !== null}
+                  useWallet={walletAppliedAmount > 0}
                   promoCode={promoCode?.code ?? null}
                   expectedTotal={total}
                   onBackToMethods={() => {
@@ -2553,7 +2567,7 @@ function Screen3({
                     }))}
                     method={kpayMethod ?? "fps"}
                     mode={kpayMode}
-                    useWallet={walletApplied !== null}
+                    useWallet={walletAppliedAmount > 0}
                     promoCode={promoCode?.code ?? null}
                     expectedTotal={total}
                     agreedToTerms={agreedToTerms}
@@ -3454,15 +3468,15 @@ export default function BookPage() {
     if (promoCode) sessionStorage.removeItem('pendingPromo')
   }, [promoCode])
 
-  // Wallet and promo are mutually exclusive
+  // A promo code and Space Wallet credit can be used together, unless the code is set
+  // to stackable_with_credits = false — then applying that code removes the wallet.
   const handlePromoChange = useCallback((promo: PromoResult | null) => {
     setPromoCode(promo)
-    if (promo) setWalletApplied(null)
+    if (promo && promo.stackable_with_credits !== true) setWalletApplied(null)
   }, [])
 
   const handleWalletChange = useCallback((wallet: WalletResult | null) => {
     setWalletApplied(wallet)
-    if (wallet) setPromoCode(null)
   }, [])
 
   // Step navigation: advance to next screen

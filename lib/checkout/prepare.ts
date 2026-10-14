@@ -15,9 +15,13 @@ export type PreparedCheckout = {
   subtotal: number
   discountAmount: number
   total: number
-  kind: 'promo' | 'points' | 'credits' | 'none'
+  kind: 'promo' | 'points' | 'credits' | 'both' | 'none'
   code: string | null
   points: number
+  /** Part of discountAmount that came from the promo code. */
+  promoDiscount: number
+  /** Part of discountAmount that came from Space Wallet credit. */
+  creditDiscount: number
 }
 
 export type PrepareCheckoutFailure = {
@@ -41,8 +45,8 @@ function asFiniteNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-function asKind(value: unknown): 'promo' | 'points' | 'credits' | 'none' {
-  return value === 'promo' || value === 'points' || value === 'credits' ? value : 'none'
+function asKind(value: unknown): 'promo' | 'points' | 'credits' | 'both' | 'none' {
+  return value === 'promo' || value === 'points' || value === 'credits' || value === 'both' ? value : 'none'
 }
 
 // Reasons that mean "the customer can fix this by choosing differently" (400)
@@ -50,6 +54,10 @@ function asKind(value: unknown): 'promo' | 'points' | 'credits' | 'none' {
 // because an unknown reason means prepare_checkout changed and this route did not.
 const CLIENT_CORRECTABLE = new Set([
   'discounts_mutually_exclusive',
+  'promo_not_stackable_with_credits',
+  'audience_not_eligible',
+  'weekday_not_allowed',
+  'time_not_allowed',
   'invalid_points',
   'insufficient_points',
   'insufficient_credits',
@@ -77,9 +85,10 @@ export function prepareFailureStatus(reason: string): number {
   return 500
 }
 
-// Calls prepare_checkout and narrows its jsonb payload. Promo code, points, and wallet
-// credits are mutually exclusive — the RPC rejects combinations rather than silently
-// dropping one, so pass at most one of them.
+// Calls prepare_checkout and narrows its jsonb payload. A promo code and wallet credits
+// can be combined (the promo applies first, credits cover what is left) unless the code
+// has stackable_with_credits = false, in which case the RPC rejects the combination with
+// 'promo_not_stackable_with_credits'. Points redemption is retired.
 export async function prepareCheckout(
   service: ServiceClient,
   args: { bookingId: string; userId: string; promoCode?: string | null; points?: number; walletAmount?: number },
@@ -131,6 +140,8 @@ export async function prepareCheckout(
       kind: asKind(row.kind),
       code: typeof row.code === 'string' ? row.code : null,
       points: asFiniteNumber(row.points) ?? 0,
+      promoDiscount: asFiniteNumber(row.promo_discount) ?? (asKind(row.kind) === 'promo' ? discountAmount : 0),
+      creditDiscount: asFiniteNumber(row.credit_discount) ?? (asKind(row.kind) === 'credits' ? discountAmount : 0),
     },
   }
 }

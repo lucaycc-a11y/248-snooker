@@ -79,8 +79,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       subtotal,
-      promoDiscount: prepared.discountAmount,
-      walletApplied: prepared.kind === 'credits' ? prepared.total - (subtotal - prepared.discountAmount) : 0,
+      promoDiscount: prepared.promoDiscount,
+      walletApplied: prepared.creditDiscount,
       earnPoints,
       total: prepared.total,
     })

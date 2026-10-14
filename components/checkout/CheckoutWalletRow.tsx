@@ -3,6 +3,7 @@
 import { useCallback } from 'react'
 import { Wallet } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { creditToApply } from '@/lib/checkout/credit-rule'
 
 export type WalletResult = {
   amount: number
@@ -10,7 +11,10 @@ export type WalletResult = {
 }
 
 type Props = {
+  /** Amount still to pay after any promo code (what credit can cover). */
   originalTotal: number
+  /** True when the applied promo code cannot be combined with Space Wallet credit. */
+  blockedByPromo?: boolean
   walletBalance: number
   onApply: (result: WalletResult) => void
   onRemove: () => void
@@ -19,6 +23,7 @@ type Props = {
 
 export default function CheckoutWalletRow({
   originalTotal,
+  blockedByPromo = false,
   walletBalance,
   onApply,
   onRemove,
@@ -26,8 +31,12 @@ export default function CheckoutWalletRow({
 }: Props) {
   const t = useTranslations('checkout')
 
-  const canApply = walletBalance > 0 && originalTotal > 0
-  const applyAmount = Math.min(walletBalance, originalTotal)
+  // Same rule as the server: card payment is HK$0 or at least HK$10.
+  const applyAmount = creditToApply({ subtotal: originalTotal, promoDiscount: 0, balance: walletBalance })
+  const canApply = applyAmount > 0 && !blockedByPromo
+  // Credit was held back by the HK$10 minimum card payment rule.
+  const showMinNote =
+    !!activeWallet && activeWallet.amount < Math.min(walletBalance, originalTotal)
 
   const handleApply = useCallback(() => {
     const balanceAfter = walletBalance - applyAmount
@@ -54,6 +63,7 @@ export default function CheckoutWalletRow({
     <div
       style={{
         display: 'flex',
+        flexWrap: 'wrap',
         alignItems: 'center',
         gap: 12,
         paddingBottom: 12,
@@ -117,8 +127,15 @@ export default function CheckoutWalletRow({
               {t('wallet.apply')}
             </button>
           ) : (
-            <div style={{ fontSize: 13, color: MUTED }}>{t('wallet.insufficient')}</div>
+            <div style={{ fontSize: 13, color: MUTED }}>
+              {blockedByPromo ? t('wallet.not_stackable') : t('wallet.insufficient')}
+            </div>
           )}
+        </div>
+      )}
+      {showMinNote && activeWallet && (
+        <div style={{ flexBasis: '100%', fontSize: 12, color: MUTED, marginTop: 8 }}>
+          {t('wallet.min_note', { used: activeWallet.amount, left: walletBalance - activeWallet.amount })}
         </div>
       )}
     </div>
