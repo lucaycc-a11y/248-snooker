@@ -1426,6 +1426,7 @@
     "promo_invalid": "无效代码",
     "promo_expired": "代码已过期",
     "promo_min_cart": "未达最低消费",
+    "promo_not_started": "优惠码尚未生效",
     "promo_validating": "验证中…",
     "free_booking_title": "免费预订",
     "free_booking_desc": "您的优惠码已完全抵扣订单金额。点击下方按钮确认预订 — 无需付款。",
@@ -2826,7 +2827,8 @@
       "balance": "Space Wallet 可用余额",
       "apply": "套用",
       "remove": "移除",
-      "insufficient": "Space Wallet 余额不足"
+      "insufficient": "Space Wallet 余额不足",
+      "not_stackable": "此优惠码不能与 Space Wallet 同时使用"
     }
   },
   "creditsPage": {

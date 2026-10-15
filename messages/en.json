@@ -1342,6 +1342,7 @@
     "promo_invalid": "Invalid code",
     "promo_expired": "Code expired",
     "promo_min_cart": "Minimum order not met",
+    "promo_not_started": "This code isn't active yet",
     "promo_validating": "Checking…",
     "free_booking_title": "Free Booking",
     "free_booking_desc": "Your promo code covers the full amount. Click below to confirm your booking — no payment required.",
@@ -2824,7 +2825,8 @@
       "balance": "Available balance",
       "apply": "Apply",
       "remove": "Remove",
-      "insufficient": "Insufficient balance"
+      "insufficient": "Insufficient balance",
+      "not_stackable": "This code can't be combined with Space Wallet"
     }
   },
   "creditsPage": {
