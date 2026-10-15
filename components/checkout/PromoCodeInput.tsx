@@ -19,6 +19,8 @@ export type PromoResult = {
   code: string
   discount_type: 'percentage' | 'fixed_amount'
   discount_value: number
+  /** Cap on a percentage discount (HK$), when the code has one. */
+  max_discount?: number | null
   discount_amount: number
   final_amount: number
   /** False when the code cannot be combined with Space Wallet credit. */
@@ -89,6 +91,7 @@ export default function PromoCodeInput({ originalTotal, onApply, onRemove, activ
             code: data.code,
             discount_type: data.discount_type as 'percentage' | 'fixed_amount',
             discount_value: data.discount_value as number,
+            max_discount: typeof data.max_discount === 'number' ? data.max_discount : null,
             discount_amount: data.discount_amount as number,
             final_amount: data.final_amount as number,
             // Absent means the RPC predates the column — treat as stackable. The
@@ -133,6 +136,7 @@ export default function PromoCodeInput({ originalTotal, onApply, onRemove, activ
         code: data.code,
         discount_type: data.discount_type as 'percentage' | 'fixed_amount',
         discount_value: data.discount_value as number,
+        max_discount: typeof data.max_discount === 'number' ? data.max_discount : null,
         discount_amount: data.discount_amount as number,
         final_amount: data.final_amount as number,
         // Absent means the RPC predates the column — treat as stackable. The
