@@ -2030,7 +2030,23 @@ function Screen3({
   // Client-side pricing calculation that includes wallet
   const subtotal = blocks.reduce((sum, b) => sum + quoteBlockTotal(b.date, b.startHour, b.duration, periods), 0)
   const totalSaved = 0
-  const promoDiscount = promoCode?.discount_amount ?? 0
+  // Recompute the promo discount from the current subtotal: the amount stored at apply
+  // time goes stale when slots are added/removed. Same rule as the server (percentage
+  // rounded, capped by max_discount; fixed capped by subtotal).
+  const livePromo: PromoResult | null = promoCode
+    ? (() => {
+        const raw =
+          promoCode.discount_type === 'percentage'
+            ? Math.min(
+                Math.round((subtotal * promoCode.discount_value) / 100),
+                promoCode.max_discount ?? Infinity,
+              )
+            : promoCode.discount_value
+        const amount = Math.max(0, Math.min(raw, subtotal))
+        return { ...promoCode, discount_amount: amount, final_amount: subtotal - amount }
+      })()
+    : null
+  const promoDiscount = livePromo?.discount_amount ?? 0
   const [walletBalance, setWalletBalance] = useState(0)
   // Promo applies first, then Space Wallet credit on what is left — same rule as the
   // server (prepare_checkout), including the HK$10 minimum card payment.
@@ -2352,7 +2368,7 @@ function Screen3({
                 originalTotal={subtotal}
                 onApply={onPromoChange}
                 onRemove={() => onPromoChange(null)}
-                activeCode={promoCode}
+                activeCode={livePromo}
                 labels={{
                   placeholder: t("promo_placeholder") || "優惠碼",
                   applyLabel: t("promo_apply") || "應用",
