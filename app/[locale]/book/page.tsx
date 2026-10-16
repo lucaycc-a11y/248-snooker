@@ -2567,6 +2567,7 @@ function Screen3({
                     terms_required: t("terms_required_hint"),
                   }}
                   agreedToTerms={agreedToTerms}
+                  onTermsRequired={flagTermsRequired}
                   returnUrl={`${window.location.origin}/${locale}/book`}
                   locale={locale}
                   useWallet={walletAppliedAmount > 0}
