@@ -1,60 +1,111 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+/**
+ * AdminShell — mirrors `space8-admin.html` one-for-one.
+ *
+ * Structure (the prototype's "rapport" layer):
+ *   · floating icon dock, fixed left, vertically centred, hard black pill
+ *   · pill tabs in a static top bar next to the wordmark
+ *   · big page title (36px / 28px on phone) + mono route chip
+ *   · phone: floating pill bottom bar with the same five areas
+ *
+ * Only the five areas appear in navigation. Overflow routes stay mounted and
+ * deep-linkable — they are just not offered here (Luca: "keep it simple").
+ */
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
-  CalendarDays,
-  LayoutDashboard,
-  LogOut,
-  Menu,
+  Calendar,
+  List,
   Moon,
+  Plus,
+  Search,
   Shield,
+  SlidersHorizontal,
   Sun,
   Users,
-  X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import {
   ADMIN_AREAS,
-  ADMIN_OVERFLOW,
   areaForPath,
   visibleItems,
+  type AdminArea,
   type AdminAreaId,
 } from '@/lib/admin/nav'
-import MobileTabBar from './MobileTabBar'
 import { AdminToastProvider } from './ToastProvider'
-import DevRoleSwitcher, { readDevRoleOverride } from './DevRoleSwitcher'
+import AdminRoleSelect, {
+  readDevRoleOverride,
+  type AdminRoleId,
+} from './AdminRoleSelect'
 
-const ICONS: Record<AdminAreaId, LucideIcon> = {
-  today: LayoutDashboard,
-  bookings: CalendarDays,
+/** Phone bottom bar — prototype NAV icons: today, list, users, site, shield. */
+const TAB_ICONS: Record<AdminAreaId, LucideIcon> = {
+  today: Calendar,
+  bookings: List,
   members: Users,
-  site: Menu,
+  site: SlidersHorizontal,
   system: Shield,
+}
+
+/** Dock order matches the prototype: search, users, site, shield (no "today"). */
+const DOCK_ITEMS: { id: AdminAreaId; icon: LucideIcon; title: string }[] = [
+  { id: 'bookings', icon: Search, title: '搜尋預約' },
+  { id: 'members', icon: Users, title: '會員' },
+  { id: 'site', icon: SlidersHorizontal, title: '網站資料' },
+  { id: 'system', icon: Shield, title: '系統' },
+]
+
+/**
+ * Landing route for an area. Skips `superAdminOnly` leaves so a plain `admin`
+ * never lands on a 403 — 網站資料 falls to /admin/maintenance, 系統 to /admin/audit.
+ */
+function landingHref(area: AdminArea, isSuperAdmin: boolean): string {
+  const leaf = visibleItems(area.items, isSuperAdmin)[0] ?? area.items[0]
+  return (leaf?.href ?? area.href).split('?')[0]
 }
 
 type AdminShellProps = {
   children: React.ReactNode
   /** Filters superAdminOnly nav items. Defaults to false (least privilege). */
   isSuperAdmin?: boolean
+  /**
+   * Force the active area. Used only by the unauthenticated visual harness at
+   * /admin-shell-preview, which is not routed under /admin and so cannot
+   * resolve an area from its own pathname. Production always omits this.
+   */
+  areaOverride?: AdminAreaId
 }
 
-function isActiveHref(pathname: string, href: string): boolean {
-  const path = pathname.replace(/\/$/, '') || '/admin'
-  const target = href.split('?')[0].replace(/\/$/, '') || '/admin'
-  if (target === '/admin') return path === '/admin'
-  return path === target || path.startsWith(`${target}/`)
-}
-
-export function AdminShell({ children, isSuperAdmin = false }: AdminShellProps) {
+export function AdminShell({
+  children,
+  isSuperAdmin = false,
+  areaOverride,
+}: AdminShellProps) {
   const pathname = usePathname()
-  const { theme, setTheme } = useTheme()
-  const [moreOpen, setMoreOpen] = useState(false)
-  const [devRole, setDevRole] = useState<'super_admin' | 'admin' | null>(null)
+  const router = useRouter()
+  // `resolvedTheme`, not `theme`: the site provider is `attribute="class"` with
+  // `defaultTheme="system"`, so `theme` is literally `'system'` and never
+  // matches `=== 'dark'`. `resolvedTheme` is the theme CSS actually applied.
+  const { resolvedTheme, setTheme } = useTheme()
+  const [devRole, setDevRole] = useState<AdminRoleId | null>(null)
 
-  // Dev-only role preview. Server still enforces real permissions.
+  const appliedTheme: 'dark' | 'light' = resolvedTheme === 'light' ? 'light' : 'dark'
+
+  /**
+   * Bridge next-themes (`class` on `<html>`) to the admin skin, which the
+   * prototype switches with `data-theme` on `:root`. Without this the toggle
+   * only moves a class `admin-theme.css` never reads, so admin stays dark.
+   */
+  useEffect(() => {
+    document.documentElement.dataset.theme = appliedTheme
+    document.documentElement.style.colorScheme = appliedTheme
+  }, [appliedTheme])
+
+  // Dev-only role preview. The server still enforces real permissions.
   useEffect(() => {
     setDevRole(readDevRoleOverride())
   }, [])
@@ -63,225 +114,168 @@ export function AdminShell({ children, isSuperAdmin = false }: AdminShellProps) 
     process.env.NODE_ENV === 'development' && devRole !== null
       ? devRole === 'super_admin'
       : isSuperAdmin
+  const effectiveRoleId: AdminRoleId = effectiveSuperAdmin ? 'super_admin' : 'admin'
+  const rolePreviewEnabled = process.env.NODE_ENV === 'development'
 
-  const activeArea = areaForPath(pathname ?? '/admin')
-  const overflow = visibleItems(ADMIN_OVERFLOW, effectiveSuperAdmin)
+  const activeArea = areaOverride ?? areaForPath(pathname ?? '/admin')
+  const active = ADMIN_AREAS.find((a) => a.id === activeArea) ?? ADMIN_AREAS[0]
+  const title = active.label
+  const route = landingHref(active, effectiveSuperAdmin)
+
+  const goNewBooking = () => {
+    router.push('/admin/bookings?new=1')
+  }
 
   return (
     <AdminToastProvider>
-    <div
-      className="min-h-screen lg:grid"
-      style={{
-        gridTemplateColumns: '248px minmax(0, 1fr)',
-        background: 'var(--admin-bg-primary)',
-        color: 'var(--admin-text-primary)',
-      }}
-    >
-      {/* Desktop left rail */}
-      <aside
-        className="sticky top-0 hidden h-screen flex-col gap-6 overflow-y-auto border-r p-5 lg:flex"
-        style={{
-          background: 'var(--admin-bg-surface)',
-          borderColor: 'var(--admin-border-subtle)',
-        }}
-        aria-label="主選單"
-      >
-        <Link href="/admin" className="px-2 text-[var(--admin-text-primary)]" data-cms-key="admin.nav.brand">
-          <span className="text-lg font-semibold tracking-wide">Space8</span>
-          <span className="block text-xs" style={{ color: 'var(--admin-text-tertiary)' }}>
-            後台
-          </span>
-        </Link>
-
-        <nav className="flex flex-col gap-1">
-          {ADMIN_AREAS.map((area) => {
-            const Icon = ICONS[area.id]
-            const isActive = activeArea === area.id
+      <div className="admin-app admin-glow-bg">
+        {/* Floating icon dock (desktop / tablet landscape) */}
+        <aside className="admin-dock" aria-label="快捷操作">
+          <button
+            type="button"
+            className="primary"
+            onClick={goNewBooking}
+            title="手動新增預約"
+            aria-label="手動新增預約"
+            data-cms-key="admin.dock.new_booking"
+          >
+            <Plus size={20} aria-hidden />
+          </button>
+          <hr />
+          {DOCK_ITEMS.map((item) => {
+            const Icon = item.icon
             return (
-              <div key={area.id} className="flex flex-col gap-1">
-                <Link
-                  href={area.href}
-                  aria-current={isActive ? 'page' : undefined}
-                  className="flex min-h-[44px] items-center gap-3 rounded-[var(--admin-radius-input)] border px-3 text-sm font-medium"
-                  style={{
-                    background: isActive ? 'color-mix(in srgb, var(--admin-green) 12%, transparent)' : 'transparent',
-                    borderColor: isActive ? 'var(--admin-border-subtle)' : 'transparent',
-                    color: isActive ? 'var(--admin-text-primary)' : 'var(--admin-text-secondary)',
-                  }}
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  const area = ADMIN_AREAS.find((a) => a.id === item.id)
+                  router.push(area ? landingHref(area, effectiveSuperAdmin) : '/admin')
+                }}
+                title={item.title}
+                aria-label={item.title}
+                aria-current={activeArea === item.id ? 'page' : undefined}
+                data-cms-key={`admin.dock.${item.id}`}
+              >
+                <Icon size={20} aria-hidden />
+              </button>
+            )
+          })}
+        </aside>
+
+        <div className="admin-main">
+          <header className="admin-top">
+            <Link
+              href="/admin"
+              className="admin-brand-word"
+              aria-label="Space8 後台"
+              data-cms-key="admin.nav.brand"
+            >
+              <span className="admin-logo admin-logo-wordmark" aria-hidden />
+            </Link>
+            <Link
+              href="/admin"
+              className="admin-brand-mark"
+              aria-label="Space8 後台"
+              data-cms-key="admin.nav.brand"
+            >
+              <span className="admin-logo admin-logo-mark" aria-hidden />
+            </Link>
+
+            <nav className="admin-tabs" aria-label="主選單">
+              {ADMIN_AREAS.map((area) => (
+                <button
+                  key={area.id}
+                  type="button"
+                  onClick={() => router.push(landingHref(area, effectiveSuperAdmin))}
+                  aria-current={activeArea === area.id ? 'page' : undefined}
                   data-cms-key={area.cmsKey}
                 >
-                  <Icon className="h-5 w-5" aria-hidden />
-                  <span>{area.label}</span>
-                </Link>
-                {isActive && area.items.length > 1 && (
-                  <div className="ml-8 flex flex-col gap-1">
-                    {visibleItems(area.items, effectiveSuperAdmin).map((item) => {
-                      const itemActive = isActiveHref(pathname ?? '/admin', item.match ?? item.href)
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          aria-current={itemActive ? 'page' : undefined}
-                          className="rounded-[var(--admin-radius-input)] px-3 py-2 text-[13px]"
-                          style={{
-                            color: itemActive ? 'var(--admin-green)' : 'var(--admin-text-tertiary)',
-                          }}
-                          data-cms-key={item.cmsKey}
-                        >
-                          {item.label}
-                        </Link>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
+                  {area.label}
+                </button>
+              ))}
+            </nav>
+
+            <div className="admin-spacer" />
+
+            {/* The prototype marks its mock dataset with a dashed chip. Real
+                admin data is not a sample, so this only appears in dev. */}
+            {process.env.NODE_ENV === 'development' && (
+              <span className="admin-chip demo" data-cms-key="admin.nav.demo_data">
+                示例資料
+              </span>
+            )}
+
+            {/* Same pill select in every environment so the top bar matches the
+                prototype. Role preview (changing the value) is dev-only. */}
+            <AdminRoleSelect
+              role={effectiveRoleId}
+              disabled={!rolePreviewEnabled}
+              onRoleChange={
+                rolePreviewEnabled
+                  ? (next) => setDevRole(next)
+                  : undefined
+              }
+            />
+
+            <button
+              type="button"
+              onClick={() => setTheme(appliedTheme === 'dark' ? 'light' : 'dark')}
+              className="admin-icon-btn"
+              aria-label="切換深淺色"
+              data-cms-key="admin.nav.theme"
+              style={{
+                width: 44,
+                height: 44,
+                display: 'grid',
+                placeItems: 'center',
+                borderRadius: '50%',
+                border: '1px solid var(--admin-border-strong)',
+                background: 'var(--admin-bg-elevated)',
+                color: 'var(--admin-text-secondary)',
+              }}
+            >
+              {/* Prototype `themeIcon()`: light shows moon (go dark), dark shows
+                  sun (go light) — the icon is the action, not the current state.
+                  Both icons stay in the DOM and CSS picks one via `[data-theme]`:
+                  server and client markup must match, and `resolvedTheme` is
+                  undefined during SSR so a conditional SVG hydrates mismatched. */}
+              <Sun className="admin-theme-icon-sun" size={20} aria-hidden />
+              <Moon className="admin-theme-icon-moon" size={20} aria-hidden />
+            </button>
+          </header>
+
+          <div className="admin-thead">
+            <h1 className="admin-ptitle" data-cms-key="admin.page.title">
+              {title}
+            </h1>
+            <span className="admin-route">space8.com.hk{route}</span>
+          </div>
+
+          <main className="admin-page">{children}</main>
+        </div>
+
+        {/* Phone: floating pill bottom bar */}
+        <nav className="admin-bnav" aria-label="主選單">
+          {ADMIN_AREAS.map((area) => {
+            const Icon = TAB_ICONS[area.id]
+            return (
+              <button
+                key={area.id}
+                type="button"
+                onClick={() => router.push(landingHref(area, effectiveSuperAdmin))}
+                aria-current={activeArea === area.id ? 'page' : undefined}
+                data-cms-key={area.cmsKey}
+              >
+                <Icon size={18} aria-hidden />
+                <span>{area.shortLabel}</span>
+              </button>
             )
           })}
         </nav>
-
-        {overflow.length > 0 && (
-          <div className="mt-auto flex flex-col gap-1 border-t pt-4" style={{ borderColor: 'var(--admin-border-subtle)' }}>
-            <p className="px-2 pb-1 text-xs" style={{ color: 'var(--admin-text-tertiary)' }} data-cms-key="admin.nav.more">
-              更多
-            </p>
-            {overflow.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-[var(--admin-radius-input)] px-3 py-2 text-[13px]"
-                style={{ color: 'var(--admin-text-tertiary)' }}
-                data-cms-key={item.cmsKey}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="flex min-h-[44px] items-center gap-3 rounded-[var(--admin-radius-input)] border px-3 text-sm"
-          style={{
-            borderColor: 'var(--admin-border-subtle)',
-            color: 'var(--admin-text-secondary)',
-          }}
-          data-cms-key="admin.nav.theme"
-        >
-          {theme === 'dark' ? <Moon className="h-4 w-4" aria-hidden /> : <Sun className="h-4 w-4" aria-hidden />}
-          <span>{theme === 'dark' ? '深色' : '淺色'}</span>
-        </button>
-
-        <DevRoleSwitcher />
-
-        <Link
-          href="/api/auth/signout"
-          className="flex min-h-[44px] items-center gap-3 rounded-[var(--admin-radius-input)] px-3 text-sm"
-          style={{ color: 'var(--admin-text-tertiary)' }}
-          data-cms-key="admin.nav.signout"
-        >
-          <LogOut className="h-4 w-4" aria-hidden />
-          <span>登出</span>
-        </Link>
-      </aside>
-
-      {/* Main column */}
-      <div className="flex min-w-0 flex-col">
-        <header
-          className="sticky top-0 z-20 flex items-center gap-3 border-b px-4 py-3 lg:px-6"
-          style={{
-            background: 'color-mix(in srgb, var(--admin-bg-primary) 90%, transparent)',
-            backdropFilter: 'blur(8px)',
-            borderColor: 'var(--admin-border-subtle)',
-          }}
-        >
-          <Link href="/admin" className="lg:hidden text-[var(--admin-text-primary)]" data-cms-key="admin.nav.brand">
-            <span className="text-base font-semibold">Space8</span>
-          </Link>
-          <span
-            className="hidden rounded-full border px-3 py-1 text-xs lg:inline"
-            style={{
-              borderColor: 'var(--admin-border-subtle)',
-              color: 'var(--admin-text-tertiary)',
-            }}
-          >
-            space8.com.hk/admin
-          </span>
-          <div className="flex-1" />
-          <button
-            type="button"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="grid h-11 w-11 place-items-center rounded-[var(--admin-radius-input)] border lg:hidden"
-            style={{
-              borderColor: 'var(--admin-border-subtle)',
-              background: 'var(--admin-bg-surface)',
-              color: 'var(--admin-text-secondary)',
-            }}
-            aria-label="切換深淺色"
-          >
-            {theme === 'dark' ? <Moon className="h-5 w-5" aria-hidden /> : <Sun className="h-5 w-5" aria-hidden />}
-          </button>
-        </header>
-
-        <main className="flex-1 px-4 py-6 pb-24 lg:px-6 lg:pb-8">{children}</main>
       </div>
-
-      {/* Mobile bottom tabs */}
-      <MobileTabBar onMore={() => setMoreOpen(true)} />
-
-      {/* Mobile overflow drawer */}
-      {moreOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end lg:hidden"
-          style={{ background: 'rgba(0,0,0,0.72)' }}
-          onClick={() => setMoreOpen(false)}
-        >
-          <div
-            className="max-h-[85vh] w-full overflow-y-auto rounded-t-[var(--admin-radius-card)] border p-5"
-            style={{
-              background: 'var(--admin-bg-elevated)',
-              borderColor: 'var(--admin-border-subtle)',
-            }}
-            role="dialog"
-            aria-modal="true"
-            aria-label="更多"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold" data-cms-key="admin.nav.more">
-                更多
-              </h2>
-              <button
-                type="button"
-                onClick={() => setMoreOpen(false)}
-                className="grid h-11 w-11 place-items-center rounded-[var(--admin-radius-input)] border"
-                style={{
-                  borderColor: 'var(--admin-border-subtle)',
-                  color: 'var(--admin-text-secondary)',
-                }}
-                aria-label="關閉"
-              >
-                <X className="h-5 w-5" aria-hidden />
-              </button>
-            </div>
-            <div className="flex flex-col gap-1">
-              {overflow.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMoreOpen(false)}
-                  className="rounded-[var(--admin-radius-input)] px-3 py-3 text-sm"
-                  style={{ color: 'var(--admin-text-secondary)' }}
-                  data-cms-key={item.cmsKey}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
     </AdminToastProvider>
   )
 }
+
+export default AdminShell

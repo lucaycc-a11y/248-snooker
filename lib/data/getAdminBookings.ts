@@ -9,7 +9,9 @@ import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 // Tries the join first; falls back to two separate queries + an in-memory
 // merge if the join throws.
 
-const PAGE_SIZE = 50
+// Prototype `PAGE` — the reference footer reads `共 16 筆 / 1 / 2`, i.e. 8 rows
+// per page. Keep in sync with the pager in BookingsPageClient.
+const PAGE_SIZE = 8
 
 export type AdminBookingRow = {
   id: string
@@ -70,6 +72,33 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
   const from = (page - 1) * PAGE_SIZE
   const to = page * PAGE_SIZE - 1
 
+  // Prototype haystack is `[hc, ref, phone, member code]`. Booking columns are
+  // filterable in one PostgREST `or`, but phone / member code / name live on
+  // `users`, so resolve those to ids first and fold them into the same clause.
+  // (The bookings->users FK is not declared, so an embedded select cannot do
+  // this for us — see the join-fallback below.)
+  let searchUserIds: string[] = []
+  if (search) {
+    // Neutralise LIKE wildcards in user input; try both the raw and the
+    // space-stripped form so "6128 4501" finds a phone stored as "61284501".
+    const safe = (s: string) => `%${s.replace(/[%_\\]/g, ' ')}%`
+    const raw = safe(search)
+    const tight = safe(search.replace(/\s+/g, ''))
+    const { data: matchedUsers } = await service
+      .from('users')
+      .select('id')
+      .or(
+        [
+          `phone.ilike.${raw}`,
+          `phone.ilike.${tight}`,
+          `member_code.ilike.${tight}`,
+          `display_name.ilike.${raw}`,
+        ].join(','),
+      )
+      .limit(200)
+    searchUserIds = ((matchedUsers ?? []) as { id: string }[]).map((u) => u.id)
+  }
+
   function applyFilters<T>(q: T): T {
     let query = q as unknown as {
       eq: (col: string, val: unknown) => typeof query
@@ -82,7 +111,18 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
     if (dateFrom) query = query.gte('date', dateFrom)
     if (dateTo) query = query.lte('date', dateTo)
     if (tableNumber) query = query.eq('table_number', Number(tableNumber))
-    if (search) query = query.or(`booking_reference.ilike.%${search}%,human_code.ilike.%${search}%`)
+    if (search) {
+      // Strip spaces so "S8 261007" matches "S8-261007"-style codes too.
+      const term = search.replace(/[%_\\]/g, ' ').replace(/\s+/g, '')
+      const clauses = [
+        `booking_reference.ilike.%${term}%`,
+        `human_code.ilike.%${term}%`,
+      ]
+      if (searchUserIds.length > 0) {
+        clauses.push(`user_id.in.(${searchUserIds.join(',')})`)
+      }
+      query = query.or(clauses.join(','))
+    }
     return query as unknown as T
   }
 

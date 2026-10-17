@@ -1082,6 +1082,16 @@
         ],
         "createdAt": "2026-10-05T00:01:00.000Z",
         "reason": "Reference HTML 科技體驗 gradient: section-specific near-black --pilot-c"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(18, 140, 74, 0.1) space8-admin.html l207 light-theme glow — html wins over design.md per luca brief",
+        "createdAt": "2026-10-17T10:14:44.626Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(100, 210, 255, 0.14) space8-admin.html .pill.info = color-mix(--info 14%); --info is #64d2ff in the rapport layer",
+        "createdAt": "2026-10-17T10:59:29.510Z"
       }
     ]
   }

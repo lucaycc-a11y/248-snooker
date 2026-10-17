@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bebas_Neue } from "next/font/google";
+import { Bebas_Neue, IBM_Plex_Mono, Noto_Sans_HK } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import Script from "next/script";
 import "./globals.css";
@@ -13,6 +13,22 @@ const bebasNeue = Bebas_Neue({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-bebas",
+  display: "swap",
+});
+
+// Admin body face — the prototype (space8-admin.html) uses Noto Sans HK.
+const notoSansHK = Noto_Sans_HK({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-noto-hk",
+  display: "swap",
+});
+
+// Admin mono — route chips and booking codes (the prototype's --f-mono).
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
   display: "swap",
 });
 
@@ -84,7 +100,17 @@ export default async function RootLayout({
   const locale = routing.defaultLocale;
 
   return (
-    <html lang={locale} className={cn("no-js", bebasNeue.variable, "font-sans")} suppressHydrationWarning>
+    <html
+      lang={locale}
+      className={cn(
+        "no-js",
+        bebasNeue.variable,
+        notoSansHK.variable,
+        ibmPlexMono.variable,
+        "font-sans",
+      )}
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-black text-white antialiased">
         <ThemeProvider
           attribute="class"

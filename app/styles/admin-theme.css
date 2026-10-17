@@ -1,26 +1,45 @@
-/* Canonical admin theme contract. Components may only consume --admin-* variables. */
+/* Canonical admin theme contract. Components may only consume --admin-* variables.
+ *
+ * Values are taken from space8-admin.html (the visual source of truth). Where
+ * DESIGN.md and the HTML disagree, the HTML wins — Luca's instruction.
+ *
+ * The prototype layers a "rapport-style" block over its base :root. That override
+ * is the real contract, so radii are 24 / 999 / 14 (not 20 / 14 / 12), the dock
+ * and toast are hard black pills, and there is a faint green radial glow at the
+ * top-left. Bebas Neue is for stat numerals only; Noto Sans HK is the body face.
+ */
 :root,
 [data-theme='dark'] {
   --admin-bg-primary: #000000;
   --admin-bg-surface: #0a0a0a;
   --admin-bg-elevated: #111111;
+  --admin-bg-tile: #1a1a1a;
+  --admin-bg-ink: #0b0b0b;
   --admin-border-subtle: rgba(255, 255, 255, 0.1);
+  --admin-border-strong: rgba(255, 255, 255, 0.18);
   --admin-text-primary: #ffffff;
   --admin-text-secondary: rgba(255, 255, 255, 0.72);
   --admin-text-tertiary: rgba(255, 255, 255, 0.52);
   --admin-green: #25d366;
-  --admin-green-bright: #22c55e;
+  --admin-green-bright: #1fb855;
+  /* Sheet head wash and modal scrim — prototype `--accent-soft` / `--overlay`. */
+  --admin-accent-soft: color-mix(in srgb, var(--admin-green) 12%, transparent);
+  --admin-overlay: rgba(0, 0, 0, 0.72);
   --admin-green-deep: #15803d;
   --admin-brand-text: #000000;
-  --admin-status-success: #22c55e;
-  --admin-status-warning: #f59e0b;
+  --admin-status-success: #25d366;
+  --admin-status-warning: #ffb340;
   --admin-status-danger: #ff453a;
+  --admin-status-info: #64d2ff;
   --admin-status-pending: #6b7280;
 
-  --admin-radius-card: 20px;
-  --admin-radius-button: 14px;
-  --admin-radius-input: 12px;
+  /* rapport layer: soft big radii */
+  --admin-radius-card: 24px;
+  --admin-radius-button: 999px;
+  --admin-radius-input: 14px;
   --admin-radius-pill: 999px;
+  --admin-radius-tile: 22px;
+  --admin-radius-sheet: 28px;
 
   --admin-space-1: 4px;
   --admin-space-2: 8px;
@@ -35,24 +54,31 @@
   --admin-text-base: 16px;
   --admin-text-lg: 20px;
   --admin-text-xl: 28px;
+  --admin-text-display: 36px;
 
-  --admin-font-sans: Inter, 'Noto Sans TC', system-ui, sans-serif;
-  --admin-font-display: 'Good Times', 'JetBrains Mono', monospace;
+  /* next/font exposes hashed families as CSS vars — a literal 'Noto Sans HK'
+   * would never match and silently fall back to the system UI face. */
+  --admin-font-sans: var(--font-noto-hk), 'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', system-ui, -apple-system, sans-serif;
+  --admin-font-display: var(--font-bebas), 'Bebas Neue', 'Noto Sans HK', 'PingFang HK', system-ui, sans-serif;
+  --admin-font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+
   --admin-border-width: 1px;
   --admin-outline-width: 1px;
   --admin-duration-fast: 150ms;
   --admin-duration-base: 250ms;
   --admin-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
-  --admin-focus-ring: var(--admin-green-bright);
+  --admin-focus-ring: var(--admin-green);
+
+  /* faint brand glow, top-left — fixed attachment, sits under all content */
+  --admin-glow: radial-gradient(900px 480px at 6% -10%, rgba(37, 211, 102, 0.11), transparent 62%);
 
   /* Transitional aliases for unrelated established admin screens. */
   --admin-bg: var(--admin-bg-primary);
-  --admin-surface: var(--admin-bg-surface);
-  --admin-surface-alt: var(--admin-bg-elevated);
-  --admin-surface-elevated: var(--admin-bg-elevated);
-  --admin-surface-hover: var(--admin-bg-elevated);
+  --admin-surface: var(--admin-bg-elevated);
+  --admin-surface-alt: var(--admin-bg-tile);
+  --admin-surface-elevated: var(--admin-bg-tile);
+  --admin-surface-hover: var(--admin-bg-tile);
   --admin-border: var(--admin-border-subtle);
-  --admin-border-strong: var(--admin-text-tertiary);
   --admin-text: var(--admin-text-primary);
   --admin-text-muted: var(--admin-text-secondary);
   --admin-text-faint: var(--admin-text-tertiary);
@@ -61,12 +87,12 @@
   --admin-danger: var(--admin-status-danger);
   --admin-warning: var(--admin-status-warning);
   --admin-success: var(--admin-status-success);
-  --admin-accent-blue: var(--admin-green);
+  --admin-accent-blue: var(--admin-status-info);
   --admin-brand-dim: rgba(37, 211, 102, 0.12);
   --admin-danger-dim: rgba(255, 69, 58, 0.12);
-  --admin-warning-dim: rgba(245, 158, 11, 0.12);
-  --admin-depth-2: var(--admin-bg-elevated);
-  --admin-glass-bg: var(--admin-bg-surface);
+  --admin-warning-dim: rgba(255, 179, 64, 0.12);
+  --admin-depth-2: var(--admin-bg-tile);
+  --admin-glass-bg: var(--admin-bg-ink);
   --admin-glass-blur: none;
   --admin-tier-nova: var(--admin-status-success);
   --admin-tier-nova-dim: var(--admin-brand-dim);
@@ -78,26 +104,34 @@
 }
 
 [data-theme='light'] {
-  --admin-bg-primary: #f5f5f7;
+  --admin-bg-primary: #f4f4f2;
   --admin-bg-surface: #ffffff;
   --admin-bg-elevated: #ffffff;
-  --admin-border-subtle: rgba(0, 0, 0, 0.12);
-  --admin-text-primary: #1d1d1f;
-  --admin-text-secondary: rgba(29, 29, 31, 0.72);
-  --admin-text-tertiary: rgba(29, 29, 31, 0.52);
-  --admin-green: #1fb855;
-  --admin-green-bright: #16a34a;
-  --admin-green-deep: #166534;
+  --admin-bg-tile: #efefec;
+  --admin-bg-ink: #0b0b0b;
+  --admin-border-subtle: rgba(0, 0, 0, 0.1);
+  --admin-border-strong: rgba(0, 0, 0, 0.2);
+  --admin-text-primary: #0a0a0a;
+  --admin-text-secondary: rgba(0, 0, 0, 0.72);
+  --admin-text-tertiary: rgba(0, 0, 0, 0.55);
+  --admin-green: #128c4a;
+  --admin-green-bright: #0e7a3f;
+  --admin-accent-soft: color-mix(in srgb, var(--admin-green) 12%, transparent);
+  --admin-overlay: rgba(10, 10, 10, 0.45);
+  --admin-green-deep: #0e7a3f;
   --admin-brand-text: #ffffff;
-  --admin-status-success: #16a34a;
-  --admin-status-warning: #b45309;
-  --admin-status-danger: #dc2626;
+  --admin-status-success: #0f7a43;
+  --admin-status-warning: #a96a00;
+  --admin-status-danger: #d6291f;
+  --admin-status-info: #0a76a8;
   --admin-status-pending: #6b7280;
 
-  --admin-radius-card: 20px;
-  --admin-radius-button: 14px;
-  --admin-radius-input: 12px;
+  --admin-radius-card: 24px;
+  --admin-radius-button: 999px;
+  --admin-radius-input: 14px;
   --admin-radius-pill: 999px;
+  --admin-radius-tile: 22px;
+  --admin-radius-sheet: 28px;
 
   --admin-space-1: 4px;
   --admin-space-2: 8px;
@@ -112,9 +146,14 @@
   --admin-text-base: 16px;
   --admin-text-lg: 20px;
   --admin-text-xl: 28px;
+  --admin-text-display: 36px;
 
-  --admin-font-sans: Inter, 'Noto Sans TC', system-ui, sans-serif;
-  --admin-font-display: 'Good Times', 'JetBrains Mono', monospace;
+  /* next/font exposes hashed families as CSS vars — a literal 'Noto Sans HK'
+   * would never match and silently fall back to the system UI face. */
+  --admin-font-sans: var(--font-noto-hk), 'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', system-ui, -apple-system, sans-serif;
+  --admin-font-display: var(--font-bebas), 'Bebas Neue', 'Noto Sans HK', 'PingFang HK', system-ui, sans-serif;
+  --admin-font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+
   --admin-border-width: 1px;
   --admin-outline-width: 1px;
   --admin-duration-fast: 150ms;
@@ -122,14 +161,15 @@
   --admin-ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
   --admin-focus-ring: var(--admin-green-deep);
 
+  --admin-glow: radial-gradient(900px 480px at 6% -10%, rgba(18, 140, 74, 0.1), transparent 62%);
+
   /* Transitional aliases for unrelated established admin screens. */
   --admin-bg: var(--admin-bg-primary);
-  --admin-surface: var(--admin-bg-surface);
-  --admin-surface-alt: var(--admin-bg-elevated);
-  --admin-surface-elevated: var(--admin-bg-elevated);
-  --admin-surface-hover: var(--admin-bg-elevated);
+  --admin-surface: var(--admin-bg-elevated);
+  --admin-surface-alt: var(--admin-bg-tile);
+  --admin-surface-elevated: var(--admin-bg-tile);
+  --admin-surface-hover: var(--admin-bg-tile);
   --admin-border: var(--admin-border-subtle);
-  --admin-border-strong: var(--admin-text-tertiary);
   --admin-text: var(--admin-text-primary);
   --admin-text-muted: var(--admin-text-secondary);
   --admin-text-faint: var(--admin-text-tertiary);
@@ -138,12 +178,12 @@
   --admin-danger: var(--admin-status-danger);
   --admin-warning: var(--admin-status-warning);
   --admin-success: var(--admin-status-success);
-  --admin-accent-blue: var(--admin-green);
-  --admin-brand-dim: rgba(31, 184, 85, 0.12);
-  --admin-danger-dim: rgba(220, 38, 38, 0.12);
-  --admin-warning-dim: rgba(180, 83, 9, 0.12);
-  --admin-depth-2: var(--admin-bg-elevated);
-  --admin-glass-bg: var(--admin-bg-surface);
+  --admin-accent-blue: var(--admin-status-info);
+  --admin-brand-dim: rgba(18, 140, 74, 0.12);
+  --admin-danger-dim: rgba(214, 41, 31, 0.12);
+  --admin-warning-dim: rgba(169, 106, 0, 0.12);
+  --admin-depth-2: var(--admin-bg-tile);
+  --admin-glass-bg: var(--admin-bg-ink);
   --admin-glass-blur: none;
   --admin-tier-nova: var(--admin-status-success);
   --admin-tier-nova-dim: var(--admin-brand-dim);
@@ -166,4 +206,1284 @@
 .admin-scroll::-webkit-scrollbar-thumb {
   background: var(--admin-border-subtle);
   border-radius: var(--admin-radius-pill);
+}
+
+/* Body glow — the prototype paints this on <body> behind everything. */
+.admin-glow-bg {
+  background: var(--admin-glow), var(--admin-bg-primary);
+  background-attachment: fixed;
+}
+
+/* Real logo files from public/logos/, recoloured to currentColor via CSS mask so
+ * the same asset works in dark and light without redrawing the geometry. */
+.admin-logo {
+  display: block;
+  background: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+.admin-logo-wordmark {
+  /* Box is the real logo's own viewBox ratio (3840×1000), not a guessed width.
+     A hardcoded 142px stretched the mark ~37% wide and pushed the nav right. */
+  width: auto;
+  height: 26px;
+  aspect-ratio: 3840 / 1000;
+  -webkit-mask-image: url('/logos/logo-white-horizontal.svg');
+  mask-image: url('/logos/logo-white-horizontal.svg');
+}
+.admin-logo-mark {
+  width: 26px;
+  height: 26px;
+  -webkit-mask-image: url('/logos/logo-white-mark.svg');
+  mask-image: url('/logos/logo-white-mark.svg');
+}
+
+/* ---------------------------------------------------------------------------
+ * Shell — class names and metrics copied from space8-admin.html so the React
+ * markup can mirror the prototype one-for-one. Radii come from the rapport
+ * layer (24 / 999 / 14), not the prototype's discarded base :root.
+ * ------------------------------------------------------------------------- */
+.admin-app {
+  display: block;
+  min-height: 100vh;
+  /* The prototype sets `font:14px/1.55 var(--f-body); color:var(--fg)` on
+     <body>, so every descendant inherits them. Here the shell is nested inside
+     app/layout.tsx's Tailwind <body class="text-white">, which would otherwise
+     leak #fff into every unstyled heading — chart titles and the date heading
+     vanished in light theme. Re-declare both on the shell root. */
+  font-family: var(--admin-font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--admin-text-primary);
+}
+.admin-main {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 28px 48px 100px;
+}
+.admin-top {
+  position: static;
+  border: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 0 4px;
+}
+.admin-top .admin-brand-word {
+  display: flex;
+  padding: 0;
+  margin-right: 8px;
+  color: var(--admin-text-primary);
+}
+.admin-top .admin-brand-mark {
+  display: none;
+}
+.admin-spacer {
+  flex: 1;
+}
+
+/* Pill tabs */
+.admin-tabs {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  padding: 2px;
+}
+.admin-tabs button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--admin-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.admin-tabs button:hover {
+  color: var(--admin-text-primary);
+  background: var(--admin-bg-elevated);
+}
+.admin-tabs button[aria-current='page'] {
+  background: var(--admin-green);
+  color: var(--admin-brand-text);
+  font-weight: 700;
+}
+
+/* Page title row */
+.admin-thead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 18px 0 0;
+}
+.admin-ptitle {
+  font: 600 36px/1.1 var(--admin-font-sans);
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--admin-text-primary);
+}
+.admin-route {
+  font-family: var(--admin-font-mono);
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.admin-page {
+  padding: 14px 0 0;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Floating icon dock — fixed, vertically centred, hard black pill */
+.admin-dock {
+  position: fixed;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 8px;
+  background: var(--admin-bg-ink);
+  border: 1px solid var(--admin-border-strong);
+  border-radius: 999px;
+}
+.admin-dock button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: none;
+  color: rgba(255, 255, 255, 0.7);
+  display: grid;
+  place-items: center;
+}
+.admin-dock button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.admin-dock button[aria-current='page'] {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.admin-dock button.primary {
+  background: var(--admin-green);
+  color: var(--admin-brand-text);
+}
+.admin-dock button.primary:hover {
+  background: var(--admin-green-bright);
+}
+.admin-dock hr {
+  width: 24px;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  margin: 4px 0;
+}
+
+/* Phone: floating pill bottom bar */
+.admin-bnav {
+  display: none;
+}
+
+@media (max-width: 1000px) {
+  .admin-main {
+    padding: 0 20px 48px 92px;
+  }
+}
+
+@media (max-width: 860px) {
+  .admin-main {
+    padding: 0 16px 24px;
+  }
+  .admin-dock,
+  .admin-tabs {
+    display: none;
+  }
+  .admin-top {
+    padding: 12px 0 2px;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+  .admin-top .admin-brand-word {
+    display: none;
+  }
+  .admin-top .admin-brand-mark {
+    display: flex;
+    padding: 0;
+    color: var(--admin-text-primary);
+  }
+  .admin-ptitle {
+    font-size: 28px;
+  }
+  .admin-thead {
+    margin-top: 10px;
+  }
+  .admin-page {
+    padding: 10px 0 calc(100px + env(safe-area-inset-bottom, 0px));
+  }
+  /* Prototype `.chip.hide-sm` — the demo chip is a desktop affordance only.
+     `.route` is NOT hidden on phone (it has no `hide-sm` class). */
+  .admin-chip.demo {
+    display: none;
+  }
+  .admin-bnav {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    border: 1px solid var(--admin-border-strong);
+    border-radius: 999px;
+    background: var(--admin-bg-ink);
+    padding: 6px;
+  }
+  .admin-bnav button {
+    min-height: 50px;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.62);
+  }
+  .admin-bnav button[aria-current='page'] {
+    background: var(--admin-green);
+    color: var(--admin-brand-text);
+    font-weight: 700;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Primitives shared by admin pages — metrics copied from space8-admin.html.
+ * ------------------------------------------------------------------------- */
+.admin-sub {
+  color: var(--admin-text-tertiary);
+  font-size: 13px;
+}
+.admin-muted {
+  color: var(--admin-text-tertiary);
+}
+.admin-mono {
+  font-family: var(--admin-font-mono);
+  font-size: 0.92em;
+}
+.admin-num {
+  font-variant-numeric: tabular-nums;
+}
+.admin-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.admin-stack {
+  display: grid;
+  gap: 20px;
+}
+.admin-empty {
+  grid-column: 1 / -1;
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--admin-text-tertiary);
+}
+
+/* Prototype utilities — `.mono` / `.num` (space8-admin.html L33-34).
+   Used on the tile time-range, booking codes, prices and audit targets. */
+.mono {
+  font-family: var(--admin-font-mono);
+  font-size: 0.92em;
+  letter-spacing: 0;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-card {
+  background: var(--admin-bg-surface);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-card);
+  padding: 16px;
+}
+.admin-card.flat {
+  padding: 0;
+  overflow: hidden;
+}
+.admin-card h3 {
+  font: 600 15px var(--admin-font-sans);
+}
+.admin-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+.admin-card > .admin-head:first-child {
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+/* Page-level `.head` (prototype `.head`, rapport layer L223): no padding,
+   no rule — just the title/sub on the left and controls on the right. */
+.admin-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+.admin-page-head h2 {
+  font: 600 17px var(--admin-font-sans);
+}
+.admin-head h2 {
+  font: 600 17px var(--admin-font-sans);
+}
+.admin-head h3 {
+  margin: 0;
+}
+
+.admin-btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--admin-radius-button);
+  border: 1px solid var(--admin-border-strong);
+  background: var(--admin-bg-tile);
+  color: var(--admin-text-primary);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.admin-btn:hover {
+  border-color: var(--admin-green);
+}
+.admin-btn.primary {
+  background: var(--admin-green);
+  border-color: var(--admin-green);
+  color: var(--admin-brand-text);
+  font-weight: 700;
+}
+.admin-btn.primary:hover {
+  background: var(--admin-green-bright);
+  border-color: var(--admin-green-bright);
+}
+.admin-btn.danger {
+  border-color: var(--admin-status-danger);
+  color: var(--admin-status-danger);
+}
+.admin-btn.sm {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+.admin-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: var(--admin-radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.admin-pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.admin-pill.good {
+  color: var(--admin-status-success);
+  background: var(--admin-brand-dim);
+}
+.admin-pill.warn {
+  color: var(--admin-status-warning);
+  background: var(--admin-warning-dim);
+}
+.admin-pill.bad {
+  color: var(--admin-status-danger);
+  background: var(--admin-danger-dim);
+}
+.admin-pill.info {
+  color: var(--admin-status-info);
+  background: rgba(100, 210, 255, 0.14);
+}
+.admin-pill.mute {
+  color: var(--admin-text-tertiary);
+  background: var(--admin-bg-tile);
+}
+.admin-pill.accent {
+  color: var(--admin-green);
+  background: var(--admin-brand-dim);
+}
+
+.admin-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--admin-border-strong);
+  font-size: 11px;
+  color: var(--admin-text-secondary);
+  white-space: nowrap;
+}
+.admin-tag.warn {
+  color: var(--admin-status-warning);
+  border-color: color-mix(in srgb, var(--admin-status-warning) 50%, transparent);
+}
+.admin-tag.bad {
+  color: var(--admin-status-danger);
+  border-color: color-mix(in srgb, var(--admin-status-danger) 50%, transparent);
+}
+
+/* Segmented control (prototype `.seg`). Rapport layer: full pill, pressed
+   segment inverts to `--fg` on `--bg` rather than a soft accent wash. */
+.admin-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-pill);
+  overflow-x: auto;
+  max-width: 100%;
+}
+.admin-seg button {
+  flex: none;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--admin-radius-pill);
+  background: none;
+  color: var(--admin-text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.admin-seg button[aria-pressed='true'] {
+  background: var(--admin-text-primary);
+  color: var(--admin-bg-primary);
+  font-weight: 600;
+}
+
+/* ---------- Member cards (prototype `.mgrid` / `.mcard`) ---------- */
+.admin-mgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+.admin-mcard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px;
+  border-radius: var(--admin-radius-tile);
+  background: var(--admin-bg-tile);
+  border: 1px solid var(--admin-border-subtle);
+  color: var(--admin-text-primary);
+  text-align: left;
+  width: 100%;
+}
+.admin-mcard:hover {
+  border-color: var(--admin-border-strong);
+}
+.admin-mtop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.admin-mflags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+/* Avatar variant is `name.charCodeAt(0) % 3` in the prototype — not a hash. */
+.admin-av {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 600 17px var(--admin-font-sans);
+  flex: none;
+}
+.admin-av0 {
+  background: var(--admin-brand-dim);
+  color: var(--admin-green);
+}
+.admin-av1 {
+  background: var(--admin-text-primary);
+  color: var(--admin-bg-primary);
+}
+.admin-av2 {
+  background: var(--admin-bg-elevated);
+  color: var(--admin-text-primary);
+  border: 1px solid var(--admin-border-strong);
+}
+.admin-mn {
+  font-weight: 600;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.admin-ms {
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+}
+/* The 積分 / Credit panel sits on the page background, not the card tile. */
+.admin-mbox {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 10px 0 8px;
+  padding: 10px 12px;
+  border-radius: var(--admin-radius-input);
+  background: var(--admin-bg-primary);
+}
+.admin-mbox small {
+  display: block;
+  font-size: 11px;
+  color: var(--admin-text-tertiary);
+}
+.admin-mbox b {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.admin-switch {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  flex: none;
+  border-radius: 99px;
+  border: 1px solid var(--admin-border-strong);
+  background: var(--admin-bg-tile);
+  padding: 0;
+}
+.admin-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--admin-text-tertiary);
+  transition: transform var(--admin-duration-fast) var(--admin-ease-standard);
+}
+.admin-switch[aria-checked='true'] {
+  background: var(--admin-green);
+  border-color: var(--admin-green);
+}
+.admin-switch[aria-checked='true']::after {
+  transform: translateX(22px);
+  background: var(--admin-brand-text);
+}
+
+/* Stats — rapport layer: icon circle + Bebas numeral, not a boxed card. */
+.admin-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 32px;
+}
+.admin-stat {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+.admin-stat .ci {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--admin-bg-surface);
+  border: 1px solid var(--admin-border-subtle);
+  display: grid;
+  place-items: center;
+  color: var(--admin-green);
+  flex: none;
+}
+.admin-stat .tx {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.admin-stat b {
+  font: 400 36px/1 var(--admin-font-display);
+  letter-spacing: 0.5px;
+  color: var(--admin-text-primary);
+}
+.admin-stat span {
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+}
+
+/* Booking tiles */
+.admin-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+.admin-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 136px;
+  padding: 14px 16px;
+  border-radius: var(--admin-radius-tile);
+  background: var(--admin-bg-tile);
+  border: 1px solid var(--admin-border-subtle);
+  color: var(--admin-text-primary);
+  text-align: left;
+  width: 100%;
+}
+.admin-tile:hover {
+  border-color: var(--admin-border-strong);
+}
+.admin-tile .t1 {
+  font-family: var(--admin-font-mono);
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+}
+.admin-tile .t2 {
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.25;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.admin-tile .t3 {
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+}
+.admin-tile .tb {
+  margin-top: auto;
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.admin-tile .tb b {
+  margin-left: auto;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.admin-tile.live {
+  background: var(--admin-green);
+  border-color: var(--admin-green);
+  color: var(--admin-brand-text);
+}
+.admin-tile.live .t1,
+.admin-tile.live .t3 {
+  color: inherit;
+  opacity: 0.72;
+}
+.admin-tile.live .admin-pill {
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
+}
+.admin-tile.dim {
+  background: var(--admin-brand-dim);
+  /* Prototype: color-mix(in srgb, var(--accent) 45%, transparent) — a dim
+     tile's border is a muted green, not the full accent stroke. */
+  border-color: color-mix(in srgb, var(--admin-green) 45%, transparent);
+}
+.admin-tile.off {
+  opacity: 0.5;
+}
+
+/* 7-day booking volume chart */
+.admin-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 8px;
+}
+.admin-chart .gl {
+  stroke: var(--admin-border-strong);
+  stroke-dasharray: 4 5;
+  stroke-width: 1;
+}
+.admin-chart .gt {
+  fill: var(--admin-text-tertiary);
+  font-size: 1em;
+  font-family: var(--admin-font-sans);
+}
+.admin-chart .gt.now {
+  fill: var(--admin-text-primary);
+  font-weight: 700;
+}
+.admin-chart .ga {
+  fill: var(--admin-green);
+  fill-opacity: 0.14;
+}
+.admin-chart .gl2 {
+  fill: none;
+  stroke: var(--admin-green);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.admin-chart .gd {
+  fill: var(--admin-bg-surface);
+  stroke: var(--admin-green);
+  stroke-width: 2;
+}
+.admin-chart .gd.now {
+  fill: var(--admin-green);
+}
+
+@media (max-width: 1000px) {
+  .admin-stats {
+    gap: 12px 20px;
+  }
+}
+@media (max-width: 860px) {
+  .admin-tiles {
+    padding: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+  .admin-mgrid {
+    padding: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  }
+  .admin-stat b {
+    font-size: 30px;
+  }
+  .admin-stat .ci {
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (max-width: 420px) {
+  .admin-tiles,
+  .admin-mgrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Top-bar chips — the prototype's `.chip` / `.chip.demo`. */
+.admin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-pill);
+  font-size: 12px;
+  color: var(--admin-text-secondary);
+  white-space: nowrap;
+  background: none;
+}
+.admin-chip.demo {
+  border-style: dashed;
+}
+
+/* Screen-reader-only label (prototype `.sr`). */
+.admin-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Production shows the real role in the same pill select, disabled. Keep the
+   appearance identical so the top bar matches the prototype in both envs. */
+.admin-role-sel:disabled {
+  opacity: 1;
+  color: var(--admin-text-primary);
+  -webkit-text-fill-color: var(--admin-text-primary);
+  cursor: default;
+}
+
+/* Theme toggle icon (prototype `themeIcon()`): light shows moon (go dark), dark
+   shows sun (go light). Both SVGs stay in the DOM and CSS selects one — a
+   conditional SVG would hydrate mismatched, because `resolvedTheme` is
+   undefined during SSR. Default (no `data-theme` yet) is dark = sun. */
+.admin-theme-icon-sun {
+  display: block;
+}
+.admin-theme-icon-moon {
+  display: none;
+}
+[data-theme='light'] .admin-theme-icon-sun {
+  display: none;
+}
+[data-theme='light'] .admin-theme-icon-moon {
+  display: block;
+}
+
+/* ---------- Toasts (prototype `.toasts` / `.toast`) ---------- */
+/* The pill is deliberately theme-independent in the prototype — hard black
+   with white text in dark AND light. `--admin-bg-ink` is #0b0b0b in both. */
+.admin-toasts {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 24px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(460px, calc(100% - 32px));
+  pointer-events: none;
+}
+.admin-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  border-radius: 999px;
+  background: #0b0b0b;
+  color: #ffffff;
+  border: 1px solid var(--admin-border-strong);
+  font-size: 13px;
+}
+.admin-toast-tick {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--admin-green);
+  color: #000000;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.admin-toast.bad .admin-toast-tick {
+  background: var(--admin-danger);
+  color: #ffffff;
+}
+.admin-toast-tt {
+  flex: 1;
+  min-width: 0;
+}
+.admin-toast-tt small {
+  display: block;
+  color: rgba(255, 255, 255, 0.62);
+  margin-top: 2px;
+}
+.admin-toast-undo {
+  border: 0;
+  border-radius: 999px;
+  background: var(--admin-green);
+  color: #000000;
+  font-weight: 700;
+  padding: 0 16px;
+  min-height: 36px;
+  flex: none;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+@media (max-width: 860px) {
+  .admin-toasts {
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ---------- Forms (prototype `.field` / `.input` / `.sel`) ---------- */
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.admin-field > label,
+.admin-lbl {
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+  letter-spacing: 0.3px;
+}
+.admin-input,
+.admin-field input,
+.admin-field select,
+.admin-field textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  /* Prototype `.input` / `.field input|select|textarea` uses `var(--bg)`, the
+     page background — NOT the hard-black pill token. `--admin-bg-ink` is
+     #0b0b0b in both themes, which painted solid black inputs in light mode
+     with unreadable text. */
+  background: var(--admin-bg-primary);
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-input);
+  color: var(--admin-text-primary);
+  font-family: inherit;
+  font-size: 14px;
+}
+.admin-field textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+.admin-sel {
+  min-height: 44px;
+  padding: 0 16px;
+  background: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-pill);
+  color: var(--admin-text-primary);
+  font-family: inherit;
+  font-size: 14px;
+}
+/* The rapport layer rounds the search field to a pill too. */
+.admin-field input[type='search'] {
+  border-radius: var(--admin-radius-pill);
+  padding-left: 18px;
+}
+
+/* ---------- Toolbar (prototype `.toolbar`) ---------- */
+.admin-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* ---------- Lists (prototype `.list` / `.li`) ---------- */
+.admin-list {
+  display: flex;
+  flex-direction: column;
+}
+.admin-li {
+  display: grid;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid var(--admin-border-subtle);
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  text-align: left;
+  width: 100%;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+.admin-li:first-child {
+  border-top: 0;
+}
+.admin-li-bk {
+  grid-template-columns: 96px minmax(0, 1.3fr) minmax(0, 1.2fr) 70px 90px 130px;
+  grid-template-areas: 'hc nm dt tb pr st';
+}
+.admin-li-bk.hd {
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+  cursor: default;
+}
+.admin-li-bk:hover:not(.hd) {
+  background: var(--admin-bg-elevated);
+}
+.admin-c-hc {
+  grid-area: hc;
+}
+.admin-c-nm {
+  grid-area: nm;
+}
+.admin-c-dt {
+  grid-area: dt;
+}
+.admin-c-tb {
+  grid-area: tb;
+}
+.admin-c-pr {
+  grid-area: pr;
+}
+.admin-c-st {
+  grid-area: st;
+}
+/* Phone folds the table column into the date cell. */
+.admin-c-dt .tbi {
+  display: none;
+}
+
+/* Two-line list cells (code / name / date-time) must size to their own lines,
+   not to the parent block's strut. With the strut active each `<br>`-separated
+   line grows to 21.7px and the row is 3.36px too tall — enough to push the
+   pager off the first screen. Measured against space8-admin.html: cell-main
+   line 21.7px + cell-sub line 18.6px = 40.28px, and the 6G85KP cell (both
+   lines mono) 19.964 + 18.6 = 38.55px. Header cells are bare text with no
+   children, so they keep the normal strut. */
+.admin-li-bk:not(.hd) .admin-c-hc,
+.admin-li-bk:not(.hd) .admin-c-nm,
+.admin-li-bk:not(.hd) .admin-c-dt {
+  line-height: 0;
+}
+.admin-li-bk:not(.hd) .admin-c-hc > *,
+.admin-li-bk:not(.hd) .admin-c-nm > *,
+.admin-li-bk:not(.hd) .admin-c-dt > * {
+  line-height: 1.55;
+}
+.admin-li-mem {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 100px 110px 120px;
+}
+/* First cell is `cell-main` + <br> + `cell-sub` inside a bare span. That span
+   inherits the 14px strut, which inflates the 12px code line to 21.7px and
+   makes the row 3px taller than the prototype. Same fix as the booking row. */
+.admin-li-mem > span:first-child {
+  line-height: 0;
+}
+.admin-li-mem > span:first-child > * {
+  line-height: 1.55;
+}
+.admin-cell-main {
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.admin-cell-sub {
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Pager (prototype `.pager`) ---------- */
+.admin-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--admin-border-subtle);
+  font-size: 13px;
+  color: var(--admin-text-tertiary);
+}
+
+/* ---------- Sheets (prototype `.ov` / `.sheet` / `.sh-*`) ----------
+   Right drawer on desktop, bottom sheet on phone. Rapport layer wins:
+   28px radius, 12px margin, green-tinted head. */
+.admin-ov {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--admin-overlay);
+  display: flex;
+  justify-content: flex-end;
+}
+.admin-sheet {
+  width: min(560px, 100%);
+  height: calc(100% - 24px);
+  margin: 12px 12px 12px 0;
+  background: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-sheet);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.admin-sh-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  background: var(--admin-accent-soft);
+}
+.admin-sh-head h2 {
+  font: 600 18px var(--admin-font-sans);
+  overflow-wrap: anywhere;
+}
+.admin-sh-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  flex: 1;
+}
+.admin-sh-foot {
+  padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--admin-border-subtle);
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.admin-icon-btn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: var(--admin-bg-elevated);
+  border: 1px solid var(--admin-border-strong);
+  border-radius: 50%;
+  flex: none;
+  color: var(--admin-text-primary);
+  /* The prototype's `.icon-btn` never sets padding, so it keeps the UA
+     default. Symmetric, and the box is fixed at 44px — matching it keeps the
+     geometry diff empty rather than carrying a known no-op. */
+  padding: 1px 6px;
+}
+
+/* kv — prototype `.kv`. The fixed 120px label column is what makes the 資料
+   block read as a definition list instead of stacked rows. The `1em` margin is
+   the UA `<dl>` default the prototype never resets (13px at its 13px font) —
+   dropping it pulls every block below up by 25px. */
+.admin-kv {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 8px 12px;
+  font-size: 13px;
+  margin: 1em 0;
+}
+.admin-kv dt {
+  color: var(--admin-text-tertiary);
+}
+.admin-kv dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.admin-sect {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.admin-sect > h3 {
+  font: 600 12px var(--admin-font-sans);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--admin-text-tertiary);
+}
+.admin-grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.admin-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--admin-status-warning);
+}
+.admin-hint {
+  font-size: 12px;
+  color: var(--admin-text-tertiary);
+}
+.admin-note {
+  font-size: 13px;
+  color: var(--admin-text-secondary);
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-input);
+  background: var(--admin-bg-tile);
+}
+.admin-note.warn {
+  border-color: color-mix(in srgb, var(--admin-status-warning) 55%, transparent);
+  color: var(--admin-status-warning);
+}
+
+@media (max-width: 860px) {
+  .admin-sheet {
+    width: 100%;
+    height: auto;
+    max-height: 94%;
+    margin: 0;
+    align-self: flex-end;
+    border-radius: var(--admin-radius-sheet) var(--admin-radius-sheet) 0 0;
+    border-bottom: 0;
+  }
+  /* Prototype base layer L198 — label column narrows before the value column
+     starts to wrap. */
+  .admin-kv {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  /* Prototype base layer L202 — the stat pair stacks. */
+  .admin-grid2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1000px) {
+  .admin-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-toolbar .admin-field:first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 860px) {
+  /* Prototype `.li-bk` phone layout: a stacked card, not a squeezed table.
+     "nm st" / "dt pr" / "hc hc" — name+status, then date-time+price, then the
+     code spanning both columns. Without this the six desktop columns collapse
+     and every label wraps one character per line. */
+  .admin-li-bk {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'nm st'
+      'dt pr'
+      'hc hc';
+    gap: 4px 12px;
+  }
+  .admin-li-bk.hd {
+    display: none;
+  }
+  .admin-c-tb {
+    display: none;
+  }
+  .admin-c-dt .tbi {
+    display: inline;
+  }
+  .admin-c-pr {
+    text-align: right;
+  }
+  .admin-li-mem {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 12px;
+  }
+  .admin-li-mem > *:nth-child(n + 3) {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 520px) {
+  .admin-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

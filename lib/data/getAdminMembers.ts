@@ -16,6 +16,12 @@ export type AdminMemberRow = {
   phone: string | null
   tier: string | null
   points: number
+  /** Space Wallet credit balance, HKD integer. `users.credits`. */
+  credits: number
+  /** Prototype `m.reverify` — `users.needs_manual_phone_reverify`. */
+  needsManualPhoneReverify: boolean
+  /** Prototype `m.verified` — `users.phone_verified`. */
+  isPhoneVerified: boolean
   totalSpend: number
   bookingCount: number
   lastActiveAt: string | null
@@ -36,7 +42,7 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
   try {
     let q = service
       .from('users')
-      .select('id, member_code, email, display_name, phone, tier, points, last_active_at, is_blacklisted, created_at', { count: 'exact' })
+      .select('id, member_code, email, display_name, phone, tier, points, credits, needs_manual_phone_reverify, phone_verified, last_active_at, is_blacklisted, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(from, to)
     if (search) {
@@ -80,6 +86,9 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
         phone: str(r, ['phone']),
         tier: str(r, ['tier']),
         points: num(r, ['points'], 0),
+        credits: num(r, ['credits'], 0),
+        needsManualPhoneReverify: r.needs_manual_phone_reverify === true,
+        isPhoneVerified: r.phone_verified === true,
         totalSpend: agg?.total ?? 0,
         bookingCount: agg?.count ?? 0,
         lastActiveAt: str(r, ['last_active_at']),

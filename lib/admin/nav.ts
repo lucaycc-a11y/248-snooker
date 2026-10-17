@@ -2,9 +2,9 @@
  * Single source of truth for admin navigation.
  *
  * Five top-level areas mirror the admin prototype (`space8-admin.html`).
- * Leaf routes stay deep-linkable — the shell groups them, it never hides
- * them behind a single catch-all. Overflow routes keep working and are
- * reachable from the "更多" drawer.
+ * Leaf routes stay deep-linkable. The shell renders ONLY these five areas —
+ * no "更多" drawer (Luca: keep it simple). Overflow routes stay mounted and
+ * reachable by URL; they are just not offered in navigation.
  */
 
 export type AdminAreaId = 'today' | 'bookings' | 'members' | 'site' | 'system'
@@ -22,6 +22,12 @@ export type AdminNavItem = {
 export type AdminArea = {
   id: AdminAreaId
   label: string
+  /**
+   * Compact label for the phone bottom bar. The prototype's NAV carries a
+   * separate short string per row (`網站資料` / `網站`) because the pill bar
+   * is only five columns wide.
+   */
+  shortLabel: string
   cmsKey: string
   /** Icon key understood by the shell. */
   icon: 'today' | 'list' | 'users' | 'site' | 'shield'
@@ -33,6 +39,7 @@ export const ADMIN_AREAS: AdminArea[] = [
   {
     id: 'today',
     label: '今日',
+    shortLabel: '今日',
     cmsKey: 'admin.nav.today',
     icon: 'today',
     href: '/admin',
@@ -43,6 +50,7 @@ export const ADMIN_AREAS: AdminArea[] = [
   {
     id: 'bookings',
     label: '預約',
+    shortLabel: '預約',
     cmsKey: 'admin.nav.bookings',
     icon: 'list',
     href: '/admin/bookings',
@@ -55,6 +63,7 @@ export const ADMIN_AREAS: AdminArea[] = [
   {
     id: 'members',
     label: '會員',
+    shortLabel: '會員',
     cmsKey: 'admin.nav.members',
     icon: 'users',
     href: '/admin/members',
@@ -71,6 +80,7 @@ export const ADMIN_AREAS: AdminArea[] = [
   {
     id: 'site',
     label: '網站資料',
+    shortLabel: '網站',
     cmsKey: 'admin.nav.site',
     icon: 'site',
     href: '/admin/site-gate',
@@ -84,6 +94,7 @@ export const ADMIN_AREAS: AdminArea[] = [
   {
     id: 'system',
     label: '系統',
+    shortLabel: '系統',
     cmsKey: 'admin.nav.system',
     icon: 'shield',
     href: '/admin/team',
@@ -97,7 +108,8 @@ export const ADMIN_AREAS: AdminArea[] = [
 
 /**
  * Routes that stay mounted but are not one of the five primary tabs.
- * The "更多" drawer lists these; nothing here is deleted or redirected away.
+ * Not rendered anywhere in navigation — deep-linkable only. Nothing here is
+ * deleted or redirected away (Luca's scope boundary).
  */
 export const ADMIN_OVERFLOW: AdminNavItem[] = [
   { href: '/admin/orders', label: '訂單查詢', cmsKey: 'admin.nav.orders' },

@@ -1,0 +1,1026 @@
+<title>Space8 後台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+HK:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout (follows DESIGN.md of the Space8 repo: black, brand green #25D366, radii 12/14/20, borders only): left rail + sticky top bar on desktop; top bar + bottom tab bar on phone. Detail opens as right drawer (desktop) or bottom sheet (phone). Space8 black with CTA green #22c55e, dark by default, borders only, no shadows. */
+:root{
+  --bg:#000000; --rail:#0a0a0a; --surface:#111111; --surface-2:#1a1a1a; --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+  --fg:#ffffff; --fg-2:rgba(255,255,255,.72); --muted:rgba(255,255,255,.52);
+  --accent:#25D366; --accent-hover:#1FB855; --accent-ink:#000000; --accent-soft:rgba(37,211,102,.12);
+  --good:#25D366; --warn:#ffb340; --bad:#FF453A; --info:#64D2FF;
+  --overlay:rgba(0,0,0,.72);
+  --f-display:"Bebas Neue","Noto Sans HK","PingFang HK",system-ui,sans-serif;
+  --f-body:"Noto Sans HK","PingFang HK","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:20px; --r-btn:14px; --r-sm:12px;
+  color-scheme:dark;
+}
+:root[data-theme="dark"]{color-scheme:dark}
+:root[data-theme="light"]{
+  --bg:#f4f4f2; --rail:#ffffff; --surface:#ffffff; --surface-2:#efefec; --line:rgba(0,0,0,.10); --line-2:rgba(0,0,0,.20);
+  --fg:#0a0a0a; --fg-2:rgba(0,0,0,.72); --muted:rgba(0,0,0,.55);
+  --accent:#128c4a; --accent-hover:#0e7a3f; --accent-ink:#ffffff; --accent-soft:rgba(18,140,74,.12);
+  --good:#0f7a43; --warn:#a96a00; --bad:#d6291f; --info:#0a76a8; --overlay:rgba(10,10,10,.45); color-scheme:light}
+
+*{box-sizing:border-box}
+html,body{height:auto}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.55 var(--f-body);-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+h1,h2,h3,p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-size:.92em;letter-spacing:0}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .fg2{color:var(--fg-2)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* shell */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.rail{position:sticky;top:0;height:100vh;align-self:start;background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 14px;gap:22px}
+.brand{display:flex;align-items:center;padding:2px 8px;color:var(--fg)}
+.brand svg{display:block;width:auto}
+.logo-h svg{height:27px}.logo-m svg{height:26px}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav button{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border:1px solid transparent;border-radius:var(--r-sm);background:none;color:var(--fg-2);text-align:left;font-weight:500}
+.nav button svg{flex:none}
+.nav button:hover{background:var(--surface-2)}
+.nav button[aria-current="page"]{background:var(--accent-soft);color:var(--fg);border-color:var(--line-2)}
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);padding:0 8px}
+.main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:flex;align-items:center;gap:12px;padding:12px 24px;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .brand{display:none}
+.route{font-family:var(--f-mono);font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:4px 10px;white-space:nowrap}
+.top h1{font:700 18px var(--f-body)}
+.spacer{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border:1px solid var(--line-2);border-radius:99px;font-size:12px;color:var(--fg-2);white-space:nowrap}
+.chip.demo{border-style:dashed}
+.sel{min-height:44px;padding:0 12px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-sm)}
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-sm)}
+.page{padding:24px;display:flex;flex-direction:column;gap:20px;max-width:1240px;width:100%}
+.bnav{display:none}
+
+/* primitives */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.card.flat{padding:0;overflow:hidden}
+.card h3{font:600 15px var(--f-body);margin-bottom:12px}
+.head{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:space-between}
+.head h2{font:600 20px var(--f-body)}
+.head .sub{color:var(--muted);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{min-height:44px;padding:0 16px;border-radius:var(--r-btn);border:1px solid var(--line-2);background:var(--surface-2);font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn.danger{border-color:color-mix(in srgb,var(--bad) 60%,transparent);color:var(--bad)}
+.btn.sm{min-height:36px;padding:0 12px;font-size:13px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn.block{width:100%}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid transparent}
+.pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.good{color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.pill.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 14%,transparent)}
+.pill.bad{color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,transparent)}
+.pill.info{color:var(--info);background:color-mix(in srgb,var(--info) 14%,transparent)}
+.pill.mute{color:var(--muted);background:var(--surface-2)}
+.pill.accent{color:var(--accent);background:var(--accent-soft)}
+.tag{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:6px;border:1px solid var(--line-2);font-size:11px;color:var(--fg-2);white-space:nowrap}
+.tag.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 50%,transparent)}
+.tag.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 50%,transparent)}
+.seg{display:flex;gap:4px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-btn);overflow-x:auto;max-width:100%}
+.seg button{flex:none;min-height:40px;padding:0 14px;border:0;border-radius:10px;background:none;color:var(--fg-2);font-weight:500;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line-2)}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.lbl{font-size:12px;color:var(--muted);letter-spacing:.3px}
+.input,.field input,.field select,.field textarea{width:100%;min-height:44px;padding:10px 12px;background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r-sm);color:var(--fg)}
+.field textarea{min-height:84px;resize:vertical}
+.field input[type=checkbox]{width:20px;min-height:20px;height:20px}
+.hint{font-size:12px;color:var(--muted)}
+.err{font-size:13px;color:var(--bad);padding:10px 12px;border:1px solid color-mix(in srgb,var(--bad) 50%,transparent);border-radius:var(--r-sm);background:color-mix(in srgb,var(--bad) 8%,transparent)}
+.note{font-size:13px;color:var(--fg-2);padding:10px 12px;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--surface-2)}
+.note.warn{border-color:color-mix(in srgb,var(--warn) 55%,transparent);color:var(--warn)}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start}
+.switch{position:relative;width:52px;height:30px;flex:none;border-radius:99px;border:1px solid var(--line-2);background:var(--surface-2);padding:0}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--muted);transition:transform .18s}
+.switch[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
+.switch[aria-checked="true"]::after{transform:translateX(22px);background:var(--accent-ink)}
+.switch[disabled]{opacity:.45;cursor:not-allowed}
+.lock{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--warn)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{padding:14px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);display:flex;flex-direction:column;gap:2px}
+.stat b{font:400 38px/1.05 var(--f-display);letter-spacing:.5px}
+.stat span{font-size:12px;color:var(--muted)}
+
+/* lists */
+.list{display:flex;flex-direction:column}
+.li{display:grid;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--line);background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;width:100%;color:inherit}
+.li:first-child{border-top:0}
+button.li:hover{background:var(--surface-2)}
+.li-bk{grid-template-columns:96px minmax(0,1.3fr) minmax(0,1.2fr) 70px 90px 130px;grid-template-areas:"hc nm dt tb pr st"}
+.li-bk.hd{font-size:12px;color:var(--muted);cursor:default}
+.c-hc{grid-area:hc}.c-nm{grid-area:nm}.c-dt{grid-area:dt}.c-tb{grid-area:tb}.c-pr{grid-area:pr}.c-st{grid-area:st}
+.c-dt .tbi{display:none}
+.li-today{grid-template-columns:104px minmax(0,1fr) 120px}
+.li-mem{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 100px 110px 120px}
+.li-kv{grid-template-columns:140px minmax(0,1fr)}
+.cell-main{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.cell-sub{font-size:12px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.toolbar{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr));gap:12px}
+
+/* overlays */
+.ov{position:fixed;inset:0;z-index:50;background:var(--overlay);display:flex;justify-content:flex-end}
+.ov.dlg{z-index:60;justify-content:center;align-items:center;padding:16px}
+.sheet{width:min(560px,100%);height:100%;background:var(--surface);border-left:1px solid var(--line-2);display:flex;flex-direction:column;min-height:0}
+.dlgbox{width:min(560px,100%);max-height:92%;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);display:flex;flex-direction:column;min-height:0}
+.sh-head{display:flex;align-items:flex-start;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.sh-head h2{font:600 18px var(--f-body);overflow-wrap:anywhere}
+.sh-body{padding:16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;min-height:0;flex:1}
+.sh-foot{padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.kv{display:grid;grid-template-columns:120px minmax(0,1fr);gap:8px 12px;font-size:13px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.sect{display:flex;flex-direction:column;gap:10px}
+.sect>h3{font:600 12px var(--f-body);letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.bill{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.bill div{display:flex;justify-content:space-between;gap:12px}
+.bill .tot{border-top:1px dashed var(--line-2);padding-top:8px;font-weight:700;font-size:15px}
+.slotgrid{display:flex;flex-wrap:wrap;gap:8px}
+.slot{min-height:40px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--bg);font-family:var(--f-mono);font-size:13px}
+.slot[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pick{display:flex;flex-direction:column;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden}
+.pick button{min-height:44px;padding:8px 12px;background:var(--bg);border:0;border-top:1px solid var(--line);text-align:left;display:flex;justify-content:space-between;gap:8px}
+.pick button:first-child{border-top:0}
+.pick button:hover{background:var(--surface-2)}
+.wk{display:flex;gap:6px;flex-wrap:wrap}
+.ticket{border:1px solid var(--line-2);border-radius:var(--r);overflow:hidden;background:var(--surface-2)}
+.ticket .tp{padding:16px;display:flex;flex-direction:column;gap:6px}
+.ticket .tq{padding:16px;border-top:1px dashed var(--line-2);display:flex;flex-direction:column;align-items:center;gap:8px}
+.qrbox{background:#fff;padding:10px;border-radius:8px;width:160px;height:160px;display:grid;place-items:center;color:#111;font-size:12px;text-align:center}
+.qrbox svg{width:100%;height:100%;display:block}
+pre.json{margin:0;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);font:12px/1.5 var(--f-mono);overflow-x:auto;max-width:100%;white-space:pre-wrap;overflow-wrap:anywhere}
+.toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:90;display:flex;flex-direction:column;gap:8px;width:min(440px,calc(100% - 32px));pointer-events:none}
+.toast{pointer-events:auto;padding:12px 14px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--accent);font-size:13px}
+.toast small{display:block;color:var(--muted);margin-top:2px}
+.cfgf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:8px 14px;align-items:center}
+.cfgf .k{font-size:13px}
+.cfgf .k small{display:block;color:var(--muted);font-family:var(--f-mono);font-size:11px}
+
+@media (max-width:1000px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.cols{grid-template-columns:minmax(0,1fr)}.toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar .field:first-child{grid-column:1/-1}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{display:none}
+  .top{padding:10px 16px}
+  .top .brand{display:flex;padding:0}
+  .top h1{display:none}
+  .page{padding:16px;padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+  .bnav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--rail);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px))}
+  .bnav button{min-height:52px;background:none;border:0;border-radius:var(--r-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--muted)}
+  .bnav button[aria-current="page"]{color:var(--fg);background:var(--accent-soft)}
+  .toasts{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .ov{align-items:flex-end}
+  .sheet{width:100%;height:auto;max-height:94%;border-left:0;border-top:1px solid var(--line-2);border-radius:16px 16px 0 0}
+  .ov.dlg{align-items:flex-end;padding:0}
+  .dlgbox{width:100%;max-height:94%;border-radius:16px 16px 0 0;border-bottom:0}
+  .li-bk{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"nm st" "dt pr" "hc hc";gap:4px 12px}
+  .li-bk.hd{display:none}
+  .c-tb{display:none}
+  .c-dt .tbi{display:inline}
+  .c-pr{text-align:right}
+  .li-today{grid-template-columns:84px minmax(0,1fr) auto;padding:12px}
+  .li-mem{grid-template-columns:minmax(0,1fr) auto;gap:4px 12px}
+  .li-mem>*:nth-child(n+3){grid-column:1/-1}
+  .grid3{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kv{grid-template-columns:96px minmax(0,1fr)}
+  .cfgf{grid-template-columns:minmax(0,1fr)}
+  .chip.hide-sm,.route.hide-sm{display:none}
+}
+@media (max-width:520px){.grid2,.grid3,.toolbar{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat b{font-size:24px}.li-kv{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ===== rapport-style layer: soft big radii, floating dock, pill tabs, tiles. Space8 colours kept (black + #25D366). ===== */
+:root{--r:24px;--r-btn:999px;--r-sm:14px;--glow:radial-gradient(900px 480px at 6% -10%,rgba(37,211,102,.11),transparent 62%)}
+:root[data-theme="light"]{--glow:radial-gradient(900px 480px at 6% -10%,rgba(18,140,74,.10),transparent 62%)}
+body{background:var(--glow),var(--bg);background-attachment:fixed}
+.app{display:block}
+.rail{display:none}
+.main{max-width:1320px;margin:0 auto;padding:0 28px 48px 100px}
+.top{position:static;border:0;background:none;backdrop-filter:none;padding:18px 0 4px;gap:12px;flex-wrap:wrap}
+.top .brand.logo-h{display:flex;padding:0;margin-right:8px}
+.top .brand.logo-m{display:none}
+.logo-h svg{height:26px}
+.tabs{display:flex;gap:2px;overflow-x:auto;padding:2px}
+.tabs button{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:0;border-radius:999px;background:none;color:var(--fg-2);font-weight:500;white-space:nowrap}
+.tabs button svg{display:none}
+.tabs button:hover{color:var(--fg);background:var(--surface)}
+.tabs button[aria-current="page"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.thead{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px;margin:18px 0 0}.ptitle{font:600 36px/1.1 var(--f-body);letter-spacing:-.5px;margin:0}
+.page{padding:14px 0 0;max-width:none;gap:22px}
+.head h2{font:600 17px var(--f-body)}
+
+.dock{position:fixed;left:22px;top:50%;transform:translateY(-50%);z-index:25;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px;background:#0b0b0b;border:1px solid var(--line-2);border-radius:999px}
+.dock button{width:44px;height:44px;border-radius:50%;border:0;background:none;color:rgba(255,255,255,.7);display:grid;place-items:center}
+.dock button:hover{background:rgba(255,255,255,.1);color:#fff}
+.dock button[aria-current="page"]{background:rgba(255,255,255,.14);color:#fff}
+.dock button.primary{background:var(--accent);color:#000}
+.dock button.primary:hover{background:var(--accent-hover)}
+.dock hr{width:24px;border:0;border-top:1px solid rgba(255,255,255,.16);margin:4px 0}
+
+.card{border-radius:var(--r);padding:20px}
+.card.flat{padding:0}
+.btn{border-radius:999px}
+.sel{border-radius:999px;padding:0 16px}
+.icon-btn{border-radius:50%}
+.field input[type=search]{border-radius:999px;padding-left:18px}
+.seg{border-radius:999px;padding:4px}
+.seg button{border-radius:999px;min-height:36px;padding:0 16px}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);box-shadow:none;font-weight:600}
+.slot,.pick{border-radius:14px}
+
+.stats{display:flex;flex-wrap:wrap;gap:14px 32px}
+.stat{flex-direction:row;align-items:center;gap:12px;padding:0;border:0;background:none}
+.stat .ci{width:48px;height:48px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--accent);flex:none;font-style:normal}
+.stat .tx{display:flex;flex-direction:column;min-width:0}
+.stat b{font:400 36px/1 var(--f-display);letter-spacing:.5px}
+
+.stack{display:grid;gap:20px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;padding:16px}
+.tiles .empty{grid-column:1/-1}
+.tile{display:flex;flex-direction:column;gap:2px;min-height:136px;padding:14px 16px;border-radius:22px;background:var(--surface-2);border:1px solid var(--line);color:var(--fg);text-align:left;width:100%}
+.tile:hover{border-color:var(--line-2)}
+.tile .t1{font-size:12px;color:var(--muted)}
+.tile .t2{font-weight:600;font-size:17px;line-height:1.25;margin-top:6px;overflow-wrap:anywhere}
+.tile .t3{font-size:12px;color:var(--muted)}
+.tile .tb{margin-top:auto;padding-top:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tile .tb b{margin-left:auto;font-size:15px}
+.tile.live{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tile.live .t1,.tile.live .t3{color:inherit;opacity:.72}
+.tile.live .pill{background:rgba(0,0,0,.2);color:inherit}
+.tile.dim{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}
+.tile.off{opacity:.5}
+
+.chart{width:100%;height:auto;display:block;margin-top:8px}
+.chart .gl{stroke:var(--line-2);stroke-dasharray:4 5;stroke-width:1}
+.chart .gt{fill:var(--muted);font-size:1em;font-family:var(--f-body)}
+.chart .gt.now{fill:var(--fg);font-weight:700}
+.chart .ga{fill:var(--accent);fill-opacity:.14}
+.chart .gl2{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round}
+.chart .gd{fill:var(--bg);stroke:var(--accent);stroke-width:2}
+.chart .gd.now{fill:var(--accent)}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:16px}
+.mcard{display:flex;flex-direction:column;gap:2px;padding:16px;border-radius:22px;background:var(--surface-2);border:1px solid var(--line);color:var(--fg);text-align:left;width:100%}
+.mcard:hover{border-color:var(--line-2)}
+.mtop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+.mflags{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:600 17px var(--f-body);flex:none}
+.av0{background:var(--accent-soft);color:var(--accent)} .av1{background:var(--fg);color:var(--bg)} .av2{background:var(--surface);color:var(--fg);border:1px solid var(--line-2)}
+.mn{font-weight:600;font-size:16px;overflow-wrap:anywhere}
+.ms{font-size:12px;color:var(--muted)}
+.mbox{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 8px;padding:10px 12px;border-radius:14px;background:var(--bg)}
+.mbox small{display:block;font-size:11px;color:var(--muted)}
+.mbox b{font-weight:600;font-size:15px}
+
+.sheet{margin:12px 12px 12px 0;height:calc(100% - 24px);border:1px solid var(--line-2);border-radius:28px;overflow:hidden}
+.dlgbox{border-radius:28px;overflow:hidden}
+.sh-head{background:var(--accent-soft)}
+
+.toasts{width:min(460px,calc(100% - 32px))}
+.toast{display:flex;align-items:center;gap:10px;padding:10px 10px 10px 14px;border-radius:999px;background:#0b0b0b;color:#fff;border:1px solid var(--line-2)}
+.toast .tick{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#000;display:grid;place-items:center;flex:none}
+.toast .tt{flex:1;min-width:0}
+.toast small{color:rgba(255,255,255,.62)}
+.toast .undo{border:0;border-radius:999px;background:var(--accent);color:#000;font-weight:700;padding:0 16px;min-height:36px}
+
+@media (max-width:1000px){.main{padding:0 20px 48px 92px}}
+@media (max-width:860px){
+  .main{padding:0 16px 24px}
+  .dock,.tabs{display:none}
+  .top{padding:12px 0 2px;flex-wrap:nowrap;gap:10px}
+  .top .brand.logo-h{display:none}
+  .top .brand.logo-m{display:flex}
+  .ptitle{font-size:28px}.thead{margin-top:10px}
+  .page{padding:10px 0 calc(100px + env(safe-area-inset-bottom,0px))}
+  .bnav{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:1px solid var(--line-2);border-radius:999px;background:#0b0b0b;padding:6px}
+  .bnav button{color:rgba(255,255,255,.62);border-radius:999px;min-height:50px}
+  .bnav button[aria-current="page"]{background:var(--accent);color:#000;font-weight:700}
+  .toasts{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+  .sheet{margin:0;height:auto;max-height:94%;border-radius:28px 28px 0 0;border-bottom:0}
+  .dlgbox{border-radius:28px 28px 0 0}
+  .tiles,.mgrid{padding:12px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+  .stat b{font-size:30px}.stat .ci{width:44px;height:44px}
+  .stats{gap:12px 20px}
+}
+@media (max-width:420px){.tiles,.mgrid{grid-template-columns:minmax(0,1fr)}}
+
+</style>
+
+<div class="app" id="app">
+  <aside class="dock" id="dock" aria-label="快捷操作"></aside>
+  <div class="main">
+    <header class="top">
+      <a class="brand logo-h" href="#" data-act="nav" data-v="today" aria-label="Space8 後台"><svg focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 1000"><g><polygon fill="currentColor" points="2532.07 716.51 2532.07 276.76 2917.98 276.76 2917.98 335.44 2590.74 335.44 2590.74 657.84 2918.59 657.84 2918.59 716.51 2532.07 716.51"/><rect fill="currentColor" x="2647.6" y="465.48" width="254.05" height="54.44"/></g><g><path fill="currentColor" d="M1659.26,293.1c-7.26-12.1-15.72-19.36-28.43-19.36s-21.78,7.26-29.04,19.36l-256.47,426.44h67.14l215.94-363.53,116.14,194.77,30.25,50.81,70.17,117.95h70.77l-256.47-426.44Z"/><circle fill="currentColor" cx="1634" cy="606.35" r="59.44"/></g><path fill="currentColor" d="M264.44,716.51v-58.67h327.24c48.99,0,75-28.43,75-69.56,0-45.36-26.62-68.35-75-68.35h-205.66c-79.24,0-128.24-52.63-128.24-122.79s45.36-120.37,129.45-120.37h313.93v58.67h-313.93c-43.55,0-68.35,26.61-68.35,65.33s26.01,64.72,67.75,64.72h205.05c85.29,0,130.65,42.34,130.65,125.21,0,71.98-42.95,125.82-130.65,125.82h-327.24Z"/><path fill="currentColor" d="M970.32,590.69v-56.86h189.93c62.3,0,98.59-40.53,98.59-99.81s-36.29-98.6-98.59-98.6h-246.79v381.07h-58.67v-439.75h305.47c98.59,0,156.06,60.49,156.06,155.45s-57.46,158.48-156.06,158.48h-189.93Z"/><path fill="currentColor" d="M2169.16,716.51c-120.97,0-209.89-96.78-209.89-224.41s88.92-215.34,209.89-215.34h234.09v58.67h-234.09c-87.1,0-151.22,65.33-151.22,159.69s63.51,162.71,151.22,162.71h234.09v58.67h-234.09Z"/><path fill="currentColor" d="M3256.74,473.61h112.02c26.88,0,39.58-11.09,39.58-39.03,0-29.71-17.55-39.91-48.54-39.91h-94.09c-30.99,0-48.54,10.2-48.54,39.91,0,27.94,12.7,39.03,39.58,39.03Z"/><path fill="currentColor" d="M3372.12,521.06h-118.74c-26.51,0-41.45,15.08-41.45,41.69,0,27.94,21.28,42.13,51.15,42.13h99.32c29.87,0,51.15-14.19,51.15-42.13s-14.94-41.69-41.45-41.69Z"/><path fill="currentColor" d="M3312.75,230.54c-148.82,0-269.46,120.64-269.46,269.46s120.64,269.46,269.46,269.46,269.46-120.64,269.46-269.46-120.64-269.46-269.46-269.46ZM3373.99,661.2h-122.47c-53.02,0-87.37-38.58-87.37-97.56,0-37.69,17.92-63.42,42.57-72.73-20.16-7.54-37.34-27.94-37.34-68.74,0-54.99,34.73-83.37,87.37-83.37h112.02c52.65,0,87.75,28.38,87.75,83.37,0,40.8-17.55,61.2-37.71,68.74,24.64,9.31,42.57,35.03,42.57,72.73,0,58.98-34.35,97.56-87.37,97.56Z"/></svg></a>
+      <a class="brand logo-m" href="#" data-act="nav" data-v="today" aria-label="Space8 後台"><svg focusable="false" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><path fill="currentColor" d="M391.31,786.11c-94.11,0-155.08-68.48-155.08-173.16,0-66.9,31.81-112.55,75.55-129.08-35.79-13.38-66.27-49.59-66.27-122,0-97.6,61.63-147.97,155.08-147.97h198.81c93.44,0,155.74,50.37,155.74,147.97,0,72.41-31.15,108.62-66.93,122,43.74,16.53,75.55,62.18,75.55,129.08,0,104.68-60.97,173.16-155.08,173.16h-217.37ZM394.63,537.39c-47.05,0-73.56,26.76-73.56,73.99,0,49.59,37.77,74.77,90.79,74.77h176.28c53.02,0,90.79-25.19,90.79-74.77s-26.51-73.99-73.56-73.99h-210.74ZM416.5,313.07c-55.01,0-86.15,18.1-86.15,70.84,0,49.59,22.53,69.26,70.25,69.26h198.81c47.72,0,70.25-19.68,70.25-69.26,0-52.74-31.15-70.84-86.15-70.84h-167Z"/><g><path fill="currentColor" d="M509.4,52.15c-216.22,0-398.3,143.24-452.84,338.16h-19.79C90.7,184.89,277.65,33.35,500,33.35s409.3,151.53,463.24,356.96h-1c-54.54-194.93-236.62-338.16-452.84-338.16Z"/><path fill="currentColor" d="M979.15,402.58h-26.22l-2.51-8.96c-54.23-193.83-235.59-329.2-441.02-329.2S122.6,199.79,68.37,393.62l-2.51,8.96H20.85l4.04-15.39c13.65-52,35.69-101.16,65.51-146.11,29.33-44.22,65.42-83.24,107.26-115.96,42.26-33.05,89.26-58.78,139.67-76.47,52.16-18.3,106.88-27.58,162.66-27.58s110.51,9.28,162.66,27.58c50.41,17.69,97.41,43.42,139.67,76.47,41.84,32.72,77.93,71.74,107.26,115.96,29.82,44.95,51.86,94.11,65.51,146.11l4.04,15.39Z"/></g><g><path fill="currentColor" d="M509.4,947.85c-216.22,0-398.3-143.24-452.84-338.16h-19.79c53.94,205.43,240.89,356.96,463.24,356.96s409.3-151.53,463.24-356.96h-1c-54.54,194.93-236.62,338.16-452.84,338.16Z"/><path fill="currentColor" d="M500,978.92c-55.78,0-110.51-9.28-162.66-27.58-50.41-17.69-97.41-43.42-139.67-76.47-41.84-32.72-77.93-71.74-107.26-115.96-29.82-44.95-51.86-94.11-65.51-146.11l-4.04-15.39h45.01l2.51,8.96c54.23,193.83,235.59,329.2,441.03,329.2s386.79-135.37,441.02-329.2l2.51-8.96h26.22l-4.04,15.39c-13.65,52-35.69,101.16-65.51,146.11-29.33,44.22-65.42,83.24-107.26,115.96-42.26,33.05-89.26,58.78-139.67,76.47-52.16,18.3-106.88,27.58-162.66,27.58Z"/></g></svg></a>
+      <nav class="tabs" id="nav-rail" aria-label="主選單"></nav>
+      <div class="spacer"></div>
+      <span class="chip demo hide-sm">示例資料</span>
+      <label class="sr" for="role-sel">身份預覽</label>
+      <select class="sel" id="role-sel"><option value="super_admin">超級管理員</option><option value="admin">管理員</option></select>
+      <button class="icon-btn" id="theme-btn" aria-label="切換深淺色"></button>
+    </header>
+    <div class="thead"><h1 class="ptitle" id="page-title">今日</h1><span class="route" id="route-chip">space8.com.hk/admin</span></div>
+    <main class="page" id="page"></main>
+  </div>
+</div>
+<nav class="bnav" id="nav-bottom" aria-label="主選單"></nav>
+<div id="ov-drawer"></div>
+<div id="ov-dlg"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TODAY='2026-10-07', NOWM=15*60+20; /* 示例時間：2026-10-07 15:20 */
+let tick=0, seq=100;
+const nid=p=>p+(++seq);
+function stamp(){const t=NOWM+tick++;return TODAY+' '+String(Math.floor(t/60)%24).padStart(2,'0')+':'+String(t%60).padStart(2,'0')}
+const WD=['日','一','二','三','四','五','六'];
+const dt=d=>new Date(d+'T00:00:00Z');
+const dlabel=d=>{const x=dt(d);return (x.getUTCMonth()+1)+'月'+x.getUTCDate()+'日（'+WD[x.getUTCDay()]+'）'};
+const addDays=(d,n)=>{const x=dt(d);x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
+const hm=t=>{const a=t.split(':').map(Number);return a[0]*60+a[1]};
+const tm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+const money=n=>'HK$'+Number(n||0).toLocaleString('en-US');
+const mask=p=>'**** '+String(p).replace(/\D/g,'').slice(-4);
+const ICON={
+ today:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+ users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.5a3.5 3.5 0 010 7M18 14.5c2.2.7 3.5 2.6 3.5 5.5"/>',
+ site:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+ shield:'<path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6L19 19M5 19l1.4-1.4M17.6 6.4L19 5"/>',
+ moon:'<path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',card:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10.5h18"/>',chev:'<path d="M9 6l6 6-6 6"/>'
+};
+const ic=(n,s=20)=>'<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[n]+'</svg>';
+
+/* ---------- mock database (shape follows the real tables) ---------- */
+const DB={
+ config:{
+  pricing_rates:{morning:{base:88,timeRange:'06:00-12:00'},afternoon:{base:98,timeRange:'12:00-18:00'},evening:{base:108,timeRange:'18:00-24:00'}},
+  booking_rules:{min_hours:1,max_hours:12,midnight_cap_hour:2,allow_cross_midnight:true},
+  site:{currency:'HKD',maxHours:8,openHour:6,closeHour:24},
+  venue:{name:'248 Snooker',tables:2,address:'香港',whatsapp:'85261808022'},
+  door_access:{early_entry_minutes:10,late_exit_minutes:10},
+  points_system:{earn_basis:'net_paid',tiers_enabled:false,earn_points_per_hkd:1},
+  tiers:[{id:'amateur',minPts:0,discount:1,multiplier:1},{id:'century',minPts:500,discount:0.95,multiplier:1.2}],
+  legal:{updatedAt:'2026-07-14'},
+  maintenance:{dates:[],message:'場地維修中，請稍後再試'}
+ },
+ members:[
+  {id:'m1',name:'陳家俊',phone:'6128 4501',email:'kc.chan@example.com',code:'S80001',since:'2026-08-02',bl:false,reverify:false,verified:true},
+  {id:'m2',name:'李美詩',phone:'5234 7712',email:'may.lee@example.com',code:'S80002',since:'2026-08-09',bl:false,reverify:false,verified:true},
+  {id:'m3',name:'黃子軒',phone:'9345 2208',email:'tszhin.w@example.com',code:'S80003',since:'2026-08-15',bl:false,reverify:false,verified:true},
+  {id:'m4',name:'張雅婷',phone:'6671 3390',email:'ngaiting@example.com',code:'S80004',since:'2026-08-21',bl:false,reverify:false,verified:true},
+  {id:'m5',name:'林俊樂',phone:'5560 9143',email:'jl.lam@example.com',code:'S80005',since:'2026-09-03',bl:false,reverify:false,verified:true,lastChange:'2026-09-20'},
+  {id:'m6',name:'何嘉怡',phone:'9012 6657',email:'karyi.ho@example.com',code:'S80006',since:'2026-09-11',bl:false,reverify:true,verified:false},
+  {id:'m7',name:'梁浩然',phone:'6398 1024',email:null,code:'S80007',since:'2026-09-18',bl:false,reverify:false,verified:true},
+  {id:'m8',name:'吳思穎',phone:'5187 4436',email:'sy.ng@example.com',code:'S80008',since:'2026-09-25',bl:false,reverify:false,verified:true},
+  {id:'m9',name:'郭晉豪',phone:'9650 3871',email:'kwok.ch@example.com',code:'S80009',since:'2026-09-29',bl:true,reverify:false,verified:true}
+ ],
+ bookings:[],pts:[],cred:[],notices:[],audit:[],
+ maint:[
+  {id:'mt1',date:'2026-10-12',table:2,start:'10:00',end:'14:00',reason:'更換枱布'},
+  {id:'mt2',date:'2026-10-20',table:null,start:null,end:null,reason:'場地消防檢查'}
+ ],
+ pay:[
+  {method:'card',label:'信用卡 / 扣帳卡',on:true},{method:'fps',label:'轉數快 FPS',on:true},{method:'payme',label:'PayMe',on:true},{method:'octopus',label:'八達通',on:true},
+  {method:'alipay',label:'支付寶',on:true},{method:'alipayhk',label:'支付寶香港',on:true},{method:'wechat',label:'微信支付',on:true},{method:'unionpay_qp',label:'銀聯',on:true}
+ ],
+ promos:[
+  {id:'p1',code:'OCT10',name:'十月九折優惠',type:'percentage',value:10,maxDisc:50,minCart:200,from:'2026-10-01',until:'2026-10-31',maxUses:100,used:1,perUser:1,weekdays:[],win:null,audience:'all',aud:0,stackCredit:false,stackCodes:false,wallet:true,on:true}
+ ],
+ gate:{enabled:false,at:'2026-10-02 18:40',by:'owner@example.com'},
+ admins:[
+  {id:'a1',email:'owner@example.com',role:'super_admin',status:'active',exp:null},
+  {id:'a2',email:'staff1@example.com',role:'admin',status:'active',exp:null},
+  {id:'a3',email:'staff2@example.com',role:'admin',status:'active',exp:null},
+  {id:'a4',email:'newstaff@example.com',role:'admin',status:'pending',exp:'2026-10-08 06:10'},
+  {id:'a5',email:'oldstaff@example.com',role:'admin',status:'revoked',exp:null}
+ ],
+ errors:[
+  {id:'e1',src:'webhook/kpay',sev:'error',msg:'KPay 通知的 status 欄位為空字串，已改用輪詢確認付款',at:'2026-10-06 21:14',done:false},
+  {id:'e2',src:'checkout',sev:'warn',msg:'付款方式列表在瀏覽器返回後顯示舊狀態',at:'2026-10-06 19:02',done:false},
+  {id:'e3',src:'auth/otp',sev:'warn',msg:'同一電話在 10 分鐘內多次索取驗證碼',at:'2026-10-06 12:47',done:false},
+  {id:'e4',src:'cron/expire',sev:'info',msg:'已釋放 2 個逾時未付款的預約時段',at:'2026-10-05 04:00',done:true},
+  {id:'e5',src:'webhook/kpay',sev:'error',msg:'簽名驗證失敗（測試環境請求）',at:'2026-10-04 15:31',done:true}
+ ],
+ flags:[
+  {id:'f1',type:'shared_ip',key:'203.0.113.24',users:['m2','m3'],count:5,status:'open',first:'2026-10-01',last:'2026-10-06'},
+  {id:'f2',type:'shared_device',key:'dev-7f3a…c19',users:['m5','m9'],count:3,status:'open',first:'2026-10-03',last:'2026-10-05'},
+  {id:'f3',type:'shared_ip',key:'198.51.100.8',users:['m1','m8'],count:2,status:'reviewed',first:'2026-09-28',last:'2026-09-29'}
+ ]
+};
+const HC='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let hs=7;
+const hcode=()=>{let s='';for(let i=0;i<6;i++){hs=(Math.imul(hs,1103515245)+12345)&0x7fffffff;s+=HC[(hs>>>12)%HC.length]}return s};
+const mem=id=>DB.members.find(m=>m.id===id);
+const bk=id=>DB.bookings.find(b=>b.id===id);
+const ptsOf=u=>DB.pts.filter(x=>x.uid===u).reduce((a,x)=>a+x.points,0);
+const credOf=u=>DB.cred.filter(x=>x.uid===u).reduce((a,x)=>a+x.amount,0);
+function addPts(uid,points,type,note,ref,at){DB.pts.unshift({id:nid('pl'),uid,points,type,ref:ref||null,note,at:at||stamp()})}
+function addCred(uid,amount,type,note,ref,at,actor){DB.cred.unshift({id:nid('cl'),uid,amount,type,ref:ref||null,note,at:at||stamp(),after:credOf(uid)+amount,actor:actor||null})}
+
+/* pricing from config.pricing_rates */
+function rateAt(h){const pr=DB.config.pricing_rates;for(const k in pr){const r=String(pr[k].timeRange).split('-');const a=parseInt(r[0]),z=parseInt(r[1]);if(h>=a&&h<z)return Number(pr[k].base)||0}return 0}
+function priceFor(start,hours){let t=0;const s=Math.floor(hm(start)/60);for(let i=0;i<hours;i++)t+=rateAt(s+i);return t}
+
+function mkB(o){
+ const b=Object.assign({id:nid('b'),status:'confirmed',table:1,test:false,promo:null,promoDisc:0,ptsDisc:0,credDisc:0,pay:'fps',prov:'kpay',note:'',resched:0,cancelReason:'',refund:0,free:false,hours:2},o);
+ b.base=priceFor(b.start,b.hours);
+ b.total=b.free?0:Math.max(0,b.base-b.promoDisc-b.ptsDisc-b.credDisc);
+ b.ref='S8-'+b.date.replace(/-/g,'').slice(2)+'-'+String(DB.bookings.length+1).padStart(2,'0');
+ b.hc=hcode();b.order='KP'+(700000+DB.bookings.length*37);
+ DB.bookings.push(b);return b;
+}
+[
+ {date:'2026-10-07',start:'10:00',hours:2,table:1,uid:'m1',created:'2026-10-05 21:10'},
+ {date:'2026-10-07',start:'13:00',hours:3,table:2,uid:'m2',created:'2026-10-06 10:22',pay:'card'},
+ {date:'2026-10-07',start:'16:00',hours:2,table:1,uid:'m3',created:'2026-10-06 18:40'},
+ {date:'2026-10-07',start:'19:00',hours:4,table:2,uid:'m4',created:'2026-10-06 22:05',promo:'OCT10',promoDisc:50,pay:'google_pay'},
+ {date:'2026-10-07',start:'20:00',hours:2,table:1,uid:'m5',created:'2026-10-07 14:51',status:'pending'},
+ {date:'2026-10-07',start:'18:00',hours:1,table:1,uid:'m1',created:'2026-10-07 09:12',test:true,pay:'test'},
+ {date:'2026-10-08',start:'18:00',hours:3,table:1,uid:'m6',created:'2026-10-07 11:30',pay:'alipayhk'},
+ {date:'2026-10-08',start:'14:00',hours:2,table:2,uid:'m7',created:'2026-10-07 12:05',credDisc:100,pay:'apple_pay'},
+ {date:'2026-10-09',start:'19:00',hours:2,table:2,uid:'m1',created:'2026-10-07 13:44'},
+ {date:'2026-10-10',start:'11:00',hours:2,table:1,uid:'m8',created:'2026-10-07 13:58',note:'客人要求加設計分板'},
+ {date:'2026-10-05',start:'15:00',hours:2,table:1,uid:'m4',created:'2026-10-03 20:11'},
+ {date:'2026-10-04',start:'20:00',hours:2,table:2,uid:'m2',created:'2026-10-02 16:30',status:'cancelled',cancelReason:'客人自行取消'},
+ {date:'2026-10-03',start:'18:00',hours:2,table:1,uid:'m3',created:'2026-10-01 12:00',status:'admin_cancelled',cancelReason:'惡劣天氣特殊安排'},
+ {date:'2026-10-02',start:'19:00',hours:2,table:2,uid:'m5',created:'2026-09-30 09:41',status:'refunded',refund:216,cancelReason:'場地設備故障'},
+ {date:'2026-10-01',start:'12:00',hours:3,table:1,uid:'m9',created:'2026-09-29 22:30'},
+ {date:'2026-10-06',start:'12:00',hours:2,table:1,uid:'m6',created:'2026-10-06 11:40',status:'expired'},
+ {date:'2026-10-06',start:'15:00',hours:2,table:2,uid:'m7',created:'2026-10-06 14:20',status:'payment_failed'}
+].forEach(mkB);
+/* ledgers consistent with bookings */
+DB.bookings.slice().reverse().forEach(b=>{
+ const t=b.created;
+ if(b.status==='confirmed'&&!b.test&&!b.free)addPts(b.uid,b.total,'booking','預約積分 '+b.ref,b.id,t);
+ if(b.status==='refunded'){addPts(b.uid,b.total,'booking','預約積分 '+b.ref,b.id,t);addPts(b.uid,-b.total,'reversal','退款回收積分',b.id,b.date+' 12:00')}
+ if(b.status==='admin_cancelled'){addPts(b.uid,b.total,'booking','預約積分 '+b.ref,b.id,t);addPts(b.uid,-b.total,'reversal','取消回收積分',b.id,'2026-10-03 10:20');addCred(b.uid,b.total,'refund','惡劣天氣取消補償 '+b.ref,b.id,'2026-10-03 10:21','owner@example.com')}
+});
+addCred('m7',100,'manual','開業體驗 Credit',null,'2026-09-20 10:00','owner@example.com');
+addCred('m7',-100,'redeem','預約折抵 '+DB.bookings[7].ref,DB.bookings[7].id,'2026-10-07 12:05');
+addCred('m2',50,'manual','客服補償',null,'2026-09-22 15:00','staff1@example.com');
+addPts('m1',120,'manual','活動贈分',null,'2026-09-15 12:00');
+DB.notices.push(
+ {id:'n1',uid:'m3',title:'Credit 已存入',msg:'因惡劣天氣取消預約，'+money(DB.bookings[12].total)+' 已存入你的 Space Credit 錢包。',type:'credit',read:true,at:'2026-10-03 10:21'},
+ {id:'n2',uid:'m2',title:'Credit 已存入',msg:'客服補償 HK$50 已存入你的 Space Credit 錢包。',type:'credit',read:true,at:'2026-09-22 15:00'}
+);
+DB.audit.push(
+ {id:'a-1',at:'2026-10-06 17:20',admin:'owner@example.com',action:'config.update',table:'config',target:'pricing_rates',before:{evening:{base:98}},after:{evening:{base:108}}},
+ {id:'a-2',at:'2026-10-05 11:02',admin:'staff1@example.com',action:'booking.note',table:'bookings',target:DB.bookings[9].id,before:{admin_note:''},after:{admin_note:'客人要求加設計分板'}},
+ {id:'a-3',at:'2026-10-03 10:21',admin:'owner@example.com',action:'booking.cancel_credit',table:'bookings',target:DB.bookings[12].id,before:{status:'confirmed'},after:{status:'admin_cancelled',credit:DB.bookings[12].total}},
+ {id:'a-4',at:'2026-10-02 18:40',admin:'owner@example.com',action:'site_gate.toggle',table:'site_gate_config',target:'00000000-0000-0000-0000-000000000001',before:{enabled:true},after:{enabled:false}}
+);
+
+/* availability from slots + maintenance_log */
+function busy(date,table,exceptId){
+ const s=new Set();
+ DB.bookings.forEach(b=>{if(b.id===exceptId||b.date!==date||b.table!==table||!['confirmed','pending'].includes(b.status))return;const a=Math.floor(hm(b.start)/60);for(let h=a;h<a+b.hours;h++)s.add(h)});
+ DB.maint.forEach(m=>{if(m.date!==date||(m.table&&m.table!==table))return;const a=m.start?Math.floor(hm(m.start)/60):0,z=m.end?Math.ceil(hm(m.end)/60):24;for(let h=a;h<z;h++)s.add(h)});
+ return s;
+}
+function startsFor(date,table,hours,exceptId){
+ const s=busy(date,table,exceptId),o=DB.config.site.openHour,c=DB.config.site.closeHour,out=[];
+ for(let h=o;h+hours<=c;h++){if(date===TODAY&&h*60<NOWM)continue;let ok=true;for(let k=0;k<hours;k++)if(s.has(h+k)){ok=false;break}if(ok)out.push(h)}
+ return out;
+}
+function maxHoursAt(date,table,start){const s=busy(date,table),c=DB.config.site.closeHour,mx=DB.config.booking_rules.max_hours;let n=0;while(start+n<c&&!s.has(start+n)&&n<mx)n++;return n}
+
+/* ---------- status, audit, notify, session ---------- */
+const STATUS={confirmed:['已確認','good'],pending:['待付款','warn'],payment_review:['付款待審核','warn'],payment_failed:['付款失敗','bad'],expired:['已過期','mute'],cancelled:['已取消','mute'],admin_cancelled:['已取消（後台）','mute'],refunded:['已退款','info']};
+const pill=(k)=>{const s=STATUS[k]||[k,'mute'];return '<span class="pill '+s[1]+'">'+s[0]+'</span>'};
+const endOf=b=>tm(hm(b.start)+b.hours*60);
+const startsAt=b=>b.date+' '+b.start;
+const nowStr=TODAY+' '+tm(NOWM);
+function phase(b){if(b.status!=='confirmed')return '';const s=startsAt(b),e=b.date+' '+endOf(b);return nowStr>=e?'已結束':nowStr>=s?'進行中':'未開始'}
+const PAYL={card:'信用卡',apple_pay:'Apple Pay',google_pay:'Google Pay',fps:'轉數快 FPS',payme:'PayMe',octopus:'八達通',alipay:'支付寶',alipayhk:'支付寶香港',wechat:'微信支付',wechat_pay:'微信支付',unionpay_qp:'銀聯',free:'免費',test:'測試'};
+const S={role:'super_admin',view:'today',sub:{members:'list',site:'gate',system:'admins'},showTest:false,mv:'grid',
+ bk:{q:'',status:'all',from:'',to:'',page:1},mem:{q:'',filter:'all'},drawer:null,dlg:null,cfg:{},errFilter:'open',af:{who:'all',table:'all'},aopen:{}};
+const cur=()=>S.role==='super_admin'?DB.admins[0]:DB.admins[1];
+const isSuper=()=>S.role==='super_admin';
+function audit(action,table,target,before,after){DB.audit.unshift({id:nid('a'),at:stamp(),admin:cur().email,action,table,target:String(target),before,after})}
+function notify(uid,title,msg,type){DB.notices.unshift({id:nid('n'),uid,title,msg,type:type||'booking',read:false,at:stamp()})}
+function toast(t,s,undo){const el=document.createElement('div');el.className='toast';el.innerHTML='<span class="tick">'+ic('check',16)+'</span><span class="tt">'+esc(t)+(s?'<small>'+esc(s)+'</small>':'')+'</span>'+(undo?'<button class="undo" type="button">還原</button>':'');if(undo)el.querySelector('.undo').onclick=()=>{undo();el.remove()};$('#toasts').appendChild(el);setTimeout(()=>el.remove(),undo?6500:4200)}
+/* ---------- views ---------- */
+const NAV=[['today','今日','today','今日'],['bookings','預約','list','預約'],['members','會員','users','會員'],['site','網站資料','site','網站'],['system','系統','shield','系統']];
+const TITLES={today:'今日',bookings:'預約',members:'會員',site:'網站資料',system:'系統'};
+const seg=(items,cur,act)=>'<div class="seg" role="group">'+items.map(i=>'<button type="button" data-act="'+act+'" data-v="'+i[0]+'" aria-pressed="'+(cur===i[0])+'">'+i[1]+'</button>').join('')+'</div>';
+const lockTag=()=>'<span class="lock">'+ic('lock',13)+'僅限超級管理員</span>';
+const testToggle=()=>'<div class="row"><button class="switch" type="button" role="switch" aria-checked="'+S.showTest+'" data-act="toggle-test" aria-label="顯示測試預約"></button><span class="fg2">顯示測試預約</span></div>';
+
+function vToday(){
+ const list=DB.bookings.filter(b=>b.date===TODAY&&(S.showTest||!b.test)).sort((a,b)=>a.start<b.start?-1:1);
+ const live=list.filter(b=>['confirmed','pending'].includes(b.status));
+ const cnt=p=>live.filter(b=>phase(b)===p).length;
+ const tables=[];for(let t=1;t<=DB.config.venue.tables;t++)tables.push(t);
+ return '<div class="head"><div><h2>'+dlabel(TODAY)+'</h2><p class="sub">示例時間 '+tm(NOWM)+' · 按枱號與開始時間排列</p></div>'
+ +'<div class="row">'+testToggle()+'<button class="btn primary" data-act="new-booking">'+ic('plus',18)+'手動新增預約</button></div></div>'
+ +'<div class="stats">'+[[live.length,'今日預約','cal'],[cnt('進行中'),'進行中','clock'],[cnt('未開始'),'未開始','today'],[list.filter(b=>b.status==='pending').length,'待付款','card']].map(x=>'<div class="stat"><i class="ci">'+ic(x[2],20)+'</i><div class="tx"><b>'+x[0]+'</b><span>'+x[1]+'</span></div></div>').join('')+'</div>'
+ +chart7()
+ +'<div class="stack">'+tables.map(t=>{
+  const rows=list.filter(b=>b.table===t);
+  return '<section class="card flat"><div class="head" style="padding:14px 16px;border-bottom:1px solid var(--line)"><h3 style="margin:0">枱 '+t+'</h3><span class="muted">'+rows.length+' 個預約</span></div><div class="tiles">'
+  +(rows.length?rows.map(b=>{const m=mem(b.uid);const off=['cancelled','admin_cancelled','expired','refunded','payment_failed'].includes(b.status),cl=off?'off':phase(b)==='進行中'?'live':b.status==='pending'?'dim':'';return '<button class="tile '+cl+'" data-act="open-bk" data-id="'+b.id+'"><span class="t1 mono">'+b.start+'–'+endOf(b)+'</span><span class="t2">'+esc(m.name)+(b.test?' <span class="tag warn">測試</span>':'')+'</span><span class="t3">'+esc(m.phone)+'</span><span class="tb">'+pill(b.status)+(phase(b)?'<span class="t3">'+phase(b)+'</span>':'')+'<b class="num">'+money(b.total)+'</b></span></button>'}).join(''):'<div class="empty">此枱今日沒有預約</div>')
+  +'</div></section>'}).join('')+'</div>';
+}
+
+
+function chart7(){
+ const days=[];for(let i=-3;i<=3;i++){const d=new Date(TODAY+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+i);days.push(d.toISOString().slice(0,10))}
+ const vals=days.map(d=>DB.bookings.filter(b=>b.date===d&&['confirmed','pending'].includes(b.status)&&(S.showTest||!b.test)).length);
+ const wide=window.innerWidth>860,W=wide?1000:480,H=wide?190:170,fs=wide?12:15,pl=30,pr=14,pt=16,pb=30,mx=Math.max(4,...vals),x=i=>pl+i*(W-pl-pr)/6,y=n=>pt+(H-pt-pb)*(1-n/mx);
+ const P=vals.map((n,i)=>[x(i),y(n)]);let d='M'+P[0];
+ const cy=n=>Math.min(H-pb,Math.max(pt,n));for(let i=0;i<6;i++){const p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||p2;d+=' C'+[p1[0]+(p2[0]-p0[0])/6,cy(p1[1]+(p2[1]-p0[1])/6)]+' '+[p2[0]-(p3[0]-p1[0])/6,cy(p2[1]-(p3[1]-p1[1])/6)]+' '+p2}
+ const area=d+' L'+x(6)+','+(H-pb)+' L'+x(0)+','+(H-pb)+' Z';
+ const grid=[0,.5,1].map(k=>'<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y(mx*k)+'" y2="'+y(mx*k)+'" class="gl"/><text x="'+(pl-8)+'" y="'+(y(mx*k)+4)+'" text-anchor="end" class="gt">'+Math.round(mx*k)+'</text>').join('');
+ const xl=days.map((dd,i)=>'<text x="'+x(i)+'" y="'+(H-8)+'" text-anchor="middle" class="gt'+(i===3?' now':'')+'">'+(i===3?'今日':dd.slice(5).replace('-','/'))+'</text>').join('');
+ const dots=P.map((p,i)=>'<circle cx="'+p[0]+'" cy="'+p[1]+'" r="'+(i===3?5:3.5)+'" class="gd'+(i===3?' now':'')+'"/>').join('');
+ return '<section class="card"><div class="head"><div><h3 style="margin:0">預約量 · 今日前後 3 日</h3><p class="sub"><b class="num" style="font-size:22px;color:var(--fg)">'+vals.reduce((a,b)=>a+b,0)+'</b> 個預約（不含已取消）</p></div></div>'
+ +'<svg class="chart" style="font-size:'+fs+'px" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="前後三日預約量">'+grid+'<path d="'+area+'" class="ga"/><path d="'+d+'" class="gl2"/>'+dots+xl+'</svg></section>';
+}
+
+const PAGE=8;
+function filterBk(){
+ const q=S.bk.q.trim().toLowerCase().replace(/\s/g,'');
+ return DB.bookings.filter(b=>{
+  if(!S.showTest&&b.test)return false;
+  if(S.bk.status!=='all'&&b.status!==S.bk.status)return false;
+  if(S.bk.from&&b.date<S.bk.from)return false;
+  if(S.bk.to&&b.date>S.bk.to)return false;
+  if(q){const m=mem(b.uid);const hay=[b.hc,b.ref,m.phone,m.code].join(' ').toLowerCase().replace(/\s/g,'');if(!hay.includes(q))return false}
+  return true}).sort((a,b)=>a.created<b.created?1:-1);
+}
+function bkResults(){
+ const all=filterBk(),pages=Math.max(1,Math.ceil(all.length/PAGE));if(S.bk.page>pages)S.bk.page=pages;
+ const rows=all.slice((S.bk.page-1)*PAGE,S.bk.page*PAGE);
+ return '<div class="list"><div class="li li-bk hd"><span class="c-hc">預約碼</span><span class="c-nm">客人</span><span class="c-dt">日期與時間</span><span class="c-tb">枱</span><span class="c-pr">金額</span><span class="c-st">狀態</span></div>'
+ +(rows.length?rows.map(b=>{const m=mem(b.uid);return '<button class="li li-bk" data-act="open-bk" data-id="'+b.id+'"><span class="c-hc"><span class="mono">'+b.hc+'</span><br><span class="cell-sub mono">'+b.ref+'</span></span><span class="c-nm"><span class="cell-main">'+esc(m.name)+(b.test?' <span class="tag warn">測試</span>':'')+'</span><br><span class="cell-sub">'+esc(m.phone)+'</span></span><span class="c-dt"><span class="cell-main">'+dlabel(b.date)+'</span><br><span class="cell-sub mono">'+b.start+'–'+endOf(b)+'<span class="tbi"> · 枱 '+b.table+'</span></span></span><span class="c-tb">'+b.table+'</span><span class="c-pr num">'+money(b.total)+'</span><span class="c-st">'+pill(b.status)+'</span></button>'}).join(''):'<div class="empty">找不到符合條件的預約</div>')
+ +'</div><div class="pager"><span>共 '+all.length+' 筆</span><span class="row"><button class="btn sm" data-act="bk-page" data-v="-1" '+(S.bk.page<=1?'disabled':'')+'>上一頁</button><span class="num">'+S.bk.page+' / '+pages+'</span><button class="btn sm" data-act="bk-page" data-v="1" '+(S.bk.page>=pages?'disabled':'')+'>下一頁</button></span></div>';
+}
+function vBookings(){
+ const opts=[['all','全部狀態']].concat(Object.keys(STATUS).map(k=>[k,STATUS[k][0]]));
+ return '<div class="head"><div><h2>預約</h2><p class="sub">電話、會員編號、預約碼或參考編號</p></div><div class="row">'+testToggle()+'<button class="btn primary" data-act="new-booking">'+ic('plus',18)+'手動新增預約</button></div></div>'
+ +'<div class="toolbar"><div class="field"><label for="bk-q">搜尋</label><input id="bk-q" type="search" data-bind="bk.q" data-live="bk" value="'+esc(S.bk.q)+'" placeholder="例：6128 4501 / S80001 / K7M2Q9"></div>'
+ +'<div class="field"><label for="bk-st">狀態</label><select id="bk-st" data-bind="bk.status" data-live="bk">'+opts.map(o=>'<option value="'+o[0]+'"'+(S.bk.status===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select></div>'
+ +'<div class="field"><label for="bk-f">由</label><input id="bk-f" type="date" data-bind="bk.from" data-live="bk" value="'+S.bk.from+'"></div>'
+ +'<div class="field"><label for="bk-t">至</label><input id="bk-t" type="date" data-bind="bk.to" data-live="bk" value="'+S.bk.to+'"></div></div>'
+ +'<section class="card flat" id="bk-res">'+bkResults()+'</section>';
+}
+
+function memFilter(){
+ const q=S.mem.q.trim().toLowerCase().replace(/\s/g,'');
+ return DB.members.filter(m=>{
+  if(S.mem.filter==='bl'&&!m.bl)return false;
+  if(S.mem.filter==='rv'&&!m.reverify)return false;
+  if(q&&![m.name,m.phone,m.code,m.email||''].join(' ').toLowerCase().replace(/\s/g,'').includes(q))return false;
+  return true});
+}
+const memBadges=m=>(m.bl?'<span class="tag bad">黑名單</span> ':'')+(m.reverify?'<span class="tag warn">待重新驗證電話</span> ':'');
+function memResults(){
+ const rows=memFilter();
+ const body=!rows.length?'<div class="empty">找不到會員</div>':S.mv==='grid'
+  ?'<div class="mgrid">'+rows.map(m=>'<button class="mcard" data-act="open-mem" data-id="'+m.id+'"><span class="mtop"><span class="av av'+((m.name.charCodeAt(0)||0)%3)+'">'+esc((m.name||'?').slice(0,1).toUpperCase())+'</span><span class="mflags">'+memBadges(m)+'</span></span><span class="mn">'+esc(m.name)+'</span><span class="ms mono">'+m.code+'</span><span class="mbox"><span><small>積分</small><b class="num">'+ptsOf(m.id)+'</b></span><span><small>Credit</small><b class="num">'+money(credOf(m.id))+'</b></span></span><span class="ms">'+esc(m.phone)+'</span></button>').join('')+'</div>'
+  :'<div class="list">'+rows.map(m=>'<button class="li li-mem" data-act="open-mem" data-id="'+m.id+'"><span><span class="cell-main">'+esc(m.name)+'</span><br><span class="cell-sub mono">'+m.code+'</span></span><span class="cell-sub">'+esc(m.phone)+'<br>'+esc(m.email||'沒有電郵')+'</span><span class="num">'+ptsOf(m.id)+' 分</span><span class="num">'+money(credOf(m.id))+'</span><span>'+memBadges(m)+'</span></button>').join('')+'</div>';
+ return body+'<div class="pager"><span>共 '+rows.length+' 位</span></div>';
+}
+function flagList(){
+ return '<section class="card flat"><div class="list">'+DB.flags.map(f=>'<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><div style="min-width:0"><div class="row"><span class="tag">'+(f.type==='shared_ip'?'共用 IP':'共用裝置')+'</span><span class="mono">'+esc(f.key)+'</span>'+(f.status==='open'?'<span class="pill warn">待審查</span>':'<span class="pill mute">已審查</span>')+'</div><div class="cell-sub" style="margin-top:6px">'+f.users.map(u=>'<button class="tag" style="background:none;cursor:pointer" data-act="open-mem" data-id="'+u+'">'+esc(mem(u).name)+'</button>').join(' ')+' · '+f.count+' 次事件 · '+f.first+' 至 '+f.last+'</div></div>'+(f.status==='open'?'<button class="btn sm" data-act="flag-review" data-id="'+f.id+'">標記已審查</button>':'<span></span>')+'</div>').join('')+'</div></section>';
+}
+function vMembers(){
+ const sub=S.sub.members;
+ return '<div class="head"><div><h2>會員</h2><p class="sub">所有會員資料更改都會自動發送 inbox 通知</p></div>'+seg([['list','會員列表'],['flags','帳戶異常']],sub,'sub-members')+'</div>'
+ +(sub==='list'?'<div class="row"><div class="field" style="flex:1;min-width:220px"><label for="mem-q">搜尋</label><input id="mem-q" type="search" data-bind="mem.q" data-live="mem" value="'+esc(S.mem.q)+'" placeholder="電話、會員編號、名稱、電郵"></div>'+seg([['all','全部'],['bl','黑名單'],['rv','待重新驗證電話']],S.mem.filter,'mem-filter')+seg([['grid','卡片'],['table','表格']],S.mv,'mem-view')+'</div><section class="card flat" id="mem-res" data-mv="'+S.mv+'">'+memResults()+'</section>':flagList());
+}
+
+/* site data */
+const CFGK=[['pricing_rates','價格'],['booking_rules','預約規則'],['site','網站'],['venue','場地'],['door_access','門禁'],['points_system','積分'],['tiers','等級'],['legal','法律']];
+const CFGL={base:'每小時價格',timeRange:'時段',min_hours:'最少時數',max_hours:'最多時數',midnight_cap_hour:'午夜截止時',allow_cross_midnight:'允許跨午夜',early_entry_minutes:'提早進場（分鐘）',late_exit_minutes:'延遲離場（分鐘）',currency:'貨幣',maxHours:'最長預約時數',openHour:'開門時間（時）',closeHour:'關門時間（時）',name:'名稱',tables:'枱數',address:'地址',whatsapp:'WhatsApp 號碼',earn_basis:'積分計算基礎',tiers_enabled:'啟用會員等級',earn_points_per_hkd:'每港元積分',updatedAt:'更新日期',id:'代號',minPts:'最低積分',discount:'折扣係數',multiplier:'積分倍數'};
+const CFGP={morning:'早上',afternoon:'下午',evening:'晚上'};
+function flat(o,p){p=p||'';let out=[];for(const k in o){const v=o[k],path=p?p+'.'+k:k;if(v&&typeof v==='object')out=out.concat(flat(v,path));else out.push([path,v])}return out}
+function setPath(o,path,v){const a=path.split('.');for(let i=0;i<a.length-1;i++)o=o[a[i]];o[a[a.length-1]]=v}
+function getPath(o,path){return path.split('.').reduce((x,k)=>x==null?x:x[k],o)}
+function cfgDraft(k){if(!S.cfg[k])S.cfg[k]=JSON.parse(JSON.stringify(DB.config[k]));return S.cfg[k]}
+const cfgDirty=k=>S.cfg[k]&&JSON.stringify(S.cfg[k])!==JSON.stringify(DB.config[k]);
+function cfgLabel(rel){const a=rel.split('.');const last=CFGL[a[a.length-1]]||a[a.length-1];const pre=a.slice(0,-1).map(x=>/^\d+$/.test(x)?'#'+(+x+1):(CFGP[x]||x)).join(' ');return (pre?pre+' · ':'')+last}
+function vCfg(){
+ return '<div class="note">價格與規則直接寫入 <span class="mono">config</span> 表，結帳與預約流程讀取同一份資料，不在程式內寫死。</div>'+CFGK.map(kk=>{
+  const k=kk[0],d=cfgDraft(k);
+  return '<section class="card" data-cfgcard="'+k+'"><div class="head" style="margin-bottom:12px"><h3 style="margin:0">'+kk[1]+' <span class="mono muted" style="font-weight:400">'+k+'</span></h3><button class="btn sm primary" data-act="cfg-save" data-k="'+k+'" '+(cfgDirty(k)?'':'disabled')+'>儲存</button></div><div class="sect" style="gap:12px">'
+  +flat(d).map(f=>{const rel=f[0],v=f[1];
+   const ctl=typeof v==='boolean'?'<button type="button" class="switch" role="switch" aria-checked="'+v+'" data-act="cfg-bool" data-k="'+k+'" data-p="'+rel+'" aria-label="'+esc(cfgLabel(rel))+'"></button>':'<input type="'+(typeof v==='number'?'number':'text')+'" step="any" data-cfg="'+k+'" data-p="'+rel+'" value="'+esc(v)+'" aria-label="'+esc(cfgLabel(rel))+'">';
+   return '<div class="cfgf"><div class="k">'+esc(cfgLabel(rel))+'<small>'+rel+'</small></div><div class="field">'+ctl+'</div></div>'}).join('')+'</div></section>'}).join('');
+}
+function vGate(){
+ const g=DB.gate,on=g.enabled;
+ return '<section class="card"><div class="head"><div><h3 style="margin:0 0 4px">全站維修模式</h3><p class="sub">'+(on?'非白名單訪客目前看到維修頁（HTTP 503）':'網站已向所有訪客開放')+'</p></div><span class="pill '+(on?'warn':'good')+'">'+(on?'維修中':'全站開放')+'</span></div>'
+ +'<dl class="kv" style="margin:16px 0"><dt>最後更改</dt><dd class="num">'+g.at+'</dd><dt>更改人</dt><dd>'+esc(g.by)+'</dd><dt>寫入位置</dt><dd class="mono">site_gate_config.enabled</dd></dl>'
+ +'<div class="row"><button class="btn '+(on?'primary':'danger')+'" data-act="gate-open">'+(on?'改為全站開放':'開啟維修模式')+'</button></div></section>'
+ +'<div class="note">此開關只切換閘門，不會部署任何程式。白名單 IP 與閘門密碼不在此處管理，請繼續使用 dev2 panel。</div>';
+}
+function maintForm(){
+ const f=S.mt||(S.mt={date:addDays(TODAY,3),table:'0',start:'',end:'',reason:''});
+ return '<section class="card"><h3>新增封枱</h3><div class="grid3"><div class="field"><label for="mt-d">日期</label><input id="mt-d" type="date" data-bind="mt.date" value="'+f.date+'"></div><div class="field"><label for="mt-t">枱號</label><select id="mt-t" data-bind="mt.table"><option value="0"'+(f.table==='0'?' selected':'')+'>全部枱</option>'+[1,2].map(t=>'<option value="'+t+'"'+(f.table==String(t)?' selected':'')+'>枱 '+t+'</option>').join('')+'</select></div><div class="field"><label for="mt-r">原因</label><input id="mt-r" data-bind="mt.reason" value="'+esc(f.reason)+'" placeholder="例：更換枱布"></div><div class="field"><label for="mt-s">開始（留空為全日）</label><input id="mt-s" type="time" data-bind="mt.start" value="'+f.start+'"></div><div class="field"><label for="mt-e">結束</label><input id="mt-e" type="time" data-bind="mt.end" value="'+f.end+'"></div></div>'
+ +(S.mtErr?'<p class="err" style="margin-top:12px">'+S.mtErr+'</p>':'')+(S.mtWarn?'<p class="note warn" style="margin-top:12px">'+S.mtWarn+'</p>':'')
+ +'<div class="row" style="margin-top:12px"><button class="btn primary" data-act="mt-add">'+(S.mtWarn?'仍要新增':'新增封枱')+'</button></div></section>';
+}
+function vMaint(){
+ return maintForm()+'<section class="card flat"><div class="head" style="padding:14px 16px;border-bottom:1px solid var(--line)"><h3 style="margin:0">封枱記錄 <span class="mono muted" style="font-weight:400">maintenance_log</span></h3></div><div class="list">'
+ +(DB.maint.length?DB.maint.slice().sort((a,b)=>a.date<b.date?-1:1).map(m=>'<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><div><div class="cell-main">'+dlabel(m.date)+' · '+(m.table?'枱 '+m.table:'全部枱')+' · '+(m.start?m.start+'–'+m.end:'全日')+'</div><div class="cell-sub">'+esc(m.reason||'未填原因')+'</div></div><button class="btn sm danger" data-act="mt-del" data-id="'+m.id+'">移除</button></div>').join(''):'<div class="empty">沒有封枱記錄</div>')+'</div></section>'
+ +'<section class="card"><h3>維修公告</h3><div class="field"><label for="mt-msg">顯示給客人的訊息 <span class="mono">config.maintenance.message</span></label><textarea id="mt-msg" data-bind="msg" >'+esc(S.msg!=null?S.msg:DB.config.maintenance.message)+'</textarea></div><div class="row" style="margin-top:12px"><button class="btn primary" data-act="msg-save">儲存公告</button></div></section>';
+}
+function vPay(){
+ return '<section class="card flat"><div class="list">'+DB.pay.map(p=>'<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><div><div class="cell-main">'+p.label+'</div><div class="cell-sub mono">'+p.method+'</div></div><button class="switch" role="switch" aria-checked="'+p.on+'" data-act="pay-toggle" data-id="'+p.method+'" aria-label="'+p.label+'"></button></div>').join('')+'</div></section><div class="note">關閉後，結帳頁不再顯示該付款方式。已付款的預約不受影響。</div>';
+}
+function promoText(p){return (p.type==='percentage'?p.value+'% 折扣':'減 '+money(p.value))+(p.maxDisc?'，最高 '+money(p.maxDisc):'')+(p.minCart?'，最低消費 '+money(p.minCart):'')}
+function vPromo(){
+ return '<div class="head"><p class="sub">優惠碼不可與 Space Credit 同時使用的規則，沿用現有結帳設定</p><button class="btn primary" data-act="promo-new">'+ic('plus',18)+'建立優惠碼</button></div>'
+ +DB.promos.map(p=>'<section class="card"><div class="head"><div style="min-width:0"><div class="row"><span class="mono" style="font-size:16px;font-weight:500">'+esc(p.code)+'</span>'+(p.on?'<span class="pill good">啟用中</span>':'<span class="pill mute">已停用</span>')+'</div><p class="sub" style="margin-top:2px">'+esc(p.name)+'</p></div><button class="switch" role="switch" aria-checked="'+p.on+'" data-act="promo-toggle" data-id="'+p.id+'" aria-label="啟用或停用"></button></div>'
+  +'<dl class="kv" style="margin:14px 0"><dt>折扣</dt><dd>'+promoText(p)+'</dd><dt>有效期</dt><dd class="num">'+p.from+' 至 '+p.until+'</dd><dt>使用次數</dt><dd class="num">'+p.used+' / '+(p.maxUses||'不限')+'（每人 '+(p.perUser||'不限')+'）</dd><dt>適用日子</dt><dd>'+(p.weekdays.length?p.weekdays.map(d=>'星期'+WD[d]).join('、'):'每日')+(p.win?'，'+p.win[0]+'–'+p.win[1]:'')+'</dd><dt>疊用</dt><dd>'+(p.stackCredit?'可與 Credit 疊用':'不可與 Credit 疊用')+' · '+(p.stackCodes?'可與其他優惠碼疊用':'不可與其他優惠碼疊用')+(p.wallet?' · 顯示於錢包':'')+'</dd></dl>'
+  +'<button class="btn sm" data-act="promo-edit" data-id="'+p.id+'">修改有效期與上限</button></section>').join('');
+}
+function vSite(){
+ const sub=S.sub.site;
+ return '<div class="head"><div><h2>網站資料</h2><p class="sub">改動即時寫入，並記錄在審計記錄</p></div></div>'+seg([['gate','全站維修'],['maint','封枱'],['cfg','價格與規則'],['pay','收款方式'],['promo','優惠碼']],sub,'sub-site')
+ +({gate:vGate,maint:vMaint,cfg:vCfg,pay:vPay,promo:vPromo})[sub]();
+}
+
+/* system */
+function vAdmins(){
+ const sup=isSuper(),me=cur().id,sc=DB.admins.filter(y=>y.role==='super_admin'&&y.status==='active').length;
+ const roleTag=a=>'<span class="tag">'+(a.role==='super_admin'?'超級管理員':'管理員')+'</span>';
+ return '<div class="head"><p class="sub">邀請連結 24 小時內有效。撤銷後該管理員立即不能進入後台。</p><button class="btn primary" data-act="admin-invite" '+(sup?'':'disabled')+'>'+ic('plus',18)+'邀請管理員</button></div>'+(sup?'':'<p>'+lockTag()+'</p>')
+ +'<section class="card flat"><div class="list">'+DB.admins.map(a=>{
+  const st=a.status==='pending'?'<span class="pill warn">待接受邀請</span><span class="cell-sub">'+a.exp+' 到期</span>':a.status==='revoked'?'<span class="pill mute">已撤銷</span>':'<span class="pill good">已啟用</span>';
+  const act=a.status==='active'?'<button class="btn sm danger" data-act="admin-revoke" data-id="'+a.id+'" '+(sup&&a.id!==me&&!(a.role==='super_admin'&&sc<=1)?'':'disabled')+'>撤銷</button>':'<button class="btn sm" data-act="admin-resend" data-id="'+a.id+'" '+(sup?'':'disabled')+'>'+(a.status==='pending'?'重新發送':'重新邀請')+'</button>';
+  return '<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><div style="min-width:0"><div class="cell-main">'+esc(a.email)+(a.id===me?' <span class="cell-sub">（你）</span>':'')+'</div><div class="row" style="margin-top:4px">'+roleTag(a)+st+'</div></div><div class="row">'+act+'</div></div>'}).join('')+'</div></section>';
+}
+const jsn=o=>esc(JSON.stringify(o,null,1));
+function vAudit(){
+ const who=[...new Set(DB.audit.map(a=>a.admin))],tbl=[...new Set(DB.audit.map(a=>a.table))];
+ const rows=DB.audit.filter(a=>(S.af.who==='all'||a.admin===S.af.who)&&(S.af.table==='all'||a.table===S.af.table));
+ return '<div class="grid2"><div class="field"><label for="af-w">管理員</label><select id="af-w" data-bind="af.who" data-rerender="1"><option value="all">全部</option>'+who.map(w=>'<option'+(S.af.who===w?' selected':'')+'>'+esc(w)+'</option>').join('')+'</select></div><div class="field"><label for="af-t">資料表</label><select id="af-t" data-bind="af.table" data-rerender="1"><option value="all">全部</option>'+tbl.map(w=>'<option'+(S.af.table===w?' selected':'')+'>'+esc(w)+'</option>').join('')+'</select></div></div>'
+ +'<section class="card flat"><div class="list">'+(rows.length?rows.map(a=>'<div style="border-top:1px solid var(--line)"><button class="li" style="grid-template-columns:minmax(0,1fr) auto;border:0" data-act="audit-open" data-id="'+a.id+'"><span style="min-width:0"><span class="cell-main mono">'+esc(a.action)+'</span><br><span class="cell-sub">'+esc(a.admin)+' · '+esc(a.table)+' · <span class="mono">'+esc(a.target.slice(0,18))+'</span></span></span><span class="cell-sub num">'+a.at+'</span></button>'+(S.aopen[a.id]?'<div class="grid2" style="padding:0 16px 14px"><div><div class="lbl">之前</div><pre class="json">'+jsn(a.before)+'</pre></div><div><div class="lbl">之後</div><pre class="json">'+jsn(a.after)+'</pre></div></div>':'')+'</div>').join(''):'<div class="empty">沒有記錄</div>')+'</div></section>';
+}
+function vErr(){
+ const rows=DB.errors.filter(e=>S.errFilter==='all'||!e.done);
+ return seg([['open','未解決'],['all','全部']],S.errFilter,'err-filter')+'<section class="card flat"><div class="list">'+(rows.length?rows.map(e=>'<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><div style="min-width:0"><div class="row"><span class="pill '+(e.sev==='error'?'bad':e.sev==='warn'?'warn':'info')+'">'+e.sev+'</span><span class="mono cell-sub">'+esc(e.src)+'</span></div><div style="margin-top:4px">'+esc(e.msg)+'</div><div class="cell-sub num">'+e.at+'</div></div>'+(e.done?'<span class="pill mute">已解決</span>':'<button class="btn sm" data-act="err-done" data-id="'+e.id+'">標記已解決</button>')+'</div>').join(''):'<div class="empty">沒有未解決的錯誤</div>')+'</div></section>';
+}
+function vSystem(){
+ const sub=S.sub.system;
+ return '<div class="head"><div><h2>系統</h2></div></div>'+seg([['admins','管理員'],['audit','審計記錄'],['err','錯誤記錄']],sub,'sub-system')+({admins:vAdmins,audit:vAudit,err:vErr})[sub]();
+}
+
+/* ---------- shell render ---------- */
+function themeIcon(){return ic(document.documentElement.dataset.theme==='light'?'moon':'sun',20)}
+const SITE_ROUTE={gate:'/admin/site-gate',maint:'/admin/maintenance',cfg:'/admin/settings',pay:'/admin/settings',promo:'/admin/promos'},SYS_ROUTE={admins:'/admin/team',audit:'/admin/audit',err:'/admin/errors（新增）'};
+function routeOf(){return S.view==='today'?'/admin':S.view==='bookings'?'/admin/bookings':S.view==='members'?(S.sub.members==='list'?'/admin/members':'/admin/members（帳戶異常）'):S.view==='site'?SITE_ROUTE[S.sub.site]:SYS_ROUTE[S.sub.system]}
+function render(){
+ $('#page-title').textContent=TITLES[S.view];
+ $('#dock').innerHTML='<button class="primary" data-act="new-booking" title="手動新增預約" aria-label="手動新增預約">'+ic('plus',20)+'</button><hr>'+[['bookings','search','搜尋預約'],['members','users','會員'],['site','site','網站資料'],['system','shield','系統']].map(n=>'<button data-act="nav" data-v="'+n[0]+'" title="'+n[2]+'" aria-label="'+n[2]+'"'+(S.view===n[0]?' aria-current="page"':'')+'>'+ic(n[1],20)+'</button>').join('');
+ $('#nav-rail').innerHTML=NAV.map(n=>'<button data-act="nav" data-v="'+n[0]+'"'+(S.view===n[0]?' aria-current="page"':'')+'>'+ic(n[2])+n[1]+'</button>').join('');
+ $('#nav-bottom').innerHTML=NAV.map(n=>'<button data-act="nav" data-v="'+n[0]+'"'+(S.view===n[0]?' aria-current="page"':'')+'>'+ic(n[2])+'<span>'+n[3]+'</span></button>').join('');
+ $('#page').innerHTML=({today:vToday,bookings:vBookings,members:vMembers,site:vSite,system:vSystem})[S.view]();
+ $('#role-sel').value=S.role;
+ $('#route-chip').textContent='space8.com.hk'+routeOf();
+ $('#theme-btn').innerHTML=themeIcon();
+ renderOv();
+}
+/* ---------- drawer (booking / member detail) ---------- */
+const kvs=a=>'<dl class="kv">'+a.map(x=>'<dt>'+x[0]+'</dt><dd>'+x[1]+'</dd>').join('')+'</dl>';
+const sheet=(title,sub,body,foot,close)=>'<div class="ov" data-act="'+(close||'close-drawer')+'-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="sh-head"><div style="flex:1;min-width:0"><h2>'+title+'</h2>'+(sub?'<div class="row" style="margin-top:6px">'+sub+'</div>':'')+'</div><button class="icon-btn" data-act="'+(close||'close-drawer')+'" aria-label="關閉">'+ic('x')+'</button></div><div class="sh-body">'+body+'</div>'+(foot?'<div class="sh-foot">'+foot+'</div>':'')+'</div></div>';
+function canResched(b){if(b.status!=='confirmed')return '只有「已確認」的預約可以改期';if(startsAt(b)<=nowStr)return '預約已開始，不可改期';return ''}
+function canCancel(b){if(b.status!=='confirmed')return '只有「已確認」的預約可以取消';if(b.date+' '+endOf(b)<=nowStr)return '預約已結束，不可取消';return ''}
+function drBooking(b){
+ const m=mem(b.uid),notes=S.noteDraft&&S.noteDraft.id===b.id?S.noteDraft.v:b.note;
+ const pays=b.free?[]:[{st:b.status==='pending'?'warn':'good',t:b.status==='pending'?'待付款':'成功',o:b.order,at:b.created}].concat(b.status==='pending'?[{st:'bad',t:'失敗',o:b.order+'-1',at:b.created}]:[]);
+ const rs=canResched(b),cs=canCancel(b);
+ return sheet('<span class="mono">'+b.hc+'</span>',pill(b.status)+(b.test?'<span class="tag warn">測試預約</span>':'')+(phase(b)?'<span class="tag">'+phase(b)+'</span>':'')+'<span class="mono cell-sub">'+b.ref+'</span>',
+ '<div class="sect"><h3>預約</h3>'+kvs([['日期',dlabel(b.date)],['時間','<span class="mono num">'+b.start+'–'+endOf(b)+'</span>（'+b.hours+' 小時）'],['枱號','枱 '+b.table],['建立時間','<span class="num">'+b.created+'</span>'],['改期次數',b.resched+' 次']])+'</div>'
+ +'<div class="sect"><h3>客人</h3>'+kvs([['名稱',esc(m.name)+(m.bl?' <span class="tag bad">黑名單</span>':'')],['電話',esc(m.phone)],['會員編號','<span class="mono">'+m.code+'</span>'],['','<button class="btn sm" data-act="open-mem" data-id="'+m.id+'">查看會員</button>']])+'</div>'
+ +'<div class="sect"><h3>價格與付款</h3><div class="bill"><div><span>基本價</span><span class="num">'+money(b.base)+'</span></div>'+(b.promoDisc?'<div><span>優惠碼 <span class="mono">'+esc(b.promo)+'</span></span><span class="num">-'+money(b.promoDisc)+'</span></div>':'')+(b.ptsDisc?'<div><span>積分折抵</span><span class="num">-'+money(b.ptsDisc)+'</span></div>':'')+(b.credDisc?'<div><span>Space Credit 折抵</span><span class="num">-'+money(b.credDisc)+'</span></div>':'')+(b.free?'<div><span>免費預約</span><span>是</span></div>':'')+'<div class="tot"><span>實付</span><span class="num">'+money(b.total)+'</span></div></div>'+kvs([['付款方式',PAYL[b.pay]||b.pay],['金流 / 單號',b.prov+' · <span class="mono">'+b.order+'</span>']])+'</div>'
+ +(b.cancelReason||b.refund?'<div class="sect"><h3>取消與退款</h3>'+kvs([['原因',esc(b.cancelReason||'—')],['退款金額',money(b.refund)]])+'</div>':'')
+ +'<div class="sect"><h3>內部備註</h3><div class="field"><label for="bk-note" class="sr">備註</label><textarea id="bk-note" data-bind="noteDraft" data-nid="'+b.id+'" placeholder="只供後台查看，客人不會收到通知">'+esc(notes)+'</textarea></div><div class="row"><button class="btn sm" data-act="note-save" data-id="'+b.id+'">儲存備註</button><span class="hint">不會發送通知</span></div></div>'
+ +'<div class="sect"><h3>付款記錄</h3>'+(pays.length?'<div class="list" style="border:1px solid var(--line);border-radius:var(--r-sm)">'+pays.map(p=>'<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><span class="mono cell-sub">'+p.o+'<br>'+p.at+'</span><span class="pill '+p.st+'">'+p.t+'</span></div>').join('')+'</div>':'<p class="muted">沒有付款記錄</p>')+'</div>'
+ +(b.promo?'<div class="sect"><h3>優惠碼使用</h3>'+kvs([['優惠碼','<span class="mono">'+esc(b.promo)+'</span>'],['折扣',money(b.promoDisc)],['狀態','已使用']])+'</div>':''),
+ '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">'+(rs&&cs?'<span class="hint">'+rs+'</span>':'')+'</div>'
+ +'<button class="btn" data-act="weather-resched" data-id="'+b.id+'" '+(rs?'disabled title="'+rs+'"':'')+'>惡劣天氣改期</button><button class="btn danger" data-act="weather-cancel" data-id="'+b.id+'" '+(cs?'disabled title="'+cs+'"':'')+'>取消並補 Credit</button>');
+}
+function drMember(m){
+ const tab=S.mtab||'info',bl=DB.bookings.filter(b=>b.uid===m.id).sort((a,b)=>a.date<b.date?1:-1);
+ const sup=isSuper();
+ let body='';
+ if(tab==='info')body='<div class="grid2"><div class="stat"><b class="num">'+ptsOf(m.id)+'</b><span>Space Point</span></div><div class="stat"><b class="num">'+money(credOf(m.id))+'</b><span>Space Credit</span></div></div>'
+  +'<div class="sect"><h3>資料</h3>'+kvs([['名稱',esc(m.name)+' <button class="btn sm" data-act="mem-name" data-id="'+m.id+'">修改</button>'],['電話',esc(m.phone)+(m.verified?' <span class="tag">已驗證</span>':' <span class="tag warn">未驗證</span>')],['電郵',esc(m.email||'沒有電郵')],['','<button class="btn sm" data-act="mem-contact" data-id="'+m.id+'" '+(sup?'':'disabled')+'>修改電話與電郵</button> '+(sup?'':lockTag())],['會員編號','<span class="mono">'+m.code+'</span>'],['加入日期',m.since]])+'</div>'
+  +(m.reverify?'<div class="note warn">此會員需要手動重新驗證電話。完成後請標記已處理。<div class="row" style="margin-top:10px"><button class="btn sm" data-act="mem-reverify" data-id="'+m.id+'">標記已處理</button></div></div>':'')
+  +'<div class="sect"><h3>帳戶操作</h3><div class="row"><button class="btn sm" data-act="mem-adj" data-k="pts" data-id="'+m.id+'">調整積分</button><button class="btn sm" data-act="mem-adj" data-k="cred" data-id="'+m.id+'">調整 Credit</button><button class="btn sm" data-act="mem-msg" data-id="'+m.id+'">發送 inbox 訊息</button><button class="btn sm '+(m.bl?'':'danger')+'" data-act="mem-bl" data-id="'+m.id+'">'+(m.bl?'解除黑名單':'加入黑名單')+'</button></div></div>';
+ if(tab==='bk')body=bl.length?'<section class="card flat"><div class="list">'+bl.map(b=>'<button class="li" style="grid-template-columns:minmax(0,1fr) auto" data-act="open-bk" data-id="'+b.id+'"><span><span class="cell-main">'+dlabel(b.date)+' '+b.start+'–'+endOf(b)+'</span><br><span class="cell-sub mono">'+b.hc+' · 枱 '+b.table+' · '+money(b.total)+'</span></span>'+pill(b.status)+'</button>').join('')+'</div></section>':'<div class="empty">沒有預約記錄</div>';
+ if(tab==='led'){const P=DB.pts.filter(x=>x.uid===m.id),C=DB.cred.filter(x=>x.uid===m.id);body='<div class="sect"><h3>Space Credit</h3>'+(C.length?'<div class="list" style="border:1px solid var(--line);border-radius:var(--r-sm)">'+C.map(x=>'<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><span><span class="cell-main">'+esc(x.note)+'</span><br><span class="cell-sub">'+x.at+' · '+x.type+(x.actor?' · '+esc(x.actor):'')+'</span></span><span class="num" style="text-align:right;color:var(--'+(x.amount<0?'bad':'good')+')">'+(x.amount>0?'+':'')+x.amount+'<br><span class="cell-sub">結餘 '+x.after+'</span></span></div>').join('')+'</div>':'<p class="muted">沒有流水</p>')+'</div><div class="sect"><h3>Space Point</h3>'+(P.length?'<div class="list" style="border:1px solid var(--line);border-radius:var(--r-sm)">'+P.map(x=>'<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><span><span class="cell-main">'+esc(x.note)+'</span><br><span class="cell-sub">'+x.at+' · '+x.type+'</span></span><span class="num" style="color:var(--'+(x.points<0?'bad':'good')+')">'+(x.points>0?'+':'')+x.points+'</span></div>').join('')+'</div>':'<p class="muted">沒有流水</p>')+'</div>'}
+ if(tab==='nt'){const N=DB.notices.filter(x=>x.uid===m.id);body=N.length?'<section class="card flat"><div class="list">'+N.map(x=>'<div class="li" style="grid-template-columns:minmax(0,1fr) auto"><span><span class="cell-main">'+esc(x.title)+'</span><br><span class="cell-sub">'+esc(x.msg)+'</span></span><span class="cell-sub num">'+x.at+'</span></div>').join('')+'</div></section>':'<div class="empty">沒有通知</div>'}
+ return sheet(esc(m.name),'<span class="mono cell-sub">'+m.code+'</span>'+memBadges(m),seg([['info','資料'],['bk','預約'],['led','積分與 Credit'],['nt','通知']],tab,'mem-tab')+body,'');
+}
+
+/* ---------- dialogs ---------- */
+const dlgWrap=(title,body,foot)=>'<div class="ov dlg" data-act="close-dlg-bg"><div class="dlgbox" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><div class="sh-head"><h2 style="flex:1">'+title+'</h2><button class="icon-btn" data-act="close-dlg" aria-label="關閉">'+ic('x')+'</button></div><div class="sh-body">'+body+(S.dlg&&S.dlg.err?'<p class="err">'+S.dlg.err+'</p>':'')+'</div><div class="sh-foot">'+foot+'</div></div></div>';
+const fld=(id,label,inner)=>'<div class="field"><label for="'+id+'">'+label+'</label>'+inner+'</div>';
+const dIn=(id,k,type,ph)=>'<input id="'+id+'" type="'+(type||'text')+'" data-d="'+k+'" value="'+esc(S.dlg[k])+'"'+(ph?' placeholder="'+esc(ph)+'"':'')+'>';
+const dTa=(id,k,ph)=>'<textarea id="'+id+'" data-d="'+k+'" placeholder="'+esc(ph||'')+'">'+esc(S.dlg[k])+'</textarea>';
+const btnX=(t,act,cls,dis)=>'<button class="btn '+(cls||'')+'" data-act="'+act+'"'+(dis?' disabled':'')+'>'+t+'</button>';
+function slotPick(b,d,key){
+ const out=[];
+ for(let t=1;t<=DB.config.venue.tables;t++){const st=startsFor(d.date,t,d.hours,key);out.push('<div class="sect"><span class="lbl">枱 '+t+'</span>'+(st.length?'<div class="slotgrid">'+st.map(h=>'<button type="button" class="slot" data-act="pick-slot" data-t="'+t+'" data-h="'+h+'" aria-pressed="'+(d.table===t&&d.sh===h)+'">'+tm(h*60)+'</button>').join('')+'</div>':'<span class="hint">此日沒有足夠的連續空檔</span>')+'</div>')}
+ return out.join('');
+}
+function dlgBody(){
+ const d=S.dlg;if(!d)return '';
+ const T=d.type;
+ if(T==='resched'){
+  const b=bk(d.id),m=mem(b.uid);
+  if(d.step===2){const n=tm(d.sh*60)+'–'+tm(d.sh*60+b.hours*60);return dlgWrap('確認改期',kvs([['客人',esc(m.name)],['原預約',dlabel(b.date)+' '+b.start+'–'+endOf(b)+' · 枱 '+b.table],['新預約','<b>'+dlabel(d.date)+' '+n+' · 枱 '+d.table+'</b>'],['原因','惡劣天氣特殊安排'],['申請記錄',esc(d.wa)]])+'<div class="note">確認後會更新預約、記錄審計，並自動發送 inbox 通知給客人。</div>',btnX('返回','dlg-back')+btnX('確認改期','resched-go','primary'))}
+  return dlgWrap('惡劣天氣改期','<div class="note">原預約：'+dlabel(b.date)+' '+b.start+'–'+endOf(b)+' · 枱 '+b.table+'（'+b.hours+' 小時）</div><div><span class="lbl">原因</span><div style="margin-top:6px"><span class="pill warn">惡劣天氣特殊安排</span></div></div>'+fld('d-wa','客人 WhatsApp 申請記錄',dTa('d-wa','wa','例：10/7 08:12 客人 WhatsApp 申請，八號風球'))+fld('d-date','新日期',dIn('d-date','date','date'))+'<div class="sect" id="slot-area"><span class="lbl">可選時段（'+b.hours+' 小時，只顯示空檔）</span>'+slotPick(b,d,b.id)+'</div>',btnX('取消','close-dlg')+btnX('下一步','resched-next','primary'));
+ }
+ if(T==='wcancel'){
+  const b=bk(d.id),m=mem(b.uid);
+  if(d.step===2)return dlgWrap('確認取消並補 Credit','<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px"><li>取消預約 <span class="mono">'+b.hc+'</span>（'+dlabel(b.date)+' '+b.start+'）</li><li>回收已得積分 '+b.total+' 分</li><li>存入 Space Credit <b>'+money(d.amt)+'</b> 至 '+esc(m.name)+' 的錢包</li><li>發送 inbox 通知</li></ol><div class="note">以上在同一個交易內完成：先取消，成功後才補 Credit。不會退款到原付款方式。</div>',btnX('返回','dlg-back')+btnX('確認執行','wcancel-go','danger'));
+  return dlgWrap('取消並補 Credit','<div class="note">先取消預約，成功後才存入 Space Credit。此操作只用於惡劣天氣特殊安排。</div><div><span class="lbl">取消原因</span><div style="margin-top:6px"><span class="pill warn">惡劣天氣特殊安排</span></div></div>'+fld('d-wa','客人 WhatsApp 申請記錄',dTa('d-wa','wa','例：10/7 08:12 客人 WhatsApp 申請'))+fld('d-amt','補償金額（港元）',dIn('d-amt','amt','number'))+'<span class="hint">預設為實付金額 '+money(b.total)+'，將回收 '+b.total+' 積分</span><div id="amt-why" '+(Number(d.amt)===b.total?'hidden':'')+'>'+fld('d-why','金額與實付不同的原因',dTa('d-why','why','必須填寫'))+'</div>',btnX('取消','close-dlg')+btnX('下一步','wcancel-next','primary'));
+ }
+ if(T==='newbk'){
+  if(d.step===3){const b=bk(d.id),m=mem(b.uid);return dlgWrap('預約已建立','<div class="ticket"><div class="tp"><span class="lbl">Space8 預約確認</span><b style="font:600 18px var(--f-display)">'+esc(m.name)+'</b><span>枱 '+b.table+' · '+dlabel(b.date)+' '+b.start+'–'+endOf(b)+'</span><span class="num"><b>'+money(b.total)+'</b>'+(b.free?'（免費預約）':'')+'</span><span class="mono cell-sub">'+b.hc+' · '+b.ref+'</span></div><div class="tq"><div class="qrbox" id="qr-box">QR</div><span class="mono">'+m.code+'</span><span class="hint">一個 QR 可開啟所有房間，QR 內容為會員編號</span></div></div><div class="note">已自動發送 inbox 通知給客人。</div>',btnX('查看預約','newbk-open','primary')+btnX('完成','close-dlg'))}
+  if(d.step===2){const m=mem(d.uid),p=d.free?0:priceFor(tm(d.sh*60),d.hours);return dlgWrap('確認新增預約',kvs([['客人',esc(m.name)+' · '+esc(m.phone)],['時間',dlabel(d.date)+' '+tm(d.sh*60)+'–'+tm((d.sh+d.hours)*60)],['枱號','枱 '+d.table],['金額',d.free?'免費（'+esc(d.why)+'）':money(p)],['付款方式',d.free?'—':PAYL[d.pay]]])+'<div class="note">預約會以「已確認」建立，按現有規則派發積分，並自動發送 inbox 通知。</div>',btnX('返回','dlg-back')+btnX('確認新增','newbk-go','primary'))}
+  const q=(d.q||'').trim().toLowerCase().replace(/\s/g,''),res=q?DB.members.filter(m=>[m.name,m.phone,m.code].join(' ').toLowerCase().replace(/\s/g,'').includes(q)).slice(0,5):[];
+  const sel=d.uid?mem(d.uid):null,sts=d.date?startsFor(d.date,d.table,1):[],mx=d.sh!=null?maxHoursAt(d.date,d.table,d.sh):0,price=d.free?0:(d.sh!=null?priceFor(tm(d.sh*60),d.hours):0);
+  return dlgWrap('手動新增預約',
+   '<div class="sect"><span class="lbl">會員</span>'+(sel?'<div class="note row" style="justify-content:space-between"><span><b>'+esc(sel.name)+'</b> · '+esc(sel.phone)+' · <span class="mono">'+sel.code+'</span>'+(sel.bl?' <span class="tag bad">黑名單</span>':'')+'</span><button class="btn sm" data-act="nb-clear">更換</button></div>':'<input id="nb-q" type="search" data-d="q" data-live="nb" value="'+esc(d.q||'')+'" placeholder="電話、會員編號或名稱"><div id="nb-res">'+nbRes(d)+'</div>')+'</div>'
+   +'<div class="grid2">'+fld('d-date','日期',dIn('d-date','date','date'))+fld('d-tb','枱號','<select id="d-tb" data-d="table" data-num="1">'+[1,2].map(t=>'<option value="'+t+'"'+(d.table===t?' selected':'')+'>枱 '+t+'</option>').join('')+'</select>')+'</div>'
+   +'<div class="sect"><span class="lbl">開始時間（只顯示空檔）</span>'+(sts.length?'<div class="slotgrid">'+sts.map(h=>'<button type="button" class="slot" data-act="nb-slot" data-h="'+h+'" aria-pressed="'+(d.sh===h)+'">'+tm(h*60)+'</button>').join('')+'</div>':'<span class="hint">此日此枱沒有空檔</span>')+'</div>'
+   +(d.sh!=null?fld('d-hr','時數','<select id="d-hr" data-d="hours" data-num="1">'+Array.from({length:mx},(_,i)=>i+1).map(h=>'<option value="'+h+'"'+(d.hours===h?' selected':'')+'>'+h+' 小時（至 '+tm((d.sh+h)*60)+'）</option>').join('')+'</select>'):'')
+   +'<div class="row" style="justify-content:space-between"><span class="row"><button type="button" class="switch" role="switch" aria-checked="'+d.free+'" data-act="nb-free" aria-label="免費預約"></button><span>免費預約</span></span><b class="num">'+(d.sh!=null?money(price):'—')+'</b></div>'
+   +(d.free?fld('d-why','免費原因（必填）',dTa('d-why','why','')):fld('d-pay','付款方式','<select id="d-pay" data-d="pay">'+['fps','payme','octopus','alipay','alipayhk','wechat','unionpay_qp','card'].map(p=>'<option value="'+p+'"'+(d.pay===p?' selected':'')+'>'+PAYL[p]+'</option>').join('')+'</select>'))
+   +'<span class="hint">價格由 config.pricing_rates 計算，不能自行輸入。</span>',
+   btnX('取消','close-dlg')+btnX('下一步','newbk-next','primary'));
+ }
+ if(T==='name')return dlgWrap('修改名稱',fld('d-nm','新名稱',dIn('d-nm','v','text'))+'<div class="note">會自動發送 inbox 通知給會員。</div>',btnX('取消','close-dlg')+btnX('儲存','name-go','primary'));
+ if(T==='contact'){const m=mem(d.id),cool=m.lastChange&&(dt(TODAY)-dt(m.lastChange))/864e5<90;return dlgWrap('修改電話或電郵','<div class="note warn">一次只可修改一項。系統會同步更新 users、auth_identities 與登入帳戶，並檢查是否與其他會員重複。僅限超級管理員。</div>'+seg([['phone','電話'],['email','電郵']],d.kind,'ct-kind')+fld('d-val',d.kind==='phone'?'新電話（8 位）':'新電郵',dIn('d-val','val',d.kind==='phone'?'text':'email'))+'<span class="hint">目前：'+(d.kind==='phone'?mask(m.phone):(m.email?'已設定':'沒有電郵'))+'</span>'+fld('d-why','更改原因（至少 5 個字）',dTa('d-why','why',''))+(cool?'<div class="note warn">此會員於 '+m.lastChange+' 已更改過聯絡資料，90 日冷卻期未滿。<div class="row" style="margin-top:10px"><button type="button" class="switch" role="switch" aria-checked="'+d.override+'" data-act="ct-override" aria-label="覆寫冷卻期"></button><span>覆寫冷卻期（會記錄在審計）</span></div></div>':''),btnX('取消','close-dlg')+btnX('儲存','contact-go','primary'))}
+ if(T==='bl'){const m=mem(d.id),on=!m.bl;return dlgWrap(on?'加入黑名單':'解除黑名單','<p>'+esc(m.name)+'（'+m.code+'）將'+(on?'被加入':'移出')+'黑名單。</p><div class="note">會員會收到 inbox 通知，並'+(m.email?'同時收到電郵（'+esc(m.email)+'）':'<b>沒有電郵，電郵將略過並記錄</b>')+'。</div>',btnX('取消','close-dlg')+btnX(on?'確認加入':'確認解除','bl-go',on?'danger':'primary'))}
+ if(T==='adj'){const m=mem(d.id),isP=d.k==='pts';return dlgWrap(isP?'調整積分':'調整 Space Credit','<p class="muted">目前：'+(isP?ptsOf(m.id)+' 分':money(credOf(m.id)))+'。正數增加，負數扣減。</p>'+fld('d-n','調整數量',dIn('d-n','n','number'))+fld('d-note','備註（必填）',dTa('d-note','note','會員會在通知中看到此原因'))+'<div class="note">資料會寫入 '+(isP?'points_ledger':'credits_ledger')+'，不會直接改動會員餘額，並自動發送 inbox 通知。</div>',btnX('取消','close-dlg')+btnX('確認調整','adj-go','primary'))}
+ if(T==='msg'){const m=mem(d.id);return dlgWrap('發送 inbox 訊息','<p class="muted">收件人：'+esc(m.name)+'</p>'+fld('d-t','標題',dIn('d-t','title','text'))+fld('d-m','內容',dTa('d-m','msg','')),btnX('取消','close-dlg')+btnX('發送','msg-go','primary'))}
+ if(T==='gate'){const on=!DB.gate.enabled,w=on?'維修':'開放';return dlgWrap(on?'開啟維修模式':'改為全站開放',(on?'<div class="note warn">開啟後，非白名單訪客會看到維修頁（HTTP 503）。如你的 IP 不在白名單，可能鎖住自己。</div>':'<div class="note">所有訪客將可正常使用網站。</div>')+fld('d-c','請輸入「'+w+'」確認',dIn('d-c','c','text')),btnX('取消','close-dlg')+btnX('確認切換','gate-go',on?'danger':'primary'))}
+ if(T==='promo'){const e=d.edit;return dlgWrap(e?'修改優惠碼 '+esc(d.code):'建立優惠碼',
+  (e?'':'<div class="grid2">'+fld('d-code','優惠碼',dIn('d-code','code','text','例：NOV15'))+fld('d-name','名稱',dIn('d-name','name','text'))+'</div><div class="grid3">'+fld('d-type','折扣類型','<select id="d-type" data-d="dt"><option value="percentage"'+(d.dt==='percentage'?' selected':'')+'>百分比</option><option value="fixed_amount"'+(d.dt==='fixed_amount'?' selected':'')+'>固定金額</option></select>')+fld('d-val','折扣數值',dIn('d-val','value','number'))+fld('d-max','最高折扣（可留空）',dIn('d-max','maxDisc','number'))+'</div>'+fld('d-min','最低消費（可留空）',dIn('d-min','minCart','number')))
+  +'<div class="grid2">'+fld('d-from','開始日期',dIn('d-from','from','date'))+fld('d-until','結束日期',dIn('d-until','until','date'))+fld('d-mu','使用上限（留空為不限）',dIn('d-mu','maxUses','number'))+fld('d-pu','每人上限（留空為不限）',dIn('d-pu','perUser','number'))+'</div>'
+  +(e?'':'<div class="sect"><span class="lbl">適用日子（不選為每日）</span><div class="wk">'+[1,2,3,4,5,6,0].map(w=>'<button type="button" class="slot" style="font-family:var(--f-body)" data-act="promo-wd" data-w="'+w+'" aria-pressed="'+d.weekdays.includes(w)+'">'+WD[w]+'</button>').join('')+'</div></div><div class="grid2">'+fld('d-ws','指定時段開始（可留空）',dIn('d-ws','ws','time'))+fld('d-we','指定時段結束',dIn('d-we','we','time'))+'</div>'
+  +'<div class="sect"><div class="row"><button type="button" class="switch" role="switch" aria-checked="'+d.stackCredit+'" data-act="promo-flag" data-f="stackCredit" aria-label="可與 Credit 疊用"></button><span>可與 Space Credit 疊用</span></div><div class="row"><button type="button" class="switch" role="switch" aria-checked="'+d.stackCodes+'" data-act="promo-flag" data-f="stackCodes" aria-label="可與其他優惠碼疊用"></button><span>可與其他優惠碼疊用</span></div><div class="row"><button type="button" class="switch" role="switch" aria-checked="'+d.wallet+'" data-act="promo-flag" data-f="wallet" aria-label="顯示於錢包"></button><span>顯示於會員錢包</span></div></div>'),
+  btnX('取消','close-dlg')+btnX(e?'儲存':'建立','promo-go','primary'))}
+ if(T==='invite')return dlgWrap('邀請管理員',fld('d-em','電郵',dIn('d-em','email','email'))+fld('d-role','角色','<select id="d-role" data-d="role"><option value="admin"'+(d.role==='admin'?' selected':'')+'>管理員</option><option value="super_admin"'+(d.role==='super_admin'?' selected':'')+'>超級管理員</option></select>')+'<div class="note">邀請連結 24 小時內有效。超級管理員可邀請管理員、修改會員電話與電郵。</div>',btnX('取消','close-dlg')+btnX('發送邀請','invite-go','primary'));
+ return '';
+}
+function nbRes(d){
+ const q=(d.q||'').trim().toLowerCase().replace(/\s/g,'');if(!q)return '<span class="hint">輸入後選擇現有會員。後台不會自動開戶。</span>';
+ const res=DB.members.filter(m=>[m.name,m.phone,m.code].join(' ').toLowerCase().replace(/\s/g,'').includes(q)).slice(0,5);
+ return res.length?'<div class="pick">'+res.map(m=>'<button type="button" data-act="nb-pick" data-id="'+m.id+'"><span>'+esc(m.name)+' · '+esc(m.phone)+'</span><span class="mono muted">'+m.code+'</span></button>').join('')+'</div>':'<p class="note warn">找不到會員。後台不會自動開戶，請客人先在網站註冊。</p>';
+}
+function renderQR(){
+ const el=$('#qr-box');if(!el||!S.dlg)return;const m=mem(bk(S.dlg.id).uid);
+ try{if(window.qrcode){const q=qrcode(0,'M');q.addData(m.code);q.make();el.innerHTML=q.createSvgTag(4,0)}else el.textContent='QR 預覽無法載入'}catch(e){el.textContent='QR 預覽無法載入'}
+}
+function renderOv(){
+ const dr=S.drawer;
+ $('#ov-drawer').innerHTML=!dr?'':dr.type==='bk'?drBooking(bk(dr.id)):drMember(mem(dr.id));
+ $('#ov-dlg').innerHTML=dlgBody();
+ if(S.dlg&&S.dlg.type==='newbk'&&S.dlg.step===3)renderQR();
+}
+/* ---------- actions ---------- */
+function rerenderDlg(){const sb=$('#ov-dlg .sh-body'),st=sb?sb.scrollTop:0;$('#ov-dlg').innerHTML=dlgBody();const nb=$('#ov-dlg .sh-body');if(nb)nb.scrollTop=st;if(S.dlg&&S.dlg.type==='newbk'&&S.dlg.step===3)renderQR()}
+const fail=m=>{S.dlg.err=m;rerenderDlg()};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const needSuper=()=>{if(!isSuper()){toast('此操作僅限超級管理員');return true}return false};
+
+function doResched(){
+ const d=S.dlg,b=bk(d.id),m=mem(b.uid);
+ if(canResched(b))return fail(canResched(b));
+ if(!startsFor(d.date,d.table,b.hours,b.id).includes(d.sh))return fail('此時段剛被佔用，請重新選擇');
+ const before={date:b.date,start:b.start,table:b.table};
+ b.date=d.date;b.start=tm(d.sh*60);b.table=d.table;b.resched++;
+ audit('booking.reschedule','bookings',b.id,before,{date:b.date,start:b.start,table:b.table,reason:'惡劣天氣特殊安排',whatsapp:d.wa});
+ notify(b.uid,'預約已改期','因惡劣天氣，你的預約已改至 '+dlabel(b.date)+' '+b.start+'–'+endOf(b)+'（枱 '+b.table+'）。如有疑問，請聯絡 Space8。','system');
+ S.dlg=null;render();toast('已改期','已自動發送 inbox 通知給 '+m.name);
+}
+function doWCancel(){
+ const d=S.dlg,b=bk(d.id),m=mem(b.uid),amt=Math.round(Number(d.amt));
+ if(canCancel(b))return fail(canCancel(b));
+ const earned=DB.pts.filter(x=>x.ref===b.id&&x.type==='booking').reduce((a,x)=>a+x.points,0);
+ const before={status:b.status};
+ b.status='admin_cancelled';b.cancelReason='惡劣天氣特殊安排';
+ if(earned>0)addPts(b.uid,-earned,'reversal','取消回收積分',b.id);
+ if(amt>0)addCred(b.uid,amt,'refund','惡劣天氣取消補償 '+b.ref,b.id,null,cur().email);
+ audit('booking.cancel_credit','bookings',b.id,before,{status:b.status,credit:amt,points_reversed:earned,reason:'惡劣天氣特殊安排',whatsapp:d.wa,amount_note:d.why||undefined});
+ notify(b.uid,'預約已取消，Credit 已存入','因惡劣天氣，你的預約 '+b.hc+'（'+dlabel(b.date)+' '+b.start+'）已取消，'+(amt>0?money(amt)+' 已存入你的 Space Credit 錢包。':'本次沒有 Credit 補償。'),'credit');
+ S.dlg=null;render();toast('已取消並補 Credit',money(amt)+' 已存入 '+m.name+' 的錢包');
+}
+function doNewBk(){
+ const d=S.dlg,m=mem(d.uid);
+ if(!startsFor(d.date,d.table,d.hours).includes(d.sh)||maxHoursAt(d.date,d.table,d.sh)<d.hours)return fail('此時段剛被佔用，請重新選擇');
+ const b=mkB({date:d.date,start:tm(d.sh*60),hours:d.hours,table:d.table,uid:d.uid,created:stamp(),pay:d.free?'free':d.pay,free:d.free,note:d.free?'免費原因：'+d.why:'手動新增'});
+ if(b.total>0)addPts(b.uid,Math.round(b.total*DB.config.points_system.earn_points_per_hkd),'booking','預約積分 '+b.ref,b.id);
+ audit('booking.create','bookings',b.id,null,{date:b.date,start:b.start,hours:b.hours,table:b.table,member:m.code,total:b.total,pay:b.pay,free:b.free});
+ notify(b.uid,'預約已建立','Space8 已為你建立預約：'+dlabel(b.date)+' '+b.start+'–'+endOf(b)+'（枱 '+b.table+'）。','system');
+ S.dlg={type:'newbk',step:3,id:b.id};render();
+}
+function validNewBk(d){
+ if(!d.uid)return '請先選擇會員';
+ if(d.sh==null)return '請選擇開始時間';
+ if(d.hours>maxHoursAt(d.date,d.table,d.sh))return '所選時數超出連續空檔';
+ if(d.free&&!d.why.trim())return '免費預約必須填寫原因';
+ return '';
+}
+
+document.addEventListener('click',e=>{
+ const el=e.target.closest('[data-act]');if(!el)return;
+ let a=el.dataset.act;
+ if(a.endsWith('-bg')){if(e.target!==el)return;a=a.slice(0,-3)}
+ if(el.tagName==='A')e.preventDefault();
+ const id=el.dataset.id,v=el.dataset.v,d=S.dlg;
+ switch(a){
+ case 'nav':S.view=v;S.drawer=null;S.dlg=null;render();scrollTo(0,0);break;
+ case 'toggle-test':S.showTest=!S.showTest;S.bk.page=1;render();break;
+ case 'sub-members':S.sub.members=v;render();break;
+ case 'sub-site':S.sub.site=v;render();break;
+ case 'sub-system':S.sub.system=v;render();break;
+ case 'mem-filter':S.mem.filter=v;render();break;
+ case 'mem-view':S.mv=v;render();break;
+ case 'err-filter':S.errFilter=v;render();break;
+ case 'bk-page':S.bk.page+=Number(v);$('#bk-res').innerHTML=bkResults();break;
+ case 'open-bk':S.drawer={type:'bk',id};S.noteDraft=null;render();break;
+ case 'open-mem':S.drawer={type:'mem',id};S.mtab='info';render();break;
+ case 'mem-tab':S.mtab=v;render();break;
+ case 'close-drawer':S.drawer=null;S.dlg=null;render();break;
+ case 'close-dlg':S.dlg=null;renderOv();break;
+ case 'dlg-back':d.step=1;d.err='';rerenderDlg();break;
+ case 'audit-open':S.aopen[id]=!S.aopen[id];render();break;
+ case 'note-save':{const b=bk(id),val=(S.noteDraft&&S.noteDraft.id===id?S.noteDraft.v:b.note);if(val===b.note){toast('備註沒有更改');break}
+  audit('booking.note','bookings',b.id,{admin_note:b.note},{admin_note:val});const prev=b.note;b.note=val;toast('備註已儲存','內部備註不會通知客人',()=>{audit('booking.note','bookings',b.id,{admin_note:val},{admin_note:prev});b.note=prev;render()});break}
+ /* weather arrangements */
+ case 'weather-resched':{const b=bk(id);S.dlg={type:'resched',id,step:1,date:b.date,wa:'',hours:b.hours,table:null,sh:null,err:''};renderOv();break}
+ case 'pick-slot':d.table=Number(el.dataset.t);d.sh=Number(el.dataset.h);document.querySelectorAll('#ov-dlg .slot').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.t===el.dataset.t&&x.dataset.h===el.dataset.h)));break;
+ case 'resched-next':if(!d.wa.trim())return fail('請填寫客人的 WhatsApp 申請記錄');if(d.sh==null)return fail('請選擇新的時段');if(d.date<TODAY)return fail('不可改至過去的日期');d.step=2;d.err='';rerenderDlg();break;
+ case 'resched-go':doResched();break;
+ case 'weather-cancel':{const b=bk(id);S.dlg={type:'wcancel',id,step:1,wa:'',amt:String(b.total),why:'',err:''};renderOv();break}
+ case 'wcancel-next':{const b=bk(d.id),n=Number(d.amt);if(!d.wa.trim())return fail('請填寫客人的 WhatsApp 申請記錄');if(d.amt===''||!isFinite(n)||n<0)return fail('補償金額必須是 0 或以上的數字');if(n!==b.total&&!d.why.trim())return fail('金額與實付不同，必須填寫原因');d.step=2;d.err='';rerenderDlg();break}
+ case 'wcancel-go':doWCancel();break;
+ /* manual booking */
+ case 'new-booking':S.dlg={type:'newbk',step:1,q:'',uid:null,date:TODAY,table:1,sh:null,hours:1,free:false,why:'',pay:'fps',err:''};renderOv();break;
+ case 'nb-pick':d.uid=id;d.q='';rerenderDlg();break;
+ case 'nb-clear':d.uid=null;rerenderDlg();break;
+ case 'nb-slot':d.sh=Number(el.dataset.h);d.hours=Math.min(d.hours,maxHoursAt(d.date,d.table,d.sh))||1;rerenderDlg();break;
+ case 'nb-free':d.free=!d.free;rerenderDlg();break;
+ case 'newbk-next':{const m=validNewBk(d);if(m)return fail(m);d.step=2;d.err='';rerenderDlg();break}
+ case 'newbk-go':doNewBk();break;
+ case 'newbk-open':S.drawer={type:'bk',id:d.id};S.dlg=null;render();break;
+ /* members */
+ case 'mem-name':S.dlg={type:'name',id,v:mem(id).name,err:''};renderOv();break;
+ case 'name-go':{const m=mem(d.id),nv=d.v.trim();if(!nv)return fail('名稱不可留空');if(nv===m.name)return fail('名稱沒有更改');const old=m.name;m.name=nv;
+  audit('member.update','users',m.id,{display_name:old},{display_name:nv});notify(m.id,'帳戶資料已更新','你的顯示名稱已由「'+old+'」更新為「'+nv+'」。如有疑問，請聯絡 Space8。','system');
+  S.dlg=null;render();toast('名稱已更新','已自動發送 inbox 通知');break}
+ case 'mem-contact':if(needSuper())break;{const m=mem(id);S.dlg={type:'contact',id,kind:'phone',val:'',why:'',override:false,err:''};renderOv();break}
+ case 'ct-kind':d.kind=v;d.val='';d.err='';rerenderDlg();break;
+ case 'ct-override':d.override=!d.override;rerenderDlg();break;
+ case 'contact-go':{if(needSuper())break;const m=mem(d.id),k=d.kind,raw=d.val.trim();
+  if(!raw)return fail(k==='phone'?'請輸入新電話':'請輸入新電郵');
+  if(d.why.trim().length<5)return fail('更改原因至少需要 5 個字');
+  if(m.lastChange&&(dt(TODAY)-dt(m.lastChange))/864e5<90&&!d.override)return fail('90 日冷卻期未滿。如要更改，請開啟覆寫冷卻期');
+  let nv;
+  if(k==='phone'){const ph=raw.replace(/\D/g,'');if(ph.length!==8)return fail('電話必須是 8 位香港號碼');nv=ph.slice(0,4)+' '+ph.slice(4);if(nv===m.phone)return fail('新電話與目前相同');if(DB.members.some(x=>x.id!==m.id&&x.phone===nv))return fail('此電話已被其他會員使用')}
+  else{nv=raw.toLowerCase();if(!/^\S+@\S+\.\S+$/.test(nv))return fail('電郵格式不正確');if(nv===m.email)return fail('新電郵與目前相同');if(DB.members.some(x=>x.id!==m.id&&x.email===nv))return fail('此電郵已被其他會員使用')}
+  audit('member.identity_change','admin_change_user_identity',m.id,{[k]:k==='phone'?mask(m.phone):(m.email?'已設定':null)},{[k]:k==='phone'?mask(nv):'已更新',reason:d.why.trim(),override:d.override});
+  if(k==='phone')m.phone=nv;else m.email=nv;m.lastChange=TODAY;
+  notify(m.id,'聯絡資料已更新',(k==='phone'?'你的登入電話已更新為 '+mask(nv)+'。':'你的電郵已更新。')+'如非本人要求，請立即聯絡 Space8。','system');
+  S.dlg=null;render();toast(k==='phone'?'電話已更新':'電郵已更新','已自動發送 inbox 通知');break}
+ case 'mem-bl':S.dlg={type:'bl',id,err:''};renderOv();break;
+ case 'bl-go':{const m=mem(d.id),on=!m.bl;m.bl=on;audit('member.blacklist','users',m.id,{is_blacklisted:!on},{is_blacklisted:on});
+  notify(m.id,on?'帳戶狀態更新':'帳戶狀態已恢復',on?'你的帳戶已被暫停使用預約功能。如有疑問，請透過 WhatsApp 聯絡 Space8。':'你的帳戶已恢復正常使用。','system');
+  if(!m.email)audit('member.blacklist_email_skipped','users',m.id,null,{reason:'會員沒有電郵'});
+  S.dlg=null;render();toast(on?'已加入黑名單':'已解除黑名單',m.email?'已發送 inbox 通知與電郵':'已發送 inbox 通知；沒有電郵，已略過並記錄');break}
+ case 'mem-adj':S.dlg={type:'adj',id,k:el.dataset.k,n:'',note:'',err:''};renderOv();break;
+ case 'adj-go':{const m=mem(d.id),n=Math.round(Number(d.n)),isP=d.k==='pts';
+  if(!isFinite(n)||n===0)return fail('請輸入不是 0 的整數');if(!d.note.trim())return fail('請填寫備註');
+  if((isP?ptsOf(m.id):credOf(m.id))+n<0)return fail('調整後餘額不可少於 0');
+  const before=isP?ptsOf(m.id):credOf(m.id);
+  if(isP)addPts(m.id,n,'manual',d.note.trim());else addCred(m.id,n,'manual',d.note.trim(),null,null,cur().email);
+  audit(isP?'member.points_adjust':'member.credit_adjust',isP?'points_ledger':'credits_ledger',m.id,{balance:before},{balance:before+n,note:d.note.trim()});
+  notify(m.id,isP?'積分已調整':'Credit 已調整',(isP?'你的 Space Point':'你的 Space Credit')+'已調整 '+(n>0?'+':'')+n+'，原因：'+d.note.trim()+'。',isP?'system':'credit');
+  S.dlg=null;render();toast(isP?'積分已調整':'Credit 已調整','已自動發送 inbox 通知');break}
+ case 'mem-msg':S.dlg={type:'msg',id,title:'',msg:'',err:''};renderOv();break;
+ case 'msg-go':{if(!d.title.trim()||!d.msg.trim())return fail('標題與內容都必須填寫');notify(d.id,d.title.trim(),d.msg.trim(),'system');audit('member.message','admin_notifications',d.id,null,{title:d.title.trim()});S.dlg=null;render();toast('訊息已發送');break}
+ case 'mem-reverify':{const m=mem(id);m.reverify=false;m.verified=true;audit('member.reverify_done','users',m.id,{needs_manual_phone_reverify:true},{needs_manual_phone_reverify:false});notify(m.id,'電話驗證已完成','你的電話已完成人手驗證，可以正常登入。','system');render();toast('已標記處理','已自動發送 inbox 通知');break}
+ case 'flag-review':{const f=DB.flags.find(x=>x.id===id);f.status='reviewed';audit('account_flag.review','account_flags',f.id,{status:'open'},{status:'reviewed'});render();toast('已標記已審查');break}
+ /* site data */
+ case 'gate-open':S.dlg={type:'gate',c:'',err:''};renderOv();break;
+ case 'gate-go':{const on=!DB.gate.enabled,w=on?'維修':'開放';if(d.c.trim()!==w)return fail('確認文字不正確，請輸入「'+w+'」');
+  const bf={enabled:DB.gate.enabled};DB.gate.enabled=on;DB.gate.at=stamp();DB.gate.by=cur().email;
+  audit('site_gate.toggle','site_gate_config','00000000-0000-0000-0000-000000000001',bf,{enabled:on});S.dlg=null;render();toast(on?'已開啟維修模式':'網站已全站開放');break}
+ case 'cfg-bool':{const dr=cfgDraft(el.dataset.k);setPath(dr,el.dataset.p,!getPath(dr,el.dataset.p));render();break}
+ case 'cfg-save':{const k=el.dataset.k,dr=S.cfg[k];
+  if(k==='site'&&!(dr.openHour<dr.closeHour))return toast('開門時間必須早於關門時間');
+  if(k==='booking_rules'&&dr.min_hours>dr.max_hours)return toast('最少時數不可大於最多時數');
+  audit('config.update','config',k,clone(DB.config[k]),clone(dr));DB.config[k]=clone(dr);render();toast('已儲存 '+k,'已記錄審計');break}
+ case 'mt-add':{const f=S.mt;S.mtErr='';
+  if(!f.date||f.date<TODAY){S.mtErr='請選擇今日或之後的日期';return render()}
+  if(!!f.start!==!!f.end){S.mtErr='開始與結束時間必須同時填寫，或同時留空（全日）';return render()}
+  if(f.start&&f.start>=f.end){S.mtErr='結束時間必須晚於開始時間';return render()}
+  const tb=Number(f.table)||null,a=f.start?hm(f.start):0,z=f.end?hm(f.end):1440;
+  const hit=DB.bookings.filter(b=>b.date===f.date&&['confirmed','pending'].includes(b.status)&&(!tb||b.table===tb)&&hm(b.start)<z&&hm(b.start)+b.hours*60>a);
+  if(hit.length&&!S.mtWarn){S.mtWarn='此時段已有 '+hit.length+' 個預約。封枱不會自動取消或改期這些預約，請先處理。';return render()}
+  const row={id:nid('mt'),date:f.date,table:tb,start:f.start||null,end:f.end||null,reason:f.reason.trim()};DB.maint.push(row);
+  audit('maintenance.add','maintenance_log',row.id,null,row);S.mt=null;S.mtWarn='';render();toast('已新增封枱');break}
+ case 'mt-del':{const i=DB.maint.findIndex(x=>x.id===id),r=DB.maint[i];DB.maint.splice(i,1);audit('maintenance.remove','maintenance_log',id,r,null);render();toast('已移除封枱');break}
+ case 'msg-save':{const nv=(S.msg!=null?S.msg:DB.config.maintenance.message).trim();if(!nv)return toast('公告不可留空');if(nv===DB.config.maintenance.message)return toast('公告沒有更改');
+  audit('config.update','config','maintenance.message',{message:DB.config.maintenance.message},{message:nv});DB.config.maintenance.message=nv;S.msg=null;render();toast('維修公告已儲存');break}
+ case 'pay-toggle':{const p=DB.pay.find(x=>x.method===id);if(p.on&&DB.pay.filter(x=>x.on).length===1)return toast('至少要保留一種付款方式');
+  audit('payment_settings.toggle','payment_settings',p.method,{enabled:p.on},{enabled:!p.on});p.on=!p.on;render();toast(p.label+(p.on?' 已開啟':' 已關閉'));break}
+ case 'promo-toggle':{const p=DB.promos.find(x=>x.id===id);audit('promo.toggle','promotion_codes',p.code,{is_active:p.on},{is_active:!p.on});p.on=!p.on;render();toast(p.code+(p.on?' 已啟用':' 已停用'));break}
+ case 'promo-new':S.dlg={type:'promo',edit:false,code:'',name:'',dt:'percentage',value:'',maxDisc:'',minCart:'',from:TODAY,until:addDays(TODAY,30),maxUses:'',perUser:'1',weekdays:[],ws:'',we:'',stackCredit:false,stackCodes:false,wallet:true,err:''};renderOv();break;
+ case 'promo-edit':{const p=DB.promos.find(x=>x.id===id);S.dlg={type:'promo',edit:true,id,code:p.code,from:p.from,until:p.until,maxUses:String(p.maxUses||''),perUser:String(p.perUser||''),err:''};renderOv();break}
+ case 'promo-wd':{const w=Number(el.dataset.w),i=d.weekdays.indexOf(w);if(i<0)d.weekdays.push(w);else d.weekdays.splice(i,1);rerenderDlg();break}
+ case 'promo-flag':d[el.dataset.f]=!d[el.dataset.f];rerenderDlg();break;
+ case 'promo-go':{
+  if(!d.from||!d.until||d.until<d.from)return fail('結束日期不可早於開始日期');
+  const mu=d.maxUses===''?0:Math.round(Number(d.maxUses)),pu=d.perUser===''?0:Math.round(Number(d.perUser));
+  if(!(mu>=0)||!(pu>=0))return fail('使用上限必須是 0 或以上的整數');
+  if(d.edit){const p=DB.promos.find(x=>x.id===d.id),bf={from:p.from,until:p.until,maxUses:p.maxUses,perUser:p.perUser};
+   if(mu&&mu<p.used)return fail('使用上限不可低於已使用次數（'+p.used+'）');
+   p.from=d.from;p.until=d.until;p.maxUses=mu;p.perUser=pu;audit('promo.update','promotion_codes',p.code,bf,{from:p.from,until:p.until,maxUses:p.maxUses,perUser:p.perUser});S.dlg=null;render();toast('已更新 '+p.code);break}
+  const code=d.code.trim().toUpperCase(),val=Number(d.value);
+  if(!/^[A-Z0-9]{3,20}$/.test(code))return fail('優惠碼只可使用 3 至 20 個英文字母或數字');
+  if(DB.promos.some(x=>x.code===code))return fail('此優惠碼已存在');
+  if(!d.name.trim())return fail('請填寫名稱');
+  if(!(val>0))return fail('折扣數值必須大於 0');
+  if(d.dt==='percentage'&&val>100)return fail('百分比折扣不可超過 100');
+  if((d.ws&&!d.we)||(!d.ws&&d.we)||(d.ws&&d.ws>=d.we))return fail('指定時段需要開始與結束時間，且結束晚於開始');
+  const row={id:nid('p'),code,name:d.name.trim(),type:d.dt,value:val,maxDisc:Number(d.maxDisc)||0,minCart:Number(d.minCart)||0,from:d.from,until:d.until,maxUses:mu,used:0,perUser:pu,weekdays:d.weekdays.slice(),win:d.ws?[d.ws,d.we]:null,audience:'all',aud:0,stackCredit:d.stackCredit,stackCodes:d.stackCodes,wallet:d.wallet,on:true};
+  DB.promos.unshift(row);audit('promo.create','promotion_codes',code,null,clone(row));S.dlg=null;render();toast('已建立優惠碼 '+code);break}
+ /* system */
+ case 'admin-invite':if(needSuper())break;S.dlg={type:'invite',email:'',role:'admin',err:''};renderOv();break;
+ case 'invite-go':{if(needSuper())break;const em=d.email.trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(em))return fail('電郵格式不正確');
+  const ex=DB.admins.find(x=>x.email===em),exp=addDays(TODAY,1)+' '+tm(NOWM);
+  if(ex&&ex.status==='active')return fail('此電郵已是管理員');
+  if(ex){ex.role=d.role;ex.status='pending';ex.exp=exp}else DB.admins.push({id:nid('a'),email:em,role:d.role,status:'pending',exp});
+  audit('admin.invite','admin_users',em,null,{role:d.role,invited_by:cur().email});S.dlg=null;render();toast('邀請已建立','邀請信會寄到 '+em+'，24 小時內有效');break}
+ case 'admin-resend':{if(needSuper())break;const x=DB.admins.find(y=>y.id===id);const was=x.status;x.status='pending';x.exp=addDays(TODAY,1)+' '+tm(NOWM);audit('admin.invite','admin_users',x.email,{invite_status:was},{invite_status:'pending',expires:x.exp});render();toast(was==='revoked'?'已重新邀請':'邀請已重新發送');break}
+ case 'admin-revoke':{if(needSuper())break;const x=DB.admins.find(y=>y.id===id);
+  if(x.id===cur().id)return toast('不能撤銷自己的帳戶');
+  if(x.role==='super_admin'&&DB.admins.filter(y=>y.role==='super_admin'&&y.status==='active').length<=1)return toast('不能撤銷最後一個超級管理員');
+  audit('admin.revoke','admin_users',x.email,{invite_status:'active'},{invite_status:'revoked'});x.status='revoked';render();toast(x.email+' 已撤銷');break}
+ case 'err-done':{const x=DB.errors.find(y=>y.id===id);x.done=true;audit('error.resolve','site_error_log',x.id,{resolved:false},{resolved:true});render();toast('已標記已解決');break}
+ }
+});
+
+/* inputs: keep text typing free of re-renders */
+document.addEventListener('input',e=>{
+ const t=e.target,d=S.dlg;
+ if(t.dataset.bind!==undefined){
+  const p=t.dataset.bind;
+  if(p==='noteDraft')S.noteDraft={id:t.dataset.nid,v:t.value};else if(p==='msg')S.msg=t.value;else setPath(S,p,t.value);
+  if(t.dataset.live==='bk'){S.bk.page=1;$('#bk-res').innerHTML=bkResults()}
+  if(t.dataset.live==='mem')$('#mem-res').innerHTML=memResults();
+ }
+ if(t.dataset.cfg){const k=t.dataset.cfg,dr=cfgDraft(k),orig=getPath(DB.config[k],t.dataset.p);setPath(dr,t.dataset.p,typeof orig==='number'?(Number(t.value)||0):t.value);const sv=document.querySelector('[data-act="cfg-save"][data-k="'+k+'"]');if(sv)sv.disabled=!cfgDirty(k)}
+ if(t.dataset.d&&d){
+  d[t.dataset.d]=t.dataset.num?Number(t.value):t.value;
+  if(t.dataset.live==='nb')$('#nb-res').innerHTML=nbRes(d);
+  if(d.type==='wcancel'&&t.dataset.d==='amt'){const b=bk(d.id),w=$('#amt-why');if(w)w.hidden=Number(d.amt)===b.total&&d.amt!==''}
+ }
+});
+document.addEventListener('change',e=>{
+ const t=e.target,d=S.dlg;
+ if(t.id==='role-sel'){S.role=t.value;S.drawer=null;S.dlg=null;render();toast('已切換為'+(S.role==='super_admin'?'超級管理員':'管理員'),'預覽權限差異');return}
+ if(t.dataset.rerender)render();
+ if(t.dataset.bind&&t.dataset.bind.indexOf('mt.')===0&&(S.mtWarn||S.mtErr)){S.mtWarn='';S.mtErr='';render()}
+ if(t.dataset.d&&d&&['d-date','d-tb','d-hr'].includes(t.id)){
+  d[t.dataset.d]=t.dataset.num?Number(t.value):t.value;
+  if(t.id==='d-date'||t.id==='d-tb'){d.sh=null;if(d.type==='newbk')d.hours=1;if(d.type==='resched')d.table=null}
+  rerenderDlg();
+ }
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(S.dlg){S.dlg=null;renderOv()}else if(S.drawer){S.drawer=null;render()}}});
+$('#theme-btn').addEventListener('click',()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light';$('#theme-btn').innerHTML=themeIcon()});
+render();
+
+</script>

@@ -1,192 +1,89 @@
 'use client'
 
 /**
- * MemberCardGrid — card-based member list for admin §9.
+ * MemberCardGrid — the prototype's `.mgrid` / `.mcard`, one-for-one.
  *
- * Each card shows:
- * - Avatar initial circle (colored by first letter)
- * - Tier badge (Nova / Platinum / Diamond)
- * - Activity dot (green <15min, yellow within 7d, grey inactive)
- * - Member code, email, points, join date
- * - Click → /admin/members/[id]
+ * Card anatomy (space8-admin.html `memResults()` grid branch):
+ *   mtop   → initial avatar + flag tags
+ *   mn     → display name
+ *   ms     → member code (mono)
+ *   mbox   → 積分 / Credit panel on the page background
+ *   ms     → phone
  *
- * CSS-variable only — no hardcoded hex. No inline styles.
+ * Avatar variant is the prototype's `(name.charCodeAt(0) || 0) % 3`, not a
+ * string hash — the three fills have to land on the same people as the mock.
  */
 
 import { useRouter } from 'next/navigation'
 import { type AdminMemberRow } from '@/lib/data/getAdminMembers'
-import { tierShortLabel } from '@/lib/member/tierDisplay'
+import { money } from '@/lib/admin/today'
 
-/* ── Tier colors ──────────────────────────── */
-const TIER_COLOR_VAR: Record<string, string> = {
-  amateur: 'var(--admin-tier-nova)',
-  century: 'var(--admin-tier-platinum)',
-  maximum: 'var(--admin-tier-diamond)',
+/** Prototype `memBadges()` — only these two, in this order. */
+function memberBadges(m: AdminMemberRow): React.ReactNode {
+  return (
+    <>
+      {m.isBlacklisted ? (
+        <span className="admin-tag bad" data-cms-key="admin.members.badge_blacklist">
+          黑名單
+        </span>
+      ) : null}
+      {m.needsManualPhoneReverify ? (
+        <span className="admin-tag warn" data-cms-key="admin.members.badge_reverify">
+          待重新驗證電話
+        </span>
+      ) : null}
+    </>
+  )
 }
-
-const TIER_BG_VAR: Record<string, string> = {
-  amateur: 'var(--admin-tier-nova-dim)',
-  century: 'var(--admin-tier-platinum-dim)',
-  maximum: 'var(--admin-tier-diamond-dim)',
-}
-
-/* ── Activity status ──────────────────────────── */
-type ActivityStatus = 'active' | 'recent' | 'inactive'
-
-function getActivityStatus(lastActiveAt: string | null): ActivityStatus {
-  if (!lastActiveAt) return 'inactive'
-  const diff = Date.now() - new Date(lastActiveAt).getTime()
-  const MIN = 60_000
-  const DAY = 86_400_000
-  if (diff < 15 * MIN) return 'active'
-  if (diff < 7 * DAY) return 'recent'
-  return 'inactive'
-}
-
-const ACTIVITY_DOT: Record<ActivityStatus, { color: string; label: string }> = {
-  active: { color: 'var(--admin-brand)', label: 'Online' },
-  recent: { color: 'var(--admin-warning)', label: 'Recently active' },
-  inactive: { color: 'var(--admin-text-faint)', label: 'Offline' },
-}
-
-/* ── Avatar color from first letter ───────────── */
-const AVATAR_COLORS = [
-  'var(--admin-brand)',
-  'var(--admin-tier-platinum)',
-  'var(--admin-tier-diamond)',
-  'var(--admin-warning)',
-  'var(--admin-danger)',
-]
-
-function avatarColor(name: string): string {
-  let hash = 0
-  for (const ch of name) hash = ((hash << 5) - hash + ch.charCodeAt(0)) | 0
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
-}
-
-function initial(name: string): string {
-  return (name || '?').charAt(0).toUpperCase()
-}
-
-/* ── Component ────────────────────────────────── */
 
 type Props = {
   members: AdminMemberRow[]
+  onOpen?: (id: string) => void
 }
 
-export default function MemberCardGrid({ members }: Props) {
+export default function MemberCardGrid({ members, onOpen }: Props) {
   const router = useRouter()
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="admin-mgrid">
       {members.map((m) => {
-        const tier = m.tier ?? 'amateur'
-        const activity = getActivityStatus(m.lastActiveAt)
-        const dot = ACTIVITY_DOT[activity]
-        const displayName = m.displayName || m.email || m.memberCode || m.id.slice(0, 8)
+        const name = m.displayName || m.memberCode || m.email || m.id.slice(0, 8)
+        const initial = (name || '?').slice(0, 1).toUpperCase()
+        const av = `admin-av${(name.charCodeAt(0) || 0) % 3}`
 
         return (
           <button
             key={m.id}
             type="button"
-            onClick={() => router.push(`/admin/members/${m.id}`)}
-            className="group flex items-start gap-3 rounded-2xl p-4 text-left transition-colors"
-            style={{
-              background: 'var(--admin-surface)',
-              border: '1px solid var(--admin-border)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--admin-border-strong)'
-              e.currentTarget.style.background = 'var(--admin-surface-elevated)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--admin-border)'
-              e.currentTarget.style.background = 'var(--admin-surface)'
-            }}
+            className="admin-mcard"
+            onClick={() => (onOpen ? onOpen(m.id) : router.push(`/admin/members/${m.id}`))}
           >
-            {/* Avatar */}
-            <div className="relative shrink-0">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
-                style={{
-                  background: 'var(--admin-surface-elevated)',
-                  color: avatarColor(displayName),
-                  border: '1px solid var(--admin-border)',
-                }}
-              >
-                {initial(displayName)}
-              </div>
-              {/* Activity dot */}
-              <div
-                className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full"
-                style={{
-                  background: dot.color,
-                  border: '2px solid var(--admin-surface)',
-                }}
-                title={dot.label}
-              />
-            </div>
-
-            {/* Info */}
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span
-                  className="truncate text-sm font-semibold"
-                  style={{ color: 'var(--admin-text)' }}
-                >
-                  {displayName}
-                </span>
-                {m.isBlacklisted && (
-                  <span
-                    className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase"
-                    style={{
-                      color: 'var(--admin-danger)',
-                      background: 'var(--admin-danger-dim)',
-                    }}
-                  >
-                    Banned
-                  </span>
-                )}
-              </div>
-
-              <div className="mt-1 flex items-center gap-2">
-                {/* Tier badge */}
-                <span
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-                  style={{
-                    color: TIER_COLOR_VAR[tier] ?? TIER_COLOR_VAR.amateur,
-                    background: TIER_BG_VAR[tier] ?? TIER_BG_VAR.amateur,
-                  }}
-                >
-                  {tierShortLabel(tier)}
-                </span>
-                <span
-                  className="text-xs"
-                  style={{ color: 'var(--admin-text-muted)', fontFamily: 'var(--font-mono, monospace)' }}
-                >
-                  {m.memberCode ?? '—'}
-                </span>
-              </div>
-
-              <div
-                className="mt-1.5 flex items-center gap-3 text-xs"
-                style={{ color: 'var(--admin-text-muted)' }}
-              >
-                <span>{m.points} pts</span>
-                {m.totalSpend > 0 && <span>${m.totalSpend.toLocaleString()}</span>}
-                <span>{m.bookingCount} bookings</span>
-              </div>
-            </div>
+            <span className="admin-mtop">
+              <span className={`admin-av ${av}`} aria-hidden>
+                {initial}
+              </span>
+              <span className="admin-mflags">{memberBadges(m)}</span>
+            </span>
+            <span className="admin-mn">{name}</span>
+            <span className="admin-ms admin-mono">{m.memberCode ?? ''}</span>
+            <span className="admin-mbox">
+              <span>
+                <small data-cms-key="admin.members.points">積分</small>
+                <b className="admin-num">{m.points}</b>
+              </span>
+              <span>
+                <small data-cms-key="admin.members.credit">Credit</small>
+                <b className="admin-num">{money(m.credits)}</b>
+              </span>
+            </span>
+            <span className="admin-ms">{m.phone ?? ''}</span>
           </button>
         )
       })}
 
       {members.length === 0 && (
-        <div
-          className="col-span-full py-12 text-center text-sm"
-          style={{ color: 'var(--admin-text-muted)' }}
-        >
-          No members found.
+        <div className="admin-empty" data-cms-key="admin.members.empty">
+          找不到會員
         </div>
       )}
     </div>

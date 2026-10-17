@@ -19,10 +19,15 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { Check, Undo2, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 
 export type AdminToastInput = {
   message: string
+  /**
+   * Secondary line under the title — the prototype's `toast(t, s)` `s`, drawn
+   * as the `small` element inside `.tt`. Optional.
+   */
+  detail?: string
   tone?: 'success' | 'error'
   /** When present an Undo button is shown and the toast lives longer. */
   onUndo?: () => void | Promise<void>
@@ -62,8 +67,8 @@ export function AdminToastProvider({ children }: { children: ReactNode }) {
       if (timer.current) clearTimeout(timer.current)
       const id = nextId.current++
       setToast({ ...input, id })
-      // Undo affordances need a longer read window.
-      const lifetime = input.onUndo ? 8000 : 3000
+      // Prototype `toast()`: 6500ms with undo, 4200ms without.
+      const lifetime = input.onUndo ? 6500 : 4200
       timer.current = setTimeout(() => setToast(null), lifetime)
     },
     [],
@@ -88,46 +93,32 @@ export function AdminToastProvider({ children }: { children: ReactNode }) {
       {children}
 
       {toast && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="fixed bottom-20 left-1/2 z-[80] flex -translate-x-1/2 items-center gap-3 border px-4 py-3 md:bottom-6"
-          style={{
-            background: 'var(--admin-surface)',
-            borderColor:
-              toast.tone === 'error' ? 'var(--admin-danger)' : 'var(--admin-border)',
-            color: 'var(--admin-text)',
-            borderRadius: 'var(--admin-radius-card)',
-            maxWidth: 'min(92vw, 28rem)',
-          }}
-        >
-          {toast.tone === 'error' ? (
-            <X size={14} style={{ color: 'var(--admin-danger)' }} aria-hidden />
-          ) : (
-            <Check size={14} style={{ color: 'var(--admin-brand)' }} aria-hidden />
-          )}
+        <div className="admin-toasts">
+          <div
+            role="status"
+            aria-live="polite"
+            className={`admin-toast${toast.tone === 'error' ? ' bad' : ''}`}
+          >
+            <span className="admin-toast-tick" aria-hidden>
+              {toast.tone === 'error' ? <X size={16} /> : <Check size={16} />}
+            </span>
 
-          <span className="text-sm" style={{ color: 'var(--admin-text)' }}>
-            {toast.message}
-          </span>
+            <span className="admin-toast-tt">
+              {toast.message}
+              {toast.detail ? <small>{toast.detail}</small> : null}
+            </span>
 
-          {toast.onUndo && (
-            <button
-              type="button"
-              onClick={handleUndo}
-              className="ml-auto inline-flex items-center gap-1 border px-2 py-1 text-xs font-semibold"
-              style={{
-                borderColor: 'var(--admin-border)',
-                color: 'var(--admin-brand)',
-                background: 'transparent',
-                borderRadius: 'var(--admin-radius-btn)',
-              }}
-              data-cms-key="admin.toast.undo"
-            >
-              <Undo2 size={11} aria-hidden />
-              復原
-            </button>
-          )}
+            {toast.onUndo && (
+              <button
+                type="button"
+                onClick={handleUndo}
+                className="admin-toast-undo"
+                data-cms-key="admin.toast.undo"
+              >
+                還原
+              </button>
+            )}
+          </div>
         </div>
       )}
     </AdminToastContext.Provider>
