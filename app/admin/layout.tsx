@@ -40,19 +40,15 @@ export default async function AdminLayout({
     redirect('/auth')
   }
 
-  // Check if user is admin
-  const { data: profile } = await supabase
-    .from('users')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile?.is_admin) {
+  // Admin check: admin_users (active invite), same source as every admin API.
+  // The old check read users.is_admin, a column that does not exist, so the
+  // query errored and every admin was redirected to '/'.
+  const admin = await getAdminData()
+  if (!admin) {
     redirect('/')
   }
 
-  const admin = await getAdminData()
-  const isSuperAdmin = admin?.role === 'super_admin'
+  const isSuperAdmin = admin.role === 'super_admin'
 
   return <AdminShell isSuperAdmin={isSuperAdmin}>{children}</AdminShell>
 }
