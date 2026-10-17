@@ -96,6 +96,8 @@ type Props = {
   useWallet?: boolean
   promoCode?: string | null
   expectedTotal?: number
+  /** Called when the user taps Pay without agreeing to the terms (parent scrolls to the checkbox). */
+  onTermsRequired?: () => void
 }
 
 // ── SessionStorage key for refresh recovery ─────────────────────────────────
@@ -235,7 +237,7 @@ const METHOD_NAMES: Record<StripePaymentMethod, string> = {
 export default function StripePayment(props: Props) {
   const {
     blocks, bookingId, method, labels, agreedToTerms, returnUrl, locale,
-    onBackToMethods, onSuccess,
+    onBackToMethods, onSuccess, onTermsRequired,
   } = props
 
   const t = useTranslations('book')
@@ -997,6 +999,7 @@ export default function StripePayment(props: Props) {
             amountInCents={serverAmount}
             labels={labels}
             agreedToTerms={agreedToTerms}
+            onTermsRequired={onTermsRequired}
             onBackToMethods={onBackToMethods}
           />
         </Elements>
@@ -1030,9 +1033,10 @@ function CardPaymentForm(props: {
   amountInCents: number | null
   labels: StripeLabels
   agreedToTerms: boolean
+  onTermsRequired?: () => void
   onBackToMethods: () => void
 }) {
-  const { bookingId, returnUrl, amountInCents, labels, agreedToTerms, onBackToMethods } = props
+  const { bookingId, returnUrl, amountInCents, labels, agreedToTerms, onTermsRequired, onBackToMethods } = props
   const stripe = useStripe()
   const elements = useElements()
   const t = useTranslations('book')
@@ -1048,6 +1052,7 @@ function CardPaymentForm(props: {
     // missing checkbox tick. Stay on the form and show the inline error.
     if (!agreedToTerms) {
       setErr(labels.terms_required)
+      onTermsRequired?.()
       return
     }
 
