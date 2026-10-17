@@ -1,35 +1,66 @@
 'use client'
 
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Bell, CalendarDays, LayoutDashboard, MoreHorizontal, Users } from 'lucide-react'
+import { CalendarDays, LayoutDashboard, MoreHorizontal, Shield, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import NavItem from './ui/NavItem'
+import { ADMIN_AREAS, areaForPath, type AdminAreaId } from '@/lib/admin/nav'
 
-type Tab = {
-  href: string
-  label: string
-  cmsKey: string
-  icon: LucideIcon
-  matchExact?: boolean
+const ICONS: Record<AdminAreaId, LucideIcon> = {
+  today: LayoutDashboard,
+  bookings: CalendarDays,
+  members: Users,
+  site: MoreHorizontal,
+  system: Shield,
 }
 
-const TABS: Tab[] = [
-  { href: '/admin', label: 'Dashboard', cmsKey: 'tab_dashboard', icon: LayoutDashboard, matchExact: true },
-  { href: '/admin/bookings', label: 'Bookings', cmsKey: 'tab_bookings', icon: CalendarDays },
-  { href: '/admin/members', label: 'Users', cmsKey: 'tab_users', icon: Users },
-  { href: '/admin/notifications', label: 'Alerts', cmsKey: 'tab_alerts', icon: Bell },
-  { href: '/admin/settings', label: 'More', cmsKey: 'tab_more', icon: MoreHorizontal },
-]
-
-export default function MobileTabBar() {
+export default function MobileTabBar({
+  onMore,
+}: {
+  onMore: () => void
+}) {
   const pathname = usePathname()
-  const isActive = (tab: Tab) => tab.matchExact ? pathname === tab.href : pathname?.startsWith(tab.href) ?? false
+  const active = areaForPath(pathname ?? '/admin')
 
   return (
-    <nav className="admin-ui-mobile-tabs fixed bottom-0 left-0 right-0 z-40 lg:hidden" aria-label="Admin mobile navigation">
-      {TABS.map((tab) => (
-        <NavItem key={tab.href} {...tab} active={isActive(tab)} vertical />
-      ))}
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 flex border-t lg:hidden"
+      style={{
+        background: 'var(--admin-bg-surface)',
+        borderColor: 'var(--admin-border-subtle)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+      aria-label="主選單"
+    >
+      {ADMIN_AREAS.map((area) => {
+        const Icon = ICONS[area.id]
+        const isActive = active === area.id
+        return (
+          <Link
+            key={area.id}
+            href={area.href}
+            aria-current={isActive ? 'page' : undefined}
+            className="flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 text-[11px]"
+            style={{
+              color: isActive ? 'var(--admin-green)' : 'var(--admin-text-tertiary)',
+            }}
+            data-cms-key={area.cmsKey}
+          >
+            <Icon className="h-5 w-5" aria-hidden />
+            <span>{area.label}</span>
+          </Link>
+        )
+      })}
+      <button
+        type="button"
+        onClick={onMore}
+        className="flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 text-[11px]"
+        style={{ color: 'var(--admin-text-tertiary)' }}
+        data-cms-key="admin.nav.more"
+      >
+        <MoreHorizontal className="h-5 w-5" aria-hidden />
+        <span>更多</span>
+      </button>
     </nav>
   )
 }

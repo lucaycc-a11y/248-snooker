@@ -53,6 +53,8 @@ export default function LoginForm({
       if (cancelled) return;
 
       if (user) {
+        // Best-effort risk stamp (shared IP / device detection). Never blocks login.
+        void fetch("/api/auth/risk-stamp", { method: "POST" }).catch(() => {});
         // Only a finished profile skips the card. /auth/callback and the
         // onboarding gate send incomplete users (Google/email signup still
         // missing a second identity) here on purpose; bouncing them to /book

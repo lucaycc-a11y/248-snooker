@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface MembershipCardProps {
   badge?: string;
-  badgeDim?: boolean;
   icon: React.ReactNode;
   title: string;
   subtitle: string;
@@ -16,7 +15,6 @@ interface MembershipCardProps {
 
 function MembershipCard({
   badge,
-  badgeDim,
   icon,
   title,
   subtitle,
@@ -60,20 +58,12 @@ function MembershipCard({
       >
         {badge && (
           <span
-            className={`absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-full ${
-              badgeDim
-                ? "bg-gray-800 text-gray-400"
-                : ""
-            }`}
-            style={
-              !badgeDim
-                ? {
-                    backgroundColor: "var(--tier-premier-badge-bg)",
-                    color: "var(--tier-premier-badge-text)",
-                    border: "1px solid var(--tier-premier-badge-border)",
-                  }
-                : undefined
-            }
+            className="absolute top-4 right-4 px-3 py-1 text-xs font-semibold rounded-full"
+            style={{
+              backgroundColor: "var(--tier-premier-badge-bg)",
+              color: "var(--tier-premier-badge-text)",
+              border: "1px solid var(--tier-premier-badge-border)",
+            }}
           >
             {badge}
           </span>
@@ -177,8 +167,6 @@ export default function MembershipNew() {
       featured: true,
     },
     {
-      badge: t("cards.1.badge"),
-      badgeDim: true,
       icon: (
         <svg
           viewBox="0 0 24 24"

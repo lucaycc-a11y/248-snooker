@@ -25,6 +25,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import type { AdminBookingRow } from '@/lib/data/getAdminBookings'
+import WeatherBookingActions from '@/components/admin/WeatherBookingActions'
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -356,6 +357,10 @@ export default function BookingDrawer({ bookingId, onClose, onRefresh }: Booking
                   onToggleTest={handleToggleTest}
                   onCancel={handleCancel}
                   markingTest={markingTest}
+                  onRefresh={onRefresh}
+                  onCancelled={() => {
+                    if (booking) setBooking({ ...booking, status: 'admin_cancelled' })
+                  }}
                 />
               )}
               {activeTab === 'payments' && (
@@ -388,6 +393,8 @@ function DetailsTab({
   onToggleTest,
   onCancel,
   markingTest,
+  onRefresh,
+  onCancelled,
 }: {
   booking: AdminBookingRow | null
   loading: boolean
@@ -395,6 +402,8 @@ function DetailsTab({
   onToggleTest: () => void
   onCancel: () => void
   markingTest: boolean
+  onRefresh?: () => void
+  onCancelled?: () => void
 }) {
   if (loading) {
     return (
@@ -514,6 +523,15 @@ function DetailsTab({
             </span>
           </button>
           {/* Future: Add Points, Waive Fee buttons */}
+        </div>
+
+        {/* Weather flows: reschedule / cancel-with-credit */}
+        <div style={{ marginTop: '0.75rem' }}>
+          <WeatherBookingActions
+            booking={booking}
+            onRefresh={onRefresh}
+            onCancelled={onCancelled}
+          />
         </div>
       </section>
     </div>

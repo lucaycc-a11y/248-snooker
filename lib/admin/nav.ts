@@ -1,0 +1,139 @@
+/**
+ * Single source of truth for admin navigation.
+ *
+ * Five top-level areas mirror the admin prototype (`space8-admin.html`).
+ * Leaf routes stay deep-linkable — the shell groups them, it never hides
+ * them behind a single catch-all. Overflow routes keep working and are
+ * reachable from the "更多" drawer.
+ */
+
+export type AdminAreaId = 'today' | 'bookings' | 'members' | 'site' | 'system'
+
+export type AdminNavItem = {
+  href: string
+  label: string
+  cmsKey: string
+  /** Hidden from the rail when the viewer is not super_admin. */
+  superAdminOnly?: boolean
+  /** Match the active state against this path instead of `href`. */
+  match?: string
+}
+
+export type AdminArea = {
+  id: AdminAreaId
+  label: string
+  cmsKey: string
+  /** Icon key understood by the shell. */
+  icon: 'today' | 'list' | 'users' | 'site' | 'shield'
+  href: string
+  items: AdminNavItem[]
+}
+
+export const ADMIN_AREAS: AdminArea[] = [
+  {
+    id: 'today',
+    label: '今日',
+    cmsKey: 'admin.nav.today',
+    icon: 'today',
+    href: '/admin',
+    items: [
+      { href: '/admin', label: '今日', cmsKey: 'admin.nav.today' },
+    ],
+  },
+  {
+    id: 'bookings',
+    label: '預約',
+    cmsKey: 'admin.nav.bookings',
+    icon: 'list',
+    href: '/admin/bookings',
+    items: [
+      { href: '/admin/bookings', label: '預約', cmsKey: 'admin.nav.bookings' },
+      { href: '/admin/payment-log', label: '付款記錄', cmsKey: 'admin.nav.payment_log' },
+      { href: '/admin/calendar', label: '日曆', cmsKey: 'admin.nav.calendar' },
+    ],
+  },
+  {
+    id: 'members',
+    label: '會員',
+    cmsKey: 'admin.nav.members',
+    icon: 'users',
+    href: '/admin/members',
+    items: [
+      { href: '/admin/members', label: '會員列表', cmsKey: 'admin.nav.members' },
+      {
+        href: '/admin/members?tab=flags',
+        match: '/admin/members',
+        label: '帳戶異常',
+        cmsKey: 'admin.nav.member_flags',
+      },
+    ],
+  },
+  {
+    id: 'site',
+    label: '網站資料',
+    cmsKey: 'admin.nav.site',
+    icon: 'site',
+    href: '/admin/site-gate',
+    items: [
+      { href: '/admin/site-gate', label: '全站維修', cmsKey: 'admin.nav.site_gate', superAdminOnly: true },
+      { href: '/admin/maintenance', label: '封枱', cmsKey: 'admin.nav.maintenance' },
+      { href: '/admin/settings', label: '價格與規則', cmsKey: 'admin.nav.settings' },
+      { href: '/admin/promos', label: '優惠碼', cmsKey: 'admin.nav.promos' },
+    ],
+  },
+  {
+    id: 'system',
+    label: '系統',
+    cmsKey: 'admin.nav.system',
+    icon: 'shield',
+    href: '/admin/team',
+    items: [
+      { href: '/admin/team', label: '管理員', cmsKey: 'admin.nav.team', superAdminOnly: true },
+      { href: '/admin/audit', label: '審計記錄', cmsKey: 'admin.nav.audit' },
+      { href: '/admin/errors', label: '錯誤記錄', cmsKey: 'admin.nav.errors' },
+    ],
+  },
+]
+
+/**
+ * Routes that stay mounted but are not one of the five primary tabs.
+ * The "更多" drawer lists these; nothing here is deleted or redirected away.
+ */
+export const ADMIN_OVERFLOW: AdminNavItem[] = [
+  { href: '/admin/orders', label: '訂單查詢', cmsKey: 'admin.nav.orders' },
+  { href: '/admin/blog', label: '網誌', cmsKey: 'admin.nav.blog' },
+  { href: '/admin/notifications', label: '通知', cmsKey: 'admin.nav.notifications' },
+  { href: '/admin/sales-report', label: '銷售報告', cmsKey: 'admin.nav.sales_report' },
+  { href: '/admin/door', label: '門禁卡', cmsKey: 'admin.nav.door' },
+  { href: '/admin/door-lock', label: '門鎖', cmsKey: 'admin.nav.door_lock' },
+  { href: '/admin/lockers', label: '儲物櫃', cmsKey: 'admin.nav.lockers' },
+  { href: '/admin/qr-generator', label: 'QR 產生器', cmsKey: 'admin.nav.qr_generator' },
+  { href: '/admin/ai-settings', label: 'AI 設定', cmsKey: 'admin.nav.ai_settings' },
+  { href: '/admin/media', label: '媒體', cmsKey: 'admin.nav.media' },
+  { href: '/admin/slots', label: '時段', cmsKey: 'admin.nav.slots' },
+  { href: '/admin/uat-access', label: 'UAT 存取', cmsKey: 'admin.nav.uat_access', superAdminOnly: true },
+  { href: '/admin/style-guide', label: '風格指南', cmsKey: 'admin.nav.style_guide' },
+]
+
+/** Area a pathname belongs to, used for rail/tabs active state. */
+export function areaForPath(pathname: string): AdminAreaId {
+  const path = pathname.replace(/\/$/, '') || '/admin'
+  if (path === '/admin') return 'today'
+  if (path.startsWith('/admin/bookings') || path.startsWith('/admin/payment-log') || path.startsWith('/admin/calendar')) {
+    return 'bookings'
+  }
+  if (path.startsWith('/admin/members')) return 'members'
+  if (
+    path.startsWith('/admin/site-gate') ||
+    path.startsWith('/admin/maintenance') ||
+    path.startsWith('/admin/settings') ||
+    path.startsWith('/admin/promos')
+  ) {
+    return 'site'
+  }
+  return 'system'
+}
+
+export function visibleItems(items: AdminNavItem[], isSuperAdmin: boolean): AdminNavItem[] {
+  return items.filter((item) => isSuperAdmin || !item.superAdminOnly)
+}

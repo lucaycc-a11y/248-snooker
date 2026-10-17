@@ -16,13 +16,16 @@ import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str } from '@/lib/data/adminReadHelpers'
 import { withAdminSecurity } from '@/lib/security/admin-wrapper'
+import { validateWeatherCredit } from '@/lib/admin/weather-credit-policy'
 
 export const runtime = 'nodejs'
 
 type CancelRequest = {
   reason: string
-  compensationType?: 'none' | 'points' | 'refund'
+  compensationType?: 'none' | 'points' | 'refund' | 'credit'
   compensationValue?: number
+  /** Required by the weather-credit policy when credit ≠ booking total. */
+  differenceReason?: string | null
 }
 
 async function handleAdminBookingCancel(
@@ -42,14 +45,18 @@ async function handleAdminBookingCancel(
     }
 
     const body = await req.json().catch(() => null)
-    const { reason, compensationType = 'none', compensationValue = 0 } =
-      (body ?? {}) as Partial<CancelRequest>
+    const {
+      reason,
+      compensationType = 'none',
+      compensationValue = 0,
+      differenceReason = null,
+    } = (body ?? {}) as Partial<CancelRequest>
 
     if (!reason || typeof reason !== 'string' || reason.trim().length === 0) {
       return NextResponse.json({ error: 'Cancellation reason is required' }, { status: 400 })
     }
 
-    const validCompensation = ['none', 'points', 'refund'].includes(compensationType)
+    const validCompensation = ['none', 'points', 'refund', 'credit'].includes(compensationType)
     if (!validCompensation) {
       return NextResponse.json({ error: 'Invalid compensation type' }, { status: 400 })
     }
@@ -57,6 +64,11 @@ async function handleAdminBookingCancel(
     // Points compensation must have a positive value
     if (compensationType === 'points' && (!compensationValue || compensationValue <= 0)) {
       return NextResponse.json({ error: 'Points compensation must be positive' }, { status: 400 })
+    }
+
+    // Credit compensation must have a positive value
+    if (compensationType === 'credit' && (!compensationValue || compensationValue <= 0)) {
+      return NextResponse.json({ error: 'Credit compensation must be positive' }, { status: 400 })
     }
 
     const service = getLegacyServiceSupabase()
@@ -77,6 +89,33 @@ async function handleAdminBookingCancel(
       return NextResponse.json({ error: 'Booking is already cancelled' }, { status: 400 })
     }
 
+    // ── Weather-credit policy gate ─────────────────────────────────────
+    // Runs BEFORE the status flip: a rejected policy must not leave a
+    // cancelled booking with no compensation. Pure function, no DB reads.
+    // Currently unimplemented by design — see lib/admin/weather-credit-policy.ts.
+    if (compensationType === 'credit') {
+      const bookingTotal = num(booking as Record<string, unknown>, ['total_price'], 0)
+      let policy
+      try {
+        policy = validateWeatherCredit({
+          bookingTotal,
+          creditAmount: compensationValue,
+          differenceReason:
+            typeof differenceReason === 'string' && differenceReason.trim().length > 0
+              ? differenceReason.trim()
+              : null,
+          adminRole: admin.role,
+        })
+      } catch (policyErr) {
+        const message =
+          policyErr instanceof Error ? policyErr.message : 'Credit policy unavailable'
+        return NextResponse.json({ error: message }, { status: 503 })
+      }
+      if (!policy.ok) {
+        return NextResponse.json({ error: policy.error }, { status: 400 })
+      }
+    }
+
     // ── Update booking status ──────────────────────────────────────────
     const { error: updateErr } = await service
       .from('bookings')
@@ -95,7 +134,10 @@ async function handleAdminBookingCancel(
         admin_id: admin.userId,
         reason: reason.trim(),
         compensation_type: compensationType,
-        compensation_value: compensationType === 'points' ? compensationValue : 0,
+        compensation_value:
+          compensationType === 'points' || compensationType === 'credit'
+            ? compensationValue
+            : 0,
       })
     } catch (logErr) {
       // Non-fatal — cancellation_log migration may not have run yet
@@ -142,6 +184,41 @@ async function handleAdminBookingCancel(
       }
     }
 
+    // ── Handle credit compensation ─────────────────────────────────────
+    // credits_ledger.type is CHECK-constrained to CREDITS_LEDGER_TYPES —
+    // 'manual' is the only legal value for an admin-granted credit.
+    if (compensationType === 'credit' && compensationValue > 0) {
+      const userId = str(booking as Record<string, unknown>, ['user_id'])
+      if (userId) {
+        const { data: ledgerRows } = await service
+          .from('credits_ledger')
+          .select('amount')
+          .eq('user_id', userId)
+
+        const balance = (ledgerRows ?? []).reduce(
+          (sum, r) => sum + num(r as Record<string, unknown>, ['amount'], 0),
+          0,
+        )
+        const balanceAfter = balance + compensationValue
+
+        const { error: creditErr } = await service.from('credits_ledger').insert({
+          user_id: userId,
+          amount: compensationValue,
+          balance_after: balanceAfter,
+          type: 'manual',
+          note: `Weather cancellation credit for booking ${bookingId}: ${reason.trim()}`,
+          actor_id: admin.userId,
+        })
+        if (creditErr) {
+          console.error('[cancel] credits_ledger_insert_failed', {
+            bookingId,
+            message: creditErr.message,
+          })
+          return NextResponse.json({ error: 'Failed to grant credit' }, { status: 500 })
+        }
+      }
+    }
+
     // ── Log to admin_action_log ────────────────────────────────────────
     try {
       await service.from('admin_action_log').insert({
@@ -162,7 +239,11 @@ async function handleAdminBookingCancel(
           status: 'admin_cancelled',
           reason: reason.trim(),
           compensation_type: compensationType,
-          compensation_value: compensationType === 'points' ? compensationValue : 0,
+          compensation_value:
+            compensationType === 'points' || compensationType === 'credit'
+              ? compensationValue
+              : 0,
+          difference_reason: compensationType === 'credit' ? differenceReason : null,
         },
         risk_level: 'high',
         confirmed_by: admin.userId,

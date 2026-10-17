@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { AdminShell } from '@/components/admin/AdminShell'
+import { getAdminData } from '@/lib/data/getAdmin'
+import '@/app/styles/admin-theme.css'
 
 export default async function AdminLayout({
   children,
@@ -49,5 +51,8 @@ export default async function AdminLayout({
     redirect('/')
   }
 
-  return <AdminShell>{children}</AdminShell>
+  const admin = await getAdminData()
+  const isSuperAdmin = admin?.role === 'super_admin'
+
+  return <AdminShell isSuperAdmin={isSuperAdmin}>{children}</AdminShell>
 }

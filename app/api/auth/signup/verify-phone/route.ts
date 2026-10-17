@@ -7,6 +7,7 @@
 // profile with an unproven contact.
 import { NextResponse } from 'next/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { stampAuthRiskEvent } from '@/lib/auth/risk-events'
 import { normalizeHkPhone } from '@/lib/auth/profile'
 import { rateLimit, clientIp } from '@/lib/rate-limit'
 import { verifyEngagelabOtp } from '@/lib/engagelab/otp'
@@ -162,6 +163,14 @@ export async function POST(request: Request) {
       tokenHash: linkData.properties.hashed_token,
     })
     clearSignupSecretCookie(response)
+
+    // Risk stamp is best-effort and must not block account creation.
+    void stampAuthRiskEvent({
+      userId: authData.user.id,
+      req: request,
+      eventType: 'signup',
+    })
+
     return response
   } catch (error) {
     console.error('[auth/signup/verify-phone] error', error)

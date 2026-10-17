@@ -22,7 +22,7 @@ type Props = {
   onSuccess?: () => void
 }
 
-type SheetMode = 'points' | 'tier' | 'blacklist' | null
+type SheetMode = 'points' | 'tier' | 'blacklist' | 'credit' | 'message' | null
 
 const VALID_TIERS = ['amateur', 'century', 'maximum'] as const
 
@@ -37,6 +37,10 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
   const [selectedTier, setSelectedTier] = useState(tier ?? 'amateur')
   const [tierReason, setTierReason] = useState('')
   const [blacklistReason, setBlacklistReason] = useState('')
+  const [creditDelta, setCreditDelta] = useState('')
+  const [creditReason, setCreditReason] = useState('')
+  const [messageTitle, setMessageTitle] = useState('')
+  const [messageBody, setMessageBody] = useState('')
 
   const resetForm = useCallback(() => {
     setPointsDelta('')
@@ -44,6 +48,10 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
     setSelectedTier(tier ?? 'amateur')
     setTierReason('')
     setBlacklistReason('')
+    setCreditDelta('')
+    setCreditReason('')
+    setMessageTitle('')
+    setMessageBody('')
     setError(null)
   }, [tier])
 
@@ -119,7 +127,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
   const sheetStyle: React.CSSProperties = {
     background: 'var(--admin-surface)',
     border: '1px solid var(--admin-border)',
-    borderRadius: '1.5rem 1.5rem 0 0',
+    borderRadius: 'var(--admin-radius-card) var(--admin-radius-card) 0 0',
     width: '100%',
     maxWidth: 420,
     padding: '1.5rem',
@@ -174,6 +182,24 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
         style={isBlacklisted ? btnStyle('brand') : btnStyle('danger')}
       >
         {isBlacklisted ? 'Unban' : 'Ban'}
+      </button>
+      <button
+        type="button"
+        onClick={() => openSheet('credit')}
+        className="rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+        style={btnStyle('ghost')}
+        data-cms-key="admin.member.adjust_credit"
+      >
+        調整 Credit
+      </button>
+      <button
+        type="button"
+        onClick={() => openSheet('message')}
+        className="rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
+        style={btnStyle('ghost')}
+        data-cms-key="admin.member.send_message"
+      >
+        發送 inbox 訊息
       </button>
     </div>
   )
@@ -353,6 +379,133 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               style={btnStyle(isBlacklisted ? 'brand' : 'danger')}
             >
               {loading ? 'Saving…' : isBlacklisted ? 'Unban' : 'Ban'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Credit sheet ──────────────────────────────────────────────────── */
+  if (sheet === 'credit') {
+    return (
+      <div style={overlayStyle} onClick={closeSheet}>
+        <div style={sheetStyle} onClick={(e) => e.stopPropagation()}>
+          <h3 className="mb-4 text-sm font-bold" style={{ color: 'var(--admin-text)' }} data-cms-key="admin.member.adjust_credit">
+            調整 Credit
+          </h3>
+          <label style={labelStyle} data-cms-key="admin.member.credit_delta_label">
+            金額（正數入帳，負數扣減）
+          </label>
+          <input
+            type="number"
+            value={creditDelta}
+            onChange={(e) => setCreditDelta(e.target.value)}
+            placeholder="例：+100 或 -50"
+            style={inputStyle}
+          />
+          <label style={{ ...labelStyle, marginTop: '0.75rem' }} data-cms-key="admin.member.credit_reason_label">
+            原因
+          </label>
+          <input
+            type="text"
+            value={creditReason}
+            onChange={(e) => setCreditReason(e.target.value)}
+            placeholder="為何調整？"
+            style={inputStyle}
+          />
+          {error && (
+            <p className="mt-2 text-xs" style={{ color: 'var(--admin-danger)' }}>
+              {error}
+            </p>
+          )}
+          <div className="mt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={closeSheet}
+              className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold"
+              style={btnStyle('ghost')}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={loading || !creditDelta || !creditReason}
+              onClick={() =>
+                submit('adjust_credit', {
+                  delta: Number(creditDelta),
+                  reason: creditReason,
+                })
+              }
+              className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50"
+              style={btnStyle('brand')}
+            >
+              {loading ? '儲存中…' : '儲存'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Inbox message sheet ───────────────────────────────────────────── */
+  if (sheet === 'message') {
+    return (
+      <div style={overlayStyle} onClick={closeSheet}>
+        <div style={sheetStyle} onClick={(e) => e.stopPropagation()}>
+          <h3 className="mb-4 text-sm font-bold" style={{ color: 'var(--admin-text)' }} data-cms-key="admin.member.send_message">
+            發送 inbox 訊息
+          </h3>
+          <label style={labelStyle} data-cms-key="admin.member.message_title_label">
+            標題
+          </label>
+          <input
+            type="text"
+            value={messageTitle}
+            onChange={(e) => setMessageTitle(e.target.value)}
+            placeholder="訊息標題"
+            style={inputStyle}
+          />
+          <label style={{ ...labelStyle, marginTop: '0.75rem' }} data-cms-key="admin.member.message_body_label">
+            內容
+          </label>
+          <textarea
+            value={messageBody}
+            onChange={(e) => setMessageBody(e.target.value)}
+            rows={4}
+            placeholder="訊息內容"
+            style={{ ...inputStyle, resize: 'vertical' }}
+          />
+          {error && (
+            <p className="mt-2 text-xs" style={{ color: 'var(--admin-danger)' }}>
+              {error}
+            </p>
+          )}
+          <div className="mt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={closeSheet}
+              className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold"
+              style={btnStyle('ghost')}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={loading || !messageTitle.trim() || !messageBody.trim()}
+              onClick={() =>
+                submit('send_message', {
+                  title: messageTitle,
+                  message: messageBody,
+                  // The members API requires a non-empty `reason` on every action;
+                  // for an inbox send the title is the meaningful audit note.
+                  reason: messageTitle,
+                })
+              }
+              className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50"
+              style={btnStyle('brand')}
+            >
+              {loading ? '發送中…' : '發送'}
             </button>
           </div>
         </div>

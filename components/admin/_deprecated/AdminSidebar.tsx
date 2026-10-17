@@ -20,9 +20,9 @@ import {
   Wrench,
   type LucideIcon,
 } from 'lucide-react'
-import Sidebar from './ui/Sidebar'
-import NavItem from './ui/NavItem'
-import Logo from './ui/Logo'
+import Sidebar from '../ui/Sidebar'
+import NavItem from '../ui/NavItem'
+import Logo from '../ui/Logo'
 import { useAdmin } from '@/lib/admin/AdminContext'
 
 type NavItemData = {

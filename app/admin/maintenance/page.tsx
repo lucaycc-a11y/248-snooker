@@ -8,6 +8,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react'
+import MaintenanceBlocks from '@/components/admin/MaintenanceBlocks'
 
 /* ── Types ────────────────────────────────────────────── */
 type VenueStatus = {
@@ -160,7 +161,7 @@ export default function MaintenancePage() {
               <span
                 className="inline-flex h-3 w-3 rounded-full"
                 style={{
-                  background: status.isPaused ? 'var(--admin-danger, #ef4444)' : 'var(--admin-brand)',
+                  background: status.isPaused ? 'var(--admin-danger)' : 'var(--admin-brand)',
                 }}
               />
               <span className="text-sm font-semibold" style={{ color: 'var(--admin-text)' }}>
@@ -310,6 +311,9 @@ export default function MaintenancePage() {
           </div>
         </>
       )}
+
+      {/* ── Per-table booking blocks (maintenance_log) ──────── */}
+      <MaintenanceBlocks />
     </main>
   )
 }

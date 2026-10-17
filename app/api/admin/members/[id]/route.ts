@@ -50,6 +50,78 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       patch = { points: newPoints }
       beforeValue = { points: currentPoints, reason }
       afterValue = { points: newPoints, delta, reason }
+    } else if (body.action === 'adjust_credit') {
+      // Credit lives in credits_ledger, not on `users` — insert a ledger row
+      // instead of patching the user. Type must be one of CREDITS_LEDGER_TYPES.
+      const amount = typeof body.delta === 'number' ? body.delta : Number(body.delta)
+      if (!Number.isFinite(amount) || amount === 0) {
+        return NextResponse.json({ error: 'Invalid credit amount' }, { status: 400 })
+      }
+
+      const { data: ledgerRows } = await service
+        .from('credits_ledger')
+        .select('amount')
+        .eq('user_id', id)
+      const balance = (ledgerRows ?? []).reduce((sum, r) => sum + num(r as Row, ['amount'], 0), 0)
+      const balanceAfter = balance + amount
+
+      const { error: ledgerError } = await service.from('credits_ledger').insert({
+        user_id: id,
+        amount,
+        balance_after: balanceAfter,
+        type: 'manual',
+        note: reason,
+        actor_id: admin.userId,
+      })
+      if (ledgerError) {
+        console.error('[admin/members] credits_ledger insert failed', ledgerError)
+        return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+      }
+
+      await service.from('admin_action_log').insert({
+        admin_user_id: admin.userId,
+        admin_email: admin.email,
+        action_type: 'member_adjust_credit',
+        target_table: 'credits_ledger',
+        target_id: id,
+        before_jsonb: { balance, reason },
+        after_jsonb: { balance_after: balanceAfter, amount, reason },
+        risk_level: 'medium',
+      })
+
+      return NextResponse.json({ success: true })
+    } else if (body.action === 'send_message') {
+      // Per-member inbox message → admin_notifications.
+      const title = typeof body.title === 'string' ? body.title.trim() : ''
+      const message = typeof body.message === 'string' ? body.message.trim() : ''
+      if (!title || !message) {
+        return NextResponse.json({ error: 'Title and message are required' }, { status: 400 })
+      }
+
+      const { error: notifyError } = await service.from('admin_notifications').insert({
+        user_id: id,
+        title,
+        message,
+        type: 'system',
+        read: false,
+      })
+      if (notifyError) {
+        console.error('[admin/members] admin_notifications insert failed', notifyError)
+        return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+      }
+
+      await service.from('admin_action_log').insert({
+        admin_user_id: admin.userId,
+        admin_email: admin.email,
+        action_type: 'member_message',
+        target_table: 'admin_notifications',
+        target_id: id,
+        before_jsonb: null,
+        after_jsonb: { title, reason },
+        risk_level: 'low',
+      })
+
+      return NextResponse.json({ success: true })
     } else if (body.action === 'set_tier') {
       if (typeof body.tier !== 'string' || !VALID_TIERS.includes(body.tier)) {
         return NextResponse.json({ error: 'Invalid tier' }, { status: 400 })
