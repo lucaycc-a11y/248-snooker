@@ -37,6 +37,8 @@ export type AdminBookingsQuery = {
   dateTo?: string | null
   tableNumber?: string | null
   search?: string | null
+  /** Exact booking id (drawer lookup). Ignores the real/test default so test bookings open too. */
+  bookingId?: string | null
   isTest?: boolean | null // unset = real only (default), true = test only, false = real only (explicit)
 }
 
@@ -66,7 +68,8 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
   const { status, dateFrom, dateTo, tableNumber, search } = query
   // Default (isTest undefined/null): show real bookings only, matching the
   // spec's "show test bookings" toggle defaulting to off.
-  const isTest = query.isTest ?? false
+  const bookingId = query.bookingId ?? null
+  const isTest = bookingId ? null : (query.isTest ?? false)
 
   const service = getLegacyServiceSupabase()
   const from = (page - 1) * PAGE_SIZE
@@ -106,7 +109,8 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
       lte: (col: string, val: unknown) => typeof query
       or: (expr: string) => typeof query
     }
-    query = query.eq('is_test', isTest)
+    if (isTest !== null) query = query.eq('is_test', isTest)
+    if (bookingId) query = query.eq('id', bookingId)
     if (status) query = query.eq('status', status)
     if (dateFrom) query = query.gte('date', dateFrom)
     if (dateTo) query = query.lte('date', dateTo)

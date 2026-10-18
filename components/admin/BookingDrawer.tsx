@@ -179,7 +179,7 @@ export default function BookingDrawer({ bookingId, onClose, onRefresh }: Booking
     setCancellations([])
 
     // Fetch full booking details
-    fetch(`/api/admin/bookings?page=1&search=${bookingId}`)
+    fetch(`/api/admin/bookings?page=1&id=${encodeURIComponent(bookingId)}`)
       .then((res) => res.json())
       .then((json: { bookings: AdminBookingRow[] }) => {
         const found = json.bookings.find((b) => b.id === bookingId)

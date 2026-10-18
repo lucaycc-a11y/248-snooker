@@ -19,6 +19,7 @@ export async function GET(req: Request) {
     dateTo: url.searchParams.get('dateTo'),
     tableNumber: url.searchParams.get('tableNumber'),
     search: url.searchParams.get('search'),
+    bookingId: url.searchParams.get('id'),
     isTest: isTestParam === 'true' ? true : isTestParam === 'false' ? false : null,
   })
   return NextResponse.json(result)

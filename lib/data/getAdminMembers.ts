@@ -42,7 +42,7 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
   try {
     let q = service
       .from('users')
-      .select('id, member_code, email, display_name, phone, tier, points, credits, needs_manual_phone_reverify, phone_verified, last_active_at, is_blacklisted, created_at', { count: 'exact' })
+      .select('id, member_code, email, display_name, phone, tier, points, credits, needs_manual_phone_reverify, phone_verified, is_blacklisted, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(from, to)
     if (search) {
@@ -91,7 +91,7 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
         isPhoneVerified: r.phone_verified === true,
         totalSpend: agg?.total ?? 0,
         bookingCount: agg?.count ?? 0,
-        lastActiveAt: str(r, ['last_active_at']),
+        lastActiveAt: null, // users has no last_active_at column
         isBlacklisted: r.is_blacklisted === true,
         createdAt: str(r, ['created_at']),
       }
