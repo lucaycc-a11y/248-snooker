@@ -1,6 +1,7 @@
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getConfig } from '@/lib/data/getConfig'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
+import { logSiteError } from '@/lib/errors/log'
 
 // Calendar data for /admin/calendar. Same defensive-query conventions as
 // getAdminBookings.ts/getAdminStats.ts — bookings/slots schemas are
@@ -144,8 +145,11 @@ export async function getDayTimeline(date: string): Promise<CalendarBooking[]> {
         }
       })
     } catch (fallbackError) {
+      // Never return [] on failure — that reads as "no bookings today".
+      const message = fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
       console.error('[admin/calendar] day timeline query failed', fallbackError)
-      return []
+      await logSiteError('admin.calendar', 'error', '日曆資料載入失敗', { date, message })
+      throw new Error(`日曆資料載入失敗：${message}`)
     }
   }
 }

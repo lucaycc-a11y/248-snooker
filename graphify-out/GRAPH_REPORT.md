@@ -1,16 +1,16 @@
-# Graph Report - Space8_web  (2026-10-17)
+# Graph Report - Space8_web  (2026-10-18)
 
 ## Corpus Check
-- 1839 files · ~7,244,552 words
+- 1851 files · ~7,252,232 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 15198 nodes · 29407 edges · 988 communities (819 shown, 169 thin omitted)
+- 15242 nodes · 29587 edges · 988 communities (823 shown, 165 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 462 edges (avg confidence: 0.71)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `749f8716`
+- Built from commit: `fc40a74f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -21,9 +21,9 @@
 - handler.js
 - book/page.tsx
 - MemberDashboard.tsx
-- getResend
+- LegalDocumentRenderer.tsx
 - devDependencies
-- pricing/config.ts
+- blog/[slug]/page.tsx
 - 248 Snooker Club
 - .claude/skills/impeccable/scripts/live-browser.js
 - tokens.ts
@@ -31,9 +31,9 @@
 - createClient
 - exclude
 - whatsapp-bot/package.json
-- identity-change-notice.ts
+- verify-phone/route.ts
 - widgetRegistry.ts
-- jsonLd.ts
+- nap.ts
 - data/pricing.ts
 - .agents/skills/impeccable/scripts/detector/rules/checks.mjs
 - .claude/skills/impeccable/scripts/detector/rules/checks.mjs
@@ -79,7 +79,7 @@
 - .agents/skills/impeccable/scripts/lib/impeccable-paths.mjs
 - Space8 Technical Fixes — Summary
 - i18n-locale-audit.mjs
-- brand/index.ts
+- carousel.tsx
 - createRouteHandlerClient
 - 248 Booking Flow Skill
 - KPay Lifecycle Deployment Checklist
@@ -120,10 +120,13 @@
 - graphify benchmark command
 - CLAUDE.md native integration
 - Git post-commit hook
-- audit/page.tsx
+- Logo
+- writeAdminActionLog
+- database.types.ts
 - .claude/skills/impeccable/scripts/detector/detect-antipatterns-browser.js
+- SparkWidget.tsx
 - admin/ai/chat/route.ts
-- content/help/types.ts
+- dashboard-config/route.ts
 - Fix Hero Section Layout + Full i18n Correctness — FINAL REPORT
 - .claude/skills/impeccable/scripts/hook-lib.mjs
 - efficient-engineering skill
@@ -135,11 +138,11 @@
 - animations.ts
 - pipeline.ts
 - Stripe Two-Stage Implementation - Final Verification Checklist
-- auth/password-reset.ts
+- send.ts
 - .agents/skills/impeccable/scripts/hook-lib.mjs
 - parseAnyColor
 - Payment Stuck-Pending Bug Fix & Amount Reconciliation — Implementation Summary
-- config/route.ts
+- .agents/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs
 - .agents/skills/impeccable/scripts/doctor.mjs
 - parseAnyColor
 - activity-logger.ts
@@ -188,7 +191,7 @@
 - Git Workflow Skill
 - Karpathy Guidelines
 - .claude/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs
-- verify-phone/route.ts
+- getAdminStats.ts
 - Authentication System Implementation Summary
 - .agents/skills/impeccable/scripts/live-commit-manual-edits.mjs
 - .claude/skills/impeccable/scripts/live-commit-manual-edits.mjs
@@ -201,7 +204,7 @@
 - .claude/skills/impeccable/scripts/live-accept.mjs
 - .agents/skills/impeccable/scripts/live-accept.mjs
 - .claude/skills/impeccable/scripts/live-wrap.mjs
-- .agents/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs
+- .agents/skills/impeccable/scripts/detector/engines/browser/detect-url.mjs
 - .agents/skills/impeccable/scripts/hook-before-edit.mjs
 - .claude/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs
 - .claude/skills/impeccable/scripts/hook-before-edit.mjs
@@ -224,7 +227,7 @@
 - .agents/skills/impeccable/scripts/live-inject.mjs
 - CORE DIRECTIVE: IMAGE-FIRST WEBSITE DESIGN TO CODE
 - CORE DIRECTIVE: PREMIUM MOBILE APP IMAGE DIRECTION
-- _deprecated/AdminSidebar.tsx
+- .agents/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs
 - ✅ 查證結果
 - collectBrowserFindings
 - Stripe Two-Stage Payment Flow - Test Report
@@ -236,7 +239,7 @@
 - High-Agency Frontend Skill
 - PromoCodesManager.tsx
 - parseAnyColor
-- shared.ts
+- resolveLiveInjectionAnchor
 - StaticElement
 - resolveLengthPx
 - .agents/skills/impeccable/scripts/live-poll.mjs
@@ -252,7 +255,7 @@
 - Responsive Design
 - parseRgb
 - handleManualEditActivity
-- auth/password-reset 2.ts
+- auth/password-reset.ts
 - Responsive Design
 - parseRgb
 - handleManualEditActivity
@@ -265,7 +268,7 @@
 - Implementation Plan — Member System Rebuild
 - .agents/skills/impeccable/scripts/live/svelte-ast.mjs
 - .claude/skills/impeccable/reference/document.md
-- lockers/page.tsx
+- SlotCalendar.tsx
 - .claude/skills/impeccable/scripts/live/svelte-ast.mjs
 - .agents/skills/impeccable/reference/onboard.md
 - collectBrowserFindings
@@ -284,7 +287,7 @@
 - onAnnotDown
 - space-wheel-intro-section.tsx
 - Analysis & Synthesis Instructions
-- getMemberRedesign.ts
+- mountSvelteComponentVariant
 - today.ts
 - Pricing Audit Report
 - Agent Skill: Principal UI/UX Architect & Motion Choreographer (Awwwards-Tier)
@@ -362,7 +365,7 @@
 - .claude/skills/impeccable/scripts/detect-csp.mjs
 - .claude/skills/impeccable/scripts/live/generation-preflight.mjs
 - .claude/skills/impeccable/scripts/palette.mjs
-- .agents/skills/impeccable/scripts/lib/staleness-deep.mjs
+- _deprecated/AdminSidebar.tsx
 - 10. REFERENCE VOCABULARY (Pattern Names the Agent Should Know)
 - CORE DIRECTIVE: AWWWARDS-LEVEL DESIGN ENGINEERING
 - 22. STYLE VARIATION ENGINE
@@ -371,7 +374,7 @@
 - Protocol: Premium Utilitarian Minimalism UI Architect
 - Generate Combined Critique Report
 - Init flow
-- sales-report/page.tsx
+- brand/index.ts
 - 11. COMPONENT EXECUTION GUIDELINES
 - 18. EXTRA CREATIVITY & IMPLEMENTATION EDGE
 - Common Cognitive Load Violations
@@ -421,14 +424,14 @@
 - .agents/skills/impeccable/scripts/live/frameworks/journal.mjs
 - SettingsForm.tsx
 - Verification Checklist
-- getAdminData
+- .agents/skills/impeccable/scripts/lib/staleness-notice.mjs
 - ✅ HOMEPAGE - ALL IMAGES ARE REAL PHOTOS
 - 2.4 Discount/Promo Errors
 - 12. THE BLOCK LIBRARY (Contract - Implementations Land Here Iteratively)
 - 5. CONTEXT-AWARE PROACTIVITY
 - 8. DARK MODE PROTOCOL
 - 21. MOBILE ANTI-AI-TELLS RULE
-- resolveLiveInjectionAnchor
+- .agents/skills/impeccable/scripts/lib/template-extensions.mjs
 - Impeccable Documenter
 - devDependencies
 - PointsPageClient.tsx
@@ -453,7 +456,7 @@
 - duration_hours NOT NULL 違規修正總結
 - onboarding-routing.test.ts
 - MaintenanceBlocks.tsx
-- qr-generator/page.tsx
+- .claude/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs
 - Step-by-Step Summary
 - Required Actions (USER MUST PERFORM)
 - app/layout.tsx
@@ -465,10 +468,10 @@
 - recaptcha.d.ts
 - Part 1 — OTP 驗證失敗診斷報告
 - RiskBadge.tsx
-- applyEditing
+- handleGo
 - .agents/skills/impeccable/scripts/live/manual-edit-routes.mjs
 - Dev2 Panel + Deploy Controls - Verification Status
-- routing.ts
+- planetSystem.ts
 - Comprehensive Error Messages Implementation Plan
 - getTableName
 - ConfirmPageClient.tsx
@@ -486,7 +489,7 @@
 - Help Center — Step 0 Inspection Report
 - analyzeVisualContrastCandidate
 - verify-s2c 2.mjs
-- .agents/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs
+- filterFindings
 - Venue Page 修復任務 - 完整總結
 - renderRichText.tsx
 - section5-scroll-check.py
@@ -500,30 +503,30 @@
 - Deprecated OTP System
 - verify-s3.mjs
 - .agents/skills/impeccable/scripts/live/session-store.mjs
-- StripeMethodSelector.tsx
-- KPayPayment.tsx
-- notifications/page.tsx
+- shared.ts
+- config/route.ts
+- .claude/skills/impeccable/scripts/lib/staleness-notice.mjs
 - tierHelpers.ts
 - 3.3 Signup/Profile Errors
 - AdminShell.tsx
 - Context Confirmation (items a–h from prompt)
-- blog/[slug]/page.tsx
+- lockers/page.tsx
 - Snooker404Table.tsx
 - next-intl
 - Part 1 — Codebase ↔ Database Audit Report
-- manage/page.tsx
-- [locale]/page.tsx
+- contact-validation.ts
+- pricing-adapter.tsx
 - 4. Manual Verification Checklist
 - PART A — LEGAL / COMPLIANCE
 - PART B — PERFORMANCE
-- isScreenReaderOnlyTextStyle
-- carousel.tsx
+- FAQ.tsx
+- Extract Flow
 - createClient
 - Dev2Panel.tsx
 - decline-codes.ts
 - Admin Identity Change Runbook
 - Room Viewer Implementation Summary
-- .agents/skills/impeccable/scripts/lib/staleness-notice.mjs
+- notifications/page.tsx
 - Part A — Legal / Compliance Checklist (20 items)
 - StyleGuidePreview.tsx
 - @anthropic-ai/sdk
@@ -532,11 +535,10 @@
 - hero-verify.py
 - section4-verify.py
 - Task Ledger: Member Dashboard Fix & Redesign
-- tierDisplay.ts
+- renderGroupedTemplate
 - Final Orchestrator Report - About Hero & Venue RoomViewer Fix
 - 6.1 Refund Errors
 - ui/BackButton.tsx
-- HelpArticle.tsx
 - UAT Environment + Maintenance Gate Deployment Checklist
 - ui/PasswordInput.tsx
 - @remotion/cli
@@ -548,7 +550,7 @@
 - parseAnyColor
 - ⚠️ Pending Verification (User Testing Required)
 - 4.1 Contact Information Errors
-- getAdminStats.ts
+- site-gate/route.ts
 - canvas-confetti
 - PointsHistory.tsx
 - 2.2 Payment Processing Errors
@@ -559,11 +561,11 @@
 - 3.2 OTP Verification Errors
 - 7.1 Authorization Errors
 - Emphasis.tsx
-- uat-access/page.tsx
+- Diagnostic Scan
 - venue-room-viewer.ts
 - ✅ Completed Implementation
 - contact-detection.ts
-- Logo
+- validatePassword
 - 6. Maintenance Gate Enhancement
 - 10. Deployment Steps
 - 3. Supabase Auth Configuration
@@ -574,7 +576,7 @@
 - 5. Test Data Cleanup
 - 7. UAT Badge Implementation
 - venue-rooms.ts
-- checkElementGptBorderShadowDOM
+- InboxView.tsx
 - app/member/BookingHistory.tsx
 - next-themes
 - SpaceWalletInput.tsx
@@ -587,13 +589,13 @@
 - Step 0 Findings
 - member-pages.spec.ts
 - Security Hardening Deployment Status
-- complete/route.test.ts
+- QRGuideModal.tsx
 - Part A Completion Report: Disable Self-Service Cancel/Reschedule
 - check-schema.mjs
 - test-stripe-manual.js
 - A5: UI, i18n, Accessibility, and Quality Verification Audit
 - Stage 3 — Shared Requests
-- SITE_CONTACT
+- account-deletion 2.ts
 - memberRedesignTypes.ts
 - Security Wrapper Application Plan
 - _deprecated/SpaceWheelOutro-deprecated.tsx
@@ -602,10 +604,10 @@
 - Homepage & 場地 Page Visual/Photo/Carousel Overhaul - Progress
 - membership/MembershipContent.tsx
 - Member Page Route Audit — Phase 3
-- .claude/skills/impeccable/scripts/lib/staleness-notice.mjs
+- revenue-definitions.ts
 - hero-preview.tsx
 - Phase A: `/api/member/bookings` 500 錯誤診斷報告
-- checkRadialSpotlight
+- Diagnostic Scan
 - A2: Identify Step Verification Report
 - /member 404 Logging Implementation
 - Hero Responsive Design Changes
@@ -618,7 +620,7 @@
 - Dev2 Panel Polish & Functionality Fix
 - A4 Profile Step & Database Verification Audit
 - OLD TAB-BASED DASHBOARD (MemberDashboard.tsx - Still in Codebase)
-- route.test 2.ts
+- Extract Flow
 - Part H — Google OAuth Login Failure
 - apple-cards-carousel-centered.tsx
 - PASS 1: PRE-FIX AUDIT
@@ -630,18 +632,18 @@
 - Common Causes of Page Flicker
 - .claude/skills/impeccable/scripts/live/source-lock.mjs
 - Summary
-- payment-settings/route.ts
+- Adaptation Strategies
 - .claude/skills/impeccable/scripts/critique-storage.mjs
 - ValueHeroSection4.tsx
 - Changes Made
 - B: OTP Step Gaps Fixed
 - ProfileCompletion Email Validation Flow Trace
 - member_area_smoke.py
-- contact-validation.ts
+- sales-report/page.tsx
 - help/page.tsx
 - Space8 Website — Pass 2 Re-Audit Report
-- normalizeGitHubEvent
-- filterFindings
+- checkElementHeroEyebrowDOM
+- AppleSignInButton.tsx
 - check-zh-hk-traditional.js
 - convert-zh-hk-complete.js
 - find-simplified-in-zh-hk.js
@@ -654,7 +656,7 @@
 - verify-spark-beta.js
 - apple-cards-carousel.tsx
 - package.json
-- campaigns/[id]/route.ts
+- checkRadialSpotlight
 - checkRadialSpotlight
 - HomeRooms.tsx
 - Stage 3 — WS-B Brief: Checkout & Space Wallet Integration
@@ -679,7 +681,7 @@
 - test-profile-validation-scenarios.js
 - log_result
 - measure-outro-direct.ts
-- blog/[id]/page.tsx
+- audit/page.tsx
 - audit-db-schema.ts
 - fix-paid-bookings 2.mjs
 - verify-help-centre.js
@@ -691,7 +693,7 @@
 - playwright-sheet-diagnosis.mjs
 - pricing-audit.spec.ts
 - Phase 0 Diagnosis — Complete
-- dashboard-config/route.ts
+- getMemberRedesign.ts
 - class-variance-authority
 - CreditsContent.tsx
 - @react-three/fiber
@@ -702,7 +704,7 @@
 - check-schema 2.mjs
 - test-member-route.sh
 - test-stripe-manual 2.js
-- phone-normalizer.ts
+- isRepeatedTextContainer
 - merge-i18n-fragments.mjs
 - OfferCard.tsx
 - Section2Value.tsx
@@ -711,9 +713,9 @@
 - embla-carousel-react
 - leaflet
 - check-i18n-keys.mjs
-- isRepeatedTextContainer
+- .agents/skills/impeccable/scripts/live/source-lock.mjs
 - @radix-ui/react-slot
-- Extract Flow
+- complete/route.test.ts
 - layout 2.ts
 - imageManifest 2.ts
 - inbox/page.tsx
@@ -726,13 +728,13 @@
 - FacilitiesCarousel.tsx
 - i18n Pending Translations
 - Non-member area schema drift
-- renderGroupedTemplate
-- transactions/route.ts
-- site-gate/route.ts
-- checkElementHeroEyebrowDOM
-- InboxView.tsx
+- Diagnostic Scan
+- route.test 2.ts
 - isRepeatedTextContainer
-- PaymentMethodToggles.tsx
+- Diagnostic Scan
+- ErrorBoundary
+- isScreenReaderOnlyTextStyle
+- blog/[id]/page.tsx
 - .claude/skills/impeccable/reference/bolder.md
 - StripeElementsWrapper.tsx
 - faqData 2.ts
@@ -753,12 +755,12 @@
 - c8e7f4b8d6031499d25fefc04ed079964c634c6b.md
 - c9cde54fd35a71c0db699daccb8bde62479509c7.md
 - de5d1abd98898e394f76f75ece55a87630df15ee.md
-- Extract Flow
-- 1. THE THREE DIALS (Core Configuration)
+- checkElementBorders
+- useNfcRegistrationStatus.ts
 - send-sms/route.test.ts
-- .agents/skills/impeccable/scripts/hook.mjs
-- PaymentMethodCard.tsx
-- Diagnostic Scan
+- phone-normalizer.ts
+- checkElementHeroEyebrowDOM
+- Adaptation Strategies
 - Admin: changing a member's phone or email
 - Fix 4 — Admin features requiring database schema
 - phone-normalizer 2.ts
@@ -766,8 +768,8 @@
 - google.d.ts
 - check-member-css-scope.mjs
 - update-visual-baselines.mjs
-- Diagnostic Scan
-- cancellation-policy.zh-CN.ts
+- qr-generator/page.tsx
+- uat-access/page.tsx
 - next.config 2.js
 - check-hooks.mjs
 - check-legacy-untyped.mjs
@@ -786,14 +788,12 @@
 - _probe.mjs
 - sticky-lock-diagnostic.spec.ts
 - @anthropic-ai/sdk
-- entry-qr.en.ts
-- special-weather.zh-HK.ts
-- useNfcRegistrationStatus.ts
+- applyDeferredSvelteComponentAccepts
+- PaymentMethodToggles.tsx
+- ai-settings/page.tsx
 - bcryptjs
 - canvas-confetti
-- @supabase/ssr
 - cn
-- Adaptation Strategies
 - @dnd-kit/utilities
 - framer-motion
 - fuse.js
@@ -846,18 +846,16 @@
 - measure-visible.mjs
 - venue-compare-diagnosis.spec.ts
 - @dnd-kit/sortable
-- Diagnostic Scan
-- Diagnostic Scan
-- checkElementHeroEyebrowDOM
-- Adaptation Strategies
 - @base-ui/react
+- renderGroupedTemplate
+- class-variance-authority
 - FooterMap.tsx
 - .claude/skills/impeccable/scripts/hook.mjs
 
 ## God Nodes (most connected - your core abstractions)
-1. `getServiceSupabase()` - 205 edges
-2. `getLegacyServiceSupabase()` - 172 edges
-3. `getAdminData()` - 167 edges
+1. `getServiceSupabase()` - 209 edges
+2. `getLegacyServiceSupabase()` - 182 edges
+3. `getAdminData()` - 177 edges
 4. `createClient()` - 115 edges
 5. `rateLimit()` - 75 edges
 6. `createClient()` - 67 edges
@@ -893,19 +891,19 @@
 - **Hybrid CMS Content System** — docs_cms_architecture_hybrid_cms, docs_cms_architecture_static_base, docs_cms_architecture_db_override, docs_cms_architecture_cms_text, docs_cms_fix_summary_merge_messages [INFERRED 0.85]
 - **User Registration and Profile Completion Flow** — docs_auth_payment_verification_sms_otp, docs_auth_payment_verification_apple_sign_in, docs_auth_payment_verification_login_fix, docs_auth_payment_verification_member_code_generation, docs_planet_reveal_planet_system_core, docs_planet_reveal_planet_reveal_component, docs_regression_fix_oauth_callback_check, docs_regression_fix_member_page_gate [INFERRED 0.85]
 
-## Communities (988 total, 169 thin omitted)
+## Communities (988 total, 165 thin omitted)
 
 ### Community 0 - "getServiceSupabase"
 Cohesion: 0.04
-Nodes (108): AdminTeamPage(), AdminUserRow, POST(), Body, POST(), POST(), RequestBody, handleCompletePasswordChange() (+100 more)
+Nodes (95): AdminTeamPage(), AdminUserRow, ALLOWED_TYPES, POST(), GET(), Row, GET(), POST() (+87 more)
 
 ### Community 1 - ".agents/skills/impeccable/scripts/live-browser.js"
 Cohesion: 0.03
-Nodes (140): acceptedDomAlreadyClean(), applyGlobalBarLabelState(), applyOriginalAttrsToSvelteAnchor(), applyPlaceholderSizingStyles(), averageRgb01(), bindEditBadgeProxy(), bufferToBase64(), buildCollapsible() (+132 more)
+Nodes (141): addManualContextText(), applyGlobalBarLabelState(), applyParamValue(), applyPlaceholderSizingStyles(), averageRgb01(), bindEditBadgeProxy(), bufferToBase64(), buildCollapsible() (+133 more)
 
 ### Community 2 - "AuthCard.tsx"
-Cohesion: 0.06
-Nodes (42): AppleSignInButton(), AuthCard(), ContactType, EASE, maskContact(), OtpChannel, OtpDeliveryChannel, Phase (+34 more)
+Cohesion: 0.08
+Nodes (35): AuthCard(), ContactType, EASE, maskContact(), OtpChannel, OtpDeliveryChannel, Phase, Prefill (+27 more)
 
 ### Community 3 - "handler.js"
 Cohesion: 0.08
@@ -913,23 +911,23 @@ Nodes (46): app, downloadChrome(), findChrome(), initWhatsApp(), executeAction()
 
 ### Community 4 - "book/page.tsx"
 Cohesion: 0.04
-Nodes (60): ALL_TABLES, BookPage(), buildOrderTicket(), Calendar(), CellState, cellStateFor(), CONFIG, ConfirmedBooking (+52 more)
+Nodes (74): ALL_TABLES, BookPage(), buildOrderTicket(), Calendar(), CellState, cellStateFor(), CONFIG, ConfirmedBooking (+66 more)
 
 ### Community 5 - "MemberDashboard.tsx"
-Cohesion: 0.07
-Nodes (25): OverviewTab(), bookingEnd(), BookingSection(), bookingStart(), calendarLink(), canRefund(), canReschedule(), canShowQr() (+17 more)
-
-### Community 6 - "getResend"
 Cohesion: 0.05
-Nodes (53): maskEmail(), maskPhone(), POST(), RequestBody, sendIdentityChangeNotice(), isRecord(), POST(), POST() (+45 more)
+Nodes (37): OverviewTab(), bookingEnd(), BookingSection(), bookingStart(), calendarLink(), canRefund(), canReschedule(), canShowQr() (+29 more)
+
+### Community 6 - "LegalDocumentRenderer.tsx"
+Cohesion: 0.17
+Nodes (12): EN, getSortedPhrases(), highlightKeyPhrases(), PHRASES_BY_LOCALE, IMPORTANT: this file does not alter a single character of the verbatim, SORTED_BY_LOCALE, ZH_CN, ZH_HK (+4 more)
 
 ### Community 7 - "devDependencies"
 Cohesion: 0.04
 Nodes (55): eslint, eslint-config-next, jimp, devDependencies, autoprefixer, @axe-core/cli, @axe-core/playwright, eslint (+47 more)
 
-### Community 8 - "pricing/config.ts"
-Cohesion: 0.16
-Nodes (14): GET(), computeBookingPrice(), PriceComputationResult, TEST_PRICING, UnmappedHourError, DEFAULT_PRICING, getPricing, getPricingRaw() (+6 more)
+### Community 8 - "blog/[slug]/page.tsx"
+Cohesion: 0.08
+Nodes (28): GET(), CATEGORIES, EASE, formatDate(), GRADIENTS, PostCard(), VIEWPORT, BlogArticleContent (+20 more)
 
 ### Community 9 - "248 Snooker Club"
 Cohesion: 0.06
@@ -941,15 +939,15 @@ Nodes (140): acceptedDomAlreadyClean(), applyGlobalBarLabelState(), applyOrigina
 
 ### Community 11 - "tokens.ts"
 Cohesion: 0.06
-Nodes (36): AdminAiSettingsPage(), getInitialSettings(), TODO: ai_widget_settings table doesn't exist yet (see docs/prompt5-db-…, AdminBlogListPage(), getPosts(), AdminBookingDetailPage(), getBookingDetail(), AdminCalendarPage() (+28 more)
+Nodes (37): AdminBlogListPage(), getPosts(), AdminBookingDetailPage(), getBookingDetail(), AccessLog, DeviceStatus, LockoutStatus, RelayStatus (+29 more)
 
 ### Community 12 - "getLegacyServiceSupabase"
-Cohesion: 0.04
-Nodes (68): AdminErrorsPage(), GET(), POST(), GET(), isRecord(), LOCALES, POST(), TONES (+60 more)
+Cohesion: 0.03
+Nodes (121): AdminErrorsPage(), AdminHiddenUsersPage(), isRecord(), PATCH(), GET(), POST(), GET(), isRecord() (+113 more)
 
 ### Community 13 - "createClient"
-Cohesion: 0.07
-Nodes (34): ChangePasswordPage(), ValidationState, ChangePhonePage(), Step, ValidationState, ChangePhonePage(), Step, ValidationState (+26 more)
+Cohesion: 0.06
+Nodes (36): ChangePhonePage(), Step, ValidationState, ChangePhonePage(), Step, ValidationState, errorKey(), LoginForm() (+28 more)
 
 ### Community 14 - "exclude"
 Cohesion: 0.05
@@ -959,37 +957,37 @@ Nodes (41): **/* 2.css, **/* 2.js, **/* 2.json, **/* 2.ts, **/* 2.tsx, **/* 3.cs
 Cohesion: 0.07
 Nodes (26): dotenv, express, node-fetch, nodemon, qrcode-terminal, dependencies, dotenv, express (+18 more)
 
-### Community 16 - "identity-change-notice.ts"
-Cohesion: 0.09
-Nodes (27): isRecord(), isRpcResult(), optString(), POST(), RpcResult, normalizePhone(), COPY, escapeHtml() (+19 more)
+### Community 16 - "verify-phone/route.ts"
+Cohesion: 0.07
+Nodes (50): Body, POST(), SignupAttempt, Body, isAlreadyRegistered(), POST(), SignupAttempt, Body (+42 more)
 
 ### Community 17 - "widgetRegistry.ts"
 Cohesion: 0.10
-Nodes (20): DashboardGridProps, SIZE_CLASSES, SortableWidget(), AIInsightsWidget(), InsightPayload, Anomaly, STATUS_COLORS, STATUS_LABELS (+12 more)
+Nodes (21): DashboardGridProps, SIZE_CLASSES, SortableWidget(), ActiveUsersWidget(), AIInsightsWidget(), InsightPayload, Anomaly, STATUS_COLORS (+13 more)
 
-### Community 18 - "jsonLd.ts"
-Cohesion: 0.08
-Nodes (38): metadata, UpdatePasswordPage(), ComingSoonPage(), metadata, AboutPage(), VenuePage(), LoginPage(), metadata (+30 more)
+### Community 18 - "nap.ts"
+Cohesion: 0.09
+Nodes (30): metadata, UpdatePasswordPage(), ComingSoonPage(), metadata, LoginPage(), metadata, safeReturnUrl(), MaintenancePage() (+22 more)
 
 ### Community 19 - "data/pricing.ts"
 Cohesion: 0.09
-Nodes (32): AdminSettingsPage(), fmt(), HomePricing(), getAvailability(), TODO: connect Supabase, UnavailableSlot, getConfig(), getConfigValue() (+24 more)
+Nodes (31): AdminSettingsPage(), fmt(), HomePricing(), getAvailability(), TODO: connect Supabase, UnavailableSlot, getConfig(), getConfigValue() (+23 more)
 
 ### Community 20 - ".agents/skills/impeccable/scripts/detector/rules/checks.mjs"
 Cohesion: 0.03
-Nodes (116): ANIMATION_VALUE_KEYWORDS, borderColorsFromStyle(), borderWidthsFromStyle(), checkBorders(), checkClippedOverflow(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders() (+108 more)
+Nodes (113): ANIMATION_VALUE_KEYWORDS, borderColorsFromStyle(), borderWidthsFromStyle(), checkBorders(), checkClippedOverflow(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders() (+105 more)
 
 ### Community 21 - ".claude/skills/impeccable/scripts/detector/rules/checks.mjs"
 Cohesion: 0.03
-Nodes (116): ANIMATION_VALUE_KEYWORDS, borderColorsFromStyle(), borderWidthsFromStyle(), checkBorders(), checkClippedOverflow(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders() (+108 more)
+Nodes (118): ANIMATION_VALUE_KEYWORDS, borderColorsFromStyle(), borderWidthsFromStyle(), checkClippedOverflow(), checkCreamPalette(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementClippedOverflow() (+110 more)
 
 ### Community 22 - "StripePayment.tsx"
-Cohesion: 0.13
-Nodes (18): appearance, CardPaymentForm(), clearStripePersistedState(), getPersistedStripeState(), getStripeErrorKey(), METHOD_NAMES, persistStripeState(), Props (+10 more)
+Cohesion: 0.07
+Nodes (30): appearance, BookingBlock, MethodConfig, METHODS, PaymentMethodType, PromoResult, Props, STRIPE_LOCALES (+22 more)
 
 ### Community 23 - ".claude/skills/impeccable/scripts/context.mjs"
 Cohesion: 0.05
-Nodes (93): appendAutonomyCounterDirective(), appendBuildPathDirective(), appendDetectorFallback(), appendImageGenDirective(), appendImageToolsDirective(), appendSubagentAuthorizationDirective(), appendSurfaceBriefContext(), automaticHookMode() (+85 more)
+Nodes (91): appendAutonomyCounterDirective(), appendBuildPathDirective(), appendDetectorFallback(), appendImageGenDirective(), appendImageToolsDirective(), appendSubagentAuthorizationDirective(), appendSurfaceBriefContext(), automaticHookMode() (+83 more)
 
 ### Community 24 - "OTP 完整修復與遷移進度報告"
 Cohesion: 0.05
@@ -1001,11 +999,11 @@ Nodes (32): addManualContextText(), applyEditing(), buildLocatorForLeaf(), canRe
 
 ### Community 26 - "legal/index.ts"
 Cohesion: 0.06
-Nodes (38): EASE, DOC_IDS, generateMetadata(), LegalPage(), resolveDocId(), accessibilityEn, accessibilityZhCN, accessibilityZhHK (+30 more)
+Nodes (39): EASE, DOC_IDS, generateMetadata(), LegalPage(), resolveDocId(), accessibilityEn, accessibilityZhCN, accessibilityZhHK (+31 more)
 
 ### Community 27 - "template-send.ts"
-Cohesion: 0.07
-Nodes (42): GET(), handleKPayStatus(), handleStripeStatus(), IMPORTANT: Routes to KPay or Stripe logic based on booking.payment_provider., GET(), handleFailed(), handleRefunded(), handleSucceeded() (+34 more)
+Cohesion: 0.06
+Nodes (44): GET(), GET(), handleKPayStatus(), handleStripeStatus(), IMPORTANT: Routes to KPay or Stripe logic based on booking.payment_provider., GET(), handleFailed(), handleRefunded() (+36 more)
 
 ### Community 28 - "actionExecutor.ts"
 Cohesion: 0.08
@@ -1013,15 +1011,15 @@ Nodes (32): ConfirmBody, HIGH_RISK_ACTIONS, POST(), AdminAIPanel(), ChatMessage,
 
 ### Community 29 - ".agents/skills/impeccable/scripts/context.mjs"
 Cohesion: 0.05
-Nodes (89): appendAutonomyCounterDirective(), appendBuildPathDirective(), appendDetectorFallback(), appendImageGenDirective(), appendImageToolsDirective(), appendSubagentAuthorizationDirective(), appendSurfaceBriefContext(), automaticHookMode() (+81 more)
+Nodes (94): appendAutonomyCounterDirective(), appendBuildPathDirective(), appendDetectorFallback(), appendImageGenDirective(), appendImageToolsDirective(), appendSubagentAuthorizationDirective(), appendSurfaceBriefContext(), automaticHookMode() (+86 more)
 
 ### Community 30 - ".claude/skills/impeccable/scripts/live/svelte-component.mjs"
-Cohesion: 0.08
-Nodes (53): collectUnusedSelectors(), verifyAcceptedSource(), applyLegacyDeferredAcceptsOnStartup(), buildPropsScriptV2(), loadSvelteCompiler(), appendCssToSvelteStyle(), appendSanitizedCssRule(), applyDeferredSvelteComponentAccepts() (+45 more)
+Cohesion: 0.07
+Nodes (55): collectUnusedSelectors(), FORBIDDEN, verifyAcceptedSource(), applyLegacyDeferredAcceptsOnStartup(), buildPropsScriptV2(), loadSvelteCompiler(), appendCssToSvelteStyle(), appendSanitizedCssRule() (+47 more)
 
 ### Community 31 - "Nav.tsx"
-Cohesion: 0.06
-Nodes (38): AboutContent, generateMetadata(), WhatsAppButton, BlogList, generateMetadata(), generateMetadata(), generateMetadata(), FAQClient() (+30 more)
+Cohesion: 0.04
+Nodes (58): AboutContent, AboutPage(), generateMetadata(), WhatsAppButton, BlogList, generateMetadata(), generateMetadata(), generateMetadata() (+50 more)
 
 ### Community 32 - "Quick Deployment Guide — Payment Fixes"
 Cohesion: 0.13
@@ -1029,11 +1027,11 @@ Nodes (14): 1. Install Dependencies, 2. Add Environment Variable, 3. Verify Rese
 
 ### Community 33 - "initGlobalBar"
 Cohesion: 0.12
-Nodes (33): agentHasWorkInFlight(), agentStatusText(), barPaletteForTheme(), brandMarkSvg(), buildDesignHeader(), cursorForInsertAxis(), designPanelCss(), detectPageTheme() (+25 more)
+Nodes (32): agentHasWorkInFlight(), agentStatusText(), barPaletteForTheme(), brandMarkSvg(), buildDesignHeader(), buildParamsPanel(), designPanelCss(), detectPageTheme() (+24 more)
 
 ### Community 34 - "connectSSE"
-Cohesion: 0.06
-Nodes (74): applyParamDefaults(), applyParamValue(), applySavedSessionMeta(), buildParamsPanel(), clampVariantIndex(), clearHandled(), clearSession(), closedClipPath() (+66 more)
+Cohesion: 0.07
+Nodes (67): applyParamDefaults(), applyPlaceholderDimensions(), applySavedSessionMeta(), clampVariantIndex(), clearHandled(), clearSession(), closedClipPath(), completeParameterPublication() (+59 more)
 
 ### Community 35 - "anime-reveal.ts"
 Cohesion: 0.16
@@ -1072,8 +1070,8 @@ Cohesion: 0.06
 Nodes (68): assembleLiveBrowserScript(), assertLiveBrowserScriptParts(), LIVE_BROWSER_SCRIPT_PARTS, readLiveBrowserScriptParts(), resolveLiveBrowserScriptParts(), eventPriority(), selectAvailablePendingEvent(), acknowledgePendingEvent() (+60 more)
 
 ### Community 44 - "loader.ts"
-Cohesion: 0.09
-Nodes (16): accountLoginEn, accountLoginZhCN, accountLoginZhHK, bookingZhCN, bookingZhHK, cancellationPolicyEn, cancellationPolicyZhHK, contactSupportEn (+8 more)
+Cohesion: 0.07
+Nodes (34): accountLoginEn, accountLoginZhCN, accountLoginZhHK, bookingEn, bookingEn, bookingZhCN, bookingZhHK, bookingZhHK (+26 more)
 
 ### Community 45 - "Apple UI Design Skill"
 Cohesion: 0.14
@@ -1120,12 +1118,12 @@ Cohesion: 0.36
 Nodes (8): Change Email Confirmation (HTML), Confirm Signup (HTML), Email Changed Notification (HTML), User Invitation (HTML), Magic Link / OTP (HTML), Phone Changed Notification (HTML), Supabase Email Templates README, Reauthentication (HTML)
 
 ### Community 56 - "runHook"
-Cohesion: 0.14
-Nodes (30): appendDesignSystemNote(), appendDesignSystemNoteOnce(), bumpEditCount(), commitFooterShown(), consumeSessionNoticeFlag(), dedupeAgainstCache(), depthIsSet(), designNoteReserve() (+22 more)
+Cohesion: 0.12
+Nodes (27): appendDesignSystemNote(), appendDesignSystemNoteOnce(), bumpEditCount(), canonicalPath(), coLocatedStylesheets(), consumeSessionNoticeFlag(), dedupeAgainstCache(), depthIsSet() (+19 more)
 
 ### Community 57 - "setLiveState"
-Cohesion: 0.08
-Nodes (73): abandonForeignSession(), abortSvelteComponentInjection(), buildInsertPlaceholderSnapshotFromDom(), buildPickedAnchorSnapshot(), cancelEditing(), cancelEditingToPicking(), cancelInsertConfigure(), captureAndEmit() (+65 more)
+Cohesion: 0.11
+Nodes (57): abandonForeignSession(), abortSvelteComponentInjection(), cancelEditing(), cancelEditingToPicking(), cancelInsertConfigure(), cleanup(), cleanupAcceptedSession(), clearAnnotations() (+49 more)
 
 ### Community 58 - "Graphify"
 Cohesion: 0.29
@@ -1140,8 +1138,8 @@ Cohesion: 0.05
 Nodes (38): 1. Structural Parity with KPay, 2. Mutual Exclusion Guarantee, 3. Provider-Based Routing, 4. Idempotency Protection, A. 結構報告 ✅ COMPLETE, B. 對比文檔 ✅ COMPLETE, Backend API Fixes, Build Status ✅ (+30 more)
 
 ### Community 61 - ".agents/skills/impeccable/scripts/lib/impeccable-paths.mjs"
-Cohesion: 0.14
-Nodes (27): resolveProjectRoot(), firstExisting(), getDesignSidecarCandidates(), getDesignSidecarPath(), getImpeccableDir(), getLegacyLiveAnnotationsDir(), getLegacyLiveConfigPath(), getLegacyLiveServerPath() (+19 more)
+Cohesion: 0.13
+Nodes (23): resolveProjectRoot(), firstExisting(), getDesignSidecarCandidates(), getDesignSidecarPath(), getImpeccableDir(), getLegacyLiveAnnotationsDir(), getLegacyLiveConfigPath(), getLegacyLiveServerPath() (+15 more)
 
 ### Community 62 - "Space8 Technical Fixes — Summary"
 Cohesion: 0.05
@@ -1151,13 +1149,13 @@ Nodes (36): Action Required, Action Required, Action Required, Final Verificatio
 Cohesion: 0.29
 Nodes (5): allKeys, __dirname, keysByLocale, LOCALES, missing
 
-### Community 64 - "brand/index.ts"
-Cohesion: 0.07
-Nodes (24): MemberBookingCalendar(), MemberBookingDay, monthLabel(), statusColor(), DayResponse, densityColor(), monthLabel(), MonthResponse (+16 more)
+### Community 64 - "carousel.tsx"
+Cohesion: 0.14
+Nodes (14): AppleCardCarouselProps, CardItem, Carousel, CarouselApi, CarouselContent, CarouselContext, CarouselContextProps, CarouselItem (+6 more)
 
 ### Community 65 - "createRouteHandlerClient"
-Cohesion: 0.08
-Nodes (39): POST(), ConfirmResult, isConfirmResult(), POST(), STATUS, ConfirmResult, isConfirmResult(), POST() (+31 more)
+Cohesion: 0.07
+Nodes (46): maskEmail(), maskPhone(), POST(), RequestBody, sendIdentityChangeNotice(), POST(), POST(), ConfirmResult (+38 more)
 
 ### Community 66 - "248 Booking Flow Skill"
 Cohesion: 0.18
@@ -1184,8 +1182,8 @@ Cohesion: 0.08
 Nodes (73): abandonForeignSession(), abortSvelteComponentInjection(), buildInsertPlaceholderSnapshotFromDom(), buildPickedAnchorSnapshot(), cancelEditing(), cancelEditingToPicking(), cancelInsertConfigure(), captureAndEmit() (+65 more)
 
 ### Community 72 - "checkHtmlPatterns"
-Cohesion: 0.13
-Nodes (27): buildHtmlPatternCorpora(), checkHtmlPatterns(), collectCssCustomProps(), collectMarqueeKeyframes(), collectPulseKeyframes(), cssLengthToPx(), cssTextHasDarkRootBg(), enclosingCssSelector() (+19 more)
+Cohesion: 0.09
+Nodes (42): buildHtmlPatternCorpora(), checkColors(), checkElementAIPaletteDOM(), checkElementGlow(), checkElementRadialSpotlight(), checkElementRadialSpotlightDOM(), checkGlow(), checkHoverContrast() (+34 more)
 
 ### Community 73 - ".agents/skills/impeccable/scripts/critique-storage.mjs"
 Cohesion: 0.17
@@ -1209,7 +1207,7 @@ Nodes (3): is_server_ready(), main(), Wait for server to be ready by polling the
 
 ### Community 78 - ".agents/skills/impeccable/scripts/detector/design-system.mjs"
 Cohesion: 0.06
-Nodes (71): addClampEndpoints(), addColorObject(), addDesignColor(), addFontSizeStep(), addRoundedScale(), addRoundedToken(), addSidecarColors(), addSidecarRadii() (+63 more)
+Nodes (72): addClampEndpoints(), addColorObject(), addDesignColor(), addFontSizeStep(), addRoundedScale(), addRoundedToken(), addSidecarColors(), addSidecarRadii() (+64 more)
 
 ### Community 79 - "backup-password/route.ts"
 Cohesion: 0.67
@@ -1224,8 +1222,8 @@ Cohesion: 0.50
 Nodes (3): logAccess(), POST(), supabase
 
 ### Community 82 - "content-loader.ts"
-Cohesion: 0.08
-Nodes (39): AnnouncementPage(), generateMetadata(), generateStaticParams(), Props, generateMetadata(), HelpHome, HelpPage(), Props (+31 more)
+Cohesion: 0.05
+Nodes (56): AnnouncementPage(), generateMetadata(), generateStaticParams(), Props, generateMetadata(), HelpHome, HelpPage(), Props (+48 more)
 
 ### Community 83 - ".claude/skills/impeccable/scripts/detector/design-system.mjs"
 Cohesion: 0.06
@@ -1272,24 +1270,36 @@ Cohesion: 0.67
 Nodes (3): SVG to PNG Logo Conversion Script, Supabase Auth Email Templates, Email Template Design System
 
 ### Community 100 - ".agents/skills/impeccable/scripts/detector/detect-antipatterns-browser.js"
-Cohesion: 0.05
-Nodes (60): browserColorsClose(), browserDesignSystemConfig(), browserHasDirectText(), browserPrimaryFont(), browserRadiusTokens(), browserSampleText(), buildSelectorSegment(), checkBrowserDesignSystemSources() (+52 more)
+Cohesion: 0.06
+Nodes (55): browserColorsClose(), browserDesignSystemConfig(), browserHasDirectText(), browserPrimaryFont(), browserRadiusTokens(), browserSampleText(), buildSelectorSegment(), checkBrowserDesignSystemSources() (+47 more)
 
-### Community 107 - "audit/page.tsx"
-Cohesion: 0.33
-Nodes (6): ACTION_LABELS, AuditLogPage(), AuditResponse, AuditRow, formatActionType(), RISK_COLOR
+### Community 106 - "Logo"
+Cohesion: 0.14
+Nodes (6): Countdown(), GateReason, getRemaining(), Logo(), LogoProps, NOTE: there is no black-on-transparent "mark only" export in the current
+
+### Community 107 - "writeAdminActionLog"
+Cohesion: 0.06
+Nodes (44): isUuid(), isValidSlot(), ManualCreateRequest, PaymentInfo, POST(), readPayment(), SlotInfo, CampaignRow (+36 more)
+
+### Community 108 - "database.types.ts"
+Cohesion: 0.07
+Nodes (36): isRecord(), isRpcResult(), optString(), POST(), RpcResult, normalizePhone(), COPY, escapeHtml() (+28 more)
 
 ### Community 109 - ".claude/skills/impeccable/scripts/detector/detect-antipatterns-browser.js"
 Cohesion: 0.06
 Nodes (55): browserColorsClose(), browserDesignSystemConfig(), browserHasDirectText(), browserPrimaryFont(), browserRadiusTokens(), browserSampleText(), buildSelectorSegment(), checkBrowserDesignSystemSources() (+47 more)
 
+### Community 110 - "SparkWidget.tsx"
+Cohesion: 0.28
+Nodes (6): MessageBubble(), MessageBubbleProps, Message, NOTE: Purple/pink gradient is intentional for admin-only beta signal., SparkWidget(), TypingIndicator()
+
 ### Community 118 - "admin/ai/chat/route.ts"
 Cohesion: 0.05
 Nodes (56): buildSystemPrompt(), ChatBody, ChatMessage, escapeXml(), getRiskLevel(), hasPendingActionId(), POST(), tryParseStructuredResponse() (+48 more)
 
-### Community 121 - "content/help/types.ts"
-Cohesion: 0.10
-Nodes (15): bookingEn, bookingEn, bookingZhHK, cancelRefundZhHant, contactSupportZhCN, findQrEn, findQrZhHK, howToBookZhHant (+7 more)
+### Community 121 - "dashboard-config/route.ts"
+Cohesion: 0.30
+Nodes (10): GET(), isLayoutArray(), isLayoutItem(), PUT(), VALID_ID_SET, VALID_SIZES, DEFAULT_LAYOUT, LayoutItem (+2 more)
 
 ### Community 125 - "Fix Hero Section Layout + Full i18n Correctness — FINAL REPORT"
 Cohesion: 0.04
@@ -1297,15 +1307,15 @@ Nodes (44): Build Verification, Changes Made, Evidence, Evidence, Executive Summ
 
 ### Community 127 - ".claude/skills/impeccable/scripts/hook-lib.mjs"
 Cohesion: 0.06
-Nodes (58): ACK_EXTS, ADVISORY_RULES, ALLOWED_EXTS, applyConfigSource(), applyDetectorConfigSource(), applyPatchText(), canonicalPath(), canonicalPathCache (+50 more)
+Nodes (64): ACK_EXTS, ADVISORY_RULES, ALLOWED_EXTS, applyConfigSource(), applyDetectorConfigSource(), applyPatchText(), canonicalPathCache, clampByte() (+56 more)
 
 ### Community 131 - "dependencies"
 Cohesion: 0.04
 Nodes (53): dependencies, bcryptjs, @dnd-kit/core, @dnd-kit/utilities, gsap, jsonwebtoken, lucide-react, matter-js (+45 more)
 
 ### Community 132 - "VenueContent.tsx"
-Cohesion: 0.07
-Nodes (23): EASE, VIEWPORT, HowToGo(), HowToGoProps, adjustColorDarker(), AppleButton(), AppleButtonProps, CardProps (+15 more)
+Cohesion: 0.09
+Nodes (18): EASE, VIEWPORT, HowToGo(), HowToGoProps, adjustColorDarker(), AppleButton(), AppleButtonProps, CardProps (+10 more)
 
 ### Community 134 - "✅ COMPLETED ITEMS"
 Cohesion: 0.07
@@ -1323,33 +1333,33 @@ Nodes (18): Example(), BLURS, CLEAR, createEffects(), createTargets(), destroy()
 Cohesion: 0.06
 Nodes (35): A. 結構報告 ✅ COMPLETE, After Testing ✅, B. 對比文檔 ✅ COMPLETE, Backend API Fixes (本 session 發現並修正), Build Status ✅, C. Screenshots ⏳ PENDING, Card Payment ✅ Expected, Code Quality Verification (+27 more)
 
-### Community 139 - "auth/password-reset.ts"
-Cohesion: 0.07
-Nodes (41): handleRequestPasswordChange(), POST, requestContext(), requestResetByEmail(), submitNewPassword(), completePasswordReset(), CompleteResetResult, EmailType (+33 more)
+### Community 139 - "send.ts"
+Cohesion: 0.08
+Nodes (34): isRecord(), POST(), GET(), base64url(), QrPayload, signQrToken(), DEFAULT_OPTIONS, generateAdminQR() (+26 more)
 
 ### Community 140 - ".agents/skills/impeccable/scripts/hook-lib.mjs"
 Cohesion: 0.06
-Nodes (56): ACK_EXTS, ADVISORY_RULES, applyConfigSource(), applyDetectorConfigSource(), canonicalPathCache, clampByte(), cleanIgnoreValueDisplay(), cloneDefaultConfig() (+48 more)
+Nodes (59): ACK_EXTS, ADVISORY_RULES, applyConfigSource(), applyDetectorConfigSource(), applyPatchText(), canonicalPath(), canonicalPathCache, clampByte() (+51 more)
 
 ### Community 141 - "parseAnyColor"
-Cohesion: 0.08
-Nodes (57): checkColors(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementGlow(), checkElementGlowDOM(), checkElementHoverContrast(), checkElementIconTile() (+49 more)
+Cohesion: 0.11
+Nodes (42): checkElementColors(), checkElementColorsDOM(), checkElementGlowDOM(), checkElementHoverContrast(), checkElementIconTile(), checkElementIconTileDOM(), checkHeadingRhythmDOM(), checkIconTile() (+34 more)
 
 ### Community 142 - "Payment Stuck-Pending Bug Fix & Amount Reconciliation — Implementation Summary"
 Cohesion: 0.08
 Nodes (24): 1. Amount Reconciliation Utilities ([lib/payments/reconciliation.ts](lib/payments/reconciliation.ts)), 2. Create-Intent Validation ([app/api/payment/create-intent/route.ts](app/api/payment/create-intent/route.ts:256-275)), 3. Webhook Amount Reconciliation ([app/api/webhooks/stripe/route.ts](app/api/webhooks/stripe/route.ts:87-148)), 4. Polling Amount Reconciliation ([app/api/checkout/status/route.ts](app/api/checkout/status/route.ts:185-234)), 5. Reconciliation Script ([scripts/reconcile-stuck-bookings.ts](scripts/reconcile-stuck-bookings.ts)), Amount Reconciliation Decision Matrix, ✅ Completed, Files Changed (+16 more)
 
-### Community 143 - "config/route.ts"
-Cohesion: 0.16
-Nodes (20): BookingRulesValue, CONFIG_KEYS, ConfigKey, handleAdminConfigUpdate(), isFiniteNumber(), isRecord(), POST, PricingRatesValue (+12 more)
+### Community 143 - ".agents/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs"
+Cohesion: 0.23
+Nodes (15): appendOriginToDirective(), buildTagBlock(), commentClose(), commentOpen(), detectLineEnding(), findCspMetaTags(), getAttr(), insertTag() (+7 more)
 
 ### Community 144 - ".agents/skills/impeccable/scripts/doctor.mjs"
-Cohesion: 0.11
-Nodes (38): applyFixes(), cli(), collect(), parseArgs(), readProjectRootPatterns(), rel(), renderText(), safeRead() (+30 more)
+Cohesion: 0.08
+Nodes (57): parseCliOptions(), applyFixes(), cli(), collect(), parseArgs(), readProjectRootPatterns(), renderText(), safeRead() (+49 more)
 
 ### Community 145 - "parseAnyColor"
-Cohesion: 0.08
-Nodes (57): checkColors(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementGlow(), checkElementGlowDOM(), checkElementHoverContrast(), checkElementIconTile() (+49 more)
+Cohesion: 0.09
+Nodes (52): checkColors(), checkElementAIPaletteDOM(), checkElementColors(), checkElementColorsDOM(), checkElementGlow(), checkElementGlowDOM(), checkElementHoverContrast(), checkElementIconTile() (+44 more)
 
 ### Community 146 - "activity-logger.ts"
 Cohesion: 0.21
@@ -1360,16 +1370,16 @@ Cohesion: 0.07
 Nodes (52): API_BASE, API_TIMEOUT_MS, apiBudgetMs(), dealCompositions(), driveSelection(), fetchRoll(), here, loadLocal() (+44 more)
 
 ### Community 148 - ".claude/skills/impeccable/scripts/context-signals.mjs"
-Cohesion: 0.24
-Nodes (12): cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals(), hasCode(), isVendoredPath(), latestCritique() (+4 more)
+Cohesion: 0.21
+Nodes (15): extractPlatform(), loadContext(), cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals(), hasCode() (+7 more)
 
 ### Community 149 - "BookingDrawer.tsx"
-Cohesion: 0.08
-Nodes (26): AuditApiResponse, AuditEntry, AuditTab(), BookingDrawerProps, CancellationRecord, DetailsTab(), formatCurrency(), formatDate() (+18 more)
+Cohesion: 0.06
+Nodes (35): AdminBookingsPage(), metadata, GET(), isRecord(), PATCH(), AuditApiResponse, AuditEntry, AuditTab() (+27 more)
 
 ### Community 150 - "api-wrapper.ts"
-Cohesion: 0.17
-Nodes (20): handleLockRelease(), POST, ApiHandler, extractUserId(), withSecurity(), getClientIp(), getUserAgent(), logSecurityEvent() (+12 more)
+Cohesion: 0.15
+Nodes (21): handleLockRelease(), POST, POST, ApiHandler, extractUserId(), withSecurity(), getClientIp(), getUserAgent() (+13 more)
 
 ### Community 151 - ".claude/skills/impeccable/scripts/concept-seed.mjs"
 Cohesion: 0.07
@@ -1393,15 +1403,15 @@ Nodes (36): assertRpcSucceeded(), BookingSummary, ConfirmBookingResult, handleFa
 
 ### Community 156 - "initPageChat"
 Cohesion: 0.08
-Nodes (54): armPageChatForTyping(), attachSteerFocusDebug(), attachSteerFocusGuard(), buildSteerProcessingDots(), buildSteerQueueHint(), clearSteerAwaitTimer(), clearSteerFocusRecoverTimer(), collapsePageChat() (+46 more)
+Nodes (50): armPageChatForTyping(), attachSteerFocusDebug(), attachSteerFocusGuard(), buildSteerProcessingDots(), buildSteerQueueHint(), clearSteerAwaitTimer(), clearSteerFocusRecoverTimer(), collapsePageChat() (+42 more)
 
 ### Community 157 - ".agents/skills/impeccable/scripts/modern-screenshot.umd.js"
 Cohesion: 0.09
-Nodes (52): ae(), be(), bt(), Ce(), Ct(), de(), dt(), _e() (+44 more)
+Nodes (53): ae(), be(), bt(), Ce(), Ct(), de(), dt(), _e() (+45 more)
 
 ### Community 158 - "navigation.ts"
 Cohesion: 0.04
-Nodes (31): HELP_COLORS, HelpArticlePage(), HelpArticlePageProps, HelpHome(), HELP_COLORS, HelpSearchPage(), HelpSearchPageProps, SearchableItem (+23 more)
+Nodes (16): ALT_TEXTS, Step, STEPS, CardItem, ICONS, Step, MemberIcons(), ConsentValue (+8 more)
 
 ### Community 161 - "apply-spark-migration-pg.js"
 Cohesion: 0.33
@@ -1437,7 +1447,7 @@ Nodes (54): armPageChatForTyping(), attachSteerFocusDebug(), attachSteerFocusGua
 
 ### Community 217 - ".claude/skills/impeccable/scripts/modern-screenshot.umd.js"
 Cohesion: 0.09
-Nodes (53): ae(), be(), bt(), Ce(), Ct(), de(), dt(), _e() (+45 more)
+Nodes (52): ae(), be(), bt(), Ce(), Ct(), de(), dt(), _e() (+44 more)
 
 ### Community 221 - "Security & Backend Skill"
 Cohesion: 0.22
@@ -1445,7 +1455,7 @@ Nodes (8): API Route Template, API Security, Auth Architecture, Environment Vari
 
 ### Community 222 - ".agents/skills/impeccable/scripts/detector/engines/regex/detect-text.mjs"
 Cohesion: 0.07
-Nodes (45): blankCssComments(), BLOCK_BRACE_PREFIX_KEYWORDS, CSS_IN_JS_EXTENSIONS, detectText(), extFromFilePath(), extractCSSinJS(), extractStyleBlocks(), findCSSinJSTemplates() (+37 more)
+Nodes (42): blankCssComments(), BLOCK_BRACE_PREFIX_KEYWORDS, CSS_IN_JS_EXTENSIONS, detectText(), extFromFilePath(), extractCSSinJS(), extractStyleBlocks(), findCSSinJSTemplates() (+34 more)
 
 ### Community 223 - "Installation Required"
 Cohesion: 0.25
@@ -1475,9 +1485,9 @@ Nodes (5): 1. Think Before Coding, 2. Simplicity First, 3. Surgical Changes, 4. 
 Cohesion: 0.07
 Nodes (45): blankCssComments(), BLOCK_BRACE_PREFIX_KEYWORDS, CSS_IN_JS_EXTENSIONS, detectText(), extFromFilePath(), extractCSSinJS(), extractStyleBlocks(), findCSSinJSTemplates() (+37 more)
 
-### Community 230 - "verify-phone/route.ts"
-Cohesion: 0.07
-Nodes (37): Body, isAlreadyRegistered(), POST(), SignupAttempt, darkenColor(), generatePlanetTexture(), Planet3D(), PlanetSphere() (+29 more)
+### Community 230 - "getAdminStats.ts"
+Cohesion: 0.12
+Nodes (25): AdminMembersPage(), GET(), GET(), GET(), isRecord(), PATCH(), UPDATABLE_FIELDS, UpdatableField (+17 more)
 
 ### Community 231 - "Authentication System Implementation Summary"
 Cohesion: 0.06
@@ -1488,12 +1498,12 @@ Cohesion: 0.10
 Nodes (49): allEntryIds(), argVal(), buildRepairBatch(), candidatesForEntry(), changedFilesSinceSnapshot(), clearAppliedEntries(), collectApplyOwnedFiles(), collectRollbackFiles() (+41 more)
 
 ### Community 233 - ".claude/skills/impeccable/scripts/live-commit-manual-edits.mjs"
-Cohesion: 0.11
-Nodes (48): allEntryIds(), argVal(), buildRepairBatch(), candidatesForEntry(), changedFilesSinceSnapshot(), collectApplyOwnedFiles(), collectRollbackFiles(), commitManualEdits() (+40 more)
+Cohesion: 0.10
+Nodes (49): allEntryIds(), argVal(), buildRepairBatch(), candidatesForEntry(), changedFilesSinceSnapshot(), clearAppliedEntries(), collectApplyOwnedFiles(), collectRollbackFiles() (+41 more)
 
 ### Community 234 - ".agents/skills/impeccable/scripts/detector/detect-antipatterns.mjs"
 Cohesion: 0.09
-Nodes (43): confirm(), detectCli(), detectLocalFile(), dim(), fileUrlToLocalPath(), formatAdvisorySection(), formatFindings(), formatFindingsBody() (+35 more)
+Nodes (42): confirm(), detectCli(), detectLocalFile(), dim(), fileUrlToLocalPath(), formatAdvisorySection(), formatFindings(), formatFindingsBody() (+34 more)
 
 ### Community 235 - ".agents/skills/impeccable/scripts/detector/engines/static-html/css-cascade.mjs"
 Cohesion: 0.08
@@ -1516,32 +1526,32 @@ Cohesion: 0.10
 Nodes (45): applyDetectionConfigSource(), clampByte(), cleanIgnoreValueDisplay(), cloneDetectionConfig(), cloneRawDetectionConfig(), COLOR_CHANNEL_FORMATS, colorIgnoreKey(), DEFAULT_DETECTION_CONFIG (+37 more)
 
 ### Community 240 - ".claude/skills/impeccable/scripts/live-accept.mjs"
-Cohesion: 0.11
-Nodes (42): safeSessionId(), acceptCli(), acceptReceiptPath(), argVal(), buildAcceptedWrappedSource(), buildCarbonizeReplacement(), decodeHtmlAttr(), deindentContent() (+34 more)
+Cohesion: 0.09
+Nodes (47): safeSessionId(), matchesTemplateExtension(), acceptCli(), acceptReceiptPath(), argVal(), buildAcceptedWrappedSource(), buildCarbonizeReplacement(), decodeHtmlAttr() (+39 more)
 
 ### Community 241 - ".agents/skills/impeccable/scripts/live-accept.mjs"
 Cohesion: 0.12
-Nodes (38): acceptCli(), acceptReceiptPath(), argVal(), buildAcceptedWrappedSource(), buildCarbonizeReplacement(), decodeHtmlAttr(), deindentContent(), detectCommentSyntax() (+30 more)
+Nodes (39): acceptCli(), acceptReceiptPath(), argVal(), buildAcceptedWrappedSource(), buildCarbonizeReplacement(), decodeHtmlAttr(), deindentContent(), detectCommentSyntax() (+31 more)
 
 ### Community 242 - ".claude/skills/impeccable/scripts/live-wrap.mjs"
-Cohesion: 0.13
-Nodes (38): hasGeneratedHeader(), HEADER_MARKERS, isGeneratedFile(), isGitIgnored(), resolveSourceTraits(), argVal(), buildInsertWrapperLines(), computeInsertLine() (+30 more)
+Cohesion: 0.12
+Nodes (40): hasGeneratedHeader(), HEADER_MARKERS, isGeneratedFile(), isGitIgnored(), resolveLiveTemplateExtensions(), resolveSourceTraits(), argVal(), buildInsertWrapperLines() (+32 more)
 
-### Community 243 - ".agents/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs"
-Cohesion: 0.10
-Nodes (38): mergeDesignSystemFindings(), createBrowserDetector(), detectUrl(), launchBrowser(), measureContentHiddenAfterReveal(), runVisualContrastFallback(), serializeDesignSystemForBrowser(), runRegexMatchers() (+30 more)
+### Community 243 - ".agents/skills/impeccable/scripts/detector/engines/browser/detect-url.mjs"
+Cohesion: 0.20
+Nodes (20): createBrowserDetector(), detectUrl(), launchBrowser(), measureContentHiddenAfterReveal(), runVisualContrastFallback(), serializeDesignSystemForBrowser(), captureVisualContrastCandidate(), compareScreenshotContrast() (+12 more)
 
 ### Community 244 - ".agents/skills/impeccable/scripts/hook-before-edit.mjs"
-Cohesion: 0.09
-Nodes (45): allow(), bumpCursorDenial(), cursorBlockMessage(), deny(), detectProposedHtml(), done(), escapeRegExp(), findingSignature() (+37 more)
+Cohesion: 0.10
+Nodes (36): allow(), bumpCursorDenial(), deny(), detectProposedHtml(), done(), escapeRegExp(), findingSignature(), firstMatch() (+28 more)
 
 ### Community 245 - ".claude/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs"
-Cohesion: 0.10
-Nodes (38): mergeDesignSystemFindings(), createBrowserDetector(), detectUrl(), launchBrowser(), measureContentHiddenAfterReveal(), runVisualContrastFallback(), serializeDesignSystemForBrowser(), runRegexMatchers() (+30 more)
+Cohesion: 0.11
+Nodes (35): mergeDesignSystemFindings(), createBrowserDetector(), detectUrl(), launchBrowser(), measureContentHiddenAfterReveal(), runVisualContrastFallback(), serializeDesignSystemForBrowser(), runRegexMatchers() (+27 more)
 
 ### Community 246 - ".claude/skills/impeccable/scripts/hook-before-edit.mjs"
-Cohesion: 0.13
-Nodes (33): allow(), bumpCursorDenial(), cursorBlockMessage(), deny(), detectProposedHtml(), done(), escapeRegExp(), findingSignature() (+25 more)
+Cohesion: 0.10
+Nodes (43): allow(), bumpCursorDenial(), cursorBlockMessage(), deny(), detectProposedHtml(), done(), escapeRegExp(), findingSignature() (+35 more)
 
 ### Community 247 - "brandkit/SKILL.md"
 Cohesion: 0.05
@@ -1572,8 +1582,8 @@ Cohesion: 0.12
 Nodes (42): applyMockWrites(), buildCopyEditBatchPrompt(), checkFrameworkSourceSyntax(), chooseCopyEditAgent(), COMMAND_AUTH_CACHE, commandAuthed(), commandExists(), compactBatchCandidates() (+34 more)
 
 ### Community 254 - ".agents/skills/impeccable/scripts/live-wrap.mjs"
-Cohesion: 0.07
-Nodes (56): hasGeneratedHeader(), HEADER_MARKERS, isGeneratedFile(), isGitIgnored(), extensionCache, LIVE_TEMPLATE_EXTENSIONS, matchesTemplateExtension(), mergeExtensions() (+48 more)
+Cohesion: 0.12
+Nodes (38): hasGeneratedHeader(), HEADER_MARKERS, isGeneratedFile(), isGitIgnored(), resolveSourceTraits(), argVal(), buildInsertWrapperLines(), computeInsertLine() (+30 more)
 
 ### Community 255 - ".agents/skills/impeccable/scripts/live/manual-apply.mjs"
 Cohesion: 0.10
@@ -1605,11 +1615,11 @@ Nodes (27): completionAckForAcceptResult(), completionTypeForAcceptResult(), PRE
 
 ### Community 262 - ".claude/skills/impeccable/scripts/doctor.mjs"
 Cohesion: 0.08
-Nodes (56): applyFixes(), cli(), collect(), parseArgs(), readProjectRootPatterns(), rel(), renderText(), safeRead() (+48 more)
+Nodes (57): hasVisualImplementation(), applyFixes(), cli(), collect(), parseArgs(), readProjectRootPatterns(), rel(), renderText() (+49 more)
 
 ### Community 263 - ".agents/skills/impeccable/scripts/live-inject.mjs"
-Cohesion: 0.19
-Nodes (17): describeInjectArtifacts(), frameworkIgnorePatterns(), resolveFramework(), applyNuxtLiveAdapter(), buildNuxtPlugin(), detectNuxtProject(), removeNuxtLiveAdapter(), buildLiveScriptSrc() (+9 more)
+Cohesion: 0.16
+Nodes (20): describeInjectArtifacts(), frameworkIgnorePatterns(), resolveFramework(), applyNuxtLiveAdapter(), buildNuxtPlugin(), detectNuxtProject(), nuxt, removeNuxtLiveAdapter() (+12 more)
 
 ### Community 264 - "CORE DIRECTIVE: IMAGE-FIRST WEBSITE DESIGN TO CODE"
 Cohesion: 0.06
@@ -1619,9 +1629,9 @@ Nodes (34): 10. IMAGE-FIRST CODEX WEBSITE WORKFLOW, 11. WHEN TO TRIGGER IMAGE GE
 Cohesion: 0.06
 Nodes (34): 10. DEVICE MOCKUP FRAME RULE, 11. ONBOARDING FLOW RULE, 12. FIRST SCREEN CLEANLINESS RULE, 13. SAFE AREA AND SYSTEM REGION RULE, 14. NAVIGATION RULE, 15. CLEAN LAYOUT RULE, 16. CREATIVE IMAGE DIRECTION RULE, 17. BACKGROUND TEXTURE AND SURFACE RULE (+26 more)
 
-### Community 266 - "_deprecated/AdminSidebar.tsx"
-Cohesion: 0.11
-Nodes (18): AdminSidebar(), NAV_ITEMS, NavItemData, linkStyle, primaryLinkStyle, QuickActions(), statusColor(), TeamTable() (+10 more)
+### Community 266 - ".agents/skills/impeccable/scripts/detector/engines/static-html/detect-html.mjs"
+Cohesion: 0.13
+Nodes (24): collectStaticCssText(), checkStaticPageTypography(), detectHtml(), STATIC_ELEMENT_RULES, checkCreamPalette(), checkPageLayout(), checkPageQualityDOM(), checkPageQualityFromDoc() (+16 more)
 
 ### Community 267 - "✅ 查證結果"
 Cohesion: 0.07
@@ -1652,8 +1662,8 @@ Cohesion: 0.06
 Nodes (29): Apply at system scale, Audit before choosing, Choose a strategy, Contrast and perception, Live-mode signature params, Verify, Visitor mode, Cleanup (+21 more)
 
 ### Community 274 - ".agents/skills/impeccable/scripts/live.mjs"
-Cohesion: 0.17
-Nodes (17): parseCliOptions(), resolveTargetSelection(), parseTargetOptions(), parseTargetPath(), TargetArgError, __dirname, ensureServerRunning(), globToRegex() (+9 more)
+Cohesion: 0.20
+Nodes (19): resolveTargetSelection(), __dirname, ensureServerRunning(), globToRegex(), acceptInstructions(), bootInstructions(), deferredWrapperInstructions(), generateInstructions() (+11 more)
 
 ### Community 275 - "High-Agency Frontend Skill"
 Cohesion: 0.06
@@ -1664,20 +1674,20 @@ Cohesion: 0.14
 Nodes (8): CouponTicketData, CouponTicketProps, Campaign, CouponTemplate, EMPTY_CAMPAIGN_FORM, EMPTY_COUPON_FORM, inputCls, Tab
 
 ### Community 277 - "parseAnyColor"
-Cohesion: 0.13
-Nodes (22): checkCreamPalette(), checkTextOcclusionDOM(), clamp01(), colorFunctionToRgb(), creamFromClassList(), decodeSrgbChannel(), elementDirectText(), encodeSrgbChannel() (+14 more)
+Cohesion: 0.09
+Nodes (30): borderColorsFromStyle(), borderWidthsFromStyle(), checkCreamPalette(), checkElementGptBorderShadow(), checkElementGptBorderShadowDOM(), checkGptThinBorderWideShadow(), checkTextOcclusionDOM(), clamp01() (+22 more)
 
-### Community 278 - "shared.ts"
-Cohesion: 0.17
-Nodes (16): GET(), GET(), localized(), LocalizedString, getTierIcon(), getTierName(), getTierRingColor(), MemberProfile (+8 more)
+### Community 278 - "resolveLiveInjectionAnchor"
+Cohesion: 0.22
+Nodes (15): buildSvelteExpressionTextMap(), buildSveltePropValuesFromLiveElement(), buildSveltePropValuesV2(), cloneWithoutElements(), collectTextNodes(), collectVisibleTexts(), cssEscapeIdent(), elementMatchesOriginalMarkup() (+7 more)
 
 ### Community 280 - "resolveLengthPx"
-Cohesion: 0.12
-Nodes (24): checkElementQualityDOM(), checkKickerAboveHeading(), checkKickerAboveHeadingDOM(), checkKickerAboveHeadingFromDoc(), checkNumberedSectionLabels(), checkNumberedSectionLabelsDOM(), checkNumberedSectionLabelsFromDoc(), checkQuality() (+16 more)
+Cohesion: 0.09
+Nodes (29): checkElementOversizedH1(), checkElementOversizedH1DOM(), checkElementQuality(), checkElementQualityDOM(), checkKickerAboveHeading(), checkKickerAboveHeadingDOM(), checkKickerAboveHeadingFromDoc(), checkNumberedSectionLabels() (+21 more)
 
 ### Community 281 - ".agents/skills/impeccable/scripts/live-poll.mjs"
-Cohesion: 0.11
-Nodes (36): completionAckForAcceptResult(), completionTypeForAcceptResult(), PREVIEW_MODES_WITHOUT_SOURCE_MARKERS, acceptInstructions(), bootInstructions(), deferredWrapperInstructions(), generateInstructions(), insertScaffoldInstructions() (+28 more)
+Cohesion: 0.15
+Nodes (27): completionAckForAcceptResult(), completionTypeForAcceptResult(), PREVIEW_MODES_WITHOUT_SOURCE_MARKERS, augmentEventWithAcceptHandling(), buildAcceptScriptArgs(), buildPollReplyPayload(), completeAcceptHandling(), EVENT_TYPES_NEEDING_AGENT_REPLY (+19 more)
 
 ### Community 282 - "test-pricing.ts"
 Cohesion: 0.24
@@ -1693,19 +1703,19 @@ Nodes (27): CANDIDATE_SCAN_IGNORED, consumeTargetArg(), CONTEXT_FALLBACK_DIRS, D
 
 ### Community 285 - "member-contracts.ts"
 Cohesion: 0.15
-Nodes (15): POST(), GET(), GET(), GET(), NotificationType, ErrorResponse, InboxMarkReadResponse, InboxResponse (+7 more)
+Nodes (16): GET(), fetchTransactions(), GET(), NotificationType, ErrorResponse, InboxMarkReadResponse, InboxResponse, InboxUnreadCountResponse (+8 more)
 
 ### Community 286 - "runHook"
-Cohesion: 0.10
-Nodes (41): appendDesignSystemNote(), appendDesignSystemNoteOnce(), bumpEditCount(), canonicalPath(), clampGroupedToBudget(), clampLastLine(), clampToBudget(), coLocatedStylesheets() (+33 more)
+Cohesion: 0.17
+Nodes (29): main(), appendDesignSystemNote(), appendDesignSystemNoteOnce(), bumpEditCount(), commitFooterShown(), consumeSessionNoticeFlag(), dedupeAgainstCache(), depthIsSet() (+21 more)
 
 ### Community 287 - ".agents/skills/impeccable/scripts/live-manual-edit-evidence.mjs"
 Cohesion: 0.15
 Nodes (26): analyzeSourceHint(), buildCandidatesForOp(), buildContextHintsByRef(), buildManualEditEvidence(), collectSearchFiles(), countOps(), decodeBasicHtml(), escapeRegExp() (+18 more)
 
 ### Community 288 - "SiteGateLog.tsx"
-Cohesion: 0.15
-Nodes (15): AdminSiteGatePage(), errorMessage(), formatTime(), groupByIp(), IpGroup, isRecord(), methodColor(), MethodFilter (+7 more)
+Cohesion: 0.17
+Nodes (12): AdminSiteGatePage(), errorMessage(), formatTime(), groupByIp(), IpGroup, isRecord(), methodColor(), MethodFilter (+4 more)
 
 ### Community 289 - ".claude/skills/impeccable/scripts/live-manual-edit-evidence.mjs"
 Cohesion: 0.15
@@ -1727,9 +1737,9 @@ Nodes (26): checkElementColors(), checkElementColorsDOM(), checkElementGlowDOM()
 Cohesion: 0.17
 Nodes (26): clearStoredManualApplyState(), fetchPendingCount(), handleManualEditActivity(), hidePendingApplyDock(), manualApplyLoadingText(), manualApplyStateKey(), manualEditEventForCurrentPage(), numberOrNull() (+18 more)
 
-### Community 294 - "auth/password-reset 2.ts"
-Cohesion: 0.09
-Nodes (46): completePasswordReset(), CompleteResetResult, EmailType, getAppBaseUrl(), hasPassword(), isAccountDeleted(), isDeletedFlag(), isUserNotFound() (+38 more)
+### Community 294 - "auth/password-reset.ts"
+Cohesion: 0.04
+Nodes (87): handleRequestPasswordChange(), POST, requestContext(), requestResetByEmail(), submitNewPassword(), completePasswordReset(), CompleteResetResult, EmailType (+79 more)
 
 ### Community 295 - "Responsive Design"
 Cohesion: 0.08
@@ -1752,8 +1762,8 @@ Cohesion: 0.08
 Nodes (25): Buttons, Cards, Colors, Components, Design System: SPACE8, Do:, Do's and Don'ts, Don't: (+17 more)
 
 ### Community 300 - ".claude/skills/impeccable/scripts/lib/impeccable-paths.mjs"
-Cohesion: 0.07
-Nodes (49): resolveProjectRoot(), firstExisting(), getDesignSidecarCandidates(), getDesignSidecarPath(), getImpeccableDir(), getLegacyLiveAnnotationsDir(), getLegacyLiveConfigPath(), getLegacyLiveServerPath() (+41 more)
+Cohesion: 0.08
+Nodes (48): resolveProjectRoot(), firstExisting(), getDesignSidecarCandidates(), getDesignSidecarPath(), getImpeccableDir(), getLegacyLiveAnnotationsDir(), getLegacyLiveConfigPath(), getLegacyLiveServerPath() (+40 more)
 
 ### Community 301 - "HelpHome.tsx"
 Cohesion: 0.15
@@ -1779,9 +1789,9 @@ Nodes (20): Analysis, analyzeAttributes(), analyzeFragment(), analyzeNode(), ana
 Cohesion: 0.08
 Nodes (23): Component translation rules, Narrative mapping, Pitfalls, Scan mode (approach C: auto-extract, then confirm descriptive language), Schema, Seed mode, Step 1: Find the design assets, Step 1: Route through new-work's workshop (+15 more)
 
-### Community 307 - "lockers/page.tsx"
-Cohesion: 0.22
-Nodes (8): BOOKING_STATUS_CONFIG, BookingStatus, isRecord(), Locker, LockerBooking, LockersPage(), LockerStatus, STATUS_CONFIG
+### Community 307 - "SlotCalendar.tsx"
+Cohesion: 0.27
+Nodes (9): DayResponse, densityColor(), monthLabel(), MonthResponse, SlotCalendar(), timeToHourOffset(), Sheet(), CalendarBooking (+1 more)
 
 ### Community 308 - ".claude/skills/impeccable/scripts/live/svelte-ast.mjs"
 Cohesion: 0.21
@@ -1796,8 +1806,8 @@ Cohesion: 0.14
 Nodes (23): addBrowserFindings(), browserFindingsFromMap(), checkBorders(), checkEdgeFlushCardsDOM(), checkElementBlinkingCursorDOM(), checkElementBorders(), checkElementBordersDOM(), checkElementPseudoStripeDOM() (+15 more)
 
 ### Community 311 - ".agents/skills/impeccable/scripts/context-signals.mjs"
-Cohesion: 0.19
-Nodes (16): extractPlatform(), extractSectionValue(), hasVisualImplementation(), loadContext(), cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals() (+8 more)
+Cohesion: 0.24
+Nodes (12): cli(), COMMON_DEV_PORTS, devServerSignals(), gatherSignals(), gitSignals(), hasCode(), isVendoredPath(), latestCritique() (+4 more)
 
 ### Community 312 - ".claude/skills/impeccable/reference/onboard.md"
 Cohesion: 0.09
@@ -1840,12 +1850,12 @@ Cohesion: 0.12
 Nodes (10): browserOpenCommand(), openSystemBrowser(), esc(), localImages, page(), payloadPath, portArg, QUESTION_DIR (+2 more)
 
 ### Community 322 - ".claude/skills/impeccable/scripts/live-inject.mjs"
-Cohesion: 0.12
-Nodes (33): describeInjectArtifacts(), frameworkIgnorePatterns(), resolveFramework(), applyNuxtLiveAdapter(), buildNuxtPlugin(), detectNuxtProject(), nuxt, removeNuxtLiveAdapter() (+25 more)
+Cohesion: 0.16
+Nodes (21): describeInjectArtifacts(), frameworkIgnorePatterns(), resolveFramework(), applyNuxtLiveAdapter(), buildNuxtPlugin(), detectNuxtProject(), nuxt, removeNuxtLiveAdapter() (+13 more)
 
 ### Community 323 - "onAnnotDown"
-Cohesion: 0.18
-Nodes (19): applyPlaceholderDimensions(), beginEditPin(), buildAnnotationsForCapture(), buildPinElement(), cancelEditingPin(), finalizeEditingPin(), initAnnotOverlay(), localCoords() (+11 more)
+Cohesion: 0.24
+Nodes (15): beginEditPin(), buildAnnotationsForCapture(), buildPinElement(), cancelEditingPin(), finalizeEditingPin(), initAnnotOverlay(), localCoords(), onAnnotDown() (+7 more)
 
 ### Community 324 - "space-wheel-intro-section.tsx"
 Cohesion: 0.05
@@ -1855,13 +1865,13 @@ Nodes (44): fitHero(), HeroLayout, HeroMeasure, DRUM_ITEMS, DRUM_PHOTO_INDICES, 
 Cohesion: 0.11
 Nodes (18): 1. Define the Atmosphere, 2. Map the Color Palette, 3. Establish Typography Rules, 4. Define the Hero Section, 5. Describe Component Stylings, 6. Define Layout Principles, 7. Define Responsive Rules, 8. Encode Motion Philosophy (+10 more)
 
-### Community 326 - "getMemberRedesign.ts"
-Cohesion: 0.13
-Nodes (11): GET(), MemberAuthGuard(), MemberPage(), POST(), POST(), POST(), POST(), POST() (+3 more)
+### Community 326 - "mountSvelteComponentVariant"
+Cohesion: 0.11
+Nodes (26): acceptedDomAlreadyClean(), applyOriginalAttrsToSvelteAnchor(), clearMountErrorCard(), commitAcceptedSvelteComponentToDom(), componentModuleCandidates(), describeMountFailure(), detectDevServerBase(), ensureAcceptedDomClean() (+18 more)
 
 ### Community 327 - "today.ts"
 Cohesion: 0.05
-Nodes (62): AdminMembersPage(), AdminTodayPage(), SearchParams, BOOKING_ROWS, BOOKINGS, DATA, MEMBER_ROWS, GET() (+54 more)
+Nodes (54): AdminTodayPage(), SearchParams, BOOKING_ROWS, BOOKINGS, DATA, MEMBER_ROWS, PREVIEW_ADMIN, ApiResponse (+46 more)
 
 ### Community 328 - "Pricing Audit Report"
 Cohesion: 0.07
@@ -1876,8 +1886,8 @@ Cohesion: 0.06
 Nodes (34): AGENT_PHASE_SET, FORBIDDEN_MANUAL_EDIT_TEXT_CHARS, INSERT_POSITIONS, isValidId(), isValidMountVariant(), isValidVariantId(), validateAnnotationFields(), validateEvent() (+26 more)
 
 ### Community 331 - ".claude/skills/impeccable/scripts/live/manual-edit-routes.mjs"
-Cohesion: 0.17
-Nodes (22): clearAppliedEntries(), args, buffer, cwd, pageUrlFilter, remaining, compactManualLogText(), summarizeManualApplyFailures() (+14 more)
+Cohesion: 0.18
+Nodes (21): args, buffer, cwd, pageUrlFilter, remaining, compactManualLogText(), summarizeManualApplyFailures(), summarizeManualDiagnostics() (+13 more)
 
 ### Community 332 - "analyzeVisualContrastCandidate"
 Cohesion: 0.14
@@ -1888,16 +1898,16 @@ Cohesion: 0.24
 Nodes (16): applySvelteKitLiveAdapter(), buildSvelteLiveRootComponent(), defaultSvelteLayout(), detectSvelteKitProject(), ensureSvelteLiveRootComponent(), escapeRegExp(), fileIncludes(), findSvelteKitAppHtml() (+8 more)
 
 ### Community 334 - ".claude/skills/impeccable/scripts/live/accept-css.mjs"
-Cohesion: 0.20
-Nodes (23): bakeParamValues(), collectAllSelectors(), collectSelectorsFromNodes(), escapeRegExp(), formatBody(), isToggleOn(), normalizeSelector(), normalizeToggleForVar() (+15 more)
+Cohesion: 0.23
+Nodes (21): bakeParamValues(), collectAllSelectors(), collectSelectorsFromNodes(), escapeRegExp(), formatBody(), isToggleOn(), normalizeSelector(), normalizeToggleForVar() (+13 more)
 
 ### Community 335 - ".claude/skills/impeccable/scripts/live/sveltekit-adapter.mjs"
 Cohesion: 0.24
 Nodes (16): applySvelteKitLiveAdapter(), buildSvelteLiveRootComponent(), defaultSvelteLayout(), detectSvelteKitProject(), ensureSvelteLiveRootComponent(), escapeRegExp(), fileIncludes(), findSvelteKitAppHtml() (+8 more)
 
 ### Community 336 - ".agents/skills/impeccable/scripts/live/frameworks/detect-utils.mjs"
-Cohesion: 0.33
-Nodes (11): astro, detectAstroProject(), fileExists(), findConfigFile(), firstExistingFile(), hasAnyDependency(), literalConfigFiles(), readPackageDeps() (+3 more)
+Cohesion: 0.27
+Nodes (13): astro, detectAstroProject(), fileExists(), findConfigFile(), firstExistingFile(), hasAnyDependency(), literalConfigFiles(), readPackageDeps() (+5 more)
 
 ### Community 337 - ".agents/skills/impeccable/scripts/live/tanstack-adapter.mjs"
 Cohesion: 0.22
@@ -1908,8 +1918,8 @@ Cohesion: 0.12
 Nodes (16): 1. Skill Meta, 2.1 Swiss Industrial Print, 2.2 Tactical Telemetry & CRT Terminal, 2. Visual Archetypes, 3.1 Macro-Typography (Structural Headers), 3.2 Micro-Typography (Data & Telemetry), 3.3 Textural Contrast (Artistic Disruption), 3. Typographic Architecture (+8 more)
 
 ### Community 339 - "middleware 2.ts"
-Cohesion: 0.14
-Nodes (21): base64url(), hmacKey(), maxAgeSeconds(), signGateCookie(), signingPayload(), verifyGateCookie(), IMPORTANT: return supabaseResponse as-is — its cookies carry the refreshed, updateSession() (+13 more)
+Cohesion: 0.17
+Nodes (19): base64url(), hmacKey(), maxAgeSeconds(), signGateCookie(), signingPayload(), verifyGateCookie(), BYPASS_PREFIXES, checkPasswordGate() (+11 more)
 
 ### Community 340 - "checkout-discounts.spec.ts"
 Cohesion: 0.04
@@ -1996,8 +2006,8 @@ Cohesion: 0.14
 Nodes (13): Animation Performance, Assess Performance Issues, Core Web Vitals Optimization, Cumulative Layout Shift (CLS < 0.1), Interaction to Next Paint (INP < 200ms), Largest Contentful Paint (LCP < 2.5s), Loading Performance, Network Optimization (+5 more)
 
 ### Community 362 - "num"
-Cohesion: 0.04
-Nodes (72): AdminBookingsPage(), metadata, AdminMemberDetailPage(), getMemberDetail(), TODO: admin_action_log table doesn't exist yet - return empty, TIER_BG_VAR, TIER_COLOR_VAR, CancelRequest (+64 more)
+Cohesion: 0.05
+Nodes (63): AdminCalendarPage(), AdminMemberDetailPage(), getMemberDetail(), TIER_BG_VAR, TIER_COLOR_VAR, CancelRequest, handleAdminBookingCancel(), POST (+55 more)
 
 ### Community 363 - ".claude/skills/impeccable/scripts/live/frameworks/index.mjs"
 Cohesion: 0.17
@@ -2020,8 +2030,8 @@ Cohesion: 0.10
 Nodes (19): 1. Generate Webhook Secret, 2. Create Engagelab Template, 3. Test Locally, Architecture Diagram, Differences from Old System, Environment Variables Added, Files Created, Key Implementation Details (+11 more)
 
 ### Community 368 - ".agents/skills/impeccable/scripts/live/frameworks/index.mjs"
-Cohesion: 0.15
-Nodes (12): COMMENT_SYNTAXES, FRAMEWORKS, INJECT_KINDS, PREVIEW_MODES, SOURCE_TRAIT_DEFAULTS, STYLE_MODES, nextjs, nuxt (+4 more)
+Cohesion: 0.18
+Nodes (10): COMMENT_SYNTAXES, FRAMEWORKS, INJECT_KINDS, PATCH_UNDOERS, PREVIEW_MODES, SOURCE_TRAIT_DEFAULTS, STYLE_MODES, staticHtml (+2 more)
 
 ### Community 369 - ".agents/skills/impeccable/scripts/pin.mjs"
 Cohesion: 0.22
@@ -2080,8 +2090,8 @@ Cohesion: 0.17
 Nodes (11): Accessibility & Inclusion, Brand Commitments, Capabilities and Constraints, Evidence on Hand, Operating Context, Platform, Positioning, Product (+3 more)
 
 ### Community 384 - "tasteskill: Anti-Slop Frontend Skill"
-Cohesion: 0.18
-Nodes (11): 0.A Read these signals first, 0.B Output a one-line "Design Read" before generating, 0. BRIEF INFERENCE (Read the Room Before Anything Else), 0.C If the brief is ambiguous, ask one question, do not guess, 0.D Anti-Default Discipline, 13. OUT OF SCOPE, 14. FINAL PRE-FLIGHT CHECK, 2.A When to reach for a real design system (use official packages) (+3 more)
+Cohesion: 0.13
+Nodes (15): 0.A Read these signals first, 0.B Output a one-line "Design Read" before generating, 0. BRIEF INFERENCE (Read the Room Before Anything Else), 0.C If the brief is ambiguous, ask one question, do not guess, 0.D Anti-Default Discipline, 13. OUT OF SCOPE, 14. FINAL PRE-FLIGHT CHECK, 1.A Dial Inference (design read → dial values) (+7 more)
 
 ### Community 385 - ".agents/skills/impeccable/reference/clarify.md"
 Cohesion: 0.18
@@ -2152,16 +2162,16 @@ Cohesion: 0.20
 Nodes (10): detectCsp(), INLINE_HEADER_SIGNALS, LAYOUT_EXTS, MONOREPO_HELPER_SIGNALS, NUXT_ROUTE_RULES_SIGNALS, NUXT_SECURITY_SIGNALS, SCAN_EXTS, SKIP_DIRS (+2 more)
 
 ### Community 402 - ".claude/skills/impeccable/scripts/live/generation-preflight.mjs"
-Cohesion: 0.30
-Nodes (10): buildGenerationPreflight(), compactError(), execFileAsync, insertTarget(), normalizeTarget(), replaceTarget(), runGenerationPreflight(), sourceResolutionCache (+2 more)
+Cohesion: 0.35
+Nodes (9): buildGenerationPreflight(), compactError(), execFileAsync, insertTarget(), normalizeTarget(), replaceTarget(), runGenerationPreflight(), sourceResolutionCache (+1 more)
 
 ### Community 403 - ".claude/skills/impeccable/scripts/palette.mjs"
 Cohesion: 0.24
 Nodes (7): args, buildWeights(), hashUnit(), pickSeed(), seed, SEEDS, weightedPick()
 
-### Community 404 - ".agents/skills/impeccable/scripts/lib/staleness-deep.mjs"
-Cohesion: 0.18
-Nodes (19): checkDesignCoverage(), checkDesignDrift(), checkDetectorIgnores(), checkHookInstallation(), checkLegacyLiveState(), checkWorkspaces(), collectHookCommands(), finding() (+11 more)
+### Community 404 - "_deprecated/AdminSidebar.tsx"
+Cohesion: 0.13
+Nodes (16): AdminSidebar(), NAV_ITEMS, NavItemData, linkStyle, primaryLinkStyle, QuickActions(), statusColor(), TeamTable() (+8 more)
 
 ### Community 405 - "10. REFERENCE VOCABULARY (Pattern Names the Agent Should Know)"
 Cohesion: 0.20
@@ -2180,8 +2190,8 @@ Cohesion: 0.20
 Nodes (10): Completion gate, Init flow, Step 1: Load current state, Step 2: Explore the project, Step 3: Interview for product truth, Step 4: Write PRODUCT.md, Step 5: Record workflow defaults, Step 6: Wrap up or resume (+2 more)
 
 ### Community 409 - ".claude/skills/impeccable/scripts/live.mjs"
-Cohesion: 0.12
-Nodes (26): parseCliOptions(), resolveTargetSelection(), parseTargetOptions(), parseTargetPath(), TargetArgError, __dirname, ensureServerRunning(), globToRegex() (+18 more)
+Cohesion: 0.14
+Nodes (23): parseCliOptions(), parseTargetOptions(), parseTargetPath(), TargetArgError, __dirname, ensureServerRunning(), globToRegex(), acceptInstructions() (+15 more)
 
 ### Community 410 - "Protocol: Premium Utilitarian Minimalism UI Architect"
 Cohesion: 0.20
@@ -2195,9 +2205,9 @@ Nodes (10): Design Health Score, Design Specificity Verdict, Generate Combined C
 Cohesion: 0.20
 Nodes (10): Completion gate, Init flow, Step 1: Load current state, Step 2: Explore the project, Step 3: Interview for product truth, Step 4: Write PRODUCT.md, Step 5: Record workflow defaults, Step 6: Wrap up or resume (+2 more)
 
-### Community 413 - "sales-report/page.tsx"
-Cohesion: 0.29
-Nodes (7): DailyRow, isRecord(), METHOD_COLORS, QAResponse, ReportResponse, SalesReportPage(), Summary
+### Community 413 - "brand/index.ts"
+Cohesion: 0.30
+Nodes (9): AppleLogo(), AppleLogoProps, AlipayLogo(), ApplePayLogo(), GooglePayLogo(), LogoComponentProps, MastercardLogo(), VisaLogo() (+1 more)
 
 ### Community 414 - "11. COMPONENT EXECUTION GUIDELINES"
 Cohesion: 0.22
@@ -2269,7 +2279,7 @@ Nodes (8): 1. Impatient Power User: "Alex", 2. Confused First-Timer: "Jordan", 3
 
 ### Community 432 - "create/route.ts"
 Cohesion: 0.06
-Nodes (80): isValidPayment(), isValidSlot(), ManualCreateRequest, PaymentInfo, POST(), SlotInfo, POST(), SlotCheckRequest (+72 more)
+Nodes (80): POST(), SlotCheckRequest, Block, isValidBlock(), POST(), Block, isValidBlock(), POST() (+72 more)
 
 ### Community 433 - "Shape"
 Cohesion: 0.25
@@ -2376,8 +2386,8 @@ Cohesion: 0.11
 Nodes (18): 1. Webhook Handler 代碼檢查 ✅, 2. Vercel Production 環境變數檢查 ❌, 3. 之前的錯誤日誌回顧, Stripe Webhook 簽名驗證失敗 — 根本原因確認, 🚀 下一步, 🔧 修正方案, 受影響的訂單, 🚨 問題根源 (+10 more)
 
 ### Community 461 - ".agents/skills/impeccable/scripts/live/frameworks/journal.mjs"
-Cohesion: 0.32
-Nodes (12): PATCH_UNDOERS, clearInjectJournal(), healArtifact(), healInjectJournal(), injectJournalPath(), insideProject(), normalizeRel(), pruneEmptyDirs() (+4 more)
+Cohesion: 0.36
+Nodes (11): clearInjectJournal(), healArtifact(), healInjectJournal(), injectJournalPath(), insideProject(), normalizeRel(), pruneEmptyDirs(), readIfPresent() (+3 more)
 
 ### Community 462 - "SettingsForm.tsx"
 Cohesion: 0.17
@@ -2387,9 +2397,9 @@ Nodes (13): BookingRulesSection(), BookingRulesValue, ConfigKey, DiffRow, fieldR
 Cohesion: 0.04
 Nodes (47): 1. Framework Differences, 2. Unused zh-HK Message Keys, 3. Dark Grey Rounded Square (Top-Left Under Navbar on Phones), Adaptations Made, Build & TypeScript, 📦 Commit Summary, ✅ Compare Slider Sync (Desktop), ✅ Completed (+39 more)
 
-### Community 464 - "getAdminData"
-Cohesion: 0.03
-Nodes (77): AdminLayout(), isRecord(), PATCH(), GET(), isRecord(), LOCALES, POST(), TONES (+69 more)
+### Community 464 - ".agents/skills/impeccable/scripts/lib/staleness-notice.mjs"
+Cohesion: 0.38
+Nodes (9): appendStalenessDirective(), buildStalenessDirective(), cachePath(), filterFreshFindings(), pruneCache(), readCache(), readJson(), stalenessCheckDisabled() (+1 more)
 
 ### Community 465 - "✅ HOMEPAGE - ALL IMAGES ARE REAL PHOTOS"
 Cohesion: 0.08
@@ -2415,9 +2425,9 @@ Nodes (5): 8.A Token Strategy (pick one, stick to it), 8.B Do Not Prescribe Spec
 Cohesion: 0.40
 Nodes (5): 21. MOBILE ANTI-AI-TELLS RULE, Copy AI tells, Layout AI tells, UI clutter tells, Visual AI tells
 
-### Community 471 - "resolveLiveInjectionAnchor"
-Cohesion: 0.16
-Nodes (19): buildSvelteExpressionTextMap(), buildSveltePropValuesFromLiveElement(), buildSveltePropValuesV2(), cloneWithoutElements(), collectTextNodes(), collectVisibleTexts(), cssEscapeIdent(), elementMatchesOriginalMarkup() (+11 more)
+### Community 471 - ".agents/skills/impeccable/scripts/lib/template-extensions.mjs"
+Cohesion: 0.20
+Nodes (12): extensionCache, LIVE_TEMPLATE_EXTENSIONS, matchesTemplateExtension(), mergeExtensions(), normalizeExtensionEntries(), readLiveTemplateExtensions(), resolveLiveTemplateExtensions(), safeReadJson() (+4 more)
 
 ### Community 472 - "Impeccable Documenter"
 Cohesion: 0.40
@@ -2477,7 +2487,7 @@ Nodes (3): candidates, detectorPath, __dirname
 
 ### Community 487 - "dependencies"
 Cohesion: 0.05
-Nodes (41): dependencies, animejs, class-variance-authority, @dnd-kit/core, html-to-image, jsonwebtoken, libphonenumber-js, next (+33 more)
+Nodes (41): dependencies, animejs, @dnd-kit/core, html-to-image, jsonwebtoken, libphonenumber-js, next, pg (+33 more)
 
 ### Community 488 - "Heuristics Scoring Guide"
 Cohesion: 0.50
@@ -2507,9 +2517,9 @@ Nodes (3): Identity, RoutingDecision, UserProfile
 Cohesion: 0.25
 Nodes (8): isRecord(), MaintenancePage(), VenueStatus, fieldStyle, isRecord(), MaintenanceBlock, MaintenanceBlocks(), parseBlock()
 
-### Community 498 - "qr-generator/page.tsx"
-Cohesion: 0.50
-Nodes (3): isRecord(), LookupResult, QRGeneratorPage()
+### Community 498 - ".claude/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs"
+Cohesion: 0.26
+Nodes (14): appendOriginToDirective(), buildTagBlock(), commentClose(), commentOpen(), detectLineEnding(), findCspMetaTags(), getAttr(), insertTag() (+6 more)
 
 ### Community 499 - "Step-by-Step Summary"
 Cohesion: 0.10
@@ -2532,16 +2542,16 @@ Cohesion: 0.50
 Nodes (4): FONT_STYLE, getMask(), SECTION4_CONFIG, Section4TableTransition()
 
 ### Community 504 - "MemberDashboard 2.tsx"
-Cohesion: 0.05
-Nodes (36): bookingEnd(), BookingSection(), bookingStart(), calendarLink(), canRefund(), canReschedule(), canShowQr(), EASE (+28 more)
+Cohesion: 0.07
+Nodes (28): bookingEnd(), BookingSection(), bookingStart(), calendarLink(), canRefund(), canReschedule(), canShowQr(), EASE (+20 more)
 
 ### Community 505 - "run-migration.mjs"
 Cohesion: 0.50
 Nodes (3): __dirname, sql, sqlPath
 
 ### Community 506 - "middleware.ts"
-Cohesion: 0.07
-Nodes (42): ALL_LOCALES, ENABLED_LOCALES, getActiveLocale(), isLocaleEnabled(), isValidLocale(), checkOnboardingGate(), isOnboardingComplete(), isOnboardingGatedPath() (+34 more)
+Cohesion: 0.06
+Nodes (45): ALL_LOCALES, ENABLED_LOCALES, EnabledLocale, getActiveLocale(), isLocaleEnabled(), isValidLocale(), checkOnboardingGate(), isOnboardingComplete() (+37 more)
 
 ### Community 509 - "Part 1 — OTP 驗證失敗診斷報告"
 Cohesion: 0.17
@@ -2551,9 +2561,9 @@ Nodes (11): 1. 澄清用戶實際操作流程, 2. 改善錯誤提示（可選優
 Cohesion: 0.40
 Nodes (5): computeRiskLevel(), CONFIG, Props, RiskBadge(), RiskLevel
 
-### Community 511 - "applyEditing"
-Cohesion: 0.09
-Nodes (32): addManualContextText(), applyEditing(), buildLocatorForLeaf(), canRestoreManualEditElement(), contextElementForManualEdit(), copyEditContainerContext(), copyEditLeafContext(), cssIdent() (+24 more)
+### Community 511 - "handleGo"
+Cohesion: 0.07
+Nodes (41): applyEditing(), buildInsertPlaceholderSnapshotFromDom(), buildLocatorForLeaf(), buildPickedAnchorSnapshot(), canRestoreManualEditElement(), captureAndEmit(), checkpointPayload(), copyEditContainerContext() (+33 more)
 
 ### Community 512 - ".agents/skills/impeccable/scripts/live/manual-edit-routes.mjs"
 Cohesion: 0.18
@@ -2563,17 +2573,17 @@ Nodes (21): args, buffer, cwd, pageUrlFilter, remaining, compactManualLogText(),
 Cohesion: 0.18
 Nodes (9): Commit History, 🔧 Configuration Required (Before Testing), Dev2 Panel + Deploy Controls - Verification Status, GitHub Personal Access Token, Implementation Status: ✅ COMPLETED, 🐛 Known Limitations, 📋 Next Steps, 🔗 Related Files (+1 more)
 
-### Community 514 - "routing.ts"
-Cohesion: 0.08
-Nodes (15): EN, getSortedPhrases(), highlightKeyPhrases(), PHRASES_BY_LOCALE, IMPORTANT: this file does not alter a single character of the verbatim, SORTED_BY_LOCALE, ZH_CN, ZH_HK (+7 more)
+### Community 514 - "planetSystem.ts"
+Cohesion: 0.13
+Nodes (15): darkenColor(), generatePlanetTexture(), Planet3D(), PlanetSphere(), EASE, Phase, extractPlanetFromCode(), generateMemberCode() (+7 more)
 
 ### Community 515 - "Comprehensive Error Messages Implementation Plan"
 Cohesion: 0.18
 Nodes (10): Comprehensive Error Messages Implementation Plan, Error Message Structure, Implementation Priority, Next Steps, Overview, Phase 1: Critical Booking Flow (Week 1), Phase 2: Payment & Auth (Week 2), Phase 3: System & Recovery (Week 3) (+2 more)
 
 ### Community 518 - "getTableName"
-Cohesion: 0.08
-Nodes (29): OrderTicket, Booking, BookingHistoryClient(), Props, Booking, BookingHistoryClient(), Props, BookingHistoryPage() (+21 more)
+Cohesion: 0.05
+Nodes (37): OrderTicket, Starfield(), Booking, BookingHistoryClient(), Props, Booking, BookingHistoryClient(), Props (+29 more)
 
 ### Community 521 - "ConfirmPageClient.tsx"
 Cohesion: 0.11
@@ -2592,8 +2602,8 @@ Cohesion: 0.06
 Nodes (33): Agent D merge complete ✓, Agent mapping identified:, Agent worktrees found:, Build gate verification:, Completed:, Design Hook Findings (Sanctioned), Goal:, Goal: (+25 more)
 
 ### Community 525 - "HelpCentre.tsx"
-Cohesion: 0.15
-Nodes (12): HelpCentreProps, HelpHero(), HelpHeroProps, HelpTopics(), HelpTopicsProps, POPULAR_ARTICLE_SLUGS, PopularQuestions(), PopularQuestionsProps (+4 more)
+Cohesion: 0.10
+Nodes (20): Callout(), CalloutProps, CalloutVariant, HelpArticle(), HelpArticleProps, HelpCentre(), HelpCentreProps, HelpHero() (+12 more)
 
 ### Community 526 - "5.2 Network/Connection Errors"
 Cohesion: 0.18
@@ -2631,9 +2641,9 @@ Nodes (18): ❌ BLOCKER: help-assets folder missing, ✅ Config Data (Live from 
 Cohesion: 0.14
 Nodes (18): addVisualContrastFindings(), addVisualContrastResult(), analyzeVisualContrast(), analyzeVisualContrastCandidate(), blendRgba(), clampByte(), clearOverlays(), detachOverlay() (+10 more)
 
-### Community 536 - ".agents/skills/impeccable/scripts/live/frameworks/tag-strategy.mjs"
-Cohesion: 0.23
-Nodes (15): appendOriginToDirective(), buildTagBlock(), commentClose(), commentOpen(), detectLineEnding(), findCspMetaTags(), getAttr(), insertTag() (+7 more)
+### Community 536 - "filterFindings"
+Cohesion: 0.26
+Nodes (13): cleanIgnoreValueDisplay(), extractFindingIgnoreValue(), extractFindingIgnoreValueRaw(), extractMotionIgnoreValue(), filterFindings(), formatFindingIgnoreHint(), isAdvisoryFinding(), isIgnoredFindingValue() (+5 more)
 
 ### Community 543 - "Venue Page 修復任務 - 完整總結"
 Cohesion: 0.07
@@ -2673,19 +2683,19 @@ Nodes (9): Can this be restored?, Database objects (retained for now), Deprecate
 
 ### Community 555 - ".agents/skills/impeccable/scripts/live/session-store.mjs"
 Cohesion: 0.10
-Nodes (33): readLiveServerInfo(), safeSessionId(), FORBIDDEN, verifyAcceptedFile(), completeCli(), completeThroughServer(), parseArgs(), readServerInfo() (+25 more)
+Nodes (34): getLegacyLiveSessionsDir(), readLiveServerInfo(), safeSessionId(), FORBIDDEN, verifyAcceptedFile(), completeCli(), completeThroughServer(), parseArgs() (+26 more)
 
-### Community 556 - "StripeMethodSelector.tsx"
-Cohesion: 0.14
-Nodes (12): appearance, BookingBlock, MethodConfig, METHODS, PaymentMethodType, PromoResult, Props, STRIPE_LOCALES (+4 more)
+### Community 556 - "shared.ts"
+Cohesion: 0.16
+Nodes (17): GET(), GET(), localized(), LocalizedString, getTierIcon(), getTierName(), getTierRingColor(), MemberProfile (+9 more)
 
-### Community 557 - "KPayPayment.tsx"
-Cohesion: 0.17
-Nodes (14): clearKPayPersistedState(), isAbortError(), KPayBlock, KPayLabels, KPayMethod, KPayMode, KPayPayment(), KPayPersistedState (+6 more)
+### Community 557 - "config/route.ts"
+Cohesion: 0.20
+Nodes (17): BookingRulesValue, CONFIG_KEYS, ConfigKey, GET(), handleAdminConfigUpdate(), isFiniteNumber(), isRecord(), POST (+9 more)
 
-### Community 558 - "notifications/page.tsx"
-Cohesion: 0.27
-Nodes (9): CHANNELS, EMPTY_FORM, extractVariables(), FormData, isRecord(), NotificationsPage(), renderPreview(), SAMPLE_VALUES (+1 more)
+### Community 558 - ".claude/skills/impeccable/scripts/lib/staleness-notice.mjs"
+Cohesion: 0.33
+Nodes (10): appendStalenessDirective(), designSidecarCandidatesFor(), buildStalenessDirective(), cachePath(), filterFreshFindings(), pruneCache(), readCache(), readJson() (+2 more)
 
 ### Community 559 - "tierHelpers.ts"
 Cohesion: 0.14
@@ -2696,16 +2706,16 @@ Cohesion: 0.20
 Nodes (10): 3.1 Authentication Errors, 3.3 Signup/Profile Errors, 3. AUTH & OTP FLOW ERRORS, err_auth_invalid_credentials, err_auth_required, err_auth_session_expired, err_password_weak, err_profile_incomplete (+2 more)
 
 ### Community 561 - "AdminShell.tsx"
-Cohesion: 0.10
-Nodes (29): AccountFlagRow, AccountFlagsList(), Props, TYPE_LABEL, AdminRoleId, AdminRoleSelect(), DevRoleOverride, readDevRoleOverride() (+21 more)
+Cohesion: 0.08
+Nodes (33): AdminShellLayout(), AccountFlagRow, AccountFlagsList(), Props, TYPE_LABEL, AdminRoleId, AdminRoleSelect(), DevRoleOverride (+25 more)
 
 ### Community 562 - "Context Confirmation (items a–h from prompt)"
 Cohesion: 0.09
 Nodes (22): 0.1 Build Fix, 0.2 Migration State Investigation, 1.1 Birthday Fields Resolution, 1.2 Wallet Notify Opt-In Fix, 1.3 Login Activity Decision, 1.4 Build Verification, ✅ a. QR Code Mechanism, ✅ b. Member Data Model (+14 more)
 
-### Community 563 - "blog/[slug]/page.tsx"
-Cohesion: 0.17
-Nodes (13): CATEGORIES, EASE, formatDate(), GRADIENTS, PostCard(), VIEWPORT, BlogArticleContent, BlogPostPage() (+5 more)
+### Community 563 - "lockers/page.tsx"
+Cohesion: 0.22
+Nodes (8): BOOKING_STATUS_CONFIG, BookingStatus, isRecord(), Locker, LockerBooking, LockersPage(), LockerStatus, STATUS_CONFIG
 
 ### Community 564 - "Snooker404Table.tsx"
 Cohesion: 0.27
@@ -2715,13 +2725,13 @@ Nodes (12): BallSpec, createBall(), createBallSpecs(), drawEightBallGlow(), draw
 Cohesion: 0.09
 Nodes (22): 1. Phantom Table References, 2. Real vs. Phantom Column Status, 3. Real Tables That Exist (per context), 4. Current Tier Usage (Code Inspection), 5. Current Points Usage, 6. Current `/member` Page Status, 7. Recommendations Before Proceeding, 8. Summary Table — Phantom vs. Real (+14 more)
 
-### Community 567 - "manage/page.tsx"
-Cohesion: 0.18
-Nodes (7): ManageAccountPage(), Tab, TabButtonProps, PrivacyDataTab(), Identity, ProviderRowProps, SecurityTab()
+### Community 567 - "contact-validation.ts"
+Cohesion: 0.38
+Nodes (8): ContactType, ContactValidation, detectContactType(), maskEmail(), maskHkPhone(), validateContact(), validateEmail(), validateHkPhone()
 
-### Community 568 - "[locale]/page.tsx"
-Cohesion: 0.07
-Nodes (26): ContactButton, Home(), HomeFAQ, HowToGo, MembershipNew, PricingCards, Section5BookingNew, SpacePilotScoreboardExperience (+18 more)
+### Community 568 - "pricing-adapter.tsx"
+Cohesion: 0.14
+Nodes (11): adjustColorForDark(), PricingCard(), PricingCardsProps, PricingSlot, THEME, getIcon(), getTierConfig(), periodsToSlots() (+3 more)
 
 ### Community 569 - "4. Manual Verification Checklist"
 Cohesion: 0.09
@@ -2735,21 +2745,21 @@ Nodes (21): A10. No Hidden Fees, A11. Fake Reviews, A12. Unsupported Claims, A13
 Cohesion: 0.10
 Nodes (21): B10. CDN for Static Assets, B11. Server-Side Caching, B12. Pagination on Large Lists, B13. Lighthouse Audit, B14. API Payloads Compressed, B15. No Unnecessary Re-renders, B16. JS/CSS Minified, B17. Lazy Loading (+13 more)
 
-### Community 572 - "isScreenReaderOnlyTextStyle"
-Cohesion: 0.47
-Nodes (6): clippedByInset(), clippedByRect(), expandBoxShorthand(), firstMetricLengthPx(), isScreenReaderOnlyTextStyle(), metricLengthPx()
+### Community 572 - "FAQ.tsx"
+Cohesion: 0.29
+Nodes (8): EASE, FAQ(), VIEWPORT, FaqItem, getFaqItems(), getFaqJsonLd(), stripMarkdownLinks(), HomeFAQ()
 
-### Community 573 - "carousel.tsx"
-Cohesion: 0.14
-Nodes (14): AppleCardCarouselProps, CardItem, Carousel, CarouselApi, CarouselContent, CarouselContext, CarouselContextProps, CarouselItem (+6 more)
+### Community 573 - "Extract Flow"
+Cohesion: 0.25
+Nodes (7): Extract Flow, Step 1: Discover the Design System, Step 2: Identify Patterns, Step 3: Plan Extraction, Step 4: Extract & Enrich, Step 5: Migrate, Step 6: Document
 
 ### Community 574 - "createClient"
 Cohesion: 0.04
-Nodes (69): acceptInvite(), AcceptInvitePage(), InviteLookup, POST(), POST(), checkAdminAuth(), GET(), getGitHubBranchInfo() (+61 more)
+Nodes (66): acceptInvite(), AcceptInvitePage(), InviteLookup, checkAdminAuth(), GET(), getGitHubBranchInfo(), checkAdminAuth(), GET() (+58 more)
 
 ### Community 575 - "Dev2Panel.tsx"
 Cohesion: 0.05
-Nodes (30): ActivityLogEntry, AuthEvent, DeployStatus, Dev2PanelProps, EnvInfo, GitStatus, Payment, PendingRequest (+22 more)
+Nodes (36): MemberBookingCalendar(), MemberBookingDay, monthLabel(), statusColor(), ActivityLogEntry, AuthEvent, DeployStatus, Dev2PanelProps (+28 more)
 
 ### Community 576 - "decline-codes.ts"
 Cohesion: 0.33
@@ -2763,9 +2773,9 @@ Nodes (24): Admin Identity Change Runbook, At Next Login, Check identity change 
 Cohesion: 0.09
 Nodes (22): 1. Compare Mode (場地裝修), 2. Technology Panel (科技體驗), 3. Amenities View (設施體驗), 4. Individual Room Views, Accessibility, Colors, Component Structure, Data Layer (+14 more)
 
-### Community 580 - ".agents/skills/impeccable/scripts/lib/staleness-notice.mjs"
-Cohesion: 0.38
-Nodes (9): appendStalenessDirective(), buildStalenessDirective(), cachePath(), filterFreshFindings(), pruneCache(), readCache(), readJson(), stalenessCheckDisabled() (+1 more)
+### Community 580 - "notifications/page.tsx"
+Cohesion: 0.27
+Nodes (9): CHANNELS, EMPTY_FORM, extractVariables(), FormData, isRecord(), NotificationsPage(), renderPreview(), SAMPLE_VALUES (+1 more)
 
 ### Community 581 - "Part A — Legal / Compliance Checklist (20 items)"
 Cohesion: 0.10
@@ -2787,9 +2797,9 @@ Nodes (19): applyPlaceholderDimensions(), beginEditPin(), buildAnnotationsForCap
 Cohesion: 0.10
 Nodes (20): C1: 會員卡片, C2: Space Pts 頁面, C3-C5: 字體/命名/通用規則, Evidence Log, Phase 0: 環境確認, Phase 0 證據, Phase A: `/api/member/bookings` 500 錯誤 (最高優先), ✅ Phase A COMPLETE - 2026-09-25 17:45 (+12 more)
 
-### Community 589 - "tierDisplay.ts"
-Cohesion: 0.15
-Nodes (14): MemberActions(), Props, SheetMode, VALID_TIERS, MemberTable(), AccountMenu(), menuItemStyle, TIER_ACCENT (+6 more)
+### Community 589 - "renderGroupedTemplate"
+Cohesion: 0.29
+Nodes (12): clampGroupedToBudget(), clampLastLine(), clampToBudget(), directiveFooter(), footerFallbacks(), formatDedupedFindingLine(), isFindingLine(), relativize() (+4 more)
 
 ### Community 590 - "Final Orchestrator Report - About Hero & Venue RoomViewer Fix"
 Cohesion: 0.09
@@ -2798,10 +2808,6 @@ Nodes (21): 1. RoomViewer Manual QA (Required), 2. Impeccable Design Hook Warnin
 ### Community 592 - "6.1 Refund Errors"
 Cohesion: 0.20
 Nodes (10): 6.1 Refund Errors, 6.2 Reschedule Errors, 6. REFUND & RESCHEDULE ERRORS, err_refund_already_processed, err_refund_cutoff_closed, err_refund_not_allowed, err_refund_pending_review, err_reschedule_cutoff_closed (+2 more)
-
-### Community 594 - "HelpArticle.tsx"
-Cohesion: 0.22
-Nodes (8): Callout(), CalloutProps, CalloutVariant, HelpArticle(), HelpArticleProps, HelpCentre(), getHelpArticleContent(), HelpArticleSlug
 
 ### Community 595 - "UAT Environment + Maintenance Gate Deployment Checklist"
 Cohesion: 0.20
@@ -2831,9 +2837,9 @@ Nodes (8): Admin User Tests (UAT), Concurrent Merge Protection, Go Live Flow, No
 Cohesion: 0.25
 Nodes (8): 4.1 Contact Information Errors, 4.2 Required Field Errors, 4. FORM VALIDATION ERRORS, err_contact_required, err_email_invalid_format, err_name_required, err_phone_invalid_format, err_terms_not_accepted
 
-### Community 608 - "getAdminStats.ts"
-Cohesion: 0.24
-Nodes (9): GET(), GET(), daysAgo(), getAdminStats(), getLiveOccupancy(), getRevenueSeries(), LiveOccupancy, RevenuePoint (+1 more)
+### Community 608 - "site-gate/route.ts"
+Cohesion: 0.36
+Nodes (7): Body, GET(), isBody(), POST(), hashGatePassword(), scrypt(), verifyGatePassword()
 
 ### Community 611 - "PointsHistory.tsx"
 Cohesion: 0.38
@@ -2867,9 +2873,9 @@ Nodes (6): 7.1 Authorization Errors, 7.2 Test Booking Errors, 7. ADMIN & TEST MO
 Cohesion: 0.27
 Nodes (5): Props, Emphasis(), EmphasisProps, normaliseMarkers(), parseEmphasis()
 
-### Community 620 - "uat-access/page.tsx"
-Cohesion: 0.40
-Nodes (3): AccessLogEntry, Data, WhitelistEntry
+### Community 620 - "Diagnostic Scan"
+Cohesion: 0.33
+Nodes (6): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Diagnostic Scan
 
 ### Community 621 - "venue-room-viewer.ts"
 Cohesion: 0.18
@@ -2883,9 +2889,9 @@ Nodes (5): 1. Core Components, 2. API Routes - UAT Features, 3. API Routes - Dep
 Cohesion: 0.60
 Nodes (3): detectContactType(), isEmail(), isHkPhone()
 
-### Community 624 - "Logo"
-Cohesion: 0.07
-Nodes (20): Countdown(), GateReason, getRemaining(), Starfield(), errorKey(), LoginForm(), safeReturnUrl(), EASE (+12 more)
+### Community 624 - "validatePassword"
+Cohesion: 0.12
+Nodes (23): ChangePasswordPage(), ValidationState, SetPasswordForm(), UpdatePasswordForm(), EASE, INPUT_STYLE, inputStyle(), LINK_BUTTON (+15 more)
 
 ### Community 625 - "6. Maintenance Gate Enhancement"
 Cohesion: 0.40
@@ -2923,9 +2929,9 @@ Nodes (3): 7.1 Component, 7.2 Integration, 7. UAT Badge Implementation
 Cohesion: 0.18
 Nodes (13): preloadImage(), RoomViewer(), RoomViewerProps, preloadImage(), RoomViewer(), RoomViewerProps, PillContent, pills (+5 more)
 
-### Community 635 - "checkElementGptBorderShadowDOM"
-Cohesion: 0.32
-Nodes (8): borderColorsFromStyle(), borderWidthsFromStyle(), checkElementGptBorderShadow(), checkElementGptBorderShadowDOM(), checkGptThinBorderWideShadow(), cssColorAlpha(), shadowLayerAlpha(), shadowMaxBlurPx()
+### Community 635 - "InboxView.tsx"
+Cohesion: 0.33
+Nodes (8): formatRelativeTime(), getLocalizedField(), getTypeColor(), getTypeIcon(), InboxView(), NotificationCard(), NotificationCardProps, Props
 
 ### Community 637 - "app/member/BookingHistory.tsx"
 Cohesion: 0.12
@@ -2967,9 +2973,9 @@ Nodes (6): loginAsMember(), BASELINE_DIR, DIFF_DIR, PageConfig, PAGES, VIEWPORTS
 Cohesion: 0.11
 Nodes (17): 1. Apply Database Migration to UAT, 2. Verify Deployment, 3. Complete Verification Checklist, A. Remove Non-Essential Cookies ✅, B. Harden Remaining Cookies ✅, Branch Ancestry Note, C. CSRF Protection ✅, D. Rate Limiting ✅ (+9 more)
 
-### Community 649 - "complete/route.test.ts"
-Cohesion: 0.25
-Nodes (6): bindVerifiedPhone, body, ledgerRows, post(), SessionUser, upserts
+### Community 649 - "QRGuideModal.tsx"
+Cohesion: 0.22
+Nodes (3): QRGuideModal(), QRGuideModalProps, SPRING
 
 ### Community 650 - "Part A Completion Report: Disable Self-Service Cancel/Reschedule"
 Cohesion: 0.11
@@ -2983,9 +2989,9 @@ Nodes (17): A5: UI, i18n, Accessibility, and Quality Verification Audit, Require
 Cohesion: 0.29
 Nodes (6): Applied Changes (lead agent only), From WS-A, From WS-B, From WS-C, From WS-D, Stage 3 — Shared Requests
 
-### Community 656 - "SITE_CONTACT"
-Cohesion: 0.11
-Nodes (19): PersonalInfoTab(), Props, SettingsPage(), ToggleRowProps, ApiBody, DeleteDataModal(), DeleteDataModalProps, ERROR_CODES (+11 more)
+### Community 656 - "account-deletion 2.ts"
+Cohesion: 0.50
+Nodes (7): accountDeactivatedEmail(), accountDeleteCodeEmail(), accountRestoredEmail(), esc(), formatPurgeDate(), p(), shell()
 
 ### Community 657 - "memberRedesignTypes.ts"
 Cohesion: 0.12
@@ -3019,17 +3025,17 @@ Nodes (7): COLORS, EASING, Reveal2Props, DEFAULT_COLORS, VelarisProps, ScrollCho
 Cohesion: 0.17
 Nodes (11): High Priority, Issues Found, Low Priority, Medium Priority, Member Page Route Audit — Phase 3, Next Actions, Route Inventory, Step 1: Filesystem verification ✅ COMPLETE (+3 more)
 
-### Community 665 - ".claude/skills/impeccable/scripts/lib/staleness-notice.mjs"
-Cohesion: 0.38
-Nodes (9): appendStalenessDirective(), buildStalenessDirective(), cachePath(), filterFreshFindings(), pruneCache(), readCache(), readJson(), stalenessCheckDisabled() (+1 more)
+### Community 665 - "revenue-definitions.ts"
+Cohesion: 0.22
+Nodes (7): PromoUsageRow, REVENUE_DEFINITIONS_NOTE, RevenueBucket, RevenueDetailRow, RevenueFilters, RevenueRange, RevenueTotals
 
 ### Community 667 - "Phase A: `/api/member/bookings` 500 錯誤診斷報告"
 Cohesion: 0.12
 Nodes (15): Phase A: `/api/member/bookings` 500 錯誤診斷報告, 下一步, 修復方案 (待確認), 受影響, 影響範圍, 未受影響, 根本原因 (ROOT CAUSE), 證據 1: Member API 查詢的欄位 (錯誤) (+7 more)
 
-### Community 669 - "checkRadialSpotlight"
-Cohesion: 0.32
-Nodes (8): checkElementRadialSpotlight(), checkElementRadialSpotlightDOM(), checkRadialSpotlight(), elementGradientValue(), parseColorMix(), parseRadialGradientStops(), splitTopLevelCommas(), spotlightLabel()
+### Community 669 - "Diagnostic Scan"
+Cohesion: 0.33
+Nodes (6): 1. Accessibility (VoiceOver / TalkBack), 2. Performance, 3. Appearance & Theming, 4. Platform Conformance (CRITICAL), 5. Adaptivity, Diagnostic Scan
 
 ### Community 670 - "A2: Identify Step Verification Report"
 Cohesion: 0.12
@@ -3079,9 +3085,9 @@ Nodes (12): A4 Profile Step & Database Verification Audit, Confirmed Working:, C
 Cohesion: 0.15
 Nodes (13): 29. Tab Navigation System, 30. Overview Tab, 31. Bookings Tab with History Toggle, 32. Points Tab with Transaction History, 33. Settings Tab, 34. Access Tab (QR Guide), 35. Help Tab, 36. Notification Bell with Unread Count (+5 more)
 
-### Community 682 - "route.test 2.ts"
+### Community 682 - "Extract Flow"
 Cohesion: 0.25
-Nodes (6): bindVerifiedPhone, body, ledgerRows, post(), SessionUser, upserts
+Nodes (7): Extract Flow, Step 1: Discover the Design System, Step 2: Identify Patterns, Step 3: Plan Extraction, Step 4: Extract & Enrich, Step 5: Migrate, Step 6: Document
 
 ### Community 683 - "Part H — Google OAuth Login Failure"
 Cohesion: 0.17
@@ -3112,8 +3118,8 @@ Cohesion: 0.40
 Nodes (3): EASE, ICONS, SpacePilotSectionProps
 
 ### Community 690 - ".claude/skills/impeccable/scripts/lib/template-extensions.mjs"
-Cohesion: 0.20
-Nodes (12): extensionCache, LIVE_TEMPLATE_EXTENSIONS, matchesTemplateExtension(), mergeExtensions(), normalizeExtensionEntries(), readLiveTemplateExtensions(), resolveLiveTemplateExtensions(), safeReadJson() (+4 more)
+Cohesion: 0.36
+Nodes (6): extensionCache, LIVE_TEMPLATE_EXTENSIONS, mergeExtensions(), normalizeExtensionEntries(), readLiveTemplateExtensions(), safeReadJson()
 
 ### Community 691 - "Common Causes of Page Flicker"
 Cohesion: 0.20
@@ -3127,9 +3133,9 @@ Nodes (7): isLiveServerPidReachable(), clearStaleLock(), readLock(), releaseOwnL
 Cohesion: 0.20
 Nodes (9): Architecture Notes, Member Dashboard Feature Inventory, Missing Critical States, NEW DASHBOARD:, New Dashboard (MemberPageClient.tsx + Components), Old Dashboard (MemberDashboard.tsx - Still in Codebase), OLD DASHBOARD (Not actively used):, Recommended Actions (+1 more)
 
-### Community 694 - "payment-settings/route.ts"
-Cohesion: 0.38
-Nodes (5): GET(), isRecord(), POST(), PAYMENT_METHODS, PaymentMethodId
+### Community 694 - "Adaptation Strategies"
+Cohesion: 0.40
+Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
 
 ### Community 695 - ".claude/skills/impeccable/scripts/critique-storage.mjs"
 Cohesion: 0.17
@@ -3155,9 +3161,9 @@ Nodes (8): Line 135: When `missingContact === "email"`, ProfileCompletion Email 
 Cohesion: 0.24
 Nodes (14): Page, main(), Test critical member API endpoints are responsive., Test member dashboard loads and displays expected sections., Test wallet page with all states., Test points page with transaction history., Test inbox page with notifications., Test settings page exists and loads. (+6 more)
 
-### Community 701 - "contact-validation.ts"
-Cohesion: 0.38
-Nodes (8): ContactType, ContactValidation, detectContactType(), maskEmail(), maskHkPhone(), validateContact(), validateEmail(), validateHkPhone()
+### Community 701 - "sales-report/page.tsx"
+Cohesion: 0.29
+Nodes (7): DailyRow, isRecord(), METHOD_COLORS, QAResponse, ReportResponse, SalesReportPage(), Summary
 
 ### Community 702 - "help/page.tsx"
 Cohesion: 0.25
@@ -3167,13 +3173,13 @@ Nodes (4): FAQAccordionProps, FAQItem, HelpLinkProps, REFUND_FAQ
 Cohesion: 0.25
 Nodes (7): BEFORE / AFTER SUMMARY TABLE, Build Output, Keyword Presence (桌球 / 中八 / 香港), METHODOLOGY, PART C — i18n / SEO VERIFICATION, Space8 Website — Pass 2 Re-Audit Report, "首間" Claim
 
-### Community 704 - "normalizeGitHubEvent"
-Cohesion: 0.47
-Nodes (6): applyPatchText(), envProjectDir(), looksLikeApplyPatch(), normalizeGitHubEvent(), normalizeHookEvent(), parseGitHubToolArgs()
+### Community 704 - "checkElementHeroEyebrowDOM"
+Cohesion: 0.40
+Nodes (5): checkElementHeroEyebrowDOM(), checkHeroEyebrow(), domAccentDashPseudo(), isAccentColor(), isNumberedSectionLabelCandidate()
 
-### Community 705 - "filterFindings"
-Cohesion: 0.19
-Nodes (16): cleanIgnoreValueDisplay(), extractFindingIgnoreValue(), extractFindingIgnoreValueRaw(), extractMotionIgnoreValue(), filterFindings(), findingMatchesScopedIgnoreFile(), formatFindingIgnoreHint(), globToRegex() (+8 more)
+### Community 705 - "AppleSignInButton.tsx"
+Cohesion: 0.33
+Nodes (4): AppleSignInButton(), GoogleSignInButton(), mapOAuthError(), OAuthError
 
 ### Community 706 - "check-zh-hk-traditional.js"
 Cohesion: 0.25
@@ -3211,9 +3217,9 @@ Nodes (6): fs, http, logResult(), makeRequest(), results, runTests()
 Cohesion: 0.14
 Nodes (11): browserslist, name, private, version, chrome >= 97, edge >= 97, firefox >= 93, ios_saf >= 15.4 (+3 more)
 
-### Community 718 - "campaigns/[id]/route.ts"
-Cohesion: 0.40
-Nodes (5): CampaignRow, DELETE(), Params, PATCH(), serializeCampaign()
+### Community 718 - "checkRadialSpotlight"
+Cohesion: 0.32
+Nodes (8): checkElementRadialSpotlight(), checkElementRadialSpotlightDOM(), checkRadialSpotlight(), elementGradientValue(), parseColorMix(), parseRadialGradientStops(), splitTopLevelCommas(), spotlightLabel()
 
 ### Community 719 - "checkRadialSpotlight"
 Cohesion: 0.32
@@ -3291,25 +3297,25 @@ Nodes (3): log_result(), main(), Record test result with evidence
 Cohesion: 0.67
 Nodes (3): main(), measureCenters(), WIDTHS
 
-### Community 743 - "blog/[id]/page.tsx"
-Cohesion: 0.47
-Nodes (5): AdminBlogEditPage(), getPost(), getSiblings(), TODO: translation_group_id column doesn't exist yet (see docs/prompt5-db-…, TODO: translation_group_id doesn't exist yet, pass null
+### Community 743 - "audit/page.tsx"
+Cohesion: 0.33
+Nodes (6): ACTION_LABELS, AuditLogPage(), AuditResponse, AuditRow, formatActionType(), RISK_COLOR
 
 ### Community 757 - "Phase 0 Diagnosis — Complete"
 Cohesion: 0.17
 Nodes (11): 1. Broken Images Root Cause, 2. Pricing Cards Invisible Content, 3. Copy Audit Results, 4. Existing Button Components, 5. Pure Black Token and Navbar Height, 6. Pre-Change Hero Photos, Critical Rules for All Agents, File Ownership by Agent (+3 more)
 
-### Community 758 - "dashboard-config/route.ts"
-Cohesion: 0.30
-Nodes (10): GET(), isLayoutArray(), isLayoutItem(), PUT(), VALID_ID_SET, VALID_SIZES, DEFAULT_LAYOUT, LayoutItem (+2 more)
+### Community 758 - "getMemberRedesign.ts"
+Cohesion: 0.13
+Nodes (11): GET(), MemberAuthGuard(), MemberPage(), POST(), POST(), POST(), POST(), POST() (+3 more)
 
 ### Community 760 - "CreditsContent.tsx"
 Cohesion: 0.17
 Nodes (6): EASE, FLAP_MESSAGES, VIEWPORT, EASE, VIEWPORT, TextFlippingBoardProps
 
-### Community 772 - "phone-normalizer.ts"
-Cohesion: 0.60
-Nodes (3): formatHkPhone(), HK_MOBILE_PREFIXES, validateHkPhone()
+### Community 772 - "isRepeatedTextContainer"
+Cohesion: 0.25
+Nodes (8): checkLayout(), checkPageLayout(), isCardLike(), isCardLikeDOM(), isCardLikeFromProps(), isRepeatedTextContainer(), parseRadiusToPx(), resolveBorderRadiusPx()
 
 ### Community 774 - "merge-i18n-fragments.mjs"
 Cohesion: 0.24
@@ -3331,13 +3337,13 @@ Nodes (5): getIcon(), getTierConfig(), PricingCard(), TIER_CONFIG, TierId
 Cohesion: 0.33
 Nodes (8): checkFallbackPattern(), __dirname, extractTranslationKeys(), getAllKeys(), loadJson(), LOCALES, main(), rootDir
 
-### Community 786 - "isRepeatedTextContainer"
-Cohesion: 0.25
-Nodes (8): checkLayout(), checkPageLayout(), isCardLike(), isCardLikeDOM(), isCardLikeFromProps(), isRepeatedTextContainer(), parseRadiusToPx(), resolveBorderRadiusPx()
+### Community 786 - ".agents/skills/impeccable/scripts/live/source-lock.mjs"
+Cohesion: 0.50
+Nodes (7): isLiveServerPidReachable(), clearStaleLock(), readLock(), releaseOwnLock(), sleepSync(), sourceLockPath(), withSourceLockSync()
 
-### Community 788 - "Extract Flow"
+### Community 788 - "complete/route.test.ts"
 Cohesion: 0.25
-Nodes (7): Extract Flow, Step 1: Discover the Design System, Step 2: Identify Patterns, Step 3: Plan Extraction, Step 4: Extract & Enrich, Step 5: Migrate, Step 6: Document
+Nodes (6): bindVerifiedPhone, body, ledgerRows, post(), SessionUser, upserts
 
 ### Community 790 - "imageManifest 2.ts"
 Cohesion: 0.29
@@ -3367,33 +3373,33 @@ Nodes (6): Current Status, Example Entry Format, How to Track Changes, i18n Pend
 Cohesion: 0.29
 Nodes (6): Admin action log (app/api/admin/audit/route.ts), Admin AI settings (app/api/admin/ai-settings/route.ts), Admin blog translation (app/api/admin/blog/route.ts, app/api/admin/blog/translate/route.ts), Admin user management (admin entry point), Database changes needed (Prompt 5 - Section I), Non-member area schema drift
 
-### Community 817 - "renderGroupedTemplate"
-Cohesion: 0.36
-Nodes (10): clampGroupedToBudget(), clampLastLine(), clampToBudget(), directiveFooter(), footerFallbacks(), formatDedupedFindingLine(), formatFindingLine(), isFindingLine() (+2 more)
-
-### Community 818 - "transactions/route.ts"
-Cohesion: 0.50
-Nodes (4): fetchTransactions(), GET(), PointsTransactionItem, PointsTransactionsResponse
-
-### Community 819 - "site-gate/route.ts"
-Cohesion: 0.36
-Nodes (7): Body, GET(), isBody(), POST(), hashGatePassword(), scrypt(), verifyGatePassword()
-
-### Community 820 - "checkElementHeroEyebrowDOM"
-Cohesion: 0.40
-Nodes (5): checkElementHeroEyebrowDOM(), checkHeroEyebrow(), domAccentDashPseudo(), isAccentColor(), isNumberedSectionLabelCandidate()
-
-### Community 821 - "InboxView.tsx"
+### Community 817 - "Diagnostic Scan"
 Cohesion: 0.33
-Nodes (8): formatRelativeTime(), getLocalizedField(), getTypeColor(), getTypeIcon(), InboxView(), NotificationCard(), NotificationCardProps, Props
+Nodes (6): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Diagnostic Scan
 
-### Community 822 - "isRepeatedTextContainer"
+### Community 818 - "route.test 2.ts"
+Cohesion: 0.25
+Nodes (6): bindVerifiedPhone, body, ledgerRows, post(), SessionUser, upserts
+
+### Community 819 - "isRepeatedTextContainer"
 Cohesion: 0.25
 Nodes (8): checkLayout(), checkPageLayout(), isCardLike(), isCardLikeDOM(), isCardLikeFromProps(), isRepeatedTextContainer(), parseRadiusToPx(), resolveBorderRadiusPx()
 
-### Community 823 - "PaymentMethodToggles.tsx"
-Cohesion: 0.70
-Nodes (4): isRecord(), MethodRow, parseMethod(), PaymentMethodToggles()
+### Community 820 - "Diagnostic Scan"
+Cohesion: 0.33
+Nodes (6): 1. Accessibility (VoiceOver / TalkBack), 2. Performance, 3. Appearance & Theming, 4. Platform Conformance (CRITICAL), 5. Adaptivity, Diagnostic Scan
+
+### Community 821 - "ErrorBoundary"
+Cohesion: 0.25
+Nodes (3): ErrorBoundary, Props, State
+
+### Community 822 - "isScreenReaderOnlyTextStyle"
+Cohesion: 0.47
+Nodes (6): clippedByInset(), clippedByRect(), expandBoxShorthand(), firstMetricLengthPx(), isScreenReaderOnlyTextStyle(), metricLengthPx()
+
+### Community 823 - "blog/[id]/page.tsx"
+Cohesion: 0.47
+Nodes (5): AdminBlogEditPage(), getPost(), getSiblings(), TODO: translation_group_id column doesn't exist yet (see docs/prompt5-db-…, TODO: translation_group_id doesn't exist yet, pass null
 
 ### Community 824 - ".claude/skills/impeccable/reference/bolder.md"
 Cohesion: 0.33
@@ -3475,21 +3481,25 @@ Nodes (5): Error details, Instructions, Page snapshot, Test info, Test source
 Cohesion: 0.33
 Nodes (5): Error details, Instructions, Page snapshot, Test info, Test source
 
-### Community 844 - "Extract Flow"
-Cohesion: 0.25
-Nodes (7): Extract Flow, Step 1: Discover the Design System, Step 2: Identify Patterns, Step 3: Plan Extraction, Step 4: Extract & Enrich, Step 5: Migrate, Step 6: Document
+### Community 844 - "checkElementBorders"
+Cohesion: 0.47
+Nodes (6): checkBorders(), checkElementBorders(), checkElementBordersDOM(), isStatusContextElement(), isTabContextElement(), isNeutralColor()
 
-### Community 845 - "1. THE THREE DIALS (Core Configuration)"
-Cohesion: 0.50
-Nodes (4): 1.A Dial Inference (design read → dial values), 1.B Use-Case Presets, 1.C How the Dials Drive Output, 1. THE THREE DIALS (Core Configuration)
+### Community 845 - "useNfcRegistrationStatus.ts"
+Cohesion: 0.40
+Nodes (5): DoorCardTable(), isRegistrationStatus(), NfcRegistrationStatus, RegistrationState, useNfcRegistrationStatus()
 
-### Community 847 - ".agents/skills/impeccable/scripts/hook.mjs"
-Cohesion: 0.83
-Nodes (3): isStopEvent(), main(), readStdin()
+### Community 847 - "phone-normalizer.ts"
+Cohesion: 0.60
+Nodes (3): formatHkPhone(), HK_MOBILE_PREFIXES, validateHkPhone()
 
-### Community 849 - "Diagnostic Scan"
-Cohesion: 0.33
-Nodes (6): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Diagnostic Scan
+### Community 848 - "checkElementHeroEyebrowDOM"
+Cohesion: 0.40
+Nodes (5): checkElementHeroEyebrowDOM(), checkHeroEyebrow(), domAccentDashPseudo(), isAccentColor(), isNumberedSectionLabelCandidate()
+
+### Community 849 - "Adaptation Strategies"
+Cohesion: 0.40
+Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
 
 ### Community 850 - "Admin: changing a member's phone or email"
 Cohesion: 0.40
@@ -3515,9 +3525,13 @@ Nodes (4): BANNED, css, issues, root
 Cohesion: 0.40
 Nodes (4): BASELINE_DIR, __dirname, __filename, TEMP_DIR
 
-### Community 857 - "Diagnostic Scan"
-Cohesion: 0.33
-Nodes (6): 1. Accessibility (VoiceOver / TalkBack), 2. Performance, 3. Appearance & Theming, 4. Platform Conformance (CRITICAL), 5. Adaptivity, Diagnostic Scan
+### Community 857 - "qr-generator/page.tsx"
+Cohesion: 0.50
+Nodes (3): isRecord(), LookupResult, QRGeneratorPage()
+
+### Community 858 - "uat-access/page.tsx"
+Cohesion: 0.40
+Nodes (3): AccessLogEntry, Data, WhitelistEntry
 
 ### Community 859 - "next.config 2.js"
 Cohesion: 0.50
@@ -3539,29 +3553,21 @@ Nodes (3): 3. Success path (signed in as admin, admin app console), Part B1 — 
 Cohesion: 0.50
 Nodes (3): 3. Success path (signed in as admin, admin app console), Part B1 — client-side checks (throwaway account only), Still-allowed flows (manual)
 
-### Community 881 - "useNfcRegistrationStatus.ts"
-Cohesion: 0.40
-Nodes (5): DoorCardTable(), isRegistrationStatus(), NfcRegistrationStatus, RegistrationState, useNfcRegistrationStatus()
+### Community 878 - "applyDeferredSvelteComponentAccepts"
+Cohesion: 0.60
+Nodes (5): applyLegacyDeferredAcceptsOnStartup(), applyDeferredSvelteComponentAccepts(), deferredAcceptsPath(), readDeferredAccepts(), writeDeferredAccept()
 
-### Community 886 - "Adaptation Strategies"
-Cohesion: 0.40
-Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
+### Community 880 - "PaymentMethodToggles.tsx"
+Cohesion: 0.70
+Nodes (4): isRecord(), MethodRow, parseMethod(), PaymentMethodToggles()
 
-### Community 981 - "Diagnostic Scan"
-Cohesion: 0.33
-Nodes (6): 1. Accessibility (A11y), 2. Performance, 3. Theming, 4. Responsive Design, 5. Implementation Integrity (CRITICAL), Diagnostic Scan
+### Community 881 - "ai-settings/page.tsx"
+Cohesion: 0.67
+Nodes (3): AdminAiSettingsPage(), getInitialSettings(), TODO: ai_widget_settings table doesn't exist yet (see docs/prompt5-db-…
 
-### Community 982 - "Diagnostic Scan"
-Cohesion: 0.33
-Nodes (6): 1. Accessibility (VoiceOver / TalkBack), 2. Performance, 3. Appearance & Theming, 4. Platform Conformance (CRITICAL), 5. Adaptivity, Diagnostic Scan
-
-### Community 983 - "checkElementHeroEyebrowDOM"
-Cohesion: 0.40
-Nodes (5): checkElementHeroEyebrowDOM(), checkHeroEyebrow(), domAccentDashPseudo(), isAccentColor(), isNumberedSectionLabelCandidate()
-
-### Community 984 - "Adaptation Strategies"
-Cohesion: 0.40
-Nodes (5): Adaptation Strategies, Orientation & foldables, Phone → Tablet (iPad / large screens), Platform → platform (iOS ↔ Android), Web → native (porting a website or web app)
+### Community 988 - "renderGroupedTemplate"
+Cohesion: 0.23
+Nodes (14): cursorBlockMessage(), clampGroupedToBudget(), clampLastLine(), clampToBudget(), directiveFooter(), footerFallbacks(), formatDedupedFindingLine(), formatFindingLine() (+6 more)
 
 ### Community 990 - "FooterMap.tsx"
 Cohesion: 0.40
@@ -3572,24 +3578,24 @@ Cohesion: 0.70
 Nodes (4): isStopEvent(), writeAuditLog(), main(), readStdin()
 
 ## Knowledge Gaps
-- **5123 isolated node(s):** `here`, `API_BASE`, `API_TIMEOUT_MS`, `localStates`, `PING_KINDS` (+5118 more)
+- **5140 isolated node(s):** `here`, `API_BASE`, `API_TIMEOUT_MS`, `localStates`, `PING_KINDS` (+5135 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **169 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **165 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `b()` connect `.claude/skills/impeccable/scripts/modern-screenshot.umd.js` to `brand/index.ts`, `scanCssTextForPulsingDot`, `.agents/skills/impeccable/scripts/lib/design-parser.mjs`, `scanCssTextForPulsingDot`, `.claude/skills/impeccable/scripts/lib/design-parser.mjs`, `MemberDashboard.tsx`, `getTableName`, `today.ts`, `num`, `parseAnyColor`, `getAdminData`, `parseAnyColor`, `MemberDashboard 2.tsx`, `.agents/skills/impeccable/scripts/modern-screenshot.umd.js`?**
-  _High betweenness centrality (0.217) - this node is a cross-community bridge._
-- **Why does `error()` connect `createClient` to `getServiceSupabase`, `getResend`, `pricing/config.ts`, `.agents/skills/impeccable/scripts/live/generation-preflight.mjs`, `pipeline.ts`, `ConfirmPageClient.tsx`, `getLegacyServiceSupabase`, `check-i18n.ts`, `.claude/skills/impeccable/scripts/live/generation-preflight.mjs`, `.agents/skills/impeccable/scripts/concept-seed.mjs`, `activity-logger.ts`, `.claude/skills/impeccable/scripts/concept-seed.mjs`, `template-send.ts`, `member-contracts.ts`, `getLegacyRouteHandlerClient`, `wallet/page.tsx`, `create/route.ts`, `getMemberRedesign.ts`, `getAdminData`, `verify-phone/route.ts`, `MemberDashboard 2.tsx`?**
-  _High betweenness centrality (0.079) - this node is a cross-community bridge._
-- **Why does `getServiceSupabase()` connect `getServiceSupabase` to `getResend`, `tokens.ts`, `auth/password-reset.ts`, `identity-change-notice.ts`, `api-wrapper.ts`, `test-pricing.ts`, `template-send.ts`, `SiteGateLog.tsx`, `auth/password-reset 2.ts`, `create/route.ts`, `site-gate/route.ts`, `payment-settings/route.ts`, `createClient`, `createRouteHandlerClient`, `getAdminData`, `content-loader.ts`, `sitemap.ts`, `getAdminStats.ts`, `verify-phone/route.ts`, `blog/[id]/page.tsx`, `num`, `admin/ai/chat/route.ts`, `dashboard-config/route.ts`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
+- **Why does `b()` connect `.agents/skills/impeccable/scripts/modern-screenshot.umd.js` to `scanCssTextForPulsingDot`, `.agents/skills/impeccable/scripts/lib/design-parser.mjs`, `scanCssTextForPulsingDot`, `.claude/skills/impeccable/scripts/lib/design-parser.mjs`, `MemberDashboard.tsx`, `getTableName`, `getAdminStats.ts`, `checkHtmlPatterns`, `num`, `getLegacyServiceSupabase`, `parseAnyColor`, `MemberDashboard 2.tsx`, `.claude/skills/impeccable/scripts/modern-screenshot.umd.js`, `Dev2Panel.tsx`?**
+  _High betweenness centrality (0.228) - this node is a cross-community bridge._
+- **Why does `error()` connect `createClient` to `getServiceSupabase`, `blog/[slug]/page.tsx`, `.agents/skills/impeccable/scripts/live/generation-preflight.mjs`, `pipeline.ts`, `send.ts`, `getLegacyServiceSupabase`, `ConfirmPageClient.tsx`, `check-i18n.ts`, `verify-phone/route.ts`, `.claude/skills/impeccable/scripts/live/generation-preflight.mjs`, `.agents/skills/impeccable/scripts/concept-seed.mjs`, `activity-logger.ts`, `.claude/skills/impeccable/scripts/concept-seed.mjs`, `template-send.ts`, `getLegacyRouteHandlerClient`, `wallet/page.tsx`, `create/route.ts`, `SparkWidget.tsx`, `getMemberRedesign.ts`?**
+  _High betweenness centrality (0.085) - this node is a cross-community bridge._
+- **Why does `getServiceSupabase()` connect `getServiceSupabase` to `tokens.ts`, `getLegacyServiceSupabase`, `send.ts`, `verify-phone/route.ts`, `BookingDrawer.tsx`, `api-wrapper.ts`, `test-pricing.ts`, `template-send.ts`, `auth/password-reset.ts`, `create/route.ts`, `blog/[id]/page.tsx`, `createClient`, `createRouteHandlerClient`, `content-loader.ts`, `sitemap.ts`, `site-gate/route.ts`, `getAdminStats.ts`, `num`, `writeAdminActionLog`, `database.types.ts`, `ai-settings/page.tsx`, `admin/ai/chat/route.ts`, `dashboard-config/route.ts`?**
+  _High betweenness centrality (0.055) - this node is a cross-community bridge._
 - **What connects `here`, `API_BASE`, `API_TIMEOUT_MS` to the rest of the system?**
-  _5123 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _5140 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `getServiceSupabase` be split into smaller, more focused modules?**
-  _Cohesion score 0.038624857096194676 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0390032502708559 - nodes in this community are weakly interconnected._
 - **Should `.agents/skills/impeccable/scripts/live-browser.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.02905545159066286 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.027583527583527584 - nodes in this community are weakly interconnected._
 - **Should `AuthCard.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05921325051759834 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.083710407239819 - nodes in this community are weakly interconnected._

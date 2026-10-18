@@ -2,13 +2,14 @@
  * PATCH  /api/admin/campaigns/[id] — update campaign fields / status transition
  * DELETE /api/admin/campaigns/[id] — soft-end (set status='ended') or hard-delete if draft
  *
- * Auth: getAdminData() guard. All writes log to admin_action_log.
+ * Auth: getAdminData() guard. All writes log to audit_log.
  */
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { str } from '@/lib/data/adminReadHelpers'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -30,7 +31,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
     const service = getLegacyServiceSupabase()
 
-    // Fetch existing for before_jsonb
+    // Fetch existing for before_value
     const { data: existing, error: fetchErr } = await service
       .from('campaigns')
       .select('id, name, description, starts_at, ends_at, status')
@@ -96,20 +97,20 @@ export async function PATCH(req: Request, { params }: Params) {
       return NextResponse.json({ error: 'Failed to update campaign' }, { status: 500 })
     }
 
-    await service.from('admin_action_log').insert({
-      admin_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'campaign_updated',
-      target_table: 'campaigns',
-      target_id: id,
-      before_jsonb: {
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'campaign_updated',
+      targetTable: 'campaigns',
+      targetId: id,
+      beforeJsonb: {
         name: existing.name,
         status: existing.status,
         starts_at: existing.starts_at,
         ends_at: existing.ends_at,
       },
-      after_jsonb: update,
-      risk_level: update.status ? 'medium' : 'low',
+      afterJsonb: update,
+      riskLevel: update.status ? 'medium' : 'low',
     })
 
     return NextResponse.json({ campaign: serializeCampaign(updated as CampaignRow) })
@@ -151,15 +152,15 @@ export async function DELETE(req: Request, { params }: Params) {
         return NextResponse.json({ error: 'Failed to delete campaign' }, { status: 500 })
       }
 
-      await service.from('admin_action_log').insert({
-        admin_id: admin.userId,
-        admin_email: admin.email,
-        action_type: 'campaign_deleted',
-        target_table: 'campaigns',
-        target_id: id,
-        before_jsonb: { name: existing.name, status: currentStatus },
-        after_jsonb: null,
-        risk_level: 'medium',
+      await writeAdminActionLog({
+        adminUserId: admin.userId,
+        adminEmail: admin.email,
+        actionType: 'campaign_deleted',
+        targetTable: 'campaigns',
+        targetId: id,
+        beforeJsonb: { name: existing.name, status: currentStatus },
+        afterJsonb: null,
+        riskLevel: 'medium',
       })
 
       return NextResponse.json({ success: true })
@@ -176,15 +177,15 @@ export async function DELETE(req: Request, { params }: Params) {
       return NextResponse.json({ error: 'Failed to end campaign' }, { status: 500 })
     }
 
-    await service.from('admin_action_log').insert({
-      admin_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'campaign_ended',
-      target_table: 'campaigns',
-      target_id: id,
-      before_jsonb: { status: currentStatus },
-      after_jsonb: { status: 'ended' },
-      risk_level: 'medium',
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'campaign_ended',
+      targetTable: 'campaigns',
+      targetId: id,
+      beforeJsonb: { status: currentStatus },
+      afterJsonb: { status: 'ended' },
+      riskLevel: 'medium',
     })
 
     return NextResponse.json({ success: true })

@@ -70,7 +70,7 @@ function ConfirmModal({
       </div>
       <div style={{ marginBottom: tokens.spacing.lg }}>
         {rows.length === 0 ? (
-          <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>No changes.</div>
+          <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>沒有變更。</div>
         ) : (
           rows.map((row) => (
             <div
@@ -111,22 +111,22 @@ function SiteSection({ initial, onSave }: { initial: SiteValue; onSave: (v: Site
   const dirty = JSON.stringify(value) !== JSON.stringify(initial)
 
   const rows: DiffRow[] = []
-  if (value.currency !== initial.currency) rows.push({ label: 'Currency', before: initial.currency, after: value.currency })
-  if (value.maxHours !== initial.maxHours) rows.push({ label: 'Max hours', before: String(initial.maxHours), after: String(value.maxHours) })
-  if (value.openHour !== initial.openHour) rows.push({ label: 'Open hour', before: String(initial.openHour), after: String(value.openHour) })
-  if (value.closeHour !== initial.closeHour) rows.push({ label: 'Close hour', before: String(initial.closeHour), after: String(value.closeHour) })
+  if (value.currency !== initial.currency) rows.push({ label: '貨幣', before: initial.currency, after: value.currency })
+  if (value.maxHours !== initial.maxHours) rows.push({ label: '最長時數', before: String(initial.maxHours), after: String(value.maxHours) })
+  if (value.openHour !== initial.openHour) rows.push({ label: '營業開始', before: String(initial.openHour), after: String(value.openHour) })
+  if (value.closeHour !== initial.closeHour) rows.push({ label: '營業結束', before: String(initial.closeHour), after: String(value.closeHour) })
 
   return (
     <>
       <SectionShell title="Venue" dirty={dirty} onRequestSave={() => setConfirmOpen(true)}>
         <div style={fieldRowStyle()}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Currency</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>貨幣</label>
           <Input value={value.currency} onChange={(e) => setValue((v) => ({ ...v, currency: e.target.value }))} />
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Max hours</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>最長時數</label>
           <Input type="number" min={1} inputMode="numeric" value={value.maxHours} onChange={(e) => setValue((v) => ({ ...v, maxHours: Number(e.target.value) || 0 }))} />
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Open hour</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>營業開始</label>
           <Input type="number" min={0} max={24} inputMode="numeric" value={value.openHour} onChange={(e) => setValue((v) => ({ ...v, openHour: Number(e.target.value) || 0 }))} />
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Close hour</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>營業結束</label>
           <Input type="number" min={0} max={24} inputMode="numeric" value={value.closeHour} onChange={(e) => setValue((v) => ({ ...v, closeHour: Number(e.target.value) || 0 }))} />
         </div>
       </SectionShell>
@@ -235,11 +235,11 @@ function TiersSection({ initial, onSave }: { initial: Tier[]; onSave: (v: Tier[]
               {t.id}
             </div>
             <div style={fieldRowStyle()}>
-              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Min points</label>
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>最低積分</label>
           <Input type="number" min={0} inputMode="numeric" value={t.minPts} onChange={(e) => setTier(t.id, { minPts: Number(e.target.value) || 0 })} />
               <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Discount (0-1)</label>
           <Input type="number" min={0} max={1} step={0.01} inputMode="decimal" value={t.discount} onChange={(e) => setTier(t.id, { discount: Number(e.target.value) || 0 })} />
-              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Points multiplier</label>
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>積分倍數</label>
           <Input type="number" min={0} step={0.1} inputMode="decimal" value={t.multiplier} onChange={(e) => setTier(t.id, { multiplier: Number(e.target.value) || 0 })} />
             </div>
           </div>
@@ -276,7 +276,7 @@ function BookingRulesSection({
 
   const rows: DiffRow[] =
     value.refundCutoffHours !== initial.refundCutoffHours
-      ? [{ label: 'Refund cutoff (hours before start)', before: `${initial.refundCutoffHours}`, after: `${value.refundCutoffHours}` }]
+      ? [{ label: '退款截止（開始前小時）', before: `${initial.refundCutoffHours}`, after: `${value.refundCutoffHours}` }]
       : []
 
   return (

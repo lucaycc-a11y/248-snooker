@@ -37,6 +37,8 @@ import {
   type AdminAreaId,
 } from '@/lib/admin/nav'
 import { AdminToastProvider } from './ToastProvider'
+import { AdminProvider } from '@/lib/admin/AdminContext'
+import type { AdminData } from '@/lib/data/getAdmin'
 import AdminRoleSelect, {
   readDevRoleOverride,
   type AdminRoleId,
@@ -70,6 +72,14 @@ function landingHref(area: AdminArea, isSuperAdmin: boolean): string {
 
 type AdminShellProps = {
   children: React.ReactNode
+  /**
+   * Signed-in admin, resolved server-side by `getAdminData()`. Mounted as
+   * `AdminProvider` so client components can call `useAdmin()` (TeamTable,
+   * QuickActions). Without it `useAdmin()` throws and the error boundary
+   * shows 出錯了 — which is exactly what /admin/team did before this prop
+   * existed.
+   */
+  admin: AdminData
   /** Filters superAdminOnly nav items. Defaults to false (least privilege). */
   isSuperAdmin?: boolean
   /**
@@ -82,6 +92,7 @@ type AdminShellProps = {
 
 export function AdminShell({
   children,
+  admin,
   isSuperAdmin = false,
   areaOverride,
 }: AdminShellProps) {
@@ -119,8 +130,17 @@ export function AdminShell({
 
   const activeArea = areaOverride ?? areaForPath(pathname ?? '/admin')
   const active = ADMIN_AREAS.find((a) => a.id === activeArea) ?? ADMIN_AREAS[0]
-  const title = active.label
-  const route = landingHref(active, effectiveSuperAdmin)
+  // Title + route chip follow the *current* pathname, not the area landing.
+  // The area landing is only what the rail navigates to; on /admin/audit the
+  // area is 系統 (landing /admin/team), so using it made every non-landing
+  // leaf report the wrong URL. Overflow routes fall back to the area label.
+  const currentPath = (pathname ?? '').replace(/\/$/, '') || '/admin'
+  const currentLeaf = active.items.find((item) => {
+    const base = (item.match ?? item.href).split('?')[0]
+    return currentPath === base || currentPath.startsWith(`${base}/`)
+  })
+  const title = currentLeaf?.label ?? active.label
+  const route = areaOverride ? landingHref(active, effectiveSuperAdmin) : currentPath
 
   const goNewBooking = () => {
     router.push('/admin/bookings?new=1')
@@ -128,7 +148,10 @@ export function AdminShell({
 
   return (
     <AdminToastProvider>
-      <div className="admin-app admin-glow-bg">
+      {/* Every client component under the shell may call useAdmin() — mount
+          the provider here, not per-page, so a new page can never forget it. */}
+      <AdminProvider value={admin}>
+        <div className="admin-app admin-glow-bg">
         {/* Floating icon dock (desktop / tablet landscape) */}
         <aside className="admin-dock" aria-label="快捷操作">
           <button
@@ -273,7 +296,8 @@ export function AdminShell({
             )
           })}
         </nav>
-      </div>
+        </div>
+      </AdminProvider>
     </AdminToastProvider>
   )
 }

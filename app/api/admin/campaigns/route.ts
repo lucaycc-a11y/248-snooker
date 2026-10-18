@@ -2,13 +2,14 @@
  * GET  /api/admin/campaigns — list campaigns (+ claim count)
  * POST /api/admin/campaigns — create a campaign
  *
- * Auth: getAdminData() guard. All writes log to admin_action_log.
+ * Auth: getAdminData() guard. All writes log to audit_log.
  */
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str } from '@/lib/data/adminReadHelpers'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -122,14 +123,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to create campaign' }, { status: 500 })
     }
 
-    await service.from('admin_action_log').insert({
-      admin_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'campaign_created',
-      target_table: 'campaigns',
-      target_id: (inserted as CampaignRow | null)?.id ? str(inserted as CampaignRow, ['id']) : null,
-      after_jsonb: { name, description, starts_at: startsAt, ends_at: endsAt, status },
-      risk_level: 'low',
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'campaign_created',
+      targetTable: 'campaigns',
+      targetId: (inserted as CampaignRow | null)?.id ? str(inserted as CampaignRow, ['id']) : null,
+      afterJsonb: { name, description, starts_at: startsAt, ends_at: endsAt, status },
+      riskLevel: 'low',
     })
 
     return NextResponse.json({ campaign: serializeCampaign(inserted as CampaignRow) }, { status: 201 })

@@ -109,17 +109,17 @@ function anomalyBadge(a: PaymentEntry['anomaly']): { label: string; className: s
   switch (a) {
     case 'orphaned':
       return {
-        label: 'Orphaned — no booking linked',
+        label: '孤立記錄 — 未連結預約',
         className: 'bg-red-500/20 text-red-300 ring-1 ring-red-500/40',
       }
     case 'no_match':
       return {
-        label: 'No matching booking',
+        label: '找不到對應預約',
         className: 'bg-orange-500/20 text-orange-300 ring-1 ring-orange-500/40',
       }
     case 'unconfirmed':
       return {
-        label: 'Booking not confirmed',
+        label: '預約未確認',
         className: 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-500/40',
       }
     default:
@@ -222,15 +222,15 @@ function ReconcileModal({
 
         <div className="mb-4 rounded-xl bg-[var(--admin-surface-elevated)] p-4 text-sm">
           <div className="flex items-center justify-between">
-            <span className="text-[var(--admin-text-muted)]">Payment ID</span>
+            <span className="text-[var(--admin-text-muted)]">付款編號</span>
             <span className="font-mono text-[var(--admin-text)] text-xs">{payment.id.slice(0, 12)}…</span>
           </div>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-[var(--admin-text-muted)]">Amount</span>
+            <span className="text-[var(--admin-text-muted)]">金額</span>
             <span className="font-medium text-[var(--admin-text)]">{formatHKD(payment.amount)}</span>
           </div>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-[var(--admin-text-muted)]">Provider</span>
+            <span className="text-[var(--admin-text-muted)]">付款方式</span>
             <span className="text-[var(--admin-text)]">{payment.provider}</span>
           </div>
         </div>
@@ -476,7 +476,7 @@ export default function PaymentLogClient() {
         </div>
       ) : payments.length === 0 ? (
         <div className="py-24 text-center text-[var(--admin-text-muted)]">
-          <p className="text-sm">No payment records found.</p>
+          <p className="text-sm">找不到付款記錄。</p>
         </div>
       ) : (
         <div className="space-y-2">

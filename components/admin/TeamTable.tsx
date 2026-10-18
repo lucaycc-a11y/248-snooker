@@ -70,7 +70,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
       ])
       setEmail('')
     } catch {
-      notify('error', 'Network error')
+      notify('error', '網絡錯誤')
     } finally {
       setInviting(false)
     }
@@ -94,9 +94,9 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
         return
       }
       onOk()
-      notify('success', 'Done')
+      notify('success', '完成')
     } catch {
-      notify('error', 'Network error')
+      notify('error', '網絡錯誤')
     } finally {
       setBusyId(null)
     }
@@ -107,7 +107,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
       {isSuperAdmin && (
         <Card style={{ marginBottom: tokens.spacing.lg }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text, marginBottom: tokens.spacing.md }}>
-            Invite admin
+            邀請管理員
           </div>
           <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap', alignItems: 'flex-end' }}>
             <div style={{ flex: 1, minWidth: 220 }}>
@@ -121,7 +121,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
-                Role
+                角色
               </label>
               <select
                 value={role}
@@ -136,12 +136,12 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
                   fontSize: 16,
                 }}
               >
-                <option value="admin">Admin</option>
-                <option value="super_admin">Super Admin</option>
+                <option value="admin">管理員</option>
+                <option value="super_admin">超級管理員</option>
               </select>
             </div>
             <Button variant="primary" disabled={inviting || !email} onClick={submitInvite}>
-              {inviting ? 'Inviting...' : 'Invite'}
+              {inviting ? '邀請中…' : '邀請'}
             </Button>
           </div>
         </Card>
@@ -167,7 +167,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
                 <div style={{ color: tokens.colors.text, fontSize: 15, fontWeight: 600 }}>{row.email}</div>
                 <div style={{ color: tokens.colors.textMuted, fontSize: 13 }}>
                   {row.role} · <span style={{ color: statusColor(row.invite_status) }}>{row.invite_status}</span>
-                  {row.invited_by_email ? ` · invited by ${row.invited_by_email}` : ''}
+                  {row.invited_by_email ? ` · 由 ${row.invited_by_email} 邀請` : ''}
                 </div>
               </div>
               {isSuperAdmin && !isSelf && row.invite_status !== 'revoked' && !row.id.startsWith('pending-') && (
@@ -183,7 +183,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
                       )
                     }
                   >
-                    {busyId === row.id ? 'Loading...' : row.role === 'super_admin' ? 'Demote' : 'Promote'}
+                    {busyId === row.id ? '載入中…' : row.role === 'super_admin' ? '降級' : '升級'}
                   </Button>
                   <Button
                     variant="secondary"
@@ -194,7 +194,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
                       )
                     }
                   >
-                    Revoke
+                    撤銷
                   </Button>
                 </div>
               )}
@@ -202,7 +202,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
           )
         })}
         {items.length === 0 && (
-          <div style={{ padding: tokens.spacing.lg, color: tokens.colors.textMuted, fontSize: 14 }}>No admins yet.</div>
+          <div style={{ padding: tokens.spacing.lg, color: tokens.colors.textMuted, fontSize: 14 }}>暫無管理員。</div>
         )}
       </Card>
 

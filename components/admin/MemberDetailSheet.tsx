@@ -5,7 +5,7 @@
  *
  * Right drawer on desktop, bottom sheet on phone. Opens from a member row with
  * `S.mtab = 'info'`, so 資料 is always the landing tab. The four tabs are the
- * prototype's own: 資料 | 預約 | 積分與 Credit | 通知.
+ * prototype's own: 資料 | 預約 | 積分與錢包額度 | 通知.
  *
  * Only the 資料 tab carries live data here — it is entirely derivable from
  * `AdminMemberRow`. The other three render the prototype's empty states until
@@ -123,7 +123,7 @@ export default function MemberDetailSheet({ member, isSuperAdmin, onClose }: Pro
             options={[
               { key: 'info', label: '資料', cmsKey: 'admin.members.dtab_info' },
               { key: 'bk', label: '預約', cmsKey: 'admin.members.dtab_bk' },
-              { key: 'led', label: '積分與 Credit', cmsKey: 'admin.members.dtab_led' },
+              { key: 'led', label: '積分與錢包額度', cmsKey: 'admin.members.dtab_led' },
               { key: 'nt', label: '通知', cmsKey: 'admin.members.dtab_nt' },
             ]}
           />
@@ -134,11 +134,11 @@ export default function MemberDetailSheet({ member, isSuperAdmin, onClose }: Pro
               <div className="admin-grid2">
                 <div className="admin-stat">
                   <b className="admin-num">{member.points}</b>
-                  <span data-cms-key="admin.members.stat_points">Space Point</span>
+                  <span data-cms-key="admin.members.stat_points">積分</span>
                 </div>
                 <div className="admin-stat">
                   <b className="admin-num">{money(member.credits)}</b>
-                  <span data-cms-key="admin.members.stat_credit">Space Credit</span>
+                  <span data-cms-key="admin.members.stat_credit">錢包額度</span>
                 </div>
               </div>
 
@@ -231,7 +231,7 @@ export default function MemberDetailSheet({ member, isSuperAdmin, onClose }: Pro
                     className="admin-btn sm"
                     data-cms-key="admin.members.adj_credit"
                   >
-                    調整 Credit
+                    調整錢包額度
                   </button>
                   <button type="button" className="admin-btn sm" data-cms-key="admin.members.send_inbox">
                     發送 inbox 訊息
@@ -261,13 +261,13 @@ export default function MemberDetailSheet({ member, isSuperAdmin, onClose }: Pro
           {tab === 'led' ? (
             <>
               <div className="admin-sect">
-                <h3 data-cms-key="admin.members.sect_credit_ledger">Space Credit</h3>
+                <h3 data-cms-key="admin.members.sect_credit_ledger">錢包額度</h3>
                 <p className="admin-muted" data-cms-key="admin.members.ledger_empty">
                   沒有流水
                 </p>
               </div>
               <div className="admin-sect">
-                <h3 data-cms-key="admin.members.sect_points_ledger">Space Point</h3>
+                <h3 data-cms-key="admin.members.sect_points_ledger">積分</h3>
                 <p className="admin-muted" data-cms-key="admin.members.ledger_empty">
                   沒有流水
                 </p>

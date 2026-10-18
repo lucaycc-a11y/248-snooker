@@ -34,8 +34,8 @@ export function OtpPhoneUnlock() {
 
   return (
     <section className="mb-8 border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4">
-      <h2 className="text-base font-semibold text-[var(--admin-text)]">Unlock OTP phone</h2>
-      <p className="mt-1 text-sm text-[var(--admin-text-muted)]">Super admins can clear a temporary OTP lock.</p>
+      <h2 className="text-base font-semibold text-[var(--admin-text)]">解除 OTP 手機鎖定</h2>
+      <p className="mt-1 text-sm text-[var(--admin-text-muted)]">超級管理員可清除暫時的 OTP 鎖定。</p>
       <div className="mt-4 flex flex-wrap items-end gap-3">
         <label className="min-w-[220px] flex-1 text-sm text-[var(--admin-text-muted)]">
           Hong Kong phone number

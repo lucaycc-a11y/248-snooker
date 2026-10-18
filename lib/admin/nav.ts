@@ -100,6 +100,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     href: '/admin/team',
     items: [
       { href: '/admin/team', label: '管理員', cmsKey: 'admin.nav.team', superAdminOnly: true },
+      { href: '/admin/hidden-users', label: '隱藏帳戶', cmsKey: 'admin.nav.hidden_users', superAdminOnly: true },
       { href: '/admin/audit', label: '審計記錄', cmsKey: 'admin.nav.audit' },
       { href: '/admin/errors', label: '錯誤記錄', cmsKey: 'admin.nav.errors' },
     ],

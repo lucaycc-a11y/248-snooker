@@ -36,7 +36,7 @@ export async function GET() {
 
     // ── 1. DB connectivity ────────────────────────────────
     try {
-      const { error } = await service.from('admin_action_log').select('id').limit(1)
+      const { error } = await service.from('audit_log').select('id').limit(1)
       checks.push({
         name: 'Database',
         status: error ? 'error' : 'ok',
@@ -148,7 +148,7 @@ export async function GET() {
       const sevenDaysAgo = new Date()
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
       const { count, error } = await service
-        .from('admin_action_log')
+        .from('audit_log')
         .select('id', { count: 'exact', head: true })
         .gte('created_at', sevenDaysAgo.toISOString())
 

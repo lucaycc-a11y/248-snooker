@@ -203,9 +203,9 @@ export default function PromoCodesManager() {
 
   // ── Render helpers ────────────────────────────────────────────
   const statusStyle: Record<string, { color: string; dim: string; label: string }> = {
-    active: { color: 'var(--admin-brand)', dim: 'var(--admin-brand-dim)', label: 'Active' },
-    draft: { color: 'var(--admin-warning)', dim: 'var(--admin-warning-dim)', label: 'Draft' },
-    ended: { color: 'var(--admin-text-faint)', dim: 'var(--admin-depth-2)', label: 'Ended' },
+    active: { color: 'var(--admin-brand)', dim: 'var(--admin-brand-dim)', label: '生效中' },
+    draft: { color: 'var(--admin-warning)', dim: 'var(--admin-warning-dim)', label: '草稿' },
+    ended: { color: 'var(--admin-text-faint)', dim: 'var(--admin-depth-2)', label: '已結束' },
   }
 
   return (
@@ -446,8 +446,8 @@ export default function PromoCodesManager() {
                     value={campaignForm.status}
                     onChange={(e) => setCampaignForm({ ...campaignForm, status: e.target.value })}
                   >
-                    <option value="draft">Draft</option>
-                    <option value="active">Active</option>
+                    <option value="draft">草稿</option>
+                    <option value="active">生效中</option>
                   </select>
                 </Field>
                 <Field label="Starts At">

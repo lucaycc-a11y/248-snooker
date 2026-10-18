@@ -79,7 +79,7 @@ export default async function AcceptInvitePage({
   if (!token) {
     return (
       <Shell>
-        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Invalid invite link</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>邀請連結無效</h1>
       </Shell>
     )
   }
@@ -94,7 +94,7 @@ export default async function AcceptInvitePage({
     const loginHref = `/login?${new URLSearchParams({ returnUrl }).toString()}`
     return (
       <Shell>
-        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Sign in to accept</h1>
+        <h1 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>請登入以接受邀請</h1>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginBottom: 24 }}>
           Sign in with the email this invite was sent to.
         </p>

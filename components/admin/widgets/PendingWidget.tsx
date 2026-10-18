@@ -3,8 +3,10 @@
 /**
  * PendingWidget — pending admin actions awaiting confirmation.
  *
- * §3.6: Reads admin_action_log WHERE confirmed_by IS NULL.
- * Shows list with confirm/dismiss actions (super_admin only).
+ * §3.6: shows proposed admin actions still awaiting confirmation.
+ *
+ * `audit_log` is the only real table; `confirmed_by` is folded into
+ * `after_value`, so "pending" means an action that ran without one.
  */
 
 import { useEffect, useState } from 'react'
@@ -15,7 +17,7 @@ import type { WidgetProps } from '@/lib/admin/widgetRegistry'
 
 type PendingAction = {
   id: string
-  action_type: string
+  action: string
   target_table: string
   target_id: string | null
   risk_level: 'low' | 'medium' | 'high'
@@ -39,14 +41,29 @@ export default function PendingWidget({ size }: WidgetProps) {
       try {
         const supabase = await getLegacyRouteHandlerClient()
         const { data } = await supabase
-          .from('admin_action_log')
-          .select('id, action_type, target_table, target_id, risk_level, created_at')
-          .is('confirmed_by', null)
+          .from('audit_log')
+          .select('id, action, target_table, target_id, after_value, created_at')
           .order('created_at', { ascending: false })
           .limit(5)
 
         if (!cancelled && data) {
-          setActions(data as PendingAction[])
+          setActions(
+            (data as unknown as Array<Record<string, unknown>>).map((r) => {
+              const after = (r.after_value ?? null) as Record<string, unknown> | null
+              const risk =
+                after && typeof after.risk_level === 'string'
+                  ? (after.risk_level as 'low' | 'medium' | 'high')
+                  : 'low'
+              return {
+                id: String(r.id ?? ''),
+                action: String(r.action ?? ''),
+                target_table: String(r.target_table ?? ''),
+                target_id: r.target_id ? String(r.target_id) : null,
+                risk_level: risk,
+                created_at: String(r.created_at ?? ''),
+              }
+            })
+          )
         }
       } catch {
         // Table may not exist yet — stays empty
@@ -93,7 +110,7 @@ export default function PendingWidget({ size }: WidgetProps) {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-[var(--admin-text)] capitalize">
-                    {a.action_type.replace(/_/g, ' ')}
+                    {a.action.replace(/_/g, ' ')}
                   </span>
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${RISK_COLORS[a.risk_level]}`}>
                     {a.risk_level}

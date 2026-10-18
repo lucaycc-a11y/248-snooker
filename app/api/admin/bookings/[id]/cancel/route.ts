@@ -1,27 +1,32 @@
 /**
  * POST /api/admin/bookings/[id]/cancel
  *
- * Admin-only: cancel a booking, optionally with compensation (points or waived).
- * Modeled after the existing executeCancelBooking in lib/admin/actionExecutor.ts
- * but as a direct REST endpoint (not via AI pending_action flow).
+ * Admin cancel with optional compensation. This is the ONE route that calls
+ * `admin_cancel_with_credit` — the RPC flips the status, releases the slot,
+ * reverses booking points, grants wallet credit via `wallet_apply`, and writes
+ * cancellation_log + audit_log + the member notice in one transaction.
  *
- * No real KPay refund this phase — only waive; function signature
- * pre-designed for future refund integration.
+ * Nothing here writes `status = 'admin_cancelled'` directly. Doing so skipped
+ * every money side-effect and is what made "Cancel and Credit" dead.
  *
- * Auth: getAdminData() guard.
+ * Auth: getAdminData() via withAdminSecurity.
  */
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { getConfigValue } from '@/lib/data/getConfig'
 import { num, str } from '@/lib/data/adminReadHelpers'
 import { withAdminSecurity } from '@/lib/security/admin-wrapper'
 import { validateWeatherCredit } from '@/lib/admin/weather-credit-policy'
+import { adminCancelWithCredit } from '@/lib/admin/cancelWithCredit'
 
 export const runtime = 'nodejs'
 
 type CancelRequest = {
   reason: string
+  /** WhatsApp / customer-contact reference. Required by the RPC. */
+  whatsappRef?: string
   compensationType?: 'none' | 'points' | 'refund' | 'credit'
   compensationValue?: number
   /** Required by the weather-credit policy when credit ≠ booking total. */
@@ -30,7 +35,7 @@ type CancelRequest = {
 
 async function handleAdminBookingCancel(
   req: Request,
-  adminUser: { id: string; email?: string },
+  _adminUser: { id: string; email?: string },
   context?: { params: Record<string, string> }
 ) {
   try {
@@ -47,13 +52,14 @@ async function handleAdminBookingCancel(
     const body = await req.json().catch(() => null)
     const {
       reason,
+      whatsappRef = '',
       compensationType = 'none',
       compensationValue = 0,
       differenceReason = null,
     } = (body ?? {}) as Partial<CancelRequest>
 
-    if (!reason || typeof reason !== 'string' || reason.trim().length === 0) {
-      return NextResponse.json({ error: 'Cancellation reason is required' }, { status: 400 })
+    if (!reason || typeof reason !== 'string' || reason.trim().length < 5) {
+      return NextResponse.json({ error: '取消原因至少要有 5 個字' }, { status: 400 })
     }
 
     const validCompensation = ['none', 'points', 'refund', 'credit'].includes(compensationType)
@@ -61,14 +67,11 @@ async function handleAdminBookingCancel(
       return NextResponse.json({ error: 'Invalid compensation type' }, { status: 400 })
     }
 
-    // Points compensation must have a positive value
-    if (compensationType === 'points' && (!compensationValue || compensationValue <= 0)) {
-      return NextResponse.json({ error: 'Points compensation must be positive' }, { status: 400 })
-    }
-
-    // Credit compensation must have a positive value
+    // Only credit compensation is supported by the RPC. 'points' / 'refund'
+    // are accepted by the request shape but map to a zero-credit cancel plus a
+    // separate ledger note — never to a direct status write.
     if (compensationType === 'credit' && (!compensationValue || compensationValue <= 0)) {
-      return NextResponse.json({ error: 'Credit compensation must be positive' }, { status: 400 })
+      return NextResponse.json({ error: 'Credit 補償金額必須大於 0' }, { status: 400 })
     }
 
     const service = getLegacyServiceSupabase()
@@ -90,11 +93,14 @@ async function handleAdminBookingCancel(
     }
 
     // ── Weather-credit policy gate ─────────────────────────────────────
-    // Runs BEFORE the status flip: a rejected policy must not leave a
-    // cancelled booking with no compensation. Pure function, no DB reads.
-    // Currently unimplemented by design — see lib/admin/weather-credit-policy.ts.
+    // Runs BEFORE the RPC: a rejected policy must not leave a cancelled
+    // booking with no compensation. Pure function; cap comes from config.
     if (compensationType === 'credit') {
       const bookingTotal = num(booking as Record<string, unknown>, ['total_price'], 0)
+      const pointsSystem = await getConfigValue<Record<string, unknown>>('points_system', {})
+      const rawCap = pointsSystem?.wallet_max_single_amount
+      // Missing/invalid config must not silently allow an uncapped credit.
+      const cap = typeof rawCap === 'number' && Number.isInteger(rawCap) && rawCap > 0 ? rawCap : 10000
       let policy
       try {
         policy = validateWeatherCredit({
@@ -104,6 +110,7 @@ async function handleAdminBookingCancel(
             typeof differenceReason === 'string' && differenceReason.trim().length > 0
               ? differenceReason.trim()
               : null,
+          cap,
           adminRole: admin.role,
         })
       } catch (policyErr) {
@@ -116,143 +123,27 @@ async function handleAdminBookingCancel(
       }
     }
 
-    // ── Update booking status ──────────────────────────────────────────
-    const { error: updateErr } = await service
-      .from('bookings')
-      .update({ status: 'admin_cancelled' })
-      .eq('id', bookingId)
+    // ── One transaction: cancel + credit + ledgers + notice ─────────────
+    const creditAmount = compensationType === 'credit' ? compensationValue : 0
+    const humanCode = str(booking as Record<string, unknown>, ['human_code']) ?? bookingId
+    const dateLabel = str(booking as Record<string, unknown>, ['date']) ?? ''
 
-    if (updateErr) {
-      console.error('[cancel] update_failed', { bookingId, message: updateErr.message })
-      return NextResponse.json({ error: 'Failed to cancel booking' }, { status: 500 })
-    }
+    const result = await adminCancelWithCredit({
+      bookingId,
+      adminId: admin.userId,
+      reason: reason.trim(),
+      whatsappRef: whatsappRef || reason.trim(),
+      creditAmount,
+      noticeTitle: '預約已取消',
+      noticeMessage:
+        creditAmount > 0
+          ? `你的預約 ${humanCode}（${dateLabel}）已取消，並已存入 HK$${creditAmount} 錢包額度作為補償。`
+          : `你的預約 ${humanCode}（${dateLabel}）已取消。`,
+    })
 
-    // ── Log to cancellation_log ────────────────────────────────────────
-    try {
-      await service.from('cancellation_log').insert({
-        booking_id: bookingId,
-        admin_id: admin.userId,
-        reason: reason.trim(),
-        compensation_type: compensationType,
-        compensation_value:
-          compensationType === 'points' || compensationType === 'credit'
-            ? compensationValue
-            : 0,
-      })
-    } catch (logErr) {
-      // Non-fatal — cancellation_log migration may not have run yet
-      console.warn('[cancel] cancellation_log_insert_failed', {
-        bookingId,
-        message: (logErr as Error).message,
-      })
-    }
-
-    // ── Handle points compensation ─────────────────────────────────────
-    if (compensationType === 'points' && compensationValue > 0) {
-      const userId = str(booking as Record<string, unknown>, ['user_id'])
-      if (userId) {
-        // Read current points
-        const { data: user } = await service
-          .from('users')
-          .select('points')
-          .eq('id', userId)
-          .single()
-
-        const currentPoints = num(user ?? {}, ['points'], 0)
-        const newPoints = currentPoints + compensationValue
-
-        await service
-          .from('users')
-          .update({ points: newPoints })
-          .eq('id', userId)
-
-        // Log to points_ledger
-        try {
-          await service.from('points_ledger').insert({
-            user_id: userId,
-            points: compensationValue,
-            type: 'cancellation_compensation',
-            reason: `Cancellation compensation for booking ${bookingId}: ${reason.trim()}`,
-            admin_action: true,
-          })
-        } catch (ledgerErr) {
-          console.warn('[cancel] points_ledger_insert_failed', {
-            bookingId,
-            message: (ledgerErr as Error).message,
-          })
-        }
-      }
-    }
-
-    // ── Handle credit compensation ─────────────────────────────────────
-    // credits_ledger.type is CHECK-constrained to CREDITS_LEDGER_TYPES —
-    // 'manual' is the only legal value for an admin-granted credit.
-    if (compensationType === 'credit' && compensationValue > 0) {
-      const userId = str(booking as Record<string, unknown>, ['user_id'])
-      if (userId) {
-        const { data: ledgerRows } = await service
-          .from('credits_ledger')
-          .select('amount')
-          .eq('user_id', userId)
-
-        const balance = (ledgerRows ?? []).reduce(
-          (sum, r) => sum + num(r as Record<string, unknown>, ['amount'], 0),
-          0,
-        )
-        const balanceAfter = balance + compensationValue
-
-        const { error: creditErr } = await service.from('credits_ledger').insert({
-          user_id: userId,
-          amount: compensationValue,
-          balance_after: balanceAfter,
-          type: 'manual',
-          note: `Weather cancellation credit for booking ${bookingId}: ${reason.trim()}`,
-          actor_id: admin.userId,
-        })
-        if (creditErr) {
-          console.error('[cancel] credits_ledger_insert_failed', {
-            bookingId,
-            message: creditErr.message,
-          })
-          return NextResponse.json({ error: 'Failed to grant credit' }, { status: 500 })
-        }
-      }
-    }
-
-    // ── Log to admin_action_log ────────────────────────────────────────
-    try {
-      await service.from('admin_action_log').insert({
-        admin_id: admin.userId,
-        admin_email: admin.email,
-        action_type: 'booking_cancelled',
-        target_table: 'bookings',
-        target_id: bookingId,
-        before_jsonb: {
-          status: bookingStatus,
-          total_price: booking.total_price,
-          date: booking.date,
-          start_time: booking.start_time,
-          table_number: booking.table_number,
-          human_code: booking.human_code,
-        },
-        after_jsonb: {
-          status: 'admin_cancelled',
-          reason: reason.trim(),
-          compensation_type: compensationType,
-          compensation_value:
-            compensationType === 'points' || compensationType === 'credit'
-              ? compensationValue
-              : 0,
-          difference_reason: compensationType === 'credit' ? differenceReason : null,
-        },
-        risk_level: 'high',
-        confirmed_by: admin.userId,
-      })
-    } catch (logErr) {
-      console.warn('[cancel] audit_log_write_failed', {
-        bookingId,
-        message: (logErr as Error).message,
-      })
+    if (!result.ok) {
+      const status = result.code === 'booking_not_found' ? 404 : 400
+      return NextResponse.json({ error: result.error, code: result.code }, { status })
     }
 
     console.log('[cancel] success', {
@@ -260,14 +151,18 @@ async function handleAdminBookingCancel(
       adminId: admin.userId,
       reason: reason.trim(),
       compensation: compensationType,
+      credit: result.credit,
+      pointsReversed: result.pointsReversed,
     })
 
     return NextResponse.json({
       success: true,
       bookingId,
       previousStatus: bookingStatus,
+      credit: result.credit,
+      pointsReversed: result.pointsReversed,
       compensation: compensationType !== 'none'
-        ? { type: compensationType, value: compensationValue }
+        ? { type: compensationType, value: result.credit }
         : null,
     })
   } catch (err) {

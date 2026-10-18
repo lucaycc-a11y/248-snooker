@@ -14,8 +14,13 @@ export async function GET(req: Request) {
   if (view === 'day') {
     const date = url.searchParams.get('date')
     if (!date) return NextResponse.json({ error: 'Missing date' }, { status: 400 })
-    const bookings = await getDayTimeline(date)
-    return NextResponse.json({ bookings })
+    try {
+      const bookings = await getDayTimeline(date)
+      return NextResponse.json({ bookings })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Internal error'
+      return NextResponse.json({ error: message, bookings: [] }, { status: 500 })
+    }
   }
 
   const now = new Date()

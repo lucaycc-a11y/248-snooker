@@ -157,7 +157,7 @@ export default function SiteGateLog({
   return (
     <Card style={{ marginTop: tokens.spacing.lg }}>
       <div style={{ padding: tokens.spacing.base, borderBottom: `1px solid ${tokens.colors.border}` }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>Access log</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>存取記錄</div>
         <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginTop: 4 }}>
           Grouped by IP · {groups.length} unique {groups.length === 1 ? 'address' : 'addresses'}
         </div>
@@ -221,7 +221,7 @@ export default function SiteGateLog({
                     </span>
                   )}
                   {isWhitelisted && (
-                    <span style={{ fontSize: 12, color: tokens.colors.brand, fontWeight: 600 }}>Whitelisted</span>
+                    <span style={{ fontSize: 12, color: tokens.colors.brand, fontWeight: 600 }}>已加入白名單</span>
                   )}
                 </div>
                 <div style={{ color: tokens.colors.textMuted, fontSize: 12, marginTop: 4 }}>

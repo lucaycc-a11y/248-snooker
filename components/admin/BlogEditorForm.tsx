@@ -246,19 +246,19 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Title</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>標題</label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Slug</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>網址代稱</label>
           <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
         </div>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Category</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>分類</label>
           <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="tutorial, venue, event, culture" />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Excerpt</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>摘要</label>
           <Input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
         </div>
       </Card>
@@ -347,11 +347,11 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO title</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO 標題</label>
           <Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
         </div>
         <div>
-          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO description</label>
+          <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>SEO 描述</label>
           <Input value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
         </div>
       </Card>
@@ -363,7 +363,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         <Button variant="primary" onClick={togglePublish} disabled={saving}>
           {post.published_at ? 'Unpublish' : 'Publish'}
         </Button>
-        {saved && <span style={{ fontSize: 13, color: tokens.colors.brand }}>Saved</span>}
+        {saved && <span style={{ fontSize: 13, color: tokens.colors.brand }}>已儲存</span>}
       </div>
     </div>
   )

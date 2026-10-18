@@ -5,6 +5,7 @@ import MembersPageClient from '@/components/admin/MembersPageClient'
 import type { AdminTodayData } from '@/lib/admin/today'
 import type { AdminBookingRow } from '@/lib/data/getAdminBookings'
 import type { AdminMemberRow } from '@/lib/data/getAdminMembers'
+import type { AdminData } from '@/lib/data/getAdmin'
 import '@/app/styles/admin-theme.css'
 
 /**
@@ -140,16 +141,29 @@ const BOOKINGS: { bookings: AdminBookingRow[]; total: number; page: number; page
  * `isPhoneVerified` is `m.verified`.
  */
 const MEMBER_ROWS: AdminMemberRow[] = [
-  { id: 'm1', memberCode: 'S80001', email: 'kc.chan@example.com', displayName: '陳家俊', phone: '6128 4501', tier: null, points: 512, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, createdAt: '2026-08-02' },
-  { id: 'm2', memberCode: 'S80002', email: 'may.lee@example.com', displayName: '李美詩', phone: '5234 7712', tier: null, points: 294, credits: 50, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, createdAt: '2026-08-09' },
-  { id: 'm3', memberCode: 'S80003', email: 'tszhin.w@example.com', displayName: '黃子軒', phone: '9345 2208', tier: null, points: 196, credits: 216, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, createdAt: '2026-08-15' },
-  { id: 'm4', memberCode: 'S80004', email: 'ngaiting@example.com', displayName: '張雅婷', phone: '6671 3390', tier: null, points: 578, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, createdAt: '2026-08-21' },
-  { id: 'm5', memberCode: 'S80005', email: 'jl.lam@example.com', displayName: '林俊樂', phone: '5560 9143', tier: null, points: 0, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, createdAt: '2026-09-03' },
-  { id: 'm6', memberCode: 'S80006', email: 'karyi.ho@example.com', displayName: '何嘉怡', phone: '9012 6657', tier: null, points: 324, credits: 0, needsManualPhoneReverify: true, isPhoneVerified: false, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, createdAt: '2026-09-11' },
-  { id: 'm7', memberCode: 'S80007', email: null, displayName: '梁浩然', phone: '6398 1024', tier: null, points: 96, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, createdAt: '2026-09-18' },
-  { id: 'm8', memberCode: 'S80008', email: 'sy.ng@example.com', displayName: '吳思穎', phone: '5187 4436', tier: null, points: 186, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, createdAt: '2026-09-25' },
-  { id: 'm9', memberCode: 'S80009', email: 'kwok.ch@example.com', displayName: '郭晉豪', phone: '9650 3871', tier: null, points: 294, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: true, createdAt: '2026-09-29' },
+  { id: 'm1', memberCode: 'S80001', email: 'kc.chan@example.com', displayName: '陳家俊', phone: '6128 4501', tier: null, points: 512, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, isHidden: false, createdAt: '2026-08-02' },
+  { id: 'm2', memberCode: 'S80002', email: 'may.lee@example.com', displayName: '李美詩', phone: '5234 7712', tier: null, points: 294, credits: 50, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, isHidden: false, createdAt: '2026-08-09' },
+  { id: 'm3', memberCode: 'S80003', email: 'tszhin.w@example.com', displayName: '黃子軒', phone: '9345 2208', tier: null, points: 196, credits: 216, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, isHidden: false, createdAt: '2026-08-15' },
+  { id: 'm4', memberCode: 'S80004', email: 'ngaiting@example.com', displayName: '張雅婷', phone: '6671 3390', tier: null, points: 578, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, isHidden: false, createdAt: '2026-08-21' },
+  { id: 'm5', memberCode: 'S80005', email: 'jl.lam@example.com', displayName: '林俊樂', phone: '5560 9143', tier: null, points: 0, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, isHidden: false, createdAt: '2026-09-03' },
+  { id: 'm6', memberCode: 'S80006', email: 'karyi.ho@example.com', displayName: '何嘉怡', phone: '9012 6657', tier: null, points: 324, credits: 0, needsManualPhoneReverify: true, isPhoneVerified: false, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, isHidden: false, createdAt: '2026-09-11' },
+  { id: 'm7', memberCode: 'S80007', email: null, displayName: '梁浩然', phone: '6398 1024', tier: null, points: 96, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, isHidden: false, createdAt: '2026-09-18' },
+  { id: 'm8', memberCode: 'S80008', email: 'sy.ng@example.com', displayName: '吳思穎', phone: '5187 4436', tier: null, points: 186, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: false, isHidden: false, createdAt: '2026-09-25' },
+  { id: 'm9', memberCode: 'S80009', email: 'kwok.ch@example.com', displayName: '郭晉豪', phone: '9650 3871', tier: null, points: 294, credits: 0, needsManualPhoneReverify: false, isPhoneVerified: true, totalSpend: 0, bookingCount: 0, lastActiveAt: null, isBlacklisted: true, isHidden: false, createdAt: '2026-09-29' },
 ]
+
+/**
+ * Stand-in for the server-resolved `getAdminData()` row. The harness is not
+ * routed under /admin and has no session, but `AdminShell` mounts
+ * `AdminProvider` unconditionally and `useAdmin()` throws without it.
+ */
+const PREVIEW_ADMIN: AdminData = {
+  userId: '00000000-0000-0000-0000-000000000000',
+  email: 'preview@example.com',
+  role: 'super_admin',
+  displayName: '預覽',
+  themePreference: 'dark',
+}
 
 export default function AdminShellPreviewPage({
   searchParams,
@@ -159,7 +173,7 @@ export default function AdminShellPreviewPage({
   const raw = searchParams.view
   const view = raw === 'bookings' ? 'bookings' : raw === 'members' ? 'members' : 'today'
   return (
-    <AdminShell areaOverride={view} isSuperAdmin>
+    <AdminShell admin={PREVIEW_ADMIN} areaOverride={view} isSuperAdmin>
       {view === 'bookings' ? (
         <BookingsPageClient initial={BOOKINGS} preview />
       ) : view === 'members' ? (

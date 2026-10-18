@@ -2,7 +2,7 @@
  * Admin users API — §9.4.
  *
  * GET: paginated user list with tier/activity status.
- * PATCH: update user fields (all require reason, logged to admin_action_log).
+ * PATCH: update user fields (all require reason, logged to audit_log).
  *
  * Design system: admin-theme.css variables only.
  * No inline hex, no shadows.
@@ -12,6 +12,7 @@ import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getAdminMembers } from '@/lib/data/getAdminMembers'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -28,7 +29,13 @@ export async function GET(req: Request) {
     const result = await getAdminMembers({
       page: parseInt(url.searchParams.get('page') ?? '1', 10) || 1,
       search: url.searchParams.get('search'),
+      // 會員列表 → 「顯示隱藏帳戶」 toggle. Default is to filter them out.
+      includeHidden: url.searchParams.get('includeHidden') === 'true',
     })
+    // A failed load is not an empty list. Surface it as 500 with the message.
+    if (result.error) {
+      return NextResponse.json({ error: result.error }, { status: 500 })
+    }
     return NextResponse.json(result)
   } catch (err) {
     console.error('[admin/users] GET error', err)
@@ -116,16 +123,17 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Update failed' }, { status: 500 })
     }
 
-    // Log to admin_action_log
-    await service.from('admin_action_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'user_profile_update',
-      target_table: 'users',
-      target_id: userId,
-      before_jsonb: beforeValue,
-      after_jsonb: afterValue,
-      risk_level: 'medium',
+    // Audit trail — throws on failure so a profile change without a row fails
+    // the request instead of vanishing.
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'user_profile_update',
+      targetTable: 'users',
+      targetId: userId,
+      beforeJsonb: beforeValue,
+      afterJsonb: afterValue,
+      riskLevel: 'medium',
     })
 
     return NextResponse.json({ success: true })

@@ -6,13 +6,14 @@
  * promotion_codes table that the checkout flow still reads. The two systems
  * coexist: this admin UI manages coupon_templates; checkout remains untouched.
  *
- * Auth: getAdminData() guard. All writes log to admin_action_log.
+ * Auth: getAdminData() guard. All writes log to audit_log.
  */
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str } from '@/lib/data/adminReadHelpers'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -143,20 +144,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to create coupon' }, { status: 500 })
     }
 
-    await service.from('admin_action_log').insert({
-      admin_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'coupon_template_created',
-      target_table: 'coupon_templates',
-      target_id: (inserted as CouponRow | null)?.id ? str(inserted as CouponRow, ['id']) : null,
-      after_jsonb: {
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'coupon_template_created',
+      targetTable: 'coupon_templates',
+      targetId: (inserted as CouponRow | null)?.id ? str(inserted as CouponRow, ['id']) : null,
+      afterJsonb: {
         name,
         discount_type: discountType,
         discount_value: discountValue,
         max_uses: maxUses,
         valid_until: validUntil,
       },
-      risk_level: 'low',
+      riskLevel: 'low',
     })
 
     return NextResponse.json({ coupon: serializeCoupon(inserted as CouponRow) }, { status: 201 })

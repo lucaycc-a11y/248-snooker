@@ -2,7 +2,7 @@
  * POST /api/admin/payment-log/reconcile
  *
  * One-click reconciliation: link a payment attempt to a booking by updating
- * the payment_attempts.booking_id. Also logs to admin_action_log.
+ * the payment_attempts.booking_id. Also logs to audit_log.
  *
  * Auth: getAdminData() guard.
  */
@@ -11,6 +11,7 @@ import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { str } from '@/lib/data/adminReadHelpers'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -70,31 +71,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to update payment record' }, { status: 500 })
     }
 
-    // ── Log to admin_action_log ──────────────────────────────────────────
-    try {
-      await service.from('admin_action_log').insert({
-        admin_id: admin.userId,
-        admin_email: admin.email,
-        action_type: 'payment_reconciled',
-        target_table: 'payment_attempts',
-        target_id: paymentId,
-        before_jsonb: {
-          booking_id: previousBookingId || null,
-          status: str(payment as Record<string, unknown>, ['status']),
-        },
-        after_jsonb: {
-          booking_id: bookingId,
-          booking_status: str(booking as Record<string, unknown>, ['status']),
-          booking_human_code: str(booking as Record<string, unknown>, ['human_code']),
-        },
-        risk_level: 'medium',
-      })
-    } catch (logErr) {
-      console.warn('[reconcile] audit_log_write_failed', {
-        paymentId,
-        message: (logErr as Error).message,
-      })
-    }
+    // ── Audit trail (audit_log) ──────────────────────────────────────────
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'payment_reconciled',
+      targetTable: 'payment_attempts',
+      targetId: paymentId,
+      beforeJsonb: {
+        booking_id: previousBookingId || null,
+        status: str(payment as Record<string, unknown>, ['status']),
+      },
+      afterJsonb: {
+        booking_id: bookingId,
+        booking_status: str(booking as Record<string, unknown>, ['status']),
+        booking_human_code: str(booking as Record<string, unknown>, ['human_code']),
+      },
+      riskLevel: 'medium',
+    })
 
     console.log('[reconcile] success', {
       paymentId,

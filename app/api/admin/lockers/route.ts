@@ -13,6 +13,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 type Row = Record<string, unknown>
 
@@ -126,17 +127,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to create locker' }, { status: 500 })
     }
 
-    // Log to admin_action_log
-    await service.from('admin_action_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'locker_create',
-      target_table: 'lockers',
-      target_id: data.id,
-      before_jsonb: null,
-      after_jsonb: JSON.stringify({ number, status, label }),
-      risk_level: 'low',
-      confirmed_by: admin.userId,
+    // Audit trail (audit_log)
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'locker_create',
+      targetTable: 'lockers',
+      targetId: data.id,
+      beforeJsonb: null,
+      afterJsonb: { number, status, label },
+      riskLevel: 'low',
+      confirmedBy: admin.userId,
     })
 
     return NextResponse.json({ locker: data })
@@ -216,17 +217,17 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'Failed to update locker' }, { status: 500 })
     }
 
-    // Log to admin_action_log
-    await service.from('admin_action_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'locker_update',
-      target_table: 'lockers',
-      target_id: id,
-      before_jsonb: JSON.stringify(currentData),
-      after_jsonb: JSON.stringify(data),
-      risk_level: 'low',
-      confirmed_by: admin.userId,
+    // Audit trail (audit_log)
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'locker_update',
+      targetTable: 'lockers',
+      targetId: id,
+      beforeJsonb: currentData as Record<string, unknown>,
+      afterJsonb: data as Record<string, unknown>,
+      riskLevel: 'low',
+      confirmedBy: admin.userId,
     })
 
     return NextResponse.json({ locker: data })
@@ -283,17 +284,17 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Failed to delete locker' }, { status: 500 })
     }
 
-    // Log to admin_action_log
-    await service.from('admin_action_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'locker_delete',
-      target_table: 'lockers',
-      target_id: id,
-      before_jsonb: JSON.stringify(beforeData),
-      after_jsonb: null,
-      risk_level: 'medium',
-      confirmed_by: admin.userId,
+    // Audit trail (audit_log)
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'locker_delete',
+      targetTable: 'lockers',
+      targetId: id,
+      beforeJsonb: beforeData as Record<string, unknown>,
+      afterJsonb: null,
+      riskLevel: 'medium',
+      confirmedBy: admin.userId,
     })
 
     return NextResponse.json({ success: true })

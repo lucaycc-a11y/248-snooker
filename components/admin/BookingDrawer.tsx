@@ -275,9 +275,9 @@ export default function BookingDrawer({ bookingId, onClose, onRefresh }: Booking
   const userName = booking?.userName ?? booking?.userEmail ?? 'Guest'
 
   const tabs: { key: Tab; label: string; icon: typeof FileText }[] = [
-    { key: 'details', label: 'Details', icon: FileText },
-    { key: 'payments', label: 'Payments', icon: CreditCard },
-    { key: 'audit', label: 'Audit Log', icon: Clock },
+    { key: 'details', label: '詳情', icon: FileText },
+    { key: 'payments', label: '付款', icon: CreditCard },
+    { key: 'audit', label: '審計記錄', icon: Clock },
   ]
 
   return createPortal(
@@ -417,7 +417,7 @@ function DetailsTab({
   if (!booking) {
     return (
       <div className="flex items-center justify-center py-16 text-[var(--admin-text-muted)]">
-        <span className="text-sm">Booking not found</span>
+        <span className="text-sm">找不到預約</span>
       </div>
     )
   }
@@ -503,7 +503,7 @@ function DetailsTab({
               className="flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/20 transition-colors"
             >
               <Ban size={14} />
-              <span data-cms-key="admin_booking_action_cancel">Cancel</span>
+              <span data-cms-key="admin_booking_action_cancel">取消</span>
             </button>
           )}
           <button
@@ -591,29 +591,29 @@ function PaymentsTab({
           <div className="space-y-1.5">
             {p.providerOrderNo && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--admin-text-muted)]">Provider Order</span>
+                <span className="text-[var(--admin-text-muted)]">付款平台訂單</span>
                 <span className="font-mono text-[var(--admin-text)]">{p.providerOrderNo}</span>
               </div>
             )}
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[var(--admin-text-muted)]">Provider</span>
+              <span className="text-[var(--admin-text-muted)]">付款方式</span>
               <span className="text-[var(--admin-text)]">{p.provider}</span>
             </div>
             {p.failureCode && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--admin-text-muted)]">Failure Code</span>
+                <span className="text-[var(--admin-text-muted)]">失敗代碼</span>
                 <span className="font-mono text-red-400">{p.failureCode}</span>
               </div>
             )}
             {p.failureReason && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--admin-text-muted)]">Failure Reason</span>
+                <span className="text-[var(--admin-text-muted)]">失敗原因</span>
                 <span className="text-red-400 text-right max-w-[280px]">{p.failureReason}</span>
               </div>
             )}
             {p.completedAt && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--admin-text-muted)]">Completed</span>
+                <span className="text-[var(--admin-text-muted)]">已完成</span>
                 <span className="font-mono text-[var(--admin-text)]">{formatDateTime(p.completedAt)}</span>
               </div>
             )}
@@ -646,7 +646,7 @@ function AuditTab({
     return (
       <div className="flex flex-col items-center justify-center py-16 text-[var(--admin-text-muted)]">
         <Clock size={32} className="mb-3 opacity-40" />
-        <span className="text-sm">No audit entries found</span>
+        <span className="text-sm">沒有審計記錄</span>
       </div>
     )
   }
@@ -680,12 +680,12 @@ function AuditTab({
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[var(--admin-text-muted)]">Admin</span>
+              <span className="text-[var(--admin-text-muted)]">管理員</span>
               <span className="text-[var(--admin-text)]">{e.adminEmail}</span>
             </div>
             {e.targetTable && (
               <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--admin-text-muted)]">Target</span>
+                <span className="text-[var(--admin-text-muted)]">對象</span>
                 <span className="font-mono text-[var(--admin-text)]">{e.targetTable}{e.targetId ? ` / ${e.targetId.slice(0, 8)}` : ''}</span>
               </div>
             )}
@@ -697,7 +697,7 @@ function AuditTab({
               <div className="grid grid-cols-2 gap-2">
                 {e.beforeJsonb && (
                   <div>
-                    <span className="text-[10px] text-[var(--admin-text-muted)] uppercase tracking-wider">Before</span>
+                    <span className="text-[10px] text-[var(--admin-text-muted)] uppercase tracking-wider">之前</span>
                     <pre className="mt-1 text-[11px] font-mono text-red-400/80 whitespace-pre-wrap break-all max-h-24 overflow-y-auto">
                       {JSON.stringify(e.beforeJsonb, null, 1)}
                     </pre>
@@ -705,7 +705,7 @@ function AuditTab({
                 )}
                 {e.afterJsonb && (
                   <div>
-                    <span className="text-[10px] text-[var(--admin-text-muted)] uppercase tracking-wider">After</span>
+                    <span className="text-[10px] text-[var(--admin-text-muted)] uppercase tracking-wider">之後</span>
                     <pre className="mt-1 text-[11px] font-mono text-emerald-400/80 whitespace-pre-wrap break-all max-h-24 overflow-y-auto">
                       {JSON.stringify(e.afterJsonb, null, 1)}
                     </pre>

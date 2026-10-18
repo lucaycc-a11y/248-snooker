@@ -183,7 +183,7 @@ export default function DoorCardTable({ initial }: { initial: DoorCardRow[] }) {
               Card detected — UID {uid}
             </div>
             <div style={{ marginBottom: tokens.spacing.sm }}>
-              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Confirm label</label>
+              <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>確認標籤</label>
           <Input value={confirmLabel} onChange={(e) => setConfirmLabel(e.target.value)} />
             </div>
             <div style={{ display: 'flex', gap: tokens.spacing.sm }}>

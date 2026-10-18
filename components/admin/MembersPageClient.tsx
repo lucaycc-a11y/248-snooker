@@ -13,7 +13,7 @@
  * /tmp/admin-ref/*-08-members-grid.png.
  */
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { type AdminMemberRow } from '@/lib/data/getAdminMembers'
 import { money } from '@/lib/admin/today'
 import MemberCardGrid from './MemberCardGrid'
@@ -63,6 +63,11 @@ function Seg<T extends string>({
 
 type Props = {
   members: AdminMemberRow[]
+  /**
+   * Loader failure message. When set the list is NOT an empty result — show a
+   * banner with this text instead of 找不到會員.
+   */
+  error?: string | null
   /** Renders for the 帳戶異常 tab. The real page passes <AccountFlagsList />. */
   flagsSlot?: React.ReactNode
   /** Gates the 修改電話與電郵 row in the detail sheet. */
@@ -74,6 +79,7 @@ type Props = {
 
 export default function MembersPageClient({
   members,
+  error,
   flagsSlot,
   isSuperAdmin = false,
   preview,
@@ -84,15 +90,52 @@ export default function MembersPageClient({
   const [view, setView] = useState<MemView>('grid')
   const [tab, setTab] = useState<'list' | 'flags'>('list')
   const [openId, setOpenId] = useState<string | null>(null)
+  const [includeHidden, setIncludeHidden] = useState(false)
+  const [rowsData, setRowsData] = useState<AdminMemberRow[]>(members)
+  const [loadError, setLoadError] = useState<string | null>(error ?? null)
+
+  // 「顯示隱藏帳戶」 re-fetches through the shared loader rather than
+  // re-filtering the rows already in memory — hidden accounts must never be
+  // excluded (or included) by the browser.
+  useEffect(() => {
+    setRowsData(members)
+    setLoadError(error ?? null)
+  }, [members, error])
+
+  useEffect(() => {
+    if (!includeHidden) return
+    let cancelled = false
+    setLoadError(null)
+    fetch('/api/admin/users?includeHidden=true&page=1')
+      .then(async (res) => {
+        const json = (await res.json()) as {
+          error?: string
+          members?: AdminMemberRow[]
+        }
+        if (cancelled) return
+        if (!res.ok || json.error) {
+          setLoadError(json.error ?? '會員資料載入失敗')
+          return
+        }
+        setRowsData(json.members ?? [])
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return
+        setLoadError(e instanceof Error ? e.message : '會員資料載入失敗')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [includeHidden])
 
   const rows = useMemo(
     () =>
-      members.filter((m) => {
+      rowsData.filter((m) => {
         if (filter === 'bl' && !m.isBlacklisted) return false
         if (filter === 'rv' && !m.needsManualPhoneReverify) return false
         return matchesQuery(m, q)
       }),
-    [members, filter, q],
+    [rowsData, filter, q],
   )
 
   const open = (id: string) => {
@@ -102,7 +145,7 @@ export default function MembersPageClient({
     if (preview && onOpen) onOpen(id)
   }
 
-  const openMember = openId ? members.find((m) => m.id === openId) : null
+  const openMember = openId ? rowsData.find((m) => m.id === openId) : null
 
   return (
     <>
@@ -173,10 +216,28 @@ export default function MembersPageClient({
                 { key: 'table', label: '表格', cmsKey: 'admin.members.view_table' },
               ]}
             />
+            <label className="admin-field" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <input
+                type="checkbox"
+                checked={includeHidden}
+                onChange={(e) => setIncludeHidden(e.target.checked)}
+                data-cms-key="admin.members.show_hidden"
+              />
+              <span data-cms-key="admin.members.show_hidden_label">顯示隱藏帳戶</span>
+            </label>
           </div>
 
           <section className="admin-card flat" data-mv={view}>
-            {rows.length === 0 ? (
+            {loadError ? (
+              <div
+                className="admin-empty"
+                role="alert"
+                data-cms-key="admin.members.error"
+                style={{ color: 'var(--admin-danger, #f87171)' }}
+              >
+                {loadError}
+              </div>
+            ) : rows.length === 0 ? (
               <div className="admin-empty" data-cms-key="admin.members.empty">
                 找不到會員
               </div>
@@ -214,6 +275,11 @@ export default function MembersPageClient({
                         {m.needsManualPhoneReverify ? (
                           <span className="admin-tag warn" data-cms-key="admin.members.badge_reverify">
                             待重新驗證電話
+                          </span>
+                        ) : null}
+                        {m.isHidden ? (
+                          <span className="admin-tag warn" data-cms-key="admin.members.badge_hidden">
+                            已隱藏
                           </span>
                         ) : null}
                       </span>

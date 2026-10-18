@@ -28,7 +28,7 @@ export default function LiveOccupancy({ initial }: { initial: LiveOccupancyData 
       <div style={{ fontSize: 32, fontWeight: 700, color: tokens.colors.text }}>
         {data.tablesInUse} / {data.totalTables}
       </div>
-      <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>Tables in use now</div>
+      <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>現正使用中的球桌</div>
     </div>
   )
 }

@@ -7,7 +7,7 @@ import { tokens } from '@/app/styles/tokens'
 import type { DayDensity, CalendarBooking } from '@/lib/data/getAdminCalendar'
 
 type MonthResponse = { days: DayDensity[] }
-type DayResponse = { bookings: CalendarBooking[] }
+type DayResponse = { bookings: CalendarBooking[]; error?: string }
 
 const TOTAL_TABLES = 2
 const OPEN_HOUR = 6
@@ -43,6 +43,7 @@ export default function SlotCalendar({ initialYear, initialMonth, initialDays }:
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [dayBookings, setDayBookings] = useState<CalendarBooking[]>([])
   const [loadingDay, setLoadingDay] = useState(false)
+  const [dayError, setDayError] = useState<string | null>(null)
   const [popupBooking, setPopupBooking] = useState<CalendarBooking | null>(null)
 
   const fetchMonth = useCallback((y: number, m: number) => {
@@ -62,9 +63,21 @@ export default function SlotCalendar({ initialYear, initialMonth, initialDays }:
   function openDay(date: string) {
     setSelectedDate(date)
     setLoadingDay(true)
+    setDayError(null)
     fetch(`/api/admin/calendar?view=day&date=${date}`)
-      .then((res) => res.json())
-      .then((json: DayResponse) => setDayBookings(json.bookings))
+      .then(async (res) => {
+        const json = (await res.json()) as DayResponse
+        if (!res.ok || json.error) {
+          setDayError(json.error ?? '日曆資料載入失敗')
+          setDayBookings([])
+          return
+        }
+        setDayBookings(json.bookings)
+      })
+      .catch((e: unknown) => {
+        setDayError(e instanceof Error ? e.message : '日曆資料載入失敗')
+        setDayBookings([])
+      })
       .finally(() => setLoadingDay(false))
   }
 
@@ -80,13 +93,27 @@ export default function SlotCalendar({ initialYear, initialMonth, initialDays }:
       <div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: tokens.spacing.md }}>
           <Button variant="secondary" size="sm" onClick={() => setSelectedDate(null)}>
-            Back to month
+            返回月曆
           </Button>
           <div style={{ color: tokens.colors.text, fontSize: 16, fontWeight: 700 }}>{selectedDate}</div>
         </div>
 
-        {loadingDay ? (
-          <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>Loading…</div>
+        {dayError ? (
+          <div
+            role="alert"
+            data-cms-key="admin.calendar.day_error"
+            style={{
+              padding: '12px 16px',
+              borderRadius: 12,
+              border: `1px solid ${tokens.colors.danger}`,
+              color: tokens.colors.danger,
+              fontSize: 14,
+            }}
+          >
+            {dayError}
+          </div>
+        ) : loadingDay ? (
+          <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>載入中…</div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: `60px repeat(${TOTAL_TABLES}, 1fr)`, border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.card, overflow: 'hidden' }}>
             <div style={{ borderBottom: `1px solid ${tokens.colors.border}` }} />
@@ -103,7 +130,7 @@ export default function SlotCalendar({ initialYear, initialMonth, initialDays }:
                   borderLeft: `1px solid ${tokens.colors.border}`,
                 }}
               >
-                Table {t}
+                {t} 號桌
               </div>
             ))}
 

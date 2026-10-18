@@ -13,8 +13,8 @@ export type RiskLevel = 'low' | 'medium' | 'high'
 
 const CONFIG: Record<RiskLevel, { color: string; bg: string; label: string }> = {
   low:    { color: 'var(--admin-brand)',  bg: 'var(--admin-brand-dim)',  label: 'Low' },
-  medium: { color: 'var(--admin-warning)', bg: 'var(--admin-warning-dim)', label: 'Medium' },
-  high:   { color: 'var(--admin-danger)',  bg: 'var(--admin-danger-dim)',  label: 'High' },
+  medium: { color: 'var(--admin-warning)', bg: 'var(--admin-warning-dim)', label: '中' },
+  high:   { color: 'var(--admin-danger)',  bg: 'var(--admin-danger-dim)',  label: '高' },
 }
 
 export function computeRiskLevel(

@@ -16,8 +16,8 @@ import { useAdminToast } from '@/components/admin/ToastProvider'
 type AccountFlagRow = {
   id: string
   flag_type: 'shared_ip' | 'shared_device'
-  flag_key: string
-  member_ids: string[]
+  key_value: string
+  user_ids: string[]
   event_count: number
   first_seen: string | null
   last_seen: string | null
@@ -230,7 +230,7 @@ export default function AccountFlagsList({ initialFlags = [] }: Props) {
                   className="text-xs"
                   style={{ color: 'var(--admin-text)', wordBreak: 'break-all' }}
                 >
-                  {flag.flag_key}
+                  {flag.key_value}
                 </code>
                 <div style={{ flex: 1 }} />
                 <button
@@ -260,7 +260,7 @@ export default function AccountFlagsList({ initialFlags = [] }: Props) {
                 style={{ color: 'var(--admin-text-muted)' }}
               >
                 <span data-cms-key="admin.flags.member_count">
-                  會員數：{flag.member_ids.length}
+                  會員數：{flag.user_ids.length}
                 </span>
                 <span data-cms-key="admin.flags.event_count">
                   事件數：{flag.event_count}
@@ -277,9 +277,9 @@ export default function AccountFlagsList({ initialFlags = [] }: Props) {
                 )}
               </div>
 
-              {flag.member_ids.length > 0 && (
+              {flag.user_ids.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
-                  {flag.member_ids.slice(0, 8).map((id) => (
+                  {flag.user_ids.slice(0, 8).map((id) => (
                     <span
                       key={id}
                       className="rounded px-1.5 py-0.5 text-[10px]"
@@ -292,12 +292,12 @@ export default function AccountFlagsList({ initialFlags = [] }: Props) {
                       {id.slice(0, 8)}
                     </span>
                   ))}
-                  {flag.member_ids.length > 8 && (
+                  {flag.user_ids.length > 8 && (
                     <span
                       className="px-1.5 py-0.5 text-[10px]"
                       style={{ color: 'var(--admin-text-muted)' }}
                     >
-                      +{flag.member_ids.length - 8}
+                      +{flag.user_ids.length - 8}
                     </span>
                   )}
                 </div>

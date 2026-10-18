@@ -1595,8 +1595,8 @@
     "semantic_hash": ""
   },
   "app/admin/members/page.tsx": {
-    "mtime": 1792240877.729984,
-    "ast_hash": "46101b4a1c534240cc09799f815227a9",
+    "mtime": 1792245054.90136,
+    "ast_hash": "130b8ff28032ea2084f05af9d541298a",
     "semantic_hash": ""
   },
   "app/admin/notifications/page.tsx": {
@@ -4145,8 +4145,8 @@
     "semantic_hash": ""
   },
   "lib/data/getAdminMembers.ts": {
-    "mtime": 1792240442.1111572,
-    "ast_hash": "24ef6c919c0e6dd9386954deed1c3b85",
+    "mtime": 1792243691.7615492,
+    "ast_hash": "d819d2dd09fe1ff2f15d192c16d95ce9",
     "semantic_hash": ""
   },
   "lib/data/getAdminSiteGate.ts": {
@@ -10900,8 +10900,8 @@
     "semantic_hash": ""
   },
   "app/admin-shell-preview/page.tsx": {
-    "mtime": 1792242412.2306476,
-    "ast_hash": "e5ed4fee4aa46d4be63b6f487a7ef732",
+    "mtime": 1792243859.890627,
+    "ast_hash": "c558dfbd91d4f88f8a9ea5f49e65288c",
     "semantic_hash": ""
   },
   "components/admin/AdminRoleSelect.tsx": {
@@ -10910,8 +10910,13 @@
     "semantic_hash": ""
   },
   "components/admin/MembersPageClient.tsx": {
-    "mtime": 1792241667.4840634,
-    "ast_hash": "09191b814d95927cbc137b669da82f0b",
+    "mtime": 1792243821.688972,
+    "ast_hash": "84667b256b0d33d1811869243311117c",
+    "semantic_hash": ""
+  },
+  "components/admin/MemberDetailSheet.tsx": {
+    "mtime": 1792243762.0704498,
+    "ast_hash": "6e0e1265c8a48721254ce03c5f4d710b",
     "semantic_hash": ""
   }
 }

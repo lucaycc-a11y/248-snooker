@@ -70,7 +70,7 @@ export default function AnomalyWidget({ size }: WidgetProps) {
       ) : count === 0 ? (
         <div className="flex flex-col items-center py-4 opacity-50">
           <AlertTriangle size={24} className="text-[var(--admin-text-muted)] mb-2" />
-          <p className="text-xs text-[var(--admin-text-muted)]">No anomalies detected</p>
+          <p className="text-xs text-[var(--admin-text-muted)]">沒有偵測到異常</p>
         </div>
       ) : (
         <div className="space-y-2">

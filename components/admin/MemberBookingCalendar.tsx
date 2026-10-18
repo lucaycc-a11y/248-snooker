@@ -36,7 +36,7 @@ export default function MemberBookingCalendar({ bookings }: { bookings: MemberBo
   const [monthIdx, setMonthIdx] = useState(0)
 
   if (months.length === 0) {
-    return <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>No bookings yet.</div>
+    return <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>尚未有預約。</div>
   }
 
   const key = months[monthIdx]

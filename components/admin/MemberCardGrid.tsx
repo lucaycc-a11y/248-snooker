@@ -7,7 +7,7 @@
  *   mtop   → initial avatar + flag tags
  *   mn     → display name
  *   ms     → member code (mono)
- *   mbox   → 積分 / Credit panel on the page background
+ *   mbox   → 積分 / 錢包額度 panel on the page background
  *   ms     → phone
  *
  * Avatar variant is the prototype's `(name.charCodeAt(0) || 0) % 3`, not a
@@ -18,7 +18,7 @@ import { useRouter } from 'next/navigation'
 import { type AdminMemberRow } from '@/lib/data/getAdminMembers'
 import { money } from '@/lib/admin/today'
 
-/** Prototype `memBadges()` — only these two, in this order. */
+/** Prototype `memBadges()` — blacklist + reverify, plus 「已隱藏」 for admin accounts. */
 function memberBadges(m: AdminMemberRow): React.ReactNode {
   return (
     <>
@@ -30,6 +30,11 @@ function memberBadges(m: AdminMemberRow): React.ReactNode {
       {m.needsManualPhoneReverify ? (
         <span className="admin-tag warn" data-cms-key="admin.members.badge_reverify">
           待重新驗證電話
+        </span>
+      ) : null}
+      {m.isHidden ? (
+        <span className="admin-tag warn" data-cms-key="admin.members.badge_hidden">
+          已隱藏
         </span>
       ) : null}
     </>
@@ -72,7 +77,7 @@ export default function MemberCardGrid({ members, onOpen }: Props) {
                 <b className="admin-num">{m.points}</b>
               </span>
               <span>
-                <small data-cms-key="admin.members.credit">Credit</small>
+                <small data-cms-key="admin.members.credit">錢包額度</small>
                 <b className="admin-num">{money(m.credits)}</b>
               </span>
             </span>

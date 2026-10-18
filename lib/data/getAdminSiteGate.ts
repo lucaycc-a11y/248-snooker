@@ -1,4 +1,5 @@
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { logSiteError } from '@/lib/errors/log'
 
 // Data for /admin/site-gate: current gate state, IP whitelist, and recent
 // access log. Mirrors getAdminMembers.ts's shape (service-role reads, never
@@ -21,6 +22,8 @@ export type AdminSiteGateData = {
   hasPassword: boolean
   whitelist: SiteGateWhitelistRow[]
   log: SiteGateLogRow[]
+  /** Non-null = load failed; do not render as an empty list. */
+  error: string | null
 }
 
 export async function getAdminSiteGate(): Promise<AdminSiteGateData> {
@@ -41,6 +44,7 @@ export async function getAdminSiteGate(): Promise<AdminSiteGateData> {
     ])
 
     return {
+      error: null,
       enabled: configRow?.enabled === true,
       hasPassword: Boolean(configRow?.password_hash),
       whitelist: ((whitelistRows ?? []) as Record<string, unknown>[]).map((r) => ({
@@ -58,7 +62,15 @@ export async function getAdminSiteGate(): Promise<AdminSiteGateData> {
       })),
     }
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
     console.error('[admin/site-gate] query failed', err)
-    return { enabled: false, hasPassword: false, whitelist: [], log: [] }
+    await logSiteError('admin.site-gate', 'error', '網站閘門資料載入失敗', { message })
+    return {
+      enabled: false,
+      hasPassword: false,
+      whitelist: [],
+      log: [],
+      error: `網站閘門資料載入失敗：${message}`,
+    }
   }
 }

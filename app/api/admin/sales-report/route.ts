@@ -36,12 +36,14 @@ export async function GET(req: Request) {
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const url = new URL(req.url)
-    const from = url.searchParams.get('from')
-    const to = url.searchParams.get('to')
-
-    if (!from || !to) {
-      return NextResponse.json({ error: 'from and to query params required' }, { status: 400 })
-    }
+    // Default to the last 30 days so a bare GET works. The old 400 on missing
+    // params made the endpoint look broken whenever a caller omitted them.
+    const toParam = url.searchParams.get('to')
+    const fromParam = url.searchParams.get('from')
+    const to = toParam ?? new Date().toISOString().slice(0, 10)
+    const from =
+      fromParam ??
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
     const service = getServiceSupabase()
 
@@ -58,10 +60,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Query failed' }, { status: 500 })
     }
 
-    // Fetch payment attempts in range
+    // payment_attempts has NO amount and NO method column — only `provider`.
+    // Selecting phantom columns fails the whole query, so keep to the real ones.
+    // Revenue still comes from bookings.total_price (amount collected).
     const { data: payments, error: paymentErr } = await service
       .from('payment_attempts')
-      .select('id, booking_id, method, amount, status, created_at')
+      .select('id, booking_id, provider, status, created_at')
       .gte('created_at', `${from}T00:00:00`)
       .lte('created_at', `${to}T23:59:59`)
       .order('created_at', { ascending: true })
@@ -120,7 +124,7 @@ export async function GET(req: Request) {
         dailyMap[day] = { revenue: 0, bookings: 0, paidCount: 0, pendingCount: 0, failedCount: 0, methods: {} }
       }
 
-      const method = str(p as Record<string, unknown>, 'method') ?? 'other'
+      const method = str(p as Record<string, unknown>, 'provider') ?? 'other'
       dailyMap[day].methods[method] = (dailyMap[day].methods[method] ?? 0) + 1
     }
 

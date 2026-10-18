@@ -133,7 +133,7 @@ function PendingActionCard({ action }: { action: AIResponsePendingAction }) {
       <div className="bg-[var(--green-500)]/10 border border-[var(--green-500)]/20 rounded-xl p-3">
         <div className="flex items-center gap-2 text-sm text-[var(--green-500)]">
           <CheckCircle2 size={16} />
-          <span className="font-medium">Action confirmed</span>
+          <span className="font-medium">操作已確認</span>
         </div>
         <p className="text-xs text-[var(--text-muted)] mt-1">{action.targetSummary}</p>
       </div>
@@ -354,14 +354,14 @@ export default function AdminAIPanel() {
                   <div className="w-7 h-7 rounded-full bg-[var(--green-500)]/15 flex items-center justify-center">
                     <Sparkles size={14} className="text-[var(--green-500)]" />
                   </div>
-                  <span className="text-sm font-semibold text-[var(--text)]">AI Assistant</span>
+                  <span className="text-sm font-semibold text-[var(--text)]">AI 助手</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {/* Rate limit indicator */}
                   {rateLimited && (
                     <div className="flex items-center gap-1 text-xs text-amber-400">
                       <Clock size={12} />
-                      <span>Rate limited</span>
+                      <span>已達流量上限</span>
                     </div>
                   )}
                   <button

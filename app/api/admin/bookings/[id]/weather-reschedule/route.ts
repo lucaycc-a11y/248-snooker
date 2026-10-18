@@ -18,6 +18,7 @@ import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str } from '@/lib/data/adminReadHelpers'
 import { withAdminSecurity } from '@/lib/security/admin-wrapper'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -144,37 +145,30 @@ async function handleWeatherReschedule(
     }
 
     // ── Audit ─────────────────────────────────────────────────────────
-    try {
-      await service.from('admin_action_log').insert({
-        admin_id: admin.userId,
-        admin_email: admin.email,
-        action_type: 'booking_weather_reschedule',
-        target_table: 'bookings',
-        target_id: bookingId,
-        before_jsonb: {
-          date: booking.date,
-          start_time: booking.start_time,
-          end_time: booking.end_time,
-          table_number: booking.table_number,
-          duration_hours: booking.duration_hours,
-        },
-        after_jsonb: {
-          date,
-          start_time: startTime,
-          end_time: endTime,
-          table_number: tableNumber,
-          duration_hours: durationHours,
-          whatsapp_note: whatsappNote.trim(),
-        },
-        risk_level: 'medium',
-        confirmed_by: admin.userId,
-      })
-    } catch (logErr) {
-      console.warn('[weather-reschedule] audit_log_write_failed', {
-        bookingId,
-        message: (logErr as Error).message,
-      })
-    }
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'booking_weather_reschedule',
+      targetTable: 'bookings',
+      targetId: bookingId,
+      beforeJsonb: {
+        date: booking.date,
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        table_number: booking.table_number,
+        duration_hours: booking.duration_hours,
+      },
+      afterJsonb: {
+        date,
+        start_time: startTime,
+        end_time: endTime,
+        table_number: tableNumber,
+        duration_hours: durationHours,
+        whatsapp_note: whatsappNote.trim(),
+      },
+      riskLevel: 'medium',
+      confirmedBy: admin.userId,
+    })
 
     console.log('[weather-reschedule] success', {
       bookingId,

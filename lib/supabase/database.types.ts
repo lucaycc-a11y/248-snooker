@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_action_codes: {
+        Row: {
+          attempts: number
+          code_hash: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          max_attempts: number
+          purpose: string
+          recipient_email: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          max_attempts?: number
+          purpose: string
+          recipient_email: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          max_attempts?: number
+          purpose?: string
+          recipient_email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       account_change_audit: {
         Row: {
           action: string
@@ -94,6 +133,45 @@ export type Database = {
         }
         Relationships: []
       }
+      account_flags: {
+        Row: {
+          event_count: number
+          first_seen: string
+          flag_type: string
+          id: string
+          key_value: string
+          last_seen: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_ids: string[]
+        }
+        Insert: {
+          event_count?: number
+          first_seen?: string
+          flag_type: string
+          id?: string
+          key_value: string
+          last_seen?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_ids?: string[]
+        }
+        Update: {
+          event_count?: number
+          first_seen?: string
+          flag_type?: string
+          id?: string
+          key_value?: string
+          last_seen?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_ids?: string[]
+        }
+        Relationships: []
+      }
       admin_dashboard_config: {
         Row: {
           admin_id: string
@@ -149,6 +227,35 @@ export type Database = {
             columns: ["admin_user_id"]
             isOneToOne: false
             referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_hidden_users: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_hidden_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1130,6 +1237,42 @@ export type Database = {
         }
         Relationships: []
       }
+      identity_change_history: {
+        Row: {
+          admin_user_id: string
+          changed_at: string
+          id: string
+          kind: string
+          new_hash: string
+          old_hash: string | null
+          override_cooldown: boolean
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          admin_user_id: string
+          changed_at?: string
+          id?: string
+          kind: string
+          new_hash: string
+          old_hash?: string | null
+          override_cooldown?: boolean
+          reason: string
+          user_id: string
+        }
+        Update: {
+          admin_user_id?: string
+          changed_at?: string
+          id?: string
+          kind?: string
+          new_hash?: string
+          old_hash?: string | null
+          override_cooldown?: boolean
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       locker_bookings: {
         Row: {
           booking_id: string | null
@@ -1210,6 +1353,107 @@ export type Database = {
           label?: string | null
           number?: number
           status?: string
+        }
+        Relationships: []
+      }
+      login_events: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          event_type: string
+          failure_reason: string | null
+          id: string
+          ip: unknown
+          is_test: boolean
+          method: string
+          subject_hash: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          event_type: string
+          failure_reason?: string | null
+          id?: string
+          ip?: unknown
+          is_test?: boolean
+          method: string
+          subject_hash?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          event_type?: string
+          failure_reason?: string | null
+          id?: string
+          ip?: unknown
+          is_test?: boolean
+          method?: string
+          subject_hash?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      login_exchange_codes: {
+        Row: {
+          admin_user_id: string
+          code: string
+          created_at: string
+          expires_at: string
+          redirect_scheme: string | null
+          used_at: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          code: string
+          created_at?: string
+          expires_at: string
+          redirect_scheme?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          code?: string
+          created_at?: string
+          expires_at?: string
+          redirect_scheme?: string | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_exchange_codes_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      login_monitor_allowlist: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          id: string
+          ip_range: unknown
+          label: string
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          ip_range?: unknown
+          label: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          ip_range?: unknown
+          label?: string
         }
         Relationships: []
       }
@@ -2071,12 +2315,15 @@ export type Database = {
           birthday_set: boolean
           created_at: string | null
           credits: number
+          date_of_birth: string | null
+          deleted_at: string | null
           display_name: string | null
           email: string | null
           email_verified_at: string | null
           gender: string | null
           id: string
           is_blacklisted: boolean
+          is_deleted: boolean
           member_code: string | null
           member_qr_jwt: string | null
           member_since: string | null
@@ -2088,6 +2335,9 @@ export type Database = {
           points: number | null
           points_converted: number
           profile_complete: boolean | null
+          purged_at: string | null
+          restore_notice_pending: boolean
+          scheduled_purge_at: string | null
           tier: string | null
           updated_at: string | null
           wallet_notify_opt_in: boolean | null
@@ -2098,12 +2348,15 @@ export type Database = {
           birthday_set?: boolean
           created_at?: string | null
           credits?: number
+          date_of_birth?: string | null
+          deleted_at?: string | null
           display_name?: string | null
           email?: string | null
           email_verified_at?: string | null
           gender?: string | null
           id: string
           is_blacklisted?: boolean
+          is_deleted?: boolean
           member_code?: string | null
           member_qr_jwt?: string | null
           member_since?: string | null
@@ -2115,6 +2368,9 @@ export type Database = {
           points?: number | null
           points_converted?: number
           profile_complete?: boolean | null
+          purged_at?: string | null
+          restore_notice_pending?: boolean
+          scheduled_purge_at?: string | null
           tier?: string | null
           updated_at?: string | null
           wallet_notify_opt_in?: boolean | null
@@ -2125,12 +2381,15 @@ export type Database = {
           birthday_set?: boolean
           created_at?: string | null
           credits?: number
+          date_of_birth?: string | null
+          deleted_at?: string | null
           display_name?: string | null
           email?: string | null
           email_verified_at?: string | null
           gender?: string | null
           id?: string
           is_blacklisted?: boolean
+          is_deleted?: boolean
           member_code?: string | null
           member_qr_jwt?: string | null
           member_since?: string | null
@@ -2142,6 +2401,9 @@ export type Database = {
           points?: number | null
           points_converted?: number
           profile_complete?: boolean | null
+          purged_at?: string | null
+          restore_notice_pending?: boolean
+          scheduled_purge_at?: string | null
           tier?: string | null
           updated_at?: string | null
           wallet_notify_opt_in?: boolean | null
@@ -2294,13 +2556,89 @@ export type Database = {
         }
         Relationships: []
       }
+      v_open_account_flags: {
+        Row: {
+          account_count: number | null
+          event_count: number | null
+          first_seen: string | null
+          flag_type: string | null
+          id: string | null
+          key_value: string | null
+          last_seen: string | null
+          open_for: string | null
+          user_ids: string[] | null
+        }
+        Insert: {
+          account_count?: never
+          event_count?: number | null
+          first_seen?: string | null
+          flag_type?: string | null
+          id?: string | null
+          key_value?: string | null
+          last_seen?: string | null
+          open_for?: never
+          user_ids?: string[] | null
+        }
+        Update: {
+          account_count?: never
+          event_count?: number | null
+          first_seen?: string | null
+          flag_type?: string | null
+          id?: string | null
+          key_value?: string | null
+          last_seen?: string | null
+          open_for?: never
+          user_ids?: string[] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      account_code_hash: { Args: { p_code: string }; Returns: string }
+      account_delete_confirm: {
+        Args: { p_code: string; p_user: string }
+        Returns: Json
+      }
+      account_delete_issue_code: {
+        Args: { p_code: string; p_user: string }
+        Returns: Json
+      }
+      account_take_restore_notice: { Args: { p_user: string }; Returns: Json }
+      admin_adjust_credit: {
+        Args: {
+          p_admin_id: string
+          p_amount: number
+          p_note: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      admin_adjust_points: {
+        Args: {
+          p_admin_id: string
+          p_delta: number
+          p_note: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      admin_cancel_with_credit: {
+        Args: {
+          p_admin_id: string
+          p_booking_id: string
+          p_credit_amount: number
+          p_notice_message: string
+          p_notice_title: string
+          p_reason: string
+          p_whatsapp_ref: string
+        }
+        Returns: Json
+      }
       admin_change_user_identity: {
         Args: {
           p_admin_user_id: string
-          p_new_email: string | null
-          p_new_phone: string | null
+          p_new_email: string
+          p_new_phone: string
           p_override?: boolean
           p_reason: string
           p_user_id: string
@@ -2519,6 +2857,19 @@ export type Database = {
         Args: { p_kind: string; p_value: string }
         Returns: string
       }
+      identity_canonical: {
+        Args: { p_kind: string; p_value: string }
+        Returns: string
+      }
+      identity_hash: {
+        Args: { p_kind: string; p_value: string }
+        Returns: string
+      }
+      identity_mask: {
+        Args: { p_kind: string; p_value: string }
+        Returns: string
+      }
+      identity_pepper: { Args: never; Returns: string }
       invite_admin: {
         Args: { p_email: string; p_invited_by: string; p_role: string }
         Returns: Json
@@ -2531,6 +2882,10 @@ export type Database = {
       is_identity_reserved: {
         Args: { p_kind: string; p_value: string }
         Returns: boolean
+      }
+      login_monitor_setting: {
+        Args: { p_default: number; p_key: string }
+        Returns: number
       }
       mark_kpay_payment_failed: {
         Args: { p_booking_id: string; p_event_id?: string }
@@ -2577,7 +2932,22 @@ export type Database = {
         }
         Returns: Json
       }
+      prepare_checkout_next: {
+        Args: {
+          p_booking_id: string
+          p_credits?: number
+          p_points?: number
+          p_promo_code?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       purge_deleted_account_identities: { Args: never; Returns: number }
+      purge_due_deleted_accounts: {
+        Args: { p_dry_run?: boolean; p_only_user?: string }
+        Returns: Json
+      }
+      purge_old_login_events: { Args: never; Returns: number }
       record_deleted_identities: {
         Args: { p_user_id: string }
         Returns: number
@@ -2614,10 +2984,6 @@ export type Database = {
       }
       request_booking_refund: {
         Args: { p_booking_id: string; p_reason?: string }
-        Returns: Json
-      }
-      request_member_data_deletion: {
-        Args: { p_forfeit_wallet?: boolean }
         Returns: Json
       }
       reschedule_booking: {
@@ -2664,6 +3030,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      review_account_flag: {
+        Args: { p_flag_id: string; p_status: string }
+        Returns: undefined
+      }
+      sheet_sync_promotion_codes: {
+        Args: { p_rows: Json; p_source?: string }
+        Returns: Json
+      }
       trigger_apple_secret_rotation: { Args: never; Returns: undefined }
       try_lock_slot:
         | {
@@ -2685,7 +3059,18 @@ export type Database = {
             Returns: Json
           }
       update_user_tier: { Args: { p_user_id: string }; Returns: undefined }
+      upsert_account_flag: {
+        Args: {
+          p_count: number
+          p_key: string
+          p_type: string
+          p_users: string[]
+        }
+        Returns: undefined
+      }
       use_promotion_code: { Args: { p_code: string }; Returns: boolean }
+      user_has_activated_booking: { Args: { p_user: string }; Returns: boolean }
+      user_is_active_admin: { Args: { p_user: string }; Returns: boolean }
       validate_member_code: { Args: { code: string }; Returns: boolean }
       validate_promotion_code:
         | { Args: { p_cart_amount?: number; p_code: string }; Returns: Json }

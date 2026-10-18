@@ -98,17 +98,17 @@ export default function AdminInviteManager() {
 
   return (
     <div>
-      <h2 style={{ fontSize: 20, fontWeight: 700, color: TEXT, marginBottom: 16 }}>Admin Invites</h2>
+      <h2 style={{ fontSize: 20, fontWeight: 700, color: TEXT, marginBottom: 16 }}>管理員邀請</h2>
 
       {/* Send invite form */}
       <Card style={{ padding: '20px', marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 200 }}>
-            <label style={{ fontSize: 12, color: MUTED, marginBottom: 4, display: 'block' }}>Email</label>
+            <label style={{ fontSize: 12, color: MUTED, marginBottom: 4, display: 'block' }}>電郵</label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@example.com" type="email" />
           </div>
           <div style={{ minWidth: 120 }}>
-            <label style={{ fontSize: 12, color: MUTED, marginBottom: 4, display: 'block' }}>Role</label>
+            <label style={{ fontSize: 12, color: MUTED, marginBottom: 4, display: 'block' }}>角色</label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value as 'admin' | 'super_admin')}
@@ -117,8 +117,8 @@ export default function AdminInviteManager() {
                 background: GLASS_BG, color: TEXT, fontSize: 14,
               }}
             >
-              <option value="admin">Admin</option>
-              <option value="super_admin">Super Admin</option>
+              <option value="admin">管理員</option>
+              <option value="super_admin">超級管理員</option>
             </select>
           </div>
           <Button variant="primary" onClick={sendInvite} disabled={sending}>
@@ -130,7 +130,7 @@ export default function AdminInviteManager() {
       </Card>
 
       {loading ? (
-        <p style={{ color: MUTED, fontSize: 14 }}>Loading...</p>
+        <p style={{ color: MUTED, fontSize: 14 }}>載入中…</p>
       ) : (
         <>
           {/* Pending invites */}
@@ -201,7 +201,7 @@ export default function AdminInviteManager() {
                 </Card>
               ))}
               {activeInvites.length === 0 && (
-                <p style={{ color: MUTED, fontSize: 14 }}>No active admins.</p>
+                <p style={{ color: MUTED, fontSize: 14 }}>沒有生效中的管理員。</p>
               )}
             </div>
           </div>

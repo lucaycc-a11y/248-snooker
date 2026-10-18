@@ -67,10 +67,10 @@ interface WizardProps {
 const PROVIDERS = [
   { value: 'fps', label: 'FPS' },
   { value: 'payme', label: 'PayMe' },
-  { value: 'bank_transfer', label: 'Bank Transfer' },
-  { value: 'cash', label: 'Cash' },
-  { value: 'octopus', label: 'Octopus' },
-  { value: 'other', label: 'Other' },
+  { value: 'bank_transfer', label: '銀行轉帳' },
+  { value: 'cash', label: '現金' },
+  { value: 'octopus', label: '八達通' },
+  { value: 'other', label: '其他' },
 ]
 
 const DURATIONS = [1, 2, 3, 4, 5, 6]
@@ -89,9 +89,9 @@ function formatEndHour(start: number, duration: number): string {
 
 function StepIndicator({ step }: { step: Step }) {
   const steps = [
-    { num: 1 as Step, label: 'Payment', icon: CreditCard },
-    { num: 2 as Step, label: 'Slot', icon: CalendarDays },
-    { num: 3 as Step, label: 'User', icon: UserCheck },
+    { num: 1 as Step, label: '付款', icon: CreditCard },
+    { num: 2 as Step, label: '時段', icon: CalendarDays },
+    { num: 3 as Step, label: '會員', icon: UserCheck },
   ]
 
   return (
@@ -147,7 +147,7 @@ function StepPayment({
       {/* Provider */}
       <div>
         <label className="mb-1 block text-xs font-medium text-[var(--admin-text-muted)]">
-          Payment Provider
+          付款方式
         </label>
         <select
           value={data.provider}
@@ -165,13 +165,13 @@ function StepPayment({
       {/* Reference */}
       <div>
         <label className="mb-1 block text-xs font-medium text-[var(--admin-text-muted)]">
-          Transaction Reference
+          交易參考編號
         </label>
         <input
           type="text"
           value={data.reference}
           onChange={(e) => onChange({ ...data, reference: e.target.value })}
-          placeholder="e.g. FPS-123456789, PayMe ref..."
+          placeholder="例如 FPS-123456789、PayMe 編號…"
           className="w-full rounded-xl bg-[var(--admin-surface)] border border-[var(--admin-border)] px-3 py-2.5 text-sm text-[var(--admin-text)] placeholder:text-[var(--admin-text-muted)] outline-none focus:border-[var(--admin-brand)] transition-colors"
         />
       </div>
@@ -179,7 +179,7 @@ function StepPayment({
       {/* Amount */}
       <div>
         <label className="mb-1 block text-xs font-medium text-[var(--admin-text-muted)]">
-          Amount (HKD)
+          金額（港幣）
         </label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[var(--admin-text-muted)]">
@@ -200,12 +200,12 @@ function StepPayment({
       {/* Notes */}
       <div>
         <label className="mb-1 block text-xs font-medium text-[var(--admin-text-muted)]">
-          Notes (optional)
+          備註（選填）
         </label>
         <textarea
           value={data.notes}
           onChange={(e) => onChange({ ...data, notes: e.target.value })}
-          placeholder="Any additional context..."
+          placeholder="補充資料（選填）…"
           rows={3}
           className="w-full rounded-xl bg-[var(--admin-surface)] border border-[var(--admin-border)] px-3 py-2.5 text-sm text-[var(--admin-text)] placeholder:text-[var(--admin-text-muted)] outline-none focus:border-[var(--admin-brand)] transition-colors resize-none"
         />
@@ -238,13 +238,13 @@ function StepSlot({
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--admin-text-muted)]">
-        Select the date, time, duration, and table for this booking.
+        請選擇此預約的日期、時間、時長及球桌。
       </p>
 
       {/* Date */}
       <div>
         <label className="mb-1 block text-xs font-medium text-[var(--admin-text-muted)]">
-          Date
+          日期
         </label>
         <input
           ref={dateRef}
@@ -259,7 +259,7 @@ function StepSlot({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="mb-1 block text-xs font-medium text-[var(--admin-text-muted)]">
-            Start Time
+            開始時間
           </label>
           <select
             value={data.startHour}
@@ -275,7 +275,7 @@ function StepSlot({
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-[var(--admin-text-muted)]">
-            Duration
+            時長
           </label>
           <select
             value={data.duration}
@@ -308,7 +308,7 @@ function StepSlot({
                   : 'border-[var(--admin-border)] bg-[var(--admin-surface)] text-[var(--admin-text-muted)] hover:text-[var(--admin-text)]'
               }`}
             >
-              Table {t}
+              {t} 號桌
             </button>
           ))}
         </div>
@@ -350,8 +350,8 @@ function StepSlot({
             )}
             <span>
               {slotResult.available
-                ? `Slot available — locked until ${slotResult.lockedUntil ? new Date(slotResult.lockedUntil).toLocaleTimeString() : 'confirmed'}`
-                : `Slot conflict: ${slotResult.error ?? 'unavailable'}`}
+                ? `時段可預約 — 已鎖定至 ${slotResult.lockedUntil ? new Date(slotResult.lockedUntil).toLocaleTimeString() : '確認後'}`
+                : `時段衝突：${slotResult.error ?? '不可預約'}`}
             </span>
           </div>
         </motion.div>
@@ -384,7 +384,7 @@ function StepUser({
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--admin-text-muted)]">
-        Link this booking to a user, or leave unlinked for later assignment.
+        必須將此預約連結至會員。請搜尋並選擇一位會員。
       </p>
 
       {/* Selected user display */}
@@ -396,7 +396,7 @@ function StepUser({
         >
           <div>
             <div className="text-sm font-medium text-[var(--admin-brand)]">
-              {selectedUser.displayName ?? selectedUser.email ?? selectedUser.phone ?? 'User'}
+              {selectedUser.displayName ?? selectedUser.email ?? selectedUser.phone ?? '會員'}
             </div>
             <div className="text-xs text-[var(--admin-text-muted)]">
               {selectedUser.email}
@@ -429,7 +429,7 @@ function StepUser({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') onSearch()
                 }}
-                placeholder="Email, phone, or name..."
+                placeholder="電郵、電話或姓名…"
                 className="w-full rounded-xl bg-[var(--admin-surface)] border border-[var(--admin-border)] pl-9 pr-3 py-2.5 text-sm text-[var(--admin-text)] placeholder:text-[var(--admin-text-muted)] outline-none focus:border-[var(--admin-brand)] transition-colors"
               />
             </div>
@@ -519,7 +519,7 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
       const data = await res.json()
       setSlotResult(data)
     } catch {
-      setSlotResult({ available: false, error: 'Failed to check slot' })
+      setSlotResult({ available: false, error: '檢查時段失敗' })
     } finally {
       setCheckingSlot(false)
     }
@@ -543,6 +543,10 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
 
   // ── Submit (create booking) ────────────────────────────────────────────
   const handleCreate = useCallback(async () => {
+    if (!selectedUser) {
+      setError('必須選擇會員')
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
@@ -557,13 +561,13 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Failed to create booking')
+        setError(data.error ?? '建立預約失敗')
         return
       }
       onCreated?.()
       onClose()
     } catch {
-      setError('Network error — please try again')
+      setError('網絡錯誤，請再試一次')
     } finally {
       setSubmitting(false)
     }
@@ -573,7 +577,7 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
   const canAdvance = (): boolean => {
     if (step === 1) return payment.provider !== '' && payment.amount > 0
     if (step === 2) return slot.date !== '' && slotResult?.available === true
-    return true // step 3 always allows (user link is optional)
+    return selectedUser !== null // a real member is required
   }
 
   // ── Keyboard shortcuts ─────────────────────────────────────────────────
@@ -597,10 +601,10 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
         <div className="flex items-center justify-between border-b border-[var(--admin-border)] px-6 py-4">
           <div>
             <h2 className="text-lg font-bold text-[var(--admin-text)]" data-cms-key="manual_booking_title">
-              Manual Booking
+              手動預約
             </h2>
             <p className="text-xs text-[var(--admin-text-muted)]" data-cms-key="manual_booking_subtitle">
-              Create a booking manually with payment evidence
+              手動建立預約並記錄付款證明
             </p>
           </div>
           <button
@@ -689,11 +693,11 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
             className="flex items-center gap-1 rounded-xl border border-[var(--admin-border)] px-4 py-2.5 text-sm text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
           >
             {step === 1 ? (
-              'Cancel'
+              '取消'
             ) : (
               <>
                 <ChevronLeft size={16} />
-                Back
+                上一步
               </>
             )}
           </button>
@@ -705,25 +709,25 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
               disabled={!canAdvance()}
               className="flex items-center gap-1 rounded-xl bg-[var(--admin-brand)] px-4 py-2.5 text-sm font-medium text-black hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              Next
+              下一步
               <ChevronRight size={16} />
             </button>
           ) : (
             <button
               type="button"
               onClick={handleCreate}
-              disabled={submitting}
+              disabled={submitting || !canAdvance()}
               className="flex items-center gap-2 rounded-xl bg-[var(--admin-brand)] px-5 py-2.5 text-sm font-medium text-black hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {submitting ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  Creating...
+                  建立中…
                 </>
               ) : (
                 <>
                   <Check size={16} />
-                  Create Booking
+                  建立預約
                 </>
               )}
             </button>

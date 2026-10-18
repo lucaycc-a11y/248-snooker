@@ -15,11 +15,11 @@ import type { AdminBookingRow } from '@/lib/data/getAdminBookings'
 type ApiResponse = { bookings: AdminBookingRow[]; total: number; page: number; pageSize: number }
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'refunded', label: 'Refunded' },
-  { value: 'admin_cancelled', label: 'Cancelled' },
+  { value: '', label: '所有狀態' },
+  { value: 'confirmed', label: '已確認' },
+  { value: 'pending', label: '待處理' },
+  { value: 'refunded', label: '已退款' },
+  { value: 'admin_cancelled', label: '已取消' },
 ]
 
 const STATUS_STYLES: Record<string, string> = {
@@ -192,7 +192,7 @@ export default function BookingTable({
           className="flex items-center gap-1.5 text-xs text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors ml-auto whitespace-nowrap"
         >
           {showTest ? <ToggleRight size={18} className="text-[var(--admin-brand)]" /> : <ToggleLeft size={18} />}
-          <span data-cms-key="admin_bookings_show_test">Test</span>
+          <span data-cms-key="admin_bookings_show_test">測試</span>
         </button>
       </div>
 

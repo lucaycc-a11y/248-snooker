@@ -212,7 +212,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
           <h3 className="mb-4 text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
             Adjust Points
           </h3>
-          <label style={labelStyle}>Delta (positive or negative)</label>
+          <label style={labelStyle}>變動（正數或負數）</label>
           <input
             type="number"
             value={pointsDelta}
@@ -220,12 +220,12 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
             placeholder="e.g. +500 or -100"
             style={inputStyle}
           />
-          <label style={{ ...labelStyle, marginTop: '0.75rem' }}>Reason</label>
+          <label style={{ ...labelStyle, marginTop: '0.75rem' }}>原因</label>
           <input
             type="text"
             value={pointsReason}
             onChange={(e) => setPointsReason(e.target.value)}
-            placeholder="Why this adjustment?"
+            placeholder="為何調整？"
             style={inputStyle}
           />
           {error && (
@@ -240,11 +240,11 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold"
               style={btnStyle('ghost')}
             >
-              Cancel
+              取消
             </button>
             <button
               type="button"
-              disabled={loading || !pointsDelta || !pointsReason}
+              disabled={loading || !pointsDelta || pointsReason.trim().length < 5}
               onClick={() =>
                 submit('adjust_points', {
                   delta: Number(pointsDelta),
@@ -254,7 +254,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50"
               style={btnStyle('brand')}
             >
-              {loading ? 'Saving…' : 'Confirm'}
+              {loading ? '儲存中…' : '確認'}
             </button>
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
           <h3 className="mb-4 text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
             Change Tier
           </h3>
-          <label style={labelStyle}>Tier</label>
+          <label style={labelStyle}>等級</label>
           <div className="flex gap-2">
             {VALID_TIERS.map((t) => (
               <button
@@ -297,12 +297,12 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               </button>
             ))}
           </div>
-          <label style={{ ...labelStyle, marginTop: '0.75rem' }}>Reason</label>
+          <label style={{ ...labelStyle, marginTop: '0.75rem' }}>原因</label>
           <input
             type="text"
             value={tierReason}
             onChange={(e) => setTierReason(e.target.value)}
-            placeholder="Why this change?"
+            placeholder="為何更改？"
             style={inputStyle}
           />
           {error && (
@@ -317,7 +317,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold"
               style={btnStyle('ghost')}
             >
-              Cancel
+              取消
             </button>
             <button
               type="button"
@@ -328,7 +328,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50"
               style={btnStyle('brand')}
             >
-              {loading ? 'Saving…' : 'Confirm'}
+              {loading ? '儲存中…' : '確認'}
             </button>
           </div>
         </div>
@@ -344,12 +344,12 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
           <h3 className="mb-4 text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
             {isBlacklisted ? 'Unban Member' : 'Ban Member'}
           </h3>
-          <label style={labelStyle}>Reason</label>
+          <label style={labelStyle}>原因</label>
           <input
             type="text"
             value={blacklistReason}
             onChange={(e) => setBlacklistReason(e.target.value)}
-            placeholder={isBlacklisted ? 'Why unban?' : 'Why ban?'}
+            placeholder={isBlacklisted ? '為何解除封鎖？' : '為何封鎖？'}
             style={inputStyle}
           />
           {error && (
@@ -364,7 +364,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold"
               style={btnStyle('ghost')}
             >
-              Cancel
+              取消
             </button>
             <button
               type="button"
@@ -378,7 +378,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50"
               style={btnStyle(isBlacklisted ? 'brand' : 'danger')}
             >
-              {loading ? 'Saving…' : isBlacklisted ? 'Unban' : 'Ban'}
+              {loading ? '儲存中…' : isBlacklisted ? '解除封鎖' : '封鎖'}
             </button>
           </div>
         </div>
@@ -426,11 +426,11 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold"
               style={btnStyle('ghost')}
             >
-              Cancel
+              取消
             </button>
             <button
               type="button"
-              disabled={loading || !creditDelta || !creditReason}
+              disabled={loading || !creditDelta || creditReason.trim().length < 5}
               onClick={() =>
                 submit('adjust_credit', {
                   delta: Number(creditDelta),
@@ -488,7 +488,7 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold"
               style={btnStyle('ghost')}
             >
-              Cancel
+              取消
             </button>
             <button
               type="button"

@@ -44,6 +44,7 @@ export default function WeatherBookingActions({ booking, onRefresh, onCancelled 
   const [cancelReason, setCancelReason] = useState('')
   const [creditAmount, setCreditAmount] = useState('')
   const [differenceReason, setDifferenceReason] = useState('')
+  const [cancelWhatsappRef, setCancelWhatsappRef] = useState('')
 
   const close = useCallback(() => {
     setMode(null)
@@ -86,6 +87,7 @@ export default function WeatherBookingActions({ booking, onRefresh, onCancelled 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           reason: cancelReason.trim(),
+          whatsappRef: cancelWhatsappRef.trim(),
           compensationType: 'credit',
           compensationValue: Number(creditAmount),
           differenceReason: differenceReason.trim() || null,
@@ -101,7 +103,7 @@ export default function WeatherBookingActions({ booking, onRefresh, onCancelled 
     } finally {
       setLoading(false)
     }
-  }, [booking.id, cancelReason, creditAmount, differenceReason, close, onCancelled, onRefresh])
+  }, [booking.id, cancelReason, creditAmount, differenceReason, cancelWhatsappRef, close, onCancelled, onRefresh])
 
   const isCancelled =
     booking.status === 'admin_cancelled' || booking.status === 'refunded'
@@ -340,6 +342,17 @@ export default function WeatherBookingActions({ booking, onRefresh, onCancelled 
             style={inputStyle}
           />
 
+          <label style={{ ...labelStyle, marginTop: '0.75rem' }} data-cms-key="admin.booking.whatsapp_ref_label">
+            WhatsApp 聯絡參考
+          </label>
+          <input
+            type="text"
+            value={cancelWhatsappRef}
+            onChange={(e) => setCancelWhatsappRef(e.target.value)}
+            placeholder="客戶 WhatsApp 對話參考，例如訊息時間或截圖編號"
+            style={inputStyle}
+          />
+
           {error && (
             <p className="mt-2 text-xs" style={{ color: 'var(--admin-danger)' }}>
               {error}
@@ -357,7 +370,7 @@ export default function WeatherBookingActions({ booking, onRefresh, onCancelled 
             </button>
             <button
               type="button"
-              disabled={loading || !cancelReason.trim() || !creditAmount}
+              disabled={loading || !cancelReason.trim() || !creditAmount || cancelWhatsappRef.trim().length < 3}
               onClick={submitWeatherCancel}
               className="flex-1 rounded-xl px-3 py-2 text-xs font-semibold disabled:opacity-50"
               style={{

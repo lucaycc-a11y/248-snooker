@@ -154,7 +154,7 @@ export default function SiteGateForm({
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: tokens.spacing.md }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>Coming soon gate</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>即將推出閘門</div>
             <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginTop: 4 }}>
               {enabled ? 'Visitors see the coming-soon page unless whitelisted or unlocked.' : 'Gate is off — site is fully public.'}
             </div>
@@ -197,11 +197,11 @@ export default function SiteGateForm({
         </div>
         <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: tokens.spacing.md }}>
           <div style={{ flex: 1, minWidth: 160 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>IP address</label>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>IP 地址</label>
           <Input placeholder="203.0.113.1" value={newIp} onChange={(e) => setNewIp(e.target.value)} />
           </div>
           <div style={{ flex: 1, minWidth: 160 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Label</label>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>標籤</label>
           <Input placeholder="e.g. Office" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} />
           </div>
           <Button variant="primary" disabled={addingIp || !newIp.trim()} onClick={addIp}>
@@ -231,7 +231,7 @@ export default function SiteGateForm({
             </div>
           ))}
           {whitelist.length === 0 && (
-            <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>No whitelisted IPs yet.</div>
+            <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>尚未有白名單 IP。</div>
           )}
         </div>
       </Card>

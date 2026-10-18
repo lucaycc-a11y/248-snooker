@@ -11,6 +11,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 export const dynamic = 'force-dynamic'
 
@@ -152,22 +153,20 @@ export async function PUT(req: Request) {
       }
     }
 
-    // ── Log to admin_action_log ───────────────────────────
-    await service.from('admin_action_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'venue_maintenance_update',
-      target_table: 'config',
-      target_id: null,
-      before_jsonb: null,
-      after_jsonb: JSON.stringify(
-        configUpdates.reduce<Record<string, unknown>>((acc, u) => {
-          acc[u.key] = u.value
-          return acc
-        }, {})
-      ),
-      risk_level: 'medium',
-      confirmed_by: admin.userId,
+    // ── Audit trail (audit_log) ───────────────────────────
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'venue_maintenance_update',
+      targetTable: 'config',
+      targetId: null,
+      beforeJsonb: null,
+      afterJsonb: configUpdates.reduce<Record<string, unknown>>((acc, u) => {
+        acc[u.key] = u.value
+        return acc
+      }, {}),
+      riskLevel: 'medium',
+      confirmedBy: admin.userId,
     })
 
     // ── Return updated status ─────────────────────────────

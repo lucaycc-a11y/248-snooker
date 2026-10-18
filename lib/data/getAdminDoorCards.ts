@@ -1,5 +1,6 @@
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { str, type Row } from '@/lib/data/adminReadHelpers'
+import { logSiteError } from '@/lib/errors/log'
 
 export type DoorCardRow = {
   id: string
@@ -10,7 +11,11 @@ export type DoorCardRow = {
   createdBy: string | null
 }
 
-export type AdminDoorCardsResult = { cards: DoorCardRow[] }
+export type AdminDoorCardsResult = {
+  cards: DoorCardRow[]
+  /** Non-null = load failed; do not render as an empty list. */
+  error: string | null
+}
 
 export async function getAdminDoorCards(): Promise<AdminDoorCardsResult> {
   const service = getLegacyServiceSupabase()
@@ -32,9 +37,11 @@ export async function getAdminDoorCards(): Promise<AdminDoorCardsResult> {
       createdBy: str(r, ['created_by']),
     }))
 
-    return { cards }
+    return { cards, error: null }
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
     console.error('[admin/door] query failed', err)
-    return { cards: [] }
+    await logSiteError('admin.door', 'error', '門禁卡資料載入失敗', { message })
+    return { cards: [], error: `門禁卡資料載入失敗：${message}` }
   }
 }

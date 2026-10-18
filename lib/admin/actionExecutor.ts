@@ -2,12 +2,14 @@
  * Unified action executor — §5.7.
  *
  * All admin writes flow through here. Validates action type against whitelist,
- * executes DB changes within a transaction, and logs to admin_action_log.
+ * executes DB changes within a transaction, and logs to audit_log.
  */
 
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { consumePendingAction, type PendingAction } from './aiSchema'
 import { num } from '@/lib/data/adminReadHelpers'
+import { writeAdminActionLog } from './audit'
+import { adminCancelWithCredit } from './cancelWithCredit'
 
 // ── Action type whitelist ──────────────────────────────────────────────────
 
@@ -76,15 +78,15 @@ export async function executeAction(
     }
 
     // 4. Log to audit trail
-    await service.from('admin_action_log').insert({
-      admin_user_id: adminId,
-      admin_email: adminEmail,
-      action_type: action.type,
-      target_table: extractTargetTable(action.type),
-      target_id: extractTargetId(action),
-      after_jsonb: action.payload,
-      risk_level: getRiskLevel(action.type),
-      confirmed_by: adminId,
+    await writeAdminActionLog({
+      adminUserId: adminId,
+      adminEmail: adminEmail,
+      actionType: action.type,
+      targetTable: extractTargetTable(action.type),
+      targetId: extractTargetId(action),
+      afterJsonb: action.payload,
+      riskLevel: getRiskLevel(action.type),
+      confirmedBy: adminId,
     })
 
     return result
@@ -168,7 +170,7 @@ async function executeCancelBooking(
   // Get booking
   const { data: booking, error: fetchErr } = await service
     .from('bookings')
-    .select('id, user_id, status, total_price')
+    .select('id, user_id, status, total_price, human_code, date')
     .eq('id', bookingId)
     .single()
 
@@ -180,40 +182,37 @@ async function executeCancelBooking(
     return { success: false, message: 'Booking is already cancelled.' }
   }
 
-  // Update booking status
-  const { error: updateErr } = await service
-    .from('bookings')
-    .update({ status: 'admin_cancelled' })
-    .eq('id', bookingId)
-
-  if (updateErr) {
-    return { success: false, message: `Failed to cancel booking: ${updateErr.message}` }
-  }
-
-  // Log cancellation
-  await service.from('cancellation_log').insert({
-    booking_id: bookingId,
-    admin_id: action.adminId,
+  // `admin_cancelled` is written ONLY by the RPC — it reverses points, frees
+  // the slot and writes the ledgers/audit in one transaction. The old direct
+  // update here skipped all of that (and used an illegal points_ledger type).
+  const humanCode = typeof booking.human_code === 'string' ? booking.human_code : bookingId
+  const dateLabel = typeof booking.date === 'string' ? booking.date : ''
+  const result = await adminCancelWithCredit({
+    bookingId,
+    adminId: action.adminId,
     reason,
-    compensation_type: compensationType ?? 'none',
-    compensation_value: compensationValue ?? 0,
+    whatsappRef: 'AI 助手操作',
+    creditAmount: compensationType === 'credit' ? (compensationValue ?? 0) : 0,
+    noticeTitle: '預約已取消',
+    noticeMessage:
+      compensationType === 'credit' && compensationValue
+        ? `你的預約 ${humanCode}（${dateLabel}）已取消，並已存入 HK$${compensationValue} 錢包額度作為補償。`
+        : `你的預約 ${humanCode}（${dateLabel}）已取消。`,
   })
 
-  // Handle points compensation
-  if (compensationType === 'points' && compensationValue && compensationValue > 0) {
-    await service.from('points_ledger').insert({
-      user_id: booking.user_id,
-      points: compensationValue,
-      type: 'cancellation_compensation',
-      reference_id: bookingId,
-      note: `Cancellation compensation for booking ${bookingId}`,
-    })
+  if (!result.ok) {
+    return { success: false, message: result.error }
   }
 
   return {
     success: true,
     message: `Booking ${bookingId} cancelled. Reason: ${reason}`,
-    data: { bookingId, previousStatus: booking.status },
+    data: {
+      bookingId,
+      previousStatus: booking.status,
+      credit: result.credit,
+      pointsReversed: result.pointsReversed,
+    },
   }
 }
 

@@ -3,7 +3,7 @@
 /**
  * MemberDetailTabs — client-side tabbed view for member detail (§9.2).
  *
- * Tabs: Profile | Bookings | Points | Activity
+ * Tabs: 基本資料 | 預約 | 積分 | 活動
  * CSS-variable only — no inline hex, no shadows.
  * Uses active-tab indicator with animated underline.
  */
@@ -54,10 +54,10 @@ type MemberData = {
 }
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'profile', label: 'Profile' },
-  { key: 'bookings', label: 'Bookings' },
-  { key: 'points', label: 'Points' },
-  { key: 'activity', label: 'Activity' },
+  { key: 'profile', label: '基本資料' },
+  { key: 'bookings', label: '預約' },
+  { key: 'points', label: '積分' },
+  { key: 'activity', label: '活動' },
 ]
 
 const STATUS_COLOR: Record<string, string> = {
@@ -137,14 +137,14 @@ export default function MemberDetailTabs({ member }: { member: MemberData }) {
 /* ── Profile tab ─────────────────────────────────────── */
 function ProfileTab({ member }: { member: MemberData }) {
   const fields = [
-    { label: 'Email', value: member.email ?? '—' },
-    { label: 'Phone', value: member.phone ?? '—' },
-    { label: 'Member code', value: member.memberCode ?? '—', mono: true },
-    { label: 'Tier', value: member.tierLabel },
-    { label: 'Points', value: member.points.toLocaleString() },
-    { label: 'Joined', value: member.createdAt ? new Date(member.createdAt).toLocaleDateString() : '—' },
+    { label: '電郵', value: member.email ?? '—' },
+    { label: '電話', value: member.phone ?? '—' },
+    { label: '會員編號', value: member.memberCode ?? '—', mono: true },
+    { label: '等級', value: member.tierLabel },
+    { label: '積分', value: member.points.toLocaleString() },
+    { label: '加入日期', value: member.createdAt ? new Date(member.createdAt).toLocaleDateString() : '—' },
     {
-      label: 'Last active',
+      label: '最近活動',
       value: member.lastActiveAt
         ? formatRelativeTime(member.lastActiveAt)
         : 'Never',
@@ -249,7 +249,7 @@ function PointsTab({ entries, currentPoints }: { entries: PointEntry[]; currentP
     <div className="flex flex-col">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
-          Points Ledger
+          積分記錄
         </h3>
         <span
           className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
@@ -258,7 +258,7 @@ function PointsTab({ entries, currentPoints }: { entries: PointEntry[]; currentP
             background: 'var(--admin-brand-dim)',
           }}
         >
-          {currentPoints.toLocaleString()} pts
+          {currentPoints.toLocaleString()} 分
         </span>
       </div>
       {entries.length === 0 ? (

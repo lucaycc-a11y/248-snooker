@@ -32,7 +32,7 @@ export default function BlogAdminList({ initialPosts }: { initialPosts: PostRow[
       const res = await fetch('/api/admin/blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Untitled post', locale: 'zh-HK' }),
+        body: JSON.stringify({ title: '未命名文章', locale: 'zh-HK' }),
       })
       const json = await res.json()
       if (res.ok && json.id) router.push(`/admin/blog/${json.id}`)
@@ -61,7 +61,7 @@ export default function BlogAdminList({ initialPosts }: { initialPosts: PostRow[
 
       {posts.length === 0 && (
         <Card>
-          <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>No posts yet.</div>
+          <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>尚未有文章。</div>
         </Card>
       )}
 

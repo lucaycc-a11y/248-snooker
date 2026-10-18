@@ -49,6 +49,11 @@ function isRpcResult(value: unknown): value is RpcResult {
 export async function POST(req: Request) {
   const admin = await getAdminData()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // Phone and email changes are identity-level: super_admin only. Name,
+  // blacklist, points and Credit stay available to plain admins elsewhere.
+  if (admin.role !== 'super_admin') {
+    return NextResponse.json({ error: '只有超級管理員可更改會員電郵或電話' }, { status: 403 })
+  }
 
   const body: unknown = await req.json().catch(() => null)
   if (!isRecord(body)) return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
@@ -74,10 +79,13 @@ export async function POST(req: Request) {
   }
 
   const service = getServiceSupabase()
+  // The RPC coalesces empty string and NULL the same way (`coalesce(btrim(x),'')`),
+  // and enforces "exactly one of phone/email" itself — so the unused identifier
+  // is passed as '' to satisfy the generated non-null arg types.
   const { data, error } = await service.rpc('admin_change_user_identity', {
     p_user_id: userId,
-    p_new_phone: newPhone,
-    p_new_email: rawEmail ? rawEmail.toLowerCase() : null,
+    p_new_phone: newPhone ?? '',
+    p_new_email: rawEmail ? rawEmail.toLowerCase() : '',
     p_reason: reason,
     p_admin_user_id: admin.userId,
     p_override: override,

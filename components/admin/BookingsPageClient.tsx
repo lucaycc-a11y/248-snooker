@@ -26,6 +26,8 @@ type ApiResponse = {
   total: number
   page: number
   pageSize: number
+  /** Non-null = load failed. Show the message, never a fake empty list. */
+  error?: string | null
 }
 
 /** Must match `PAGE_SIZE` in lib/data/getAdminBookings.ts. */
@@ -273,7 +275,14 @@ export default function BookingsPageClient({
               )
             })
           ) : (
-            <div className="admin-empty">找不到符合條件的預約</div>
+            <div
+              className="admin-empty"
+              role={data.error ? 'alert' : undefined}
+              data-cms-key="admin.bookings.empty_or_error"
+              style={data.error ? { color: 'var(--admin-danger, #f87171)' } : undefined}
+            >
+              {data.error ?? '找不到符合條件的預約'}
+            </div>
           )}
         </div>
 

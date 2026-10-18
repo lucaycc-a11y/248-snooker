@@ -4,11 +4,12 @@ import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import type { SiteConfig, Tier } from '@/lib/data/pricing'
 import { withAdminSecurity } from '@/lib/security/admin-wrapper'
 
-// Admin-only config writer. GET is intentionally omitted — the settings page
-// reads current values directly via getConfig()/getConfigValue() as a Server
-// Component (lib/data/getConfig.ts). This route only ever runs for an active
-// admin (checked again here, independent of app/admin/layout.tsx, since API
-// routes are reachable without rendering the page).
+// Admin-only config read/write. GET returns the current rows so API clients
+// and the connection audit can verify the endpoint; the settings page still
+// reads values via getConfig()/getConfigValue() as a Server Component.
+// This route only ever runs for an active admin (checked again here,
+// independent of app/admin/(shell)/layout.tsx, since API routes are reachable
+// without rendering the page).
 
 type ConfigKey = 'site' | 'pricing_rates' | 'tiers' | 'booking_rules'
 
@@ -96,6 +97,31 @@ function validateByKey(key: ConfigKey, value: unknown): unknown | null {
       return validateTiers(value)
     case 'booking_rules':
       return validateBookingRules(value)
+  }
+}
+
+/** GET /api/admin/config — current values for the admin-writable keys. */
+export async function GET() {
+  try {
+    const admin = await getAdminData()
+    if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const service = getLegacyServiceSupabase()
+    const { data, error } = await service
+      .from('config')
+      .select('key, value, updated_at')
+      .in('key', CONFIG_KEYS)
+
+    if (error) {
+      console.error('[admin/config] query error', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ rows: data ?? [] })
+  } catch (err) {
+    console.error('[admin/config] GET error', err)
+    const message = err instanceof Error ? err.message : 'Internal error'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 

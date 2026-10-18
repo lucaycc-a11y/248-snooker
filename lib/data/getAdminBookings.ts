@@ -1,5 +1,7 @@
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
+import { logSiteError } from '@/lib/errors/log'
+import { getHiddenUserList, hiddenIdFilterValue } from '@/lib/data/getHiddenUserIds'
 
 // Shared query logic for /admin/bookings — used directly by the Server
 // Component for first paint and by app/api/admin/bookings/route.ts for
@@ -40,7 +42,17 @@ export type AdminBookingsQuery = {
   isTest?: boolean | null // unset = real only (default), true = test only, false = real only (explicit)
 }
 
-export type AdminBookingsResult = { bookings: AdminBookingRow[]; total: number; page: number; pageSize: number }
+export type AdminBookingsResult = {
+  bookings: AdminBookingRow[]
+  total: number
+  page: number
+  pageSize: number
+  /**
+   * Load failure message. Non-null means the list is NOT a real empty result —
+   * the UI must show an error banner rather than 「找不到預約」.
+   */
+  error: string | null
+}
 
 function normalize(row: Row, userInfo: { email: string | null; display_name: string | null; phone: string | null } | null): AdminBookingRow {
   return {
@@ -71,6 +83,25 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
   const service = getLegacyServiceSupabase()
   const from = (page - 1) * PAGE_SIZE
   const to = page * PAGE_SIZE - 1
+
+  // Hidden accounts are filtered here, in the shared loader — never in the
+  // browser. A read failure returns the error result rather than silently
+  // listing admin bookings as customer bookings.
+  let hiddenIds: Set<string>
+  try {
+    hiddenIds = (await getHiddenUserList()).ids
+  } catch (hiddenErr) {
+    const message = hiddenErr instanceof Error ? hiddenErr.message : String(hiddenErr)
+    console.error('[admin/bookings] hidden-user list failed', hiddenErr)
+    await logSiteError('admin.bookings', 'error', '隱藏帳戶清單載入失敗', { message })
+    return {
+      bookings: [],
+      total: 0,
+      page,
+      pageSize: PAGE_SIZE,
+      error: message,
+    }
+  }
 
   // Prototype haystack is `[hc, ref, phone, member code]`. Booking columns are
   // filterable in one PostgREST `or`, but phone / member code / name live on
@@ -105,8 +136,11 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
       gte: (col: string, val: unknown) => typeof query
       lte: (col: string, val: unknown) => typeof query
       or: (expr: string) => typeof query
+      not: (col: string, op: string, val: string) => typeof query
     }
     query = query.eq('is_test', isTest)
+    const hiddenFilter = hiddenIdFilterValue(hiddenIds)
+    if (hiddenFilter) query = query.not('user_id', 'in', hiddenFilter)
     if (status) query = query.eq('status', status)
     if (dateFrom) query = query.gte('date', dateFrom)
     if (dateTo) query = query.lte('date', dateTo)
@@ -138,7 +172,7 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
 
     const rows = (data ?? []) as (Row & { users: { email: string | null; display_name: string | null; phone: string | null } | null })[]
     const bookings = rows.map((r) => normalize(r, r.users))
-    return { bookings, total: count ?? 0, page, pageSize: PAGE_SIZE }
+    return { bookings, total: count ?? 0, page, pageSize: PAGE_SIZE, error: null }
   } catch {
     try {
       let q = service.from('bookings').select('*', { count: 'exact' }).order('date', { ascending: false }).range(from, to)
@@ -162,10 +196,18 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
       const bookings = rows.map((r) =>
         normalize(r, typeof r.user_id === 'string' ? (usersById.get(r.user_id) ?? null) : null)
       )
-      return { bookings, total: count ?? 0, page, pageSize: PAGE_SIZE }
+      return { bookings, total: count ?? 0, page, pageSize: PAGE_SIZE, error: null }
     } catch (fallbackError) {
+      const message = fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
       console.error('[admin/bookings] query failed', fallbackError)
-      return { bookings: [], total: 0, page, pageSize: PAGE_SIZE }
+      await logSiteError('admin.bookings', 'error', '預約資料載入失敗', { message })
+      return {
+        bookings: [],
+        total: 0,
+        page,
+        pageSize: PAGE_SIZE,
+        error: `預約資料載入失敗：${message}`,
+      }
     }
   }
 }

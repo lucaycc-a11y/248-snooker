@@ -22,7 +22,7 @@ export async function GET(req: Request) {
 
     let query = service
       .from('account_flags')
-      .select('id, flag_type, flag_key, member_ids, event_count, first_seen, last_seen, status, reviewed_at')
+      .select('id, flag_type, key_value, user_ids, event_count, first_seen, last_seen, status, reviewed_at')
       .order('last_seen', { ascending: false })
       .limit(200)
 

@@ -55,8 +55,8 @@ export async function stampAuthRiskEvent(input: StampAuthRiskEventInput): Promis
 
 type FlagRow = {
   flag_type: 'shared_ip' | 'shared_device'
-  flag_key: string
-  member_ids: string[]
+  key_value: string
+  user_ids: string[]
   event_count: number
   first_seen: string
   last_seen: string
@@ -102,16 +102,16 @@ export async function refreshAccountFlags(): Promise<{ flagged: number } | { err
         if (!bucket) {
           bucket = {
             flag_type: type,
-            flag_key: key,
-            member_ids: [],
+            key_value: key,
+            user_ids: [],
             event_count: 0,
             first_seen: day,
             last_seen: day,
           }
           buckets.set(mapKey, bucket)
         }
-        if (row.user_id && !bucket.member_ids.includes(row.user_id)) {
-          bucket.member_ids.push(row.user_id)
+        if (row.user_id && !bucket.user_ids.includes(row.user_id)) {
+          bucket.user_ids.push(row.user_id)
         }
         bucket.event_count += 1
         if (day && (!bucket.first_seen || day < bucket.first_seen)) bucket.first_seen = day
@@ -120,24 +120,24 @@ export async function refreshAccountFlags(): Promise<{ flagged: number } | { err
     }
 
     // ── Keep only genuine shared keys (≥2 distinct members) ───────────
-    const flagged = [...buckets.values()].filter((b) => b.member_ids.length >= 2)
+    const flagged = [...buckets.values()].filter((b) => b.user_ids.length >= 2)
 
     for (const row of flagged) {
       const { error: upsertErr } = await service.from('account_flags').upsert(
         {
           flag_type: row.flag_type,
-          flag_key: row.flag_key,
-          member_ids: row.member_ids,
+          key_value: row.key_value,
+          user_ids: row.user_ids,
           event_count: row.event_count,
           first_seen: row.first_seen || null,
           last_seen: row.last_seen || null,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: 'flag_type,flag_key' },
+        { onConflict: 'flag_type,key_value' },
       )
       if (upsertErr) {
         console.warn('[risk-events] flag_upsert_failed', {
-          key: row.flag_key,
+          key: row.key_value,
           message: upsertErr.message,
         })
       }

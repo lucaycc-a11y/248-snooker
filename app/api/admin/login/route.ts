@@ -87,9 +87,18 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // ── Sign out the web session (we only need the exchange code) ────────
-  // Don't keep the Supabase session on the device — the iOS app will get
-  // its own session via the exchange endpoint.
+  // ── Web vs iOS ───────────────────────────────────────────────────────
+  // Web login (no redirect scheme) keeps the Supabase session cookie that
+  // signInWithPassword just wrote. The old code always signed out and issued
+  // an exchange code, which left the browser signed out and bounced
+  // /admin?code=... straight back to the login form — nothing on the web
+  // calls /api/admin/exchange-session. iOS still wants the one-time code, so
+  // only that branch signs out.
+  if (!redirectScheme) {
+    return NextResponse.json({ redirectUrl: "/admin" })
+  }
+
+  // iOS: drop the web session — the app exchanges the code for its own.
   await supabase.auth.signOut()
 
   // ── Generate exchange code ───────────────────────────────────────────

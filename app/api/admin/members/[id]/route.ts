@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
-import { num, str, type Row } from '@/lib/data/adminReadHelpers'
+import { str, type Row } from '@/lib/data/adminReadHelpers'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 // Manual member management — points adjustment, tier change, blacklist
 // toggle. Available to both admin and super_admin (unlike invite/revoke).
@@ -40,56 +41,63 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     let afterValue: Record<string, unknown>
 
     if (body.action === 'adjust_points') {
+      // Points only move through admin_adjust_points — a bare `users.points`
+      // write left no points_ledger row, so balances drifted from history.
       const delta = typeof body.delta === 'number' ? body.delta : Number(body.delta)
-      if (!Number.isFinite(delta) || delta === 0) {
-        return NextResponse.json({ error: 'Invalid points delta' }, { status: 400 })
+      if (!Number.isInteger(delta) || delta === 0) {
+        return NextResponse.json({ error: '積分變動必須是非零整數' }, { status: 400 })
       }
-      const currentPoints = num(target, ['points'], 0)
-      const newPoints = Math.max(0, currentPoints + delta)
-      action = 'member_adjust_points'
-      patch = { points: newPoints }
-      beforeValue = { points: currentPoints, reason }
-      afterValue = { points: newPoints, delta, reason }
+      if (reason.length < 5) {
+        return NextResponse.json({ error: '原因至少要有 5 個字' }, { status: 400 })
+      }
+
+      const { data: rpcData, error: rpcError } = await service.rpc('admin_adjust_points', {
+        p_user_id: id,
+        p_delta: delta,
+        p_note: reason,
+        p_admin_id: admin.userId,
+      })
+      if (rpcError) {
+        console.error('[admin/members] admin_adjust_points failed', rpcError)
+        return NextResponse.json({ error: '積分調整失敗' }, { status: 500 })
+      }
+      const rpc = (rpcData ?? null) as { success?: boolean; code?: string; balance?: number } | null
+      if (!rpc || rpc.success !== true) {
+        return NextResponse.json(
+          { error: `積分調整失敗（${rpc?.code ?? 'unknown'}）` },
+          { status: 400 },
+        )
+      }
+      return NextResponse.json({ success: true, balance: rpc.balance ?? null })
     } else if (body.action === 'adjust_credit') {
-      // Credit lives in credits_ledger, not on `users` — insert a ledger row
-      // instead of patching the user. Type must be one of CREDITS_LEDGER_TYPES.
+      // Credit only moves through admin_adjust_credit → wallet_apply. Writing
+      // credits_ledger by hand skips users.credits and the wallet cap.
       const amount = typeof body.delta === 'number' ? body.delta : Number(body.delta)
-      if (!Number.isFinite(amount) || amount === 0) {
-        return NextResponse.json({ error: 'Invalid credit amount' }, { status: 400 })
+      if (!Number.isInteger(amount) || amount === 0) {
+        return NextResponse.json({ error: '金額變動必須是非零整數' }, { status: 400 })
+      }
+      if (reason.length < 5) {
+        return NextResponse.json({ error: '原因至少要有 5 個字' }, { status: 400 })
       }
 
-      const { data: ledgerRows } = await service
-        .from('credits_ledger')
-        .select('amount')
-        .eq('user_id', id)
-      const balance = (ledgerRows ?? []).reduce((sum, r) => sum + num(r as Row, ['amount'], 0), 0)
-      const balanceAfter = balance + amount
-
-      const { error: ledgerError } = await service.from('credits_ledger').insert({
-        user_id: id,
-        amount,
-        balance_after: balanceAfter,
-        type: 'manual',
-        note: reason,
-        actor_id: admin.userId,
+      const { data: rpcData, error: rpcError } = await service.rpc('admin_adjust_credit', {
+        p_user_id: id,
+        p_amount: amount,
+        p_note: reason,
+        p_admin_id: admin.userId,
       })
-      if (ledgerError) {
-        console.error('[admin/members] credits_ledger insert failed', ledgerError)
-        return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+      if (rpcError) {
+        console.error('[admin/members] admin_adjust_credit failed', rpcError)
+        return NextResponse.json({ error: '錢包額度調整失敗' }, { status: 500 })
       }
-
-      await service.from('admin_action_log').insert({
-        admin_user_id: admin.userId,
-        admin_email: admin.email,
-        action_type: 'member_adjust_credit',
-        target_table: 'credits_ledger',
-        target_id: id,
-        before_jsonb: { balance, reason },
-        after_jsonb: { balance_after: balanceAfter, amount, reason },
-        risk_level: 'medium',
-      })
-
-      return NextResponse.json({ success: true })
+      const rpc = (rpcData ?? null) as { success?: boolean; code?: string; balance?: number } | null
+      if (!rpc || rpc.success !== true) {
+        return NextResponse.json(
+          { error: `錢包額度調整失敗（${rpc?.code ?? 'unknown'}）` },
+          { status: 400 },
+        )
+      }
+      return NextResponse.json({ success: true, balance: rpc.balance ?? null })
     } else if (body.action === 'send_message') {
       // Per-member inbox message → admin_notifications.
       const title = typeof body.title === 'string' ? body.title.trim() : ''
@@ -110,15 +118,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         return NextResponse.json({ error: 'Internal error' }, { status: 500 })
       }
 
-      await service.from('admin_action_log').insert({
-        admin_user_id: admin.userId,
-        admin_email: admin.email,
-        action_type: 'member_message',
-        target_table: 'admin_notifications',
-        target_id: id,
-        before_jsonb: null,
-        after_jsonb: { title, reason },
-        risk_level: 'low',
+      await writeAdminActionLog({
+        adminUserId: admin.userId,
+        adminEmail: admin.email,
+        actionType: 'member_message',
+        targetTable: 'admin_notifications',
+        targetId: id,
+        beforeJsonb: null,
+        afterJsonb: { title, reason },
+        riskLevel: 'low',
       })
 
       return NextResponse.json({ success: true })
@@ -148,15 +156,15 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return NextResponse.json({ error: 'Internal error' }, { status: 500 })
     }
 
-    await service.from('admin_action_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
-      action_type: action,
-      target_table: 'users',
-      target_id: id,
-      before_jsonb: beforeValue,
-      after_jsonb: afterValue,
-      risk_level: 'medium',
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: action,
+      targetTable: 'users',
+      targetId: id,
+      beforeJsonb: beforeValue,
+      afterJsonb: afterValue,
+      riskLevel: 'medium',
     })
 
     return NextResponse.json({ success: true })

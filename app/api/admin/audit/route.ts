@@ -1,11 +1,15 @@
 /**
- * Admin audit log API — §10.3.
+ * Admin audit log API.
  *
- * GET: paginated, filterable audit log from admin_action_log.
- * Passwords and sensitive fields always redacted in before/after JSONB.
- * Filters: admin_email, action_type, date_from, date_to, search.
+ * GET: paginated, filterable rows from `audit_log` — the only real table.
+ * An older draft read a phantom second table (PGRST205),
+ * which is why this endpoint 500'd every time. Column mapping:
+ *   action       <- action_type
+ *   before_value <- before_jsonb
+ *   after_value  <- after_jsonb  (risk_level lives inside it)
  *
- * Design system: admin-theme.css variables only.
+ * Passwords and sensitive fields are always redacted in before/after JSONB.
+ * Filters: admin_email, action, date_from, date_to, search.
  */
 
 import { NextResponse } from 'next/server'
@@ -53,10 +57,10 @@ export async function GET(req: Request) {
 
     const service = getLegacyServiceSupabase()
 
-    // Build query
+    // Build query against the real table.
     let query = service
-      .from('admin_action_log')
-      .select('id, admin_id, admin_email, action_type, target_table, target_id, before_jsonb, after_jsonb, risk_level, created_at', { count: 'exact' })
+      .from('audit_log')
+      .select('id, admin_user_id, admin_email, action, target_table, target_id, before_value, after_value, created_at', { count: 'exact' })
 
     // Filters
     const adminEmail = url.searchParams.get('admin_email')
@@ -64,9 +68,9 @@ export async function GET(req: Request) {
       query = query.ilike('admin_email', `%${adminEmail}%`)
     }
 
-    const actionType = url.searchParams.get('action_type')
+    const actionType = url.searchParams.get('action_type') ?? url.searchParams.get('action')
     if (actionType) {
-      query = query.eq('action_type', actionType)
+      query = query.eq('action', actionType)
     }
 
     const dateFrom = url.searchParams.get('date_from')
@@ -79,10 +83,10 @@ export async function GET(req: Request) {
       query = query.lte('created_at', dateTo)
     }
 
-    // Text search across admin_email and action_type
+    // Text search across admin_email, action and target_id
     const search = url.searchParams.get('search')
     if (search) {
-      query = query.or(`admin_email.ilike.%${search}%,action_type.ilike.%${search}%,target_id.ilike.%${search}%`)
+      query = query.or(`admin_email.ilike.%${search}%,action.ilike.%${search}%,target_id.ilike.%${search}%`)
     }
 
     const { data, count, error } = await query
@@ -94,18 +98,22 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Query failed' }, { status: 500 })
     }
 
-    const rows = (data ?? []).map((row: Record<string, unknown>) => ({
-      id: row.id,
-      adminId: row.admin_id,
-      adminEmail: row.admin_email,
-      actionType: row.action_type,
-      targetTable: row.target_table,
-      targetId: row.target_id,
-      before: redactJsonb(row.before_jsonb as Record<string, unknown> | null),
-      after: redactJsonb(row.after_jsonb as Record<string, unknown> | null),
-      riskLevel: row.risk_level,
-      createdAt: row.created_at,
-    }))
+    const rows = (data ?? []).map((row: Record<string, unknown>) => {
+      const after = redactJsonb(row.after_value as Record<string, unknown> | null)
+      const riskLevel = isRecord(after) && typeof after.risk_level === 'string' ? after.risk_level : 'low'
+      return {
+        id: row.id,
+        adminId: row.admin_user_id,
+        adminEmail: row.admin_email,
+        actionType: row.action,
+        targetTable: row.target_table,
+        targetId: row.target_id,
+        before: redactJsonb(row.before_value as Record<string, unknown> | null),
+        after,
+        riskLevel,
+        createdAt: row.created_at,
+      }
+    })
 
     return NextResponse.json({
       rows,

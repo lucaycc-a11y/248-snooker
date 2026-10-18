@@ -2,13 +2,14 @@
  * PATCH  /api/admin/coupons/[id] — toggle active / update fields
  * DELETE /api/admin/coupons/[id] — soft-disable (set is_active=false, never hard delete)
  *
- * Auth: getAdminData() guard. All writes log to admin_action_log.
+ * Auth: getAdminData() guard. All writes log to audit_log.
  */
 
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { str } from '@/lib/data/adminReadHelpers'
+import { writeAdminActionLog } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -30,7 +31,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
     const service = getLegacyServiceSupabase()
 
-    // Fetch existing row for before_jsonb snapshot
+    // Fetch existing row for before_value snapshot
     const { data: existing, error: fetchErr } = await service
       .from('coupon_templates')
       .select('id, is_active, max_uses, valid_until')
@@ -72,19 +73,19 @@ export async function PATCH(req: Request, { params }: Params) {
       return NextResponse.json({ error: 'Failed to update coupon' }, { status: 500 })
     }
 
-    await service.from('admin_action_log').insert({
-      admin_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'coupon_template_updated',
-      target_table: 'coupon_templates',
-      target_id: id,
-      before_jsonb: {
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'coupon_template_updated',
+      targetTable: 'coupon_templates',
+      targetId: id,
+      beforeJsonb: {
         is_active: existing.is_active,
         max_uses: existing.max_uses,
         valid_until: existing.valid_until,
       },
-      after_jsonb: update,
-      risk_level: 'medium',
+      afterJsonb: update,
+      riskLevel: 'medium',
     })
 
     const row = updated as CouponRow
@@ -121,7 +122,7 @@ export async function DELETE(req: Request, { params }: Params) {
 
     const service = getLegacyServiceSupabase()
 
-    // Fetch existing for before_jsonb
+    // Fetch existing for before_value
     const { data: existing, error: fetchErr } = await service
       .from('coupon_templates')
       .select('id, is_active')
@@ -143,15 +144,15 @@ export async function DELETE(req: Request, { params }: Params) {
       return NextResponse.json({ error: 'Failed to deactivate coupon' }, { status: 500 })
     }
 
-    await service.from('admin_action_log').insert({
-      admin_id: admin.userId,
-      admin_email: admin.email,
-      action_type: 'coupon_template_deactivated',
-      target_table: 'coupon_templates',
-      target_id: id,
-      before_jsonb: { is_active: existing.is_active },
-      after_jsonb: { is_active: false },
-      risk_level: 'medium',
+    await writeAdminActionLog({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
+      actionType: 'coupon_template_deactivated',
+      targetTable: 'coupon_templates',
+      targetId: id,
+      beforeJsonb: { is_active: existing.is_active },
+      afterJsonb: { is_active: false },
+      riskLevel: 'medium',
     })
 
     return NextResponse.json({ success: true })
