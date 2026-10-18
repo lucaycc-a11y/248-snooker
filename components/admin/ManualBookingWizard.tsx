@@ -547,6 +547,10 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
       setError('必須選擇會員')
       return
     }
+    if (!slotResult?.available || !slotResult.slotId) {
+      setError('請先檢查並鎖定時段')
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
@@ -555,7 +559,8 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           payment,
-          slot,
+          // The slot lock id comes from the slot check, not from the form state.
+          slot: { ...slot, slotId: slotResult.slotId },
           userId: selectedUser?.id ?? null,
         }),
       })
@@ -571,7 +576,7 @@ export default function ManualBookingWizard({ onClose, onCreated }: WizardProps)
     } finally {
       setSubmitting(false)
     }
-  }, [payment, slot, selectedUser, onCreated, onClose])
+  }, [payment, slot, slotResult, selectedUser, onCreated, onClose])
 
   // ── Validation ─────────────────────────────────────────────────────────
   const canAdvance = (): boolean => {
