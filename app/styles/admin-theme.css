@@ -815,6 +815,21 @@
   background: var(--admin-brand-text);
 }
 
+/* Label + native checkbox row (not the pill toggle above). */
+.admin-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  cursor: pointer;
+}
+.admin-check input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  accent-color: var(--admin-green);
+}
+
 /* Stats — rapport layer: icon circle + Bebas numeral, not a boxed card. */
 .admin-stats {
   display: flex;

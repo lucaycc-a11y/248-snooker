@@ -524,7 +524,7 @@ export default function PromotionCodesManager() {
             </label>
           </div>
 
-          <label className="admin-switch">
+          <label className="admin-check">
             <input
               type="checkbox"
               checked={form.stackableWithCredits}
@@ -534,7 +534,7 @@ export default function PromotionCodesManager() {
             <span data-cms-key="admin.promos.codes.field_stackable">可與 Space Wallet Credit 同時使用</span>
           </label>
 
-          <label className="admin-switch">
+          <label className="admin-check">
             <input
               type="checkbox"
               checked={form.stackableWithOtherCodes}
@@ -552,7 +552,7 @@ export default function PromotionCodesManager() {
               {ISO_WEEKDAYS.map((dow) => {
                 const on = form.weekdays.includes(dow)
                 return (
-                  <label key={dow} className="admin-switch" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <label key={dow} className="admin-check">
                     <input
                       type="checkbox"
                       checked={on}

@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
+import AdminQuickLinks from '@/components/admin/AdminQuickLinks'
 import BookingDrawer from '@/components/admin/BookingDrawer'
 import ManualBookingWizard from '@/components/admin/ManualBookingWizard'
 import type { AdminBookingRow } from '@/lib/data/getAdminBookings'
@@ -149,6 +150,7 @@ export default function BookingsPageClient({
           </p>
         </div>
         <div className="admin-row">
+          <AdminQuickLinks current="bookings" />
           <button
             type="button"
             role="switch"

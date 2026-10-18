@@ -8,6 +8,7 @@
  * Design system: admin-theme.css variables only — no inline hex, no shadows.
  */
 
+import AdminQuickLinks from '@/components/admin/AdminQuickLinks'
 import PromotionCodesManager from '@/components/admin/PromotionCodesManager'
 import PromoCodesManager from '@/components/admin/PromoCodesManager'
 
@@ -30,6 +31,8 @@ export default function AdminPromosPage() {
           管理結帳時使用的優惠碼，以及優惠券與推廣活動
         </p>
       </header>
+
+      <AdminQuickLinks current="promos" />
 
       <PromotionCodesManager />
 
