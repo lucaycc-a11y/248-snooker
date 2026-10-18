@@ -77,7 +77,19 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
       if (filter) q = q.not('id', 'in', filter)
     }
     if (search) {
-      q = q.or(`email.ilike.%${search}%,phone.ilike.%${search}%,member_code.ilike.%${search}%`)
+      // Strip characters that break PostgREST's or() syntax / act as wildcards.
+      const raw = search.replace(/[%_\\,()*]/g, ' ').trim()
+      const tight = raw.replace(/\s+/g, '')
+      if (raw) {
+        const clauses = [
+          `email.ilike.%${raw}%`,
+          `display_name.ilike.%${raw}%`,
+          `phone.ilike.%${raw}%`,
+          `member_code.ilike.%${raw}%`,
+        ]
+        if (tight && tight !== raw) clauses.push(`phone.ilike.%${tight}%`, `member_code.ilike.%${tight}%`)
+        q = q.or(clauses.join(','))
+      }
     }
     const { data, error, count } = await q
     if (error) throw error

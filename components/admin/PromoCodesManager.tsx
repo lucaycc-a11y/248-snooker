@@ -1,602 +1,344 @@
 'use client'
 
 /**
- * PromoCodesManager — Phase 8 coupon & campaign management UI.
- *
- * Manages the NEW coupon_templates / campaigns tables (spec §8).
- * The legacy promotion_codes system (checkout-facing) is surfaced
- * read-only at the bottom — never written from here.
- *
- * Design: admin-theme.css variables only, no inline hex, no shadows.
+ * PromoCodesManager — manages `promotion_codes`, the table checkout validates against.
+ * Create / edit / enable / disable. Never deletes (usage history references codes).
  */
 
 import { useCallback, useEffect, useState } from 'react'
-import {
-  Plus, X, Ticket, Megaphone, Check, Ban, Trash2, ChevronDown,
-} from 'lucide-react'
-import CouponTicket, { type CouponTicketData } from './CouponTicket'
 
-type CouponTemplate = {
+type Code = {
   id: string
+  code: string
+  name: string | null
+  discount_type: 'percentage' | 'fixed_amount'
+  discount_value: number | string
+  max_discount: number | string | null
+  min_cart_amount: number | string | null
+  max_uses: number | null
+  per_user_limit: number | null
+  audience: 'all' | 'new_users' | 'min_orders' | 'min_spend'
+  audience_threshold: number | null
+  valid_from: string
+  valid_until: string | null
+  status: 'draft' | 'active' | 'disabled'
+  used_count: number
+  usage_held: number
+  usage_redeemed: number
+  usage_discount: number
+}
+
+type Form = {
+  code: string
   name: string
-  discountType: string
-  discountValue: number
-  maxUses: number | null
-  usedCount: number
-  validFrom: string | null
-  validUntil: string | null
-  isActive: boolean
-  createdAt: string | null
-  issuedCount: number
+  discount_type: 'percentage' | 'fixed_amount'
+  discount_value: string
+  max_discount: string
+  min_cart_amount: string
+  max_uses: string
+  per_user_limit: string
+  audience: Code['audience']
+  audience_threshold: string
+  valid_from: string
+  valid_until: string
+  status: Code['status']
 }
 
-type Campaign = {
-  id: string
-  name: string
-  description: string | null
-  startsAt: string | null
-  endsAt: string | null
-  status: string
-  claimCount: number
+const EMPTY: Form = {
+  code: '', name: '', discount_type: 'percentage', discount_value: '', max_discount: '',
+  min_cart_amount: '', max_uses: '', per_user_limit: '', audience: 'all', audience_threshold: '',
+  valid_from: '', valid_until: '', status: 'active',
 }
 
-type Tab = 'coupons' | 'campaigns'
-
-const EMPTY_COUPON_FORM = {
-  name: '',
-  discountType: 'percentage' as 'percentage' | 'fixed',
-  discountValue: '',
-  maxUses: '',
-  validUntil: '',
+const AUDIENCE_LABEL: Record<Code['audience'], string> = {
+  all: '所有會員', new_users: '新會員', min_orders: '最少訂單數', min_spend: '最低累計消費',
 }
+const STATUS_LABEL: Record<Code['status'], string> = { draft: '草稿', active: '啟用中', disabled: '已停用' }
 
-const EMPTY_CAMPAIGN_FORM = {
-  name: '',
-  description: '',
-  startsAt: '',
-  endsAt: '',
-  status: 'draft',
+/** ISO → value for <input type="datetime-local"> in Hong Kong time. */
+function toHkInput(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(new Date(iso).getTime() + 8 * 3600_000)
+  return d.toISOString().slice(0, 16)
 }
+/** datetime-local value (HK time) → ISO. */
+function fromHkInput(v: string): string | null {
+  return v ? new Date(`${v}:00+08:00`).toISOString() : null
+}
+function fmtHk(iso: string | null): string {
+  if (!iso) return '不限'
+  return new Date(iso).toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', hour12: false, dateStyle: 'short', timeStyle: 'short' })
+}
+function stateOf(c: Code): { label: string; tone: 'ok' | 'warn' | 'off' } {
+  const now = Date.now()
+  if (c.status === 'draft') return { label: '草稿', tone: 'off' }
+  if (c.status === 'disabled') return { label: '已停用', tone: 'off' }
+  if (c.valid_until && Date.parse(c.valid_until) <= now) return { label: '已過期', tone: 'warn' }
+  if (Date.parse(c.valid_from) > now) return { label: '未開始', tone: 'warn' }
+  if (c.max_uses !== null && Math.max(c.usage_redeemed + c.usage_held, c.used_count) >= c.max_uses) return { label: '已用完', tone: 'warn' }
+  return { label: '使用中', tone: 'ok' }
+}
+const num = (v: number | string | null) => (v === null || v === '' ? '' : String(Number(v)))
 
 export default function PromoCodesManager() {
-  const [tab, setTab] = useState<Tab>('coupons')
+  const [codes, setCodes] = useState<Code[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [form, setForm] = useState<Form | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
-  // ── Coupons state ─────────────────────────────────────────────
-  const [coupons, setCoupons] = useState<CouponTemplate[]>([])
-  const [couponsLoading, setCouponsLoading] = useState(true)
-  const [showCouponForm, setShowCouponForm] = useState(false)
-  const [couponForm, setCouponForm] = useState(EMPTY_COUPON_FORM)
-  const [couponError, setCouponError] = useState<string | null>(null)
-
-  // ── Campaigns state ───────────────────────────────────────────
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [campaignsLoading, setCampaignsLoading] = useState(true)
-  const [showCampaignForm, setShowCampaignForm] = useState(false)
-  const [campaignForm, setCampaignForm] = useState(EMPTY_CAMPAIGN_FORM)
-  const [campaignError, setCampaignError] = useState<string | null>(null)
-
-  const loadCoupons = useCallback(async () => {
-    setCouponsLoading(true)
+  const load = useCallback(async () => {
+    setLoading(true)
+    setLoadError(null)
     try {
-      const res = await fetch('/api/admin/coupons')
-      if (!res.ok) throw new Error('Failed to load coupons')
-      const data = await res.json()
-      setCoupons((data.coupons ?? []) as CouponTemplate[])
-    } catch (err) {
-      console.error('[coupons] load error', err)
+      const res = await fetch('/api/admin/promos', { cache: 'no-store' })
+      const data = (await res.json().catch(() => null)) as { codes?: Code[]; error?: string } | null
+      if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`)
+      setCodes(data?.codes ?? [])
+    } catch (e) {
+      setLoadError((e as Error).message)
     } finally {
-      setCouponsLoading(false)
+      setLoading(false)
     }
   }, [])
 
-  const loadCampaigns = useCallback(async () => {
-    setCampaignsLoading(true)
+  useEffect(() => { void load() }, [load])
+
+  function openNew() {
+    setEditingId(null); setError(null)
+    setForm({ ...EMPTY, valid_from: toHkInput(new Date().toISOString()) })
+  }
+  function openEdit(c: Code) {
+    setEditingId(c.id); setError(null)
+    setForm({
+      code: c.code, name: c.name ?? '', discount_type: c.discount_type, discount_value: num(c.discount_value),
+      max_discount: num(c.max_discount), min_cart_amount: num(c.min_cart_amount), max_uses: num(c.max_uses),
+      per_user_limit: num(c.per_user_limit), audience: c.audience, audience_threshold: num(c.audience_threshold),
+      valid_from: toHkInput(c.valid_from), valid_until: toHkInput(c.valid_until), status: c.status,
+    })
+  }
+
+  async function save() {
+    if (!form) return
+    setSaving(true); setError(null)
+    const payload = {
+      code: form.code, name: form.name, discount_type: form.discount_type, discount_value: form.discount_value,
+      max_discount: form.max_discount, min_cart_amount: form.min_cart_amount, max_uses: form.max_uses,
+      per_user_limit: form.per_user_limit, audience: form.audience, audience_threshold: form.audience_threshold,
+      valid_from: fromHkInput(form.valid_from), valid_until: fromHkInput(form.valid_until), status: form.status,
+    }
     try {
-      const res = await fetch('/api/admin/campaigns')
-      if (!res.ok) throw new Error('Failed to load campaigns')
-      const data = await res.json()
-      setCampaigns((data.campaigns ?? []) as Campaign[])
-    } catch (err) {
-      console.error('[campaigns] load error', err)
+      const res = await fetch(editingId ? `/api/admin/promos/${editingId}` : '/api/admin/promos', {
+        method: editingId ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = (await res.json().catch(() => null)) as { error?: string } | null
+      if (!res.ok) { setError(data?.error ?? `儲存失敗（${res.status}）`); return }
+      setForm(null); setEditingId(null)
+      await load()
     } finally {
-      setCampaignsLoading(false)
+      setSaving(false)
     }
-  }, [])
+  }
 
-  useEffect(() => {
-    void loadCoupons()
-    void loadCampaigns()
-  }, [loadCoupons, loadCampaigns])
-
-  // ── Coupon actions ────────────────────────────────────────────
-  async function createCoupon() {
-    setCouponError(null)
-    if (!couponForm.name.trim() || !couponForm.discountValue || !couponForm.validUntil) {
-      setCouponError('Name, discount value, and valid-until date are required')
-      return
-    }
-    const body: Record<string, unknown> = {
-      name: couponForm.name.trim(),
-      discountType: couponForm.discountType,
-      discountValue: parseFloat(couponForm.discountValue),
-      maxUses: couponForm.maxUses ? parseInt(couponForm.maxUses, 10) : null,
-      validUntil: new Date(couponForm.validUntil).toISOString(),
-    }
-    const res = await fetch('/api/admin/coupons', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+  async function setStatus(c: Code, status: Code['status']) {
+    const res = await fetch(`/api/admin/promos/${c.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }),
     })
     if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      setCouponError((data?.error as string) ?? 'Failed to create coupon')
+      const data = (await res.json().catch(() => null)) as { error?: string } | null
+      alert(data?.error ?? '更新失敗')
       return
     }
-    setShowCouponForm(false)
-    setCouponForm(EMPTY_COUPON_FORM)
-    void loadCoupons()
+    await load()
   }
 
-  async function toggleCoupon(id: string, current: boolean) {
-    const res = await fetch(`/api/admin/coupons/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isActive: !current }),
-    })
-    if (res.ok) void loadCoupons()
-  }
-
-  async function deactivateCoupon(id: string) {
-    if (!confirm('Deactivate this coupon template? Existing issued coupons remain valid.')) return
-    const res = await fetch(`/api/admin/coupons/${id}`, { method: 'DELETE' })
-    if (res.ok) void loadCoupons()
-  }
-
-  // ── Campaign actions ──────────────────────────────────────────
-  async function createCampaign() {
-    setCampaignError(null)
-    if (!campaignForm.name.trim() || !campaignForm.endsAt) {
-      setCampaignError('Name and end date are required')
-      return
-    }
-    const body: Record<string, unknown> = {
-      name: campaignForm.name.trim(),
-      description: campaignForm.description.trim(),
-      startsAt: campaignForm.startsAt ? new Date(campaignForm.startsAt).toISOString() : new Date().toISOString(),
-      endsAt: new Date(campaignForm.endsAt).toISOString(),
-      status: campaignForm.status,
-    }
-    const res = await fetch('/api/admin/campaigns', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      setCampaignError((data?.error as string) ?? 'Failed to create campaign')
-      return
-    }
-    setShowCampaignForm(false)
-    setCampaignForm(EMPTY_CAMPAIGN_FORM)
-    void loadCampaigns()
-  }
-
-  async function transitionCampaign(id: string, nextStatus: string) {
-    const res = await fetch(`/api/admin/campaigns/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: nextStatus }),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => null)
-      alert((data?.error as string) ?? 'Failed to update campaign')
-      return
-    }
-    void loadCampaigns()
-  }
-
-  async function endCampaign(id: string) {
-    if (!confirm('End this campaign? Claim tracking stops immediately.')) return
-    const res = await fetch(`/api/admin/campaigns/${id}`, { method: 'DELETE' })
-    if (res.ok) void loadCampaigns()
-  }
-
-  // ── Render helpers ────────────────────────────────────────────
-  const statusStyle: Record<string, { color: string; dim: string; label: string }> = {
-    active: { color: 'var(--admin-brand)', dim: 'var(--admin-brand-dim)', label: '生效中' },
-    draft: { color: 'var(--admin-warning)', dim: 'var(--admin-warning-dim)', label: '草稿' },
-    ended: { color: 'var(--admin-text-faint)', dim: 'var(--admin-depth-2)', label: '已結束' },
-  }
+  const set = <K extends keyof Form>(k: K, v: Form[K]) => setForm((f) => (f ? { ...f, [k]: v } : f))
+  const input = 'w-full rounded-md border px-3 py-2 text-sm'
+  const inputStyle = { borderColor: 'var(--admin-border)', background: 'var(--admin-surface)', color: 'var(--admin-text)' }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* ── Tab switch ─────────────────────────────────────────── */}
-      <div
-        className="flex w-fit items-center gap-1 rounded-full p-1"
-        style={{ background: 'var(--admin-surface-elevated)', border: '1px solid var(--admin-border)' }}
-      >
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
+          這裡的優惠碼就是結帳時會驗證的優惠碼。時間以香港時間計算。
+        </p>
         <button
-          type="button"
-          onClick={() => setTab('coupons')}
-          className="flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors"
-          style={{
-            background: tab === 'coupons' ? 'var(--admin-brand)' : 'transparent',
-            color: tab === 'coupons' ? 'var(--admin-brand-text)' : 'var(--admin-text-muted)',
-          }}
+          onClick={openNew}
+          className="rounded-md px-3 py-2 text-sm font-semibold"
+          style={{ background: 'var(--admin-brand)', color: 'var(--admin-brand-text)' }}
         >
-          <Ticket size={15} />
-          Coupons
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab('campaigns')}
-          className="flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors"
-          style={{
-            background: tab === 'campaigns' ? 'var(--admin-brand)' : 'transparent',
-            color: tab === 'campaigns' ? 'var(--admin-brand-text)' : 'var(--admin-text-muted)',
-          }}
-        >
-          <Megaphone size={15} />
-          Campaigns
+          ＋ 新增優惠碼
         </button>
       </div>
 
-      {/* ══════════ COUPONS TAB ══════════ */}
-      {tab === 'coupons' && (
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold" style={{ color: 'var(--admin-text)' }}>
-              Coupon Templates
-            </h2>
-            <button
-              type="button"
-              onClick={() => setShowCouponForm((v) => !v)}
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-              style={{
-                background: 'var(--admin-brand)',
-                color: 'var(--admin-brand-text)',
-              }}
-            >
-              {showCouponForm ? <X size={16} /> : <Plus size={16} />}
-              {showCouponForm ? 'Cancel' : 'New Coupon'}
-            </button>
-          </div>
-
-          {showCouponForm && (
-            <div
-              className="flex flex-col gap-4 rounded-2xl p-5"
-              style={{
-                background: 'var(--admin-surface-elevated)',
-                border: '1px solid var(--admin-border)',
-              }}
-            >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Name">
-                  <input
-                    className={inputCls}
-                    value={couponForm.name}
-                    onChange={(e) => setCouponForm({ ...couponForm, name: e.target.value })}
-                    placeholder="e.g. Summer Saver 20%"
-                  />
-                </Field>
-                <Field label="Discount Type">
-                  <select
-                    className={inputCls}
-                    value={couponForm.discountType}
-                    onChange={(e) =>
-                      setCouponForm({ ...couponForm, discountType: e.target.value as 'percentage' | 'fixed' })
-                    }
-                  >
-                    <option value="percentage">Percentage (%)</option>
-                    <option value="fixed">Fixed Amount (HK$)</option>
-                  </select>
-                </Field>
-                <Field label={couponForm.discountType === 'percentage' ? 'Value (%)' : 'Value (HK$)'}>
-                  <input
-                    className={inputCls}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={couponForm.discountValue}
-                    onChange={(e) => setCouponForm({ ...couponForm, discountValue: e.target.value })}
-                    placeholder={couponForm.discountType === 'percentage' ? 'e.g. 20' : 'e.g. 50'}
-                  />
-                </Field>
-                <Field label="Max Uses">
-                  <input
-                    className={inputCls}
-                    type="number"
-                    min="1"
-                    value={couponForm.maxUses}
-                    onChange={(e) => setCouponForm({ ...couponForm, maxUses: e.target.value })}
-                    placeholder="Unlimited"
-                  />
-                </Field>
-                <Field label="Valid Until">
-                  <input
-                    className={inputCls}
-                    type="date"
-                    value={couponForm.validUntil}
-                    onChange={(e) => setCouponForm({ ...couponForm, validUntil: e.target.value })}
-                  />
-                </Field>
-              </div>
-              {couponError && (
-                <p className="text-sm" style={{ color: 'var(--admin-danger)' }}>
-                  {couponError}
-                </p>
-              )}
-              <div>
-                <button
-                  type="button"
-                  onClick={createCoupon}
-                  className="rounded-xl px-4 py-2 text-sm font-semibold"
-                  style={{ background: 'var(--admin-brand)', color: 'var(--admin-brand-text)' }}
-                >
-                  Create Coupon
-                </button>
-              </div>
-            </div>
-          )}
-
-          {couponsLoading ? (
-            <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
-              Loading…
-            </p>
-          ) : coupons.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
-              No coupon templates yet.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {coupons.map((c) => (
-                <div
-                  key={c.id}
-                  className="flex flex-col gap-3 rounded-2xl p-4"
-                  style={{
-                    background: 'var(--admin-surface)',
-                    border: '1px solid var(--admin-border)',
-                  }}
-                >
-                  <CouponTicket
-                    data={
-                      {
-                        name: c.name,
-                        discountType: c.discountType,
-                        discountValue: c.discountValue,
-                        validUntil: c.validUntil,
-                      } as CouponTicketData
-                    }
-                  />
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-                      {c.usedCount} used
-                      {c.maxUses ? ` / ${c.maxUses}` : ''}
-                      {c.issuedCount > 0 ? ` · ${c.issuedCount} issued` : ''}
-                    </p>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => toggleCoupon(c.id, c.isActive)}
-                        className="rounded-lg p-1.5 transition-colors"
-                        style={{
-                          color: c.isActive ? 'var(--admin-brand)' : 'var(--admin-text-faint)',
-                          border: '1px solid var(--admin-border)',
-                        }}
-                        title={c.isActive ? 'Deactivate' : 'Activate'}
-                      >
-                        {c.isActive ? <Check size={15} /> : <Ban size={15} />}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deactivateCoupon(c.id)}
-                        className="rounded-lg p-1.5 transition-colors"
-                        style={{ color: 'var(--admin-danger)', border: '1px solid var(--admin-border)' }}
-                        title="Deactivate template"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+      {loadError && (
+        <div className="rounded-md border px-3 py-2 text-sm" style={{ borderColor: 'var(--admin-danger, #d33)', color: 'var(--admin-danger, #d33)' }}>
+          讀取失敗：{loadError} <button className="underline" onClick={() => void load()}>重試</button>
+        </div>
       )}
 
-      {/* ══════════ CAMPAIGNS TAB ══════════ */}
-      {tab === 'campaigns' && (
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold" style={{ color: 'var(--admin-text)' }}>
-              Campaigns
-            </h2>
-            <button
-              type="button"
-              onClick={() => setShowCampaignForm((v) => !v)}
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
-              style={{ background: 'var(--admin-brand)', color: 'var(--admin-brand-text)' }}
-            >
-              {showCampaignForm ? <X size={16} /> : <Plus size={16} />}
-              {showCampaignForm ? 'Cancel' : 'New Campaign'}
+      {form && (
+        <div className="rounded-lg border p-4" style={{ borderColor: 'var(--admin-border)', background: 'var(--admin-surface)' }}>
+          <h3 className="mb-3 text-base font-semibold" style={{ color: 'var(--admin-text)' }}>
+            {editingId ? `編輯 ${form.code}` : '新增優惠碼'}
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="優惠碼（4–20 位，A-Z 0-9 -）">
+              <input className={input} style={inputStyle} value={form.code} disabled={!!editingId}
+                onChange={(e) => set('code', e.target.value.toUpperCase())} />
+            </Field>
+            <Field label="名稱（內部備註）">
+              <input className={input} style={inputStyle} value={form.name} onChange={(e) => set('name', e.target.value)} />
+            </Field>
+            <Field label="折扣類型">
+              <select className={input} style={inputStyle} value={form.discount_type}
+                onChange={(e) => set('discount_type', e.target.value as Form['discount_type'])}>
+                <option value="percentage">百分比（%）</option>
+                <option value="fixed_amount">固定金額（HK$）</option>
+              </select>
+            </Field>
+            <Field label={form.discount_type === 'percentage' ? '折扣（1–100 %）' : '折扣（HK$）'}>
+              <input className={input} style={inputStyle} inputMode="numeric" value={form.discount_value}
+                onChange={(e) => set('discount_value', e.target.value)} />
+            </Field>
+            {form.discount_type === 'percentage' && (
+              <Field label="折扣上限 HK$（可留空）">
+                <input className={input} style={inputStyle} inputMode="numeric" value={form.max_discount}
+                  onChange={(e) => set('max_discount', e.target.value)} />
+              </Field>
+            )}
+            <Field label="最低消費 HK$（可留空）">
+              <input className={input} style={inputStyle} inputMode="numeric" value={form.min_cart_amount}
+                onChange={(e) => set('min_cart_amount', e.target.value)} />
+            </Field>
+            <Field label="總使用次數（留空＝不限）">
+              <input className={input} style={inputStyle} inputMode="numeric" value={form.max_uses}
+                onChange={(e) => set('max_uses', e.target.value)} />
+            </Field>
+            <Field label="每人使用次數（留空＝不限）">
+              <input className={input} style={inputStyle} inputMode="numeric" value={form.per_user_limit}
+                onChange={(e) => set('per_user_limit', e.target.value)} />
+            </Field>
+            <Field label="適用對象">
+              <select className={input} style={inputStyle} value={form.audience}
+                onChange={(e) => set('audience', e.target.value as Form['audience'])}>
+                {(Object.keys(AUDIENCE_LABEL) as Code['audience'][]).map((a) => (
+                  <option key={a} value={a}>{AUDIENCE_LABEL[a]}</option>
+                ))}
+              </select>
+            </Field>
+            {(form.audience === 'min_orders' || form.audience === 'min_spend') && (
+              <Field label={form.audience === 'min_orders' ? '最少訂單數' : '最低累計消費 HK$'}>
+                <input className={input} style={inputStyle} inputMode="numeric" value={form.audience_threshold}
+                  onChange={(e) => set('audience_threshold', e.target.value)} />
+              </Field>
+            )}
+            <Field label="開始時間（香港）">
+              <input type="datetime-local" className={input} style={inputStyle} value={form.valid_from}
+                onChange={(e) => set('valid_from', e.target.value)} />
+            </Field>
+            <Field label="結束時間（香港，留空＝不限）">
+              <input type="datetime-local" className={input} style={inputStyle} value={form.valid_until}
+                onChange={(e) => set('valid_until', e.target.value)} />
+            </Field>
+            <Field label="狀態">
+              <select className={input} style={inputStyle} value={form.status}
+                onChange={(e) => set('status', e.target.value as Form['status'])}>
+                {(Object.keys(STATUS_LABEL) as Code['status'][]).map((s) => (
+                  <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          {error && <p className="mt-3 text-sm" style={{ color: 'var(--admin-danger, #d33)' }}>{error}</p>}
+          <div className="mt-4 flex gap-2">
+            <button onClick={save} disabled={saving} className="rounded-md px-4 py-2 text-sm font-semibold disabled:opacity-50"
+              style={{ background: 'var(--admin-brand)', color: 'var(--admin-brand-text)' }}>
+              {saving ? '儲存中…' : '儲存'}
+            </button>
+            <button onClick={() => { setForm(null); setEditingId(null) }} className="rounded-md border px-4 py-2 text-sm"
+              style={{ borderColor: 'var(--admin-border)', color: 'var(--admin-text)' }}>
+              取消
             </button>
           </div>
+        </div>
+      )}
 
-          {showCampaignForm && (
-            <div
-              className="flex flex-col gap-4 rounded-2xl p-5"
-              style={{
-                background: 'var(--admin-surface-elevated)',
-                border: '1px solid var(--admin-border)',
-              }}
-            >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <Field label="Campaign Name">
-                  <input
-                    className={inputCls}
-                    value={campaignForm.name}
-                    onChange={(e) => setCampaignForm({ ...campaignForm, name: e.target.value })}
-                    placeholder="e.g. Referral Week"
-                  />
-                </Field>
-                <Field label="Status">
-                  <select
-                    className={inputCls}
-                    value={campaignForm.status}
-                    onChange={(e) => setCampaignForm({ ...campaignForm, status: e.target.value })}
-                  >
-                    <option value="draft">草稿</option>
-                    <option value="active">生效中</option>
-                  </select>
-                </Field>
-                <Field label="Starts At">
-                  <input
-                    className={inputCls}
-                    type="date"
-                    value={campaignForm.startsAt}
-                    onChange={(e) => setCampaignForm({ ...campaignForm, startsAt: e.target.value })}
-                  />
-                </Field>
-                <Field label="Ends At">
-                  <input
-                    className={inputCls}
-                    type="date"
-                    value={campaignForm.endsAt}
-                    onChange={(e) => setCampaignForm({ ...campaignForm, endsAt: e.target.value })}
-                  />
-                </Field>
-                <Field label="Description" full>
-                  <textarea
-                    className={`${inputCls} min-h-[70px] resize-y`}
-                    value={campaignForm.description}
-                    onChange={(e) => setCampaignForm({ ...campaignForm, description: e.target.value })}
-                    placeholder="Optional description"
-                  />
-                </Field>
-              </div>
-              {campaignError && (
-                <p className="text-sm" style={{ color: 'var(--admin-danger)' }}>
-                  {campaignError}
-                </p>
-              )}
-              <div>
-                <button
-                  type="button"
-                  onClick={createCampaign}
-                  className="rounded-xl px-4 py-2 text-sm font-semibold"
-                  style={{ background: 'var(--admin-brand)', color: 'var(--admin-brand-text)' }}
-                >
-                  Create Campaign
-                </button>
-              </div>
-            </div>
-          )}
-
-          {campaignsLoading ? (
-            <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
-              Loading…
-            </p>
-          ) : campaigns.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
-              No campaigns yet.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {campaigns.map((cm) => {
-                const s = statusStyle[cm.status] ?? statusStyle.draft
-                const endsAt = cm.endsAt ? new Date(cm.endsAt).toLocaleDateString('en-HK') : '—'
+      {loading ? (
+        <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>載入中…</p>
+      ) : codes.length === 0 && !loadError ? (
+        <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>暫時沒有優惠碼。</p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border" style={{ borderColor: 'var(--admin-border)' }}>
+          <table className="w-full text-sm" style={{ color: 'var(--admin-text)' }}>
+            <thead>
+              <tr style={{ color: 'var(--admin-text-muted)' }} className="text-left text-xs">
+                {['優惠碼', '折扣', '適用對象', '有效期（香港）', '已用 / 上限', '已折扣', '狀態', ''].map((h) => (
+                  <th key={h} className="px-3 py-2 font-medium">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {codes.map((c) => {
+                const st = stateOf(c)
+                const used = Math.max(c.usage_redeemed, c.used_count)
                 return (
-                  <div
-                    key={cm.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4"
-                    style={{
-                      background: 'var(--admin-surface)',
-                      border: '1px solid var(--admin-border)',
-                    }}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
-                          {cm.name}
-                        </span>
-                        <span
-                          className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
-                          style={{ background: s.dim, color: s.color }}
-                        >
-                          {s.label}
-                        </span>
-                      </div>
-                      <p className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-                        Ends {endsAt} · {cm.claimCount} claims
-                        {cm.description ? ` · ${cm.description}` : ''}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {cm.status === 'draft' && (
-                        <button
-                          type="button"
-                          onClick={() => transitionCampaign(cm.id, 'active')}
-                          className="rounded-lg px-3 py-1.5 text-xs font-semibold"
-                          style={{ background: 'var(--admin-brand)', color: 'var(--admin-brand-text)' }}
-                        >
-                          Activate
-                        </button>
+                  <tr key={c.id} className="border-t" style={{ borderColor: 'var(--admin-border)' }}>
+                    <td className="px-3 py-2">
+                      <div className="font-mono font-semibold">{c.code}</div>
+                      {c.name && <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>{c.name}</div>}
+                    </td>
+                    <td className="px-3 py-2">
+                      {c.discount_type === 'percentage' ? `${Number(c.discount_value)}%` : `HK$${Number(c.discount_value)}`}
+                      {c.min_cart_amount ? <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>滿 HK${Number(c.min_cart_amount)}</div> : null}
+                    </td>
+                    <td className="px-3 py-2">
+                      {AUDIENCE_LABEL[c.audience]}{c.audience_threshold ? `（${c.audience_threshold}）` : ''}
+                      {c.per_user_limit ? <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>每人 {c.per_user_limit} 次</div> : null}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap text-xs">{fmtHk(c.valid_from)}<br />→ {fmtHk(c.valid_until)}</td>
+                    <td className="px-3 py-2">
+                      {used} / {c.max_uses ?? '∞'}
+                      {c.usage_held > 0 && <div className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>保留中 {c.usage_held}</div>}
+                    </td>
+                    <td className="px-3 py-2">HK${c.usage_discount}</td>
+                    <td className="px-3 py-2">
+                      <span className="rounded-full px-2 py-0.5 text-xs font-medium"
+                        style={{
+                          background: st.tone === 'ok' ? 'var(--admin-brand)' : 'transparent',
+                          color: st.tone === 'ok' ? 'var(--admin-brand-text)' : 'var(--admin-text-muted)',
+                          border: st.tone === 'ok' ? 'none' : '1px solid var(--admin-border)',
+                        }}>
+                        {st.label}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap text-right">
+                      <button className="mr-2 underline" onClick={() => openEdit(c)}>編輯</button>
+                      {c.status === 'active' ? (
+                        <button className="underline" onClick={() => { if (confirm(`停用 ${c.code}？結帳時將不能再使用。`)) void setStatus(c, 'disabled') }}>停用</button>
+                      ) : (
+                        <button className="underline" onClick={() => void setStatus(c, 'active')}>啟用</button>
                       )}
-                      {cm.status === 'active' && (
-                        <button
-                          type="button"
-                          onClick={() => endCampaign(cm.id)}
-                          className="rounded-lg px-3 py-1.5 text-xs font-semibold"
-                          style={{ background: 'var(--admin-danger)', color: 'var(--admin-brand-text)' }}
-                        >
-                          End
-                        </button>
-                      )}
-                      {cm.status === 'draft' && (
-                        <button
-                          type="button"
-                          onClick={() => endCampaign(cm.id)}
-                          className="rounded-lg p-1.5"
-                          style={{ color: 'var(--admin-danger)', border: '1px solid var(--admin-border)' }}
-                          title="Delete draft"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                    </td>
+                  </tr>
                 )
               })}
-            </div>
-          )}
-        </section>
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   )
 }
 
-/* ── Shared form input style ──────────────────────────────────── */
-const inputCls = [
-  'w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors',
-  'placeholder:text-[var(--admin-text-faint)]',
-].join(' ')
-
-/* ── Labeled field wrapper ────────────────────────────────────── */
-function Field({
-  label,
-  children,
-  full,
-}: {
-  label: string
-  children: React.ReactNode
-  full?: boolean
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className={`flex flex-col gap-1.5 ${full ? 'sm:col-span-2' : ''}`}>
-      <span className="text-xs font-medium" style={{ color: 'var(--admin-text-muted)' }}>
-        {label}
-      </span>
+    <label className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium" style={{ color: 'var(--admin-text-muted)' }}>{label}</span>
       {children}
     </label>
   )

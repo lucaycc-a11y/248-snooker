@@ -8,7 +8,7 @@
  * BookingDrawer + ManualBookingWizard keep their existing wiring.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import BookingDrawer from '@/components/admin/BookingDrawer'
@@ -86,25 +86,45 @@ export default function BookingsPageClient({
     )
   }, [])
 
+  const [loadError, setLoadError] = useState<string | null>(null)
+  // Debounced copy of the search box: typing must not fire a request per keystroke.
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(t)
+  }, [search])
+
+  const reqSeq = useRef(0)
   const load = useCallback(async () => {
     if (preview) return
+    const seq = ++reqSeq.current
     setLoading(true)
     try {
       const params = new URLSearchParams()
       params.set('page', String(page))
       params.set('isTest', showTest ? 'true' : 'false')
-      if (search.trim()) params.set('search', search.trim())
+      if (debouncedSearch) params.set('search', debouncedSearch)
       if (status !== 'all') params.set('status', status)
       if (dateFrom) params.set('dateFrom', dateFrom)
       if (dateTo) params.set('dateTo', dateTo)
       const res = await fetch(`/api/admin/bookings?${params.toString()}`)
-      if (!res.ok) return
-      const json: unknown = await res.json()
-      if (isApiResponse(json)) setData(json)
+      const json: unknown = await res.json().catch(() => null)
+      if (seq !== reqSeq.current) return // a newer request superseded this one
+      if (!res.ok) {
+        const msg = (json as { error?: string } | null)?.error
+        setLoadError(msg ?? `預約資料載入失敗（${res.status}）`)
+        return
+      }
+      if (isApiResponse(json)) {
+        setLoadError(null)
+        setData(json)
+      }
+    } catch (e) {
+      if (seq === reqSeq.current) setLoadError(e instanceof Error ? e.message : '預約資料載入失敗')
     } finally {
-      setLoading(false)
+      if (seq === reqSeq.current) setLoading(false)
     }
-  }, [preview, page, showTest, search, status, dateFrom, dateTo])
+  }, [preview, page, showTest, debouncedSearch, status, dateFrom, dateTo])
 
   // Refetch on filter/page change and after a drawer action mutates a row.
   useEffect(() => {
@@ -277,11 +297,11 @@ export default function BookingsPageClient({
           ) : (
             <div
               className="admin-empty"
-              role={data.error ? 'alert' : undefined}
+              role={data.error || loadError ? 'alert' : undefined}
               data-cms-key="admin.bookings.empty_or_error"
-              style={data.error ? { color: 'var(--admin-danger, #f87171)' } : undefined}
+              style={data.error || loadError ? { color: 'var(--admin-danger, #f87171)' } : undefined}
             >
-              {data.error ?? '找不到符合條件的預約'}
+              {loadError ?? data.error ?? (loading ? '搜尋中…' : '找不到符合條件的預約')}
             </div>
           )}
         </div>

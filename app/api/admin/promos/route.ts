@@ -1,26 +1,48 @@
+/**
+ * GET  /api/admin/promos — promotion_codes (the table checkout reads) + real usage
+ * POST /api/admin/promos — create a code
+ */
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { writeAdminAudit } from '@/lib/admin/audit'
+import { parsePromoInput } from '@/lib/admin/promo-input'
+import type { Json } from '@/lib/supabase/database.types'
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
+export const runtime = 'nodejs'
 
 export async function GET() {
   const admin = await getAdminData()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const service = getLegacyServiceSupabase()
-  const { data, error } = await service
-    .from('promotion_codes')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('[admin/promos] list failed', error)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+  const [codesRes, usageRes] = await Promise.all([
+    service.from('promotion_codes').select('*').order('created_at', { ascending: false }),
+    service.from('promo_code_usages').select('promo_code_id, status, discount_amount'),
+  ])
+  if (codesRes.error || usageRes.error) {
+    const message = (codesRes.error ?? usageRes.error)?.message ?? 'unknown'
+    console.error('[admin/promos] list failed', message)
+    return NextResponse.json({ error: `讀取優惠碼失敗：${message}` }, { status: 500 })
   }
-  return NextResponse.json({ codes: data ?? [] })
+
+  const usage = new Map<string, { held: number; redeemed: number; discount: number }>()
+  for (const u of (usageRes.data ?? []) as Array<{ promo_code_id: string; status: string; discount_amount: number | null }>) {
+    const cur = usage.get(u.promo_code_id) ?? { held: 0, redeemed: 0, discount: 0 }
+    if (u.status === 'held') cur.held += 1
+    if (u.status === 'redeemed') {
+      cur.redeemed += 1
+      cur.discount += Number(u.discount_amount ?? 0)
+    }
+    usage.set(u.promo_code_id, cur)
+  }
+
+  const codes = (codesRes.data ?? []).map((c) => {
+    const row = c as unknown as Record<string, unknown> & { id: string }
+    const u = usage.get(row.id) ?? { held: 0, redeemed: 0, discount: 0 }
+    return { ...row, usage_held: u.held, usage_redeemed: u.redeemed, usage_discount: u.discount }
+  })
+  return NextResponse.json({ codes })
 }
 
 export async function POST(req: Request) {
@@ -28,65 +50,36 @@ export async function POST(req: Request) {
     const admin = await getAdminData()
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const body: unknown = await req.json().catch(() => null)
-    if (
-      !isRecord(body) ||
-      typeof body.code !== 'string' ||
-      !body.code.trim() ||
-      typeof body.discount_type !== 'string' ||
-      !['percentage', 'fixed_amount'].includes(body.discount_type) ||
-      typeof body.discount_value !== 'number' ||
-      body.discount_value <= 0
-    ) {
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
-    }
+    const parsed = parsePromoInput(await req.json().catch(() => null), { requireCode: true })
+    if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 })
 
     const service = getLegacyServiceSupabase()
-
-    // Resolve admin id from admin_users
-    const { data: adminUser } = await service
-      .from('admin_users')
-      .select('id')
-      .eq('email', admin.email)
-      .single()
-
-    const insertBody: Record<string, unknown> = {
-      code: body.code.trim().toUpperCase(),
-      discount_type: body.discount_type,
-      discount_value: body.discount_value,
-      max_uses: typeof body.max_uses === 'number' ? body.max_uses : null,
-      valid_from: body.valid_from ?? new Date().toISOString(),
-      valid_until: body.valid_until ?? null,
-      min_cart_amount: typeof body.min_cart_amount === 'number' ? body.min_cart_amount : null,
-      is_active: body.is_active !== false,
-      created_by: adminUser?.id ?? null,
-    }
+    const { data: adminUser } = await service.from('admin_users').select('id').eq('email', admin.email).maybeSingle()
 
     const { data, error } = await service
       .from('promotion_codes')
-      .insert(insertBody)
-      .select()
+      .insert({ ...parsed.value, created_by: adminUser?.id ?? null })
+      .select('*')
       .single()
 
     if (error) {
-      if (error.code === '23505') {
-        return NextResponse.json({ error: 'Code already exists' }, { status: 409 })
-      }
+      if (error.code === '23505') return NextResponse.json({ error: '此優惠碼已存在' }, { status: 409 })
       console.error('[admin/promos] create failed', error)
-      return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+      return NextResponse.json({ error: `建立失敗：${error.message}` }, { status: 500 })
     }
 
-    await service.from('audit_log').insert({
-      admin_user_id: admin.userId,
-      admin_email: admin.email,
+    await writeAdminAudit({
+      adminUserId: admin.userId,
+      adminEmail: admin.email,
       action: 'promo_code_created',
-      target_table: 'promotion_codes',
-      after_value: { code: body.code.trim().toUpperCase(), discount_type: body.discount_type, discount_value: body.discount_value },
+      targetTable: 'promotion_codes',
+      targetId: (data as { id: string }).id,
+      beforeValue: null,
+      afterValue: parsed.value as unknown as Json,
     })
-
-    return NextResponse.json({ code: data })
+    return NextResponse.json({ code: data }, { status: 201 })
   } catch (err) {
     console.error('[admin/promos] create crash', err)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    return NextResponse.json({ error: '伺服器錯誤' }, { status: 500 })
   }
 }

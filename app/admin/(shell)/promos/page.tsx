@@ -1,5 +1,5 @@
 /**
- * Admin Promotions page — coupon templates & campaigns (spec §8).
+ * Admin promotion codes page (promotion_codes — what checkout validates).
  *
  * Renders PromoCodesManager inside a CMS-keyed page shell.
  * Design system: admin-theme.css variables only — no inline hex, no shadows.
@@ -23,7 +23,7 @@ export default function AdminPromosPage() {
           style={{ color: 'var(--admin-text-muted)' }}
           data-cms-key="admin.promos.subtitle"
         >
-          Manage coupon templates and campaigns.
+          建立、編輯、啟用或停用結帳使用的優惠碼。
         </p>
       </header>
 
