@@ -132,6 +132,8 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
         isPhoneVerified: r.phone_verified === true,
         totalSpend: agg?.total ?? 0,
         bookingCount: agg?.count ?? 0,
+        // Derived from bookings.created_at in the aggregate above — `users` has
+        // no last_active_at column, which is what the old select 400'd on.
         lastActiveAt: agg?.lastAt ?? null,
         isBlacklisted: r.is_blacklisted === true,
         isHidden: hidden.ids.has(id),
