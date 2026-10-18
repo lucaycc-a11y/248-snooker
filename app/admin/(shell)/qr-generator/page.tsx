@@ -49,7 +49,7 @@ export default function QRGeneratorPage() {
       const res = await fetch(`/api/admin/qr-lookup?q=${encodeURIComponent(q)}`)
       const data: unknown = await res.json()
       if (!res.ok || !isRecord(data)) {
-        setError(isRecord(data) && typeof data.error === 'string' ? data.error : 'Lookup failed')
+        setError(isRecord(data) && typeof data.error === 'string' ? data.error : '查詢失敗')
         return
       }
       if (isRecord(data) && typeof data.type === 'string' && typeof data.id === 'string') {
@@ -61,10 +61,10 @@ export default function QRGeneratorPage() {
           url: typeof data.url === 'string' ? data.url : '',
         })
       } else {
-        setError('Unexpected response format')
+        setError('回應格式異常')
       }
     } catch {
-      setError('Network error — please try again')
+      setError('網絡錯誤 — 請重試')
     } finally {
       setLoading(false)
     }
@@ -83,10 +83,10 @@ export default function QRGeneratorPage() {
           style={{ color: 'var(--admin-text)' }}
           data-cms-key="admin_qr_generator_title"
         >
-          QR Generator
+          QR 碼產生器
         </h1>
-        <p className="mt-1 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-          Generate QR codes for bookings or member profiles.
+        <p className="mt-1 text-xs" style={{ color: 'var(--admin-text-muted)' }} data-cms-key="admin_qr_generator_subtitle">
+          為預約或會員檔案產生 QR 碼。
         </p>
       </header>
 
@@ -103,7 +103,7 @@ export default function QRGeneratorPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleLookup() }}
-          placeholder="Booking reference or user ID..."
+          placeholder="預約編號或會員 ID…"
           className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--admin-brand)]"
           style={{
             background: 'var(--admin-bg)',

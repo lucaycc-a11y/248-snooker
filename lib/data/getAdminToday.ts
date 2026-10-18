@@ -55,6 +55,7 @@ export async function getAdminToday(options?: {
   const weekDates = Array.from({ length: 7 }, (_, i) => shiftDate(date, i - 3))
 
   let rows: Row[] = []
+  let loadError: string | null = null
   try {
     let q = service.from('bookings').select('*, users(display_name, phone)').in('date', weekDates)
     if (!includeTest) q = q.eq('is_test', false)
@@ -71,8 +72,13 @@ export async function getAdminToday(options?: {
       const { data, error } = await q
       if (error) throw error
       rows = (data ?? []) as Row[]
-    } catch {
+    } catch (err) {
+      // Never an empty success — the dashboard must say the read failed
+      // rather than render "今日沒有預約" over a real outage.
       rows = []
+      const message = err instanceof Error ? err.message : String(err)
+      loadError = `預約資料載入失敗：${message}`
+      console.error('[admin/today] bookings load failed', err)
     }
   }
 
@@ -120,5 +126,6 @@ export async function getAdminToday(options?: {
     stats,
     week,
     tableCount,
+    error: loadError,
   }
 }

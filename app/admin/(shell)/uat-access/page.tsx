@@ -34,7 +34,7 @@ export default function UatAccessPage() {
     try {
       const res = await fetch('/api/uat/ip-whitelist')
       if (!res.ok) {
-        throw new Error(res.status === 401 ? 'Unauthorized' : 'Failed to fetch data')
+        throw new Error(res.status === 401 ? '未有權限' : '資料載入失敗')
       }
       const json = await res.json()
       setData(json)
@@ -56,7 +56,7 @@ export default function UatAccessPage() {
       })
       if (!res.ok) {
         const json = await res.json()
-        throw new Error(json.error || 'Failed to add IP')
+        throw new Error(json.error || '新增 IP 失敗')
       }
       setNewIp('')
       await fetchData()
@@ -68,7 +68,7 @@ export default function UatAccessPage() {
   }
 
   async function removeIp(ip: string) {
-    if (!confirm(`Remove ${ip} from whitelist?`)) return
+    if (!confirm(`確定將 ${ip} 移出白名單？`)) return
     try {
       const res = await fetch('/api/uat/ip-whitelist', {
         method: 'DELETE',
@@ -76,7 +76,7 @@ export default function UatAccessPage() {
         body: JSON.stringify({ ip }),
       })
       if (!res.ok) {
-        throw new Error('Failed to remove IP')
+        throw new Error('移除 IP 失敗')
       }
       await fetchData()
     } catch (err) {
@@ -91,7 +91,7 @@ export default function UatAccessPage() {
   if (loading && !data) {
     return (
       <div style={{ padding: 24, color: 'var(--admin-text-muted)' }}>
-        Loading...
+        載入中…
       </div>
     )
   }
@@ -99,7 +99,7 @@ export default function UatAccessPage() {
   if (error) {
     return (
       <div style={{ padding: 24, color: 'var(--admin-danger)' }}>
-        Error: {error}
+        錯誤：{error}
       </div>
     )
   }
@@ -118,7 +118,7 @@ export default function UatAccessPage() {
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--admin-text)' }}>
-            UAT Access Management
+            UAT 存取管理
           </h1>
           <button
             onClick={fetchData}
@@ -146,7 +146,7 @@ export default function UatAccessPage() {
       {/* IP Whitelist */}
       <section style={{ marginBottom: 32 }}>
         <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--admin-text)', marginBottom: 16 }}>
-          IP Whitelist
+          IP 白名單
         </h2>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
@@ -185,7 +185,7 @@ export default function UatAccessPage() {
             }}
           >
             <Plus size={16} />
-            Add
+            新增
           </button>
         </div>
 
@@ -204,13 +204,13 @@ export default function UatAccessPage() {
               <thead>
                 <tr style={{ background: 'var(--admin-bg-tertiary)', borderBottom: '1px solid var(--admin-border)' }}>
                   <th style={{ padding: 12, textAlign: 'left', color: 'var(--admin-text)', fontWeight: 600, fontSize: 14 }}>
-                    IP Address
+                    IP 位址
                   </th>
                   <th style={{ padding: 12, textAlign: 'left', color: 'var(--admin-text)', fontWeight: 600, fontSize: 14 }}>
-                    Added At
+                    新增時間
                   </th>
                   <th style={{ padding: 12, textAlign: 'right', color: 'var(--admin-text)', fontWeight: 600, fontSize: 14 }}>
-                    Actions
+                    操作
                   </th>
                 </tr>
               </thead>
@@ -240,7 +240,7 @@ export default function UatAccessPage() {
                         }}
                       >
                         <Trash2 size={14} />
-                        Remove
+                        移除
                       </button>
                     </td>
                   </tr>
@@ -254,7 +254,7 @@ export default function UatAccessPage() {
       {/* Access Log */}
       <section>
         <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--admin-text)', marginBottom: 16 }}>
-          Access Log (Last 100)
+          存取記錄（最近 100 條）
         </h2>
 
         <div style={{
@@ -275,7 +275,7 @@ export default function UatAccessPage() {
                     Time
                   </th>
                   <th style={{ padding: 12, textAlign: 'left', color: 'var(--admin-text)', fontWeight: 600, fontSize: 14 }}>
-                    IP Address
+                    IP 位址
                   </th>
                   <th style={{ padding: 12, textAlign: 'left', color: 'var(--admin-text)', fontWeight: 600, fontSize: 14 }}>
                     Method

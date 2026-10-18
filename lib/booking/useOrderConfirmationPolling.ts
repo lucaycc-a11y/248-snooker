@@ -16,6 +16,7 @@ type CheckoutStatusResponse = {
   providerStatus?: string
   holdActive?: boolean
   holdExpiresAt?: string | null
+  totalPrice?: number
 }
 
 /** Slot-hold state reported alongside the payment status. */
@@ -31,6 +32,11 @@ export type OrderConfirmationResult = {
   hold: OrderHoldState
   /** Wall-clock seconds since polling started — the UI can display "已等待 XX 秒". */
   elapsedSec: number
+  /**
+   * Net amount charged (bookings.total_price), present once the booking is
+   * confirmed. Drives the Google Ads conversion value; null before success.
+   */
+  totalPrice: number | null
 }
 
 // Fast phase: poll every 2s for the first 30s (KPay webhooks are near-instant).
@@ -65,6 +71,7 @@ function parseStatusResponse(value: unknown): CheckoutStatusResponse {
     providerStatus: typeof record.providerStatus === "string" ? record.providerStatus : undefined,
     holdActive: typeof record.holdActive === "boolean" ? record.holdActive : undefined,
     holdExpiresAt: typeof record.holdExpiresAt === "string" ? record.holdExpiresAt : null,
+    totalPrice: typeof record.totalPrice === "number" ? record.totalPrice : undefined,
   }
 }
 
@@ -80,6 +87,7 @@ export function useOrderConfirmationPolling(
   const [status, setStatus] = useState<OrderConfirmationStatus>("pending")
   const [hold, setHold] = useState<OrderHoldState>({ active: false, expiresAt: null })
   const [elapsedSec, setElapsedSec] = useState(0)
+  const [totalPrice, setTotalPrice] = useState<number | null>(null)
 
   useEffect(() => {
     if (!enabled || !bookingId) {
@@ -132,6 +140,10 @@ export function useOrderConfirmationPolling(
 
         if (!cancelled && result.holdActive !== undefined) {
           setHold({ active: result.holdActive, expiresAt: result.holdExpiresAt ?? null })
+        }
+
+        if (!cancelled && result.totalPrice !== undefined) {
+          setTotalPrice(result.totalPrice)
         }
 
         // Provider success only means KPay accepted the payment. The webhook
@@ -200,5 +212,5 @@ export function useOrderConfirmationPolling(
     }
   }, [bookingId, enabled])
 
-  return { status, hold, elapsedSec }
+  return { status, hold, elapsedSec, totalPrice }
 }

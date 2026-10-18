@@ -27,6 +27,7 @@ const DATA: AdminTodayData = {
   nowTime: '15:20',
   nowMinutes: 15 * 60 + 20,
   tableCount: 2,
+  error: null,
   stats: { total: 5, live: 1, upcoming: 2, unpaid: 1 },
   week: [
     { date: '2026-10-04', count: 0, isToday: false },

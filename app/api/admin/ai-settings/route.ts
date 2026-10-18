@@ -18,11 +18,15 @@ export async function GET() {
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const service = getLegacyServiceSupabase()
-  const { data } = await service
+  const { data, error } = await service
     .from('ai_widget_settings')
     .select('locale, greeting_message, suggested_prompts, system_prompt_override, tone')
     .in('locale', LOCALES)
 
+  if (error) {
+    console.error('[admin/ai-settings] list failed', error)
+    return NextResponse.json({ error: 'AI 設定載入失敗' }, { status: 500 })
+  }
   return NextResponse.json({ settings: data ?? [] })
 }
 

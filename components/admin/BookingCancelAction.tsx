@@ -53,7 +53,7 @@ export default function BookingCancelAction({ bookingId, compact = false }: { bo
         {error && <div style={{ color: tokens.colors.danger, fontSize: 13, marginTop: 8 }}>{error}</div>}
         <div style={{ display: 'flex', gap: tokens.spacing.sm, marginTop: tokens.spacing.md }}>
           <Button variant="primary" disabled={submitting || !reason.trim()} onClick={submit}>
-            {submitting ? 'Cancelling...' : 'Confirm cancel'}
+            {submitting ? '取消中…' : '確認取消'}
           </Button>
           <Button variant="secondary" onClick={() => setOpen(false)}>
             Back

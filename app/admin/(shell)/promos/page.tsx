@@ -1,10 +1,14 @@
 /**
- * Admin Promotions page — coupon templates & campaigns (spec §8).
+ * Admin Promotions page — 網站資料 → 「優惠碼」.
  *
- * Renders PromoCodesManager inside a CMS-keyed page shell.
+ * Top section: `promotion_codes` management (the checkout-facing codes).
+ * Below it: PromoCodesManager, the separate coupon_templates / campaigns
+ * feature — left mounted and untouched.
+ *
  * Design system: admin-theme.css variables only — no inline hex, no shadows.
  */
 
+import PromotionCodesManager from '@/components/admin/PromotionCodesManager'
 import PromoCodesManager from '@/components/admin/PromoCodesManager'
 
 export default function AdminPromosPage() {
@@ -23,10 +27,14 @@ export default function AdminPromosPage() {
           style={{ color: 'var(--admin-text-muted)' }}
           data-cms-key="admin.promos.subtitle"
         >
-          Manage coupon templates and campaigns.
+          管理結帳時使用的優惠碼，以及優惠券與推廣活動
         </p>
       </header>
 
+      <PromotionCodesManager />
+
+      {/* Separate feature — coupon_templates / user_coupons. Do not merge into
+          the promotion_codes manager above. */}
       <PromoCodesManager />
     </main>
   )

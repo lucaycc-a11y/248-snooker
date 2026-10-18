@@ -54,15 +54,15 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
         const message =
           json && typeof json === 'object' && 'error' in json && typeof (json as { error: unknown }).error === 'string'
             ? (json as { error: string }).error
-            : 'Invite failed'
+            : '邀請失敗'
         notify('error', message)
         return
       }
       const payload = json as { emailSent?: boolean; inviteUrl?: string }
       if (payload.emailSent === false && payload.inviteUrl) {
-        notify('error', `Invite created, but email failed — share this link: ${payload.inviteUrl}`)
+        notify('error', `邀請已建立，但電郵發送失敗 — 請分享此連結：${payload.inviteUrl}`)
       } else {
-        notify('success', 'Invite sent')
+        notify('success', '邀請已送出')
       }
       setItems((prev) => [
         { id: `pending-${email}`, email, role, invite_status: 'pending', invited_by_email: admin.email, created_at: null },
@@ -89,7 +89,7 @@ export default function TeamTable({ rows }: { rows: TeamRow[] }) {
         const message =
           json && typeof json === 'object' && 'error' in json && typeof (json as { error: unknown }).error === 'string'
             ? (json as { error: string }).error
-            : 'Action failed'
+            : '操作失敗'
         notify('error', message)
         return
       }

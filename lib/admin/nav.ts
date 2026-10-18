@@ -58,6 +58,7 @@ export const ADMIN_AREAS: AdminArea[] = [
       { href: '/admin/bookings', label: '預約', cmsKey: 'admin.nav.bookings' },
       { href: '/admin/payment-log', label: '付款記錄', cmsKey: 'admin.nav.payment_log' },
       { href: '/admin/calendar', label: '日曆', cmsKey: 'admin.nav.calendar' },
+      { href: '/admin/revenue', label: '收入', cmsKey: 'admin.nav.revenue' },
     ],
   },
   {
@@ -116,7 +117,9 @@ export const ADMIN_OVERFLOW: AdminNavItem[] = [
   { href: '/admin/orders', label: '訂單查詢', cmsKey: 'admin.nav.orders' },
   { href: '/admin/blog', label: '網誌', cmsKey: 'admin.nav.blog' },
   { href: '/admin/notifications', label: '通知', cmsKey: 'admin.nav.notifications' },
-  { href: '/admin/sales-report', label: '銷售報告', cmsKey: 'admin.nav.sales_report' },
+  // /admin/sales-report stays mounted as a deep link (Luca: never delete a
+  // route) but is no longer listed anywhere — /admin/revenue is the one money
+  // entry and reads the same loader the Excel export uses.
   { href: '/admin/door', label: '門禁卡', cmsKey: 'admin.nav.door' },
   { href: '/admin/door-lock', label: '門鎖', cmsKey: 'admin.nav.door_lock' },
   { href: '/admin/lockers', label: '儲物櫃', cmsKey: 'admin.nav.lockers' },
@@ -132,7 +135,12 @@ export const ADMIN_OVERFLOW: AdminNavItem[] = [
 export function areaForPath(pathname: string): AdminAreaId {
   const path = pathname.replace(/\/$/, '') || '/admin'
   if (path === '/admin') return 'today'
-  if (path.startsWith('/admin/bookings') || path.startsWith('/admin/payment-log') || path.startsWith('/admin/calendar')) {
+  if (
+    path.startsWith('/admin/bookings') ||
+    path.startsWith('/admin/payment-log') ||
+    path.startsWith('/admin/calendar') ||
+    path.startsWith('/admin/revenue')
+  ) {
     return 'bookings'
   }
   if (path.startsWith('/admin/members')) return 'members'

@@ -409,7 +409,7 @@ function DetailsTab({
     return (
       <div className="flex items-center justify-center py-16 text-[var(--admin-text-muted)]">
         <Loader2 size={20} className="animate-spin mr-2" />
-        <span className="text-sm">Loading…</span>
+        <span className="text-sm">載入中…</span>
       </div>
     )
   }
@@ -519,7 +519,7 @@ function DetailsTab({
               <ToggleLeft size={14} />
             )}
             <span data-cms-key="admin_booking_action_mark_test">
-              {booking.isTest ? 'Unmark Test' : 'Mark Test'}
+              {booking.isTest ? '取消測試標記' : '標記為測試'}
             </span>
           </button>
           {/* Future: Add Points, Waive Fee buttons */}
@@ -551,7 +551,7 @@ function PaymentsTab({
     return (
       <div className="flex items-center justify-center py-16 text-[var(--admin-text-muted)]">
         <Loader2 size={20} className="animate-spin mr-2" />
-        <span className="text-sm">Loading…</span>
+        <span className="text-sm">載入中…</span>
       </div>
     )
   }
@@ -637,7 +637,7 @@ function AuditTab({
     return (
       <div className="flex items-center justify-center py-16 text-[var(--admin-text-muted)]">
         <Loader2 size={20} className="animate-spin mr-2" />
-        <span className="text-sm">Loading…</span>
+        <span className="text-sm">載入中…</span>
       </div>
     )
   }

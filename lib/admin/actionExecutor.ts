@@ -319,9 +319,12 @@ async function executeBlockUser(
     return { success: false, message: 'Invalid parameters for blockUser.' }
   }
 
+  // `users` has no `is_blocked` column — blocking is `is_blacklisted`, the same
+  // field the members API and the member detail page read. Writing a phantom
+  // column makes every confirmed "block user" AI action fail at the DB.
   const { error: updateErr } = await service
     .from('users')
-    .update({ is_blocked: true })
+    .update({ is_blacklisted: true })
     .eq('id', userId)
 
   if (updateErr) {

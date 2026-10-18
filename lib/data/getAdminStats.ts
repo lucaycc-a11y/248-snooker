@@ -14,11 +14,21 @@ export type AdminStats = {
   newMembers: { week: number; month: number }
   tableUtilization: number // 0-1
   revenueTrend: { today: number | null; week: number | null; month: number | null } // signed % delta vs prior equal period, null if prior period is 0
+  /**
+   * Concatenated per-stat failures. Zeros are only trustworthy when this is
+   * null — otherwise a query outage looks like a quiet day.
+   */
+  error: string | null
 }
 
 export type RevenuePoint = { day: string; revenue: number; bookings: number }
 
-export type LiveOccupancy = { tablesInUse: number; totalTables: number }
+export type LiveOccupancy = {
+  tablesInUse: number
+  totalTables: number
+  /** Non-null means the occupancy read failed — 0 is then "unknown", not "free". */
+  error: string | null
+}
 
 function startOfDayISO(d: Date): string {
   const copy = new Date(d)
@@ -44,6 +54,7 @@ export async function getAdminStats(): Promise<AdminStats> {
   const revenue = { today: 0, week: 0, month: 0 }
   const bookingsCount = { today: 0, week: 0, month: 0 }
   const prevRevenue = { today: 0, week: 0, month: 0 }
+  const failures: string[] = []
   try {
     // Aggregate `bookings` directly instead of `admin_revenue_daily`: the view
     // has no hidden-user join, so it re-includes admin accounts in every total.
@@ -84,6 +95,7 @@ export async function getAdminStats(): Promise<AdminStats> {
   } catch (revenueErr) {
     // A hidden-list failure must not silently over-report revenue.
     console.error('[admin/stats] revenue aggregate failed', revenueErr)
+    failures.push('收入與預約數')
   }
 
   function pctDelta(current: number, prior: number): number | null {
@@ -115,8 +127,10 @@ export async function getAdminStats(): Promise<AdminStats> {
     if (exclude) monthQ = monthQ.not('id', 'in', exclude)
     const { count: monthCount } = await monthQ
     newMembers.month = monthCount ?? 0
-  } catch {
-    /* users.created_at not confirmed — stays zero */
+  } catch (membersErr) {
+    /* users.created_at not confirmed — stays zero, but say so */
+    console.error('[admin/stats] new members failed', membersErr)
+    failures.push('新會員數')
   }
 
   let tableUtilization = 0
@@ -137,14 +151,25 @@ export async function getAdminStats(): Promise<AdminStats> {
     const openHoursPerDay = Math.max(0, config.closeHour - config.openHour)
     const capacityHours = 2 /* tables */ * openHoursPerDay * 7
     tableUtilization = capacityHours > 0 ? Math.min(1, bookedHours / capacityHours) : 0
-  } catch {
-    /* stays zero */
+  } catch (utilErr) {
+    console.error('[admin/stats] table utilization failed', utilErr)
+    failures.push('使用率')
   }
 
-  return { revenue, bookingsCount, newMembers, tableUtilization, revenueTrend }
+  return {
+    revenue,
+    bookingsCount,
+    newMembers,
+    tableUtilization,
+    revenueTrend,
+    error: failures.length > 0 ? `部分統計載入失敗：${failures.join('、')}` : null,
+  }
 }
 
-export async function getRevenueSeries(days = 30): Promise<RevenuePoint[]> {
+export async function getRevenueSeries(days = 30): Promise<{
+  points: RevenuePoint[]
+  error: string | null
+}> {
   const service = getServiceSupabase()
   try {
     const hidden = await getHiddenUserList()
@@ -167,9 +192,14 @@ export async function getRevenueSeries(days = 30): Promise<RevenuePoint[]> {
       acc.bookings += 1
       byDay.set(day, acc)
     }
-    return [...byDay.entries()].map(([day, v]) => ({ day, revenue: v.revenue, bookings: v.bookings }))
-  } catch {
-    return []
+    return {
+      points: [...byDay.entries()].map(([day, v]) => ({ day, revenue: v.revenue, bookings: v.bookings })),
+      error: null,
+    }
+  } catch (err) {
+    // [] would draw an empty chart over a real outage.
+    console.error('[admin/stats] revenue series failed', err)
+    return { points: [], error: '收入走勢載入失敗' }
   }
 }
 
@@ -196,8 +226,9 @@ export async function getLiveOccupancy(): Promise<LiveOccupancy> {
       const end = str(r, ['end_time'])
       return start !== null && end !== null && start <= nowTime && nowTime < end
     })
-    return { tablesInUse: inUse.length, totalTables: 2 }
-  } catch {
-    return { tablesInUse: 0, totalTables: 2 }
+    return { tablesInUse: inUse.length, totalTables: 2, error: null }
+  } catch (err) {
+    console.error('[admin/stats] live occupancy failed', err)
+    return { tablesInUse: 0, totalTables: 2, error: '即時佔用資料載入失敗' }
   }
 }

@@ -233,11 +233,11 @@ export default async function AdminMemberDetailPage({
           waivedFees={riskStats.waivedFees}
         />
         <span className="h-4 w-px" style={{ background: 'var(--admin-border)' }} aria-hidden="true" />
-        <span>
-          <strong style={{ color: 'var(--admin-text)' }}>{riskStats.totalBookings}</strong> bookings
+        <span data-cms-key="admin.members.detail_bookings">
+          <strong style={{ color: 'var(--admin-text)' }}>{riskStats.totalBookings}</strong> 次預約
         </span>
-        <span>
-          <strong style={{ color: 'var(--admin-text)' }}>{memberData.points}</strong> pts
+        <span data-cms-key="admin.members.detail_points">
+          <strong style={{ color: 'var(--admin-text)' }}>{memberData.points}</strong> 積分
         </span>
         {memberData.email && (
           <span className="truncate" style={{ color: 'var(--admin-text-muted)' }}>
@@ -284,13 +284,17 @@ function RiskBadgeInline({
     high: { color: 'var(--admin-danger)', bg: 'var(--admin-danger-dim)' },
   }[level]
 
+  const levelLabel =
+    level === 'high' ? '高' : level === 'medium' ? '中' : '低'
+
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
       style={{ color: cfg.color, background: cfg.bg }}
+      data-cms-key="admin.members.risk_badge"
     >
       <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: cfg.color }} />
-      Risk: {level} ({score}%)
+      風險：{levelLabel}（{score}%）
     </span>
   )
 }

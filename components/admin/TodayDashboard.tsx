@@ -92,7 +92,7 @@ function dateLabel(iso: string): string {
 
 export default function TodayDashboard({ data, includeTest }: Props) {
   const router = useRouter()
-  const { stats, bookings, week, tableCount, nowMinutes, nowTime, date } = data
+  const { stats, bookings, week, tableCount, nowMinutes, nowTime, date, error } = data
 
   const statItems: { value: number; label: string; Icon: LucideIcon }[] = [
     { value: stats.total, label: '今日預約', Icon: STAT_ICONS[0] },
@@ -135,6 +135,18 @@ export default function TodayDashboard({ data, includeTest }: Props) {
           </button>
         </div>
       </div>
+
+      {/* A failed read is not an empty day — say so before the zeros. */}
+      {error ? (
+        <div
+          className="admin-empty"
+          role="alert"
+          data-cms-key="admin.today.load_error"
+          style={{ color: 'var(--admin-danger, #f87171)' }}
+        >
+          {error}
+        </div>
+      ) : null}
 
       {/* Stats */}
       <div className="admin-stats">

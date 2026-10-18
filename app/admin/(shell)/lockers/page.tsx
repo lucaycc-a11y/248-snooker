@@ -49,6 +49,21 @@ const BOOKING_STATUS_CONFIG: Record<BookingStatus, { label: string; bg: string; 
   cancelled: { label: '已取消', bg: 'var(--admin-danger-dim)', text: 'var(--admin-danger)' },
 }
 
+/** Filter-chip labels. The raw keys are English; the chips must not render them. */
+const FILTER_LABEL: Record<'all' | LockerStatus, string> = {
+  all: '全部',
+  available: STATUS_CONFIG.available.label,
+  occupied: STATUS_CONFIG.occupied.label,
+  maintenance: STATUS_CONFIG.maintenance.label,
+}
+
+const BOOKING_FILTER_LABEL: Record<'all' | BookingStatus, string> = {
+  all: '全部',
+  active: BOOKING_STATUS_CONFIG.active.label,
+  expired: BOOKING_STATUS_CONFIG.expired.label,
+  cancelled: BOOKING_STATUS_CONFIG.cancelled.label,
+}
+
 /* ── Helper ───────────────────────────────────────────── */
 function Badge({ config }: { config: { label: string; bg: string; text: string } }) {
   return (
@@ -144,7 +159,7 @@ export default function LockersPage() {
   const handleSave = useCallback(async () => {
     const numVal = parseInt(formNumber, 10)
     if (isNaN(numVal) || numVal < 1) {
-      setError('Please enter a valid locker number (≥ 1)')
+      setError('請輸入有效的儲物櫃編號（≥ 1）')
       return
     }
 
@@ -193,7 +208,7 @@ export default function LockersPage() {
       await fetchData()
     } catch (err) {
       console.error('[lockers] save error', err)
-      setError('Network error — please try again')
+      setError('網絡錯誤——請重試')
     } finally {
       setSaving(false)
     }
@@ -290,12 +305,12 @@ export default function LockersPage() {
               border: `1px solid ${filter === f ? 'var(--admin-brand)' : 'var(--admin-border)'}`,
             }}
           >
-            {f}
+            {FILTER_LABEL[f]}
           </button>
         ))}
 
         <span className="ml-4 text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-          Bookings:
+          預約：
         </span>
         {(['active', 'all'] as const).map((f) => (
           <button
@@ -309,7 +324,7 @@ export default function LockersPage() {
               border: `1px solid ${bookingFilter === f ? 'var(--admin-brand)' : 'var(--admin-border)'}`,
             }}
           >
-            {f}
+            {BOOKING_FILTER_LABEL[f]}
           </button>
         ))}
       </div>
@@ -318,7 +333,7 @@ export default function LockersPage() {
       {loading && lockers.length === 0 ? (
         <div className="flex items-center justify-center py-16" style={{ color: 'var(--admin-text-muted)' }}>
           <span className="admin-conic-spinner mr-2" />
-          Loading lockers…
+          載入中…
         </div>
       ) : filteredLockers.length === 0 ? (
         <div
@@ -327,7 +342,7 @@ export default function LockersPage() {
         >
           <span className="text-3xl">🔒</span>
           <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
-            {filter === 'all' ? 'No lockers yet. Click "Add Locker" to create one.' : `No ${filter} lockers.`}
+            {filter === 'all' ? '尚未有儲物櫃。請點選「新增儲物櫃」建立。' : `沒有${STATUS_CONFIG[filter]?.label ?? filter}的儲物櫃。`}
           </p>
         </div>
       ) : (
@@ -422,7 +437,7 @@ export default function LockersPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="mb-4 text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
-              {editingLocker ? `Edit Locker #${editingLocker.number}` : 'Add Locker'}
+              {editingLocker ? `編輯儲物櫃 #${editingLocker.number}` : '新增儲物櫃'}
             </h2>
 
             {error && (

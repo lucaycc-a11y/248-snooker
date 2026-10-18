@@ -178,14 +178,14 @@ export default function SiteGateLog({
               variant={rangeFilter === r ? 'primary' : 'secondary'}
               onClick={() => applyFilters(methodFilter, r)}
             >
-              {r === 'today' ? 'Today' : r === '7d' ? '7 days' : r === '30d' ? '30 days' : 'All time'}
+              {r === 'today' ? '今日' : r === '7d' ? '7 日' : r === '30d' ? '30 日' : '全部'}
             </Button>
           ))}
         </div>
       </div>
 
       {loading && (
-        <div style={{ padding: tokens.spacing.lg, color: tokens.colors.textMuted, fontSize: 14 }}>Loading…</div>
+        <div style={{ padding: tokens.spacing.lg, color: tokens.colors.textMuted, fontSize: 14 }}>載入中…</div>
       )}
 
       {!loading &&
@@ -244,7 +244,7 @@ export default function SiteGateLog({
                   disabled={isWhitelisted}
                   onClick={() => openLabelModal(group.ip)}
                 >
-                  {isWhitelisted ? 'Whitelisted' : 'Add to whitelist'}
+                  {isWhitelisted ? '已在白名單' : '加入白名單'}
                 </Button>
               )}
             </div>

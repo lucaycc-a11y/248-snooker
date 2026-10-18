@@ -14,7 +14,7 @@ export async function GET() {
     const admin = await getAdminData()
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const [stats, revenue] = await Promise.all([getAdminStats(), getRevenueSeries(7)])
+    const [stats, series] = await Promise.all([getAdminStats(), getRevenueSeries(7)])
 
     const vectorEngine = getVectorEngine()
     const response = await vectorEngine.messages.create({
@@ -25,7 +25,7 @@ export async function GET() {
       messages: [
         {
           role: 'user',
-          content: `Today's stats: ${JSON.stringify(stats)}\nLast 7 days revenue: ${JSON.stringify(revenue)}\n\nSummarize today's business performance.`,
+          content: `Today's stats: ${JSON.stringify(stats)}\nLast 7 days revenue: ${JSON.stringify(series.points)}${series.error ? `\nWARNING: revenue series failed to load (${series.error})` : ''}${stats.error ? `\nWARNING: some stats failed to load (${stats.error})` : ''}\n\nSummarize today's business performance.`,
         },
       ],
     })

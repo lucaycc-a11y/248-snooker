@@ -58,7 +58,7 @@ export default function SiteGateForm({
         return
       }
       setEnabled(!enabled)
-      notify('success', !enabled ? 'Gate enabled' : 'Gate disabled')
+      notify('success', !enabled ? '已啟用全站維修' : '已關閉全站維修')
     } catch {
       notify('error', 'Network error')
     } finally {
@@ -156,7 +156,7 @@ export default function SiteGateForm({
           <div>
             <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>即將推出閘門</div>
             <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginTop: 4 }}>
-              {enabled ? 'Visitors see the coming-soon page unless whitelisted or unlocked.' : 'Gate is off — site is fully public.'}
+              {enabled ? '訪客會看到即將開放頁面，白名單或已解鎖者除外。' : '維修閘已關閉——網站全面公開。'}
             </div>
           </div>
           <Button variant={enabled ? 'secondary' : 'primary'} disabled={toggling} onClick={toggleEnabled}>
@@ -170,7 +170,7 @@ export default function SiteGateForm({
           Gate password
         </div>
         <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: tokens.spacing.md }}>
-          {hasPassword ? 'A password is set.' : 'No password set yet.'} Setting a new one immediately invalidates the previous one.
+          {hasPassword ? '已設定密碼。' : '尚未設定密碼。'}設定新密碼會即時令舊密碼失效。
         </div>
         <div style={{ display: 'flex', gap: tokens.spacing.sm, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ flex: 1, minWidth: 160 }}>

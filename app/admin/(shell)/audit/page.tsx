@@ -37,21 +37,32 @@ type AuditResponse = {
 
 /* ── Action type labels ─────────────────────────────── */
 const ACTION_LABELS: Record<string, string> = {
-  member_adjust_points: 'Adjust Points',
-  member_set_tier: 'Set Tier',
-  member_blacklist: 'Blacklist',
-  member_unblacklist: 'Unblacklist',
-  booking_cancel: 'Cancel Booking',
-  booking_confirm: 'Confirm Booking',
-  coupon_create: 'Create Coupon',
-  coupon_update: 'Update Coupon',
-  user_update: 'Update User',
-  ai_propose: 'AI Proposal',
-  ai_confirm: 'AI Confirm',
+  member_adjust_points: '調整積分',
+  member_adjust_credit: '調整儲值金',
+  member_set_tier: '設定級別',
+  member_blacklist: '加入黑名單',
+  member_unblacklist: '移出黑名單',
+  member_identity_change: '更改會員身分',
+  member_hidden: '隱藏帳戶',
+  member_unhidden: '取消隱藏帳戶',
+  booking_cancel: '取消預約',
+  booking_confirm: '確認預約',
+  booking_manual_create: '手動建立預約',
+  booking_reschedule: '更改預約時間',
+  booking_weather_reschedule: '天氣原因改期',
+  coupon_create: '建立優惠券',
+  coupon_update: '更新優惠券',
+  promo_code_created: '建立優惠碼',
+  promo_code_updated: '更新優惠碼',
+  promo_code_enabled: '啟用優惠碼',
+  revenue_export: '匯出收入報表',
+  user_update: '更新用戶',
+  ai_propose: 'AI 建議',
+  ai_confirm: 'AI 確認',
 }
 
 function formatActionType(raw: string): string {
-  return ACTION_LABELS[raw] ?? raw.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  return ACTION_LABELS[raw] ?? raw
 }
 
 /* ── Risk badge colours ────────────────────────────── */
@@ -59,6 +70,12 @@ const RISK_COLOR: Record<string, { color: string; bg: string }> = {
   low: { color: 'var(--admin-brand)', bg: 'var(--admin-brand-dim)' },
   medium: { color: 'var(--admin-warning)', bg: 'var(--admin-warning-dim)' },
   high: { color: 'var(--admin-danger)', bg: 'var(--admin-danger-dim)' },
+}
+
+const RISK_LABEL: Record<string, string> = {
+  low: '低',
+  medium: '中',
+  high: '高',
 }
 
 /* ── Main component ─────────────────────────────────── */
@@ -87,7 +104,7 @@ export default function AuditLogPage() {
 
     try {
       const res = await fetch(`/api/admin/audit?${params}`)
-      if (!res.ok) throw new Error('Failed to fetch')
+      if (!res.ok) throw new Error('載入失敗')
       const data: AuditResponse = await res.json()
       setRows(data.rows)
       setTotal(data.total)
@@ -293,7 +310,7 @@ export default function AuditLogPage() {
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-12 text-center" style={{ color: 'var(--admin-text-muted)' }}>
-                  No audit entries found.
+                  沒有審計紀錄。
                 </td>
               </tr>
             ) : (
@@ -353,7 +370,7 @@ export default function AuditLogPage() {
                           className="inline-block h-1.5 w-1.5 rounded-full"
                           style={{ background: RISK_COLOR[row.riskLevel]?.color ?? 'var(--admin-text-muted)' }}
                         />
-                        {row.riskLevel}
+                        {RISK_LABEL[row.riskLevel] ?? row.riskLevel}
                       </span>
                     )}
                   </td>

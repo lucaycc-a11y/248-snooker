@@ -185,12 +185,12 @@ function ReconcileModal({
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Reconciliation failed')
+        setError(data.error ?? '對帳失敗')
         return
       }
       onDone()
     } catch {
-      setError('Network error')
+      setError('網絡錯誤')
     } finally {
       setSubmitting(false)
     }
@@ -236,7 +236,7 @@ function ReconcileModal({
         </div>
 
         <label className="block text-sm font-medium text-[var(--admin-text-muted)] mb-2">
-          Search booking to link
+          搜尋預約以建立連結
         </label>
         <div className="relative mb-3">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--admin-text-faint)]" />
@@ -244,7 +244,7 @@ function ReconcileModal({
             type="text"
             value={bookingQuery}
             onChange={(e) => setBookingQuery(e.target.value)}
-            placeholder="Booking code or reference…"
+            placeholder="預約編號或參考編號…"
             className="w-full rounded-xl bg-[var(--admin-surface-elevated)] border border-[var(--admin-border)] pl-10 pr-4 py-2.5 text-sm text-[var(--admin-text)] placeholder:text-[var(--admin-text-faint)] focus:outline-none focus:ring-2 focus:ring-[var(--admin-brand)]/40"
           />
           {loading && (
@@ -282,7 +282,7 @@ function ReconcileModal({
             onClick={onClose}
             className="px-4 py-2 rounded-xl text-sm text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors"
           >
-            Cancel
+            取消
           </button>
           <button
             onClick={handleReconcile}
@@ -290,7 +290,7 @@ function ReconcileModal({
             className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[var(--admin-brand)] text-sm font-medium text-black hover:opacity-90 transition-opacity disabled:opacity-40"
           >
             {submitting ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
-            Link to Booking
+            連結至預約
           </button>
         </div>
       </motion.div>
@@ -391,7 +391,7 @@ export default function PaymentLogClient() {
                 <div className="flex items-center gap-3 shrink-0">
                   {t.bookingStatus && (
                     <span className="px-1.5 py-0.5 rounded bg-red-500/15 text-red-200 text-[10px] uppercase tracking-wider">
-                      booking: {t.bookingStatus}
+                      預約：{t.bookingStatus}
                     </span>
                   )}
                   <span className="font-mono font-semibold text-red-100 tabular-nums">
@@ -567,11 +567,11 @@ export default function PaymentLogClient() {
                         {/* Detail grid */}
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 text-sm">
                           <Detail label="ID" value={p.id} mono />
-                          <Detail label="Provider Order" value={p.providerOrderNo ?? '—'} mono />
-                          <Detail label="Booking" value={p.bookingId ? `${p.bookingId.slice(0, 8)}…` : '—'} mono />
-                          <Detail label="Completed" value={p.completedAt ? formatDate(p.completedAt) : '—'} />
+                          <Detail label="付款平台訂單編號" value={p.providerOrderNo ?? '—'} mono />
+                          <Detail label="預約" value={p.bookingId ? `${p.bookingId.slice(0, 8)}…` : '—'} mono />
+                          <Detail label="完成時間" value={p.completedAt ? formatDate(p.completedAt) : '—'} />
                           <Detail
-                            label="Amount"
+                            label="金額"
                             value={
                               <span className="font-mono tabular-nums">
                                 {formatHKD(p.amount)}
@@ -584,10 +584,10 @@ export default function PaymentLogClient() {
                             }
                           />
                           {p.failureCode && (
-                            <Detail label="Failure Code" value={p.failureCode} />
+                            <Detail label="失敗代碼" value={p.failureCode} />
                           )}
                           {p.failureReason && (
-                            <Detail label="Failure Reason" value={p.failureReason} className="col-span-2" />
+                            <Detail label="失敗原因" value={p.failureReason} className="col-span-2" />
                           )}
                         </div>
 

@@ -1,10 +1,27 @@
+"use client";
+
 import Script from "next/script";
+import { usePathname } from "next/navigation";
 
 /**
  * Google Ads tag (gtag.js). Public identifier — visible in page source by design.
  * Must be loaded before individual event snippets can measure conversions.
  */
 const GOOGLE_TAG_ID = "AW-18400521232";
+
+/**
+ * Internal routes that must never report to Google Ads. Staff using /admin
+ * would otherwise land in remarketing lists and pollute page-view counts that
+ * PMax uses for bid signals.
+ */
+const UNTRACKED_PATH_PREFIXES = [
+  "/admin",
+  "/admin-shell-preview",
+  "/uat-gate",
+  "/hero-preview",
+  "/style-guide-preview",
+  "/_components-demo",
+];
 
 /**
  * Which environments should send hits to Google Ads.
@@ -21,13 +38,22 @@ function shouldMeasure(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
+function isUntrackedPath(pathname: string): boolean {
+  return UNTRACKED_PATH_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 /**
- * Loads the Google tag on every route. Rendering it from the root layout is
- * what makes this "every page", which is what Google requires for the tag to
- * be considered installed.
+ * Loads the Google tag on every public route. Mounted from the root layout so
+ * the tag is present site-wide — what Google requires for it to count as
+ * installed — then narrowed by path so /admin and internal previews stay dark.
  */
 export function GoogleTag() {
+  const pathname = usePathname();
+
   if (!shouldMeasure()) return null;
+  if (isUntrackedPath(pathname)) return null;
 
   return (
     <>

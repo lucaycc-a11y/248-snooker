@@ -97,7 +97,7 @@ function ConfirmModal({
           Cancel
         </Button>
         <Button variant="primary" onClick={onConfirm} disabled={saving || rows.length === 0}>
-          {saving ? 'Applying...' : 'Apply now'}
+          {saving ? '套用中…' : '立即套用'}
         </Button>
       </div>
     </Sheet>

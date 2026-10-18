@@ -328,7 +328,7 @@ export default function DoorLockPage() {
             >
               <div>
                 <div style={{ fontWeight: 600, color: tokens.colors.text }}>
-                  {scope === 'main_door' ? 'Main Door' : scope === 'table_1' ? 'Table 1' : 'Table 2'}
+                  {scope === 'main_door' ? '大門' : scope === 'table_1' ? '1 號枱' : '2 號枱'}
                 </div>
                 <div style={{ fontSize: 24, fontFamily: 'monospace', color: tokens.colors.brand, marginTop: 4 }}>
                   {passwords[scope] || '------'}

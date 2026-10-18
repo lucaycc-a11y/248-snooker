@@ -56,6 +56,11 @@ export type AdminTodayData = {
   /** Seven days, today at index 3 (the prototype's −3…+3 window). */
   week: AdminTodayWeekPoint[]
   tableCount: number
+  /**
+   * Non-null means the booking read failed. An empty `bookings` with a null
+   * error is a real "no bookings"; an empty list with a message is not.
+   */
+  error: string | null
 }
 
 /** Statuses that dim the tile to `off` in the prototype. */

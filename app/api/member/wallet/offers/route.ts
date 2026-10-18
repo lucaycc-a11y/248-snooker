@@ -32,9 +32,9 @@ export async function GET() {
     }
 
     const available: OfferAvailable[] =
-      availableCodes?.map((code: any) => ({
+      availableCodes?.map((code) => ({
         code: code.code,
-        name: code.name,
+        name: code.name ?? code.code,
         discountType: code.discount_type,
         discountValue: code.discount_value,
         minCartAmount: code.min_cart_amount,
@@ -42,10 +42,12 @@ export async function GET() {
         validUntil: code.valid_until,
       })) ?? []
 
-    // Fetch used promo codes for this user
+    // `promo_code_usages` has no `code` column — the code lives on
+    // `promotion_codes` and arrives via the join. Selecting the phantom column
+    // 400s the whole query and this endpoint used to 500 every time.
     const { data: usedCodes, error: usedError } = await supabase
       .from('promo_code_usages')
-      .select('code, discount_amount, redeemed_at, promotion_codes(name)')
+      .select('discount_amount, redeemed_at, promotion_codes(code, name)')
       .eq('user_id', userId)
       .eq('status', 'redeemed')
       .order('redeemed_at', { ascending: false })
@@ -55,13 +57,22 @@ export async function GET() {
       throw new Error('Failed to fetch used offers')
     }
 
+    type UsedRow = {
+      discount_amount: number
+      redeemed_at: string
+      promotion_codes: { code: string; name: string | null } | null
+    }
+
     const used: OfferUsed[] =
-      usedCodes?.map((usage: any) => ({
-        code: usage.code,
-        name: (usage.promotion_codes as any)?.name ?? usage.code,
-        discountAmount: usage.discount_amount,
-        redeemedAt: usage.redeemed_at,
-      })) ?? []
+      (usedCodes as UsedRow[] | null)?.map((usage) => {
+        const code = usage.promotion_codes?.code ?? ''
+        return {
+          code,
+          name: usage.promotion_codes?.name ?? code,
+          discountAmount: usage.discount_amount,
+          redeemedAt: usage.redeemed_at,
+        }
+      }) ?? []
 
     const response: WalletOffersResponse = {
       available,

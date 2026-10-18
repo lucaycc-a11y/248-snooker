@@ -61,8 +61,13 @@ export async function getMonthDensity(year: number, month: number): Promise<DayD
       entry.count += 1
       entry.hours += num(r, ['duration_hours'], 0)
     }
-  } catch {
-    /* stays zeroed */
+  } catch (densityErr) {
+    // An all-zero month reads as "fully free". Same contract as getDayTimeline:
+    // fail loudly rather than draw an empty calendar over an outage.
+    const message = densityErr instanceof Error ? densityErr.message : String(densityErr)
+    console.error('[admin/calendar] month density query failed', densityErr)
+    await logSiteError('admin.calendar', 'error', '日曆月曆資料載入失敗', { year, month, message })
+    throw new Error(`日曆資料載入失敗：${message}`)
   }
 
   let openHoursPerDay = 18 // 06:00-24:00 fallback

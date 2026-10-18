@@ -41,7 +41,7 @@ export default function DashboardSummary() {
   return (
     <Card style={{ marginBottom: tokens.spacing.lg }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: tokens.spacing.md }}>
-        <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>Today&apos;s summary</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text }}>今日摘要</div>
         <Button variant="secondary" onClick={fetchSummary} disabled={loading}>
           {loading ? 'Loading...' : summary ? 'Refresh' : 'Generate'}
         </Button>

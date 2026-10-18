@@ -114,7 +114,7 @@ export default function NotificationsPage() {
         setTemplates([])
       }
     } catch {
-      setError('Failed to load templates')
+      setError('範本載入失敗')
       setTemplates([])
     } finally {
       setLoading(false)
@@ -162,7 +162,7 @@ export default function NotificationsPage() {
   /* ── Save (create or update) ─────────────────────────── */
   const handleSave = useCallback(async () => {
     if (!form.name.trim() || !form.body.trim()) {
-      setError('Name and body are required')
+      setError('請填寫名稱與內容')
       return
     }
     setSaving(true)
@@ -199,7 +199,7 @@ export default function NotificationsPage() {
       setForm(EMPTY_FORM)
       await fetchTemplates()
     } catch {
-      setError(editingId ? 'Failed to update template' : 'Failed to create template')
+      setError(editingId ? '範本更新失敗' : '範本建立失敗')
     } finally {
       setSaving(false)
     }
@@ -215,7 +215,7 @@ export default function NotificationsPage() {
       setDeleteTarget(null)
       await fetchTemplates()
     } catch {
-      setError('Failed to delete template')
+      setError('範本刪除失敗')
     } finally {
       setSaving(false)
     }
@@ -232,7 +232,7 @@ export default function NotificationsPage() {
       if (!res.ok) throw new Error('Toggle failed')
       await fetchTemplates()
     } catch {
-      setError('Failed to toggle template')
+      setError('範本狀態更新失敗')
     }
   }, [fetchTemplates])
 
@@ -246,10 +246,10 @@ export default function NotificationsPage() {
             style={{ color: 'var(--admin-text)' }}
             data-cms-key="admin_notifications_title"
           >
-            Notification Templates
+            通知範本
           </h1>
           <p className="mt-1 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-            Manage push, email, SMS, and in-app notification templates.
+            管理推播、電郵、短訊與站內通知範本。
           </p>
         </div>
         <button
@@ -261,7 +261,7 @@ export default function NotificationsPage() {
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          New Template
+          新增範本
         </button>
       </header>
 
@@ -273,7 +273,7 @@ export default function NotificationsPage() {
         >
           <span>{error}</span>
           <button type="button" onClick={() => setError(null)} className="text-xs opacity-60 hover:opacity-100">
-            Dismiss
+            關閉
           </button>
         </div>
       )}
@@ -286,7 +286,7 @@ export default function NotificationsPage() {
         >
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
-              {editingId ? 'Edit Template' : 'New Template'}
+              {editingId ? '編輯範本' : '新增範本'}
             </h2>
             <button
               type="button"
@@ -294,7 +294,7 @@ export default function NotificationsPage() {
               className="rounded-lg px-2 py-1 text-xs transition-colors"
               style={{ color: 'var(--admin-text-muted)' }}
             >
-              Cancel
+              取消
             </button>
           </div>
 
@@ -304,7 +304,7 @@ export default function NotificationsPage() {
               {/* Name */}
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                  Template Name
+                  範本名稱
                 </label>
                 <input
                   type="text"
@@ -319,7 +319,7 @@ export default function NotificationsPage() {
               {/* Channel */}
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                  Channel
+                  發送渠道
                 </label>
                 <div className="flex gap-2">
                   {Object.entries(CHANNELS).map(([key, cfg]) => (
@@ -344,7 +344,7 @@ export default function NotificationsPage() {
               {form.channel === 'email' && (
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                    Subject Line
+                    主旨
                   </label>
                   <input
                     type="text"
@@ -360,7 +360,7 @@ export default function NotificationsPage() {
               {/* Body */}
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                  Template Body
+                  範本內容
                 </label>
                 <textarea
                   value={form.body}
@@ -371,7 +371,7 @@ export default function NotificationsPage() {
                   style={{ background: 'var(--admin-bg)', color: 'var(--admin-text)', borderColor: 'var(--admin-border)' }}
                 />
                 <p className="text-[10px]" style={{ color: 'var(--admin-text-faint)' }}>
-                  Use {'{{variable_name}}'} syntax for dynamic content. Detected: {detectedVariables.length > 0 ? detectedVariables.join(', ') : 'none'}
+                  使用 {'{{variable_name}}'} 語法插入動態內容。偵測到：{detectedVariables.length > 0 ? detectedVariables.join(', ') : '無'}
                 </p>
               </div>
 
@@ -383,7 +383,7 @@ export default function NotificationsPage() {
                   onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
                   className="h-4 w-4 rounded accent-[var(--admin-brand)]"
                 />
-                Active
+                啟用
               </label>
 
               {/* Save button */}
@@ -398,14 +398,14 @@ export default function NotificationsPage() {
                   opacity: saving || !form.name.trim() || !form.body.trim() ? 0.5 : 1,
                 }}
               >
-                {saving ? <span className="admin-conic-spinner h-4 w-4" /> : editingId ? 'Update Template' : 'Create Template'}
+                {saving ? <span className="admin-conic-spinner h-4 w-4" /> : editingId ? '更新範本' : '建立範本'}
               </button>
             </div>
 
             {/* ── Right: live preview ───────────────────────── */}
             <div className="flex flex-col gap-3">
               <h3 className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                Live Preview
+                即時預覽
               </h3>
 
               {/* Sample variable values */}
@@ -414,7 +414,7 @@ export default function NotificationsPage() {
                 style={{ background: 'var(--admin-bg)', border: '1px solid var(--admin-border)' }}
               >
                 <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-faint)' }}>
-                  Sample Values
+                  範例數值
                 </p>
                 {detectedVariables.map((v) => (
                   <div key={v} className="flex items-center gap-2">
@@ -432,7 +432,7 @@ export default function NotificationsPage() {
                 ))}
                 {detectedVariables.length === 0 && (
                   <p className="text-[10px]" style={{ color: 'var(--admin-text-faint)' }}>
-                    No variables detected in body.
+                    內容中未偵測到變數。
                   </p>
                 )}
               </div>
@@ -451,7 +451,7 @@ export default function NotificationsPage() {
                   className="whitespace-pre-wrap text-sm leading-relaxed"
                   style={{ color: 'var(--admin-text)' }}
                 >
-                  {previewBody || 'Start typing to see preview...'}
+                  {previewBody || '開始輸入以查看預覽…'}
                 </p>
               </div>
             </div>
@@ -466,7 +466,7 @@ export default function NotificationsPage() {
           style={{ color: 'var(--admin-danger)', background: 'var(--admin-danger-dim)', border: '1px solid var(--admin-danger)' }}
         >
           <span className="text-sm">
-            Delete &ldquo;{deleteTarget.name}&rdquo;? This cannot be undone.
+            確定刪除「{deleteTarget.name}」？此操作無法復原。
           </span>
           <div className="flex gap-2">
             <button
@@ -475,7 +475,7 @@ export default function NotificationsPage() {
               className="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
               style={{ background: 'var(--admin-surface)', color: 'var(--admin-text)' }}
             >
-              Cancel
+              取消
             </button>
             <button
               type="button"
@@ -484,7 +484,7 @@ export default function NotificationsPage() {
               className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
               style={{ background: 'var(--admin-danger)', color: '#ffffff' }}
             >
-              {saving ? 'Deleting…' : 'Delete'}
+              {saving ? '刪除中…' : '刪除'}
             </button>
           </div>
         </div>
@@ -517,7 +517,7 @@ export default function NotificationsPage() {
             ) : templates.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-12 text-center" style={{ color: 'var(--admin-text-muted)' }}>
-                  No templates yet. Create your first notification template.
+                  尚未有範本。請建立第一個通知範本。
                 </td>
               </tr>
             ) : (
@@ -596,7 +596,7 @@ export default function NotificationsPage() {
                           className="rounded-lg px-2 py-1 text-[10px] font-medium transition-colors"
                           style={{ color: 'var(--admin-brand)', background: 'var(--admin-brand-dim)' }}
                         >
-                          Edit
+                          編輯
                         </button>
                         <button
                           type="button"
@@ -604,7 +604,7 @@ export default function NotificationsPage() {
                           className="rounded-lg px-2 py-1 text-[10px] font-medium transition-colors"
                           style={{ color: 'var(--admin-danger)', background: 'var(--admin-danger-dim)' }}
                         >
-                          Delete
+                          刪除
                         </button>
                       </div>
                     </td>

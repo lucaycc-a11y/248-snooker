@@ -53,7 +53,7 @@ export function OtpPhoneUnlock() {
           disabled={busy || phone.length !== 8}
           className="h-12 border border-[var(--admin-border-strong)] px-4 text-sm font-semibold text-[var(--admin-text)] disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {busy ? 'Unlocking...' : 'Unlock phone'}
+          {busy ? '解鎖中…' : '解鎖電話'}
         </button>
       </div>
       {message && <p className="mt-3 text-sm text-[var(--admin-text-muted)]" role="status">{message}</p>}

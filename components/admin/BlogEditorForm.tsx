@@ -255,7 +255,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         </div>
         <div style={{ marginBottom: tokens.spacing.md }}>
           <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>分類</label>
-          <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="tutorial, venue, event, culture" />
+          <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="教學、場地、活動、文化" />
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>摘要</label>
@@ -301,26 +301,26 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         </label>
         {editor && (
           <div style={{ display: 'flex', gap: 2, marginBottom: tokens.spacing.sm, borderBottom: `1px solid ${tokens.colors.border}`, paddingBottom: tokens.spacing.sm }}>
-            <ToolbarButton title="Bold" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}>
+            <ToolbarButton title="粗體" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}>
               <Bold size={16} />
             </ToolbarButton>
-            <ToolbarButton title="Italic" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()}>
+            <ToolbarButton title="斜體" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()}>
               <Italic size={16} />
             </ToolbarButton>
-            <ToolbarButton title="Heading" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+            <ToolbarButton title="標題" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
               <Heading2 size={16} />
             </ToolbarButton>
-            <ToolbarButton title="Bullet list" active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()}>
+            <ToolbarButton title="項目清單" active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()}>
               <List size={16} />
             </ToolbarButton>
-            <ToolbarButton title="Numbered list" active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+            <ToolbarButton title="編號清單" active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
               <ListOrdered size={16} />
             </ToolbarButton>
-            <ToolbarButton title="Quote" active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+            <ToolbarButton title="引言" active={editor.isActive('blockquote')} onClick={() => editor.chain().focus().toggleBlockquote().run()}>
               <Quote size={16} />
             </ToolbarButton>
             <ToolbarButton
-              title="Link"
+              title="連結"
               active={editor.isActive('link')}
               onClick={() => {
                 const url = window.prompt('URL')
@@ -358,10 +358,10 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
 
       <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacing.sm }}>
         <Button variant="secondary" onClick={save} disabled={saving}>
-          {saving ? 'Saving...' : 'Save draft'}
+          {saving ? '儲存中…' : '儲存草稿'}
         </Button>
         <Button variant="primary" onClick={togglePublish} disabled={saving}>
-          {post.published_at ? 'Unpublish' : 'Publish'}
+          {post.published_at ? '取消發佈' : '發佈'}
         </Button>
         {saved && <span style={{ fontSize: 13, color: tokens.colors.brand }}>已儲存</span>}
       </div>

@@ -1,8 +1,9 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { useOrderConfirmationPolling } from "@/lib/booking/useOrderConfirmationPolling"
+import { trackBookingConversion } from "@/lib/analytics/gtag"
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { LoadingGif } from "@/components/shared/LoadingGif"
 import { tokens } from "@/app/styles/tokens"
@@ -15,6 +16,22 @@ export default function ConfirmPageClient({ bookingId }: Props) {
   const [retrying, setRetrying] = useState(false)
   const [retryError, setRetryError] = useState<string | null>(null)
   const result = useOrderConfirmationPolling(bookingId)
+  const conversionFired = useRef(false)
+
+  // Fire only when the webhook has committed bookings.status = confirmed —
+  // never on the "book" click, where payment can still fail. Strict Mode can
+  // mount twice and the poll can tick past success, so guard with a ref;
+  // Google Ads also dedupes on transaction_id as a second line of defence.
+  useEffect(() => {
+    if (result.status !== "success") return
+    if (conversionFired.current) return
+    conversionFired.current = true
+
+    trackBookingConversion({
+      transactionId: bookingId,
+      value: result.totalPrice ?? 0,
+    })
+  }, [result.status, result.totalPrice, bookingId])
 
   const reason: PaymentRecoveryReason | null =
     result.status === "failed" ? "payment_failed" :

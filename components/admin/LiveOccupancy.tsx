@@ -29,6 +29,11 @@ export default function LiveOccupancy({ initial }: { initial: LiveOccupancyData 
         {data.tablesInUse} / {data.totalTables}
       </div>
       <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>現正使用中的球桌</div>
+      {data.error ? (
+        <div role="alert" style={{ fontSize: 12, color: tokens.colors.danger ?? '#f87171', marginTop: 4 }}>
+          {data.error}
+        </div>
+      ) : null}
     </div>
   )
 }

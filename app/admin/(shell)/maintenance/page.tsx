@@ -165,7 +165,7 @@ export default function MaintenancePage() {
                 }}
               />
               <span className="text-sm font-semibold" style={{ color: 'var(--admin-text)' }}>
-                {status.isPaused ? 'Venue is PAUSED' : 'Venue is Active'}
+                {status.isPaused ? '場地暫停開放' : '場地正常開放'}
               </span>
             </div>
 

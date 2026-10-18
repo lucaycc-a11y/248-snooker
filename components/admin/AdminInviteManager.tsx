@@ -39,7 +39,7 @@ export default function AdminInviteManager() {
     setLoading(true)
     try {
       const res = await fetch('/api/admin/team')
-      if (!res.ok) throw new Error('Failed to load')
+      if (!res.ok) throw new Error('載入失敗')
       const data = await res.json()
       setInvites(data.members ?? [])
     } catch (e) {
@@ -52,7 +52,7 @@ export default function AdminInviteManager() {
   async function sendInvite() {
     setError(null)
     if (!email.trim()) {
-      setError('Email is required')
+      setError('請輸入電郵')
       return
     }
     setSending(true)
@@ -64,13 +64,13 @@ export default function AdminInviteManager() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Failed to send invite')
+        setError(data.error ?? '邀請發送失敗')
         return
       }
       setEmail('')
       loadInvites()
     } catch (e) {
-      setError('Failed to send invite')
+      setError('邀請發送失敗')
     } finally {
       setSending(false)
     }
@@ -123,7 +123,7 @@ export default function AdminInviteManager() {
           </div>
           <Button variant="primary" onClick={sendInvite} disabled={sending}>
             <Mail size={16} style={{ marginRight: 6 }} />
-            {sending ? 'Sending...' : 'Send Invite'}
+            {sending ? '傳送中…' : '傳送邀請'}
           </Button>
         </div>
         {error && <p style={{ color: DANGER, fontSize: 13, marginTop: 8 }}>{error}</p>}
@@ -137,7 +137,7 @@ export default function AdminInviteManager() {
           {pendingInvites.length > 0 && (
             <div style={{ marginBottom: 20 }}>
               <h3 style={{ fontSize: 15, color: MUTED, marginBottom: 8 }}>
-                Pending Invites ({pendingInvites.length})
+                待處理邀請（{pendingInvites.length}）
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {pendingInvites.map((invite) => (
@@ -155,7 +155,7 @@ export default function AdminInviteManager() {
                             type="button"
                             onClick={() => copyInviteUrl(invite)}
                             style={{ background: 'none', border: 'none', color: GREEN, cursor: 'pointer', fontSize: 13 }}
-                            title="Copy invite link"
+                            title="複製邀請連結"
                           >
                             {copiedId === invite.id ? <Check size={16} /> : <Copy size={16} />}
                           </button>
@@ -164,7 +164,7 @@ export default function AdminInviteManager() {
                           type="button"
                           onClick={() => revokeInvite(invite.id)}
                           style={{ background: 'none', border: 'none', color: DANGER, cursor: 'pointer', fontSize: 13 }}
-                          title="Revoke"
+                          title="撤銷"
                         >
                           <X size={16} />
                         </button>
@@ -179,7 +179,7 @@ export default function AdminInviteManager() {
           {/* Active admins */}
           <div>
             <h3 style={{ fontSize: 15, color: MUTED, marginBottom: 8 }}>
-              Active Admins ({activeInvites.length})
+              現任管理員（{activeInvites.length}）
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {activeInvites.map((invite) => (

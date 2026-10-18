@@ -26,6 +26,11 @@ export async function GET(req: Request) {
   const now = new Date()
   const year = parseInt(url.searchParams.get('year') ?? String(now.getFullYear()), 10)
   const month = parseInt(url.searchParams.get('month') ?? String(now.getMonth() + 1), 10)
-  const days = await getMonthDensity(year, month)
-  return NextResponse.json({ days })
+  try {
+    const days = await getMonthDensity(year, month)
+    return NextResponse.json({ days })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Internal error'
+    return NextResponse.json({ error: message, days: [] }, { status: 500 })
+  }
 }

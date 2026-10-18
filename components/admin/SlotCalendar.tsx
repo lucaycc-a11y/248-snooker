@@ -233,7 +233,7 @@ export default function SlotCalendar({ initialYear, initialMonth, initialDays }:
       </div>
 
       {loadingMonth ? (
-        <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>Loading…</div>
+        <div style={{ color: tokens.colors.textMuted, fontSize: 14 }}>載入中…</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: tokens.spacing.xs }}>
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (

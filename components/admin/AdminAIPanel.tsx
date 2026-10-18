@@ -392,7 +392,7 @@ export default function AdminAIPanel() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1.5 justify-center max-w-[280px]">
-                      {['Today\'s bookings', 'Revenue this week', 'Active users'].map((q) => (
+                      {['今日預約', '本週收入', '活躍用戶'].map((q) => (
                         <button
                           key={q}
                           type="button"

@@ -57,6 +57,7 @@ export async function GET(req: Request) {
         bookingId: booking.id,
         status: 'confirmed',
         providerStatus: 'free',
+        totalPrice: Number(booking.total_price),
       })
     }
 
@@ -129,6 +130,7 @@ async function handleStripeStatus(booking: any, service: any, userId: string) {
       bookingId: booking.id,
       status: 'confirmed',
       providerStatus: 'success',
+      totalPrice: Number(booking.total_price),
     })
   }
 
@@ -331,6 +333,7 @@ async function handleStripeStatus(booking: any, service: any, userId: string) {
               bookingId: booking.id,
               status: 'confirmed',
               providerStatus: 'success',
+              totalPrice: Number(booking.total_price),
             })
           }
         } catch (e) {
@@ -404,6 +407,7 @@ async function handleKPayStatus(booking: any, service: any, userId: string) {
       bookingId: booking.id,
       status: 'confirmed',
       providerStatus: 'success',
+      totalPrice: Number(booking.total_price),
     })
   }
 
@@ -524,6 +528,7 @@ async function handleKPayStatus(booking: any, service: any, userId: string) {
               bookingId: booking.id,
               status: 'confirmed',
               providerStatus: 'success',
+              totalPrice: Number(booking.total_price),
             })
           }
         } catch (e) {
