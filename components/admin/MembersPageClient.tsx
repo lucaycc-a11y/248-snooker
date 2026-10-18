@@ -22,17 +22,6 @@ import MemberDetailSheet from './MemberDetailSheet'
 type MemFilter = 'all' | 'bl' | 'rv'
 type MemView = 'grid' | 'table'
 
-/** Prototype `memFilter()` — whitespace-insensitive substring match. */
-function matchesQuery(m: AdminMemberRow, raw: string): boolean {
-  const q = raw.trim().toLowerCase().replace(/\s/g, '')
-  if (!q) return true
-  const hay = [m.displayName ?? '', m.phone ?? '', m.memberCode ?? '', m.email ?? '']
-    .join(' ')
-    .toLowerCase()
-    .replace(/\s/g, '')
-  return hay.includes(q)
-}
-
 function Seg<T extends string>({
   value,
   options,
@@ -102,40 +91,64 @@ export default function MembersPageClient({
     setLoadError(error ?? null)
   }, [members, error])
 
+  // Search + 「顯示隱藏帳戶」 both go to the server (shared loader), debounced,
+  // with the previous request aborted so a slow answer can never overwrite a
+  // newer one. The initial page-1 list from the server component is used as-is
+  // while no search / toggle is active.
+  const [searching, setSearching] = useState(false)
+  const [total, setTotal] = useState<number | null>(null)
   useEffect(() => {
-    if (!includeHidden) return
-    let cancelled = false
-    setLoadError(null)
-    fetch('/api/admin/users?includeHidden=true&page=1')
-      .then(async (res) => {
-        const json = (await res.json()) as {
-          error?: string
-          members?: AdminMemberRow[]
-        }
-        if (cancelled) return
-        if (!res.ok || json.error) {
-          setLoadError(json.error ?? '會員資料載入失敗')
-          return
-        }
-        setRowsData(json.members ?? [])
-      })
-      .catch((e: unknown) => {
-        if (cancelled) return
-        setLoadError(e instanceof Error ? e.message : '會員資料載入失敗')
-      })
-    return () => {
-      cancelled = true
+    const term = q.trim()
+    if (!term && !includeHidden) {
+      setRowsData(members)
+      setLoadError(error ?? null)
+      setTotal(null)
+      setSearching(false)
+      return
     }
-  }, [includeHidden])
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => {
+      setSearching(true)
+      const params = new URLSearchParams({ page: '1' })
+      if (term) params.set('search', term)
+      if (includeHidden) params.set('includeHidden', 'true')
+      fetch(`/api/admin/users?${params.toString()}`, { signal: ctrl.signal })
+        .then(async (res) => {
+          const json = (await res.json().catch(() => ({}))) as {
+            error?: string
+            members?: AdminMemberRow[]
+            total?: number
+          }
+          if (!res.ok || json.error) {
+            setLoadError(json.error ?? '會員資料載入失敗')
+            return
+          }
+          setLoadError(null)
+          setRowsData(json.members ?? [])
+          setTotal(json.total ?? null)
+        })
+        .catch((e: unknown) => {
+          if (e instanceof DOMException && e.name === 'AbortError') return
+          setLoadError(e instanceof Error ? e.message : '會員資料載入失敗')
+        })
+        .finally(() => {
+          if (!ctrl.signal.aborted) setSearching(false)
+        })
+    }, 300)
+    return () => {
+      clearTimeout(timer)
+      ctrl.abort()
+    }
+  }, [q, includeHidden, members, error])
 
   const rows = useMemo(
     () =>
       rowsData.filter((m) => {
         if (filter === 'bl' && !m.isBlacklisted) return false
         if (filter === 'rv' && !m.needsManualPhoneReverify) return false
-        return matchesQuery(m, q)
+        return true
       }),
-    [rowsData, filter, q],
+    [rowsData, filter],
   )
 
   const open = (id: string) => {
@@ -289,7 +302,9 @@ export default function MembersPageClient({
               </div>
             )}
             <div className="admin-pager">
-              <span data-cms-key="admin.members.pager">共 {rows.length} 位</span>
+              <span data-cms-key="admin.members.pager">
+                {searching ? '搜尋中…' : total !== null && total > rows.length ? `顯示 ${rows.length} / 共 ${total} 位（請輸入更多字元縮窄範圍）` : `共 ${rows.length} 位`}
+              </span>
             </div>
           </section>
         </>

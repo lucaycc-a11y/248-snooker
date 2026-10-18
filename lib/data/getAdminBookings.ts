@@ -115,7 +115,7 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
   if (search) {
     // Neutralise LIKE wildcards in user input; try both the raw and the
     // space-stripped form so "6128 4501" finds a phone stored as "61284501".
-    const safe = (s: string) => `%${s.replace(/[%_\\]/g, ' ')}%`
+    const safe = (s: string) => `%${s.replace(/[%_\\,()*]/g, ' ').trim()}%`
     const raw = safe(search)
     const tight = safe(search.replace(/\s+/g, ''))
     const { data: matchedUsers } = await service
@@ -127,6 +127,7 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
           `phone.ilike.${tight}`,
           `member_code.ilike.${tight}`,
           `display_name.ilike.${raw}`,
+          `email.ilike.${raw}`,
         ].join(','),
       )
       .limit(200)
@@ -151,7 +152,7 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
     if (tableNumber) query = query.eq('table_number', Number(tableNumber))
     if (search) {
       // Strip spaces so "S8 261007" matches "S8-261007"-style codes too.
-      const term = search.replace(/[%_\\]/g, ' ').replace(/\s+/g, '')
+      const term = search.replace(/[%_\\,()*]/g, ' ').replace(/\s+/g, '')
       const clauses = [
         `booking_reference.ilike.%${term}%`,
         `human_code.ilike.%${term}%`,
@@ -165,53 +166,39 @@ export async function getAdminBookings(query: AdminBookingsQuery): Promise<Admin
   }
 
   try {
-    let q = service
-      .from('bookings')
-      .select('*, users(email, display_name, phone)', { count: 'exact' })
-      .order('date', { ascending: false })
-      .range(from, to)
+    let q = service.from('bookings').select('*', { count: 'exact' }).order('date', { ascending: false }).order('start_time', { ascending: false }).range(from, to)
     q = applyFilters(q)
     const { data, error, count } = await q
     if (error) throw error
 
-    const rows = (data ?? []) as (Row & { users: { email: string | null; display_name: string | null; phone: string | null } | null })[]
-    const bookings = rows.map((r) => normalize(r, r.users))
-    return { bookings, total: count ?? 0, page, pageSize: PAGE_SIZE, error: null }
-  } catch {
-    try {
-      let q = service.from('bookings').select('*', { count: 'exact' }).order('date', { ascending: false }).range(from, to)
-      q = applyFilters(q)
-      const { data, error, count } = await q
-      if (error) throw error
-
-      const rows = (data ?? []) as Row[]
-      const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter((v): v is string => typeof v === 'string')))
-      let usersById = new Map<string, { email: string | null; display_name: string | null; phone: string | null }>()
-      if (userIds.length > 0) {
-        const { data: users } = await service.from('users').select('id, email, display_name, phone').in('id', userIds)
-        usersById = new Map(
-          ((users ?? []) as Row[]).map((u) => [
-            String(u.id),
-            { email: str(u, ['email']), display_name: str(u, ['display_name']), phone: str(u, ['phone']) },
-          ])
-        )
-      }
-
-      const bookings = rows.map((r) =>
-        normalize(r, typeof r.user_id === 'string' ? (usersById.get(r.user_id) ?? null) : null)
+    const rows = (data ?? []) as Row[]
+    const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter((v): v is string => typeof v === 'string')))
+    let usersById = new Map<string, { email: string | null; display_name: string | null; phone: string | null }>()
+    if (userIds.length > 0) {
+      const { data: users } = await service.from('users').select('id, email, display_name, phone').in('id', userIds)
+      usersById = new Map(
+        ((users ?? []) as Row[]).map((u) => [
+          String(u.id),
+          { email: str(u, ['email']), display_name: str(u, ['display_name']), phone: str(u, ['phone']) },
+        ])
       )
-      return { bookings, total: count ?? 0, page, pageSize: PAGE_SIZE, error: null }
-    } catch (fallbackError) {
-      const message = fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
-      console.error('[admin/bookings] query failed', fallbackError)
-      await logSiteError('admin.bookings', 'error', '預約資料載入失敗', { message })
-      return {
-        bookings: [],
-        total: 0,
-        page,
-        pageSize: PAGE_SIZE,
-        error: `預約資料載入失敗：${message}`,
-      }
+    }
+
+    const bookings = rows.map((r) =>
+      normalize(r, typeof r.user_id === 'string' ? (usersById.get(r.user_id) ?? null) : null)
+    )
+    return { bookings, total: count ?? 0, page, pageSize: PAGE_SIZE, error: null }
+  } catch (fallbackError) {
+    const message = fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
+    console.error('[admin/bookings] query failed', fallbackError)
+    await logSiteError('admin.bookings', 'error', '預約資料載入失敗', { message })
+    return {
+      bookings: [],
+      total: 0,
+      page,
+      pageSize: PAGE_SIZE,
+      error: `預約資料載入失敗：${message}`,
     }
   }
+
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getLegacyRouteHandlerClient } from '@/lib/supabase/legacy'
+import { getAdminData } from '@/lib/data/getAdmin'
 import { withSecurity, SecurityOptions } from './api-wrapper'
 
 /**
@@ -20,7 +20,7 @@ import { withSecurity, SecurityOptions } from './api-wrapper'
  *
  * Enforces:
  * 1. User must be authenticated
- * 2. User must have is_admin = true in profiles table
+ * 2. User must be an active admin in admin_users (getAdminData)
  * 3. CSRF protection (enabled by default)
  * 4. Rate limiting (30 per minute by default, user-based)
  */
@@ -50,32 +50,18 @@ export function withAdminSecurity(
 
   // Wrap with base security (CSRF + rate limiting)
   return withSecurity(async (req: Request, context?: { params: Record<string, string> }) => {
-    // Admin-specific checks: authentication + role verification
-    const supabase = await getLegacyRouteHandlerClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    // Admin-specific checks: authentication + role verification.
+    // Source of truth is admin_users (active invite) via getAdminData(), the
+    // same check as the /admin layout. The previous check read users.is_admin,
+    // a column that does not exist, so every wrapped route returned 403.
+    const admin = await getAdminData()
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Check admin role from profiles table
-    const { data: profile, error } = await supabase
-      .from('users')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single()
-
-    if (error || !profile?.is_admin) {
-      console.warn('[admin] access_denied', {
-        userId: user.id,
-        email: user.email,
-        hasProfile: !!profile,
-        isAdmin: profile?.is_admin ?? false,
-      })
+    if (!admin) {
+      console.warn('[admin] access_denied')
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
     }
+
+    const user = { id: admin.userId, email: admin.email }
 
     // Call the actual handler with authenticated admin user and context
     return handler(req, { id: user.id, email: user.email }, context)

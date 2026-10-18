@@ -1,16 +1,20 @@
+/**
+ * GET  /api/admin/promos — promotion_codes (the table checkout reads) + real usage
+ * POST /api/admin/promos — create a code
+ */
 import { NextResponse } from 'next/server'
 import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
-import { writeAdminActionLog } from '@/lib/admin/audit'
+import { writeAdminAudit } from '@/lib/admin/audit'
 import {
   normalizePromoCodeInput,
   type PromoCodeInput,
 } from '@/lib/admin/promo-code-rules'
+import type { Json } from '@/lib/supabase/database.types'
+
+export const runtime = 'nodejs'
 
 /**
- * GET  /api/admin/promos        — list promotion_codes (checkout-facing codes).
- * POST /api/admin/promos        — create one. Never deletes; see [id]/route.ts.
- *
  * This is the `promotion_codes` system the checkout RPC `prepare_checkout`
  * reads. It is NOT `coupon_templates` / `user_coupons` — those are a separate
  * feature and are untouched here.
@@ -47,16 +51,33 @@ export async function GET() {
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const service = getLegacyServiceSupabase()
-  const { data, error } = await service
-    .from('promotion_codes')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('[admin/promos] list failed', error)
-    return NextResponse.json({ error: '優惠碼資料載入失敗' }, { status: 500 })
+  const [codesRes, usageRes] = await Promise.all([
+    service.from('promotion_codes').select('*').order('created_at', { ascending: false }),
+    service.from('promo_code_usages').select('promo_code_id, status, discount_amount'),
+  ])
+  if (codesRes.error || usageRes.error) {
+    const message = (codesRes.error ?? usageRes.error)?.message ?? 'unknown'
+    console.error('[admin/promos] list failed', message)
+    return NextResponse.json({ error: `讀取優惠碼失敗：${message}` }, { status: 500 })
   }
-  return NextResponse.json({ codes: data ?? [] })
+
+  const usage = new Map<string, { held: number; redeemed: number; discount: number }>()
+  for (const u of (usageRes.data ?? []) as Array<{ promo_code_id: string; status: string; discount_amount: number | null }>) {
+    const cur = usage.get(u.promo_code_id) ?? { held: 0, redeemed: 0, discount: 0 }
+    if (u.status === 'held') cur.held += 1
+    if (u.status === 'redeemed') {
+      cur.redeemed += 1
+      cur.discount += Number(u.discount_amount ?? 0)
+    }
+    usage.set(u.promo_code_id, cur)
+  }
+
+  const codes = (codesRes.data ?? []).map((c) => {
+    const row = c as unknown as Record<string, unknown> & { id: string }
+    const u = usage.get(row.id) ?? { held: 0, redeemed: 0, discount: 0 }
+    return { ...row, usage_held: u.held, usage_redeemed: u.redeemed, usage_discount: u.discount }
+  })
+  return NextResponse.json({ codes })
 }
 
 export async function POST(req: Request) {
@@ -75,12 +96,11 @@ export async function POST(req: Request) {
     }
 
     const service = getLegacyServiceSupabase()
-
     const { data: adminUser } = await service
       .from('admin_users')
       .select('id')
       .eq('email', admin.email)
-      .single()
+      .maybeSingle()
 
     const v = normalized.value
     const insertBody: Record<string, unknown> = {
@@ -112,32 +132,27 @@ export async function POST(req: Request) {
     const { data, error } = await service
       .from('promotion_codes')
       .insert(insertBody)
-      .select()
+      .select('*')
       .single()
 
     if (error) {
-      if (error.code === '23505') {
-        return NextResponse.json({ error: '該優惠碼已存在' }, { status: 409 })
-      }
+      if (error.code === '23505') return NextResponse.json({ error: '此優惠碼已存在' }, { status: 409 })
       console.error('[admin/promos] create failed', error)
-      return NextResponse.json({ error: '優惠碼建立失敗' }, { status: 500 })
+      return NextResponse.json({ error: `建立失敗：${error.message}` }, { status: 500 })
     }
 
-    // Audit goes through the one helper that throws on failure — a promo code
-    // that exists with no audit row is a silent gap.
-    await writeAdminActionLog({
+    await writeAdminAudit({
       adminUserId: admin.userId,
       adminEmail: admin.email,
-      actionType: 'promo_code_created',
+      action: 'promo_code_created',
       targetTable: 'promotion_codes',
-      targetId: String((data as { id?: unknown }).id ?? ''),
-      beforeJsonb: null,
-      afterJsonb: insertBody as Record<string, unknown>,
+      targetId: (data as { id: string }).id,
+      beforeValue: null,
+      afterValue: insertBody as unknown as Json,
     })
-
-    return NextResponse.json({ code: data })
+    return NextResponse.json({ code: data }, { status: 201 })
   } catch (err) {
     console.error('[admin/promos] create crash', err)
-    return NextResponse.json({ error: '優惠碼建立失敗' }, { status: 500 })
+    return NextResponse.json({ error: '伺服器錯誤' }, { status: 500 })
   }
 }
