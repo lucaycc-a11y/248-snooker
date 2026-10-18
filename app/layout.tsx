@@ -6,6 +6,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { UatBadge } from "@/components/uat/UatBadge";
 import { MaintenanceBadge } from "@/components/uat/MaintenanceBadge";
+import { GoogleTag } from "@/components/analytics/google-tag";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
 
@@ -124,6 +125,7 @@ export default async function RootLayout({
           <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
+      <GoogleTag />
       <Script
         src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
         strategy="lazyOnload"
