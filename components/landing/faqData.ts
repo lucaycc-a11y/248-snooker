@@ -31,6 +31,9 @@ export function getFaqItems(t: (key: string) => string): FaqItem[] {
     { id: "faq-sanpokong", question: t('faq_sanpokong_q'), answer: t('faq_sanpokong_a') },
     { id: "faq-location",  question: t('faq_location_q'),  answer: t('faq_location_a') },
     { id: "faq-how-to-book", question: t('faq_how_to_book_q'), answer: t('faq_how_to_book_a') },
+    { id: "faq-private-room", question: t('faq_private_room_q'), answer: t('faq_private_room_a') },
+    { id: "faq-strangers", question: t('faq_strangers_q'), answer: t('faq_strangers_a') },
+    { id: "faq-vs-traditional", question: t('faq_vs_traditional_q'), answer: t('faq_vs_traditional_a') },
   ];
 }
 
@@ -42,6 +45,8 @@ export function getFaqItems(t: (key: string) => string): FaqItem[] {
 // homepage FAQPage schema.
 export const HOMEPAGE_FAQ_IDS = [
   "faq-sanpokong",
+  "faq-private-room",
+  "faq-strangers",
   "faq-location",
   "faq-how-to-book",
   "faq-hours",
