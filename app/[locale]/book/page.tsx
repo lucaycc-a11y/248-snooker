@@ -29,6 +29,8 @@ import KPayPayment from "@/components/checkout/KPayPayment"
 import { readKPayPersistedState, clearKPayPersistedState } from "@/components/checkout/KPayPayment"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import AdminGatewayPanel from "@/components/checkout/AdminGatewayPanel"
+import AdminKPayCheckout from "@/components/checkout/AdminKPayCheckout"
+import AdminKPayErrorBoundary from "@/components/checkout/AdminKPayErrorBoundary"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
@@ -1926,6 +1928,10 @@ function Screen3({
   // Admin test mode
   const [isAdmin, setIsAdmin] = useState(false)
   const [testMode, setTestMode] = useState(false)
+  // Admin-only gateway switch. React state only — per session and per tab.
+  // Never written to config, env, localStorage or sessionStorage.
+  const [adminGateway, setAdminGateway] = useState<"stripe" | "kpay">("stripe")
+  const adminKpayMode = isAdmin && adminGateway === "kpay"
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
 
@@ -2209,6 +2215,14 @@ function Screen3({
           duration: b.duration,
           tableNumber: b.tableNumber as 1 | 2,
         }))}
+        value={adminGateway}
+        onChange={(g) => {
+          setAdminGateway(g)
+          // KPay mode is a real gateway test. Leaving the Test Mode toggle on
+          // would make it ambiguous whether a confirmation came from KPay or
+          // from the bypass, so drop the bypass when entering KPay.
+          if (g === "kpay") setTestMode(false)
+        }}
       />
 
       {/* Back button */}
@@ -2497,8 +2511,9 @@ function Screen3({
             <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>{t("payment_subtitle") || "Choose your payment method"}</div>
           </div>
 
-          {/* Admin Test Mode banner */}
-          {isAdmin && (
+          {/* Admin Test Mode banner. Hidden in admin KPay mode so the bypass
+              cannot be confused with a real KPay test charge. */}
+          {isAdmin && !adminKpayMode && (
             <div
               style={{
                 background: "rgba(255,159,10,0.08)",
@@ -2544,6 +2559,14 @@ function Screen3({
           {/* Payment method selection — hidden when test mode is active or when total is $0 */}
           {!testMode && !isFreeCheckout && (
             <>
+              {/* Public gateway UI. In admin KPay mode it is HIDDEN, not
+                  unmounted: StripePayment's mount effect locks slots and mints
+                  a PaymentIntent, so a remount on every toggle would re-lock
+                  real slots. The wrapper div is load-bearing — it keeps the
+                  React tree position stable so the instance survives. For
+                  non-admins adminKpayMode is always false and `style` is
+                  undefined, leaving the public subtree untouched. */}
+              <div style={adminKpayMode ? { display: "none" } : undefined}>
               {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
                 /* ── Stripe: Direct to Payment Element (skip PaymentMethodList) ── */
                 <StripePayment
@@ -2682,6 +2705,24 @@ function Screen3({
                   </div>
                 </>
               ) : null}
+              </div>
+
+              {/* Admin KPay mode — the whole checkout area becomes the KPay UI.
+                  Orders go only through /api/admin/payment-dev/kpay, which
+                  forces is_test = true server-side. Never /api/checkout/create. */}
+              {adminKpayMode && (
+                <AdminKPayErrorBoundary onBackToStripe={() => setAdminGateway("stripe")}>
+                  <AdminKPayCheckout
+                    blocks={blocks.map((b) => ({
+                      date: b.date,
+                      startHour: b.startHour,
+                      duration: b.duration,
+                      tableNumber: b.tableNumber as 1 | 2,
+                    }))}
+                    onBackToStripe={() => setAdminGateway("stripe")}
+                  />
+                </AdminKPayErrorBoundary>
+              )}
             </>
           )}
 
