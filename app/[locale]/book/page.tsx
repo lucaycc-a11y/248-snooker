@@ -28,6 +28,7 @@ import StripeElementsWrapper from "@/components/checkout/StripeElementsWrapper"
 import KPayPayment from "@/components/checkout/KPayPayment"
 import { readKPayPersistedState, clearKPayPersistedState } from "@/components/checkout/KPayPayment"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
+import AdminGatewayPanel from "@/components/checkout/AdminGatewayPanel"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
@@ -2198,6 +2199,18 @@ function Screen3({
 
   return (
     <div className={`screen-content${!testMode && !confirmed ? " pay-screen" : ""}`}>
+      {/* Admin-only payment gateway dev panel. Renders nothing for non-admins
+          and is fully isolated from the public Stripe path — see the component. */}
+      <AdminGatewayPanel
+        isAdmin={isAdmin}
+        blocks={blocks.map((b) => ({
+          date: b.date,
+          startHour: b.startHour,
+          duration: b.duration,
+          tableNumber: b.tableNumber as 1 | 2,
+        }))}
+      />
+
       {/* Back button */}
       {onBackToSlots && (
         <button
