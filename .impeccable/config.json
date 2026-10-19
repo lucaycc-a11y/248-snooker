@@ -1092,6 +1092,42 @@
         "rule": "design-system-color",
         "value": "rgba(100, 210, 255, 0.14) space8-admin.html .pill.info = color-mix(--info 14%); --info is #64d2ff in the rapport layer",
         "createdAt": "2026-10-17T10:59:29.510Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ff9f0a",
+        "createdAt": "2026-10-19T07:47:35.343Z",
+        "reason": "Matches existing Admin Test Mode banner amber in app/[locale]/book/page.tsx:2491-2709 — this panel is the sibling admin test affordance on the same page; consistency with that banner is intentional."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,159,10,0.35)",
+        "createdAt": "2026-10-19T07:48:38.142Z",
+        "reason": "Same amber family as Admin Test Mode banner border in app/[locale]/book/page.tsx:2492 (rgba(255,159,10,0.3)) — admin test warning styling, intentional."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgba(255,159,10,0.08)",
+        "createdAt": "2026-10-19T07:48:38.189Z",
+        "reason": "Same amber family as Admin Test Mode banner fill in app/[locale]/book/page.tsx:2491 (rgba(255,159,10,0.08)) — admin test warning styling, intentional."
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#888",
+        "createdAt": "2026-10-19T09:01:56.324Z",
+        "reason": "Pre-existing literal in KPayPayment UAT toggle UI; out of scope to restyle — task limits edits to the optional createEndpoint prop"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#666",
+        "createdAt": "2026-10-19T09:01:56.371Z",
+        "reason": "Pre-existing literal in KPayPayment UAT toggle UI; out of scope to restyle — task limits edits to the optional createEndpoint prop"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#e74c3c",
+        "createdAt": "2026-10-19T09:01:56.404Z",
+        "reason": "Pre-existing literal in KPayPayment UAT toggle UI; out of scope to restyle — task limits edits to the optional createEndpoint prop"
       }
     ]
   }

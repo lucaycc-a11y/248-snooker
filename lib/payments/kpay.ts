@@ -29,7 +29,13 @@ function requireEnv(name: string): string {
   return val
 }
 
-function getKpayBaseUrl(hostname?: string): string {
+function getKpayBaseUrl(hostname?: string, forceEnv?: 'prod' | 'uat'): string {
+  // Explicit override. Callers that pass this get exactly the environment
+  // they asked for — hostname and KPAY_ENV are ignored. Only the admin
+  // payment-dev route uses this, to pin itself to production. Every other
+  // caller omits it and gets the historical resolution below unchanged.
+  if (forceEnv === 'prod') return 'https://payment.kpay-group.com'
+  if (forceEnv === 'uat') return 'https://payment.uat.kpay-group.com'
   // Import dynamically to avoid circular deps if needed
   const { getKPayEnv } = require('@/lib/env/uat')
   const env = getKPayEnv(hostname)
@@ -56,12 +62,12 @@ export class KPayProvider implements PaymentProvider {
   private readonly baseUrl: string
   private readonly hostname: string | undefined
 
-  constructor(hostname?: string) {
+  constructor(hostname?: string, forceEnv?: 'prod' | 'uat') {
     this.hostname = hostname
     this.merchantCode = requireEnv('KPAY_MERCHANT_CODE')
     this.privateKey = toPem(requireEnv('KPAY_PRIVATE_KEY'), 'PRIVATE KEY')
     this.platformPublicKey = toPem(requireEnv('KPAY_PLATFORM_PUBLIC_KEY'), 'PUBLIC KEY')
-    this.baseUrl = getKpayBaseUrl(hostname)
+    this.baseUrl = getKpayBaseUrl(hostname, forceEnv)
 
     // Validate key formats at startup so misconfigured keys fail loudly on
     // cold-start rather than silently at the first payment request.

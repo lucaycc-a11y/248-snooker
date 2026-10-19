@@ -6,7 +6,7 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { requireActiveAdmin, getClientIp } from '@/lib/uat/admin-auth'
 import { writeAdminAudit } from '@/lib/admin/audit'
 import { KPayProvider } from '@/lib/payments/kpay'
-import { KPAY_MIN_AMOUNT_HKD, type PaymentMethod } from '@/lib/payments/types'
+import type { PaymentMethod } from '@/lib/payments/types'
 import {
   loadPeriods,
   resolveTierForUser,
@@ -36,17 +36,20 @@ export const runtime = 'nodejs'
 //     stamp a real booking and leak it into availability + revenue.
 //   - slots.is_test is stamped true unconditionally, so the slot vanishes
 //     from availability for everyone else while the test is in flight.
-//   - The provider is a directly-constructed KPayProvider. getPaymentProvider()
-//     reads PAYMENT_PROVIDER=stripe and would silently charge Stripe.
+//   - The provider is a directly-constructed KPayProvider pinned to
+//     PRODUCTION. getPaymentProvider() reads PAYMENT_PROVIDER=stripe and
+//     would silently charge Stripe; getKPayEnv() defaults to UAT when
+//     KPAY_ENV is unset. Neither is used here.
 //   - Every attempt, success or failure, writes one audit_log row.
 //
-// Amount policy: KPay is charged KPAY_MIN_AMOUNT_HKD, NOT bookings.total_price.
-// Rationale — checkAmountMatch() is called only from the three Stripe sites
-// (payment/create-intent, checkout/status Stripe branch, webhooks/stripe). The
-// KPay webhook never compares amounts, and KPay queryOrder returns no captured
-// amount, so a deliberately small test charge cannot trip reconciliation. The
-// real booking total is still written to bookings and echoed back to the panel
-// and the audit row so the two figures are never silently confused.
+// Amount policy: KPay is charged the booking's real total_price. No test
+// override — this is a real production payment. KPAY_MIN_AMOUNT_HKD remains
+// only as the shared provider's pre-flight floor (KPay returns 1047 無效金額
+// below it); real slot prices are far above it.
+//
+// Body shape matches /api/checkout/create so the original KPayPayment
+// component can post here unmodified: Mode A `{ blocks }`, Mode B
+// `{ bookingId }`. `uat_payme` is ignored — no UAT simulation in production.
 // ════════════════════════════════════════════════════════════════════════════
 
 /** KPay rails this route will start. Apple Pay / Google Pay are not ready. */
@@ -106,6 +109,27 @@ export async function POST(req: Request) {
   const adminUserId = auth.user.id
   const adminEmail = auth.user.email ?? 'unknown'
 
+  // ── 1b. Pin KPay to PRODUCTION and fail closed on missing credentials ──
+  // Names only, never values. If any is absent there is no production
+  // config to charge with — refuse rather than silently fall back to UAT.
+  const requiredKpayEnv = ['KPAY_MERCHANT_CODE', 'KPAY_PRIVATE_KEY', 'KPAY_PLATFORM_PUBLIC_KEY'] as const
+  const missingKpayEnv = requiredKpayEnv.filter((name) => !process.env[name])
+  if (missingKpayEnv.length > 0) {
+    console.error('[payment-dev/kpay] missing KPay production credentials', { missing: missingKpayEnv })
+    return NextResponse.json(
+      {
+        error: 'KPay production is not configured',
+        missingEnv: missingKpayEnv,
+        hint: 'Set the listed KPay_* variables to production values. This route will not fall back to UAT.',
+      },
+      { status: 503 },
+    )
+  }
+  // Base URL is forced to https://payment.kpay-group.com. Request hostname,
+  // NEXT_PUBLIC_APP_ENV and KPAY_ENV are all ignored — see getKpayBaseUrl's
+  // forceEnv branch in lib/payments/kpay.ts.
+  const KPAY_GATEWAY_ENV = 'production'
+
   try {
     const body = await req.json().catch(() => null)
     if (!body || typeof body !== 'object') {
@@ -123,17 +147,66 @@ export async function POST(req: Request) {
     const rawMode = (body as Record<string, unknown>).mode
     const mode: 'qr' | 'h5' = rawMode === 'h5' ? 'h5' : 'qr'
 
-    // ── 4. Validate blocks (real slots only — no synthetic bookings) ──────
+    // ── 4. Mode A (blocks) or Mode B (existing bookingId) ────────────────
+    // Body shape matches /api/checkout/create so KPayPayment can post here
+    // unmodified. Mode A creates the booking; Mode B re-creates a KPay order
+    // against an existing booking after expiry — restricted to this admin's
+    // own is_test rows so it can never touch a real customer booking.
     const rawBlocks = (body as Record<string, unknown>).blocks
-    if (!Array.isArray(rawBlocks) || rawBlocks.length === 0 || !rawBlocks.every(isValidBlock)) {
-      return NextResponse.json({ error: 'Invalid blocks' }, { status: 400 })
+    const rawExistingBookingId = (body as Record<string, unknown>).bookingId
+    const modeBBookingId =
+      typeof rawExistingBookingId === 'string' && rawExistingBookingId.length > 0 ? rawExistingBookingId : null
+
+    let blocks: Block[] = []
+    if (!modeBBookingId) {
+      if (!Array.isArray(rawBlocks) || rawBlocks.length === 0 || !rawBlocks.every(isValidBlock)) {
+        return NextResponse.json({ error: 'Invalid blocks' }, { status: 400 })
+      }
+      blocks = rawBlocks as Block[]
     }
-    const blocks = rawBlocks as Block[]
 
     const service = getServiceSupabase()
-    // KPay is forced here on purpose — see the file header.
-    const provider = new KPayProvider(new URL(req.url).hostname)
+    // KPay pinned to PRODUCTION. Second arg is the forceEnv override — see
+    // the file header. getPaymentProvider() is deliberately not used: it
+    // reads PAYMENT_PROVIDER=stripe and would charge Stripe.
+    const provider = new KPayProvider(undefined, 'prod')
 
+    // Hoisted so both modes fill them and the tail below is shared.
+    const bookingIds: string[] = []
+    let bookingTotal = 0
+    const slotSummary: Json[] = []
+    let orderGroupId: string | null = null
+
+    // ── 4b. Mode B: adopt an existing admin test booking ─────────────────
+    if (modeBBookingId) {
+      const { data: existing, error: existingErr } = await service
+        .from('bookings')
+        .select('id, user_id, is_test, total_price, status, order_group_id, human_code, date, start_time, table_number')
+        .eq('id', modeBBookingId)
+        .maybeSingle()
+      if (existingErr || !existing) {
+        return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+      }
+      const row = existing as Record<string, unknown>
+      // Fail closed on anything that is not this admin's own test booking.
+      if (row.user_id !== adminUserId || row.is_test !== true) {
+        return NextResponse.json({ error: 'Not an admin test booking' }, { status: 403 })
+      }
+      if (row.status === 'cancelled' || row.status === 'expired') {
+        return NextResponse.json({ error: 'Booking is no longer payable' }, { status: 409 })
+      }
+      bookingIds.push(String(row.id))
+      bookingTotal = typeof row.total_price === 'number' ? row.total_price : 0
+      orderGroupId = typeof row.order_group_id === 'string' ? row.order_group_id : null
+      slotSummary.push({
+        slotId: '',
+        date: String(row.date ?? ''),
+        startTime: String(row.start_time ?? ''),
+        endTime: '',
+        tableNumber: Number(row.table_number ?? 0),
+        price: bookingTotal,
+      })
+    } else {
     // ── 5. Lock the real slot(s) ──────────────────────────────────────────
     const periods = await loadPeriods()
     const tier = await resolveTierForUser(adminUserId)
@@ -150,7 +223,7 @@ export async function POST(req: Request) {
       }
     })
 
-    const orderGroupId = blocks.length > 1 ? randomUUID() : null
+    orderGroupId = blocks.length > 1 ? randomUUID() : null
     let slotIds: string[]
 
     if (blocks.length > 1) {
@@ -200,10 +273,6 @@ export async function POST(req: Request) {
     }
 
     // ── 6. Insert pending booking, is_test = true LITERAL ─────────────────
-    const bookingIds: string[] = []
-    let bookingTotal = 0
-    const slotSummary: Json[] = []
-
     for (const slotId of slotIds) {
       const slot = await validateSlotLock(slotId, adminUserId)
       if (!slot) {
@@ -262,23 +331,28 @@ export async function POST(req: Request) {
         price: quote.total,
       })
     }
+    } // end Mode A / else
 
-    // ── 7. prepare_checkout (reused, not modified) ────────────────────────
+    // ── 7. prepare_checkout (Mode A only — reused, not modified) ─────────
     // Writes the authoritative discounted total onto the booking rows. With no
     // promo and no wallet this is a no-op discount that still normalises
-    // total_price from base_price.
-    const prepared = await prepareCheckout(service, {
-      bookingId: bookingIds[0],
-      userId: adminUserId,
-      promoCode: null,
-      walletAmount: 0,
-    })
-    if (!prepared.ok) {
-      console.warn('[payment-dev/kpay] prepare_checkout rejected', {
+    // total_price from base_price. Mode B skips this: the booking already
+    // carries its authoritative total from the first attempt.
+    if (!modeBBookingId) {
+      const prepared = await prepareCheckout(service, {
         bookingId: bookingIds[0],
-        reason: prepared.failure.reason,
+        userId: adminUserId,
+        promoCode: null,
+        walletAmount: 0,
       })
-      return NextResponse.json({ error: prepared.failure.reason }, { status: 400 })
+      if (!prepared.ok) {
+        console.warn('[payment-dev/kpay] prepare_checkout rejected', {
+          bookingId: bookingIds[0],
+          reason: prepared.failure.reason,
+        })
+        return NextResponse.json({ error: prepared.failure.reason }, { status: 400 })
+      }
+      bookingTotal = prepared.prepared.total
     }
 
     // ── 8. Claim payment attempt ──────────────────────────────────────────
@@ -303,8 +377,10 @@ export async function POST(req: Request) {
     }
     const attemptId = typeof claim.attempt_id === 'string' ? claim.attempt_id : null
 
-    // ── 9. Create the KPay order at the gateway floor ─────────────────────
-    const kpayAmount = KPAY_MIN_AMOUNT_HKD
+    // ── 9. Create the KPay order at the booking's real total ─────────────
+    // Real production amount — no test override. prepare_checkout's returned
+    // total is the only authoritative figure; never a client-supplied one.
+    const kpayAmount = bookingTotal
     let created: {
       providerOrderNo: string
       payInfo: string
@@ -332,6 +408,7 @@ export async function POST(req: Request) {
       const failedAudit: Json = {
         method: paymentMethod,
         mode,
+        gatewayEnv: KPAY_GATEWAY_ENV,
         outcome: 'create_order_failed',
         error: e.message.slice(0, 240),
         bookingTotal,
@@ -366,6 +443,7 @@ export async function POST(req: Request) {
     const createdAudit: Json = {
       method: paymentMethod,
       mode,
+      gatewayEnv: KPAY_GATEWAY_ENV,
       outcome: 'order_created',
       providerOrderNo: created.providerOrderNo,
       attemptId,

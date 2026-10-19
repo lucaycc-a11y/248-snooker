@@ -29,7 +29,6 @@ import KPayPayment from "@/components/checkout/KPayPayment"
 import { readKPayPersistedState, clearKPayPersistedState } from "@/components/checkout/KPayPayment"
 import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import AdminGatewayPanel from "@/components/checkout/AdminGatewayPanel"
-import AdminKPayCheckout from "@/components/checkout/AdminKPayCheckout"
 import AdminKPayErrorBoundary from "@/components/checkout/AdminKPayErrorBoundary"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
@@ -2496,9 +2495,11 @@ function Screen3({
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 20, fontSize: 12.5, color: tokens.colors.textFaint }}>
               <Lock size={14} style={{ color: tokens.colors.link, flexShrink: 0 }} />
               <span data-cms-key="book.pay.secure">
-                {(process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") === "stripe"
-                  ? t("stripe_secure")
-                  : t("kpay_secure")}
+                {/* Admin KPay mode must not show Stripe copy — name the gateway
+                    that will actually handle the charge. */}
+                {adminKpayMode || (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") !== "stripe"
+                  ? t("kpay_secure")
+                  : t("stripe_secure")}
               </span>
             </div>
           )}
@@ -2707,20 +2708,122 @@ function Screen3({
               ) : null}
               </div>
 
-              {/* Admin KPay mode — the whole checkout area becomes the KPay UI.
-                  Orders go only through /api/admin/payment-dev/kpay, which
-                  forces is_test = true server-side. Never /api/checkout/create. */}
+              {/* Admin KPay mode — the whole checkout area becomes the ORIGINAL
+                  KPay UI (PaymentMethodList / KPayPayment), not a rebuilt one.
+                  The only difference from the public KPay flow is where the
+                  order is created: createEndpoint points at the admin route,
+                  which stamps is_test = true server-side. Never checkout/create. */}
               {adminKpayMode && (
                 <AdminKPayErrorBoundary onBackToStripe={() => setAdminGateway("stripe")}>
-                  <AdminKPayCheckout
-                    blocks={blocks.map((b) => ({
-                      date: b.date,
-                      startHour: b.startHour,
-                      duration: b.duration,
-                      tableNumber: b.tableNumber as 1 | 2,
-                    }))}
-                    onBackToStripe={() => setAdminGateway("stripe")}
-                  />
+                  <div
+                    role="status"
+                    style={{
+                      border: "1px solid rgba(255,159,10,0.35)",
+                      background: "rgba(255,159,10,0.08)",
+                      borderRadius: tokens.radius.input,
+                      padding: "10px 12px",
+                      fontSize: 12.5,
+                      color: "#FF9F0A",
+                      lineHeight: 1.5,
+                      marginBottom: 16,
+                    }}
+                  >
+                    Production environment. Payments are real.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAdminGateway("stripe")}
+                    style={{
+                      minHeight: 44,
+                      padding: "0 12px",
+                      marginBottom: 16,
+                      background: "transparent",
+                      color: tokens.colors.textMuted,
+                      border: `1px solid ${tokens.colors.border}`,
+                      borderRadius: tokens.radius.input,
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      fontSize: 12.5,
+                    }}
+                  >
+                    Back to Stripe
+                  </button>
+
+                  {!confirmed ? (
+                    /* ── KPay: Stage 1 - the ORIGINAL PaymentMethodList ── */
+                    <PaymentMethodList
+                      forceKpay
+                      selected={paymentMethod}
+                      onSelect={(method) => {
+                        setPaymentError(null)
+                        setPaymentMethod(method)
+                        scrollIntoViewIfNeeded(payCtaRef)
+                        const kpayMethods: KPayMethod[] = ["card", "alipayhk", "payme"]
+                        if (kpayMethods.includes(method as KPayMethod)) {
+                          setKpayMethod(method as KPayMethod)
+                          setKpayMode(isDesktopDevice() ? "qr" : "h5")
+                        }
+                      }}
+                    />
+                  ) : paymentMethod !== null ? (
+                    /* ── KPay: Stage 2 - the ORIGINAL KPayPayment ── */
+                    <>
+                      <KPayPayment
+                        createEndpoint="/api/admin/payment-dev/kpay"
+                        blocks={blocks.map((b) => ({
+                          date: b.date,
+                          startHour: b.startHour,
+                          duration: b.duration,
+                          tableNumber: b.tableNumber as 1 | 2,
+                        }))}
+                        method={kpayMethod ?? "fps"}
+                        mode={kpayMode}
+                        useWallet={walletAppliedAmount > 0}
+                        promoCode={promoCode?.code ?? null}
+                        expectedTotal={total}
+                        agreedToTerms={agreedToTerms}
+                        labels={{
+                          title: t("kpay_title"),
+                          pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : kpayMethod === "card" ? "信用卡" : "雲閃付"} 掃描以下二維碼`,
+                          pending_desc: t("kpay_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
+                          pending_confirmation: t("kpay_pending_confirmation") || "確認付款中",
+                          pending_confirmation_desc: t("kpay_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
+                          success: t("kpay_success") || "付款成功",
+                          success_desc: t("kpay_success_desc") || "你的預訂已確認",
+                          failed: t("kpay_failed") || "付款失敗",
+                          failed_desc: t("kpay_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
+                          expired: t("kpay_expired") || "二維碼已過期",
+                          expired_desc: t("kpay_expired_desc") || "此二維碼已過期，新二維碼即將自動生成",
+                          regenerate: t("kpay_regenerate") || "重新生成",
+                          try_again: t("kpay_try_again") || "重試",
+                          countdown: t("kpay_countdown") || "二維碼將於 {time} 後過期",
+                          help: t("kpay_help") || "需要幫助？",
+                          support_whatsapp: t("kpay_support_whatsapp") || "WhatsApp 客服",
+                          back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
+                          waited: t("kpay_waited") || "已等待 {seconds} 秒",
+                          cancelled: t("kpay_cancelled") || "付款已取消",
+                          cancelled_desc: t("kpay_cancelled_desc") || "此預訂已取消，已釋放時段。",
+                          cancel: t("kpay_cancel") || "取消預訂",
+                          processing: t("kpay_processing") || "處理中…",
+                          terms_required: t("terms_required_hint"),
+                        }}
+                        onBackToMethods={() => {
+                          clearKPayPersistedState()
+                          setConfirmed(false)
+                          setPaymentMethod(null)
+                        }}
+                        onSuccess={(returnedBookingId) => {
+                          if (returnedBookingId) {
+                            window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
+                          }
+                        }}
+                      />
+                      {/* Powered by KPay — original footer */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 14, opacity: 0.5 }}>
+                        <img src="/logos/kpay-logo.svg" alt="Powered by KPay" style={{ height: 18, width: "auto", display: "block" }} />
+                      </div>
+                    </>
+                  ) : null}
                 </AdminKPayErrorBoundary>
               )}
             </>
@@ -3047,8 +3150,9 @@ function Screen3({
           the screen and has its own actions.
 
           Stripe: This CTA is KPay-specific (it triggers the 2-stage KPay flow).
-          Stripe users skip directly to Payment Element, so hide this button. */}
-      {!testMode && !confirmed && process.env.NEXT_PUBLIC_PAYMENT_PROVIDER !== 'stripe' && (
+          Stripe users skip directly to Payment Element, so hide this button.
+          Admin KPay mode re-enables it — the original KPay flow needs it. */}
+      {!testMode && !confirmed && (adminKpayMode || process.env.NEXT_PUBLIC_PAYMENT_PROVIDER !== 'stripe') && (
         <div ref={payCtaRef} className="pay-cta">
           <div className="pay-cta-inner">
             <button

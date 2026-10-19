@@ -83,6 +83,13 @@ type Props = {
    * When provided, overrides the URL-param fallback.
    */
   uatPaymeSimulation?: 'success' | 'fail'
+  /**
+   * Where to create the order. Omit for the public endpoint — that is the
+   * exact previous behaviour. Admin KPay mode passes the admin route so the
+   * booking is stamped `is_test` server-side instead of hostname-derived.
+   * Only order CREATION is redirected; status / cancel / retry stay shared.
+   */
+  createEndpoint?: string
   onBackToMethods: () => void
   onSuccess: (bookingId?: string) => void
 }
@@ -240,6 +247,9 @@ export default function KPayPayment(props: Props) {
   const useWallet = props.useWallet ?? false
   const promoCode = props.promoCode ?? null
   const expectedTotal = props.expectedTotal
+  // Defaults to the public create route. Passing a different endpoint is the
+  // only behavioural lever this component exposes to admin KPay mode.
+  const createEndpoint = props.createEndpoint ?? '/api/checkout/create'
 
   // ── UAT-ONLY PayMe test simulation selector ───────────────────────────────
   // Prefer the parent prop (from pre-checkout modal); fall back to URL param.
@@ -342,7 +352,7 @@ export default function KPayPayment(props: Props) {
 
       const controller = new AbortController()
       createControllerRef.current = controller
-      const res = await fetch('/api/checkout/create', {
+      const res = await fetch(createEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -457,7 +467,7 @@ export default function KPayPayment(props: Props) {
       creatingRef.current = false
       setCreating(false)
     }
-  }, [agreedToTerms, blocks, localBookingId, localOrderGroupId, method, mode, useWallet, promoCode, uatPaymeSimulation])
+  }, [agreedToTerms, blocks, createEndpoint, localBookingId, localOrderGroupId, method, mode, useWallet, promoCode, uatPaymeSimulation])
 
   const cancelBooking = useCallback(async () => {
     if (actionBusy) return
@@ -639,7 +649,7 @@ export default function KPayPayment(props: Props) {
         }
 
         activeController = new AbortController()
-        const createRes = await fetch('/api/checkout/create', {
+        const createRes = await fetch(createEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -716,7 +726,7 @@ export default function KPayPayment(props: Props) {
       activeController?.abort()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resumeBookingId])
+  }, [createEndpoint, resumeBookingId])
 
   // ── Countdown timer ────────────────────────────────────────────────────────
 

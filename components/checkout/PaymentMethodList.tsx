@@ -187,12 +187,21 @@ export function paymentMethodLabel(id: PaymentMethodId): string {
 type Props = {
   selected: PaymentMethodId | null
   onSelect: (method: PaymentMethodId) => void
+  /**
+   * Render the KPay catalogue regardless of NEXT_PUBLIC_PAYMENT_PROVIDER.
+   * Omit for the exact previous behaviour (env-derived). Admin KPay mode
+   * passes this so the admin sees the real KPay rails — the build-time
+   * provider is 'stripe', which would otherwise load Stripe's method list.
+   */
+  forceKpay?: boolean
 }
 
 // ── Component ──────────────────────────────────────────────────
 
-export default function PaymentMethodList({ selected, onSelect }: Props) {
-  const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
+export default function PaymentMethodList({ selected, onSelect, forceKpay }: Props) {
+  // forceKpay pins the catalogue to KPay; otherwise follow the build-time
+  // provider exactly as before.
+  const provider = forceKpay ? 'kpay' : process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
 
   // State: dynamically loaded Stripe payment methods
   const [stripeAvailableMethods, setStripeAvailableMethods] = useState<PaymentMethodId[]>(
@@ -202,6 +211,7 @@ export default function PaymentMethodList({ selected, onSelect }: Props) {
 
   // Effect: query Stripe for actually-enabled payment methods
   useEffect(() => {
+    if (forceKpay) return
     if (provider !== 'stripe') return
 
     const fetchStripeMethods = async () => {
@@ -228,7 +238,7 @@ export default function PaymentMethodList({ selected, onSelect }: Props) {
     }
 
     fetchStripeMethods()
-  }, [provider])
+  }, [provider, forceKpay])
 
   // Compute visible methods based on provider
   const availableMethods = provider === 'stripe' ? stripeAvailableMethods : KPAY_METHODS
