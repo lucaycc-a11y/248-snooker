@@ -67,7 +67,7 @@ export function buildSportsClubJsonLd(
     "@context": "https://schema.org",
     "@type": ["SportsActivityLocation", "LocalBusiness"],
     name: VENUE_NAME,
-    description: "香港新蒲崗自助無煙中八獨立球室，全預約制",
+    description: "香港新蒲崗自助無煙中八球室，兩間一枱一房（1T）獨立球室，全預約制",
     url: `${SITE_URL}${locale === "zh-HK" ? path : `/${locale}${path}`}`,
     telephone: SITE_CONTACT.phone,
     email: SITE_CONTACT.email,
@@ -96,6 +96,7 @@ export function buildSportsClubJsonLd(
     amenityFeature: [
       { "@type": "LocationFeatureSpecification", name: "Self-service booking", value: true },
       { "@type": "LocationFeatureSpecification", name: "Smoke-free", value: true },
+      { "@type": "LocationFeatureSpecification", name: "Private room, one table per room", value: true },
     ],
   };
 }

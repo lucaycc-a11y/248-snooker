@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
+import AdminQuickLinks from '@/components/admin/AdminQuickLinks'
 import BookingDrawer from '@/components/admin/BookingDrawer'
 import ManualBookingWizard from '@/components/admin/ManualBookingWizard'
 import type { AdminBookingRow } from '@/lib/data/getAdminBookings'
@@ -75,6 +76,11 @@ export default function BookingsPageClient({
   // Read via window rather than useSearchParams so the page needs no Suspense boundary.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const initialSearch = params.get('search')
+    if (initialSearch) {
+      setSearch(initialSearch)
+      setDebouncedSearch(initialSearch)
+    }
     if (params.get('new') !== '1') return
     setShowWizard(true)
     params.delete('new')
@@ -149,6 +155,7 @@ export default function BookingsPageClient({
           </p>
         </div>
         <div className="admin-row">
+          <AdminQuickLinks current="bookings" />
           <button
             type="button"
             role="switch"

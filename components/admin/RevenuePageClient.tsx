@@ -17,6 +17,7 @@ import {
   type RevenueDetailRow,
   type RevenueTotals,
 } from '@/lib/admin/revenue-definitions'
+import AdminQuickLinks from '@/components/admin/AdminQuickLinks'
 import type { AdminRevenueDailyRow, AdminRevenueReconciliation } from '@/lib/data/getAdminRevenue'
 
 // 預約 → 「收入」. Every figure comes from /api/admin/revenue, which is the same
@@ -311,6 +312,7 @@ export default function RevenuePageClient() {
         <a className="admin-btn" href={exportHref} data-cms-key="admin.revenue.export">
           匯出 Excel
         </a>
+        <AdminQuickLinks current="revenue" />
       </header>
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
