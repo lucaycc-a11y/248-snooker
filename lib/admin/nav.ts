@@ -76,6 +76,7 @@ export const ADMIN_AREAS: AdminArea[] = [
         label: '帳戶異常',
         cmsKey: 'admin.nav.member_flags',
       },
+      { href: '/admin/follow-ups', label: '跟進名單', cmsKey: 'admin.nav.follow_ups' },
     ],
   },
   {
@@ -143,7 +144,7 @@ export function areaForPath(pathname: string): AdminAreaId {
   ) {
     return 'bookings'
   }
-  if (path.startsWith('/admin/members')) return 'members'
+  if (path.startsWith('/admin/members') || path.startsWith('/admin/follow-ups')) return 'members'
   if (
     path.startsWith('/admin/site-gate') ||
     path.startsWith('/admin/maintenance') ||

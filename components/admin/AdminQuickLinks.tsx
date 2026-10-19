@@ -4,6 +4,7 @@ import Link from 'next/link'
 const LINKS = [
   { key: 'bookings', href: '/admin/bookings', label: '預約' },
   { key: 'revenue', href: '/admin/revenue', label: '收入' },
+  { key: 'followups', href: '/admin/follow-ups', label: '跟進名單' },
   { key: 'promos', href: '/admin/promos', label: '優惠碼' },
 ] as const
 

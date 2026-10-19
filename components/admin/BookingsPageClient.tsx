@@ -76,6 +76,11 @@ export default function BookingsPageClient({
   // Read via window rather than useSearchParams so the page needs no Suspense boundary.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
+    const initialSearch = params.get('search')
+    if (initialSearch) {
+      setSearch(initialSearch)
+      setDebouncedSearch(initialSearch)
+    }
     if (params.get('new') !== '1') return
     setShowWizard(true)
     params.delete('new')
