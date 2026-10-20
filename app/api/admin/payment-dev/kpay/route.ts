@@ -31,9 +31,21 @@ export const runtime = 'nodejs'
 //
 // Invariants, all server-side and none client-controllable:
 //   - Caller must be an ACTIVE admin (admin_users.is_active = true) or 403.
-//   - bookings.is_test is the LITERAL true. Deliberately NOT derived from
-//     hostname: isTestBooking() returns false on production, which would
-//     stamp a real booking and leak it into availability + revenue.
+//   - Exactly one booking per KPay attempt. If a pending booking for this admin
+//     and these exact blocks already exists (the page's own prepare step,
+//     /api/payment/create-intent, minted it), that row is ADOPTED rather than a
+//     second one inserted. Creating a second booking makes prepare_checkout ask
+//     for the same wallet credits twice and fail with `insufficient_credits`.
+//   - A booking this request INSERTS has bookings.is_test = the LITERAL true.
+//     Deliberately NOT derived from hostname: isTestBooking() returns false on
+//     production, which would stamp a real booking and leak it into
+//     availability + revenue. Adopted rows keep whatever is_test they already
+//     carry — the page's prepare step writes false in production.
+//   - Every abort after a row exists cancels the rows THIS request created
+//     (status = 'cancelled', never a hard delete) and releases the wallet hold.
+//     An adopted booking is never cancelled: it is not ours.
+//   - prepare_checkout is called at most once per checkout. If a live
+//     credit_hold already exists for these bookings it is not called again.
 //   - slots.is_test is stamped true unconditionally, so the slot vanishes
 //     from availability for everyone else while the test is in flight.
 //   - The provider is a directly-constructed KPayProvider pinned to
@@ -79,6 +91,103 @@ function isValidBlock(b: unknown): b is Block {
     typeof x.duration === 'number' &&
     (x.tableNumber === 1 || x.tableNumber === 2)
   )
+}
+
+/** Identity of a requested slot, matching the columns Mode A writes onto bookings. */
+function blockKey(b: Block): string {
+  return `${b.date}|${String(b.startHour).padStart(2, '0')}:00:00|${b.duration}|${b.tableNumber}`
+}
+
+function bookingKey(row: Record<string, unknown>): string {
+  return [
+    String(row.date ?? ''),
+    String(row.start_time ?? '').slice(0, 8),
+    String(row.duration_hours ?? ''),
+    String(row.table_number ?? ''),
+  ].join('|')
+}
+
+/**
+ * Finds a pending booking this admin already owns for every requested block.
+ *
+ * The page's own prepare step (/api/payment/create-intent) mints a pending
+ * booking and, with the wallet on, a credit_hold. Creating a second booking for
+ * the same blocks makes prepare_checkout ask for the same credits twice and get
+ * `insufficient_credits`, because available = balance - already-held. So one
+ * KPay attempt must adopt that booking (Mode B semantics) rather than insert.
+ *
+ * Ownership is the gate: `user_id = adminUserId` is what stops this from ever
+ * adopting a real customer booking. is_test is NOT required — the page's own
+ * prepare step writes is_test = false in production.
+ */
+async function findReusableBookings(
+  service: ReturnType<typeof getServiceSupabase>,
+  adminUserId: string,
+  blocks: Block[],
+): Promise<Record<string, unknown>[] | null> {
+  const dates = [...new Set(blocks.map((b) => b.date))]
+  const { data, error } = await service
+    .from('bookings')
+    .select(
+      'id, user_id, total_price, status, order_group_id, human_code, date, start_time, end_time, duration_hours, table_number, subtotal, credit_discount, promo_discount, discount_snapshot',
+    )
+    .eq('user_id', adminUserId)
+    .eq('status', 'pending')
+    .in('date', dates)
+  if (error || !data || data.length === 0) return null
+
+  const pool = (data as Record<string, unknown>[]).filter((row) => row.user_id === adminUserId)
+  const claimed = new Set<string>()
+  const chosen: Record<string, unknown>[] = []
+  for (const block of blocks) {
+    const key = blockKey(block)
+    const match = pool.find((row) => !claimed.has(String(row.id)) && bookingKey(row) === key)
+    if (!match) return null
+    claimed.add(String(match.id))
+    chosen.push(match)
+  }
+  return chosen
+}
+
+/** True when this checkout already has a live wallet reservation. */
+async function hasLiveCreditHold(
+  service: ReturnType<typeof getServiceSupabase>,
+  adminUserId: string,
+  bookingIds: string[],
+  orderGroupId: string | null,
+): Promise<boolean> {
+  const { data } = await service
+    .from('credit_holds')
+    .select('id, booking_id, order_group_id')
+    .eq('user_id', adminUserId)
+    .eq('status', 'held')
+  if (!data) return false
+  return (data as Record<string, unknown>[]).some((row) => {
+    const rowBooking = row.booking_id === null ? null : String(row.booking_id)
+    const rowGroup = row.order_group_id === null ? null : String(row.order_group_id)
+    return (rowBooking !== null && bookingIds.includes(rowBooking)) || (orderGroupId !== null && rowGroup === orderGroupId)
+  })
+}
+
+/**
+ * Frees a wallet reservation for this checkout. `release_checkout_holds` predates
+ * `credit_holds` (20260828 vs 20261014) and only releases points_holds and
+ * promo_code_usages, so the credit rows are released here directly.
+ */
+async function releaseCreditHolds(
+  service: ReturnType<typeof getServiceSupabase>,
+  adminUserId: string,
+  bookingIds: string[],
+): Promise<void> {
+  const { error } = await service
+    .from('credit_holds')
+    .update({ status: 'released', released_at: new Date().toISOString() })
+    .eq('user_id', adminUserId)
+    .eq('status', 'held')
+    .in('booking_id', bookingIds)
+  if (error) {
+    console.error('[payment-dev/kpay] failed to release credit_holds', { bookingIds, message: error.message })
+  }
 }
 
 export async function POST(req: Request) {
@@ -165,8 +274,9 @@ export async function POST(req: Request) {
     // ── 4. Mode A (blocks) or Mode B (existing bookingId) ────────────────
     // Body shape matches /api/checkout/create so KPayPayment can post here
     // unmodified. Mode A creates the booking; Mode B re-creates a KPay order
-    // against an existing booking after expiry — restricted to this admin's
-    // own is_test rows so it can never touch a real customer booking.
+    // against an existing booking after expiry. Both are restricted to rows
+    // this admin owns — that ownership check is what stops a real customer
+    // booking from ever being charged here.
     const rawBlocks = (body as Record<string, unknown>).blocks
     const rawExistingBookingId = (body as Record<string, unknown>).bookingId
     const modeBBookingId =
@@ -191,6 +301,33 @@ export async function POST(req: Request) {
     let bookingTotal = 0
     const slotSummary: Json[] = []
     let orderGroupId: string | null = null
+    // Rows THIS request inserted. Only these are cancelled on abort — a booking
+    // adopted from the page's prepare step is not ours to cancel.
+    const createdBookingIds: string[] = []
+
+    // Abort path for every refusal after a booking row exists. Cancels ONLY what
+    // this request created — never an adopted booking — and frees the wallet
+    // reservation, so a rejected attempt leaves neither a pending orphan nor a
+    // stranded credit_hold. Releasing the hold is also what lets the next
+    // attempt re-run prepare_checkout and pick up a changed wallet/promo.
+    const abortAttempt = async () => {
+      if (createdBookingIds.length > 0) {
+        const { error: cancelErr } = await service
+          .from('bookings')
+          .update({ status: 'cancelled' })
+          .in('id', createdBookingIds)
+        if (cancelErr) {
+          console.error('[payment-dev/kpay] failed to cancel created booking', {
+            bookingIds: createdBookingIds,
+            message: cancelErr.message,
+          })
+        }
+      }
+      if (bookingIds.length > 0) {
+        await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+        await releaseCreditHolds(service, adminUserId, bookingIds)
+      }
+    }
     // Discount breakdown for the audit_log row (req: record amount AND discount).
     const discount: Json = {
       subtotal: 0,
@@ -214,9 +351,13 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
       }
       const row = existing as Record<string, unknown>
-      // Fail closed on anything that is not this admin's own test booking.
-      if (row.user_id !== adminUserId || row.is_test !== true) {
-        return NextResponse.json({ error: 'Not an admin test booking' }, { status: 403 })
+      // Fail closed on anything that is not this admin's own booking. Ownership
+      // is the real guard — it is what stops this from ever charging a customer
+      // booking. is_test is deliberately NOT required: the page's own prepare
+      // step (/api/payment/create-intent) writes is_test = false in production,
+      // and the auto-reuse path below adopts those rows.
+      if (row.user_id !== adminUserId) {
+        return NextResponse.json({ error: 'Not an admin booking' }, { status: 403 })
       }
       if (row.status === 'cancelled' || row.status === 'expired') {
         return NextResponse.json({ error: 'Booking is no longer payable' }, { status: 409 })
@@ -242,6 +383,47 @@ export async function POST(req: Request) {
         tableNumber: Number(row.table_number ?? 0),
         price: bookingTotal,
       })
+    } else {
+    // ── 5. Adopt a pending booking the page's prepare step already minted ─
+    // One KPay attempt must produce exactly one booking. If a pending booking
+    // for this admin and these exact blocks already exists (it was created by
+    // /api/payment/create-intent when the page's gateway mounted), adopt it
+    // instead of inserting a second one — prepare_checkout would otherwise ask
+    // for the same wallet credits twice and fail with insufficient_credits.
+    const reusedRows = blocks.length > 0 ? await findReusableBookings(service, adminUserId, blocks) : null
+    if (reusedRows && reusedRows.length > 0) {
+      let reusedSubtotal = 0
+      let reusedCredit = 0
+      let reusedPromo = 0
+      for (const row of reusedRows) {
+        const id = String(row.id)
+        const price = typeof row.total_price === 'number' ? row.total_price : 0
+        bookingIds.push(id)
+        bookingTotal += price
+        const group = typeof row.order_group_id === 'string' ? row.order_group_id : null
+        if (group && orderGroupId === null) orderGroupId = group
+        reusedSubtotal += typeof row.subtotal === 'number' ? row.subtotal : price
+        reusedCredit += typeof row.credit_discount === 'number' ? row.credit_discount : 0
+        reusedPromo += typeof row.promo_discount === 'number' ? row.promo_discount : 0
+        if (row.discount_snapshot && typeof row.discount_snapshot === 'object') {
+          const snap = row.discount_snapshot as Record<string, unknown>
+          if (typeof snap.code === 'string') discount.code = snap.code
+        }
+        slotSummary.push({
+          slotId: '',
+          date: String(row.date ?? ''),
+          startTime: String(row.start_time ?? ''),
+          endTime: String(row.end_time ?? ''),
+          tableNumber: Number(row.table_number ?? 0),
+          price,
+        })
+      }
+      discount.subtotal = reusedSubtotal
+      discount.creditDiscount = reusedCredit
+      discount.promoDiscount = reusedPromo
+      discount.discountAmount = reusedCredit + reusedPromo
+      discount.kind =
+        reusedCredit > 0 && reusedPromo > 0 ? 'both' : reusedCredit > 0 ? 'credits' : reusedPromo > 0 ? 'promo' : 'none'
     } else {
     // ── 5. Lock the real slot(s) ──────────────────────────────────────────
     const periods = await loadPeriods()
@@ -312,6 +494,7 @@ export async function POST(req: Request) {
     for (const slotId of slotIds) {
       const slot = await validateSlotLock(slotId, adminUserId)
       if (!slot) {
+        await abortAttempt()
         return NextResponse.json({ error: 'Slot lock no longer valid' }, { status: 409 })
       }
 
@@ -319,6 +502,7 @@ export async function POST(req: Request) {
       const { slotStart, slotEnd } = slotBounds(slot.date, startHour, slot.duration_hours)
       const quote = calculatePrice(slotStart, slotEnd, tier, periods)
       if (quote.amountInCents <= 0) {
+        await abortAttempt()
         return NextResponse.json({ error: 'Zero-amount bookings are not supported' }, { status: 400 })
       }
       const isWeekend = slotStart.getDay() === 0 || slotStart.getDay() === 6
@@ -353,10 +537,12 @@ export async function POST(req: Request) {
           code: insErr.code,
           slotId: slot.id,
         })
+        await abortAttempt()
         return NextResponse.json({ error: 'Could not create booking' }, { status: 500 })
       }
 
       bookingIds.push(newId)
+      createdBookingIds.push(newId)
       bookingTotal += quote.total
       slotSummary.push({
         slotId: slot.id,
@@ -367,13 +553,19 @@ export async function POST(req: Request) {
         price: quote.total,
       })
     }
+    } // end reuse-or-create / else
     } // end Mode A / else
 
-    // ── 7. prepare_checkout (Mode A only — reused, not modified) ─────────
+    // ── 7. prepare_checkout ───────────────────────────────────────────────
     // Writes the authoritative discounted total onto the booking rows AND
-    // reserves the credits/promo. Mode B skips this: the booking already carries
-    // its authoritative total from the first attempt.
-    if (!modeBBookingId) {
+    // reserves the credits/promo. Skipped when this checkout already has a live
+    // reservation (Mode B, or an adopted booking whose prepare step already
+    // held the wallet): calling prepare_checkout twice for one checkout asks
+    // for the same credits a second time and gets `insufficient_credits`, since
+    // available = balance - already-held.
+
+    const holdAlreadyLive = await hasLiveCreditHold(service, adminUserId, bookingIds, orderGroupId)
+    if (!modeBBookingId && !holdAlreadyLive) {
       // Credits capped at subtotal, exactly as /api/payment/create-intent does.
       // The client only says WHETHER it wants credits; the balance is read here.
       let walletCredits = 0
@@ -396,10 +588,15 @@ export async function POST(req: Request) {
         console.warn('[payment-dev/kpay] prepare_checkout rejected', {
           bookingId: bookingIds[0],
           reason: prepared.failure.reason,
+          createdBookingIds,
         })
-        await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+        await abortAttempt()
         return NextResponse.json(
-          { error: prepared.failure.reason },
+          {
+            error: prepared.failure.reason,
+            message:
+              'Discounts could not be reserved for this checkout. The booking created by this attempt has been cancelled and any wallet hold released.',
+          },
           { status: prepareFailureStatus(prepared.failure.reason) },
         )
       }
@@ -425,7 +622,7 @@ export async function POST(req: Request) {
           expectedCents,
           serverCents,
         })
-        await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+        await abortAttempt()
         const mismatchAudit: Json = {
           outcome: 'price_mismatch',
           expectedCents,
@@ -459,7 +656,7 @@ export async function POST(req: Request) {
     // ── 7c. Refuse amounts KPay cannot take. Both cases release the holds so
     // an aborted admin test cannot strand the wallet credits. ──────────────
     if (bookingTotal <= 0) {
-      await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+      await abortAttempt()
       return NextResponse.json(
         {
           error: 'credit_covers_full_price',
@@ -472,7 +669,7 @@ export async function POST(req: Request) {
       )
     }
     if (bookingTotal < KPAY_MIN_AMOUNT_HKD) {
-      await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+      await abortAttempt()
       return NextResponse.json(
         {
           error: 'below_kpay_minimum',
@@ -536,8 +733,9 @@ export async function POST(req: Request) {
         })
       }
       // A KPay order that never got created cannot be paid, so the reserved
-      // credits/promo must not stay locked against this admin's wallet.
-      await releaseCheckoutHolds(service, { bookingId: primaryBookingId, orderGroupId })
+      // credits/promo must not stay locked against this admin's wallet — and the
+      // booking this attempt created must not stay pending.
+      await abortAttempt()
       const failedAudit: Json = {
         method: paymentMethod,
         mode,

@@ -1930,8 +1930,17 @@ function Screen3({
   const [testMode, setTestMode] = useState(false)
   // Admin-only gateway switch. React state only — per session and per tab.
   // Never written to config, env, localStorage or sessionStorage.
-  const [adminGateway, setAdminGateway] = useState<"stripe" | "kpay">("stripe")
+  //
+  // Starts UNSET on purpose. A default of "stripe" made `adminKpayMode` false at
+  // first paint, so the public gateway subtree mounted and StripePayment's
+  // mount effect mints a booking + PaymentIntent + credit_hold via
+  // /api/payment/create-intent before the admin can open this panel
+  // (SPACE8-NLEK6-M). An admin must pick a gateway before either subtree mounts.
+  const [adminGateway, setAdminGateway] = useState<"stripe" | "kpay" | null>(null)
   const adminKpayMode = isAdmin && adminGateway === "kpay"
+  // Non-admins always get the public gateway. Admins only after an explicit pick,
+  // so a page load alone can never create a booking, hold credits or mint a PI.
+  const showPublicGateway = !isAdmin || adminGateway === "stripe"
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
 
@@ -2219,7 +2228,7 @@ function Screen3({
           duration: b.duration,
           tableNumber: b.tableNumber as 1 | 2,
         }))}
-        value={adminGateway}
+        value={adminGateway ?? "stripe"}
         onChange={(g) => {
           setAdminGateway(g)
           // KPay mode is a real gateway test. Leaving the Test Mode toggle on
@@ -2565,14 +2574,13 @@ function Screen3({
           {/* Payment method selection — hidden when test mode is active or when total is $0 */}
           {!testMode && !isFreeCheckout && (
             <>
-              {/* Public gateway UI. In admin KPay mode this subtree is NOT
-                  RENDERED AT ALL — StripePayment's mount effect calls
-                  /api/booking/lock + /api/payment/create-intent and mints a
-                  booking + PaymentIntent. Hiding it with display:none left that
-                  effect running, so one admin KPay click produced two bookings.
-                  For non-admins adminKpayMode is always false, so the public
-                  subtree — and Stripe mode for admins — is untouched. */}
-              {!adminKpayMode && (
+              {/* Public gateway UI. NOT RENDERED in admin KPay mode, and not
+                  rendered for an admin who has not picked a gateway yet —
+                  StripePayment's mount effect calls /api/booking/lock +
+                  /api/payment/create-intent and mints a booking + PaymentIntent
+                  + credit_hold. Hiding it with display:none left that effect
+                  running. Non-admins always get this subtree unchanged. */}
+              {showPublicGateway && (
               <div>
               {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
                 /* ── Stripe: Direct to Payment Element (skip PaymentMethodList) ── */
