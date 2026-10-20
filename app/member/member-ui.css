@@ -514,8 +514,8 @@
 .m8.m8-actions .qa.c2{grid-template-columns:repeat(2,1fr)}
 .m8.m8-actions .qa:not(.c4):not(.c2){grid-template-columns:repeat(2,1fr)}
 @media(min-width:640px){.m8.m8-actions .qa:not(.c4):not(.c2){grid-template-columns:repeat(4,1fr)}}
-.m8.m8-actions .tile{position:relative;min-height:104px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:20px;transition:transform .15s var(--spring),border-color .15s var(--ease),background .15s var(--ease)}
-.m8.m8-actions .tile:hover{border-color:var(--line-strong);background:var(--elev)}
+.m8.m8-actions .tile{position:relative;min-height:104px;padding:16px;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(to bottom right,rgba(255,255,255,.05),transparent);border:1px solid var(--line);border-radius:16px;transition:transform .15s var(--spring),border-color .15s var(--ease),background .15s var(--ease)}
+.m8.m8-actions .tile:hover{border-color:var(--line-strong);background:linear-gradient(to bottom right,rgba(255,255,255,.09),rgba(255,255,255,.02))}
 .m8.m8-actions .tile:active{transform:scale(.97)}
 .m8.m8-actions .tile .top-r{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:6px}
 .m8.m8-actions .tile .tt{display:block;font-family:var(--gt);font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

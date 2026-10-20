@@ -62,7 +62,7 @@ export function PastBookingsList({ userId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex h-32 items-center justify-center rounded-[20px] border border-white/10 bg-[#111]">
+      <div className="flex h-32 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-white" />
       </div>
     )
@@ -70,7 +70,7 @@ export function PastBookingsList({ userId }: Props) {
 
   if (bookings.length === 0 && upcoming.length === 0) {
     return (
-      <div className="rounded-[20px] border border-white/10 bg-[#111] p-6 text-center">
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-6 text-center">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
           <FileText className="h-8 w-8 text-white/30" strokeWidth={1.5} />
         </div>
@@ -121,8 +121,8 @@ export function PastBookingsList({ userId }: Props) {
   }
 
   return (
-    <div className="overflow-hidden rounded-[20px] border border-white/10 bg-[#111]">
-      <div className="border-b border-white/10 bg-[#1a1a1a] px-4 py-3">
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent">
+      <div className="border-b border-white/10 bg-white/5 px-4 py-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-white/80">
             {upcoming.length > 0 ? t('upcoming_booking.title') : t('past_bookings.title')}
@@ -155,7 +155,7 @@ export function PastBookingsList({ userId }: Props) {
         <p className="p-4 text-center text-xs text-white/50">{t('past_bookings.no_history')}</p>
       )}
 
-      <div className="border-t border-white/10 bg-[#1a1a1a] p-4 text-center">
+      <div className="border-t border-white/10 bg-white/5 p-4 text-center">
         <p className="text-xs text-white/50">
           {t('past_bookings.whatsapp_prompt')}
           <a
