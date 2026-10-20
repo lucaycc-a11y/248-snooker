@@ -138,27 +138,16 @@ export default function InboxPage() {
             <span className="t">{t('detailTitle')}</span>
             <span />
           </div>
-        <div className="msg-detail">
-          <div className="detail-header">
-            <div className="ic">
+        <div className="detail">
+          <div className="d-top">
+            <div className={`ic k-${selectedItem.type}`}>
               {getTypeIcon(selectedItem.type)}
             </div>
-            <div className="badge">{getTypeBadgeText(selectedItem.type, t)}</div>
+            <span className="d-type">{getTypeBadgeText(selectedItem.type, t)}</span>
+            <span className="d-time">{formatFullTime(selectedItem.createdAt)}</span>
           </div>
-          <div className="detail-meta">
-            <div className="meta-row">
-              <span className="meta-label">{t('metaType')}</span>
-              <span className="meta-value">{getTypeBadgeText(selectedItem.type, t)}</span>
-            </div>
-            <div className="meta-row">
-              <span className="meta-label">{t('metaTime')}</span>
-              <span className="meta-value">{formatFullTime(selectedItem.createdAt)}</span>
-            </div>
-          </div>
-          <div className="detail-content">
-            <h2>{selectedItem.title}</h2>
-            <p>{selectedItem.message}</p>
-          </div>
+          <h2>{selectedItem.title}</h2>
+          <p className="d-body">{selectedItem.message}</p>
         </div>
         </main>
       </div>

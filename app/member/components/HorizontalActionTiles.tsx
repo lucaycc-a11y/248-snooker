@@ -47,7 +47,7 @@ export function HorizontalActionTiles() {
       const inboxRes = await fetch('/api/member/inbox/unread-count')
       if (inboxRes.ok) {
         const inboxData = await inboxRes.json()
-        setData((prev) => ({ ...prev, unreadCount: inboxData.count ?? 0 }))
+        setData((prev) => ({ ...prev, unreadCount: inboxData.unreadCount ?? inboxData.count ?? 0 }))
       }
     } catch (err) {
       console.error('Failed to load quick actions data:', err)
