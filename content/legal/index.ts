@@ -21,9 +21,6 @@ import { deliveryPolicyEn } from './delivery-policy.en'
 import { brandStatementZhHK } from './brand-statement.zh-HK'
 import { brandStatementZhCN } from './brand-statement.zh-CN'
 import { brandStatementEn } from './brand-statement.en'
-import { walletPromoZhHK } from './wallet-promo.zh-HK'
-import { walletPromoZhCN } from './wallet-promo.zh-CN'
-import { walletPromoEn } from './wallet-promo.en'
 import { cookiePolicyZhHK } from './cookie-policy.zh-HK'
 import { cookiePolicyZhCN } from './cookie-policy.zh-CN'
 import { cookiePolicyEn } from './cookie-policy.en'
@@ -41,7 +38,7 @@ import { cookiePolicyEn } from './cookie-policy.en'
 // zh-HK is currently enabled. Legal documents remain accessible via direct URL
 // but closed locales redirect to zh-HK at the middleware level.
 
-export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy' | 'brand_statement' | 'cookie_policy' | 'wallet_promo'
+export type LegalDocId = 'terms' | 'website_terms' | 'privacy' | 'accessibility' | 'refund_policy' | 'delivery_policy' | 'brand_statement' | 'cookie_policy'
 
 const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
   terms: {
@@ -84,11 +81,6 @@ const REGISTRY: Record<LegalDocId, Record<Locale, LegalDocument>> = {
     'zh-CN': cookiePolicyZhCN,
     en: cookiePolicyEn,
   },
-  wallet_promo: {
-    'zh-HK': walletPromoZhHK,
-    'zh-CN': walletPromoZhCN,
-    en: walletPromoEn,
-  },
 }
 
 export function getLegalDocument(docId: LegalDocId, locale: Locale): LegalDocument {
@@ -105,6 +97,5 @@ export function getAllLegalDocuments(locale: Locale): Record<LegalDocId, LegalDo
     delivery_policy: getLegalDocument('delivery_policy', locale),
     brand_statement: getLegalDocument('brand_statement', locale),
     cookie_policy: getLegalDocument('cookie_policy', locale),
-    wallet_promo: getLegalDocument('wallet_promo', locale),
   }
 }
