@@ -340,6 +340,9 @@ export default function KPayPayment(props: Props) {
       }
       if (useWallet) body.useWallet = true
       if (promoCode) body.promoCode = promoCode
+      // Total the UI is currently showing. Advisory only — the server
+      // recomputes the real total and 409s on mismatch before any gateway call.
+      if (typeof expectedTotal === 'number') body.expectedTotal = expectedTotal
       // UAT-ONLY: include PayMe test simulation selector when present in URL
       if (uatPaymeSimulation) {
         body.uat_payme = uatPaymeSimulation
@@ -652,6 +655,7 @@ export default function KPayPayment(props: Props) {
         }
         if (useWallet) body.useWallet = true
         if (promoCode) body.promoCode = promoCode
+        if (typeof expectedTotal === 'number') body.expectedTotal = expectedTotal
         // UAT-ONLY: include PayMe test simulation selector when present in URL
         if (uatPaymeSimulation) {
           body.uat_payme = uatPaymeSimulation

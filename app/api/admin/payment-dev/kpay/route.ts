@@ -6,7 +6,7 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { requireActiveAdmin, getClientIp } from '@/lib/uat/admin-auth'
 import { writeAdminAudit } from '@/lib/admin/audit'
 import { KPayProvider } from '@/lib/payments/kpay'
-import type { PaymentMethod } from '@/lib/payments/types'
+import { KPAY_MIN_AMOUNT_HKD, type PaymentMethod } from '@/lib/payments/types'
 import {
   loadPeriods,
   resolveTierForUser,
@@ -16,7 +16,7 @@ import {
 } from '@/lib/booking/server'
 import { calculatePrice } from '@/lib/pricing'
 import { humanReadableCode } from '@/lib/qr/jwt'
-import { prepareCheckout } from '@/lib/checkout/prepare'
+import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import { parseRpc, isLockSlotResult, isLockSlotsResult } from '@/lib/supabase/rpc-parse'
 import { logSiteError } from '@/lib/errors/log'
 
@@ -42,10 +42,12 @@ export const runtime = 'nodejs'
 //     KPAY_ENV is unset. Neither is used here.
 //   - Every attempt, success or failure, writes one audit_log row.
 //
-// Amount policy: KPay is charged the booking's real total_price. No test
-// override — this is a real production payment. KPAY_MIN_AMOUNT_HKD remains
-// only as the shared provider's pre-flight floor (KPay returns 1047 無效金額
-// below it); real slot prices are far above it.
+// Amount policy: KPay is charged the SAME discounted total the real checkout
+// computes — credits + promo, reserved by prepare_checkout and read back from
+// it. Never recomputed here, never taken from the client. The client sends its
+// `expectedTotal` only as a consistency check: on mismatch we return 409 and
+// make no KPay call. No test override — this is a real production payment.
+// KPAY_MIN_AMOUNT_HKD is enforced here explicitly as well as in the provider.
 //
 // Body shape matches /api/checkout/create so the original KPayPayment
 // component can post here unmodified: Mode A `{ blocks }`, Mode B
@@ -147,6 +149,19 @@ export async function POST(req: Request) {
     const rawMode = (body as Record<string, unknown>).mode
     const mode: 'qr' | 'h5' = rawMode === 'h5' ? 'h5' : 'qr'
 
+    // ── 3b. Discount inputs. Requests only — the amounts are never trusted ─
+    // Mirrors /api/payment/create-intent: the client says whether it wants
+    // credits and which promo it is showing; prepare_checkout reserves the real
+    // figures. `expectedTotal` is only a consistency check (see step 7b).
+    const rawBody = body as Record<string, unknown>
+    const useWallet = rawBody.useWallet === true
+    const rawPromo = rawBody.promoCode
+    const promoCode = typeof rawPromo === 'string' && rawPromo.trim() ? rawPromo.trim() : null
+    const expectedTotal =
+      typeof rawBody.expectedTotal === 'number' && Number.isFinite(rawBody.expectedTotal)
+        ? rawBody.expectedTotal
+        : null
+
     // ── 4. Mode A (blocks) or Mode B (existing bookingId) ────────────────
     // Body shape matches /api/checkout/create so KPayPayment can post here
     // unmodified. Mode A creates the booking; Mode B re-creates a KPay order
@@ -176,12 +191,23 @@ export async function POST(req: Request) {
     let bookingTotal = 0
     const slotSummary: Json[] = []
     let orderGroupId: string | null = null
+    // Discount breakdown for the audit_log row (req: record amount AND discount).
+    const discount: Json = {
+      subtotal: 0,
+      discountAmount: 0,
+      creditDiscount: 0,
+      promoDiscount: 0,
+      kind: 'none',
+      code: null,
+    }
 
     // ── 4b. Mode B: adopt an existing admin test booking ─────────────────
     if (modeBBookingId) {
       const { data: existing, error: existingErr } = await service
         .from('bookings')
-        .select('id, user_id, is_test, total_price, status, order_group_id, human_code, date, start_time, table_number')
+        .select(
+          'id, user_id, is_test, total_price, status, order_group_id, human_code, date, start_time, table_number, subtotal, credit_discount, promo_discount, discount_snapshot',
+        )
         .eq('id', modeBBookingId)
         .maybeSingle()
       if (existingErr || !existing) {
@@ -198,6 +224,16 @@ export async function POST(req: Request) {
       bookingIds.push(String(row.id))
       bookingTotal = typeof row.total_price === 'number' ? row.total_price : 0
       orderGroupId = typeof row.order_group_id === 'string' ? row.order_group_id : null
+      // Carry the first attempt's discount into the audit row.
+      discount.subtotal = typeof row.subtotal === 'number' ? row.subtotal : bookingTotal
+      discount.creditDiscount = typeof row.credit_discount === 'number' ? row.credit_discount : 0
+      discount.promoDiscount = typeof row.promo_discount === 'number' ? row.promo_discount : 0
+      discount.discountAmount = discount.creditDiscount + discount.promoDiscount
+      discount.kind = discount.creditDiscount > 0 && discount.promoDiscount > 0 ? 'both' : discount.creditDiscount > 0 ? 'credits' : discount.promoDiscount > 0 ? 'promo' : 'none'
+      if (row.discount_snapshot && typeof row.discount_snapshot === 'object') {
+        const snap = row.discount_snapshot as Record<string, unknown>
+        if (typeof snap.code === 'string') discount.code = snap.code
+      }
       slotSummary.push({
         slotId: '',
         date: String(row.date ?? ''),
@@ -334,25 +370,119 @@ export async function POST(req: Request) {
     } // end Mode A / else
 
     // ── 7. prepare_checkout (Mode A only — reused, not modified) ─────────
-    // Writes the authoritative discounted total onto the booking rows. With no
-    // promo and no wallet this is a no-op discount that still normalises
-    // total_price from base_price. Mode B skips this: the booking already
-    // carries its authoritative total from the first attempt.
+    // Writes the authoritative discounted total onto the booking rows AND
+    // reserves the credits/promo. Mode B skips this: the booking already carries
+    // its authoritative total from the first attempt.
     if (!modeBBookingId) {
+      // Credits capped at subtotal, exactly as /api/payment/create-intent does.
+      // The client only says WHETHER it wants credits; the balance is read here.
+      let walletCredits = 0
+      if (useWallet) {
+        const { data: userData } = await service
+          .from('users')
+          .select('credits')
+          .eq('id', adminUserId)
+          .maybeSingle()
+        walletCredits = Math.min(userData?.credits ?? 0, bookingTotal)
+      }
+
       const prepared = await prepareCheckout(service, {
         bookingId: bookingIds[0],
         userId: adminUserId,
-        promoCode: null,
-        walletAmount: 0,
+        promoCode,
+        walletAmount: walletCredits,
       })
       if (!prepared.ok) {
         console.warn('[payment-dev/kpay] prepare_checkout rejected', {
           bookingId: bookingIds[0],
           reason: prepared.failure.reason,
         })
-        return NextResponse.json({ error: prepared.failure.reason }, { status: 400 })
+        await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+        return NextResponse.json(
+          { error: prepared.failure.reason },
+          { status: prepareFailureStatus(prepared.failure.reason) },
+        )
       }
       bookingTotal = prepared.prepared.total
+      discount.subtotal = prepared.prepared.subtotal
+      discount.discountAmount = prepared.prepared.discountAmount
+      discount.creditDiscount = prepared.prepared.creditDiscount
+      discount.promoDiscount = prepared.prepared.promoDiscount
+      discount.kind = prepared.prepared.kind
+      discount.code = prepared.prepared.code
+    }
+
+    // ── 7b. expectedTotal guard. The UI total is advisory; the server decides.
+    // A mismatch means the client is showing a stale figure (credits moved,
+    // promo expired, price changed). Refuse BEFORE any KPay call so no order is
+    // ever created at an amount the admin did not see.
+    if (expectedTotal !== null) {
+      const expectedCents = Math.round(expectedTotal * 100)
+      const serverCents = Math.round(bookingTotal * 100)
+      if (expectedCents !== serverCents) {
+        console.warn('[payment-dev/kpay] price_mismatch', {
+          bookingIds,
+          expectedCents,
+          serverCents,
+        })
+        await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+        const mismatchAudit: Json = {
+          outcome: 'price_mismatch',
+          expectedCents,
+          serverCents,
+          bookingTotal,
+          discount,
+          ip,
+        }
+        await writeAdminAudit({
+          adminUserId,
+          adminEmail,
+          action: 'payment_dev_kpay',
+          targetTable: 'bookings',
+          targetId: bookingIds[0],
+          beforeValue: null,
+          afterValue: mismatchAudit,
+          ipAddress: ip,
+        })
+        return NextResponse.json(
+          {
+            error: 'price_changed',
+            code: 'price_changed',
+            total: bookingTotal,
+            walletApplied: discount.creditDiscount,
+          },
+          { status: 409 },
+        )
+      }
+    }
+
+    // ── 7c. Refuse amounts KPay cannot take. Both cases release the holds so
+    // an aborted admin test cannot strand the wallet credits. ──────────────
+    if (bookingTotal <= 0) {
+      await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+      return NextResponse.json(
+        {
+          error: 'credit_covers_full_price',
+          message:
+            'Discounted total is HK$0 — credits/promo cover the whole price, so there is nothing for KPay to charge. Clear the discount or use the free-booking confirm path.',
+          total: bookingTotal,
+          discount,
+        },
+        { status: 422 },
+      )
+    }
+    if (bookingTotal < KPAY_MIN_AMOUNT_HKD) {
+      await releaseCheckoutHolds(service, { bookingId: bookingIds[0], orderGroupId })
+      return NextResponse.json(
+        {
+          error: 'below_kpay_minimum',
+          message: `Discounted total HK$${bookingTotal.toFixed(2)} is below KPay's minimum of HK$${KPAY_MIN_AMOUNT_HKD.toFixed(2)} (KPay rejects it with 1047 無效金額). Reduce the discount or charge the full amount.`,
+          total: bookingTotal,
+          minimum: KPAY_MIN_AMOUNT_HKD,
+          discount,
+        },
+        { status: 422 },
+      )
     }
 
     // ── 8. Claim payment attempt ──────────────────────────────────────────
@@ -405,6 +535,9 @@ export async function POST(req: Request) {
           p_failure_reason: e.message.slice(0, 240),
         })
       }
+      // A KPay order that never got created cannot be paid, so the reserved
+      // credits/promo must not stay locked against this admin's wallet.
+      await releaseCheckoutHolds(service, { bookingId: primaryBookingId, orderGroupId })
       const failedAudit: Json = {
         method: paymentMethod,
         mode,
@@ -413,6 +546,7 @@ export async function POST(req: Request) {
         error: e.message.slice(0, 240),
         bookingTotal,
         kpayAmount,
+        discount,
         slots: slotSummary,
         ip,
       }
@@ -451,6 +585,7 @@ export async function POST(req: Request) {
       bookingIds,
       bookingTotal,
       kpayAmount,
+      discount,
       slots: slotSummary,
       ip,
     }

@@ -2560,14 +2560,15 @@ function Screen3({
           {/* Payment method selection — hidden when test mode is active or when total is $0 */}
           {!testMode && !isFreeCheckout && (
             <>
-              {/* Public gateway UI. In admin KPay mode it is HIDDEN, not
-                  unmounted: StripePayment's mount effect locks slots and mints
-                  a PaymentIntent, so a remount on every toggle would re-lock
-                  real slots. The wrapper div is load-bearing — it keeps the
-                  React tree position stable so the instance survives. For
-                  non-admins adminKpayMode is always false and `style` is
-                  undefined, leaving the public subtree untouched. */}
-              <div style={adminKpayMode ? { display: "none" } : undefined}>
+              {/* Public gateway UI. In admin KPay mode this subtree is NOT
+                  RENDERED AT ALL — StripePayment's mount effect calls
+                  /api/booking/lock + /api/payment/create-intent and mints a
+                  booking + PaymentIntent. Hiding it with display:none left that
+                  effect running, so one admin KPay click produced two bookings.
+                  For non-admins adminKpayMode is always false, so the public
+                  subtree — and Stripe mode for admins — is untouched. */}
+              {!adminKpayMode && (
+              <div>
               {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
                 /* ── Stripe: Direct to Payment Element (skip PaymentMethodList) ── */
                 <StripePayment
@@ -2707,6 +2708,7 @@ function Screen3({
                 </>
               ) : null}
               </div>
+              )}
 
               {/* Admin KPay mode — the whole checkout area becomes the ORIGINAL
                   KPay UI (PaymentMethodList / KPayPayment), not a rebuilt one.
