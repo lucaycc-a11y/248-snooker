@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { CircleCheck, CircleX, Clock3 } from 'lucide-react'
 import { tokens } from '@/app/styles/tokens'
+import { isProductionEnv } from '@/lib/env/app-env'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -216,6 +217,15 @@ const GREEN_DEEP = '#0f7845'
 const BG = '#000000'
 const SURFACE = '#111111'
 const TEXT = '#ffffff'
+// QR tile polarity. Must stay DARK modules on a LIGHT tile: payment-app
+// scanners look for dark-on-light and will not invert, so a white-on-black QR
+// renders fine on screen and is still unscannable. Verified in
+// _perf/qr-decode-check.mjs (inverted fails strict decode; auto-invert passes).
+const QR_TILE_BG = '#ffffff'
+const QR_TILE_FG = '#000000'
+// <= 12% of the QR size (240px) so the excavated hole stays well inside the
+// level="Q" (25%) recovery budget. 26/240 = 10.8%.
+const QR_LOGO_PX = 26
 const TEXT_MUTED = 'rgba(255,255,255,0.72)'
 const TEXT_FAINT = 'rgba(255,255,255,0.52)'
 const BORDER = 'rgba(255,255,255,0.1)'
@@ -1054,19 +1064,22 @@ export default function KPayPayment(props: Props) {
           {labels.pending.replace('{method}', METHOD_NAMES[method])}
         </p>
 
+        {/* Dark-on-light tile with a 4-module quiet zone (includeMargin).
+            level="Q" because the excavated logo destroys modules — the logo is
+            capped at ~11% of the tile so the hole stays inside that budget. */}
         <div style={styles.qrWrap}>
           <QRCodeSVG
             value={payInfo}
-            size={220}
-            bgColor={BG}
-            fgColor={TEXT}
-            level="L"
+            size={240}
+            bgColor={QR_TILE_BG}
+            fgColor={QR_TILE_FG}
+            level="Q"
             includeMargin
             {...(['alipayhk', 'payme'].includes(method) && {
               imageSettings: {
                 src: method === 'alipayhk' ? '/icons/payment/alipayhk.png' : '/icons/payment/payme.png',
-                height: 32,
-                width: 32,
+                height: QR_LOGO_PX,
+                width: QR_LOGO_PX,
                 excavate: true,
               },
             })}
@@ -1100,8 +1113,11 @@ export default function KPayPayment(props: Props) {
           {labels.pending_desc.replace('{time}', formatCountdown(countdown))}
         </p>
 
-        {/* ── UAT-ONLY: PayMe simulation toggle ──────────────────────────── */}
-        {method === 'payme' && (
+        {/* ── UAT-ONLY: PayMe simulation toggle ────────────────────────────
+            Hidden in production (space8.com.hk). The server also refuses
+            `uat_payme` when KPAY_ENV is prod, but a visible 8.81/8.82 switch
+            on a live checkout is still a support and trust hazard. */}
+        {method === 'payme' && !isProductionEnv() && (
           <div style={styles.uatToggleWrap}>
             <span style={styles.uatLabel}>UAT 模擬</span>
             <div style={styles.uatToggle}>
@@ -1229,10 +1245,11 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 8,
   },
   qrWrap: {
+    // White rounded tile sitting on the dark card — scanners need a light
+    // field around the modules, not just a light QR.
     padding: 16,
-    background: BG,
+    background: QR_TILE_BG,
     borderRadius: 16,
-    border: `1px solid ${BORDER}`,
   },
   qr: {
     display: 'block',
