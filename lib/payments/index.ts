@@ -43,7 +43,12 @@ export function getPaymentProvider(hostname?: string): PaymentProvider {
 
 /**
  * Read payment method enabled/disabled from payment_settings.
- * Returns null if the method has no row (apple_pay / google_pay don't).
+ *
+ * Contract: a missing row means the method is OFFERED. Operators opt a method
+ * *out* by writing enabled=false; they never have to opt one in. Returns null
+ * when there is no row — callers must treat null as enabled and only reject an
+ * explicit `{ enabled: false }`. This matches the admin toggle UI, which shows
+ * a rowless method as ON.
  */
 export async function getPaymentMethodSettings(
   method: string,

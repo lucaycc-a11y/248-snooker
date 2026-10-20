@@ -2,12 +2,14 @@
 
 // ────────────────────────────────────────────────────────────────
 // PaymentMethodList — payment method selector for the Space8 checkout
-// flow. PAYMENT_METHODS is the catalog; AVAILABLE_PAYMENT_METHODS is
-// the ordered allowlist for methods currently shown in the UI.
+// flow. PAYMENT_METHODS is the catalog; KPAY_METHODS is the ordered
+// KPay rail set. The live list is that set minus anything turned off
+// in admin payment_settings (fetched from /api/payment/available-methods).
 // ────────────────────────────────────────────────────────────────
 
 import { useState, useEffect } from "react"
 import { tokens } from "@/app/styles/tokens"
+import { PAYMENT_METHODS as KPAY_RAIL_ORDER } from "@/lib/payments/methods"
 import PaymentMethodCard from "./PaymentMethodCard"
 import {
   VisaBadgeIcon,
@@ -68,13 +70,6 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
         <AmexBadgeIcon />
       </>
     ),
-  },
-  {
-    id: "alipay",
-    label: "支付宝",
-    sublabel: "Alipay",
-    disabled: false,
-    icons: <AlipayHKBadgeIcon />,
   },
   {
     id: "alipayhk",
@@ -161,20 +156,18 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
 ]
 
 // Controls both visibility and display order. Add a method here when it launches.
-// Provider-aware: Stripe methods are queried dynamically from /api/payment/available-methods
-// KPay supports card, alipayhk, payme (others commented out in PAYMENT_METHODS)
-const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
-const KPAY_METHODS: readonly PaymentMethodId[] = ['card', 'alipayhk', 'payme']
+// Provider-aware: the live list is queried from /api/payment/available-methods.
+// KPay offers every rail /api/checkout/create accepts; anything an operator
+// turns off in admin payment_settings is filtered out at fetch time.
+
+/** Full KPay rail set, in customer-facing order. Derived from the canonical
+ *  list in lib/payments/methods.ts so the checkout, the admin toggles and
+ *  /api/payment/available-methods can never drift apart. Order there is
+ *  cards → HK instant/wallets → mainland wallets → UnionPay QuickPass. */
+const KPAY_METHODS: readonly PaymentMethodId[] = KPAY_RAIL_ORDER.map((m) => m.method)
 
 // Stripe methods are now loaded dynamically — this is just a fallback
 const STRIPE_FALLBACK_METHODS: readonly PaymentMethodId[] = ['card']
-
-const AVAILABLE_PAYMENT_METHODS: readonly PaymentMethodId[] =
-  provider === 'stripe' ? STRIPE_FALLBACK_METHODS : KPAY_METHODS
-
-const visibleMethods = AVAILABLE_PAYMENT_METHODS.flatMap((id) =>
-  PAYMENT_METHODS.filter((method) => method.id === id)
-)
 
 /** Display name for a rail, for the "pay with …" confirm button. Single source
  * of truth — the CTA must never drift from the card the customer tapped. */
@@ -203,52 +196,69 @@ export default function PaymentMethodList({ selected, onSelect, forceKpay }: Pro
   // provider exactly as before.
   const provider = forceKpay ? 'kpay' : process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
 
-  // State: dynamically loaded Stripe payment methods
-  const [stripeAvailableMethods, setStripeAvailableMethods] = useState<PaymentMethodId[]>(
-    STRIPE_FALLBACK_METHODS as PaymentMethodId[]
-  )
-  const [isLoadingStripeMethods, setIsLoadingStripeMethods] = useState(provider === 'stripe')
+  // State: method ids the server says are actually offered right now.
+  // For KPay that is KPAY_METHODS minus admin-disabled rails; for Stripe it is
+  // whatever the account has configured. Null = still loading / not fetched.
+  const [enabledMethods, setEnabledMethods] = useState<PaymentMethodId[] | null>(null)
+  const [isLoadingMethods, setIsLoadingMethods] = useState(true)
 
-  // Effect: query Stripe for actually-enabled payment methods
+  // Fallback if the lookup fails: never leave the checkout with nothing to tap.
+  // KPay falls back to the full rail set (create still rejects anything an
+  // operator turned off); Stripe stays conservative with card only.
+  const fallbackMethods: readonly PaymentMethodId[] =
+    provider === 'stripe' ? STRIPE_FALLBACK_METHODS : KPAY_METHODS
+
+  // Effect: ask the server which methods are offered (admin payment_settings
+  // for KPay, live Stripe account config for Stripe).
   useEffect(() => {
-    if (forceKpay) return
-    if (provider !== 'stripe') return
+    let cancelled = false
 
-    const fetchStripeMethods = async () => {
+    const fetchMethods = async () => {
       try {
-        const res = await fetch('/api/payment/available-methods')
+        const res = await fetch(`/api/payment/available-methods?provider=${provider}`)
         if (!res.ok) {
-          console.warn('[PaymentMethodList] Stripe methods query failed, using fallback')
-          setStripeAvailableMethods(STRIPE_FALLBACK_METHODS as PaymentMethodId[])
-          setIsLoadingStripeMethods(false)
+          console.warn('[PaymentMethodList] methods query failed, using fallback')
+          if (!cancelled) setEnabledMethods([...fallbackMethods])
           return
         }
 
-        const data = await res.json()
-        const available = data.available || []
+        const data: unknown = await res.json()
+        const available =
+          typeof data === 'object' && data !== null && Array.isArray((data as { available?: unknown }).available)
+            ? ((data as { available: unknown[] }).available.filter(
+                (id): id is PaymentMethodId => typeof id === 'string',
+              ) as PaymentMethodId[])
+            : []
 
-        console.log('[PaymentMethodList] Loaded Stripe methods:', available)
-        setStripeAvailableMethods(available)
+        console.log('[PaymentMethodList] Loaded methods:', available)
+        if (!cancelled) setEnabledMethods(available.length > 0 ? available : [...fallbackMethods])
       } catch (err) {
-        console.error('[PaymentMethodList] Failed to fetch Stripe methods', err)
-        setStripeAvailableMethods(STRIPE_FALLBACK_METHODS as PaymentMethodId[])
+        console.error('[PaymentMethodList] Failed to fetch methods', err)
+        if (!cancelled) setEnabledMethods([...fallbackMethods])
       } finally {
-        setIsLoadingStripeMethods(false)
+        if (!cancelled) setIsLoadingMethods(false)
       }
     }
 
-    fetchStripeMethods()
-  }, [provider, forceKpay])
+    fetchMethods()
+    return () => {
+      cancelled = true
+    }
+    // fallbackMethods is derived from provider alone; listing it would re-run
+    // the fetch on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provider])
 
-  // Compute visible methods based on provider
-  const availableMethods = provider === 'stripe' ? stripeAvailableMethods : KPAY_METHODS
-  const visibleMethods = availableMethods.flatMap((id) =>
-    PAYMENT_METHODS.filter((method) => method.id === id)
-  )
+  // Compute visible methods based on provider. Preserve the provider's display
+  // order (KPAY_METHODS) rather than whatever order the server returned.
+  const catalog = provider === 'stripe' ? null : KPAY_METHODS
+  const visibleMethods = (catalog ?? (enabledMethods ?? []))
+    .flatMap((id) => PAYMENT_METHODS.filter((method) => method.id === id))
+    .filter((method) => (enabledMethods ? enabledMethods.includes(method.id) : true))
 
-  // Skeleton placeholder — shown only during the Stripe available-methods fetch.
-  // Matches PaymentMethodCard geometry exactly so no layout shift on load.
-  if (isLoadingStripeMethods) {
+  // Skeleton placeholder — shown while the available-methods lookup is in
+  // flight. Matches PaymentMethodCard geometry exactly so no layout shift.
+  if (isLoadingMethods) {
     return (
       <>
         <style>{`

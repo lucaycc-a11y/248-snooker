@@ -150,7 +150,9 @@ async function handleCheckoutCreate(req: Request) {
 
     // ── Check payment method is enabled in settings ────────────────────────
     const settings = await getPaymentMethodSettings(paymentMethod)
-    if (!settings || !settings.enabled) {
+    // A missing row means offered (see getPaymentMethodSettings) — only an
+    // explicit enabled=false turns a method away.
+    if (settings && !settings.enabled) {
       return NextResponse.json(
         { error: `付款方式未開啟：${method}（請於後台開啟後再試）` },
         { status: 400 },

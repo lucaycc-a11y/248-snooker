@@ -28,7 +28,8 @@ export async function POST(request: Request) {
 
   // Validate method is enabled — never trust the client.
   const settings = await getPaymentMethodSettings(paymentMethod)
-  if (!settings || !settings.enabled) {
+  // A missing row means offered (see getPaymentMethodSettings).
+  if (settings && !settings.enabled) {
     return NextResponse.json({ error: 'payment_method_unavailable' }, { status: 400 })
   }
 
