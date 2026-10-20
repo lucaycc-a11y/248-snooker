@@ -31,6 +31,7 @@ import PaymentMethodList from "@/components/checkout/PaymentMethodList"
 import AdminGatewayPanel from "@/components/checkout/AdminGatewayPanel"
 import AdminKPayErrorBoundary from "@/components/checkout/AdminKPayErrorBoundary"
 import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
+import { kpaySelectionFor, kpayPaymentMethodFor } from "@/lib/payments/methods"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
 import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
@@ -1943,6 +1944,10 @@ function Screen3({
   // fire the payment immediately, which gave no chance to check the amount or
   // switch rails — the CTA at the bottom is now the only thing that charges.
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null)
+  // Admin KPay Stage 2: the ONLY method we will hand to KPayPayment. Null
+  // means the tapped rail and the method state disagree → render the error
+  // branch instead of a payment panel. See kpayPaymentMethodFor.
+  const kpaySendMethod = kpayPaymentMethodFor(paymentMethod, kpayMethod)
   const [confirmed, setConfirmed] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const payCtaRef = useRef<HTMLDivElement>(null)
@@ -2760,15 +2765,26 @@ function Screen3({
                         setPaymentError(null)
                         setPaymentMethod(method)
                         scrollIntoViewIfNeeded(payCtaRef)
-                        const kpayMethods: KPayMethod[] = ["card", "alipayhk", "payme"]
-                        if (kpayMethods.includes(method as KPayMethod)) {
-                          setKpayMethod(method as KPayMethod)
-                          setKpayMode(isDesktopDevice() ? "qr" : "h5")
+                        // Every KPay rail must reach KPayPayment. The old
+                        // 3-item whitelist left octopus/fps/alipay/wechat/
+                        // unionpay_qp out, so the highlight moved but kpayMethod
+                        // kept the previous rail — KPay then got the wrong one.
+                        const selection = kpaySelectionFor(method, isDesktopDevice())
+                        if (selection) {
+                          setKpayMethod(selection.method)
+                          setKpayMode(selection.mode)
+                        } else {
+                          // Not a KPay rail: drop any previous selection so a
+                          // stale method can never be sent.
+                          setKpayMethod(null)
                         }
                       }}
                     />
-                  ) : paymentMethod !== null ? (
-                    /* ── KPay: Stage 2 - the ORIGINAL KPayPayment ── */
+                  ) : kpaySendMethod !== null ? (
+                    /* ── KPay: Stage 2 - the ORIGINAL KPayPayment ──
+                       method is derived from the tapped card via
+                       kpayPaymentMethodFor, never from a state that can lag
+                       behind it. */
                     <>
                       <KPayPayment
                         createEndpoint="/api/admin/payment-dev/kpay"
@@ -2778,7 +2794,7 @@ function Screen3({
                           duration: b.duration,
                           tableNumber: b.tableNumber as 1 | 2,
                         }))}
-                        method={kpayMethod ?? "fps"}
+                        method={kpaySendMethod}
                         mode={kpayMode}
                         useWallet={walletAppliedAmount > 0}
                         promoCode={promoCode?.code ?? null}
@@ -2786,7 +2802,7 @@ function Screen3({
                         agreedToTerms={agreedToTerms}
                         labels={{
                           title: t("kpay_title"),
-                          pending: t("kpay_qr_scan") || `請用 ${kpayMethod === "fps" ? "FPS 轉數快" : kpayMethod === "payme" ? "PayMe" : kpayMethod === "octopus" ? "八達通" : kpayMethod === "alipay" ? "支付寶" : kpayMethod === "alipayhk" ? "AlipayHK" : kpayMethod === "wechat" ? "微信支付" : kpayMethod === "card" ? "信用卡" : "雲閃付"} 掃描以下二維碼`,
+                          pending: t("kpay_qr_scan") || `請用 ${paymentMethodLabel(kpaySendMethod)} 掃描以下二維碼`,
                           pending_desc: t("kpay_pending_desc") || "請在手機上完成付款，二維碼將於 {time} 後過期",
                           pending_confirmation: t("kpay_pending_confirmation") || "確認付款中",
                           pending_confirmation_desc: t("kpay_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
@@ -2825,6 +2841,25 @@ function Screen3({
                         <img src="/logos/kpay-logo.svg" alt="Powered by KPay" style={{ height: 18, width: "auto", display: "block" }} />
                       </div>
                     </>
+                  ) : paymentMethod !== null ? (
+                    /* ── KPay: selected rail cannot be started ──
+                       paymentMethod is set but is not a KPay rail, or kpayMethod
+                       disagrees with it. Refuse to render rather than send KPay
+                       a method the admin did not pick. */
+                    <div
+                      data-cms-key="book.pay.kpay_method_mismatch"
+                      style={{
+                        padding: 16,
+                        borderRadius: tokens.radius.card,
+                        border: `1px solid ${tokens.colors.danger}`,
+                        background: "rgba(255,69,58,0.08)",
+                        color: tokens.colors.danger,
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {t("kpay_method_mismatch") || "付款方式未能載入，請重新選擇付款方式"}
+                    </div>
                   ) : null}
                 </AdminKPayErrorBoundary>
               )}

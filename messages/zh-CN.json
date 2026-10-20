@@ -1450,6 +1450,7 @@
     "kpay_octopus": "八達通",
     "kpay_card": "信用卡 / 扣賬卡",
     "kpay_qr_scan": "请用 {method} 掃描以下二維码",
+    "kpay_method_mismatch": "付款方式未能载入，请重新选择付款方式",
     "kpay_h5_redirect": "正在導向至 {method}⋯",
     "kpay_pending": "等待付款",
     "kpay_pending_desc": "请在手機上完成付款，二維码將于 {time} 后過期",

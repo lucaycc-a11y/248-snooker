@@ -1366,6 +1366,7 @@
     "kpay_octopus": "Octopus",
     "kpay_card": "Credit / Debit Card",
     "kpay_qr_scan": "Scan the QR code with {method}",
+    "kpay_method_mismatch": "Payment method could not be loaded. Please select a payment method again.",
     "kpay_h5_redirect": "Redirecting to {method}⋯",
     "kpay_pending": "Awaiting Payment",
     "kpay_pending_desc": "Complete payment on your phone. QR expires in {time}",
