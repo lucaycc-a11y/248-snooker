@@ -46,6 +46,7 @@ export default function LegalContent({
     { id: "accessibility", label: nav.accessibility },
     { id: "refund_policy", label: nav.refund_policy },
     { id: "delivery_policy", label: nav.delivery_policy },
+    { id: "wallet_promo", label: nav.wallet_promo },
     { id: "brand_statement", label: nav.brand_statement },
   ]
 
