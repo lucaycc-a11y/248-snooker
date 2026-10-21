@@ -362,27 +362,54 @@ export async function POST(req: Request) {
       if (row.status === 'cancelled' || row.status === 'expired') {
         return NextResponse.json({ error: 'Booking is no longer payable' }, { status: 409 })
       }
-      bookingIds.push(String(row.id))
-      bookingTotal = typeof row.total_price === 'number' ? row.total_price : 0
-      orderGroupId = typeof row.order_group_id === 'string' ? row.order_group_id : null
-      // Carry the first attempt's discount into the audit row.
-      discount.subtotal = typeof row.subtotal === 'number' ? row.subtotal : bookingTotal
-      discount.creditDiscount = typeof row.credit_discount === 'number' ? row.credit_discount : 0
-      discount.promoDiscount = typeof row.promo_discount === 'number' ? row.promo_discount : 0
-      discount.discountAmount = discount.creditDiscount + discount.promoDiscount
-      discount.kind = discount.creditDiscount > 0 && discount.promoDiscount > 0 ? 'both' : discount.creditDiscount > 0 ? 'credits' : discount.promoDiscount > 0 ? 'promo' : 'none'
-      if (row.discount_snapshot && typeof row.discount_snapshot === 'object') {
-        const snap = row.discount_snapshot as Record<string, unknown>
-        if (typeof snap.code === 'string') discount.code = snap.code
+      // A grouped cart (several slots) must be re-created as ONE order for the
+      // whole group. Pricing only the row the client remembered made every
+      // retry of a multi-slot cart fail the expectedTotal check, which the page
+      // then showed as "slot taken".
+      const groupId = typeof row.order_group_id === 'string' ? row.order_group_id : null
+      let rows: Record<string, unknown>[] = [row]
+      if (groupId) {
+        const { data: siblings } = await service
+          .from('bookings')
+          .select(
+            'id, user_id, total_price, status, order_group_id, human_code, date, start_time, end_time, table_number, subtotal, credit_discount, promo_discount, discount_snapshot',
+          )
+          .eq('order_group_id', groupId)
+          .eq('user_id', adminUserId)
+          .in('status', ['pending', 'payment_failed'])
+          .order('date', { ascending: true })
+          .order('start_time', { ascending: true })
+        if (siblings && siblings.length > 0) rows = siblings as Record<string, unknown>[]
       }
-      slotSummary.push({
-        slotId: '',
-        date: String(row.date ?? ''),
-        startTime: String(row.start_time ?? ''),
-        endTime: '',
-        tableNumber: Number(row.table_number ?? 0),
-        price: bookingTotal,
-      })
+      orderGroupId = groupId
+      let sumSubtotal = 0
+      let sumCredit = 0
+      let sumPromo = 0
+      for (const r of rows) {
+        const price = typeof r.total_price === 'number' ? r.total_price : 0
+        bookingIds.push(String(r.id))
+        bookingTotal += price
+        sumSubtotal += typeof r.subtotal === 'number' ? r.subtotal : price
+        sumCredit += typeof r.credit_discount === 'number' ? r.credit_discount : 0
+        sumPromo += typeof r.promo_discount === 'number' ? r.promo_discount : 0
+        if (r.discount_snapshot && typeof r.discount_snapshot === 'object') {
+          const snap = r.discount_snapshot as Record<string, unknown>
+          if (typeof snap.code === 'string') discount.code = snap.code
+        }
+        slotSummary.push({
+          slotId: '',
+          date: String(r.date ?? ''),
+          startTime: String(r.start_time ?? ''),
+          endTime: typeof r.end_time === 'string' ? r.end_time : '',
+          tableNumber: Number(r.table_number ?? 0),
+          price,
+        })
+      }
+      discount.subtotal = sumSubtotal
+      discount.creditDiscount = sumCredit
+      discount.promoDiscount = sumPromo
+      discount.discountAmount = sumCredit + sumPromo
+      discount.kind = sumCredit > 0 && sumPromo > 0 ? 'both' : sumCredit > 0 ? 'credits' : sumPromo > 0 ? 'promo' : 'none'
     } else {
     // ── 5. Adopt a pending booking the page's prepare step already minted ─
     // One KPay attempt must produce exactly one booking. If a pending booking
