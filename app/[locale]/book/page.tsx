@@ -2580,6 +2580,60 @@ function Screen3({
                   /api/payment/create-intent and mints a booking + PaymentIntent
                   + credit_hold. Hiding it with display:none left that effect
                   running. Non-admins always get this subtree unchanged. */}
+              {/* Admin only, before a gateway is picked: nothing mounts (so no
+                  booking / PaymentIntent / hold is minted by a page load), but
+                  the area must not be blank. Non-admins never see this. */}
+              {isAdmin && adminGateway === null && (
+                <div
+                  style={{
+                    border: `1px solid ${tokens.colors.border}`,
+                    borderRadius: tokens.radius.input,
+                    padding: 16,
+                    marginBottom: 20,
+                  }}
+                >
+                  <div style={{ fontSize: 13, color: tokens.colors.textMuted, marginBottom: 12 }}>
+                    Admin: choose a payment gateway to continue
+                  </div>
+                  <div style={{ display: "flex", gap: 12 }}>
+                    <button
+                      type="button"
+                      onClick={() => setAdminGateway("stripe")}
+                      style={{
+                        flex: 1,
+                        minHeight: 44,
+                        borderRadius: tokens.radius.input,
+                        border: `1px solid ${tokens.colors.border}`,
+                        background: "transparent",
+                        color: "inherit",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Stripe
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminGateway("kpay")
+                        setTestMode(false)
+                      }}
+                      style={{
+                        flex: 1,
+                        minHeight: 44,
+                        borderRadius: tokens.radius.input,
+                        border: `1px solid ${tokens.colors.border}`,
+                        background: "transparent",
+                        color: "inherit",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      KPay
+                    </button>
+                  </div>
+                </div>
+              )}
               {showPublicGateway && (
               <div>
               {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
