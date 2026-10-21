@@ -112,7 +112,15 @@ export async function POST(req: Request) {
   // callbacks.  `status`/`tradeStatus` are kept only as a fallback for any
   // proxy or future format that still uses them.  See `mapKPayResult` in
   // lib/payments/kpay.ts for the canonical mapping.
-  const result = String(payload.result ?? payload.status ?? payload.tradeStatus ?? '')
+  // Production SALES callbacks carry `transactionState` (2 = paid, with
+  // transactionStateDesc "00:承兌或交易成功") and no `result`. Without this
+  // mapping a paid order fell through to the no-op branch and was never
+  // confirmed. Only success is mapped from it; other states keep their old
+  // handling.
+  const transactionState = payload.transactionState
+  const result =
+    String(payload.result ?? payload.status ?? payload.tradeStatus ?? '') ||
+    (transactionState === 2 || transactionState === '2' ? '2' : '')
   const eventType = String(payload.eventType ?? 'payment.update')
 
   if (!orderNo || !outTradeNo) {
