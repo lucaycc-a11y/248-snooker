@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 
 export const runtime = 'nodejs'
 
@@ -16,11 +17,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ valid: false, reason: 'missing_code' }, { status: 400 })
     }
 
+    // Who is asking matters: per-member limits and audience rules (e.g. new
+    // users only) are checked against the signed-in member's history.
+    const authClient = await createRouteHandlerClient()
+    const { data: { user } } = await authClient.auth.getUser()
+
     const supabase = getServiceSupabase()
     const { data, error } = await supabase
       .rpc('validate_promotion_code', {
         p_code: code,
         p_cart_amount: cartAmount,
+        p_user_id: user?.id ?? null,
       })
 
     if (error) {

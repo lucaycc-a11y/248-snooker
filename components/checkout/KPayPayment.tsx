@@ -1,5 +1,6 @@
 "use client"
 
+import { checkoutErrorText } from '@/lib/checkout/error-text'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { CircleCheck, CircleX, Clock3 } from 'lucide-react'
@@ -392,7 +393,7 @@ export default function KPayPayment(props: Props) {
             errorType = 'slot_unavailable'
           }
           else {
-            message = errorText
+            message = checkoutErrorText(errorText)
           }
         } catch {
           // non-JSON response (e.g. unexpected HTML error page) — use default
@@ -672,7 +673,7 @@ export default function KPayPayment(props: Props) {
 
         if (!createRes.ok || cancelled) {
           const errBody = await createRes.json().catch(() => null) as Record<string, unknown> | null
-          setError((errBody?.error as string) ?? '付款初始化失敗，請重試')
+          setError(typeof errBody?.error === 'string' ? checkoutErrorText(errBody.error) : '付款初始化失敗，請重試')
           setState('failed')
           return
         }

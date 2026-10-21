@@ -1,5 +1,6 @@
 "use client"
 
+import { checkoutErrorText } from '@/lib/checkout/error-text'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import type { Appearance, StripeElementLocale } from '@stripe/stripe-js'
@@ -333,7 +334,7 @@ export default function StripePayment(props: Props) {
         if (res.status === 409 && errorData.code === 'price_changed') {
           throw new Error(`Price changed: server computed ${errorData.total}, client expected ${props.expectedTotal}`)
         }
-        throw new Error(errorData.error || 'Failed to create payment intent')
+        throw new Error(checkoutErrorText(errorData.error || 'Failed to create payment intent'))
       }
 
       const json = await res.json()
