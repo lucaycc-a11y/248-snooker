@@ -515,6 +515,27 @@ export default function KPayPayment(props: Props) {
     }
   }, [actionBusy, labels.cancelled_desc, localBookingId, onBackToMethods])
 
+  // Leaving the QR / payment screen via "back" must not leave the booking pending:
+  // a pending booking keeps the slot and the wallet credits held for ~10-15 minutes,
+  // which is what made the next attempt fail with "slot taken" / insufficient credits.
+  // Release it in the background (never block the user on the network) and go back
+  // at once. cancel_pending_booking only cancels bookings that are still pending, so
+  // a booking that has already been paid/confirmed is left alone by the server.
+  const leaveAndRelease = useCallback(() => {
+    if (actionBusy) return
+    if (localBookingId) {
+      attemptRef.current += 1 // drop any in-flight poll result for the abandoned attempt
+      if (countdownRef.current) clearInterval(countdownRef.current)
+      void fetch('/api/checkout/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: localBookingId }),
+        keepalive: true,
+      }).catch(() => {})
+    }
+    onBackToMethods()
+  }, [actionBusy, localBookingId, onBackToMethods])
+
   const retryPayment = useCallback(async () => {
     if (actionBusy || !localBookingId) return
     setActionBusy(true)
@@ -1033,7 +1054,7 @@ export default function KPayPayment(props: Props) {
         <button type="button" onClick={retryPayment} disabled={actionBusy} style={styles.primaryButton}>
           {actionBusy ? labels.processing : labels.regenerate}
         </button>
-        <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+        <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.secondaryButton}>
           {labels.back_to_methods}
         </button>
         <button
@@ -1166,7 +1187,7 @@ export default function KPayPayment(props: Props) {
           </a>
         </p>
 
-        <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+        <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.secondaryButton}>
           {labels.back_to_methods}
         </button>
 
