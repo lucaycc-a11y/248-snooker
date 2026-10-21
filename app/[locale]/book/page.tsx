@@ -4102,7 +4102,9 @@ export default function BookPage() {
     // Guard: if redirect_status exists but is not a recognized value (succeeded,
     // processing, requires_payment_method, failed, methods, retry), treat it as
     // a malformed return and clear state to prevent UI freeze.
-    const recognizedStatuses = ["succeeded", "processing", "requires_payment_method", "failed", "methods", "retry"]
+    // "returned"/"cancelled" are what KPay appends to its returnUrl; leaving them out made
+    // every return from the payment app look malformed and dumped the user on the booking form.
+    const recognizedStatuses = ["succeeded", "processing", "requires_payment_method", "failed", "methods", "retry", "returned", "cancelled"]
     if (redirectStatus && !recognizedStatuses.includes(redirectStatus)) {
       console.warn(`[Book] Unknown redirect_status="${redirectStatus}" — clearing state and redirecting to booking form`)
       clearKPayPersistedState()
