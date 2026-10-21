@@ -386,6 +386,10 @@ export default function KPayPayment(props: Props) {
             errorType = 'unauthorized'
           }
           // Part 3: Detect slot unavailability (409 Conflict)
+          else if (errBody.code === 'price_changed' || errorText === 'price_changed') {
+            message = '價錢已更新，請返回付款方式重新確認金額'
+            errorType = 'generic'
+          }
           else if (res.status === 409 ||
                    errorText.includes('Slot unavailable') ||
                    errorText.includes('Slot lock no longer valid')) {
