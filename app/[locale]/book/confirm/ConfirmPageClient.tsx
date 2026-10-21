@@ -8,9 +8,17 @@ import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/
 import { LoadingGif } from "@/components/shared/LoadingGif"
 import { tokens } from "@/app/styles/tokens"
 
-type Props = { bookingId: string }
+export type ConfirmBookingSummary = {
+  humanCode: string | null
+  date: string
+  startTime: string
+  endTime: string
+  tableNumber: number | null
+}
 
-export default function ConfirmPageClient({ bookingId }: Props) {
+type Props = { bookingId: string; summary?: ConfirmBookingSummary[] }
+
+export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
   const t = useTranslations("book")
   const tCommon = useTranslations("common")
   const [retrying, setRetrying] = useState(false)
@@ -139,7 +147,21 @@ export default function ConfirmPageClient({ bookingId }: Props) {
           <div style={styles.successIcon} aria-hidden="true">✓</div>
           <h1 style={styles.title} data-cms-key="book.confirm.success_title">{t("kpay_success")}</h1>
           <p style={styles.text} data-cms-key="book.confirm.success_desc">{t("kpay_success_desc")}</p>
-          <p style={styles.reference}>{bookingId}</p>
+          {summary.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+              {summary.map((b, i) => (
+                <div key={b.humanCode ?? i}>
+                  <div style={{ color: tokens.colors.text, fontSize: 15, fontWeight: 600 }}>
+                    {b.date} · {b.startTime}–{b.endTime}
+                    {b.tableNumber !== null ? ` · #${b.tableNumber}` : ""}
+                  </div>
+                  {b.humanCode && <div style={styles.reference}>{b.humanCode}</div>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={styles.reference}>{bookingId}</p>
+          )}
           <a
             href="/member"
             style={styles.memberLink}
