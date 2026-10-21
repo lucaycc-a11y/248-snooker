@@ -3070,7 +3070,11 @@ function Screen3({
           >
             <button
               type="button"
-              disabled={confirmed}
+              // Locked only once agreed AND payment started, so it cannot be
+              // unticked mid-payment. When a restored / resumed payment comes back
+              // with confirmed=true but terms not agreed, KPayPayment waits on the
+              // terms and showed nothing else, so a fully disabled box deadlocked it.
+              disabled={confirmed && agreedToTerms}
               onClick={() => setAgreedToTerms(!agreedToTerms)}
               aria-pressed={agreedToTerms}
               style={{
@@ -3084,7 +3088,7 @@ function Screen3({
                 background: "transparent",
                 textAlign: "left",
                 color: "inherit",
-                cursor: confirmed ? "default" : "pointer",
+                cursor: confirmed && agreedToTerms ? "default" : "pointer",
               }}
             >
               <span
