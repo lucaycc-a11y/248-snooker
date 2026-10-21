@@ -189,7 +189,9 @@ export async function POST(req: Request) {
   if (renewalLookupErr) {
     // Graceful degradation: if the renewal_orders table doesn't exist yet
     // (migration not applied), log at info level instead of error.
-    const isMissingTable = (renewalLookupErr as { code?: string }).code === '42P01'
+    // 42P01 = Postgres undefined_table; PGRST205 = PostgREST "not in schema cache".
+    const lookupCode = (renewalLookupErr as { code?: string }).code
+    const isMissingTable = lookupCode === '42P01' || lookupCode === 'PGRST205'
     const log = isMissingTable ? console.info : console.error
     log('[webhook/kpay] renewal_order_lookup_failed', { outTradeNo, code: (renewalLookupErr as { code?: string }).code, message: renewalLookupErr.message })
     // Non-fatal — fall through to ordinary booking path.
