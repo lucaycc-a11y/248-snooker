@@ -684,7 +684,17 @@ export async function POST(req: Request) {
 
     // ── 8. Claim payment attempt ──────────────────────────────────────────
     const primaryBookingId = bookingIds[0]
-    const outTradeNo = humanReadableCode(primaryBookingId)
+    // KPay rejects a reused merchant order number (30006 商戶訂單號已存在), and a
+    // method switch on one booking is a new KPay order. The first attempt keeps the
+    // plain human_code (so the webhook matches it exactly); retries append -A<n>,
+    // which the KPay webhook strips as a fallback lookup.
+    const { count: priorAttempts } = await service
+      .from('payment_attempts')
+      .select('id', { count: 'exact', head: true })
+      .eq('booking_id', primaryBookingId)
+    const baseOutTradeNo = humanReadableCode(primaryBookingId)
+    const outTradeNo =
+      (priorAttempts ?? 0) > 0 ? `${baseOutTradeNo}-A${(priorAttempts ?? 0) + 1}` : baseOutTradeNo
     const idempotencyKey = `${primaryBookingId}:${Date.now()}`
 
     const { data: claimData, error: claimErr } = await service.rpc('claim_payment_attempt', {
@@ -736,6 +746,9 @@ export async function POST(req: Request) {
       // credits/promo must not stay locked against this admin's wallet — and the
       // booking this attempt created must not stay pending.
       await abortAttempt()
+      const friendlyError = /29542|匹配支付渠道失敗/.test(e.message)
+        ? 'KPay has no available channel for this method on the production merchant. Ask KPay to enable it. (' + e.message + ')'
+        : e.message
       const failedAudit: Json = {
         method: paymentMethod,
         mode,
@@ -758,7 +771,7 @@ export async function POST(req: Request) {
         afterValue: failedAudit,
         ipAddress: ip,
       })
-      return NextResponse.json({ error: e.message }, { status: 502 })
+      return NextResponse.json({ error: friendlyError }, { status: 502 })
     }
 
     // ── 10. Stamp the provider order onto the booking group ───────────────

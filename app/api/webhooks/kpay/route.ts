@@ -246,11 +246,27 @@ export async function POST(req: Request) {
   }
 
   // ── Look up booking by outTradeNo (human_code) ─────────────────────────
-  const { data: booking, error: bookingErr } = await supabase
+  let { data: booking, error: bookingErr } = await supabase
     .from('bookings')
     .select('id, user_id, order_group_id, slot_id, human_code, total_price, payment_method')
     .eq('human_code', outTradeNo)
     .maybeSingle()
+
+  // Admin KPay retries on one booking send `<human_code>-A<n>` (KPay rejects a
+  // reused outTradeNo). Fall back to the base code only when the exact lookup
+  // found nothing, so every existing outTradeNo resolves exactly as before.
+  if (!booking && !bookingErr) {
+    const retryMatch = /^(SPACE8-[A-Z0-9]{5}-[A-Z0-9])-A\d+$/.exec(outTradeNo)
+    if (retryMatch) {
+      const retry = await supabase
+        .from('bookings')
+        .select('id, user_id, order_group_id, slot_id, human_code, total_price, payment_method')
+        .eq('human_code', retryMatch[1])
+        .maybeSingle()
+      booking = retry.data
+      bookingErr = retry.error
+    }
+  }
 
   if (bookingErr) {
     console.error('[webhook/kpay] booking_lookup_failed', {
