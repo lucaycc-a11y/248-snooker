@@ -2001,6 +2001,11 @@ function Screen3({
     try {
       const persisted = readKPayPersistedState()
       if (!persisted) return
+      // A persisted payment can only exist if the terms were agreed to start it.
+      // agreedToTerms is plain component state and is false after a refresh or
+      // back navigation; resuming without it left KPayPayment on "must agree to
+      // terms" with nothing else to tap.
+      setAgreedToTerms(true)
       setConfirmed(true)
       setPaymentMethod(persisted.method as PaymentMethodId)
       setKpayMethod(persisted.method as KPayMethod)
