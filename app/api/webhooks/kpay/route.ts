@@ -256,7 +256,7 @@ export async function POST(req: Request) {
   // reused outTradeNo). Fall back to the base code only when the exact lookup
   // found nothing, so every existing outTradeNo resolves exactly as before.
   if (!booking && !bookingErr) {
-    const retryMatch = /^(SPACE8-[A-Z0-9]{5}-[A-Z0-9])-A\d+$/.exec(outTradeNo)
+    const retryMatch = /^(SPACE8-[A-Z0-9]{5}-[A-Z0-9])-A[0-9A-Z]+$/.exec(outTradeNo)
     if (retryMatch) {
       const retry = await supabase
         .from('bookings')

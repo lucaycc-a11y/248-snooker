@@ -684,17 +684,14 @@ export async function POST(req: Request) {
 
     // ── 8. Claim payment attempt ──────────────────────────────────────────
     const primaryBookingId = bookingIds[0]
-    // KPay rejects a reused merchant order number (30006 商戶訂單號已存在), and a
-    // method switch on one booking is a new KPay order. The first attempt keeps the
-    // plain human_code (so the webhook matches it exactly); retries append -A<n>,
-    // which the KPay webhook strips as a fallback lookup.
-    const { count: priorAttempts } = await service
-      .from('payment_attempts')
-      .select('id', { count: 'exact', head: true })
-      .eq('booking_id', primaryBookingId)
+    // KPay rejects a reused merchant order number (30006 商戶訂單號已存在) and it
+    // registers the number even when the order itself fails (e.g. 29542 no payment
+    // channel), so any retry or method switch on a booking needs a number KPay has
+    // never seen. Counting payment_attempts rows is not reliable for that (a claim
+    // can reuse a row), so every admin attempt gets a unique time-based suffix.
+    // The KPay webhook strips `-A<suffix>` as a fallback lookup.
     const baseOutTradeNo = humanReadableCode(primaryBookingId)
-    const outTradeNo =
-      (priorAttempts ?? 0) > 0 ? `${baseOutTradeNo}-A${(priorAttempts ?? 0) + 1}` : baseOutTradeNo
+    const outTradeNo = `${baseOutTradeNo}-A${Date.now().toString(36).toUpperCase()}`
     const idempotencyKey = `${primaryBookingId}:${Date.now()}`
 
     const { data: claimData, error: claimErr } = await service.rpc('claim_payment_attempt', {
