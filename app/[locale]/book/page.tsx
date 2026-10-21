@@ -3607,6 +3607,16 @@ function ConfirmingPayment({
 }) {
   const t = useTranslations("book")
   const tCommon = useTranslations("common")
+  // After a few seconds of "confirming", offer a way out. Someone who backed out of
+  // the payment page without paying has nothing to wait for; they used to stare at
+  // the spinner for the full poll timeout. Leaving never cancels the booking here
+  // (a payment may still be in flight), the hold simply expires on its own.
+  const [showEscape, setShowEscape] = useState(false)
+  useEffect(() => {
+    if (reason) return
+    const timer = setTimeout(() => setShowEscape(true), 8000)
+    return () => clearTimeout(timer)
+  }, [reason])
 
   if (reason) {
     return (
@@ -3657,6 +3667,23 @@ function ConfirmingPayment({
       <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
         {t("confirming")}
       </p>
+      {showEscape && (
+        <button
+          type="button"
+          onClick={onBackToSlots}
+          style={{
+            minHeight: 44,
+            padding: "0 20px",
+            borderRadius: tokens.radius.input,
+            border: `1px solid ${tokens.colors.border}`,
+            background: "transparent",
+            color: tokens.colors.textMuted,
+            cursor: "pointer",
+          }}
+        >
+          {t("recovery_back_to_slots")}
+        </button>
+      )}
     </div>
   )
 }
@@ -4340,6 +4367,21 @@ export default function BookPage() {
                   removeRun={removeRun}
                   pricingReady={pricingReady}
                   onBackToSlots={() => {
+                    // Leaving a KPay payment in progress: release its pending
+                    // booking in the background so the slot and wallet credits are
+                    // free again immediately instead of after the hold times out.
+                    try {
+                      const inFlight = readKPayPersistedState()
+                      if (inFlight?.bookingId) {
+                        void fetch("/api/checkout/cancel", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ bookingId: inFlight.bookingId }),
+                          keepalive: true,
+                        }).catch(() => {})
+                      }
+                      clearKPayPersistedState()
+                    } catch {}
                     // Refresh availability (the lock may have changed while on
                     // the payment step) but keep the user's selection intact —
                     // going back to slot-select must not reset date/table/time.
