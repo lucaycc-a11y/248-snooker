@@ -14,7 +14,7 @@ const BASE = "https://space8.com.hk";
 // Deliberately a code-level constant: the old `legal.updatedAt` config row
 // (seeded 2026-06-29) is no longer read, so a stale DB value can never
 // override the published date. Bump this when the legal text changes.
-const LEGAL_UPDATED_AT = "2026-10-20";
+const LEGAL_UPDATED_AT = "2026-10-21";
 
 const DOC_IDS: LegalDocId[] = ["terms", "website_terms", "privacy", "accessibility", "refund_policy", "delivery_policy", "brand_statement", "cookie_policy"];
 
@@ -57,10 +57,11 @@ export default async function LegalPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ doc?: string }>;
+  searchParams: Promise<{ doc?: string; tab?: string }>;
 }) {
   const { locale } = await params;
-  const { doc } = await searchParams;
+  const { doc: docParam, tab } = await searchParams;
+  const doc = docParam ?? tab;
   setRequestLocale(locale);
 
   const initialDoc = resolveDocId(doc);
