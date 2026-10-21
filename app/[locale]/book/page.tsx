@@ -1940,7 +1940,12 @@ function Screen3({
   const adminKpayMode = isAdmin && adminGateway === "kpay"
   // Non-admins always get the public gateway. Admins only after an explicit pick,
   // so a page load alone can never create a booking, hold credits or mint a PI.
-  const showPublicGateway = !isAdmin || adminGateway === "stripe"
+  // `isAdmin` defaults to false until /api/booking/admin-test-confirm answers. If
+  // the public gateway mounted on that default, an admin would see StripePayment
+  // mount (minting a booking + PaymentIntent), then vanish once the check
+  // returned. Hold the gateway until the check settles.
+  const [adminChecked, setAdminChecked] = useState(false)
+  const showPublicGateway = adminChecked && (!isAdmin || adminGateway === "stripe")
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
 
@@ -2030,14 +2035,26 @@ function Screen3({
   }, [agreedToTerms, flagTermsRequired, paymentMethod])
   useEffect(() => {
     let cancelled = false
+    // Never let a slow or failed admin check block the public checkout: after
+    // 4s, or on any error, the visitor is treated as a non-admin.
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 4000)
     ;(async () => {
       try {
-        const res = await fetch("/api/booking/admin-test-confirm")
+        const res = await fetch("/api/booking/admin-test-confirm", { signal: controller.signal })
         const { isAdmin: admin } = await res.json()
         if (!cancelled) setIsAdmin(!!admin)
-      } catch {}
+      } catch {
+      } finally {
+        clearTimeout(timer)
+        if (!cancelled) setAdminChecked(true)
+      }
     })()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [])
 
   // Venue line label — display names instead of table numbers
