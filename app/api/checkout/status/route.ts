@@ -48,7 +48,14 @@ export async function GET(req: Request) {
     }
 
     // Route to provider-specific handler based on payment_provider
-    const provider = booking.payment_provider
+    // A KPay order number is all digits; a Stripe id is `pi_…`. The public Stripe
+    // flow can overwrite payment_provider on a pending row that already holds a
+    // KPay order, and polling that row against Stripe never confirms a paid
+    // order. The order number is the more reliable signal.
+    const kpayOrderNo =
+      typeof booking.provider_order_no === 'string' && /^\d{12,}$/.test(booking.provider_order_no)
+    const provider =
+      booking.payment_provider === 'stripe' && kpayOrderNo ? 'kpay' : booking.payment_provider
 
     // Free booking path (no payment required) — when a promo code or discount fully
     // covers the order, payment_provider is null and the booking was already confirmed

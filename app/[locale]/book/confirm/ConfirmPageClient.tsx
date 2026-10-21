@@ -25,7 +25,16 @@ export default function ConfirmPageClient({ bookingId }: Props) {
     const timer = setTimeout(() => setShowEscape(true), 8000)
     return () => clearTimeout(timer)
   }, [])
-  const handleLeave = useCallback(() => {
+  const handleLeave = useCallback(async () => {
+    // Never cancel a booking that has actually been paid: ask the server first.
+    try {
+      const res = await fetch(`/api/checkout/status?bookingId=${encodeURIComponent(bookingId)}`, { cache: "no-store" })
+      const json: unknown = await res.json().catch(() => null)
+      if (json && typeof json === "object" && (json as Record<string, unknown>).status === "confirmed") {
+        window.location.reload()
+        return
+      }
+    } catch {}
     void fetch("/api/checkout/cancel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

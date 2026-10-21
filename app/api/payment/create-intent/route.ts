@@ -174,11 +174,22 @@ async function handleCreateIntent(req: Request) {
       // retry doesn't create duplicate pending rows).
       const { data: existing } = await service
         .from('bookings')
-        .select('id')
+        .select('id, provider_order_no')
         .eq('slot_id', slot.id)
         .eq('user_id', user.id)
         .eq('status', 'pending')
         .maybeSingle()
+
+      // A pending row that already holds a KPay order (all-digit order number;
+      // Stripe ids are `pi_…`) is mid-payment. Rewriting its provider here made
+      // /api/checkout/status poll Stripe for a KPay order, so a paid order was
+      // never confirmed. Refuse instead of hijacking it.
+      if (existing && typeof existing.provider_order_no === 'string' && /^\d{12,}$/.test(existing.provider_order_no)) {
+        return NextResponse.json(
+          { error: 'payment_in_progress', message: 'This booking already has a payment in progress' },
+          { status: 409 },
+        )
+      }
 
       let bookingId = existing?.id as string | undefined
       if (!bookingId) {
