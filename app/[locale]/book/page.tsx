@@ -2844,6 +2844,7 @@ function Screen3({
                     /* ── KPay: Stage 1 - the ORIGINAL PaymentMethodList ── */
                     <PaymentMethodList
                       forceKpay
+                      extraMethods={ADMIN_STRIPE_WALLETS}
                       selected={paymentMethod}
                       onSelect={(method) => {
                         setPaymentError(null)
@@ -2861,6 +2862,63 @@ function Screen3({
                           // Not a KPay rail: drop any previous selection so a
                           // stale method can never be sent.
                           setKpayMethod(null)
+                        }
+                      }}
+                    />
+                  ) : paymentMethod === "apple_pay" || paymentMethod === "google_pay" ? (
+                    /* ── Admin Stripe wallets: Apple Pay / Google Pay ──
+                       Stripe PaymentElement (native wallet buttons) in the KPay
+                       flow. adminTest makes the server flag the booking is_test
+                       (it re-checks admin; the flag alone grants nothing). */
+                    <StripePayment
+                      adminTest
+                      blocks={blocks.map((b) => ({
+                        date: b.date,
+                        startHour: b.startHour,
+                        duration: b.duration,
+                        tableNumber: b.tableNumber as 1 | 2,
+                      }))}
+                      method="card"
+                      labels={{
+                        title: paymentMethod === "apple_pay" ? "Apple Pay" : "Google Pay",
+                        pending: t("stripe_qr_scan") || "",
+                        pending_desc: t("stripe_pending_desc") || "",
+                        pending_confirmation: t("stripe_pending_confirmation") || "確認付款中",
+                        pending_confirmation_desc: t("stripe_pending_confirmation_desc") || "系統正在確認你的付款，請稍候…",
+                        success: t("stripe_success") || "付款成功",
+                        success_desc: t("stripe_success_desc") || "你的預訂已確認",
+                        failed: t("stripe_failed") || "付款失敗",
+                        failed_desc: t("stripe_failed_desc") || "交易未能完成，請重試或選擇其他付款方式",
+                        expired: t("stripe_expired") || "",
+                        expired_desc: t("stripe_expired_desc") || "",
+                        regenerate: t("stripe_regenerate") || "重新生成",
+                        try_again: t("stripe_try_again") || "重試",
+                        countdown: t("stripe_countdown") || "",
+                        help: t("stripe_help") || "需要幫助？",
+                        support_whatsapp: t("stripe_support_whatsapp") || "WhatsApp 客服",
+                        back_to_methods: t("kpay_back_to_methods") || "返回付款方式",
+                        waited: t("stripe_waited") || "已等待 {seconds} 秒",
+                        cancelled: t("stripe_cancelled") || "付款已取消",
+                        cancelled_desc: t("stripe_cancelled_desc") || "此預訂已取消，已釋放時段。",
+                        cancel: t("stripe_cancel") || "取消預訂",
+                        processing: t("stripe_processing") || "處理中…",
+                        terms_required: t("terms_required_hint"),
+                      }}
+                      agreedToTerms={agreedToTerms}
+                      onTermsRequired={flagTermsRequired}
+                      returnUrl={`${window.location.origin}/${locale}/book`}
+                      locale={locale}
+                      useWallet={walletAppliedAmount > 0}
+                      promoCode={promoCode?.code ?? null}
+                      expectedTotal={total}
+                      onBackToMethods={() => {
+                        clearStripePersistedState()
+                        setConfirmed(false)
+                        setPaymentMethod(null)
+                      }}
+                      onSuccess={(returnedBookingId) => {
+                        if (returnedBookingId) {
+                          window.location.href = `/book?bookingId=${encodeURIComponent(returnedBookingId)}&redirect_status=succeeded`
                         }
                       }}
                     />
@@ -3726,6 +3784,9 @@ function ConfirmingPaymentContainer({
 }
 
 /* ─────────────────────────  Root  ───────────────────────── */
+/** Admin KPay mode also lists these two, served by Stripe (is_test, audit-logged). */
+const ADMIN_STRIPE_WALLETS = ["apple_pay", "google_pay"] as const
+
 export default function BookPage() {
   const t = useTranslations("book")
   const router = useRouter()

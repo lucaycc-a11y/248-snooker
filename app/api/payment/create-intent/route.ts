@@ -21,6 +21,8 @@ import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliati
 import { getHostname } from '@/lib/env/hostname'
 import { isTestBooking } from '@/lib/env/test-booking'
 import { withSecurity } from '@/lib/security/api-wrapper'
+import { requireActiveAdmin, getClientIp } from '@/lib/uat/admin-auth'
+import { writeAdminAudit } from '@/lib/admin/audit'
 
 export const runtime = 'nodejs'
 
@@ -87,7 +89,23 @@ async function handleCreateIntent(req: Request) {
     // - UAT hostname → always true
     // - Non-production runtime (VERCEL_ENV=preview/development, NODE_ENV=development) → true
     // - Unknown environment → false (assume production for safety)
-    const isTest = isTestBooking(getHostname(req))
+    let isTest = isTestBooking(getHostname(req))
+    // Admin Apple Pay / Google Pay test (real money, flagged test). The client
+    // flag only REQUESTS it; the admin check below is what grants it, so a
+    // forged flag from a normal user is ignored. It only sets the is_test column
+    // — it never changes pricing.
+    let adminTestAudit: { adminId: string; adminEmail: string; ip: string } | null = null
+    if (body?.adminTest === true) {
+      const adminAuth = await requireActiveAdmin(supabase)
+      if (adminAuth.isAdmin && adminAuth.user) {
+        isTest = true
+        adminTestAudit = {
+          adminId: adminAuth.user.id,
+          adminEmail: adminAuth.user.email ?? 'unknown',
+          ip: getClientIp(req),
+        }
+      }
+    }
     if (isTest) {
       console.log('[payment/create-intent] test booking — will be flagged is_test = true')
     }
@@ -237,6 +255,7 @@ async function handleCreateIntent(req: Request) {
             order_group_id: orderGroupId,
             payment_method: 'card',
             payment_provider: 'stripe',
+            ...(adminTestAudit ? { is_test: true } : {}),
           })
           .eq('id', bookingId)
       }
@@ -453,6 +472,23 @@ async function handleCreateIntent(req: Request) {
         { error: 'stripe_error', detail: e.message ?? 'Stripe request failed', code: e.code ?? e.type ?? null },
         { status: is4xx ? 400 : 502 },
       )
+    }
+
+    if (adminTestAudit) {
+      try {
+        await writeAdminAudit({
+          adminUserId: adminTestAudit.adminId,
+          adminEmail: adminTestAudit.adminEmail,
+          action: 'payment_dev_stripe_wallet',
+          targetTable: 'bookings',
+          targetId: primaryBookingId,
+          beforeValue: null,
+          afterValue: { amountInCents, paymentIntentId: intent.id, bookingIds, ip: adminTestAudit.ip },
+          ipAddress: adminTestAudit.ip,
+        })
+      } catch (auditErr) {
+        console.error('[payment/create-intent] admin audit failed', (auditErr as Error).message)
+      }
     }
 
     console.log('[payment/create-intent] success', {

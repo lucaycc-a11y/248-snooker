@@ -187,11 +187,17 @@ type Props = {
    * provider is 'stripe', which would otherwise load Stripe's method list.
    */
   forceKpay?: boolean
+  /**
+   * Extra rails appended after the catalogue, bypassing the available-methods
+   * filter. Admin KPay mode uses this to show Apple Pay / Google Pay (served by
+   * Stripe) in the same list. Omit for the exact previous behaviour.
+   */
+  extraMethods?: readonly PaymentMethodId[]
 }
 
 // ── Component ──────────────────────────────────────────────────
 
-export default function PaymentMethodList({ selected, onSelect, forceKpay }: Props) {
+export default function PaymentMethodList({ selected, onSelect, forceKpay, extraMethods }: Props) {
   // forceKpay pins the catalogue to KPay; otherwise follow the build-time
   // provider exactly as before.
   const provider = forceKpay ? 'kpay' : process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
@@ -255,6 +261,10 @@ export default function PaymentMethodList({ selected, onSelect, forceKpay }: Pro
   const visibleMethods = (catalog ?? (enabledMethods ?? []))
     .flatMap((id) => PAYMENT_METHODS.filter((method) => method.id === id))
     .filter((method) => (enabledMethods ? enabledMethods.includes(method.id) : true))
+  const extraVisible = (extraMethods ?? []).flatMap((id) =>
+    PAYMENT_METHODS.filter((method) => method.id === id),
+  )
+  const listedMethods = [...visibleMethods, ...extraVisible]
 
   // Skeleton placeholder — shown while the available-methods lookup is in
   // flight. Matches PaymentMethodCard geometry exactly so no layout shift.
@@ -351,7 +361,7 @@ export default function PaymentMethodList({ selected, onSelect, forceKpay }: Pro
         gap: 10,
       }}
     >
-      {visibleMethods.map((method) => (
+      {listedMethods.map((method) => (
         <PaymentMethodCard
           key={method.id}
           method={method.id}

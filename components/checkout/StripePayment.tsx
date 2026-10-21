@@ -99,6 +99,8 @@ type Props = {
   expectedTotal?: number
   /** Called when the user taps Pay without agreeing to the terms (parent scrolls to the checkbox). */
   onTermsRequired?: () => void
+  /** Admin-only: ask the server to flag the booking is_test (server re-checks admin). */
+  adminTest?: boolean
 }
 
 // ── SessionStorage key for refresh recovery ─────────────────────────────────
@@ -320,6 +322,9 @@ export default function StripePayment(props: Props) {
       }
       if (props.expectedTotal !== undefined) {
         intentBody.expectedTotal = props.expectedTotal
+      }
+      if (props.adminTest) {
+        intentBody.adminTest = true
       }
 
       const res = await fetch('/api/payment/create-intent', {
