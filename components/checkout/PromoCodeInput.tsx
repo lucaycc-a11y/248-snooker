@@ -1,5 +1,6 @@
 'use client'
 
+import { checkoutErrorText } from '@/lib/checkout/error-text'
 import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Tag, X, Check, Loader2 } from 'lucide-react'
@@ -127,6 +128,8 @@ export default function PromoCodeInput({ originalTotal, onApply, onRemove, activ
           reason === 'invalid_or_expired' || reason === 'expired' ? L.expiredLabel
             : reason === 'not_started' ? (L.notStartedLabel ?? L.invalidLabel)
             : reason === 'min_cart_not_met' || reason === 'min_order_not_met' ? L.minCartLabel
+            : reason === 'audience_not_eligible' || reason === 'usage_limit_reached' || reason === 'user_limit_reached'
+              ? checkoutErrorText(reason)
             : L.invalidLabel
         )
         return
