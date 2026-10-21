@@ -17,6 +17,24 @@ export default function ConfirmPageClient({ bookingId }: Props) {
   const [retryError, setRetryError] = useState<string | null>(null)
   const result = useOrderConfirmationPolling(bookingId)
   const conversionFired = useRef(false)
+  // Someone who backs out of the gateway page lands here with nothing paid and
+  // would otherwise watch a spinner for the whole polling timeout. After 8s of
+  // not being confirmed, offer a way out that releases the slot.
+  const [showEscape, setShowEscape] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setShowEscape(true), 8000)
+    return () => clearTimeout(timer)
+  }, [])
+  const handleLeave = useCallback(() => {
+    void fetch("/api/checkout/cancel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bookingId }),
+      keepalive: true,
+    }).catch(() => {})
+    try { sessionStorage.removeItem("kpayPayment") } catch {}
+    window.location.href = "/book"
+  }, [bookingId])
 
   // Fire only when the webhook has committed bookings.status = confirmed —
   // never on the "book" click, where payment can still fail. Strict Mode can
@@ -131,6 +149,15 @@ export default function ConfirmPageClient({ bookingId }: Props) {
         <LoadingGif label={tCommon("loading")} />
         <h1 style={styles.title} data-cms-key="book.confirm.pending_title">{t("confirming")}</h1>
         <p style={styles.text} data-cms-key="book.confirm.pending_desc">{t("kpay_pending_confirmation_desc")}</p>
+        {showEscape && (
+          <button
+            type="button"
+            onClick={handleLeave}
+            style={{ marginTop: 8, minHeight: 44, padding: "0 20px", borderRadius: 12, border: `1px solid ${tokens.colors.border}`, background: "transparent", color: tokens.colors.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+          >
+            {t("recovery_back_to_slots")}
+          </button>
+        )}
       </section>
     </main>
   )
