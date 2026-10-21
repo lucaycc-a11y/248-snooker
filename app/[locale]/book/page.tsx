@@ -3784,8 +3784,8 @@ function ConfirmingPaymentContainer({
 }
 
 /* ─────────────────────────  Root  ───────────────────────── */
-/** Admin KPay mode also lists these two, served by Stripe (is_test, audit-logged). */
-const ADMIN_STRIPE_WALLETS = ["apple_pay", "google_pay"] as const
+/** Admin Apple Pay / Google Pay (Stripe) are DISABLED for now: set to ["apple_pay", "google_pay"] to re-enable. */
+const ADMIN_STRIPE_WALLETS: readonly PaymentMethodId[] = []
 
 export default function BookPage() {
   const t = useTranslations("book")
