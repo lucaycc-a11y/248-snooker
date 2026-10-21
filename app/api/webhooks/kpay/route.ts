@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 
 // POST /api/webhooks/kpay
 // 1. Verify the KPay RSA-SHA256 signature BEFORE any DB write.
-// 2. Claim the event in webhook_events for idempotency (key = `kpay:${orderNo}:${status}`).
+// 2. Claim the event in webhook_events for idempotency (key = `kpay:${orderNo}:${result}`).
 // 3. Look up booking by outTradeNo (human_code), then route to the appropriate
 //    handler — success → confirm_booking / confirm_booking_group,
 //    failure → release_slot_lock / release_group_locks.
@@ -171,7 +171,7 @@ export async function POST(req: Request) {
       .single()
 
     if (existing?.status === 'processed') {
-      console.log('[webhook/kpay] duplicate', { eventId, orderNo, status })
+      console.log('[webhook/kpay] duplicate', { eventId, orderNo, result })
       return new NextResponse('OK', { status: 200 })
     }
     // else: prior attempt didn't finish → reprocess
