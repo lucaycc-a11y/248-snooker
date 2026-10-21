@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getPaymentProvider } from '@/lib/payments'
+import { KPayProvider } from '@/lib/payments/kpay'
+import { isUatEnv } from '@/lib/env/uat'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 
@@ -64,7 +66,7 @@ export async function GET(req: Request) {
     if (provider === 'stripe') {
       return handleStripeStatus(booking, service, user.id)
     } else if (provider === 'kpay') {
-      return handleKPayStatus(booking, service, user.id)
+      return handleKPayStatus(booking, service, user.id, new URL(req.url).hostname)
     } else {
       console.error('[checkout/status] unknown payment_provider', { provider, bookingId })
       return NextResponse.json(
@@ -379,7 +381,7 @@ async function handleStripeStatus(booking: any, service: any, userId: string) {
 // KPay Status Handler
 // ──────────────────────────────────────────────────────────────────
 
-async function handleKPayStatus(booking: any, service: any, userId: string) {
+async function handleKPayStatus(booking: any, service: any, userId: string, hostname: string) {
   const startedAt = Date.now()
   const logResult = (payload: Record<string, unknown>) => {
     console.log('[KPay] pollResult', { bookingId: booking.id, elapsedMs: Date.now() - startedAt, ...payload })
@@ -447,7 +449,13 @@ async function handleKPayStatus(booking: any, service: any, userId: string) {
     })
   }
 
-  const provider = getPaymentProvider()
+  // A KPay booking must be queried through KPay. getPaymentProvider() follows the
+  // site-wide PAYMENT_PROVIDER env (stripe), which sent KPay order numbers to
+  // Stripe ("No such payment_intent") and left admin KPay bookings unpollable.
+  // UAT hosts use the KPay UAT environment; every other host is production.
+  const provider = isUatEnv(hostname)
+    ? new KPayProvider(hostname)
+    : new KPayProvider(undefined, 'prod')
   const orderStatus = await provider.queryOrder(booking.provider_order_no)
 
   let uiStatus: string
