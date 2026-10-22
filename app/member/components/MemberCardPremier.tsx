@@ -214,6 +214,12 @@ export function MemberCardPremier({ profile }: Props) {
               inset: 0,
               borderRadius: '5.6cqw',
               overflow: 'hidden',
+              // Safari/iPadOS ignores border-radius clipping once a child uses
+              // mix-blend-mode inside a 3D-transformed parent, which left the
+              // gradient layers with square corners. clip-path clips them
+              // reliably; the mask is a second belt for older WebKit.
+              clipPath: 'inset(0 round 5.6cqw)',
+              WebkitMaskImage: '-webkit-radial-gradient(white, black)',
               isolation: 'isolate',
               background: '#12051a',
             }}
@@ -268,6 +274,7 @@ export function MemberCardPremier({ profile }: Props) {
               style={{
                 position: 'absolute',
                 inset: 0,
+                borderRadius: 'inherit',
                 mixBlendMode: 'color-dodge',
                 opacity: 0.5,
                 background: 'linear-gradient(105deg, transparent 28%, rgba(94,234,170,0.38) 41%, rgba(120,140,255,0.4) 50%, rgba(222,120,255,0.38) 59%, transparent 72%)',
@@ -281,6 +288,7 @@ export function MemberCardPremier({ profile }: Props) {
               style={{
                 position: 'absolute',
                 inset: 0,
+                borderRadius: 'inherit',
                 mixBlendMode: 'overlay',
                 background: `radial-gradient(circle at ${light.mx}% ${light.my}%, rgba(255,255,255,0.55), rgba(255,255,255,0.12) 32%, transparent 58%)`,
               }}
@@ -292,6 +300,7 @@ export function MemberCardPremier({ profile }: Props) {
                 position: 'absolute',
                 inset: 0,
                 opacity: 0.17,
+                borderRadius: 'inherit',
                 mixBlendMode: 'overlay',
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
               }}
