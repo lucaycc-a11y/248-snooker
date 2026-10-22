@@ -21,7 +21,31 @@ export function NotifyForm() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!isValidEmail(email)) {
+    const value = email.trim()
+    // Hidden staff entry (same as /coming-soon): a value without "@" is tried
+    // as the site-gate password. Verified server-side; failure looks like a
+    // normal email error so the field doesn't reveal it accepts a password.
+    if (value && !value.includes('@')) {
+      setError(null)
+      setStatus('saving')
+      try {
+        const res = await fetch('/api/gate/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: value }),
+        })
+        if (res.ok) {
+          window.location.href = '/'
+          return
+        }
+      } catch {
+        // fall through to the generic email error
+      }
+      setStatus('error')
+      setError(t('err_email'))
+      return
+    }
+    if (!isValidEmail(value)) {
       setError(t('err_email'))
       return
     }
@@ -31,7 +55,7 @@ export function NotifyForm() {
       const res = await fetch('/api/gate/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, source: 'maintenance' }),
+        body: JSON.stringify({ email: value, source: 'maintenance' }),
       })
       if (!res.ok && res.status !== 429) throw new Error('failed')
       setStatus('done')
@@ -53,10 +77,13 @@ export function NotifyForm() {
   }
 
   return (
-    <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+    <form onSubmit={submit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <input
-          type="email"
+          type="text"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('email_placeholder')}
