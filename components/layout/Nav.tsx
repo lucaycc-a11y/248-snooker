@@ -163,7 +163,13 @@ export default function Nav() {
     const updateNavTheme = () => {
       const probeX = window.innerWidth / 2
       const probeY = window.innerWidth >= 768 ? 92 : 118
-      const el = document.elementFromPoint(probeX, probeY)
+      // Probe the PAGE under the nav, never the nav itself. The pill is
+      // translucent glass, so reading its own surface made the theme chase
+      // itself (white links on a white pill, dark links on a dark one).
+      const el =
+        document
+          .elementsFromPoint(probeX, probeY)
+          .find((node) => !node.closest('.nav-bar, [role="menu"]')) ?? null
       if (!el) return
 
       let target: Element | null = el
