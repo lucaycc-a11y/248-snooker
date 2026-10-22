@@ -2744,7 +2744,7 @@ function Screen3({
                       const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
                       if (kpayMethods.includes(method as KPayMethod)) {
                         setKpayMethod(method as KPayMethod)
-                        setKpayMode(isDesktopDevice() ? "qr" : "h5")
+                        setKpayMode(method === "wechat" || isDesktopDevice() ? "qr" : "h5")
                       }
                     }
                   }}

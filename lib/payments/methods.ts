@@ -62,6 +62,8 @@ export function kpaySelectionFor(
   isDesktop: boolean,
 ): KpaySelection | null {
   if (!isKPayMethodId(method)) return null
+  // WeChat H5 is disabled (needs KPay to register the H5 domain) — QR only.
+  if (method === 'wechat') return { method, mode: 'qr' }
   return { method, mode: isDesktop ? 'qr' : 'h5' }
 }
 
