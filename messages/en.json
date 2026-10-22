@@ -1424,7 +1424,7 @@
     "wallet_available": "Available Balance",
     "use_wallet": "Apply",
     "wallet_applied": "Space Wallet Applied",
-    "credit_min_payment_note": "Card payments start from HK$10, so we used {used} credit this time. Your other {left} credit stays in your account.",
+    "credit_min_payment_note": "Card minimum is HK$10; {left} credit kept.",
     "wallet_remove": "Remove"
   },
   "ticket": {
@@ -2849,7 +2849,7 @@
       "insufficient": "Insufficient balance",
       "not_stackable": "This code can't be combined with Space Wallet",
       "used": "Used this order",
-      "remaining": "Balance after payment"
+      "remaining": "Left"
     }
   },
   "creditsPage": {

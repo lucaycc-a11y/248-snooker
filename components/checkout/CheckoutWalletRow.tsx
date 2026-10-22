@@ -60,14 +60,14 @@ export default function CheckoutWalletRow({
     display: 'flex',
     alignItems: 'center',
     gap: 14,
-    padding: '14px 16px',
+    padding: '16px 18px',
     borderRadius: 14,
     border: `1px solid ${activeWallet ? 'rgba(34,184,107,0.45)' : 'rgba(255,255,255,0.14)'}`,
     background: activeWallet ? 'rgba(34,184,107,0.10)' : 'rgba(255,255,255,0.04)',
   }
   const iconStyle: React.CSSProperties = {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     flexShrink: 0,
     display: 'grid',
@@ -87,24 +87,31 @@ export default function CheckoutWalletRow({
     textUnderlineOffset: 3,
   }
 
+  const bigNum: React.CSSProperties = {
+    fontSize: 30,
+    lineHeight: 1,
+    fontWeight: 700,
+    letterSpacing: '-0.02em',
+    fontVariantNumeric: 'tabular-nums',
+    whiteSpace: 'nowrap',
+  }
+
   return (
     <div style={cardStyle}>
       <div style={iconStyle}>
-        <Wallet size={20} />
+        <Wallet size={22} />
       </div>
 
       {activeWallet ? (
         <>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t('wallet.applied')}</div>
-            <div style={{ fontSize: 12, color: FAINT, marginTop: 2 }}>
-              {t('wallet.remaining')}: HK${activeWallet.balance_after}
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Space Wallet</div>
+            <div style={{ fontSize: 12, color: FAINT, marginTop: 4 }}>
+              {t('wallet.remaining')} HK${activeWallet.balance_after}
             </div>
           </div>
           <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: GREEN, fontVariantNumeric: 'tabular-nums' }}>
-              −HK${activeWallet.amount}
-            </div>
+            <div style={{ ...bigNum, color: GREEN }}>−HK${activeWallet.amount}</div>
             <button type="button" onClick={handleRemove} style={linkBtn}>
               {t('wallet.remove')}
             </button>
@@ -113,14 +120,13 @@ export default function CheckoutWalletRow({
       ) : (
         <>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>Space Wallet</div>
-            <div style={{ fontSize: 12, color: FAINT, marginTop: 2 }}>
-              {canApply
-                ? `${t('wallet.balance')}: HK$${walletBalance}`
-                : blockedByPromo
-                  ? t('wallet.not_stackable')
-                  : t('wallet.insufficient')}
-            </div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Space Wallet</div>
+            <div style={{ ...bigNum, color: '#fff', marginTop: 6 }}>HK${walletBalance}</div>
+            {!canApply && (
+              <div style={{ fontSize: 12, color: FAINT, marginTop: 6 }}>
+                {blockedByPromo ? t('wallet.not_stackable') : t('wallet.insufficient')}
+              </div>
+            )}
           </div>
           {canApply && (
             <button
@@ -131,15 +137,15 @@ export default function CheckoutWalletRow({
                 border: 'none',
                 background: GREEN,
                 color: '#000',
-                padding: '10px 18px',
+                padding: '12px 20px',
                 borderRadius: 999,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 700,
                 cursor: 'pointer',
                 flexShrink: 0,
               }}
             >
-              {t('wallet.apply')} −HK${applyAmount}
+              {t('wallet.apply')}
             </button>
           )}
         </>

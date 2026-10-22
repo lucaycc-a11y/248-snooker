@@ -1433,7 +1433,7 @@
     "wallet_available": "可用餘額",
     "use_wallet": "套用",
     "wallet_applied": "已套用 Space Wallet",
-    "credit_min_payment_note": "信用卡每筆最低付款額為 HK$10，故本次使用 {used} 額度，其餘 {left} 額度將保留於你的帳戶。",
+    "credit_min_payment_note": "卡付款最低 HK$10，餘下 {left} 額度已保留。",
     "wallet_remove": "移除"
   },
   "ticket": {
@@ -2884,7 +2884,7 @@
       "insufficient": "Space Wallet 餘額不足",
       "not_stackable": "此優惠碼不能與 Space Wallet 同時使用",
       "used": "本次使用",
-      "remaining": "付款後結餘"
+      "remaining": "結餘"
     }
   },
   "creditsPage": {

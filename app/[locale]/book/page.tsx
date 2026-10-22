@@ -2545,7 +2545,7 @@ function Screen3({
                 }}
               >
                 <Lock size={15} style={{ flexShrink: 0, color: tokens.colors.link }} />
-                <span>金額已鎖定。如要更改優惠碼或 Wallet，請先返回選擇付款方式。</span>
+                <span>金額已鎖定</span>
               </div>
             )}
 
