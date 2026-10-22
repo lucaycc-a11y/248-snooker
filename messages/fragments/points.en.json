@@ -11,7 +11,7 @@
 
   "lifetimePoints": "Lifetime Points",
   "redeemablePoints": "Redeemable Points",
-  "needMore": "Earn {{points}} more points to auto-deposit HK${{amount}}",
+  "needMore": "Earn {points} more points to auto-deposit HK${amount}",
   "depositedToWallet": "Deposited to Wallet",
   "convertedPoints": "Converted Points",
 
