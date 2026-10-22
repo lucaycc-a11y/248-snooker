@@ -51,6 +51,7 @@ import { estimateEarnPoints } from "@/lib/points/estimate"
 import { formatPhoneDisplay } from "@/lib/phone-format"
 import { useHaptic } from "@/lib/useHaptic"
 import { useLocale, useTranslations } from "next-intl"
+import { isUatEnv } from "@/lib/env/uat"
 import { useRouter } from "@/i18n/navigation"
 import { useSearchParams } from "next/navigation"
 import LegalDocumentRenderer from "@/components/legal/LegalDocumentRenderer"
@@ -2027,37 +2028,52 @@ function Screen3({
 
     // UAT-only PayMe simulation pop-up before checkout
     // Uses NEXT_PUBLIC_KPAY_ENV (not NODE_ENV — Vercel always sets NODE_ENV='production').
+    // Only on the UAT hostname — never on production, and never for the admin
+    // production KPay flow (its route ignores `uat_payme`).
     if (
       paymentMethod === 'payme' &&
-      process.env.NEXT_PUBLIC_KPAY_ENV !== 'prod'
+      !adminKpayMode &&
+      typeof window !== 'undefined' &&
+      isUatEnv(window.location.hostname)
     ) {
-      console.log('[book/page] UAT PayMe modal triggered — NEXT_PUBLIC_KPAY_ENV:', process.env.NEXT_PUBLIC_KPAY_ENV)
       setShowPaymeUatModal(true)
       return
     }
 
     setConfirmed(true)
-  }, [agreedToTerms, flagTermsRequired, paymentMethod])
+  }, [agreedToTerms, flagTermsRequired, paymentMethod, adminKpayMode])
   useEffect(() => {
     let cancelled = false
-    // Never let a slow or failed admin check block the public checkout: after
-    // 4s, or on any error, the visitor is treated as a non-admin.
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 4000)
+    // A timeout/network error is NOT an answer. Treating it as "non-admin"
+    // mounted the public Stripe gateway for a real admin and minted live
+    // is_test=false bookings. Retry (4s each, up to 3 tries); only a definitive
+    // response — or exhausted retries — settles the check.
+    let controller = new AbortController()
     ;(async () => {
-      try {
-        const res = await fetch("/api/booking/admin-test-confirm", { signal: controller.signal })
-        const { isAdmin: admin } = await res.json()
-        if (!cancelled) setIsAdmin(!!admin)
-      } catch {
-      } finally {
-        clearTimeout(timer)
-        if (!cancelled) setAdminChecked(true)
+      for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
+        controller = new AbortController()
+        const attemptController = controller
+        const timer = setTimeout(() => attemptController.abort(), 4000)
+        try {
+          const res = await fetch("/api/booking/admin-test-confirm", { signal: attemptController.signal })
+          const data: unknown = await res.json()
+          clearTimeout(timer)
+          const admin =
+            typeof data === "object" && data !== null && (data as { isAdmin?: unknown }).isAdmin === true
+          if (!cancelled) {
+            setIsAdmin(admin)
+            setAdminChecked(true)
+          }
+          return
+        } catch {
+          clearTimeout(timer)
+          if (cancelled) return
+        }
       }
+      if (!cancelled) setAdminChecked(true)
     })()
     return () => {
       cancelled = true
-      clearTimeout(timer)
       controller.abort()
     }
   }, [])
