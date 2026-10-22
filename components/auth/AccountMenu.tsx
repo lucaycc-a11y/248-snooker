@@ -8,6 +8,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "@/i18n/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { unifiedMembershipName } from "@/lib/member/tierDisplay"
+import { liquidGlass, liquidGlassMenu, type GlassTheme } from "@/lib/ui/liquid-glass"
 
 const GREEN = "#22c55e"
 // Dark-glass surface for floating menus (readable over arbitrary content),
@@ -47,10 +48,12 @@ export function AccountMenu({
   avatarUrl,
   variant,
   linkColor = "#fff",
+  theme = "dark",
 }: {
   avatarUrl: string | null
   variant: "desktop" | "mobile"
   linkColor?: string
+  theme?: GlassTheme
 }) {
   const t = useTranslations("nav")
   const locale = useLocale()
@@ -205,8 +208,7 @@ export function AccountMenu({
     width: variant === "desktop" ? 52 : 46,
     height: variant === "desktop" ? 52 : 46,
     borderRadius: 999,
-    border: "none",
-    background: "rgba(255,255,255,0.1)",
+    ...liquidGlass(theme),
     color: linkColor,
     cursor: "pointer",
     overflow: "hidden",
@@ -302,8 +304,8 @@ export function AccountMenu({
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 320 }}
                 role="menu"
-                className="glass-panel-dark"
                 style={{
+                  ...liquidGlassMenu(),
                   position: "fixed",
                   left: 0,
                   right: 0,
@@ -324,8 +326,8 @@ export function AccountMenu({
                 exit={{ opacity: 0, y: -8, scale: 0.98 }}
                 transition={{ duration: 0.18 }}
                 role="menu"
-                className="glass-panel-dark"
                 style={{
+                  ...liquidGlassMenu(),
                   position: "fixed",
                   top: anchor?.top ?? 64,
                   right: anchor?.right ?? 16,
