@@ -216,7 +216,7 @@ const GREEN = '#1a9d5c'
 const GREEN_BRIGHT = '#22b86b'
 const GREEN_DEEP = '#0f7845'
 const BG = '#000000'
-const SURFACE = '#111111'
+const SURFACE = '#2a2c30'
 const TEXT = '#ffffff'
 // QR tile polarity. Must stay DARK modules on a LIGHT tile: payment-app
 // scanners look for dark-on-light and will not invert, so a white-on-black QR

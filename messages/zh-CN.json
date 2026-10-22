@@ -1372,13 +1372,13 @@
     "slots_selected": "已选 {count} 个时段",
     "points_earned_estimate": "此预订最少赚 {pts} 积分",
     "terms_agree": "已代表同意 SPACE8 的<link>《场地使用守则》和《条款与细则》</link>",
-    "terms_agree_prefix": "已代表同意 SPACE8 的",
+    "terms_agree_prefix": "选择付款方式即表示你同意 SPACE8 的",
     "terms_agree_connector": "和",
     "venue_rules_label": "《场地使用守则》",
     "terms_label": "《条款与细则》",
     "legal_modal_close": "关闭",
     "legal_modal_agree": "已阅读及同意并关闭",
-    "terms_required_hint": "* 必须同意条款方可继续付款",
+    "terms_required_hint": "继续付款即视为已同意上述条款",
     "terms_required_error": "请先阅读并同意场地使用守则",
     "legend_available": "可预约",
     "legend_selected": "已选",
@@ -1508,7 +1508,7 @@
     "wallet_available": "可用余额",
     "use_wallet": "套用",
     "wallet_applied": "已套用 Space Wallet",
-    "credit_min_payment_note": "银行卡付款最低为 HK$10，所以这次用了 {used} credit，其余 {left} credit 会保留在你账户。",
+    "credit_min_payment_note": "银行卡每笔最低付款额为 HK$10，故本次使用 {used} 额度，其余 {left} 额度将保留于你的账户。",
     "wallet_remove": "移除"
   },
   "ticket": {
@@ -2849,7 +2849,9 @@
       "apply": "套用",
       "remove": "移除",
       "insufficient": "Space Wallet 余额不足",
-      "not_stackable": "此优惠码不能与 Space Wallet 同时使用"
+      "not_stackable": "此优惠码不能与 Space Wallet 同时使用",
+      "used": "本次使用",
+      "remaining": "付款后余额"
     }
   },
   "creditsPage": {

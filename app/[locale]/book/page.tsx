@@ -2035,6 +2035,13 @@ function Screen3({
   // UAT-only: track which PayMe simulation mode was selected (.81/.82/undefined)
   const [paymeUatSim, setPaymeUatSim] = useState<'success' | 'fail' | undefined>(undefined)
 
+  // Choosing a payment method is the consent action (the notice under the
+  // methods says so) — no separate tick needed. The box stays for anyone who
+  // wants to review/untick; this only fires when a method is first chosen.
+  useEffect(() => {
+    if (paymentMethod) setAgreedToTerms(true)
+  }, [paymentMethod])
+
   const handleConfirmPay = useCallback(() => {
     if (!agreedToTerms) {
       flagTermsRequired()
@@ -2539,16 +2546,6 @@ function Screen3({
               >
                 <Lock size={15} style={{ flexShrink: 0, color: tokens.colors.link }} />
                 <span>金額已鎖定。如要更改優惠碼或 Wallet，請先返回選擇付款方式。</span>
-              </div>
-            )}
-
-            {/* Wallet applied display */}
-            {walletApplied && walletAppliedAmount > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
-                <span>{t("wallet_applied") || "已套用 Space Wallet"}</span>
-                <span style={{ color: "#22b86b", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                  <>−<BookingPrice amount={walletAppliedAmount} /></>
-                </span>
               </div>
             )}
 
