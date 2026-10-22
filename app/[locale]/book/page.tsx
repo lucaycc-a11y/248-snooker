@@ -1938,6 +1938,17 @@ function Screen3({
   // /api/payment/create-intent before the admin can open this panel
   // (SPACE8-NLEK6-M). An admin must pick a gateway before either subtree mounts.
   const [adminGateway, setAdminGateway] = useState<"stripe" | "kpay" | null>(null)
+  // Admins get the REAL checkout UI backed by KPay (no dev panel, banners or
+  // gateway switch). Append ?gateway=dev to the URL to bring the old dev
+  // controls back (gateway switch, test-mode bypass, "Back to Stripe").
+  const [adminDevUi] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false
+    try {
+      return new URLSearchParams(window.location.search).get("gateway") === "dev"
+    } catch {
+      return false
+    }
+  })
   const adminKpayMode = isAdmin && adminGateway === "kpay"
   // Non-admins always get the public gateway. Admins only after an explicit pick,
   // so a page load alone can never create a booking, hold credits or mint a PI.
@@ -1946,6 +1957,12 @@ function Screen3({
   // mount (minting a booking + PaymentIntent), then vanish once the check
   // returned. Hold the gateway until the check settles.
   const [adminChecked, setAdminChecked] = useState(false)
+  useEffect(() => {
+    if (isAdmin && !adminDevUi && adminGateway === null) {
+      setAdminGateway("kpay")
+      setTestMode(false)
+    }
+  }, [isAdmin, adminDevUi, adminGateway])
   const showPublicGateway = adminChecked && (!isAdmin || adminGateway === "stripe")
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
@@ -2259,7 +2276,7 @@ function Screen3({
       {/* Admin-only payment gateway dev panel. Renders nothing for non-admins
           and is fully isolated from the public Stripe path — see the component. */}
       <AdminGatewayPanel
-        isAdmin={isAdmin}
+        isAdmin={isAdmin && adminDevUi}
         blocks={blocks.map((b) => ({
           date: b.date,
           startHour: b.startHour,
@@ -2566,7 +2583,7 @@ function Screen3({
 
           {/* Admin Test Mode banner. Hidden in admin KPay mode so the bypass
               cannot be confused with a real KPay test charge. */}
-          {isAdmin && !adminKpayMode && (
+          {isAdmin && adminDevUi && !adminKpayMode && (
             <div
               style={{
                 background: "rgba(255,159,10,0.08)",
@@ -2621,7 +2638,7 @@ function Screen3({
               {/* Admin only, before a gateway is picked: nothing mounts (so no
                   booking / PaymentIntent / hold is minted by a page load), but
                   the area must not be blank. Non-admins never see this. */}
-              {isAdmin && adminGateway === null && (
+              {isAdmin && adminDevUi && adminGateway === null && (
                 <div
                   style={{
                     border: `1px solid ${tokens.colors.border}`,
@@ -2822,6 +2839,8 @@ function Screen3({
                   which stamps is_test = true server-side. Never checkout/create. */}
               {adminKpayMode && (
                 <AdminKPayErrorBoundary onBackToStripe={() => setAdminGateway("stripe")}>
+                  {adminDevUi && (
+                  <>
                   <div
                     role="status"
                     style={{
@@ -2855,6 +2874,8 @@ function Screen3({
                   >
                     Back to Stripe
                   </button>
+                  </>
+                  )}
 
                   {!confirmed ? (
                     /* ── KPay: Stage 1 - the ORIGINAL PaymentMethodList ── */
