@@ -35,9 +35,19 @@ const EASE = [0.16, 1, 0.3, 1] as const
 
 function pillStyle(theme: NavTheme): CSSProperties {
   const dark = theme === 'dark'
+  // Liquid glass: see-through body, heavy blur + saturation boost so what is
+  // behind refracts through, a bright top edge and soft inner glow for depth.
+  const blur = 'blur(22px) saturate(180%) brightness(1.08)'
   return {
-    background: dark ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.92)',
-    border: `1px solid ${dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
+    background: dark
+      ? 'linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.09) 100%)'
+      : 'linear-gradient(180deg, rgba(255,255,255,0.78) 0%, rgba(255,255,255,0.5) 100%)',
+    backdropFilter: blur,
+    WebkitBackdropFilter: blur,
+    border: `1px solid ${dark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.7)'}`,
+    boxShadow: dark
+      ? 'inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -1px 0 rgba(255,255,255,0.06), inset 0 0 18px rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.35)'
+      : 'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 0 18px rgba(255,255,255,0.35), 0 8px 32px rgba(0,0,0,0.12)',
     borderRadius: 999,
     pointerEvents: 'auto',
     transition: PILL_TRANSITION,
