@@ -448,7 +448,10 @@ export class KPayProvider implements PaymentProvider {
   }
 
   private getExpiresInSeconds(method: string): number {
-    if (method === 'fps') return 60
+    // FPS QR was 60s (our own client-side countdown, not sent to KPay). 5 min so
+    // a slow banking-app handoff doesn't hit a dead timer; when it ends the
+    // UI regenerates a fresh QR.
+    if (method === 'fps') return 300
     return 600
   }
 

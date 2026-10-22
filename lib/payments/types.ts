@@ -55,9 +55,9 @@ export function getKPayOrderType(method: PaymentMethod, mode: 'qr' | 'h5'): KPay
   return map[method]?.[mode] ?? 'FPS_SALE_H5'
 }
 
-/** Expiry (seconds) per KPay payment method. FPS = 60s, all others = 600s. */
+/** Expiry (seconds) per KPay payment method. FPS = 300s, all others = 600s. */
 export function kpayExpiresInSeconds(method: PaymentMethod): number {
-  if (method === 'fps') return 60
+  if (method === 'fps') return 300
   return 600
 }
 
