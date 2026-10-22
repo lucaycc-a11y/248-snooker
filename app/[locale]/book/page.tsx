@@ -2583,6 +2583,29 @@ function Screen3({
 
           {/* Admin Test Mode banner. Hidden in admin KPay mode so the bypass
               cannot be confused with a real KPay test charge. */}
+          {/* Admin KPay: a read-only TEST badge (no bypass checkbox). The charge is
+              real; the order is flagged is_test and excluded from revenue. */}
+          {adminKpayMode && (
+            <div
+              role="status"
+              style={{
+                background: "rgba(255,159,10,0.08)",
+                border: "1px solid rgba(255,159,10,0.3)",
+                borderRadius: tokens.radius.input,
+                padding: "12px 16px",
+                marginBottom: 20,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, color: "#FF9F0A" }}>
+                <AlertTriangle size={16} />
+                TEST · {t("test_mode_label") || "不記入營收"}
+              </div>
+              <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 2 }}>
+                真實扣款，訂單標記為測試
+              </div>
+            </div>
+          )}
+
           {isAdmin && adminDevUi && !adminKpayMode && (
             <div
               style={{
