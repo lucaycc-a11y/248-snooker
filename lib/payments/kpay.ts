@@ -90,7 +90,11 @@ export class KPayProvider implements PaymentProvider {
   // ── createOrder ──────────────────────────────────────────────
 
   async createOrder(params: CreateOrderParams): Promise<CreateOrderResult> {
-    const { outTradeNo, bookingId, amount, method, mode, remark, baseUrl, returnUrl } = params
+    const { outTradeNo, bookingId, amount, method, remark, baseUrl, returnUrl } = params
+    // WeChat H5 (/v1/qr/sales/h5/wxpay) is switched off: it needs KPay to
+    // register our H5 domain in WeChat's backend first. WeChat always uses the
+    // QR scan endpoint until that is done (remove this line to re-enable H5).
+    const mode: typeof params.mode = method === 'wechat' ? 'qr' : params.mode
 
     // Gateway floor, checked before the request so a too-small test amount
     // fails with a readable message instead of KPay's opaque 1047 無效金額.
