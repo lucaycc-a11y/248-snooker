@@ -527,6 +527,20 @@
     "err_generic": "出错了，请重试。",
     "contact": "如有疑问，请联系 Info@space8.com.hk 或 WhatsApp +852 6180 8022。"
   },
+  "maintenanceKpay": {
+    "eyebrow": "支付升级",
+    "title": "新支付，新篇章。",
+    "subtitle": "我们正在为 SPACE8 换上全新的支付系统。更简单，更流畅，选择也更多。",
+    "f1_title": "一点即付",
+    "f1_desc": "信用卡、转数快、PayMe、AlipayHK 等，在同一个页面选好即可付款。",
+    "f2_title": "即时确认",
+    "f2_desc": "付款完成后自动确认预约，无需等待，也无需截图。",
+    "f3_title": "更安心",
+    "f3_desc": "付款由持牌支付机构处理，SPACE8 不会储存你的卡资料。",
+    "eta": "预计短时间内恢复",
+    "notify_title": "准备好就通知我",
+    "notify_desc": "留下邮箱，新支付一开放我们就通知你。"
+  },
   "memberPage": {
     "card_label": "MEMBER CARD",
     "card_passenger": "持卡会员",

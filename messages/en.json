@@ -527,6 +527,20 @@
     "err_generic": "Something went wrong. Please try again.",
     "contact": "Questions? Contact Info@space8.com.hk or WhatsApp +852 6180 8022."
   },
+  "maintenanceKpay": {
+    "eyebrow": "Payments, upgraded",
+    "title": "A new chapter in payments.",
+    "subtitle": "We're bringing a new payment system to SPACE8. Simpler, smoother, and with more ways to pay.",
+    "f1_title": "Pay in one tap",
+    "f1_desc": "Cards, FPS, PayMe, AlipayHK and more — choose and pay on a single screen.",
+    "f2_title": "Confirmed instantly",
+    "f2_desc": "Your booking confirms automatically the moment you pay. No waiting, no screenshots.",
+    "f3_title": "Built to be safe",
+    "f3_desc": "Payments are handled by a licensed provider. SPACE8 never stores your card details.",
+    "eta": "Back shortly",
+    "notify_title": "Tell me when it's ready",
+    "notify_desc": "Leave your email and we'll let you know as soon as new payments open."
+  },
   "memberPage": {
     "card_label": "MEMBER CARD",
     "card_passenger": "PASSENGER",
