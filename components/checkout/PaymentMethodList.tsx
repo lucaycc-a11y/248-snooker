@@ -164,7 +164,15 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
  *  list in lib/payments/methods.ts so the checkout, the admin toggles and
  *  /api/payment/available-methods can never drift apart. Order there is
  *  cards → HK instant/wallets → mainland wallets → UnionPay QuickPass. */
-const KPAY_METHODS: readonly PaymentMethodId[] = KPAY_RAIL_ORDER.map((m) => m.method)
+// Rails the production KPay merchant cannot create orders for yet (KPay answers
+// 29542 "no matching channel" every time). Hidden until KPay enables them, so a
+// customer is never offered a method that is guaranteed to fail. Remove an id
+// here to bring its card back.
+const KPAY_NOT_ENABLED: readonly PaymentMethodId[] = ["octopus", "unionpay_qp"]
+
+const KPAY_METHODS: readonly PaymentMethodId[] = KPAY_RAIL_ORDER.map((m) => m.method).filter(
+  (id) => !KPAY_NOT_ENABLED.includes(id),
+)
 
 // Stripe methods are now loaded dynamically — this is just a fallback
 const STRIPE_FALLBACK_METHODS: readonly PaymentMethodId[] = ['card']

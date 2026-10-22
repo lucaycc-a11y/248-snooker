@@ -4624,8 +4624,12 @@ export default function BookPage() {
           left: 0;
           right: 0;
           padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
-          background: ${tokens.colors.depth.elevated};
-          border-top: 1px solid rgba(255,255,255,0.08);
+          /* Frosted glass: translucent surface + backdrop blur so the page
+             scrolls softly behind the bar instead of showing through sharply. */
+          background: rgba(34, 36, 40, 0.55);
+          -webkit-backdrop-filter: blur(24px) saturate(180%);
+          backdrop-filter: blur(24px) saturate(180%);
+          border-top: 1px solid rgba(255,255,255,0.12);
           z-index: 40;
           isolation: isolate;
         }
