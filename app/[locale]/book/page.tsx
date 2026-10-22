@@ -2471,6 +2471,14 @@ function Screen3({
               </div>
             )}
 
+            {/* Once a payment has been requested, the amount is fixed: the KPay
+                order was created for this total. Gray out promo + wallet so
+                they cannot change under a live order (go back to the method
+                list to change them, which cancels the old request). */}
+            <div
+              aria-disabled={confirmed}
+              style={confirmed ? { opacity: 0.4, pointerEvents: "none", filter: "grayscale(1)", transition: "opacity 0.2s" } : { transition: "opacity 0.2s" }}
+            >
             {/* Promo code input */}
             <div style={{ margin: "16px 0" }}>
               <PromoCodeInput
@@ -2508,6 +2516,13 @@ function Screen3({
                 }
               />
             </div>
+
+            </div>
+            {confirmed && (
+              <div style={{ fontSize: 12, color: tokens.colors.textMuted, margin: "-4px 0 12px" }}>
+                已發起付款，金額已鎖定。如要更改優惠碼或 Wallet，請先返回選擇付款方式。
+              </div>
+            )}
 
             {/* Wallet applied display */}
             {walletApplied && walletAppliedAmount > 0 && (
