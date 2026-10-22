@@ -168,7 +168,7 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
 // 29542 "no matching channel" every time). Hidden until KPay enables them, so a
 // customer is never offered a method that is guaranteed to fail. Remove an id
 // here to bring its card back.
-const KPAY_NOT_ENABLED: readonly PaymentMethodId[] = ["octopus", "unionpay_qp"]
+const KPAY_NOT_ENABLED: readonly PaymentMethodId[] = ["octopus", "unionpay_qp", "alipay"]
 
 const KPAY_METHODS: readonly PaymentMethodId[] = KPAY_RAIL_ORDER.map((m) => m.method).filter(
   (id) => !KPAY_NOT_ENABLED.includes(id),
