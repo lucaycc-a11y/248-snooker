@@ -215,6 +215,14 @@ export default function PaymentMethodList({ selected, onSelect, forceKpay, extra
   // whatever the account has configured. Null = still loading / not fetched.
   const [enabledMethods, setEnabledMethods] = useState<PaymentMethodId[] | null>(null)
   const [isLoadingMethods, setIsLoadingMethods] = useState(true)
+  const [isDesktop, setIsDesktop] = useState(false)
+  useEffect(() => {
+    const ua = navigator.userAgent
+    const mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua)
+    // iPadOS Safari reports a Mac user agent; touch support gives it away.
+    const touchMac = /Macintosh/i.test(ua) && navigator.maxTouchPoints > 1
+    setIsDesktop(!mobileUa && !touchMac)
+  }, [])
 
   // Fallback if the lookup fails: never leave the checkout with nothing to tap.
   // KPay falls back to the full rail set (create still rejects anything an
@@ -272,7 +280,12 @@ export default function PaymentMethodList({ selected, onSelect, forceKpay, extra
   const extraVisible = (extraMethods ?? []).flatMap((id) =>
     PAYMENT_METHODS.filter((method) => method.id === id),
   )
-  const listedMethods = [...visibleMethods, ...extraVisible]
+  // WeChat is QR-scan only (H5 is off), which only makes sense on a computer:
+  // a phone user cannot scan their own screen. Hidden on phones/tablets, and
+  // until the device is known (avoids a flash on mobile).
+  const listedMethods = [...visibleMethods, ...extraVisible].filter(
+    (method) => method.id !== 'wechat' || isDesktop,
+  )
 
   // Skeleton placeholder — shown while the available-methods lookup is in
   // flight. Matches PaymentMethodCard geometry exactly so no layout shift.
