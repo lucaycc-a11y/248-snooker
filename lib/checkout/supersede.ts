@@ -11,14 +11,17 @@ type ServiceClient = ReturnType<typeof getServiceSupabase>
 // that can still be paid would let a late payment confirm without its credit:
 //   - never reached the provider (no provider_order_no), or
 //   - KPay itself reports the order failed / cancelled / closed, or
-//   - KPay still says pending but the order is older than its payment window
-//     (FPS 300 s, others 600 s) plus a 60 s grace.
+//   - KPay still says pending but the order is older than 30 s (the customer has
+//     since started a new checkout, so the old cashier was abandoned).
 // A paid order ('success') is never touched: the webhook confirms it.
 // Anything uncertain — a lookup error, a Stripe intent — is left alone.
 
-const FPS_WINDOW_MS = 300_000
-const DEFAULT_WINDOW_MS = 600_000
-const GRACE_MS = 60_000
+// The customer is actively starting a NEW checkout while an older order of theirs is
+// still unpaid. After this age, an order KPay still reports as pending is treated as
+// abandoned (they backed out of the cashier) instead of holding their wallet for the
+// full 10-minute sweep. If it is somehow paid afterwards, the KPay webhook refunds a
+// payment that lands on a cancelled booking, so no money is kept without a booking.
+const ABANDONED_AFTER_MS = 30_000
 
 type PendingRow = {
   id: string
@@ -71,8 +74,7 @@ export async function releaseDeadPendingOrders(
         if (status.status === 'failed' || status.status === 'cancelled' || status.status === 'closed') {
           dead = true
         } else if (status.status === 'pending') {
-          const windowMs = row.payment_method === 'fps' ? FPS_WINDOW_MS : DEFAULT_WINDOW_MS
-          dead = Date.now() - new Date(row.created_at).getTime() > windowMs + GRACE_MS
+          dead = Date.now() - new Date(row.created_at).getTime() > ABANDONED_AFTER_MS
         }
       } catch (e) {
         console.warn('[checkout] supersede query failed — leaving order alone', {

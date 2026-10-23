@@ -2596,9 +2596,11 @@ function Screen3({
               <span data-cms-key="book.pay.secure">
                 {/* Admin KPay mode must not show Stripe copy — name the gateway
                     that will actually handle the charge. */}
-                {adminKpayMode || (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") !== "stripe"
-                  ? t("kpay_secure")
-                  : t("stripe_secure")}
+                {!adminChecked
+                  ? ""
+                  : adminKpayMode || (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") !== "stripe"
+                    ? t("kpay_secure")
+                    : t("stripe_secure")}
               </span>
             </div>
           )}

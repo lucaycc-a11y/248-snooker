@@ -26,11 +26,11 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
   const result = useOrderConfirmationPolling(bookingId)
   const conversionFired = useRef(false)
   // Someone who backs out of the gateway page lands here with nothing paid and
-  // would otherwise watch a spinner for the whole polling timeout. After 8s of
+  // would otherwise watch a spinner for the whole polling timeout. After 3s of
   // not being confirmed, offer a way out that releases the slot.
   const [showEscape, setShowEscape] = useState(false)
   useEffect(() => {
-    const timer = setTimeout(() => setShowEscape(true), 8000)
+    const timer = setTimeout(() => setShowEscape(true), 3000)
     return () => clearTimeout(timer)
   }, [])
   const handleLeave = useCallback(async () => {
