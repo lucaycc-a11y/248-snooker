@@ -103,7 +103,7 @@ function Reveal({
 function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
   return (
     <Velaris
-      height="100svh"
+      height="100dvh"
       speed={1.0}
       colors={[COLORS.green50, COLORS.green400, COLORS.green600, COLORS.dark.bg]}
       className="flex items-center justify-center px-6"
@@ -125,7 +125,8 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
           <h1
             data-cms-key="memberIntro.hero.title"
             className="mb-6 font-bold leading-tight tracking-tight text-white"
-            style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}
+            // keep-all: CJK may only break at the comma, never inside "暢行無阻。"
+            style={{ fontSize: "clamp(2.5rem, 7vw, 5.5rem)", wordBreak: "keep-all", textWrap: "balance" }}
           >
             {t("hero.title")}
           </h1>
@@ -136,7 +137,7 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
           <p
             data-cms-key="memberIntro.hero.subtitle"
             className="mb-10 text-base leading-relaxed md:text-lg"
-            style={{ color: "rgba(255,255,255,0.75)", maxWidth: "36rem" }}
+            style={{ color: "rgba(255,255,255,0.75)", maxWidth: "36rem", textWrap: "balance" }}
           >
             {t("hero.subtitle")}
           </p>
