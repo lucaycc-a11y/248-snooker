@@ -5,6 +5,8 @@ import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { verifyKpaySignature, toPem } from '@/lib/payments/kpay-sign'
 import { logSiteError } from '@/lib/errors/log'
 import { humanReadableCode } from '@/lib/qr/jwt'
+import { rateLimit } from '@/lib/rate-limit'
+import { getClientIp } from '@/lib/security/audit-log'
 
 export const runtime = 'nodejs'
 
@@ -18,6 +20,15 @@ export const runtime = 'nodejs'
 //
 // IMPORTANT: Returns 401 on invalid/missing signature (KPay spec mandates 401,
 // unlike Stripe which uses 400).
+// Failed-signature / malformed-header attempts are throttled per IP. Legitimate
+// KPay callbacks always verify, so counting only FAILURES never affects them.
+async function rejectUnauthorized(req: Request, body: string): Promise<NextResponse> {
+  const ip = getClientIp(req)
+  const allowed = await rateLimit('kpay_webhook_fail', `ip:${ip}`, 20, 60)
+  if (!allowed) return new NextResponse('Too many requests', { status: 429 })
+  return new NextResponse(body, { status: 401 })
+}
+
 export async function POST(req: Request) {
   const rawBody = await req.text()
 
@@ -34,7 +45,7 @@ export async function POST(req: Request) {
       hasMerchantCode: !!merchantCode,
       hasSignature: !!signature,
     })
-    return new NextResponse('Missing signature headers', { status: 401 })
+    return rejectUnauthorized(req, 'Missing signature headers')
   }
 
   // ── Verify signature against platform public key ───────────────────────
@@ -67,7 +78,15 @@ export async function POST(req: Request) {
       merchantCode,
       timestamp: timestamp.slice(0, 10),
     })
-    return new NextResponse('Invalid signature', { status: 401 })
+    return rejectUnauthorized(req, 'Invalid signature')
+  }
+
+  // ── Merchant code must be OURS (signature covers it, this pins it) ─────
+  const ourMerchantCode = (process.env.KPAY_MERCHANT_CODE ?? '').trim()
+  if (ourMerchantCode && merchantCode.trim() !== ourMerchantCode) {
+    console.error('[webhook/kpay] merchant_code_mismatch', { merchantCode })
+    await logSiteError('webhooks/kpay', 'error', 'merchant code mismatch', { merchantCode })
+    return rejectUnauthorized(req, 'Invalid merchant')
   }
 
   // ── Timestamp freshness check (defense-in-depth against replay) ────────
@@ -103,6 +122,18 @@ export async function POST(req: Request) {
   } catch {
     console.error('[webhook/kpay] invalid_json')
     return new NextResponse('Invalid JSON', { status: 400 })
+  }
+
+  if (
+    ourMerchantCode &&
+    typeof payload.merchantCode === 'string' &&
+    payload.merchantCode.trim() !== ourMerchantCode
+  ) {
+    console.error('[webhook/kpay] payload_merchant_code_mismatch', { merchantCode: payload.merchantCode })
+    await logSiteError('webhooks/kpay', 'error', 'payload merchant code mismatch', {
+      merchantCode: payload.merchantCode,
+    })
+    return rejectUnauthorized(req, 'Invalid merchant')
   }
 
   const orderNo = String(payload.orderNo ?? payload.order_no ?? '')
@@ -316,6 +347,31 @@ export async function POST(req: Request) {
         // A later delivery can retry the failed event after the booking row has
         // been reconciled. Never confirm under a guessed method.
         return new NextResponse('Payment method missing', { status: 500 })
+      }
+      // The amount KPay says was paid must equal what we asked for. A grouped
+      // order is charged as ONE order, so compare against the whole group.
+      const paidAmount = Number(payload.payAmount)
+      if (payload.payAmount === undefined || payload.payAmount === null || Number.isNaN(paidAmount)) {
+        console.warn('[webhook/kpay] payAmount_missing', { orderNo, outTradeNo })
+      } else {
+        let expected = Number(booking.total_price)
+        if (booking.order_group_id) {
+          const { data: groupRows, error: groupErr } = await supabase
+            .from('bookings')
+            .select('total_price')
+            .eq('order_group_id', booking.order_group_id)
+          if (groupErr) throw new Error(`group total lookup failed: ${groupErr.message}`)
+          expected = (groupRows ?? []).reduce((sum, r) => sum + Number(r.total_price), 0)
+        }
+        const currency = String(payload.payCurrency ?? 'HKD')
+        if (currency !== 'HKD' || Math.abs(paidAmount - expected) > 0.009) {
+          const message = `paid amount mismatch: KPay ${paidAmount} ${currency} vs expected HKD ${expected}`
+          console.error('[webhook/kpay] amount_mismatch', { orderNo, outTradeNo, paidAmount, currency, expected })
+          await markWebhookFailed(supabase, eventId, message)
+          await logSiteError('webhooks/kpay', 'error', message, { orderNo, outTradeNo, eventId })
+          // 200 so KPay stops retrying; the booking stays unconfirmed for manual review.
+          return new NextResponse('OK', { status: 200 })
+        }
       }
       await handleSucceeded(supabase, booking, orderNo, outTradeNo, eventId)
     } else if (isFailed) {

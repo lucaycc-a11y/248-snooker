@@ -18,6 +18,7 @@ import { calculatePrice } from '@/lib/pricing'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import { parseRpc, isLockSlotResult, isLockSlotsResult } from '@/lib/supabase/rpc-parse'
+import { withSecurity } from '@/lib/security/api-wrapper'
 import { logSiteError } from '@/lib/errors/log'
 
 export const runtime = 'nodejs'
@@ -190,7 +191,7 @@ async function releaseCreditHolds(
   }
 }
 
-export async function POST(req: Request) {
+async function handleAdminKpayCreate(req: Request) {
   const ip = getClientIp(req)
 
   // ── 1. Admin gate. The client flag is never trusted. ─────────────────────
@@ -889,3 +890,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })
   }
 }
+
+// Real-money order creation: same-origin only + throttled per admin and IP.
+export const POST = withSecurity(handleAdminKpayCreate, {
+  csrf: true,
+  rateLimit: {
+    bucket: 'admin_kpay_create',
+    max: 10,
+    windowSeconds: 60,
+    identifierType: 'both',
+  },
+})
