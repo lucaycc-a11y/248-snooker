@@ -57,6 +57,9 @@
   .root {
     --rv-nav-h: var(--navbar-height, 96px);
     min-height: 100svh;
+    /* dvh tracks the visible area when Safari's toolbar collapses, so the next
+       section no longer peeks in at the bottom */
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -652,6 +655,7 @@
   }
   .stage {
     width: min(100%, max(340px, calc((100svh - var(--rv-nav-h) - 270px) * 1.5)));
+    width: min(100%, max(340px, calc((100dvh - var(--rv-nav-h) - 270px) * 1.5)));
     justify-self: end;
     position: sticky;
     top: calc(var(--rv-nav-h) + 16px);
