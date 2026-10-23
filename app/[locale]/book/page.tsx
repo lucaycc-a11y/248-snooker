@@ -2083,7 +2083,11 @@ function Screen3({
           const res = await fetch("/api/booking/admin-test-confirm", { signal: attemptController.signal })
           const data: unknown = await res.json()
           clearTimeout(timer)
+          // Admin checkout tools (TEST banner, KPay dev gateway) are OFF by default so
+          // admins see exactly the checkout every customer sees. Set
+          // NEXT_PUBLIC_ADMIN_CHECKOUT_TOOLS=1 to bring them back for testing.
           const admin =
+            process.env.NEXT_PUBLIC_ADMIN_CHECKOUT_TOOLS === "1" &&
             typeof data === "object" && data !== null && (data as { isAdmin?: unknown }).isAdmin === true
           if (!cancelled) {
             setIsAdmin(admin)
