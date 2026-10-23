@@ -567,7 +567,7 @@ export default function KPayPayment(props: Props) {
         const message = payload && typeof payload === 'object' && !Array.isArray(payload)
           ? (payload as Record<string, unknown>).error
           : undefined
-        setError(typeof message === 'string' ? message : labels.failed_desc)
+        setError(typeof message === 'string' ? checkoutErrorText(message) : labels.failed_desc)
         setState('failed')
         return
       }
