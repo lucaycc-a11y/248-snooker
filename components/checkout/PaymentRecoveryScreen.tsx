@@ -10,13 +10,19 @@ import { tokens } from "@/app/styles/tokens"
  * inconsistent dead ends for what is, to them, one situation: "I tried to pay
  * and I'm not sure what happened."
  */
-export type PaymentRecoveryReason = "payment_failed" | "cancelled" | "timeout"
+export type PaymentRecoveryReason = "payment_failed" | "cancelled" | "timeout" | "not_received"
 
 export type PaymentRecoveryLabels = {
   title: string
   reasonFailed: string
   reasonCancelled: string
   reasonTimeout: string
+  /** Customer came back from the payment page and nothing has been paid yet. */
+  reasonNotReceived: string
+  /** Shown for `not_received` — paid-but-slow payments are confirmed or refunded automatically. */
+  notReceivedNote: string
+  /** Label for the second button on `not_received`: releases the slots and wallet immediately. */
+  cancelBooking: string
   /** Shown for `timeout` only — warns against paying twice. */
   timeoutDoubleChargeWarning: string
   holdActive: string
@@ -110,7 +116,9 @@ export function PaymentRecoveryScreen({
       ? labels.reasonCancelled
       : reason === "timeout"
         ? labels.reasonTimeout
-        : labels.reasonFailed
+        : reason === "not_received"
+          ? labels.reasonNotReceived
+          : labels.reasonFailed
 
   const holdText = holdLapsed
     ? labels.holdExpired
@@ -143,6 +151,12 @@ export function PaymentRecoveryScreen({
           </p>
         )}
 
+        {reason === "not_received" && (
+          <p data-cms-key="book.recovery.not_received_note" style={styles.reason}>
+            {labels.notReceivedNote}
+          </p>
+        )}
+
         <div style={holdLapsed ? styles.holdBoxLapsed : styles.holdBox}>
           <p data-cms-key="book.recovery.hold" style={holdLapsed ? styles.holdTextLapsed : styles.holdText}>
             {holdText}
@@ -171,7 +185,7 @@ export function PaymentRecoveryScreen({
           data-cms-key="book.recovery.back_to_slots"
           style={holdLapsed ? styles.primaryButton : styles.secondaryButton}
         >
-          {labels.backToSlots}
+          {reason === "not_received" ? labels.cancelBooking : labels.backToSlots}
         </button>
 
         {(supportPhone || supportEmail) && (

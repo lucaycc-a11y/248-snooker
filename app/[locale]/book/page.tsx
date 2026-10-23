@@ -37,6 +37,7 @@ import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
 import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
 import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/CheckoutWalletRow"
 import { creditToApply } from "@/lib/checkout/credit-rule"
+import { checkoutErrorText } from "@/lib/checkout/error-text"
 import { TicketCard } from "@/components/booking/TicketCard"
 import { TicketPrinter } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
@@ -3734,6 +3735,7 @@ function ConfirmingPayment({
   retryError,
   onRetry,
   onBackToSlots,
+  onCancelBooking,
 }: {
   reason: PaymentRecoveryReason | null
   hold: OrderHoldState
@@ -3741,6 +3743,8 @@ function ConfirmingPayment({
   retryError: string | null
   onRetry: () => void
   onBackToSlots: () => void
+  /** Releases the slots + wallet right away (used by the "payment not received" screen). */
+  onCancelBooking: () => void
 }) {
   const t = useTranslations("book")
   const tCommon = useTranslations("common")
@@ -3751,20 +3755,25 @@ function ConfirmingPayment({
   const [showEscape, setShowEscape] = useState(false)
   useEffect(() => {
     if (reason) return
-    const timer = setTimeout(() => setShowEscape(true), 8000)
+    const timer = setTimeout(() => setShowEscape(true), 3000)
     return () => clearTimeout(timer)
   }, [reason])
 
-  if (reason) {
+  // KPay gives no cancel signal on return, so a still-pending order after 3 s is
+  // shown as "payment not received". Polling continues underneath: if the payment
+  // lands, the parent swaps this screen for the ticket.
+  const shownReason: PaymentRecoveryReason | null = reason ?? (showEscape ? "not_received" : null)
+
+  if (shownReason) {
     return (
       <PaymentRecoveryScreen
-        reason={reason}
+        reason={shownReason}
         holdActive={hold.active}
         holdExpiresAt={hold.expiresAt}
         retrying={retrying}
         error={retryError}
         onRetry={onRetry}
-        onBackToSlots={onBackToSlots}
+        onBackToSlots={shownReason === "not_received" ? onCancelBooking : onBackToSlots}
         supportPhone={t("support_phone")}
         supportEmail={t("support_email")}
         labels={{
@@ -3772,6 +3781,9 @@ function ConfirmingPayment({
           reasonFailed: t("recovery_reason_failed"),
           reasonCancelled: t("recovery_reason_cancelled"),
           reasonTimeout: t("recovery_reason_timeout"),
+          reasonNotReceived: t("recovery_reason_not_received"),
+          notReceivedNote: t("recovery_not_received_note"),
+          cancelBooking: t("recovery_cancel_booking"),
           timeoutDoubleChargeWarning: t("recovery_timeout_warning"),
           holdActive: t("recovery_hold_active"),
           holdActiveWithTime: t("recovery_hold_active_time"),
@@ -3845,19 +3857,78 @@ function ConfirmingPaymentContainer({
   hold: OrderHoldState
   onBackToSlots: () => void
 }) {
-  // Retry now just resets to slot selection
-  const handleRetry = useCallback(() => {
+  const [retrying, setRetrying] = useState(false)
+  const [retryError, setRetryError] = useState<string | null>(null)
+
+  // "Pay again" on the not-received screen: re-opens payment methods on the SAME
+  // booking (the server drops the old provider order and keeps the slot hold).
+  const handleRetry = useCallback(async () => {
+    if (reason !== null && reason !== "not_received") {
+      onBackToSlots()
+      return
+    }
+    if (retrying) return
+    setRetrying(true)
+    setRetryError(null)
+    try {
+      const response = await fetch("/api/checkout/retry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      })
+      const payload: unknown = await response.json().catch(() => null)
+      if (!response.ok) {
+        const message = payload && typeof payload === "object" && !Array.isArray(payload)
+          ? (payload as Record<string, unknown>).error
+          : undefined
+        setRetryError(typeof message === "string" ? checkoutErrorText(message) : null)
+        return
+      }
+      const orderGroupId = payload && typeof payload === "object" && !Array.isArray(payload)
+        ? (payload as Record<string, unknown>).orderGroupId
+        : undefined
+      try {
+        sessionStorage.setItem("kpayRetry", JSON.stringify({ bookingId, orderGroupId: orderGroupId ?? null }))
+      } catch {}
+      window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=retry`
+    } catch {
+      setRetryError(null)
+    } finally {
+      setRetrying(false)
+    }
+  }, [bookingId, onBackToSlots, reason, retrying])
+
+  // "Cancel booking": never cancels a booking that is actually paid — ask the server
+  // first — then releases the slots and Space Wallet immediately.
+  const handleCancelBooking = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/checkout/status?bookingId=${encodeURIComponent(bookingId)}`, { cache: "no-store" })
+      const json: unknown = await res.json().catch(() => null)
+      if (json && typeof json === "object" && (json as Record<string, unknown>).status === "confirmed") {
+        window.location.reload()
+        return
+      }
+    } catch {}
+    try {
+      await fetch("/api/checkout/cancel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+        keepalive: true,
+      })
+    } catch {}
     onBackToSlots()
-  }, [onBackToSlots])
+  }, [bookingId, onBackToSlots])
 
   return (
     <ConfirmingPayment
       reason={reason}
       hold={hold}
-      retrying={false}
-      retryError={null}
+      retrying={retrying}
+      retryError={retryError}
       onRetry={handleRetry}
       onBackToSlots={onBackToSlots}
+      onCancelBooking={handleCancelBooking}
     />
   )
 }
