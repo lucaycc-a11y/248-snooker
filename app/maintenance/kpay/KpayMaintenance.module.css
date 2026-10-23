@@ -75,3 +75,13 @@
   .left { justify-content: center; }
   .title { font-size: clamp(30px, 6.2dvh, 48px); }
 }
+
+/* Short portrait screens (phones): one line per feature description, and drop
+   the descriptions entirely on very short ones, so the page never scrolls. */
+@media (max-width: 879px) {
+  .itemDesc { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden; }
+}
+@media (max-width: 879px) and (max-height: 720px) {
+  .itemDesc { display: none; }
+  .item { align-items: center; }
+}
