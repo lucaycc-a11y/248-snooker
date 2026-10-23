@@ -216,7 +216,7 @@ const GREEN = '#1a9d5c'
 const GREEN_BRIGHT = '#22b86b'
 const GREEN_DEEP = '#0f7845'
 const BG = '#000000'
-const SURFACE = '#111111'
+const SURFACE = '#2a2c30'
 const TEXT = '#ffffff'
 // QR tile polarity. Must stay DARK modules on a LIGHT tile: payment-app
 // scanners look for dark-on-light and will not invert, so a white-on-black QR
@@ -390,9 +390,9 @@ export default function KPayPayment(props: Props) {
             message = '價錢已更新，請返回付款方式重新確認金額'
             errorType = 'generic'
           }
-          else if (res.status === 409 ||
-                   errorText.includes('Slot unavailable') ||
-                   errorText.includes('Slot lock no longer valid')) {
+          else if (errorText.includes('Slot unavailable') ||
+                   errorText.includes('Slot lock no longer valid') ||
+                   errBody.reason === 'slot_confirmed') {
             message = '呢個時段已經被其他人預訂，請重新選擇時段'
             errorType = 'slot_unavailable'
           }

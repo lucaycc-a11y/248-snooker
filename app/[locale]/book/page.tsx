@@ -2035,6 +2035,13 @@ function Screen3({
   // UAT-only: track which PayMe simulation mode was selected (.81/.82/undefined)
   const [paymeUatSim, setPaymeUatSim] = useState<'success' | 'fail' | undefined>(undefined)
 
+  // Choosing a payment method is the consent action (the notice under the
+  // methods says so) — no separate tick needed. The box stays for anyone who
+  // wants to review/untick; this only fires when a method is first chosen.
+  useEffect(() => {
+    if (paymentMethod) setAgreedToTerms(true)
+  }, [paymentMethod])
+
   const handleConfirmPay = useCallback(() => {
     if (!agreedToTerms) {
       flagTermsRequired()
@@ -2477,7 +2484,7 @@ function Screen3({
                 list to change them, which cancels the old request). */}
             <div
               aria-disabled={confirmed}
-              style={confirmed ? { opacity: 0.4, pointerEvents: "none", filter: "grayscale(1)", transition: "opacity 0.2s" } : { transition: "opacity 0.2s" }}
+              style={{ opacity: confirmed ? 0.45 : 1, filter: confirmed ? "grayscale(1) saturate(0.6)" : "none", pointerEvents: confirmed ? "none" : "auto", transition: "opacity 0.25s ease, filter 0.25s ease" }}
             >
             {/* Promo code input */}
             <div style={{ margin: "16px 0" }}>
@@ -2519,18 +2526,26 @@ function Screen3({
 
             </div>
             {confirmed && (
-              <div style={{ fontSize: 12, color: tokens.colors.textMuted, margin: "-4px 0 12px" }}>
-                已發起付款，金額已鎖定。如要更改優惠碼或 Wallet，請先返回選擇付款方式。
-              </div>
-            )}
-
-            {/* Wallet applied display */}
-            {walletApplied && walletAppliedAmount > 0 && (
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: tokens.colors.textMuted, marginBottom: 12 }}>
-                <span>{t("wallet_applied") || "已套用 Space Wallet"}</span>
-                <span style={{ color: "#22b86b", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-                  <>−<BookingPrice amount={walletAppliedAmount} /></>
-                </span>
+              <div
+                role="note"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  margin: "0 0 14px",
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  backdropFilter: "blur(12px)",
+                  WebkitBackdropFilter: "blur(12px)",
+                  fontSize: 12.5,
+                  lineHeight: 1.5,
+                  color: tokens.colors.textMuted,
+                }}
+              >
+                <Lock size={15} style={{ flexShrink: 0, color: tokens.colors.link }} />
+                <span>金額已鎖定</span>
               </div>
             )}
 
@@ -2598,30 +2613,7 @@ function Screen3({
 
           {/* Admin Test Mode banner. Hidden in admin KPay mode so the bypass
               cannot be confused with a real KPay test charge. */}
-          {/* Admin KPay: a read-only TEST badge (no bypass checkbox). The charge is
-              real; the order is flagged is_test and excluded from revenue. */}
-          {adminKpayMode && (
-            <div
-              role="status"
-              style={{
-                background: "rgba(255,159,10,0.08)",
-                border: "1px solid rgba(255,159,10,0.3)",
-                borderRadius: tokens.radius.input,
-                padding: "12px 16px",
-                marginBottom: 20,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, color: "#FF9F0A" }}>
-                <AlertTriangle size={16} />
-                TEST · {t("test_mode_label") || "不記入營收"}
-              </div>
-              <div style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 2 }}>
-                真實扣款，訂單標記為測試
-              </div>
-            </div>
-          )}
-
-          {isAdmin && adminDevUi && !adminKpayMode && (
+          {isAdmin && !(adminDevUi && adminKpayMode) && (
             <div
               style={{
                 background: "rgba(255,159,10,0.08)",

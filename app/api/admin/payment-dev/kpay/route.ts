@@ -611,7 +611,36 @@ export async function POST(req: Request) {
         promoCode,
         walletAmount: walletCredits,
       })
-      if (!prepared.ok) {
+      // An adopted booking whose provider order is already stamped has an
+      // immutable discount selection (prepare_checkout answers
+      // 'discount_selection_locked'). That is not an error for a retry: the
+      // booking already carries the right totals, so reuse them instead of
+      // failing the whole checkout (the page used to show this as "slot taken").
+      if (!prepared.ok && prepared.failure.reason === 'discount_selection_locked') {
+        const { data: lockedRow } = await service
+          .from('bookings')
+          .select('total_price, subtotal, credit_discount, promo_discount, discount_snapshot')
+          .eq('id', bookingIds[0])
+          .maybeSingle()
+        if (lockedRow) {
+          const snap =
+            lockedRow.discount_snapshot && typeof lockedRow.discount_snapshot === 'object'
+              ? (lockedRow.discount_snapshot as Record<string, unknown>)
+              : {}
+          const creditD = Number(lockedRow.credit_discount ?? 0)
+          const promoD = Number(lockedRow.promo_discount ?? 0)
+          bookingTotal = Number(lockedRow.total_price)
+          discount.subtotal = Number(lockedRow.subtotal ?? bookingTotal + creditD + promoD)
+          discount.discountAmount = creditD + promoD
+          discount.creditDiscount = creditD
+          discount.promoDiscount = promoD
+          discount.kind = typeof snap.kind === 'string' ? snap.kind : 'none'
+          discount.code = typeof snap.code === 'string' ? snap.code : null
+        }
+      }
+      const preparedLockedReuse =
+        !prepared.ok && prepared.failure.reason === 'discount_selection_locked'
+      if (!prepared.ok && !preparedLockedReuse) {
         console.warn('[payment-dev/kpay] prepare_checkout rejected', {
           bookingId: bookingIds[0],
           reason: prepared.failure.reason,
@@ -627,13 +656,15 @@ export async function POST(req: Request) {
           { status: prepareFailureStatus(prepared.failure.reason) },
         )
       }
-      bookingTotal = prepared.prepared.total
-      discount.subtotal = prepared.prepared.subtotal
-      discount.discountAmount = prepared.prepared.discountAmount
-      discount.creditDiscount = prepared.prepared.creditDiscount
-      discount.promoDiscount = prepared.prepared.promoDiscount
-      discount.kind = prepared.prepared.kind
-      discount.code = prepared.prepared.code
+      if (prepared.ok) {
+        bookingTotal = prepared.prepared.total
+        discount.subtotal = prepared.prepared.subtotal
+        discount.discountAmount = prepared.prepared.discountAmount
+        discount.creditDiscount = prepared.prepared.creditDiscount
+        discount.promoDiscount = prepared.prepared.promoDiscount
+        discount.kind = prepared.prepared.kind
+        discount.code = prepared.prepared.code
+      }
     }
 
     // ── 7b. expectedTotal guard. The UI total is advisory; the server decides.
