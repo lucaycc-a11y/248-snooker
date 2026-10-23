@@ -382,7 +382,7 @@ export default function KPayPayment(props: Props) {
 
           // Part 2: Detect session expiry (401 Unauthorized)
           if (res.status === 401) {
-            message = '你嘅登入狀態已過期，請重新登入'
+            message = '登入已過期，請重新登入'
             errorType = 'unauthorized'
           }
           // Part 3: Detect slot unavailability (409 Conflict)
@@ -393,7 +393,7 @@ export default function KPayPayment(props: Props) {
           else if (errorText.includes('Slot unavailable') ||
                    errorText.includes('Slot lock no longer valid') ||
                    errBody.reason === 'slot_confirmed') {
-            message = '呢個時段已經被其他人預訂，請重新選擇時段'
+            message = '此時段已被預訂，請重新選擇時段'
             errorType = 'slot_unavailable'
           }
           else {
@@ -958,7 +958,7 @@ export default function KPayPayment(props: Props) {
         </div>
         <p style={styles.stateTitle}>登入已過期</p>
         <p style={styles.stateDesc}>
-          {error || '你嘅登入狀態已過期，請重新登入'}
+          {error || '登入已過期，請重新登入'}
         </p>
         <button
           type="button"
