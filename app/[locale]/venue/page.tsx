@@ -5,9 +5,9 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
+import { withNewMemberDescription } from "@/lib/seo/new-member-meta";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { getConfig } from "@/lib/data";
-import NewMemberOfferNote from "@/components/seo/NewMemberOfferNote";
 
 // ── Heavy scroll animation components (lazy load) ───────────────────────────
 const VenueContent = dynamic(
@@ -47,16 +47,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const m = META[locale] ?? META["zh-HK"];
+  const description = await withNewMemberDescription(locale, m.description);
   const path = locale === "zh-HK" ? "/venue" : `/${locale}/venue`;
   const t = await getTranslations({ locale, namespace: "venuePage" });
 
   return {
     title: m.title,
-    description: m.description,
+    description,
     alternates: pageAlternates(locale, "/venue"),
     openGraph: {
       title: m.title,
-      description: m.description,
+      description,
       url: `${BASE}${path}`,
       siteName: "Space8",
       type: "website",
@@ -72,7 +73,7 @@ export async function generateMetadata({
     twitter: {
       card: 'summary_large_image',
       title: m.title,
-      description: m.description,
+      description,
       images: [`${BASE}/images/og-image-中八桌球-香港新蒲崗.png`],
     },
     robots: indexingMeta(),
@@ -99,9 +100,6 @@ export default async function VenuePage({
       <Nav />
       <script type="application/ld+json">{safeJsonLd(jsonLd)}</script>
       <VenueContent />
-      <div style={{ background: "#000", padding: "24px 16px" }}>
-        <NewMemberOfferNote variant="banner" theme="dark" />
-      </div>
       <Footer />
       <WhatsAppButton />
     </main>

@@ -9,8 +9,8 @@ import { getConfig } from "@/lib/data/getConfig";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
+import { withNewMemberDescription } from "@/lib/seo/new-member-meta";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
-import NewMemberOfferNote from "@/components/seo/NewMemberOfferNote";
 import { periodsToSlots } from "@/lib/ui/pricing-adapter";
 import { MAP_QUERY } from "@/lib/site/nap";
 
@@ -94,10 +94,11 @@ export async function generateMetadata({
   }
 
   const m = meta[locale] ?? meta['zh-HK']
+  const description = await withNewMemberDescription(locale, m.description)
 
   return {
     title: m.title,
-    description: m.description,
+    description,
     keywords: m.keywords,
     openGraph: {
       // og:title must match the title text exactly — a bare brand name here
@@ -187,9 +188,6 @@ export default async function Home({
         subheading={t("periods_subtitle")}
         slots={slots}
       />
-      <div style={{ background: "#fff", padding: "0 16px 32px" }}>
-        <NewMemberOfferNote variant="banner" theme="light" />
-      </div>
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />

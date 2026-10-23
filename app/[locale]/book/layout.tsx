@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { indexingMeta } from "@/lib/env/app-env";
 import { getTranslations } from "next-intl/server";
 import { pageAlternates } from "@/lib/seo/site";
+import { withNewMemberDescription } from "@/lib/seo/new-member-meta";
 
 // /book/page.tsx is a Client Component and cannot export metadata, so the
 // route's title, description and canonical live here. Checkout/confirm steps
@@ -14,7 +15,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale: params.locale, namespace: "book" });
   return {
     title: t("meta_title"),
-    description: t("meta_description"),
+    description: await withNewMemberDescription(params.locale, t("meta_description")),
     alternates: pageAlternates(params.locale, "/book"),
     robots: indexingMeta(),
   };

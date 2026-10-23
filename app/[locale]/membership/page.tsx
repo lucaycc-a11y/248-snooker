@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { indexingMeta } from "@/lib/env/app-env";
 import { pageAlternates } from "@/lib/seo/site";
+import { withNewMemberDescription } from "@/lib/seo/new-member-meta";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
@@ -28,7 +29,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "memberIntro" });
 
   const title = t("meta.title");
-  const description = t("meta.description");
+  const description = await withNewMemberDescription(locale, t("meta.description"));
   const path = locale === "zh-HK" ? "/membership" : `/${locale}/membership`;
 
   return {
