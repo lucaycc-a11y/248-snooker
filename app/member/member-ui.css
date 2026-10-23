@@ -534,7 +534,7 @@
    ═══════════════════════════════════════════════════════════════════════ */
 .lg-page{--lg-a:104,52,200;--lg-b:34,197,94;--lg-c:232,121,249}
 .lg-ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.lg-ambient i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;will-change:transform}
+.lg-ambient i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.28;will-change:transform}
 .lg-ambient .a{width:46vmax;height:46vmax;left:-12vmax;top:4vh;background:radial-gradient(circle,rgba(var(--lg-a),.75),transparent 66%);animation:lg-drift-a 22s ease-in-out infinite alternate}
 .lg-ambient .b{width:40vmax;height:40vmax;right:-14vmax;top:-6vh;background:radial-gradient(circle,rgba(var(--lg-b),.5),transparent 66%);animation:lg-drift-b 26s ease-in-out infinite alternate}
 .lg-ambient .c{width:34vmax;height:34vmax;left:30vw;bottom:-16vmax;background:radial-gradient(circle,rgba(var(--lg-c),.28),transparent 66%);animation:lg-drift-a 30s ease-in-out infinite alternate-reverse}
