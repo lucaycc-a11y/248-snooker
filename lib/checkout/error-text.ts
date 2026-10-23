@@ -17,6 +17,8 @@ const TEXT: Record<string, string> = {
   discount_selection_locked: '付款已發起，優惠已鎖定。如要更改，請返回選擇付款方式。',
   booking_not_pending: '此預約已完成或已取消，請重新選擇時段。',
   booking_not_found: '找不到此預約，請重新選擇時段。',
+  booking_payment_processing: '系統正在確認你的付款，請稍候，毋須再次付款。',
+  hold_expired: '時段保留已過期，請重新選擇時段。',
   points_redemption_retired: '積分已不能直接折抵，請改用 Space Wallet。',
 }
 

@@ -373,7 +373,18 @@ export async function POST(req: Request) {
           return new NextResponse('OK', { status: 200 })
         }
       }
-      await handleSucceeded(supabase, booking, orderNo, outTradeNo, eventId)
+      try {
+        await handleSucceeded(supabase, booking, orderNo, outTradeNo, eventId)
+      } catch (confirmErr) {
+        // Money arrived for an order we had already released (cancelled / expired /
+        // failed — e.g. the customer started a new checkout, or the 10-minute sweep
+        // ran). The slot may belong to someone else now, so refund instead of
+        // leaving the customer charged with no booking.
+        const rejected = confirmErr instanceof Error
+          && (confirmErr.message.includes('booking_not_pending') || confirmErr.message.includes('group_not_found'))
+        if (!rejected) throw confirmErr
+        await refundLatePayment(supabase, booking, orderNo, outTradeNo, eventId, paidAmount)
+      }
     } else if (isFailed) {
       await handleFailed(supabase, booking, eventId)
     } else if (isRefunded) {
@@ -415,6 +426,64 @@ type BookingSummary = {
   human_code: string | null
   total_price: number
   payment_method: string | null
+}
+
+const RELEASED_STATUSES = ['cancelled', 'expired', 'payment_failed']
+
+// Refund a payment that landed on a booking which is no longer pending. Only runs
+// when EVERY row of the order is in a released state — a confirmed or still-pending
+// row is never refunded here. A failed refund throws, so the event is marked failed
+// and logged for manual handling exactly as before.
+async function refundLatePayment(
+  supabase: SupabaseClient,
+  booking: BookingSummary,
+  providerOrderNo: string,
+  outTradeNo: string,
+  eventId: string,
+  paidAmount: number,
+) {
+  const query = supabase.from('bookings').select('id, status')
+  const { data: rows, error } = booking.order_group_id
+    ? await query.eq('order_group_id', booking.order_group_id)
+    : await query.eq('id', booking.id)
+  if (error) throw new Error(`late payment lookup failed: ${error.message}`)
+  if (!rows || rows.length === 0 || !rows.every((r) => RELEASED_STATUSES.includes(String(r.status)))) {
+    throw new Error('booking_not_pending: order is not in a refundable state')
+  }
+  if (!Number.isFinite(paidAmount) || paidAmount <= 0) {
+    throw new Error('booking_not_pending: paid amount unknown, cannot auto-refund')
+  }
+  const { KPayProvider } = await import('@/lib/payments/kpay')
+  const kpay = new KPayProvider(undefined, 'prod')
+  // Independent confirmation straight from KPay (not just the webhook body): refund
+  // only an order KPay itself reports as paid. 'refunded' means an earlier delivery
+  // already did it, so a retried event can never refund the same payment twice.
+  const live = await kpay.queryOrder(providerOrderNo)
+  if (live.status === 'refunded') {
+    await markWebhookProcessed(supabase, eventId)
+    return
+  }
+  if (live.status !== 'success') {
+    throw new Error(`booking_not_pending: KPay reports ${live.status}, not refunding`)
+  }
+  const refund = await kpay.refund({
+    providerOrderNo,
+    amount: paidAmount,
+    reason: 'Late payment on released booking',
+  })
+  if (!refund.success) {
+    throw new Error(`booking_not_pending: auto-refund failed: ${refund.message ?? 'unknown'}`)
+  }
+  console.warn('[webhook/kpay] late_payment_refunded', { bookingId: booking.id, outTradeNo, providerOrderNo, paidAmount })
+  await logSiteError('webhooks/kpay', 'warning', 'late payment auto-refunded', {
+    bookingId: booking.id,
+    outTradeNo,
+    providerOrderNo,
+    paidAmount,
+    refundNo: refund.providerRefundNo,
+    eventId,
+  })
+  await markWebhookProcessed(supabase, eventId)
 }
 
 async function handleSucceeded(
