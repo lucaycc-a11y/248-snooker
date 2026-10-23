@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
+import NewMemberOfferNote from "@/components/seo/NewMemberOfferNote";
 import { periodsToSlots } from "@/lib/ui/pricing-adapter";
 import { MAP_QUERY } from "@/lib/site/nap";
 
@@ -186,6 +187,9 @@ export default async function Home({
         subheading={t("periods_subtitle")}
         slots={slots}
       />
+      <div style={{ background: "#fff", padding: "0 16px 32px" }}>
+        <NewMemberOfferNote variant="banner" theme="light" />
+      </div>
 
       {/* Learn More scroll target - zero-height anchor, sections flow directly */}
       <div id="social-proof" aria-hidden="true" />

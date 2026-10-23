@@ -1,5 +1,6 @@
 "use client"
 
+import NewMemberOfferNote from "@/components/seo/NewMemberOfferNote"
 import Image from "next/image"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -4403,6 +4404,7 @@ export default function BookPage() {
       <div className="book-container" style={{ position: "relative", zIndex: 1 }}>
         {/* Page had no h1; visually hidden so the layout is unchanged. */}
         <h1 className="sr-only" data-cms-key="book.h1_seo">{t("h1_seo")}</h1>
+        <NewMemberOfferNote variant="inline" theme="dark" />
         {/* Progress — back arrow (hidden on the confirmation screen; booking is
             done, Screen4 offers a deliberate "Back to Home" instead) shares the
             same row as the stepper so it never overlaps it. */}

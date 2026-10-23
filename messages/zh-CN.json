@@ -650,7 +650,7 @@
     "points_earn_title": "赚取积分方式",
     "points_earn": [
       "每消费 HK$1 = 1 积分",
-      "首次登录 = 50 积分",
+      "首次登录 = 100 积分",
       "生日月份 = 双倍积分"
     ],
     "no_points": "暂无积分记录",
@@ -1863,7 +1863,7 @@
     "how_items": [
       {
         "title": "赚取积分",
-        "body": "每消费 HK$1 即累积 1 积分。新用户注册即送 50 积分。"
+        "body": "每消费 HK$1 即累积 1 积分。新用户注册即送 100 积分。"
       },
       {
         "title": "自动升级",
@@ -1934,7 +1934,7 @@
     ],
     "tier_title": "会员制度。",
     "tier_intro": "注册账号即自动成为标准会员，无需另外申请。",
-    "tier_join_note": "注册账号即自动成为标准会员，无需另外申请，并获赠 50 积分。",
+    "tier_join_note": "注册账号即自动成为标准会员，无需另外申请，并获赠 100 积分。",
     "tier_cta": "立即加入",
     "cta_book": "立即预订",
     "cta_login": "登录会员中心",
@@ -1943,8 +1943,8 @@
       "threshold": "",
       "at": "0",
       "lead": "注册即送积分，每一场都被记录下来，从这里开始累积属于你的球场故事。",
-      "body": "HK$1 = 1 积分。注册即送 50 积分。",
-      "desc": "新用户自动成为标准会员，获得 50 积分作为欢迎礼物。"
+      "body": "HK$1 = 1 积分。注册即送 100 积分。",
+      "desc": "新用户自动成为标准会员，获得 100 积分作为欢迎礼物。"
     },
     "tier_platinum": {
       "title": "优越会员",
@@ -1970,7 +1970,7 @@
       {
         "icon": "earn",
         "title": "赚取积分",
-        "body": "每消费 HK$1 累积 1 积分，新会员注册即送 50 积分。"
+        "body": "每消费 HK$1 累积 1 积分，新会员注册即送 100 积分。"
       },
       {
         "icon": "upgrade",
@@ -2615,9 +2615,9 @@
     "modal_label": "会员等级",
     "close_modal": "关闭",
     "amateur_title": "标准会员",
-    "amateur_body": "HK$1 = 1 积分。注册即送 50 积分。",
-    "amateur_highlight": "50 积分",
-    "amateur_modal_body": "新用户自动加入标准会员，即时获赠 50 积分。每消费 HK$1 累积 1 积分。开始你的旅程，轻松累积。",
+    "amateur_body": "HK$1 = 1 积分。注册即送 100 积分。",
+    "amateur_highlight": "100 积分",
+    "amateur_modal_body": "新用户自动加入标准会员，即时获赠 100 积分。每消费 HK$1 累积 1 积分。开始你的旅程，轻松累积。",
     "century_title": "优越会员",
     "century_subtitle": "800 积分起",
     "century_body": "贴心补给。积分 1.5 倍加速。",
@@ -3326,5 +3326,12 @@
     "err_rate_limited": "尝试次数过多，请稍后再试。",
     "err_send": "暂时无法发送邮件，请稍后再试。",
     "err_update": "未能更新密码，请再试一次。"
+  },
+  "newMemberOffer": {
+    "preview_badge": "预览｜只有 Super Admin 看到",
+    "line": "新会员价格低至 HK${price}（需使用新会员优惠）",
+    "detail": "以最低时段价 HK${base} 计，已扣新会员优惠码 {code} −HK${promo}，及迎新 Space Credit −HK${credit}。每位新会员仅限使用一次。",
+    "faq_q": "新会员有什么优惠？",
+    "faq_a": "新会员价格低至 HK${price}（需使用新会员优惠）：以最低时段价 HK${base} 计，使用新会员优惠码 {code} 减 HK${promo}，再加迎新积分兑换的 HK${credit} Space Credit。优惠仅限新会员，每人一次。"
   }
 }

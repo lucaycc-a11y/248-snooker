@@ -7,6 +7,7 @@ import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { getConfig } from "@/lib/data";
+import NewMemberOfferNote from "@/components/seo/NewMemberOfferNote";
 
 // ── Heavy scroll animation components (lazy load) ───────────────────────────
 const VenueContent = dynamic(
@@ -98,6 +99,9 @@ export default async function VenuePage({
       <Nav />
       <script type="application/ld+json">{safeJsonLd(jsonLd)}</script>
       <VenueContent />
+      <div style={{ background: "#000", padding: "24px 16px" }}>
+        <NewMemberOfferNote variant="banner" theme="dark" />
+      </div>
       <Footer />
       <WhatsAppButton />
     </main>

@@ -1,5 +1,6 @@
 "use client";
 
+import NewMemberOfferNote from "@/components/seo/NewMemberOfferNote";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -142,6 +143,10 @@ function HeroSection({ t }: { t: ReturnType<typeof useTranslations> }) {
             {t("hero.subtitle")}
           </p>
         </Reveal>
+
+        <div className="mb-8 w-full">
+          <NewMemberOfferNote variant="inline" theme="dark" />
+        </div>
 
         {/* CTAs */}
         <Reveal delay={300}>

@@ -650,7 +650,7 @@
     "points_earn_title": "Ways to Earn",
     "points_earn": [
       "HK$1 spent = 1 point",
-      "First login = 50 points",
+      "First login = 100 points",
       "Birthday month = 2× points"
     ],
     "no_points": "No points history yet",
@@ -1777,7 +1777,7 @@
     "how_items": [
       {
         "title": "Earn Points",
-        "body": "Earn 1 point for every HK$1 spent. New members receive 50 points on sign-up."
+        "body": "Earn 1 point for every HK$1 spent. New members receive 100 points on sign-up."
       },
       {
         "title": "Level Up Automatically",
@@ -1848,7 +1848,7 @@
     ],
     "tier_title": "Membership.",
     "tier_intro": "Every registered account automatically becomes a Standard member. No separate application is needed.",
-    "tier_join_note": "Every registered account automatically becomes a Standard member, with 50 points as a welcome bonus.",
+    "tier_join_note": "Every registered account automatically becomes a Standard member, with 100 points as a welcome bonus.",
     "tier_cta": "Join Now",
     "cta_book": "Book now",
     "cta_login": "Member login",
@@ -1857,8 +1857,8 @@
       "threshold": "",
       "at": "0",
       "lead": "Sign up and earn points from day one — every session recorded, every visit counted.",
-      "body": "HK$1 = 1 point. 50 points free on sign-up.",
-      "desc": "New users join the Standard tier automatically with 50 points as a welcome gift."
+      "body": "HK$1 = 1 point. 100 points free on sign-up.",
+      "desc": "New users join the Standard tier automatically with 100 points as a welcome gift."
     },
     "tier_platinum": {
       "title": "Premier",
@@ -1884,7 +1884,7 @@
       {
         "icon": "earn",
         "title": "Earn Points",
-        "body": "Earn 1 point for every HK$1 spent. New members receive 50 points on sign-up."
+        "body": "Earn 1 point for every HK$1 spent. New members receive 100 points on sign-up."
       },
       {
         "icon": "upgrade",
@@ -2529,9 +2529,9 @@
     "modal_label": "Membership Tier",
     "close_modal": "Close",
     "amateur_title": "Standard Member",
-    "amateur_body": "HK$1 = 1 point. Get 50 points on sign-up.",
-    "amateur_highlight": "50 points",
-    "amateur_modal_body": "New users automatically join as Standard Members and receive 50 points instantly. Earn 1 point per HK$1 spent. Start your journey and accumulate easily.",
+    "amateur_body": "HK$1 = 1 point. Get 100 points on sign-up.",
+    "amateur_highlight": "100 points",
+    "amateur_modal_body": "New users automatically join as Standard Members and receive 100 points instantly. Earn 1 point per HK$1 spent. Start your journey and accumulate easily.",
     "century_title": "Premier Member",
     "century_subtitle": "From 800 points",
     "century_body": "Thoughtful perks. 1.5× point acceleration.",
@@ -3324,5 +3324,12 @@
     "err_rate_limited": "Too many attempts. Please try again later.",
     "err_send": "We couldn't send the email right now. Please try again later.",
     "err_update": "We couldn't update your password. Please try again."
+  },
+  "newMemberOffer": {
+    "preview_badge": "Preview — super admins only",
+    "line": "New members pay as low as HK${price} (new-member offer required)",
+    "detail": "Based on the lowest-rate slot at HK${base}, after new-member code {code} (−HK${promo}) and the welcome Space Credit (−HK${credit}). One use per new member.",
+    "faq_q": "What do new members get?",
+    "faq_a": "New members pay as low as HK${price} (new-member offer required): from the lowest-rate slot at HK${base}, apply new-member code {code} for HK${promo} off, plus HK${credit} of Space Credit from the welcome points. New members only, once per person."
   }
 }

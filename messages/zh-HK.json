@@ -659,7 +659,7 @@
     "points_earn_title": "賺取積分方式",
     "points_earn": [
       "每消費 HK$1 = 1 積分",
-      "首次登入 = 50 積分",
+      "首次登入 = 100 積分",
       "生日月份 = 雙倍積分"
     ],
     "no_points": "暫無積分記錄",
@@ -1811,7 +1811,7 @@
     "how_items": [
       {
         "title": "賺取積分",
-        "body": "每消費 HK$1 即累積 1 積分。新用戶註冊即送 50 積分。"
+        "body": "每消費 HK$1 即累積 1 積分。新用戶註冊即送 100 積分。"
       },
       {
         "title": "自動升級",
@@ -1882,7 +1882,7 @@
     ],
     "tier_title": "會員制度。",
     "tier_intro": "註冊賬號即自動成為標準會員，無需另外申請。",
-    "tier_join_note": "註冊賬號即自動成為標準會員，無需另外申請，并獲贈 50 積分。",
+    "tier_join_note": "註冊賬號即自動成為標準會員，無需另外申請，并獲贈 100 積分。",
     "tier_cta": "立即加入",
     "cta_book": "立即預訂",
     "cta_login": "登入會員中心",
@@ -1891,8 +1891,8 @@
       "threshold": "",
       "at": "0",
       "lead": "註冊即送積分，每一場都被記錄下來，從這裡開始累積屬於你的球場故事。",
-      "body": "HK$1 = 1 積分。註冊即送 50 積分。",
-      "desc": "新用戶自動加入標準會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。"
+      "body": "HK$1 = 1 積分。註冊即送 100 積分。",
+      "desc": "新用戶自動加入標準會員，即時獲贈 100 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。"
     },
     "tier_platinum": {
       "title": "優越會員",
@@ -1918,7 +1918,7 @@
       {
         "icon": "earn",
         "title": "賺取積分",
-        "body": "每消費 HK$1 累積 1 積分，新會員註冊即送 50 積分。"
+        "body": "每消費 HK$1 累積 1 積分，新會員註冊即送 100 積分。"
       },
       {
         "icon": "upgrade",
@@ -2564,9 +2564,9 @@
     "modal_label": "會員等級",
     "close_modal": "關閉",
     "amateur_title": "標準會員",
-    "amateur_body": "HK$1 = 1 積分。註冊即送 50 積分。",
-    "amateur_highlight": "50 積分",
-    "amateur_modal_body": "新用戶自動加入標準會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。",
+    "amateur_body": "HK$1 = 1 積分。註冊即送 100 積分。",
+    "amateur_highlight": "100 積分",
+    "amateur_modal_body": "新用戶自動加入標準會員，即時獲贈 100 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。",
     "century_title": "優越會員",
     "century_subtitle": "800 積分起",
     "century_body": "尊享禮遇，積分 1.5 倍加速。",
@@ -3472,5 +3472,12 @@
     "err_rate_limited": "嘗試次數過多，請稍後再試。",
     "err_send": "暫時未能發送電郵，請稍後再試。",
     "err_update": "未能更新密碼，請再試一次。"
+  },
+  "newMemberOffer": {
+    "preview_badge": "預覽｜只有 Super Admin 睇到",
+    "line": "新會員價錢低至 HK${price}（需使用新會員優惠）",
+    "detail": "以最低時段價 HK${base} 計，已扣新會員優惠碼 {code} −HK${promo}，及迎新 Space Credit −HK${credit}。每位新會員只限使用一次。",
+    "faq_q": "新會員有咩優惠？",
+    "faq_a": "新會員價錢低至 HK${price}（需使用新會員優惠）：以最低時段價 HK${base} 計，使用新會員優惠碼 {code} 減 HK${promo}，再加迎新積分兌換嘅 HK${credit} Space Credit。優惠只限新會員，每人一次。"
   }
 }
