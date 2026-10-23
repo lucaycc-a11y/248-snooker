@@ -11,17 +11,16 @@ type ServiceClient = ReturnType<typeof getServiceSupabase>
 // that can still be paid would let a late payment confirm without its credit:
 //   - never reached the provider (no provider_order_no), or
 //   - KPay itself reports the order failed / cancelled / closed, or
-//   - KPay still says pending but the order is older than 30 s (the customer has
-//     since started a new checkout, so the old cashier was abandoned).
+//   - KPay still says pending (the customer has since started a new checkout, so the
+//     old cashier was abandoned; any late payment is auto-refunded).
 // A paid order ('success') is never touched: the webhook confirms it.
 // Anything uncertain — a lookup error, a Stripe intent — is left alone.
 
 // The customer is actively starting a NEW checkout while an older order of theirs is
-// still unpaid. After this age, an order KPay still reports as pending is treated as
-// abandoned (they backed out of the cashier) instead of holding their wallet for the
-// full 10-minute sweep. If it is somehow paid afterwards, the KPay webhook refunds a
-// payment that lands on a cancelled booking, so no money is kept without a booking.
-const ABANDONED_AFTER_MS = 30_000
+// still unpaid, so a KPay order that is still pending is treated as abandoned at once
+// (no waiting period, no 10-minute sweep). If it is somehow paid afterwards, the KPay
+// webhook refunds a payment that lands on a cancelled booking, so no money is kept
+// without a booking.
 
 type PendingRow = {
   id: string
@@ -40,7 +39,7 @@ export async function releaseDeadPendingOrders(
     .from('bookings')
     .select('id, order_group_id, provider_order_no, payment_method, created_at')
     .eq('user_id', userId)
-    .eq('status', 'pending')
+    .in('status', ['pending', 'payment_failed'])
     .neq('id', keepBookingId)
   if (error || !rows || rows.length === 0) return 0
 
@@ -74,7 +73,9 @@ export async function releaseDeadPendingOrders(
         if (status.status === 'failed' || status.status === 'cancelled' || status.status === 'closed') {
           dead = true
         } else if (status.status === 'pending') {
-          dead = Date.now() - new Date(row.created_at).getTime() > ABANDONED_AFTER_MS
+          // The customer has started a NEW checkout, so this cashier is abandoned.
+          // Release at once: a late payment is refunded by the KPay webhook.
+          dead = true
         }
       } catch (e) {
         console.warn('[checkout] supersede query failed — leaving order alone', {
