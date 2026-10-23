@@ -135,7 +135,7 @@ const PAYMENT_METHODS: PaymentMethodConfig[] = [
   {
     id: "fps",
     label: "轉數快",
-    sublabel: "FPS · 60 秒內完成過數",
+    sublabel: "FPS",
     disabled: false,
     icons: <FpsBadgeIcon />,
   },

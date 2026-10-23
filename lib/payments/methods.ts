@@ -10,7 +10,7 @@
  */
 export const PAYMENT_METHODS = [
   { method: 'card', label: '信用卡', sublabel: 'Visa · Mastercard · UnionPay' },
-  { method: 'fps', label: '轉數快', sublabel: 'FPS · 60 秒內完成過數' },
+  { method: 'fps', label: '轉數快', sublabel: 'FPS' },
   { method: 'payme', label: 'PayMe', sublabel: 'HSBC PayMe' },
   { method: 'octopus', label: '八達通', sublabel: 'Octopus' },
   { method: 'alipayhk', label: 'AlipayHK', sublabel: '香港支付寶錢包' },

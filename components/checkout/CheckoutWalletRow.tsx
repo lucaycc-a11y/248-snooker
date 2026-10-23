@@ -53,81 +53,102 @@ export default function CheckoutWalletRow({
   }
 
   const MUTED = 'rgba(255,255,255,0.72)'
+  const FAINT = 'rgba(255,255,255,0.52)'
   const GREEN = '#22b86b'
-  const BORDER = 'rgba(255,255,255,0.1)'
+
+  const cardStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    padding: '16px 18px',
+    borderRadius: 14,
+    border: `1px solid ${activeWallet ? 'rgba(34,184,107,0.45)' : 'rgba(255,255,255,0.14)'}`,
+    background: activeWallet ? 'rgba(34,184,107,0.10)' : 'rgba(255,255,255,0.04)',
+  }
+  const iconStyle: React.CSSProperties = {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    flexShrink: 0,
+    display: 'grid',
+    placeItems: 'center',
+    background: activeWallet ? 'rgba(34,184,107,0.20)' : 'rgba(255,255,255,0.08)',
+    color: activeWallet ? GREEN : MUTED,
+  }
+  const linkBtn: React.CSSProperties = {
+    appearance: 'none',
+    border: 'none',
+    background: 'transparent',
+    color: MUTED,
+    cursor: 'pointer',
+    padding: '8px 4px',
+    fontSize: 13,
+    textDecoration: 'underline',
+    textUnderlineOffset: 3,
+  }
+
+  const bigNum: React.CSSProperties = {
+    fontSize: 30,
+    lineHeight: 1,
+    fontWeight: 700,
+    letterSpacing: '-0.02em',
+    fontVariantNumeric: 'tabular-nums',
+    whiteSpace: 'nowrap',
+  }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        paddingBottom: 12,
-        borderBottom: activeWallet ? `1px solid ${BORDER}` : 'none',
-      }}
-    >
-      <Wallet size={16} style={{ color: MUTED, flexShrink: 0 }} />
+    <div style={cardStyle}>
+      <div style={iconStyle}>
+        <Wallet size={22} />
+      </div>
 
       {activeWallet ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 13, color: MUTED }}>{t('wallet.applied')}</div>
-            <div style={{ fontSize: 14, color: GREEN, fontWeight: 600 }}>−HK${activeWallet.amount}</div>
-          </div>
-          <button
-            onClick={handleRemove}
-            style={{
-              appearance: 'none',
-              border: 'none',
-              background: 'transparent',
-              color: MUTED,
-              cursor: 'pointer',
-              padding: '8px 12px',
-              fontSize: 13,
-              textDecoration: 'underline',
-              textUnderlineOffset: 3,
-            }}
-          >
-            {t('wallet.remove')}
-          </button>
-        </div>
-      ) : (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ fontSize: 13, color: MUTED }}>
-              {t('wallet.balance')}: HK${walletBalance}
+        <>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Space Wallet</div>
+            <div style={{ fontSize: 12, color: FAINT, marginTop: 4 }}>
+              {t('wallet.remaining')} HK${activeWallet.balance_after}
             </div>
           </div>
-          {canApply ? (
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ ...bigNum, color: GREEN }}>−HK${activeWallet.amount}</div>
+            <button type="button" onClick={handleRemove} style={linkBtn}>
+              {t('wallet.remove')}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#fff' }}>Space Wallet</div>
+            <div style={{ ...bigNum, color: '#fff', marginTop: 6 }}>HK${walletBalance}</div>
+            {!canApply && (
+              <div style={{ fontSize: 12, color: FAINT, marginTop: 6 }}>
+                {blockedByPromo ? t('wallet.not_stackable') : t('wallet.insufficient')}
+              </div>
+            )}
+          </div>
+          {canApply && (
             <button
+              type="button"
               onClick={handleApply}
               style={{
                 appearance: 'none',
-                border: `1px solid ${GREEN}`,
-                background: 'transparent',
-                color: GREEN,
-                padding: '8px 12px',
-                borderRadius: 6,
-                fontSize: 13,
-                fontWeight: 600,
+                border: 'none',
+                background: GREEN,
+                color: '#000',
+                padding: '12px 20px',
+                borderRadius: 999,
+                fontSize: 15,
+                fontWeight: 700,
                 cursor: 'pointer',
-                transition: 'all 200ms',
-              }}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.background = `rgba(34, 184, 107, 0.1)`
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                flexShrink: 0,
               }}
             >
               {t('wallet.apply')}
             </button>
-          ) : (
-            <div style={{ fontSize: 13, color: MUTED }}>
-              {blockedByPromo ? t('wallet.not_stackable') : t('wallet.insufficient')}
-            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   )
