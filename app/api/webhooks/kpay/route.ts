@@ -454,7 +454,19 @@ async function refundLatePayment(
     throw new Error('booking_not_pending: paid amount unknown, cannot auto-refund')
   }
   const { KPayProvider } = await import('@/lib/payments/kpay')
-  const refund = await new KPayProvider(undefined, 'prod').refund({
+  const kpay = new KPayProvider(undefined, 'prod')
+  // Independent confirmation straight from KPay (not just the webhook body): refund
+  // only an order KPay itself reports as paid. 'refunded' means an earlier delivery
+  // already did it, so a retried event can never refund the same payment twice.
+  const live = await kpay.queryOrder(providerOrderNo)
+  if (live.status === 'refunded') {
+    await markWebhookProcessed(supabase, eventId)
+    return
+  }
+  if (live.status !== 'success') {
+    throw new Error(`booking_not_pending: KPay reports ${live.status}, not refunding`)
+  }
+  const refund = await kpay.refund({
     providerOrderNo,
     amount: paidAmount,
     reason: 'Late payment on released booking',
