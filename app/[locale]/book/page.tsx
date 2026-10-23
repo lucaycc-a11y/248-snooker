@@ -2083,11 +2083,11 @@ function Screen3({
           const res = await fetch("/api/booking/admin-test-confirm", { signal: attemptController.signal })
           const data: unknown = await res.json()
           clearTimeout(timer)
-          // Admin checkout tools (TEST banner, KPay dev gateway) are OFF by default so
-          // admins see exactly the checkout every customer sees. Set
-          // NEXT_PUBLIC_ADMIN_CHECKOUT_TOOLS=1 to bring them back for testing.
+          // Admin checkout tools (TEST banner, KPay dev gateway) for admins. Hard-coded
+          // (no env var). Set ADMIN_CHECKOUT_TOOLS_ENABLED to false to show admins the
+          // exact checkout every customer sees.
           const admin =
-            process.env.NEXT_PUBLIC_ADMIN_CHECKOUT_TOOLS === "1" &&
+            ADMIN_CHECKOUT_TOOLS_ENABLED &&
             typeof data === "object" && data !== null && (data as { isAdmin?: unknown }).isAdmin === true
           if (!cancelled) {
             setIsAdmin(admin)
@@ -3950,6 +3950,8 @@ function ConfirmingPaymentContainer({
 }
 
 /* ─────────────────────────  Root  ───────────────────────── */
+/** Admin-only checkout tools (TEST banner, KPay dev gateway). Hard-coded on. */
+const ADMIN_CHECKOUT_TOOLS_ENABLED = true
 /** Admin Apple Pay / Google Pay (Stripe) are DISABLED for now: set to ["apple_pay", "google_pay"] to re-enable. */
 const ADMIN_STRIPE_WALLETS: readonly PaymentMethodId[] = []
 
