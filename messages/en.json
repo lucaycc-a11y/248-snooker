@@ -1437,6 +1437,7 @@
   },
   "ticket": {
     "printer_aria": "Booking ticket printer",
+    "member_qr_caption": "This is your personal member QR code. Find it later in the Member Centre or your booking confirmation email.",
     "ticket_title": "Booking confirmed",
     "ticket_subtitle": "{room} · Space8 access pass",
     "booking_pass": "Booking pass",

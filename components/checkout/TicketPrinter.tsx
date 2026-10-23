@@ -443,6 +443,12 @@ function OrderedTicketCard({
           >
             {orderTicket.memberCode}
           </div>
+          <div
+            data-cms-key="ticket.member_qr_caption"
+            style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 6, textAlign: "center", lineHeight: 1.5, maxWidth: 280 }}
+          >
+            {t_ticket("member_qr_caption")}
+          </div>
         </motion.div>
       ) : (
         <div

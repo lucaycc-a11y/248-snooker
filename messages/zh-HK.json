@@ -1446,6 +1446,7 @@
   },
   "ticket": {
     "printer_aria": "訂桌出票機",
+    "member_qr_caption": "這是你的專屬會員QR Code，之後可於會員中心或預約確認電郵查看。",
     "ticket_title": "訂桌已確認",
     "ticket_subtitle": "{room} · Space8 入場票",
     "booking_pass": "訂桌票",
