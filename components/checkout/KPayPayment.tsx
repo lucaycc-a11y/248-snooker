@@ -557,7 +557,12 @@ export default function KPayPayment(props: Props) {
     setActionBusy(true)
     setError(null)
     try {
-      const res = await fetch('/api/checkout/retry', {
+      // Release the failed/expired attempt (booking -> cancelled, slot + credits
+      // freed) instead of resetting it to `pending`: the client drops this booking
+      // id when it returns to the method picker, so a reset booking was orphaned
+      // and kept the slot locked for other members until the hold timed out. The
+      // fresh method selection mints a new booking and re-locks the slot.
+      const res = await fetch('/api/checkout/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId: localBookingId }),
@@ -1020,14 +1025,14 @@ export default function KPayPayment(props: Props) {
             >
               {labels.reselect_slot ?? '重新選擇時段'}
             </button>
-            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+            <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.secondaryButton}>
               {labels.back_to_methods}
             </button>
           </>
         ) : isPriceChanged ? (
           // Amount changed: a retry would hit the same mismatch — go back and re-confirm
           <>
-            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.primaryButton}>
+            <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.primaryButton}>
               {labels.back_to_methods}
             </button>
           </>
@@ -1037,7 +1042,7 @@ export default function KPayPayment(props: Props) {
             <button type="button" onClick={retryPayment} disabled={actionBusy} style={styles.primaryButton}>
               {actionBusy ? labels.processing : labels.try_again}
             </button>
-            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+            <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.secondaryButton}>
               {labels.back_to_methods}
             </button>
             <button type="button" onClick={cancelBooking} disabled={actionBusy} style={styles.tertiaryButton}>

@@ -16,6 +16,43 @@ import {
 
 const TABLE_NUMBERS = [1, 2] as const
 
+type HoldRow = { id: string; status: string; locked_by: string | null }
+
+/**
+ * A lock whose owner's latest payment request FAILED (booking is
+ * `payment_failed` and the owner has no `pending` booking on the slot) no longer
+ * blocks anyone else — whoever starts a payment request first wins. Mirrors
+ * public.slot_hold_is_failed() used by find_or_lock_slot(s) in the DB.
+ * Returns the ids of locked slots that should be treated as free.
+ * Fails open (returns empty set) on query error: the RPC is the real guard.
+ */
+async function failedHoldSlotIds(
+  supabase: ReturnType<typeof getLegacyServiceSupabase>,
+  rows: HoldRow[],
+): Promise<Set<string>> {
+  const locked = rows.filter((r) => r.status === 'locked' && r.locked_by)
+  if (locked.length === 0) return new Set()
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('slot_id, user_id, status')
+    .in('slot_id', locked.map((r) => r.id))
+    .in('status', ['pending', 'payment_failed'])
+  if (error || !data) {
+    if (error) console.error('failed_hold_query_error', error.message)
+    return new Set()
+  }
+  const ownerOf = new Map(locked.map((r) => [r.id, r.locked_by] as const))
+  const failed = new Set<string>()
+  const pending = new Set<string>()
+  for (const b of data) {
+    if (!b.slot_id || b.user_id !== ownerOf.get(b.slot_id)) continue
+    if (b.status === 'pending') pending.add(b.slot_id)
+    else if (b.status === 'payment_failed') failed.add(b.slot_id)
+  }
+  for (const id of pending) failed.delete(id)
+  return failed
+}
+
 /** Load live pricing periods from the `config` table (`pricing_rates` key); fall back to bundled defaults. */
 export async function loadPeriods(): Promise<PricingPeriod[]> {
   const supabase = getPublicSupabase()
@@ -92,7 +129,7 @@ export async function getAvailableTables(
   const supabase = getLegacyServiceSupabase()
   const { data, error } = await supabase
     .from('slots')
-    .select('table_number, date, start_time, duration_hours, status, locked_until')
+    .select('id, table_number, date, start_time, duration_hours, status, locked_until, locked_by')
     .eq('date', date)
     .in('status', ['locked', 'booked'])
     .eq('is_test', false)
@@ -101,12 +138,15 @@ export async function getAvailableTables(
     return [...TABLE_NUMBERS] // fail open — RPC is the real guard
   }
 
+  const failedHolds = await failedHoldSlotIds(supabase, data ?? [])
   const taken = new Set<number>()
   for (const s of data ?? []) {
     // Expired locks don't count as taken.
     if (s.status === 'locked' && (!s.locked_until || new Date(s.locked_until) <= new Date())) {
       continue
     }
+    // A failed/abandoned payment request no longer holds the slot.
+    if (s.status === 'locked' && failedHolds.has(s.id)) continue
     const eStart = new Date(`${s.date}T${s.start_time}`)
     const eEnd = new Date(eStart)
     eEnd.setHours(eEnd.getHours() + Number(s.duration_hours))
@@ -168,7 +208,7 @@ export async function getDaySlots(date: string, userId: string | null = null): P
   const supabase = getLegacyServiceSupabase()
   const { data, error } = await supabase
     .from('slots')
-    .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
+    .select('id, table_number, date, start_time, duration_hours, status, locked_until, locked_by')
     .in('date', [fmt(prev), date, fmt(next)])
     .in('status', ['locked', 'booked'])
     .eq('is_test', false)
@@ -176,7 +216,10 @@ export async function getDaySlots(date: string, userId: string | null = null): P
     console.error('day_slots_query_error', error.message)
     return []
   }
-  return (data ?? []).map((row) => toDaySlotRow(row, userId))
+  const failedHolds = await failedHoldSlotIds(supabase, data ?? [])
+  return (data ?? [])
+    .filter((row) => !(row.status === 'locked' && failedHolds.has(row.id)))
+    .map((row) => toDaySlotRow(row, userId))
 }
 
 /**
@@ -203,7 +246,7 @@ export async function getRangeSlots(
   const supabase = getLegacyServiceSupabase()
   const { data, error } = await supabase
     .from('slots')
-    .select('table_number, date, start_time, duration_hours, status, locked_until, locked_by')
+    .select('id, table_number, date, start_time, duration_hours, status, locked_until, locked_by')
     .gte('date', fmt(from))
     .lte('date', fmt(to))
     .in('status', ['locked', 'booked'])
@@ -212,7 +255,10 @@ export async function getRangeSlots(
     console.error('range_slots_query_error', error.message)
     return []
   }
-  return (data ?? []).map((row) => toDaySlotRow(row, userId))
+  const failedHolds = await failedHoldSlotIds(supabase, data ?? [])
+  return (data ?? [])
+    .filter((row) => !(row.status === 'locked' && failedHolds.has(row.id)))
+    .map((row) => toDaySlotRow(row, userId))
 }
 
 export type LockedSlot = {
