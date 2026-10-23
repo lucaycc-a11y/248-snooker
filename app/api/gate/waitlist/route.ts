@@ -6,8 +6,9 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const SOURCES = new Set(['maintenance', 'kpay'])
 
-// POST /api/gate/waitlist  { email }
+// POST /api/gate/waitlist  { email, source? }
 // Public route — collects pre-launch waitlist emails from the coming-soon page.
 export async function POST(req: Request) {
   try {
@@ -22,8 +23,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'invalid_email' }, { status: 400 })
     }
 
+    const source = typeof body?.source === 'string' && SOURCES.has(body.source) ? body.source : 'maintenance'
+
     const service = getServiceSupabase()
-    const { error } = await service.from('waitlist_emails').upsert({ email }, { onConflict: 'email' })
+    const { error } = await service.rpc('waitlist_add', { p_email: email, p_source: source })
     if (error) {
       console.error('[gate/waitlist] insert failed', error)
       return NextResponse.json({ ok: false, error: 'internal' }, { status: 500 })

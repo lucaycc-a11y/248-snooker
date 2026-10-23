@@ -2415,16 +2415,19 @@ export type Database = {
         Row: {
           email: string
           id: string
+          sources: string[]
           subscribed_at: string
         }
         Insert: {
           email: string
           id?: string
+          sources?: string[]
           subscribed_at?: string
         }
         Update: {
           email?: string
           id?: string
+          sources?: string[]
           subscribed_at?: string
         }
         Relationships: []
@@ -3120,6 +3123,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: Json
+      }
+      waitlist_add: {
+        Args: { p_email: string; p_source: string }
+        Returns: undefined
       }
     }
     Enums: {

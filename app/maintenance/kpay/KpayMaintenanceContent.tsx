@@ -77,7 +77,7 @@ export default function KpayMaintenanceContent() {
             <p data-cms-key="maintenanceKpay.notify_desc" className={css.notifyDesc}>
               {t('notify_desc')}
             </p>
-            <NotifyForm />
+            <NotifyForm source="kpay" />
           </div>
 
           <div className={css.foot}>
