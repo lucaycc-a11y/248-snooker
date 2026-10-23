@@ -249,10 +249,14 @@ const EASE_STANDARD = 'cubic-bezier(.2,.7,.3,1)'
 const KPAY_POLL_FAST_MS = 2_000
 const KPAY_POLL_SLOW_MS = 5_000
 const KPAY_POLL_FAST_PHASE_MS = 30_000
-/** Hard ceiling: if polling has been running this long without resolution, stop
- *  and show the user a clear "we're still checking" state instead of polling
- *  forever. Matches useOrderConfirmationPolling's DEFAULT_TIMEOUT_MS. */
-const KPAY_POLL_TIMEOUT_MS = 60_000
+/** Hard ceiling: keep polling for as long as KPay itself keeps the order payable,
+ *  plus a short grace period. KPay fixes FPS QR orders at 5 minutes and other QR /
+ *  H5 orders at 10 minutes (orderExpire docs). Stopping earlier showed "failed"
+ *  while the QR could still be paid, so a customer could retry and then pay the
+ *  old QR, leaving a paid order that no longer matched its booking. */
+function kpayPollTimeoutMs(method: KPayMethod): number {
+  return (method === 'fps' ? 5 * 60_000 : 10 * 60_000) + 15_000
+}
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -886,9 +890,9 @@ export default function KPayPayment(props: Props) {
       }
 
       if (cancelled) return
-      // Timeout fallback: if we've been polling longer than KPAY_POLL_TIMEOUT_MS,
+      // Timeout fallback: if we've been polling longer than KPay keeps the order payable,
       // stop and transition to a terminal state so the UI isn't stuck forever.
-      if (elapsedMs >= KPAY_POLL_TIMEOUT_MS) {
+      if (elapsedMs >= kpayPollTimeoutMs(method)) {
         console.log('[KPay] pollTimeout', { bookingId: localBookingId, elapsedMs })
         clearKPayPersistedState()
         setState('failed')
@@ -907,7 +911,7 @@ export default function KPayPayment(props: Props) {
       if (timer) clearTimeout(timer)
       if (elapsedTimer) clearInterval(elapsedTimer)
     }
-  }, [localBookingId])
+  }, [localBookingId, method])
 
   // ── Retry the current booking after an expired or failed provider attempt ──
 
