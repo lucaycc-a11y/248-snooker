@@ -309,12 +309,16 @@ const Velaris = ({
         aria-hidden="true"
       />
 
-      {/* Content with dark overlay gradient for text contrast */}
+      {/* Contrast overlay is a direct child of the container so it always spans the
+          full box. Inside the padded content wrapper it stopped at the padding
+          edge and left a lighter band down both sides (the "frame"). */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"
+        aria-hidden="true"
+      />
+
+      {/* Content */}
       <div className="relative z-10 h-full w-full">
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40"
-          aria-hidden="true"
-        />
         <div className="relative h-full w-full">
           {children}
         </div>
