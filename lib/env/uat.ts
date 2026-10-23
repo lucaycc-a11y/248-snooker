@@ -22,7 +22,7 @@ export function isUatEnv(hostname: string | null | undefined): boolean {
 
 /**
  * Get the appropriate KPay environment string based on hostname.
- * Returns 'uat' for UAT domain, otherwise respects KPAY_ENV or defaults to 'uat'.
+ * Returns 'uat' for the UAT domain, 'prod' everywhere else (hard-coded).
  *
  * @param hostname - The hostname from request headers
  * @returns 'prod' or 'uat'
@@ -31,7 +31,7 @@ export function getKPayEnv(hostname: string | null | undefined): 'prod' | 'uat' 
   // UAT domain always uses KPay UAT keys
   if (isUatEnv(hostname)) return 'uat'
 
-  // Production domain respects KPAY_ENV (defaults to 'uat' for safety)
-  const env = process.env.KPAY_ENV ?? 'uat'
-  return env === 'prod' ? 'prod' : 'uat'
+  // Every other host is live. Hard-coded on purpose: the public flow must use the
+  // same production KPay as the admin route and must not depend on a KPAY_ENV var.
+  return 'prod'
 }
