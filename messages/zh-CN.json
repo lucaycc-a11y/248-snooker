@@ -3326,12 +3326,5 @@
     "err_rate_limited": "尝试次数过多，请稍后再试。",
     "err_send": "暂时无法发送邮件，请稍后再试。",
     "err_update": "未能更新密码，请再试一次。"
-  },
-  "newMemberOffer": {
-    "preview_badge": "预览｜只有 Super Admin 看到",
-    "line": "新会员价格低至 HK${price}（需使用新会员优惠）",
-    "detail": "以最低时段价 HK${base} 计，已扣新会员优惠码 {code} −HK${promo}，及迎新 Space Credit −HK${credit}。每位新会员仅限使用一次。",
-    "faq_q": "新会员有什么优惠？",
-    "faq_a": "新会员价格低至 HK${price}（需使用新会员优惠）：以最低时段价 HK${base} 计，使用新会员优惠码 {code} 减 HK${promo}，再加迎新积分兑换的 HK${credit} Space Credit。优惠仅限新会员，每人一次。"
   }
 }

@@ -3324,12 +3324,5 @@
     "err_rate_limited": "Too many attempts. Please try again later.",
     "err_send": "We couldn't send the email right now. Please try again later.",
     "err_update": "We couldn't update your password. Please try again."
-  },
-  "newMemberOffer": {
-    "preview_badge": "Preview — super admins only",
-    "line": "New members pay as low as HK${price} (new-member offer required)",
-    "detail": "Based on the lowest-rate slot at HK${base}, after new-member code {code} (−HK${promo}) and the welcome Space Credit (−HK${credit}). One use per new member.",
-    "faq_q": "What do new members get?",
-    "faq_a": "New members pay as low as HK${price} (new-member offer required): from the lowest-rate slot at HK${base}, apply new-member code {code} for HK${promo} off, plus HK${credit} of Space Credit from the welcome points. New members only, once per person."
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 
 // "New members from HK$X" copy — PREVIEW ONLY.
 // Renders nothing for everyone except an active super_admin: the data comes from
@@ -9,23 +9,21 @@ import { useTranslations } from 'next-intl'
 // in the server HTML, so crawlers and regular members never see it. Public
 // release = remove the gate here and add the same copy to metadata / JSON-LD.
 
-type Offer = {
-  floorPrice: number
-  basePrice: number
-  promoCode: string | null
-  promoDiscount: number
-  creditAmount: number
-}
+// The copy itself comes from the API response (never from messages/*.json, which
+// every browser downloads), so non-admins never receive the strings at all.
+type Text = { preview_badge: string; line: string; detail: string; faq_q: string; faq_a: string }
 
-let cache: Promise<Offer | null> | null = null
+const cache = new Map<string, Promise<Text | null>>()
 
-function loadOffer(): Promise<Offer | null> {
-  if (!cache) {
-    cache = fetch('/api/internal/new-member-offer', { credentials: 'same-origin' })
-      .then(async (res) => (res.ok ? ((await res.json()) as Offer) : null))
+function loadText(locale: string): Promise<Text | null> {
+  let hit = cache.get(locale)
+  if (!hit) {
+    hit = fetch(`/api/internal/new-member-offer?locale=${encodeURIComponent(locale)}`, { credentials: 'same-origin' })
+      .then(async (res) => (res.ok ? (((await res.json()) as { text: Text }).text) : null))
       .catch(() => null)
+    cache.set(locale, hit)
   }
-  return cache
+  return hit
 }
 
 type Props = {
@@ -34,31 +32,24 @@ type Props = {
 }
 
 export default function NewMemberOfferNote({ variant = 'banner', theme = 'dark' }: Props) {
-  const t = useTranslations('newMemberOffer')
-  const [offer, setOffer] = useState<Offer | null>(null)
+  const locale = useLocale()
+  const [t, setT] = useState<Text | null>(null)
 
   useEffect(() => {
     let alive = true
-    loadOffer().then((o) => {
-      if (alive) setOffer(o)
+    loadText(locale).then((o) => {
+      if (alive) setT(o)
     })
     return () => {
       alive = false
     }
-  }, [])
+  }, [locale])
 
-  if (!offer) return null
+  if (!t) return null
 
   const dark = theme === 'dark'
   const ink = dark ? '#fff' : '#1D1D1F'
   const muted = dark ? 'rgba(255,255,255,0.65)' : '#6E6E73'
-  const params = {
-    price: offer.floorPrice,
-    base: offer.basePrice,
-    code: offer.promoCode ?? '',
-    promo: offer.promoDiscount,
-    credit: offer.creditAmount,
-  }
 
   const badge = (
     <span
@@ -73,7 +64,7 @@ export default function NewMemberOfferNote({ variant = 'banner', theme = 'dark' 
         marginBottom: 8,
       }}
     >
-      {t('preview_badge')}
+      {t.preview_badge}
     </span>
   )
 
@@ -82,10 +73,10 @@ export default function NewMemberOfferNote({ variant = 'banner', theme = 'dark' 
       <div style={{ padding: '20px 0', borderTop: `1px dashed ${dark ? 'rgba(255,255,255,0.2)' : '#D2D2D7'}` }}>
         {badge}
         <h3 data-cms-key="newMemberOffer.faq_q" style={{ color: ink, fontSize: 17, fontWeight: 600, margin: '0 0 8px' }}>
-          {t('faq_q')}
+          {t.faq_q}
         </h3>
         <p data-cms-key="newMemberOffer.faq_a" style={{ color: muted, fontSize: 15, lineHeight: 1.65, margin: 0 }}>
-          {t('faq_a', params)}
+          {t.faq_a}
         </p>
       </div>
     )
@@ -105,11 +96,11 @@ export default function NewMemberOfferNote({ variant = 'banner', theme = 'dark' 
     >
       {badge}
       <p data-cms-key="newMemberOffer.line" style={{ color: ink, fontSize: variant === 'inline' ? 15 : 18, fontWeight: 600, margin: 0 }}>
-        {t('line', params)}
+        {t.line}
       </p>
       {variant === 'banner' && (
         <p data-cms-key="newMemberOffer.detail" style={{ color: muted, fontSize: 13, lineHeight: 1.6, margin: '6px 0 0' }}>
-          {t('detail', params)}
+          {t.detail}
         </p>
       )}
     </div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/lib/supabase/route-handler'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { getNewMemberOffer } from '@/lib/pricing/new-member-offer'
+import { newMemberOfferText } from '@/lib/pricing/new-member-offer-copy'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic'
 // GET /api/internal/new-member-offer
 // Preview feed for the "new members from HK$X" copy. Only an active super_admin
 // gets data; everyone else gets a bare 404 so the feature is not discoverable.
-export async function GET() {
+export async function GET(req: Request) {
   const notFound = () => new NextResponse(null, { status: 404, headers: { 'Cache-Control': 'no-store' } })
 
   const supabase = await createRouteHandlerClient()
@@ -30,5 +31,9 @@ export async function GET() {
 
   const offer = await getNewMemberOffer()
   if (!offer) return notFound()
-  return NextResponse.json(offer, { headers: { 'Cache-Control': 'no-store' } })
+  const locale = new URL(req.url).searchParams.get('locale') ?? 'zh-HK'
+  return NextResponse.json(
+    { offer, text: newMemberOfferText(locale, offer) },
+    { headers: { 'Cache-Control': 'no-store' } },
+  )
 }
