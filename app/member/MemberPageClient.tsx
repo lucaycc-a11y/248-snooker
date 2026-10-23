@@ -36,7 +36,14 @@ export function MemberPageClient({ initialData }: Props) {
   const { profile } = initialData
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
+    <div className="lg-page relative min-h-screen overflow-x-clip bg-gradient-to-br from-[#05070C] via-[#0A0D12] to-[#0F131C]">
+      {/* Ambient light taken from the member card, refracted by the glass below */}
+      <div className="lg-ambient" aria-hidden="true">
+        <i className="a" />
+        <i className="b" />
+        <i className="c" />
+      </div>
+
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0A0D12]/80 backdrop-blur-xl">
         <div className="mx-auto max-w-7xl px-4 py-4">
@@ -59,7 +66,7 @@ export function MemberPageClient({ initialData }: Props) {
       </header>
 
       {/* Content */}
-      <div className="mx-auto max-w-7xl pb-8">
+      <div className="relative z-[1] mx-auto max-w-7xl pb-8">
         {/* Two-column layout on lg+; centered card on md; single column below md */}
         <div className="lg:grid lg:grid-cols-[minmax(0,440px)_1fr] lg:items-start lg:gap-8 lg:px-8 lg:pt-8">
 
