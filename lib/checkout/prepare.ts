@@ -89,9 +89,33 @@ export function prepareFailureStatus(reason: string): number {
 // can be combined (the promo applies first, credits cover what is left) unless the code
 // has stackable_with_credits = false, in which case the RPC rejects the combination with
 // 'promo_not_stackable_with_credits'. Points redemption is retired.
+type PrepareArgs = { bookingId: string; userId: string; promoCode?: string | null; points?: number; walletAmount?: number }
+
+// prepare_checkout, plus one recovery step: if the wallet credit is short only
+// because an abandoned order of the same customer still holds it, release that
+// dead order's hold (see supersede.ts) and try again once.
 export async function prepareCheckout(
   service: ServiceClient,
-  args: { bookingId: string; userId: string; promoCode?: string | null; points?: number; walletAmount?: number },
+  args: PrepareArgs,
+): Promise<PrepareCheckoutOutcome> {
+  const first = await prepareCheckoutOnce(service, args)
+  if (first.ok || first.failure.reason !== 'insufficient_credits' || !(args.walletAmount && args.walletAmount > 0)) {
+    return first
+  }
+  try {
+    const { releaseDeadPendingOrders } = await import('./supersede')
+    const released = await releaseDeadPendingOrders(service, args.userId, args.bookingId)
+    if (released === 0) return first
+  } catch (e) {
+    console.warn('[checkout] supersede recovery failed', { message: (e as Error).message })
+    return first
+  }
+  return prepareCheckoutOnce(service, args)
+}
+
+async function prepareCheckoutOnce(
+  service: ServiceClient,
+  args: PrepareArgs,
 ): Promise<PrepareCheckoutOutcome> {
   const { data, error } = await service.rpc('prepare_checkout', {
     p_booking_id: args.bookingId,
