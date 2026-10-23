@@ -83,7 +83,7 @@ function BottomLink({ href, icon: Icon, title, subtitle }: BottomLinkProps) {
   return (
     <a
       href={href}
-      className="lg-glass group flex items-center justify-between rounded-xl border border-white/10 p-4 transition-all"
+      className="group flex items-center justify-between rounded-xl border border-white/10 bg-gradient-to-r from-white/5 to-transparent p-4 transition-all hover:border-white/20 hover:from-white/10"
     >
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5">

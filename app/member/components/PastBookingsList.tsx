@@ -121,7 +121,7 @@ export function PastBookingsList({ userId }: Props) {
   }
 
   return (
-    <div className="lg-glass rounded-2xl border border-white/10">
+    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent">
       <div className="border-b border-white/10 bg-white/5 px-4 py-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-medium text-white/80">
