@@ -59,6 +59,8 @@ type Props = {
   error?: string | null
   /** Renders for the 帳戶異常 tab. The real page passes <AccountFlagsList />. */
   flagsSlot?: React.ReactNode
+  /** Real row count for the unfiltered list (server page 1 only carries 50). */
+  initialTotal?: number
   /** Gates the 修改電話與電郵 row in the detail sheet. */
   isSuperAdmin?: boolean
   /** Harness only: freeze rows and open detail inline instead of navigating. */
@@ -70,6 +72,7 @@ export default function MembersPageClient({
   members,
   error,
   flagsSlot,
+  initialTotal,
   isSuperAdmin = false,
   preview,
   onOpen,
@@ -96,13 +99,16 @@ export default function MembersPageClient({
   // newer one. The initial page-1 list from the server component is used as-is
   // while no search / toggle is active.
   const [searching, setSearching] = useState(false)
-  const [total, setTotal] = useState<number | null>(null)
+  const [total, setTotal] = useState<number | null>(initialTotal ?? null)
+  const [page, setPage] = useState(1)
+  const [loadingMore, setLoadingMore] = useState(false)
   useEffect(() => {
     const term = q.trim()
     if (!term && !includeHidden) {
       setRowsData(members)
       setLoadError(error ?? null)
-      setTotal(null)
+      setTotal(initialTotal ?? null)
+      setPage(1)
       setSearching(false)
       return
     }
@@ -126,6 +132,7 @@ export default function MembersPageClient({
           setLoadError(null)
           setRowsData(json.members ?? [])
           setTotal(json.total ?? null)
+          setPage(1)
         })
         .catch((e: unknown) => {
           if (e instanceof DOMException && e.name === 'AbortError') return
@@ -139,7 +146,38 @@ export default function MembersPageClient({
       clearTimeout(timer)
       ctrl.abort()
     }
-  }, [q, includeHidden, members, error])
+  }, [q, includeHidden, members, error, initialTotal])
+
+  const loadMore = async () => {
+    setLoadingMore(true)
+    try {
+      const term = q.trim()
+      const params = new URLSearchParams({ page: String(page + 1) })
+      if (term) params.set('search', term)
+      if (includeHidden) params.set('includeHidden', 'true')
+      const res = await fetch(`/api/admin/users?${params.toString()}`)
+      const json = (await res.json().catch(() => ({}))) as {
+        error?: string
+        members?: AdminMemberRow[]
+        total?: number
+      }
+      if (!res.ok || json.error) {
+        setLoadError(json.error ?? '會員資料載入失敗')
+        return
+      }
+      const more = json.members ?? []
+      setRowsData((prev) => {
+        const seen = new Set(prev.map((m) => m.id))
+        return [...prev, ...more.filter((m) => !seen.has(m.id))]
+      })
+      setTotal(json.total ?? total)
+      setPage((n) => n + 1)
+    } catch (e: unknown) {
+      setLoadError(e instanceof Error ? e.message : '會員資料載入失敗')
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const rows = useMemo(
     () =>
@@ -303,8 +341,13 @@ export default function MembersPageClient({
             )}
             <div className="admin-pager">
               <span data-cms-key="admin.members.pager">
-                {searching ? '搜尋中…' : total !== null && total > rows.length ? `顯示 ${rows.length} / 共 ${total} 位（請輸入更多字元縮窄範圍）` : `共 ${rows.length} 位`}
+                {searching ? '搜尋中…' : total !== null && total > rowsData.length ? `顯示 ${rowsData.length} / 共 ${total} 位` : `共 ${total ?? rows.length} 位`}
               </span>
+              {!searching && total !== null && total > rowsData.length ? (
+                <button type="button" className="admin-btn sm" onClick={loadMore} disabled={loadingMore} data-cms-key="admin.members.load_more">
+                  {loadingMore ? '載入中…' : '載入更多'}
+                </button>
+              ) : null}
             </div>
           </section>
         </>
