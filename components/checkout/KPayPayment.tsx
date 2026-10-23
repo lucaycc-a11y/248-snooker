@@ -58,6 +58,12 @@ export type KPayLabels = {
   cancel: string
   processing: string
   terms_required: string
+  /** Optional so existing callers keep compiling; fall back to Traditional Chinese. */
+  err_init?: string
+  err_unauthorized?: string
+  err_slot_taken?: string
+  err_price_changed?: string
+  reselect_slot?: string
 }
 
 type Props = {
@@ -374,26 +380,26 @@ export default function KPayPayment(props: Props) {
       })
 
       if (!res.ok) {
-        let message = '付款初始化失敗，請重試'
-        let errorType: 'unauthorized' | 'slot_unavailable' | 'generic' = 'generic'
+        let message = labels.err_init ?? '付款初始化失敗，請重試。'
+        let errorType: 'unauthorized' | 'slot_unavailable' | 'price_changed' | 'generic' = 'generic'
         try {
           const errBody = await res.json()
           const errorText = errBody.error || message
 
           // Part 2: Detect session expiry (401 Unauthorized)
           if (res.status === 401) {
-            message = '你嘅登入狀態已過期，請重新登入'
+            message = labels.err_unauthorized ?? '登入已過期，請重新登入。'
             errorType = 'unauthorized'
           }
           // Part 3: Detect slot unavailability (409 Conflict)
           else if (errBody.code === 'price_changed' || errorText === 'price_changed') {
-            message = '價錢已更新，請返回付款方式重新確認金額'
-            errorType = 'generic'
+            message = labels.err_price_changed ?? '金額已更新，請返回選擇付款方式重新確認。'
+            errorType = 'price_changed'
           }
           else if (errorText.includes('Slot unavailable') ||
                    errorText.includes('Slot lock no longer valid') ||
                    errBody.reason === 'slot_confirmed') {
-            message = '呢個時段已經被其他人預訂，請重新選擇時段'
+            message = labels.err_slot_taken ?? '此時段已被預訂，請重新選擇時段。'
             errorType = 'slot_unavailable'
           }
           else {
@@ -405,8 +411,10 @@ export default function KPayPayment(props: Props) {
         setError(message)
         setState(errorType === 'unauthorized' ? 'unauthorized' as KPayState : 'failed')
         // Store error type for rendering appropriate CTA in the failed state screen
-        if (errorType === 'slot_unavailable') {
-          setFailureReason('slot_unavailable')
+        if (errorType === 'slot_unavailable' || errorType === 'price_changed') {
+          setFailureReason(errorType)
+        } else {
+          setFailureReason(null)
         }
         return
       }
@@ -958,7 +966,7 @@ export default function KPayPayment(props: Props) {
         </div>
         <p style={styles.stateTitle}>登入已過期</p>
         <p style={styles.stateDesc}>
-          {error || '你嘅登入狀態已過期，請重新登入'}
+          {error || labels.err_unauthorized || '登入已過期，請重新登入。'}
         </p>
         <button
           type="button"
@@ -980,6 +988,7 @@ export default function KPayPayment(props: Props) {
   if (state === 'failed') {
     // Part 3: Slot unavailability requires different CTA
     const isSlotUnavailable = failureReason === 'slot_unavailable'
+    const isPriceChanged = failureReason === 'price_changed'
 
     return (
       <div style={styles.card}>
@@ -990,9 +999,6 @@ export default function KPayPayment(props: Props) {
         <p style={styles.stateDesc}>
           {error || labels.failed_desc}
         </p>
-        {failureReason && failureReason !== 'slot_unavailable' && (
-          <p style={styles.failureReason}>{failureReason}</p>
-        )}
 
         {isSlotUnavailable ? (
           // Slot unavailable: redirect to re-select time slots
@@ -1008,9 +1014,16 @@ export default function KPayPayment(props: Props) {
               disabled={actionBusy}
               style={styles.primaryButton}
             >
-              重新選擇時段
+              {labels.reselect_slot ?? '重新選擇時段'}
             </button>
             <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+              {labels.back_to_methods}
+            </button>
+          </>
+        ) : isPriceChanged ? (
+          // Amount changed: a retry would hit the same mismatch — go back and re-confirm
+          <>
+            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.primaryButton}>
               {labels.back_to_methods}
             </button>
           </>

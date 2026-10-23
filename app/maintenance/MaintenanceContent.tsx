@@ -13,7 +13,7 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
-export function NotifyForm() {
+export function NotifyForm({ source = 'maintenance' }: { source?: 'maintenance' | 'kpay' }) {
   const t = useTranslations('maintenance')
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'saving' | 'done' | 'error'>('idle')
@@ -55,7 +55,7 @@ export function NotifyForm() {
       const res = await fetch('/api/gate/waitlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: value, source: 'maintenance' }),
+        body: JSON.stringify({ email: value, source }),
       })
       if (!res.ok && res.status !== 429) throw new Error('failed')
       setStatus('done')

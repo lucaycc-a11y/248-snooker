@@ -11,7 +11,7 @@
 
   "lifetimePoints": "累積積分",
   "redeemablePoints": "可兌換積分",
-  "needMore": "再累積 {{points}} 積分，自動存入 HK${{amount}}",
+  "needMore": "再累積 {points} 積分，自動存入 HK${amount}",
   "depositedToWallet": "已存入錢包",
   "convertedPoints": "已兌換積分",
 
