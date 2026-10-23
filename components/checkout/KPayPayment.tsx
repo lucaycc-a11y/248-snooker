@@ -249,10 +249,14 @@ const EASE_STANDARD = 'cubic-bezier(.2,.7,.3,1)'
 const KPAY_POLL_FAST_MS = 2_000
 const KPAY_POLL_SLOW_MS = 5_000
 const KPAY_POLL_FAST_PHASE_MS = 30_000
-/** Hard ceiling: if polling has been running this long without resolution, stop
- *  and show the user a clear "we're still checking" state instead of polling
- *  forever. Matches useOrderConfirmationPolling's DEFAULT_TIMEOUT_MS. */
-const KPAY_POLL_TIMEOUT_MS = 60_000
+/** Hard ceiling: keep polling for as long as KPay itself keeps the order payable,
+ *  plus a short grace period. KPay fixes FPS QR orders at 5 minutes and other QR /
+ *  H5 orders at 10 minutes (orderExpire docs). Stopping earlier showed "failed"
+ *  while the QR could still be paid, so a customer could retry and then pay the
+ *  old QR, leaving a paid order that no longer matched its booking. */
+function kpayPollTimeoutMs(method: KPayMethod): number {
+  return (method === 'fps' ? 5 * 60_000 : 10 * 60_000) + 15_000
+}
 
 // ── Component ────────────────────────────────────────────────────────────────
 
@@ -553,7 +557,12 @@ export default function KPayPayment(props: Props) {
     setActionBusy(true)
     setError(null)
     try {
-      const res = await fetch('/api/checkout/retry', {
+      // Release the failed/expired attempt (booking -> cancelled, slot + credits
+      // freed) instead of resetting it to `pending`: the client drops this booking
+      // id when it returns to the method picker, so a reset booking was orphaned
+      // and kept the slot locked for other members until the hold timed out. The
+      // fresh method selection mints a new booking and re-locks the slot.
+      const res = await fetch('/api/checkout/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookingId: localBookingId }),
@@ -563,7 +572,7 @@ export default function KPayPayment(props: Props) {
         const message = payload && typeof payload === 'object' && !Array.isArray(payload)
           ? (payload as Record<string, unknown>).error
           : undefined
-        setError(typeof message === 'string' ? message : labels.failed_desc)
+        setError(typeof message === 'string' ? checkoutErrorText(message) : labels.failed_desc)
         setState('failed')
         return
       }
@@ -886,9 +895,9 @@ export default function KPayPayment(props: Props) {
       }
 
       if (cancelled) return
-      // Timeout fallback: if we've been polling longer than KPAY_POLL_TIMEOUT_MS,
+      // Timeout fallback: if we've been polling longer than KPay keeps the order payable,
       // stop and transition to a terminal state so the UI isn't stuck forever.
-      if (elapsedMs >= KPAY_POLL_TIMEOUT_MS) {
+      if (elapsedMs >= kpayPollTimeoutMs(method)) {
         console.log('[KPay] pollTimeout', { bookingId: localBookingId, elapsedMs })
         clearKPayPersistedState()
         setState('failed')
@@ -907,7 +916,7 @@ export default function KPayPayment(props: Props) {
       if (timer) clearTimeout(timer)
       if (elapsedTimer) clearInterval(elapsedTimer)
     }
-  }, [localBookingId])
+  }, [localBookingId, method])
 
   // ── Retry the current booking after an expired or failed provider attempt ──
 
@@ -1016,14 +1025,14 @@ export default function KPayPayment(props: Props) {
             >
               {labels.reselect_slot ?? '重新選擇時段'}
             </button>
-            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+            <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.secondaryButton}>
               {labels.back_to_methods}
             </button>
           </>
         ) : isPriceChanged ? (
           // Amount changed: a retry would hit the same mismatch — go back and re-confirm
           <>
-            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.primaryButton}>
+            <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.primaryButton}>
               {labels.back_to_methods}
             </button>
           </>
@@ -1033,7 +1042,7 @@ export default function KPayPayment(props: Props) {
             <button type="button" onClick={retryPayment} disabled={actionBusy} style={styles.primaryButton}>
               {actionBusy ? labels.processing : labels.try_again}
             </button>
-            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
+            <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.secondaryButton}>
               {labels.back_to_methods}
             </button>
             <button type="button" onClick={cancelBooking} disabled={actionBusy} style={styles.tertiaryButton}>
