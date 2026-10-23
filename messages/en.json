@@ -1288,13 +1288,13 @@
     "slots_selected": "{count} slots selected",
     "points_earned_estimate": "Earn at least {pts} points on this booking",
     "terms_agree": "I agree to SPACE8’s <link>Venue Rules and Terms & Conditions</link>",
-    "terms_agree_prefix": "I agree to SPACE8’s",
+    "terms_agree_prefix": "By choosing a payment method, you agree to SPACE8’s",
     "terms_agree_connector": "and",
     "venue_rules_label": "Venue Rules",
     "terms_label": "Terms & Conditions",
     "legal_modal_close": "Close",
     "legal_modal_agree": "Read, agree and close",
-    "terms_required_hint": "* You must agree to the terms before paying",
+    "terms_required_hint": "Continuing with payment constitutes acceptance of the above terms",
     "terms_required_error": "Please read and agree to the Venue Rules first",
     "legend_available": "Available",
     "legend_selected": "Selected",
@@ -1424,7 +1424,7 @@
     "wallet_available": "Available Balance",
     "use_wallet": "Apply",
     "wallet_applied": "Space Wallet Applied",
-    "credit_min_payment_note": "Card payments start from HK$10, so we used {used} credit this time. Your other {left} credit stays in your account.",
+    "credit_min_payment_note": "Card minimum is HK$10; {left} credit kept.",
     "wallet_remove": "Remove"
   },
   "ticket": {
@@ -2847,7 +2847,9 @@
       "apply": "Apply",
       "remove": "Remove",
       "insufficient": "Insufficient balance",
-      "not_stackable": "This code can't be combined with Space Wallet"
+      "not_stackable": "This code can't be combined with Space Wallet",
+      "used": "Used this order",
+      "remaining": "Left"
     }
   },
   "creditsPage": {
