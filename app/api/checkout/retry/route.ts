@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     // and returns a clear 409 for the UI to show a dedicated message.
     const { data: existing, error: lookupErr } = await getServiceSupabase()
       .from('bookings')
-      .select('id, status')
+      .select('id, status, provider_order_no')
       .eq('id', bookingId)
       .eq('user_id', user.id)
       .single()
@@ -48,6 +48,24 @@ export async function POST(req: Request) {
     if (lookupErr || !existing) {
       console.log('[KPay] retry pre-check: booking_not_found', { bookingId, userId: user.id })
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+    }
+
+    // Never open a second order while the first may already be paid: retry drops the
+    // provider order number, so a payment landing afterwards could not be matched and
+    // the customer would be charged twice. Ask KPay; if it says paid (or the lookup
+    // fails) wait for the webhook / status poll to confirm instead.
+    const existingOrderNo = (existing as { provider_order_no?: string | null }).provider_order_no
+    if (existing.status === 'pending' && typeof existingOrderNo === 'string' && /^\d{12,}$/.test(existingOrderNo)) {
+      try {
+        const { KPayProvider } = await import('@/lib/payments/kpay')
+        const live = await new KPayProvider(undefined, 'prod').queryOrder(existingOrderNo)
+        if (live.status === 'success') {
+          return NextResponse.json({ error: 'booking_payment_processing' }, { status: 409 })
+        }
+      } catch (e) {
+        console.warn('[KPay] retry pre-check: provider lookup failed', { bookingId, message: (e as Error).message })
+        return NextResponse.json({ error: 'booking_payment_processing' }, { status: 409 })
+      }
     }
 
     if (existing.status === 'confirmed') {

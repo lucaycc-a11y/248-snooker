@@ -26,11 +26,11 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
   const result = useOrderConfirmationPolling(bookingId)
   const conversionFired = useRef(false)
   // Someone who backs out of the gateway page lands here with nothing paid and
-  // would otherwise watch a spinner for the whole polling timeout. After 8s of
+  // would otherwise watch a spinner for the whole polling timeout. After 3s of
   // not being confirmed, offer a way out that releases the slot.
   const [showEscape, setShowEscape] = useState(false)
   useEffect(() => {
-    const timer = setTimeout(() => setShowEscape(true), 8000)
+    const timer = setTimeout(() => setShowEscape(true), 3000)
     return () => clearTimeout(timer)
   }, [])
   const handleLeave = useCallback(async () => {
@@ -105,16 +105,25 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
     }
   }, [bookingId, retrying, t])
 
-  if (reason) {
+  // Back from the payment page with nothing paid: KPay gives no cancel signal, so
+  // after 3 s of "pending" offer the customer a clear choice instead of a spinner.
+  const shownReason: PaymentRecoveryReason | null =
+    reason ?? (showEscape && result.status !== "success" ? "not_received" : null)
+
+  if (shownReason) {
     return (
       <PaymentRecoveryScreen
-        reason={reason}
+        reason={shownReason}
         holdActive={result.hold.active}
         holdExpiresAt={result.hold.expiresAt}
         retrying={retrying}
         error={retryError}
         onRetry={handleRetry}
         onBackToSlots={() => {
+          if (shownReason === "not_received") {
+            void handleLeave()
+            return
+          }
           // Re-enter the payment selector while preserving the durable slot
           // selection; this is distinct from abandoning the booking flow.
           window.location.href = `/book?redirect_status=methods&bookingId=${encodeURIComponent(bookingId)}`
@@ -126,6 +135,9 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
           reasonFailed: t("recovery_reason_failed"),
           reasonCancelled: t("recovery_reason_cancelled"),
           reasonTimeout: t("recovery_reason_timeout"),
+          reasonNotReceived: t("recovery_reason_not_received"),
+          notReceivedNote: t("recovery_not_received_note"),
+          cancelBooking: t("recovery_cancel_booking"),
           timeoutDoubleChargeWarning: t("recovery_timeout_warning"),
           holdActive: t("recovery_hold_active"),
           holdActiveWithTime: t("recovery_hold_active_time"),

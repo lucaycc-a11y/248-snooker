@@ -22,7 +22,7 @@ const BYPASS_PREFIXES = ['/api', '/auth', '/admin', '/member', '/login', '/reset
 // plus webhooks/auth callbacks that must always work), and the gate's own
 // coming-soon page (blocking it would redirect-loop). Also includes /uat-gate
 // for UAT domain visitors.
-const GATE_BYPASS_PREFIXES = ['/api', '/admin', '/auth', '/member', '/coming-soon', '/uat-gate', '/style-guide-preview']
+const GATE_BYPASS_PREFIXES = ['/api', '/admin', '/auth', '/member', '/coming-soon', '/maintenance', '/uat-gate', '/style-guide-preview']
 
 function clientIp(request: NextRequest): string {
   const fwd = request.headers.get('x-forwarded-for')
@@ -72,8 +72,8 @@ async function checkSiteGate(request: NextRequest): Promise<NextResponse | null>
 
   const url = request.nextUrl.clone()
   // UAT domain visitors go to /uat-gate (which redirects to production after 3s)
-  // Production domain visitors go to /coming-soon (standard maintenance page)
-  url.pathname = isUatDomain ? '/uat-gate' : '/coming-soon'
+  // Production domain visitors go to /maintenance/kpay (the KPay upgrade notice)
+  url.pathname = isUatDomain ? '/uat-gate' : '/maintenance/kpay'
   url.search = ''
 
   // Return 307 Temporary Redirect with Retry-After header
