@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { useTranslations, useLocale } from 'next-intl'
 import { type MemberProfile } from '@/lib/data/memberRedesignTypes'
@@ -520,7 +521,9 @@ export function MemberCardPremier({ profile }: Props) {
       </p>
 
       {/* ═══════════════════ ZOOM OVERLAY ═══════════════════ */}
-      {zoomed && (
+      {/* Portaled to <body>: the card sits inside sticky / stacked / glass layers,
+          which would otherwise trap this fixed overlay beneath later siblings. */}
+      {zoomed && typeof document !== 'undefined' && createPortal(
         <div
           role="dialog"
           aria-modal="true"
@@ -529,7 +532,7 @@ export function MemberCardPremier({ profile }: Props) {
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 50,
+            zIndex: 2147483000,
             background: '#fff',
             color: '#0A0B0E',
             display: 'flex',
@@ -607,7 +610,8 @@ export function MemberCardPremier({ profile }: Props) {
           >
             {t('close')}
           </button>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )
