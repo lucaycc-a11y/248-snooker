@@ -450,16 +450,29 @@ export default function Footer() {
             justifyContent: 'center',
           }}
         >
-          <img
-            src="/logos/stripe-logo.svg"
-            alt="Stripe"
+          <div
             style={{
-              height: '20px',
-              width: 'auto',
-              display: 'block',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '5px 10px',
+              border: '1px solid rgba(255,255,255,0.7)',
+              borderRadius: '4px',
               opacity: 0.7,
             }}
-          />
+          >
+            <span
+              data-cms-key="footer.powered_by"
+              style={{ fontSize: '11px', fontWeight: 600, color: '#fff', lineHeight: 1, letterSpacing: '0.01em' }}
+            >
+              {t('footer.powered_by')}
+            </span>
+            <img
+              src="/logos/kpay-logo.svg"
+              alt="KPay"
+              style={{ height: '14px', width: 'auto', display: 'block' }}
+            />
+          </div>
         </div>
 
         {/* Bottom row — simplified copyright + legal links */}
