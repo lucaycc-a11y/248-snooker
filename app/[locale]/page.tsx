@@ -68,9 +68,9 @@ export async function generateMetadata({
   const meta: Record<string, { title: string; description: string; keywords: string[]; ogDesc: string; canonical: string; ogLocale: string }> = {
     'zh-HK': {
       title: 'SPACE8｜香港中八桌球室｜新蒲崗自助無煙獨立球室',
-      description: 'SPACE8 是香港新蒲崗自助無煙中八獨立球室，全預約制，網上預訂、QR碼自助入場。鄰近鑽石山及啟德港鐵站，九龍區中八愛好者主場。',
+      description: 'SPACE8 是香港新蒲崗自助無煙智能中式桌球球室，兩間1T獨立球室，每日 06:00 至 24:00 營業。網上預訂、二維碼自助入場。專業設備，智能系統，聚光在桌球本身。鄰近鑽石山和啟德地鐵站，方便停車。',
       keywords: ['中八', '中式八球', '中式桌球', '香港中八', '新蒲崗桌球', '鑽石山桌球', '九龍桌球', '自助桌球', '無煙桌球室'],
-      ogDesc: '香港中八桌球室 · 新蒲崗自助無煙獨立球室 · 全預約制',
+      ogDesc: 'SPACE8 是香港新蒲崗自助無煙智能中式桌球球室，兩間1T獨立球室，每日 06:00 至 24:00 營業。網上預訂、二維碼自助入場。專業設備，智能系統，聚光在桌球本身。鄰近鑽石山和啟德地鐵站，方便停車。',
       canonical: 'https://space8.com.hk',
       ogLocale: 'zh_HK',
     },
