@@ -9,7 +9,6 @@ import { getConfig } from "@/lib/data/getConfig";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { AmbientGlow } from "@/components/shared/AmbientGlow";
 import { getFaqJsonLd, HOMEPAGE_FAQ_IDS } from "@/components/landing/faqData";
-import { withNewMemberDescription } from "@/lib/seo/new-member-meta";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { periodsToSlots } from "@/lib/ui/pricing-adapter";
 import { MAP_QUERY } from "@/lib/site/nap";
@@ -94,7 +93,7 @@ export async function generateMetadata({
   }
 
   const m = meta[locale] ?? meta['zh-HK']
-  const description = await withNewMemberDescription(locale, m.description)
+  const description = m.description
 
   return {
     title: m.title,

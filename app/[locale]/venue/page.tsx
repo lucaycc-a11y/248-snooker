@@ -5,7 +5,6 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import dynamic from "next/dynamic";
 import Nav from "@/components/layout/Nav";
 import Footer from "@/components/layout/Footer";
-import { withNewMemberDescription } from "@/lib/seo/new-member-meta";
 import { buildSportsClubJsonLd, safeJsonLd } from "@/lib/seo/jsonLd";
 import { getConfig } from "@/lib/data";
 
@@ -47,7 +46,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const m = META[locale] ?? META["zh-HK"];
-  const description = await withNewMemberDescription(locale, m.description);
+  const description = m.description;
   const path = locale === "zh-HK" ? "/venue" : `/${locale}/venue`;
   const t = await getTranslations({ locale, namespace: "venuePage" });
 
