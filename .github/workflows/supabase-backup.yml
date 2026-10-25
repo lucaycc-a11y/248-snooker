@@ -1,0 +1,49 @@
+name: Daily Supabase backup
+
+on:
+  schedule:
+    - cron: "0 19 * * *" # 03:00 HKT every day
+  workflow_dispatch: # lets you run it manually to test
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Install pg_dump 17 and rclone
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-17
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+
+      - name: Dump database
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          STAMP=$(TZ=Asia/Hong_Kong date +%F_%H%M)
+          pg_dump "$SUPABASE_DB_URL" \
+            --no-owner --no-privileges --format=custom \
+            --schema=public --schema=auth \
+            -f "space8_${STAMP}.dump"
+          echo "FILE=space8_${STAMP}.dump" >> "$GITHUB_ENV"
+
+      - name: Encrypt dump
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase "$BACKUP_PASSPHRASE" \
+            --symmetric --cipher-algo AES256 "$FILE"
+          ls -lh "$FILE.gpg"
+
+      - name: Upload to Google Drive
+        env:
+          RCLONE_CONFIG_DATA: ${{ secrets.RCLONE_CONFIG }}
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG_DATA" > ~/.config/rclone/rclone.conf
+          rclone copy "$FILE.gpg" gdrive:Space8-Backups
+          # keep 30 days
+          rclone delete gdrive:Space8-Backups --min-age 30d
