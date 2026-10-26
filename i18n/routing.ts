@@ -1,10 +1,11 @@
 import { defineRouting } from 'next-intl/routing'
-import { ENABLED_LOCALES, DEFAULT_LOCALE, type EnabledLocale } from './enabled-locales'
+import { ALL_LOCALES, DEFAULT_LOCALE, type EnabledLocale } from './enabled-locales'
 
 export const routing = defineRouting({
-  // Only enabled locales are routable. Closed locales (zh-CN, en) redirect to zh-HK.
+  // All locales are routable so admins can preview closed ones (zh-CN, en) with the
+  // new wording. middleware.ts redirects non-admins from closed locales to zh-HK.
   // zh-HK = no prefix (space8.com.hk/)
-  locales: ENABLED_LOCALES as unknown as string[],
+  locales: ALL_LOCALES as unknown as string[],
   defaultLocale: DEFAULT_LOCALE,
   localePrefix: 'as-needed',
   // localeDetection MUST be false: with it true, next-intl reads the
