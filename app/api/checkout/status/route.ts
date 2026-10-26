@@ -458,23 +458,9 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
   // database state alone must never be reported as "payment failed" in that case.
   if (freeze && (booking.status === 'cancelled' || booking.status === 'expired')) {
     const live = await getLiveKPayState(booking.provider_order_no, hostname)
-    if (live === 'paid') {
-      const moved = await parkPaidBookingForReview({
-        bookingId: booking.id,
-        orderGroupId: booking.order_group_id ?? null,
-        providerOrderNo: booking.provider_order_no,
-        source: 'status_poll',
-        reason: `paid_after_${booking.status}`,
-      })
-      logResult({ status: 'payment_review', providerStatus: 'success', moved })
-      return reply('PAID_NEEDS_REVIEW', {
-        bookingId: booking.id,
-        status: 'payment_review',
-        providerStatus: 'success',
-        holdActive: false,
-        holdExpiresAt: null,
-      })
-    }
+    // Paid on a released booking: fall through. The proactive confirm below re-activates
+    // the booking (the database re-applies credit / promo) whenever the slot is still free.
+    if (live !== 'paid') {
     logResult({ status: booking.status, providerStatus: booking.status, live })
     return reply(live === 'pending' || live === 'unknown' ? 'RELEASED_KPAY_STILL_OPEN' : 'RELEASED', {
       bookingId: booking.id,
@@ -484,6 +470,7 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
       holdActive: false,
       holdExpiresAt: null,
     })
+    }
   }
 
   if (!freeze && (booking.status === 'cancelled' || booking.status === 'expired')) {
@@ -667,6 +654,24 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
   // confirmed, it has been parked as payment_review by the database; report that.
   if (uiStatus === 'pending_confirmation') {
     const { data: after } = await service.from('bookings').select('status').eq('id', booking.id).single()
+    if (after?.status === 'cancelled' || after?.status === 'expired') {
+      // Confirm was refused for a released booking (slot taken, or the database does not
+      // re-activate it yet): park for review rather than showing a payment failure.
+      await parkPaidBookingForReview({
+        bookingId: booking.id,
+        orderGroupId: booking.order_group_id ?? null,
+        providerOrderNo: booking.provider_order_no,
+        source: 'status_poll',
+        reason: `paid_after_${after.status}`,
+      })
+      return reply('PAID_NEEDS_REVIEW', {
+        bookingId: booking.id,
+        status: 'payment_review',
+        providerStatus: 'success',
+        holdActive: false,
+        holdExpiresAt: null,
+      })
+    }
     if (after?.status === 'payment_review') {
       return reply('PAID_NEEDS_REVIEW', {
         bookingId: booking.id,

@@ -75,6 +75,52 @@ end $$;
 revoke all on function public.slot_conflicts_for_booking(uuid) from public, anon, authenticated;
 grant execute on function public.slot_conflicts_for_booking(uuid) to service_role;
 
+-- A payment that lands on a released booking (cancelled / expired / payment_failed) is
+-- confirmed automatically when the slot is still free. The credit / promo reservation that
+-- was released with the booking is re-applied first, so the customer is charged for the
+-- discount exactly as at checkout. If the wallet no longer has the credit, the booking is
+-- still confirmed (real money was received) and the shortfall is recorded in payment_events.
+create or replace function public.revive_released_checkout(p_booking_id uuid, p_order_group_id uuid, p_user_id uuid)
+returns text language plpgsql security definer set search_path to 'public' as $$
+declare
+  v_key text;
+  v_hold public.credit_holds%rowtype;
+  v_balance integer;
+  v_usage_id uuid;
+  v_result text := 'none';
+begin
+  v_key := case when p_order_group_id is null then 'booking:' || p_booking_id::text
+                else 'group:' || p_order_group_id::text end;
+
+  if not exists (select 1 from public.credit_holds where checkout_key = v_key and status in ('held', 'redeemed')) then
+    select * into v_hold from public.credit_holds
+     where checkout_key = v_key and user_id = p_user_id and status = 'released'
+     order by released_at desc nulls last limit 1 for update;
+    if found then
+      select coalesce(credits, 0) into v_balance from public.users where id = p_user_id for update;
+      if v_balance >= v_hold.credits then
+        update public.credit_holds set status = 'held', released_at = null where id = v_hold.id;
+        v_result := 'credit_revived';
+      else
+        v_result := 'credit_shortfall';
+      end if;
+    end if;
+  end if;
+
+  if not exists (select 1 from public.promo_code_usages where checkout_key = v_key and status in ('held', 'redeemed')) then
+    select id into v_usage_id from public.promo_code_usages
+     where checkout_key = v_key and status = 'released'
+     order by released_at desc nulls last limit 1;
+    if v_usage_id is not null then
+      update public.promo_code_usages set status = 'held', released_at = null where id = v_usage_id;
+      if v_result = 'none' then v_result := 'promo_revived'; end if;
+    end if;
+  end if;
+  return v_result;
+end $$;
+revoke all on function public.revive_released_checkout(uuid,uuid,uuid) from public, anon, authenticated;
+grant execute on function public.revive_released_checkout(uuid,uuid,uuid) to service_role;
+
 create or replace function public.confirm_booking(p_booking_id uuid, p_payment_intent_id text, p_payment_method text, p_qr_code text, p_event_id text default null)
 returns jsonb language plpgsql security definer set search_path to 'public' as $$
 declare
@@ -95,7 +141,7 @@ begin
       'date', v_booking.date, 'start_time', v_booking.start_time, 'end_time', v_booking.end_time,
       'user_id', v_booking.user_id);
   end if;
-  if v_booking.status not in ('pending', 'payment_failed') then
+  if v_booking.status not in ('pending', 'payment_failed', 'cancelled', 'expired') then
     perform public.log_payment_event(v_booking.id, 'confirm_rejected', 'db', v_booking.status, null,
       'booking_not_confirmable', p_payment_intent_id);
     return jsonb_build_object('success', false, 'reason', 'booking_not_confirmable', 'booking_status', v_booking.status);
@@ -110,6 +156,11 @@ begin
     perform public.log_payment_event(v_booking.id, 'paid_slot_conflict', 'db', v_booking.status, 'payment_review',
       'slot_conflict', p_payment_intent_id);
     return jsonb_build_object('success', false, 'reason', 'slot_conflict_payment_review');
+  end if;
+
+  if v_booking.status in ('payment_failed', 'cancelled', 'expired') then
+    perform public.log_payment_event(v_booking.id, 'late_payment_confirmed', 'db', v_booking.status, 'confirmed',
+      public.revive_released_checkout(v_booking.id, null, v_booking.user_id), p_payment_intent_id);
   end if;
 
   v_price := coalesce(v_booking.total_price, 0);
@@ -154,7 +205,7 @@ begin
     if v_primary is null then v_primary := v_b.id; end if;
     if v_b.status <> 'confirmed' then
       v_all_confirmed := false;
-      if v_b.status not in ('pending', 'payment_failed') then v_bad_status := v_b.status; end if;
+      if v_b.status not in ('pending', 'payment_failed', 'cancelled', 'expired') then v_bad_status := v_b.status; end if;
     end if;
   end loop;
   if v_primary is null then return jsonb_build_object('success', false, 'reason', 'group_not_found'); end if;
@@ -183,6 +234,11 @@ begin
     perform public.log_payment_event(v_primary, 'paid_slot_conflict', 'db', 'pending', 'payment_review',
       'slot_conflict', p_payment_intent_id, null, p_order_group_id);
     return jsonb_build_object('success', false, 'reason', 'slot_conflict_payment_review');
+  end if;
+
+  if exists (select 1 from public.bookings where order_group_id = p_order_group_id and status in ('payment_failed', 'cancelled', 'expired')) then
+    perform public.log_payment_event(v_primary, 'late_payment_confirmed', 'db', 'released', 'confirmed',
+      public.revive_released_checkout(v_primary, p_order_group_id, v_user_id), p_payment_intent_id, null, p_order_group_id);
   end if;
 
   for v_b in select * from public.bookings where order_group_id = p_order_group_id order by date, start_time, id loop
