@@ -44,8 +44,10 @@ import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
 import { useMonthAvailability } from "@/lib/booking/useMonthAvailability"
-import { useOrderConfirmationPolling, type OrderHoldState } from "@/lib/booking/useOrderConfirmationPolling"
+import { useOrderConfirmationPolling, type OrderHoldState, type PaymentReference } from "@/lib/booking/useOrderConfirmationPolling"
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
+import { PaymentReferencePanel } from "@/components/checkout/PaymentReferencePanel"
+import { submitGatewayForm, takeGatewayHandoff } from "@/lib/checkout/gateway-handoff"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
 import { estimateEarnPoints } from "@/lib/points/estimate"
@@ -3752,7 +3754,19 @@ function ConfirmingPayment({
   onRetry,
   onBackToSlots,
   onCancelBooking,
+  bookingId,
+  freeze,
+  review,
+  reference,
+  stateCode,
 }: {
+  bookingId: string
+  /** Payment-freeze rollout applies (admins until PAYMENT_FREEZE_PUBLIC=true). */
+  freeze: boolean
+  /** Paid, but the booking needs a person (slot taken). */
+  review: boolean
+  reference: PaymentReference | null
+  stateCode: string | null
   reason: PaymentRecoveryReason | null
   hold: OrderHoldState
   retrying: boolean
@@ -3769,19 +3783,35 @@ function ConfirmingPayment({
   // the spinner for the full poll timeout. Leaving never cancels the booking here
   // (a payment may still be in flight), the hold simply expires on its own.
   const [showEscape, setShowEscape] = useState(false)
+  // Rollout customers wait for KPay's final answer (20 s before a non-destructive way
+  // back is offered); everyone else keeps the previous 3 s behaviour.
+  const escapeDelayMs = freeze ? 20000 : 3000
   useEffect(() => {
     if (reason) return
-    const timer = setTimeout(() => setShowEscape(true), 3000)
+    const timer = setTimeout(() => setShowEscape(true), escapeDelayMs)
     return () => clearTimeout(timer)
-  }, [reason])
+  }, [reason, escapeDelayMs])
 
   // KPay gives no cancel signal on return, so a still-pending order after 3 s is
   // shown as "payment not received". Polling continues underneath: if the payment
   // lands, the parent swaps this screen for the ticket.
-  const shownReason: PaymentRecoveryReason | null = reason ?? (showEscape ? "not_received" : null)
+  const shownReason: PaymentRecoveryReason | null = reason ?? (!freeze && showEscape ? "not_received" : null)
+
+  if (review) {
+    return (
+      <div className="screen-content" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "calc(100dvh - 80px)", textAlign: "center", gap: 12, padding: "24px 20px" }}>
+        <p style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text }}>{t("review_title")}</p>
+        <p style={{ fontSize: 14, color: tokens.colors.textMuted, maxWidth: 360 }}>{t("review_desc")}</p>
+        <div style={{ width: "100%", maxWidth: 380 }}>
+          <PaymentReferencePanel reference={reference} stateCode={stateCode} bookingId={bookingId} />
+        </div>
+      </div>
+    )
+  }
 
   if (shownReason) {
     return (
+      <>
       <PaymentRecoveryScreen
         reason={shownReason}
         holdActive={hold.active}
@@ -3811,6 +3841,12 @@ function ConfirmingPayment({
           supportEmail: t("recovery_support_email"),
         }}
       />
+      {freeze ? (
+        <div style={{ maxWidth: 380, margin: "0 auto", padding: "0 20px 24px" }}>
+          <PaymentReferencePanel reference={reference} stateCode={stateCode} bookingId={bookingId} />
+        </div>
+      ) : null}
+      </>
     )
   }
 
@@ -3832,10 +3868,15 @@ function ConfirmingPayment({
       <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
         {t("confirming")}
       </p>
+      {freeze ? (
+        <p style={{ fontSize: 13, color: tokens.colors.textMuted, maxWidth: 340 }}>{t("confirm_waiting_note")}</p>
+      ) : null}
       {showEscape && (
         <button
           type="button"
-          onClick={onBackToSlots}
+          onClick={freeze
+            ? () => { window.location.href = `/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=methods` }
+            : onBackToSlots}
           style={{
             minHeight: 44,
             padding: "0 20px",
@@ -3846,9 +3887,14 @@ function ConfirmingPayment({
             cursor: "pointer",
           }}
         >
-          {t("recovery_back_to_slots")}
+          {freeze ? t("confirm_back_to_methods") : t("recovery_back_to_slots")}
         </button>
       )}
+      {freeze ? (
+        <div style={{ width: "100%", maxWidth: 380 }}>
+          <PaymentReferencePanel reference={reference} stateCode={stateCode} bookingId={bookingId} />
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -3867,11 +3913,19 @@ function ConfirmingPaymentContainer({
   reason,
   hold,
   onBackToSlots,
+  freeze,
+  review,
+  reference,
+  stateCode,
 }: {
   bookingId: string
   reason: PaymentRecoveryReason | null
   hold: OrderHoldState
   onBackToSlots: () => void
+  freeze: boolean
+  review: boolean
+  reference: PaymentReference | null
+  stateCode: string | null
 }) {
   const [retrying, setRetrying] = useState(false)
   const [retryError, setRetryError] = useState<string | null>(null)
@@ -3945,6 +3999,11 @@ function ConfirmingPaymentContainer({
       onRetry={handleRetry}
       onBackToSlots={onBackToSlots}
       onCancelBooking={handleCancelBooking}
+      bookingId={bookingId}
+      freeze={freeze}
+      review={review}
+      reference={reference}
+      stateCode={stateCode}
     />
   )
 }
@@ -4282,6 +4341,19 @@ export default function BookPage() {
       setConfirmError(false)
       window.history.replaceState(null, "", `/book`)
       return
+    }
+
+    // Confirm-page-first handoff: the payment page navigated here instead of opening the
+    // gateway itself. Open it from this page so the history entry the customer comes back
+    // to (Back / the gateway return link) is this read-only status screen, never the
+    // payment-method picker. The stash is consumed once, so a refresh cannot replay it.
+    const handoff = redirectStatus === "returned" ? takeGatewayHandoff(bId) : null
+    if (handoff) {
+      if (handoff.kind === "form-post") {
+        submitGatewayForm(handoff.payInfo)
+      } else {
+        window.location.href = handoff.payInfo
+      }
     }
 
     // A KPay return is deliberately neutral: only the authenticated status
@@ -4638,6 +4710,10 @@ export default function BookPage() {
                     bookingId={confirmBookingId}
                     reason={confirmRecoveryReason}
                     hold={confirmResult.hold}
+                    freeze={confirmResult.freeze}
+                    review={confirmResult.status === "payment_review"}
+                    reference={confirmResult.ref}
+                    stateCode={confirmResult.stateCode}
                     onBackToSlots={() => {
                       clearKPayPersistedState()
                       setKpayResumeData(null)

@@ -13,7 +13,8 @@ import { isProductionEnv } from '@/lib/env/app-env'
 // Same locale-prefix rule the create-order flow uses for the gateway return URL.
 function confirmPathFor(bookingId: string): string {
   const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
-  return `${localePrefix ? `/${localePrefix}` : ''}/book/confirm?bookingId=${encodeURIComponent(bookingId)}`
+  // The real status screen lives on /book (the /book/confirm route only redirects here).
+  return `${localePrefix ? `/${localePrefix}` : ''}/book?bookingId=${encodeURIComponent(bookingId)}&redirect_status=returned`
 }
 
 export type KPayMethod = 'card' | 'fps' | 'payme' | 'octopus' | 'alipay' | 'alipayhk' | 'wechat' | 'unionpay_qp'
