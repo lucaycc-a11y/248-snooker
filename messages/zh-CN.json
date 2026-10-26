@@ -1548,6 +1548,8 @@
     "confirm_back_to_methods": "返回选择付款方式（不会取消订单）",
     "review_title": "已收到你的付款",
     "confirm_going_to_pay": "正在前往付款页面…",
+    "confirm_not_yet_title": "尚未收到付款",
+    "confirm_not_yet_desc": "如你已完成付款，请稍候，系统会自动确认，无须重复付款。如尚未付款，可返回选择付款方式。",
     "review_desc": "你的付款已成功，但订单需要我们人工核实。请保留下方参考资料，我们会尽快联系你，无需重复付款。"
   },
   "ticket": {

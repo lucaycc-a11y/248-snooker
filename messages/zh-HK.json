@@ -1450,13 +1450,15 @@
     "payref_time": "查詢時間",
     "payref_copy": "複製",
     "payref_copied": "已複製",
-    "payref_whatsapp": "WhatsApp 通知客服",
+    "payref_whatsapp": "WhatsApp 聯絡客服",
     "payref_whatsapp_msg": "你好，我想查詢付款：訂單 {code}，付款單尾號 {order}，狀態碼 {state}，時間 {time}",
-    "confirm_waiting_note": "請唔好重複付款或關閉此頁。付款確認通常喺幾秒內完成，最長可能需要數分鐘。",
-    "confirm_back_to_methods": "返回選擇付款方式（唔會取消訂單）",
+    "confirm_waiting_note": "請勿重複付款或關閉此頁。付款確認通常在數秒內完成，最長可能需要數分鐘。",
+    "confirm_back_to_methods": "返回選擇付款方式（不會取消訂單）",
     "review_title": "已收到你的付款",
     "confirm_going_to_pay": "正在前往付款頁面…",
-    "review_desc": "你的付款已成功，但訂單需要我們人手核實。請保留下方參考資料，我們會盡快聯絡你，無需重複付款。"
+    "confirm_not_yet_title": "尚未收到付款",
+    "confirm_not_yet_desc": "如你已完成付款，請稍候，系統會自動確認，無須重複付款。如尚未付款，可返回選擇付款方式。",
+    "review_desc": "你的付款已成功，但訂單需要我們人工核實。請保留下方參考資料，我們會盡快聯絡你，無須重複付款。"
   },
   "ticket": {
     "printer_aria": "訂桌出票機",

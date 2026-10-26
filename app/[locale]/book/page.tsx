@@ -3784,9 +3784,9 @@ function ConfirmingPayment({
   // the spinner for the full poll timeout. Leaving never cancels the booking here
   // (a payment may still be in flight), the hold simply expires on its own.
   const [showEscape, setShowEscape] = useState(false)
-  // Rollout customers wait for KPay's final answer (20 s before a non-destructive way
+  // Rollout customers wait for KPay's final answer (4 s before a non-destructive way
   // back is offered); everyone else keeps the previous 3 s behaviour.
-  const escapeDelayMs = freeze ? 20000 : 3000
+  const escapeDelayMs = freeze ? 4000 : 3000
   useEffect(() => {
     if (reason) return
     const timer = setTimeout(() => setShowEscape(true), escapeDelayMs)
@@ -3870,11 +3870,20 @@ function ConfirmingPayment({
         padding: "24px 20px",
       }}
     >
-      <LoadingGif label={tCommon("loading")} />
-      <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
-        {t("confirming")}
-      </p>
-      {freeze ? (
+      {freeze && showEscape ? (
+        <>
+          <p style={{ fontSize: 18, fontWeight: 700, color: tokens.colors.text }}>{t("confirm_not_yet_title")}</p>
+          <p style={{ fontSize: 14, color: tokens.colors.textMuted, maxWidth: 340 }}>{t("confirm_not_yet_desc")}</p>
+        </>
+      ) : (
+        <>
+          <LoadingGif label={tCommon("loading")} />
+          <p data-cms-key="book.pay.confirming" style={{ fontSize: 16, color: tokens.colors.text }}>
+            {t("confirming")}
+          </p>
+        </>
+      )}
+      {freeze && !showEscape ? (
         <p style={{ fontSize: 13, color: tokens.colors.textMuted, maxWidth: 340 }}>{t("confirm_waiting_note")}</p>
       ) : null}
       {showEscape && (

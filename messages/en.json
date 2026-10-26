@@ -1464,6 +1464,8 @@
     "confirm_back_to_methods": "Back to payment methods (does not cancel your booking)",
     "review_title": "We received your payment",
     "confirm_going_to_pay": "Taking you to the payment page…",
+    "confirm_not_yet_title": "Payment not received yet",
+    "confirm_not_yet_desc": "If you have already paid, please wait: it will be confirmed automatically and you do not need to pay again. If you have not paid, you can go back and choose a payment method.",
     "review_desc": "Your payment went through, but we need to verify the booking manually. Keep the reference below and we will contact you shortly. Do not pay again."
   },
   "ticket": {
