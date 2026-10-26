@@ -1,15 +1,45 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { pageAlternates } from "@/lib/seo/site";
+import { indexingMeta } from "@/lib/env/app-env";
+import { getLegalDocument } from "@/content/legal";
+import type { Locale } from "@/i18n/routing";
+import LegalPage from "../legal/page";
 
-// /privacy is kept as a stable, link-/SEO-friendly URL (the Footer links here).
-// The actual content lives in the tabbed /legal page. We build the locale path
-// manually (as-needed prefix: none for the default zh-HK) so this never depends
-// on a specific next-intl redirect signature.
-export default async function PrivacyRedirect({
+const BASE = "https://space8.com.hk";
+
+// /privacy is a real, crawlable page that renders the privacy policy itself
+// (no redirect, no tab to click). This is the URL registered with Google
+// Cloud OAuth branding and linked from the footer, so it must show the policy
+// text directly.
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const doc = getLegalDocument("privacy", locale as Locale);
+  const intro = doc.intro ?? "";
+  const description = intro.length > 155 ? `${intro.slice(0, 155)}…` : intro;
+  const path = locale === "zh-HK" ? "/privacy" : `/${locale}/privacy`;
+  return {
+    title: `${doc.title} | Space8`,
+    description,
+    alternates: pageAlternates(locale, "/privacy"),
+    openGraph: {
+      title: `${doc.title} | Space8`,
+      description,
+      url: `${BASE}${path}`,
+      siteName: "Space8",
+      type: "website",
+    },
+    robots: indexingMeta(),
+  };
+}
+
+export default function PrivacyPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  const prefix = locale === "zh-HK" ? "" : `/${locale}`;
-  redirect(`${prefix}/legal?tab=privacy`);
+  return LegalPage({ params, searchParams: Promise.resolve({ doc: "privacy" }) });
 }
