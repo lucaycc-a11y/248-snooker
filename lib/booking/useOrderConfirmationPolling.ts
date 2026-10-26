@@ -20,6 +20,7 @@ type CheckoutStatusResponse = {
   totalPrice?: number
   ref?: PaymentReference | null
   stateCode?: string
+  freeze?: boolean
 }
 
 /** Short, non-secret reference shown to the customer and quoted to support. */
@@ -50,6 +51,8 @@ export type OrderConfirmationResult = {
   ref: PaymentReference | null
   /** Machine-readable situation code from /api/checkout/status (e.g. KPAY_PAID_WAIT_CONFIRM). */
   stateCode: string | null
+  /** True when the payment-freeze rollout applies to this customer (admins until public). */
+  freeze: boolean
 }
 
 // Fast phase: poll every 2s for the first 30s (KPay webhooks are near-instant).
@@ -60,7 +63,8 @@ export type OrderConfirmationResult = {
 const FAST_POLL_MS = 2_000
 const FAST_PHASE_MS = 30_000
 const SLOW_POLL_MS = 5_000
-const DEFAULT_TIMEOUT_MS = 30 * 60_000
+const FREEZE_TIMEOUT_MS = 30 * 60_000
+const DEFAULT_TIMEOUT_MS = 60_000
 
 /**
  * Timeout override for manual testing (e.g. `?confirmTimeoutMs=3000` to watch
@@ -98,6 +102,7 @@ function parseStatusResponse(value: unknown): CheckoutStatusResponse {
     totalPrice: typeof record.totalPrice === "number" ? record.totalPrice : undefined,
     ref: parseRef(record.ref),
     stateCode: typeof record.stateCode === "string" ? record.stateCode : undefined,
+    freeze: record.freeze === true,
   }
 }
 
@@ -116,6 +121,7 @@ export function useOrderConfirmationPolling(
   const [totalPrice, setTotalPrice] = useState<number | null>(null)
   const [ref, setRef] = useState<PaymentReference | null>(null)
   const [stateCode, setStateCode] = useState<string | null>(null)
+  const [freeze, setFreeze] = useState(false)
 
   useEffect(() => {
     if (!enabled || !bookingId) {
@@ -126,7 +132,7 @@ export function useOrderConfirmationPolling(
 
     let cancelled = false
     const startedAt = Date.now()
-    const timeoutMs = resolveTimeoutMs()
+    let timeoutMs = resolveTimeoutMs()
     let timer: ReturnType<typeof setTimeout> | null = null
     let elapsedTimer: ReturnType<typeof setInterval> | null = null
     let activeController: AbortController | null = null
@@ -175,6 +181,11 @@ export function useOrderConfirmationPolling(
         }
         if (!cancelled && result.ref) setRef(result.ref)
         if (!cancelled && result.stateCode) setStateCode(result.stateCode)
+        if (!cancelled && result.freeze !== undefined) {
+          setFreeze(result.freeze)
+          // Rollout customers wait for KPay's final answer (no 60 s website deadline).
+          if (result.freeze && process.env.NODE_ENV === "production") timeoutMs = FREEZE_TIMEOUT_MS
+        }
 
         // Provider success only means KPay accepted the payment. The webhook
         // still has to commit bookings.status = confirmed before this hook can
@@ -242,5 +253,5 @@ export function useOrderConfirmationPolling(
     }
   }, [bookingId, enabled])
 
-  return { status, hold, elapsedSec, totalPrice, ref, stateCode }
+  return { status, hold, elapsedSec, totalPrice, ref, stateCode, freeze }
 }

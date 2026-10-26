@@ -28,6 +28,7 @@ export async function releaseDeadPendingOrders(
   service: ServiceClient,
   userId: string,
   keepBookingId: string,
+  freezePending = false,
 ): Promise<number> {
   const { data: rows, error } = await service
     .from('bookings')
@@ -65,6 +66,10 @@ export async function releaseDeadPendingOrders(
         }
         const status = await provider.queryOrder(row.provider_order_no)
         if (status.status === 'failed' || status.status === 'cancelled' || status.status === 'closed') {
+          dead = true
+        } else if (status.status === 'pending' && !freezePending) {
+          // Previous behaviour (customers outside the freeze rollout): a still-payable
+          // order is treated as abandoned. With freezePending it is left frozen.
           dead = true
         }
       } catch (e) {

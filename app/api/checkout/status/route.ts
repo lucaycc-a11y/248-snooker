@@ -7,6 +7,7 @@ import { isUatEnv } from '@/lib/env/uat'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 import { getLiveKPayState } from '@/lib/payments/live-order'
+import { isPaymentFreezeActive } from '@/lib/payments/freeze-flag'
 import { parkPaidBookingForReview } from '@/lib/payments/park-for-review'
 import { logPaymentEvent } from '@/lib/payments/payment-events'
 
@@ -410,8 +411,9 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
     code: typeof booking.human_code === 'string' ? booking.human_code : null,
     orderTail: typeof booking.provider_order_no === 'string' ? booking.provider_order_no.slice(-6) : null,
   }
+  const freeze = await isPaymentFreezeActive(userId)
   const reply = (stateCode: string, payload: Record<string, unknown>) =>
-    NextResponse.json({ ...payload, ref, stateCode, checkedAt: new Date().toISOString() })
+    NextResponse.json({ ...payload, freeze, ref, stateCode, checkedAt: new Date().toISOString() })
 
   const holdState = async (): Promise<{ holdActive: boolean; holdExpiresAt: string | null }> => {
     const { data, error } = await service.rpc('checkout_hold_expiry', {
@@ -454,7 +456,7 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
 
   // A released booking may still own a payable (or already paid) KPay order. The
   // database state alone must never be reported as "payment failed" in that case.
-  if (booking.status === 'cancelled' || booking.status === 'expired') {
+  if (freeze && (booking.status === 'cancelled' || booking.status === 'expired')) {
     const live = await getLiveKPayState(booking.provider_order_no, hostname)
     if (live === 'paid') {
       const moved = await parkPaidBookingForReview({
@@ -484,9 +486,20 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
     })
   }
 
+  if (!freeze && (booking.status === 'cancelled' || booking.status === 'expired')) {
+    logResult({ status: booking.status, providerStatus: booking.status })
+    return reply('RELEASED', {
+      bookingId: booking.id,
+      status: booking.status,
+      providerStatus: booking.status === 'cancelled' ? 'cancelled' : booking.status,
+      holdActive: false,
+      holdExpiresAt: null,
+    })
+  }
+
   // payment_failed with no KPay order really did fail. With an order, fall through
   // and ask KPay: the sweep may have marked it failed while the order is payable.
-  if (booking.status === 'payment_failed' && !booking.provider_order_no) {
+  if (booking.status === 'payment_failed' && (!freeze || !booking.provider_order_no)) {
     const hold = await holdState()
     logResult({ status: booking.status, providerStatus: booking.status, holdActive: hold.holdActive })
     return reply('FAILED_NO_ORDER', {

@@ -10,6 +10,7 @@ import { getClientIp } from '@/lib/security/audit-log'
 import { parkPaidBookingForReview } from '@/lib/payments/park-for-review'
 import { logPaymentEvent } from '@/lib/payments/payment-events'
 import { getLiveKPayState } from '@/lib/payments/live-order'
+import { isPaymentFreezeActive } from '@/lib/payments/freeze-flag'
 
 export const runtime = 'nodejs'
 
@@ -165,6 +166,8 @@ export async function POST(req: Request) {
     String(payload.result ?? payload.status ?? payload.tradeStatus ?? '') ||
     (transactionState === 2 || transactionState === '2' ? '2' : '') ||
     (transactionState === 3 || transactionState === '3' ? '3' : '')
+  const closedByState =
+    !(payload.result ?? payload.status ?? payload.tradeStatus) && (transactionState === 3 || transactionState === '3')
   const eventType = String(payload.eventType ?? 'payment.update')
 
   if (!orderNo || !outTradeNo) {
@@ -340,6 +343,13 @@ export async function POST(req: Request) {
     return new NextResponse('OK', { status: 200 })
   }
 
+  // New behaviour (park late payments, verify stale deliveries, honour KPay "closed")
+  // is effective only for admin accounts until PAYMENT_FREEZE_PUBLIC=true.
+  const freeze = await isPaymentFreezeActive(booking.user_id)
+  if (staleDelivery && !freeze) {
+    return new NextResponse('Webhook timestamp too old', { status: 401 })
+  }
+
   try {
     if (isSuccess) {
       if (!booking.payment_method) {
@@ -415,7 +425,7 @@ export async function POST(req: Request) {
         // park the order as payment_review and alert an admin to handle it by hand.
         const message = confirmErr instanceof Error ? confirmErr.message : String(confirmErr)
         const needsReview = message.includes('booking_not_confirmable') || message.includes('slot_conflict_payment_review')
-        if (!needsReview) throw confirmErr
+        if (!needsReview || !freeze) throw confirmErr
         await parkPaidBookingForReview({
           bookingId: booking.id,
           orderGroupId: booking.order_group_id,
@@ -426,7 +436,7 @@ export async function POST(req: Request) {
         })
         await markWebhookProcessed(supabase, eventId)
       }
-    } else if (isFailed) {
+    } else if (isFailed && (!closedByState || freeze)) {
       await handleFailed(supabase, booking, eventId)
       await logPaymentEvent({
         bookingId: booking.id,

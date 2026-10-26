@@ -104,7 +104,8 @@ export async function prepareCheckout(
   }
   try {
     const { releaseDeadPendingOrders } = await import('./supersede')
-    const released = await releaseDeadPendingOrders(service, args.userId, args.bookingId)
+    const { isPaymentFreezeActive } = await import('@/lib/payments/freeze-flag')
+    const released = await releaseDeadPendingOrders(service, args.userId, args.bookingId, await isPaymentFreezeActive(args.userId))
     if (released === 0) return first
   } catch (e) {
     console.warn('[checkout] supersede recovery failed', { message: (e as Error).message })

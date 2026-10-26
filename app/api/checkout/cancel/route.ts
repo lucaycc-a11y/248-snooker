@@ -4,6 +4,7 @@ import { getServiceSupabase } from '@/lib/supabase/service'
 import { rateLimit } from '@/lib/rate-limit'
 import { withSecurity } from '@/lib/security/api-wrapper'
 import { getLiveKPayState } from '@/lib/payments/live-order'
+import { isPaymentFreezeActive } from '@/lib/payments/freeze-flag'
 import { logPaymentEvent } from '@/lib/payments/payment-events'
 
 export const runtime = 'nodejs'
@@ -40,7 +41,8 @@ async function handleCancel(req: Request) {
       .eq('id', bookingId)
       .eq('user_id', user.id)
       .maybeSingle()
-    if (row && (row.status === 'pending' || row.status === 'payment_failed')) {
+    const freeze = await isPaymentFreezeActive(user.id)
+    if (freeze && row && (row.status === 'pending' || row.status === 'payment_failed')) {
       const live = await getLiveKPayState(row.provider_order_no, new URL(req.url).hostname)
       if (live === 'paid' || live === 'pending' || live === 'unknown') {
         await logPaymentEvent({
