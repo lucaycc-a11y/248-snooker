@@ -74,11 +74,11 @@ export function BookingRefundedEmail({
           <tr>
             <td style={{ textAlign: 'center', paddingBottom: '32px' }}>
               <img
-                src="https://space8.com.hk/logos/space8-icon-email.png"
-                alt="SPACE8"
-                width="72"
-                height="72"
-                style={{ display: 'inline-block', width: '72px', height: '72px', borderRadius: '50%' }}
+                src="https://space8.com.hk/logos/space8-logo-email.png"
+                alt="Space8"
+                width="120"
+                height="38"
+                style={{ display: 'inline-block' }}
               />
             </td>
           </tr>
