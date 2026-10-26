@@ -350,6 +350,12 @@ export default function KPayPayment(props: Props) {
           else if (errBody.code === 'price_changed' || errorText === 'price_changed') {
             message = labels.err_price_changed ?? '金額已更新，請返回選擇付款方式重新確認。'
             errorType = 'price_changed'
+            // The server hands back the stale booking it adopted so "back" can
+            // release it (leaveAndRelease -> /api/checkout/cancel). Without this
+            // the booking stays pending with its old discount selection and the
+            // next attempt re-adopts it and 409s again, forever.
+            if (typeof errBody.bookingId === 'string') setLocalBookingId(errBody.bookingId)
+            if (typeof errBody.orderGroupId === 'string') setLocalOrderGroupId(errBody.orderGroupId)
           }
           else if (errorText.includes('Slot unavailable') ||
                    errorText.includes('Slot lock no longer valid') ||

@@ -700,12 +700,20 @@ async function handleAdminKpayCreate(req: Request) {
           afterValue: mismatchAudit,
           ipAddress: ip,
         })
+        // An ADOPTED booking (not created by this request) survives the abort
+        // above, still carrying its old discount selection and any live provider
+        // order. Return its id so the client can release it through
+        // /api/checkout/cancel; otherwise every retry re-adopts the same locked
+        // booking and hits this mismatch forever.
+        const staleBookingId = createdBookingIds.length === 0 ? bookingIds[0] ?? null : null
         return NextResponse.json(
           {
             error: 'price_changed',
             code: 'price_changed',
             total: bookingTotal,
             walletApplied: discount.creditDiscount,
+            ...(staleBookingId ? { bookingId: staleBookingId } : {}),
+            ...(staleBookingId && orderGroupId ? { orderGroupId } : {}),
           },
           { status: 409 },
         )
