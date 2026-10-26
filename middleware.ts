@@ -299,6 +299,38 @@ async function runOnboardingGate(
   return target ? NextResponse.redirect(new URL(target, request.url)) : null
 }
 
+// Admin-only wording preview: closed locales (en, zh-CN) are open to signed-in,
+// ACTIVE admins so new wording can be reviewed on the real site before it goes
+// public. Same rule as lib/uat/admin-auth.ts (is_active = true), but built on
+// request cookies because middleware cannot use next/headers. Any failure
+// counts as "not admin" (fail closed).
+async function isActiveAdminRequest(request: NextRequest): Promise<boolean> {
+  try {
+    const { createServerClient } = await import('@supabase/ssr')
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: { getAll: () => request.cookies.getAll(), setAll: () => {} } },
+    )
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) return false
+
+    const { getServiceSupabase } = await import('@/lib/supabase/service')
+    const { data } = await getServiceSupabase()
+      .from('admin_users')
+      .select('user_id')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .maybeSingle()
+    return !!data
+  } catch (err) {
+    console.error('[wording-preview] admin check failed', err)
+    return false
+  }
+}
+
 function isLocalized(pathname: string): boolean {
   // Never rewrite auth/api routes — the OAuth callback must resolve as-is.
   // Segment-exact match: '/member' must NOT swallow '/membership' (a public
@@ -341,12 +373,19 @@ export async function middleware(request: NextRequest) {
 
   // Redirect closed locales (zh-CN, en) to zh-HK equivalent
   const segments = request.nextUrl.pathname.split('/').filter(Boolean)
-  if (segments[0] && isValidLocale(segments[0]) && !isLocaleEnabled(segments[0])) {
-    // Closed locale detected — redirect to zh-HK equivalent
-    const url = request.nextUrl.clone()
-    // Remove the closed locale prefix: /en/book → /book
-    url.pathname = '/' + segments.slice(1).join('/')
-    return NextResponse.redirect(url, { status: 301 })
+  const isClosedLocalePath =
+    !!segments[0] && isValidLocale(segments[0]) && !isLocaleEnabled(segments[0])
+  if (isClosedLocalePath) {
+    // Admins may preview closed locales; everyone else is redirected as before.
+    if (!(await isActiveAdminRequest(request))) {
+      // Closed locale detected — redirect to zh-HK equivalent
+      const url = request.nextUrl.clone()
+      // Remove the closed locale prefix: /en/book → /book
+      url.pathname = '/' + segments.slice(1).join('/')
+      // 302, not 301: a permanent redirect would be cached by browsers and
+      // keep an admin out of the preview after they sign in.
+      return NextResponse.redirect(url, { status: 302 })
+    }
   }
 
   // Non-localized routes (/api, /auth, /admin, /member, /login, /maintenance) are
@@ -387,6 +426,12 @@ export async function middleware(request: NextRequest) {
       httpOnly: false, // MUST be false for client-side language switcher
       maxAge: 31536000, // 1 year
     })
+  }
+
+  if (isClosedLocalePath) {
+    // Preview pages must never be indexed or cached by shared caches.
+    intlResponse.headers.set('X-Robots-Tag', 'noindex, nofollow')
+    intlResponse.headers.set('Cache-Control', 'private, no-store')
   }
 
   return intlResponse
