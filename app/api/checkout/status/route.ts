@@ -60,7 +60,12 @@ export async function GET(req: Request) {
     // Free booking path (no payment required) — when a promo code or discount fully
     // covers the order, payment_provider is null and the booking was already confirmed
     // immediately via /api/booking/free-confirm (no async payment to poll)
-    if (provider === null || provider === 'free' || provider === 'none') {
+    // Only a booking that is really confirmed counts as free. A pending / failed /
+    // cancelled row with no provider yet (e.g. right after "pay again" cleared the
+    // provider) must NOT be reported as confirmed — it falls through to the KPay
+    // handler below, which reports its true state and hold.
+    const noProvider = provider === null || provider === 'free' || provider === 'none'
+    if (noProvider && booking.status === 'confirmed') {
       console.log('[checkout/status] free_booking', { bookingId, status: booking.status })
       return NextResponse.json({
         bookingId: booking.id,
@@ -70,7 +75,9 @@ export async function GET(req: Request) {
       })
     }
 
-    if (provider === 'stripe') {
+    if (noProvider) {
+      return handleKPayStatus(booking, service, user.id, new URL(req.url).hostname)
+    } else if (provider === 'stripe') {
       return handleStripeStatus(booking, service, user.id)
     } else if (provider === 'kpay') {
       return handleKPayStatus(booking, service, user.id, new URL(req.url).hostname)

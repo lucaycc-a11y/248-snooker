@@ -19,6 +19,7 @@ import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/l
 import type { PaymentMethod } from '@/lib/payments/types'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
 import { getHostname } from '@/lib/env/hostname'
+import { getKPayEnv } from '@/lib/env/uat'
 import { isTestBooking } from '@/lib/env/test-booking'
 import { applyTestPriceOverride } from '@/lib/uat/test-pricing'
 import { withSecurity } from '@/lib/security/api-wrapper'
@@ -473,7 +474,7 @@ async function handleCheckoutCreate(req: Request) {
     if (
       paymentMethod === 'payme' &&
       uatPaymeSimulation &&
-      process.env.KPAY_ENV !== 'prod'
+      getKPayEnv(getHostname(req)) !== 'prod'
     ) {
       const uatDecimal = uatPaymeSimulation === 'success' ? 0.81 : 0.82
       const baseVal = Math.floor(booking.total_price) + uatDecimal

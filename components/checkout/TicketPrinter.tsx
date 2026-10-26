@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CalendarPlus, Share2, Download, QrCode } from "lucide-react"
 import QRCodeLib from "qrcode"
@@ -14,6 +14,8 @@ import type { OrderTicket } from "@/app/[locale]/book/page"
 type TicketPrinterProps = {
   orderTicket: OrderTicket | null
   locale: string
+  /** Rendered at the bottom of the ticket card, where the action buttons used to be. */
+  cardFooter?: ReactNode
 }
 
 function padTime(h: number): string {
@@ -44,34 +46,23 @@ function PaymentMark({ method }: { method?: string | null }) {
 const QR_PX = 126
 
 /**
- * Renders a consolidated multi-room order ticket with merged booking lines.
- * One QR code (member code), one total price, all rooms as text lines.
+ * Add-to-calendar + share buttons (with the share dialog). Rendered below the
+ * ticket on the confirmation screen; the member-centre / home buttons sit inside
+ * the ticket card instead (see TicketPrinter `cardFooter`).
  */
-function OrderedTicketCard({
+export function TicketActions({
   orderTicket,
   locale,
 }: {
   orderTicket: OrderTicket
   locale: string
 }) {
-  const t = useTranslations("book")
   const t_ticket = useTranslations("ticket")
   const [shareOpen, setShareOpen] = useState(false)
   const [shareBusy, setShareBusy] = useState(false)
   const [shareError, setShareError] = useState<string | null>(null)
 
-  // Format first line's date as header
   const firstLine = orderTicket.lines[0]
-  const dateObj = firstLine ? new Date(`${firstLine.date}T00:00:00`) : new Date()
-  const weekdayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
-  const dateStr = firstLine
-    ? t("full_date_format", {
-        year: dateObj.getFullYear(),
-        month: dateObj.getMonth() + 1,
-        day: dateObj.getDate(),
-        weekday: t(`day_${weekdayNames[dateObj.getDay()]}`)
-      })
-    : ""
 
   const handleAddCalendar = () => {
     // Generate one VEVENT per merged line
@@ -183,6 +174,135 @@ function OrderedTicketCard({
       setShareBusy(false)
     }
   }
+
+  return (
+    <div data-testid="ticket-actions">
+      {/* Action buttons */}
+      <div style={{ display: "flex", gap: 12 }}>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleAddCalendar}
+          data-testid="download-calendar"
+          style={{
+            flex: 1,
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: tokens.radius.button,
+            padding: "12px 16px",
+            color: tokens.colors.text,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+          }}
+        >
+          <CalendarPlus size={16} />
+          {t_ticket("add_calendar")}
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShareOpen(!shareOpen)}
+          data-testid="share-button"
+          style={{
+            flex: 1,
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.2)",
+            borderRadius: tokens.radius.button,
+            padding: "12px 16px",
+            color: tokens.colors.text,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+          }}
+        >
+          <Share2 size={16} />
+          {t_ticket("share")}
+        </motion.button>
+      </div>
+
+      <AnimatePresence>
+        {shareOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            data-testid="share-dialog"
+            style={{
+              marginTop: 12,
+              padding: 12,
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: tokens.radius.input,
+              textAlign: "center",
+            }}
+          >
+            {shareError ? (
+              <div style={{ fontSize: 12, color: "#ff6464" }}>{shareError}</div>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleShare}
+                disabled={shareBusy}
+                style={{
+                  width: "100%",
+                  background: tokens.colors.brand,
+                  color: "#000",
+                  border: "none",
+                  borderRadius: tokens.radius.button,
+                  padding: "8px 12px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: shareBusy ? "not-allowed" : "pointer",
+                  opacity: shareBusy ? 0.6 : 1,
+                }}
+              >
+                {shareBusy ? "處理中…" : "生成並分享"}
+              </motion.button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/**
+ * Renders a consolidated multi-room order ticket with merged booking lines.
+ * One QR code (member code), one total price, all rooms as text lines.
+ */
+function OrderedTicketCard({
+  orderTicket,
+  locale,
+  footer,
+}: {
+  orderTicket: OrderTicket
+  locale: string
+  footer?: ReactNode
+}) {
+  const t = useTranslations("book")
+  const t_ticket = useTranslations("ticket")
+  // Format first line's date as header
+  const firstLine = orderTicket.lines[0]
+  const dateObj = firstLine ? new Date(`${firstLine.date}T00:00:00`) : new Date()
+  const weekdayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
+  const dateStr = firstLine
+    ? t("full_date_format", {
+        year: dateObj.getFullYear(),
+        month: dateObj.getMonth() + 1,
+        day: dateObj.getDate(),
+        weekday: t(`day_${weekdayNames[dateObj.getDay()]}`)
+      })
+    : ""
 
   return (
     <motion.div
@@ -323,6 +443,12 @@ function OrderedTicketCard({
           >
             {orderTicket.memberCode}
           </div>
+          <div
+            data-cms-key="ticket.member_qr_caption"
+            style={{ fontSize: 12, color: tokens.colors.textMuted, marginTop: 6, textAlign: "center", lineHeight: 1.5, maxWidth: 280 }}
+          >
+            {t_ticket("member_qr_caption")}
+          </div>
         </motion.div>
       ) : (
         <div
@@ -355,101 +481,7 @@ function OrderedTicketCard({
         預約編號 {orderTicket.lines.map((l) => l.humanCode ?? l.bookingRef).join(" · ")}
       </div>
 
-      {/* Action buttons */}
-      <div style={{ display: "flex", gap: 12 }}>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleAddCalendar}
-          data-testid="download-calendar"
-          style={{
-            flex: 1,
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            borderRadius: tokens.radius.button,
-            padding: "12px 16px",
-            color: tokens.colors.text,
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-          }}
-        >
-          <CalendarPlus size={16} />
-          {t_ticket("add_calendar")}
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setShareOpen(!shareOpen)}
-          data-testid="share-button"
-          style={{
-            flex: 1,
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            borderRadius: tokens.radius.button,
-            padding: "12px 16px",
-            color: tokens.colors.text,
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-          }}
-        >
-          <Share2 size={16} />
-          {t_ticket("share")}
-        </motion.button>
-      </div>
-
-      <AnimatePresence>
-        {shareOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            data-testid="share-dialog"
-            style={{
-              marginTop: 12,
-              padding: 12,
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: tokens.radius.input,
-              textAlign: "center",
-            }}
-          >
-            {shareError ? (
-              <div style={{ fontSize: 12, color: "#ff6464" }}>{shareError}</div>
-            ) : (
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleShare}
-                disabled={shareBusy}
-                style={{
-                  width: "100%",
-                  background: tokens.colors.brand,
-                  color: "#000",
-                  border: "none",
-                  borderRadius: tokens.radius.button,
-                  padding: "8px 12px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: shareBusy ? "not-allowed" : "pointer",
-                  opacity: shareBusy ? 0.6 : 1,
-                }}
-              >
-                {shareBusy ? "處理中…" : "生成並分享"}
-              </motion.button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {footer}
     </motion.div>
   )
 }
@@ -462,6 +494,7 @@ function OrderedTicketCard({
 export function TicketPrinter({
   orderTicket,
   locale,
+  cardFooter,
 }: TicketPrinterProps) {
   const t = useTranslations("ticket")
 
@@ -497,7 +530,7 @@ export function TicketPrinter({
 
         <div className="ticket-printer-paper-viewport">
           <div className="ticket-printer-paper-wrap">
-            <OrderedTicketCard orderTicket={orderTicket} locale={locale} />
+            <OrderedTicketCard orderTicket={orderTicket} locale={locale} footer={cardFooter} />
           </div>
         </div>
       </div>

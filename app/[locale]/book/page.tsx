@@ -39,7 +39,7 @@ import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/Chec
 import { creditToApply } from "@/lib/checkout/credit-rule"
 import { checkoutErrorText } from "@/lib/checkout/error-text"
 import { TicketCard } from "@/components/booking/TicketCard"
-import { TicketPrinter } from "@/components/checkout/TicketPrinter"
+import { TicketPrinter, TicketActions } from "@/components/checkout/TicketPrinter"
 import { getTableName, TABLE_NAMES } from "@/lib/booking/constants"
 import { createClient } from "@/lib/supabase/client"
 import { useAvailabilityCache } from "@/lib/booking/useAvailabilityCache"
@@ -2083,7 +2083,11 @@ function Screen3({
           const res = await fetch("/api/booking/admin-test-confirm", { signal: attemptController.signal })
           const data: unknown = await res.json()
           clearTimeout(timer)
+          // Admin checkout tools (TEST banner, KPay dev gateway) for admins. Hard-coded
+          // (no env var). Set ADMIN_CHECKOUT_TOOLS_ENABLED to false to show admins the
+          // exact checkout every customer sees.
           const admin =
+            ADMIN_CHECKOUT_TOOLS_ENABLED &&
             typeof data === "object" && data !== null && (data as { isAdmin?: unknown }).isAdmin === true
           if (!cancelled) {
             setIsAdmin(admin)
@@ -3673,26 +3677,38 @@ function Screen4({ orderTicket }: { orderTicket: OrderTicket | null }) {
           </motion.div>
         </motion.div>
 
-        <TicketPrinter orderTicket={orderTicket} locale={locale} />
-        {/* Plain <a>, not the i18n Link: /member lives at app/member (outside [locale]) and
-            middleware bypasses it, so it must never get a locale prefix. position+zIndex lift
-            it above .ticket-printer-scene, whose -96px bottom margin overlaps this slot and
-            (being a positioned, isolated layer) swallowed every click once the entry
-            animation finished and Framer reset transform to none. */}
-        <motion.a
-          href="/member"
+        <TicketPrinter
+          orderTicket={orderTicket}
+          locale={locale}
+          cardFooter={
+            <div>
+              {/* Plain <a>, not the i18n Link: /member lives at app/member (outside [locale]) and
+                  middleware bypasses it, so it must never get a locale prefix. */}
+              <a
+                href="/member"
+                data-cms-key="book.ticket.member_cta"
+                data-testid="go-to-member"
+                style={{ width: "100%", height: 48, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", textDecoration: "none" }}>
+                {t("go_to_member")}
+              </a>
+              <div style={{ textAlign: "center", marginTop: 10 }}>
+                <button type="button" onClick={() => (window.location.href = "/")} data-cms-key="book.ticket.home" style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer", padding: "6px 12px" }}>
+                  {t("back_home")}
+                </button>
+              </div>
+            </div>
+          }
+        />
+        {/* Calendar / share now sit below the ticket. position+zIndex lift them above
+            .ticket-printer-scene, whose -96px bottom margin overlaps this slot and
+            (being a positioned, isolated layer) swallows clicks otherwise. */}
+        <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          data-cms-key="book.ticket.member_cta"
-          data-testid="go-to-member"
-          style={{ position: "relative", zIndex: 1, width: "100%", height: 52, display: "flex", alignItems: "center", justifyContent: "center", background: tokens.colors.brand, color: "#000", border: "none", borderRadius: 14, fontSize: 16, fontWeight: 700, cursor: "pointer", marginTop: 72, marginBottom: 12, textDecoration: "none" }}>
-          {t("go_to_member")}
-        </motion.a>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 0.4 }} style={{ textAlign: "center", marginBottom: 16 }}>
-          <button type="button" onClick={() => (window.location.href = "/")} data-cms-key="book.ticket.home" style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 14, cursor: "pointer" }}>
-            {t("back_home")}
-          </button>
+          style={{ position: "relative", zIndex: 1, marginTop: 72, marginBottom: 16 }}
+        >
+          <TicketActions orderTicket={orderTicket} locale={locale} />
         </motion.div>
       </div>
     </div>
@@ -3934,6 +3950,8 @@ function ConfirmingPaymentContainer({
 }
 
 /* ─────────────────────────  Root  ───────────────────────── */
+/** Admin-only checkout tools (TEST banner, KPay dev gateway). Hard-coded on. */
+const ADMIN_CHECKOUT_TOOLS_ENABLED = true
 /** Admin Apple Pay / Google Pay (Stripe) are DISABLED for now: set to ["apple_pay", "google_pay"] to re-enable. */
 const ADMIN_STRIPE_WALLETS: readonly PaymentMethodId[] = []
 

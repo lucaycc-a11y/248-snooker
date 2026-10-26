@@ -62,6 +62,12 @@ export async function POST(req: Request) {
         if (live.status === 'success') {
           return NextResponse.json({ error: 'booking_payment_processing' }, { status: 409 })
         }
+        // A still-pending KPay order stays payable until KPay expires it (FPS 5 min,
+        // other QR/H5 10 min). Resetting the booking now would let the customer pay
+        // the old QR afterwards against a booking whose price was reset.
+        if (live.status === 'pending') {
+          return NextResponse.json({ error: 'booking_payment_processing' }, { status: 409 })
+        }
       } catch (e) {
         console.warn('[KPay] retry pre-check: provider lookup failed', { bookingId, message: (e as Error).message })
         return NextResponse.json({ error: 'booking_payment_processing' }, { status: 409 })

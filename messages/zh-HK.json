@@ -659,7 +659,7 @@
     "points_earn_title": "賺取積分方式",
     "points_earn": [
       "每消費 HK$1 = 1 積分",
-      "首次登入 = 50 積分",
+      "首次登入 = 100 積分",
       "生日月份 = 雙倍積分"
     ],
     "no_points": "暫無積分記錄",
@@ -1446,6 +1446,7 @@
   },
   "ticket": {
     "printer_aria": "訂桌出票機",
+    "member_qr_caption": "這是你的專屬會員QR Code，之後可於會員中心或預約確認電郵查看。",
     "ticket_title": "訂桌已確認",
     "ticket_subtitle": "{room} · Space8 入場票",
     "booking_pass": "訂桌票",
@@ -1522,6 +1523,7 @@
     "body": "SPACE8 專註於給你最高品質的遊戲體驗。每間球室獨立設計，配備星牌專業桌球臺、頂級照明系統、恆溫冷氣及免費高速 WiFi。所有設施定期維護，確保最佳狀態。"
   },
   "footer": {
+    "powered_by": "Powered by",
     "tagline": "香港自助桌球會所・06:00–24:00 營業",
     "copyright": "© 2026 SPACE8",
     "terms": "條款及细則",
@@ -1814,7 +1816,7 @@
     "how_items": [
       {
         "title": "賺取積分",
-        "body": "每消費 HK$1 即累積 1 積分。新用戶註冊即送 50 積分。"
+        "body": "每消費 HK$1 即累積 1 積分。新用戶註冊即送 100 積分。"
       },
       {
         "title": "自動升級",
@@ -1885,7 +1887,7 @@
     ],
     "tier_title": "會員制度。",
     "tier_intro": "註冊賬號即自動成為標準會員，無需另外申請。",
-    "tier_join_note": "註冊賬號即自動成為標準會員，無需另外申請，并獲贈 50 積分。",
+    "tier_join_note": "註冊賬號即自動成為標準會員，無需另外申請，并獲贈 100 積分。",
     "tier_cta": "立即加入",
     "cta_book": "立即預訂",
     "cta_login": "登入會員中心",
@@ -1894,8 +1896,8 @@
       "threshold": "",
       "at": "0",
       "lead": "註冊即送積分，每一場都被記錄下來，從這裡開始累積屬於你的球場故事。",
-      "body": "HK$1 = 1 積分。註冊即送 50 積分。",
-      "desc": "新用戶自動加入標準會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。"
+      "body": "HK$1 = 1 積分。註冊即送 100 積分。",
+      "desc": "新用戶自動加入標準會員，即時獲贈 100 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。"
     },
     "tier_platinum": {
       "title": "優越會員",
@@ -1921,7 +1923,7 @@
       {
         "icon": "earn",
         "title": "賺取積分",
-        "body": "每消費 HK$1 累積 1 積分，新會員註冊即送 50 積分。"
+        "body": "每消費 HK$1 累積 1 積分，新會員註冊即送 100 積分。"
       },
       {
         "icon": "upgrade",
@@ -2567,9 +2569,9 @@
     "modal_label": "會員等級",
     "close_modal": "關閉",
     "amateur_title": "標準會員",
-    "amateur_body": "HK$1 = 1 積分。註冊即送 50 積分。",
-    "amateur_highlight": "50 積分",
-    "amateur_modal_body": "新用戶自動加入標準會員，即時獲贈 50 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。",
+    "amateur_body": "HK$1 = 1 積分。註冊即送 100 積分。",
+    "amateur_highlight": "100 積分",
+    "amateur_modal_body": "新用戶自動加入標準會員，即時獲贈 100 積分。每消費 HK$1 累積 1 積分。Space Pilot 完整功能開放使用，個人總勝場自動累積，開始你的桌球之旅。",
     "century_title": "優越會員",
     "century_subtitle": "800 積分起",
     "century_body": "尊享禮遇，積分 1.5 倍加速。",

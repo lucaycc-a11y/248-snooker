@@ -25,7 +25,7 @@ const META: Record<string, { title: string; description: string }> = {
   "zh-HK": {
     title: "場地介紹｜SPACE8 香港新蒲崗中八球室",
     description:
-      "SPACE8 場地設施及服務介紹：星牌中八球枱、專業級照明、智能 QR 門禁。全預約制，網上預訂、QR碼自助入場。地址：香港新蒲崗大有街 32 號泰力工業中心 3 樓 05 室。",
+      "SPACE8 是香港新蒲崗自助無煙智能中式桌球球室，兩間1T獨立球室，每日 06:00 至 24:00 營業。網上預訂、二維碼自助入場。專業設備，智能系統，聚光在桌球本身。鄰近鑽石山和啟德地鐵站，方便停車。",
   },
   "zh-CN": {
     title: "场地介绍｜SPACE8 香港新蒲岗中式八球室",
@@ -46,16 +46,17 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const m = META[locale] ?? META["zh-HK"];
+  const description = m.description;
   const path = locale === "zh-HK" ? "/venue" : `/${locale}/venue`;
   const t = await getTranslations({ locale, namespace: "venuePage" });
 
   return {
     title: m.title,
-    description: m.description,
+    description,
     alternates: pageAlternates(locale, "/venue"),
     openGraph: {
       title: m.title,
-      description: m.description,
+      description,
       url: `${BASE}${path}`,
       siteName: "Space8",
       type: "website",
@@ -71,7 +72,7 @@ export async function generateMetadata({
     twitter: {
       card: 'summary_large_image',
       title: m.title,
-      description: m.description,
+      description,
       images: [`${BASE}/images/og-image-中八桌球-香港新蒲崗.png`],
     },
     robots: indexingMeta(),

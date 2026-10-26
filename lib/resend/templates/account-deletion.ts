@@ -15,7 +15,7 @@ function shell(title: string, body: string): string {
     <tr><td style="padding:48px 24px;">
       <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;" cellpadding="0" cellspacing="0">
         <tr><td style="text-align:center;padding-bottom:32px;">
-          <img src="https://space8.com.hk/logos/space8-logo-email.png" alt="SPACE8" width="160" style="display:inline-block;max-width:160px;height:auto;" />
+          <img src="https://space8.com.hk/logos/space8-icon-email.png" alt="SPACE8" width="72" height="72" style="display:inline-block;width:72px;height:72px;border-radius:50%;" />
         </td></tr>
         <tr><td style="background-color:#0a0a0a;border-radius:24px;padding:40px 32px;">
           <h1 style="color:#ffffff;font-size:22px;font-weight:600;margin:0 0 24px;text-align:center;">${esc(title)}</h1>
