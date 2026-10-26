@@ -74,7 +74,7 @@ export function renderEmailLayout(params: {
         <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;" cellpadding="0" cellspacing="0">
           <tr>
             <td style="text-align:center;padding-bottom:32px;">
-              <img src="https://space8.com.hk/logos/space8-icon-email.png" alt="SPACE8" width="72" height="72" style="display:inline-block;width:72px;height:72px;border-radius:50%;" />
+              <img src="https://space8.com.hk/logos/space8-logo-email.png" alt="SPACE8" width="160" height="auto" style="display:inline-block;max-width:160px;height:auto;" />
             </td>
           </tr>
           <tr>

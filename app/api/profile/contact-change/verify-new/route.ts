@@ -96,7 +96,7 @@ export async function POST(request: Request) {
             subject: 'Your Space8 phone number was changed',
             html: `<div style="font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;max-width:600px;margin:0 auto;padding:48px 24px;background:#000;color:#fff;">
   <div style="text-align:center;padding-bottom:32px;">
-    <img src="https://space8.com.hk/logos/space8-icon-email.png" alt="SPACE8" width="72" height="72" style="display:inline-block;width:72px;height:72px;border-radius:50%;" />
+    <img src="https://space8.com.hk/logos/space8-logo-email.png" alt="Space8" width="280" style="max-width:100%;height:auto;" />
   </div>
   <div style="background:#0a0a0a;border-radius:24px;padding:40px;border:1px solid rgba(34,197,94,0.2);">
     <div style="text-align:center;margin-bottom:20px;">
