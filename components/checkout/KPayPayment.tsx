@@ -1,5 +1,6 @@
 "use client"
 
+import { PaymentSupportLink } from '@/components/checkout/PaymentSupportLink'
 import { fetchFreezeActive, stashGatewayHandoff, submitGatewayForm } from '@/lib/checkout/gateway-handoff'
 import { checkoutErrorText } from '@/lib/checkout/error-text'
 import { useEffect, useRef, useState, useCallback } from 'react'
@@ -1037,6 +1038,7 @@ export default function KPayPayment(props: Props) {
             </button>
           </>
         )}
+        <PaymentSupportLink bookingRef={localBookingId ?? '-'} providerOrderNo={providerOrderNo} stateCode="UI_FAILED" />
       </div>
     )
   }
@@ -1052,6 +1054,7 @@ export default function KPayPayment(props: Props) {
         <button type="button" onClick={onBackToMethods} style={styles.primaryButton}>
           {labels.back_to_methods}
         </button>
+        <PaymentSupportLink bookingRef={localBookingId ?? '-'} providerOrderNo={providerOrderNo} stateCode="UI_CANCELLED" />
       </div>
     )
   }
@@ -1078,6 +1081,7 @@ export default function KPayPayment(props: Props) {
         >
           {labels.cancel}
         </button>
+        <PaymentSupportLink bookingRef={localBookingId ?? '-'} providerOrderNo={providerOrderNo} stateCode="UI_EXPIRED" />
       </div>
     )
   }

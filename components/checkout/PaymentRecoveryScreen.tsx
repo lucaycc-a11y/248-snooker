@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { AlertTriangle } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
+import { whatsappSupportUrl } from "@/lib/checkout/support-whatsapp"
 
 /**
  * Why the payment didn't complete. All three land on the SAME screen — only
@@ -51,6 +52,8 @@ type Props = {
   labels: PaymentRecoveryLabels
   supportPhone?: string
   supportEmail?: string
+  /** Prefilled WhatsApp message (booking code, order tail, state code, time). */
+  supportMessage?: string
 }
 
 function formatClock(iso: string): string {
@@ -107,6 +110,7 @@ export function PaymentRecoveryScreen({
   labels,
   supportPhone,
   supportEmail,
+  supportMessage,
 }: Props) {
   const remaining = useRemaining(holdExpiresAt)
   const holdLapsed = !holdActive || (remaining !== null && remaining <= 0)
@@ -191,7 +195,7 @@ export function PaymentRecoveryScreen({
         {(supportPhone || supportEmail) && (
           <div style={styles.support}>
             {supportPhone && (
-              <a href={`tel:${supportPhone.replace(/\s+/g, "")}`} style={styles.supportLink}>
+              <a href={whatsappSupportUrl(supportPhone, supportMessage ?? "")} target="_blank" rel="noopener noreferrer" style={styles.supportLink}>
                 {labels.supportPhone.replace("{phone}", supportPhone)}
               </a>
             )}

@@ -1441,7 +1441,7 @@
     "recovery_not_received_note": "If you've already paid, hang tight. It will be confirmed automatically, or refunded if it can't be.",
     "recovery_cancel_booking": "Cancel booking",
     "recovery_back_to_slots": "Back to time slots",
-    "recovery_support_phone": "Call {phone}",
+    "recovery_support_phone": "WhatsApp support {phone}",
     "recovery_support_email": "Email {email}",
     "support_phone": "+852 6180 8022",
     "support_email": "Info@space8.com.hk",

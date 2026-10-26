@@ -48,6 +48,7 @@ import { useOrderConfirmationPolling, type OrderHoldState, type PaymentReference
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { PaymentReferencePanel } from "@/components/checkout/PaymentReferencePanel"
 import { submitGatewayForm, takeGatewayHandoff } from "@/lib/checkout/gateway-handoff"
+import { buildSupportMessage } from "@/lib/checkout/support-whatsapp"
 import { quoteBlockTotal, quoteBlockDetail, quoteBlockMinPoints } from "@/lib/pricing"
 import { DEFAULT_PERIODS, pricingRatesToPeriods, type PricingPeriod } from "@/lib/data/pricing"
 import { estimateEarnPoints } from "@/lib/points/estimate"
@@ -3822,6 +3823,11 @@ function ConfirmingPayment({
         onBackToSlots={shownReason === "not_received" ? onCancelBooking : onBackToSlots}
         supportPhone={t("support_phone")}
         supportEmail={t("support_email")}
+        supportMessage={buildSupportMessage(t("payref_whatsapp_msg"), {
+          code: reference?.code ?? bookingId.slice(0, 8),
+          order: reference?.orderTail ?? "-",
+          state: `${stateCode ?? "-"}/${shownReason}`,
+        })}
         labels={{
           title: t("recovery_title"),
           reasonFailed: t("recovery_reason_failed"),

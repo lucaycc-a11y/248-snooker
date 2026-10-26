@@ -1525,7 +1525,7 @@
     "recovery_not_received_note": "如你已经付款，请稍候，系统会自动确认；若最终未能确认，款项会自动退回。",
     "recovery_cancel_booking": "取消预订",
     "recovery_back_to_slots": "返回选择时段",
-    "recovery_support_phone": "致电客服 {phone}",
+    "recovery_support_phone": "WhatsApp 客服 {phone}",
     "recovery_support_email": "邮箱 {email}",
     "support_phone": "+852 6180 8022",
     "support_email": "Info@space8.com.hk",
