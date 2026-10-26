@@ -56,7 +56,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     href: '/admin/bookings',
     items: [
       { href: '/admin/bookings', label: '預約', cmsKey: 'admin.nav.bookings' },
-      { href: '/admin/payment-log', label: '付款記錄', cmsKey: 'admin.nav.payment_log' },
+      { href: '/admin/payment-log', label: '付款監控', cmsKey: 'admin.nav.payment_log' },
       { href: '/admin/calendar', label: '日曆', cmsKey: 'admin.nav.calendar' },
       { href: '/admin/revenue', label: '收入', cmsKey: 'admin.nav.revenue' },
     ],
