@@ -9,6 +9,12 @@ import { isProductionEnv } from '@/lib/env/app-env'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+// Same locale-prefix rule the create-order flow uses for the gateway return URL.
+function confirmPathFor(bookingId: string): string {
+  const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
+  return `${localePrefix ? `/${localePrefix}` : ''}/book/confirm?bookingId=${encodeURIComponent(bookingId)}`
+}
+
 export type KPayMethod = 'card' | 'fps' | 'payme' | 'octopus' | 'alipay' | 'alipayhk' | 'wechat' | 'unionpay_qp'
 
 export type KPayState =
@@ -518,7 +524,11 @@ export default function KPayPayment(props: Props) {
         const message = payload && typeof payload === 'object' && !Array.isArray(payload)
           ? (payload as Record<string, unknown>).error
           : undefined
-        setError(typeof message === 'string' ? message : labels.cancelled_desc)
+        if (message === 'payment_received') {
+          window.location.href = confirmPathFor(localBookingId)
+          return
+        }
+        setError(typeof message === 'string' ? checkoutErrorText(message) : labels.cancelled_desc)
         return
       }
       attemptRef.current += 1
@@ -572,6 +582,17 @@ export default function KPayPayment(props: Props) {
         const message = payload && typeof payload === 'object' && !Array.isArray(payload)
           ? (payload as Record<string, unknown>).error
           : undefined
+        // KPay still has a live or paid order: never pretend the payment failed and
+        // never release anything. Paid -> the confirm page finishes it; in progress ->
+        // stay here with an honest message.
+        if (message === 'payment_received') {
+          window.location.href = confirmPathFor(localBookingId)
+          return
+        }
+        if (message === 'payment_in_progress') {
+          setError(checkoutErrorText(message))
+          return
+        }
         setError(typeof message === 'string' ? checkoutErrorText(message) : labels.failed_desc)
         setState('failed')
         return

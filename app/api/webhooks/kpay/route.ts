@@ -7,6 +7,9 @@ import { logSiteError } from '@/lib/errors/log'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { rateLimit } from '@/lib/rate-limit'
 import { getClientIp } from '@/lib/security/audit-log'
+import { parkPaidBookingForReview } from '@/lib/payments/park-for-review'
+import { logPaymentEvent } from '@/lib/payments/payment-events'
+import { getLiveKPayState } from '@/lib/payments/live-order'
 
 export const runtime = 'nodejs'
 
@@ -97,13 +100,20 @@ export async function POST(req: Request) {
   const ageMs = nowMs - webhookTimestamp
   const MAX_AGE_MS = 10 * 60 * 1000 // 10 minutes
 
-  if (Number.isNaN(webhookTimestamp) || ageMs > MAX_AGE_MS) {
+  if (Number.isNaN(webhookTimestamp)) {
+    console.warn('[webhook/kpay] invalid_timestamp', { timestamp })
+    return new NextResponse('Webhook timestamp invalid', { status: 401 })
+  }
+  // A signed delivery older than 10 minutes is no longer rejected outright: KPay
+  // retries a failed delivery later, and refusing it would leave a PAID order
+  // unconfirmed. A stale success is instead re-verified against KPay (see below).
+  const staleDelivery = ageMs > MAX_AGE_MS
+  if (staleDelivery) {
     console.warn('[webhook/kpay] stale_timestamp', {
       timestamp,
       ageMinutes: Math.floor(ageMs / 60000),
       maxMinutes: 10,
     })
-    return new NextResponse('Webhook timestamp too old', { status: 401 })
   }
 
   if (ageMs < -60000) {
@@ -149,9 +159,12 @@ export async function POST(req: Request) {
   // confirmed. Only success is mapped from it; other states keep their old
   // handling.
   const transactionState = payload.transactionState
+  // transactionState 3 ("UN:訂單已關閉") means KPay closed the order unpaid, so the
+  // customer can no longer pay it. It is the signal that frozen holds may be released.
   const result =
     String(payload.result ?? payload.status ?? payload.tradeStatus ?? '') ||
-    (transactionState === 2 || transactionState === '2' ? '2' : '')
+    (transactionState === 2 || transactionState === '2' ? '2' : '') ||
+    (transactionState === 3 || transactionState === '3' ? '3' : '')
   const eventType = String(payload.eventType ?? 'payment.update')
 
   if (!orderNo || !outTradeNo) {
@@ -369,24 +382,60 @@ export async function POST(req: Request) {
           console.error('[webhook/kpay] amount_mismatch', { orderNo, outTradeNo, paidAmount, currency, expected })
           await markWebhookFailed(supabase, eventId, message)
           await logSiteError('webhooks/kpay', 'error', message, { orderNo, outTradeNo, eventId })
+          await logPaymentEvent({
+            bookingId: booking.id,
+            orderGroupId: booking.order_group_id,
+            providerOrderNo: orderNo,
+            event: 'amount_mismatch',
+            source: 'webhook',
+            reason: message,
+          })
           // 200 so KPay stops retrying; the booking stays unconfirmed for manual review.
           return new NextResponse('OK', { status: 200 })
         }
       }
+      if (staleDelivery && (await getLiveKPayState(orderNo)) !== 'paid') {
+        console.error('[webhook/kpay] stale_success_not_verified', { orderNo, outTradeNo })
+        await markWebhookFailed(supabase, eventId, 'stale success webhook not confirmed by KPay query')
+        return new NextResponse('Webhook timestamp too old', { status: 401 })
+      }
       try {
         await handleSucceeded(supabase, booking, orderNo, outTradeNo, eventId)
+        await logPaymentEvent({
+          bookingId: booking.id,
+          orderGroupId: booking.order_group_id,
+          providerOrderNo: orderNo,
+          event: 'webhook_paid_confirmed',
+          source: 'webhook',
+          toState: 'confirmed',
+        })
       } catch (confirmErr) {
-        // Money arrived for an order we had already released (cancelled / expired /
-        // failed — e.g. the customer started a new checkout, or the 10-minute sweep
-        // ran). The slot may belong to someone else now, so refund instead of
-        // leaving the customer charged with no booking.
-        const rejected = confirmErr instanceof Error
-          && (confirmErr.message.includes('booking_not_pending') || confirmErr.message.includes('group_not_found'))
-        if (!rejected) throw confirmErr
-        await refundLatePayment(supabase, booking, orderNo, outTradeNo, eventId, paidAmount)
+        // Money arrived but the booking cannot be confirmed (already cancelled /
+        // expired / failed, or the slot was taken). NEVER move money automatically:
+        // park the order as payment_review and alert an admin to handle it by hand.
+        const message = confirmErr instanceof Error ? confirmErr.message : String(confirmErr)
+        const needsReview = message.includes('booking_not_confirmable') || message.includes('slot_conflict_payment_review')
+        if (!needsReview) throw confirmErr
+        await parkPaidBookingForReview({
+          bookingId: booking.id,
+          orderGroupId: booking.order_group_id,
+          providerOrderNo: orderNo,
+          source: 'webhook',
+          reason: message,
+          amount: paidAmount,
+        })
+        await markWebhookProcessed(supabase, eventId)
       }
     } else if (isFailed) {
       await handleFailed(supabase, booking, eventId)
+      await logPaymentEvent({
+        bookingId: booking.id,
+        orderGroupId: booking.order_group_id,
+        providerOrderNo: orderNo,
+        event: 'webhook_closed_or_failed',
+        source: 'webhook',
+        reason: `result=${result}`,
+      })
     } else if (isRefunded) {
       await handleRefunded(supabase, booking, orderNo, eventId)
     } else {
@@ -426,64 +475,6 @@ type BookingSummary = {
   human_code: string | null
   total_price: number
   payment_method: string | null
-}
-
-const RELEASED_STATUSES = ['cancelled', 'expired', 'payment_failed']
-
-// Refund a payment that landed on a booking which is no longer pending. Only runs
-// when EVERY row of the order is in a released state — a confirmed or still-pending
-// row is never refunded here. A failed refund throws, so the event is marked failed
-// and logged for manual handling exactly as before.
-async function refundLatePayment(
-  supabase: SupabaseClient,
-  booking: BookingSummary,
-  providerOrderNo: string,
-  outTradeNo: string,
-  eventId: string,
-  paidAmount: number,
-) {
-  const query = supabase.from('bookings').select('id, status')
-  const { data: rows, error } = booking.order_group_id
-    ? await query.eq('order_group_id', booking.order_group_id)
-    : await query.eq('id', booking.id)
-  if (error) throw new Error(`late payment lookup failed: ${error.message}`)
-  if (!rows || rows.length === 0 || !rows.every((r) => RELEASED_STATUSES.includes(String(r.status)))) {
-    throw new Error('booking_not_pending: order is not in a refundable state')
-  }
-  if (!Number.isFinite(paidAmount) || paidAmount <= 0) {
-    throw new Error('booking_not_pending: paid amount unknown, cannot auto-refund')
-  }
-  const { KPayProvider } = await import('@/lib/payments/kpay')
-  const kpay = new KPayProvider(undefined, 'prod')
-  // Independent confirmation straight from KPay (not just the webhook body): refund
-  // only an order KPay itself reports as paid. 'refunded' means an earlier delivery
-  // already did it, so a retried event can never refund the same payment twice.
-  const live = await kpay.queryOrder(providerOrderNo)
-  if (live.status === 'refunded') {
-    await markWebhookProcessed(supabase, eventId)
-    return
-  }
-  if (live.status !== 'success') {
-    throw new Error(`booking_not_pending: KPay reports ${live.status}, not refunding`)
-  }
-  const refund = await kpay.refund({
-    providerOrderNo,
-    amount: paidAmount,
-    reason: 'Late payment on released booking',
-  })
-  if (!refund.success) {
-    throw new Error(`booking_not_pending: auto-refund failed: ${refund.message ?? 'unknown'}`)
-  }
-  console.warn('[webhook/kpay] late_payment_refunded', { bookingId: booking.id, outTradeNo, providerOrderNo, paidAmount })
-  await logSiteError('webhooks/kpay', 'warning', 'late payment auto-refunded', {
-    bookingId: booking.id,
-    outTradeNo,
-    providerOrderNo,
-    paidAmount,
-    refundNo: refund.providerRefundNo,
-    eventId,
-  })
-  await markWebhookProcessed(supabase, eventId)
 }
 
 async function handleSucceeded(

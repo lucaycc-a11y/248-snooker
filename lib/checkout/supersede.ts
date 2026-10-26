@@ -3,24 +3,18 @@ import type { getServiceSupabase } from '@/lib/supabase/service'
 type ServiceClient = ReturnType<typeof getServiceSupabase>
 
 // A customer who abandons a KPay checkout (closes the tab, loses signal) leaves a
-// pending booking holding their Space Wallet credit until the 10-minute sweep. When
-// the next checkout then fails with `insufficient_credits`, this releases ONLY the
-// holds that are provably dead, then lets the caller retry once.
+// pending booking holding their Space Wallet credit. When the next checkout then fails
+// with `insufficient_credits`, this releases ONLY the holds that are provably dead, then
+// lets the caller retry once.
 //
-// "Provably dead" is deliberately strict, because releasing the hold of an order
-// that can still be paid would let a late payment confirm without its credit:
+// "Provably dead" is deliberately strict, because releasing the hold of an order that
+// can still be paid would let a late payment land without its credit, and nothing
+// refunds a late payment automatically:
 //   - never reached the provider (no provider_order_no), or
-//   - KPay itself reports the order failed / cancelled / closed, or
-//   - KPay still says pending (the customer has since started a new checkout, so the
-//     old cashier was abandoned; any late payment is auto-refunded).
-// A paid order ('success') is never touched: the webhook confirms it.
-// Anything uncertain — a lookup error, a Stripe intent — is left alone.
-
-// The customer is actively starting a NEW checkout while an older order of theirs is
-// still unpaid, so a KPay order that is still pending is treated as abandoned at once
-// (no waiting period, no 10-minute sweep). If it is somehow paid afterwards, the KPay
-// webhook refunds a payment that lands on a cancelled booking, so no money is kept
-// without a booking.
+//   - KPay itself reports the order failed / cancelled / closed.
+// A paid order and a still-payable (pending) order are never touched: a paid one is
+// confirmed by the webhook / status poll, a pending one stays frozen until KPay closes
+// it. Anything uncertain — a lookup error, a Stripe intent — is left alone.
 
 type PendingRow = {
   id: string
@@ -71,10 +65,6 @@ export async function releaseDeadPendingOrders(
         }
         const status = await provider.queryOrder(row.provider_order_no)
         if (status.status === 'failed' || status.status === 'cancelled' || status.status === 'closed') {
-          dead = true
-        } else if (status.status === 'pending') {
-          // The customer has started a NEW checkout, so this cashier is abandoned.
-          // Release at once: a late payment is refunded by the KPay webhook.
           dead = true
         }
       } catch (e) {

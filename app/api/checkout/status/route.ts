@@ -6,6 +6,9 @@ import { KPayProvider } from '@/lib/payments/kpay'
 import { isUatEnv } from '@/lib/env/uat'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
+import { getLiveKPayState } from '@/lib/payments/live-order'
+import { parkPaidBookingForReview } from '@/lib/payments/park-for-review'
+import { logPaymentEvent } from '@/lib/payments/payment-events'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -401,6 +404,15 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
     console.log('[KPay] pollResult', { bookingId: booking.id, elapsedMs: Date.now() - startedAt, ...payload })
   }
 
+  // Reference + state code shown on the payment / confirm pages so a customer and
+  // support can quote the exact situation. Contains no secrets.
+  const ref = {
+    code: typeof booking.human_code === 'string' ? booking.human_code : null,
+    orderTail: typeof booking.provider_order_no === 'string' ? booking.provider_order_no.slice(-6) : null,
+  }
+  const reply = (stateCode: string, payload: Record<string, unknown>) =>
+    NextResponse.json({ ...payload, ref, stateCode, checkedAt: new Date().toISOString() })
+
   const holdState = async (): Promise<{ holdActive: boolean; holdExpiresAt: string | null }> => {
     const { data, error } = await service.rpc('checkout_hold_expiry', {
       p_booking_id: booking.id,
@@ -419,7 +431,7 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
 
   if (booking.status === 'confirmed') {
     logResult({ status: 'confirmed', providerStatus: 'success' })
-    return NextResponse.json({
+    return reply('CONFIRMED', {
       bookingId: booking.id,
       status: 'confirmed',
       providerStatus: 'success',
@@ -427,21 +439,57 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
     })
   }
 
-  if (booking.status === 'cancelled' || booking.status === 'expired') {
-    logResult({ status: booking.status, providerStatus: booking.status })
-    return NextResponse.json({
+  // Paid, but the booking could not be confirmed. A person handles it; nothing here
+  // retries or moves money.
+  if (booking.status === 'payment_review') {
+    logResult({ status: 'payment_review', providerStatus: 'success' })
+    return reply('PAID_NEEDS_REVIEW', {
       bookingId: booking.id,
-      status: booking.status,
-      providerStatus: booking.status === 'cancelled' ? 'cancelled' : booking.status,
+      status: 'payment_review',
+      providerStatus: 'success',
       holdActive: false,
       holdExpiresAt: null,
     })
   }
 
-  if (booking.status === 'payment_failed') {
+  // A released booking may still own a payable (or already paid) KPay order. The
+  // database state alone must never be reported as "payment failed" in that case.
+  if (booking.status === 'cancelled' || booking.status === 'expired') {
+    const live = await getLiveKPayState(booking.provider_order_no, hostname)
+    if (live === 'paid') {
+      const moved = await parkPaidBookingForReview({
+        bookingId: booking.id,
+        orderGroupId: booking.order_group_id ?? null,
+        providerOrderNo: booking.provider_order_no,
+        source: 'status_poll',
+        reason: `paid_after_${booking.status}`,
+      })
+      logResult({ status: 'payment_review', providerStatus: 'success', moved })
+      return reply('PAID_NEEDS_REVIEW', {
+        bookingId: booking.id,
+        status: 'payment_review',
+        providerStatus: 'success',
+        holdActive: false,
+        holdExpiresAt: null,
+      })
+    }
+    logResult({ status: booking.status, providerStatus: booking.status, live })
+    return reply(live === 'pending' || live === 'unknown' ? 'RELEASED_KPAY_STILL_OPEN' : 'RELEASED', {
+      bookingId: booking.id,
+      status: booking.status,
+      providerStatus: booking.status === 'cancelled' ? 'cancelled' : booking.status,
+      kpayState: live,
+      holdActive: false,
+      holdExpiresAt: null,
+    })
+  }
+
+  // payment_failed with no KPay order really did fail. With an order, fall through
+  // and ask KPay: the sweep may have marked it failed while the order is payable.
+  if (booking.status === 'payment_failed' && !booking.provider_order_no) {
     const hold = await holdState()
     logResult({ status: booking.status, providerStatus: booking.status, holdActive: hold.holdActive })
-    return NextResponse.json({
+    return reply('FAILED_NO_ORDER', {
       bookingId: booking.id,
       status: booking.status,
       providerStatus: booking.status,
@@ -454,7 +502,7 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
 
   if (!booking.provider_order_no) {
     logResult({ status: booking.status === 'pending' ? 'pending' : 'failed', providerStatus: 'pending', holdActive: hold.holdActive })
-    return NextResponse.json({
+    return reply('WAIT_NO_ORDER_YET', {
       bookingId: booking.id,
       status: booking.status === 'pending' ? 'pending' : 'failed',
       providerStatus: 'pending',
@@ -470,7 +518,20 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
   const provider = isUatEnv(hostname)
     ? new KPayProvider(hostname)
     : new KPayProvider(undefined, 'prod')
-  const orderStatus = await provider.queryOrder(booking.provider_order_no)
+  let orderStatus: Awaited<ReturnType<typeof provider.queryOrder>>
+  try {
+    orderStatus = await provider.queryOrder(booking.provider_order_no)
+  } catch (e) {
+    // Lookup failed: say so honestly. Never report a failure we have not seen.
+    console.warn('[KPay] pollResult lookup_failed', { bookingId: booking.id, message: (e as Error).message })
+    return reply('LOOKUP_ERROR', {
+      bookingId: booking.id,
+      status: 'pending',
+      providerStatus: 'pending',
+      holdActive: hold.holdActive,
+      holdExpiresAt: hold.holdExpiresAt,
+    })
+  }
 
   let uiStatus: string
   switch (orderStatus.status) {
@@ -546,7 +607,16 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
               // non-fatal
             }
             logResult({ status: 'confirmed', providerStatus: 'success' })
-            return NextResponse.json({
+            await logPaymentEvent({
+              bookingId: booking.id,
+              orderGroupId: booking.order_group_id ?? null,
+              providerOrderNo: booking.provider_order_no,
+              event: 'status_poll_confirmed',
+              source: 'status_poll',
+              fromState: booking.status,
+              toState: 'confirmed',
+            })
+            return reply('CONFIRMED', {
               bookingId: booking.id,
               status: 'confirmed',
               providerStatus: 'success',
@@ -580,7 +650,28 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
 
   logResult({ status: uiStatus, providerStatus: orderStatus.status })
 
-  return NextResponse.json({
+  // If the proactive confirm was rejected because the booking can no longer be
+  // confirmed, it has been parked as payment_review by the database; report that.
+  if (uiStatus === 'pending_confirmation') {
+    const { data: after } = await service.from('bookings').select('status').eq('id', booking.id).single()
+    if (after?.status === 'payment_review') {
+      return reply('PAID_NEEDS_REVIEW', {
+        bookingId: booking.id,
+        status: 'payment_review',
+        providerStatus: 'success',
+        holdActive: false,
+        holdExpiresAt: null,
+      })
+    }
+  }
+
+  const stateCode =
+    uiStatus === 'pending_confirmation' ? 'KPAY_PAID_WAIT_CONFIRM' :
+      uiStatus === 'pending' ? 'WAIT_KPAY_OPEN' :
+        orderStatus.status === 'closed' ? 'KPAY_CLOSED' :
+          orderStatus.status === 'refunded' ? 'KPAY_REFUNDED' : 'KPAY_FAILED'
+
+  return reply(stateCode, {
     bookingId: booking.id,
     status: uiStatus,
     providerStatus: orderStatus.status,

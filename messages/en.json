@@ -1450,7 +1450,20 @@
     "use_wallet": "Apply",
     "wallet_applied": "Space Wallet applied",
     "credit_min_payment_note": "The card minimum is HK$10. {left} credit stays in your wallet.",
-    "wallet_remove": "Remove"
+    "wallet_remove": "Remove",
+    "payref_title": "Reference (share with support if needed)",
+    "payref_booking": "Booking",
+    "payref_order": "Payment order tail",
+    "payref_state": "State code",
+    "payref_time": "Checked at",
+    "payref_copy": "Copy",
+    "payref_copied": "Copied",
+    "payref_whatsapp": "Message support on WhatsApp",
+    "payref_whatsapp_msg": "Hi, I need help with a payment: booking {code}, payment order tail {order}, state {state}, time {time}",
+    "confirm_waiting_note": "Please do not pay again or close this page. Confirmation usually takes seconds, occasionally a few minutes.",
+    "confirm_back_to_methods": "Back to payment methods (does not cancel your booking)",
+    "review_title": "We received your payment",
+    "review_desc": "Your payment went through, but we need to verify the booking manually. Keep the reference below and we will contact you shortly. Do not pay again."
   },
   "ticket": {
     "printer_aria": "Booking ticket printer",

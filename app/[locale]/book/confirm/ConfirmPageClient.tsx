@@ -6,6 +6,7 @@ import { useOrderConfirmationPolling } from "@/lib/booking/useOrderConfirmationP
 import { trackBookingConversion } from "@/lib/analytics/gtag"
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { LoadingGif } from "@/components/shared/LoadingGif"
+import { PaymentReferencePanel } from "@/components/checkout/PaymentReferencePanel"
 import { tokens } from "@/app/styles/tokens"
 
 export type ConfirmBookingSummary = {
@@ -25,33 +26,16 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
   const [retryError, setRetryError] = useState<string | null>(null)
   const result = useOrderConfirmationPolling(bookingId)
   const conversionFired = useRef(false)
-  // Someone who backs out of the gateway page lands here with nothing paid and
-  // would otherwise watch a spinner for the whole polling timeout. After 3s of
-  // not being confirmed, offer a way out that releases the slot.
+  // Coming back from the gateway never cancels or fails anything by itself: this page
+  // only reads. KPay gives no "customer backed out" signal, and the order may still be
+  // paid, so the page keeps waiting for KPay's final answer. After 20 s a NON-destructive
+  // way back to the payment methods is offered (the booking, slot and holds stay as they
+  // are; a paid order is still confirmed in the background).
   const [showEscape, setShowEscape] = useState(false)
   useEffect(() => {
-    const timer = setTimeout(() => setShowEscape(true), 3000)
+    const timer = setTimeout(() => setShowEscape(true), 20000)
     return () => clearTimeout(timer)
   }, [])
-  const handleLeave = useCallback(async () => {
-    // Never cancel a booking that has actually been paid: ask the server first.
-    try {
-      const res = await fetch(`/api/checkout/status?bookingId=${encodeURIComponent(bookingId)}`, { cache: "no-store" })
-      const json: unknown = await res.json().catch(() => null)
-      if (json && typeof json === "object" && (json as Record<string, unknown>).status === "confirmed") {
-        window.location.reload()
-        return
-      }
-    } catch {}
-    void fetch("/api/checkout/cancel", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bookingId }),
-      keepalive: true,
-    }).catch(() => {})
-    try { sessionStorage.removeItem("kpayPayment") } catch {}
-    window.location.href = "/book"
-  }, [bookingId])
 
   // Fire only when the webhook has committed bookings.status = confirmed —
   // never on the "book" click, where payment can still fail. Strict Mode can
@@ -105,13 +89,11 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
     }
   }, [bookingId, retrying, t])
 
-  // Back from the payment page with nothing paid: KPay gives no cancel signal, so
-  // after 3 s of "pending" offer the customer a clear choice instead of a spinner.
-  const shownReason: PaymentRecoveryReason | null =
-    reason ?? (showEscape && result.status !== "success" ? "not_received" : null)
+  const shownReason: PaymentRecoveryReason | null = reason
 
   if (shownReason) {
     return (
+      <>
       <PaymentRecoveryScreen
         reason={shownReason}
         holdActive={result.hold.active}
@@ -120,10 +102,6 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
         error={retryError}
         onRetry={handleRetry}
         onBackToSlots={() => {
-          if (shownReason === "not_received") {
-            void handleLeave()
-            return
-          }
           // Re-enter the payment selector while preserving the durable slot
           // selection; this is distinct from abandoning the booking flow.
           window.location.href = `/book?redirect_status=methods&bookingId=${encodeURIComponent(bookingId)}`
@@ -149,6 +127,22 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
           supportEmail: t("recovery_support_email"),
         }}
       />
+      <div style={{ maxWidth: 380, margin: "0 auto", padding: "0 20px 24px" }}>
+        <PaymentReferencePanel reference={result.ref} stateCode={result.stateCode} bookingId={bookingId} />
+      </div>
+      </>
+    )
+  }
+
+  if (result.status === "payment_review") {
+    return (
+      <main style={styles.wrap}>
+        <section style={styles.card} role="status" aria-live="polite">
+          <h1 style={styles.title}>{t("review_title")}</h1>
+          <p style={styles.text}>{t("review_desc")}</p>
+          <PaymentReferencePanel reference={result.ref} stateCode={result.stateCode} bookingId={bookingId} />
+        </section>
+      </main>
     )
   }
 
@@ -192,15 +186,17 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
         <LoadingGif label={tCommon("loading")} />
         <h1 style={styles.title} data-cms-key="book.confirm.pending_title">{t("confirming")}</h1>
         <p style={styles.text} data-cms-key="book.confirm.pending_desc">{t("kpay_pending_confirmation_desc")}</p>
+        <p style={styles.text}>{t("confirm_waiting_note")}</p>
         {showEscape && (
           <button
             type="button"
-            onClick={handleLeave}
+            onClick={() => { window.location.href = `/book?redirect_status=methods&bookingId=${encodeURIComponent(bookingId)}` }}
             style={{ marginTop: 8, minHeight: 44, padding: "0 20px", borderRadius: 12, border: `1px solid ${tokens.colors.border}`, background: "transparent", color: tokens.colors.text, fontSize: 14, fontWeight: 600, cursor: "pointer" }}
           >
-            {t("recovery_back_to_slots")}
+            {t("confirm_back_to_methods")}
           </button>
         )}
+        <PaymentReferencePanel reference={result.ref} stateCode={result.stateCode} bookingId={bookingId} />
       </section>
     </main>
   )

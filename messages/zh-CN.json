@@ -1534,7 +1534,20 @@
     "use_wallet": "套用",
     "wallet_applied": "已套用 Space Wallet",
     "credit_min_payment_note": "卡付款最低 HK$10，余下 {left} 额度已保留。",
-    "wallet_remove": "移除"
+    "wallet_remove": "移除",
+    "payref_title": "参考资料（联系客服时请提供）",
+    "payref_booking": "订单编号",
+    "payref_order": "付款单尾号",
+    "payref_state": "状态码",
+    "payref_time": "查询时间",
+    "payref_copy": "复制",
+    "payref_copied": "已复制",
+    "payref_whatsapp": "WhatsApp 联系客服",
+    "payref_whatsapp_msg": "你好，我想查询付款：订单 {code}，付款单尾号 {order}，状态码 {state}，时间 {time}",
+    "confirm_waiting_note": "请勿重复付款或关闭此页。付款确认通常几秒内完成，最长可能需要数分钟。",
+    "confirm_back_to_methods": "返回选择付款方式（不会取消订单）",
+    "review_title": "已收到你的付款",
+    "review_desc": "你的付款已成功，但订单需要我们人工核实。请保留下方参考资料，我们会尽快联系你，无需重复付款。"
   },
   "ticket": {
     "printer_aria": "订桌出票机",

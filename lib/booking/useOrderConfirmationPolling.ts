@@ -9,6 +9,7 @@ export type OrderConfirmationStatus =
   | "failed"
   | "cancelled"
   | "expired"
+  | "payment_review"
   | "timeout"
 
 type CheckoutStatusResponse = {
@@ -17,6 +18,14 @@ type CheckoutStatusResponse = {
   holdActive?: boolean
   holdExpiresAt?: string | null
   totalPrice?: number
+  ref?: PaymentReference | null
+  stateCode?: string
+}
+
+/** Short, non-secret reference shown to the customer and quoted to support. */
+export type PaymentReference = {
+  code: string | null
+  orderTail: string | null
 }
 
 /** Slot-hold state reported alongside the payment status. */
@@ -37,15 +46,21 @@ export type OrderConfirmationResult = {
    * confirmed. Drives the Google Ads conversion value; null before success.
    */
   totalPrice: number | null
+  /** Booking code + KPay order tail, for the on-page reference panel. */
+  ref: PaymentReference | null
+  /** Machine-readable situation code from /api/checkout/status (e.g. KPAY_PAID_WAIT_CONFIRM). */
+  stateCode: string | null
 }
 
 // Fast phase: poll every 2s for the first 30s (KPay webhooks are near-instant).
-// Slow phase: 5s intervals until the 60s timeout — avoids hammering the API
-// while still catching delayed KPay status transitions.
+// Slow phase: 5s intervals — avoids hammering the API while still catching delayed
+// KPay status transitions. There is deliberately NO short website-side deadline: while
+// KPay can still report the order as paid, the page keeps waiting. The 30-minute
+// ceiling only stops a forgotten background tab from polling forever.
 const FAST_POLL_MS = 2_000
 const FAST_PHASE_MS = 30_000
 const SLOW_POLL_MS = 5_000
-const DEFAULT_TIMEOUT_MS = 60_000
+const DEFAULT_TIMEOUT_MS = 30 * 60_000
 
 /**
  * Timeout override for manual testing (e.g. `?confirmTimeoutMs=3000` to watch
@@ -63,6 +78,15 @@ function resolveTimeoutMs(): number {
   return Math.min(Math.max(parsed, 1_000), DEFAULT_TIMEOUT_MS)
 }
 
+function parseRef(value: unknown): PaymentReference | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null
+  const record = value as Record<string, unknown>
+  return {
+    code: typeof record.code === "string" ? record.code : null,
+    orderTail: typeof record.orderTail === "string" ? record.orderTail : null,
+  }
+}
+
 function parseStatusResponse(value: unknown): CheckoutStatusResponse {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {}
   const record = value as Record<string, unknown>
@@ -72,6 +96,8 @@ function parseStatusResponse(value: unknown): CheckoutStatusResponse {
     holdActive: typeof record.holdActive === "boolean" ? record.holdActive : undefined,
     holdExpiresAt: typeof record.holdExpiresAt === "string" ? record.holdExpiresAt : null,
     totalPrice: typeof record.totalPrice === "number" ? record.totalPrice : undefined,
+    ref: parseRef(record.ref),
+    stateCode: typeof record.stateCode === "string" ? record.stateCode : undefined,
   }
 }
 
@@ -88,6 +114,8 @@ export function useOrderConfirmationPolling(
   const [hold, setHold] = useState<OrderHoldState>({ active: false, expiresAt: null })
   const [elapsedSec, setElapsedSec] = useState(0)
   const [totalPrice, setTotalPrice] = useState<number | null>(null)
+  const [ref, setRef] = useState<PaymentReference | null>(null)
+  const [stateCode, setStateCode] = useState<string | null>(null)
 
   useEffect(() => {
     if (!enabled || !bookingId) {
@@ -145,6 +173,8 @@ export function useOrderConfirmationPolling(
         if (!cancelled && result.totalPrice !== undefined) {
           setTotalPrice(result.totalPrice)
         }
+        if (!cancelled && result.ref) setRef(result.ref)
+        if (!cancelled && result.stateCode) setStateCode(result.stateCode)
 
         // Provider success only means KPay accepted the payment. The webhook
         // still has to commit bookings.status = confirmed before this hook can
@@ -162,11 +192,11 @@ export function useOrderConfirmationPolling(
           finish("cancelled")
           return
         } else if (statusValue === "payment_review") {
-          // Charged, but the amount disagreed with the booking total. Terminal —
-          // polling cannot resolve a money discrepancy, so park the customer on
-          // the recovery screen rather than burning the full timeout.
-          console.error("[checkout] amount_mismatch_review", { bookingId })
-          finish("failed")
+          // Charged, but the booking can no longer be confirmed automatically
+          // (released booking, slot taken, amount disagreement). Terminal for polling:
+          // a person resolves it, so show a dedicated "we have your payment" screen
+          // instead of a failure.
+          finish("payment_review")
           return
         } else if (
           statusValue === "failed" ||
@@ -212,5 +242,5 @@ export function useOrderConfirmationPolling(
     }
   }, [bookingId, enabled])
 
-  return { status, hold, elapsedSec, totalPrice }
+  return { status, hold, elapsedSec, totalPrice, ref, stateCode }
 }

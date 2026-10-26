@@ -241,3 +241,29 @@ begin
     perform public.log_payment_event(v_id, 'swept_expired', 'cron', 'pending', 'payment_failed', 'auto_expired_pending');
   end loop;
 end $$;
+
+-- Starting a new lock must not free the slot of a booking whose KPay order is still
+-- payable: that is how a second booking got created while the first could still be paid.
+create or replace function public.release_my_locks(p_user_id uuid)
+returns jsonb language plpgsql security definer set search_path to 'public' as $$
+declare v_count integer;
+begin
+  with released as (
+    update public.slots s
+       set status = 'available', locked_by = null, locked_until = null
+     where s.status = 'locked' and s.locked_by = p_user_id
+       and not exists (
+         select 1
+           from public.bookings b
+           join public.payment_attempts a on a.booking_id = b.id
+          where b.slot_id = s.id
+            and b.user_id = p_user_id
+            and b.status = 'pending'
+            and a.status in ('claimed', 'pending')
+            and a.provider_order_no is not null
+            and a.created_at > now() - interval '60 minutes')
+    returning s.id
+  )
+  select count(*) into v_count from released;
+  return jsonb_build_object('success', true, 'released', v_count);
+end $$;

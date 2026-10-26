@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { rateLimit } from '@/lib/rate-limit'
 import { withSecurity } from '@/lib/security/api-wrapper'
+import { getLiveKPayState } from '@/lib/payments/live-order'
+import { logPaymentEvent } from '@/lib/payments/payment-events'
 
 export const runtime = 'nodejs'
 
@@ -25,7 +27,39 @@ async function handleCancel(req: Request) {
       : null
     if (!isUuid(bookingId)) return NextResponse.json({ error: 'Invalid bookingId' }, { status: 400 })
 
-    const { data, error } = await getServiceSupabase().rpc('cancel_pending_booking', {
+    const service = getServiceSupabase()
+
+    // A KPay order that still exists is the source of truth. Releasing the booking,
+    // slot and credit/promo holds while the order can still be paid is how a customer
+    // ends up charged for a cancelled booking, so ask KPay first:
+    //   paid / pending / unknown -> refuse (the status API confirms a paid order)
+    //   closed / no order        -> safe to release
+    const { data: row } = await service
+      .from('bookings')
+      .select('id, status, provider_order_no, order_group_id')
+      .eq('id', bookingId)
+      .eq('user_id', user.id)
+      .maybeSingle()
+    if (row && (row.status === 'pending' || row.status === 'payment_failed')) {
+      const live = await getLiveKPayState(row.provider_order_no, new URL(req.url).hostname)
+      if (live === 'paid' || live === 'pending' || live === 'unknown') {
+        await logPaymentEvent({
+          bookingId,
+          orderGroupId: row.order_group_id,
+          providerOrderNo: row.provider_order_no,
+          event: 'cancel_refused',
+          source: 'user',
+          fromState: row.status,
+          reason: `kpay_${live}`,
+        })
+        return NextResponse.json(
+          { error: live === 'paid' ? 'payment_received' : 'payment_in_progress' },
+          { status: 409 },
+        )
+      }
+    }
+
+    const { data, error } = await service.rpc('cancel_pending_booking', {
       p_booking_id: bookingId,
       p_user_id: user.id,
     })
@@ -42,6 +76,16 @@ async function handleCancel(req: Request) {
       return NextResponse.json({ error: reason }, { status })
     }
 
+    await logPaymentEvent({
+      bookingId,
+      orderGroupId: row?.order_group_id ?? null,
+      providerOrderNo: row?.provider_order_no ?? null,
+      event: 'cancelled_by_user',
+      source: 'user',
+      fromState: row?.status ?? null,
+      toState: 'cancelled',
+      reason: 'kpay_closed_or_no_order',
+    })
     return NextResponse.json({ success: true, bookingId })
   } catch (error) {
     console.error('[checkout/cancel] error', { message: (error as Error).message })
