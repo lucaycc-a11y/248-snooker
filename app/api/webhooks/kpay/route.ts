@@ -404,6 +404,35 @@ export async function POST(req: Request) {
           return new NextResponse('OK', { status: 200 })
         }
       }
+      // A second KPay order of the SAME booking was paid after the booking was already
+      // confirmed by a different order (e.g. the customer paid a QR code that was still
+      // open after switching method). That is a duplicate charge: nothing is moved here,
+      // an admin is alerted to refund it by hand.
+      const { data: current } = await supabase
+        .from('bookings')
+        .select('status, stripe_payment_intent')
+        .eq('id', booking.id)
+        .maybeSingle()
+      if (current?.status === 'confirmed' && current.stripe_payment_intent && current.stripe_payment_intent !== orderNo) {
+        await logPaymentEvent({
+          bookingId: booking.id,
+          orderGroupId: booking.order_group_id,
+          providerOrderNo: orderNo,
+          event: 'duplicate_payment',
+          source: 'webhook',
+          reason: `booking already confirmed by order ${current.stripe_payment_intent}`,
+          meta: { amount: paidAmount },
+        })
+        await logSiteError('payments/duplicate', 'error', 'Duplicate KPay payment on an already confirmed booking: refund manually', {
+          bookingId: booking.id,
+          outTradeNo,
+          paidOrderNo: orderNo,
+          confirmedOrderNo: current.stripe_payment_intent,
+          amount: paidAmount,
+        })
+        await markWebhookProcessed(supabase, eventId)
+        return new NextResponse('OK', { status: 200 })
+      }
       if (staleDelivery && (await getLiveKPayState(orderNo)) !== 'paid') {
         console.error('[webhook/kpay] stale_success_not_verified', { orderNo, outTradeNo })
         await markWebhookFailed(supabase, eventId, 'stale success webhook not confirmed by KPay query')

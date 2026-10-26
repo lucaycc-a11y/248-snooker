@@ -7,6 +7,7 @@ import { trackBookingConversion } from "@/lib/analytics/gtag"
 import { PaymentRecoveryScreen, type PaymentRecoveryReason } from "@/components/checkout/PaymentRecoveryScreen"
 import { LoadingGif } from "@/components/shared/LoadingGif"
 import { PaymentReferencePanel } from "@/components/checkout/PaymentReferencePanel"
+import { submitGatewayForm, takeGatewayHandoff } from "@/lib/checkout/gateway-handoff"
 import { tokens } from "@/app/styles/tokens"
 
 export type ConfirmBookingSummary = {
@@ -25,6 +26,28 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
   const [retrying, setRetrying] = useState(false)
   const [retryError, setRetryError] = useState<string | null>(null)
   const result = useOrderConfirmationPolling(bookingId)
+  // Confirm-page-first handoff: the payment page navigated here instead of opening the
+  // gateway itself. Open the gateway from this page, so the history entry the customer
+  // returns to is this read-only page, never the payment-method picker.
+  const [handingOff, setHandingOff] = useState(false)
+  useEffect(() => {
+    const handoff = takeGatewayHandoff(bookingId)
+    if (handoff) {
+      setHandingOff(true)
+      if (handoff.kind === "form-post") {
+        if (!submitGatewayForm(handoff.payInfo)) setHandingOff(false)
+      } else {
+        window.location.href = handoff.payInfo
+      }
+    }
+    // Coming back via the browser Back button can restore this page from the
+    // back/forward cache with the "going to payment" state still set.
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) setHandingOff(false)
+    }
+    window.addEventListener("pageshow", onPageShow)
+    return () => window.removeEventListener("pageshow", onPageShow)
+  }, [bookingId])
   const conversionFired = useRef(false)
   // Coming back from the gateway never cancels or fails anything by itself: this page
   // only reads. KPay gives no "customer backed out" signal, and the order may still be
@@ -204,6 +227,17 @@ export default function ConfirmPageClient({ bookingId, summary = [] }: Props) {
           >
             {t("view_member_area")}
           </a>
+        </section>
+      </main>
+    )
+  }
+
+  if (handingOff) {
+    return (
+      <main style={styles.wrap}>
+        <section style={styles.card} role="status" aria-live="polite">
+          <LoadingGif label={tCommon("loading")} />
+          <h1 style={styles.title}>{t("confirm_going_to_pay")}</h1>
         </section>
       </main>
     )

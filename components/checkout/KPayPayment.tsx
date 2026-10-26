@@ -1,5 +1,6 @@
 "use client"
 
+import { fetchFreezeActive, stashGatewayHandoff, submitGatewayForm } from '@/lib/checkout/gateway-handoff'
 import { checkoutErrorText } from '@/lib/checkout/error-text'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
@@ -149,64 +150,6 @@ export function readKPayPersistedState(): KPayPersistedState | null {
 
 export function clearKPayPersistedState() {
   try { sessionStorage.removeItem(KPAY_SESSION_KEY) } catch {}
-}
-
-// ── Gateway form POST (Alipay H5) ────────────────────────────────────────────
-
-/**
- * Submit a JSON parameter map to a payment gateway as an HTML form submit.
- *
- * Alipay H5 returns its parameters as JSON rather than a URL; the gateway
- * expects them as form fields, with the target URL and HTTP method carried
- * INSIDE the JSON itself (`action` / `method`) — not assumed by us. Assigning
- * the JSON to location.href yields https://site/{"service":...}, which is
- * the bug this branch prevents.
- *
- * Returns false when payInfo cannot be parsed or carries no usable action,
- * so the caller can surface an error instead of leaving the user stalled.
- */
-function submitGatewayForm(payInfo: string): boolean {
-  let fields: Record<string, unknown>
-  try {
-    const parsed: unknown = JSON.parse(payInfo)
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return false
-    fields = parsed as Record<string, unknown>
-  } catch {
-    return false
-  }
-
-  const action = fields.action
-  console.log('[Alipay form-post] fields:', JSON.stringify(fields))
-  if (typeof action !== 'string' || !/^https:\/\//i.test(action)) return false
-
-  const form = document.createElement('form')
-  // Trust the gateway's own method field; default to POST only when it does
-  // not explicitly say GET (KPay's docs show payloads with either).
-  form.method = typeof fields.method === 'string' && fields.method.toUpperCase() === 'GET' ? 'GET' : 'POST'
-  form.action = action
-  form.style.display = 'none'
-
-  // `action`/`method` address the form — they are not fields the gateway
-  // expects back as form data.
-  let fieldCount = 0
-  for (const [key, value] of Object.entries(fields)) {
-    if (key === 'action' || key === 'method') continue
-    if (value === null || value === undefined) continue
-    if (typeof value === 'object') continue
-
-    const input = document.createElement('input')
-    input.type = 'hidden'
-    input.name = key
-    input.value = String(value)
-    form.appendChild(input)
-    fieldCount++
-  }
-
-  if (fieldCount === 0) return false
-
-  document.body.appendChild(form)
-  form.submit()
-  return true
 }
 
 // ── Method display names ─────────────────────────────────────────────────────
@@ -441,6 +384,24 @@ export default function KPayPayment(props: Props) {
         }
         if (json.bookingId || localBookingId) {
           const bookingId = String(json.bookingId ?? localBookingId)
+          // Confirm-page-first: go to /book/confirm and let THAT page open the gateway,
+          // so Back / the gateway's return link always lands on the confirm page.
+          if (await fetchFreezeActive()) {
+            try {
+              persistKPayState({
+                bookingId,
+                providerOrderNo: json.providerOrderNo,
+                method,
+                mode,
+                agreedToTerms: true,
+                savedAt: Date.now(),
+              })
+            } catch {}
+            if (stashGatewayHandoff({ bookingId, kind: 'redirect', payInfo: String(json.payInfo) })) {
+              window.location.assign(confirmPathFor(bookingId))
+              return
+            }
+          }
           const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
           const confirmUrl = `${window.location.origin}${localePrefix ? `/${localePrefix}` : ''}/book/confirm?bookingId=${encodeURIComponent(bookingId)}`
           window.history.replaceState({}, '', confirmUrl)
@@ -485,6 +446,10 @@ export default function KPayPayment(props: Props) {
       // as a form instead of assigned to location.href.
       if (json.kind === 'form-post') {
         const bookingId = String(json.bookingId ?? localBookingId)
+        if (await fetchFreezeActive() && stashGatewayHandoff({ bookingId, kind: 'form-post', payInfo: String(json.payInfo) })) {
+          window.location.assign(confirmPathFor(bookingId))
+          return
+        }
         const localePrefix = window.location.pathname.match(/^\/(zh-HK|zh-CN|en|ja)(?=\/|$)/)?.[1]
         const confirmUrl = `${window.location.origin}${localePrefix ? `/${localePrefix}` : ''}/book/confirm?bookingId=${encodeURIComponent(bookingId)}`
         window.history.replaceState({}, '', confirmUrl)

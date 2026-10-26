@@ -1455,6 +1455,7 @@
     "confirm_waiting_note": "請唔好重複付款或關閉此頁。付款確認通常喺幾秒內完成，最長可能需要數分鐘。",
     "confirm_back_to_methods": "返回選擇付款方式（唔會取消訂單）",
     "review_title": "已收到你的付款",
+    "confirm_going_to_pay": "正在前往付款頁面…",
     "review_desc": "你的付款已成功，但訂單需要我們人手核實。請保留下方參考資料，我們會盡快聯絡你，無需重複付款。"
   },
   "ticket": {
