@@ -267,7 +267,7 @@ function UnpaidTable({ rows }: { rows: UnpaidPerson[] }) {
 }
 
 function NoBookingTable({ rows }: { rows: NoBookingPerson[] }) {
-  if (rows.length === 0) return <div className="admin-empty">所有會員都已有預約 🎉</div>
+  if (rows.length === 0) return <div className="admin-empty">所有會員都已有預約</div>
   return (
     <div className="admin-list">
       {rows.map((p) => {

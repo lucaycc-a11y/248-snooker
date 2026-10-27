@@ -6,7 +6,7 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TiptapImage from '@tiptap/extension-image'
 import TiptapLink from '@tiptap/extension-link'
-import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages, Check } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
@@ -232,7 +232,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
               }}
             >
               {l}
-              {!isCurrent && hasSibling && <span style={{ marginLeft: 4 }}>✓</span>}
+              {!isCurrent && hasSibling && <Check size={14} aria-hidden style={{ marginLeft: 4, verticalAlign: '-2px' }} />}
               {isTranslating && <Languages size={12} style={{ marginLeft: 4 }} />}
             </button>
           )

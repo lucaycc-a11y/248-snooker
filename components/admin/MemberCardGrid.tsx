@@ -56,6 +56,14 @@ function lastActive(iso: string | null): string {
   return mon < 12 ? `${mon} 個月前` : `${Math.floor(mon / 12)} 年前`
 }
 
+/** +85291234567 → 9123 4567 for HK numbers; anything else unchanged. */
+function phoneLabel(raw: string | null): string {
+  if (!raw) return ''
+  const digits = raw.replace(/\D/g, '')
+  const local = digits.startsWith('852') && digits.length === 11 ? digits.slice(3) : digits
+  return local.length === 8 ? `${local.slice(0, 4)} ${local.slice(4)}` : raw
+}
+
 type Props = {
   members: AdminMemberRow[]
   onOpen?: (id: string) => void
@@ -114,7 +122,7 @@ export default function MemberCardGrid({ members, onOpen }: Props) {
               </span>
             </span>
             <span className="admin-ms">
-              {m.phone ?? ''}
+              {phoneLabel(m.phone)}
               {m.phone && !m.isPhoneVerified ? ' · 未驗證' : ''}
             </span>
           </button>

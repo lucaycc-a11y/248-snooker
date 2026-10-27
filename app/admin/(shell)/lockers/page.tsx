@@ -1,5 +1,7 @@
 'use client'
 
+import { Lock } from 'lucide-react'
+
 /**
  * Admin Locker Management — §11.6.
  *
@@ -333,7 +335,7 @@ export default function LockersPage() {
           className="flex flex-col items-center justify-center gap-3 rounded-2xl py-16"
           style={{ background: 'var(--admin-surface)', border: '1px solid var(--admin-border)' }}
         >
-          <span className="text-3xl">🔒</span>
+          <Lock size={32} strokeWidth={1.6} aria-hidden style={{ color: 'var(--admin-text-tertiary)' }} />
           <p className="text-sm" style={{ color: 'var(--admin-text-muted)' }}>
             {filter === 'all' ? '尚未有儲物櫃。請點選「新增儲物櫃」建立。' : `沒有${STATUS_CONFIG[filter]?.label ?? filter}的儲物櫃。`}
           </p>

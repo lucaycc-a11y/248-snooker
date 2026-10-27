@@ -1,5 +1,6 @@
 import '@/app/styles/admin-theme.css'
 import '@/app/styles/admin-glass.css'
+import '@/app/styles/admin-dash.css'
 
 /**
  * Admin root layout — tokens only.

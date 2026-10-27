@@ -20,7 +20,6 @@ import {
   LayoutGrid,
   List,
   Moon,
-  Plus,
   Search,
   Sun,
   Users,
@@ -29,7 +28,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { areaForPath, itemForPath, type AdminAreaId } from '@/lib/admin/nav'
-import AdminNavMenu from './AdminNavMenu'
+import AdminSidebar from './AdminSidebar'
 import AdminCommandMenu from './AdminCommandMenu'
 import { AdminToastProvider } from './ToastProvider'
 import { AdminProvider } from '@/lib/admin/AdminContext'
@@ -111,6 +110,9 @@ export function AdminShell({
   // the area label. Dynamic detail routes (/bookings/[id]) resolve to their list.
   const title = itemForPath(pathname ?? '/admin')?.label ?? '後台'
 
+  const userName = admin.displayName?.trim() || admin.email.split('@')[0]
+  const userInitial = userName.slice(0, 1).toUpperCase()
+
   const goNewBooking = () => {
     router.push('/admin/bookings?new=1')
   }
@@ -120,108 +122,69 @@ export function AdminShell({
       {/* Every client component under the shell may call useAdmin() — mount
           the provider here, not per-page, so a new page can never forget it. */}
       <AdminProvider value={admin}>
-        <div className="admin-app admin-glow-bg">
-        <div className="admin-main">
-          <header className="admin-top">
-            <Link
-              href="/admin"
-              className="admin-brand-word"
-              aria-label="Space8 後台"
-              data-cms-key="admin.nav.brand"
-            >
-              <span className="admin-logo admin-logo-wordmark" aria-hidden />
-            </Link>
-            <Link
-              href="/admin"
-              className="admin-brand-mark"
-              aria-label="Space8 後台"
-              data-cms-key="admin.nav.brand"
-            >
-              <span className="admin-logo admin-logo-mark" aria-hidden />
-            </Link>
+        <div className="admin-app ad-app">
+          <AdminSidebar
+            activeArea={activeArea}
+            isSuperAdmin={effectiveSuperAdmin}
+            onNewBooking={goNewBooking}
+          />
 
-            <AdminNavMenu isSuperAdmin={effectiveSuperAdmin} areaOverride={areaOverride} />
-
-            <div className="admin-spacer" />
-
-            {/* The prototype marks its mock dataset with a dashed chip. Real
-                admin data is not a sample, so this only appears in dev. */}
-            {process.env.NODE_ENV === 'development' && (
-              <span className="admin-chip demo" data-cms-key="admin.nav.demo_data">
-                示例資料
-              </span>
-            )}
-
-            <div className="admin-top-actions">
+          <div className="ad-main">
+            <header className="ad-top">
+              <Link href="/admin" className="ad-top-brand" aria-label="Space8 後台">
+                <span className="admin-logo admin-logo-mark" aria-hidden />
+              </Link>
               <button
                 type="button"
-                className="admin-pill-btn"
+                className="ad-search"
                 onClick={() => setMenuOpen(true)}
-                aria-label="搜尋頁面與預約"
+                aria-label="搜尋頁面、預約或會員"
                 data-cms-key="admin.nav.search"
               >
                 <Search size={18} aria-hidden />
-                <span className="label-lg">搜尋</span>
+                <span className="ad-search-ph">搜尋頁面、預約編號或會員</span>
+                <kbd className="ad-kbd">⌘K</kbd>
               </button>
-              <button
-                type="button"
-                className="admin-pill-btn primary"
-                onClick={goNewBooking}
-                aria-label="手動新增預約"
-                data-cms-key="admin.nav.new_booking"
-              >
-                <Plus size={18} aria-hidden />
-                <span className="label-lg">新增預約</span>
-              </button>
+
+              <div className="ad-top-right">
+                {process.env.NODE_ENV === 'development' && (
+                  <span className="admin-chip demo" data-cms-key="admin.nav.demo_data">
+                    示例資料
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setTheme(appliedTheme === 'dark' ? 'light' : 'dark')}
+                  className="ad-icon-btn"
+                  aria-label="切換深淺色"
+                  data-cms-key="admin.nav.theme"
+                >
+                  <Sun className="admin-theme-icon-sun" size={18} aria-hidden />
+                  <Moon className="admin-theme-icon-moon" size={18} aria-hidden />
+                </button>
+                <AdminRoleSelect
+                  role={effectiveRoleId}
+                  disabled={!rolePreviewEnabled}
+                  onRoleChange={rolePreviewEnabled ? (next) => setDevRole(next) : undefined}
+                />
+                <span className="ad-user">
+                  <span className="ad-user-av" aria-hidden>{userInitial}</span>
+                  <span className="ad-user-text">
+                    <b>{userName}</b>
+                    <small>{admin.email}</small>
+                  </span>
+                </span>
+              </div>
+            </header>
+
+            <div className="ad-head">
+              <h1 className="admin-ptitle ad-title" data-cms-key="admin.page.title">
+                {title}
+              </h1>
             </div>
 
-            {/* Same pill select in every environment so the top bar matches the
-                prototype. Role preview (changing the value) is dev-only. */}
-            <AdminRoleSelect
-              role={effectiveRoleId}
-              disabled={!rolePreviewEnabled}
-              onRoleChange={
-                rolePreviewEnabled
-                  ? (next) => setDevRole(next)
-                  : undefined
-              }
-            />
-
-            <button
-              type="button"
-              onClick={() => setTheme(appliedTheme === 'dark' ? 'light' : 'dark')}
-              className="admin-icon-btn"
-              aria-label="切換深淺色"
-              data-cms-key="admin.nav.theme"
-              style={{
-                width: 44,
-                height: 44,
-                display: 'grid',
-                placeItems: 'center',
-                borderRadius: '50%',
-                border: '1px solid var(--admin-border-strong)',
-                background: 'var(--admin-bg-elevated)',
-                color: 'var(--admin-text-secondary)',
-              }}
-            >
-              {/* Prototype `themeIcon()`: light shows moon (go dark), dark shows
-                  sun (go light) — the icon is the action, not the current state.
-                  Both icons stay in the DOM and CSS picks one via `[data-theme]`:
-                  server and client markup must match, and `resolvedTheme` is
-                  undefined during SSR so a conditional SVG hydrates mismatched. */}
-              <Sun className="admin-theme-icon-sun" size={20} aria-hidden />
-              <Moon className="admin-theme-icon-moon" size={20} aria-hidden />
-            </button>
-          </header>
-
-          <div className="admin-thead">
-            <h1 className="admin-ptitle" data-cms-key="admin.page.title">
-              {title}
-            </h1>
+            <main className="admin-page">{children}</main>
           </div>
-
-          <main className="admin-page">{children}</main>
-        </div>
 
         {/* Phone: floating pill bottom bar */}
         <nav className="admin-bnav" aria-label="主選單">
