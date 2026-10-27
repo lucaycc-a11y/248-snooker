@@ -231,7 +231,13 @@ export function AdminShell({
                   onRoleChange={rolePreviewEnabled ? (next) => setDevRole(next) : undefined}
                 />
                 <span className="ad-user">
-                  <span className="ad-user-av" aria-hidden>{userInitial}</span>
+                  <span className="ad-user-av" aria-hidden>
+                    {admin.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- provider avatar, arbitrary host
+                      <img src={admin.avatarUrl} alt="" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                    ) : null}
+                    {userInitial}
+                  </span>
                   <span className="ad-user-text">
                     <b>{userName}</b>
                     <small>{admin.email}</small>

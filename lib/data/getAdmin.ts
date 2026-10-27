@@ -15,6 +15,8 @@ export type AdminData = {
   email: string
   role: AdminRole
   displayName: string | null
+  /** Sign-in provider photo (Google/Apple), https only; null falls back to the initial. */
+  avatarUrl?: string | null
   themePreference: AdminThemePreference
 }
 
@@ -62,11 +64,19 @@ export async function getAdminData(): Promise<AdminData | null> {
     .eq('id', user.id)
     .maybeSingle()
 
+  const meta: unknown = user.user_metadata
+  const rawAvatar =
+    typeof meta === 'object' && meta !== null
+      ? ((meta as Record<string, unknown>).avatar_url ?? (meta as Record<string, unknown>).picture)
+      : null
+  const avatarUrl = typeof rawAvatar === 'string' && /^https:\/\//.test(rawAvatar) ? rawAvatar : null
+
   return {
     userId: user.id,
     email: row.email,
     role: row.role as AdminRole,
     displayName: (profile?.display_name as string | undefined) ?? null,
+    avatarUrl,
     themePreference:
       row.theme_preference === 'light' || row.theme_preference === 'system'
         ? row.theme_preference
