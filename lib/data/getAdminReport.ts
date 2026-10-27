@@ -3,7 +3,7 @@ import { getAdminRevenue } from '@/lib/data/getAdminRevenue'
 import { getAdminHome } from '@/lib/data/getAdminHome'
 import type { RevenueBucket, RevenueTotals } from '@/lib/admin/revenue-definitions'
 import { str, type Row } from '@/lib/data/adminReadHelpers'
-import { hkNow, minutesOf, shiftDate, type AdminTodayBooking } from '@/lib/admin/today'
+import { bookingEndMinutes, hkNow, minutesOf, shiftDate, type AdminTodayBooking } from '@/lib/admin/today'
 
 // Server-only loader for 每日報告 (/admin/report). One HK calendar day.
 // Money comes from getAdminRevenue (same rules as 收入 and the Excel export);
@@ -66,7 +66,7 @@ export async function getAdminReport(options?: { date?: string }): Promise<Admin
   let bookedMinutes = 0
   for (const b of active) {
     const start = Math.max(openMin, minutesOf(b.startTime))
-    const end = Math.min(closeMin, b.endTime ? minutesOf(b.endTime) : start + Math.round(b.durationHours * 60))
+    const end = Math.min(closeMin, bookingEndMinutes(b))
     if (end > start) bookedMinutes += end - start
   }
   const capacity = home.tableCount * (closeMin - openMin)
@@ -75,7 +75,7 @@ export async function getAdminReport(options?: { date?: string }): Promise<Admin
     const busy = new Set<number>()
     for (const b of active) {
       const s = minutesOf(b.startTime)
-      const e = b.endTime ? minutesOf(b.endTime) : s + Math.round(b.durationHours * 60)
+      const e = bookingEndMinutes(b)
       if (s < m + 60 && e > m) busy.add(b.tableNumber)
     }
     hours.push({ hour: Math.floor(m / 60), roomsBusy: busy.size })

@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import type { AdminHomeData } from '@/lib/data/getAdminHome'
 import type { AdminTodayBooking } from '@/lib/admin/today'
-import { dateLabel, minutesOf, money, shiftDate } from '@/lib/admin/today'
+import { bookingEndMinutes, dateLabel, minutesOf, money, shiftDate, statusOf } from '@/lib/admin/today'
 import AdminStatusBadge from './AdminStatusBadge'
 import AdminPageHead from './AdminPageHead'
 
@@ -79,7 +79,7 @@ function telHref(raw: string | null): string | null {
 }
 
 function endMinutes(b: AdminTodayBooking): number {
-  return b.endTime ? minutesOf(b.endTime) : minutesOf(b.startTime) + Math.round(b.durationHours * 60)
+  return bookingEndMinutes(b)
 }
 
 function shortDate(iso: string | null): string {
@@ -194,12 +194,18 @@ function Timetable({ data }: { data: AdminHomeData }) {
                   <Link
                     key={b.id}
                     href={`/admin/bookings/${b.id}`}
-                    className={`ah-tt-block ${tone}`}
+                    className={`ah-tt-block ${tone}${width < 9 ? ' narrow' : ''}`}
                     style={{ left: `${left}%`, width: `${width}%` }}
                     title={`${hhmm(b.startTime)}–${hhmm(b.endTime)} ${b.userName ?? ''}`}
                   >
-                    <b>{hhmm(b.startTime)}</b>
-                    <span>{b.userName ?? (phoneLabel(b.userPhone) || b.humanCode || '—')}</span>
+                    {width < 9 ? (
+                      <b aria-hidden>{initialOf(b.userName)}</b>
+                    ) : (
+                      <>
+                        <b>{hhmm(b.startTime)}</b>
+                        <span>{b.userName ?? (phoneLabel(b.userPhone) || b.humanCode || '—')}</span>
+                      </>
+                    )}
                   </Link>
                 )
               })}
@@ -481,7 +487,10 @@ export default function AdminHome({ data, adminName }: Props) {
                     <span className="ah-av sm" aria-hidden>{initialOf(r.userName)}</span>
                     <span className="ah-mini-main">
                       <b>{r.userName ?? '未登記姓名'}</b>
-                      <small>{shortDate(r.date)} {hhmm(r.startTime)} · 房 {r.tableNumber || '—'}</small>
+                      <small>
+                        {shortDate(r.date)} {hhmm(r.startTime)} ·{' '}
+                        {r.status === 'confirmed' ? `房 ${r.tableNumber || '—'}` : <span className={`ah-st ${statusOf(r.status)[1]}`}>{statusOf(r.status)[0]}</span>}
+                      </small>
                     </span>
                     <span className="ah-mini-amt admin-num">{money(r.price)}</span>
                   </Link>

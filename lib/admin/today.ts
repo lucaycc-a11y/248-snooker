@@ -143,15 +143,31 @@ export function shiftDate(isoDate: string, days: number): string {
   return d.toISOString().slice(0, 10)
 }
 
-/** "HH:mm" → minutes since midnight. Returns 0 for unparseable input. */
+/**
+ * "HH:mm" or "HH:mm:ss" (Postgres `time`) → minutes since midnight. Seconds are
+ * ignored. Returns 0 for unparseable input.
+ */
 export function minutesOf(hhmm: string | null): number {
   if (!hhmm) return 0
-  const [h, m, ...rest] = hhmm.split(':')
+  const [h, m, sec, ...rest] = hhmm.split(':')
   if (rest.length > 0 || h === undefined || m === undefined) return 0
+  if (sec !== undefined && !/^\d{1,2}(\.\d+)?$/.test(sec)) return 0
   const hours = Number(h)
   const mins = Number(m)
   if (!Number.isFinite(hours) || !Number.isFinite(mins)) return 0
   return hours * 60 + mins
+}
+
+/**
+ * End of a booking in minutes since the start of its play date. A booking that
+ * ends at or before its start time (23:00–00:00, 23:00–01:00) ends the next
+ * day, so 24 h is added. Falls back to start + duration when end is missing.
+ */
+export function bookingEndMinutes(b: Pick<AdminTodayBooking, 'startTime' | 'endTime' | 'durationHours'>): number {
+  const start = minutesOf(b.startTime)
+  if (!b.endTime) return start + Math.round(b.durationHours * 60)
+  const end = minutesOf(b.endTime)
+  return end <= start ? end + 24 * 60 : end
 }
 
 /** Live phase for a confirmed booking, matching the prototype's phase(). */
@@ -161,9 +177,7 @@ export function bookingPhase(
 ): '進行中' | '未開始' | '已結束' | '' {
   if (b.status !== 'confirmed' || !b.date || !b.startTime) return ''
   const start = minutesOf(b.startTime)
-  const end = b.endTime
-    ? minutesOf(b.endTime)
-    : start + Math.round(b.durationHours * 60)
+  const end = bookingEndMinutes(b)
   if (nowMinutes >= end) return '已結束'
   if (nowMinutes >= start) return '進行中'
   return '未開始'

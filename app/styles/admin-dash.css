@@ -1078,3 +1078,46 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
 @media (max-width: 860px) {
   .ah-stat:not(.hero) .ah-stat-num { font-size: 26px; }
 }
+
+/* ===========================================================================
+ * Readability pass — stronger secondary text, nothing below 12.5px, bigger
+ * base size. Applies to every admin page through shared classes.
+ * ========================================================================= */
+:root, [data-theme='dark'] {
+  --admin-text-secondary: rgba(242, 245, 243, 0.82);
+  --admin-text-tertiary: rgba(242, 245, 243, 0.64);
+}
+[data-theme='light'] {
+  --admin-text-secondary: rgba(17, 22, 19, 0.8);
+  --admin-text-tertiary: rgba(17, 22, 19, 0.62);
+}
+.admin-app { font-size: 15px; line-height: 1.6; }
+.admin-sub, .admin-pagehead .sub { font-size: 14.5px; color: var(--admin-text-secondary); }
+.admin-lbl { font-size: 13px; font-weight: 600; color: var(--admin-text-secondary); }
+.admin-muted { color: var(--admin-text-tertiary); }
+.admin-note { font-size: 13.5px; line-height: 1.7; color: var(--admin-text-secondary); }
+.admin-table { font-size: 14.5px; }
+.admin-table th { font-size: 13px; color: var(--admin-text-secondary); }
+.admin-badge { font-size: 12.5px; padding: 4px 10px; }
+.ah-stat-foot { font-size: 13.5px; color: var(--admin-text-secondary); }
+.ah-stat.hero .ah-stat-foot { color: rgba(255, 255, 255, 0.85); }
+.ah-row-main small, .ah-mini-main small, .aa-text small, .al-timeline small { font-size: 13px; color: var(--admin-text-secondary); }
+.ah-time small, .ar-hour small, .ah-bar-col small, .aa-list time, .al-timeline time { font-size: 12.5px; color: var(--admin-text-secondary); }
+.ah-legend { font-size: 13px; color: var(--admin-text-secondary); }
+.aa-h-label { font-size: 13px; color: var(--admin-text-secondary); }
+.ad-side-sub a { font-size: 14.5px; color: var(--admin-text-secondary); }
+.ad-side-group { font-size: 12px; }
+.ah-tt-block b, .ah-tt-block span { font-size: 12.5px; }
+
+/* Revenue KPI cards (legacy markup): label → number → note, same rhythm as Home */
+.admin-card.admin-stack > .admin-lbl:first-child { font-size: 14px; color: var(--admin-text-primary); }
+.admin-card.admin-stack > .admin-num { font-size: 30px !important; font-weight: 600; letter-spacing: -0.02em; }
+.ah-tt-block.narrow { display: grid; place-items: center; padding: 0; }
+.ah-tt-block.narrow b { font-size: 13px; }
+.ah-st { font-weight: 600; }
+.ah-st.good { color: var(--admin-status-success); }
+.ah-st.warn { color: var(--admin-status-warning); }
+.ah-st.bad { color: var(--admin-status-danger); }
+.ah-st.mute { color: var(--admin-text-tertiary); }
+.ah-mini a:has(.ah-st.mute) .ah-mini-amt { color: var(--admin-text-tertiary); text-decoration: line-through; }
+.ah-mini-main small { white-space: normal; }
