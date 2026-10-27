@@ -181,7 +181,7 @@ export default function SlotCalendar({ initialYear, initialMonth, initialDays }:
                           style={{ top: start * HOUR_PX + 2, height: span * HOUR_PX - 4 }}
                           onClick={() => setPopupBooking(b)}
                         >
-                          <b>{b.userName ?? b.userEmail ?? b.bookingReference ?? '預約'}</b>
+                          <b>{b.userName ?? b.userEmail ?? b.humanCode ?? b.bookingReference ?? '預約'}</b>
                           <span>
                             {hhmm(b.startTime)}–{hhmm(b.endTime)}
                           </span>
@@ -197,7 +197,7 @@ export default function SlotCalendar({ initialYear, initialMonth, initialDays }:
         <Sheet open={!!popupBooking} onClose={() => setPopupBooking(null)}>
           {popupBooking ? (
             <div className="cal-pop">
-              <p className="admin-mono cal-pop-code">{popupBooking.bookingReference ?? popupBooking.id.slice(0, 8)}</p>
+              <p className="admin-mono cal-pop-code">{popupBooking.humanCode ?? popupBooking.bookingReference ?? popupBooking.id.slice(0, 8)}</p>
               <dl>
                 <div><dt>客人</dt><dd>{popupBooking.userName ?? popupBooking.userEmail ?? '訪客'}</dd></div>
                 <div><dt>房間</dt><dd>房 {popupBooking.tableNumber}</dd></div>

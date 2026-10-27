@@ -271,7 +271,7 @@ export default function BookingsPageClient({
                 >
                   <span className="admin-c-hc">
                     {/* Prototype `.c-hc`: short reference on top, `S8-…` below. */}
-                    <span className="mono">{b.bookingReference ?? b.humanCode ?? '—'}</span>
+                    <span className="mono">{b.humanCode ?? b.bookingReference ?? '—'}</span>
                     <br />
                     <span className="admin-cell-sub mono">{b.humanCode ?? '—'}</span>
                   </span>

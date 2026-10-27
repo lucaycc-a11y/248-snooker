@@ -45,7 +45,7 @@ async function getMemberDetail(id: string) {
 
       service
         .from('bookings')
-        .select('id, booking_reference, date, status, total_price, table_number')
+        .select('id, human_code, booking_reference, date, status, total_price, table_number')
         .eq('user_id', id)
         .eq('is_test', false)
         .order('date', { ascending: false })
@@ -149,7 +149,7 @@ export default async function AdminMemberDetailPage({
     lastActiveAt: str(user, ['last_active_at']),
     bookings: bookings.map((b) => ({
       id: String(b.id),
-      reference: str(b, ['booking_reference']) ?? String(b.id).slice(0, 8),
+      reference: str(b, ['human_code', 'booking_reference']) ?? String(b.id).slice(0, 8),
       date: str(b, ['date']) ?? '',
       status: str(b, ['status']) ?? 'pending',
       totalPrice: num(b, ['total_price'], 0),

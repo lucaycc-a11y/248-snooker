@@ -33,7 +33,7 @@ async function getBookingDetail(id: string) {
     try {
       const { data: rows } = await service
         .from('bookings')
-        .select('id, booking_reference, date, status, total_price')
+        .select('id, human_code, booking_reference, date, status, total_price')
         .eq('user_id', booking.user_id)
         .neq('id', id)
         .order('date', { ascending: false })
@@ -101,7 +101,7 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
 
       <section className="admin-card bk-hero">
         <div>
-          <p className="bk-code admin-mono">{str(booking, ['booking_reference']) ?? id.slice(0, 8)}</p>
+          <p className="bk-code admin-mono">{str(booking, ['human_code', 'booking_reference']) ?? id.slice(0, 8)}</p>
           <div className="bk-tags">
             <span className={`admin-tag${st.tone ? ` ${st.tone}` : ''}`}>{st.label}</span>
             {booking.is_test === true ? <span className="admin-tag warn">測試預約</span> : null}
@@ -159,7 +159,7 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
               return (
                 <li key={String(b.id)}>
                   <Link href={`/admin/bookings/${String(b.id)}`}>
-                    <span className="admin-mono">{str(b, ['booking_reference']) ?? String(b.id).slice(0, 8)}</span>
+                    <span className="admin-mono">{str(b, ['human_code', 'booking_reference']) ?? String(b.id).slice(0, 8)}</span>
                     <span className="admin-cell-sub">{str(b, ['date']) ?? ''}</span>
                     <span className={`admin-tag${bs.tone ? ` ${bs.tone}` : ''}`}>{bs.label}</span>
                     <span className="admin-num">HK${num(b, ['total_price'], 0)}</span>

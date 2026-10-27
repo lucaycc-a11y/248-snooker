@@ -18,6 +18,7 @@ export type DayDensity = {
 export type CalendarBooking = {
   id: string
   bookingReference: string | null
+  humanCode: string | null
   userEmail: string | null
   userName: string | null
   tableNumber: number
@@ -93,7 +94,7 @@ export async function getDayTimeline(date: string): Promise<CalendarBooking[]> {
   try {
     const { data, error } = await service
       .from('bookings')
-      .select('id, booking_reference, table_number, start_time, end_time, status, users(email, display_name)')
+      .select('id, human_code, booking_reference, table_number, start_time, end_time, status, users(email, display_name)')
       .eq('date', date)
       .eq('is_test', false)
       .eq('status', 'confirmed')
@@ -107,6 +108,7 @@ export async function getDayTimeline(date: string): Promise<CalendarBooking[]> {
       return {
         id: String(r.id ?? ''),
         bookingReference: str(r, ['booking_reference']),
+        humanCode: str(r, ['human_code']),
         userEmail: userInfo ? str(userInfo, ['email']) : null,
         userName: userInfo ? str(userInfo, ['display_name']) : null,
         tableNumber: num(r, ['table_number'], 0),
@@ -120,7 +122,7 @@ export async function getDayTimeline(date: string): Promise<CalendarBooking[]> {
     try {
       const { data } = await service
         .from('bookings')
-        .select('id, booking_reference, table_number, start_time, end_time, status, user_id')
+        .select('id, human_code, booking_reference, table_number, start_time, end_time, status, user_id')
         .eq('date', date)
         .eq('is_test', false)
       .eq('status', 'confirmed')
@@ -144,6 +146,7 @@ export async function getDayTimeline(date: string): Promise<CalendarBooking[]> {
         return {
           id: String(r.id ?? ''),
           bookingReference: str(r, ['booking_reference']),
+        humanCode: str(r, ['human_code']),
           userEmail: info?.email ?? null,
           userName: info?.display_name ?? null,
           tableNumber: num(r, ['table_number'], 0),
