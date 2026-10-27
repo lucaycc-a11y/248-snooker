@@ -1781,3 +1781,68 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
   .sp-picked .admin-pill-btn { align-self: flex-end; min-height: 36px; }
 }
 @media (max-width: 860px) { .sp-row.assistant { gap: 0; } .sp-row.assistant .sp-avatar { display: none; } }
+
+/* ── Spark: larger, roomier chat (overrides above) ───────────────────── */
+.sp-app { --sp-side: 296px; height: calc(100dvh - 128px); min-height: 640px; border-radius: 26px; }
+.sp-side { padding: 18px 14px; gap: 12px; }
+.sp-new { min-height: 50px; font-size: 16px; padding: 0 18px; }
+.sp-chats li > button:first-child { padding: 12px 12px; font-size: 15.5px; }
+.sp-group { font-size: 12px; }
+.sp-log-link { padding: 12px 14px; font-size: 15px; }
+.sp-scroll { padding: 36px 32px 12px; }
+.sp-thread { max-width: 900px; gap: 30px; }
+.sp-row { gap: 16px; }
+.sp-avatar { width: 38px; height: 38px; font-size: 17px; }
+.sp-user-bubble { max-width: min(82%, 680px); padding: 14px 20px; font-size: 17px; border-radius: 24px 24px 8px 24px; }
+.sp-answer { gap: 16px; }
+.sp-answer .ai-md { font-size: 17px; line-height: 1.7; }
+.sp-answer .ai-md p, .sp-answer .ai-md li { line-height: 1.7; }
+.sp-trace-head { font-size: 14.5px; padding: 12px 16px; }
+.sp-trace-list li { font-size: 14.5px; }
+.sp-hello { max-width: 860px; margin-top: 8vh; gap: 14px; }
+.sp-logo { width: 68px; height: 68px; border-radius: 22px; font-size: 32px; }
+.sp-hello h1 { font-size: 36px; }
+.sp-hello p { font-size: 17px; max-width: 640px; }
+.sp-suggest { gap: 14px; margin-top: 26px; }
+.sp-suggest button { padding: 20px; border-radius: 20px; gap: 6px; }
+.sp-suggest b { font-size: 16.5px; }
+.sp-suggest span { font-size: 14.5px; }
+.sp-composer { padding: 10px 32px 20px; }
+.sp-composer form { max-width: 900px; padding: 12px 12px 12px 22px; border-radius: 30px; }
+.sp-composer textarea { font-size: 18px; padding: 9px 0; max-height: 220px; }
+.sp-send { width: 48px; height: 48px; }
+.sp-composer .sp-error { max-width: 900px; }
+.sp-fine { max-width: 900px; font-size: 12.5px; }
+.sp-tools { max-width: 900px; }
+.sp-tool { min-height: 40px; padding: 0 16px; font-size: 14.5px; }
+.sp-card { padding: 22px; border-radius: 22px; gap: 16px; }
+.sp-card-kicker { font-size: 13px; }
+.sp-card-range { font-size: 14.5px; }
+.sp-big { font-size: 46px; }
+.sp-kv dt { font-size: 13px; }
+.sp-kv dd { font-size: 17px; }
+.sp-bars-plot { height: 120px; }
+.sp-bars figcaption { font-size: 12.5px; }
+.sp-methods li { font-size: 15px; padding: 9px 12px; }
+.sp-tile { padding: 16px; border-radius: 16px; }
+.sp-tile small { font-size: 13px; }
+.sp-tile b { font-size: 30px; }
+.sp-tile span { font-size: 13px; }
+.sp-chip { font-size: 13.5px; padding: 5px 12px; }
+.sp-status { font-size: 13px; padding: 4px 12px; }
+.sp-action-sum { font-size: 18px; }
+.sp-preview { padding: 6px 16px; border-radius: 14px; }
+.sp-preview > div { grid-template-columns: 104px minmax(0, 1fr); padding: 11px 0; font-size: 15.5px; }
+.sp-action-bar .admin-pill-btn { min-height: 48px; padding: 0 24px; font-size: 16px; }
+.sp-action-ttl { font-size: 13.5px; }
+@media (max-width: 860px) {
+  .sp-app { height: calc(100dvh - 150px); min-height: 520px; border-radius: 20px; }
+  .sp-scroll { padding: 20px 14px 8px; }
+  .sp-composer { padding: 8px 12px 12px; }
+  .sp-answer .ai-md, .sp-user-bubble { font-size: 16px; }
+  .sp-big { font-size: 38px; }
+  .sp-hello h1 { font-size: 28px; }
+  .sp-card { padding: 16px; }
+  .sp-fine { display: none; }
+  .sp-preview > div { grid-template-columns: 84px minmax(0, 1fr); font-size: 14.5px; }
+}
