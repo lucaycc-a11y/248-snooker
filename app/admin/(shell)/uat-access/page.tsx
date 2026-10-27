@@ -197,7 +197,7 @@ export default function UatAccessPage() {
               No IPs whitelisted
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: 'var(--admin-bg-tertiary)', borderBottom: '1px solid var(--admin-border)' }}>
                   <th style={{ padding: 12, textAlign: 'left', color: 'var(--admin-text)', fontWeight: 600, fontSize: 14 }}>
@@ -243,7 +243,7 @@ export default function UatAccessPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
         </div>
       </section>
@@ -265,7 +265,7 @@ export default function UatAccessPage() {
               No access logs
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <div style={{ overflowX: 'auto' }}><table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ background: 'var(--admin-bg-tertiary)', borderBottom: '1px solid var(--admin-border)' }}>
                   <th style={{ padding: 12, textAlign: 'left', color: 'var(--admin-text)', fontWeight: 600, fontSize: 14 }}>
@@ -300,7 +300,7 @@ export default function UatAccessPage() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table></div>
           )}
         </div>
       </section>

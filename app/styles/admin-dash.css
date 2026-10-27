@@ -1846,3 +1846,14 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
   .sp-fine { display: none; }
   .sp-preview > div { grid-template-columns: 84px minmax(0, 1fr); font-size: 14.5px; }
 }
+
+/* ── Phone safety net: wide tables scroll inside their card, never the page ── */
+@media (max-width: 860px) {
+  .admin-scroll, .admin-stack, .admin-card, .admin-page, .admin-stack > * { min-width: 0; max-width: 100%; }
+  .overflow-x-auto { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .admin-toolbar { grid-template-columns: minmax(0, 1fr); }
+  .overflow-x-auto th, .overflow-x-auto td { white-space: nowrap; }
+}
+@media (max-width: 560px) {
+  .admin-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}
