@@ -13,6 +13,7 @@ import { CheckCircle2, MailCheck, ShieldCheck, TriangleAlert, XCircle } from 'lu
 import type { OpenAlert, PastRun } from '@/lib/data/getAdminChecks'
 import type { CheckFinding, CheckStep, RevenueCheckResult } from '@/lib/admin/revenueCheck'
 import AdminPageHead from './AdminPageHead'
+import AiAssistantPanel from './AiAssistantPanel'
 import { useAdminToast } from './ToastProvider'
 
 type Props = { runs: PastRun[]; alerts: OpenAlert[]; loadError: string | null }
@@ -137,6 +138,8 @@ export default function RevenueCheckClient({ runs, alerts, loadError }: Props) {
 
       {loadError ? <div className="admin-card ah-alert bad" role="alert">{loadError}</div> : null}
 
+      <AiAssistantPanel />
+
       <section className="admin-card rc-run" aria-label="開始核對">
         <div className="rc-presets">
           <button type="button" className="admin-pill-btn sm" onClick={() => preset(hkDate(), hkDate())}>今日</button>
@@ -225,7 +228,7 @@ export default function RevenueCheckClient({ runs, alerts, loadError }: Props) {
               {mailBusy ? '發送中…' : '發送測試電郵'}
             </button>
           </div>
-          <p className="rc-hint">系統每 10 分鐘自動檢查：客人付款失敗、網站錯誤增加、收入與付款不符。一般問題只電郵給店主；「KPay 已付款但預約未確認」及重複扣款會電郵給所有管理員。</p>
+          <p className="rc-hint">系統每 10 分鐘自動檢查：客人付款失敗、網站錯誤增加、收入與付款不符。發現新問題時，AI 會先判斷值不值得調查（例如客人自己取消就不用），值得才用只讀工具查證並附上診斷。一般問題只電郵給店主；「KPay 已付款但預約未確認」及重複扣款會電郵給所有管理員。</p>
           {alerts.length === 0 ? (
             <div className="ah-empty"><b>目前沒有未處理的警報</b></div>
           ) : (
@@ -236,6 +239,7 @@ export default function RevenueCheckClient({ runs, alerts, loadError }: Props) {
                   <div>
                     <b>{a.title}</b>
                     <p>{a.detail}</p>
+                    {a.aiAnswer ? <p className="rc-ai"><b>AI 診斷</b>{a.aiModel ? `（${a.aiModel}）` : ''}{'\n'}{a.aiAnswer}</p> : a.aiReason ? <p className="rc-hint">AI 判斷無須調查：{a.aiReason}</p> : null}
                     <small className="rc-meta">首次發現 {stamp(a.firstSeenAt)} · {a.lastEmailedAt ? `已電郵 ${stamp(a.lastEmailedAt)}` : '未電郵'}</small>
                   </div>
                 </li>

@@ -1346,3 +1346,11 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
   .rc-steps li:nth-child(n + 6) { animation-delay: 0.25s; }
 }
 @media print { .ad-page-in, .ad-page-in * { animation: none !important; transition: none !important; } }
+
+.rc-ask { display: grid; gap: 10px; }
+.rc-ask textarea { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--admin-border, rgba(0, 0, 0, 0.12)); background: transparent; color: inherit; font: inherit; resize: vertical; }
+.rc-ask .admin-pill-btn { justify-self: start; }
+.rc-answer { display: grid; gap: 8px; padding-top: 6px; border-top: 1px solid var(--admin-border, rgba(0, 0, 0, 0.08)); }
+.rc-trace summary { cursor: pointer; font-size: 13px; color: var(--admin-text-secondary); padding: 6px 0; }
+.rc-ai { margin: 8px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--admin-bg-card, #fff); font-size: 13.5px; line-height: 1.65; white-space: pre-wrap; }
+.rc-ai b { color: var(--admin-green); }

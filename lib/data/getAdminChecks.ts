@@ -24,6 +24,11 @@ export type OpenAlert = {
   critical: boolean
   firstSeenAt: string
   lastEmailedAt: string | null
+  /** Filled in by the automatic patrol when it investigated this alert. */
+  aiAnswer: string | null
+  aiModel: string | null
+  /** Why the triage decided an investigation was not needed. */
+  aiReason: string | null
 }
 
 export type BugReportRow = {
@@ -85,6 +90,7 @@ export async function getChecksOverview(): Promise<{ runs: PastRun[]; alerts: Op
     alerts = ((alertRes.data ?? []) as unknown as Row[]).map((r) => {
       const sev = str(r, ['severity'])
       const detail = typeof r.detail === 'object' && r.detail !== null ? (r.detail as Record<string, unknown>) : {}
+      const ai = typeof detail.ai === 'object' && detail.ai !== null ? (detail.ai as Record<string, unknown>) : null
       return {
         key: String(r.alert_key),
         severity: isSeverity(sev) ? sev : 'medium',
@@ -93,6 +99,9 @@ export async function getChecksOverview(): Promise<{ runs: PastRun[]; alerts: Op
         critical: detail.critical === true,
         firstSeenAt: str(r, ['first_seen_at']) ?? '',
         lastEmailedAt: str(r, ['last_emailed_at']),
+        aiAnswer: ai && typeof ai.answer === 'string' ? ai.answer : null,
+        aiModel: ai && typeof ai.model === 'string' ? ai.model : null,
+        aiReason: ai && ai.investigated === false && typeof ai.reason === 'string' && ai.reason !== '' ? ai.reason : null,
       }
     })
   }

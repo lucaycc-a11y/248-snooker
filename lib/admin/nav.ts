@@ -102,7 +102,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     href: '/admin/revenue',
     items: [
       { href: '/admin/revenue', label: '收入', cmsKey: 'admin.nav.revenue', hint: '收入總覽與 Excel 匯出' },
-      { href: '/admin/revenue-check', label: '收入核對', cmsKey: 'admin.nav.revenue_check', hint: '自動核對收入與付款，找出異常' },
+      { href: '/admin/revenue-check', label: '收入核對', cmsKey: 'admin.nav.revenue_check', hint: '核對收入與付款，並可向 AI 查詢' },
       { href: '/admin/payment-log', label: '付款監控', cmsKey: 'admin.nav.payment_log', hint: '即時付款狀態與對賬' },
       { href: '/admin/sales-report', label: '銷售報表', cmsKey: 'admin.nav.sales_report', hint: '按期間的銷售明細' },
     ],
