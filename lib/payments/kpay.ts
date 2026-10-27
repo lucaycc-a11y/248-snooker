@@ -51,6 +51,9 @@ type KPayApiResponse<T> = {
   data?: T
 }
 
+const QUERY_CACHE_TTL_MS = 1_500
+const QUERY_CACHE = new Map<string, { at: number; promise: Promise<OrderStatus> }>()
+
 // ── KPayProvider ──────────────────────────────────────────────
 
 export class KPayProvider implements PaymentProvider {
@@ -280,33 +283,57 @@ export class KPayProvider implements PaymentProvider {
   // queries by orderNo — passing it as outTradeNo asks KPay to match our
   // merchant reference against their order id and always yields 30002.
   async queryOrder(providerOrderNo: string): Promise<OrderStatus> {
+    // The confirm page polls every 2 s per customer and the server also asks KPay when
+    // deciding cancel / release, so identical lookups often overlap. Share one in-flight
+    // request per order and reuse a non-final answer for 1.5 s. Paid / closed answers are
+    // never cached beyond the request that fetched them.
+    const key = `${this.baseUrl}|${providerOrderNo}`
+    const hit = QUERY_CACHE.get(key)
+    if (hit && Date.now() - hit.at < QUERY_CACHE_TTL_MS) return hit.promise
+
+    const promise = this.queryOrderUncached(providerOrderNo)
+    QUERY_CACHE.set(key, { at: Date.now(), promise })
+    promise.then(
+      (r) => {
+        if (r.status !== 'pending') QUERY_CACHE.delete(key)
+      },
+      () => QUERY_CACHE.delete(key),
+    )
+    if (QUERY_CACHE.size > 200) {
+      const cutoff = Date.now() - QUERY_CACHE_TTL_MS
+      for (const [k, v] of QUERY_CACHE) if (v.at < cutoff) QUERY_CACHE.delete(k)
+    }
+    return promise
+  }
+
+  private async queryOrderUncached(providerOrderNo: string): Promise<OrderStatus> {
     const url = `/v1/order/sales/result?orderNo=${encodeURIComponent(providerOrderNo)}`
-    console.log('[KPay] queryOrder:', '| method:', 'GET', '| url:', url)
 
-    const res = await this.apiGet<KPayApiResponse<{
-      orderNo: string
-      outTradeNo: string
-      result: string | number
-    }>>(url)
-
-    console.log('[KPay] queryOrder response:', JSON.stringify({
-      code: res.code,
-      message: res.message,
-      data: res.data ? {
-        orderNo: res.data.orderNo,
-        outTradeNo: res.data.outTradeNo,
-        result: res.data.result,
-      } : null,
-    }, null, 2))
+    // GET is idempotent, so one retry on a timeout / network error / 5xx is safe and keeps
+    // a single slow KPay response from turning into a "lookup failed" for the customer.
+    type QueryRes = KPayApiResponse<{ orderNo: string; outTradeNo: string; result: string | number }>
+    let res: QueryRes
+    try {
+      res = await this.apiGet<QueryRes>(url)
+    } catch (first) {
+      const msg = (first as Error).message
+      if (!/timeout|fetch failed|ECONN|ETIMEDOUT|HTTP 5\d\d|\(5\d\d\)/i.test(msg)) throw first
+      console.warn('[KPay] queryOrder retry after:', msg)
+      res = await this.apiGet<QueryRes>(url)
+    }
 
     if (res.code !== 10000) {
       throw new Error(`KPay 查詢失敗：${res.message ?? kpayErrorMessage(String(res.code))}`)
     }
 
     const result = res.data!.result
+    const status = this.mapKPayResult(result)
+    if (status !== 'pending') {
+      console.log('[KPay] queryOrder:', providerOrderNo, '->', String(result), status)
+    }
     return {
       providerOrderNo: res.data!.orderNo,
-      status: this.mapKPayResult(result),
+      status,
       rawStatus: String(result),
       failureCode: this.extractFailureCode(res),
       failureReason: this.extractFailureReason(res),
