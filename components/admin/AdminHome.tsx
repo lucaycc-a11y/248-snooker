@@ -170,7 +170,7 @@ export default function AdminHome({ data, adminName }: Props) {
       )}
 
       <section className="ah-kpis" aria-label="今日與本週">
-        <div className="admin-card ah-kpi">
+        <div className="admin-card ah-kpi hero">
           <span className="admin-sub">今日收入</span>
           <b className="ah-num">{money(data.kpi.revenueToday)}</b>
           <span className="admin-sub">已確認預約的實收金額</span>
@@ -231,6 +231,7 @@ export default function AdminHome({ data, adminName }: Props) {
             {data.recent.map((r) => (
               <li key={r.id}>
                 <Link href={`/admin/bookings/${r.id}`}>
+                  <span className="ic" aria-hidden>{(r.userName ?? '?').slice(0, 1).toUpperCase()}</span>
                   <span className="who">
                     <b>{r.userName ?? '未登記姓名'}</b>
                     <small className="admin-mono">{r.humanCode ?? '—'}</small>

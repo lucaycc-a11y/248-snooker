@@ -617,10 +617,10 @@
 }
 .ah-recent a {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.2fr) auto auto;
+  grid-template-columns: 40px minmax(0, 1.4fr) minmax(0, 1.2fr) auto auto;
   align-items: center;
-  gap: 12px;
-  min-height: 56px;
+  gap: 14px;
+  min-height: 64px;
   padding: 8px 12px;
   border-radius: 16px;
   color: inherit;
@@ -664,10 +664,11 @@
     font-size: 32px;
   }
   .ah-recent a {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'who amt' 'when badge';
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas: 'ic who amt' 'ic when badge';
     row-gap: 4px;
   }
+  .ah-recent .ic { grid-area: ic; }
   .ah-recent .who { grid-area: who; }
   .ah-recent .amt { grid-area: amt; text-align: right; }
   .ah-recent .when { grid-area: when; }
@@ -764,4 +765,52 @@
 .ah-num { font-size: 34px; }
 .ah-kpi svg { width: 100%; margin: 4px 0; }
 .ah-attention { padding: 10px 16px; }
-.ah-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* ── Member-page language: 20px cards, glow hero, circle-icon rows ───────── */
+.admin-card { border-radius: 20px; }
+.admin-page { gap: 16px; padding-top: 6px; }
+.admin-thead { margin: 14px 0 0; }
+.admin-pagehead { margin: -2px 0 2px; }
+.admin-pagehead .sub { margin: 0; color: var(--admin-text-tertiary); font-size: 14px; }
+
+.ah-kpi { justify-content: space-between; min-height: 148px; }
+.ah-kpi .admin-sub:last-child { margin-top: auto; }
+.ah-kpi.hero {
+  border-color: var(--glass-border);
+  background:
+    radial-gradient(95% 125% at 0% 100%, rgba(37, 211, 102, 0.26), transparent 64%),
+    radial-gradient(80% 110% at 100% 0%, rgba(24, 150, 135, 0.30), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 62%),
+    var(--glass-fill);
+}
+[data-theme='light'] .ah-kpi.hero {
+  background:
+    radial-gradient(95% 125% at 0% 100%, rgba(37, 211, 102, 0.22), transparent 64%),
+    radial-gradient(80% 110% at 100% 0%, rgba(24, 150, 135, 0.18), transparent 62%),
+    var(--glass-fill);
+}
+.ah-kpi.hero .ah-num { font-size: 44px; }
+
+.ah-recent .ic {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-weight: 600; font-size: 15px;
+  color: var(--admin-text-secondary);
+  border: 1px solid var(--admin-border-strong);
+}
+.ah-recent li + li { border-top: 1px solid var(--admin-border-subtle); }
+.ah-recent a { border-radius: 0; }
+.ah-recent { padding: 0; }
+
+/* Phone: tighter page gutter and 2-up KPI */
+@media (max-width: 860px) {
+  .admin-page { gap: 12px; }
+  .ah-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ah-kpi { min-height: 112px; }
+  .ah-kpi.hero { grid-column: span 2; }
+  .ah-kpi.wide { grid-column: auto; }
+  .ah-kpi .ah-num { font-size: 28px; }
+  .ah-kpi.hero .ah-num { font-size: 40px; }
+  .ah-timetable { min-width: 560px; }
+  .ah-kpi.hero .ah-num { font-size: 40px; }
+}
