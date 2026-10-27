@@ -137,19 +137,23 @@ export const ADMIN_AREAS: AdminArea[] = [
       { href: '/admin/hidden-users', label: '隱藏帳戶', cmsKey: 'admin.nav.hidden_users', superAdminOnly: true, hint: '不計入統計的帳戶' },
       { href: '/admin/audit', label: '審計記錄', cmsKey: 'admin.nav.audit', hint: '後台操作記錄' },
       { href: '/admin/errors', label: '錯誤記錄', cmsKey: 'admin.nav.errors', hint: '系統錯誤與排查' },
-      { href: '/admin/door', label: '門禁卡', cmsKey: 'admin.nav.door', hint: '門禁卡管理' },
-      { href: '/admin/door-lock', label: '門鎖', cmsKey: 'admin.nav.door_lock', hint: '門鎖狀態與控制' },
-      { href: '/admin/lockers', label: '儲物櫃', cmsKey: 'admin.nav.lockers', hint: '儲物櫃管理' },
-      { href: '/admin/qr-generator', label: 'QR 產生器', cmsKey: 'admin.nav.qr_generator', hint: '產生門禁或活動 QR' },
-      { href: '/admin/uat-access', label: 'UAT 存取', cmsKey: 'admin.nav.uat_access', superAdminOnly: true, hint: '測試環境存取名單' },
-      { href: '/admin/dev2', label: '測試面板', cmsKey: 'admin.nav.dev2', superAdminOnly: true, hint: '付款與預約測試工具' },
-      { href: '/admin/style-guide', label: '風格指南', cmsKey: 'admin.nav.style_guide', hint: '後台介面元件' },
     ],
   },
 ]
 
 /** Pages that are mounted but intentionally not in the nav (see header note). */
-export const ADMIN_UNLISTED_STUBS = ['/admin/ai', '/admin/slots'] as const
+export const ADMIN_UNLISTED_STUBS = [
+  '/admin/ai',
+  '/admin/slots',
+  // Removed from the nav on 27 Oct 2026 at Luca's request; the pages still exist by URL.
+  '/admin/door',
+  '/admin/door-lock',
+  '/admin/lockers',
+  '/admin/qr-generator',
+  '/admin/uat-access',
+  '/admin/dev2',
+  '/admin/style-guide',
+] as const
 
 /** Flat list of every nav leaf, for the global search and route audits. */
 export function allNavItems(): (AdminNavItem & { areaId: AdminAreaId; areaLabel: string })[] {

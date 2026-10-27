@@ -18,6 +18,7 @@ export default async function AdminMembersPage() {
   return (
     <MembersPageClient
       members={result.members}
+      total={result.total}
       error={result.error}
       flagsSlot={<AccountFlagsList />}
       isSuperAdmin={admin?.role === 'super_admin'}

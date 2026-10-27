@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { Card } from '@/components/ui/card'
-import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 import BookingCancelAction from '@/components/admin/BookingCancelAction'
 
@@ -47,13 +47,37 @@ async function getBookingDetail(id: string) {
   return { booking, user, otherBookings }
 }
 
-function Row_({ label, value }: { label: string; value: string }) {
+const STATUS: Record<string, { label: string; tone: '' | 'warn' | 'bad' }> = {
+  confirmed: { label: '已確認', tone: '' },
+  pending: { label: '待付款', tone: 'warn' },
+  payment_review: { label: '付款待核實', tone: 'warn' },
+  cancelled: { label: '已取消', tone: 'bad' },
+  admin_cancelled: { label: '後台已取消', tone: 'bad' },
+  expired: { label: '已逾時', tone: 'bad' },
+  refunded: { label: '已退款', tone: 'bad' },
+}
+
+const METHOD: Record<string, string> = {
+  alipayhk: '支付寶 HK',
+  payme: 'PayMe',
+  fps: 'FPS 轉數快',
+  wechat: '微信支付',
+  wechatpay: '微信支付',
+  card: '信用卡',
+  credit: 'Space Credit',
+}
+
+function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${tokens.colors.border}` }}>
-      <span style={{ color: tokens.colors.textMuted, fontSize: 14 }}>{label}</span>
-      <span style={{ color: tokens.colors.text, fontSize: 14 }}>{value}</span>
+    <div className="bk-field">
+      <dt>{label}</dt>
+      <dd className={mono ? 'admin-mono' : undefined}>{value}</dd>
     </div>
   )
+}
+
+function hhmm(t: string | null): string {
+  return (t ?? '').slice(0, 5)
 }
 
 export default async function AdminBookingDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -62,47 +86,90 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
   if (!result) notFound()
   const { booking, user, otherBookings } = result
 
+  const status = str(booking, ['status']) ?? 'unknown'
+  const st = STATUS[status] ?? { label: status, tone: '' as const }
+  const method = str(booking, ['payment_method'])
+  const refund = num(booking, ['refund_amount'], 0)
+  const userId = typeof booking.user_id === 'string' ? booking.user_id : null
+  const canCancel = status !== 'refunded' && status !== 'admin_cancelled'
+
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: '32px 16px' }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, color: tokens.colors.text, marginBottom: 24 }}>
-        {str(booking, ['booking_reference']) ?? id.slice(0, 8)}
-      </h1>
+    <div className="bk-page">
+      <Link href="/admin/bookings" className="bk-back">
+        <ArrowLeft size={16} aria-hidden /> 返回預約列表
+      </Link>
 
-      {str(booking, ['status']) !== 'refunded' && str(booking, ['status']) !== 'admin_cancelled' && (
-        <BookingCancelAction bookingId={id} />
-      )}
-
-      <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <Row_ label="Name" value={user?.display_name ?? user?.email ?? 'Guest'} />
-        {user?.email && <Row_ label="Email" value={user.email} />}
-        {user?.phone && <Row_ label="Phone" value={user.phone} />}
-        <Row_ label="Table" value={String(num(booking, ['table_number'], 0))} />
-        <Row_
-          label="Time"
-          value={`${str(booking, ['date']) ?? ''} ${str(booking, ['start_time']) ?? ''}-${str(booking, ['end_time']) ?? ''}`}
-        />
-        <Row_ label="Total" value={`HK$${num(booking, ['total_price'], 0)}`} />
-        <Row_ label="Status" value={str(booking, ['status']) ?? 'unknown'} />
-        <Row_ label="Payment" value={str(booking, ['payment_method']) ?? '—'} />
-        {num(booking, ['refund_amount'], 0) > 0 && (
-          <Row_ label="Refund" value={`HK$${num(booking, ['refund_amount'], 0)}`} />
-        )}
-      </Card>
-
-      {otherBookings.length > 0 && (
-        <Card>
-          <div style={{ fontSize: 16, fontWeight: 700, color: tokens.colors.text, marginBottom: tokens.spacing.md }}>
-            Other bookings by this customer
+      <section className="admin-card bk-hero">
+        <div>
+          <p className="bk-code admin-mono">{str(booking, ['booking_reference']) ?? id.slice(0, 8)}</p>
+          <div className="bk-tags">
+            <span className={`admin-tag${st.tone ? ` ${st.tone}` : ''}`}>{st.label}</span>
+            {booking.is_test === true ? <span className="admin-tag warn">測試預約</span> : null}
           </div>
-          {otherBookings.map((b) => (
-            <Row_
-              key={String(b.id)}
-              label={str(b, ['booking_reference']) ?? String(b.id).slice(0, 8)}
-              value={`${str(b, ['date']) ?? ''} · ${str(b, ['status']) ?? ''} · HK$${num(b, ['total_price'], 0)}`}
-            />
-          ))}
-        </Card>
-      )}
-    </main>
+        </div>
+        <div className="bk-amount">
+          <small>金額</small>
+          <b className="admin-num">HK${num(booking, ['total_price'], 0)}</b>
+          {refund > 0 ? <small>已退款 HK${refund}</small> : null}
+        </div>
+      </section>
+
+      <section className="admin-card bk-card">
+        <h3>預約資料</h3>
+        <dl className="bk-grid">
+          <Field label="日期" value={str(booking, ['date']) ?? '—'} />
+          <Field label="時間" value={`${hhmm(str(booking, ['start_time']))} – ${hhmm(str(booking, ['end_time']))}`} />
+          <Field label="房間" value={`房 ${num(booking, ['table_number'], 0)}`} />
+          <Field label="付款方式" value={method ? (METHOD[method.toLowerCase()] ?? method) : '—'} />
+        </dl>
+      </section>
+
+      <section className="admin-card bk-card">
+        <div className="bk-card-head">
+          <h3>客人</h3>
+          {userId ? (
+            <Link href={`/admin/members/${userId}`} className="admin-pill-btn sm">
+              查看會員
+            </Link>
+          ) : null}
+        </div>
+        <dl className="bk-grid">
+          <Field label="姓名" value={user?.display_name ?? user?.email ?? '訪客'} />
+          <Field label="電話" value={user?.phone ?? '—'} />
+          <Field label="電郵" value={user?.email ?? '—'} />
+        </dl>
+      </section>
+
+      {canCancel ? (
+        <section className="admin-card bk-card bk-danger">
+          <div>
+            <h3>取消這張預約</h3>
+            <p>釋放房間時段並標記為「後台已取消」。此操作不會自動退款；如需退款請另行處理。</p>
+          </div>
+          <BookingCancelAction bookingId={id} compact />
+        </section>
+      ) : null}
+
+      {otherBookings.length > 0 ? (
+        <section className="admin-card bk-card">
+          <h3>此客人的其他預約</h3>
+          <ul className="bk-list">
+            {otherBookings.map((b) => {
+              const bs = STATUS[str(b, ['status']) ?? ''] ?? { label: str(b, ['status']) ?? '', tone: '' as const }
+              return (
+                <li key={String(b.id)}>
+                  <Link href={`/admin/bookings/${String(b.id)}`}>
+                    <span className="admin-mono">{str(b, ['booking_reference']) ?? String(b.id).slice(0, 8)}</span>
+                    <span className="admin-cell-sub">{str(b, ['date']) ?? ''}</span>
+                    <span className={`admin-tag${bs.tone ? ` ${bs.tone}` : ''}`}>{bs.label}</span>
+                    <span className="admin-num">HK${num(b, ['total_price'], 0)}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
+    </div>
   )
 }

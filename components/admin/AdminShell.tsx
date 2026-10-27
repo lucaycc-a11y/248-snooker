@@ -22,6 +22,8 @@ import {
   LayoutGrid,
   List,
   Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
   Search,
   Sun,
   Users,
@@ -83,6 +85,27 @@ export function AdminShell({
   const [devRole, setDevRole] = useState<AdminRoleId | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [bugOpen, setBugOpen] = useState(false)
+  // Desktop sidebar can be hidden to give pages the full width. Remembered per browser;
+  // storage can throw (private window), so every access is guarded and the default is "shown".
+  const [navHidden, setNavHidden] = useState(false)
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem('admin-nav-hidden') === '1') setNavHidden(true)
+    } catch {
+      /* default: shown */
+    }
+  }, [])
+  const toggleNav = () => {
+    setNavHidden((prev) => {
+      const next = !prev
+      try {
+        window.localStorage.setItem('admin-nav-hidden', next ? '1' : '0')
+      } catch {
+        /* not persisted */
+      }
+      return next
+    })
+  }
 
   // Admin defaults to light (27 Oct 2026). Dark only when the admin picked it
   // with the toggle — the device's system setting is ignored here.
@@ -142,7 +165,7 @@ export function AdminShell({
       {/* Every client component under the shell may call useAdmin() — mount
           the provider here, not per-page, so a new page can never forget it. */}
       <AdminProvider value={admin}>
-        <div className="admin-app ad-app">
+        <div className="admin-app ad-app" data-nav={navHidden ? 'hidden' : 'shown'}>
           <AdminSidebar
             activeArea={activeArea}
             isSuperAdmin={effectiveSuperAdmin}
@@ -152,6 +175,17 @@ export function AdminShell({
 
           <div className="ad-main">
             <header className="ad-top">
+              <button
+                type="button"
+                className="ad-icon-btn ad-nav-toggle"
+                onClick={toggleNav}
+                aria-pressed={navHidden}
+                aria-label={navHidden ? '顯示側邊選單' : '隱藏側邊選單'}
+                title={navHidden ? '顯示側邊選單' : '隱藏側邊選單'}
+                data-cms-key="admin.nav.toggle_sidebar"
+              >
+                {navHidden ? <PanelLeftOpen size={18} aria-hidden /> : <PanelLeftClose size={18} aria-hidden />}
+              </button>
               <Link href="/admin" className="ad-top-brand" aria-label="Space8 後台">
                 <span className="admin-logo admin-logo-mark" aria-hidden />
               </Link>

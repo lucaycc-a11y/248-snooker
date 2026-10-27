@@ -7,7 +7,9 @@ import { getHiddenUserList, hiddenIdFilterValue } from '@/lib/data/getHiddenUser
 // spec. Same schema caveat as getAdminBookings.ts — users/bookings columns
 // are RPC-confirmed, not migration-confirmed.
 
-const PAGE_SIZE = 50
+// Whole membership fits on one page for now (78 members). Anything beyond this is reported via
+// `total` so the UI can say so instead of silently dropping people.
+const PAGE_SIZE = 500
 
 export type AdminMemberRow = {
   id: string
@@ -101,13 +103,19 @@ export async function getAdminMembers(query: AdminMembersQuery): Promise<AdminMe
     let spendByUser = new Map<string, { total: number; count: number; lastAt: string | null }>()
     if (userIds.length > 0) {
       try {
-        const { data: bookingRows } = await service
-          .from('bookings')
-          .select('user_id, total_price, status, created_at')
-          .in('user_id', userIds)
-          .eq('status', 'confirmed')
-          .eq('is_test', false)
-        for (const b of (bookingRows ?? []) as Row[]) {
+        // Chunked: a few hundred uuids in one .in() would exceed the request URL limit.
+        const bookingRows: Row[] = []
+        for (let i = 0; i < userIds.length; i += 100) {
+          const { data: part, error: partError } = await service
+            .from('bookings')
+            .select('user_id, total_price, status, created_at')
+            .in('user_id', userIds.slice(i, i + 100))
+            .eq('status', 'confirmed')
+            .eq('is_test', false)
+          if (partError) throw partError
+          for (const b of (part ?? []) as Row[]) bookingRows.push(b)
+        }
+        for (const b of bookingRows) {
           const uid = String(b.user_id)
           const price = num(b, ['total_price'], 0)
           const createdAt = str(b, ['created_at'])

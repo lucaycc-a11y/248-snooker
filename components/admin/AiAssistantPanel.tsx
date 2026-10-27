@@ -21,15 +21,61 @@ const TOOL_LABEL: Record<string, string> = {
   run_revenue_check: '執行收入核對',
   get_user_payment_history: '查客人付款記錄',
   get_slot_occupancy: '查時段佔用',
+  get_member_stats: '查會員總覽',
+  search_members: '搜尋會員',
 }
 
-const EXAMPLES = ['今日有沒有客人付款失敗？原因是什麼？', '最近 24 小時 PayMe 付款有沒有問題？', '本月收入和預約數有沒有對不上？', '最近有沒有客人付了款但預約未確認？']
+const PAYMENT_EXAMPLES = ['今日有沒有客人付款失敗？原因是什麼？', '最近 24 小時 PayMe 付款有沒有問題？', '本月收入和預約數有沒有對不上？', '最近有沒有客人付了款但預約未確認？']
+
+const MEMBER_CODE_RE = /SPACE8-[A-Z0-9]+(?:-[A-Z0-9]+)+/g
+
+/** Turns member codes in an answer into buttons that open that member, when the page knows them. */
+function linkify(text: string, resolve: ((code: string) => string | null) | undefined, open: ((id: string) => void) | undefined) {
+  if (!resolve || !open) return text
+  const parts: React.ReactNode[] = []
+  let last = 0
+  for (const m of text.matchAll(MEMBER_CODE_RE)) {
+    const idx = m.index ?? 0
+    const id = resolve(m[0])
+    if (!id) continue
+    if (idx > last) parts.push(text.slice(last, idx))
+    parts.push(
+      <button key={`${m[0]}-${idx}`} type="button" className="mb-code-link admin-mono" onClick={() => open(id)}>
+        {m[0]}
+      </button>,
+    )
+    last = idx + m[0].length
+  }
+  if (last === 0) return text
+  if (last < text.length) parts.push(text.slice(last))
+  return parts
+}
 
 function isAnswer(v: unknown): v is Answer {
   return typeof v === 'object' && v !== null && 'steps' in v
 }
 
-export default function AiAssistantPanel() {
+type PanelProps = {
+  /** 'members' answers about members (member tools only); default is payments. */
+  scope?: 'payments' | 'members'
+  title?: string
+  hint?: string
+  placeholder?: string
+  examples?: string[]
+  /** Member code → member id, so codes in the answer can open that member. */
+  resolveMember?: (code: string) => string | null
+  onOpenMember?: (id: string) => void
+}
+
+export default function AiAssistantPanel({
+  scope = 'payments',
+  title = '問 AI',
+  hint = '只讀：AI 會自己決定查什麼，不會修改任何資料',
+  placeholder = '例：S8-1042 為什麼付了款還未確認？',
+  examples = PAYMENT_EXAMPLES,
+  resolveMember,
+  onOpenMember,
+}: PanelProps = {}) {
   const [question, setQuestion] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +91,7 @@ export default function AiAssistantPanel() {
       const res = await fetch('/api/admin/ai-investigate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: text }),
+        body: JSON.stringify({ question: text, scope }),
       })
       const body: unknown = await res.json().catch(() => null)
       if (!res.ok) {
@@ -64,8 +110,8 @@ export default function AiAssistantPanel() {
   return (
     <section className="admin-card rc-run" aria-label="問 AI">
       <div className="ah-card-head" style={{ padding: 0 }}>
-        <h3><Sparkles size={18} aria-hidden /> 問 AI</h3>
-        <span className="rc-by">只讀：AI 會自己決定查什麼，不會修改任何資料</span>
+        <h3><Sparkles size={18} aria-hidden /> {title}</h3>
+        <span className="rc-by">{hint}</span>
       </div>
       <form
         className="rc-ask"
@@ -79,7 +125,7 @@ export default function AiAssistantPanel() {
           onChange={(e) => setQuestion(e.target.value)}
           rows={2}
           maxLength={500}
-          placeholder="例：S8-1042 為什麼付了款還未確認？"
+          placeholder={placeholder}
           aria-label="向 AI 提問"
         />
         <button type="submit" className="admin-pill-btn primary" disabled={busy || question.trim().length < 2}>
@@ -87,7 +133,7 @@ export default function AiAssistantPanel() {
         </button>
       </form>
       <div className="rc-presets">
-        {EXAMPLES.map((ex) => (
+        {examples.map((ex) => (
           <button key={ex} type="button" className="admin-pill-btn sm" disabled={busy} onClick={() => { setQuestion(ex); void ask(ex) }}>
             {ex}
           </button>
@@ -97,10 +143,10 @@ export default function AiAssistantPanel() {
 
       {out ? (
         <div className="rc-answer">
-          {out.answer ? <p className="rc-summary">{out.answer}</p> : <p className="bug-error">{out.error ?? 'AI 沒有給出結論'}</p>}
+          {out.answer ? <p className="rc-summary">{linkify(out.answer, resolveMember, onOpenMember)}</p> : <p className="bug-error">{out.error ?? 'AI 沒有給出結論'}</p>}
           {out.auditError ? <p className="bug-error">審計記錄未能寫入：{out.auditError}</p> : null}
           <p className="rc-hint">
-            {out.model ? `模型：${out.model} · ` : ''}共查了 {out.steps.length} 項資料。AI 的結論僅供參考，金額請以 KPay 後台為準。
+            {out.model ? `模型：${out.model} · ` : ''}共查了 {out.steps.length} 項資料。AI 的結論僅供參考{scope === 'members' ? '。' : '，金額請以 KPay 後台為準。'}
           </p>
           {out.steps.length > 0 ? (
             <details className="rc-trace">

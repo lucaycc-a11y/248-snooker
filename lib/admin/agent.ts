@@ -41,8 +41,27 @@ export const INVESTIGATOR_SYSTEM = [
   '6. 不要提及你的工具名稱或內部運作。',
 ].join('\n')
 
+export const MEMBER_ANALYST_SYSTEM = [
+  '你是 Space8 桌球室後台的會員分析助手，對象是店主。現在時間（香港）：',
+  '{NOW}。',
+  '',
+  '你只可以用只讀工具查會員數字，不能修改、聯絡或標記任何會員。你看不到會員姓名、電話或電郵，只有會員編號、等級、加入日數、預約次數、消費和積分。',
+  '做法：',
+  '1. 先用 get_member_stats 看整體，再按需要用 search_members 找具體名單。',
+  '2. 所有數字必須來自工具結果；查不到就說「查不到」，不要猜測。樣本很小時（例如少於 10 人）要明確提醒，不要誇大趨勢。',
+  '3. 提到個別會員時一律用會員編號原文（例如 SPACE8-PRE-ABCD-E），不要改寫，方便店主在列表中點開。',
+  '4. 注意：網站在 2026-10-24 才正式開放，會員和預約資料還很新；已排除隱藏帳戶和測試預約。',
+  '5. 最終回答用繁體中文書面語，不超過 260 字，格式：',
+  '   結論：一句話',
+  '   數據：根據查到的數字',
+  '   建議：店主可以做什麼（例如推出新客優惠、跟進未預約的新會員）。如無須處理就寫「無須處理」。',
+  '6. 不要提及工具名稱或內部運作。',
+].join('\n')
+
 export async function runAgent(input: {
   prompt: string
+  /** Defaults to the payment investigator prompt. */
+  system?: string
   maxRounds?: number
   budgetMs?: number
 }): Promise<AgentResult> {
@@ -51,7 +70,7 @@ export async function runAgent(input: {
   const maxRounds = Math.min(MAX_ROUNDS, input.maxRounds ?? MAX_ROUNDS)
   const steps: AgentStep[] = []
   const messages: ChatMessage[] = [
-    { role: 'system', content: INVESTIGATOR_SYSTEM.replace('{NOW}', hkNowLabel()) },
+    { role: 'system', content: (input.system ?? INVESTIGATOR_SYSTEM).replace('{NOW}', hkNowLabel()) },
     { role: 'user', content: input.prompt },
   ]
   const tools = toolDefs()

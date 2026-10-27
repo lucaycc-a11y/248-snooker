@@ -3,6 +3,7 @@ import { getAdminRevenue } from '@/lib/data/getAdminRevenue'
 import { getHiddenUserList } from '@/lib/data/getHiddenUserIds'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 import { runRevenueCheck } from '@/lib/admin/revenueCheck'
+import { daysSince, memberStats } from '@/lib/admin/memberStats'
 import type { MimoToolDef } from '@/lib/ai/mimo'
 
 // Read-only tools the AI investigator may call. Hard rules:
@@ -103,6 +104,84 @@ function compactAttempt(r: Row, booking?: { code: string | null; method: string 
     created: hkTime(str(r, ['created_at'])),
     createdAgo: ago(str(r, ['created_at'])),
     completed: hkTime(str(r, ['completed_at'])),
+  }
+}
+
+// ── Members (no names, phones, emails or user ids — only the public member code) ─────────
+
+type MemberBase = {
+  code: string | null
+  tier: string | null
+  points: number
+  credits: number
+  createdAt: string | null
+  isBlacklisted: boolean
+  needsManualPhoneReverify: boolean
+  bookingCount: number
+  totalSpend: number
+  lastBookingDate: string | null
+}
+
+const MEMBER_CAP = 2000
+
+/** Every non-hidden member with their confirmed, non-test booking totals. */
+async function loadMemberBase(): Promise<MemberBase[]> {
+  const service = getLegacyServiceSupabase()
+  const hidden = await getHiddenUserList()
+  const { data, error } = await service
+    .from('users')
+    .select('id, member_code, tier, points, credits, created_at, is_blacklisted, needs_manual_phone_reverify')
+    .order('created_at', { ascending: false })
+    .limit(MEMBER_CAP)
+  if (error) throw new Error(error.message)
+  const users = ((data ?? []) as unknown as Row[]).filter((u) => !hidden.ids.has(String(u.id)))
+
+  const agg = new Map<string, { count: number; spend: number; last: string | null }>()
+  for (let i = 0; i < users.length; i += 100) {
+    const ids = users.slice(i, i + 100).map((u) => String(u.id))
+    const { data: bookings, error: bErr } = await service
+      .from('bookings')
+      .select('user_id, total_price, date')
+      .in('user_id', ids)
+      .eq('status', 'confirmed')
+      .eq('is_test', false)
+    if (bErr) throw new Error(bErr.message)
+    for (const b of (bookings ?? []) as unknown as Row[]) {
+      const uid = String(b.user_id)
+      const cur = agg.get(uid) ?? { count: 0, spend: 0, last: null }
+      const date = str(b, ['date'])
+      agg.set(uid, { count: cur.count + 1, spend: cur.spend + num(b, ['total_price'], 0), last: date && (!cur.last || date > cur.last) ? date : cur.last })
+    }
+  }
+  return users.map((u) => {
+    const a = agg.get(String(u.id))
+    return {
+      code: str(u, ['member_code']),
+      tier: str(u, ['tier']),
+      points: num(u, ['points'], 0),
+      credits: num(u, ['credits'], 0),
+      createdAt: str(u, ['created_at']),
+      isBlacklisted: u.is_blacklisted === true,
+      needsManualPhoneReverify: u.needs_manual_phone_reverify === true,
+      bookingCount: a?.count ?? 0,
+      totalSpend: a?.spend ?? 0,
+      lastBookingDate: a?.last ?? null,
+    }
+  })
+}
+
+function compactMember(m: MemberBase) {
+  return {
+    memberCode: m.code,
+    tier: m.tier,
+    joinedDaysAgo: daysSince(m.createdAt),
+    bookings: m.bookingCount,
+    spendHkd: m.totalSpend,
+    lastBookingDate: m.lastBookingDate,
+    daysSinceLastBooking: m.lastBookingDate ? daysSince(`${m.lastBookingDate}T00:00:00+08:00`) : null,
+    points: m.points,
+    walletCreditHkd: m.credits,
+    blacklisted: m.isBlacklisted,
   }
 }
 
@@ -409,6 +488,69 @@ export const AGENT_TOOLS: AgentTool[] = [
       const { data, error } = await q
       if (error) throw new Error(error.message)
       return { date, bookings: ((data ?? []) as unknown as Row[]).map(compactBooking) }
+    },
+  },
+  {
+    def: {
+      name: 'get_member_stats',
+      description: '會員總覽數字：會員總數、近 7／30 日新增、有預約／從未預約人數、回頭客（2 次或以上）、黑名單、總消費、各會員等級人數。回答「有幾多會員」「轉化率」「新會員表現」時先用這個。',
+      parameters: { type: 'object', properties: {} },
+    },
+    run: async () => {
+      const all = await loadMemberBase()
+      const stats = memberStats(all)
+      const tiers: Record<string, number> = {}
+      for (const m of all) tiers[m.tier ?? 'unknown'] = (tiers[m.tier ?? 'unknown'] ?? 0) + 1
+      return { ...stats, tiers, note: '已排除隱藏帳戶；預約只計已確認的非測試預約' }
+    },
+  },
+  {
+    def: {
+      name: 'search_members',
+      description:
+        '按條件找會員，回傳會員編號（不含姓名、電話、電郵）、等級、加入日數、預約數、消費、最後預約日、積分。可用條件：joinedWithinDays（近 N 日加入）、minBookings／maxBookings（預約次數範圍；從未預約用 maxBookings=0）、minSpend（最低消費 HK$）、inactiveDays（有預約過但已超過 N 日沒再預約）、sortBy（spend／bookings／joined／points）、limit（最多 20）。',
+      parameters: {
+        type: 'object',
+        properties: {
+          joinedWithinDays: { type: 'integer' },
+          minBookings: { type: 'integer' },
+          maxBookings: { type: 'integer' },
+          minSpend: { type: 'integer' },
+          inactiveDays: { type: 'integer' },
+          sortBy: { type: 'string', enum: ['spend', 'bookings', 'joined', 'points'] },
+          limit: { type: 'integer' },
+        },
+      },
+    },
+    run: async (a) => {
+      const num0 = (k: string): number | null => (typeof a[k] === 'number' && Number.isFinite(a[k]) ? Math.floor(a[k] as number) : null)
+      const joined = num0('joinedWithinDays')
+      const minB = num0('minBookings')
+      const maxB = num0('maxBookings')
+      const minSpend = num0('minSpend')
+      const inactive = num0('inactiveDays')
+      const sortBy = ['spend', 'bookings', 'joined', 'points'].includes(String(a.sortBy)) ? String(a.sortBy) : 'joined'
+      const limit = argInt(a, 'limit', 10, 20)
+      const all = await loadMemberBase()
+      const matched = all.filter((m) => {
+        const age = daysSince(m.createdAt)
+        if (joined !== null && (age === null || age >= joined)) return false
+        if (minB !== null && m.bookingCount < minB) return false
+        if (maxB !== null && m.bookingCount > maxB) return false
+        if (minSpend !== null && m.totalSpend < minSpend) return false
+        if (inactive !== null) {
+          const since = m.lastBookingDate ? daysSince(`${m.lastBookingDate}T00:00:00+08:00`) : null
+          if (since === null || since < inactive) return false
+        }
+        return true
+      })
+      matched.sort((x, y) => {
+        if (sortBy === 'spend') return y.totalSpend - x.totalSpend
+        if (sortBy === 'bookings') return y.bookingCount - x.bookingCount
+        if (sortBy === 'points') return y.points - x.points
+        return (y.createdAt ?? '').localeCompare(x.createdAt ?? '')
+      })
+      return { matched: matched.length, shown: Math.min(limit, matched.length), members: matched.slice(0, limit).map(compactMember) }
     },
   },
 ]

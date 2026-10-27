@@ -16,10 +16,21 @@
 import { useEffect, useMemo, useState } from 'react'
 import { type AdminMemberRow } from '@/lib/data/getAdminMembers'
 import { money } from '@/lib/admin/today'
+import { memberStats, daysSince } from '@/lib/admin/memberStats'
 import MemberCardGrid from './MemberCardGrid'
+import MemberStatsRow from './MemberStatsRow'
+import AiAssistantPanel from './AiAssistantPanel'
 import MemberDetailSheet from './MemberDetailSheet'
 
-type MemFilter = 'all' | 'bl' | 'rv'
+type MemFilter = 'all' | 'new' | 'never' | 'repeat' | 'bl' | 'rv'
+type MemSort = 'newest' | 'spend' | 'bookings' | 'points' | 'active'
+
+const MEMBER_AI_EXAMPLES = [
+  '消費最高的會員是誰？',
+  '最近 7 日新會員有幾多個預約過？',
+  '邊啲新會員未預約過？值得跟進嗎？',
+  '回頭客有咩特徵？',
+]
 type MemView = 'grid' | 'table'
 
 function Seg<T extends string>({
@@ -52,6 +63,8 @@ function Seg<T extends string>({
 
 type Props = {
   members: AdminMemberRow[]
+  /** Head count from the server (the list itself is capped). */
+  total?: number
   /**
    * Loader failure message. When set the list is NOT an empty result — show a
    * banner with this text instead of 找不到會員.
@@ -68,6 +81,7 @@ type Props = {
 
 export default function MembersPageClient({
   members,
+  total: serverTotal = 0,
   error,
   flagsSlot,
   isSuperAdmin = false,
@@ -141,15 +155,42 @@ export default function MembersPageClient({
     }
   }, [q, includeHidden, members, error])
 
-  const rows = useMemo(
-    () =>
-      rowsData.filter((m) => {
-        if (filter === 'bl' && !m.isBlacklisted) return false
-        if (filter === 'rv' && !m.needsManualPhoneReverify) return false
-        return true
-      }),
-    [rowsData, filter],
-  )
+  // Figures always describe the real membership (hidden accounts excluded), not the current
+  // search result, so they do not jump around while typing.
+  const stats = useMemo(() => memberStats(members), [members])
+  const [sort, setSort] = useState<MemSort>('newest')
+
+  const rows = useMemo(() => {
+    const filtered = rowsData.filter((m) => {
+      if (filter === 'new') {
+        const age = daysSince(m.createdAt)
+        if (age === null || age >= 7) return false
+      }
+      if (filter === 'never' && m.bookingCount > 0) return false
+      if (filter === 'repeat' && m.bookingCount < 2) return false
+      if (filter === 'bl' && !m.isBlacklisted) return false
+      if (filter === 'rv' && !m.needsManualPhoneReverify) return false
+      return true
+    })
+    const by: Record<MemSort, (a: AdminMemberRow, b: AdminMemberRow) => number> = {
+      newest: (a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''),
+      spend: (a, b) => b.totalSpend - a.totalSpend,
+      bookings: (a, b) => b.bookingCount - a.bookingCount,
+      points: (a, b) => b.points - a.points,
+      active: (a, b) => (b.lastActiveAt ?? '').localeCompare(a.lastActiveAt ?? ''),
+    }
+    return [...filtered].sort(by[sort])
+  }, [rowsData, filter, sort])
+
+  const filterCounts: Record<MemFilter, number> = {
+    all: stats.total,
+    new: stats.newLast7Days,
+    never: stats.neverBooked,
+    repeat: stats.repeat,
+    bl: stats.blacklisted,
+    rv: stats.needsReverify,
+  }
+  const resolveMember = (code: string) => rowsData.find((m) => m.memberCode === code)?.id ?? members.find((m) => m.memberCode === code)?.id ?? null
 
   const open = (id: string) => {
     // Prototype `open-mem` opens the drawer in place. The detail sheet is
@@ -191,6 +232,16 @@ export default function MembersPageClient({
         )
       ) : (
         <>
+          <MemberStatsRow stats={stats} total={serverTotal} />
+          <AiAssistantPanel
+            scope="members"
+            title="問 AI 會員分析"
+            hint="只讀：AI 只看到會員編號和數字，看不到姓名、電話或電郵"
+            placeholder="例：邊啲新會員未預約過？"
+            examples={MEMBER_AI_EXAMPLES}
+            resolveMember={resolveMember}
+            onOpenMember={open}
+          />
           <div className="admin-row">
             <div className="admin-field" style={{ flex: 1, minWidth: 220 }}>
               <label htmlFor="mem-q" data-cms-key="admin.members.search_label">
@@ -205,20 +256,16 @@ export default function MembersPageClient({
                 data-cms-key="admin.members.search_placeholder"
               />
             </div>
-            <Seg
-              value={filter}
-              onChange={setFilter}
-              label="會員篩選"
-              options={[
-                { key: 'all', label: '全部', cmsKey: 'admin.members.filter_all' },
-                { key: 'bl', label: '黑名單', cmsKey: 'admin.members.filter_bl' },
-                {
-                  key: 'rv',
-                  label: '待重新驗證電話',
-                  cmsKey: 'admin.members.filter_rv',
-                },
-              ]}
-            />
+            <div className="admin-field">
+              <label htmlFor="mem-sort">排序</label>
+              <select id="mem-sort" value={sort} onChange={(e) => setSort(e.target.value as MemSort)}>
+                <option value="newest">最新加入</option>
+                <option value="spend">消費最高</option>
+                <option value="bookings">預約最多</option>
+                <option value="points">積分最高</option>
+                <option value="active">最近活動</option>
+              </select>
+            </div>
             <Seg
               value={view}
               onChange={setView}
@@ -237,6 +284,24 @@ export default function MembersPageClient({
               />
               <span data-cms-key="admin.members.show_hidden_label">顯示隱藏帳戶</span>
             </label>
+          </div>
+
+          <div className="mb-chips" role="group" aria-label="會員篩選">
+            {(
+              [
+                ['all', '全部'],
+                ['new', '本週新增'],
+                ['never', '從未預約'],
+                ['repeat', '回頭客'],
+                ['bl', '黑名單'],
+                ['rv', '待重新驗證電話'],
+              ] as [MemFilter, string][]
+            ).map(([key, label]) => (
+              <button key={key} type="button" className="mb-chip" aria-pressed={filter === key} onClick={() => setFilter(key)}>
+                {label}
+                <span className="mb-chip-n admin-num">{filterCounts[key]}</span>
+              </button>
+            ))}
           </div>
 
           <section className="admin-card flat" data-mv={view}>
