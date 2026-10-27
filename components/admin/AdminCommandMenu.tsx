@@ -20,9 +20,10 @@ type Props = {
   open: boolean
   onClose: () => void
   isSuperAdmin: boolean
+  onReportBug?: () => void
 }
 
-export default function AdminCommandMenu({ open, onClose, isSuperAdmin }: Props) {
+export default function AdminCommandMenu({ open, onClose, isSuperAdmin, onReportBug }: Props) {
   const router = useRouter()
   const pathname = usePathname() ?? '/admin'
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -147,6 +148,12 @@ export default function AdminCommandMenu({ open, onClose, isSuperAdmin }: Props)
               在預約列表搜尋「{trimmed}」
               <small>按預約編號、電話、會員編號或姓名搜尋</small>
             </a>
+          ) : null}
+
+          {onReportBug ? (
+            <button type="button" className="admin-cmd-bug" onClick={onReportBug}>
+              回報問題<small>遇到錯誤或有建議，直接告訴我們</small>
+            </button>
           ) : null}
 
           {grouped.length === 0 && !trimmed ? <div className="admin-cmd-empty">沒有可用頁面</div> : null}

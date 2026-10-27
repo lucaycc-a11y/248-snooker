@@ -13,6 +13,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
+  Bug,
   CalendarClock,
   Globe,
   Home,
@@ -47,9 +48,10 @@ type Props = {
   activeArea: AdminAreaId
   isSuperAdmin: boolean
   onNewBooking: () => void
+  onReportBug: () => void
 }
 
-export default function AdminSidebar({ activeArea, isSuperAdmin, onNewBooking }: Props) {
+export default function AdminSidebar({ activeArea, isSuperAdmin, onNewBooking, onReportBug }: Props) {
   const pathname = usePathname() ?? '/admin'
   const currentItem = itemForPath(pathname)
   const areas = visibleAreas(isSuperAdmin)
@@ -114,6 +116,10 @@ export default function AdminSidebar({ activeArea, isSuperAdmin, onNewBooking }:
           新增預約
         </button>
       </div>
+      <button type="button" onClick={onReportBug} className="ad-side-bug" data-cms-key="admin.nav.report_bug">
+        <Bug size={16} aria-hidden />
+        回報問題
+      </button>
     </aside>
   )
 }

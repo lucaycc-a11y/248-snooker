@@ -32,6 +32,7 @@ import { useTheme } from 'next-themes'
 import { areaForPath, itemForPath, type AdminAreaId } from '@/lib/admin/nav'
 import AdminSidebar from './AdminSidebar'
 import AdminCommandMenu from './AdminCommandMenu'
+import BugReportDialog from './BugReportDialog'
 import { AdminToastProvider } from './ToastProvider'
 import { AdminProvider } from '@/lib/admin/AdminContext'
 import type { AdminData } from '@/lib/data/getAdmin'
@@ -81,6 +82,7 @@ export function AdminShell({
   const { theme, setTheme } = useTheme()
   const [devRole, setDevRole] = useState<AdminRoleId | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [bugOpen, setBugOpen] = useState(false)
 
   // Admin defaults to light (27 Oct 2026). Dark only when the admin picked it
   // with the toggle — the device's system setting is ignored here.
@@ -145,6 +147,7 @@ export function AdminShell({
             activeArea={activeArea}
             isSuperAdmin={effectiveSuperAdmin}
             onNewBooking={goNewBooking}
+            onReportBug={() => setBugOpen(true)}
           />
 
           <div className="ad-main">
@@ -244,7 +247,12 @@ export function AdminShell({
           open={menuOpen}
           onClose={() => setMenuOpen(false)}
           isSuperAdmin={effectiveSuperAdmin}
+          onReportBug={() => {
+            setMenuOpen(false)
+            setBugOpen(true)
+          }}
         />
+        <BugReportDialog open={bugOpen} onClose={() => setBugOpen(false)} />
         </div>
       </AdminProvider>
     </AdminToastProvider>

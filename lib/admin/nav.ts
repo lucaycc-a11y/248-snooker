@@ -102,6 +102,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     href: '/admin/revenue',
     items: [
       { href: '/admin/revenue', label: '收入', cmsKey: 'admin.nav.revenue', hint: '收入總覽與 Excel 匯出' },
+      { href: '/admin/revenue-check', label: '收入核對', cmsKey: 'admin.nav.revenue_check', hint: '自動核對收入與付款，找出異常' },
       { href: '/admin/payment-log', label: '付款監控', cmsKey: 'admin.nav.payment_log', hint: '即時付款狀態與對賬' },
       { href: '/admin/sales-report', label: '銷售報表', cmsKey: 'admin.nav.sales_report', hint: '按期間的銷售明細' },
     ],
@@ -131,6 +132,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     href: '/admin/audit',
     items: [
       { href: '/admin/activity', label: '網站記錄', cmsKey: 'admin.nav.activity', hint: '系統狀態及預約、付款、錯誤時間線' },
+      { href: '/admin/bug-reports', label: '問題回報', cmsKey: 'admin.nav.bug_reports', hint: '提交的問題與處理進度' },
       { href: '/admin/team', label: '管理員', cmsKey: 'admin.nav.team', superAdminOnly: true, hint: '邀請與角色' },
       { href: '/admin/hidden-users', label: '隱藏帳戶', cmsKey: 'admin.nav.hidden_users', superAdminOnly: true, hint: '不計入統計的帳戶' },
       { href: '/admin/audit', label: '審計記錄', cmsKey: 'admin.nav.audit', hint: '後台操作記錄' },
