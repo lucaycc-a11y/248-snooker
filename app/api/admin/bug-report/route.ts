@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { withAdminSecurity } from '@/lib/security/admin-wrapper'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { str, type Row } from '@/lib/data/adminReadHelpers'
-import { adminMailShell, escapeHtml, sendAdminMail, type AdminMailAttachment } from '@/lib/admin/alertMail'
+import { adminMailShell, escapeHtml, mailButton, mailCallout, mailFacts, mailText, sendAdminMail, type AdminMailAttachment } from '@/lib/admin/alertMail'
 
 // 問題回報 — admin only. Stores the report, then emails the owner with the page, device
 // and the latest site errors attached so the bug can be reproduced without asking.
@@ -112,26 +112,27 @@ export const POST = withAdminSecurity(
 
     const errorsHtml =
       recentErrors.length === 0
-        ? '<p style="color:#6b7a72">最近沒有網站錯誤記錄。</p>'
-        : `<table style="border-collapse:collapse;font-size:13px;width:100%">${recentErrors
+        ? mailText('最近沒有網站錯誤記錄。', { muted: true, small: true })
+        : `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 8px;">${recentErrors
             .map(
               (e) =>
-                `<tr><td style="padding:4px 8px 4px 0;color:#6b7a72;white-space:nowrap;vertical-align:top">${escapeHtml(e.at ?? '')}</td><td style="padding:4px 0"><b>${escapeHtml(e.source ?? '')}</b> ${escapeHtml(e.message)}</td></tr>`,
+                `<tr><td style="padding:5px 12px 5px 0;color:#737373;font-size:12px;white-space:nowrap;vertical-align:top;">${escapeHtml((e.at ?? '').slice(5, 16).replace('T', ' '))}</td><td style="padding:5px 0;color:#e5e5e5;font-size:12px;line-height:1.5;word-break:break-word;"><b style="color:#ffffff;">${escapeHtml(e.source ?? '')}</b> ${escapeHtml(e.message)}</td></tr>`,
             )
             .join('')}</table>`
     const html = adminMailShell(
       `${SEVERITY_LABEL[severity]}：${title}`,
-      `<p style="white-space:pre-wrap;line-height:1.7">${escapeHtml(description)}</p>
-<table style="font-size:13px;margin:16px 0;border-collapse:collapse">
-<tr><td style="padding:3px 12px 3px 0;color:#6b7a72">回報人</td><td>${escapeHtml(email)}</td></tr>
-<tr><td style="padding:3px 12px 3px 0;color:#6b7a72">頁面</td><td>${escapeHtml(pageUrl ?? '—')}</td></tr>
-<tr><td style="padding:3px 12px 3px 0;color:#6b7a72">螢幕</td><td>${escapeHtml(viewport ?? '—')}</td></tr>
-<tr><td style="padding:3px 12px 3px 0;color:#6b7a72">瀏覽器</td><td>${escapeHtml(userAgent ?? '—')}</td></tr>
-<tr><td style="padding:3px 12px 3px 0;color:#6b7a72">截圖</td><td>${screenshot ? '見附件' : '沒有'}</td></tr>
-</table>
-<h3 style="font-size:15px;margin:20px 0 6px">最近 10 條網站錯誤</h3>${errorsHtml}
-<p><a href="https://space8.com.hk/admin/bug-reports">在後台查看與追蹤</a></p>`,
+      `${mailCallout(escapeHtml(description), severity === 'urgent' ? 'critical' : 'info')}
+${mailFacts([
+  ['回報人', email],
+  ['頁面', pageUrl ?? '—'],
+  ['螢幕', viewport ?? '—'],
+  ['瀏覽器', userAgent ?? '—'],
+  ['截圖', screenshot ? '見附件' : '沒有'],
+])}
+<p style="color:#ffffff;font-size:15px;font-weight:600;margin:20px 0 8px;">最近 10 條網站錯誤</p>${errorsHtml}
+${mailButton('https://space8.com.hk/admin/bug-reports', '在後台查看與追蹤')}`,
       severity === 'urgent' ? 'critical' : 'normal',
+      `${SEVERITY_LABEL[severity]}：${title}`,
     )
 
     let emailSent = false

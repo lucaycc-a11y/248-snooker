@@ -2,7 +2,7 @@ import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getHiddenUserList } from '@/lib/data/getHiddenUserIds'
 import { str, type Row } from '@/lib/data/adminReadHelpers'
 import { mimoChat } from '@/lib/ai/mimo'
-import { adminMailShell, escapeHtml, sendAdminMail } from '@/lib/admin/alertMail'
+import { adminMailShell, escapeHtml, mailButton, mailCallout, mailItems, mailText, sendAdminMail } from '@/lib/admin/alertMail'
 import { runRevenueCheck, type CheckSeverity, type FindingKind } from '@/lib/admin/revenueCheck'
 import { runAgent, triageEvent, type AgentResult, type Triage } from '@/lib/admin/agent'
 
@@ -227,16 +227,11 @@ async function investigationsToday(): Promise<number> {
 
 function aiBlockHtml(ai: AlertAi | undefined): string {
   if (!ai || !ai.answer) return ''
-  return `<div style="margin-top:8px;background:#f2f7f4;padding:10px 12px;border-radius:10px;font-size:13.5px;line-height:1.65;white-space:pre-wrap"><b>AI 診斷</b>${ai.model ? `（${escapeHtml(ai.model)}）` : ''}\n${escapeHtml(ai.answer)}</div>`
+  return mailCallout(`<b style="color:#22c55e;">AI 診斷</b>${ai.model ? ` <span style="color:#737373;">（${escapeHtml(ai.model)}）</span>` : ''}\n${escapeHtml(ai.answer)}`)
 }
 
 function listHtml(alerts: WatchAlert[], ai?: Map<string, AlertAi>): string {
-  return `<ul style="padding-left:18px;line-height:1.7">${alerts
-    .map(
-      (a) =>
-        `<li style="margin-bottom:10px"><b>${escapeHtml(a.title)}</b><br><span style="color:#51605a">${escapeHtml(a.detail)}</span>${aiBlockHtml(ai?.get(a.key))}</li>`,
-    )
-    .join('')}</ul>`
+  return mailItems(alerts.map((a) => ({ title: a.title, detail: a.detail, extraHtml: aiBlockHtml(ai?.get(a.key)) })))
 }
 
 export async function runHealthWatch(): Promise<WatchResult> {
@@ -314,8 +309,9 @@ export async function runHealthWatch(): Promise<WatchResult> {
         subject: `【緊急】Space8 付款異常：${critical.length} 項需要立即處理`,
         html: adminMailShell(
           '付款異常，需要立即處理',
-          `<p>系統發現以下付款問題，客人可能已付款但未得到預約，或被重複扣款。請盡快到 KPay 後台核實，再在後台處理。</p>${listHtml(critical)}<p><a href="https://space8.com.hk/admin/payment-log">開啟付款監控</a> · <a href="https://space8.com.hk/admin/revenue-check">開啟收入核對</a></p>`,
+          `${mailText('系統發現以下付款問題，客人可能已付款但未得到預約，或被重複扣款。請盡快到 KPay 後台核實，再在後台處理。')}${listHtml(critical)}${mailButton('https://space8.com.hk/admin/payment-log', '開啟付款監控')}`,
           'critical',
+          `${critical.length} 項付款異常需要立即處理`,
         ),
       })
       emailedAdmins = out.recipients.length
@@ -393,7 +389,7 @@ export async function runHealthWatch(): Promise<WatchResult> {
         maxTokens: 300,
         timeoutMs: 12_000,
       })
-      intro = `<p style="background:#f2f7f4;padding:12px 14px;border-radius:10px">${escapeHtml(out.text)}</p>`
+      intro = mailCallout(escapeHtml(out.text))
     } catch {
       intro = ''
     }
@@ -401,7 +397,7 @@ export async function runHealthWatch(): Promise<WatchResult> {
       await sendAdminMail({
         audience: 'owner',
         subject: `Space8 自動巡檢：${ordinary.length} 項需要留意`,
-        html: adminMailShell('自動巡檢發現問題', `${intro}${listHtml(ordinary, ai)}<p><a href="https://space8.com.hk/admin/revenue-check">開啟收入核對</a></p>`),
+        html: adminMailShell('自動巡檢發現問題', `${intro}${listHtml(ordinary, ai)}${mailButton('https://space8.com.hk/admin/revenue-check', '開啟收入核對')}`, 'normal', `${ordinary.length} 項需要留意`),
       })
       emailedOwner += 1
       await service.from('admin_alerts').update({ last_emailed_at: nowIso }).in('alert_key', ordinary.map((a) => a.key))
@@ -415,7 +411,7 @@ export async function runHealthWatch(): Promise<WatchResult> {
       await sendAdminMail({
         audience: 'owner',
         subject: `【AI 診斷】${diagnosedCritical.length} 項緊急付款異常`,
-        html: adminMailShell('緊急付款異常的 AI 診斷', `<p>以下是剛才緊急電郵的 AI 診斷，僅供參考，請以 KPay 後台為準。</p>${listHtml(diagnosedCritical, ai)}`, 'critical'),
+        html: adminMailShell('緊急付款異常的 AI 診斷', `${mailText('以下是剛才緊急電郵的 AI 診斷，僅供參考，請以 KPay 後台為準。')}${listHtml(diagnosedCritical, ai)}`, 'critical', 'AI 診斷'),
       })
       emailedOwner += 1
     } catch (err) {
