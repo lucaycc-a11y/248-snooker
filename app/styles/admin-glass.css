@@ -738,3 +738,30 @@
   --admin-info: var(--admin-status-info, var(--admin-green));
   --admin-radius-btn: var(--admin-radius-button);
 }
+
+/* ── Polish pass: one-row top bar, compact titles, tighter Home ───────────── */
+.admin-top { flex-wrap: nowrap; }
+.admin-top > * { flex-shrink: 0; }
+.admin-top .admin-nav { flex-shrink: 1; min-width: 0; }
+.admin-top-actions { flex-shrink: 0; }
+.admin-ptitle { font-size: 28px; letter-spacing: -0.01em; }
+.admin-thead { margin: 18px 0 4px; }
+.admin-pagehead { margin-bottom: 2px; }
+
+@media (max-width: 1280px) {
+  .admin-nav-btn { padding: 0 11px; font-size: 14px; }
+  .admin-top-actions .admin-pill-btn:not(.primary) .label-lg { display: none; }
+  .admin-top-actions .admin-pill-btn:not(.primary) { padding: 0; width: 44px; justify-content: center; }
+}
+@media (max-width: 1100px) {
+  .admin-top .admin-role-sel { display: none; }
+  .admin-nav-btn { padding: 0 9px; }
+}
+
+/* KPI cards: compact, content-sized */
+.ah-kpi { padding: 14px 18px; gap: 4px; }
+.ah-kpi .admin-sub:first-child { font-size: 13px; }
+.ah-num { font-size: 34px; }
+.ah-kpi svg { width: 100%; margin: 4px 0; }
+.ah-attention { padding: 10px 16px; }
+.ah-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }

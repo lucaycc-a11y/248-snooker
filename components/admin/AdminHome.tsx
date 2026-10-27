@@ -10,7 +10,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, CalendarClock, ChevronLeft, ChevronRight, Plus, Wallet } from 'lucide-react'
+import { AlertTriangle, CalendarClock, ChevronLeft, ChevronRight, Wallet } from 'lucide-react'
 import type { AdminHomeData } from '@/lib/data/getAdminHome'
 import { dateLabel, minutesOf, money, shiftDate } from '@/lib/admin/today'
 import AdminStatusBadge from './AdminStatusBadge'
@@ -47,7 +47,8 @@ function Sparkline({ values }: { values: number[] }) {
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      width={width}
+      preserveAspectRatio="none"
+      width="100%"
       height={height}
       role="img"
       aria-label="最近 7 日收入走勢"
@@ -57,6 +58,7 @@ function Sparkline({ values }: { values: number[] }) {
         points={points.join(' ')}
         fill="none"
         stroke="var(--admin-green)"
+        vectorEffect="non-scaling-stroke"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -137,12 +139,6 @@ export default function AdminHome({ data, adminName }: Props) {
     <>
       <AdminPageHead
         sub={`${greeting(data.nowTime)}${adminName ? `，${adminName}` : ''}　${dateLabel(data.todayDate)} ${data.nowTime}`}
-        actions={
-          <Link href="/admin/bookings?new=1" className="admin-pill-btn primary">
-            <Plus size={18} aria-hidden />
-            新增預約
-          </Link>
-        }
       />
 
       {data.error ? (
