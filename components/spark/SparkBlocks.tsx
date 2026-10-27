@@ -8,11 +8,13 @@
 import { useState } from 'react'
 import { AlertTriangle, Check, CircleSlash, Clock, RotateCcw, RotateCw, ShieldCheck, X } from 'lucide-react'
 import CountUp from '@/components/admin/CountUp'
+import { FormCard, MemberPicker } from './MemberPicker'
 import type { ActionBlock, IncomeBlock, MemberStatsBlock, SparkBlock } from '@/lib/spark/agent'
 import type { SparkActionView } from '@/lib/spark/actions'
 
 const hkd = (n: number): string => `HK$${Math.round(n).toLocaleString('en-HK')}`
 const md = (iso: string): string => `${Number(iso.slice(5, 7))}月${Number(iso.slice(8, 10))}日`
+const ymd = (iso: string): string => `${iso.slice(0, 4)}年${md(iso)}`
 const TIER_LABEL: Record<string, string> = { amateur: '業餘', century: '百分', maximum: '滿分' }
 
 function clock(iso: string | null): string {
@@ -29,7 +31,7 @@ export function IncomeCard({ b }: { b: IncomeBlock }) {
     <section className="sp-card" aria-label="收入">
       <header className="sp-card-head">
         <span className="sp-card-kicker">收入</span>
-        <span className="sp-card-range">{b.from === b.to ? md(b.from) : `${md(b.from)} – ${md(b.to)}`}</span>
+        <span className="sp-card-range">{b.from === b.to ? ymd(b.from) : `${ymd(b.from)} – ${md(b.to)}`}</span>
       </header>
       <div className="sp-income-main">
         <b className="sp-big admin-num">
@@ -233,8 +235,17 @@ export function ActionCard({ initial }: { initial: SparkActionView }) {
   )
 }
 
-export function BlockView({ block }: { block: SparkBlock }) {
+export function BlockView({ block, chatId, onPickMember }: { block: SparkBlock; chatId: string | null; onPickMember: (code: string) => void }) {
   if (block.type === 'income') return <IncomeCard b={block} />
   if (block.type === 'member_stats') return <MemberStatsCard b={block} />
+  if (block.type === 'form') return <FormCard block={block} chatId={chatId} />
+  if (block.type === 'member_picker') {
+    return (
+      <section className="sp-card" aria-label="揀會員">
+        <header className="sp-card-head"><span className="sp-card-kicker">揀會員</span></header>
+        <MemberPicker initialQuery={block.query} autoFocus={false} onPick={(m) => onPickMember(m.code)} />
+      </section>
+    )
+  }
   return <ActionCard initial={(block as ActionBlock).action} />
 }

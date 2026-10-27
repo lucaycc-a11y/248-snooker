@@ -8,9 +8,11 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowUp, Check, ChevronRight, History, Loader2, Menu, Plus, Square, Trash2, X } from 'lucide-react'
+import { ArrowUp, Check, ChevronRight, History, Loader2, Menu, Plus, Square, Trash2, UserRound, Wallet, X } from 'lucide-react'
 import AiText from '@/components/admin/AiText'
 import { BlockView } from './SparkBlocks'
+import { MemberPicker } from './MemberPicker'
+import type { MemberHit } from '@/lib/spark/members'
 import type { SparkBlock, SparkStep } from '@/lib/spark/agent'
 
 type UiMessage = {
@@ -21,15 +23,16 @@ type UiMessage = {
   steps: SparkStep[]
   streaming?: boolean
   failed?: boolean
+  chip?: { code: string; name: string | null }
 }
 type ChatItem = { id: string; title: string; updated_at: string }
 
-const SUGGESTIONS = [
+const SUGGESTIONS: { title: string; text: string; form?: 'adjust_credit' | 'adjust_points' }[] = [
   { title: '今日收入', text: '今日收入幾多？同上星期同日比較一下' },
   { title: '本月表現', text: '本月收入、預約數同每日走勢點樣？' },
   { title: '會員總覽', text: '有幾多會員？新會員有幾多已經預約？' },
   { title: '付款有冇問題', text: '最近 24 小時有冇客人付款失敗或者付了款但預約未確認？' },
-  { title: '幫會員加 credit', text: '我想幫一位會員加 credit，請問我需要提供什麼資料？' },
+  { title: '加減 credit', text: '', form: 'adjust_credit' as const },
   { title: '停用優惠碼', text: '列出現時生效中的優惠碼，我想停用其中一個' },
 ]
 
@@ -77,11 +80,16 @@ function StepTrace({ steps, live }: { steps: SparkStep[]; live: boolean }) {
   )
 }
 
-function Bubble({ m }: { m: UiMessage }) {
+function Bubble({ m, chatId, onPickMember }: { m: UiMessage; chatId: string | null; onPickMember: (code: string) => void }) {
   if (m.role === 'user') {
     return (
       <div className="sp-row user">
-        <div className="sp-user-bubble">{m.content}</div>
+        <div className="sp-user-bubble">
+          {m.chip ? (
+            <span className="sp-bubble-chip"><UserRound size={13} aria-hidden /> {m.chip.name ?? m.chip.code}<small className="admin-mono">{m.chip.code}</small></span>
+          ) : null}
+          {m.content}
+        </div>
       </div>
     )
   }
@@ -95,7 +103,7 @@ function Bubble({ m }: { m: UiMessage }) {
           <p className="sp-thinking" aria-live="polite"><i /><i /><i /></p>
         ) : null}
         {m.blocks.map((b, i) => (
-          <BlockView key={b.type === 'action' ? b.action.id : `${b.type}-${i}`} block={b} />
+          <BlockView key={b.type === 'action' ? b.action.id : `${b.type}-${i}`} block={b} chatId={chatId} onPickMember={onPickMember} />
         ))}
         {m.content !== '' ? (
           m.failed ? <p className="sp-error" role="alert">{m.content}</p> : <AiText text={m.content} />
@@ -114,6 +122,8 @@ export default function SparkChat({ adminName }: { adminName: string }) {
   const [loadingChat, setLoadingChat] = useState(false)
   const [drawer, setDrawer] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  const [attached, setAttached] = useState<MemberHit | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const revealRef = useRef<number | null>(null)
   const endRef = useRef<HTMLDivElement | null>(null)
@@ -142,7 +152,7 @@ export default function SparkChat({ adminName }: { adminName: string }) {
     const el = scrollRef.current
     if (!el) return
     const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 220
-    if (nearBottom || busy) endRef.current?.scrollIntoView({ block: 'end' })
+    if (nearBottom || busy) el.scrollTop = el.scrollHeight
   }, [messages, busy])
 
   useEffect(() => {
@@ -179,13 +189,20 @@ export default function SparkChat({ adminName }: { adminName: string }) {
       setMessages(
         (body.messages as Record<string, unknown>[])
           .filter((m) => m.role === 'user' || (typeof m.content === 'string' && m.content !== '') || (Array.isArray(m.blocks) && m.blocks.length > 0))
-          .map((m) => ({
-            id: String(m.id),
-            role: m.role === 'user' ? 'user' : 'assistant',
-            content: typeof m.content === 'string' ? m.content : '',
-            blocks: Array.isArray(m.blocks) ? (m.blocks as SparkBlock[]) : [],
-            steps: Array.isArray(m.steps) ? (m.steps as SparkStep[]) : [],
-          })),
+          .map((m): UiMessage => {
+            const raw = typeof m.content === 'string' ? m.content : ''
+            const tag = m.role === 'user' ? /^會員 (SPACE8-[A-Z0-9-]+)：/.exec(raw) : null
+            return {
+              id: String(m.id),
+              role: m.role === 'user' ? 'user' : 'assistant',
+              content: tag ? raw.slice(tag[0].length) : raw,
+              chip: tag ? { code: tag[1], name: null } : undefined,
+              // Forms and pickers are one-shot inputs; they are not replayed from history.
+              blocks: (Array.isArray(m.blocks) ? (m.blocks as SparkBlock[]) : []).filter((b) => b.type !== 'form' && b.type !== 'member_picker'),
+              steps: Array.isArray(m.steps) ? (m.steps as SparkStep[]) : [],
+            }
+          })
+          .filter((m) => m.role === 'user' || m.content !== '' || m.blocks.length > 0),
       )
     } catch {
       setNotice('載入對話失敗')
@@ -231,13 +248,16 @@ export default function SparkChat({ adminName }: { adminName: string }) {
   async function send(raw: string) {
     const text = raw.trim()
     if (!text || busy) return
+    const member = attached
     setInput('')
+    setAttached(null)
+    setPickerOpen(false)
     setNotice(null)
     setBusy(true)
     const stamp = Date.now()
     setMessages((all) => [
       ...all,
-      { id: `u${stamp}`, role: 'user', content: text, blocks: [], steps: [] },
+      { id: `u${stamp}`, role: 'user', content: text, blocks: [], steps: [], chip: member ? { code: member.code, name: member.name } : undefined },
       { id: `a${stamp}`, role: 'assistant', content: '', blocks: [], steps: [], streaming: true },
     ])
     const ctrl = new AbortController()
@@ -247,7 +267,7 @@ export default function SparkChat({ adminName }: { adminName: string }) {
       const res = await fetch('/api/admin/spark/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId, message: text }),
+        body: JSON.stringify({ chatId, message: member ? `會員 ${member.code}：${text}` : text }),
         signal: ctrl.signal,
       })
       if (!res.ok || !res.body) {
@@ -301,6 +321,10 @@ export default function SparkChat({ adminName }: { adminName: string }) {
       abortRef.current = null
       void loadChats()
     }
+  }
+
+  function openForm(kind: 'adjust_credit' | 'adjust_points') {
+    setMessages((all) => [...all, { id: `f${Date.now()}`, role: 'assistant', content: '', steps: [], blocks: [{ type: 'form', kind, memberCode: '', amount: null, reason: '' }] }])
   }
 
   function stop() {
@@ -363,9 +387,9 @@ export default function SparkChat({ adminName }: { adminName: string }) {
               <ul className="sp-suggest">
                 {SUGGESTIONS.map((s) => (
                   <li key={s.title}>
-                    <button type="button" onClick={() => void send(s.text)}>
+                    <button type="button" onClick={() => (s.form ? openForm(s.form) : void send(s.text))}>
                       <b>{s.title}</b>
-                      <span>{s.text}</span>
+                      <span>{s.form ? '揀會員、填金額，直接產生確認卡' : s.text}</span>
                     </button>
                   </li>
                 ))}
@@ -374,7 +398,7 @@ export default function SparkChat({ adminName }: { adminName: string }) {
           ) : (
             <div className="sp-thread">
               {messages.map((m) => (
-                <Bubble key={m.id} m={m} />
+                <Bubble key={m.id} m={m} chatId={chatId} onPickMember={(code) => void send(`我揀咗會員 ${code}`)} />
               ))}
               <div ref={endRef} />
             </div>
@@ -383,6 +407,22 @@ export default function SparkChat({ adminName }: { adminName: string }) {
 
         <footer className="sp-composer">
           {notice ? <p className="sp-error" role="alert">{notice}</p> : null}
+          {pickerOpen ? (
+            <div className="sp-pop" role="dialog" aria-label="揀會員">
+              <div className="sp-pop-head"><b>揀會員</b><button type="button" className="ad-icon-btn" aria-label="關閉" onClick={() => setPickerOpen(false)}><X size={16} aria-hidden /></button></div>
+              <MemberPicker onPick={(m) => { setAttached(m); setPickerOpen(false); inputRef.current?.focus() }} />
+            </div>
+          ) : null}
+          <div className="sp-tools">
+            <button type="button" className="sp-tool" onClick={() => setPickerOpen((o) => !o)} aria-expanded={pickerOpen}><UserRound size={15} aria-hidden /> 揀會員</button>
+            <button type="button" className="sp-tool" onClick={() => openForm('adjust_credit')} disabled={busy}><Wallet size={15} aria-hidden /> 加減 credit</button>
+            {attached ? (
+              <span className="sp-attached">
+                {attached.name ?? attached.code}<small className="admin-mono">{attached.code}</small>
+                <button type="button" aria-label="移除會員" onClick={() => setAttached(null)}><X size={12} aria-hidden /></button>
+              </span>
+            ) : null}
+          </div>
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -393,7 +433,7 @@ export default function SparkChat({ adminName }: { adminName: string }) {
               ref={inputRef}
               value={input}
               rows={1}
-              placeholder="問 Spark…"
+              placeholder={attached ? `對 ${attached.name ?? attached.code} 做乜？` : '問 Spark…'}
               aria-label="向 Spark 發問"
               maxLength={2000}
               onChange={(e) => setInput(e.target.value)}

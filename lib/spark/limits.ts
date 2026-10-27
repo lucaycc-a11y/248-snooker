@@ -15,6 +15,11 @@ export const SPARK_LIMITS = {
   proposalTtlMinutes: 30,
   /** Largest credit that may accompany a booking cancel. */
   maxCancelCredit: 500,
+  /** Largest discount a Spark-created promo code may carry. */
+  maxPromoPercent: 50,
+  maxPromoFixed: 200,
+  /** Spark-created codes must expire within this many days. */
+  maxPromoDays: 365,
 } as const
 
 export const TIERS = ['amateur', 'century', 'maximum'] as const

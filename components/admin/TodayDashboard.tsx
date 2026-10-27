@@ -90,6 +90,46 @@ function dateLabel(iso: string): string {
   return `${m}月${d}日（${weekday}）`
 }
 
+function TodayIncomeCard({ bookings, tableCount }: { bookings: AdminTodayBooking[]; tableCount: number }) {
+  const paid = bookings.filter((b) => b.status === 'confirmed')
+  const unpaid = bookings.filter((b) => b.status === 'pending')
+  const revenue = paid.reduce((n, b) => n + b.price, 0)
+  const pendingAmount = unpaid.reduce((n, b) => n + b.price, 0)
+  const average = paid.length ? Math.round(revenue / paid.length) : 0
+  const tables = Array.from({ length: tableCount }, (_, i) => i + 1).map((t) => {
+    const rows = paid.filter((b) => b.tableNumber === t)
+    return { t, count: rows.length, amount: rows.reduce((n, b) => n + b.price, 0) }
+  })
+  return (
+    <section className="sp-card" style={{ margin: '0 0 16px' }} aria-label="今日收入">
+      <header className="sp-card-head">
+        <span className="sp-card-kicker" data-cms-key="admin.today.income.title">今日收入</span>
+        <span className="sp-card-range" data-cms-key="admin.today.income.note">已確認預約</span>
+      </header>
+      <div className="sp-income-main">
+        <b className="sp-big admin-num">{money(revenue)}</b>
+        <dl className="sp-kv">
+          <div><dt data-cms-key="admin.today.income.count">已確認</dt><dd className="admin-num">{paid.length} 張</dd></div>
+          <div><dt data-cms-key="admin.today.income.avg">平均每張</dt><dd className="admin-num">{money(average)}</dd></div>
+          <div><dt data-cms-key="admin.today.income.pending">待付款</dt><dd className="admin-num">{unpaid.length ? money(pendingAmount) : '—'}</dd></div>
+        </dl>
+      </div>
+      {tables.length > 0 ? (
+        <ul className="sp-methods">
+          {tables.map((x) => (
+            <li key={x.t}>
+              <span>枱 {x.t}</span>
+              <i style={{ width: `${Math.max(4, Math.round((x.amount / Math.max(1, revenue)) * 100))}%` }} aria-hidden />
+              <b className="admin-num">{money(x.amount)}</b>
+              <small>{x.count} 張</small>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
+  )
+}
+
 export default function TodayDashboard({ data, includeTest }: Props) {
   const router = useRouter()
   const { stats, bookings, week, tableCount, nowMinutes, nowTime, date, error } = data
@@ -162,6 +202,10 @@ export default function TodayDashboard({ data, includeTest }: Props) {
           </div>
         ))}
       </div>
+
+
+      {/* Today's income — same card language as Spark's income card */}
+      <TodayIncomeCard bookings={bookings} tableCount={tableCount} />
 
       {/* 7-day volume */}
       <BookingVolumeChart week={week} />

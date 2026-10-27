@@ -18,6 +18,7 @@ import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { writeAdminAudit } from '@/lib/admin/audit'
 import { adminCancelWithCredit } from '@/lib/admin/cancelWithCredit'
 import type { Json } from '@/lib/supabase/database.types'
+import { normalizePromoCodeInput } from '@/lib/admin/promo-code-rules'
 import { SPARK_LIMITS, TIERS, TIER_LABEL, hkDayStartIso, type Tier } from './limits'
 
 export type ActionKind =
@@ -29,6 +30,7 @@ export type ActionKind =
   | 'cancel_booking'
   | 'set_promo_status'
   | 'set_promo_expiry'
+  | 'create_promo'
 
 export type ActionStatus = 'pending' | 'executed' | 'rejected' | 'expired' | 'failed' | 'undone'
 export type Risk = 'normal' | 'high'
@@ -52,7 +54,7 @@ type Def = {
   label: string
   undoable: boolean
   prepare: (args: Args) => Promise<Prepared | Fail>
-  execute: (params: Rec, ctx: ActionCtx, actionId: string) => Promise<Executed | Fail>
+  execute: (params: Rec, ctx: ActionCtx, actionId: string, undoData: Rec | null) => Promise<Executed | Fail>
   undo: (params: Rec, undoData: Rec | null, ctx: ActionCtx, actionId: string) => Promise<Fail | null>
 }
 
@@ -546,6 +548,95 @@ const DEFS: Record<ActionKind, Def> = {
       return error ? { error: '還原失敗' } : null
     },
   },
+
+  create_promo: {
+    label: '建立優惠碼',
+    undoable: true,
+    async prepare(a) {
+      const code = toStr(a.code, 20).toUpperCase()
+      const name = toStr(a.name, 60)
+      const type = a.discountType === 'percentage' || a.discountType === 'fixed_amount' ? a.discountType : null
+      const value = toInt(a.discountValue)
+      const until = toStr(a.validUntil, 10)
+      if (!type) return { error: '折扣類型必須是 percentage（百分比）或 fixed_amount（固定金額）' }
+      if (value === null || value < 1) return { error: '折扣數值必須是大於 0 的整數' }
+      if (type === 'percentage' && value > SPARK_LIMITS.maxPromoPercent) return { error: `經 Spark 建立的百分比折扣最多 ${SPARK_LIMITS.maxPromoPercent}%` }
+      if (type === 'fixed_amount' && value > SPARK_LIMITS.maxPromoFixed) return { error: `經 Spark 建立的固定折扣最多 ${hkd(SPARK_LIMITS.maxPromoFixed)}` }
+      if (!name) return { error: '請提供優惠碼名稱' }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(until)) return { error: '結束日期格式必須是 YYYY-MM-DD' }
+      const untilMs = new Date(`${until}T23:59:59+08:00`).getTime()
+      if (Number.isNaN(untilMs) || untilMs < Date.now()) return { error: '結束日期不能是過去' }
+      if (untilMs > Date.now() + SPARK_LIMITS.maxPromoDays * 86_400_000) return { error: `有效期最長 ${SPARK_LIMITS.maxPromoDays} 日` }
+      const audience = ['all', 'new_users'].find((x) => x === a.audience) ?? 'all'
+      const maxUses = a.maxUses === undefined || a.maxUses === null ? null : toInt(a.maxUses)
+      const perUser = a.perUserLimit === undefined || a.perUserLimit === null ? 1 : toInt(a.perUserLimit)
+      const minCart = a.minCartAmount === undefined || a.minCartAmount === null ? null : toInt(a.minCartAmount)
+      const norm = normalizePromoCodeInput({
+        code, name, discountType: type, discountValue: value, status: 'active', audience, audienceThreshold: null,
+        maxUses, perUserLimit: perUser, minCartAmount: minCart, maxDiscount: null,
+        validFrom: new Date().toISOString(), validUntil: new Date(untilMs).toISOString(),
+        stackableWithCredits: false, stackableWithOtherCodes: false, weekdays: null, timeWindows: null,
+      })
+      if (!norm.ok) return { error: norm.error }
+      const { data: dup } = await getLegacyServiceSupabase().from('promotion_codes').select('id').eq('code', norm.value.code).maybeSingle()
+      if (dup) return { error: `優惠碼 ${norm.value.code} 已存在（優惠碼不能刪除，可改用其他編號）` }
+      const v = norm.value
+      return {
+        summary: `建立優惠碼 ${v.code}（${type === 'percentage' ? `${value}%` : hkd(value)}）`,
+        risk: 'high',
+        preview: [
+          { label: '優惠碼', value: v.code },
+          { label: '名稱', value: v.name },
+          { label: '折扣', value: type === 'percentage' ? `${value}% off` : `減 ${hkd(value)}`, tone: 'plus' },
+          { label: '有效至', value: until },
+          { label: '對象', value: audience === 'new_users' ? '新會員' : '所有會員' },
+          { label: '次數', value: `${maxUses === null ? '不限總數' : `共 ${maxUses} 次`}・每人 ${perUser ?? '不限'} 次` },
+          { label: '最低消費', value: minCart ? hkd(minCart) : '無' },
+          { label: '注意', value: '確認後立即生效，客人可即時使用；優惠碼不能刪除，只能停用', tone: 'warn' },
+        ],
+        params: { code: v.code, name: v.name, discountType: type, discountValue: value, validUntil: until, audience, maxUses, perUserLimit: perUser, minCartAmount: minCart, validUntilIso: v.validUntil },
+      }
+    },
+    async execute(p, ctx, _id, undoData) {
+      const svc = getLegacyServiceSupabase()
+      const priorId = toStr(asRec(undoData).promoId, 80)
+      if (priorId) {
+        // Redo: bring back the code this action created earlier.
+        const { data } = await svc.from('promotion_codes').select('id, code').eq('id', priorId).maybeSingle()
+        if (!data || String(asRec(data).code) !== String(p.code)) return { error: '找不到原本建立的優惠碼' }
+        const { error } = await svc.from('promotion_codes').update({ status: 'active', is_active: true }).eq('id', priorId)
+        if (error) return { error: '重新啟用失敗' }
+        await writeAdminAudit({ adminUserId: ctx.adminId, adminEmail: ctx.adminEmail, action: 'promo_code_updated', targetTable: 'promotion_codes', targetId: priorId, beforeValue: { status: 'disabled', via: 'spark' }, afterValue: { status: 'active', via: 'spark' } })
+        return { result: { promoId: priorId }, undo: { promoId: priorId } }
+      }
+      const norm = normalizePromoCodeInput({
+        code: String(p.code), name: String(p.name), discountType: String(p.discountType), discountValue: p.discountValue, status: 'active',
+        audience: String(p.audience), audienceThreshold: null, maxUses: p.maxUses, perUserLimit: p.perUserLimit, minCartAmount: p.minCartAmount, maxDiscount: null,
+        validFrom: new Date().toISOString(), validUntil: String(p.validUntilIso), stackableWithCredits: false, stackableWithOtherCodes: false, weekdays: null, timeWindows: null,
+      })
+      if (!norm.ok) return { error: norm.error }
+      const v = norm.value
+      const { data: adminUser } = await svc.from('admin_users').select('id').eq('email', ctx.adminEmail).maybeSingle()
+      const { data, error } = await svc.from('promotion_codes').insert({
+        code: v.code, name: v.name || null, discount_type: v.discountType, discount_value: v.discountValue, status: 'active', is_active: true,
+        audience: v.audience, audience_threshold: v.audienceThreshold, max_uses: v.maxUses, per_user_limit: v.perUserLimit, min_cart_amount: v.minCartAmount,
+        max_discount: v.maxDiscount, valid_from: v.validFrom, valid_until: v.validUntil, stackable_with_credits: v.stackableWithCredits,
+        stackable_with_other_codes: v.stackableWithOtherCodes, weekdays: v.weekdays, time_windows: v.timeWindows, created_by: adminUser ? asRec(adminUser).id : null,
+      }).select('id').single()
+      if (error || !data) return { error: error?.code === '23505' ? '此優惠碼已存在' : '建立優惠碼失敗' }
+      const id = String(asRec(data).id)
+      await writeAdminAudit({ adminUserId: ctx.adminId, adminEmail: ctx.adminEmail, action: 'promo_code_created', targetTable: 'promotion_codes', targetId: id, beforeValue: null, afterValue: { code: v.code, via: 'spark' } })
+      return { result: { promoId: id }, undo: { promoId: id } }
+    },
+    async undo(_p, u, ctx) {
+      const id = toStr(asRec(u).promoId, 80)
+      if (!id) return { error: '沒有可還原的資料' }
+      const { error } = await getLegacyServiceSupabase().from('promotion_codes').update({ status: 'disabled', is_active: false }).eq('id', id)
+      if (error) return { error: '還原失敗' }
+      await writeAdminAudit({ adminUserId: ctx.adminId, adminEmail: ctx.adminEmail, action: 'promo_code_updated', targetTable: 'promotion_codes', targetId: id, beforeValue: { status: 'active', via: 'spark' }, afterValue: { status: 'disabled', via: 'spark' } })
+      return null
+    },
+  },
 }
 
 export const ACTION_KINDS = Object.keys(DEFS) as ActionKind[]
@@ -664,7 +755,7 @@ async function runExecute(row: SparkActionRow, ctx: ActionCtx, fromStatus: 'pend
 
   let res: Executed | Fail
   try {
-    res = await DEFS[row.kind].execute(row.params, ctx, row.id)
+    res = await DEFS[row.kind].execute(row.params, ctx, row.id, row.undo_data)
   } catch (e) {
     console.error('[spark] execute threw', e)
     res = { error: '執行時發生錯誤' }
@@ -757,6 +848,7 @@ function prepareArgsFromParams(row: SparkActionRow): Args {
     case 'cancel_booking': return { bookingCode: p.bookingCode, reason: p.reason, whatsappRef: p.whatsappRef, creditAmount: p.creditAmount }
     case 'set_promo_status': return { code: p.code, status: p.status }
     case 'set_promo_expiry': return { code: p.code, validUntil: p.validUntil }
+    case 'create_promo': return { ...p, redo: true }
   }
 }
 

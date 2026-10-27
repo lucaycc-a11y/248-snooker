@@ -16,6 +16,8 @@ import { AGENT_TOOLS, runAgentTool } from '@/lib/admin/agentTools'
 import { getAdminRevenue } from '@/lib/data/getAdminRevenue'
 import { proposeAction, type ActionCtx, type SparkActionView, isActionKind } from './actions'
 import { SPARK_LIMITS } from './limits'
+import { resolveMemberCodes } from './members'
+import { READ_TOOLS } from './readTools'
 
 const MAX_ROUNDS = 8
 const MAX_CALLS_PER_ROUND = 4
@@ -47,7 +49,11 @@ export type MemberStatsBlock = {
   tiers: Record<string, number>
 }
 export type ActionBlock = { type: 'action'; action: SparkActionView }
-export type SparkBlock = IncomeBlock | MemberStatsBlock | ActionBlock
+/** Shows the member search box in the chat; picking one sends the member code back to Spark. */
+export type MemberPickerBlock = { type: 'member_picker'; query: string }
+/** A fill-in form (member + amount + reason) that creates a confirm card when submitted. */
+export type FormBlock = { type: 'form'; kind: 'adjust_credit' | 'adjust_points'; memberCode: string; amount: number | null; reason: string }
+export type SparkBlock = IncomeBlock | MemberStatsBlock | ActionBlock | MemberPickerBlock | FormBlock
 
 export type SparkStep = { id: string; tool: string; label: string; status: 'running' | 'ok' | 'error'; ms?: number; detail?: string }
 export type SparkEvent =
@@ -72,6 +78,22 @@ const STEP_LABEL: Record<string, string> = {
   search_members: '搜尋會員',
   show_income: '整理收入',
   show_member_stats: '整理會員數字',
+  get_overview: '查全店概覽',
+  list_promos: '列出優惠碼',
+  get_promo: '查優惠碼',
+  get_member: '查會員檔案',
+  get_day_bookings: '查某日預約',
+  get_cancellations: '查取消紀錄',
+  get_audit_log: '查審計紀錄',
+  get_config: '讀取設定',
+  get_maintenance: '查封枱紀錄',
+  get_bug_reports: '查問題回報',
+  get_notification_failures: '查通知失敗',
+  list_coupon_templates: '查優惠券範本',
+  propose_create_promo: '準備建立優惠碼',
+  find_member: '搵會員',
+  show_member_picker: '顯示會員選擇器',
+  show_form: '顯示填寫表格',
   propose_adjust_credit: '準備調整錢包額度',
   propose_adjust_points: '準備調整積分',
   propose_set_tier: '準備更改會員等級',
@@ -155,6 +177,42 @@ const SPARK_TOOLS: SparkTool[] = [
       return JSON.stringify({ shownToAdmin: true, ...s, note: '會員卡片已顯示，文字只需補充重點。' })
     },
   },
+  {
+    def: {
+      name: 'find_member',
+      description: '用管理員打出的電郵、電話、姓名或會員編號搵會員，只回傳會員編號（最多 6 個，不含任何個人資料）。管理員給咗電郵／電話／名就用呢個。剛好 1 個就直接用嗰個編號；0 個就話搵唔到；多過 1 個就用 show_member_picker 叫管理員揀。',
+      parameters: { type: 'object', properties: { query: { type: 'string', description: '電郵、電話、姓名或編號' } }, required: ['query'] },
+    },
+    run: async (a) => {
+      const q = typeof a.query === 'string' ? a.query.trim().slice(0, 60) : ''
+      if (q.length < 2) return '請提供至少 2 個字的搜尋條件'
+      const r = await resolveMemberCodes(q)
+      return JSON.stringify(r.total === 0 ? { total: 0, note: '搵唔到會員' } : { total: r.total, codes: r.codes })
+    },
+  },
+  {
+    def: {
+      name: 'show_member_picker',
+      description: '喺畫面顯示「搜尋會員」選擇器，讓管理員自己搜尋並揀人（可預先填入搜尋字）。管理員未講明邊位會員、或 find_member 搵到多過 1 個時用。顯示後請簡短叫管理員揀，然後結束回覆；佢揀完會自動發送會員編號俾你。',
+      parameters: { type: 'object', properties: { query: { type: 'string' } } },
+    },
+    run: async (a, ctx) => {
+      ctx.emit({ type: 'block', block: { type: 'member_picker', query: typeof a.query === 'string' ? a.query.slice(0, 60) : '' } })
+      return '已顯示會員選擇器，等管理員揀。請簡短提示，然後結束回覆，不要再調用工具。'
+    },
+  },
+  {
+    def: {
+      name: 'show_form',
+      description: '喺畫面顯示填寫表格（揀會員、金額、原因），讓管理員自己填好再提交，提交後會出現確認卡。加／扣 credit 或積分而資料不齊全時用。可預先填入已知資料。',
+      parameters: { type: 'object', properties: { kind: { type: 'string', enum: ['adjust_credit', 'adjust_points'] }, memberCode: { type: 'string' }, amount: { type: 'integer' }, reason: { type: 'string' } }, required: ['kind'] },
+    },
+    run: async (a, ctx) => {
+      const kind = a.kind === 'adjust_points' ? 'adjust_points' : 'adjust_credit'
+      ctx.emit({ type: 'block', block: { type: 'form', kind, memberCode: typeof a.memberCode === 'string' ? a.memberCode.slice(0, 80) : '', amount: typeof a.amount === 'number' && Number.isInteger(a.amount) ? a.amount : null, reason: typeof a.reason === 'string' ? a.reason.slice(0, 200) : '' } })
+      return '已顯示填寫表格，等管理員填寫並提交。請簡短提示，然後結束回覆。'
+    },
+  },
   propose('adjust_credit', `提議加或扣會員的錢包額度（HK$）。加用正數、扣用負數。單次上限 HK$${SPARK_LIMITS.maxCreditPerAction}，每日合計上限 HK$${SPARK_LIMITS.maxCreditPerDay}。不會直接執行，要管理員確認。`, { memberCode, amount: { type: 'integer', description: 'HK$，正數加、負數扣' }, reason }, ['memberCode', 'amount', 'reason']),
   propose('adjust_points', `提議加或扣會員積分。單次上限 ${SPARK_LIMITS.maxPointsPerAction}。不會直接執行，要管理員確認。`, { memberCode, delta: { type: 'integer', description: '正數加、負數扣' }, reason }, ['memberCode', 'delta', 'reason']),
   propose('set_tier', '提議更改會員等級（amateur 業餘／century 百分／maximum 滿分）。不會直接執行，要管理員確認。', { memberCode, tier: { type: 'string', enum: ['amateur', 'century', 'maximum'] }, reason }, ['memberCode', 'tier', 'reason']),
@@ -162,20 +220,36 @@ const SPARK_TOOLS: SparkTool[] = [
   propose('send_message', '提議發送站內訊息給一位會員。不會直接執行，要管理員確認。', { memberCode, title: { type: 'string' }, message: { type: 'string' } }, ['memberCode', 'title', 'message']),
   propose('cancel_booking', `提議取消一張已確認的預約，可同時退回錢包 credit（0–${SPARK_LIMITS.maxCancelCredit}，不可多過預約金額）。取消無法還原。必須有取消原因和 WhatsApp／客戶聯絡參考，管理員沒提供就先問，不要自己編。不會直接執行，要管理員確認。`, { bookingCode: { type: 'string', description: '預約編號，例如 S8-xxxx 或 SPACE8-…' }, reason, whatsappRef: { type: 'string', description: 'WhatsApp／客戶聯絡參考，至少 3 個字' }, creditAmount: { type: 'integer', description: '退回錢包的 HK$，0 = 不退款' } }, ['bookingCode', 'reason', 'whatsappRef']),
   propose('set_promo_status', '提議啟用或停用一個優惠碼（優惠碼不會被刪除）。不會直接執行，要管理員確認。', { code: { type: 'string' }, status: { type: 'string', enum: ['active', 'disabled'] } }, ['code', 'status']),
+  propose('create_promo', '提議建立新優惠碼。折扣類型 percentage（上限 50%）或 fixed_amount（上限 HK$200）；必須有名稱與結束日期（最長一年）。不會直接執行，要管理員確認。', {
+    code: { type: 'string' }, name: { type: 'string' }, discountType: { type: 'string', enum: ['percentage', 'fixed_amount'] }, discountValue: { type: 'integer' },
+    validUntil: { type: 'string', description: 'YYYY-MM-DD' }, audience: { type: 'string', enum: ['all', 'new_users'] },
+    maxUses: { type: 'integer' }, perUserLimit: { type: 'integer' }, minCartAmount: { type: 'integer' },
+  }, ['code', 'name', 'discountType', 'discountValue', 'validUntil']),
   propose('set_promo_expiry', '提議更改優惠碼的有效期限（YYYY-MM-DD，當日香港時間 23:59 止）。不會直接執行，要管理員確認。', { code: { type: 'string' }, validUntil: { type: 'string' } }, ['code', 'validUntil']),
 ]
+
+const MAX_TOOL_TEXT = 7000
+const READ_AS_SPARK: SparkTool[] = READ_TOOLS.map((t) => ({
+  def: t.def,
+  run: async (args) => {
+    const text = JSON.stringify(await t.run(args))
+    return text.length > MAX_TOOL_TEXT ? `${text.slice(0, MAX_TOOL_TEXT)}…（結果太長，已截短）` : text
+  },
+}))
+SPARK_TOOLS.push(...READ_AS_SPARK)
 
 const TOOLS_BY_NAME = new Map(SPARK_TOOLS.map((t) => [t.def.name, t]))
 const ALL_DEFS: MimoToolDef[] = [...SPARK_TOOLS.map((t) => t.def), ...AGENT_TOOLS.map((t) => t.def)]
 
 function hkNow(): string {
-  return new Date().toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', hour12: false, weekday: 'long' })
+  return new Date().toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long', hour: '2-digit', minute: '2-digit' })
 }
 
 export const SPARK_SYSTEM = [
-  '你是 Spark，由 FORM 開發的 AI 助手，服務 Space8 桌球室的店主和管理員。現在時間（香港）：{NOW}。',
+  '你是 Spark，由 FORM 開發的 AI 助手，服務 Space8 桌球室的店主和管理員。現在時間（香港）：{NOW}。查「今日／本月／上月」等相對日期一律以此為準，年份不可估錯。',
   '被問你是什麼模型或誰做的，只說「我是 Spark，由 FORM 開發」，不要提任何其他公司或模型名稱。',
   '',
+  '你有一大批查詢工具覆蓋：全店概覽、收入、預約（單張／搜尋／某日）、付款嘗試與 KPay 通知、會員（總覽／搜尋／完整檔案）、優惠碼（列表／詳情／使用）、取消紀錄、審計紀錄、價目與設定、封枱、問題回報、通知失敗。凡係查得到嘅都要用工具查，絕對不可以話「冇工具」或叫管理員自己去後台睇。',
   '工作方式（像工程師的 agent 一樣）：先想需要什麼資料，用工具查，看結果，不夠就再查，最後才回答。查得到的不要問管理員。',
   '1. 所有數字、狀態必須來自工具結果；查不到就直說查不到，不要猜。',
   '2. 問收入用 show_income、問會員總覽用 show_member_stats——畫面會顯示卡片，文字只講重點和判斷，不要重複全部數字。',
@@ -183,10 +257,10 @@ export const SPARK_SYSTEM = [
   '4. 每次更改前先用查詢工具確認對象（會員編號、預約編號、優惠碼）真的存在；不要憑空猜編號。',
   '5. 取消預約必須有取消原因和聯絡參考；管理員沒給就先問，不要自己編。',
   '6. 資料不足或指示不清（例如沒說金額、沒說對象）就先問一個簡短問題，不要亂提議。',
-  '7. 不要接觸或提及客人姓名、電話、電郵；你只看到會員編號。',
+  '7. 你看不到客人姓名、電話、電郵，只看到會員編號。管理員俾電郵／電話／名時用 find_member 搵編號；搵到剛好 1 個就直接用；搵到多個或管理員冇講邊位就用 show_member_picker；加減 credit 或積分而資料不齊時用 show_form。不要叫管理員自己去查編號。',
   '8. 嚴格遵守上限：單次 credit 最多 HK$' + SPARK_LIMITS.maxCreditPerAction + '，每日合計 HK$' + SPARK_LIMITS.maxCreditPerDay + '，單次積分最多 ' + SPARK_LIMITS.maxPointsPerAction + '。超出就告訴管理員要到後台手動處理。',
   '',
-  '回答格式：繁體中文（香港用語），語氣直接簡短。用 Markdown：重點加粗、清單用 -、比較用表格。先講結論，再講原因和下一步。不要提及工具名稱或內部運作。',
+  '回答格式：繁體中文（香港用語），語氣直接簡短。用 Markdown：重點加粗、清單用 -、比較用表格。先講結論，再講原因和下一步。不要用 emoji。不要提及工具名稱或內部運作。',
 ].join('\n')
 
 function friendlyError(err: unknown): string {
