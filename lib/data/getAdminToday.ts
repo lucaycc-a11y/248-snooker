@@ -1,4 +1,5 @@
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { getHiddenUserList } from '@/lib/data/getHiddenUserIds'
 import { getConfigValue } from '@/lib/data/getConfig'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 import {
@@ -92,6 +93,16 @@ export async function getAdminToday(options?: {
     const { data: users } = await service.from('users').select('id, display_name, phone').in('id', userIds)
     for (const u of (users ?? []) as unknown as { id: string; display_name: string | null; phone: string | null }[]) {
       names.set(u.id, { display_name: u.display_name, phone: u.phone })
+    }
+  }
+
+  // Test / hidden accounts stay out of the dashboard unless 顯示測試預約 is on (same list as 收入).
+  if (!includeTest) {
+    try {
+      const hidden = (await getHiddenUserList()).ids
+      if (hidden.size > 0) rows = rows.filter((r) => typeof r.user_id !== 'string' || !hidden.has(r.user_id))
+    } catch (err) {
+      console.error('[admin/today] hidden-user list failed', err)
     }
   }
 
