@@ -22,6 +22,7 @@ import {
   Settings2,
   Users,
   Wallet,
+  Sparkles,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -38,11 +39,12 @@ const ICONS: Record<AdminArea['icon'], LucideIcon> = {
   list: List,
   users: Users,
   money: Wallet,
+  spark: Sparkles,
   site: Globe,
   shield: Settings2,
 }
 
-const MAIN: AdminAreaId[] = ['home', 'today', 'bookings', 'members', 'money']
+const MAIN: AdminAreaId[] = ['home', 'today', 'bookings', 'members', 'money', 'spark']
 
 type Props = {
   activeArea: AdminAreaId

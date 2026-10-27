@@ -1,4 +1,4 @@
-import { mimoChat, mimoComplete, type ChatMessage, type ToolCall } from '@/lib/ai/mimo'
+import { friendlyAiError, mimoChat, mimoComplete, type ChatMessage, type ToolCall } from '@/lib/ai/mimo'
 import { runAgentTool, toolDefs } from '@/lib/admin/agentTools'
 
 // The investigator: a bounded tool-calling loop. The model decides which read-only tool to
@@ -120,7 +120,7 @@ export async function runAgent(input: {
     }
     return { answer: null, steps, model, rounds, error: '調查未能在限時內完成' }
   } catch (err) {
-    return { answer: null, steps, model, rounds, error: err instanceof Error ? err.message : '調查失敗' }
+    return { answer: null, steps, model, rounds, error: friendlyAiError(err) }
   }
 }
 
@@ -163,6 +163,6 @@ export async function triageEvent(event: { kind: string; title: string; detail: 
     return { ...parsed, model: out.model, error: null }
   } catch (err) {
     // If the model is unreachable we do NOT investigate; the plain alert email still goes out.
-    return { investigate: false, reason: '', model: null, error: err instanceof Error ? err.message : '分流失敗' }
+    return { investigate: false, reason: '', model: null, error: friendlyAiError(err) }
   }
 }

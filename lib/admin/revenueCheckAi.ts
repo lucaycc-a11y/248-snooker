@@ -1,4 +1,4 @@
-import { mimoChat } from '@/lib/ai/mimo'
+import { friendlyAiError, mimoChat } from '@/lib/ai/mimo'
 import type { RevenueCheckResult } from '@/lib/admin/revenueCheck'
 
 // The AI only WORDS what the checker already found. It receives the computed
@@ -48,6 +48,7 @@ export async function explainCheck(result: RevenueCheckResult): Promise<CheckExp
     const out = await mimoChat({ system: SYSTEM, user: JSON.stringify(payload), maxTokens: 700 })
     return { summary: out.text, model: out.model, aiError: null }
   } catch (err) {
-    return { summary: fallback, model: null, aiError: err instanceof Error ? err.message : 'AI 說明失敗' }
+    console.error('[revenue-check-ai] explain failed', err)
+    return { summary: fallback, model: null, aiError: friendlyAiError(err) }
   }
 }

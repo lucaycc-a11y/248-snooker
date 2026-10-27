@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react'
+import AiText from './AiText'
 import Link from 'next/link'
 import { CheckCircle2, MailCheck, ShieldCheck, TriangleAlert, XCircle } from 'lucide-react'
 import type { OpenAlert, PastRun } from '@/lib/data/getAdminChecks'
@@ -172,7 +173,7 @@ export default function RevenueCheckClient({ runs, alerts, loadError }: Props) {
               <h3>結論</h3>
               <span className="rc-by">{out?.model ? `由 AI（${out.model}）說明，數字由程式計算` : '程式摘要'}</span>
             </div>
-            <p className="rc-summary">{out?.summary}</p>
+            <div className="rc-summary"><AiText text={out?.summary ?? ''} /></div>
             {out?.aiError ? <p className="rc-hint">AI 說明暫時不可用（{out.aiError}），以上為程式摘要。</p> : null}
             {out?.saveError ? <p className="bug-error">{out.saveError}</p> : null}
             {out?.auditError ? <p className="bug-error">審計記錄未能寫入：{out.auditError}</p> : null}
@@ -239,7 +240,7 @@ export default function RevenueCheckClient({ runs, alerts, loadError }: Props) {
                   <div>
                     <b>{a.title}</b>
                     <p>{a.detail}</p>
-                    {a.aiAnswer ? <p className="rc-ai"><b>AI 診斷</b>{a.aiModel ? `（${a.aiModel}）` : ''}{'\n'}{a.aiAnswer}</p> : a.aiReason ? <p className="rc-hint">AI 判斷無須調查：{a.aiReason}</p> : null}
+                    {a.aiAnswer ? <div className="rc-ai"><b>AI 診斷</b><AiText text={a.aiAnswer} /></div> : a.aiReason ? <p className="rc-hint">AI 判斷無須調查：{a.aiReason}</p> : null}
                     <small className="rc-meta">首次發現 {stamp(a.firstSeenAt)} · {a.lastEmailedAt ? `已電郵 ${stamp(a.lastEmailedAt)}` : '未電郵'}</small>
                   </div>
                 </li>
@@ -259,7 +260,7 @@ export default function RevenueCheckClient({ runs, alerts, loadError }: Props) {
                   <b>{r.from === r.to ? r.from : `${r.from} 至 ${r.to}`}</b>
                   <span className={`rc-count ${r.findingCount > 0 ? 'warn' : ''}`}>{r.findingCount > 0 ? `${r.findingCount} 項異常` : '無異常'}</span>
                   <small>{stamp(r.createdAt)} · {r.requestedBy ?? '系統'}</small>
-                  {r.summary ? <p>{r.summary}</p> : null}
+                  {r.summary ? <AiText text={r.summary} /> : null}
                 </li>
               ))}
             </ul>

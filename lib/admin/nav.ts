@@ -11,7 +11,7 @@
  * /admin/blog/[id]) which are opened from their list pages.
  */
 
-export type AdminAreaId = 'home' | 'today' | 'bookings' | 'members' | 'money' | 'site' | 'system'
+export type AdminAreaId = 'home' | 'today' | 'bookings' | 'members' | 'money' | 'spark' | 'site' | 'system'
 
 export type AdminNavItem = {
   href: string
@@ -31,7 +31,7 @@ export type AdminArea = {
   /** Compact label for the phone bottom bar. */
   shortLabel: string
   cmsKey: string
-  icon: 'home' | 'today' | 'list' | 'users' | 'money' | 'site' | 'shield'
+  icon: 'home' | 'today' | 'list' | 'users' | 'money' | 'spark' | 'site' | 'shield'
   href: string
   items: AdminNavItem[]
 }
@@ -105,6 +105,18 @@ export const ADMIN_AREAS: AdminArea[] = [
       { href: '/admin/revenue-check', label: '收入核對', cmsKey: 'admin.nav.revenue_check', hint: '核對收入與付款，並可向 AI 查詢' },
       { href: '/admin/payment-log', label: '付款監控', cmsKey: 'admin.nav.payment_log', hint: '即時付款狀態與對賬' },
       { href: '/admin/sales-report', label: '銷售報表', cmsKey: 'admin.nav.sales_report', hint: '按期間的銷售明細' },
+    ],
+  },
+  {
+    id: 'spark',
+    label: 'Spark',
+    shortLabel: 'Spark',
+    cmsKey: 'admin.nav.spark',
+    icon: 'spark',
+    href: '/admin/spark',
+    items: [
+      { href: '/admin/spark', label: 'Spark 助手', cmsKey: 'admin.nav.spark', hint: '用對話查資料、處理會員與預約' },
+      { href: '/admin/spark/log', label: 'Spark 操作紀錄', cmsKey: 'admin.nav.spark_log', hint: '所有由 Spark 提出的更改與結果' },
     ],
   },
   {
