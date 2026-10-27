@@ -82,12 +82,24 @@ export async function getAdminToday(options?: {
     }
   }
 
+  // bookings.user_id -> users.id is not a declared FK, so the embedded join above always
+  // falls back to a plain read. Resolve names/phones with one explicit batch lookup instead.
+  const names = new Map<string, { display_name: string | null; phone: string | null }>()
+  const userIds = Array.from(
+    new Set(rows.map((r) => r.user_id).filter((v): v is string => typeof v === 'string')),
+  )
+  if (userIds.length > 0) {
+    const { data: users } = await service.from('users').select('id, display_name, phone').in('id', userIds)
+    for (const u of (users ?? []) as unknown as { id: string; display_name: string | null; phone: string | null }[]) {
+      names.set(u.id, { display_name: u.display_name, phone: u.phone })
+    }
+  }
+
   const bookings = rows.map((row) => {
     const b = normalize(row)
-    const joined = row.users as {
-      display_name: string | null
-      phone: string | null
-    } | null
+    const joined =
+      (row.users as { display_name: string | null; phone: string | null } | null) ??
+      (typeof row.user_id === 'string' ? names.get(row.user_id) ?? null : null)
     if (joined) {
       b.userName = joined.display_name
       b.userPhone = joined.phone
