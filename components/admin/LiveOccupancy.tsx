@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import type { LiveOccupancy as LiveOccupancyData } from '@/lib/data/getAdminStats'
 
 // Simple 30s poll rather than a Supabase Realtime subscription — Realtime

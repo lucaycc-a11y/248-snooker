@@ -6,7 +6,7 @@ import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Sheet } from '@/components/ui/sheet'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import type { PricingPeriod, ServiceFees, Tier } from '@/lib/data/pricing'
 
 type SiteValue = { currency: string; maxHours: number; openHour: number; closeHour: number }

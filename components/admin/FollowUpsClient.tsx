@@ -9,7 +9,6 @@
 
 import Link from 'next/link'
 import { useCallback, useMemo, useState } from 'react'
-import AdminQuickLinks from '@/components/admin/AdminQuickLinks'
 import type { FollowUps, NoBookingPerson, UnpaidPerson } from '@/lib/data/getAdminFollowUps'
 
 type Tab = 'unpaid' | 'nobooking'
@@ -151,14 +150,10 @@ export default function FollowUpsClient({ initial }: { initial: FollowUps }) {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--admin-text-primary)' }} data-cms-key="admin.follow_ups.title">
-            跟進名單
-          </h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--admin-text-tertiary)' }} data-cms-key="admin.follow_ups.subtitle">
-            撳咗付款但冇付錢，或者註冊咗但未預約嘅會員 — 一撳就可以 WhatsApp / 致電 / 電郵
+            已按付款但未完成付款，或已註冊但未預約的會員。可一鍵以 WhatsApp、致電或電郵聯絡
           </p>
         </div>
-        <AdminQuickLinks current="followups" />
       </header>
 
       {error ? (
@@ -212,14 +207,14 @@ export default function FollowUpsClient({ initial }: { initial: FollowUps }) {
             </div>
             <label className="admin-check">
               <input type="checkbox" checked={hidePaid} onChange={(e) => setHidePaid(e.target.checked)} />
-              <span>隱藏之後已成功付款嘅人</span>
+              <span>隱藏其後已成功付款的客戶</span>
             </label>
             {loading ? <span className="admin-muted">載入中…</span> : null}
           </div>
         ) : (
           <label className="admin-check">
             <input type="checkbox" checked={onlyTried} onChange={(e) => setOnlyTried(e.target.checked)} />
-            <span>只顯示曾嘗試付款嘅人</span>
+            <span>只顯示曾嘗試付款的客戶</span>
           </label>
         )}
 
@@ -230,13 +225,13 @@ export default function FollowUpsClient({ initial }: { initial: FollowUps }) {
 }
 
 function UnpaidTable({ rows }: { rows: UnpaidPerson[] }) {
-  if (rows.length === 0) return <div className="admin-empty">冇需要跟進嘅未完成付款 🎉</div>
+  if (rows.length === 0) return <div className="admin-empty">目前沒有需要跟進的未完成付款</div>
   return (
     <div className="admin-list">
       {rows.map((p) => {
         const last = p.attempts[0]
         const slot = last.date ? `${last.date} ${(last.startTime ?? '').slice(0, 5)}` : '時段不明'
-        const text = `你好${p.displayName ? ` ${p.displayName}` : ''}，我哋係 Space8。見到你想預約 ${slot}，但付款未完成。需要我哋幫手嗎？`
+        const text = `你好${p.displayName ? ` ${p.displayName}` : ''}，我們是 Space8。留意到你曾預約 ${slot}，但付款尚未完成。需要我們協助嗎？`
         return (
           <div key={p.userId} className="admin-li" style={{ alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 200, flex: 1 }}>
@@ -261,7 +256,7 @@ function UnpaidTable({ rows }: { rows: UnpaidPerson[] }) {
             <div style={{ display: 'grid', gap: 8 }}>
               <ContactButtons phone={p.phone} email={p.email} text={text} />
               <Link className="admin-btn sm" href={`/admin/bookings?search=${encodeURIComponent(p.phone ?? p.memberCode ?? '')}`}>
-                睇預約紀錄
+                查看預約記錄
               </Link>
             </div>
           </div>
@@ -276,7 +271,7 @@ function NoBookingTable({ rows }: { rows: NoBookingPerson[] }) {
   return (
     <div className="admin-list">
       {rows.map((p) => {
-        const text = `你好${p.displayName ? ` ${p.displayName}` : ''}，歡迎加入 Space8！如果想預約枱或有任何問題，隨時話我哋知。`
+        const text = `你好${p.displayName ? ` ${p.displayName}` : ''}，歡迎加入 Space8！如需預約球枱或有任何查詢，歡迎隨時聯絡我們。`
         return (
           <div key={p.userId} className="admin-li" style={{ alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 200, flex: 1 }}>

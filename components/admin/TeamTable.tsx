@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import { useAdmin } from '@/lib/admin/AdminContext'
 
 export type TeamRow = {

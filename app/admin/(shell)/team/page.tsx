@@ -46,9 +46,8 @@ export default async function AdminTeamPage() {
   }))
 
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '32px 16px' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: '#FFFFFF', marginBottom: 24 }}>管理團隊</h1>
+    <div className="admin-stack">
       <TeamTable rows={teamRows} />
-    </main>
+    </div>
   )
 }

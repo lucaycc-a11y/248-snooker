@@ -17,7 +17,6 @@ import {
   type RevenueDetailRow,
   type RevenueTotals,
 } from '@/lib/admin/revenue-definitions'
-import AdminQuickLinks from '@/components/admin/AdminQuickLinks'
 import type { AdminRevenueDailyRow, AdminRevenueReconciliation } from '@/lib/data/getAdminRevenue'
 
 // 預約 → 「收入」. Every figure comes from /api/admin/revenue, which is the same
@@ -298,13 +297,6 @@ export default function RevenuePageClient() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1
-            className="text-xl font-semibold"
-            style={{ color: 'var(--admin-text-primary)' }}
-            data-cms-key="admin.revenue.title"
-          >
-            收入
-          </h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--admin-text-tertiary)' }} data-cms-key="admin.revenue.subtitle">
             已確認預約的實收金額、退款與折扣拆解
           </p>
@@ -312,7 +304,6 @@ export default function RevenuePageClient() {
         <a className="admin-btn" href={exportHref} data-cms-key="admin.revenue.export">
           匯出 Excel
         </a>
-        <AdminQuickLinks current="revenue" />
       </header>
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}

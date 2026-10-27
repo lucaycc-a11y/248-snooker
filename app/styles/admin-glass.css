@@ -673,3 +673,68 @@
   .ah-recent .when { grid-area: when; }
   .ah-recent a > .admin-badge { grid-area: badge; justify-self: end; }
 }
+
+/* ── Data tables (research: identifying column first, right-aligned numbers,
+   sticky header, comfortable row height, visible hover/focus) ───────────── */
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+.admin-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--admin-text-secondary);
+  background: var(--admin-bg-surface);
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+.admin-table td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  color: var(--admin-text-primary);
+}
+.admin-table tbody tr:hover td { background: var(--admin-accent-soft); }
+.admin-table tbody tr:last-child td { border-bottom: 0; }
+.admin-table th.admin-num,
+.admin-table td.admin-num { text-align: right; font-variant-numeric: tabular-nums; }
+.admin-table a:focus-visible { outline: 2px solid var(--admin-green); outline-offset: 2px; border-radius: 4px; }
+
+/* Section headings inside a page render at section size, not page-title size */
+.admin-page h2.admin-ptitle {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* Member card: activity row (預約 / 累計消費 / 最近活動) */
+.admin-mstats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--admin-border-subtle);
+}
+.admin-mstats span { display: grid; gap: 2px; min-width: 0; text-align: left; }
+.admin-mstats small { font-size: 11px; color: var(--admin-text-tertiary); }
+.admin-mstats b { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Aliases for variables older admin pages still reference */
+:root,
+[data-theme='dark'],
+[data-theme='light'] {
+  --admin-bg-secondary: var(--admin-bg-surface);
+  --admin-bg-tertiary: var(--admin-bg-elevated);
+  --admin-primary: var(--admin-green);
+  --admin-info: var(--admin-status-info, var(--admin-green));
+  --admin-radius-btn: var(--admin-radius-button);
+}

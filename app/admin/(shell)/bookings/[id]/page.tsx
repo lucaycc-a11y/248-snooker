@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { Card } from '@/components/ui/card'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 import BookingCancelAction from '@/components/admin/BookingCancelAction'
 

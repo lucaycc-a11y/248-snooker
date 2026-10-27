@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import { useAdmin } from '@/lib/admin/AdminContext'
 
 const linkStyle: React.CSSProperties = {

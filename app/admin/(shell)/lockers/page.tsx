@@ -244,16 +244,9 @@ export default function LockersPage() {
   const maintenanceCount = lockers.filter((l) => l.status === 'maintenance').length
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 md:px-6">
+    <div className="admin-stack">
       {/* ── Header ──────────────────────────────────────────── */}
       <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1
-          className="text-2xl font-bold"
-          style={{ color: 'var(--admin-text)' }}
-          data-cms-key="admin_lockers_title"
-        >
-          儲物櫃管理
-        </h1>
         <button
           type="button"
           onClick={openCreate}
@@ -533,6 +526,6 @@ export default function LockersPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   )
 }

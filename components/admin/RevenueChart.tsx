@@ -1,7 +1,7 @@
 'use client'
 
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import type { RevenuePoint } from '@/lib/data/getAdminStats'
 
 export default function RevenueChart({ data }: { data: RevenuePoint[] }) {

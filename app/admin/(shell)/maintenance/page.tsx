@@ -115,16 +115,9 @@ export default function MaintenancePage() {
       maintReason.trim() !== (status.maintenanceReason ?? ''))
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 md:px-6">
+    <div className="admin-stack">
       {/* ── Header ──────────────────────────────────────────── */}
       <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1
-          className="text-2xl font-bold"
-          style={{ color: 'var(--admin-text)' }}
-          data-cms-key="admin_maintenance_title"
-        >
-          場地保養
-        </h1>
         <button
           type="button"
           onClick={handleSave}
@@ -314,6 +307,6 @@ export default function MaintenancePage() {
 
       {/* ── Per-table booking blocks (maintenance_log) ──────── */}
       <MaintenanceBlocks />
-    </main>
+    </div>
   )
 }

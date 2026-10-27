@@ -3,7 +3,7 @@
 /**
  * MembersPageClient — the prototype's `vMembers()` + `memResults()`.
  *
- * Head: 會員 / 所有會員資料更改都會自動發送 inbox 通知, plus the 會員列表|帳戶異常
+ * Head: 會員 / 會員資料的任何更改都會自動發送站內通知, plus the 會員列表|帳戶異常
  * segmented control. List view: search + 全部|黑名單|待重新驗證電話 + 卡片|表格.
  *
  * Filtering is client-side and mirrors `memFilter()` exactly — the query is
@@ -166,9 +166,8 @@ export default function MembersPageClient({
           padding and no rule — `.admin-head` is the in-card variant. */}
       <div className="admin-page-head">
         <div>
-          <h2 data-cms-key="admin.members.title">會員</h2>
           <p className="admin-sub" data-cms-key="admin.members.subtitle">
-            所有會員資料更改都會自動發送 inbox 通知
+            會員資料的任何更改都會自動發送站內通知
           </p>
         </div>
         <Seg

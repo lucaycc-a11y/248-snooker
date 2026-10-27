@@ -25,13 +25,6 @@ export default async function AdminErrorsPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1
-            className="text-xl font-semibold"
-            style={{ color: 'var(--admin-text-primary)' }}
-            data-cms-key="admin.errors.title"
-          >
-            錯誤記錄
-          </h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--admin-text-tertiary)' }} data-cms-key="admin.errors.subtitle">
             系統寫入的錯誤與警告，可標記為已解決
           </p>

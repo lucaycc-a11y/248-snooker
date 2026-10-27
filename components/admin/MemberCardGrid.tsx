@@ -41,6 +41,21 @@ function memberBadges(m: AdminMemberRow): React.ReactNode {
   )
 }
 
+/** 「3 日前」-style last-active label; falls back to an em dash. */
+function lastActive(iso: string | null): string {
+  if (!iso) return '尚未活動'
+  const ms = Date.now() - new Date(iso).getTime()
+  if (!Number.isFinite(ms) || ms < 0) return '剛剛'
+  const min = Math.floor(ms / 60000)
+  if (min < 60) return min <= 1 ? '剛剛' : `${min} 分鐘前`
+  const hr = Math.floor(min / 60)
+  if (hr < 24) return `${hr} 小時前`
+  const day = Math.floor(hr / 24)
+  if (day < 30) return `${day} 日前`
+  const mon = Math.floor(day / 30)
+  return mon < 12 ? `${mon} 個月前` : `${Math.floor(mon / 12)} 年前`
+}
+
 type Props = {
   members: AdminMemberRow[]
   onOpen?: (id: string) => void
@@ -67,7 +82,10 @@ export default function MemberCardGrid({ members, onOpen }: Props) {
               <span className={`admin-av ${av}`} aria-hidden>
                 {initial}
               </span>
-              <span className="admin-mflags">{memberBadges(m)}</span>
+              <span className="admin-mflags">
+                {m.tier ? <span className="admin-tag info">{m.tier}</span> : null}
+                {memberBadges(m)}
+              </span>
             </span>
             <span className="admin-mn">{name}</span>
             <span className="admin-ms admin-mono">{m.memberCode ?? ''}</span>
@@ -81,7 +99,24 @@ export default function MemberCardGrid({ members, onOpen }: Props) {
                 <b className="admin-num">{money(m.credits)}</b>
               </span>
             </span>
-            <span className="admin-ms">{m.phone ?? ''}</span>
+            <span className="admin-mstats">
+              <span>
+                <small>預約</small>
+                <b className="admin-num">{m.bookingCount}</b>
+              </span>
+              <span>
+                <small>累計消費</small>
+                <b className="admin-num">{money(m.totalSpend)}</b>
+              </span>
+              <span>
+                <small>最近活動</small>
+                <b>{lastActive(m.lastActiveAt)}</b>
+              </span>
+            </span>
+            <span className="admin-ms">
+              {m.phone ?? ''}
+              {m.phone && !m.isPhoneVerified ? ' · 未驗證' : ''}
+            </span>
           </button>
         )
       })}

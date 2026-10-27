@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Sheet } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import type { DayDensity, CalendarBooking } from '@/lib/data/getAdminCalendar'
 
 type MonthResponse = { days: DayDensity[] }

@@ -1,5 +1,5 @@
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import { Card } from '@/components/ui/card'
 import BlogAdminList from '@/components/admin/BlogAdminList'
 
@@ -16,9 +16,8 @@ export default async function AdminBlogListPage() {
   const posts = await getPosts()
 
   return (
-    <main style={{ maxWidth: 900, margin: '0 auto', padding: '32px 16px' }}>
+    <div className="admin-stack">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.text }}>網誌</h1>
       </div>
       <Card className="p-4" style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>
@@ -26,6 +25,6 @@ export default async function AdminBlogListPage() {
         </div>
       </Card>
       <BlogAdminList initialPosts={posts} />
-    </main>
+    </div>
   )
 }

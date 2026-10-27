@@ -15,18 +15,7 @@ export default async function AdminSettingsPage() {
   const pricingRates = await getConfigValue<PricingRates>('pricing_rates', {})
 
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '32px 16px' }}>
-      <h1
-        style={{
-          fontSize: 28,
-          fontWeight: 700,
-          color: 'var(--admin-text-primary)',
-          marginBottom: 24,
-        }}
-        data-cms-key="admin.settings.title"
-      >
-        價格與規則
-      </h1>
+    <div className="admin-stack">
       <SettingsForm
         site={{
           currency: config.currency,
@@ -46,6 +35,6 @@ export default async function AdminSettingsPage() {
       <div style={{ marginTop: 48 }}>
         <AdminInviteManager />
       </div>
-    </main>
+    </div>
   )
 }

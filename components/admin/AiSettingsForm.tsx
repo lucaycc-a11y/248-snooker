@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 
 const LOCALES: { code: string; label: string }[] = [
   { code: 'zh-HK', label: '繁中' },

@@ -176,7 +176,6 @@ export default function PaymentMonitorClient() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--admin-text-primary)' }}>付款監控</h1>
           <p className="mt-1 text-sm" style={muted}>即時讀取資料庫與 KPay，30 秒自動更新{data ? ` · 更新於 ${hk(data.generatedAt)}` : ''}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -222,7 +221,7 @@ export default function PaymentMonitorClient() {
         </div>
       ) : null}
 
-      <Section title="查詢單一訂位" hint="輸入訂位編號（SPACE8-XXXXX-X）或 KPay 訂單編號，睇晒佢由開始到而家發生過咩事">
+      <Section title="查詢單一訂位" hint="輸入訂位編號（SPACE8-XXXXX-X）或 KPay 訂單編號，查看該訂位由建立至現在的完整記錄">
         <form
           className="flex flex-wrap gap-2 p-4"
           onSubmit={(e) => { e.preventDefault(); setActiveQuery(query.trim()) }}
@@ -289,7 +288,7 @@ export default function PaymentMonitorClient() {
                     {i.providerOrderNo ? (
                       <Btn onClick={() => void checkOrder(i.providerOrderNo as string)} disabled={busy === `check:${i.providerOrderNo}`}>查詢 KPay</Btn>
                     ) : null}
-                    {i.humanCode ? <Btn onClick={() => { setQuery(i.humanCode as string); setActiveQuery(i.humanCode as string) }}>睇時間線</Btn> : null}
+                    {i.humanCode ? <Btn onClick={() => { setQuery(i.humanCode as string); setActiveQuery(i.humanCode as string) }}>查看時間線</Btn> : null}
                   </div>
                 </li>
               )
@@ -299,9 +298,9 @@ export default function PaymentMonitorClient() {
       </Section>
 
       {recon ? (
-        <Section title="自動對賬結果" hint="已逐張向 KPay 查詢；已收款嘅訂位會自動確認，不會自動退款" right={<Btn onClick={() => setRecon(null)}>收起</Btn>}>
+        <Section title="自動對賬結果" hint="已逐張向 KPay 查詢；已收款的訂位會自動確認，不會自動退款" right={<Btn onClick={() => setRecon(null)}>收起</Btn>}>
           {recon.length === 0 ? (
-            <p className="p-4 text-sm" style={muted}>沒有需要對賬嘅付款嘗試</p>
+            <p className="p-4 text-sm" style={muted}>沒有需要對賬的付款嘗試</p>
           ) : (
             <ul>
               {recon.map((r) => (
@@ -314,9 +313,9 @@ export default function PaymentMonitorClient() {
         </Section>
       ) : null}
 
-      <Section title="進行中嘅付款" hint="仍然處於「已建立／等待付款」，超過 12 分鐘會被對賬處理" right={data ? <span className="text-xs" style={muted}>{data.live.length} 筆</span> : null}>
+      <Section title="進行中的付款" hint="仍然處於「已建立／等待付款」，超過 12 分鐘會被對賬處理" right={data ? <span className="text-xs" style={muted}>{data.live.length} 筆</span> : null}>
         {!data || data.live.length === 0 ? (
-          <p className="p-4 text-sm" style={muted}>目前沒有進行中嘅付款</p>
+          <p className="p-4 text-sm" style={muted}>目前沒有進行中的付款</p>
         ) : (
           <ul>
             {data.live.map((l) => (
@@ -354,7 +353,7 @@ export default function PaymentMonitorClient() {
         </Section>
         <Section title="付款相關錯誤" hint="未標記已解決" right={<a className="text-xs underline" style={muted} href="/admin/errors">全部錯誤記錄</a>}>
           {!data || data.errors.length === 0 ? (
-            <p className="p-4 text-sm" style={muted}>沒有未解決嘅付款錯誤</p>
+            <p className="p-4 text-sm" style={muted}>沒有未解決的付款錯誤</p>
           ) : (
             <ul className="max-h-[420px] overflow-y-auto">
               {data.errors.map((e) => (

@@ -1,6 +1,6 @@
 import { getMonthDensity } from '@/lib/data/getAdminCalendar'
 import SlotCalendar from '@/components/admin/SlotCalendar'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 
 export default async function AdminCalendarPage() {
   const now = new Date()
@@ -16,8 +16,7 @@ export default async function AdminCalendarPage() {
   }
 
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '32px 16px' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.text, marginBottom: 24 }}>日曆</h1>
+    <div className="admin-stack">
       {loadError ? (
         <div
           role="alert"
@@ -29,6 +28,6 @@ export default async function AdminCalendarPage() {
         </div>
       ) : null}
       <SlotCalendar initialYear={year} initialMonth={month} initialDays={days} />
-    </main>
+    </div>
   )
 }

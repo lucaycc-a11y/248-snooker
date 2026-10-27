@@ -14,15 +14,8 @@ import PromoCodesManager from '@/components/admin/PromoCodesManager'
 
 export default function AdminPromosPage() {
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 md:px-6">
+    <div className="admin-stack">
       <header className="flex flex-col gap-1.5">
-        <h1
-          className="text-2xl font-bold"
-          style={{ color: 'var(--admin-text)' }}
-          data-cms-key="admin.promos.title"
-        >
-          優惠碼
-        </h1>
         <p
           className="text-sm"
           style={{ color: 'var(--admin-text-muted)' }}
@@ -39,6 +32,6 @@ export default function AdminPromosPage() {
       {/* Separate feature — coupon_templates / user_coupons. Do not merge into
           the promotion_codes manager above. */}
       <PromoCodesManager />
-    </main>
+    </div>
   )
 }

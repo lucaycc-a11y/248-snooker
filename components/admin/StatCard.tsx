@@ -1,6 +1,6 @@
 import { TrendingUp, TrendingDown, type LucideIcon } from 'lucide-react'
 import { Card } from '@/components/ui/card'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 
 export default function StatCard({
   label,

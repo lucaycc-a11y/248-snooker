@@ -75,16 +75,9 @@ export default function QRGeneratorPage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8 md:px-6 print:py-4">
+    <div className="admin-stack">
       {/* ── Header ──────────────────────────────────────────── */}
       <header className="print:hidden">
-        <h1
-          className="text-2xl font-bold"
-          style={{ color: 'var(--admin-text)' }}
-          data-cms-key="admin_qr_generator_title"
-        >
-          QR 碼產生器
-        </h1>
         <p className="mt-1 text-xs" style={{ color: 'var(--admin-text-muted)' }} data-cms-key="admin_qr_generator_subtitle">
           為預約或會員檔案產生 QR 碼。
         </p>
@@ -245,6 +238,6 @@ export default function QRGeneratorPage() {
           </p>
         </div>
       )}
-    </main>
+    </div>
   )
 }

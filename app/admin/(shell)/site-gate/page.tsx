@@ -10,8 +10,7 @@ export default async function AdminSiteGatePage() {
   const data = await getAdminSiteGate()
 
   return (
-    <main style={{ maxWidth: 720, margin: '0 auto', padding: '32px 16px' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: '#FFFFFF', marginBottom: 24 }}>網站閘門</h1>
+    <div className="admin-stack">
       {data.error && (
         <div
           role="alert"
@@ -34,6 +33,6 @@ export default async function AdminSiteGatePage() {
         initialWhitelist={data.whitelist}
       />
       <SiteGateLog initial={data.log} initialWhitelistedIps={data.whitelist.map((w) => w.ipAddress)} />
-    </main>
+    </div>
   )
 }

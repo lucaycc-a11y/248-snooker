@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import { Lock, Unlock, RefreshCw, QrCode, CreditCard, Key, AlertTriangle } from 'lucide-react'
 
 type DeviceStatus = {
@@ -196,10 +196,7 @@ export default function DoorLockPage() {
   }
 
   return (
-    <main style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 16px' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.text, marginBottom: 24 }}>
-        Door Lock System
-      </h1>
+    <div className="admin-stack">
 
       {/* Device Status */}
       <Card style={{ marginBottom: tokens.spacing.lg }}>
@@ -483,6 +480,6 @@ export default function DoorLockPage() {
           ))}
         </div>
       </Card>
-    </main>
+    </div>
   )
 }

@@ -1,13 +1,12 @@
 import { getAdminDoorCards } from '@/lib/data/getAdminDoorCards'
 import DoorCardTable from '@/components/admin/DoorCardTable'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 
 export default async function AdminDoorPage() {
   const initial = await getAdminDoorCards()
 
   return (
-    <main style={{ maxWidth: 960, margin: '0 auto', padding: '32px 16px' }}>
-      <h1 style={{ fontSize: 28, fontWeight: 700, color: tokens.colors.text, marginBottom: 24 }}>門鎖</h1>
+    <div className="admin-stack">
       {initial.error && (
         <div
           role="alert"
@@ -25,6 +24,6 @@ export default async function AdminDoorPage() {
         </div>
       )}
       <DoorCardTable initial={initial.cards} />
-    </main>
+    </div>
   )
 }

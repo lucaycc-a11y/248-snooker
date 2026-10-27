@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import { useNfcRegistrationStatus } from '@/lib/door/useNfcRegistrationStatus'
 import type { DoorCardRow } from '@/lib/data/getAdminDoorCards'
 

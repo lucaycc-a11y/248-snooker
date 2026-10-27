@@ -117,9 +117,6 @@ export default function UatAccessPage() {
     <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--admin-text)' }}>
-            UAT 存取管理
-          </h1>
           <button
             onClick={fetchData}
             style={{
@@ -135,11 +132,11 @@ export default function UatAccessPage() {
             }}
           >
             <RefreshCw size={16} />
-            Refresh
+            重新整理
           </button>
         </div>
         <p style={{ color: 'var(--admin-text-muted)', fontSize: 14 }}>
-          Manage IP whitelist and view site gate access logs
+          管理 IP 白名單及查看網站閘門存取記錄
         </p>
       </div>
 

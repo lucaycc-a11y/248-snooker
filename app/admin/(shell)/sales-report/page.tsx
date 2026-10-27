@@ -139,17 +139,7 @@ export default function SalesReportPage() {
   }, [data])
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-6">
-      {/* ── Header ──────────────────────────────────────────── */}
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1
-          className="text-2xl font-bold"
-          style={{ color: 'var(--admin-text)' }}
-          data-cms-key="admin_sales_report_title"
-        >
-          銷售報告
-        </h1>
-      </header>
+    <div className="admin-stack">
 
       {/* ── Filters ─────────────────────────────────────────── */}
       <div
@@ -474,6 +464,6 @@ export default function SalesReportPage() {
           No data available for the selected range.
         </div>
       )}
-    </main>
+    </div>
   )
 }

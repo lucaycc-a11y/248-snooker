@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
 import { Sheet } from '@/components/ui/sheet'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 
 export default function BookingCancelAction({ bookingId, compact = false }: { bookingId: string; compact?: boolean }) {
   const router = useRouter()

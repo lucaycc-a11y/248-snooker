@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getServiceSupabase } from '@/lib/supabase/service'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import BlogEditorForm from '@/components/admin/BlogEditorForm'
 
 async function getPost(id: string) {

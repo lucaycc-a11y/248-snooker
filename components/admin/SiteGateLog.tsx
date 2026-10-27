@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
 import { Sheet } from '@/components/ui/sheet'
-import { tokens } from '@/app/styles/tokens'
+import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 import type { SiteGateLogRow } from '@/lib/data/getAdminSiteGate'
 
 type ToastState = { type: 'success' | 'error'; message: string }
