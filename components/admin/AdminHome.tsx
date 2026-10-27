@@ -32,6 +32,7 @@ import type { AdminHomeData } from '@/lib/data/getAdminHome'
 import type { AdminTodayBooking } from '@/lib/admin/today'
 import { bookingEndMinutes, dateLabel, minutesOf, money, shiftDate, statusOf } from '@/lib/admin/today'
 import AdminStatusBadge from './AdminStatusBadge'
+import CountUp from './CountUp'
 import AdminPageHead from './AdminPageHead'
 
 type Props = {
@@ -122,7 +123,7 @@ function StatCard({
           <ArrowUpRight size={18} strokeWidth={1.8} />
         </span>
       </span>
-      <b className="ah-stat-num">{value}</b>
+      <b className="ah-stat-num">{typeof value === 'string' || typeof value === 'number' ? <CountUp text={String(value)} /> : value}</b>
       <span className="ah-stat-foot">{foot}</span>
     </Link>
   )
