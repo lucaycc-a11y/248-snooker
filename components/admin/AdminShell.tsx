@@ -16,6 +16,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
+  CalendarPlus,
+  Globe,
   Home,
   LayoutGrid,
   List,
@@ -74,14 +76,15 @@ export function AdminShell({
 }: AdminShellProps) {
   const pathname = usePathname()
   const router = useRouter()
-  // `resolvedTheme`, not `theme`: the site provider is `attribute="class"` with
-  // `defaultTheme="system"`, so `theme` is literally `'system'` and never
-  // matches `=== 'dark'`. `resolvedTheme` is the theme CSS actually applied.
-  const { resolvedTheme, setTheme } = useTheme()
+  // `theme` is the stored choice ('light' | 'dark' | 'system'); only an explicit
+  // 'dark' turns the admin dark.
+  const { theme, setTheme } = useTheme()
   const [devRole, setDevRole] = useState<AdminRoleId | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const appliedTheme: 'dark' | 'light' = resolvedTheme === 'light' ? 'light' : 'dark'
+  // Admin defaults to light (27 Oct 2026). Dark only when the admin picked it
+  // with the toggle — the device's system setting is ignored here.
+  const appliedTheme: 'dark' | 'light' = theme === 'dark' ? 'dark' : 'light'
 
   /**
    * Bridge next-themes (`class` on `<html>`) to the admin skin, which the
@@ -162,6 +165,14 @@ export function AdminShell({
               </button>
 
               <div className="ad-top-right">
+                <a href="/" target="_blank" rel="noreferrer" className="ad-site-link" aria-label="開啟網站首頁（新分頁）" data-cms-key="admin.nav.site_home">
+                  <Globe size={18} aria-hidden />
+                  <span>網站首頁</span>
+                </a>
+                <a href="/book" target="_blank" rel="noreferrer" className="ad-site-link" aria-label="開啟預約頁（新分頁）" data-cms-key="admin.nav.site_book">
+                  <CalendarPlus size={18} aria-hidden />
+                  <span>預約頁</span>
+                </a>
                 {process.env.NODE_ENV === 'development' && (
                   <span className="admin-chip demo" data-cms-key="admin.nav.demo_data">
                     示例資料

@@ -15,5 +15,17 @@ export default function AdminRootLayout({
 }: {
   children: React.ReactNode
 }) {
-  return children
+  return (
+    <>
+      {/* Set the admin theme before first paint so light mode (the default)
+          never flashes dark. Mirrors AdminShell: dark only if chosen. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            "try{var t=localStorage.getItem('theme');var d=document.documentElement;d.dataset.theme=t==='dark'?'dark':'light';d.style.colorScheme=d.dataset.theme}catch(e){document.documentElement.dataset.theme='light'}",
+        }}
+      />
+      {children}
+    </>
+  )
 }
