@@ -487,12 +487,16 @@ export default function AdminHome({ data, adminName }: Props) {
                     <span className="ah-av sm" aria-hidden>{initialOf(r.userName)}</span>
                     <span className="ah-mini-main">
                       <b>{r.userName ?? '未登記姓名'}</b>
-                      <small>
-                        {shortDate(r.date)} {hhmm(r.startTime)} ·{' '}
-                        {r.status === 'confirmed' ? `房 ${r.tableNumber || '—'}` : <span className={`ah-st ${statusOf(r.status)[1]}`}>{statusOf(r.status)[0]}</span>}
-                      </small>
+                      <small>{shortDate(r.date)} {hhmm(r.startTime)}</small>
                     </span>
-                    <span className="ah-mini-amt admin-num">{money(r.price)}</span>
+                    <span className="ah-mini-right">
+                      <b className={`ah-mini-amt admin-num${r.status === 'confirmed' ? '' : ' void'}`}>{money(r.price)}</b>
+                      {r.status === 'confirmed' ? (
+                        <small>房 {r.tableNumber || '—'}</small>
+                      ) : (
+                        <small className={`ah-st ${statusOf(r.status)[1]}`}>{statusOf(r.status)[0]}</small>
+                      )}
+                    </span>
                   </Link>
                 </li>
               ))}
