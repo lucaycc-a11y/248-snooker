@@ -98,6 +98,21 @@ export function AdminShell({
     setDevRole(readDevRoleOverride())
   }, [])
 
+  // ⌘K / Ctrl+K opens search everywhere. A page that already handles the
+  // shortcut (the bookings table focuses its own box) calls preventDefault
+  // first — child effects register before this one — so it is left alone.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setMenuOpen(true)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   const effectiveSuperAdmin =
     process.env.NODE_ENV === 'development' && devRole !== null
       ? devRole === 'super_admin'

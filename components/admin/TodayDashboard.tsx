@@ -108,7 +108,7 @@ export default function TodayDashboard({ data, includeTest }: Props) {
         <div>
           <h2>{dateLabel(date)}</h2>
           <p className="admin-sub">
-            示例時間 {nowTime} · 按枱號與開始時間排列
+            現在 {nowTime} · 按枱號與開始時間排列
           </p>
         </div>
         <div className="admin-row">

@@ -56,6 +56,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     items: [
       { href: '/admin/today', label: '今日', cmsKey: 'admin.nav.today', hint: '今日預約與各房狀態' },
       { href: '/admin/calendar', label: '日曆', cmsKey: 'admin.nav.calendar', hint: '按日期查看預約' },
+      { href: '/admin/report', label: '每日報告', cmsKey: 'admin.nav.report', hint: '收入、使用率、付款與預約明細' },
     ],
   },
   {
@@ -80,6 +81,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     href: '/admin/members',
     items: [
       { href: '/admin/members', label: '會員列表', cmsKey: 'admin.nav.members', hint: '搜尋與管理會員' },
+      { href: '/admin/lookup', label: '客戶查詢', cmsKey: 'admin.nav.lookup', hint: '以電話或預約碼查看客人所有預約及付款經過' },
       {
         href: '/admin/members?tab=flags',
         match: '/admin/members',
@@ -128,6 +130,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     icon: 'shield',
     href: '/admin/audit',
     items: [
+      { href: '/admin/activity', label: '網站記錄', cmsKey: 'admin.nav.activity', hint: '系統狀態及預約、付款、錯誤時間線' },
       { href: '/admin/team', label: '管理員', cmsKey: 'admin.nav.team', superAdminOnly: true, hint: '邀請與角色' },
       { href: '/admin/hidden-users', label: '隱藏帳戶', cmsKey: 'admin.nav.hidden_users', superAdminOnly: true, hint: '不計入統計的帳戶' },
       { href: '/admin/audit', label: '審計記錄', cmsKey: 'admin.nav.audit', hint: '後台操作記錄' },

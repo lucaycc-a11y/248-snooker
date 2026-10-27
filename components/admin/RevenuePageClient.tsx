@@ -377,7 +377,7 @@ export default function RevenuePageClient() {
         </div>
 
         <div className="admin-toolbar" style={{ flexWrap: 'wrap', gap: 16 }}>
-          <label className="admin-switch">
+          <label className="admin-check">
             <input
               type="checkbox"
               checked={includeTest}
@@ -388,7 +388,7 @@ export default function RevenuePageClient() {
             />
             <span data-cms-key="admin.revenue.include_test">包括測試預約</span>
           </label>
-          <label className="admin-switch">
+          <label className="admin-check">
             <input
               type="checkbox"
               checked={includeHidden}
@@ -401,9 +401,12 @@ export default function RevenuePageClient() {
           </label>
         </div>
 
-        <p className="admin-note" style={{ whiteSpace: 'pre-line' }} data-cms-key="admin.revenue.definitions">
-          {'計算方式：\n' + REVENUE_DEFINITIONS_NOTE}
-        </p>
+        <details className="admin-fold">
+          <summary data-cms-key="admin.revenue.definitions_title">計算方式</summary>
+          <p className="admin-note" style={{ whiteSpace: 'pre-line' }} data-cms-key="admin.revenue.definitions">
+            {REVENUE_DEFINITIONS_NOTE}
+          </p>
+        </details>
       </section>
 
       {/* ── Load state ──────────────────────────────────────────────────── */}

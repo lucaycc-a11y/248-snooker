@@ -24,6 +24,17 @@ type Snapshot = {
 }
 type ReconcileItem = { attemptId: string; humanCode: string | null; providerOrderNo: string | null; ageMin: number; action: string; note?: string }
 
+/** payment_events.event → plain Chinese; unknown values fall back to the raw name. */
+const EVENT_LABEL: Record<string, string> = {
+  confirmed: '預約已確認',
+  webhook_paid_confirmed: 'KPay 通知已付款，預約確認',
+  webhook_closed_or_failed: 'KPay 通知訂單關閉或失敗',
+  reconcile_order_closed: '對賬：KPay 訂單已關閉',
+  swept_expired: '逾時未付款，自動釋放',
+  cancel_refused: '取消要求被拒絕',
+  incident_parked: '已標記待人手處理',
+}
+
 const card = { background: 'var(--admin-bg-surface)', borderColor: 'var(--admin-border-subtle)' } as const
 const muted = { color: 'var(--admin-text-tertiary)' } as const
 
@@ -342,7 +353,7 @@ export default function PaymentMonitorClient() {
             <ul className="max-h-[420px] overflow-y-auto">
               {data.events.map((e) => (
                 <li key={e.id} className="border-t px-4 py-3 first:border-t-0" style={{ borderColor: 'var(--admin-border-subtle)' }}>
-                  <div className="text-sm" style={{ color: 'var(--admin-text-primary)' }}>{e.event}</div>
+                  <div className="text-sm" style={{ color: 'var(--admin-text-primary)' }}>{EVENT_LABEL[e.event] ?? e.event}</div>
                   <div className="break-words text-xs" style={muted}>
                     {hk(e.created_at)} · {e.human_code ?? '—'}{e.source ? ` · ${e.source}` : ''}{e.from_state && e.to_state ? ` · ${e.from_state} → ${e.to_state}` : ''}{e.reason ? ` · ${e.reason}` : ''}
                   </div>

@@ -80,6 +80,11 @@ export default function BookingsPageClient({
       setSearch(initialSearch)
       setDebouncedSearch(initialSearch)
     }
+    const isoDate = /^\d{4}-\d{2}-\d{2}$/
+    const fromParam = params.get('dateFrom')
+    const toParam = params.get('dateTo')
+    if (fromParam && isoDate.test(fromParam)) setDateFrom(fromParam)
+    if (toParam && isoDate.test(toParam)) setDateTo(toParam)
     if (params.get('new') !== '1') return
     setShowWizard(true)
     params.delete('new')

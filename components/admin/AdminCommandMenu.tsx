@@ -78,6 +78,12 @@ export default function AdminCommandMenu({ open, onClose, isSuperAdmin }: Props)
     router.push(`/admin/bookings?search=${encodeURIComponent(trimmed)}`)
   }
 
+  const lookup = () => {
+    if (!trimmed) return
+    onClose()
+    router.push(`/admin/lookup?q=${encodeURIComponent(trimmed)}`)
+  }
+
   return (
     <div
       className="admin-cmd-scrim"
@@ -99,7 +105,7 @@ export default function AdminCommandMenu({ open, onClose, isSuperAdmin }: Props)
               if (first && grouped.length > 0 && trimmed && grouped.reduce((n, g) => n + g.items.length, 0) === 1) {
                 router.push(first.href)
               } else {
-                searchBookings()
+                lookup()
               }
             }}
             placeholder={`搜尋頁面，或輸入預約編號、電話、會員編號（共 ${matchCount} 頁）`}
@@ -120,13 +126,25 @@ export default function AdminCommandMenu({ open, onClose, isSuperAdmin }: Props)
         <div className="admin-cmd-list">
           {trimmed ? (
             <a
+              href={`/admin/lookup?q=${encodeURIComponent(trimmed)}`}
+              onClick={(event) => {
+                event.preventDefault()
+                lookup()
+              }}
+            >
+              查詢客人或預約「{trimmed}」
+              <small>電話、會員編號、電郵、預約碼或 KPay 訂單號碼 — 顯示所有預約及付款經過</small>
+            </a>
+          ) : null}
+          {trimmed ? (
+            <a
               href={`/admin/bookings?search=${encodeURIComponent(trimmed)}`}
               onClick={(event) => {
                 event.preventDefault()
                 searchBookings()
               }}
             >
-              搜尋預約「{trimmed}」
+              在預約列表搜尋「{trimmed}」
               <small>按預約編號、電話、會員編號或姓名搜尋</small>
             </a>
           ) : null}
