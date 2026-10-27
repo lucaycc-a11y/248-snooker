@@ -117,7 +117,7 @@ export default function TodayDashboard({ data, includeTest }: Props) {
             role="switch"
             aria-checked={includeTest}
             className="admin-switch"
-            onClick={() => router.push(includeTest ? '/admin' : '/admin?test=1')}
+            onClick={() => router.push(includeTest ? '/admin/today' : '/admin/today?test=1')}
             data-cms-key="admin.today.show_test"
             title="顯示測試預約"
           />

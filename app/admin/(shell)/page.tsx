@@ -1,20 +1,23 @@
-import { getAdminToday } from '@/lib/data/getAdminToday'
-import TodayDashboard from '@/components/admin/TodayDashboard'
+import { getAdminHome } from '@/lib/data/getAdminHome'
+import { getAdminData } from '@/lib/data/getAdmin'
+import AdminHome from '@/components/admin/AdminHome'
 
-// 今日 — the venue's live day, as `space8-admin.html` vToday.
-// Auth is enforced by app/admin/layout.tsx (getAdminData).
+// 首頁 — overview, room timetable and things that need attention.
+// Auth is enforced by app/admin/(shell)/layout.tsx. Test bookings and hidden
+// users are always excluded here; the full lists live on their own pages.
 
 export const dynamic = 'force-dynamic'
 
-type SearchParams = { test?: string | string[] | undefined }
+type SearchParams = { date?: string | string[] | undefined }
 
-export default async function AdminTodayPage({
+export default async function AdminHomePage({
   searchParams,
 }: {
-  searchParams: SearchParams
+  searchParams: Promise<SearchParams> | SearchParams
 }) {
-  const includeTest = searchParams.test === '1'
-  const data = await getAdminToday({ includeTest })
+  const params = await searchParams
+  const rawDate = Array.isArray(params.date) ? params.date[0] : params.date
+  const [data, admin] = await Promise.all([getAdminHome({ date: rawDate }), getAdminData()])
 
-  return <TodayDashboard data={data} includeTest={includeTest} />
+  return <AdminHome data={data} adminName={admin?.displayName ?? null} />
 }

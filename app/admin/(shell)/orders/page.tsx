@@ -1,17 +1,18 @@
+import Link from 'next/link'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import AdminPageHead from '@/components/admin/AdminPageHead'
+import AdminStatusBadge from '@/components/admin/AdminStatusBadge'
+import { dateLabel, money } from '@/lib/admin/today'
 
-async function getAllBookings() {
+// 訂單查詢 — latest 100 orders with their payment attempt. Test orders are
+// excluded unless ?test=1 is passed (the switch below).
+
+export const dynamic = 'force-dynamic'
+
+type Row = Record<string, unknown>
+
+async function getOrders(includeTest: boolean): Promise<{ rows: Row[]; error: string | null }> {
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,133 +25,137 @@ async function getAllBookings() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, options),
             )
           } catch {
             // Server Component restriction
           }
         },
       },
-    }
+    },
   )
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('bookings')
-    .select(`
-      *,
-      payment_attempts(*)
-    `)
+    .select('*, payment_attempts(*)')
     .order('created_at', { ascending: false })
     .limit(100)
+  if (!includeTest) query = query.eq('is_test', false)
 
+  const { data, error } = await query
   if (error) {
-    console.error('Error fetching bookings:', error)
-    return []
+    console.error('[admin/orders] load failed', error)
+    return { rows: [], error: `訂單資料載入失敗：${error.message}` }
   }
-
-  return data || []
+  return { rows: (data ?? []) as unknown as Row[], error: null }
 }
 
-function getStatusVariant(status: string) {
-  switch (status) {
-    case 'confirmed':
-      return 'default'
-    case 'pending':
-      return 'secondary'
-    case 'cancelled':
-      return 'destructive'
-    default:
-      return 'secondary'
-  }
+const PAYMENT_LABEL: Record<string, [string, 'good' | 'warn' | 'bad' | 'mute']> = {
+  succeeded: ['已成功', 'good'],
+  paid: ['已成功', 'good'],
+  pending: ['處理中', 'warn'],
+  processing: ['處理中', 'warn'],
+  requires_action: ['待驗證', 'warn'],
+  failed: ['失敗', 'bad'],
+  canceled: ['已取消', 'mute'],
+  cancelled: ['已取消', 'mute'],
 }
 
-export default async function OrdersPage() {
-  const bookings = await getAllBookings()
+function text(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ test?: string }> | { test?: string }
+}) {
+  const params = await searchParams
+  const includeTest = params.test === '1'
+  const { rows, error } = await getOrders(includeTest)
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">訂單查詢</h1>
-        <p className="text-muted-foreground">所有訂單記錄</p>
-      </div>
+    <>
+      <AdminPageHead
+        sub={`最近 100 張訂單${includeTest ? '（包括測試訂單）' : ''}`}
+        actions={
+          <Link
+            href={includeTest ? '/admin/orders' : '/admin/orders?test=1'}
+            className="admin-pill-btn"
+          >
+            {includeTest ? '隱藏測試訂單' : '包括測試訂單'}
+          </Link>
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>訂單列表 ({bookings.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border border-border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>訂單編號</TableHead>
-                  <TableHead>日期</TableHead>
-                  <TableHead>時間</TableHead>
-                  <TableHead>檯號</TableHead>
-                  <TableHead>姓名</TableHead>
-                  <TableHead>金額</TableHead>
-                  <TableHead>狀態</TableHead>
-                  <TableHead>付款狀態</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bookings.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center">
-                      暫無訂單記錄
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  bookings.map((booking) => {
-                    const paymentAttempt = Array.isArray(booking.payment_attempts)
-                      ? booking.payment_attempts[0]
-                      : null
+      {error ? (
+        <div className="admin-card" role="alert" style={{ borderColor: 'var(--admin-status-danger)' }}>
+          {error}
+        </div>
+      ) : null}
 
-                    return (
-                      <TableRow key={booking.id}>
-                        <TableCell className="font-mono text-xs">
-                          {booking.id.slice(0, 8)}...
-                        </TableCell>
-                        <TableCell>{booking.date}</TableCell>
-                        <TableCell>
-                          {booking.start_time} - {booking.end_time}
-                        </TableCell>
-                        <TableCell>{booking.table_number}</TableCell>
-                        <TableCell>{booking.name || '-'}</TableCell>
-                        <TableCell className="font-medium">
-                          HK${booking.total_price}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusVariant(booking.status)}>
-                            {booking.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {paymentAttempt ? (
-                            <Badge
-                              variant={
-                                paymentAttempt.status === 'succeeded'
-                                  ? 'default'
-                                  : 'secondary'
-                              }
-                            >
-                              {paymentAttempt.status}
-                            </Badge>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              無付款記錄
-                            </span>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
+      <section className="admin-card flat">
+        <div className="admin-head">
+          <h3>訂單列表（{rows.length}）</h3>
+        </div>
+        {rows.length === 0 && !error ? (
+          <div className="admin-empty">暫無訂單記錄</div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>預約編號</th>
+                  <th>日期</th>
+                  <th>時間</th>
+                  <th>房間</th>
+                  <th>會員</th>
+                  <th className="admin-num">金額</th>
+                  <th>預約狀態</th>
+                  <th>付款</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((booking) => {
+                  const attempts = Array.isArray(booking.payment_attempts)
+                    ? (booking.payment_attempts as Row[])
+                    : []
+                  const attemptStatus = text(attempts[0]?.status)
+                  const mapped = attemptStatus ? PAYMENT_LABEL[attemptStatus] : undefined
+                  const code = text(booking.human_code) ?? text(booking.booking_reference) ?? String(booking.id).slice(0, 8)
+                  return (
+                    <tr key={String(booking.id)}>
+                      <td>
+                        <Link href={`/admin/bookings/${String(booking.id)}`} className="admin-mono">
+                          {code}
+                        </Link>
+                        {booking.is_test === true ? <> <AdminStatusBadge label="測試" tone="test" /></> : null}
+                      </td>
+                      <td>{dateLabel(text(booking.date))}</td>
+                      <td className="admin-num">
+                        {(text(booking.start_time) ?? '—').slice(0, 5)} – {(text(booking.end_time) ?? '—').slice(0, 5)}
+                      </td>
+                      <td>{booking.table_number ? `房 ${String(booking.table_number)}` : '—'}</td>
+                      <td>{text(booking.name) ?? text(booking.user_name) ?? '—'}</td>
+                      <td className="admin-num">{money(Number(booking.total_price) || 0)}</td>
+                      <td>
+                        <AdminStatusBadge status={text(booking.status) ?? 'unknown'} />
+                      </td>
+                      <td>
+                        {attemptStatus ? (
+                          <AdminStatusBadge label={mapped?.[0] ?? attemptStatus} tone={mapped?.[1] ?? 'mute'} />
+                        ) : (
+                          <span className="admin-muted">無付款記錄</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        )}
+      </section>
+    </>
   )
 }

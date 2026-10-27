@@ -47,6 +47,7 @@ async function getMemberDetail(id: string) {
         .from('bookings')
         .select('id, booking_reference, date, status, total_price, table_number')
         .eq('user_id', id)
+        .eq('is_test', false)
         .order('date', { ascending: false })
         .limit(50),
 

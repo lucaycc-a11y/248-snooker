@@ -48,12 +48,16 @@ export async function GET(req: Request) {
     const service = getServiceSupabase()
 
     // Fetch all bookings in range with payment info
-    const { data: bookings, error: bookingErr } = await service
+    // Test bookings stay out of the money unless ?includeTest=1 is passed.
+    const includeTest = url.searchParams.get('includeTest') === '1'
+    let bookingQuery = service
       .from('bookings')
       .select('id, created_at, total_price, status')
       .gte('created_at', `${from}T00:00:00`)
       .lte('created_at', `${to}T23:59:59`)
       .order('created_at', { ascending: true })
+    if (!includeTest) bookingQuery = bookingQuery.eq('is_test', false)
+    const { data: bookings, error: bookingErr } = await bookingQuery
 
     if (bookingErr) {
       console.error('[admin/sales-report] bookings query error', { message: bookingErr.message })

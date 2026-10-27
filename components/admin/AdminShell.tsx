@@ -1,41 +1,36 @@
 'use client'
 
 /**
- * AdminShell — mirrors `space8-admin.html` one-for-one.
+ * AdminShell — liquid-glass admin frame.
  *
- * Structure (the prototype's "rapport" layer):
- *   · floating icon dock, fixed left, vertically centred, hard black pill
- *   · pill tabs in a static top bar next to the wordmark
- *   · big page title (36px / 28px on phone) + mono route chip
- *   · phone: floating pill bottom bar with the same five areas
+ *   · floating glass top bar: wordmark, pill nav (a dropdown per area listing
+ *     every page), labelled 新增預約 + 搜尋, role pill, theme toggle
+ *   · one page title (no route chip — pages must not repeat it)
+ *   · phone: floating glass bottom bar (首頁 預約 會員 收入 全部); 全部 opens
+ *     the full page list
  *
- * Only the five areas appear in navigation. Overflow routes stay mounted and
- * deep-linkable — they are just not offered here (Luca: "keep it simple").
+ * Navigation data lives in lib/admin/nav.ts — every mounted page is listed there.
  */
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  Calendar,
+  Home,
+  LayoutGrid,
   List,
   Moon,
   Plus,
   Search,
-  Shield,
-  SlidersHorizontal,
   Sun,
   Users,
+  Wallet,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import {
-  ADMIN_AREAS,
-  areaForPath,
-  visibleItems,
-  type AdminArea,
-  type AdminAreaId,
-} from '@/lib/admin/nav'
+import { areaForPath, itemForPath, type AdminAreaId } from '@/lib/admin/nav'
+import AdminNavMenu from './AdminNavMenu'
+import AdminCommandMenu from './AdminCommandMenu'
 import { AdminToastProvider } from './ToastProvider'
 import { AdminProvider } from '@/lib/admin/AdminContext'
 import type { AdminData } from '@/lib/data/getAdmin'
@@ -44,31 +39,13 @@ import AdminRoleSelect, {
   type AdminRoleId,
 } from './AdminRoleSelect'
 
-/** Phone bottom bar — prototype NAV icons: today, list, users, site, shield. */
-const TAB_ICONS: Record<AdminAreaId, LucideIcon> = {
-  today: Calendar,
-  bookings: List,
-  members: Users,
-  site: SlidersHorizontal,
-  system: Shield,
-}
-
-/** Dock order matches the prototype: search, users, site, shield (no "today"). */
-const DOCK_ITEMS: { id: AdminAreaId; icon: LucideIcon; title: string }[] = [
-  { id: 'bookings', icon: Search, title: '搜尋預約' },
-  { id: 'members', icon: Users, title: '會員' },
-  { id: 'site', icon: SlidersHorizontal, title: '網站資料' },
-  { id: 'system', icon: Shield, title: '系統' },
+/** Phone bottom bar — four primary areas plus 全部 (opens the full page list). */
+const PHONE_TABS: { id: AdminAreaId; label: string; href: string; icon: LucideIcon }[] = [
+  { id: 'home', label: '首頁', href: '/admin', icon: Home },
+  { id: 'bookings', label: '預約', href: '/admin/bookings', icon: List },
+  { id: 'members', label: '會員', href: '/admin/members', icon: Users },
+  { id: 'money', label: '收入', href: '/admin/revenue', icon: Wallet },
 ]
-
-/**
- * Landing route for an area. Skips `superAdminOnly` leaves so a plain `admin`
- * never lands on a 403 — 網站資料 falls to /admin/maintenance, 系統 to /admin/audit.
- */
-function landingHref(area: AdminArea, isSuperAdmin: boolean): string {
-  const leaf = visibleItems(area.items, isSuperAdmin)[0] ?? area.items[0]
-  return (leaf?.href ?? area.href).split('?')[0]
-}
 
 type AdminShellProps = {
   children: React.ReactNode
@@ -103,6 +80,7 @@ export function AdminShell({
   // matches `=== 'dark'`. `resolvedTheme` is the theme CSS actually applied.
   const { resolvedTheme, setTheme } = useTheme()
   const [devRole, setDevRole] = useState<AdminRoleId | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const appliedTheme: 'dark' | 'light' = resolvedTheme === 'light' ? 'light' : 'dark'
 
@@ -129,18 +107,9 @@ export function AdminShell({
   const rolePreviewEnabled = process.env.NODE_ENV === 'development'
 
   const activeArea = areaOverride ?? areaForPath(pathname ?? '/admin')
-  const active = ADMIN_AREAS.find((a) => a.id === activeArea) ?? ADMIN_AREAS[0]
-  // Title + route chip follow the *current* pathname, not the area landing.
-  // The area landing is only what the rail navigates to; on /admin/audit the
-  // area is 系統 (landing /admin/team), so using it made every non-landing
-  // leaf report the wrong URL. Overflow routes fall back to the area label.
-  const currentPath = (pathname ?? '').replace(/\/$/, '') || '/admin'
-  const currentLeaf = active.items.find((item) => {
-    const base = (item.match ?? item.href).split('?')[0]
-    return currentPath === base || currentPath.startsWith(`${base}/`)
-  })
-  const title = currentLeaf?.label ?? active.label
-  const route = areaOverride ? landingHref(active, effectiveSuperAdmin) : currentPath
+  // Title follows the current leaf (longest matching page), falling back to
+  // the area label. Dynamic detail routes (/bookings/[id]) resolve to their list.
+  const title = itemForPath(pathname ?? '/admin')?.label ?? '後台'
 
   const goNewBooking = () => {
     router.push('/admin/bookings?new=1')
@@ -152,40 +121,6 @@ export function AdminShell({
           the provider here, not per-page, so a new page can never forget it. */}
       <AdminProvider value={admin}>
         <div className="admin-app admin-glow-bg">
-        {/* Floating icon dock (desktop / tablet landscape) */}
-        <aside className="admin-dock" aria-label="快捷操作">
-          <button
-            type="button"
-            className="primary"
-            onClick={goNewBooking}
-            title="手動新增預約"
-            aria-label="手動新增預約"
-            data-cms-key="admin.dock.new_booking"
-          >
-            <Plus size={20} aria-hidden />
-          </button>
-          <hr />
-          {DOCK_ITEMS.map((item) => {
-            const Icon = item.icon
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  const area = ADMIN_AREAS.find((a) => a.id === item.id)
-                  router.push(area ? landingHref(area, effectiveSuperAdmin) : '/admin')
-                }}
-                title={item.title}
-                aria-label={item.title}
-                aria-current={activeArea === item.id ? 'page' : undefined}
-                data-cms-key={`admin.dock.${item.id}`}
-              >
-                <Icon size={20} aria-hidden />
-              </button>
-            )
-          })}
-        </aside>
-
         <div className="admin-main">
           <header className="admin-top">
             <Link
@@ -205,19 +140,7 @@ export function AdminShell({
               <span className="admin-logo admin-logo-mark" aria-hidden />
             </Link>
 
-            <nav className="admin-tabs" aria-label="主選單">
-              {ADMIN_AREAS.map((area) => (
-                <button
-                  key={area.id}
-                  type="button"
-                  onClick={() => router.push(landingHref(area, effectiveSuperAdmin))}
-                  aria-current={activeArea === area.id ? 'page' : undefined}
-                  data-cms-key={area.cmsKey}
-                >
-                  {area.label}
-                </button>
-              ))}
-            </nav>
+            <AdminNavMenu isSuperAdmin={effectiveSuperAdmin} areaOverride={areaOverride} />
 
             <div className="admin-spacer" />
 
@@ -228,6 +151,29 @@ export function AdminShell({
                 示例資料
               </span>
             )}
+
+            <div className="admin-top-actions">
+              <button
+                type="button"
+                className="admin-pill-btn"
+                onClick={() => setMenuOpen(true)}
+                aria-label="搜尋頁面與預約"
+                data-cms-key="admin.nav.search"
+              >
+                <Search size={18} aria-hidden />
+                <span className="label-lg">搜尋</span>
+              </button>
+              <button
+                type="button"
+                className="admin-pill-btn primary"
+                onClick={goNewBooking}
+                aria-label="手動新增預約"
+                data-cms-key="admin.nav.new_booking"
+              >
+                <Plus size={18} aria-hidden />
+                <span className="label-lg">新增預約</span>
+              </button>
+            </div>
 
             {/* Same pill select in every environment so the top bar matches the
                 prototype. Role preview (changing the value) is dev-only. */}
@@ -272,7 +218,6 @@ export function AdminShell({
             <h1 className="admin-ptitle" data-cms-key="admin.page.title">
               {title}
             </h1>
-            <span className="admin-route">space8.com.hk{route}</span>
           </div>
 
           <main className="admin-page">{children}</main>
@@ -280,22 +225,37 @@ export function AdminShell({
 
         {/* Phone: floating pill bottom bar */}
         <nav className="admin-bnav" aria-label="主選單">
-          {ADMIN_AREAS.map((area) => {
-            const Icon = TAB_ICONS[area.id]
+          {PHONE_TABS.map((tab) => {
+            const Icon = tab.icon
             return (
               <button
-                key={area.id}
+                key={tab.id}
                 type="button"
-                onClick={() => router.push(landingHref(area, effectiveSuperAdmin))}
-                aria-current={activeArea === area.id ? 'page' : undefined}
-                data-cms-key={area.cmsKey}
+                onClick={() => router.push(tab.href)}
+                aria-current={activeArea === tab.id ? 'page' : undefined}
+                data-cms-key={`admin.nav.${tab.id}`}
               >
                 <Icon size={18} aria-hidden />
-                <span>{area.shortLabel}</span>
+                <span>{tab.label}</span>
               </button>
             )
           })}
+          <button
+            type="button"
+            onClick={() => setMenuOpen(true)}
+            aria-label="全部頁面"
+            data-cms-key="admin.nav.all_pages"
+          >
+            <LayoutGrid size={18} aria-hidden />
+            <span>全部</span>
+          </button>
         </nav>
+
+        <AdminCommandMenu
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          isSuperAdmin={effectiveSuperAdmin}
+        />
         </div>
       </AdminProvider>
     </AdminToastProvider>

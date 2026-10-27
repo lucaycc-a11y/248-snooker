@@ -108,7 +108,8 @@ export default function BookingsPageClient({
     try {
       const params = new URLSearchParams()
       params.set('page', String(page))
-      params.set('isTest', showTest ? 'true' : 'false')
+      // Default: real bookings only. Switch on = include test bookings (no filter).
+      if (!showTest) params.set('isTest', 'false')
       if (debouncedSearch) params.set('search', debouncedSearch)
       if (status !== 'all') params.set('status', status)
       if (dateFrom) params.set('dateFrom', dateFrom)
@@ -149,9 +150,8 @@ export default function BookingsPageClient({
       {/* ── Header: title/sub + test toggle + manual CTA ───────────── */}
       <div className="admin-page-head">
         <div>
-          <h2 style={{ margin: 0 }}>預約</h2>
           <p className="admin-sub" style={{ margin: 0 }}>
-            電話、會員編號、預約碼或參考編號
+            以電話、會員編號、預約碼或參考編號搜尋
           </p>
         </div>
         <div className="admin-row">
@@ -166,10 +166,10 @@ export default function BookingsPageClient({
               setPage(1)
             }}
             data-cms-key="admin.bookings.show_test"
-            title="顯示測試預約"
+            title="包括測試預約"
           />
           <span className="admin-sub" data-cms-key="admin.bookings.show_test_label">
-            顯示測試預約
+            包括測試預約
           </span>
           <button
             type="button"

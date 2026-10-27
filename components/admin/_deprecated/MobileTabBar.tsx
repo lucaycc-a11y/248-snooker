@@ -6,7 +6,7 @@ import { CalendarDays, LayoutDashboard, MoreHorizontal, Shield, Users } from 'lu
 import type { LucideIcon } from 'lucide-react'
 import { ADMIN_AREAS, areaForPath, type AdminAreaId } from '@/lib/admin/nav'
 
-const ICONS: Record<AdminAreaId, LucideIcon> = {
+const ICONS: Partial<Record<AdminAreaId, LucideIcon>> = {
   today: LayoutDashboard,
   bookings: CalendarDays,
   members: Users,
@@ -33,7 +33,7 @@ export default function MobileTabBar({
       aria-label="主選單"
     >
       {ADMIN_AREAS.map((area) => {
-        const Icon = ICONS[area.id]
+        const Icon = ICONS[area.id] ?? LayoutDashboard
         const isActive = active === area.id
         return (
           <Link

@@ -50,6 +50,7 @@ export async function getMonthDensity(year: number, month: number): Promise<DayD
     const { data } = await service
       .from('bookings')
       .select('date, duration_hours')
+      .eq('is_test', false)
       .eq('status', 'confirmed')
       .gte('date', start)
       .lte('date', end)
@@ -94,6 +95,7 @@ export async function getDayTimeline(date: string): Promise<CalendarBooking[]> {
       .from('bookings')
       .select('id, booking_reference, table_number, start_time, end_time, status, users(email, display_name)')
       .eq('date', date)
+      .eq('is_test', false)
       .eq('status', 'confirmed')
       .order('start_time', { ascending: true })
     if (error) throw error
@@ -120,7 +122,8 @@ export async function getDayTimeline(date: string): Promise<CalendarBooking[]> {
         .from('bookings')
         .select('id, booking_reference, table_number, start_time, end_time, status, user_id')
         .eq('date', date)
-        .eq('status', 'confirmed')
+        .eq('is_test', false)
+      .eq('status', 'confirmed')
         .order('start_time', { ascending: true })
       const rows = (data ?? []) as Row[]
 

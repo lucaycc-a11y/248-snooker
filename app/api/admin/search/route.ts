@@ -37,6 +37,7 @@ export async function GET(req: Request) {
       service
         .from('bookings')
         .select('id, human_code, booking_reference, user_email, user_name, table_number, date, start_time, end_time, total_price, status')
+        .eq('is_test', false)
         .or(`human_code.ilike.%${q}%,booking_reference.ilike.%${q}%,user_email.ilike.%${q}%,user_name.ilike.%${q}%`)
         .order('created_at', { ascending: false })
         .limit(MAX_PER_SECTION),
