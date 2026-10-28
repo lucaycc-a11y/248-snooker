@@ -4,6 +4,12 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.1.1 — 2026-10-28 — 付款異常即時電郵
+
+### Features
+- 付款出錯的一刻即時電郵（webhook 確認失敗、已付款轉覆核、重複付款、開單失敗等），不再等每 5 分鐘輪詢；電郵附該預約最近的付款時間線，同一問題只寄一次、12 小時後才提醒，10 分鐘最多 8 封
+- 真實客人的已付款異常寄給所有管理員，測試單與其他錯誤只寄店主
+
 ## v4.1.0 — 2026-10-28 — 付款異常電郵警報與 Spark 付款診斷
 
 ### Features

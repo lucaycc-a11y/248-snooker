@@ -9,7 +9,7 @@
  * (and docs/PAYMENT_CHANGELOG.md) in the same commit as the change.
  */
 
-export const PAYMENT_VERSION = '4.1.0'
+export const PAYMENT_VERSION = '4.1.1'
 
 export type PaymentChangelogEntry = {
   version: string
@@ -20,6 +20,16 @@ export type PaymentChangelogEntry = {
 }
 
 export const PAYMENT_CHANGELOG: PaymentChangelogEntry[] = [
+  {
+    version: '4.1.1',
+    date: '2026-10-28',
+    title: '付款異常即時電郵',
+    features: [
+      '付款出錯的一刻即時電郵（webhook 確認失敗、已付款轉覆核、重複付款、開單失敗等），不再等每 5 分鐘輪詢；電郵附該預約最近的付款時間線，同一問題只寄一次、12 小時後才提醒，10 分鐘最多 8 封',
+      '真實客人的已付款異常寄給所有管理員，測試單與其他錯誤只寄店主',
+    ],
+    fixes: [],
+  },
   {
     version: '4.1.0',
     date: '2026-10-28',
