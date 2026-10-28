@@ -411,6 +411,17 @@ export default function KPayPayment(props: Props) {
 
       const json = await res.json()
 
+      // The server found an order that already exists for this booking and returned only its
+      // number (no payment link). There is nothing to open here: let the confirm page's status
+      // poll show the real state (paid -> ticket, open -> options to go back and pay again).
+      if (json.existing === true && !json.payInfo) {
+        const existingBookingId = String(json.bookingId ?? localBookingId ?? '')
+        if (existingBookingId) {
+          window.location.assign(confirmPathFor(existingBookingId))
+          return
+        }
+      }
+
       // Redirect responses must leave the page before committing pending UI
       // state; card/CNP Hosted must never briefly render the QR screen.
       if ((json.kind === 'redirect' || json.kind === 'link') && json.payInfo) {
@@ -530,18 +541,20 @@ export default function KPayPayment(props: Props) {
           window.location.href = confirmPathFor(localBookingId)
           return
         }
-        setError(typeof message === 'string' ? checkoutErrorText(message) : labels.cancelled_desc)
+        // Cancel did NOT happen: say so. (labels.cancelled_desc reads "booking cancelled, slot
+        // released", which would be false here.)
+        setError(typeof message === 'string' ? checkoutErrorText(message) : labels.failed_desc)
         return
       }
       attemptRef.current += 1
       if (countdownRef.current) clearInterval(countdownRef.current)
       setState('cancelled')
     } catch {
-      setError(labels.cancelled_desc)
+      setError(labels.failed_desc)
     } finally {
       setActionBusy(false)
     }
-  }, [actionBusy, labels.cancelled_desc, localBookingId, onBackToMethods])
+  }, [actionBusy, labels.failed_desc, localBookingId, onBackToMethods])
 
   // Leaving the QR / payment screen via "back" must not leave the booking pending:
   // a pending booking keeps the slot and the wallet credits held for ~10-15 minutes,
@@ -551,22 +564,42 @@ export default function KPayPayment(props: Props) {
   // a booking that has already been paid/confirmed is left alone by the server.
   const leaveAndRelease = useCallback(() => {
     if (actionBusy) return
-    if (localBookingId) {
-      attemptRef.current += 1 // drop any in-flight poll result for the abandoned attempt
-      if (countdownRef.current) clearInterval(countdownRef.current)
-      void fetch('/api/checkout/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // A stale booking adopted at an outdated price must be releasable even while its
-        // old KPay order is still open, or every retry re-adopts it and hits the same mismatch.
-        body: JSON.stringify({
-          bookingId: localBookingId,
-          ...(failureReason === 'price_changed' ? { reason: 'price_changed' } : {}),
-        }),
-        keepalive: true,
-      }).catch(() => {})
+    if (!localBookingId) {
+      onBackToMethods()
+      return
     }
-    onBackToMethods()
+    attemptRef.current += 1 // drop any in-flight poll result for the abandoned attempt
+    if (countdownRef.current) clearInterval(countdownRef.current)
+    const bookingToRelease = localBookingId
+    setActionBusy(true)
+    // Wait at most ~1 s for the server's answer. Going back at once is the goal, but if the
+    // server says the order is already PAID the customer must land on the confirm page, not on
+    // the method picker (where they could pay a second time).
+    const release = fetch('/api/checkout/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // A stale booking adopted at an outdated price must be releasable even while its
+      // old KPay order is still open, or every retry re-adopts it and hits the same mismatch.
+      body: JSON.stringify({
+        bookingId: bookingToRelease,
+        ...(failureReason === 'price_changed' ? { reason: 'price_changed' } : {}),
+      }),
+      keepalive: true,
+    })
+      .then(async (res) => {
+        if (res.status !== 409) return false
+        const payload: unknown = await res.json().catch(() => null)
+        return !!payload && typeof payload === 'object' && (payload as Record<string, unknown>).error === 'payment_received'
+      })
+      .catch(() => false)
+    void Promise.race([release, new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 1000))]).then((paid) => {
+      setActionBusy(false)
+      if (paid) {
+        window.location.href = confirmPathFor(bookingToRelease)
+        return
+      }
+      onBackToMethods()
+    })
   }, [actionBusy, failureReason, localBookingId, onBackToMethods])
 
   const retryPayment = useCallback(async () => {

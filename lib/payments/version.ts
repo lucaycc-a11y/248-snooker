@@ -9,7 +9,7 @@
  * (and docs/PAYMENT_CHANGELOG.md) in the same commit as the change.
  */
 
-export const PAYMENT_VERSION = '4.1.1'
+export const PAYMENT_VERSION = '4.1.2'
 
 export type PaymentChangelogEntry = {
   version: string
@@ -20,6 +20,21 @@ export type PaymentChangelogEntry = {
 }
 
 export const PAYMENT_CHANGELOG: PaymentChangelogEntry[] = [
+  {
+    version: '4.1.2',
+    date: '2026-10-28',
+    title: '付款全面檢查：按鈕與路由修正',
+    features: [],
+    fixes: [
+      '「返回選擇付款方式」按鈕：若 KPay 其實已收款，現會帶客人去確認頁，不再返回選擇頁（避免重複付款）；等候伺服器回覆最多約 1 秒',
+      '確認頁「取消預約」按鈕：同樣在已付款時不再返回選擇時段',
+      '取消失敗時不再顯示「此預訂已取消，已釋放時段」的錯誤訊息，改為真實的失敗提示',
+      '「重新付款」不再被仍未付款的舊 KPay 單擋住（最長 30 分鐘）；只有已付款才會阻止，並改用與取消相同的 KPay 查詢（支援 UAT 主機）',
+      'KPay 已收款但資料庫拒絕確認預約時，客人返回頁不再無限「確認中」，並即時電郵通知（每張預約 10 分鐘最多記錄一次）',
+      '開單遇到已存在的付款單（只回傳單號、沒有付款連結）時，客戶端會轉到確認頁而不是顯示壞掉的付款畫面；移除一次多餘的 KPay 查詢',
+      'Admin 付款監控補上新事件與對賬動作的中文名稱',
+    ],
+  },
   {
     version: '4.1.1',
     date: '2026-10-28',

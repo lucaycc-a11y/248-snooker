@@ -3995,12 +3995,21 @@ function ConfirmingPaymentContainer({
       }
     } catch {}
     try {
-      await fetch("/api/checkout/cancel", {
+      const cancelRes = await fetch("/api/checkout/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId }),
         keepalive: true,
       })
+      if (cancelRes.status === 409) {
+        // The order was paid after all: never send the customer back to the slots. Reload so
+        // the status poll confirms the booking.
+        const payload: unknown = await cancelRes.json().catch(() => null)
+        if (payload && typeof payload === "object" && (payload as Record<string, unknown>).error === "payment_received") {
+          window.location.reload()
+          return
+        }
+      }
     } catch {}
     onBackToSlots()
   }, [bookingId, onBackToSlots])
