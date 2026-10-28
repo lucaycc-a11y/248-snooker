@@ -4,6 +4,13 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.0.3 — 2026-10-28 — 更快釋放被凍結的訂單
+
+### Bug fixes
+- 未完成付款令時段、Space Wallet 金額與優惠碼被凍結的最長時間，由 60 分鐘縮短至 25 分鐘（KPay 已關閉嘅單仍然即時釋放）
+- 對賬排程由約 12 分鐘起逐張向 KPay 查詢；已付款自動確認，逾 25 分鐘仍未付款則結束該付款嘗試，其後清理程序釋放訂位
+- 凍結期縮短後，如舊單日後才被付款，仍由遲付款機制自動確認，時段被佔先則轉入 payment_review
+
 ## v4.0.2 — 2026-10-28 — 錢包金額提示與付款返回頁防 404
 
 ### Features
