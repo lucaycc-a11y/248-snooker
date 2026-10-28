@@ -4043,6 +4043,40 @@ export default function BookPage() {
   const router = useRouter()
   const [screen, setScreen] = useState(0)
 
+  // A customer who paid at KPay and then closed the browser / app comes back to a bare /book,
+  // with no sessionStorage to resume from. If the server knows of a checkout still in flight (a
+  // KPay order opened in the last 45 min, or a booking confirmed in the last 15 min), open the
+  // payment status screen for it instead of an empty slot picker. At most once per booking per
+  // browser session, so choosing "back to payment methods" never loops.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("bookingId") || params.get("redirect_status") || params.get("payment_intent")) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch("/api/checkout/active", { cache: "no-store" })
+        if (!res.ok || cancelled) return
+        const json: unknown = await res.json().catch(() => null)
+        const active = json && typeof json === "object" ? (json as { active?: { bookingId?: unknown } | null }).active : null
+        const id = active && typeof active.bookingId === "string" ? active.bookingId : null
+        if (!id) return
+        const seenKey = `activeCheckoutOpened:${id}`
+        try {
+          if (sessionStorage.getItem(seenKey)) return
+          sessionStorage.setItem(seenKey, "1")
+        } catch {
+          return
+        }
+        if (cancelled) return
+        window.location.replace(`/book?bookingId=${encodeURIComponent(id)}&redirect_status=returned`)
+      } catch {
+        // best effort: the normal slot picker stays usable
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
   // Step labels from i18n so the progress bar matches the page locale
   const STEPS = [
     t("step_select"),

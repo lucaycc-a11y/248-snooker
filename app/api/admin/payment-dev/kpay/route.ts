@@ -17,6 +17,7 @@ import {
 import { calculatePrice } from '@/lib/pricing'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
+import { releaseStaleCheckout } from '@/lib/checkout/release-stale'
 import { parseRpc, isLockSlotResult, isLockSlotsResult } from '@/lib/supabase/rpc-parse'
 import { withSecurity } from '@/lib/security/api-wrapper'
 import { logSiteError } from '@/lib/errors/log'
@@ -706,12 +707,25 @@ async function handleAdminKpayCreate(req: Request) {
         // /api/checkout/cancel; otherwise every retry re-adopts the same locked
         // booking and hits this mismatch forever.
         const staleBookingId = createdBookingIds.length === 0 ? bookingIds[0] ?? null : null
+        // Release the stale booking here instead of relying on the browser to ask for it: a
+        // page that does not send the follow-up cancel (older cached JS, closed tab) would
+        // otherwise re-adopt the same locked booking on every attempt. A PAID order is never
+        // released. `released: true` tells the page it can create a fresh order straight away.
+        const staleReleased = staleBookingId
+          ? await releaseStaleCheckout(service, {
+              userId: adminUserId,
+              bookingId: staleBookingId,
+              hostname: new URL(req.url).hostname,
+              reason: 'price_changed_open_order_released',
+            })
+          : false
         return NextResponse.json(
           {
             error: 'price_changed',
             code: 'price_changed',
             total: bookingTotal,
             walletApplied: discount.creditDiscount,
+            released: staleReleased,
             ...(staleBookingId ? { bookingId: staleBookingId } : {}),
             ...(staleBookingId && orderGroupId ? { orderGroupId } : {}),
           },

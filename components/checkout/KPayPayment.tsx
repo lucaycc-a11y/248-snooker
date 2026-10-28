@@ -368,12 +368,16 @@ export default function KPayPayment(props: Props) {
             ) {
               priceAutoRetriedRef.current = true
               try {
-                const cancelRes = await fetch('/api/checkout/cancel', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ bookingId: errBody.bookingId, reason: 'price_changed' }),
-                })
-                if (cancelRes.ok) {
+                // The server already released the stale booking (released: true) -> no second call.
+                const alreadyReleased = errBody.released === true
+                const cancelRes = alreadyReleased
+                  ? null
+                  : await fetch('/api/checkout/cancel', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ bookingId: errBody.bookingId, reason: 'price_changed' }),
+                    })
+                if (alreadyReleased || cancelRes?.ok) {
                   setLocalBookingId(undefined)
                   setLocalOrderGroupId(undefined)
                   setAutoRetryTick((n) => n + 1)

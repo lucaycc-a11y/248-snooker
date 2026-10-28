@@ -4,6 +4,14 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.1.3 — 2026-10-28 — 付款後退出再入、金額更新由伺服器處理
+
+### Features
+- 付款後關閉瀏覽器／App 再返入預約頁，會直接帶到該張預約的付款狀態頁（開單 45 分鐘內仍待付款，或 15 分鐘內剛確認），不再顯示空白的選擇時段；每張預約每個瀏覽器工作階段只跳轉一次
+
+### Bug fixes
+- 「金額已更新」現由伺服器即時釋放舊的未付款預約（已付款的不會釋放），頁面無須再發取消請求，舊版頁面亦不會再重複碰到同一個錯誤
+
 ## v4.1.2 — 2026-10-28 — 付款全面檢查：按鈕與路由修正
 
 ### Bug fixes
