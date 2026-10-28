@@ -57,6 +57,7 @@ export const ADMIN_AREAS: AdminArea[] = [
       { href: '/admin/today', label: '今日', cmsKey: 'admin.nav.today', hint: '今日預約與各房狀態' },
       { href: '/admin/calendar', label: '日曆', cmsKey: 'admin.nav.calendar', hint: '按日期查看預約' },
       { href: '/admin/report', label: '每日報告', cmsKey: 'admin.nav.report', hint: '收入、使用率、付款與預約明細' },
+      { href: '/admin/report/monthly', label: '月報', cmsKey: 'admin.nav.report_monthly', hint: '月度收入、失敗、新會員與 Spark 建議（可存成 PDF）' },
     ],
   },
   {
