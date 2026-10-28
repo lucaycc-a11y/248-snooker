@@ -116,6 +116,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
   const [html, setHtml] = useState(post.content ?? '')
   const [visualHtml, setVisualHtml] = useState(post.content ?? '')
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
+  const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light')
   const [scheduleAt, setScheduleAt] = useState(toLocalInput(post.published_at))
   const [scheduleMsg, setScheduleMsg] = useState<string | null>(null)
   const htmlRef = useRef<HTMLTextAreaElement>(null)
@@ -466,12 +467,13 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}><Eye size={15} />預覽（同前台一致）</span>
           <div style={{ display: 'flex', gap: 6 }}>
+            <Button variant={previewTheme === 'light' ? 'primary' : 'secondary'} onClick={() => setPreviewTheme(previewTheme === 'light' ? 'dark' : 'light')}>{previewTheme === 'light' ? '淺色' : '深色'}</Button>
             <Button variant={device === 'desktop' ? 'primary' : 'secondary'} onClick={() => setDevice('desktop')}><Monitor size={15} /></Button>
             <Button variant={device === 'mobile' ? 'primary' : 'secondary'} onClick={() => setDevice('mobile')}><Smartphone size={15} /></Button>
           </div>
         </div>
-        <div style={{ background: '#000', borderRadius: 14, padding: '28px 20px', overflowX: 'auto' }}>
-          <div style={{ maxWidth: device === 'mobile' ? 390 : 720, margin: '0 auto', color: '#fff' }}>
+        <div className={previewTheme === 'light' ? 'blog-light' : undefined} style={{ background: previewTheme === 'light' ? '#fff' : '#000', borderRadius: 14, padding: '28px 20px', overflowX: 'auto' }}>
+          <div style={{ maxWidth: device === 'mobile' ? 390 : 720, margin: '0 auto', color: previewTheme === 'light' ? '#111' : '#fff' }}>
             {category && <span style={{ fontSize: 12, fontWeight: 600, color: '#22C55E' }}>{category}</span>}
             <h1 style={{ fontSize: device === 'mobile' ? 28 : 40, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15, margin: '6px 0 18px' }}>{title}</h1>
             {coverImageUrl && (

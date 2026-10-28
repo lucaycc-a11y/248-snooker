@@ -1966,3 +1966,19 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
   .em-kinds{grid-template-columns:1fr}
   .em-bar-r{width:100%}
 }
+
+/* Blog preview — light reading theme (admin preview only; the public blog is unchanged) */
+.blog-light .blog-prose{color:#2b2b2b}
+.blog-light .blog-prose h2,.blog-light .blog-prose h3,.blog-light .blog-prose summary,.blog-light .blog-prose th,.blog-light .s8-cta-title{color:#111}
+.blog-light .blog-prose a{color:#15803d}
+.blog-light .blog-prose blockquote{color:#555;border-left-color:rgba(21,128,61,.45)}
+.blog-light .blog-prose pre{background:#f4f4f2;border-color:#e2e2de;color:#222}
+.blog-light .blog-prose code{background:rgba(0,0,0,.06);color:#222}
+.blog-light .blog-prose hr{border-top-color:#e2e2de}
+.blog-light .blog-prose img{border-color:#e2e2de}
+.blog-light .blog-prose th,.blog-light .blog-prose td,.blog-light .blog-prose details{border-color:#e2e2de}
+.blog-light .blog-prose th{background:#f4f4f2}
+.blog-light .blog-prose .s8-lead{color:#222}
+.blog-light .blog-prose .s8-note{background:rgba(21,128,61,.07);border-color:rgba(21,128,61,.3)}
+.blog-light .s8-cta{background:linear-gradient(135deg,#ecfdf3 0%,#ffffff 100%);border-color:rgba(21,128,61,.3)}
+.blog-light .s8-cta-text{color:#444}
