@@ -4,6 +4,16 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.0.2 — 2026-10-28 — 錢包金額提示與付款返回頁防 404
+
+### Features
+- /book 底下任何未知路徑（舊返回連結、截斷網址）自動導回預約頁並保留訂位編號，同時把路徑記入錯誤記錄（payments/book-unknown-path），方便追查
+
+### Bug fixes
+- 修正客人重新預約時顯示「Space Wallet 可用餘額不足」：實際係金額仍保留於上一張未完成付款（KPay 訂單仍可付款），現改為準確提示並建議改用其他付款方式或稍後再試
+- 修正付款返回後可能出現 404 頁面
+- 修正「金額已更新」重複出現：舊單仍在 KPay 開放時，取消被保護機制拒絕，導致每次重試都撞返同一張舊單；現在按「返回選擇付款方式」會釋放該舊單（已付款仍會拒絕；日後若舊單被付款，系統自動確認或轉入 payment_review）
+
 ## v4.0.1 — 2026-10-28 — 付款保護全面生效與取消修正
 
 ### Features
