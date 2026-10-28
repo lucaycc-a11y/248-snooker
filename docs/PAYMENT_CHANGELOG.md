@@ -4,6 +4,13 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.0.5 — 2026-10-28 — 付款記錄修正與更快的取消回覆
+
+### Bug fixes
+- Admin 測試付款開單後沒有登記 KPay 單號，令付款嘗試一直停在 claimed；現已與公開付款一致
+- 自動對賬會把「訂位已確認但嘗試未結案」的記錄補回為成功，不再誤標為沒有開單
+- 由 KPay 付款頁取消返回後，等候時間由 4 秒縮短為 2 秒（背景仍持續查詢，若已付款會即時顯示確認）
+
 ## v4.0.4 — 2026-10-28 — 即時重新預約
 
 ### Features

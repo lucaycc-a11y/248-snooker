@@ -90,6 +90,19 @@ export async function reconcileStaleAttempts(options: {
       ageMin,
     }
 
+    // 0) The booking is already confirmed but its attempt never got closed out
+    //    (e.g. the order number was not recorded on the attempt). Close it as
+    //    succeeded instead of calling a paid booking "no order created".
+    if (booking?.status === 'confirmed') {
+      await db
+        .from('payment_attempts')
+        .update({ status: 'succeeded', completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq('id', a.id)
+        .in('status', ['claimed', 'pending'])
+      items.push({ ...base, action: 'paid_confirmed', note: '訂位已確認，補回付款記錄' })
+      continue
+    }
+
     // 1) No KPay order was ever created -> nothing can be paid.
     if (!isKPayOrderNo(a.provider_order_no)) {
       if (ageMin < NO_ORDER_AFTER_MIN) continue

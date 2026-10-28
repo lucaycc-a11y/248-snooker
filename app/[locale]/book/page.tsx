@@ -3784,9 +3784,9 @@ function ConfirmingPayment({
   // the spinner for the full poll timeout. Leaving never cancels the booking here
   // (a payment may still be in flight), the hold simply expires on its own.
   const [showEscape, setShowEscape] = useState(false)
-  // Rollout customers wait for KPay's final answer (4 s before a non-destructive way
-  // back is offered); everyone else keeps the previous 3 s behaviour.
-  const escapeDelayMs = freeze ? 4000 : 3000
+  // Rollout customers wait for KPay's final answer (2 s before a non-destructive way
+  // back is offered; polling continues underneath and swaps in the ticket if paid); everyone else keeps the previous 3 s behaviour.
+  const escapeDelayMs = freeze ? 2000 : 3000
   useEffect(() => {
     if (reason) return
     const timer = setTimeout(() => setShowEscape(true), escapeDelayMs)

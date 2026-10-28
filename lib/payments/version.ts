@@ -9,7 +9,7 @@
  * (and docs/PAYMENT_CHANGELOG.md) in the same commit as the change.
  */
 
-export const PAYMENT_VERSION = '4.0.4'
+export const PAYMENT_VERSION = '4.0.5'
 
 export type PaymentChangelogEntry = {
   version: string
@@ -20,6 +20,17 @@ export type PaymentChangelogEntry = {
 }
 
 export const PAYMENT_CHANGELOG: PaymentChangelogEntry[] = [
+  {
+    version: '4.0.5',
+    date: '2026-10-28',
+    title: '付款記錄修正與更快的取消回覆',
+    features: [],
+    fixes: [
+      'Admin 測試付款開單後沒有登記 KPay 單號，令付款嘗試一直停在 claimed；現已與公開付款一致',
+      '自動對賬會把「訂位已確認但嘗試未結案」的記錄補回為成功，不再誤標為沒有開單',
+      '由 KPay 付款頁取消返回後，等候時間由 4 秒縮短為 2 秒（背景仍持續查詢，若已付款會即時顯示確認）',
+    ],
+  },
   {
     version: '4.0.4',
     date: '2026-10-28',
