@@ -4,6 +4,11 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.0.6 — 2026-10-28 — 金額更新自動處理
+
+### Bug fixes
+- 修正開單時畫面金額與上一張未付款訂位不同（例如之後才使用 Space Wallet）而出現「付款失敗：金額已更新」；系統現會自動釋放舊單並按目前金額重新開單，客人不用返回再試
+
 ## v4.0.5 — 2026-10-28 — 付款記錄修正與更快的取消回覆
 
 ### Bug fixes

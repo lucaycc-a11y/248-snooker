@@ -9,7 +9,7 @@
  * (and docs/PAYMENT_CHANGELOG.md) in the same commit as the change.
  */
 
-export const PAYMENT_VERSION = '4.0.5'
+export const PAYMENT_VERSION = '4.0.6'
 
 export type PaymentChangelogEntry = {
   version: string
@@ -20,6 +20,15 @@ export type PaymentChangelogEntry = {
 }
 
 export const PAYMENT_CHANGELOG: PaymentChangelogEntry[] = [
+  {
+    version: '4.0.6',
+    date: '2026-10-28',
+    title: '金額更新自動處理',
+    features: [],
+    fixes: [
+      '修正開單時畫面金額與上一張未付款訂位不同（例如之後才使用 Space Wallet）而出現「付款失敗：金額已更新」；系統現會自動釋放舊單並按目前金額重新開單，客人不用返回再試',
+    ],
+  },
   {
     version: '4.0.5',
     date: '2026-10-28',

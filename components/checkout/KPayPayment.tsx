@@ -264,6 +264,10 @@ export default function KPayPayment(props: Props) {
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const creatingRef = useRef(false)
+  // One automatic recovery per payment screen when the server adopted a stale booking at an
+  // outdated price (e.g. wallet toggled after an earlier attempt). See createOrder.
+  const priceAutoRetriedRef = useRef(false)
+  const [autoRetryTick, setAutoRetryTick] = useState(0)
   const attemptRef = useRef(0)
   const pollStartRef = useRef(Date.now())
   const resumingRef = useRef(resuming)
@@ -354,6 +358,31 @@ export default function KPayPayment(props: Props) {
             // release it (leaveAndRelease -> /api/checkout/cancel). Without this
             // the booking stays pending with its old discount selection and the
             // next attempt re-adopts it and 409s again, forever.
+            // Automatic recovery (once): release the stale booking, drop it, and create a
+            // fresh order from the slots at the amount the customer is looking at, so they
+            // never have to see "amount updated" and go back themselves.
+            if (
+              !priceAutoRetriedRef.current &&
+              typeof errBody.bookingId === 'string' &&
+              blocks && blocks.length > 0
+            ) {
+              priceAutoRetriedRef.current = true
+              try {
+                const cancelRes = await fetch('/api/checkout/cancel', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ bookingId: errBody.bookingId, reason: 'price_changed' }),
+                })
+                if (cancelRes.ok) {
+                  setLocalBookingId(undefined)
+                  setLocalOrderGroupId(undefined)
+                  setAutoRetryTick((n) => n + 1)
+                  return
+                }
+              } catch {
+                // fall through to the manual "back" path below
+              }
+            }
             if (typeof errBody.bookingId === 'string') setLocalBookingId(errBody.bookingId)
             if (typeof errBody.orderGroupId === 'string') setLocalOrderGroupId(errBody.orderGroupId)
           }
@@ -614,6 +643,14 @@ export default function KPayPayment(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreedToTerms])
+
+  // Re-create the order after the automatic price_changed recovery above. Runs after the
+  // render that cleared localBookingId, so createOrder sees the fresh closure.
+  useEffect(() => {
+    if (autoRetryTick === 0) return
+    void createOrder()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRetryTick])
 
   // ── Resume payment after page refresh ─────────────────────────────────────
   // When the component mounts with resumeBookingId (persisted via sessionStorage),
