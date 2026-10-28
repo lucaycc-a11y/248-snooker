@@ -4,6 +4,14 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.0.7 — 2026-10-28 — 取消後被付款的舊單不再漏網
+
+### Features
+- 自動對賬會再查最近 40 分鐘內被客人取消的 KPay 單；若已被付款，時段仍空則自動確認，時段已被佔用則轉入 payment_review，不會自動退款
+
+### Bug fixes
+- 修正舊單被付款但時段已被新單佔用時（slots_active_start_uniq 重覆鍵錯誤），webhook 只標記失敗、沒有轉入 payment_review、沒有付款事件的問題
+
 ## v4.0.6 — 2026-10-28 — 金額更新自動處理
 
 ### Bug fixes
