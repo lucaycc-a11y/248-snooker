@@ -2101,3 +2101,13 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
   .mr-foot { padding: 0; }
   .ad-page-in { animation: none !important; }
 }
+.mr-plan { padding: 18px 20px; display: grid; gap: 12px; }
+.mr-focus { margin: 0; padding: 12px 14px; border-radius: 12px; background: linear-gradient(150deg, var(--ad-g700), var(--ad-g900)); color: #fff; font-size: 15px; font-weight: 600; }
+.mr-focus i { font-style: normal; font-size: 11px; letter-spacing: .12em; opacity: .75; margin-right: 8px; }
+.mr-plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.mr-plan-list > li { padding: 12px 14px; border: 1px solid var(--admin-border-subtle); border-radius: 14px; break-inside: avoid; }
+.mr-plan-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mr-plan-head b { flex: 1; min-width: 160px; font-size: 14.5px; }
+.mr-plan-head small { color: var(--admin-text-tertiary); }
+.mr-plan-list ul { margin: 8px 0 4px; padding-left: 18px; font-size: 13.5px; line-height: 1.7; }
+@media print { .mr-plan { padding: 12px 14px; } .mr-focus { background: #134a2e !important; } }

@@ -6,6 +6,14 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
 const nextConfig = {
   reactStrictMode: true,
   serverComponentsExternalPackages: ['passkit-generator'],
+  experimental: {
+    // react-pdf must stay a runtime dependency (not bundled); the report PDF reads its CJK font from assets/fonts.
+    serverComponentsExternalPackages: ['@react-pdf/renderer'],
+    outputFileTracingIncludes: {
+      '/api/admin/report/monthly-pdf': ['./assets/fonts/**/*'],
+      '/api/cron/monthly-report': ['./assets/fonts/**/*'],
+    },
+  },
   async headers() {
     const noindex = [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }]
     return [

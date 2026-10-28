@@ -7,14 +7,15 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertTriangle, Loader2, Printer, RefreshCw, Sparkles, TrendingDown, TrendingUp } from 'lucide-react'
+import { AlertTriangle, Download, Loader2, RefreshCw, Sparkles, TrendingDown, TrendingUp } from 'lucide-react'
 import type { MonthlyReportData } from '@/lib/data/getAdminMonthlyReport'
 import { ruleSuggestions, type MonthlySuggestion } from '@/lib/admin/monthlySuggestions'
+import { EFFORT_LABEL, rulePlan, type MonthlyAnalysis } from '@/lib/admin/monthlyAnalysis'
 import { money } from '@/lib/admin/today'
 
 type SparkState =
   | { status: 'loading' }
-  | { status: 'ready'; source: 'spark' | 'rules'; summary: string; suggestions: MonthlySuggestion[]; note?: string }
+  | { status: 'ready'; analysis: MonthlyAnalysis }
 
 const PRIO: Record<MonthlySuggestion['priority'], string> = { high: '優先', medium: '留意', low: '參考' }
 
@@ -85,14 +86,31 @@ export default function MonthlyReport({ data, thisMonth }: { data: MonthlyReport
       const res = await fetch('/api/admin/report/monthly-spark', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month: data.month }) })
       const j: unknown = await res.json().catch(() => null)
       if (res.ok && typeof j === 'object' && j !== null && 'suggestions' in j) {
-        const o = j as { source: 'spark' | 'rules'; summary?: string; suggestions: MonthlySuggestion[]; note?: string }
-        setSpark({ status: 'ready', source: o.source, summary: o.summary ?? '', suggestions: o.suggestions, note: o.note })
+        setSpark({ status: 'ready', analysis: j as MonthlyAnalysis })
         return
       }
     } catch { /* fall through to local rules */ }
-    setSpark({ status: 'ready', source: 'rules', summary: '', suggestions: ruleSuggestions(data), note: '暫時未能連接 Spark，已改用規則分析' })
+    const rules = ruleSuggestions(data)
+    setSpark({ status: 'ready', analysis: { source: 'rules', summary: '', focus: rules[0]?.title ?? '', suggestions: rules, plan: rulePlan(data, rules), note: '暫時未能連接 Spark，已改用規則分析' } })
   }, [data])
   useEffect(() => { void load() }, [load])
+
+  const [pdfBusy, setPdfBusy] = useState(false)
+  const [pdfErr, setPdfErr] = useState<string | null>(null)
+  async function downloadPdf() {
+    if (spark.status !== 'ready') return
+    setPdfBusy(true); setPdfErr(null)
+    try {
+      const res = await fetch('/api/admin/report/monthly-pdf', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month: data.month, analysis: spark.analysis }) })
+      if (!res.ok) throw new Error('failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url; link.download = `Space8-monthly-report-${data.month}.pdf`
+      document.body.appendChild(link); link.click(); link.remove()
+      window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+    } catch { setPdfErr('PDF 產生失敗，請再試') } finally { setPdfBusy(false) }
+  }
 
   const a = data.attempts
   const b = data.bookings
@@ -102,8 +120,9 @@ export default function MonthlyReport({ data, thisMonth }: { data: MonthlyReport
     <div className="mr">
       <div className="mr-controls ar-noprint">
         <input type="month" value={data.month} max={thisMonth} onChange={(e) => e.target.value && router.push(`/admin/report/monthly?month=${e.target.value}`)} aria-label="選擇月份" className="ar-date" />
-        <button type="button" className="admin-pill-btn" onClick={() => window.print()} disabled={spark.status === 'loading'}>
-          <Printer size={18} aria-hidden /> 下載 PDF
+        {pdfErr ? <span className="em-err" role="alert">{pdfErr}</span> : null}
+        <button type="button" className="admin-pill-btn" onClick={() => void downloadPdf()} disabled={spark.status === 'loading' || pdfBusy}>
+          {pdfBusy ? <Loader2 size={18} className="sp-spin" aria-hidden /> : <Download size={18} aria-hidden />} 下載 PDF
         </button>
       </div>
       {data.error ? <div className="admin-card ah-alert bad" role="alert">部分資料載入失敗：{data.error}</div> : null}
@@ -132,9 +151,9 @@ export default function MonthlyReport({ data, thisMonth }: { data: MonthlyReport
           </button>
         </div>
         {spark.status === 'loading' ? <p className="mr-none"><Loader2 size={14} className="sp-spin" aria-hidden /> Spark 分析 {data.label} 數據中…</p> : (<>
-          {spark.summary ? <p className="mr-summary">{spark.summary}</p> : null}
+          {spark.analysis.summary ? <p className="mr-summary">{spark.analysis.summary}</p> : null}
           <ol className="mr-sug">
-            {spark.suggestions.map((s, i) => (
+            {spark.analysis.suggestions.map((s, i) => (
               <li key={i} className={s.priority}>
                 <span className="mr-badge">{PRIO[s.priority]}</span>
                 <div>
@@ -145,7 +164,7 @@ export default function MonthlyReport({ data, thisMonth }: { data: MonthlyReport
               </li>
             ))}
           </ol>
-          <p className="mr-note">{spark.source === 'spark' ? '由 Spark 根據本月數據產生，行動前請自行核對。' : '規則分析（非 AI）。'}{spark.note ? ` ${spark.note}` : ''}</p>
+          <p className="mr-note">{spark.analysis.source === 'spark' ? '由 Spark 根據本月數據產生，行動前請自行核對。' : '規則分析（非 AI）。'}{spark.analysis.note ? ` ${spark.analysis.note}` : ''}</p>
         </>)}
       </section>
 
@@ -204,7 +223,23 @@ export default function MonthlyReport({ data, thisMonth }: { data: MonthlyReport
         </div>
       </section>
 
-      <footer className="mr-foot">Space8 營運月報 · {data.label} · 數字來自後台收入、付款、會員同錯誤記錄；建議由 Spark 產生，只供參考。</footer>
+      <section className="admin-card mr-plan" aria-label="下月改善行動計劃">
+        <div className="mr-sec-head"><h3><Sparkles size={18} aria-hidden /> 下月改善行動計劃</h3></div>
+        {spark.status === 'loading' ? <p className="mr-none">等待 Spark…</p> : (<>
+          {spark.analysis.focus ? <p className="mr-focus"><i>重點</i>{spark.analysis.focus}</p> : null}
+          <ol className="mr-plan-list">
+            {spark.analysis.plan.map((it, i) => (
+              <li key={i}>
+                <div className="mr-plan-head"><span className="mr-pill">{it.area}</span><b>{i + 1}. {it.goal}</b><small>投入：{EFFORT_LABEL[it.effort]}</small></div>
+                <ul>{it.steps.map((x, j) => <li key={j}>{x}</li>)}</ul>
+                <p className="mr-note">衡量：{it.metric}</p>
+              </li>
+            ))}
+          </ol>
+        </>)}
+      </section>
+
+      <footer className="mr-foot">Space8 營運月報 · {data.label} · 由 Spark（FORM）準備；數字來自後台收入、付款、會員同錯誤記錄，建議只供參考。</footer>
     </div>
   )
 }
