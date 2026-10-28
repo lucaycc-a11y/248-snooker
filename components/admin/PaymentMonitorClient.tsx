@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { PAYMENT_VERSION, PAYMENT_CHANGELOG } from '@/lib/payments/version'
 import type { MonitorIssue, TimelineEntry } from '@/app/api/admin/payment-monitor/route'
 
 type Bucket = { bookings: number; paidCount: number; paidAmount: number; pendingCount: number; failedCount: number; reviewCount: number }
@@ -187,7 +188,7 @@ export default function PaymentMonitorClient() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="mt-1 text-sm" style={muted}>即時讀取資料庫與 KPay，30 秒自動更新{data ? ` · 更新於 ${hk(data.generatedAt)}` : ''}</p>
+          <p className="mt-1 text-sm" style={muted}>即時讀取資料庫與 KPay，30 秒自動更新{data ? ` · 更新於 ${hk(data.generatedAt)}` : ''} · 付款系統 v{PAYMENT_VERSION}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--admin-text-secondary)' }}>
@@ -377,6 +378,28 @@ export default function PaymentMonitorClient() {
           )}
         </Section>
       </div>
+
+      <Section title={`付款系統版本 v${PAYMENT_VERSION}`} hint="功能與修正記錄（由新到舊）">
+        <div className="flex flex-col">
+          {PAYMENT_CHANGELOG.map((c, i) => (
+            <details key={c.version} open={i === 0} className="border-t px-4 py-3 first:border-t-0" style={{ borderColor: 'var(--admin-border-subtle)' }}>
+              <summary className="cursor-pointer text-sm font-medium" style={{ color: 'var(--admin-text-primary)' }}>
+                v{c.version} · {c.date} · {c.title}
+              </summary>
+              <div className="mt-3 flex flex-col gap-3 text-sm" style={{ color: 'var(--admin-text-secondary)' }}>
+                <div>
+                  <div className="mb-1 text-xs font-semibold" style={{ color: 'var(--admin-status-success)' }}>新功能</div>
+                  <ul className="list-disc pl-5">{c.features.map((f) => <li key={f}>{f}</li>)}</ul>
+                </div>
+                <div>
+                  <div className="mb-1 text-xs font-semibold" style={{ color: 'var(--admin-status-warning)' }}>問題修正</div>
+                  <ul className="list-disc pl-5">{c.fixes.map((f) => <li key={f}>{f}</li>)}</ul>
+                </div>
+              </div>
+            </details>
+          ))}
+        </div>
+      </Section>
     </div>
   )
 }

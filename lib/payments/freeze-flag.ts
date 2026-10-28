@@ -1,12 +1,14 @@
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 
-// Rollout switch for the KPay "freeze" behaviour (ask KPay before releasing, park late
-// payments for review, wait for KPay's final answer on the confirm page, show payment
-// references). While PAYMENT_FREEZE_PUBLIC is not 'true' the new behaviour is effective
-// ONLY for active admins; every other customer keeps the previous behaviour. Flip the env
-// var to 'true' in Vercel to roll it out to everyone — no deploy of new code is needed.
+// The KPay "freeze" behaviour (ask KPay before releasing, confirm late payments, wait for
+// KPay's final answer on the confirm page, show payment references) is now ON for everyone.
+// Kill switch: set PAYMENT_FREEZE_PUBLIC=false in Vercel to limit it to active admins again.
+export function isPaymentFreezePublic(): boolean {
+  return process.env.PAYMENT_FREEZE_PUBLIC !== 'false'
+}
+
 export async function isPaymentFreezeActive(userId: string | null | undefined): Promise<boolean> {
-  if (process.env.PAYMENT_FREEZE_PUBLIC === 'true') return true
+  if (isPaymentFreezePublic()) return true
   if (!userId) return false
   try {
     const { data, error } = await getLegacyServiceSupabase()

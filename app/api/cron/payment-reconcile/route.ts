@@ -2,11 +2,12 @@
  * GET/POST /api/cron/payment-reconcile
  * Scheduler endpoint (header x-cron-secret = PAYMENT_RECONCILE_CRON_SECRET, or Vercel's
  * Authorization: Bearer <CRON_SECRET>). Closes out stale payment attempts by asking KPay.
- * Bookings that KPay reports as paid are confirmed only once PAYMENT_FREEZE_PUBLIC=true;
- * before that they are only reported (admin monitor shows them).
+ * Bookings that KPay reports as paid are confirmed unless PAYMENT_FREEZE_PUBLIC=false (kill switch);
+ * in that case they are only reported (admin monitor shows them).
  */
 import { NextResponse } from 'next/server'
 import { reconcileStaleAttempts } from '@/lib/payments/reconcile'
+import { isPaymentFreezePublic } from '@/lib/payments/freeze-flag'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -21,7 +22,7 @@ async function handle(req: Request) {
   if (!ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const items = await reconcileStaleAttempts({
-    confirmPaid: process.env.PAYMENT_FREEZE_PUBLIC === 'true',
+    confirmPaid: isPaymentFreezePublic(),
     source: 'cron',
     limit: 60,
   })
