@@ -42,6 +42,7 @@ async function handleCancel(req: Request) {
       .eq('user_id', user.id)
       .maybeSingle()
     const freeze = await isPaymentFreezeActive(user.id)
+    let released: 'closed_or_none' | 'unchecked' = 'unchecked'
     if (freeze && row && (row.status === 'pending' || row.status === 'payment_failed')) {
       const live = await getLiveKPayState(row.provider_order_no, new URL(req.url).hostname)
       if (live === 'paid' || live === 'pending' || live === 'unknown') {
@@ -59,6 +60,7 @@ async function handleCancel(req: Request) {
           { status: 409 },
         )
       }
+      released = 'closed_or_none'
     }
 
     const { data, error } = await service.rpc('cancel_pending_booking', {
@@ -78,6 +80,16 @@ async function handleCancel(req: Request) {
       return NextResponse.json({ error: reason }, { status })
     }
 
+    if (released === 'closed_or_none') {
+      // KPay confirmed the order is closed (or never existed): close out the attempt too so it
+      // does not sit as "pending" in the payment log.
+      await service
+        .from('payment_attempts')
+        .update({ status: 'cancelled', failure_code: 'cancelled_by_user', updated_at: new Date().toISOString() })
+        .eq('booking_id', bookingId)
+        .in('status', ['claimed', 'pending'])
+    }
+
     await logPaymentEvent({
       bookingId,
       orderGroupId: row?.order_group_id ?? null,
@@ -86,7 +98,7 @@ async function handleCancel(req: Request) {
       source: 'user',
       fromState: row?.status ?? null,
       toState: 'cancelled',
-      reason: 'kpay_closed_or_no_order',
+      reason: released === 'closed_or_none' ? 'kpay_closed_or_no_order' : 'kpay_not_checked',
     })
     return NextResponse.json({ success: true, bookingId })
   } catch (error) {
