@@ -16,7 +16,24 @@ const ALLOWED_TAGS = new Set([
   'ul', 'ol', 'li',
   'blockquote', 'pre', 'code', 'hr',
   'a', 'img', 'figure', 'figcaption',
+  // Layout / long-form markup that AI- or hand-written article HTML relies on.
+  'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'caption',
+  'div', 'section', 'aside', 'span', 'small', 'sup', 'sub',
+  'details', 'summary', 'dl', 'dt', 'dd',
 ])
+
+// Tags whose CONTENT must be discarded (not just the wrapper) — otherwise the
+// script/CSS text of a pasted full HTML document would show up as page text.
+const DROP_CONTENT = new Set([
+  'script', 'style', 'iframe', 'noscript', 'template', 'head', 'title',
+  'object', 'embed', 'svg', 'form', 'select', 'textarea', 'button',
+])
+
+// Embeddable components an author can place with <div data-s8="…">. The caller
+// decides how each is rendered (public page vs admin preview).
+export const COMPONENT_KINDS = new Set(['cta-booking', 'cta-member', 'cta'])
+export type ComponentRenderer = (kind: string, attrs: Record<string, string>, key: number) => ReactNode
+export type RenderOptions = { component?: ComponentRenderer }
 
 // Tags rendered as void (no children).
 const VOID_TAGS = new Set(['br', 'hr', 'img'])
@@ -43,11 +60,18 @@ function filterAttrs(tag: string, attrs: Attrs): Record<string, string> {
       out.rel = 'noopener noreferrer nofollow'
       out.target = '_blank'
     }
+  } else if (tag === 'h2' || tag === 'h3') {
+    if (attrs.id && /^[A-Za-z][\w-]{0,63}$/.test(attrs.id)) out.id = attrs.id
   } else if (tag === 'img') {
     const src = attrs.src ? safeUrl(attrs.src) : null
     if (src) out.src = src
     if (attrs.alt) out.alt = attrs.alt
     out.loading = 'lazy'
+  }
+  // Only our own `s8-*` styling hooks may be used as classes.
+  if (attrs.class) {
+    const cls = attrs.class.split(/\s+/).filter((c) => /^s8-[a-z0-9-]{1,40}$/.test(c)).join(' ')
+    if (cls) out.className = cls
   }
   return out
 }
@@ -55,7 +79,7 @@ function filterAttrs(tag: string, attrs: Attrs): Record<string, string> {
 // Minimal, dependency-free HTML tokenizer + tree builder. Handles tags, text,
 // entities (left intact — React renders them), and self-closing tags. Comments
 // and unknown constructs are skipped.
-function parse(html: string): ReactNode[] {
+function parse(html: string, opts: RenderOptions): ReactNode[] {
   let i = 0
   let key = 0
 
@@ -88,6 +112,18 @@ function parse(html: string): ReactNode[] {
         i = close + 1
 
         const lower = name.toLowerCase()
+        if (DROP_CONTENT.has(lower)) {
+          if (!selfClose) {
+            const end = html.toLowerCase().indexOf(`</${lower}`, i)
+            if (end === -1) {
+              i = html.length
+            } else {
+              const gt = html.indexOf('>', end)
+              i = gt === -1 ? html.length : gt + 1
+            }
+          }
+          continue
+        }
         if (VOID_TAGS.has(lower)) {
           if (ALLOWED_TAGS.has(lower)) {
             nodes.push(createElement(lower, { key: key++, ...filterAttrs(lower, attrs) }))
@@ -96,8 +132,14 @@ function parse(html: string): ReactNode[] {
         }
 
         const children = parseNodes(lower)
-        if (ALLOWED_TAGS.has(lower)) {
-          nodes.push(createElement(lower, { key: key++, ...filterAttrs(lower, attrs) }, ...children))
+        const kind = attrs['data-s8']
+        if (kind && opts.component && COMPONENT_KINDS.has(kind) && (lower === 'div' || lower === 'section' || lower === 'aside')) {
+          const node = opts.component(kind, attrs, key++)
+          if (node) nodes.push(node)
+        } else if (ALLOWED_TAGS.has(lower)) {
+          // The page template already owns the one <h1>; body headings start at h2.
+          const tag = lower === 'h1' ? 'h2' : lower
+          nodes.push(createElement(tag, { key: key++, ...filterAttrs(tag, attrs) }, ...children))
         } else {
           // Unknown tag — drop the wrapper but keep its children inline.
           nodes.push(...children)
@@ -134,7 +176,7 @@ function parseTag(raw: string): [string, Attrs] {
 }
 
 // Public API: parse trusted-but-unsanitized HTML into safe React nodes.
-export function renderRichText(html: string | null | undefined): ReactNode {
+export function renderRichText(html: string | null | undefined, opts: RenderOptions = {}): ReactNode {
   if (!html) return null
-  return parse(html)
+  return parse(html, opts)
 }

@@ -60,6 +60,13 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       if (typeof body.publish !== 'boolean') return NextResponse.json({ error: 'Invalid publish' }, { status: 400 })
       update.published_at = body.publish ? new Date().toISOString() : null
     }
+    // Schedule: a future timestamp keeps the post hidden until then (public queries
+    // only return published_at <= now()), so no cron is needed.
+    if ('publish_at' in body) {
+      const t = typeof body.publish_at === 'string' ? new Date(body.publish_at) : null
+      if (!t || Number.isNaN(t.getTime())) return NextResponse.json({ error: 'Invalid publish_at' }, { status: 400 })
+      update.published_at = t.toISOString()
+    }
     if (Object.keys(update).length === 0) {
       return NextResponse.json({ error: 'No changes' }, { status: 400 })
     }
@@ -74,7 +81,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     await service.from('audit_log').insert({
       admin_user_id: admin.userId,
       admin_email: admin.email,
-      action: 'publish' in body ? (body.publish ? 'blog_post_publish' : 'blog_post_unpublish') : 'blog_post_update',
+      action: 'publish_at' in body ? 'blog_post_schedule' : 'publish' in body ? (body.publish ? 'blog_post_publish' : 'blog_post_unpublish') : 'blog_post_update',
       target_table: 'blog_posts',
       target_id: id,
       before_value: existing,

@@ -1,15 +1,18 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TiptapImage from '@tiptap/extension-image'
 import TiptapLink from '@tiptap/extension-link'
-import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages, Check } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, Quote, Heading2, LinkIcon, ImagePlus, Sparkles, Languages, Check, Code2, Eye, Smartphone, Monitor, CalendarClock, FileUp } from 'lucide-react'
+import { renderRichText } from '@/lib/blog/renderRichText'
+import { renderBlogCta, type CtaText } from '@/components/blog/BlogCta'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/admin/ui/Button'
 import { Input } from '@/components/ui/input'
+import BlogSparkSeo from '@/components/admin/BlogSparkSeo'
 import { adminTokens as tokens } from '@/lib/admin/admin-tokens'
 
 type BlogPost = {
@@ -32,6 +35,41 @@ type BlogPost = {
 type SiblingPost = { id: string; locale: string }
 
 const LOCALES = ['zh-HK', 'zh-CN', 'en']
+
+// Admin preview uses the same renderer + CTA markup as the public page.
+const ADMIN_CTA_TEXT: CtaText = {
+  booking_title: '準備開波？', booking_text: '喺 SPACE8 預訂私人枱，揀好時間直接入場。', booking_label: '立即預約',
+  member_title: '每次消費都儲分', member_text: '成為會員，享用額度、積分同會員優惠。', member_label: '加入會員',
+}
+
+// Markup the visual (Tiptap) editor would silently strip — such posts open in HTML mode.
+const NEEDS_HTML = /<(table|div|section|aside|details|span)\b|data-s8/i
+
+const SNIPPETS: { label: string; html: string }[] = [
+  { label: '預約 CTA', html: '\n<div data-s8="cta-booking"></div>\n' },
+  { label: '會員 CTA', html: '\n<div data-s8="cta-member"></div>\n' },
+  { label: '自訂 CTA', html: '\n<div data-s8="cta" data-title="標題" data-text="說明文字" data-label="按鈕文字" data-href="/book"></div>\n' },
+  { label: '表格', html: '\n<table>\n<thead><tr><th>項目</th><th>內容</th></tr></thead>\n<tbody><tr><td>—</td><td>—</td></tr></tbody>\n</table>\n' },
+  { label: 'FAQ', html: '\n<details><summary>問題？</summary><p>答案。</p></details>\n' },
+  { label: '提示框', html: '\n<div class="s8-note"><p>重點提示。</p></div>\n' },
+]
+
+// Pull the <body> out of a full HTML document and drop the rest.
+function extractBody(raw: string): string {
+  const m = raw.match(/<body[^>]*>([\s\S]*?)<\/body>/i)
+  return (m ? m[1] : raw).trim()
+}
+
+function postStatus(publishedAt: string | null): 'draft' | 'scheduled' | 'published' {
+  if (!publishedAt) return 'draft'
+  return new Date(publishedAt).getTime() > Date.now() ? 'scheduled' : 'published'
+}
+
+function toLocalInput(iso: string | null): string {
+  const d = iso ? new Date(iso) : new Date(Date.now() + 3600_000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
 
 function ToolbarButton({ active, onClick, children, title }: { active?: boolean; onClick: () => void; children: React.ReactNode; title: string }) {
   return (
@@ -74,11 +112,61 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
   const [translating, setTranslating] = useState<string | null>(null)
   const [translateError, setTranslateError] = useState<string | null>(null)
 
+  const [mode, setMode] = useState<'visual' | 'html'>(NEEDS_HTML.test(post.content ?? '') ? 'html' : 'visual')
+  const [html, setHtml] = useState(post.content ?? '')
+  const [visualHtml, setVisualHtml] = useState(post.content ?? '')
+  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop')
+  const [scheduleAt, setScheduleAt] = useState(toLocalInput(post.published_at))
+  const [scheduleMsg, setScheduleMsg] = useState<string | null>(null)
+  const htmlRef = useRef<HTMLTextAreaElement>(null)
+  const status = postStatus(post.published_at)
+
   const editor = useEditor({
     extensions: [StarterKit, TiptapImage, TiptapLink.configure({ openOnClick: false })],
     content: post.content ?? '',
     immediatelyRender: false,
+    onUpdate: ({ editor: e }) => setVisualHtml(e.getHTML()),
   })
+
+  const currentHtml = mode === 'html' ? html : visualHtml
+
+  function switchMode(next: 'visual' | 'html') {
+    if (next === mode) return
+    if (next === 'html') {
+      setHtml(visualHtml)
+    } else {
+      if (!window.confirm('返回視覺編輯會移除表格、CTA 組件等進階標記，確定？')) return
+      editor?.commands.setContent(html)
+      setVisualHtml(editor?.getHTML() ?? html)
+    }
+    setMode(next)
+  }
+
+  function insertSnippet(snippet: string) {
+    const el = htmlRef.current
+    const at = el ? el.selectionStart : html.length
+    setHtml((h) => h.slice(0, at) + snippet + h.slice(at))
+  }
+
+  async function onHtmlFile(file: File) {
+    if (file.size > 600_000) { window.alert('檔案太大（上限 600KB）'); return }
+    setHtml(extractBody(await file.text()))
+  }
+
+  async function schedule() {
+    setScheduleMsg(null)
+    const when = new Date(scheduleAt)
+    if (Number.isNaN(when.getTime())) { setScheduleMsg('時間格式不正確'); return }
+    setSaving(true)
+    try {
+      await save()
+      const ok = await patch({ publish_at: when.toISOString() })
+      if (ok) window.location.reload()
+      else setScheduleMsg('排程失敗，請再試')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const patch = useCallback(
     async (fields: Record<string, unknown>) => {
@@ -99,7 +187,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
         title,
         slug,
         excerpt: excerpt || null,
-        content: editor?.getHTML() ?? '',
+        content: currentHtml,
         category: category || null,
         seo_title: seoTitle || null,
         seo_description: seoDescription || null,
@@ -296,10 +384,38 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
       </Card>
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
-        <label style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
-          Content
-        </label>
-        {editor && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+          <label style={{ fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>Content</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <Button variant={mode === 'visual' ? 'primary' : 'secondary'} onClick={() => switchMode('visual')}>視覺編輯</Button>
+            <Button variant={mode === 'html' ? 'primary' : 'secondary'} onClick={() => switchMode('html')}><Code2 size={15} style={{ marginRight: 6 }} />HTML</Button>
+          </div>
+        </div>
+        {mode === 'html' && (
+          <div>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+              {SNIPPETS.map((sn) => (
+                <Button key={sn.label} variant="secondary" onClick={() => insertSnippet(sn.html)}>+ {sn.label}</Button>
+              ))}
+              <label>
+                <input type="file" accept=".html,.htm,text/html" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void onHtmlFile(f) }} />
+                <Button variant="secondary"><FileUp size={15} style={{ marginRight: 6 }} />上載 .html</Button>
+              </label>
+            </div>
+            <textarea
+              ref={htmlRef}
+              value={html}
+              onChange={(e) => setHtml(e.target.value)}
+              spellCheck={false}
+              aria-label="HTML 原始碼"
+              style={{ width: '100%', minHeight: 380, padding: 12, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 13, lineHeight: 1.55, background: 'rgba(255,255,255,0.06)', border: `1px solid ${tokens.colors.border}`, borderRadius: tokens.radius.input, color: tokens.colors.text, resize: 'vertical' }}
+            />
+            <p style={{ margin: '8px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>
+              只保留安全標記：script、style、iframe、form、事件屬性會自動移除；h1 會變 h2（頁面標題已係 h1）。CTA 用 data-s8 組件，文字會跟語言。
+            </p>
+          </div>
+        )}
+        {mode === 'visual' && editor && (
           <div style={{ display: 'flex', gap: 2, marginBottom: tokens.spacing.sm, borderBottom: `1px solid ${tokens.colors.border}`, paddingBottom: tokens.spacing.sm }}>
             <ToolbarButton title="粗體" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}>
               <Bold size={16} />
@@ -332,6 +448,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           </div>
         )}
         <div
+          hidden={mode === 'html'}
           style={{
             minHeight: 300,
             padding: 14,
@@ -344,6 +461,58 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           <EditorContent editor={editor} />
         </div>
       </Card>
+
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}><Eye size={15} />預覽（同前台一致）</span>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <Button variant={device === 'desktop' ? 'primary' : 'secondary'} onClick={() => setDevice('desktop')}><Monitor size={15} /></Button>
+            <Button variant={device === 'mobile' ? 'primary' : 'secondary'} onClick={() => setDevice('mobile')}><Smartphone size={15} /></Button>
+          </div>
+        </div>
+        <div style={{ background: '#000', borderRadius: 14, padding: '28px 20px', overflowX: 'auto' }}>
+          <div style={{ maxWidth: device === 'mobile' ? 390 : 720, margin: '0 auto', color: '#fff' }}>
+            {category && <span style={{ fontSize: 12, fontWeight: 600, color: '#22C55E' }}>{category}</span>}
+            <h1 style={{ fontSize: device === 'mobile' ? 28 : 40, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.15, margin: '6px 0 18px' }}>{title}</h1>
+            {coverImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={coverImageUrl} alt="" style={{ width: '100%', borderRadius: 16, marginBottom: 20 }} />
+            )}
+            <div className="blog-prose">
+              {renderRichText(currentHtml, { component: (kind, attrs, key) => renderBlogCta(kind, attrs, key, ADMIN_CTA_TEXT, post.locale) })}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card style={{ marginBottom: tokens.spacing.lg }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, fontSize: 14, fontWeight: 500, color: tokens.colors.textMuted }}>
+          <CalendarClock size={15} />發佈狀態：
+          <b style={{ color: status === 'published' ? tokens.colors.brand : tokens.colors.text }}>
+            {status === 'published' ? '已發佈' : status === 'scheduled' ? `已排程 ${new Date(post.published_at ?? '').toLocaleString('zh-HK')}` : '草稿'}
+          </b>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} aria-label="排程發佈時間"
+            style={{ padding: '8px 10px', borderRadius: tokens.radius.input, border: `1px solid ${tokens.colors.border}`, background: 'rgba(255,255,255,0.06)', color: tokens.colors.text }} />
+          <Button variant="secondary" onClick={schedule} disabled={saving}>排程發佈</Button>
+          {scheduleMsg && <span style={{ fontSize: 13, color: tokens.colors.danger }}>{scheduleMsg}</span>}
+        </div>
+        <p style={{ margin: '8px 0 0', fontSize: 12, color: tokens.colors.textMuted }}>到時間會自動出現喺前台，唔使再撳發佈。</p>
+      </Card>
+
+      <BlogSparkSeo
+        fields={{ title, slug, excerpt, seoTitle, seoDescription, content: currentHtml }}
+        cover={coverImageUrl}
+        onApply={(p) => {
+          if (p.title !== undefined) setTitle(p.title)
+          if (p.slug !== undefined) setSlug(p.slug)
+          if (p.excerpt !== undefined) setExcerpt(p.excerpt)
+          if (p.seoTitle !== undefined) setSeoTitle(p.seoTitle)
+          if (p.seoDescription !== undefined) setSeoDescription(p.seoDescription)
+          if (p.content !== undefined) { setHtml(p.content); setMode('html') }
+        }}
+      />
 
       <Card style={{ marginBottom: tokens.spacing.lg }}>
         <div style={{ marginBottom: tokens.spacing.md }}>
@@ -361,7 +530,7 @@ export default function BlogEditorForm({ post, siblings }: { post: BlogPost; sib
           {saving ? '儲存中…' : '儲存草稿'}
         </Button>
         <Button variant="primary" onClick={togglePublish} disabled={saving}>
-          {post.published_at ? '取消發佈' : '發佈'}
+          {post.published_at ? '取消發佈 / 排程' : '立即發佈'}
         </Button>
         {saved && <span style={{ fontSize: 13, color: tokens.colors.brand }}>已儲存</span>}
       </div>

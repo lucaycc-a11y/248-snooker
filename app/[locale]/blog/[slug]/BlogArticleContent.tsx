@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { renderRichText } from "@/lib/blog/renderRichText";
 import ShareButtons from "./ShareButtons";
+import { renderBlogCta, type CtaText } from "@/components/blog/BlogCta";
 
 const SUBTLE = "#A1A1A6";
 const GREEN = "#22C55E";
@@ -32,6 +33,10 @@ interface BlogArticleContentProps {
 
 export default function BlogArticleContent({ post, related, locale, url, t }: BlogArticleContentProps) {
   const cover = post.cover_image_url || post.og_image_url;
+  const ctaText: CtaText = {
+    booking_title: t("cta_booking_title"), booking_text: t("cta_booking_text"), booking_label: t("cta_booking_label"),
+    member_title: t("cta_member_title"), member_text: t("cta_member_text"), member_label: t("cta_member_label"),
+  };
 
   return (
     <div style={{ fontFamily: FONT_FAMILY }}>
@@ -99,7 +104,7 @@ export default function BlogArticleContent({ post, related, locale, url, t }: Bl
       >
         <div style={{ maxWidth: "720px", margin: "0 auto" }}>
           {post.content ? (
-            <div className="blog-prose">{renderRichText(post.content)}</div>
+            <div className="blog-prose">{renderRichText(post.content, { component: (kind, attrs, key) => renderBlogCta(kind, attrs, key, ctaText, locale) })}</div>
           ) : post.excerpt ? (
             <p style={{ fontSize: "18px", lineHeight: 1.7, color: "rgba(255,255,255,0.8)" }}>{post.excerpt}</p>
           ) : null}
