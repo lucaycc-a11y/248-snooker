@@ -129,6 +129,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     items: [
       { href: '/admin/settings', label: '價格與規則', cmsKey: 'admin.nav.settings', hint: '價格、時段與場地規則' },
       { href: '/admin/promos', label: '優惠碼', cmsKey: 'admin.nav.promos', hint: '建立與管理優惠碼' },
+      { href: '/admin/email', label: '電郵發送', cmsKey: 'admin.nav.email', hint: '編輯並發送電郵給會員' },
       { href: '/admin/blog', label: '網誌', cmsKey: 'admin.nav.blog', hint: '文章管理' },
       { href: '/admin/media', label: '媒體', cmsKey: 'admin.nav.media', hint: '圖片與檔案' },
       { href: '/admin/ai-settings', label: 'AI 設定', cmsKey: 'admin.nav.ai_settings', hint: '客服 AI 回覆設定' },
