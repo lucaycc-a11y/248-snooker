@@ -9,7 +9,7 @@
  * (and docs/PAYMENT_CHANGELOG.md) in the same commit as the change.
  */
 
-export const PAYMENT_VERSION = '4.0.1'
+export const PAYMENT_VERSION = '4.0.4'
 
 export type PaymentChangelogEntry = {
   version: string
@@ -20,6 +20,43 @@ export type PaymentChangelogEntry = {
 }
 
 export const PAYMENT_CHANGELOG: PaymentChangelogEntry[] = [
+  {
+    version: '4.0.4',
+    date: '2026-10-28',
+    title: '即時重新預約',
+    features: [
+      '客人取消、返回選擇付款方式或重新預約時，未付款的舊 KPay 單即時釋放訂位、時段、Space Wallet 金額與優惠碼，無須等待 25 分鐘；事件記錄 superseded_open_order / customer_released_open_order',
+    ],
+    fixes: [
+      '修正客人想重新預約卻被舊單凍結的 Space Wallet 金額擋住（顯示餘額不足）',
+      '已付款的訂單仍然不會被釋放；舊單日後才被付款時，系統自動確認並重新套用積分，時段被佔先則轉入 payment_review',
+      '25 分鐘凍結只保留給「客人直接關閉頁面離開」的情況',
+    ],
+  },
+  {
+    version: '4.0.3',
+    date: '2026-10-28',
+    title: '更快釋放被凍結的訂單',
+    features: [],
+    fixes: [
+      '未完成付款令時段、Space Wallet 金額與優惠碼被凍結的最長時間，由 60 分鐘縮短至 25 分鐘（KPay 已關閉嘅單仍然即時釋放）',
+      '對賬排程由約 12 分鐘起逐張向 KPay 查詢；已付款自動確認，逾 25 分鐘仍未付款則結束該付款嘗試，其後清理程序釋放訂位',
+      '凍結期縮短後，如舊單日後才被付款，仍由遲付款機制自動確認，時段被佔先則轉入 payment_review',
+    ],
+  },
+  {
+    version: '4.0.2',
+    date: '2026-10-28',
+    title: '錢包金額提示與付款返回頁防 404',
+    features: [
+      '/book 底下任何未知路徑（舊返回連結、截斷網址）自動導回預約頁並保留訂位編號，同時把路徑記入錯誤記錄（payments/book-unknown-path），方便追查',
+    ],
+    fixes: [
+      '修正客人重新預約時顯示「Space Wallet 可用餘額不足」：實際係金額仍保留於上一張未完成付款（KPay 訂單仍可付款），現改為準確提示並建議改用其他付款方式或稍後再試',
+      '修正付款返回後可能出現 404 頁面',
+      '修正「金額已更新」重複出現：舊單仍在 KPay 開放時，取消被保護機制拒絕，導致每次重試都撞返同一張舊單；現在按「返回選擇付款方式」會釋放該舊單（已付款仍會拒絕；日後若舊單被付款，系統自動確認或轉入 payment_review）',
+    ],
+  },
   {
     version: '4.0.1',
     date: '2026-10-28',

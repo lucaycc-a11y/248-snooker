@@ -1,4 +1,5 @@
 import type { getServiceSupabase } from '@/lib/supabase/service'
+import { logPaymentEvent } from '@/lib/payments/payment-events'
 
 type ServiceClient = ReturnType<typeof getServiceSupabase>
 
@@ -12,9 +13,10 @@ type ServiceClient = ReturnType<typeof getServiceSupabase>
 // refunds a late payment automatically:
 //   - never reached the provider (no provider_order_no), or
 //   - KPay itself reports the order failed / cancelled / closed.
-// A paid order and a still-payable (pending) order are never touched: a paid one is
-// confirmed by the webhook / status poll, a pending one stays frozen until KPay closes
-// it. Anything uncertain — a lookup error, a Stripe intent — is left alone.
+// A paid order is never touched (the webhook / status poll confirms it), and neither is
+// anything uncertain (a lookup error, a Stripe intent). A still-payable order is released
+// at once when the customer starts a new checkout (freezePending = false): they asked to
+// book again, and a late payment is handled by the late-payment path.
 
 type PendingRow = {
   id: string
@@ -49,6 +51,7 @@ export async function releaseDeadPendingOrders(
   let provider: { queryOrder: (n: string) => Promise<{ status: string }> } | null = null
   const handledGroups = new Set<string>()
   let released = 0
+  const openOrderNos: string[] = []
 
   for (const row of rows as PendingRow[]) {
     if (keepGroup && row.order_group_id === keepGroup) continue
@@ -68,9 +71,11 @@ export async function releaseDeadPendingOrders(
         if (status.status === 'failed' || status.status === 'cancelled' || status.status === 'closed') {
           dead = true
         } else if (status.status === 'pending' && !freezePending) {
-          // Previous behaviour (customers outside the freeze rollout): a still-payable
-          // order is treated as abandoned. With freezePending it is left frozen.
+          // The customer is starting a new checkout, so a still-payable (unpaid) order is
+          // treated as abandoned and released at once. If it is paid later the webhook /
+          // reconcile confirms it (re-applying the credit) or parks it in payment_review.
           dead = true
+          openOrderNos.push(row.provider_order_no)
         }
       } catch (e) {
         console.warn('[checkout] supersede query failed — leaving order alone', {
@@ -90,7 +95,21 @@ export async function releaseDeadPendingOrders(
       console.warn('[checkout] supersede cancel failed', { bookingId: row.id, message: cancelErr.message })
       continue
     }
-    if ((data as { success?: boolean } | null)?.success === true) released += 1
+    if ((data as { success?: boolean } | null)?.success === true) {
+      released += 1
+      if (row.provider_order_no && openOrderNos.includes(row.provider_order_no)) {
+        await logPaymentEvent({
+          bookingId: row.id,
+          orderGroupId: row.order_group_id,
+          providerOrderNo: row.provider_order_no,
+          event: 'superseded_open_order',
+          source: 'user',
+          fromState: 'pending',
+          toState: 'cancelled',
+          reason: 'customer_started_new_checkout',
+        })
+      }
+    }
   }
   return released
 }

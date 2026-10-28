@@ -13,6 +13,7 @@ const TEXT: Record<string, string> = {
   inactive: '此優惠碼暫時未能使用。',
   invalid: '無效的優惠碼。',
   insufficient_credits: 'Space Wallet 可用餘額不足，請重新選擇付款方式或調整使用金額。',
+  credits_held_by_open_payment: 'Space Wallet 金額仍保留於上一張未完成的付款，稍後會自動釋放。請改用其他付款方式，或稍後再試。',
   invalid_credits: 'Space Wallet 套用金額無效，請重新套用。',
   discount_selection_locked: '付款已發起，優惠已鎖定。如要更改，請返回選擇付款方式。',
   booking_not_pending: '此預約已完成或已取消，請重新選擇時段。',

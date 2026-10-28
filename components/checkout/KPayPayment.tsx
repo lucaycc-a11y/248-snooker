@@ -528,12 +528,17 @@ export default function KPayPayment(props: Props) {
       void fetch('/api/checkout/cancel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookingId: localBookingId }),
+        // A stale booking adopted at an outdated price must be releasable even while its
+        // old KPay order is still open, or every retry re-adopts it and hits the same mismatch.
+        body: JSON.stringify({
+          bookingId: localBookingId,
+          ...(failureReason === 'price_changed' ? { reason: 'price_changed' } : {}),
+        }),
         keepalive: true,
       }).catch(() => {})
     }
     onBackToMethods()
-  }, [actionBusy, localBookingId, onBackToMethods])
+  }, [actionBusy, failureReason, localBookingId, onBackToMethods])
 
   const retryPayment = useCallback(async () => {
     if (actionBusy || !localBookingId) return

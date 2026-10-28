@@ -59,7 +59,7 @@ const ACTION_TEXT: Record<string, string> = {
   paid_confirmed: 'KPay 已收款，已確認訂位',
   paid_confirm_failed: 'KPay 已收款，但確認失敗，需要處理',
   paid_needs_attention: 'KPay 已收款，需要處理',
-  expired_old_pending: '超過 90 分鐘仍未付款，已結束',
+  expired_old_pending: '超過 25 分鐘仍未付款，已結束',
   still_payable: '仍可付款，暫不處理',
   lookup_unknown: '查詢不到，稍後再試',
 }

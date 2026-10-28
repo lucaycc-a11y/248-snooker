@@ -13,7 +13,7 @@ import { humanReadableCode } from '@/lib/qr/jwt'
 
 const NO_ORDER_AFTER_MIN = 20
 const ORDER_CHECK_AFTER_MIN = 12
-const ORDER_EXPIRED_AFTER_MIN = 90
+const ORDER_EXPIRED_AFTER_MIN = 25
 
 export type ReconcileAction =
   | 'expired_no_order'
@@ -153,7 +153,7 @@ export async function reconcileStaleAttempts(options: {
           .update({ status: 'expired', failure_code: 'kpay_still_open_but_stale', updated_at: new Date().toISOString() })
           .eq('id', a.id)
           .in('status', ['claimed', 'pending'])
-        items.push({ ...base, action: 'expired_old_pending', note: 'KPay 仍顯示未付款，超過 90 分鐘' })
+        items.push({ ...base, action: 'expired_old_pending', note: 'KPay 仍顯示未付款，超過 25 分鐘' })
       } else {
         items.push({ ...base, action: 'still_payable' })
       }

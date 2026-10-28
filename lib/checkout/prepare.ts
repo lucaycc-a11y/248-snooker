@@ -61,6 +61,7 @@ const CLIENT_CORRECTABLE = new Set([
   'invalid_points',
   'insufficient_points',
   'insufficient_credits',
+  'credits_held_by_open_payment',
   'invalid_credits',
   'credits_redemption_retired',
   'user_not_found',
@@ -105,8 +106,26 @@ export async function prepareCheckout(
   try {
     const { releaseDeadPendingOrders } = await import('./supersede')
     const { isPaymentFreezeActive } = await import('@/lib/payments/freeze-flag')
-    const released = await releaseDeadPendingOrders(service, args.userId, args.bookingId, await isPaymentFreezeActive(args.userId))
-    if (released === 0) return first
+    const freeze = await isPaymentFreezeActive(args.userId)
+    const released = await releaseDeadPendingOrders(service, args.userId, args.bookingId, false)
+    if (released === 0) {
+      // Still short. If the customer's own wallet credit is frozen on an earlier, unfinished
+      // payment (its KPay order can still be paid), say so instead of "balance insufficient".
+      if (freeze) {
+        const { data: held } = await service
+          .from('credit_holds')
+          .select('credits, checkout_key')
+          .eq('user_id', args.userId)
+          .eq('status', 'held')
+        const frozen = ((held ?? []) as { credits: number; checkout_key: string | null }[])
+          .filter((h) => h.checkout_key !== `booking:${args.bookingId}`)
+          .reduce((sum, h) => sum + (Number(h.credits) || 0), 0)
+        if (frozen > 0) {
+          return { ok: false, failure: { ...first.failure, reason: 'credits_held_by_open_payment' } }
+        }
+      }
+      return first
+    }
   } catch (e) {
     console.warn('[checkout] supersede recovery failed', { message: (e as Error).message })
     return first

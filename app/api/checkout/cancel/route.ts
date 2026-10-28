@@ -27,6 +27,11 @@ async function handleCancel(req: Request) {
       ? (body as Record<string, unknown>).bookingId
       : null
     if (!isUuid(bookingId)) return NextResponse.json({ error: 'Invalid bookingId' }, { status: 400 })
+    // Set by the payment screen when the booking it adopted carries an outdated price: the
+    // customer is abandoning that checkout on purpose, so a still-open (unpaid) KPay order
+    // does not block the release. A PAID order is still refused. If the abandoned order is
+    // paid later, the webhook confirms it or parks it for review (never lost, never refunded).
+    const priceChangedRelease = (body as Record<string, unknown>).reason === 'price_changed'
 
     const service = getServiceSupabase()
 
@@ -42,10 +47,13 @@ async function handleCancel(req: Request) {
       .eq('user_id', user.id)
       .maybeSingle()
     const freeze = await isPaymentFreezeActive(user.id)
-    let released: 'closed_or_none' | 'unchecked' = 'unchecked'
+    let released: 'closed_or_none' | 'released_open_order' | 'unchecked' = 'unchecked'
     if (freeze && row && (row.status === 'pending' || row.status === 'payment_failed')) {
       const live = await getLiveKPayState(row.provider_order_no, new URL(req.url).hostname)
-      if (live === 'paid' || live === 'pending' || live === 'unknown') {
+      // Only a PAID order blocks a customer-initiated cancel. An unpaid open order is released
+      // at once (the customer wants to book again); if it is paid later it is auto-confirmed.
+      const blocks = live === 'paid'
+      if (blocks) {
         await logPaymentEvent({
           bookingId,
           orderGroupId: row.order_group_id,
@@ -61,6 +69,7 @@ async function handleCancel(req: Request) {
         )
       }
       released = 'closed_or_none'
+      if (live === 'pending' || live === 'unknown') released = 'released_open_order'
     }
 
     const { data, error } = await service.rpc('cancel_pending_booking', {
@@ -80,7 +89,7 @@ async function handleCancel(req: Request) {
       return NextResponse.json({ error: reason }, { status })
     }
 
-    if (released === 'closed_or_none') {
+    if (released === 'closed_or_none' || released === 'released_open_order') {
       // KPay confirmed the order is closed (or never existed): close out the attempt too so it
       // does not sit as "pending" in the payment log.
       await service
@@ -98,7 +107,12 @@ async function handleCancel(req: Request) {
       source: 'user',
       fromState: row?.status ?? null,
       toState: 'cancelled',
-      reason: released === 'closed_or_none' ? 'kpay_closed_or_no_order' : 'kpay_not_checked',
+      reason:
+        released === 'closed_or_none'
+          ? 'kpay_closed_or_no_order'
+          : released === 'released_open_order'
+            ? (priceChangedRelease ? 'price_changed_open_order_released' : 'customer_released_open_order')
+            : 'kpay_not_checked',
     })
     return NextResponse.json({ success: true, bookingId })
   } catch (error) {
