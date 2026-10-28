@@ -358,7 +358,7 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
             <div className="em-code">
               <div className="em-code-bar">
                 <span>HTML 原始碼</span>
-                <small>可用 {'{{name}}'} 代表會員稱呼（BCC 發送時顯示為「會員」）。script、form、iframe 會在發送時移除。</small>
+                <small>可用 {'{{name}}'} 代表會員稱呼。script、form、iframe 會在發送時移除。</small>
               </div>
               <textarea spellCheck={false} value={customHtml ?? renderDoc(doc)} onChange={(e) => setCustomHtml(e.target.value)} aria-label="HTML 原始碼" />
               <div className="em-code-prev"><iframe title="預覽" sandbox="" srcDoc={previewHtml} /></div>
@@ -410,7 +410,7 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
                 <Field label="文字"><textarea rows={7} value={block.text} maxLength={4000} onChange={(e) => patchBlock(block.id, { text: e.target.value })} /></Field>
                 <label className="em-check"><input type="checkbox" checked={block.muted} onChange={(e) => patchBlock(block.id, { muted: e.target.checked })} /> 次要顏色</label>
                 <AlignPick value={block.align} onChange={(a) => patchBlock(block.id, { align: a })} />
-                <p className="em-note">{'{{name}}'} 會變成會員嘅名稱（測試會用你嘅名；正式 BCC 發送時顯示為「會員」）。</p>
+                <p className="em-note">{'{{name}}'} 會變成會員嘅名稱（每位收件人會收到寫住自己名嘅獨立電郵）。</p>
               </>) : null}
               {block.type === 'button' ? (<>
                 <Field label="按鈕文字"><input value={block.label} maxLength={80} onChange={(e) => patchBlock(block.id, { label: e.target.value })} /></Field>
@@ -529,7 +529,7 @@ function SendDialog(props: {
       <div className="em-dialog">
         <header><h2>發送電郵</h2><button type="button" className="ad-icon-btn" aria-label="關閉" onClick={props.onClose}><X size={18} /></button></header>
         <p className="em-from">寄件人：<b>Space8 &lt;no-reply@space8.com.hk&gt;</b></p>
-        <p className="em-from">方式：<b>{kind === 'test' ? '直接發送' : 'BCC 密件副本（收件人互相睇唔到）'}</b></p>
+        <p className="em-from">方式：<b>逐個發送（每人一封，互相睇唔到）</b></p>
         <p className="em-from">標題：<b>{props.subject || '（未填寫）'}</b></p>
 
         <div className="em-suggest" aria-live="polite">
