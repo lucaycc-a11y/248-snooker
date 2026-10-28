@@ -121,6 +121,7 @@ export default function PaymentMonitorClient() {
   const [checks, setChecks] = useState<Record<string, string>>({})
   const [busy, setBusy] = useState<string | null>(null)
   const [recon, setRecon] = useState<ReconcileItem[] | null>(null)
+  const [showFixed, setShowFixed] = useState(false)
 
   const load = useCallback(
     async (quiet = false) => {
@@ -181,8 +182,28 @@ export default function PaymentMonitorClient() {
     }
   }
 
-  const criticalCount = data?.issues.filter((i) => i.severity === 'critical').length ?? 0
-  const issueCount = data?.issues.length ?? 0
+  async function markIssue(issueId: string, mark: 'fixed' | 'pending' | 'open') {
+    setBusy(`mark:${issueId}`)
+    try {
+      const res = await fetch('/api/admin/payment-monitor/action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark', issueId, mark }),
+      })
+      const json = (await res.json()) as { error?: string }
+      if (!res.ok) throw new Error(json.error ?? '儲存失敗')
+      await load(true)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const activeIssues = data?.issues.filter((i) => i.mark !== 'fixed') ?? []
+  const fixedIssues = data?.issues.filter((i) => i.mark === 'fixed') ?? []
+  const criticalCount = activeIssues.filter((i) => i.severity === 'critical' && i.mark !== 'pending').length
+  const issueCount = activeIssues.length
+  const pendingCount = activeIssues.filter((i) => i.mark === 'pending').length
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
@@ -219,7 +240,7 @@ export default function PaymentMonitorClient() {
         >
           <span aria-hidden className="h-3 w-3 rounded-full" style={{ background: criticalCount ? 'var(--admin-status-danger)' : issueCount ? 'var(--admin-status-warning)' : 'var(--admin-status-success)' }} />
           <div className="text-sm" style={{ color: 'var(--admin-text-primary)' }}>
-            {issueCount === 0 ? '過去 48 小時沒有發現付款異常' : `有 ${issueCount} 項需要留意${criticalCount ? `，其中 ${criticalCount} 項緊急` : ''}`}
+            {issueCount === 0 ? '過去 48 小時沒有未處理的付款異常' : `有 ${issueCount} 項需要留意${criticalCount ? `，其中 ${criticalCount} 項緊急` : ''}${pendingCount ? `，${pendingCount} 項跟進中` : ''}`}
           </div>
         </div>
       ) : null}
@@ -277,11 +298,11 @@ export default function PaymentMonitorClient() {
         hint="過去 48 小時，按緊急程度排列"
         right={data ? <span className="text-xs" style={muted}>{issueCount} 項</span> : null}
       >
-        {!data || data.issues.length === 0 ? (
+        {!data || activeIssues.length === 0 ? (
           <p className="p-4 text-sm" style={muted}>{loading ? '載入中…' : '沒有需要處理的項目'}</p>
         ) : (
           <ul>
-            {data.issues.map((i) => {
+            {activeIssues.map((i) => {
               const sev = SEV[i.severity]
               return (
                 <li key={i.id} className="flex flex-wrap items-start gap-3 border-t p-4 first:border-t-0" style={{ borderColor: 'var(--admin-border-subtle)' }}>
@@ -289,9 +310,13 @@ export default function PaymentMonitorClient() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-[var(--admin-radius-pill)] border px-2 py-0.5 text-xs" style={{ borderColor: sev.color, color: sev.color }}>{sev.label}</span>
                       <span className="text-sm font-medium" style={{ color: 'var(--admin-text-primary)' }}>{i.title}</span>
+                      {i.mark === 'pending' ? (
+                        <span className="rounded-[var(--admin-radius-pill)] border px-2 py-0.5 text-xs" style={{ borderColor: 'var(--admin-status-warning)', color: 'var(--admin-status-warning)' }}>跟進中</span>
+                      ) : null}
                     </div>
                     <p className="mt-1 break-words text-sm" style={{ color: 'var(--admin-text-secondary)' }}>{i.detail}</p>
                     {i.at ? <p className="mt-0.5 text-xs" style={muted}>{hk(i.at)}</p> : null}
+                    {i.mark === 'pending' && i.markedBy ? <p className="mt-0.5 text-xs" style={muted}>{i.markedBy} 標記跟進中{i.markedAt ? ` · ${hk(i.markedAt)}` : ''}</p> : null}
                     {i.providerOrderNo && checks[i.providerOrderNo] ? (
                       <p className="mt-1 text-sm font-medium" style={{ color: 'var(--admin-text-primary)' }}>{checks[i.providerOrderNo]}</p>
                     ) : null}
@@ -301,12 +326,42 @@ export default function PaymentMonitorClient() {
                       <Btn onClick={() => void checkOrder(i.providerOrderNo as string)} disabled={busy === `check:${i.providerOrderNo}`}>查詢 KPay</Btn>
                     ) : null}
                     {i.humanCode ? <Btn onClick={() => { setQuery(i.humanCode as string); setActiveQuery(i.humanCode as string) }}>查看時間線</Btn> : null}
+                    {i.mark !== 'pending' ? (
+                      <Btn onClick={() => void markIssue(i.id, 'pending')} disabled={busy === `mark:${i.id}`}>跟進中</Btn>
+                    ) : null}
+                    <Btn primary onClick={() => void markIssue(i.id, 'fixed')} disabled={busy === `mark:${i.id}`}>已處理</Btn>
                   </div>
                 </li>
               )
             })}
           </ul>
         )}
+        {fixedIssues.length > 0 ? (
+          <div className="border-t" style={{ borderColor: 'var(--admin-border-subtle)' }}>
+            <button
+              type="button"
+              onClick={() => setShowFixed((v) => !v)}
+              className="min-h-[44px] w-full px-4 text-left text-sm"
+              style={{ color: 'var(--admin-text-secondary)' }}
+            >
+              {showFixed ? '收起' : '顯示'}已處理 {fixedIssues.length} 項
+            </button>
+            {showFixed ? (
+              <ul>
+                {fixedIssues.map((i) => (
+                  <li key={i.id} className="flex flex-wrap items-center gap-3 border-t p-4" style={{ borderColor: 'var(--admin-border-subtle)' }}>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm" style={{ color: 'var(--admin-text-secondary)' }}>{i.title}</div>
+                      <p className="break-words text-xs" style={muted}>{i.detail}</p>
+                      <p className="text-xs" style={muted}>{i.markedBy ?? ''} 標記已處理{i.markedAt ? ` · ${hk(i.markedAt)}` : ''}</p>
+                    </div>
+                    <Btn onClick={() => void markIssue(i.id, 'open')} disabled={busy === `mark:${i.id}`}>重新打開</Btn>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
       </Section>
 
       {recon ? (

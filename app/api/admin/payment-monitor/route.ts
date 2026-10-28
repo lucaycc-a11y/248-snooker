@@ -32,6 +32,10 @@ export type MonitorIssue = {
   humanCode: string | null
   providerOrderNo: string | null
   at: string | null
+  /** Manual mark set by an admin; null = untouched. */
+  mark: 'fixed' | 'pending' | null
+  markedBy: string | null
+  markedAt: string | null
 }
 
 export type TimelineEntry = {
@@ -141,7 +145,8 @@ export async function GET(req: Request) {
 
     // ── Issues ─────────────────────────────────────────────────────────────
     const issues: MonitorIssue[] = []
-    const push = (i: Omit<MonitorIssue, 'id'>) => issues.push({ id: `${i.kind}:${i.bookingId ?? i.providerOrderNo ?? issues.length}`, ...i })
+    const push = (i: Omit<MonitorIssue, 'id' | 'mark' | 'markedBy' | 'markedAt'>, key?: string) =>
+      issues.push({ id: `${i.kind}:${key ?? i.bookingId ?? i.providerOrderNo ?? issues.length}`, mark: null, markedBy: null, markedAt: null, ...i })
 
     for (const b of odd) {
       const id = String(b.id)
@@ -223,7 +228,23 @@ export async function GET(req: Request) {
         title: `Webhook 處理異常（${String(w.status)}）`,
         detail: `${s(p.outTradeNo) ?? '—'} · ${s(w.error) ?? '沒有錯誤訊息'}`,
         bookingId: null, humanCode: s(p.outTradeNo), providerOrderNo: s(p.orderNo), at: s(w.received_at),
-      })
+      }, String(w.id))
+    }
+
+    // Apply admin marks (fixed / pending). Table may not exist yet — then nothing is marked.
+    if (issues.length) {
+      const { data: markRaw } = await db
+        .from('payment_issue_marks')
+        .select('issue_id, status, marked_by, marked_at')
+        .in('issue_id', issues.map((i) => i.id))
+      const marks = new Map<string, Row>(((markRaw ?? []) as Row[]).map((m) => [String(m.issue_id), m]))
+      for (const i of issues) {
+        const m = marks.get(i.id)
+        if (!m) continue
+        i.mark = m.status === 'fixed' ? 'fixed' : m.status === 'pending' ? 'pending' : null
+        i.markedBy = s(m.marked_by)
+        i.markedAt = s(m.marked_at)
+      }
     }
 
     const rank: Record<Severity, number> = { critical: 0, warning: 1, info: 2 }
