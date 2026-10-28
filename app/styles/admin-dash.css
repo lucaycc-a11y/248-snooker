@@ -1863,3 +1863,17 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
   .ad-main > * { max-width: 1480px; margin-left: auto; margin-right: auto; }
   .admin-chart { max-height: 340px; }
 }
+
+/* ── Spark full screen (default) ─────────────────────────────────────── */
+.sp-side-top { display: flex; align-items: center; gap: 8px; }
+.sp-side-top .sp-new { flex: 1; min-width: 0; }
+.sp-top-end { display: inline-flex; gap: 4px; }
+.sp-app.full { position: fixed; inset: 0; z-index: 90; height: 100dvh; min-height: 0; border: 0; border-radius: 0; }
+.sp-app.full .sp-scroll { padding-top: 32px; }
+@media (min-width: 1500px) {
+  .sp-app.full .sp-thread, .sp-app.full .sp-composer form, .sp-app.full .sp-tools, .sp-app.full .sp-fine, .sp-app.full .sp-composer .sp-error { max-width: 980px; }
+}
+@media (max-width: 860px) {
+  .sp-app.full { height: 100dvh; }
+  .sp-app.full .sp-composer { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+}

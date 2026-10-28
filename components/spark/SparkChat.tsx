@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowUp, Check, ChevronRight, History, Loader2, Menu, Plus, Square, Trash2, UserRound, Wallet, X } from 'lucide-react'
+import { ArrowUp, Check, ChevronRight, History, Loader2, Maximize2, Menu, Minimize2, Plus, Square, Trash2, UserRound, Wallet, X } from 'lucide-react'
 import AiText from '@/components/admin/AiText'
 import { BlockView } from './SparkBlocks'
 import { MemberPicker } from './MemberPicker'
@@ -121,6 +121,33 @@ export default function SparkChat({ adminName }: { adminName: string }) {
   const [busy, setBusy] = useState(false)
   const [loadingChat, setLoadingChat] = useState(false)
   const [drawer, setDrawer] = useState(false)
+  // Full screen by default (ChatGPT-style); the choice is remembered per browser.
+  const [full, setFull] = useState(true)
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem('spark-full') === '0') setFull(false)
+    } catch {
+      /* storage unavailable: keep the default */
+    }
+  }, [])
+  const toggleFull = useCallback(() => {
+    setFull((f) => {
+      try {
+        window.localStorage.setItem('spark-full', f ? '0' : '1')
+      } catch {
+        /* ignore */
+      }
+      return !f
+    })
+  }, [])
+  useEffect(() => {
+    if (!full) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFull(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [full])
   const [notice, setNotice] = useState<string | null>(null)
   const [attached, setAttached] = useState<MemberHit | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -339,11 +366,16 @@ export default function SparkChat({ adminName }: { adminName: string }) {
   }, {})
 
   return (
-    <div className={`sp-app${drawer ? ' drawer' : ''}`}>
+    <div className={`sp-app${drawer ? ' drawer' : ''}${full ? ' full' : ''}`}>
       <aside className="sp-side" aria-label="對話記錄">
-        <button type="button" className="sp-new" onClick={newChat}>
-          <Plus size={16} aria-hidden /> 新對話
-        </button>
+        <div className="sp-side-top">
+          <button type="button" className="sp-new" onClick={newChat}>
+            <Plus size={16} aria-hidden /> 新對話
+          </button>
+          <button type="button" className="ad-icon-btn sp-full-btn" aria-label={full ? '退出全螢幕' : '全螢幕'} title={full ? '退出全螢幕 (Esc)' : '全螢幕'} onClick={toggleFull}>
+            {full ? <Minimize2 size={18} aria-hidden /> : <Maximize2 size={18} aria-hidden />}
+          </button>
+        </div>
         <div className="sp-chats">
           {chats.length === 0 ? <p className="sp-muted">未有對話</p> : null}
           {['今日', '昨日', '本週', '更早'].filter((k) => groups[k]).map((k) => (
@@ -372,9 +404,14 @@ export default function SparkChat({ adminName }: { adminName: string }) {
             <Menu size={18} aria-hidden />
           </button>
           <span className="sp-title"><b>Spark</b><small>by FORM</small></span>
-          <button type="button" className="ad-icon-btn sp-menu" aria-label="新對話" onClick={newChat}>
-            <Plus size={18} aria-hidden />
-          </button>
+          <span className="sp-top-end">
+            <button type="button" className="ad-icon-btn sp-menu" aria-label={full ? '退出全螢幕' : '全螢幕'} onClick={toggleFull}>
+              {full ? <Minimize2 size={18} aria-hidden /> : <Maximize2 size={18} aria-hidden />}
+            </button>
+            <button type="button" className="ad-icon-btn sp-menu" aria-label="新對話" onClick={newChat}>
+              <Plus size={18} aria-hidden />
+            </button>
+          </span>
         </header>
 
         <div className="sp-scroll" ref={scrollRef}>
