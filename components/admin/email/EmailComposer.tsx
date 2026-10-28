@@ -10,6 +10,8 @@ import {
   AlignCenter, AlignLeft, AlignRight, ArrowDown, ArrowUp, Code2, Copy, Eye, FileText, Heading1, ImagePlus, Loader2, Minus, MousePointerClick, Palette,
   Plus, Save, Send, Smartphone, Sparkles, Monitor, Trash2, Type, X, Hash, MoveVertical, Layers,
 } from 'lucide-react'
+import { TemplatesView, HistoryView } from '@/components/admin/email/EmailTemplatesView'
+import type { Starter } from '@/lib/email-composer/starters'
 import { MemberPicker } from '@/components/spark/MemberPicker'
 import type { MemberHit } from '@/lib/spark/members'
 import {
@@ -93,7 +95,13 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
   const [prompt, setPrompt] = useState('')
   const [useCurrent, setUseCurrent] = useState(false)
   const [sendOpen, setSendOpen] = useState(false)
+  const [view, setView] = useState<'compose' | 'templates' | 'history'>('compose')
   const fileRef = useRef<HTMLInputElement>(null)
+  const [autoAt, setAutoAt] = useState<Date | null>(null)
+  const [autoErr, setAutoErr] = useState(false)
+  const snap = useRef<string | null>(null)
+  const justLoaded = useRef(true)
+  const saving = useRef(false)
   const uploadTarget = useRef<string | null>(null)
 
   const say = useCallback((kind: 'ok' | 'err', text: string) => {
@@ -179,24 +187,42 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
     say('ok', 'Spark 已產生電郵，可以繼續修改')
   }
 
-  async function saveTemplate() {
+  const persist = useCallback(async (silent: boolean): Promise<boolean> => {
     const name = (tplName || doc.subject).trim()
-    if (!name) { say('err', '請填寫範本名稱'); return }
-    setBusy('save')
+    if (!name) { if (!silent) say('err', '請填寫範本名稱'); return false }
+    if (saving.current) return false
+    saving.current = true
+    if (!silent) setBusy('save')
     const r = await api<{ id: string }>('/api/admin/email/templates', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: tplId ?? undefined, name, doc, customHtml }),
     })
-    setBusy(null)
-    if (!r.ok) { say('err', r.error); return }
-    setTplId(r.data.id); setTplName(name)
-    say('ok', '範本已儲存')
+    saving.current = false
+    if (!silent) setBusy(null)
+    if (!r.ok) { if (silent) setAutoErr(true); else say('err', r.error); return false }
+    snap.current = JSON.stringify([doc, customHtml, tplName || name])
+    setTplId(r.data.id); if (!tplName) setTplName(name)
+    setAutoErr(false); setAutoAt(new Date())
+    if (!silent) say('ok', '範本已儲存')
     void loadTemplates()
-  }
+    return true
+  }, [tplName, doc, customHtml, tplId, say, loadTemplates])
+  const saveTemplate = () => persist(false)
+
+  // Auto-save: 2s after the last edit, silently, into the current template (created on first edit).
+  useEffect(() => {
+    const now = JSON.stringify([doc, customHtml, tplName])
+    if (justLoaded.current) { justLoaded.current = false; snap.current = now; return }
+    if (snap.current === now) return
+    const timer = window.setTimeout(() => { void persist(true) }, 2000)
+    return () => window.clearTimeout(timer)
+  }, [doc, customHtml, tplName, persist])
+
   function loadTemplate(t: Template) {
     const d = sanitizeDoc(t.doc)
     if (!d) { say('err', '範本內容已損壞'); return }
-    setDoc(d); setCustomHtml(t.custom_html); setMode(t.custom_html ? 'html' : 'visual'); setTplId(t.id); setTplName(t.name); setSelected('theme')
+    justLoaded.current = true; setAutoAt(null)
+    setDoc(d); setCustomHtml(t.custom_html); setMode(t.custom_html ? 'html' : 'visual'); setTplId(t.id); setTplName(t.name); setSelected('theme'); setView('compose')
   }
   async function deleteTemplate(t: Template) {
     if (!window.confirm(`刪除範本「${t.name}」？`)) return
@@ -207,7 +233,16 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
   }
   function newDoc() {
     if (!window.confirm('開新電郵？目前未儲存嘅內容會消失。')) return
+    justLoaded.current = true; setAutoAt(null)
     setDoc(defaultDoc()); setCustomHtml(null); setMode('visual'); setTplId(null); setTplName(''); setSelected('theme')
+  }
+  function openStarter(st: Starter) {
+    justLoaded.current = true; setAutoAt(null)
+    setDoc(st.doc()); setCustomHtml(null); setMode('visual'); setTplId(null); setTplName(st.name); setSelected('theme'); setView('compose')
+  }
+  function startBlank() {
+    justLoaded.current = true; setAutoAt(null)
+    setDoc(defaultDoc()); setCustomHtml(null); setMode('visual'); setTplId(null); setTplName(''); setSelected('theme'); setView('compose')
   }
   function toHtmlMode() { if (customHtml === null) setCustomHtml(renderDoc(doc)); setMode('html') }
   function backToBlocks() {
@@ -219,6 +254,17 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
     <div className="em-app">
       <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden onChange={onFile} />
 
+      <nav className="em-views" aria-label="電郵">
+        {([['compose', '撰寫'], ['templates', '範本'], ['history', '發送記錄']] as const).map(([k, label]) => (
+          <button key={k} type="button" className={view === k ? 'on' : undefined} aria-current={view === k ? 'page' : undefined} onClick={() => setView(k)}>{label}</button>
+        ))}
+      </nav>
+
+      {view === 'templates' ? (
+        <TemplatesView templates={templates} onOpen={loadTemplate} onStarter={openStarter} onDelete={(t) => void deleteTemplate(t)} onNew={startBlank} />
+      ) : null}
+      {view === 'history' ? <HistoryView /> : null}
+      {view === 'compose' ? (<>
       <header className="em-bar">
         <div className="em-bar-l">
           <input className="em-subject" value={doc.subject} onChange={(e) => patchDoc({ subject: e.target.value })} placeholder="電郵標題" aria-label="電郵標題" maxLength={150} />
@@ -228,6 +274,7 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
             <button type="button" className={mode === 'visual' ? 'on' : undefined} onClick={() => (locked ? backToBlocks() : setMode('visual'))}><Palette size={15} aria-hidden /> 積木</button>
             <button type="button" className={mode === 'html' ? 'on' : undefined} onClick={toHtmlMode}><Code2 size={15} aria-hidden /> HTML</button>
           </div>
+          <span className={`em-auto${autoErr ? ' err' : ''}`} aria-live="polite">{autoErr ? '自動儲存失敗' : autoAt ? `已自動儲存 ${autoAt.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
           <button type="button" className="admin-pill-btn" onClick={() => void saveTemplate()} disabled={busy === 'save'}>
             {busy === 'save' ? <Loader2 size={15} className="sp-spin" aria-hidden /> : <Save size={15} aria-hidden />} 儲存
           </button>
@@ -311,7 +358,7 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
             <div className="em-code">
               <div className="em-code-bar">
                 <span>HTML 原始碼</span>
-                <small>可用 {'{{name}}'} 代表會員稱呼。script、form、iframe 會在發送時移除。</small>
+                <small>可用 {'{{name}}'} 代表會員稱呼（BCC 發送時顯示為「會員」）。script、form、iframe 會在發送時移除。</small>
               </div>
               <textarea spellCheck={false} value={customHtml ?? renderDoc(doc)} onChange={(e) => setCustomHtml(e.target.value)} aria-label="HTML 原始碼" />
               <div className="em-code-prev"><iframe title="預覽" sandbox="" srcDoc={previewHtml} /></div>
@@ -363,7 +410,7 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
                 <Field label="文字"><textarea rows={7} value={block.text} maxLength={4000} onChange={(e) => patchBlock(block.id, { text: e.target.value })} /></Field>
                 <label className="em-check"><input type="checkbox" checked={block.muted} onChange={(e) => patchBlock(block.id, { muted: e.target.checked })} /> 次要顏色</label>
                 <AlignPick value={block.align} onChange={(a) => patchBlock(block.id, { align: a })} />
-                <p className="em-note">{'{{name}}'} 會變成會員嘅名稱。</p>
+                <p className="em-note">{'{{name}}'} 會變成會員嘅名稱（測試會用你嘅名；正式 BCC 發送時顯示為「會員」）。</p>
               </>) : null}
               {block.type === 'button' ? (<>
                 <Field label="按鈕文字"><input value={block.label} maxLength={80} onChange={(e) => patchBlock(block.id, { label: e.target.value })} /></Field>
@@ -401,6 +448,8 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
         </aside>
       </div>
 
+      </>) : null}
+
       {toast ? <div className={`em-toast ${toast.kind}`} role="status">{toast.text}</div> : null}
       {sendOpen ? (
         <SendDialog
@@ -408,6 +457,7 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
           subject={doc.subject}
           doc={doc}
           customHtml={customHtml}
+          html={html}
           templateId={tplId}
           onClose={() => setSendOpen(false)}
           onDone={(m) => { setSendOpen(false); say('ok', m) }}
@@ -419,7 +469,7 @@ export default function EmailComposer({ adminEmail }: { adminEmail: string }) {
 
 // ── send dialog ───────────────────────────────────────────────────────────────────────────────
 function SendDialog(props: {
-  adminEmail: string; subject: string; doc: EmailDoc; customHtml: string | null; templateId: string | null
+  adminEmail: string; subject: string; doc: EmailDoc; customHtml: string | null; html: string; templateId: string | null
   onClose: () => void; onDone: (msg: string) => void
 }) {
   const [kind, setKind] = useState<Kind>('test')
@@ -431,6 +481,17 @@ function SendDialog(props: {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const codes = picked.map((p) => p.code)
+  const [sug, setSug] = useState<{ kind: Kind; reason: string; checks: string[] } | null>(null)
+  const [sugBusy, setSugBusy] = useState(true)
+
+  useEffect(() => {
+    let alive = true
+    void api<{ kind: Kind; reason: string; checks: string[] }>('/api/admin/email/suggest', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subject: props.subject, html: props.html }),
+    }).then((r) => { if (!alive) return; if (r.ok) setSug(r.data); setSugBusy(false) })
+    return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -468,7 +529,17 @@ function SendDialog(props: {
       <div className="em-dialog">
         <header><h2>發送電郵</h2><button type="button" className="ad-icon-btn" aria-label="關閉" onClick={props.onClose}><X size={18} /></button></header>
         <p className="em-from">寄件人：<b>Space8 &lt;no-reply@space8.com.hk&gt;</b></p>
+        <p className="em-from">方式：<b>{kind === 'test' ? '直接發送' : 'BCC 密件副本（收件人互相睇唔到）'}</b></p>
         <p className="em-from">標題：<b>{props.subject || '（未填寫）'}</b></p>
+
+        <div className="em-suggest" aria-live="polite">
+          <b><Sparkles size={14} aria-hidden /> Spark 建議</b>
+          {sugBusy ? <p className="em-note"><Loader2 size={13} className="sp-spin" aria-hidden /> 分析電郵內容…</p> : sug ? (<>
+            <p>建議：<b>{sug.kind === 'test' ? '先發測試' : sug.kind === 'members' ? '發俾指定會員' : '發俾全部會員（先完成測試）'}</b>。{sug.reason}</p>
+            {sug.checks.length > 0 ? <ul>{sug.checks.map((c, i) => <li key={i}>{c}</li>)}</ul> : null}
+            {sug.kind !== kind ? <button type="button" className="admin-pill-btn" onClick={() => setKind(sug.kind)}>採用建議</button> : null}
+          </>) : <p className="em-note">暫時未能提供建議。</p>}
+        </div>
 
         <div className="em-kinds" role="radiogroup" aria-label="收件人">
           {([['test', '測試', `只發俾自己（${props.adminEmail}）`], ['members', '揀會員', '指定會員'], ['all', '全部會員', '不包括黑名單、已刪除同隱藏／測試帳戶']] as [Kind, string, string][]).map(([k, t, d]) => (
