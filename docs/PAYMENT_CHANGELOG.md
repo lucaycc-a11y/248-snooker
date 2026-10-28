@@ -4,6 +4,15 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.1.0 — 2026-10-28 — 付款異常電郵警報與 Spark 付款診斷
+
+### Features
+- 自動巡檢現會每 5 分鐘執行：客人已付款但預約未能確認（payment_review）即時電郵，付款系統錯誤（webhook、開單、取消、狀態查詢）首次出現即電郵，並附 AI 診斷；真實客人的待覆核付款發給所有管理員，測試單只發給店主
+- Spark 新增三個付款工具：查付款時間線、即時向 KPay 查單、列出待處理付款問題；可直接問「SPACE8-XXXXX-X 點解冇確認」
+
+### Bug fixes
+- 修正自動巡檢從未被排程執行，以致取消後被付款等異常沒有電郵通知
+
 ## v4.0.7 — 2026-10-28 — 取消後被付款的舊單不再漏網
 
 ### Features
