@@ -50,7 +50,9 @@ async function handleCancel(req: Request) {
     let released: 'closed_or_none' | 'released_open_order' | 'unchecked' = 'unchecked'
     if (freeze && row && (row.status === 'pending' || row.status === 'payment_failed')) {
       const live = await getLiveKPayState(row.provider_order_no, new URL(req.url).hostname)
-      const blocks = live === 'paid' || ((live === 'pending' || live === 'unknown') && !priceChangedRelease)
+      // Only a PAID order blocks a customer-initiated cancel. An unpaid open order is released
+      // at once (the customer wants to book again); if it is paid later it is auto-confirmed.
+      const blocks = live === 'paid'
       if (blocks) {
         await logPaymentEvent({
           bookingId,
@@ -67,7 +69,7 @@ async function handleCancel(req: Request) {
         )
       }
       released = 'closed_or_none'
-      if (priceChangedRelease && (live === 'pending' || live === 'unknown')) released = 'released_open_order'
+      if (live === 'pending' || live === 'unknown') released = 'released_open_order'
     }
 
     const { data, error } = await service.rpc('cancel_pending_booking', {
@@ -109,7 +111,7 @@ async function handleCancel(req: Request) {
         released === 'closed_or_none'
           ? 'kpay_closed_or_no_order'
           : released === 'released_open_order'
-            ? 'price_changed_open_order_released'
+            ? (priceChangedRelease ? 'price_changed_open_order_released' : 'customer_released_open_order')
             : 'kpay_not_checked',
     })
     return NextResponse.json({ success: true, bookingId })

@@ -4,6 +4,16 @@ Payment version is tracked separately from the app version (`package.json`). Sou
 
 Bump rules: MAJOR = payment flow / money-handling behaviour, MINOR = new features or admin tooling, PATCH = bug and copy fixes.
 
+## v4.0.4 — 2026-10-28 — 即時重新預約
+
+### Features
+- 客人取消、返回選擇付款方式或重新預約時，未付款的舊 KPay 單即時釋放訂位、時段、Space Wallet 金額與優惠碼，無須等待 25 分鐘；事件記錄 superseded_open_order / customer_released_open_order
+
+### Bug fixes
+- 修正客人想重新預約卻被舊單凍結的 Space Wallet 金額擋住（顯示餘額不足）
+- 已付款的訂單仍然不會被釋放；舊單日後才被付款時，系統自動確認並重新套用積分，時段被佔先則轉入 payment_review
+- 25 分鐘凍結只保留給「客人直接關閉頁面離開」的情況
+
 ## v4.0.3 — 2026-10-28 — 更快釋放被凍結的訂單
 
 ### Bug fixes

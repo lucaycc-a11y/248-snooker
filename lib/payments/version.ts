@@ -9,7 +9,7 @@
  * (and docs/PAYMENT_CHANGELOG.md) in the same commit as the change.
  */
 
-export const PAYMENT_VERSION = '4.0.3'
+export const PAYMENT_VERSION = '4.0.4'
 
 export type PaymentChangelogEntry = {
   version: string
@@ -20,6 +20,19 @@ export type PaymentChangelogEntry = {
 }
 
 export const PAYMENT_CHANGELOG: PaymentChangelogEntry[] = [
+  {
+    version: '4.0.4',
+    date: '2026-10-28',
+    title: '即時重新預約',
+    features: [
+      '客人取消、返回選擇付款方式或重新預約時，未付款的舊 KPay 單即時釋放訂位、時段、Space Wallet 金額與優惠碼，無須等待 25 分鐘；事件記錄 superseded_open_order / customer_released_open_order',
+    ],
+    fixes: [
+      '修正客人想重新預約卻被舊單凍結的 Space Wallet 金額擋住（顯示餘額不足）',
+      '已付款的訂單仍然不會被釋放；舊單日後才被付款時，系統自動確認並重新套用積分，時段被佔先則轉入 payment_review',
+      '25 分鐘凍結只保留給「客人直接關閉頁面離開」的情況',
+    ],
+  },
   {
     version: '4.0.3',
     date: '2026-10-28',
