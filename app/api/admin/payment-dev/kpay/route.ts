@@ -838,7 +838,26 @@ async function handleAdminKpayCreate(req: Request) {
       return NextResponse.json({ error: friendlyError }, { status: 502 })
     }
 
-    // ── 10. Stamp the provider order onto the booking group ───────────────
+    // ── 10. Record the KPay order on the payment attempt ──────────────────
+    // Without this the attempt stays 'claimed' forever: the webhook's
+    // complete_payment_attempt only matches 'pending' rows with an order number,
+    // so a paid booking kept an open attempt and the reconcile cron treated it
+    // as "no order created". Same call the public route makes.
+    if (attemptId) {
+      const { error: finalizeErr } = await service.rpc('finalize_payment_attempt', {
+        p_attempt_id: attemptId,
+        p_provider_order_no: created.providerOrderNo,
+      })
+      if (finalizeErr) {
+        console.error('[payment-dev/kpay] finalize_payment_attempt failed', {
+          bookingId: primaryBookingId,
+          attemptId,
+          message: finalizeErr.message,
+        })
+      }
+    }
+
+    // ── 10b. Stamp the provider order onto the booking group ──────────────
     await service
       .from('bookings')
       .update({
