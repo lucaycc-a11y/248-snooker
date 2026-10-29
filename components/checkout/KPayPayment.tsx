@@ -1143,7 +1143,7 @@ export default function KPayPayment(props: Props) {
         ) : failureReason === 'checkout_locked' && lockedBookingId ? (
           <>
             <button type="button" onClick={takeOverCheckout} disabled={actionBusy} style={styles.primaryButton}>
-              {actionBusy ? labels.processing : '改用呢部機付款（取消另一部機嘅付款）'}
+              {actionBusy ? labels.processing : '改用此裝置付款（取消另一部裝置的付款）'}
             </button>
             <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
               {labels.back_to_methods}
