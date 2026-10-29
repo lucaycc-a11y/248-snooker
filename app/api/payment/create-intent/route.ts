@@ -20,6 +20,7 @@ import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/li
 import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliation'
 import { getHostname } from '@/lib/env/hostname'
 import { isTestBooking } from '@/lib/env/test-booking'
+import { isAdminTestModeOn } from '@/lib/admin/testMode'
 import { withSecurity } from '@/lib/security/api-wrapper'
 import { requireActiveAdmin, getClientIp } from '@/lib/uat/admin-auth'
 import { writeAdminAudit } from '@/lib/admin/audit'
@@ -106,6 +107,7 @@ async function handleCreateIntent(req: Request) {
         }
       }
     }
+    if (!isTest && (await isAdminTestModeOn(user.id))) isTest = true
     if (isTest) {
       console.log('[payment/create-intent] test booking — will be flagged is_test = true')
     }
@@ -266,7 +268,7 @@ async function handleCreateIntent(req: Request) {
             order_group_id: orderGroupId,
             payment_method: 'card',
             payment_provider: 'stripe',
-            ...(adminTestAudit ? { is_test: true } : {}),
+            ...(adminTestAudit || isTest ? { is_test: true } : {}),
           })
           .eq('id', bookingId)
       }
@@ -274,6 +276,8 @@ async function handleCreateIntent(req: Request) {
         return NextResponse.json({ error: 'Could not resolve booking' }, { status: 500 })
       }
 
+      // Test checkout: stamp the slot too, so it stays out of public availability.
+      if (isTest) await service.from('slots').update({ is_test: true }).eq('id', slot.id)
       bookingIds.push(bookingId)
       amountInCents += quote.amountInCents
       if (!primaryBookingId) primaryBookingId = bookingId

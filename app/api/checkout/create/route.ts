@@ -22,6 +22,7 @@ import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/li
 import { getHostname } from '@/lib/env/hostname'
 import { getKPayEnv } from '@/lib/env/uat'
 import { isTestBooking } from '@/lib/env/test-booking'
+import { isAdminTestModeOn } from '@/lib/admin/testMode'
 import { applyTestPriceOverride } from '@/lib/uat/test-pricing'
 import { withSecurity } from '@/lib/security/api-wrapper'
 import { parseRpc, isLockSlotResult, isLockSlotsResult } from '@/lib/supabase/rpc-parse'
@@ -144,7 +145,8 @@ async function handleCheckoutCreate(req: Request) {
     // - UAT hostname → always true
     // - Non-production runtime (VERCEL_ENV=preview/development, NODE_ENV=development) → true
     // - Unknown environment → false (assume production for safety)
-    const isTest = isTestBooking(getHostname(req))
+    // An admin with test mode switched on (lib/admin/testMode.ts) is always a test checkout.
+    const isTest = isTestBooking(getHostname(req)) || (await isAdminTestModeOn(user.id))
     if (isTest) {
       console.log('[checkout/create] test booking — will be flagged is_test = true')
     }

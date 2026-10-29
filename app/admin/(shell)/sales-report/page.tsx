@@ -108,10 +108,10 @@ export default function SalesReportPage() {
       if (isRecord(json) && typeof json.content === 'string') {
         setQaAnswer(json.content)
       } else {
-        setQaAnswer('No answer available.')
+        setQaAnswer('暫時沒有答案')
       }
     } catch {
-      setQaAnswer('Failed to get answer. Please try again.')
+      setQaAnswer('查詢失敗，請再試一次')
     } finally {
       setQaLoading(false)
     }
@@ -121,7 +121,7 @@ export default function SalesReportPage() {
     if (!data) return []
     return data.rows.map((r) => ({
       ...r,
-      date: new Date(r.date).toLocaleDateString('en-HK', { month: 'short', day: 'numeric' }),
+      date: new Date(r.date).toLocaleDateString('zh-HK', { month: 'numeric', day: 'numeric' }),
     }))
   }, [data])
 
@@ -138,332 +138,167 @@ export default function SalesReportPage() {
     return Object.entries(totals).map(([name, value]) => ({ name, value }))
   }, [data])
 
+  const tick = { fontSize: 13, fill: 'var(--admin-text-tertiary)' }
+  const tip = {
+    contentStyle: { background: 'var(--admin-bg-elevated)', border: '1px solid var(--admin-border-subtle)', borderRadius: 14, fontSize: 14 },
+    labelStyle: { color: 'var(--admin-text-primary)' },
+  }
+  const setRange = (days: number) => {
+    const to = new Date()
+    const from = new Date()
+    from.setDate(to.getDate() - (days - 1))
+    setDateFrom(from.toISOString().slice(0, 10))
+    setDateTo(to.toISOString().slice(0, 10))
+  }
+
+  const kpis = data
+    ? [
+        { label: '總收入', value: `HK$${data.summary.totalRevenue.toLocaleString()}`, tone: 'var(--admin-green)' },
+        { label: '預約總數', value: data.summary.totalBookings.toLocaleString() },
+        { label: '平均訂單金額', value: `HK$${data.summary.avgOrderValue.toLocaleString()}` },
+        { label: '已付款', value: data.summary.paidCount.toLocaleString() },
+        { label: '待付款', value: data.summary.pendingCount.toLocaleString(), tone: data.summary.pendingCount ? 'var(--admin-status-warning)' : undefined },
+      ]
+    : []
+
   return (
     <div className="admin-stack">
-
-      {/* ── Filters ─────────────────────────────────────────── */}
-      <div
-        className="flex flex-wrap items-end gap-3 rounded-2xl p-4"
-        style={{
-          background: 'var(--admin-surface)',
-          border: '1px solid var(--admin-border)',
-        }}
-      >
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-            From
+      <section className="admin-card">
+        <form className="ad-filters" onSubmit={(e) => { e.preventDefault(); void fetchReport() }}>
+          <label className="ad-field">
+            <span>開始日期</span>
+            <input className="ad-input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
           </label>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="rounded-lg border px-3 py-1.5 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-            style={{
-              background: 'var(--admin-bg)',
-              color: 'var(--admin-text)',
-              borderColor: 'var(--admin-border)',
-            }}
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-            To
+          <label className="ad-field">
+            <span>結束日期</span>
+            <input className="ad-input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           </label>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="rounded-lg border px-3 py-1.5 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-            style={{
-              background: 'var(--admin-bg)',
-              color: 'var(--admin-text)',
-              borderColor: 'var(--admin-border)',
-            }}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={fetchReport}
-          disabled={loading}
-          className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
-          style={{
-            color: 'var(--admin-brand-text)',
-            background: 'var(--admin-brand)',
-          }}
-        >
-          {loading ? <span className="admin-conic-spinner h-3.5 w-3.5" /> : 'Apply'}
-        </button>
-      </div>
+          <button type="button" className="ad-btn" onClick={() => setRange(7)}>近 7 日</button>
+          <button type="button" className="ad-btn" onClick={() => setRange(30)}>近 30 日</button>
+          <button type="submit" className="ad-btn ad-btn-primary" disabled={loading}>{loading ? '載入中…' : '套用'}</button>
+        </form>
+      </section>
 
-      {/* ── Summary Cards ──────────────────────────────────── */}
-      {data && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          {[
-            { label: '總收入', value: `HK$${data.summary.totalRevenue.toLocaleString()}` },
-            { label: '預約總數', value: data.summary.totalBookings.toLocaleString() },
-            { label: '平均訂單金額', value: `HK$${data.summary.avgOrderValue.toLocaleString()}` },
-            { label: '已付款', value: data.summary.paidCount.toLocaleString(), color: 'var(--admin-brand)' },
-            { label: '待付款', value: data.summary.pendingCount.toLocaleString(), color: 'var(--admin-warning)' },
-          ].map((card) => (
-            <div
-              key={card.label}
-              className="flex flex-col gap-1 rounded-2xl p-4"
-              style={{
-                background: 'var(--admin-surface)',
-                border: '1px solid var(--admin-border)',
-              }}
-            >
-              <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                {card.label}
-              </span>
-              <span className="text-xl font-bold" style={{ color: card.color ?? 'var(--admin-text)' }}>
-                {card.value}
-              </span>
+      {data ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {kpis.map((k) => (
+            <div key={k.label} className="admin-card" style={{ padding: 16 }}>
+              <div className="ad-muted">{k.label}</div>
+              <div style={{ marginTop: 4, fontSize: 24, fontWeight: 700, color: k.tone ?? 'var(--admin-text-primary)' }}>{k.value}</div>
             </div>
           ))}
         </div>
-      )}
+      ) : null}
 
-      {/* ── Charts ─────────────────────────────────────────── */}
-      {data && chartData.length > 0 && (
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Bar chart — Revenue by day */}
-          <div
-            className="col-span-2 rounded-2xl p-4"
-            style={{
-              background: 'var(--admin-surface)',
-              border: '1px solid var(--admin-border)',
-            }}
-          >
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-              Daily Revenue (HKD)
-            </h3>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-border)" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--admin-text-muted)' }} />
-                <YAxis tick={{ fontSize: 10, fill: 'var(--admin-text-muted)' }} />
-                <Tooltip
-                  contentStyle={{
-                    background: 'var(--admin-surface-elevated)',
-                    border: '1px solid var(--admin-border)',
-                    borderRadius: 12,
-                    fontSize: 12,
-                  }}
-                  labelStyle={{ color: 'var(--admin-text)' }}
-                />
-                <Bar dataKey="revenue" fill="var(--admin-brand)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      {data && chartData.length > 0 ? (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <section className="admin-card lg:col-span-2">
+            <div className="admin-head"><h3>每日收入（HK$）</h3></div>
+            <div style={{ padding: '0 12px 16px' }}>
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-border-subtle)" />
+                  <XAxis dataKey="date" tick={tick} />
+                  <YAxis tick={tick} />
+                  <Tooltip {...tip} />
+                  <Bar dataKey="revenue" name="收入" fill="var(--admin-green)" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
 
-          {/* Pie chart — Payment methods */}
-          <div
-            className="rounded-2xl p-4"
-            style={{
-              background: 'var(--admin-surface)',
-              border: '1px solid var(--admin-border)',
-            }}
-          >
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-              Payment Methods
-            </h3>
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie
-                  data={methodPieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  dataKey="value"
-                  nameKey="name"
-                >
-                  {methodPieData.map((entry, i) => (
-                    <Cell
-                      key={entry.name}
-                      fill={METHOD_COLORS[entry.name] ?? 'var(--admin-text-muted)'}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: 'var(--admin-surface-elevated)',
-                    border: '1px solid var(--admin-border)',
-                    borderRadius: 12,
-                    fontSize: 12,
-                  }}
-                />
-                <Legend
-                  wrapperStyle={{ fontSize: 10 }}
-                  formatter={(value: string) => <span style={{ color: 'var(--admin-text-muted)' }}>{value}</span>}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      {/* ── Line chart — Bookings over time ────────────────── */}
-      {data && chartData.length > 0 && (
-        <div
-          className="rounded-2xl p-4"
-          style={{
-            background: 'var(--admin-surface)',
-            border: '1px solid var(--admin-border)',
-          }}
-        >
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-            Daily Bookings & AOV
-          </h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-border)" />
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--admin-text-muted)' }} />
-              <YAxis yAxisId="left" tick={{ fontSize: 10, fill: 'var(--admin-text-muted)' }} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: 'var(--admin-text-muted)' }} />
-              <Tooltip
-                contentStyle={{
-                  background: 'var(--admin-surface-elevated)',
-                  border: '1px solid var(--admin-border)',
-                  borderRadius: 12,
-                  fontSize: 12,
-                }}
-              />
-              <Legend
-                wrapperStyle={{ fontSize: 10 }}
-                formatter={(value: string) => <span style={{ color: 'var(--admin-text-muted)' }}>{value}</span>}
-              />
-              <Line yAxisId="left" type="monotone" dataKey="bookings" stroke="var(--admin-brand)" strokeWidth={2} dot={false} />
-              <Line yAxisId="right" type="monotone" dataKey="avgOrderValue" stroke="var(--admin-warning)" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {/* ── Q&A Widget ─────────────────────────────────────── */}
-      <div
-        className="rounded-2xl p-4"
-        style={{
-          background: 'var(--admin-surface)',
-          border: '1px solid var(--admin-border)',
-        }}
-      >
-        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-          Ask about your sales data
-        </h3>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleAsk() }}
-            placeholder="e.g. What was the busiest day last month?"
-            className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--admin-brand)]"
-            style={{
-              background: 'var(--admin-bg)',
-              color: 'var(--admin-text)',
-              borderColor: 'var(--admin-border)',
-            }}
-            data-cms-key="admin_sales_report_qa_placeholder"
-          />
-          <button
-            type="button"
-            onClick={handleAsk}
-            disabled={qaLoading || !question.trim()}
-            className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-            style={{
-              color: 'var(--admin-brand-text)',
-              background: 'var(--admin-brand)',
-              opacity: qaLoading || !question.trim() ? 0.5 : 1,
-            }}
-          >
-            {qaLoading ? <span className="admin-conic-spinner h-4 w-4" /> : 'Ask'}
-          </button>
-        </div>
-        {qaAnswer && (
-          <div
-            className="mt-3 rounded-xl p-3 text-sm leading-relaxed"
-            style={{
-              color: 'var(--admin-text)',
-              background: 'var(--admin-surface-elevated)',
-            }}
-          >
-            {qaAnswer}
-          </div>
-        )}
-      </div>
-
-      {/* ── Daily table ────────────────────────────────────── */}
-      {data && (
-        <div
-          className="overflow-x-auto rounded-2xl"
-          style={{
-            background: 'var(--admin-surface)',
-            border: '1px solid var(--admin-border)',
-          }}
-        >
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
-                <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>日期</th>
-                <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>收入</th>
-                <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>預約數</th>
-                <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>AOV</th>
-                <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>付款方式</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.rows.map((row) => (
-                <tr
-                  key={row.date}
-                  style={{ borderBottom: '1px solid var(--admin-border)' }}
-                >
-                  <td className="whitespace-nowrap px-4 py-2.5 font-medium" style={{ color: 'var(--admin-text)' }}>
-                    {new Date(row.date).toLocaleDateString('en-HK')}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-2.5" style={{ color: 'var(--admin-brand)' }}>
-                    HK${row.revenue.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-2.5" style={{ color: 'var(--admin-text-muted)' }}>
-                    {row.bookings}
-                  </td>
-                  <td className="px-4 py-2.5" style={{ color: 'var(--admin-text-muted)' }}>
-                    HK${row.avgOrderValue.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    {row.method_breakdown && Object.entries(row.method_breakdown).map(([method, count]) => (
-                      <span
-                        key={method}
-                        className="mr-1 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase"
-                        style={{
-                          color: METHOD_COLORS[method] ?? 'var(--admin-text-muted)',
-                          background: 'var(--admin-surface-elevated)',
-                        }}
-                      >
-                        {method} ×{count}
-                      </span>
+          <section className="admin-card">
+            <div className="admin-head"><h3>付款方式</h3></div>
+            <div style={{ padding: '0 12px 16px' }}>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie data={methodPieData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" nameKey="name">
+                    {methodPieData.map((entry) => (
+                      <Cell key={entry.name} fill={METHOD_COLORS[entry.name] ?? 'var(--admin-text-tertiary)'} />
                     ))}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </Pie>
+                  <Tooltip {...tip} />
+                  <Legend wrapperStyle={{ fontSize: 13 }} formatter={(value: string) => <span style={{ color: 'var(--admin-text-secondary)' }}>{value}</span>} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
         </div>
-      )}
+      ) : null}
 
-      {/* ── Empty / Loading ────────────────────────────────── */}
-      {loading && !data && (
-        <div className="flex items-center justify-center py-16" style={{ color: 'var(--admin-text-muted)' }}>
-          <span className="admin-conic-spinner mr-2" />
-          Loading report…
-        </div>
-      )}
-      {!loading && !data && (
-        <div className="py-16 text-center text-sm" style={{ color: 'var(--admin-text-muted)' }}>
-          No data available for the selected range.
-        </div>
-      )}
+      {data && chartData.length > 0 ? (
+        <section className="admin-card">
+          <div className="admin-head"><h3>每日預約數與平均訂單金額</h3></div>
+          <div style={{ padding: '0 12px 16px' }}>
+            <ResponsiveContainer width="100%" height={240}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-border-subtle)" />
+                <XAxis dataKey="date" tick={tick} />
+                <YAxis yAxisId="left" tick={tick} />
+                <YAxis yAxisId="right" orientation="right" tick={tick} />
+                <Tooltip {...tip} />
+                <Legend wrapperStyle={{ fontSize: 13 }} formatter={(value: string) => <span style={{ color: 'var(--admin-text-secondary)' }}>{value}</span>} />
+                <Line yAxisId="left" type="monotone" dataKey="bookings" name="預約數" stroke="var(--admin-green)" strokeWidth={2.5} dot={false} />
+                <Line yAxisId="right" type="monotone" dataKey="avgOrderValue" name="平均訂單金額" stroke="var(--admin-status-warning)" strokeWidth={2.5} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="admin-card">
+        <div className="admin-head"><h3>向 AI 查詢銷售數據</h3></div>
+        <form className="ad-filters" onSubmit={(e) => { e.preventDefault(); void handleAsk() }}>
+          <label className="ad-field" style={{ flex: '3 1 260px' }}>
+            <span>問題</span>
+            <input
+              className="ad-input"
+              type="text"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="例如：上個月邊日最旺？"
+              data-cms-key="admin_sales_report_qa_placeholder"
+            />
+          </label>
+          <button type="submit" className="ad-btn ad-btn-primary" disabled={qaLoading || !question.trim()}>{qaLoading ? '查詢中…' : '查詢'}</button>
+        </form>
+        {qaAnswer ? (
+          <p style={{ margin: '0 20px 18px', padding: '12px 14px', borderRadius: 14, background: 'var(--admin-bg-tile)', fontSize: 15, lineHeight: 1.6 }}>{qaAnswer}</p>
+        ) : null}
+      </section>
+
+      {data ? (
+        <section className="admin-card">
+          <div className="admin-head"><h3>每日明細</h3></div>
+          <div className="ad-table-wrap">
+            <table className="ad-table">
+              <thead>
+                <tr><th>日期</th><th>收入</th><th>預約數</th><th>平均訂單金額</th><th>付款方式</th></tr>
+              </thead>
+              <tbody>
+                {data.rows.map((row) => (
+                  <tr key={row.date}>
+                    <td data-label="日期" style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{new Date(row.date).toLocaleDateString('zh-HK')}</td>
+                    <td data-label="收入" style={{ color: 'var(--admin-green)', whiteSpace: 'nowrap' }}>HK${row.revenue.toLocaleString()}</td>
+                    <td data-label="預約數">{row.bookings}</td>
+                    <td data-label="平均訂單金額">HK${row.avgOrderValue.toLocaleString()}</td>
+                    <td data-label="付款方式" style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {row.method_breakdown
+                        ? Object.entries(row.method_breakdown).map(([method, count]) => (
+                            <span key={method} className="ad-chip" data-tone="muted">{method} ×{count}</span>
+                          ))
+                        : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
+      {loading && !data ? <p className="ad-empty">載入報表中…</p> : null}
+      {!loading && !data ? <p className="ad-empty">所選日期範圍沒有資料</p> : null}
     </div>
   )
 }

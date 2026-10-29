@@ -23,6 +23,8 @@ export type AdminNavItem = {
   match?: string
   /** One short line shown under the label in the menu. */
   hint?: string
+  /** false = reachable from the page's tab bar (and search) but not listed in the menus. */
+  menu?: boolean
 }
 
 export type AdminArea = {
@@ -56,8 +58,8 @@ export const ADMIN_AREAS: AdminArea[] = [
     items: [
       { href: '/admin/today', label: '今日', cmsKey: 'admin.nav.today', hint: '今日預約與各房狀態' },
       { href: '/admin/calendar', label: '日曆', cmsKey: 'admin.nav.calendar', hint: '按日期查看預約' },
-      { href: '/admin/report', label: '每日報告', cmsKey: 'admin.nav.report', hint: '收入、使用率、付款與預約明細' },
-      { href: '/admin/report/monthly', label: '月報', cmsKey: 'admin.nav.report_monthly', hint: '月度收入、失敗、新會員與 Spark 建議（可存成 PDF）' },
+      { href: '/admin/report', label: '每日報告', cmsKey: 'admin.nav.report', hint: '收入、使用率、付款與預約明細', menu: false },
+      { href: '/admin/report/monthly', label: '月報', cmsKey: 'admin.nav.report_monthly', hint: '月度收入、失敗、新會員與 Spark 建議（可存成 PDF）', menu: false },
     ],
   },
   {
@@ -69,7 +71,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     href: '/admin/bookings',
     items: [
       { href: '/admin/bookings', label: '預約列表', cmsKey: 'admin.nav.bookings', hint: '搜尋、篩選與手動新增預約' },
-      { href: '/admin/orders', label: '訂單查詢', cmsKey: 'admin.nav.orders', hint: '以訂單編號查詢' },
+      { href: '/admin/orders', label: '訂單查詢', cmsKey: 'admin.nav.orders', hint: '以訂單編號查詢', menu: false },
       { href: '/admin/maintenance', label: '封枱', cmsKey: 'admin.nav.maintenance', hint: '暫停個別房間或時段' },
     ],
   },
@@ -82,7 +84,7 @@ export const ADMIN_AREAS: AdminArea[] = [
     href: '/admin/members',
     items: [
       { href: '/admin/members', label: '會員列表', cmsKey: 'admin.nav.members', hint: '搜尋與管理會員' },
-      { href: '/admin/lookup', label: '客戶查詢', cmsKey: 'admin.nav.lookup', hint: '以電話或預約碼查看客人所有預約及付款經過' },
+      { href: '/admin/lookup', label: '客戶查詢', cmsKey: 'admin.nav.lookup', hint: '以電話或預約碼查看客人所有預約及付款經過', menu: false },
       {
         href: '/admin/members?tab=flags',
         match: '/admin/members',
@@ -102,10 +104,10 @@ export const ADMIN_AREAS: AdminArea[] = [
     icon: 'money',
     href: '/admin/revenue',
     items: [
-      { href: '/admin/revenue', label: '收入', cmsKey: 'admin.nav.revenue', hint: '收入總覽與 Excel 匯出' },
-      { href: '/admin/revenue-check', label: '收入核對', cmsKey: 'admin.nav.revenue_check', hint: '核對收入與付款，並可向 AI 查詢' },
-      { href: '/admin/payment-log', label: '付款監控', cmsKey: 'admin.nav.payment_log', hint: '即時付款狀態與對賬' },
-      { href: '/admin/sales-report', label: '銷售報表', cmsKey: 'admin.nav.sales_report', hint: '按期間的銷售明細' },
+      { href: '/admin/revenue', label: '收入報表', cmsKey: 'admin.nav.revenue', hint: '收入、銷售、每日與月報' },
+      { href: '/admin/revenue-check', label: '收入核對', cmsKey: 'admin.nav.revenue_check', hint: '核對收入與付款，並可向 AI 查詢', menu: false },
+      { href: '/admin/payment-log', label: '付款', cmsKey: 'admin.nav.payment_log', hint: '付款監控、核對、訂單與客戶查詢' },
+      { href: '/admin/sales-report', label: '銷售報表', cmsKey: 'admin.nav.sales_report', hint: '按期間的銷售明細', menu: false },
     ],
   },
   {
@@ -143,14 +145,14 @@ export const ADMIN_AREAS: AdminArea[] = [
     shortLabel: '系統',
     cmsKey: 'admin.nav.system',
     icon: 'shield',
-    href: '/admin/audit',
+    href: '/admin/activity',
     items: [
-      { href: '/admin/activity', label: '網站記錄', cmsKey: 'admin.nav.activity', hint: '系統狀態及預約、付款、錯誤時間線' },
-      { href: '/admin/bug-reports', label: '問題回報', cmsKey: 'admin.nav.bug_reports', hint: '提交的問題與處理進度' },
+      { href: '/admin/activity', label: '記錄', cmsKey: 'admin.nav.activity', hint: '網站記錄、錯誤、審計與問題回報' },
+      { href: '/admin/bug-reports', label: '問題回報', cmsKey: 'admin.nav.bug_reports', hint: '提交的問題與處理進度', menu: false },
       { href: '/admin/team', label: '管理員', cmsKey: 'admin.nav.team', superAdminOnly: true, hint: '邀請與角色' },
       { href: '/admin/hidden-users', label: '隱藏帳戶', cmsKey: 'admin.nav.hidden_users', superAdminOnly: true, hint: '不計入統計的帳戶' },
-      { href: '/admin/audit', label: '審計記錄', cmsKey: 'admin.nav.audit', hint: '後台操作記錄' },
-      { href: '/admin/errors', label: '錯誤記錄', cmsKey: 'admin.nav.errors', hint: '系統錯誤與排查' },
+      { href: '/admin/audit', label: '審計記錄', cmsKey: 'admin.nav.audit', hint: '後台操作記錄', menu: false },
+      { href: '/admin/errors', label: '錯誤記錄', cmsKey: 'admin.nav.errors', hint: '系統錯誤與排查', menu: false },
     ],
   },
 ]
@@ -216,7 +218,56 @@ export function itemForPath(pathname: string): AdminNavItem | null {
 }
 
 export function visibleItems(items: AdminNavItem[], isSuperAdmin: boolean): AdminNavItem[] {
-  return items.filter((item) => isSuperAdmin || !item.superAdminOnly)
+  return items.filter((item) => (isSuperAdmin || !item.superAdminOnly) && item.menu !== false)
+}
+
+/**
+ * Pages that are one thing seen from different angles share a tab bar.
+ * Each tab is still its own route, so old links and bookmarks keep working.
+ */
+export type AdminTabGroup = { id: string; tabs: { href: string; label: string }[] }
+
+export const ADMIN_TAB_GROUPS: AdminTabGroup[] = [
+  {
+    id: 'payments',
+    tabs: [
+      { href: '/admin/payment-log', label: '付款監控' },
+      { href: '/admin/revenue-check', label: '收入核對' },
+      { href: '/admin/orders', label: '訂單查詢' },
+      { href: '/admin/lookup', label: '客戶查詢' },
+    ],
+  },
+  {
+    id: 'revenue',
+    tabs: [
+      { href: '/admin/revenue', label: '收入' },
+      { href: '/admin/sales-report', label: '銷售報表' },
+      { href: '/admin/report', label: '每日報告' },
+      { href: '/admin/report/monthly', label: '月報' },
+    ],
+  },
+  {
+    id: 'logs',
+    tabs: [
+      { href: '/admin/activity', label: '網站記錄' },
+      { href: '/admin/errors', label: '錯誤記錄' },
+      { href: '/admin/audit', label: '審計記錄' },
+      { href: '/admin/bug-reports', label: '問題回報' },
+    ],
+  },
+]
+
+/** Tab group a pathname belongs to, plus the active tab (longest matching href wins). */
+export function tabGroupForPath(pathname: string): { group: AdminTabGroup; active: string } | null {
+  const path = pathname.replace(/\/$/, '') || '/admin'
+  for (const group of ADMIN_TAB_GROUPS) {
+    let best: string | null = null
+    for (const tab of group.tabs) {
+      if ((path === tab.href || path.startsWith(`${tab.href}/`)) && (!best || tab.href.length > best.length)) best = tab.href
+    }
+    if (best) return { group, active: best }
+  }
+  return null
 }
 
 /** Areas with at least one page the viewer may open. */

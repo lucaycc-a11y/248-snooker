@@ -114,198 +114,88 @@ export default function MaintenancePage() {
       maintEnd !== (status.maintenanceEnd ?? '') ||
       maintReason.trim() !== (status.maintenanceReason ?? ''))
 
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+
   return (
     <div className="admin-stack">
-      {/* ── Header ──────────────────────────────────────────── */}
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving || !hasChanges}
-          className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-colors"
-          style={{
-            color: 'var(--admin-brand-text)',
-            background: 'var(--admin-brand)',
-            opacity: saving || !hasChanges ? 0.4 : 1,
-          }}
-        >
-          {saving ? <span className="admin-conic-spinner h-3.5 w-3.5" /> : 'Save Changes'}
-        </button>
-      </header>
+      {loading && !status ? <p className="ad-empty">載入中…</p> : null}
 
-      {loading && !status && (
-        <div className="flex items-center justify-center py-16" style={{ color: 'var(--admin-text-muted)' }}>
-          <span className="admin-conic-spinner mr-2" />
-          Loading venue status…
-        </div>
-      )}
-
-      {status && (
+      {status ? (
         <>
-          {/* ── Current Status Card ───────────────────────────── */}
-          <div
-            className="flex flex-col gap-4 rounded-2xl p-6"
-            style={{
-              background: status.isPaused ? 'var(--admin-danger-dim)' : 'var(--admin-surface)',
-              border: `1px solid ${status.isPaused ? 'var(--admin-danger)' : 'var(--admin-border)'}`,
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="inline-flex h-3 w-3 rounded-full"
-                style={{
-                  background: status.isPaused ? 'var(--admin-danger)' : 'var(--admin-brand)',
-                }}
-              />
-              <span className="text-sm font-semibold" style={{ color: 'var(--admin-text)' }}>
-                {status.isPaused ? '場地暫停開放' : '場地正常開放'}
-              </span>
-            </div>
-
-            {status.pausedSince && (
-              <p className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-                Paused since {new Date(status.pausedSince).toLocaleString('en-HK')}
-              </p>
-            )}
-            {status.lastUpdatedBy && status.lastUpdatedAt && (
-              <p className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                Last updated by {status.lastUpdatedBy} at {new Date(status.lastUpdatedAt).toLocaleString('en-HK')}
-              </p>
-            )}
-          </div>
-
-          {/* ── Pause Toggle ─────────────────────────────────── */}
-          <div
-            className="rounded-2xl p-6"
-            style={{
-              background: 'var(--admin-surface)',
-              border: '1px solid var(--admin-border)',
-            }}
-          >
-            <h2
-              className="mb-1 text-sm font-semibold"
-              style={{ color: 'var(--admin-text)' }}
-              data-cms-key="admin_maintenance_pause_title"
-            >
-              Immediate Pause
-            </h2>
-            <p className="mb-4 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-              Temporarily pause all bookings. Users will see a maintenance notice.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setIsPaused(!isPaused)}
-              className="relative inline-flex h-8 w-14 items-center rounded-full transition-colors"
-              style={{
-                background: isPaused ? 'var(--admin-brand)' : 'var(--admin-bg)',
-                border: '1px solid var(--admin-border)',
-              }}
-              aria-label={isPaused ? 'Resume venue' : 'Pause venue'}
-            >
-              <span
-                className="inline-block h-6 w-6 rounded-full transition-transform"
-                style={{
-                  background: 'var(--admin-text)',
-                  transform: `translateX(${isPaused ? '24px' : '4px'})`,
-                }}
-              />
-            </button>
-            <span className="ml-3 text-xs font-medium" style={{ color: 'var(--admin-text)' }}>
-              {isPaused ? 'Paused' : 'Active'}
-            </span>
-          </div>
-
-          {/* ── Maintenance Schedule ─────────────────────────── */}
-          <div
-            className="rounded-2xl p-6"
-            style={{
-              background: 'var(--admin-surface)',
-              border: '1px solid var(--admin-border)',
-            }}
-          >
-            <h2
-              className="mb-1 text-sm font-semibold"
-              style={{ color: 'var(--admin-text)' }}
-              data-cms-key="admin_maintenance_schedule_title"
-            >
-              已排程保養
-            </h2>
-            <p className="mb-4 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-              Set a future maintenance window. The venue will automatically pause and resume.
-            </p>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                  Start
-                </label>
-                <input
-                  type="datetime-local"
-                  value={maintStart}
-                  onChange={(e) => setMaintStart(e.target.value)}
-                  className="rounded-lg border px-3 py-2 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-                  style={{
-                    background: 'var(--admin-bg)',
-                    color: 'var(--admin-text)',
-                    borderColor: 'var(--admin-border)',
-                  }}
-                />
+          <section className="admin-card" style={status.isPaused ? { borderColor: 'var(--admin-status-danger)' } : undefined}>
+            <div className="ad-filters" style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span
+                    aria-hidden
+                    style={{ width: 10, height: 10, borderRadius: '50%', background: status.isPaused ? 'var(--admin-status-danger)' : 'var(--admin-green)' }}
+                  />
+                  <strong style={{ fontSize: 18 }}>{status.isPaused ? '場地暫停開放' : '場地正常開放'}</strong>
+                </div>
+                {status.pausedSince ? <p className="ad-muted" style={{ marginTop: 4 }}>自 {fmt(status.pausedSince)} 起暫停</p> : null}
+                {status.lastUpdatedBy && status.lastUpdatedAt ? (
+                  <p className="ad-muted">{status.lastUpdatedBy} 於 {fmt(status.lastUpdatedAt)} 更新</p>
+                ) : null}
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                  End
-                </label>
-                <input
-                  type="datetime-local"
-                  value={maintEnd}
-                  onChange={(e) => setMaintEnd(e.target.value)}
-                  className="rounded-lg border px-3 py-2 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-                  style={{
-                    background: 'var(--admin-bg)',
-                    color: 'var(--admin-text)',
-                    borderColor: 'var(--admin-border)',
-                  }}
-                />
-              </div>
+              <button type="button" className="ad-btn ad-btn-primary" onClick={handleSave} disabled={saving || !hasChanges}>
+                {saving ? '儲存中…' : '儲存更改'}
+              </button>
             </div>
+          </section>
 
-            <div className="mt-4 flex flex-col gap-1">
-              <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                Reason (shown to users)
+          <section className="admin-card">
+            <div className="admin-head">
+              <h3 data-cms-key="admin_maintenance_pause_title">即時暫停</h3>
+              <p className="ad-muted" style={{ marginTop: 4 }}>暫停所有新預約，客人會見到保養通知。既有預約不受影響。</p>
+            </div>
+            <div className="tm-row" style={{ borderTop: 0 }}>
+              <span style={{ fontWeight: 600 }}>{isPaused ? '已暫停' : '正常開放'}</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isPaused}
+                aria-label={isPaused ? '恢復開放' : '暫停場地'}
+                onClick={() => setIsPaused(!isPaused)}
+                className="tm-switch"
+                data-on={isPaused}
+              >
+                <span className="tm-knob" />
+              </button>
+            </div>
+          </section>
+
+          <section className="admin-card">
+            <div className="admin-head">
+              <h3 data-cms-key="admin_maintenance_schedule_title">已排程保養</h3>
+              <p className="ad-muted" style={{ marginTop: 4 }}>設定日後保養時段，場地會自動暫停及恢復。</p>
+            </div>
+            <div className="ad-filters">
+              <label className="ad-field">
+                <span>開始</span>
+                <input className="ad-input" type="datetime-local" value={maintStart} onChange={(e) => setMaintStart(e.target.value)} />
               </label>
-              <textarea
-                value={maintReason}
-                onChange={(e) => setMaintReason(e.target.value)}
-                rows={3}
-                placeholder="e.g. Table re-felting and equipment upgrade"
-                className="rounded-lg border px-3 py-2 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-                style={{
-                  background: 'var(--admin-bg)',
-                  color: 'var(--admin-text)',
-                  borderColor: 'var(--admin-border)',
-                }}
-                data-cms-key="admin_maintenance_reason_placeholder"
-              />
+              <label className="ad-field">
+                <span>結束</span>
+                <input className="ad-input" type="datetime-local" value={maintEnd} onChange={(e) => setMaintEnd(e.target.value)} />
+              </label>
+              <label className="ad-field" style={{ flex: '1 1 100%' }}>
+                <span>原因（會顯示給客人）</span>
+                <textarea
+                  className="ad-input"
+                  style={{ minHeight: 88, padding: '12px 14px', resize: 'vertical' }}
+                  value={maintReason}
+                  onChange={(e) => setMaintReason(e.target.value)}
+                  rows={3}
+                  placeholder="例如：枱布更換及設備升級"
+                  data-cms-key="admin_maintenance_reason_placeholder"
+                />
+              </label>
             </div>
-          </div>
-
-          {/* ── Info Note ────────────────────────────────────── */}
-          <div
-            className="rounded-2xl p-4"
-            style={{
-              background: 'var(--admin-surface)',
-              border: '1px solid var(--admin-border)',
-            }}
-          >
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--admin-text-muted)' }}>
-              <strong style={{ color: 'var(--admin-text)' }}>運作方式：</strong>場地暫停時，預約頁會顯示保養通知並阻止新預約。既有預約不受影響。已排程的保養時段儲存於 config 表，可隨時更新。
-            </p>
-          </div>
+          </section>
         </>
-      )}
+      ) : null}
 
-      {/* ── Per-table booking blocks (maintenance_log) ──────── */}
       <MaintenanceBlocks />
     </div>
   )

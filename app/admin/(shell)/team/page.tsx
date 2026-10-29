@@ -1,4 +1,5 @@
 import { getServiceSupabase } from '@/lib/supabase/service'
+import TestModePanel from '@/components/admin/TestModePanel'
 import TeamTable, { type TeamRow } from '@/components/admin/TeamTable'
 
 // Auth (including the super_admin-only invite form gating) is enforced by
@@ -48,6 +49,7 @@ export default async function AdminTeamPage() {
   return (
     <div className="admin-stack">
       <TeamTable rows={teamRows} />
+      <TestModePanel />
     </div>
   )
 }
