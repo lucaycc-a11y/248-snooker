@@ -260,6 +260,7 @@ export default function KPayPayment(props: Props) {
   const [failureReason, setFailureReason] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [actionBusy, setActionBusy] = useState(false)
+  const [lockedBookingId, setLockedBookingId] = useState<string | null>(null)
   const [elapsedSec, setElapsedSec] = useState(0)
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -340,7 +341,7 @@ export default function KPayPayment(props: Props) {
 
       if (!res.ok) {
         let message = labels.err_init ?? '付款初始化失敗，請重試。'
-        let errorType: 'unauthorized' | 'slot_unavailable' | 'price_changed' | 'generic' = 'generic'
+        let errorType: 'unauthorized' | 'slot_unavailable' | 'price_changed' | 'checkout_locked' | 'generic' = 'generic'
         try {
           const errBody = await res.json()
           const errorText = errBody.error || message
@@ -390,6 +391,13 @@ export default function KPayPayment(props: Props) {
             if (typeof errBody.bookingId === 'string') setLocalBookingId(errBody.bookingId)
             if (typeof errBody.orderGroupId === 'string') setLocalOrderGroupId(errBody.orderGroupId)
           }
+          else if (errorText === 'checkout_locked' && typeof errBody.bookingId === 'string') {
+            // Another checkout of this account is mid-payment (other device/page): offer to
+            // switch to this device instead of a dead end.
+            message = checkoutErrorText('checkout_locked')
+            errorType = 'checkout_locked'
+            setLockedBookingId(errBody.bookingId)
+          }
           else if (errorText.includes('Slot unavailable') ||
                    errorText.includes('Slot lock no longer valid') ||
                    errBody.reason === 'slot_confirmed') {
@@ -405,7 +413,7 @@ export default function KPayPayment(props: Props) {
         setError(message)
         setState(errorType === 'unauthorized' ? 'unauthorized' as KPayState : 'failed')
         // Store error type for rendering appropriate CTA in the failed state screen
-        if (errorType === 'slot_unavailable' || errorType === 'price_changed') {
+        if (errorType === 'slot_unavailable' || errorType === 'price_changed' || errorType === 'checkout_locked') {
           setFailureReason(errorType)
         } else {
           setFailureReason(null)
@@ -1067,6 +1075,36 @@ export default function KPayPayment(props: Props) {
     )
   }
 
+  // "Use this device instead": cancel the other checkout (slot and credit are released at once;
+  // a PAID order is refused by the server), then create the order here.
+  const takeOverCheckout = async () => {
+    if (!lockedBookingId || actionBusy) return
+    setActionBusy(true)
+    try {
+      const res = await fetch('/api/checkout/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: lockedBookingId }),
+      })
+      if (res.ok) {
+        setLockedBookingId(null)
+        setError(null)
+        setFailureReason(null)
+        setState('idle')
+        setAutoRetryTick((n) => n + 1)
+        return
+      }
+      const body: unknown = await res.json().catch(() => null)
+      const code = body && typeof body === 'object' ? (body as Record<string, unknown>).error : null
+      setError(typeof code === 'string' ? checkoutErrorText(code) : labels.failed_desc)
+      if (code === 'payment_received') setLockedBookingId(null)
+    } catch {
+      setError(labels.failed_desc)
+    } finally {
+      setActionBusy(false)
+    }
+  }
+
   if (state === 'failed') {
     // Part 3: Slot unavailability requires different CTA
     const isSlotUnavailable = failureReason === 'slot_unavailable'
@@ -1099,6 +1137,15 @@ export default function KPayPayment(props: Props) {
               {labels.reselect_slot ?? '重新選擇時段'}
             </button>
             <button type="button" onClick={leaveAndRelease} disabled={actionBusy} style={styles.secondaryButton}>
+              {labels.back_to_methods}
+            </button>
+          </>
+        ) : failureReason === 'checkout_locked' && lockedBookingId ? (
+          <>
+            <button type="button" onClick={takeOverCheckout} disabled={actionBusy} style={styles.primaryButton}>
+              {actionBusy ? labels.processing : '改用呢部機付款（取消另一部機嘅付款）'}
+            </button>
+            <button type="button" onClick={onBackToMethods} disabled={actionBusy} style={styles.secondaryButton}>
               {labels.back_to_methods}
             </button>
           </>
