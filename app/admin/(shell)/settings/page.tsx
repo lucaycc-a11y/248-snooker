@@ -2,8 +2,6 @@ import { getConfig, getConfigValue } from '@/lib/data/getConfig'
 import SettingsForm from '@/components/admin/SettingsForm'
 import AdminInviteManager from '@/components/admin/AdminInviteManager'
 import PaymentMethodToggles from '@/components/admin/PaymentMethodToggles'
-import PaymentSystemPanel from '@/components/admin/PaymentSystemPanel'
-import PaymentXPanel from '@/components/admin/PaymentXPanel'
 import { pricingRatesToPeriods, type PricingRates } from '@/lib/data/pricing'
 
 // Auth already enforced by app/admin/layout.tsx (Phase 0). This page just
@@ -32,11 +30,6 @@ export default async function AdminSettingsPage() {
 
       <div style={{ marginTop: 48 }}>
         <PaymentMethodToggles />
-      </div>
-
-      <div style={{ marginTop: 48 }}>
-        <PaymentSystemPanel />
-          <PaymentXPanel />
       </div>
 
       <div style={{ marginTop: 48 }}>

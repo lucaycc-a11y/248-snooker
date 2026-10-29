@@ -41,7 +41,23 @@ export async function GET() {
       const { data } = await db.from('users').select('id, email, display_name, member_code').in('id', ids)
       users = new Map(((data ?? []) as Row[]).map((u) => [String(u.id), u]))
     }
+    // Every active admin with an account, and the system they are pinned to (null = follows public).
+    const { data: adminRows } = await db
+      .from('admin_users')
+      .select('user_id, email, role, invite_status')
+      .eq('invite_status', 'active')
+      .order('created_at', { ascending: true })
+    const overrideByUser = new Map(list.map((r) => [String(r.user_id), String(r.system)]))
+    const admins = ((adminRows ?? []) as Row[])
+      .filter((r) => typeof r.user_id === 'string' && r.user_id.length > 0)
+      .map((r) => ({
+        userId: String(r.user_id),
+        email: String(r.email),
+        role: String(r.role),
+        system: overrideByUser.get(String(r.user_id)) ?? null,
+      }))
     return NextResponse.json({
+      admins,
       publicSystem,
       updatedBy: cfg ? str(cfg as Row, ['updated_by']) : null,
       updatedAt: cfg ? str(cfg as Row, ['updated_at']) : null,

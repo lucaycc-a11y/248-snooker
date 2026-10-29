@@ -2642,7 +2642,7 @@ function Screen3({
         <div className="checkout-payment">
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("payment_title")}</div>
-            <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>{t("payment_subtitle") || "Choose your payment method"}</div>
+            <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>{isPaymentXSystem ? "確認金額後，前往 KPay 付款頁選擇付款方式" : (t("payment_subtitle") || "Choose your payment method")}</div>
           </div>
 
           {/* Admin Test Mode banner. Hidden in admin KPay mode so the bypass
@@ -2846,6 +2846,8 @@ function Screen3({
                   promoCode={promoCode?.code ?? null}
                   agreedToTerms={agreedToTerms}
                   onTermsRequired={flagTermsRequired}
+                  primary={isPaymentXSystem}
+                  total={total}
                 />
                 </>
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
@@ -3306,7 +3308,7 @@ function Screen3({
                 data-cms-key="book.terms_agree"
                 style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}
               >
-                {t("terms_agree_prefix")}{" "}
+                {isPaymentXSystem ? "前往付款即表示你同意 SPACE8 的" : t("terms_agree_prefix")}{" "}
                 <a
                   href="/legal"
                   target="_blank"

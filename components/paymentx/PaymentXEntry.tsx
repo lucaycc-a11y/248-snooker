@@ -16,6 +16,9 @@ type Props = {
   promoCode: string | null
   agreedToTerms: boolean
   onTermsRequired: () => void
+  /** PaymentX is this account's payment system: render as THE pay step (price + go to KPay). */
+  primary?: boolean
+  total?: number
 }
 
 function isDesktopDevice(): boolean {
@@ -25,7 +28,7 @@ function isDesktopDevice(): boolean {
   return !mobileUa && !touchMac
 }
 
-export default function PaymentXEntry({ blocks, useWallet, promoCode, agreedToTerms, onTermsRequired }: Props) {
+export default function PaymentXEntry({ blocks, useWallet, promoCode, agreedToTerms, onTermsRequired, primary = false, total }: Props) {
   const locale = useLocale()
   const [eligible, setEligible] = useState(false)
   const [version, setVersion] = useState("X1.0.0")
@@ -103,6 +106,54 @@ export default function PaymentXEntry({ blocks, useWallet, promoCode, agreedToTe
     } finally {
       setBusy(false)
     }
+  }
+
+  const amountLabel = typeof total === "number" ? `HK$${Number.isInteger(total) ? total : total.toFixed(2)}` : null
+
+  // PaymentX as the account's payment system: no method picker and no test chrome. The customer
+  // confirms the price and goes to KPay, which shows its own payment-method page.
+  if (primary) {
+    return (
+      <div style={{ fontFamily: tokens.font.sans, color: tokens.colors.text }}>
+        {amountLabel && (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "baseline",
+              padding: "14px 16px",
+              marginBottom: 12,
+              border: `1px solid ${tokens.colors.border}`,
+              borderRadius: 16,
+              background: tokens.colors.surface,
+            }}
+          >
+            <span style={{ fontSize: 14, opacity: 0.7 }}>應付金額</span>
+            <span style={{ fontSize: 22, fontWeight: 700 }}>{amountLabel}</span>
+          </div>
+        )}
+        {error && <p style={{ margin: "0 0 10px", fontSize: 13, color: tokens.colors.danger }}>{error}</p>}
+        <button
+          type="button"
+          onClick={() => void pay()}
+          disabled={busy}
+          style={{
+            width: "100%",
+            height: 54,
+            border: "none",
+            borderRadius: 14,
+            background: agreedToTerms ? tokens.colors.link : "rgba(255,255,255,0.12)",
+            color: agreedToTerms ? "#000" : tokens.colors.textMuted,
+            fontWeight: 700,
+            fontSize: 17,
+            cursor: busy ? "default" : "pointer",
+            opacity: busy ? 0.6 : 1,
+          }}
+        >
+          {busy ? "處理中…" : `前往 KPay 付款${amountLabel ? ` · ${amountLabel}` : ""}`}
+        </button>
+      </div>
+    )
   }
 
   return (
