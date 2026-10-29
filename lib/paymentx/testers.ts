@@ -1,21 +1,9 @@
-import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
+import { getEffectivePaymentSystem } from '@/lib/payments/system'
 
-// PaymentX is offered only to accounts an admin added in 後台 → 設定 → PaymentX.
-// Fails closed: any lookup problem means "not a tester".
+// PaymentX is used by an account when its effective payment system is 'paymentx': either an
+// admin gave that account a PaymentX override (後台 → 設定 → 支付系統) or the public system was
+// switched to PaymentX. Fails closed: a lookup problem falls back to the env default (never
+// paymentx), so the hosted cashier is never offered by accident.
 export async function isPaymentXTester(userId: string): Promise<boolean> {
-  try {
-    const { data, error } = await getLegacyServiceSupabase()
-      .from('paymentx_testers')
-      .select('user_id')
-      .eq('user_id', userId)
-      .maybeSingle()
-    if (error) {
-      console.warn('[paymentx] tester lookup failed', error.message)
-      return false
-    }
-    return !!data
-  } catch (e) {
-    console.warn('[paymentx] tester lookup threw', (e as Error).message)
-    return false
-  }
+  return (await getEffectivePaymentSystem(userId)) === 'paymentx'
 }
