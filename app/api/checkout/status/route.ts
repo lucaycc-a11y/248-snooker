@@ -80,6 +80,17 @@ export async function GET(req: Request) {
       })
     }
 
+    // PaymentX (hosted cashier) bookings are settled by /api/paymentx/status and its
+    // webhook; this route only lets the shared confirmation screen see the outcome.
+    if (provider === 'paymentx') {
+      return NextResponse.json({
+        bookingId: booking.id,
+        status: booking.status === 'confirmed' ? 'confirmed' : 'pending',
+        providerStatus: booking.status === 'confirmed' ? 'paymentx' : 'pending',
+        totalPrice: Number(booking.total_price),
+      })
+    }
+
     if (noProvider) {
       return handleKPayStatus(booking, service, user.id, new URL(req.url).hostname)
     } else if (provider === 'stripe') {

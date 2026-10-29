@@ -34,6 +34,7 @@ import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import { kpaySelectionFor, kpayPaymentMethodFor } from "@/lib/payments/methods"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
+import PaymentXEntry from "@/components/paymentx/PaymentXEntry"
 import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
 import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/CheckoutWalletRow"
 import { creditToApply } from "@/lib/checkout/credit-rule"
@@ -2788,6 +2789,7 @@ function Screen3({
                 />
               ) : !confirmed ? (
                 /* ── KPay: Stage 1 - PaymentMethodList ── */
+                <>
                 <PaymentMethodList
                   selected={paymentMethod}
                   onSelect={(method) => {
@@ -2806,6 +2808,20 @@ function Screen3({
                     }
                   }}
                 />
+                {/* PaymentX vX1.0.0 — renders only for admin-selected test accounts */}
+                <PaymentXEntry
+                  blocks={blocks.map((b) => ({
+                    date: b.date,
+                    startHour: b.startHour,
+                    duration: b.duration,
+                    tableNumber: b.tableNumber as 1 | 2,
+                  }))}
+                  useWallet={walletAppliedAmount > 0}
+                  promoCode={promoCode?.code ?? null}
+                  agreedToTerms={agreedToTerms}
+                  onTermsRequired={flagTermsRequired}
+                />
+                </>
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
                 /* ── KPay: Stage 2 - Payment ── */
                 <>
