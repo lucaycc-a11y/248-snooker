@@ -1966,6 +1966,7 @@ function Screen3({
   // kpay | stripe | paymentx. null until /api/payment/system answers; the build-time env
   // default applies meanwhile, so nothing changes if the lookup fails.
   const [paySystem, setPaySystem] = useState<"kpay" | "stripe" | "paymentx" | null>(null)
+  const [paySystemLoaded, setPaySystemLoaded] = useState(false)
   useEffect(() => {
     let cancelled = false
     void (async () => {
@@ -1977,6 +1978,8 @@ function Screen3({
         if (!cancelled && (v === "kpay" || v === "stripe" || v === "paymentx")) setPaySystem(v)
       } catch {
         /* keep the env default */
+      } finally {
+        if (!cancelled) setPaySystemLoaded(true)
       }
     })()
     return () => {
@@ -1986,11 +1989,13 @@ function Screen3({
   const isStripeSystem = paySystem ? paySystem === "stripe" : process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "stripe"
   const isPaymentXSystem = paySystem === "paymentx"
   useEffect(() => {
-    if (isAdmin && !adminDevUi && adminGateway === null) {
-      setAdminGateway("kpay")
+    if (isAdmin && !adminDevUi && adminGateway === null && paySystemLoaded) {
+      // An admin whose payment system is PaymentX gets the public checkout, which renders the
+      // PaymentX "confirm price, go to KPay" step, not the admin KPay method picker.
+      setAdminGateway(paySystem === "paymentx" ? "stripe" : "kpay")
       setTestMode(false)
     }
-  }, [isAdmin, adminDevUi, adminGateway])
+  }, [isAdmin, adminDevUi, adminGateway, paySystem, paySystemLoaded])
   const showPublicGateway = adminChecked && (!isAdmin || adminGateway === "stripe")
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
