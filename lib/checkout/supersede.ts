@@ -200,6 +200,7 @@ export async function getAccountCheckoutLock(
   service: ServiceClient,
   userId: string,
   hostname: string,
+  exclude?: { bookingId?: string | null; orderGroupId?: string | null },
 ): Promise<AccountLock> {
   const none: AccountLock = { paidBookingId: null, lockedBookingId: null, lockedUntil: null }
   try {
@@ -218,11 +219,14 @@ export async function getAccountCheckoutLock(
     for (const a of attempts as { booking_id: string; provider_order_no: string; created_at: string }[]) {
       const { data: b } = await service
         .from('bookings')
-        .select('id, status')
+        .select('id, status, order_group_id')
         .eq('id', a.booking_id)
         .eq('user_id', userId)
         .maybeSingle()
       if (!b || (b.status !== 'pending' && b.status !== 'payment_failed')) continue
+      // The checkout being continued is not "another" checkout.
+      if (exclude?.bookingId && b.id === exclude.bookingId) continue
+      if (exclude?.orderGroupId && b.order_group_id === exclude.orderGroupId) continue
       const live = await getLiveKPayState(a.provider_order_no, hostname)
       if (live === 'paid') return { ...none, paidBookingId: b.id }
       if (live === 'pending') {

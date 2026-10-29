@@ -105,13 +105,13 @@ export async function prepareCheckout(
   }
   try {
     const { releaseDeadPendingOrders } = await import('./supersede')
-    // freezePending = true: an earlier checkout whose KPay order can still be paid keeps its
-    // credit hold. Releasing it let two QR codes use the same Space Wallet credit at once.
-    const released = await releaseDeadPendingOrders(service, args.userId, args.bookingId, true)
+    const { isPaymentFreezeActive } = await import('@/lib/payments/freeze-flag')
+    const freeze = await isPaymentFreezeActive(args.userId)
+    const released = await releaseDeadPendingOrders(service, args.userId, args.bookingId, false)
     if (released === 0) {
       // Still short. If the customer's own wallet credit is frozen on an earlier, unfinished
       // payment (its KPay order can still be paid), say so instead of "balance insufficient".
-      {
+      if (freeze) {
         const { data: held } = await service
           .from('credit_holds')
           .select('credits, checkout_key')

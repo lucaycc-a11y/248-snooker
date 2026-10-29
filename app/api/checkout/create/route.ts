@@ -448,6 +448,22 @@ async function handleCheckoutCreate(req: Request) {
       return NextResponse.json({ error: 'Booking missing human_code' }, { status: 500 })
     }
 
+    // Account lock for an existing booking too: another checkout of this account must not hold a
+    // payable order while this one asks for the same wallet credit.
+    const modeBLock = await getAccountCheckoutLock(service, user.id, getHostname(req) ?? '', {
+      bookingId: booking.id,
+      orderGroupId: booking.order_group_id ?? null,
+    })
+    if (modeBLock.paidBookingId) {
+      return NextResponse.json({ error: 'payment_received', bookingId: modeBLock.paidBookingId }, { status: 409 })
+    }
+    if (modeBLock.lockedBookingId) {
+      return NextResponse.json(
+        { error: 'checkout_locked', bookingId: modeBLock.lockedBookingId, lockedUntil: modeBLock.lockedUntil },
+        { status: 409 },
+      )
+    }
+
     // ── Idempotency: if already has a provider order, return it ────────────
     // A finalized external order owns its original payment rail; never rewrite
     // payment_method on this path.

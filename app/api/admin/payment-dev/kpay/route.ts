@@ -422,6 +422,19 @@ async function handleAdminKpayCreate(req: Request) {
     // for the same wallet credits twice and fail with insufficient_credits.
     const reusedRows = blocks.length > 0 ? await findReusableBookings(service, adminUserId, blocks) : null
     if (reusedRows && reusedRows.length > 0) {
+      const reuseLock = await getAccountCheckoutLock(service, adminUserId, new URL(req.url).hostname, {
+        bookingId: String(reusedRows[0].id),
+        orderGroupId: typeof reusedRows[0].order_group_id === 'string' ? reusedRows[0].order_group_id : null,
+      })
+      if (reuseLock.paidBookingId) {
+        return NextResponse.json({ error: 'payment_received', bookingId: reuseLock.paidBookingId }, { status: 409 })
+      }
+      if (reuseLock.lockedBookingId) {
+        return NextResponse.json(
+          { error: 'checkout_locked', bookingId: reuseLock.lockedBookingId, lockedUntil: reuseLock.lockedUntil },
+          { status: 409 },
+        )
+      }
       let reusedSubtotal = 0
       let reusedCredit = 0
       let reusedPromo = 0
