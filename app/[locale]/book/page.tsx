@@ -34,6 +34,7 @@ import type { PaymentMethodId } from "@/components/checkout/PaymentMethodList"
 import { kpaySelectionFor, kpayPaymentMethodFor } from "@/lib/payments/methods"
 import type { KPayMethod, KPayMode } from "@/components/checkout/KPayPayment"
 import { paymentMethodLabel } from "@/components/checkout/PaymentMethodList"
+import PaymentXEntry from "@/components/paymentx/PaymentXEntry"
 import PromoCodeInput, { type PromoResult } from "@/components/checkout/PromoCodeInput"
 import CheckoutWalletRow, { type WalletResult } from "@/components/checkout/CheckoutWalletRow"
 import { creditToApply } from "@/lib/checkout/credit-rule"
@@ -2788,6 +2789,7 @@ function Screen3({
                 />
               ) : !confirmed ? (
                 /* ── KPay: Stage 1 - PaymentMethodList ── */
+                <>
                 <PaymentMethodList
                   selected={paymentMethod}
                   onSelect={(method) => {
@@ -2806,6 +2808,20 @@ function Screen3({
                     }
                   }}
                 />
+                {/* PaymentX vX1.0.0 — renders only for admin-selected test accounts */}
+                <PaymentXEntry
+                  blocks={blocks.map((b) => ({
+                    date: b.date,
+                    startHour: b.startHour,
+                    duration: b.duration,
+                    tableNumber: b.tableNumber as 1 | 2,
+                  }))}
+                  useWallet={walletAppliedAmount > 0}
+                  promoCode={promoCode?.code ?? null}
+                  agreedToTerms={agreedToTerms}
+                  onTermsRequired={flagTermsRequired}
+                />
+                </>
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
                 /* ── KPay: Stage 2 - Payment ── */
                 <>
@@ -3995,12 +4011,21 @@ function ConfirmingPaymentContainer({
       }
     } catch {}
     try {
-      await fetch("/api/checkout/cancel", {
+      const cancelRes = await fetch("/api/checkout/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId }),
         keepalive: true,
       })
+      if (cancelRes.status === 409) {
+        // The order was paid after all: never send the customer back to the slots. Reload so
+        // the status poll confirms the booking.
+        const payload: unknown = await cancelRes.json().catch(() => null)
+        if (payload && typeof payload === "object" && (payload as Record<string, unknown>).error === "payment_received") {
+          window.location.reload()
+          return
+        }
+      }
     } catch {}
     onBackToSlots()
   }, [bookingId, onBackToSlots])
@@ -4033,6 +4058,40 @@ export default function BookPage() {
   const t = useTranslations("book")
   const router = useRouter()
   const [screen, setScreen] = useState(0)
+
+  // A customer who paid at KPay and then closed the browser / app comes back to a bare /book,
+  // with no sessionStorage to resume from. If the server knows of a checkout still in flight (a
+  // KPay order opened in the last 45 min, or a booking confirmed in the last 15 min), open the
+  // payment status screen for it instead of an empty slot picker. At most once per booking per
+  // browser session, so choosing "back to payment methods" never loops.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("bookingId") || params.get("redirect_status") || params.get("payment_intent")) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch("/api/checkout/active", { cache: "no-store" })
+        if (!res.ok || cancelled) return
+        const json: unknown = await res.json().catch(() => null)
+        const active = json && typeof json === "object" ? (json as { active?: { bookingId?: unknown } | null }).active : null
+        const id = active && typeof active.bookingId === "string" ? active.bookingId : null
+        if (!id) return
+        const seenKey = `activeCheckoutOpened:${id}`
+        try {
+          if (sessionStorage.getItem(seenKey)) return
+          sessionStorage.setItem(seenKey, "1")
+        } catch {
+          return
+        }
+        if (cancelled) return
+        window.location.replace(`/book?bookingId=${encodeURIComponent(id)}&redirect_status=returned`)
+      } catch {
+        // best effort: the normal slot picker stays usable
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   // Step labels from i18n so the progress bar matches the page locale
   const STEPS = [

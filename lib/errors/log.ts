@@ -25,6 +25,12 @@ export async function logSiteError(
     if (error) {
       console.error('[errors/log] site_error_log_insert_failed', { message: error.message })
     }
+    // Payment-pipeline errors email the owner straight away (no polling job). Awaited for the
+    // same reason as the insert above; it never throws.
+    if (!error && severity === 'error') {
+      const { PAYMENT_ALERT_SOURCES, alertPaymentProblemNow } = await import('@/lib/admin/paymentAlertNow')
+      if (PAYMENT_ALERT_SOURCES.has(source)) await alertPaymentProblemNow({ source, message, detail })
+    }
   } catch (e) {
     console.error('[errors/log] site_error_log_insert_failed', { message: (e as Error).message })
   }

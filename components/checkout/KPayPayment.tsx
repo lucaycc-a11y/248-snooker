@@ -264,6 +264,10 @@ export default function KPayPayment(props: Props) {
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const creatingRef = useRef(false)
+  // One automatic recovery per payment screen when the server adopted a stale booking at an
+  // outdated price (e.g. wallet toggled after an earlier attempt). See createOrder.
+  const priceAutoRetriedRef = useRef(false)
+  const [autoRetryTick, setAutoRetryTick] = useState(0)
   const attemptRef = useRef(0)
   const pollStartRef = useRef(Date.now())
   const resumingRef = useRef(resuming)
@@ -354,6 +358,35 @@ export default function KPayPayment(props: Props) {
             // release it (leaveAndRelease -> /api/checkout/cancel). Without this
             // the booking stays pending with its old discount selection and the
             // next attempt re-adopts it and 409s again, forever.
+            // Automatic recovery (once): release the stale booking, drop it, and create a
+            // fresh order from the slots at the amount the customer is looking at, so they
+            // never have to see "amount updated" and go back themselves.
+            if (
+              !priceAutoRetriedRef.current &&
+              typeof errBody.bookingId === 'string' &&
+              blocks && blocks.length > 0
+            ) {
+              priceAutoRetriedRef.current = true
+              try {
+                // The server already released the stale booking (released: true) -> no second call.
+                const alreadyReleased = errBody.released === true
+                const cancelRes = alreadyReleased
+                  ? null
+                  : await fetch('/api/checkout/cancel', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ bookingId: errBody.bookingId, reason: 'price_changed' }),
+                    })
+                if (alreadyReleased || cancelRes?.ok) {
+                  setLocalBookingId(undefined)
+                  setLocalOrderGroupId(undefined)
+                  setAutoRetryTick((n) => n + 1)
+                  return
+                }
+              } catch {
+                // fall through to the manual "back" path below
+              }
+            }
             if (typeof errBody.bookingId === 'string') setLocalBookingId(errBody.bookingId)
             if (typeof errBody.orderGroupId === 'string') setLocalOrderGroupId(errBody.orderGroupId)
           }
@@ -381,6 +414,17 @@ export default function KPayPayment(props: Props) {
       }
 
       const json = await res.json()
+
+      // The server found an order that already exists for this booking and returned only its
+      // number (no payment link). There is nothing to open here: let the confirm page's status
+      // poll show the real state (paid -> ticket, open -> options to go back and pay again).
+      if (json.existing === true && !json.payInfo) {
+        const existingBookingId = String(json.bookingId ?? localBookingId ?? '')
+        if (existingBookingId) {
+          window.location.assign(confirmPathFor(existingBookingId))
+          return
+        }
+      }
 
       // Redirect responses must leave the page before committing pending UI
       // state; card/CNP Hosted must never briefly render the QR screen.
@@ -501,18 +545,20 @@ export default function KPayPayment(props: Props) {
           window.location.href = confirmPathFor(localBookingId)
           return
         }
-        setError(typeof message === 'string' ? checkoutErrorText(message) : labels.cancelled_desc)
+        // Cancel did NOT happen: say so. (labels.cancelled_desc reads "booking cancelled, slot
+        // released", which would be false here.)
+        setError(typeof message === 'string' ? checkoutErrorText(message) : labels.failed_desc)
         return
       }
       attemptRef.current += 1
       if (countdownRef.current) clearInterval(countdownRef.current)
       setState('cancelled')
     } catch {
-      setError(labels.cancelled_desc)
+      setError(labels.failed_desc)
     } finally {
       setActionBusy(false)
     }
-  }, [actionBusy, labels.cancelled_desc, localBookingId, onBackToMethods])
+  }, [actionBusy, labels.failed_desc, localBookingId, onBackToMethods])
 
   // Leaving the QR / payment screen via "back" must not leave the booking pending:
   // a pending booking keeps the slot and the wallet credits held for ~10-15 minutes,
@@ -522,22 +568,42 @@ export default function KPayPayment(props: Props) {
   // a booking that has already been paid/confirmed is left alone by the server.
   const leaveAndRelease = useCallback(() => {
     if (actionBusy) return
-    if (localBookingId) {
-      attemptRef.current += 1 // drop any in-flight poll result for the abandoned attempt
-      if (countdownRef.current) clearInterval(countdownRef.current)
-      void fetch('/api/checkout/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // A stale booking adopted at an outdated price must be releasable even while its
-        // old KPay order is still open, or every retry re-adopts it and hits the same mismatch.
-        body: JSON.stringify({
-          bookingId: localBookingId,
-          ...(failureReason === 'price_changed' ? { reason: 'price_changed' } : {}),
-        }),
-        keepalive: true,
-      }).catch(() => {})
+    if (!localBookingId) {
+      onBackToMethods()
+      return
     }
-    onBackToMethods()
+    attemptRef.current += 1 // drop any in-flight poll result for the abandoned attempt
+    if (countdownRef.current) clearInterval(countdownRef.current)
+    const bookingToRelease = localBookingId
+    setActionBusy(true)
+    // Wait at most ~1 s for the server's answer. Going back at once is the goal, but if the
+    // server says the order is already PAID the customer must land on the confirm page, not on
+    // the method picker (where they could pay a second time).
+    const release = fetch('/api/checkout/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      // A stale booking adopted at an outdated price must be releasable even while its
+      // old KPay order is still open, or every retry re-adopts it and hits the same mismatch.
+      body: JSON.stringify({
+        bookingId: bookingToRelease,
+        ...(failureReason === 'price_changed' ? { reason: 'price_changed' } : {}),
+      }),
+      keepalive: true,
+    })
+      .then(async (res) => {
+        if (res.status !== 409) return false
+        const payload: unknown = await res.json().catch(() => null)
+        return !!payload && typeof payload === 'object' && (payload as Record<string, unknown>).error === 'payment_received'
+      })
+      .catch(() => false)
+    void Promise.race([release, new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 1000))]).then((paid) => {
+      setActionBusy(false)
+      if (paid) {
+        window.location.href = confirmPathFor(bookingToRelease)
+        return
+      }
+      onBackToMethods()
+    })
   }, [actionBusy, failureReason, localBookingId, onBackToMethods])
 
   const retryPayment = useCallback(async () => {
@@ -614,6 +680,14 @@ export default function KPayPayment(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agreedToTerms])
+
+  // Re-create the order after the automatic price_changed recovery above. Runs after the
+  // render that cleared localBookingId, so createOrder sees the fresh closure.
+  useEffect(() => {
+    if (autoRetryTick === 0) return
+    void createOrder()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRetryTick])
 
   // ── Resume payment after page refresh ─────────────────────────────────────
   // When the component mounts with resumeBookingId (persisted via sessionStorage),

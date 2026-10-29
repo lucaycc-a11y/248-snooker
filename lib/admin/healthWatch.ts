@@ -187,6 +187,68 @@ async function collectErrorSpikes(): Promise<WatchAlert[]> {
   return alerts
 }
 
+// A customer paid but the booking could not be confirmed (slot taken, released first, ...).
+// These sit in payment_review until a person handles them, so this alert stays open (and
+// reminds every CRITICAL_REMIND_HOURS) until the booking leaves that status. Test bookings are
+// kept (so a test shows the pipeline works) but are labelled and never go to every admin.
+async function collectPaymentReview(): Promise<WatchAlert[]> {
+  const service = getLegacyServiceSupabase()
+  const { data, error } = await service
+    .from('bookings')
+    .select('id, human_code, total_price, is_test, provider_order_no, updated_at, admin_note')
+    .eq('status', 'payment_review')
+    .order('updated_at', { ascending: false })
+    .limit(30)
+  if (error) throw new Error(`待覆核付款載入失敗：${error.message}`)
+  return ((data ?? []) as unknown as Row[]).map((r) => {
+    const isTest = r.is_test === true
+    const code = str(r, ['human_code'])
+    const note = str(r, ['admin_note']) ?? ''
+    const orderNo = str(r, ['provider_order_no'])
+    return {
+      key: `payment_review:${String(r.id)}`,
+      kind: 'payment_review',
+      severity: 'high' as CheckSeverity,
+      critical: !isTest,
+      title: `${isTest ? '【測試】' : ''}客人已付款但預約未能確認${code ? `（${code}）` : ''} · HK$${Number(r.total_price ?? 0)}`,
+      detail: `${note.split('\n').pop()?.slice(0, 200) || '預約已轉入 payment_review'}。系統不會自動退款，請到 KPay 後台核實並人手處理（退款或補單）。`,
+      facts: { booking: code, amount: Number(r.total_price ?? 0), orderTail: orderNo ? orderNo.slice(-8) : null, isTest },
+    }
+  })
+}
+
+// Payment-pipeline errors, reported on the FIRST occurrence (the generic spike alert needs 3).
+const PAYMENT_ERROR_SOURCES = ['webhooks/kpay', 'payments/review', 'payments/duplicate', 'checkout/create', 'payment-dev/kpay', 'checkout/cancel', 'checkout/status']
+async function collectPaymentErrors(): Promise<WatchAlert[]> {
+  const service = getLegacyServiceSupabase()
+  const since = new Date(Date.now() - ERROR_WINDOW_MIN * 60_000).toISOString()
+  const { data, error } = await service
+    .from('site_error_log')
+    .select('id, source, message, detail, created_at')
+    .eq('severity', 'error')
+    .eq('resolved', false)
+    .in('source', PAYMENT_ERROR_SOURCES)
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) throw new Error(`付款錯誤載入失敗：${error.message}`)
+  return ((data ?? []) as unknown as Row[]).map((r) => {
+    const source = str(r, ['source']) ?? '未知來源'
+    const message = str(r, ['message']) ?? ''
+    const raw = r.detail && typeof r.detail === 'object' ? (r.detail as Record<string, unknown>) : {}
+    const inner = typeof raw.message === 'string' ? raw.message : ''
+    return {
+      key: `payment_error:${String(r.id)}`,
+      kind: 'payment_error',
+      severity: 'high' as CheckSeverity,
+      critical: source === 'payments/duplicate',
+      title: `付款系統錯誤：${source} · ${message}`.slice(0, 160),
+      detail: (inner || JSON.stringify(raw)).slice(0, 240),
+      facts: { source, message, detail: JSON.stringify(raw).slice(0, 400) },
+    }
+  })
+}
+
 async function collectMoneyFindings(): Promise<WatchAlert[]> {
   const result = await runRevenueCheck({ from: hkDate(-1), to: hkDate(0) })
   if (result.error && !result.totals) throw new Error(result.error)
@@ -207,6 +269,9 @@ function investigationPrompt(a: WatchAlert): string {
   const base = `事件類型：${a.kind}\n標題：${a.title}\n詳情：${a.detail}\n已知事實：${JSON.stringify(a.facts)}\n\n`
   if (a.kind === 'payment_failed') {
     return `${base}有客人付款失敗。請查證：該預約的狀態和付款嘗試、KPay 有沒有收到付款通知、同一客人近期的付款歷史、該時段是否已被佔用、近期有沒有相關系統錯誤。判斷屬於：客人自行取消／餘額或限額問題／系統或 KPay 問題／其他，並說明客人是否可能已被扣款但未得到預約。`
+  }
+  if (a.kind === 'payment_review' || a.kind === 'payment_error') {
+    return `${base}付款系統出現問題。請用該預約編號查付款時間線和付款嘗試、KPay 通知記錄，以及該時段目前被哪張預約佔用。說明：客人有沒有被收錢、預約現在是什麼狀態、原因（例如舊單取消後仍被付款、時段被重新預訂）、管理員下一步要做什麼。系統不會自動退款，退款一律由管理員到 KPay 後台處理。`
   }
   if (a.kind === 'error_spike') {
     return `${base}網站錯誤突然增加。請查最近的錯誤分佈，並看有沒有影響付款或預約（查付款嘗試和 KPay 通知），判斷影響範圍和嚴重程度。`
@@ -242,6 +307,8 @@ export async function runHealthWatch(): Promise<WatchResult> {
 
   for (const [label, fn] of [
     ['付款失敗', collectFailedPayments],
+    ['待覆核付款', collectPaymentReview],
+    ['付款錯誤', collectPaymentErrors],
     ['錯誤增加', collectErrorSpikes],
     ['收入核對', collectMoneyFindings],
   ] as const) {

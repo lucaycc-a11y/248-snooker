@@ -739,8 +739,6 @@ async function createAndStamp(args: CreateAndStampArgs): Promise<Response> {
       attemptId,
       providerOrderNo: existingProviderOrderNo,
     })
-    // Load the existing payInfo from the provider
-    const orderStatus = await provider.queryOrder(existingProviderOrderNo)
     return NextResponse.json({
       bookingId: primaryBookingId,
       providerOrderNo: existingProviderOrderNo,

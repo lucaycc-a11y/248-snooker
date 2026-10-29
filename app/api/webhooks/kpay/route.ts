@@ -453,7 +453,13 @@ export async function POST(req: Request) {
         // expired / failed, or the slot was taken). NEVER move money automatically:
         // park the order as payment_review and alert an admin to handle it by hand.
         const message = confirmErr instanceof Error ? confirmErr.message : String(confirmErr)
-        const needsReview = message.includes('booking_not_confirmable') || message.includes('slot_conflict_payment_review')
+        // A unique-violation on the slot (the cancelled booking's slot was re-booked, so
+        // confirm_booking cannot re-activate it) is the same situation: money in, slot gone.
+        const needsReview =
+          message.includes('booking_not_confirmable') ||
+          message.includes('slot_conflict_payment_review') ||
+          message.includes('slots_active_start_uniq') ||
+          message.includes('duplicate key')
         if (!needsReview || !freeze) throw confirmErr
         await parkPaidBookingForReview({
           bookingId: booking.id,

@@ -9,6 +9,7 @@ import { checkAmountMatch, logAmountMismatch } from '@/lib/payments/reconciliati
 import { getLiveKPayState } from '@/lib/payments/live-order'
 import { isPaymentFreezeActive } from '@/lib/payments/freeze-flag'
 import { parkPaidBookingForReview } from '@/lib/payments/park-for-review'
+import { logSiteError } from '@/lib/errors/log'
 import { logPaymentEvent } from '@/lib/payments/payment-events'
 
 export const runtime = 'nodejs'
@@ -75,6 +76,17 @@ export async function GET(req: Request) {
         bookingId: booking.id,
         status: 'confirmed',
         providerStatus: 'free',
+        totalPrice: Number(booking.total_price),
+      })
+    }
+
+    // PaymentX (hosted cashier) bookings are settled by /api/paymentx/status and its
+    // webhook; this route only lets the shared confirmation screen see the outcome.
+    if (provider === 'paymentx') {
+      return NextResponse.json({
+        bookingId: booking.id,
+        status: booking.status === 'confirmed' ? 'confirmed' : 'pending',
+        providerStatus: booking.status === 'confirmed' ? 'paymentx' : 'pending',
         totalPrice: Number(booking.total_price),
       })
     }
@@ -399,6 +411,17 @@ async function handleStripeStatus(booking: any, service: any, userId: string) {
 // KPay Status Handler
 // ──────────────────────────────────────────────────────────────────
 
+/** A Supabase rpc() call that failed without throwing: its error, or a { success: false } result. */
+function rpcFailure(res: { data: unknown; error: { message: string } | null }): string | null {
+  if (res.error) return res.error.message.slice(0, 200)
+  const d = res.data
+  if (d && typeof d === 'object' && !Array.isArray(d) && (d as Record<string, unknown>).success === false) {
+    const reason = (d as Record<string, unknown>).reason
+    return typeof reason === 'string' ? reason.slice(0, 200) : 'confirm rejected'
+  }
+  return null
+}
+
 async function handleKPayStatus(booking: any, service: any, userId: string, hostname: string) {
   const startedAt = Date.now()
   const logResult = (payload: Record<string, unknown>) => {
@@ -537,6 +560,7 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
   switch (orderStatus.status) {
     case 'success':
       if (booking.status !== 'confirmed') {
+        let confirmFailure: string | null = null
         // Note: KPay's queryOrder does not return the captured amount, so we cannot
         // perform amount reconciliation here. The webhook's amount check is the primary
         // safeguard. Confirm the booking if KPay reports success.
@@ -557,13 +581,14 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
                 bookings: rows.length,
                 providerOrderNo: booking.provider_order_no,
               })
-              await service.rpc('confirm_booking_group', {
+              const groupConfirm = await service.rpc('confirm_booking_group', {
                 p_order_group_id: booking.order_group_id,
                 p_payment_intent_id: booking.provider_order_no,
                 p_payment_method: booking.payment_method,
                 p_qr_codes: qrCodes,
                 p_event_id: null,
               })
+              confirmFailure = rpcFailure(groupConfirm)
             }
           } else {
             const humanCode = booking.human_code ?? humanReadableCode(booking.id)
@@ -571,19 +596,40 @@ async function handleKPayStatus(booking: any, service: any, userId: string, host
               bookingId: booking.id,
               providerOrderNo: booking.provider_order_no,
             })
-            await service.rpc('confirm_booking', {
+            const singleConfirm = await service.rpc('confirm_booking', {
               p_booking_id: booking.id,
               p_payment_intent_id: booking.provider_order_no,
               p_payment_method: booking.payment_method,
               p_qr_code: humanCode,
               p_event_id: null,
             })
+            confirmFailure = rpcFailure(singleConfirm)
           }
           const { data: refreshed } = await service
             .from('bookings')
             .select('status')
             .eq('id', booking.id)
             .single()
+          if (refreshed?.status !== 'confirmed' && confirmFailure) {
+            // KPay says PAID but the database refused to confirm. Without this the customer sits on
+            // "confirming" forever and nobody is told. The alert email goes out from logSiteError.
+            // The page polls every few seconds: log once per booking per 10 minutes.
+            const { count: already } = await service
+              .from('site_error_log')
+              .select('id', { count: 'exact', head: true })
+              .eq('source', 'checkout/status')
+              .eq('message', 'KPay paid but booking could not be confirmed')
+              .contains('detail', { bookingId: booking.id })
+              .gte('created_at', new Date(Date.now() - 10 * 60_000).toISOString())
+            if (!already) {
+              await logSiteError('checkout/status', 'error', 'KPay paid but booking could not be confirmed', {
+                bookingId: booking.id,
+                providerOrderNo: booking.provider_order_no,
+                bookingStatus: refreshed?.status ?? booking.status,
+                message: confirmFailure,
+              })
+            }
+          }
           if (refreshed?.status === 'confirmed') {
             try {
               const { sendBookingConfirmation } = await import('@/lib/resend/template-send')

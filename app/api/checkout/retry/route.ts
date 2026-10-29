@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceSupabase } from '@/lib/supabase/service'
 import { rateLimit } from '@/lib/rate-limit'
+import { getLiveKPayState } from '@/lib/payments/live-order'
 
 export const runtime = 'nodejs'
 
@@ -50,26 +51,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Never open a second order while the first may already be paid: retry drops the
-    // provider order number, so a payment landing afterwards could not be matched and
-    // the customer would be charged twice. Ask KPay; if it says paid (or the lookup
-    // fails) wait for the webhook / status poll to confirm instead.
+    // Never reset a booking whose KPay order is already PAID: the webhook / status poll must
+    // confirm it. An order that is merely still open (customer cancelled or backed out of the
+    // payment page) does NOT block a retry: the customer wants to pay again now, and if the
+    // old order is paid later the webhook matches it by booking code and confirms it (or
+    // parks it for review). A failed lookup does not block either, same as /api/checkout/cancel.
     const existingOrderNo = (existing as { provider_order_no?: string | null }).provider_order_no
-    if (existing.status === 'pending' && typeof existingOrderNo === 'string' && /^\d{12,}$/.test(existingOrderNo)) {
-      try {
-        const { KPayProvider } = await import('@/lib/payments/kpay')
-        const live = await new KPayProvider(undefined, 'prod').queryOrder(existingOrderNo)
-        if (live.status === 'success') {
-          return NextResponse.json({ error: 'booking_payment_processing' }, { status: 409 })
-        }
-        // A still-pending KPay order stays payable until KPay expires it (FPS 5 min,
-        // other QR/H5 10 min). Resetting the booking now would let the customer pay
-        // the old QR afterwards against a booking whose price was reset.
-        if (live.status === 'pending') {
-          return NextResponse.json({ error: 'booking_payment_processing' }, { status: 409 })
-        }
-      } catch (e) {
-        console.warn('[KPay] retry pre-check: provider lookup failed', { bookingId, message: (e as Error).message })
+    if (existing.status === 'pending' && typeof existingOrderNo === 'string') {
+      const live = await getLiveKPayState(existingOrderNo, new URL(req.url).hostname)
+      if (live === 'paid') {
         return NextResponse.json({ error: 'booking_payment_processing' }, { status: 409 })
       }
     }

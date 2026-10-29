@@ -11,6 +11,7 @@
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getHiddenUserList } from '@/lib/data/getHiddenUserIds'
 import type { MimoToolDef } from '@/lib/ai/mimo'
+import { getLiveKPayState } from '@/lib/payments/live-order'
 
 type Args = Record<string, unknown>
 type Row = Record<string, unknown>
@@ -36,6 +37,11 @@ const hkStamp = (iso: unknown): string | null => {
   return Number.isNaN(t.getTime()) ? null : new Date(t.getTime() + 8 * 3600_000).toISOString().slice(0, 16).replace('T', ' ')
 }
 const staff = (email: unknown): string | null => (typeof email === 'string' ? email.split('@')[0] : null)
+/** Booking code / KPay order number only — keeps model-supplied text out of PostgREST filter strings. */
+const refArg = (a: Args): string | null => {
+  const v = argStr(a, 'reference', 40)
+  return v && /^[A-Za-z0-9_-]+$/.test(v) ? v : null
+}
 const hhmm = (v: unknown): string => String(v ?? '').slice(0, 5)
 const rows = (v: unknown): Row[] => (Array.isArray(v) ? (v as Row[]) : [])
 const bookingCode = (r: Row): string | null => str(r.human_code) ?? str(r.booking_reference)
@@ -269,6 +275,70 @@ export const READ_TOOLS: ReadTool[] = [
     run: async () => {
       const list = rows(await must(svc().from('maintenance_log').select('date, table_number, start_time, end_time, reason').gte('date', hkToday()).order('date', { ascending: true }).limit(30)))
       return { count: list.length, blocks: list.map((r) => ({ date: r.date, room: r.table_number ?? '全部', time: r.start_time ? `${hhmm(r.start_time)}-${hhmm(r.end_time)}` : '全日', reason: str(r.reason)?.slice(0, 80) ?? null })) }
+    },
+  },
+  {
+    def: {
+      name: 'get_payment_timeline',
+      description:
+        '某張預約的完整付款時間線（取消、webhook、對賬、凍結、轉覆核等事件按時間排列），連同預約狀態、付款嘗試狀態。用預約編號（如 SPACE8-XXXXX-X）或 KPay 單號。查付款問題（付咗錢但冇確認、取消後被付款、卡住）時首先用這個。',
+      parameters: { type: 'object', properties: { reference: { type: 'string' } }, required: ['reference'] },
+    },
+    run: async (a) => {
+      const ref = refArg(a)
+      if (!ref) return { error: '請提供預約編號或 KPay 單號' }
+      const found = rows(await must(svc().from('bookings').select('id, human_code, status, total_price, provider_order_no, order_group_id, date, start_time, created_at, updated_at, admin_note').or(`human_code.ilike.%${ref}%,provider_order_no.eq.${ref}`).order('created_at', { ascending: false }).limit(3)))
+      if (found.length === 0) return { error: '找不到這張預約' }
+      const out = []
+      for (const b of found) {
+        const events = rows(await must(svc().from('payment_events').select('created_at, event, source, from_state, to_state, reason, provider_order_no').eq('booking_id', String(b.id)).order('created_at', { ascending: true }).limit(40)))
+        const attempts = rows(await must(svc().from('payment_attempts').select('status, failure_code, provider_order_no, created_at').eq('booking_id', String(b.id)).order('created_at', { ascending: true }).limit(10)))
+        out.push({
+          booking: bookingCode(b),
+          status: b.status,
+          total: num(b.total_price),
+          orderTail: str(b.provider_order_no)?.slice(-8) ?? null,
+          createdAt: hkStamp(b.created_at),
+          updatedAt: hkStamp(b.updated_at),
+          note: str(b.admin_note)?.slice(0, 200) ?? null,
+          attempts: attempts.map((x) => ({ status: x.status, failure: x.failure_code, at: hkStamp(x.created_at) })),
+          timeline: events.map((e) => ({ at: hkStamp(e.created_at)?.slice(11) ?? null, event: e.event, source: e.source, from: e.from_state, to: e.to_state, reason: str(e.reason)?.slice(0, 80) ?? null })),
+        })
+      }
+      return { bookings: out }
+    },
+  },
+  {
+    def: {
+      name: 'check_kpay_order',
+      description: '即時向 KPay 查某張預約的付款單現在是已付款 / 未付款(仍可付) / 已關閉 / 查詢失敗。用預約編號。只讀，不會改任何資料。',
+      parameters: { type: 'object', properties: { reference: { type: 'string' } }, required: ['reference'] },
+    },
+    run: async (a) => {
+      const ref = refArg(a)
+      if (!ref) return { error: '請提供預約編號' }
+      const b = rows(await must(svc().from('bookings').select('human_code, status, provider_order_no').ilike('human_code', `%${ref}%`).order('created_at', { ascending: false }).limit(1)))[0]
+      if (!b) return { error: '找不到這張預約' }
+      const live = await getLiveKPayState(str(b.provider_order_no))
+      return { booking: bookingCode(b), bookingStatus: b.status, kpay: live, meaning: { paid: '已付款', pending: '未付款，付款頁仍可付', closed: '已關閉/失敗', unknown: '查詢失敗，未能確定', none: '沒有 KPay 單' }[live] }
+    },
+  },
+  {
+    def: {
+      name: 'get_payment_problems',
+      description: '最近需要處理的付款問題：payment_review（已付款但未能確認）、卡在 claimed/pending 太久的付款嘗試、最近 webhook 失敗。可指定最近幾小時（預設 24）。每日檢查或問「有冇付款問題」時用。',
+      parameters: { type: 'object', properties: { hours: { type: 'integer' } } },
+    },
+    run: async (a) => {
+      const since = new Date(Date.now() - argInt(a, 'hours', 24, 168) * 3_600_000).toISOString()
+      const review = rows(await must(svc().from('bookings').select('human_code, total_price, provider_order_no, updated_at').eq('status', 'payment_review').order('updated_at', { ascending: false }).limit(15)))
+      const stuck = rows(await must(svc().from('payment_attempts').select('booking_id, status, created_at').in('status', ['claimed', 'pending']).lt('created_at', new Date(Date.now() - 20 * 60_000).toISOString()).gte('created_at', since).order('created_at', { ascending: false }).limit(15)))
+      const hooks = rows(await must(svc().from('site_error_log').select('created_at, message, detail').eq('source', 'webhooks/kpay').gte('created_at', since).order('created_at', { ascending: false }).limit(10)))
+      return {
+        needsReview: review.map((r) => ({ booking: bookingCode(r), amount: num(r.total_price), orderTail: str(r.provider_order_no)?.slice(-8) ?? null, at: hkStamp(r.updated_at) })),
+        stuckAttempts: stuck.length,
+        webhookFailures: hooks.map((r) => ({ at: hkStamp(r.created_at), message: str(r.message)?.slice(0, 80), detail: JSON.stringify(r.detail ?? {}).slice(0, 200) })),
+      }
     },
   },
   {

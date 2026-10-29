@@ -34,6 +34,14 @@ const EVENT_LABEL: Record<string, string> = {
   swept_expired: '逾時未付款，自動釋放',
   cancel_refused: '取消要求被拒絕',
   incident_parked: '已標記待人手處理',
+  cancelled_by_user: '客人取消，已釋放訂位',
+  superseded_open_order: '客人重新預約，舊的未付款單已釋放',
+  status_poll_confirmed: '客人返回頁面時查到已付款，預約確認',
+  reconcile_paid_confirmed: '自動對賬：KPay 已收款，預約確認',
+  reconcile_paid_confirm_failed: '自動對賬：KPay 已收款，但確認失敗',
+  paid_unconfirmable: '已付款但預約無法確認，轉人手覆核（不會自動退款）',
+  duplicate_payment: '重複付款：預約已由另一張單確認，需人手退款',
+  amount_mismatch: '付款金額與訂單不符，需人手核實',
 }
 
 const card = { background: 'var(--admin-bg-surface)', borderColor: 'var(--admin-border-subtle)' } as const
@@ -62,6 +70,8 @@ const ACTION_TEXT: Record<string, string> = {
   expired_old_pending: '超過 25 分鐘仍未付款，已結束',
   still_payable: '仍可付款，暫不處理',
   lookup_unknown: '查詢不到，稍後再試',
+  paid_after_release_confirmed: '客人取消後舊單被付款，時段仍空，已自動確認',
+  paid_after_release_parked: '客人取消後舊單被付款，時段已被佔，已轉人手覆核',
 }
 
 const hk = (iso: string) =>

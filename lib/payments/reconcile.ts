@@ -2,6 +2,7 @@ import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getLiveKPayState, isKPayOrderNo } from '@/lib/payments/live-order'
 import { logPaymentEvent } from '@/lib/payments/payment-events'
 import { humanReadableCode } from '@/lib/qr/jwt'
+import { parkPaidBookingForReview } from '@/lib/payments/park-for-review'
 
 // Closes out payment_attempts that are still 'claimed' / 'pending' long after the
 // customer left. It asks KPay what really happened to each order:
@@ -24,6 +25,8 @@ export type ReconcileAction =
   | 'expired_old_pending'
   | 'still_payable'
   | 'lookup_unknown'
+  | 'paid_after_release_confirmed'
+  | 'paid_after_release_parked'
 
 export type ReconcileItem = {
   attemptId: string
@@ -52,7 +55,7 @@ type BookingRow = {
   is_test: boolean | null
 }
 
-export async function reconcileStaleAttempts(options: {
+async function reconcileOpenAttempts(options: {
   /** Confirm bookings whose KPay order turned out to be paid. */
   confirmPaid: boolean
   source: 'cron' | 'admin'
@@ -208,4 +211,98 @@ async function confirmPaidBooking(booking: BookingRow, providerOrderNo: string):
   } catch {
     return false
   }
+}
+
+// KPay has no close-order API, so an order the customer cancelled can still be paid
+// (old tab, browser Back). The webhook normally catches that, but if it failed (for
+// example the slot was re-booked) nothing else looks at a cancelled attempt. This pass
+// asks KPay about recently cancelled orders once; a paid one is confirmed if the slot is
+// still free, otherwise parked as payment_review. Either way it is marked so it is not
+// checked again. Never refunds.
+const RELEASED_LOOKBACK_MIN = 40
+
+async function reconcileReleasedAttempts(options: {
+  confirmPaid: boolean
+  source: 'cron' | 'admin'
+  limit?: number
+}): Promise<ReconcileItem[]> {
+  const db = getLegacyServiceSupabase()
+  const since = new Date(Date.now() - RELEASED_LOOKBACK_MIN * 60_000).toISOString()
+  const { data: attempts } = await db
+    .from('payment_attempts')
+    .select('id, booking_id, order_group_id, provider_order_no, status, created_at')
+    .eq('status', 'cancelled')
+    .eq('failure_code', 'cancelled_by_user')
+    .not('provider_order_no', 'is', null)
+    .gte('updated_at', since)
+    .order('updated_at', { ascending: true })
+    .limit(options.limit ?? 20)
+  const rows = (attempts ?? []) as AttemptRow[]
+  if (rows.length === 0) return []
+
+  const bookingIds = [...new Set(rows.map((r) => r.booking_id).filter((v): v is string => !!v))]
+  const { data: bookings } = bookingIds.length
+    ? await db.from('bookings').select('id, human_code, status, order_group_id, is_test').in('id', bookingIds)
+    : { data: [] }
+  const byId = new Map<string, BookingRow>(((bookings ?? []) as BookingRow[]).map((b) => [b.id, b]))
+
+  const items: ReconcileItem[] = []
+  for (const a of rows) {
+    if (!isKPayOrderNo(a.provider_order_no)) continue
+    const booking = a.booking_id ? byId.get(a.booking_id) ?? null : null
+    if (!booking) continue
+    const state = await getLiveKPayState(a.provider_order_no)
+    if (state !== 'paid') continue // pending / closed / unknown: look again next run until the window ends
+
+    const ageMin = Math.round((Date.now() - new Date(a.created_at).getTime()) / 60_000)
+    const base = {
+      attemptId: a.id,
+      bookingId: a.booking_id,
+      humanCode: booking.human_code,
+      providerOrderNo: a.provider_order_no,
+      ageMin,
+    }
+    const confirmed = options.confirmPaid ? await confirmPaidBooking(booking, a.provider_order_no) : false
+    if (confirmed) {
+      await db
+        .from('payment_attempts')
+        .update({ status: 'succeeded', failure_code: null, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq('id', a.id)
+      await logPaymentEvent({
+        bookingId: booking.id,
+        event: 'reconcile_paid_confirmed',
+        source: options.source === 'cron' ? 'cron' : 'admin',
+        providerOrderNo: a.provider_order_no,
+        attemptId: a.id,
+        fromState: booking.status,
+        reason: 'paid_after_release',
+      })
+      items.push({ ...base, action: 'paid_after_release_confirmed', note: '客人取消後舊單被付款，時段仍空，已自動確認' })
+    } else {
+      await parkPaidBookingForReview({
+        bookingId: booking.id,
+        orderGroupId: booking.order_group_id,
+        providerOrderNo: a.provider_order_no,
+        source: options.source === 'cron' ? 'cron' : 'admin',
+        reason: 'paid_after_release_slot_unavailable',
+      })
+      await db
+        .from('payment_attempts')
+        .update({ failure_code: 'paid_after_release', updated_at: new Date().toISOString() })
+        .eq('id', a.id)
+      items.push({ ...base, action: 'paid_after_release_parked', note: '客人取消後舊單被付款，時段已被佔用，已轉人手覆核' })
+    }
+  }
+  return items
+}
+
+export async function reconcileStaleAttempts(options: {
+  /** Confirm bookings whose KPay order turned out to be paid. */
+  confirmPaid: boolean
+  source: 'cron' | 'admin'
+  limit?: number
+}): Promise<ReconcileItem[]> {
+  const open = await reconcileOpenAttempts(options)
+  const released = await reconcileReleasedAttempts(options).catch(() => [] as ReconcileItem[])
+  return [...open, ...released]
 }
