@@ -64,6 +64,17 @@ const ACTION_LABELS: Record<string, string> = {
   admin_test_mode_on: '開啟測試模式',
   admin_test_mode_off: '關閉測試模式',
   admin_email_sent: '發送電郵',
+  cs_case_created: '客務：建立工單',
+  cs_case_updated: '客務：更新工單',
+  cs_case_customer_attached: '客務：連結會員',
+  cs_otp_sent: '客務：發送驗證碼',
+  cs_otp_verified: '客務：核對驗證碼',
+  cs_payment_link_created: '客務：生成付款連結',
+  cs_payment_link_checked: '客務：核實付款連結',
+  cs_template_saved: '客務：儲存範本',
+  cs_template_deleted: '客務：刪除範本',
+  cs_spark_diagnose: '客務：Spark 診斷',
+  cs_spark_reply: '客務：Spark 起草回覆',
 }
 
 function formatActionType(raw: string): string {

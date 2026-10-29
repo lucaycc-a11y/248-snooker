@@ -92,6 +92,7 @@ export const ADMIN_AREAS: AdminArea[] = [
         cmsKey: 'admin.nav.member_flags',
         hint: '共用裝置與可疑帳戶',
       },
+      { href: '/admin/cs', label: '客務中心', cmsKey: 'admin.nav.cs', hint: '客人問題、身份核對、付款連結與 Spark 協助' },
       { href: '/admin/follow-ups', label: '跟進名單', cmsKey: 'admin.nav.follow_ups', hint: '需要聯絡的會員' },
       { href: '/admin/notifications', label: '通知範本', cmsKey: 'admin.nav.notifications', hint: '訊息與電郵範本' },
     ],

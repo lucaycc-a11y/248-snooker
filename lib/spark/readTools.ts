@@ -12,6 +12,7 @@ import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { getHiddenUserList } from '@/lib/data/getHiddenUserIds'
 import type { MimoToolDef } from '@/lib/ai/mimo'
 import { getLiveKPayState } from '@/lib/payments/live-order'
+import { CS_READ_TOOLS } from './csTools'
 
 type Args = Record<string, unknown>
 type Row = Record<string, unknown>
@@ -380,3 +381,5 @@ export const READ_TOOLS: ReadTool[] = [
     },
   },
 ]
+
+READ_TOOLS.push(...CS_READ_TOOLS)

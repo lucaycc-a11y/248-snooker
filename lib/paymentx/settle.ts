@@ -209,6 +209,7 @@ export async function settlePaymentXOrder(
 
   const confirmed = await confirmBooking(booking, order.managed_order_no)
   if (confirmed) {
+    await sendConfirmationEmails(booking)
     await db
       .from('paymentx_orders')
       .update({ status: 'paid', paid_order_no: paidOrderNo, updated_at: now, completed_at: now })
@@ -273,5 +274,35 @@ async function confirmBooking(booking: BookingRow, managedOrderNo: string): Prom
   } catch (e) {
     console.warn('[paymentx/settle] confirm threw', (e as Error).message)
     return false
+  }
+}
+
+// Booking confirmation email + notification log, once per booking. The stamp
+// confirmation_email_sent_at (set by sendBookingConfirmation) makes this idempotent, so a poll
+// and a webhook racing each other cannot send two. Never throws: a mail failure must not undo
+// a confirmed booking, it is logged for 後台 → 錯誤記錄.
+async function sendConfirmationEmails(booking: BookingRow): Promise<void> {
+  const db = getLegacyServiceSupabase()
+  try {
+    const base = db.from('bookings').select('id, user_id, confirmation_email_sent_at, status')
+    const { data } = booking.order_group_id
+      ? await base.eq('order_group_id', booking.order_group_id)
+      : await base.eq('id', booking.id)
+    const list = (data ?? []) as { id: string; user_id: string; confirmation_email_sent_at: string | null; status: string }[]
+    for (const b of list) {
+      if (b.status !== 'confirmed' || b.confirmation_email_sent_at) continue
+      try {
+        const { sendBookingConfirmation } = await import('@/lib/resend/template-send')
+        await sendBookingConfirmation(b.id)
+        await db.from('notification_log').insert([
+          { user_id: b.user_id, booking_id: b.id, channel: 'email', type: 'booking_confirmed', status: 'sent' },
+          { user_id: b.user_id, booking_id: b.id, channel: 'whatsapp', type: 'booking_confirmed', status: 'pending' },
+        ])
+      } catch (e) {
+        await logSiteError('paymentx/email', 'warning', 'booking confirmation email failed', { bookingId: b.id, message: (e as Error).message })
+      }
+    }
+  } catch (e) {
+    console.warn('[paymentx/settle] confirmation email step failed', (e as Error).message)
   }
 }
