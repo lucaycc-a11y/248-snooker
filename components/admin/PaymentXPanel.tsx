@@ -28,7 +28,6 @@ type OrderRow = {
   createdAt: string | null
 }
 type EventRow = { id: number; created_at: string; kind: string; note: string | null; managed_order_no: string | null; payload: unknown }
-type Candidate = { userId: string; email: string | null; displayName: string | null; memberCode: string | null }
 type Changelog = { version: string; date: string; title: string; changes: string[] }
 
 type Loaded = { version: string; changelog: Changelog[]; testers: Tester[]; orders: OrderRow[]; events: EventRow[] }
@@ -62,9 +61,6 @@ export default function PaymentXPanel() {
   const [data, setData] = useState<Loaded | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Candidate[]>([])
-  const [note, setNote] = useState('')
   const [showLog, setShowLog] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
@@ -104,40 +100,6 @@ export default function PaymentXPanel() {
     return json
   }
 
-  async function search() {
-    if (query.trim().length < 2) return
-    setBusy('search')
-    try {
-      const json = await post({ action: 'search', q: query })
-      setResults(json && Array.isArray(json.users) ? (json.users as Candidate[]) : [])
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  async function add(userId: string) {
-    setBusy(userId)
-    try {
-      if (await post({ action: 'add', userId, note })) {
-        setResults([])
-        setQuery('')
-        setNote('')
-        await load()
-      }
-    } finally {
-      setBusy(null)
-    }
-  }
-
-  async function remove(userId: string) {
-    setBusy(userId)
-    try {
-      if (await post({ action: 'remove', userId })) await load()
-    } finally {
-      setBusy(null)
-    }
-  }
-
   async function sync(orderId: string) {
     setBusy(orderId)
     setMessage(null)
@@ -171,99 +133,13 @@ export default function PaymentXPanel() {
       </div>
 
       <p className="px-5 pt-4 text-xs" style={muted}>
-        只有下面名單入面嘅帳戶，結帳頁先會見到「PaymentX」入口；其他客人付款流程完全唔受影響。名單清空即等於停用。
+        邊啲帳戶／係咪全部客人用 PaymentX，喺上面「支付系統」設定。呢度只睇 PaymentX 訂單同 KPay 通知記錄。
       </p>
       {error && (
         <p className="px-5 pt-3 text-sm" style={{ color: 'var(--admin-status-danger)' }}>
           {error}
         </p>
       )}
-
-      {/* ── Testers ─────────────────────────────── */}
-      <div className="px-5 pt-5">
-        <h3 className="text-sm font-medium" style={primary}>
-          測試帳戶（{data?.testers.length ?? 0}）
-        </h3>
-        {data && data.testers.length === 0 && (
-          <p className="mt-2 text-xs" style={muted}>
-            未有帳戶。用下面搜尋加入。
-          </p>
-        )}
-        <ul className="mt-2 flex flex-col">
-          {data?.testers.map((t) => (
-            <li key={t.userId} className="flex items-center gap-3 border-t py-3" style={{ borderColor: 'var(--admin-border-subtle)' }}>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm" style={primary}>
-                  {label(t)}
-                </p>
-                <p className="mt-0.5 text-xs" style={muted}>
-                  {t.note ? `${t.note} · ` : ''}
-                  {t.addedBy ? `由 ${t.addedBy} 加入 · ` : ''}
-                  {hk(t.createdAt)}
-                </p>
-              </div>
-              <button
-                type="button"
-                disabled={busy === t.userId}
-                onClick={() => void remove(t.userId)}
-                className="rounded-[var(--admin-radius-pill)] border px-3 py-1 text-xs"
-                style={{ borderColor: 'var(--admin-border-subtle)', color: 'var(--admin-status-danger)', opacity: busy === t.userId ? 0.5 : 1 }}
-              >
-                移除
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') void search()
-            }}
-            placeholder="搜尋電郵、名稱或會員編號"
-            className="min-w-[220px] flex-1 rounded-[var(--admin-radius-pill)] border px-4 py-2 text-sm"
-            style={{ borderColor: 'var(--admin-border-subtle)', background: 'var(--admin-bg-elevated)', ...primary }}
-          />
-          <input
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="備註（選填）"
-            className="w-40 rounded-[var(--admin-radius-pill)] border px-4 py-2 text-sm"
-            style={{ borderColor: 'var(--admin-border-subtle)', background: 'var(--admin-bg-elevated)', ...primary }}
-          />
-          <button
-            type="button"
-            onClick={() => void search()}
-            disabled={busy === 'search' || query.trim().length < 2}
-            className="rounded-[var(--admin-radius-pill)] border px-4 py-2 text-sm"
-            style={{ borderColor: 'var(--admin-border-subtle)', ...primary, opacity: query.trim().length < 2 ? 0.5 : 1 }}
-          >
-            搜尋
-          </button>
-        </div>
-        {results.length > 0 && (
-          <ul className="mt-2 flex flex-col rounded-[var(--admin-radius-card)] border" style={{ borderColor: 'var(--admin-border-subtle)' }}>
-            {results.map((u) => (
-              <li key={u.userId} className="flex items-center gap-3 border-b px-4 py-2.5 last:border-b-0" style={{ borderColor: 'var(--admin-border-subtle)' }}>
-                <span className="min-w-0 flex-1 truncate text-sm" style={primary}>
-                  {label(u)}
-                </span>
-                <button
-                  type="button"
-                  disabled={busy === u.userId || data?.testers.some((t) => t.userId === u.userId) === true}
-                  onClick={() => void add(u.userId)}
-                  className="rounded-[var(--admin-radius-pill)] px-3 py-1 text-xs font-medium"
-                  style={{ background: 'var(--admin-green)', color: 'var(--admin-brand-text)', opacity: data?.testers.some((t) => t.userId === u.userId) ? 0.4 : 1 }}
-                >
-                  {data?.testers.some((t) => t.userId === u.userId) ? '已加入' : '加入'}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
 
       {/* ── Orders ─────────────────────────────── */}
       <div className="px-5 pb-1 pt-6">

@@ -49,6 +49,7 @@ type BookingRow = {
   order_group_id: string | null
   payment_method: string | null
   total_price: number | string | null
+  stripe_payment_intent?: string | null
 }
 
 const ORDER_COLUMNS =
@@ -106,9 +107,21 @@ export async function settlePaymentXOrder(
   const paidOrderNo = result.paidOrderNo ?? order.managed_order_no
   const eventSource = source === 'admin' ? 'admin' : source === 'webhook' ? 'webhook' : 'status_poll'
 
+  // One hosted-cashier order can hold several payment orders: more than one success means the
+  // customer was charged twice. Nothing is refunded here; every admin is emailed to refund by hand.
+  const successes = result.payments.filter((p) => p.result === 2)
+  if (successes.length > 1) {
+    await logSiteError('payments/duplicate', 'error', 'PaymentX: more than one successful payment on one cashier order: refund manually', {
+      bookingId: order.booking_id,
+      providerOrderNo: order.managed_order_no,
+      paidOrderNo,
+      count: successes.length,
+    })
+  }
+
   const { data: bookingRow } = await db
     .from('bookings')
-    .select('id, status, human_code, order_group_id, payment_method, total_price')
+    .select('id, status, human_code, order_group_id, payment_method, total_price, stripe_payment_intent')
     .eq('id', order.booking_id)
     .maybeSingle()
   const booking = bookingRow as BookingRow | null
@@ -156,6 +169,30 @@ export async function settlePaymentXOrder(
       .eq('id', order.id)
       .in('status', ['creating', 'pending', 'cancelled'])
       .select('id')
+    // Confirmed earlier by a DIFFERENT order (another cashier order, or a direct KPay payment):
+    // this payment is a duplicate charge.
+    if (
+      moved && moved.length > 0 &&
+      booking.stripe_payment_intent &&
+      booking.stripe_payment_intent !== `managed_${order.managed_order_no}`
+    ) {
+      await logPaymentEvent({
+        bookingId: booking.id,
+        orderGroupId: booking.order_group_id,
+        event: 'duplicate_payment',
+        source: eventSource,
+        providerOrderNo: order.managed_order_no,
+        reason: `booking already confirmed by ${booking.stripe_payment_intent}`,
+        meta: { paidOrderNo },
+      })
+      await logSiteError('payments/duplicate', 'error', 'PaymentX payment on an already confirmed booking: refund manually', {
+        bookingId: booking.id,
+        providerOrderNo: order.managed_order_no,
+        paidOrderNo,
+        confirmedOrderNo: booking.stripe_payment_intent,
+        amount: result.payAmount,
+      })
+    }
     if (moved && moved.length > 0) {
       await logPaymentEvent({
         bookingId: booking.id,

@@ -1962,6 +1962,29 @@ function Screen3({
   // mount (minting a booking + PaymentIntent), then vanish once the check
   // returned. Hold the gateway until the check settles.
   const [adminChecked, setAdminChecked] = useState(false)
+  // Payment system for THIS visitor (admin-selected per account, else the public system):
+  // kpay | stripe | paymentx. null until /api/payment/system answers; the build-time env
+  // default applies meanwhile, so nothing changes if the lookup fails.
+  const [paySystem, setPaySystem] = useState<"kpay" | "stripe" | "paymentx" | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch("/api/payment/system", { cache: "no-store" })
+        if (!res.ok) return
+        const json: unknown = await res.json()
+        const v = json && typeof json === "object" ? (json as { system?: unknown }).system : null
+        if (!cancelled && (v === "kpay" || v === "stripe" || v === "paymentx")) setPaySystem(v)
+      } catch {
+        /* keep the env default */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  const isStripeSystem = paySystem ? paySystem === "stripe" : process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "stripe"
+  const isPaymentXSystem = paySystem === "paymentx"
   useEffect(() => {
     if (isAdmin && !adminDevUi && adminGateway === null) {
       setAdminGateway("kpay")
@@ -2607,7 +2630,7 @@ function Screen3({
                     that will actually handle the charge. */}
                 {!adminChecked
                   ? ""
-                  : adminKpayMode || (process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || "kpay") !== "stripe"
+                  : adminKpayMode || !isStripeSystem
                     ? t("kpay_secure")
                     : t("stripe_secure")}
               </span>
@@ -2732,7 +2755,7 @@ function Screen3({
               )}
               {showPublicGateway && (
               <div>
-              {process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === 'stripe' ? (
+              {isStripeSystem ? (
                 /* ── Stripe: Direct to Payment Element (skip PaymentMethodList) ── */
                 <StripePayment
                   blocks={blocks.map((b) => ({
@@ -2790,14 +2813,16 @@ function Screen3({
               ) : !confirmed ? (
                 /* ── KPay: Stage 1 - PaymentMethodList ── */
                 <>
+                {!isPaymentXSystem && (
                 <PaymentMethodList
+                  forceKpay={!isStripeSystem}
                   selected={paymentMethod}
                   onSelect={(method) => {
                     setPaymentError(null)
                     setPaymentMethod(method)
                     scrollIntoViewIfNeeded(payCtaRef)
 
-                    const provider = process.env.NEXT_PUBLIC_PAYMENT_PROVIDER || 'kpay'
+                    const provider = isStripeSystem ? 'stripe' : 'kpay'
 
                     if (provider === 'kpay') {
                       const kpayMethods: KPayMethod[] = ['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp']
@@ -2808,7 +2833,8 @@ function Screen3({
                     }
                   }}
                 />
-                {/* PaymentX vX1.0.0 — renders only for admin-selected test accounts */}
+                )}
+                {/* PaymentX — renders only when this account's payment system is PaymentX */}
                 <PaymentXEntry
                   blocks={blocks.map((b) => ({
                     date: b.date,
@@ -3438,7 +3464,7 @@ function Screen3({
           Stripe: This CTA is KPay-specific (it triggers the 2-stage KPay flow).
           Stripe users skip directly to Payment Element, so hide this button.
           Admin KPay mode re-enables it — the original KPay flow needs it. */}
-      {!testMode && !confirmed && (adminKpayMode || process.env.NEXT_PUBLIC_PAYMENT_PROVIDER !== 'stripe') && (
+      {!testMode && !confirmed && (adminKpayMode || !isStripeSystem) && !isPaymentXSystem && (
         <div ref={payCtaRef} className="pay-cta">
           <div className="pay-cta-inner">
             <button
