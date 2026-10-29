@@ -336,6 +336,9 @@ export default function PaymentMonitorClient() {
                       <Btn onClick={() => void checkOrder(i.providerOrderNo as string)} disabled={busy === `check:${i.providerOrderNo}`}>查詢 KPay</Btn>
                     ) : null}
                     {i.humanCode ? <Btn onClick={() => { setQuery(i.humanCode as string); setActiveQuery(i.humanCode as string) }}>查看時間線</Btn> : null}
+                    {i.kind === 'payment_review' && i.bookingId ? (
+                      <a href={`/admin/bookings/${i.bookingId}`} className="min-h-[36px] inline-flex items-center rounded-[var(--admin-radius-button)] border px-3 text-sm" style={{ borderColor: 'var(--admin-green)', color: 'var(--admin-green)' }}>審核</a>
+                    ) : null}
                     {i.mark !== 'pending' ? (
                       <Btn onClick={() => void markIssue(i.id, 'pending')} disabled={busy === `mark:${i.id}`}>跟進中</Btn>
                     ) : null}
