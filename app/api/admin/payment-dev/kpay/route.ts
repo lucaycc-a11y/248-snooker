@@ -18,6 +18,7 @@ import { calculatePrice } from '@/lib/pricing'
 import { humanReadableCode } from '@/lib/qr/jwt'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import { releaseStaleCheckout } from '@/lib/checkout/release-stale'
+import { getAccountCheckoutLock } from '@/lib/checkout/supersede'
 import { parseRpc, isLockSlotResult, isLockSlotsResult } from '@/lib/supabase/rpc-parse'
 import { withSecurity } from '@/lib/security/api-wrapper'
 import { logSiteError } from '@/lib/errors/log'
@@ -454,6 +455,19 @@ async function handleAdminKpayCreate(req: Request) {
       discount.kind =
         reusedCredit > 0 && reusedPromo > 0 ? 'both' : reusedCredit > 0 ? 'credits' : reusedPromo > 0 ? 'promo' : 'none'
     } else {
+    // Account lock (same rule as /api/checkout/create): another checkout of this account still has
+    // a payable KPay order, so a second one must not start and re-use its credit.
+    const accountLock = await getAccountCheckoutLock(service, adminUserId, new URL(req.url).hostname)
+    if (accountLock.paidBookingId) {
+      return NextResponse.json({ error: 'payment_received', bookingId: accountLock.paidBookingId }, { status: 409 })
+    }
+    if (accountLock.lockedBookingId) {
+      return NextResponse.json(
+        { error: 'checkout_locked', bookingId: accountLock.lockedBookingId, lockedUntil: accountLock.lockedUntil },
+        { status: 409 },
+      )
+    }
+
     // ── 5. Lock the real slot(s) ──────────────────────────────────────────
     const periods = await loadPeriods()
     const tier = await resolveTierForUser(adminUserId)
