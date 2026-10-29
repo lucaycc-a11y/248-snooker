@@ -5,6 +5,7 @@ import { str, type Row } from '@/lib/data/adminReadHelpers'
 import { writeAdminActionLog } from '@/lib/admin/audit'
 import { settlePaymentXOrder, loadPaymentXOrder } from '@/lib/paymentx/settle'
 import { PAYMENTX_CHANGELOG, PAYMENTX_VERSION } from '@/lib/paymentx/version'
+import { PaymentXClient } from '@/lib/paymentx/client'
 
 // 後台 → 設定 → PaymentX. Which accounts see the hosted cashier, the latest PaymentX orders
 // and KPay notify payloads. Any signed-in admin may read and manage the test list.
@@ -148,6 +149,18 @@ export async function POST(req: Request) {
         afterJsonb: { userId },
       })
       return NextResponse.json({ ok: true })
+    }
+
+    // Fresh signed cashier URL for an open order, in either layout, to isolate cashier problems
+    // (blank page on one layout, etc.). Admin only; the URL is signed for 'now'.
+    if (body.action === 'cashier_url') {
+      const orderId = typeof body.orderId === 'string' ? body.orderId : ''
+      if (!UUID_RE.test(orderId)) return NextResponse.json({ error: 'Invalid orderId' }, { status: 400 })
+      const order = await loadPaymentXOrder(orderId)
+      if (!order || !order.managed_order_no) return NextResponse.json({ error: '找不到訂單' }, { status: 404 })
+      const layout = body.layout === 'h5' ? 'h5' : 'web'
+      const url = new PaymentXClient(new URL(req.url).hostname).buildCashierUrl(order.managed_order_no, layout)
+      return NextResponse.json({ ok: true, url, layout })
     }
 
     // Ask KPay about one order now and settle it (what the status poll / notify would do).

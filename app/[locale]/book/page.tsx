@@ -1966,6 +1966,7 @@ function Screen3({
   // kpay | stripe | paymentx. null until /api/payment/system answers; the build-time env
   // default applies meanwhile, so nothing changes if the lookup fails.
   const [paySystem, setPaySystem] = useState<"kpay" | "stripe" | "paymentx" | null>(null)
+  const [paySystemLoaded, setPaySystemLoaded] = useState(false)
   useEffect(() => {
     let cancelled = false
     void (async () => {
@@ -1977,6 +1978,8 @@ function Screen3({
         if (!cancelled && (v === "kpay" || v === "stripe" || v === "paymentx")) setPaySystem(v)
       } catch {
         /* keep the env default */
+      } finally {
+        if (!cancelled) setPaySystemLoaded(true)
       }
     })()
     return () => {
@@ -1986,11 +1989,13 @@ function Screen3({
   const isStripeSystem = paySystem ? paySystem === "stripe" : process.env.NEXT_PUBLIC_PAYMENT_PROVIDER === "stripe"
   const isPaymentXSystem = paySystem === "paymentx"
   useEffect(() => {
-    if (isAdmin && !adminDevUi && adminGateway === null) {
-      setAdminGateway("kpay")
+    if (isAdmin && !adminDevUi && adminGateway === null && paySystemLoaded) {
+      // An admin whose payment system is PaymentX gets the public checkout, which renders the
+      // PaymentX "confirm price, go to KPay" step, not the admin KPay method picker.
+      setAdminGateway(paySystem === "paymentx" ? "stripe" : "kpay")
       setTestMode(false)
     }
-  }, [isAdmin, adminDevUi, adminGateway])
+  }, [isAdmin, adminDevUi, adminGateway, paySystem, paySystemLoaded])
   const showPublicGateway = adminChecked && (!isAdmin || adminGateway === "stripe")
   const [testConfirming, setTestConfirming] = useState(false)
   const [testError, setTestError] = useState<string | null>(null)
@@ -2642,7 +2647,7 @@ function Screen3({
         <div className="checkout-payment">
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{t("payment_title")}</div>
-            <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>{t("payment_subtitle") || "Choose your payment method"}</div>
+            <div style={{ fontSize: 13, color: tokens.colors.textMuted }}>{isPaymentXSystem ? "確認金額後，前往 KPay 付款頁選擇付款方式" : (t("payment_subtitle") || "Choose your payment method")}</div>
           </div>
 
           {/* Admin Test Mode banner. Hidden in admin KPay mode so the bypass
@@ -2846,6 +2851,8 @@ function Screen3({
                   promoCode={promoCode?.code ?? null}
                   agreedToTerms={agreedToTerms}
                   onTermsRequired={flagTermsRequired}
+                  primary={isPaymentXSystem}
+                  total={total}
                 />
                 </>
               ) : paymentMethod !== null && (['card', 'fps', 'payme', 'octopus', 'alipay', 'alipayhk', 'wechat', 'unionpay_qp'] as const).includes(paymentMethod as any) ? (
@@ -3306,7 +3313,7 @@ function Screen3({
                 data-cms-key="book.terms_agree"
                 style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}
               >
-                {t("terms_agree_prefix")}{" "}
+                {isPaymentXSystem ? "前往付款即表示你同意 SPACE8 的" : t("terms_agree_prefix")}{" "}
                 <a
                   href="/legal"
                   target="_blank"

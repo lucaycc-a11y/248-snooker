@@ -100,6 +100,16 @@ export default function PaymentXPanel() {
     return json
   }
 
+  async function openCashier(orderId: string, layout: 'web' | 'h5') {
+    setBusy(orderId)
+    try {
+      const json = await post({ action: 'cashier_url', orderId, layout })
+      if (json && typeof json.url === 'string') window.open(json.url, '_blank', 'noopener')
+    } finally {
+      setBusy(null)
+    }
+  }
+
   async function sync(orderId: string) {
     setBusy(orderId)
     setMessage(null)
@@ -183,6 +193,28 @@ export default function PaymentXPanel() {
               >
                 向 KPay 同步
               </button>
+              {(o.status === 'pending' || o.status === 'creating') && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void openCashier(o.id, 'web')}
+                    disabled={busy === o.id}
+                    className="rounded-[var(--admin-radius-pill)] border px-3 py-1 text-xs"
+                    style={{ borderColor: 'var(--admin-border-subtle)', ...primary }}
+                  >
+                    開啟收銀台（電腦版）
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void openCashier(o.id, 'h5')}
+                    disabled={busy === o.id}
+                    className="rounded-[var(--admin-radius-pill)] border px-3 py-1 text-xs"
+                    style={{ borderColor: 'var(--admin-border-subtle)', ...primary }}
+                  >
+                    開啟收銀台（手機版）
+                  </button>
+                </>
+              )}
             </li>
           ))}
         </ul>

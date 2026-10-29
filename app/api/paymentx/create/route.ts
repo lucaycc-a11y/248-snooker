@@ -221,7 +221,7 @@ async function handlePaymentXCreate(req: Request) {
           return NextResponse.json(
             {
               error: 'Slot already booked',
-              message: '呢個時段啱啱俾人訂咗，請揀返第個時段',
+              message: '此時段剛被預訂，請重新選擇時段。',
               reason: 'slot_confirmed',
             },
             { status: 409 },
