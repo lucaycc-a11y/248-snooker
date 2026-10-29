@@ -15,6 +15,7 @@ import {
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
+import { releaseSameSlotPending } from '@/lib/checkout/supersede'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import type { PaymentMethod } from '@/lib/payments/types'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
@@ -195,6 +196,16 @@ async function handleCheckoutCreate(req: Request) {
           price: quote.total,
         }
       })
+
+      // One pending booking per customer per slot: release this customer's earlier unpaid attempt
+      // on the same slot(s) BEFORE locking (cancelling frees the slot). A paid one stops here.
+      const sameSlot = await releaseSameSlotPending(service, user.id, blocks, getHostname(req) ?? '')
+      if (sameSlot.paidBookingId) {
+        return NextResponse.json(
+          { error: 'payment_received', bookingId: sameSlot.paidBookingId },
+          { status: 409 },
+        )
+      }
 
       const orderGroupId = blocks.length > 1 ? randomUUID() : null
       let slotIds: string[]

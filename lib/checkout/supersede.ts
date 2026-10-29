@@ -113,3 +113,76 @@ export async function releaseDeadPendingOrders(
   }
   return released
 }
+
+// One pending booking per customer per slot. Starting a new checkout for a slot the same
+// customer already has a pending / payment_failed booking on first releases the old one at once
+// (slot, credit and promo holds), so repeated attempts never pile up as parallel pending rows
+// (SPACE8-PSURG-K). It must run BEFORE the new slot lock is taken: cancelling frees the slot.
+// A booking whose KPay order is already PAID is never released: the caller gets `paidBookingId`
+// and must stop, the status poll confirms that booking. An unpaid open order is released and, if
+// paid later, the webhook revives it or parks it in payment_review.
+export type SameSlotRelease = { released: number; paidBookingId: string | null }
+
+export async function releaseSameSlotPending(
+  service: ServiceClient,
+  userId: string,
+  blocks: { date: string; startHour: number; tableNumber: number }[],
+  hostname: string,
+): Promise<SameSlotRelease> {
+  const result: SameSlotRelease = { released: 0, paidBookingId: null }
+  try {
+    const slotIds: string[] = []
+    for (const b of blocks) {
+      const { data: slots } = await service
+        .from('slots')
+        .select('id')
+        .eq('date', b.date)
+        .eq('start_time', `${String(b.startHour).padStart(2, '0')}:00:00`)
+        .eq('table_number', b.tableNumber)
+      for (const s of (slots ?? []) as { id: string }[]) slotIds.push(s.id)
+    }
+    if (slotIds.length === 0) return result
+
+    const { data: rows } = await service
+      .from('bookings')
+      .select('id, order_group_id, provider_order_no')
+      .eq('user_id', userId)
+      .in('slot_id', slotIds)
+      .in('status', ['pending', 'payment_failed'])
+    if (!rows || rows.length === 0) return result
+
+    const { getLiveKPayState } = await import('@/lib/payments/live-order')
+    const done = new Set<string>()
+    for (const row of rows as { id: string; order_group_id: string | null; provider_order_no: string | null }[]) {
+      const key = row.order_group_id ?? row.id
+      if (done.has(key)) continue
+      const live = await getLiveKPayState(row.provider_order_no, hostname)
+      if (live === 'paid') {
+        result.paidBookingId = row.id
+        return result
+      }
+      const { data, error } = await service.rpc('cancel_pending_booking', { p_booking_id: row.id, p_user_id: userId })
+      if (error || (data as { success?: boolean } | null)?.success !== true) continue
+      done.add(key)
+      result.released += 1
+      await service
+        .from('payment_attempts')
+        .update({ status: 'cancelled', failure_code: 'superseded_same_slot', updated_at: new Date().toISOString() })
+        .eq('booking_id', row.id)
+        .in('status', ['claimed', 'pending'])
+      await logPaymentEvent({
+        bookingId: row.id,
+        orderGroupId: row.order_group_id,
+        providerOrderNo: row.provider_order_no,
+        event: 'superseded_open_order',
+        source: 'user',
+        fromState: 'pending',
+        toState: 'cancelled',
+        reason: 'same_slot_new_checkout',
+      })
+    }
+  } catch (e) {
+    console.warn('[checkout] releaseSameSlotPending failed', { message: (e as Error).message })
+  }
+  return result
+}
