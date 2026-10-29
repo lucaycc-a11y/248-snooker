@@ -186,3 +186,52 @@ export async function releaseSameSlotPending(
   }
   return result
 }
+
+// Account checkout lock: while one of the customer's bookings has a KPay order that was opened
+// in the last LOCK_MINUTES and is still payable, no other checkout can start on that account
+// (any slot, any device). Space Credit / promo holds of that booking therefore cannot be
+// re-used by a second checkout while the first order can still be paid. Cancelling the booking
+// (the customer's explicit cancel) unlocks at once; otherwise the lock ends when the order is
+// paid, closed, or LOCK_MINUTES have passed. A lookup failure never locks (fail open).
+export const CHECKOUT_LOCK_MINUTES = 10
+export type AccountLock = { paidBookingId: string | null; lockedBookingId: string | null; lockedUntil: string | null }
+
+export async function getAccountCheckoutLock(
+  service: ServiceClient,
+  userId: string,
+  hostname: string,
+): Promise<AccountLock> {
+  const none: AccountLock = { paidBookingId: null, lockedBookingId: null, lockedUntil: null }
+  try {
+    const since = new Date(Date.now() - CHECKOUT_LOCK_MINUTES * 60_000).toISOString()
+    const { data: attempts } = await service
+      .from('payment_attempts')
+      .select('booking_id, provider_order_no, created_at')
+      .eq('user_id', userId)
+      .in('status', ['claimed', 'pending'])
+      .gt('created_at', since)
+      .not('provider_order_no', 'is', null)
+      .order('created_at', { ascending: false })
+    if (!attempts || attempts.length === 0) return none
+
+    const { getLiveKPayState } = await import('@/lib/payments/live-order')
+    for (const a of attempts as { booking_id: string; provider_order_no: string; created_at: string }[]) {
+      const { data: b } = await service
+        .from('bookings')
+        .select('id, status')
+        .eq('id', a.booking_id)
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (!b || (b.status !== 'pending' && b.status !== 'payment_failed')) continue
+      const live = await getLiveKPayState(a.provider_order_no, hostname)
+      if (live === 'paid') return { ...none, paidBookingId: b.id }
+      if (live === 'pending') {
+        const until = new Date(new Date(a.created_at).getTime() + CHECKOUT_LOCK_MINUTES * 60_000).toISOString()
+        return { ...none, lockedBookingId: b.id, lockedUntil: until }
+      }
+    }
+  } catch (e) {
+    console.warn('[checkout] getAccountCheckoutLock failed — not locking', { message: (e as Error).message })
+  }
+  return none
+}

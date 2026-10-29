@@ -15,7 +15,7 @@ import {
 import { rateLimit } from '@/lib/rate-limit'
 import { logSiteError } from '@/lib/errors/log'
 import { requireCompleteProfile } from '@/lib/auth/require-complete-profile'
-import { releaseSameSlotPending } from '@/lib/checkout/supersede'
+import { getAccountCheckoutLock, releaseSameSlotPending } from '@/lib/checkout/supersede'
 import { prepareCheckout, prepareFailureStatus, releaseCheckoutHolds } from '@/lib/checkout/prepare'
 import type { PaymentMethod } from '@/lib/payments/types'
 import { isSlotStillBookable, isValidSlotStart, slotStartInHongKong } from '@/lib/booking/slot-cutoff'
@@ -197,6 +197,18 @@ async function handleCheckoutCreate(req: Request) {
 
       // One pending booking per customer per slot: release this customer's earlier unpaid attempt
       // on the same slot(s) BEFORE locking (cancelling frees the slot). A paid one stops here.
+      // Account lock: another checkout of this customer still has a payable KPay order, so a
+      // second one (other device / other slot) must not start and re-use its credit holds.
+      const lock = await getAccountCheckoutLock(service, user.id, getHostname(req) ?? '')
+      if (lock.paidBookingId) {
+        return NextResponse.json({ error: 'payment_received', bookingId: lock.paidBookingId }, { status: 409 })
+      }
+      if (lock.lockedBookingId) {
+        return NextResponse.json(
+          { error: 'checkout_locked', bookingId: lock.lockedBookingId, lockedUntil: lock.lockedUntil },
+          { status: 409 },
+        )
+      }
       const sameSlot = await releaseSameSlotPending(service, user.id, blocks, getHostname(req) ?? '')
       if (sameSlot.paidBookingId) {
         return NextResponse.json(
