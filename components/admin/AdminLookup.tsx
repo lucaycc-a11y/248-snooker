@@ -199,7 +199,7 @@ export default function AdminLookup({ data }: { data: AdminLookupData }) {
                   <AdminStatusBadge status={data.booking.status} />
                   {data.booking.isTest ? <AdminStatusBadge label="測試" tone="test" /> : null}
                 </h3>
-                <Link href={`/admin/bookings/${data.booking.id}`} className="admin-pill-btn sm">開啟預約</Link>
+                <Link href={`/admin/bookings/${data.booking.id}`} className="admin-pill-btn sm">{data.booking.status === 'payment_review' ? '審核' : '開啟預約'}</Link>
               </div>
               <p className="al-sub">
                 {dateLabel(data.booking.date)} {hhmm(data.booking.startTime)}–{hhmm(data.booking.endTime)} · 房 {data.booking.table} · {money(data.booking.price)}

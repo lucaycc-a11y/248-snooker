@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { num, str, type Row } from '@/lib/data/adminReadHelpers'
 import BookingCancelAction from '@/components/admin/BookingCancelAction'
+import PaymentReviewAction from '@/components/admin/PaymentReviewAction'
 
 // Manual refund is handled by the existing member self-serve flow / a
 // separate refund route — this admin action is a distinct soft-cancel
@@ -91,7 +92,8 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
   const method = str(booking, ['payment_method'])
   const refund = num(booking, ['refund_amount'], 0)
   const userId = typeof booking.user_id === 'string' ? booking.user_id : null
-  const canCancel = status !== 'refunded' && status !== 'admin_cancelled'
+  const inReview = status === 'payment_review'
+  const canCancel = status !== 'refunded' && status !== 'admin_cancelled' && !inReview
 
   return (
     <div className="bk-page">
@@ -139,6 +141,19 @@ export default async function AdminBookingDetailPage({ params }: { params: Promi
           <Field label="電郵" value={user?.email ?? '—'} />
         </dl>
       </section>
+
+      {inReview ? (
+        <section className="admin-card bk-card" style={{ borderColor: 'var(--admin-status-warning)' }}>
+          <div>
+            <h3>付款待審核</h3>
+            <p>客人已經付款，但系統未能自動確認這張預約（通常係時段已被其他客人佔用）。請決定：仍可確認就確認；否則先在 KPay 退款，再標記「已退款」。</p>
+            {str(booking, ['admin_note']) ? (
+              <p className="admin-mono" style={{ whiteSpace: 'pre-wrap', marginTop: 8, fontSize: 13 }}>{str(booking, ['admin_note'])}</p>
+            ) : null}
+          </div>
+          <PaymentReviewAction bookingId={id} />
+        </section>
+      ) : null}
 
       {canCancel ? (
         <section className="admin-card bk-card bk-danger">
