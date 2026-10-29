@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
 
 type Row = Record<string, unknown>
 
-async function getOrders(includeTest: boolean): Promise<{ rows: Row[]; error: string | null }> {
+async function getOrders(includeTest: boolean, q: string): Promise<{ rows: Row[]; error: string | null }> {
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -41,6 +41,7 @@ async function getOrders(includeTest: boolean): Promise<{ rows: Row[]; error: st
     .order('created_at', { ascending: false })
     .limit(100)
   if (!includeTest) query = query.eq('is_test', false)
+  if (q) query = query.ilike('human_code', `%${q.replace(/[%_,()]/g, '')}%`)
 
   const { data, error } = await query
   if (error) {
@@ -68,11 +69,12 @@ function text(value: unknown): string | null {
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ test?: string }> | { test?: string }
+  searchParams: Promise<{ test?: string; q?: string }> | { test?: string; q?: string }
 }) {
   const params = await searchParams
   const includeTest = params.test === '1'
-  const { rows, error } = await getOrders(includeTest)
+  const q = (params.q ?? '').trim().slice(0, 40)
+  const { rows, error } = await getOrders(includeTest, q)
 
   return (
     <>
@@ -80,7 +82,7 @@ export default async function OrdersPage({
         sub={`最近 100 張訂單${includeTest ? '（包括測試訂單）' : ''}`}
         actions={
           <Link
-            href={includeTest ? '/admin/orders' : '/admin/orders?test=1'}
+            href={`/admin/orders?${new URLSearchParams({ ...(includeTest ? {} : { test: '1' }), ...(q ? { q } : {}) })}`}
             className="admin-pill-btn"
           >
             {includeTest ? '隱藏測試訂單' : '包括測試訂單'}
@@ -95,6 +97,15 @@ export default async function OrdersPage({
       ) : null}
 
       <section className="admin-card flat">
+        <form className="ad-filters" action="/admin/orders" method="get">
+          {includeTest ? <input type="hidden" name="test" value="1" /> : null}
+          <label className="ad-field" style={{ flex: '2 1 240px' }}>
+            <span>預約編號</span>
+            <input className="ad-input" name="q" defaultValue={q} placeholder="例如 SPACE8-NQH9F-7" />
+          </label>
+          <button type="submit" className="ad-btn ad-btn-primary">搜尋</button>
+          {q ? <Link href="/admin/orders" className="ad-btn">清除</Link> : null}
+        </form>
         <div className="admin-head">
           <h3>訂單列表（{rows.length}）</h3>
         </div>

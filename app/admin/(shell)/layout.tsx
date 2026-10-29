@@ -3,6 +3,8 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { AdminShell } from '@/components/admin/AdminShell'
 import { getAdminData } from '@/lib/data/getAdmin'
+import AdminTabBar from '@/components/admin/AdminTabBar'
+import { TestModeBanner } from '@/components/admin/TestModePanel'
 
 /**
  * Guarded admin shell.
@@ -61,6 +63,8 @@ export default async function AdminShellLayout({
 
   return (
     <AdminShell admin={admin} isSuperAdmin={isSuperAdmin}>
+      <TestModeBanner />
+      <AdminTabBar />
       {children}
     </AdminShell>
   )

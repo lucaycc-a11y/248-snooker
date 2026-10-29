@@ -40,11 +40,11 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 /* ── Channel config ───────────────────────────────────── */
-const CHANNELS: Record<string, { label: string; color: string; bg: string }> = {
-  push: { label: '推送', color: 'var(--admin-brand)', bg: 'var(--admin-brand-dim)' },
-  email: { label: '電郵', color: 'var(--admin-warning)', bg: 'var(--admin-warning-dim)' },
-  sms: { label: '短訊', color: 'var(--admin-accent-blue, var(--admin-brand))', bg: 'var(--admin-surface-elevated)' },
-  in_app: { label: '站內', color: 'var(--admin-text-muted)', bg: 'var(--admin-surface-elevated)' },
+const CHANNELS: Record<string, { label: string; tone?: 'warn' | 'muted' }> = {
+  push: { label: '推送' },
+  email: { label: '電郵', tone: 'warn' },
+  sms: { label: '短訊' },
+  in_app: { label: '站內', tone: 'muted' },
 }
 
 /* ── Extract variables from body ──────────────────────── */
@@ -236,96 +236,51 @@ export default function NotificationsPage() {
     }
   }, [fetchTemplates])
 
+  const activeCount = templates.filter((x) => x.isActive).length
+
   return (
     <div className="admin-stack">
-      {/* ── Header ──────────────────────────────────────────── */}
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="mt-1 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-            管理推播、電郵、短訊與站內通知範本。
+      <section className="admin-card">
+        <div className="ad-filters" style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <p className="ad-muted" style={{ margin: 0 }}>
+            管理推播、電郵、短訊與站內通知範本
+            {!loading && templates.length > 0 ? ` · 共 ${templates.length} 個，${activeCount} 個啟用` : ''}
           </p>
+          <button type="button" className="ad-btn ad-btn-primary" onClick={handleCreate}>新增範本</button>
         </div>
-        <button
-          type="button"
-          onClick={handleCreate}
-          className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-colors"
-          style={{ color: 'var(--admin-brand-text)', background: 'var(--admin-brand)' }}
-        >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          新增範本
-        </button>
-      </header>
+      </section>
 
-      {/* ── Error banner ───────────────────────────────────── */}
-      {error && (
-        <div
-          className="flex items-center justify-between rounded-xl px-4 py-3 text-sm"
-          style={{ color: 'var(--admin-danger)', background: 'var(--admin-danger-dim)', border: '1px solid var(--admin-danger)' }}
-        >
+      {error ? (
+        <div role="alert" className="admin-card" style={{ borderColor: 'var(--admin-status-danger)', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', gap: 12, color: 'var(--admin-status-danger)' }}>
           <span>{error}</span>
-          <button type="button" onClick={() => setError(null)} className="text-xs opacity-60 hover:opacity-100">
-            關閉
-          </button>
+          <button type="button" className="ad-muted" onClick={() => setError(null)}>關閉</button>
         </div>
-      )}
+      ) : null}
 
-      {/* ── Template Form (slide-down) ─────────────────────── */}
-      {showForm && (
-        <div
-          className="flex flex-col gap-4 rounded-2xl p-5"
-          style={{ background: 'var(--admin-surface)', border: '1px solid var(--admin-border)' }}
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
-              {editingId ? '編輯範本' : '新增範本'}
-            </h2>
-            <button
-              type="button"
-              onClick={() => { setShowForm(false); setEditingId(null) }}
-              className="rounded-lg px-2 py-1 text-xs transition-colors"
-              style={{ color: 'var(--admin-text-muted)' }}
-            >
-              取消
-            </button>
+      {showForm ? (
+        <section className="admin-card">
+          <div className="admin-head" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3>{editingId ? '編輯範本' : '新增範本'}</h3>
+            <button type="button" className="ad-btn" onClick={() => { setShowForm(false); setEditingId(null) }}>取消</button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* ── Left: form fields ────────────────────────── */}
-            <div className="flex flex-col gap-3">
-              {/* Name */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                  範本名稱
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="例如預約確認"
-                  className="rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--admin-brand)]"
-                  style={{ background: 'var(--admin-bg)', color: 'var(--admin-text)', borderColor: 'var(--admin-border)' }}
-                />
-              </div>
+          <div className="grid gap-6 md:grid-cols-2" style={{ padding: '4px 20px 20px' }}>
+            <div className="flex flex-col gap-4">
+              <label className="ad-field" style={{ flex: 'none' }}>
+                <span>範本名稱</span>
+                <input className="ad-input" type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="例如預約確認" />
+              </label>
 
-              {/* Channel */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                  發送渠道
-                </label>
-                <div className="flex gap-2">
+              <div className="ad-field" style={{ flex: 'none' }}>
+                <span>發送渠道</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {Object.entries(CHANNELS).map(([key, cfg]) => (
                     <button
                       key={key}
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, channel: key }))}
-                      className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
-                      style={{
-                        color: form.channel === key ? 'var(--admin-brand-text)' : cfg.color,
-                        background: form.channel === key ? 'var(--admin-brand)' : cfg.bg,
-                        border: `1px solid ${form.channel === key ? 'var(--admin-brand)' : 'var(--admin-border)'}`,
-                      }}
+                      className={form.channel === key ? 'ad-btn ad-btn-primary' : 'ad-btn'}
+                      aria-pressed={form.channel === key}
                     >
                       {cfg.label}
                     </button>
@@ -333,292 +288,154 @@ export default function NotificationsPage() {
                 </div>
               </div>
 
-              {/* Subject (email only) */}
-              {form.channel === 'email' && (
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                    主旨
-                  </label>
-                  <input
-                    type="text"
-                    value={form.subject}
-                    onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
-                    placeholder="例如：你在 {{venue_name}} 的預約已確認"
-                    className="rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--admin-brand)]"
-                    style={{ background: 'var(--admin-bg)', color: 'var(--admin-text)', borderColor: 'var(--admin-border)' }}
-                  />
-                </div>
-              )}
-
-              {/* Body */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                  範本內容
+              {form.channel === 'email' ? (
+                <label className="ad-field" style={{ flex: 'none' }}>
+                  <span>主旨</span>
+                  <input className="ad-input" type="text" value={form.subject} onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))} placeholder="例如：你在 {{venue_name}} 的預約已確認" />
                 </label>
+              ) : null}
+
+              <label className="ad-field" style={{ flex: 'none' }}>
+                <span>範本內容</span>
                 <textarea
+                  className="ad-input"
+                  style={{ minHeight: 140, padding: '12px 14px', resize: 'vertical', lineHeight: 1.6 }}
                   value={form.body}
                   onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
                   placeholder="使用 {{variable_name}} 插入動態內容…"
                   rows={6}
-                  className="rounded-lg border px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--admin-brand)] resize-y"
-                  style={{ background: 'var(--admin-bg)', color: 'var(--admin-text)', borderColor: 'var(--admin-border)' }}
                 />
-                <p className="text-[10px]" style={{ color: 'var(--admin-text-faint)' }}>
-                  使用 {'{{variable_name}}'} 語法插入動態內容。偵測到：{detectedVariables.length > 0 ? detectedVariables.join(', ') : '無'}
-                </p>
-              </div>
-
-              {/* Active toggle */}
-              <label className="flex items-center gap-2 text-xs" style={{ color: 'var(--admin-text)' }}>
-                <input
-                  type="checkbox"
-                  checked={form.is_active}
-                  onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
-                  className="h-4 w-4 rounded accent-[var(--admin-brand)]"
-                />
-                啟用
+                <span style={{ fontWeight: 400 }}>
+                  用 {'{{variable_name}}'} 插入動態內容。偵測到：{detectedVariables.length > 0 ? detectedVariables.join(', ') : '無'}
+                </span>
               </label>
 
-              {/* Save button */}
+              <div className="tm-row" style={{ padding: 0, border: 0 }}>
+                <span style={{ fontWeight: 600 }}>啟用</span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.is_active}
+                  aria-label="啟用範本"
+                  className="tm-switch"
+                  data-on={form.is_active}
+                  onClick={() => setForm((f) => ({ ...f, is_active: !f.is_active }))}
+                >
+                  <span className="tm-knob" />
+                </button>
+              </div>
+
               <button
                 type="button"
+                className="ad-btn ad-btn-primary"
                 onClick={handleSave}
                 disabled={saving || !form.name.trim() || !form.body.trim()}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
-                style={{
-                  color: 'var(--admin-brand-text)',
-                  background: 'var(--admin-brand)',
-                  opacity: saving || !form.name.trim() || !form.body.trim() ? 0.5 : 1,
-                }}
               >
-                {saving ? <span className="admin-conic-spinner h-4 w-4" /> : editingId ? '更新範本' : '建立範本'}
+                {saving ? '儲存中…' : editingId ? '更新範本' : '建立範本'}
               </button>
             </div>
 
-            {/* ── Right: live preview ───────────────────────── */}
-            <div className="flex flex-col gap-3">
-              <h3 className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-                即時預覽
-              </h3>
-
-              {/* Sample variable values */}
-              <div
-                className="flex flex-col gap-2 rounded-xl p-3"
-                style={{ background: 'var(--admin-bg)', border: '1px solid var(--admin-border)' }}
-              >
-                <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-faint)' }}>
-                  範例數值
-                </p>
-                {detectedVariables.map((v) => (
-                  <div key={v} className="flex items-center gap-2">
-                    <span className="min-w-[80px] text-[10px] font-mono" style={{ color: 'var(--admin-brand)' }}>
-                      {'{{' + v + '}}'}
-                    </span>
-                    <input
-                      type="text"
-                      value={variableInputs[v] ?? ''}
-                      onChange={(e) => setVariableInputs((prev) => ({ ...prev, [v]: e.target.value }))}
-                      className="flex-1 rounded border px-2 py-1 text-[11px] outline-none focus:border-[var(--admin-brand)]"
-                      style={{ background: 'var(--admin-surface)', color: 'var(--admin-text)', borderColor: 'var(--admin-border)' }}
-                    />
-                  </div>
-                ))}
-                {detectedVariables.length === 0 && (
-                  <p className="text-[10px]" style={{ color: 'var(--admin-text-faint)' }}>
-                    內容中未偵測到變數。
-                  </p>
-                )}
+            <div className="flex flex-col gap-4">
+              <div className="ad-field" style={{ flex: 'none' }}>
+                <span>範例數值</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 12, borderRadius: 14, background: 'var(--admin-bg-tile)' }}>
+                  {detectedVariables.map((v) => (
+                    <label key={v} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className="ad-mono" style={{ minWidth: 110, color: 'var(--admin-green)' }}>{'{{' + v + '}}'}</span>
+                      <input
+                        className="ad-input"
+                        style={{ minHeight: 38 }}
+                        type="text"
+                        value={variableInputs[v] ?? ''}
+                        onChange={(e) => setVariableInputs((prev) => ({ ...prev, [v]: e.target.value }))}
+                      />
+                    </label>
+                  ))}
+                  {detectedVariables.length === 0 ? <p className="ad-muted" style={{ margin: 0 }}>內容中未偵測到變數</p> : null}
+                </div>
               </div>
 
-              {/* Rendered preview */}
-              <div
-                className="flex flex-col gap-2 rounded-xl p-4"
-                style={{ background: 'var(--admin-surface-elevated)', border: '1px solid var(--admin-border)' }}
-              >
-                {previewSubject && (
-                  <p className="text-xs font-bold" style={{ color: 'var(--admin-text)' }}>
-                    {previewSubject}
+              <div className="ad-field" style={{ flex: 'none' }}>
+                <span>即時預覽</span>
+                <div style={{ padding: 16, borderRadius: 18, background: 'var(--admin-bg-tile)', border: '1px solid var(--admin-border-subtle)' }}>
+                  {previewSubject ? <p style={{ margin: '0 0 8px', fontWeight: 700, fontSize: 16 }}>{previewSubject}</p> : null}
+                  <p style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: 15, lineHeight: 1.65, fontWeight: 400, color: 'var(--admin-text-primary)' }}>
+                    {previewBody || '開始輸入以查看預覽…'}
                   </p>
-                )}
-                <p
-                  className="whitespace-pre-wrap text-sm leading-relaxed"
-                  style={{ color: 'var(--admin-text)' }}
-                >
-                  {previewBody || '開始輸入以查看預覽…'}
-                </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </section>
+      ) : null}
 
-      {/* ── Delete confirmation dialog ─────────────────────── */}
-      {deleteTarget && (
-        <div
-          className="flex items-center justify-between rounded-xl px-4 py-3"
-          style={{ color: 'var(--admin-danger)', background: 'var(--admin-danger-dim)', border: '1px solid var(--admin-danger)' }}
-        >
-          <span className="text-sm">
-            確定刪除「{deleteTarget.name}」？此操作無法復原。
-          </span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setDeleteTarget(null)}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-              style={{ background: 'var(--admin-surface)', color: 'var(--admin-text)' }}
-            >
-              取消
-            </button>
-            <button
-              type="button"
-              onClick={handleDelete}
-              disabled={saving}
-              className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
-              style={{ background: 'var(--admin-danger)', color: '#ffffff' }}
-            >
+      {deleteTarget ? (
+        <div role="alertdialog" className="admin-card" style={{ borderColor: 'var(--admin-status-danger)', padding: '14px 18px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+          <span style={{ color: 'var(--admin-status-danger)', fontWeight: 600 }}>確定刪除「{deleteTarget.name}」？此操作無法復原。</span>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button type="button" className="ad-btn" onClick={() => setDeleteTarget(null)}>取消</button>
+            <button type="button" className="ad-btn" style={{ background: 'var(--admin-status-danger)', borderColor: 'var(--admin-status-danger)', color: '#fff' }} onClick={handleDelete} disabled={saving}>
               {saving ? '刪除中…' : '刪除'}
             </button>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* ── Template List ──────────────────────────────────── */}
-      <div
-        className="overflow-x-auto rounded-2xl"
-        style={{ background: 'var(--admin-surface)', border: '1px solid var(--admin-border)' }}
-      >
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>名稱</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>渠道</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>變數</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>狀態</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>更新時間</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center" style={{ color: 'var(--admin-text-muted)' }}>
-                  <span className="admin-conic-spinner mx-auto" />
-                  <span className="ml-2">Loading templates…</span>
-                </td>
-              </tr>
-            ) : templates.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center" style={{ color: 'var(--admin-text-muted)' }}>
-                  尚未有範本。請建立第一個通知範本。
-                </td>
-              </tr>
-            ) : (
-              templates.map((t) => {
-                const ch = CHANNELS[t.channel] ?? CHANNELS.in_app
-                return (
-                  <tr
-                    key={t.id}
-                    style={{ borderBottom: '1px solid var(--admin-border)' }}
-                    className="transition-colors"
-                  >
-                    {/* Name */}
-                    <td className="max-w-[200px] truncate px-4 py-3 font-medium" style={{ color: 'var(--admin-text)' }}>
-                      {t.name}
-                    </td>
-
-                    {/* Channel */}
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <span
-                        className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                        style={{ color: ch.color, background: ch.bg }}
-                      >
-                        {ch.label}
-                      </span>
-                    </td>
-
-                    {/* Variables */}
-                    <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {t.variables.length > 0 ? (
-                          t.variables.map((v) => (
-                            <span
-                              key={v}
-                              className="inline-flex rounded px-1.5 py-0.5 text-[9px] font-mono"
-                              style={{ color: 'var(--admin-brand)', background: 'var(--admin-brand-dim)' }}
-                            >
-                              {'{{' + v + '}}'}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-[10px]" style={{ color: 'var(--admin-text-faint)' }}>—</span>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Status toggle */}
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleActive(t)}
-                        className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
-                        style={{
-                          background: t.isActive ? 'var(--admin-brand)' : 'var(--admin-surface-elevated)',
-                        }}
-                      >
-                        <span
-                          className="inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform"
-                          style={{ transform: t.isActive ? 'translateX(17px)' : 'translateX(3px)' }}
-                        />
-                      </button>
-                    </td>
-
-                    {/* Updated */}
-                    <td className="whitespace-nowrap px-4 py-3" style={{ color: 'var(--admin-text-muted)' }}>
-                      {t.updatedAt
-                        ? new Date(t.updatedAt).toLocaleDateString()
-                        : new Date(t.createdAt).toLocaleDateString()}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="whitespace-nowrap px-4 py-3">
-                      <div className="flex items-center gap-1">
+      <section className="admin-card">
+        {loading ? (
+          <p className="ad-empty">載入範本中…</p>
+        ) : templates.length === 0 ? (
+          <p className="ad-empty">尚未有範本，請建立第一個通知範本</p>
+        ) : (
+          <div className="ad-table-wrap">
+            <table className="ad-table">
+              <thead>
+                <tr><th>名稱</th><th>渠道</th><th>變數</th><th>啟用</th><th>更新時間</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                {templates.map((tpl) => {
+                  const ch = CHANNELS[tpl.channel] ?? CHANNELS.in_app
+                  return (
+                    <tr key={tpl.id}>
+                      <td data-label="名稱" style={{ fontWeight: 600, minWidth: 120 }}>{tpl.name}</td>
+                      <td data-label="渠道"><span className="ad-chip" data-tone={ch.tone}>{ch.label}</span></td>
+                      <td data-label="變數">
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                          {tpl.variables.length > 0
+                            ? tpl.variables.map((v) => <span key={v} className="ad-chip ad-mono">{'{{' + v + '}}'}</span>)
+                            : <span className="ad-muted">—</span>}
+                        </div>
+                      </td>
+                      <td data-label="啟用">
                         <button
                           type="button"
-                          onClick={() => handleEdit(t)}
-                          className="rounded-lg px-2 py-1 text-[10px] font-medium transition-colors"
-                          style={{ color: 'var(--admin-brand)', background: 'var(--admin-brand-dim)' }}
+                          role="switch"
+                          aria-checked={tpl.isActive}
+                          aria-label={`${tpl.name} 啟用`}
+                          className="tm-switch"
+                          data-on={tpl.isActive}
+                          onClick={() => handleToggleActive(tpl)}
                         >
-                          編輯
+                          <span className="tm-knob" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTarget(t)}
-                          className="rounded-lg px-2 py-1 text-[10px] font-medium transition-colors"
-                          style={{ color: 'var(--admin-danger)', background: 'var(--admin-danger-dim)' }}
-                        >
-                          刪除
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ── Stats footer ───────────────────────────────────── */}
-      {!loading && templates.length > 0 && (
-        <div className="flex items-center gap-4 text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
-          <span>{templates.length} template{templates.length !== 1 ? 's' : ''}</span>
-          <span>·</span>
-          <span>{templates.filter((t) => t.isActive).length} active</span>
-          <span>·</span>
-          <span>{templates.filter((t) => !t.isActive).length} inactive</span>
-        </div>
-      )}
+                      </td>
+                      <td data-label="更新" className="ad-muted" style={{ whiteSpace: 'nowrap' }}>
+                        {new Date(tpl.updatedAt ?? tpl.createdAt).toLocaleDateString('zh-HK')}
+                      </td>
+                      <td data-label="操作">
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button type="button" className="ad-btn" onClick={() => handleEdit(tpl)}>編輯</button>
+                          <button type="button" className="ad-btn" style={{ color: 'var(--admin-status-danger)' }} onClick={() => setDeleteTarget(tpl)}>刪除</button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
     </div>
   )
 }

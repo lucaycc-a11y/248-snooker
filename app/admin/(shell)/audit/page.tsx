@@ -59,17 +59,15 @@ const ACTION_LABELS: Record<string, string> = {
   user_update: '更新用戶',
   ai_propose: 'AI 建議',
   ai_confirm: 'AI 確認',
+  payment_issue_mark: '標記付款異常',
+  payment_reconcile: '付款對賬',
+  admin_test_mode_on: '開啟測試模式',
+  admin_test_mode_off: '關閉測試模式',
+  admin_email_sent: '發送電郵',
 }
 
 function formatActionType(raw: string): string {
   return ACTION_LABELS[raw] ?? raw
-}
-
-/* ── Risk badge colours ────────────────────────────── */
-const RISK_COLOR: Record<string, { color: string; bg: string }> = {
-  low: { color: 'var(--admin-brand)', bg: 'var(--admin-brand-dim)' },
-  medium: { color: 'var(--admin-warning)', bg: 'var(--admin-warning-dim)' },
-  high: { color: 'var(--admin-danger)', bg: 'var(--admin-danger-dim)' },
 }
 
 const RISK_LABEL: Record<string, string> = {
@@ -157,278 +155,91 @@ export default function AuditLogPage() {
   }
 
   const uniqueActions = [...new Set(rows.map((r) => r.actionType))].sort()
+  const riskTone = (r: string | null): 'warn' | 'bad' | undefined => (r === 'high' ? 'bad' : r === 'medium' ? 'warn' : undefined)
 
   return (
     <div className="admin-stack">
-      {/* ── Header ──────────────────────────────────────────── */}
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <button
-          type="button"
-          onClick={handleExportCSV}
-          disabled={rows.length === 0}
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors"
-          style={{
-            color: 'var(--admin-brand-text)',
-            background: 'var(--admin-brand)',
-            opacity: rows.length === 0 ? 0.5 : 1,
-          }}
+      <section className="admin-card">
+        <form
+          className="ad-filters"
+          onSubmit={(e) => { e.preventDefault(); handleSearch() }}
         >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          匯出 CSV
-        </button>
-      </header>
-
-      {/* ── Filters ─────────────────────────────────────────── */}
-      <div
-        className="flex flex-wrap items-end gap-3 rounded-2xl p-4"
-        style={{
-          background: 'var(--admin-surface)',
-          border: '1px solid var(--admin-border)',
-        }}
-      >
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-            管理員電郵
+          <label className="ad-field">
+            <span>管理員電郵</span>
+            <input className="ad-input" type="text" value={adminEmail} onChange={(e) => setAdminEmail(e.target.value)} placeholder="以電郵篩選…" />
           </label>
-          <input
-            type="text"
-            value={adminEmail}
-            onChange={(e) => setAdminEmail(e.target.value)}
-            placeholder="以電郵篩選…"
-            className="rounded-lg border px-3 py-1.5 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-            style={{
-              background: 'var(--admin-bg)',
-              color: 'var(--admin-text)',
-              borderColor: 'var(--admin-border)',
-            }}
-          />
+          <label className="ad-field">
+            <span>動作類型</span>
+            <select className="ad-input" value={actionType} onChange={(e) => setActionType(e.target.value)}>
+              <option value="">所有動作</option>
+              {uniqueActions.map((a) => (
+                <option key={a} value={a}>{formatActionType(a)}</option>
+              ))}
+            </select>
+          </label>
+          <label className="ad-field">
+            <span>開始日期</span>
+            <input className="ad-input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </label>
+          <label className="ad-field">
+            <span>結束日期</span>
+            <input className="ad-input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          </label>
+          <button type="submit" className="ad-btn ad-btn-primary">搜尋</button>
+          <button type="button" className="ad-btn" onClick={handleExportCSV} disabled={rows.length === 0}>匯出 CSV</button>
+        </form>
+
+        <div className="ad-table-wrap" style={{ borderTop: '1px solid var(--admin-border-subtle)' }}>
+          {loading ? (
+            <p className="ad-empty">載入中…</p>
+          ) : rows.length === 0 ? (
+            <p className="ad-empty">沒有審計紀錄</p>
+          ) : (
+            <table className="ad-table">
+              <thead>
+                <tr><th>時間</th><th>管理員</th><th>動作</th><th>對象</th><th>風險</th><th>詳情</th></tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id}>
+                    <td data-label="時間" className="ad-muted" style={{ whiteSpace: 'nowrap' }}>
+                      {new Date(row.createdAt).toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </td>
+                    <td data-label="管理員" style={{ fontWeight: 600, minWidth: 200, overflowWrap: 'break-word' }}>{row.adminEmail}</td>
+                    <td data-label="動作"><span className="ad-chip">{formatActionType(row.actionType)}</span></td>
+                    <td data-label="對象" className="ad-muted">
+                      {row.targetTable}
+                      {row.targetId ? <span className="ad-mono"> {row.targetId.slice(0, 8)}…</span> : null}
+                    </td>
+                    <td data-label="風險">
+                      {row.riskLevel ? <span className="ad-chip" data-tone={riskTone(row.riskLevel)}>{RISK_LABEL[row.riskLevel] ?? row.riskLevel}</span> : null}
+                    </td>
+                    <td data-label="詳情">
+                      {row.after ? (
+                        <details className="ad-details">
+                          <summary style={{ whiteSpace: 'nowrap' }}>查看</summary>
+                          <pre>{JSON.stringify(row.after, null, 2)}</pre>
+                        </details>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-            動作類型
-          </label>
-          <select
-            value={actionType}
-            onChange={(e) => setActionType(e.target.value)}
-            className="rounded-lg border px-3 py-1.5 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-            style={{
-              background: 'var(--admin-bg)',
-              color: 'var(--admin-text)',
-              borderColor: 'var(--admin-border)',
-            }}
-          >
-            <option value="">所有動作</option>
-            {uniqueActions.map((a) => (
-              <option key={a} value={a}>{formatActionType(a)}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-            開始日期
-          </label>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="rounded-lg border px-3 py-1.5 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-            style={{
-              background: 'var(--admin-bg)',
-              color: 'var(--admin-text)',
-              borderColor: 'var(--admin-border)',
-            }}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: 'var(--admin-text-muted)' }}>
-            結束日期
-          </label>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="rounded-lg border px-3 py-1.5 text-xs outline-none transition-colors focus:border-[var(--admin-brand)]"
-            style={{
-              background: 'var(--admin-bg)',
-              color: 'var(--admin-text)',
-              borderColor: 'var(--admin-border)',
-            }}
-          />
-        </div>
-
-        <button
-          type="button"
-          onClick={handleSearch}
-          className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
-          style={{
-            color: 'var(--admin-brand-text)',
-            background: 'var(--admin-brand)',
-          }}
-        >
-          搜尋
-        </button>
-      </div>
-
-      {/* ── Table ───────────────────────────────────────────── */}
-      <div
-        className="overflow-x-auto rounded-2xl"
-        style={{
-          background: 'var(--admin-surface)',
-          border: '1px solid var(--admin-border)',
-        }}
-      >
-        <table className="w-full text-left text-xs">
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>時間</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>管理員</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>動作</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>對象</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>風險</th>
-              <th className="px-4 py-3 font-semibold" style={{ color: 'var(--admin-text-muted)' }}>詳情</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center" style={{ color: 'var(--admin-text-muted)' }}>
-                  <span className="admin-conic-spinner mx-auto" />
-                  <span className="ml-2">載入中…</span>
-                </td>
-              </tr>
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center" style={{ color: 'var(--admin-text-muted)' }}>
-                  沒有審計紀錄。
-                </td>
-              </tr>
-            ) : (
-              rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className="transition-colors"
-                  style={{ borderBottom: '1px solid var(--admin-border)' }}
-                >
-                  {/* Timestamp */}
-                  <td className="whitespace-nowrap px-4 py-2.5" style={{ color: 'var(--admin-text-muted)' }}>
-                    {new Date(row.createdAt).toLocaleString()}
-                  </td>
-
-                  {/* Admin */}
-                  <td className="max-w-[200px] truncate px-4 py-2.5 font-medium" style={{ color: 'var(--admin-text)' }}>
-                    {row.adminEmail}
-                  </td>
-
-                  {/* Action */}
-                  <td className="whitespace-nowrap px-4 py-2.5">
-                    <span
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                      style={{
-                        color: 'var(--admin-brand)',
-                        background: 'var(--admin-brand-dim)',
-                      }}
-                    >
-                      {formatActionType(row.actionType)}
-                    </span>
-                  </td>
-
-                  {/* Target */}
-                  <td className="whitespace-nowrap px-4 py-2.5" style={{ color: 'var(--admin-text-muted)' }}>
-                    {row.targetTable && <span>{row.targetTable}</span>}
-                    {row.targetId && (
-                      <span
-                        className="ml-1 font-[var(--font-mono,monospace)] text-[10px]"
-                        style={{ color: 'var(--admin-text-faint)' }}
-                      >
-                        {row.targetId.slice(0, 8)}…
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Risk */}
-                  <td className="whitespace-nowrap px-4 py-2.5">
-                    {row.riskLevel && (
-                      <span
-                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-                        style={{
-                          color: RISK_COLOR[row.riskLevel]?.color ?? 'var(--admin-text-muted)',
-                          background: RISK_COLOR[row.riskLevel]?.bg ?? 'var(--admin-surface-elevated)',
-                        }}
-                      >
-                        <span
-                          className="inline-block h-1.5 w-1.5 rounded-full"
-                          style={{ background: RISK_COLOR[row.riskLevel]?.color ?? 'var(--admin-text-muted)' }}
-                        />
-                        {RISK_LABEL[row.riskLevel] ?? row.riskLevel}
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Details (collapsed JSON) */}
-                  <td className="max-w-[300px] px-4 py-2.5">
-                    {row.after && (
-                      <pre
-                        className="max-h-16 overflow-auto text-[10px] leading-tight"
-                        style={{
-                          color: 'var(--admin-text-faint)',
-                          fontFamily: 'var(--font-mono, monospace)',
-                        }}
-                      >
-                        {JSON.stringify(row.after, null, 0)}
-                      </pre>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ── Pagination ──────────────────────────────────────── */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-          <span>
-            顯示第 {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)} 項，共 {total} 項
-          </span>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => { setPage((p) => Math.max(1, p - 1)); fetchLogs(Math.max(1, page - 1)) }}
-              disabled={page === 1}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-              style={{
-                background: 'var(--admin-surface-elevated)',
-                color: page === 1 ? 'var(--admin-text-faint)' : 'var(--admin-text)',
-                opacity: page === 1 ? 0.5 : 1,
-              }}
-            >
-              Previous
-            </button>
-            <span style={{ color: 'var(--admin-text)' }}>
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); fetchLogs(Math.min(totalPages, page + 1)) }}
-              disabled={page === totalPages}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-              style={{
-                background: 'var(--admin-surface-elevated)',
-                color: page === totalPages ? 'var(--admin-text-faint)' : 'var(--admin-text)',
-                opacity: page === totalPages ? 0.5 : 1,
-              }}
-            >
-              Next
-            </button>
+        {totalPages > 1 && (
+          <div className="ad-pager">
+            <span>第 {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)} 項，共 {total} 項</span>
+            <div className="ad-pager-ctl">
+              <button type="button" className="ad-btn" disabled={page === 1} onClick={() => { setPage(page - 1); fetchLogs(page - 1) }}>上一頁</button>
+              <span>{page} / {totalPages}</span>
+              <button type="button" className="ad-btn" disabled={page === totalPages} onClick={() => { setPage(page + 1); fetchLogs(page + 1) }}>下一頁</button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </section>
     </div>
   )
 }
