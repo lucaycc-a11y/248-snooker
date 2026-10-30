@@ -27,6 +27,7 @@ import {
 } from '@/lib/cs/core'
 import { issueCsOtp, verifyCsOtp } from '@/lib/cs/otp'
 import { createCsPaymentLink, emailPaymentLinkToCustomer, quoteCsSlot, refreshCsPaymentLink } from '@/lib/cs/paymentLink'
+import { runAutoDiagnose } from '@/lib/cs/autoDiagnose'
 import { sparkAsk, sparkDiagnose, sparkDraftReply } from '@/lib/cs/spark'
 
 export const runtime = 'nodejs'
@@ -231,6 +232,14 @@ export const POST = withAdminSecurity(
           result: s(body.result, 300),
         })
         return NextResponse.json({ text })
+      }
+
+      case 'auto_diagnose': {
+        if (!caseId) return err('工單編號無效')
+        if (!(await rateLimit('cs_spark', `user:${admin.id}`, 10, 60))) return err('太頻密，請稍後再試', 429)
+        const out = await runAutoDiagnose({ caseId, adminEmail, force: body.force === true })
+        await audit('cs_auto_diagnose', caseId, { ok: out.ok, emailed: out.ok ? out.emailed : false })
+        return out.ok ? NextResponse.json(out) : err(out.error, 502)
       }
 
       case 'spark_ask': {

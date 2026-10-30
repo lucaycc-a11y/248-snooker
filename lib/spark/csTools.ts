@@ -42,7 +42,8 @@ async function vercelGet(path: string, token: string, signal: AbortSignal): Prom
   })
 }
 
-export async function fetchVercelRuntimeProblems(minutes: number): Promise<Record<string, unknown>> {
+/** `needles` (user id, booking ids, booking codes): runtime-log lines that mention one are kept even if they are not errors. */
+export async function fetchVercelRuntimeProblems(minutes: number, needles: string[] = []): Promise<Record<string, unknown>> {
   const token = process.env.VERCEL_TOKEN
   if (!token) return { available: false, reason: '未設定 VERCEL_TOKEN，無法讀取 Vercel 日誌' }
   const controller = new AbortController()
@@ -71,7 +72,7 @@ export async function fetchVercelRuntimeProblems(minutes: number): Promise<Recor
     }
     void reader.cancel().catch(() => undefined)
 
-    const problems: { at: string | null; level: string; status: number | null; path: string | null; message: string }[] = []
+    const problems: { at: string | null; level: string; status: number | null; path: string | null; message: string; account?: boolean }[] = []
     for (const line of buf.split('\n')) {
       if (!line.trim()) continue
       let rec: Row
@@ -84,15 +85,17 @@ export async function fetchVercelRuntimeProblems(minutes: number): Promise<Recor
       if (ts && ts < since) continue
       const level = str(rec.level) ?? 'info'
       const status = num(rec.responseStatusCode) || null
-      if (!(level === 'error' || level === 'warning' || (status !== null && status >= 500))) continue
+      const hit = needles.length > 0 && needles.some((n) => n.length >= 6 && line.includes(n))
+      if (!(hit || level === 'error' || level === 'warning' || (status !== null && status >= 500))) continue
       problems.push({
+        account: hit || undefined,
         at: ts ? hk(new Date(ts).toISOString()) : null,
         level,
         status,
         path: str(rec.requestPath),
         message: scrub(str(rec.message) ?? ''),
       })
-      if (problems.length >= 25) break
+      if (problems.length >= 40) break
     }
     return {
       available: true,
@@ -148,6 +151,42 @@ export async function databaseHealthSnapshot(): Promise<Record<string, unknown>>
 }
 
 export const CS_READ_TOOLS: ReadTool[] = [
+  {
+    def: {
+      name: 'get_account_logs',
+      description: '查一位會員的帳戶紀錄：最近預約、付款嘗試和付款事件、與該會員有關的網站錯誤、通知（電郵）失敗，以及 Vercel 日誌中提到該會員或其預約的行。客人遇到問題需要找 bug 時先用呢個。用會員編號查。',
+      parameters: { type: 'object', properties: { memberCode: { type: 'string' }, hours: { type: 'integer', description: 'Vercel 日誌回看小時數，預設 6，最多 24' } }, required: ['memberCode'] },
+    },
+    run: async (a) => {
+      const code = typeof a.memberCode === 'string' ? a.memberCode.trim().toUpperCase().slice(0, 80) : ''
+      if (!code) return { error: '請提供會員編號' }
+      const hours = typeof a.hours === 'number' && Number.isInteger(a.hours) && a.hours > 0 ? Math.min(a.hours, 24) : 6
+      const db = getLegacyServiceSupabase()
+      const { data: u } = await db.from('users').select('id, member_code').eq('member_code', code).maybeSingle()
+      if (!u) return { found: false, memberCode: code }
+      const uid = String((u as Row).id)
+      const bookings = rows((await db.from('bookings').select('id, human_code, date, start_time, status, total_price, payment_method, created_at, confirmation_email_sent_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(8)).data)
+      const ids = bookings.map((b) => String(b.id))
+      const codes = bookings.map((b) => str(b.human_code)).filter((x): x is string => x !== null)
+      const [attempts, events, errs, notifs] = await Promise.all([
+        ids.length ? db.from('payment_attempts').select('booking_id, provider, status, failure_code, failure_reason, created_at, completed_at').in('booking_id', ids).order('created_at', { ascending: false }).limit(15) : Promise.resolve({ data: [] }),
+        ids.length ? db.from('payment_events').select('booking_id, event, source, from_state, to_state, reason, created_at').in('booking_id', ids).order('created_at', { ascending: false }).limit(25) : Promise.resolve({ data: [] }),
+        db.from('site_error_log').select('source, severity, message, created_at, detail').gte('created_at', new Date(Date.now() - 7 * 86_400_000).toISOString()).or(`detail->>userId.eq.${uid},detail->>user_id.eq.${uid}${ids.length ? `,detail->>bookingId.in.(${ids.join(',')})` : ''}`).order('created_at', { ascending: false }).limit(15),
+        ids.length ? db.from('notification_log').select('booking_id, channel, type, status, error_message, sent_at').in('booking_id', ids).neq('status', 'sent').order('sent_at', { ascending: false }).limit(10) : Promise.resolve({ data: [] }),
+      ])
+      const codeOf = new Map(bookings.map((b) => [String(b.id), str(b.human_code)]))
+      const vercel = await fetchVercelRuntimeProblems(hours * 60, [uid, ...ids, ...codes])
+      return {
+        memberCode: code,
+        bookings: bookings.map((b) => ({ code: str(b.human_code), date: b.date, time: String(b.start_time ?? '').slice(0, 5), status: b.status, hkd: num(b.total_price), method: b.payment_method, confirmationEmailSent: b.confirmation_email_sent_at !== null, createdAt: hk(b.created_at) })),
+        paymentAttempts: rows(attempts.data).map((r) => ({ booking: codeOf.get(String(r.booking_id)) ?? null, provider: r.provider, status: r.status, failure: scrub(`${str(r.failure_code) ?? ''} ${str(r.failure_reason) ?? ''}`), at: hk(r.created_at) })),
+        paymentEvents: rows(events.data).map((r) => ({ booking: codeOf.get(String(r.booking_id)) ?? null, event: r.event, source: r.source, to: r.to_state, reason: scrub(str(r.reason) ?? ''), at: hk(r.created_at) })),
+        siteErrors: rows(errs.data).map((r) => ({ source: r.source, severity: r.severity, message: scrub(str(r.message) ?? ''), at: hk(r.created_at) })),
+        notificationFailures: rows(notifs.data).map((r) => ({ booking: codeOf.get(String(r.booking_id)) ?? null, channel: r.channel, type: r.type, error: scrub(str(r.error_message) ?? ''), at: hk(r.sent_at) })),
+        vercel,
+      }
+    },
+  },
   {
     def: {
       name: 'get_vercel_logs',

@@ -50,6 +50,7 @@ export type CsCase = {
   booking_code: string | null
   website_issue: boolean
   owner_notified_at: string | null
+  auto_report_at: string | null
   created_by: string
   resolution_note: string | null
   resolved_at: string | null

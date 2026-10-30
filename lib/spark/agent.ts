@@ -72,6 +72,7 @@ const STEP_LABEL: Record<string, string> = {
   check_kpay_order: '即時問 KPay',
   get_payment_problems: '查付款問題',
   get_vercel_logs: '查 Vercel 日誌',
+  get_account_logs: '查會員帳戶紀錄',
   get_db_health: '查資料庫狀況',
   get_paymentx_orders: '查全託管訂單',
   get_webhook_events: '查 KPay 通知',

@@ -76,6 +76,7 @@ const ACTION_LABELS: Record<string, string> = {
   cs_spark_diagnose: '客務：Spark 診斷',
   cs_spark_reply: '客務：Spark 起草回覆',
   cs_spark_ask: '客務：Spark 提問',
+  cs_auto_diagnose: '客務：Spark 自動調查',
 }
 
 function formatActionType(raw: string): string {

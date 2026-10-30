@@ -27,6 +27,7 @@ type CaseRow = {
   booking_code: string | null
   website_issue: boolean
   owner_notified_at: string | null
+  auto_report_at: string | null
   created_by: string
   resolution_note: string | null
 }
@@ -137,7 +138,11 @@ function NewCase({ onCreated, onCancel }: { onCreated: (id: string) => void; onC
     try {
       const d = await api('POST', '', { action: 'create_case', category, subject, detail, bookingCode, userId: customer?.id })
       const c = isRecord(d.case) ? d.case : null
-      if (c && typeof c.id === 'string') onCreated(c.id)
+      if (c && typeof c.id === 'string') {
+        // Spark investigates the account + Vercel logs in the background and emails Luca.
+        void api('POST', '', { action: 'auto_diagnose', caseId: c.id }).catch(() => undefined)
+        onCreated(c.id)
+      }
     } catch (e) {
       setError(msg(e))
     } finally {
@@ -575,6 +580,7 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
               <button key={st} type="button" className="cs-seg-btn" aria-pressed={c.status === st} disabled={busy || st === 'resolved'} onClick={() => void update({ status: st })}>{STATUS_LABEL[st]}</button>
             ))}
           </div>
+          <button type="button" className="ad-btn cs-sm" disabled={busy} onClick={() => { setBusy(true); void api('POST', '', { action: 'auto_diagnose', caseId: id, force: true }).catch((e) => setLoadErr(msg(e))).finally(() => { setBusy(false); void load() }) }}>{busy ? '調查中…' : 'Spark 調查並電郵 Luca'}</button>
           {!c.website_issue ? <button type="button" className="ad-btn cs-sm" disabled={busy} onClick={() => void update({ websiteIssue: true, category: 'website' })}>標為網站問題（電郵通知我）</button> : null}
         </div>
         {c.status !== 'resolved' ? (
