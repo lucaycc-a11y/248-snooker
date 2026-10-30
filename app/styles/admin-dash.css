@@ -2244,3 +2244,4 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
 .cs-pulse { animation: cs-pulse 1.6s ease-in-out infinite; }
 @keyframes cs-pulse { 50% { opacity: 0.45; } }
 @media (max-width: 520px) { .cs-step-l { font-size: 12px; } .cs-step { padding: 8px 0; } }
+.cs-stack > .ad-field, .cs-pad > .ad-field { flex: none; }

@@ -60,11 +60,16 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 async function api(method: 'GET' | 'POST', query: string, body?: Record<string, unknown>): Promise<Record<string, unknown>> {
-  const res = await fetch(`/api/admin/cs${query}`, {
-    method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  })
+  let res: Response
+  try {
+    res = await fetch(`/api/admin/cs${query}`, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  } catch {
+    throw new Error('連線中斷或逾時（Spark 查詢最長約 1 分鐘），請檢查網絡／VPN 後重試')
+  }
   const json: unknown = await res.json().catch(() => null)
   const data = isRecord(json) ? json : {}
   if (!res.ok) throw new Error(typeof data.error === 'string' ? data.error : '操作失敗，請重試')

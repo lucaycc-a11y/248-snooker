@@ -86,6 +86,8 @@ export const POST = withAdminSecurity(
       }
     }
     const url = new URL(req.url)
+    const SPARK_ACTIONS = ['spark_ask', 'spark_diagnose', 'spark_reply', 'spark_triage', 'spark_resolve', 'auto_diagnose']
+    if (SPARK_ACTIONS.includes(action) && !process.env.MIMO_API_KEY) return err('Spark 未啟用：伺服器缺少 MIMO_API_KEY，請在 Vercel 環境變數加入並重新部署', 503)
 
     switch (action) {
       case 'create_case': {
