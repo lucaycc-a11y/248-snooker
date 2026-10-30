@@ -8,7 +8,8 @@
 import { mimoComplete, friendlyAiError, type ChatMessage, type MimoToolDef } from '@/lib/ai/mimo'
 import { READ_TOOLS } from '@/lib/spark/readTools'
 import { AGENT_TOOLS, runAgentTool } from '@/lib/admin/agentTools'
-import { CS_CATEGORY_LABEL, type CsCase, type CsNote } from './core'
+import { CS_CATEGORIES, CS_CATEGORY_LABEL, isCsCategory, type CsCase, type CsCategory, type CsNote } from './core'
+import { redact } from './verdict'
 
 const MAX_ROUNDS = 6
 const BUDGET_MS = 50_000
@@ -31,6 +32,9 @@ const DIAGNOSE_SYSTEM = [
   '**證據**：2–5 點，講查到什麼。',
   '**是否網站問題**：是／否／未能確定（一句原因）。',
   '**建議下一步**：管理員要做什麼（按步驟）。',
+  '最後另起一行，輸出機器可讀判斷，格式必須完全一致（只可用以下選項）：',
+  'VERDICT {"type":"user_error|payment_unconfirmed|payment_failed|website_bug|slot_conflict|account|unknown","website":"yes|no|unknown","action":"payment_link|check_payment|review_booking|reply_only|escalate"}',
+  'action 說明：payment_link=客人付唔到款，需要全託管付款連結；check_payment=客人已付款但預約未確認；review_booking=要檢查或改預約；reply_only=只需回覆客人；escalate=需要開發者跟進。',
 ].join('\n')
 
 const ASK_SYSTEM = [
@@ -54,12 +58,12 @@ function caseBrief(c: CsCase, notes: CsNote[], memberCode: string | null, extra:
   const recent = notes
     .filter((n) => n.kind !== 'otp')
     .slice(-8)
-    .map((n) => `- [${n.kind}] ${n.body.slice(0, 200)}`)
+    .map((n) => `- [${n.kind}] ${redact(n.body).slice(0, 200)}`)
     .join('\n')
   return [
     `工單類別：${CS_CATEGORY_LABEL[c.category]}`,
-    `標題：${c.subject}`,
-    c.detail ? `詳情：${c.detail}` : null,
+    `標題：${redact(c.subject)}`,
+    c.detail ? `詳情：${redact(c.detail)}` : null,
     memberCode ? `會員編號：${memberCode}` : null,
     c.booking_code ? `預約編號：${c.booking_code}` : null,
     recent ? `工單紀錄：\n${recent}` : null,
@@ -136,4 +140,66 @@ export function sparkDraftReply(c: CsCase, notes: CsNote[], memberCode: string |
 
 export function sparkAsk(prompt: string): Promise<CsSparkResult> {
   return runLoop(ASK_SYSTEM, prompt.slice(0, 800))
+}
+
+/* ── Lightweight single-shot helpers (no tools) ─────────────── */
+
+export type CsTriage = { category: CsCategory; subject: string; detail: string; bookingCode: string }
+
+/** Turns the customer's own words into a structured case. Emails / phone numbers are redacted first. */
+export async function sparkTriage(raw: string): Promise<{ ok: true; triage: CsTriage } | { ok: false; error: string }> {
+  const text = redact(raw).slice(0, 1500)
+  try {
+    const out = await mimoComplete({
+      task: 'triage',
+      maxTokens: 500,
+      timeoutMs: 25_000,
+      messages: [
+        {
+          role: 'system',
+          content:
+            '你是 Space8 桌球室客務助手。把客人的訊息整理成工單，只輸出一個 JSON 物件，不要其他文字：' +
+            `{"category":"${CS_CATEGORIES.join('|')}","subject":"不超過 30 字的標題","detail":"重點整理（客人遇到什麼、什麼時候、已試過什麼）","bookingCode":"訊息內出現的預約編號，沒有就空字串"}。` +
+            'category 說明：payment=付款／退款，booking=預約／改期／取消，account=登入／會員，website=網站報錯或無法使用，other=其他。繁體中文（香港用語）。',
+        },
+        { role: 'user', content: text },
+      ],
+    })
+    const m = /\{[\s\S]*\}/.exec(out.content ?? '')
+    if (!m) return { ok: false, error: 'Spark 未能整理，請手動填寫' }
+    const r: unknown = JSON.parse(m[0])
+    if (typeof r !== 'object' || r === null) return { ok: false, error: 'Spark 未能整理，請手動填寫' }
+    const o = r as Record<string, unknown>
+    const str = (v: unknown, n: number) => (typeof v === 'string' ? v.trim().slice(0, n) : '')
+    const subject = str(o.subject, 200)
+    if (!subject) return { ok: false, error: 'Spark 未能整理，請手動填寫' }
+    const code = str(o.bookingCode, 40)
+    return { ok: true, triage: { category: isCsCategory(o.category) ? o.category : 'other', subject, detail: str(o.detail, 2000), bookingCode: /^[A-Za-z0-9_-]{4,40}$/.test(code) ? code : '' } }
+  } catch (e) {
+    return { ok: false, error: `Spark 暫時無法回應：${friendlyAiError(e)}` }
+  }
+}
+
+/** Drafts the 解決方法 line from the case timeline. */
+export async function sparkResolution(c: CsCase, notes: CsNote[]): Promise<{ ok: true; text: string } | { ok: false; error: string }> {
+  const timeline = notes
+    .filter((n) => n.kind !== 'otp')
+    .slice(-14)
+    .map((n) => `[${n.kind}] ${redact(n.body).slice(0, 300)}`)
+    .join('\n')
+  try {
+    const out = await mimoComplete({
+      task: 'explain',
+      maxTokens: 300,
+      timeoutMs: 25_000,
+      messages: [
+        { role: 'system', content: '你是 Space8 客務助手。根據工單紀錄，用一至兩句繁體中文（香港用語）寫出「解決方法」：做咗什麼、結果如何。只可寫紀錄內有的事實，不要編造。只輸出那一至兩句。' },
+        { role: 'user', content: `類別：${CS_CATEGORY_LABEL[c.category]}\n標題：${redact(c.subject)}\n紀錄：\n${timeline}` },
+      ],
+    })
+    const text = (out.content ?? '').trim().slice(0, 500)
+    return text ? { ok: true, text } : { ok: false, error: 'Spark 沒有回應' }
+  } catch (e) {
+    return { ok: false, error: `Spark 暫時無法回應：${friendlyAiError(e)}` }
+  }
 }

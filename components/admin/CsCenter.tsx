@@ -28,9 +28,16 @@ type CaseRow = {
   website_issue: boolean
   owner_notified_at: string | null
   auto_report_at: string | null
+  identity_verified_at: string | null
+  identity_skipped_at: string | null
+  spark_verdict: Verdict | null
   created_by: string
   resolution_note: string | null
 }
+type Verdict = { type: string; website: string; action: string }
+const VERDICT_TYPE: Record<string, string> = { user_error: '客人操作問題', payment_unconfirmed: '已付款未確認', payment_failed: '付款失敗', website_bug: '網站 bug', slot_conflict: '時段衝突', account: '帳戶問題', unknown: '未能確定' }
+const VERDICT_ACTION: Record<string, string> = { payment_link: '生成付款連結', check_payment: '核實付款', review_booking: '檢查預約', reply_only: '直接回覆客人', escalate: '交俾 Luca 跟進' }
+type Prefill = { id: string; humanCode: string; date: string; startHour: number; duration: number; table: number; status: string; amount: number }
 type Note = { id: number; created_at: string; author: string; kind: string; body: string }
 type Template = { id: string; title: string; category: Category; body: string }
 type LinkResult = {
@@ -129,8 +136,29 @@ function NewCase({ onCreated, onCancel }: { onCreated: (id: string) => void; onC
   const [subject, setSubject] = useState('')
   const [detail, setDetail] = useState('')
   const [bookingCode, setBookingCode] = useState('')
+  const [paste, setPaste] = useState('')
+  const [sparkBusy, setSparkBusy] = useState(false)
+  const [sparkNote, setSparkNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  // Spark turns the customer's own words into category / title / detail / booking code.
+  const organise = async () => {
+    setSparkBusy(true)
+    setSparkNote('')
+    try {
+      const d = await api('POST', '', { action: 'spark_triage', text: paste })
+      if (typeof d.category === 'string' && d.category in CAT_LABEL) setCategory(d.category as Category)
+      if (typeof d.subject === 'string') setSubject(d.subject)
+      if (typeof d.detail === 'string') setDetail(d.detail)
+      if (typeof d.bookingCode === 'string' && d.bookingCode) setBookingCode(d.bookingCode)
+      setSparkNote('Spark 已整理，請檢查後再建立工單')
+    } catch (e) {
+      setSparkNote(msg(e))
+    } finally {
+      setSparkBusy(false)
+    }
+  }
 
   const submit = async () => {
     setBusy(true)
@@ -152,7 +180,7 @@ function NewCase({ onCreated, onCancel }: { onCreated: (id: string) => void; onC
 
   return (
     <section className="admin-card cs-pad cs-stack">
-      <h3>新工單</h3>
+      <h3>新工單 · 第 1 步：收單</h3>
       <div className="cs-stack">
         <span className="cs-lbl">客人</span>
         {customer ? (
@@ -163,6 +191,14 @@ function NewCase({ onCreated, onCancel }: { onCreated: (id: string) => void; onC
         ) : (
           <CustomerPicker onPick={setCustomer} />
         )}
+      </div>
+      <div className="cs-spark-box cs-stack">
+        <span className="cs-lbl">貼上客人原話，Spark 幫你整理（電郵、電話會先遮蓋，不會傳給 AI）</span>
+        <textarea className="ad-input cs-ta" rows={3} value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="例如：我今朝付咗錢但係冇收到確認電郵，預約編號 SPACE8-…" />
+        <div className="cs-row">
+          <button type="button" className="ad-btn" disabled={sparkBusy || paste.trim().length < 5} onClick={() => void organise()}>{sparkBusy ? 'Spark 整理中…' : 'Spark 整理'}</button>
+          {sparkNote ? <span className="cs-hint">{sparkNote}</span> : null}
+        </div>
       </div>
       <div className="cs-grid2">
         <label className="ad-field">
@@ -184,10 +220,10 @@ function NewCase({ onCreated, onCancel }: { onCreated: (id: string) => void; onC
         <span>詳情</span>
         <textarea className="ad-input cs-ta" rows={4} value={detail} onChange={(e) => setDetail(e.target.value)} />
       </label>
-      {category === 'website' ? <p className="cs-hint">網站問題工單建立後，系統會自動電郵通知網站負責人，並附上系統健康快照。</p> : null}
+      <p className="cs-hint">建立後 Spark 會自動查客人帳戶紀錄同 Vercel 日誌，並把調查報告電郵俾 Luca。{category === 'website' ? '網站問題會即時再通知一次。' : ''}</p>
       {error ? <p className="cs-err">{error}</p> : null}
       <div className="cs-row">
-        <button type="button" className="ad-btn ad-btn-primary" disabled={busy || subject.trim().length < 3} onClick={() => void submit()}>{busy ? '建立中…' : '建立工單'}</button>
+        <button type="button" className="ad-btn ad-btn-primary" disabled={busy || subject.trim().length < 3} onClick={() => void submit()}>{busy ? '建立中…' : '建立工單，開始流程'}</button>
         <button type="button" className="ad-btn" onClick={onCancel}>取消</button>
       </div>
     </section>
@@ -247,7 +283,7 @@ function OtpCard({ customer, caseId, onDone }: { customer: Customer | null; case
   )
 }
 
-function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Customer | null; caseId: string | null; link: LinkResult | null; setLink: (l: LinkResult | null) => void; onDone: () => void }) {
+function LinkCard({ customer, caseId, link, setLink, prefill, onDone }: { customer: Customer | null; caseId: string | null; link: LinkResult | null; setLink: (l: LinkResult | null) => void; prefill?: Prefill | null; onDone: () => void }) {
   const [date, setDate] = useState('')
   const [startHour, setStartHour] = useState('')
   const [endHour, setEndHour] = useState('')
@@ -332,6 +368,12 @@ function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Custo
     <section className="admin-card cs-pad cs-stack">
       <h3>全託管付款連結</h3>
       <p className="ad-muted">網站未能付款時使用：預留時段並生成 KPay 收銀台連結，客人付款後自動確認預約並發送確認電郵。</p>
+      {prefill ? (
+        <div className="cs-row">
+          <button type="button" className="ad-btn cs-sm" onClick={() => { setDate(prefill.date); setStartHour(String(prefill.startHour)); setEndHour(String(prefill.startHour + prefill.duration)); setTable(String(prefill.table)) }}>按原預約 {prefill.humanCode} 預填（{prefill.date} {String(prefill.startHour).padStart(2, '0')}:00 · {prefill.duration} 小時 · 房{prefill.table}）</button>
+          {prefill.status === 'confirmed' ? <span className="cs-hint">原預約已確認，同一時段會衝突</span> : null}
+        </div>
+      ) : null}
       <div className="cs-form">
         <label className="ad-field cs-span"><span>日期</span><input className="ad-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
         <label className="ad-field"><span>由</span>
@@ -492,12 +534,263 @@ function WithCustomer({ children }: { children: (c: Customer | null) => React.Re
   )
 }
 
+/* ── Workflow ──────────────────────────────────────────── */
+type StepId = 'intake' | 'verify' | 'diagnose' | 'handle' | 'reply' | 'close'
+const STEPS: { id: StepId; label: string }[] = [
+  { id: 'intake', label: '收單' },
+  { id: 'verify', label: '核對' },
+  { id: 'diagnose', label: '診斷' },
+  { id: 'handle', label: '處理' },
+  { id: 'reply', label: '回覆' },
+  { id: 'close', label: '結案' },
+]
+
+function StepNav({ step, onGo, nextLabel }: { step: StepId; onGo: (s: StepId) => void; nextLabel?: string }) {
+  const i = STEPS.findIndex((x) => x.id === step)
+  return (
+    <div className="cs-row cs-between cs-stepnav">
+      {i > 0 ? <button type="button" className="ad-btn" onClick={() => onGo(STEPS[i - 1].id)}>← {STEPS[i - 1].label}</button> : <span />}
+      {i < STEPS.length - 1 ? <button type="button" className="ad-btn ad-btn-primary" onClick={() => onGo(STEPS[i + 1].id)}>{nextLabel ?? `完成，下一步：${STEPS[i + 1].label}`} →</button> : null}
+    </div>
+  )
+}
+
+function VerdictRow({ v }: { v: Verdict | null }) {
+  if (!v) return null
+  return (
+    <div className="cs-row">
+      <span className="ad-chip" data-tone={v.type === 'website_bug' ? 'bad' : 'muted'}>{VERDICT_TYPE[v.type] ?? v.type}</span>
+      <span className="ad-chip" data-tone={v.website === 'yes' ? 'bad' : 'muted'}>網站問題：{v.website === 'yes' ? '是' : v.website === 'no' ? '否' : '未能確定'}</span>
+      <span className="ad-chip" data-tone="warn">Spark 建議：{VERDICT_ACTION[v.action] ?? v.action}</span>
+    </div>
+  )
+}
+
+function DiagnosePanel({ c, notes, onGo, onDone }: { c: CaseRow; notes: Note[]; onGo: (s: StepId) => void; onDone: () => void }) {
+  const [extra, setExtra] = useState('')
+  const [busy, setBusy] = useState<'' | 'diagnose' | 'email'>('')
+  const [err, setErr] = useState('')
+  const [tools, setTools] = useState<string[]>([])
+  const report = [...notes].reverse().find((n) => n.kind === 'spark')
+  const young = Date.now() - new Date(c.created_at).getTime() < 4 * 60_000
+  const waiting = !c.auto_report_at && !report && young
+  const run = async () => {
+    setBusy('diagnose')
+    setErr('')
+    try {
+      const d = await api('POST', '', { action: 'spark_diagnose', caseId: c.id, extra })
+      setTools(Array.isArray(d.steps) ? (d.steps as { tool: string }[]).map((x) => x.tool) : [])
+      setExtra('')
+      onDone()
+    } catch (e) {
+      setErr(msg(e))
+    } finally {
+      setBusy('')
+    }
+  }
+  const emailOwner = async () => {
+    setBusy('email')
+    setErr('')
+    try {
+      await api('POST', '', { action: 'auto_diagnose', caseId: c.id, force: true })
+      onDone()
+    } catch (e) {
+      setErr(msg(e))
+    } finally {
+      setBusy('')
+    }
+  }
+  const v = c.spark_verdict
+  const goFor = (a: string): StepId => (a === 'reply_only' ? 'reply' : 'handle')
+  return (
+    <section className="admin-card cs-pad cs-stack">
+      <h3>第 3 步：Spark 診斷</h3>
+      <p className="ad-muted">Spark 會查客人帳戶紀錄、付款時間線、KPay 狀態、Vercel 日誌同資料庫（只讀，唔會改任何資料）。</p>
+      {waiting ? <p className="cs-hint cs-pulse">Spark 正在自動調查，完成後會顯示喺呢度並電郵俾 Luca…</p> : null}
+      <VerdictRow v={v} />
+      {report ? <div className="cs-ai"><Markdown text={report.body.replace(/^【自動調查】\n?/, '')} /><span className="ad-muted">{hk(report.created_at)}</span></div> : !waiting ? <p className="ad-muted">未有調查結果，撳「Spark 診斷」開始。</p> : null}
+      {v && v.action !== 'escalate' ? (
+        <button type="button" className="ad-btn ad-btn-primary" onClick={() => onGo(goFor(v.action))}>按 Spark 建議：{VERDICT_ACTION[v.action] ?? v.action} →</button>
+      ) : v ? <p className="cs-hint">Spark 建議交俾 Luca 跟進。可撳「電郵 Luca」再發一次報告。</p> : null}
+      <label className="ad-field"><span>補充資料（選填）</span>
+        <textarea className="ad-input cs-ta" rows={2} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="例如客人話咩時間、點付款、見到咩錯誤" />
+      </label>
+      <div className="cs-row">
+        <button type="button" className="ad-btn" disabled={busy !== ''} onClick={() => void run()}>{busy === 'diagnose' ? 'Spark 調查中…' : report ? '重新診斷' : 'Spark 診斷'}</button>
+        <button type="button" className="ad-btn" disabled={busy !== ''} onClick={() => void emailOwner()}>{busy === 'email' ? '調查並發送中…' : '調查並電郵 Luca'}</button>
+      </div>
+      {tools.length > 0 ? <p className="ad-muted">今次查了：{tools.join('、')}</p> : null}
+      {err ? <p className="cs-err">{err}</p> : null}
+      <StepNav step="diagnose" onGo={onGo} />
+    </section>
+  )
+}
+
+function HandlePanel({ c, customer, link, setLink, onGo, onDone }: { c: CaseRow; customer: Customer | null; link: LinkResult | null; setLink: (l: LinkResult | null) => void; onGo: (s: StepId) => void; onDone: () => void }) {
+  const v = c.spark_verdict
+  const initial = v?.action === 'check_payment' ? 'payment' : v?.action === 'payment_link' ? 'link' : v?.action === 'review_booking' ? 'other' : 'link'
+  const [mode, setMode] = useState<'link' | 'payment' | 'other'>(initial)
+  const [prefill, setPrefill] = useState<Prefill | null>(null)
+  useEffect(() => {
+    if (!c.booking_code) return
+    void api('POST', '', { action: 'booking_for_case', caseId: c.id })
+      .then((d) => setPrefill(isRecord(d.booking) ? (d.booking as unknown as Prefill) : null))
+      .catch(() => setPrefill(null))
+  }, [c.id, c.booking_code])
+  const verified = !!c.identity_verified_at
+  return (
+    <div className="cs-stack">
+      <section className="admin-card cs-pad cs-stack">
+        <h3>第 4 步：處理</h3>
+        {v ? <p className="cs-hint">Spark 建議：{VERDICT_ACTION[v.action] ?? v.action}（{VERDICT_TYPE[v.type] ?? v.type}）</p> : <p className="ad-muted">未有 Spark 判斷，可先返回上一步診斷。</p>}
+        <div className="cs-seg" role="group" aria-label="處理方式">
+          {([['link', '網站付唔到 · 付款連結'], ['payment', '已付款未確認'], ['other', '改期／取消／其他']] as const).map(([k, label]) => (
+            <button key={k} type="button" className="cs-seg-btn" aria-pressed={mode === k} onClick={() => setMode(k)}>{label}</button>
+          ))}
+        </div>
+        {mode === 'payment' ? (
+          <div className="cs-stack">
+            <p className="ad-muted">客人話已付款但預約未確認：到付款記錄核實 KPay 狀態，需要時人手確認或審核。</p>
+            <div className="cs-row">
+              {prefill ? <a className="ad-btn" href={`/admin/bookings/${prefill.id}`}>打開預約 {prefill.humanCode}（付款經過）</a> : null}
+              <a className="ad-btn" href="/admin/payment-log">付款記錄</a>
+              <a className="ad-btn" href="/admin/payment-system">付款系統</a>
+            </div>
+            {prefill ? <p className="cs-hint">預約狀態：{prefill.status} · HK${prefill.amount}</p> : null}
+          </div>
+        ) : null}
+        {mode === 'other' ? (
+          <div className="cs-stack">
+            <p className="ad-muted">改期、取消或查看預約細節，到預約頁處理。處理完請返嚟記錄。</p>
+            <div className="cs-row">
+              {prefill ? <a className="ad-btn" href={`/admin/bookings/${prefill.id}`}>打開預約 {prefill.humanCode}</a> : null}
+              <a className="ad-btn" href="/admin/bookings">預約列表</a>
+            </div>
+          </div>
+        ) : null}
+      </section>
+      {mode === 'link' ? (
+        verified ? (
+          <LinkCard customer={customer} caseId={c.id} link={link} setLink={setLink} prefill={prefill} onDone={onDone} />
+        ) : (
+          <section className="admin-card cs-pad cs-stack">
+            <h3>全託管付款連結</h3>
+            <p className="cs-hint">為免有人冒認，生成付款連結前必須先完成電郵驗證碼核對。</p>
+            <div><button type="button" className="ad-btn ad-btn-primary" onClick={() => onGo('verify')}>去核對身份</button></div>
+          </section>
+        )
+      ) : null}
+      <section className="admin-card cs-pad"><StepNav step="handle" onGo={onGo} /></section>
+    </div>
+  )
+}
+
+function ReplyPanel({ c, customer, link, templates, onGo, onDone }: { c: CaseRow; customer: Customer | null; link: LinkResult | null; templates: Template[]; onGo: (s: StepId) => void; onDone: () => void }) {
+  const [extra, setExtra] = useState('')
+  const [draft, setDraft] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const draftIt = async () => {
+    setBusy(true)
+    setErr('')
+    try {
+      const d = await api('POST', '', { action: 'spark_reply', caseId: c.id, extra, code: link?.humanCode ?? c.booking_code ?? '', link: link?.phoneUrl ?? '' })
+      setDraft(String(d.text ?? ''))
+    } catch (e) {
+      setErr(msg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="cs-stack">
+      <section className="admin-card cs-pad cs-stack">
+        <h3>第 5 步：回覆客人</h3>
+        <p className="ad-muted">Spark 會按調查結果同處理紀錄起草回覆（只用查到嘅事實）；你修改後複製，再記錄為已回覆。</p>
+        <label className="ad-field"><span>想 Spark 特別提到嘅（選填）</span>
+          <input className="ad-input" value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="例如：已退款、請今晚前完成付款、道歉" />
+        </label>
+        <div className="cs-row"><button type="button" className="ad-btn ad-btn-primary" disabled={busy} onClick={() => void draftIt()}>{busy ? 'Spark 起草中…' : draft ? 'Spark 重新起草' : 'Spark 起草回覆'}</button></div>
+        {err ? <p className="cs-err">{err}</p> : null}
+        {draft ? (
+          <div className="cs-stack">
+            <textarea className="ad-input cs-ta" rows={9} value={draft} onChange={(e) => setDraft(e.target.value)} />
+            <div className="cs-row">
+              <CopyButton text={draft} />
+              <button type="button" className="ad-btn" onClick={() => { void api('POST', '', { action: 'add_note', caseId: c.id, kind: 'reply', body: draft }).then(onDone) }}>記錄為已回覆</button>
+            </div>
+          </div>
+        ) : null}
+      </section>
+      <TemplatePanel customer={customer} caseId={c.id} code={link?.humanCode ?? c.booking_code ?? ''} link={link?.phoneUrl ?? ''} templates={templates} onDone={onDone} />
+      <section className="admin-card cs-pad"><StepNav step="reply" onGo={onGo} /></section>
+    </div>
+  )
+}
+
+function ClosePanel({ c, onGo, onDone }: { c: CaseRow; onGo: (s: StepId) => void; onDone: () => void }) {
+  const [text, setText] = useState(c.resolution_note ?? '')
+  const [busy, setBusy] = useState<'' | 'spark' | 'close'>('')
+  const [err, setErr] = useState('')
+  const draft = async () => {
+    setBusy('spark')
+    setErr('')
+    try {
+      const d = await api('POST', '', { action: 'spark_resolve', caseId: c.id })
+      setText(String(d.text ?? ''))
+    } catch (e) {
+      setErr(msg(e))
+    } finally {
+      setBusy('')
+    }
+  }
+  const close = async () => {
+    setBusy('close')
+    setErr('')
+    try {
+      await api('POST', '', { action: 'update_case', caseId: c.id, status: 'resolved', resolutionNote: text })
+      onDone()
+    } catch (e) {
+      setErr(msg(e))
+    } finally {
+      setBusy('')
+    }
+  }
+  return (
+    <section className="admin-card cs-pad cs-stack">
+      <h3>第 6 步：結案</h3>
+      {c.status === 'resolved' ? (
+        <>
+          <p className="cs-ok">工單已解決</p>
+          {c.resolution_note ? <p className="cs-pre">解決方法：{c.resolution_note}</p> : null}
+          <div><button type="button" className="ad-btn" onClick={() => { setBusy('close'); void api('POST', '', { action: 'update_case', caseId: c.id, status: 'open' }).then(onDone).finally(() => setBusy('')) }} disabled={busy !== ''}>重開工單</button></div>
+        </>
+      ) : (
+        <>
+          <p className="ad-muted">寫低解決方法（必填）。Spark 可以按整張工單嘅紀錄起草。</p>
+          <textarea className="ad-input cs-ta" rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder="做咗咩、結果如何" />
+          <div className="cs-row">
+            <button type="button" className="ad-btn" disabled={busy !== ''} onClick={() => void draft()}>{busy === 'spark' ? 'Spark 起草中…' : 'Spark 起草解決方法'}</button>
+            <button type="button" className="ad-btn ad-btn-primary" disabled={busy !== '' || text.trim().length < 3} onClick={() => void close()}>{busy === 'close' ? '處理中…' : '標為已解決'}</button>
+          </div>
+        </>
+      )}
+      {err ? <p className="cs-err">{err}</p> : null}
+      <StepNav step="close" onGo={onGo} />
+    </section>
+  )
+}
+
 /* ── Case detail ───────────────────────────────────────── */
 function CaseDetail({ id, templates, onBack, onChanged }: { id: string; templates: Template[]; onBack: () => void; onChanged: () => void }) {
   const [c, setC] = useState<CaseRow | null>(null)
   const [notes, setNotes] = useState<Note[]>([])
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [loadErr, setLoadErr] = useState('')
+  const [step, setStep] = useState<StepId | null>(null)
+  const [link, setLink] = useState<LinkResult | null>(null)
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -511,23 +804,30 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
   }, [id])
   useEffect(() => { void load() }, [load])
 
-  const [link, setLink] = useState<LinkResult | null>(null)
+  const done: Record<StepId, boolean> = useMemo(() => ({
+    intake: !!customer,
+    verify: !!c?.identity_verified_at || !!c?.identity_skipped_at,
+    diagnose: !!c?.auto_report_at || notes.some((n) => n.kind === 'spark'),
+    handle: notes.some((n) => n.kind === 'payment_link'),
+    reply: notes.some((n) => n.kind === 'reply'),
+    close: c?.status === 'resolved',
+  }), [c, customer, notes])
 
-  // Notes + status
-  const [note, setNote] = useState('')
-  const [resolution, setResolution] = useState('')
-  const [busy, setBusy] = useState(false)
-  const addNote = async () => {
-    if (!note.trim()) return
-    setBusy(true)
-    try {
-      await api('POST', '', { action: 'add_note', caseId: id, body: note })
-      setNote('')
-      await load()
-    } finally {
-      setBusy(false)
-    }
-  }
+  // Open on the first unfinished step.
+  useEffect(() => {
+    if (step !== null || !c) return
+    const first = STEPS.find((x) => !done[x.id])
+    setStep(first ? first.id : 'close')
+  }, [c, done, step])
+
+  // While Spark's automatic investigation is running, refresh until the report lands.
+  const waitingReport = !!c && !c.auto_report_at && Date.now() - new Date(c.created_at).getTime() < 4 * 60_000
+  useEffect(() => {
+    if (!waitingReport) return
+    const t = setInterval(() => { void load() }, 6000)
+    return () => clearInterval(t)
+  }, [waitingReport, load])
+
   const update = async (patch: Record<string, unknown>) => {
     setBusy(true)
     try {
@@ -548,9 +848,22 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
       setLoadErr(msg(e))
     }
   }
+  const addNote = async () => {
+    if (!note.trim()) return
+    setBusy(true)
+    try {
+      await api('POST', '', { action: 'add_note', caseId: id, body: note })
+      setNote('')
+      await load()
+    } finally {
+      setBusy(false)
+    }
+  }
+  const refresh = () => { void load(); onChanged() }
 
   if (loadErr && !c) return <section className="admin-card cs-pad"><p className="cs-err">{loadErr}</p><button type="button" className="ad-btn" onClick={onBack}>返回</button></section>
   if (!c) return <section className="admin-card cs-pad"><p className="ad-muted">載入中…</p></section>
+  const cur: StepId = step ?? 'intake'
 
   return (
     <div className="cs-stack">
@@ -564,51 +877,72 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
           </div>
         </div>
         <h3>{c.subject}</h3>
-        {c.detail ? <p className="cs-pre">{c.detail}</p> : null}
-        {customer ? (
-          <div className="cs-cust">
-            <span className="cs-av">{(customer.displayName ?? customer.memberCode ?? '?').slice(0, 1).toUpperCase()}</span>
-            <div className="cs-cust-text">
-              <b>{customer.displayName ?? '（未有姓名）'}</b>
-              <span className="ad-muted">{[customer.memberCode, customer.phone, customer.email].filter(Boolean).join(' · ')}</span>
-            </div>
-          </div>
-        ) : null}
-        <div className="cs-meta">
-          <span>建立 {hk(c.created_at)} · {c.created_by.split('@')[0]}</span>
-          {c.booking_code ? <span>預約 <b className="ad-mono">{c.booking_code}</b></span> : null}
-          {!customer ? <span className="cs-hint">未連結會員</span> : null}
-        </div>
-        {!customer ? (
-          <div className="cs-stack">
-            <span className="cs-lbl">連結會員（OTP、付款連結需要）</span>
-            <CustomerPicker onPick={(cu) => void attach(cu)} />
-          </div>
-        ) : null}
+        <ol className="cs-steps" aria-label="處理流程">
+          {STEPS.map((st, i) => (
+            <li key={st.id}>
+              <button type="button" className="cs-step" data-active={cur === st.id} data-done={done[st.id]} onClick={() => setStep(st.id)}>
+                <span className="cs-step-n">{done[st.id] ? '✓' : i + 1}</span>
+                <span className="cs-step-l">{st.label}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
         {loadErr ? <p className="cs-err">{loadErr}</p> : null}
-        <div className="cs-row">
-          <div className="cs-seg" role="group" aria-label="狀態">
-            {(['open', 'pending', 'resolved'] as Status[]).map((st) => (
-              <button key={st} type="button" className="cs-seg-btn" aria-pressed={c.status === st} disabled={busy || st === 'resolved'} onClick={() => void update({ status: st })}>{STATUS_LABEL[st]}</button>
-            ))}
-          </div>
-          <button type="button" className="ad-btn cs-sm" disabled={busy} onClick={() => { setBusy(true); void api('POST', '', { action: 'auto_diagnose', caseId: id, force: true }).catch((e) => setLoadErr(msg(e))).finally(() => { setBusy(false); void load() }) }}>{busy ? '調查中…' : 'Spark 調查並電郵 Luca'}</button>
-          {!c.website_issue ? <button type="button" className="ad-btn cs-sm" disabled={busy} onClick={() => void update({ websiteIssue: true, category: 'website' })}>標為網站問題（電郵通知我）</button> : null}
-        </div>
-        {c.status !== 'resolved' ? (
-          <div className="cs-row">
-            <input className="ad-input" value={resolution} onChange={(e) => setResolution(e.target.value)} placeholder="解決方法（會記錄在工單）" />
-            <button type="button" className="ad-btn ad-btn-primary" disabled={busy} onClick={() => void update({ status: 'resolved', resolutionNote: resolution })}>標為已解決</button>
-          </div>
-        ) : c.resolution_note ? <p className="ad-muted">解決方法：{c.resolution_note}</p> : null}
       </section>
 
-      <div className="cs-grid2">
-        <OtpCard customer={customer} caseId={id} onDone={() => void load()} />
-        <LinkCard customer={customer} caseId={id} link={link} setLink={setLink} onDone={() => void load()} />
-      </div>
-      <SparkCard caseId={id} onDone={() => void load()} />
-      <TemplatePanel customer={customer} caseId={id} code={link?.humanCode ?? c.booking_code ?? ''} link={link?.phoneUrl ?? ''} templates={templates} onDone={() => void load()} />
+      {cur === 'intake' ? (
+        <section className="admin-card cs-pad cs-stack">
+          <h3>第 1 步：收單</h3>
+          {c.detail ? <p className="cs-pre">{c.detail}</p> : null}
+          {customer ? (
+            <div className="cs-cust">
+              <span className="cs-av">{(customer.displayName ?? customer.memberCode ?? '?').slice(0, 1).toUpperCase()}</span>
+              <div className="cs-cust-text">
+                <b>{customer.displayName ?? '（未有姓名）'}</b>
+                <span className="ad-muted">{[customer.memberCode, customer.phone, customer.email].filter(Boolean).join(' · ')}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="cs-stack">
+              <span className="cs-lbl">連結會員（核對身份、付款連結需要）</span>
+              <CustomerPicker onPick={(cu) => void attach(cu)} />
+            </div>
+          )}
+          <div className="cs-meta">
+            <span>建立 {hk(c.created_at)} · {c.created_by.split('@')[0]}</span>
+            {c.booking_code ? <span>預約 <b className="ad-mono">{c.booking_code}</b></span> : null}
+          </div>
+          <div className="cs-row">
+            <div className="cs-seg" role="group" aria-label="狀態">
+              {(['open', 'pending'] as Status[]).map((st) => (
+                <button key={st} type="button" className="cs-seg-btn" aria-pressed={c.status === st} disabled={busy || c.status === 'resolved'} onClick={() => void update({ status: st })}>{STATUS_LABEL[st]}</button>
+              ))}
+            </div>
+            {!c.website_issue ? <button type="button" className="ad-btn cs-sm" disabled={busy} onClick={() => void update({ websiteIssue: true, category: 'website' })}>標為網站問題（電郵通知 Luca）</button> : null}
+          </div>
+          <StepNav step="intake" onGo={setStep} />
+        </section>
+      ) : null}
+
+      {cur === 'verify' ? (
+        <div className="cs-stack">
+          {c.identity_verified_at ? <section className="admin-card cs-pad"><p className="cs-ok">身份已核對 · {hk(c.identity_verified_at)}</p></section> : null}
+          {!c.identity_verified_at ? <OtpCard customer={customer} caseId={id} onDone={refresh} /> : null}
+          {!c.identity_verified_at && !c.identity_skipped_at ? (
+            <section className="admin-card cs-pad cs-stack">
+              <p className="ad-muted">純查詢、唔涉及付款連結嘅工單可以略過核對（會記錄喺時間線）。付款連結一定要核對。</p>
+              <div><button type="button" className="ad-btn" onClick={() => { void api('POST', '', { action: 'identity_skip', caseId: id }).then(() => { refresh(); setStep('diagnose') }) }}>略過核對</button></div>
+            </section>
+          ) : null}
+          {c.identity_skipped_at && !c.identity_verified_at ? <section className="admin-card cs-pad"><p className="cs-hint">已略過核對 · {hk(c.identity_skipped_at)}（仍可隨時發驗證碼核對）</p></section> : null}
+          <section className="admin-card cs-pad"><StepNav step="verify" onGo={setStep} /></section>
+        </div>
+      ) : null}
+
+      {cur === 'diagnose' ? <DiagnosePanel c={c} notes={notes} onGo={setStep} onDone={refresh} /> : null}
+      {cur === 'handle' ? <HandlePanel c={c} customer={customer} link={link} setLink={setLink} onGo={setStep} onDone={refresh} /> : null}
+      {cur === 'reply' ? <ReplyPanel c={c} customer={customer} link={link} templates={templates} onGo={setStep} onDone={refresh} /> : null}
+      {cur === 'close' ? <ClosePanel c={c} onGo={setStep} onDone={refresh} /> : null}
 
       <section className="admin-card cs-pad cs-stack">
         <h3>時間線</h3>
@@ -696,7 +1030,7 @@ function TemplatesTab({ templates, onSaved }: { templates: Template[]; onSaved: 
 }
 
 /* ── Main ──────────────────────────────────────────────── */
-export type CsView = 'cases' | 'verify' | 'link' | 'spark' | 'templates'
+export type CsView = 'cases' | 'spark' | 'templates'
 
 export default function CsCenter({ view = 'cases', initialCaseId }: { view?: CsView; initialCaseId?: string | null }) {
   const [filter, setFilter] = useState<'active' | Status>('active')
@@ -707,8 +1041,6 @@ export default function CsCenter({ view = 'cases', initialCaseId }: { view?: CsV
   const [openId, setOpenId] = useState<string | null>(initialCaseId ?? null)
   const [creating, setCreating] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])
-  const [link, setLink] = useState<LinkResult | null>(null)
-
   const loadCases = useCallback(async () => {
     if (view !== 'cases') return
     setLoading(true)
@@ -736,8 +1068,6 @@ export default function CsCenter({ view = 'cases', initialCaseId }: { view?: CsV
   const counts = useMemo(() => ({ website: cases.filter((x) => x.website_issue && x.status !== 'resolved').length }), [cases])
   const noop = () => undefined
 
-  if (view === 'verify') return <WithCustomer>{(c) => <OtpCard customer={c} caseId={null} onDone={noop} />}</WithCustomer>
-  if (view === 'link') return <WithCustomer>{(c) => <LinkCard customer={c} caseId={null} link={link} setLink={setLink} onDone={noop} />}</WithCustomer>
   if (view === 'spark') return <SparkCard caseId={null} onDone={noop} />
   if (view === 'templates') {
     return (

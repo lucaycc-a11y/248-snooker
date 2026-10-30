@@ -15,6 +15,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import {
   CS_NOTE_KINDS,
   addCaseNote,
+  applyVerdict,
   createCase,
   fillTemplate,
   findCustomers,
@@ -28,7 +29,8 @@ import {
 import { issueCsOtp, verifyCsOtp } from '@/lib/cs/otp'
 import { createCsPaymentLink, emailPaymentLinkToCustomer, quoteCsSlot, refreshCsPaymentLink } from '@/lib/cs/paymentLink'
 import { runAutoDiagnose } from '@/lib/cs/autoDiagnose'
-import { sparkAsk, sparkDiagnose, sparkDraftReply } from '@/lib/cs/spark'
+import { sparkAsk, sparkDiagnose, sparkDraftReply, sparkResolution, sparkTriage } from '@/lib/cs/spark'
+import { splitVerdict } from '@/lib/cs/verdict'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -107,6 +109,7 @@ export const POST = withAdminSecurity(
 
       case 'update_case': {
         if (!caseId) return err('工單編號無效')
+        if (body.status === 'resolved' && s(body.resolutionNote, 2000).length < 3) return err('結案前請填寫解決方法')
         const updated = await updateCase(caseId, { email: adminEmail }, {
           status: isCsStatus(body.status) ? body.status : undefined,
           category: isCsCategory(body.category) ? body.category : undefined,
@@ -124,7 +127,7 @@ export const POST = withAdminSecurity(
         if (!customer) return err('找不到這位會員', 404)
         const { error } = await getLegacyServiceSupabase()
           .from('cs_cases')
-          .update({ user_id: customer.id, customer_email: customer.email, updated_at: new Date().toISOString() })
+          .update({ user_id: customer.id, customer_email: customer.email, identity_verified_at: null, identity_skipped_at: null, updated_at: new Date().toISOString() })
           .eq('id', caseId)
         if (error) return err('儲存失敗', 500)
         await addCaseNote(caseId, adminEmail, 'system', `已連結會員 ${customer.memberCode ?? ''}`.trim())
@@ -157,6 +160,11 @@ export const POST = withAdminSecurity(
 
       case 'link_create': {
         if (!isUuid(body.userId)) return err('請先選擇會員')
+        // Workflow rule: no payment link until the customer's identity was verified on this case.
+        if (!caseId) return err('付款連結須在工單內生成，請先建立工單並核對身份', 403)
+        const gate = await getCase(caseId)
+        if (!gate || gate.case.user_id !== body.userId) return err('工單未連結這位會員', 403)
+        if (!gate.case.identity_verified_at) return err('請先完成身份核對（電郵驗證碼），才可生成付款連結', 403)
         const out = await createCsPaymentLink({
           admin: { id: admin.id, email: adminEmail },
           userId: body.userId,
@@ -234,6 +242,60 @@ export const POST = withAdminSecurity(
         return NextResponse.json({ text })
       }
 
+      case 'identity_skip': {
+        if (!caseId) return err('工單編號無效')
+        await getLegacyServiceSupabase().from('cs_cases').update({ identity_skipped_at: new Date().toISOString() }).eq('id', caseId)
+        await addCaseNote(caseId, adminEmail, 'system', '已略過身份核對（此工單不涉及付款連結）')
+        await audit('cs_identity_skipped', caseId, {})
+        return NextResponse.json({ ok: true })
+      }
+
+      case 'spark_triage': {
+        const raw = s(body.text, 1500)
+        if (raw.length < 5) return err('請貼上客人的訊息')
+        if (!(await rateLimit('cs_spark', `user:${admin.id}`, 10, 60))) return err('太頻密，請稍後再試', 429)
+        const out = await sparkTriage(raw)
+        await audit('cs_spark_triage', undefined, { ok: out.ok })
+        return out.ok ? NextResponse.json(out.triage) : err(out.error, 502)
+      }
+
+      case 'spark_resolve': {
+        if (!caseId) return err('工單編號無效')
+        if (!(await rateLimit('cs_spark', `user:${admin.id}`, 10, 60))) return err('太頻密，請稍後再試', 429)
+        const found = await getCase(caseId)
+        if (!found) return err('找不到工單', 404)
+        const out = await sparkResolution(found.case, found.notes)
+        await audit('cs_spark_resolve', caseId, { ok: out.ok })
+        return out.ok ? NextResponse.json({ text: out.text }) : err(out.error, 502)
+      }
+
+      case 'booking_for_case': {
+        if (!caseId) return err('工單編號無效')
+        const found = await getCase(caseId)
+        const code = found?.case.booking_code ?? ''
+        if (!found || !/^[A-Za-z0-9_-]{4,40}$/.test(code)) return NextResponse.json({ booking: null })
+        const { data } = await getLegacyServiceSupabase()
+          .from('bookings')
+          .select('id, human_code, date, start_time, duration_hours, table_number, status, total_price')
+          .or(`human_code.eq.${code.toUpperCase()},booking_reference.eq.${code}`)
+          .limit(1)
+          .maybeSingle()
+        if (!data) return NextResponse.json({ booking: null })
+        const b = data as Record<string, unknown>
+        return NextResponse.json({
+          booking: {
+            id: String(b.id),
+            humanCode: typeof b.human_code === 'string' ? b.human_code : code,
+            date: String(b.date),
+            startHour: Number.parseInt(String(b.start_time).slice(0, 2), 10),
+            duration: Number(b.duration_hours),
+            table: Number(b.table_number),
+            status: String(b.status),
+            amount: Number(b.total_price),
+          },
+        })
+      }
+
       case 'auto_diagnose': {
         if (!caseId) return err('工單編號無效')
         if (!(await rateLimit('cs_spark', `user:${admin.id}`, 10, 60))) return err('太頻密，請稍後再試', 429)
@@ -261,14 +323,18 @@ export const POST = withAdminSecurity(
         const memberCode = found.customer?.memberCode ?? null
         if (action === 'spark_diagnose') {
           const out = await sparkDiagnose(found.case, found.notes, memberCode, extra)
-          if (out.text) await addCaseNote(caseId, 'Spark', 'spark', out.text)
-          await audit('cs_spark_diagnose', caseId, { steps: out.steps.map((x) => x.tool), ok: !!out.text })
-          return out.text ? NextResponse.json({ text: out.text, steps: out.steps }) : err(out.error ?? 'Spark 沒有回應', 502)
+          const parsed = out.text ? splitVerdict(out.text) : null
+          if (parsed) {
+            await addCaseNote(caseId, 'Spark', 'spark', parsed.text)
+            if (parsed.verdict) await applyVerdict(caseId, parsed.verdict, adminEmail, { notifyOwner: true })
+          }
+          await audit('cs_spark_diagnose', caseId, { steps: out.steps.map((x) => x.tool), ok: !!out.text, verdict: parsed?.verdict?.type ?? null })
+          return parsed ? NextResponse.json({ text: parsed.text, verdict: parsed.verdict, steps: out.steps }) : err(out.error ?? 'Spark 沒有回應', 502)
         }
         const out = await sparkDraftReply(found.case, found.notes, memberCode, extra)
         await audit('cs_spark_reply', caseId, { steps: out.steps.map((x) => x.tool), ok: !!out.text })
         if (!out.text) return err(out.error ?? 'Spark 沒有回應', 502)
-        const text = fillTemplate(out.text, { name: found.customer?.displayName ?? '' })
+        const text = fillTemplate(out.text, { name: found.customer?.displayName ?? '', code: s(body.code, 40), link: s(body.link, 2000), result: s(body.result, 300) })
         return NextResponse.json({ text, steps: out.steps })
       }
 

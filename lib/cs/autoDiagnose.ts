@@ -6,8 +6,9 @@
 
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { adminMailShell, escapeHtml, mailButton, mailCallout, mailFacts, mailText, sendAdminMail } from '@/lib/admin/alertMail'
-import { addCaseNote, CS_CATEGORY_LABEL, getCase } from './core'
+import { addCaseNote, applyVerdict, CS_CATEGORY_LABEL, getCase } from './core'
 import { sparkDiagnose } from './spark'
+import { splitVerdict, VERDICT_ACTION_LABEL, VERDICT_TYPE_LABEL } from './verdict'
 
 const EXTRA =
   '請先用 get_account_logs 查這位會員的帳戶紀錄（預約、付款嘗試與事件、網站錯誤、通知失敗）和 Vercel 日誌中與該會員／預約有關的行，必要時再用 get_vercel_logs、get_db_health、get_payment_timeline、check_kpay_order 交叉核對，找出問題原因。' +
@@ -38,8 +39,12 @@ export async function runAutoDiagnose(input: { caseId: string; adminEmail: strin
   const out = await sparkDiagnose(c, notes, customer?.memberCode ?? null, EXTRA)
   if (!out.text) return { ok: false, error: out.error ?? 'Spark 沒有回應' }
 
-  await addCaseNote(c.id, 'Spark', 'spark', `【自動調查】\n${out.text}`)
+  const { text: reportText, verdict } = splitVerdict(out.text)
+  await addCaseNote(c.id, 'Spark', 'spark', `【自動調查】\n${reportText}`)
   await db.from('cs_cases').update({ auto_report_at: new Date().toISOString() }).eq('id', c.id)
+  // Stores the verdict and flags a website problem; the report email below is the owner notification.
+  if (verdict) await applyVerdict(c.id, verdict, input.adminEmail, { notifyOwner: false })
+  const websiteFlag = c.website_issue || verdict?.website === 'yes'
 
   let emailed = false
   try {
@@ -55,11 +60,12 @@ ${mailFacts([
   ['標題', c.subject],
   ['會員編號', customer?.memberCode ?? '-'],
   ['預約編號', c.booking_code ?? '-'],
+  ['Spark 判斷', verdict ? `${VERDICT_TYPE_LABEL[verdict.type]} · 建議：${VERDICT_ACTION_LABEL[verdict.action]}` : '-'],
   ['調查步驟', out.steps.map((s) => s.tool).join(' → ') || '-'],
 ])}
-${mailCallout(escapeHtml(out.text))}
+${mailCallout(escapeHtml(reportText))}
 ${mailButton(url, '打開工單')}`,
-        c.website_issue ? 'critical' : 'normal',
+        websiteFlag ? 'critical' : 'normal',
         c.subject,
       ),
     })
@@ -68,5 +74,6 @@ ${mailButton(url, '打開工單')}`,
   } catch (e) {
     await addCaseNote(c.id, 'system', 'system', `調查報告電郵發送失敗：${e instanceof Error ? e.message : '未知錯誤'}`)
   }
-  return { ok: true, emailed, text: out.text }
+  if (websiteFlag && emailed) await db.from('cs_cases').update({ owner_notified_at: new Date().toISOString() }).eq('id', c.id).is('owner_notified_at', null)
+  return { ok: true, emailed, text: reportText }
 }

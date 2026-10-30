@@ -209,6 +209,24 @@ export default function PaymentMonitorClient() {
     }
   }
 
+  async function resolveErrors(ids: string[]) {
+    setBusy(`err:${ids.join(',')}`)
+    try {
+      for (const id of ids) {
+        const res = await fetch(`/api/admin/errors/${encodeURIComponent(id)}`, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resolved: true }),
+        })
+        if (!res.ok) throw new Error('標記失敗')
+      }
+      await load(true)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+
   const activeIssues = data?.issues.filter((i) => i.mark !== 'fixed') ?? []
   const fixedIssues = data?.issues.filter((i) => i.mark === 'fixed') ?? []
   const criticalCount = activeIssues.filter((i) => i.severity === 'critical' && i.mark !== 'pending').length
@@ -431,7 +449,7 @@ export default function PaymentMonitorClient() {
             </ul>
           )}
         </Section>
-        <Section title="付款相關錯誤" hint="未標記已解決" right={<a className="text-xs underline" style={muted} href="/admin/errors">全部錯誤記錄</a>}>
+        <Section title="付款相關錯誤" hint="未標記已解決" right={<span className="flex items-center gap-3">{data && data.errors.length > 0 ? <Btn onClick={() => void resolveErrors(data.errors.map((e) => String(e.id)))} disabled={busy !== null}>全部標為已解決</Btn> : null}<a className="text-xs underline" style={muted} href="/admin/errors">全部錯誤記錄</a></span>}>
           {!data || data.errors.length === 0 ? (
             <p className="p-4 text-sm" style={muted}>沒有未解決的付款錯誤</p>
           ) : (
@@ -439,7 +457,10 @@ export default function PaymentMonitorClient() {
               {data.errors.map((e) => (
                 <li key={e.id} className="border-t px-4 py-3 first:border-t-0" style={{ borderColor: 'var(--admin-border-subtle)' }}>
                   <div className="break-words text-sm" style={{ color: 'var(--admin-text-primary)' }}>{e.message ?? '—'}</div>
-                  <div className="text-xs" style={muted}>{hk(e.created_at)} · {e.source ?? ''}</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs" style={muted}>{hk(e.created_at)} · {e.source ?? ''}</span>
+                    <Btn primary onClick={() => void resolveErrors([String(e.id)])} disabled={busy !== null}>已解決</Btn>
+                  </div>
                 </li>
               ))}
             </ul>

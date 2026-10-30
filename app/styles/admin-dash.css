@@ -2231,3 +2231,16 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
 @media (max-width: 720px) { .cs-form { grid-template-columns: repeat(3, minmax(0, 1fr)); } .cs-seg-btn { padding: 0 12px; } }
 .cs-price .ad-field { flex: none; min-width: 0; }
 .cs-form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* CS workflow stepper */
+.cs-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.cs-step { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px; border: 0; border-radius: 14px; background: transparent; color: var(--admin-text-tertiary); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; min-height: 44px; }
+.cs-step-n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--admin-bg-tile); font-size: 13px; font-weight: 700; }
+.cs-step[data-done='true'] .cs-step-n { background: var(--admin-green); color: #fff; }
+.cs-step[data-active='true'] { background: var(--admin-bg-tile); color: var(--admin-text-primary); }
+.cs-step[data-active='true'] .cs-step-n { outline: 2px solid var(--admin-green); outline-offset: 1px; }
+.cs-stepnav { margin-top: 4px; }
+.cs-spark-box { padding: 14px; border-radius: 14px; background: var(--admin-bg-tile); }
+.cs-pulse { animation: cs-pulse 1.6s ease-in-out infinite; }
+@keyframes cs-pulse { 50% { opacity: 0.45; } }
+@media (max-width: 520px) { .cs-step-l { font-size: 12px; } .cs-step { padding: 8px 0; } }

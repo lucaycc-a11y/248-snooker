@@ -104,10 +104,8 @@ export const ADMIN_AREAS: AdminArea[] = [
     icon: 'support',
     href: '/admin/cs',
     items: [
-      { href: '/admin/cs', label: '工單', cmsKey: 'admin.nav.cs', hint: '客人問題、處理進度與網站問題通知' },
-      { href: '/admin/cs/verify', label: '身份核對', cmsKey: 'admin.nav.cs_verify', hint: '發電郵驗證碼核對客人身份' },
-      { href: '/admin/cs/link', label: '付款連結', cmsKey: 'admin.nav.cs_link', hint: '網站未能付款時，生成 KPay 全託管連結' },
-      { href: '/admin/cs/spark', label: 'Spark 診斷', cmsKey: 'admin.nav.cs_spark', hint: '查 Vercel 日誌、資料庫與付款問題' },
+      { href: '/admin/cs', label: '工單流程', cmsKey: 'admin.nav.cs', hint: '收單、核對、Spark 診斷、處理、回覆、結案' },
+      { href: '/admin/cs/spark', label: 'Spark 問答', cmsKey: 'admin.nav.cs_spark', hint: '直接問 Spark 查 Vercel 日誌、資料庫與付款' },
       { href: '/admin/cs/templates', label: '回覆範本', cmsKey: 'admin.nav.cs_templates', hint: '客務回覆用語，可套用或由 Spark 起草' },
     ],
   },
@@ -247,10 +245,8 @@ export const ADMIN_TAB_GROUPS: AdminTabGroup[] = [
   {
     id: 'cs',
     tabs: [
-      { href: '/admin/cs', label: '工單' },
-      { href: '/admin/cs/verify', label: '身份核對' },
-      { href: '/admin/cs/link', label: '付款連結' },
-      { href: '/admin/cs/spark', label: 'Spark 診斷' },
+      { href: '/admin/cs', label: '工單流程' },
+      { href: '/admin/cs/spark', label: 'Spark 問答' },
       { href: '/admin/cs/templates', label: '回覆範本' },
     ],
   },

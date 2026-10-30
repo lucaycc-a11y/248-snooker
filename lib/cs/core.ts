@@ -6,6 +6,7 @@
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { adminMailShell, escapeHtml, mailButton, mailCallout, mailFacts, mailText, sendAdminMail } from '@/lib/admin/alertMail'
 import { databaseHealthSnapshot } from '@/lib/spark/csTools'
+import { isCsVerdict, type CsVerdict } from './verdict'
 
 export const CS_CATEGORIES = ['payment', 'booking', 'account', 'website', 'other'] as const
 export type CsCategory = (typeof CS_CATEGORIES)[number]
@@ -51,6 +52,9 @@ export type CsCase = {
   website_issue: boolean
   owner_notified_at: string | null
   auto_report_at: string | null
+  identity_verified_at: string | null
+  identity_skipped_at: string | null
+  spark_verdict: CsVerdict | null
   created_by: string
   resolution_note: string | null
   resolved_at: string | null
@@ -114,10 +118,31 @@ export async function addCaseNote(caseId: string, author: string, kind: CsNoteKi
   await db().from('cs_cases').update({ updated_at: new Date().toISOString() }).eq('id', caseId)
 }
 
+function normalizeCase(c: CsCase): CsCase {
+  return { ...c, spark_verdict: isCsVerdict(c.spark_verdict) ? c.spark_verdict : null }
+}
+
+/** Stores Spark's verdict. A confident "website: yes" flags the case (and emails the owner once). */
+export async function applyVerdict(caseId: string, verdict: CsVerdict, adminEmail: string, opts: { notifyOwner: boolean }): Promise<void> {
+  const patch: Record<string, unknown> = { spark_verdict: verdict, updated_at: new Date().toISOString() }
+  const found = await getCase(caseId)
+  if (!found) return
+  const flag = verdict.website === 'yes' && !found.case.website_issue
+  if (flag) patch.website_issue = true
+  await db().from('cs_cases').update(patch).eq('id', caseId)
+  if (flag) {
+    await addCaseNote(caseId, 'Spark', 'system', 'Spark 判斷為網站問題，已自動標記')
+    if (opts.notifyOwner) {
+      const again = await getCase(caseId)
+      if (again) await notifyOwnerWebsiteIssue(again.case, adminEmail)
+    }
+  }
+}
+
 export async function getCase(id: string): Promise<{ case: CsCase; notes: CsNote[]; customer: CsCustomer | null } | null> {
   const { data } = await db().from('cs_cases').select('*').eq('id', id).maybeSingle()
   if (!data) return null
-  const c = data as unknown as CsCase
+  const c = normalizeCase(data as unknown as CsCase)
   const { data: notes } = await db().from('cs_case_notes').select('*').eq('case_id', id).order('created_at', { ascending: true }).limit(200)
   return { case: c, notes: (notes ?? []) as unknown as CsNote[], customer: c.user_id ? await getCustomer(c.user_id) : null }
 }

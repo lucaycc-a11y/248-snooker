@@ -104,6 +104,10 @@ export async function verifyCsOtp(input: { userId: string; code: string; adminEm
     return { ok: false, error: `驗證碼不正確（還有 ${Math.max(0, MAX_ATTEMPTS - row.attempts - 1)} 次機會）` }
   }
   await db.from('cs_otp_challenges').update({ verified_at: new Date().toISOString() }).eq('id', row.id)
-  if (input.caseId) await addCaseNote(input.caseId, input.adminEmail, 'otp', '身份核對成功（電郵驗證碼）')
+  if (input.caseId) {
+    // Only counts for the case if the OTP was for the customer linked to that case.
+    await db.from('cs_cases').update({ identity_verified_at: new Date().toISOString() }).eq('id', input.caseId).eq('user_id', input.userId)
+    await addCaseNote(input.caseId, input.adminEmail, 'otp', '身份核對成功（電郵驗證碼）')
+  }
   return { ok: true }
 }
