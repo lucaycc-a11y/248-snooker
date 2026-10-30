@@ -112,6 +112,19 @@ export default function MonthlyReport({ data, thisMonth }: { data: MonthlyReport
     } catch { setPdfErr('PDF 產生失敗，請再試') } finally { setPdfBusy(false) }
   }
 
+  const [mailBusy, setMailBusy] = useState(false)
+  const [mailMsg, setMailMsg] = useState<string | null>(null)
+  async function mailToMe() {
+    if (spark.status !== 'ready') return
+    setMailBusy(true); setMailMsg(null)
+    try {
+      const res = await fetch('/api/admin/report/monthly-send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month: data.month, analysis: spark.analysis }) })
+      const j: unknown = await res.json().catch(() => null)
+      const err = typeof j === 'object' && j !== null && 'error' in j ? String((j as { error: unknown }).error) : null
+      setMailMsg(res.ok ? '已電郵俾你（含 PDF）' : err ?? '電郵發送失敗，請再試')
+    } catch { setMailMsg('電郵發送失敗，請再試') } finally { setMailBusy(false) }
+  }
+
   const a = data.attempts
   const b = data.bookings
   const periodTotal = data.byPeriod.reduce((s, x) => s + x.revenue, 0)
@@ -121,6 +134,10 @@ export default function MonthlyReport({ data, thisMonth }: { data: MonthlyReport
       <div className="mr-controls ar-noprint">
         <input type="month" value={data.month} max={thisMonth} onChange={(e) => e.target.value && router.push(`/admin/report/monthly?month=${e.target.value}`)} aria-label="選擇月份" className="ar-date" />
         {pdfErr ? <span className="em-err" role="alert">{pdfErr}</span> : null}
+        {mailMsg ? <span role="status">{mailMsg}</span> : null}
+        <button type="button" className="admin-pill-btn" onClick={() => void mailToMe()} disabled={spark.status === 'loading' || mailBusy}>
+          {mailBusy ? <Loader2 size={18} className="sp-spin" aria-hidden /> : <Download size={18} aria-hidden />} 電郵俾我
+        </button>
         <button type="button" className="admin-pill-btn" onClick={() => void downloadPdf()} disabled={spark.status === 'loading' || pdfBusy}>
           {pdfBusy ? <Loader2 size={18} className="sp-spin" aria-hidden /> : <Download size={18} aria-hidden />} 下載 PDF
         </button>
