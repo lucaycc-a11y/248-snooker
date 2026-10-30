@@ -2229,3 +2229,5 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
 .cs-seg-btn:disabled { cursor: default; }
 .admin-card h3 { margin: 0; }
 @media (max-width: 720px) { .cs-form { grid-template-columns: repeat(3, minmax(0, 1fr)); } .cs-seg-btn { padding: 0 12px; } }
+.cs-price .ad-field { flex: none; min-width: 0; }
+.cs-form { grid-template-columns: repeat(3, minmax(0, 1fr)); }

@@ -250,7 +250,7 @@ function OtpCard({ customer, caseId, onDone }: { customer: Customer | null; case
 function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Customer | null; caseId: string | null; link: LinkResult | null; setLink: (l: LinkResult | null) => void; onDone: () => void }) {
   const [date, setDate] = useState('')
   const [startHour, setStartHour] = useState('')
-  const [duration, setDuration] = useState('1')
+  const [endHour, setEndHour] = useState('')
   const [table, setTable] = useState('1')
   const [price, setPrice] = useState('')
   const [standard, setStandard] = useState<number | null>(null)
@@ -258,10 +258,12 @@ function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Custo
   const [busy, setBusy] = useState(false)
   const [linkMsg, setLinkMsg] = useState('')
   const customerId = customer?.id ?? null
+  const duration = startHour !== '' && endHour !== '' ? Number(endHour) - Number(startHour) : 0
+  const hh = (h: string | number) => `${String(h).padStart(2, '0')}:00`
   useEffect(() => {
     setStandard(null)
     setQuoteNote('')
-    if (!customerId || !date || startHour === '' || !duration) return
+    if (!customerId || !date || startHour === '' || duration < 1) return
     const timer = setTimeout(() => {
       void api('POST', '', { action: 'link_quote', userId: customerId, date, startHour: Number(startHour), duration: Number(duration) })
         .then((d) => setStandard(Number(d.total)))
@@ -283,7 +285,7 @@ function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Custo
         phoneUrl: String(d.phoneUrl),
         desktopUrl: String(d.desktopUrl),
         holdMinutes: Number(d.holdMinutes),
-        summary: `${date} ${String(startHour).padStart(2, '0')}:00 起 ${duration} 小時 房${table}`,
+        summary: `${date} ${hh(startHour)}–${hh(endHour)}（${duration} 小時）房${table}`,
       })
       onDone()
     } catch (e) {
@@ -332,15 +334,25 @@ function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Custo
       <p className="ad-muted">網站未能付款時使用：預留時段並生成 KPay 收銀台連結，客人付款後自動確認預約並發送確認電郵。</p>
       <div className="cs-form">
         <label className="ad-field cs-span"><span>日期</span><input className="ad-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-        <label className="ad-field"><span>開始（時）</span><input className="ad-input" type="number" min={0} max={23} value={startHour} onChange={(e) => setStartHour(e.target.value)} placeholder="19" /></label>
-        <label className="ad-field"><span>時數</span><input className="ad-input" type="number" min={1} max={8} value={duration} onChange={(e) => setDuration(e.target.value)} /></label>
+        <label className="ad-field"><span>由</span>
+          <select className="ad-input" value={startHour} onChange={(e) => { setStartHour(e.target.value); if (endHour !== '' && Number(endHour) <= Number(e.target.value)) setEndHour('') }}>
+            <option value="">選擇</option>
+            {Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{hh(h)}</option>)}
+          </select>
+        </label>
+        <label className="ad-field"><span>至</span>
+          <select className="ad-input" value={endHour} disabled={startHour === ''} onChange={(e) => setEndHour(e.target.value)}>
+            <option value="">選擇</option>
+            {Array.from({ length: 24 }, (_, i) => i + 1).filter((h) => startHour === '' || (h > Number(startHour) && h - Number(startHour) <= 8)).map((h) => <option key={h} value={h}>{hh(h)}</option>)}
+          </select>
+        </label>
         <label className="ad-field"><span>房間</span>
           <select className="ad-input" value={table} onChange={(e) => setTable(e.target.value)}><option value="1">房 1</option><option value="2">房 2</option></select>
         </label>
       </div>
       <div className="cs-price">
         <div className="cs-price-std">
-          <span className="cs-lbl">標準價（按會員等級計算）</span>
+          <span className="cs-lbl">{duration > 0 ? `${hh(startHour)} – ${hh(endHour)} · 共 ${duration} 小時 · 標準價` : '標準價（按會員等級計算）'}</span>
           <b>{standard !== null ? `HK$${standard}` : '—'}</b>
         </div>
         <label className="ad-field">
@@ -350,7 +362,7 @@ function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Custo
         {quoteNote ? <p className="cs-hint">{quoteNote}</p> : null}
         {price.trim() !== '' && standard !== null && Number(price) !== standard ? <p className="cs-hint">會以 HK${Number(price) || 0} 收費，並記錄為自訂價錢（標準價 HK${standard}）。</p> : null}
       </div>
-      <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || busy || !date || startHour === ''} onClick={() => void create()}>{busy ? '處理中…' : '生成付款連結'}</button>
+      <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || busy || !date || duration < 1} onClick={() => void create()}>{busy ? '處理中…' : '生成付款連結'}</button>
       {link ? (
         <div className="cs-link">
           <div className="cs-row cs-between"><b className="ad-mono">{link.humanCode}</b><b className="cs-amount">HK${link.amount}</b></div>
