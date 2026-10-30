@@ -296,6 +296,7 @@ function LinkCard({ customer, caseId, link, setLink, prefill, onDone }: { custom
   const [price, setPrice] = useState('')
   const [standard, setStandard] = useState<number | null>(null)
   const [quoteNote, setQuoteNote] = useState('')
+  const [avail, setAvail] = useState<{ rooms: Record<string, { free: boolean; conflict: string | null }>; pastCutoff: boolean } | null>(null)
   const [busy, setBusy] = useState(false)
   const [linkMsg, setLinkMsg] = useState('')
   const customerId = customer?.id ?? null
@@ -312,6 +313,19 @@ function LinkCard({ customer, caseId, link, setLink, prefill, onDone }: { custom
     }, 350)
     return () => clearTimeout(timer)
   }, [customerId, date, startHour, duration])
+  // Availability of both rooms for the chosen window, checked before a link can be generated.
+  useEffect(() => {
+    setAvail(null)
+    if (!customerId || !date || startHour === '' || duration < 1) return
+    const timer = setTimeout(() => {
+      void api('POST', '', { action: 'link_availability', userId: customerId, date, startHour: Number(startHour), duration: Number(duration) })
+        .then((d) => setAvail(isRecord(d.rooms) ? { rooms: d.rooms as Record<string, { free: boolean; conflict: string | null }>, pastCutoff: d.pastCutoff === true } : null))
+        .catch(() => setAvail(null))
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [customerId, date, startHour, duration])
+  const roomState = avail ? avail.rooms[table] : null
+  const blocked = !!avail && (avail.pastCutoff || (roomState ? !roomState.free : false))
   const create = async () => {
     if (!customer) return
     setBusy(true)
@@ -397,6 +411,16 @@ function LinkCard({ customer, caseId, link, setLink, prefill, onDone }: { custom
           <select className="ad-input" value={table} onChange={(e) => setTable(e.target.value)}><option value="1">房 1</option><option value="2">房 2</option></select>
         </label>
       </div>
+      {duration > 0 && date ? (
+        <div className="cs-avail" data-ok={avail ? (blocked ? 'no' : 'yes') : 'wait'}>
+          {!avail ? <span>檢查時段中…</span> : avail.pastCutoff ? <span>呢個時段已過截止時間，不能預約</span> : (
+            <>
+              <b>{blocked ? `房${table} 唔可以預約：${roomState?.conflict ?? ''}` : `房${table} 呢個時段可以預約`}</b>
+              <span>{(['1', '2'] as const).filter((r) => r !== table).map((r) => `房${r}：${avail.rooms[r]?.free ? '有位' : avail.rooms[r]?.conflict ?? '無位'}`).join('　')}</span>
+            </>
+          )}
+        </div>
+      ) : null}
       <div className="cs-price">
         <div className="cs-price-std">
           <span className="cs-lbl">{duration > 0 ? `${hh(startHour)} – ${hh(endHour)} · 共 ${duration} 小時 · 標準價` : '標準價（按會員等級計算）'}</span>
@@ -409,7 +433,7 @@ function LinkCard({ customer, caseId, link, setLink, prefill, onDone }: { custom
         {quoteNote ? <p className="cs-hint">{quoteNote}</p> : null}
         {price.trim() !== '' && standard !== null && Number(price) !== standard ? <p className="cs-hint">會以 HK${Number(price) || 0} 收費，並記錄為自訂價錢（標準價 HK${standard}）。</p> : null}
       </div>
-      <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || busy || !date || duration < 1} onClick={() => void create()}>{busy ? '處理中…' : '生成付款連結'}</button>
+      <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || busy || !date || duration < 1 || blocked} onClick={() => void create()}>{busy ? '處理中…' : '生成付款連結'}</button>
       {link ? (
         <div className="cs-link">
           <div className="cs-row cs-between"><b className="ad-mono">{link.humanCode}</b><b className="cs-amount">HK${link.amount}</b></div>

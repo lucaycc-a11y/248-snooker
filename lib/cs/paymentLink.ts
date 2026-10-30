@@ -328,3 +328,47 @@ export async function quoteCsSlot(input: { userId: string; date: string; startHo
   const { slotStart, slotEnd } = slotBounds(input.date, input.startHour, input.duration)
   return { ok: true, total: calculatePrice(slotStart, slotEnd, tier, periods).total }
 }
+
+export type CsAvailability =
+  | { ok: true; rooms: Record<'1' | '2', { free: boolean; conflict: string | null }>; pastCutoff: boolean }
+  | { ok: false; error: string }
+
+/**
+ * Is [startHour, startHour + duration) free on each room? Mirrors the conflict rule in the
+ * find_or_lock_slot RPC (booked slots, or someone else's live hold), so the admin sees the answer
+ * before generating a link. The RPC remains the authoritative guard at creation time.
+ */
+export async function checkCsAvailability(input: { userId: string; date: string; startHour: number; duration: number; hostname: string }): Promise<CsAvailability> {
+  const { userId, date, startHour, duration } = input
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isInteger(startHour) || !Number.isInteger(duration) || duration < 1 || duration > 8) {
+    return { ok: false, error: '請先填好日期、開始時間和時數' }
+  }
+  const isTest = isTestBooking(input.hostname)
+  const reqStart = Date.parse(`${date}T${String(startHour).padStart(2, '0')}:00:00Z`)
+  const reqEnd = reqStart + duration * 3600_000
+  const day = (offset: number) => new Date(Date.parse(`${date}T00:00:00Z`) + offset * 86_400_000).toISOString().slice(0, 10)
+  const { data, error } = await getLegacyServiceSupabase()
+    .from('slots')
+    .select('table_number, date, start_time, duration_hours, status, locked_by, locked_until, is_test')
+    .gte('date', day(-1))
+    .lte('date', day(1))
+    .in('table_number', [1, 2])
+    .in('status', ['booked', 'locked'])
+  if (error) return { ok: false, error: '暫時未能查詢時段' }
+  const rooms: Record<'1' | '2', { free: boolean; conflict: string | null }> = { '1': { free: true, conflict: null }, '2': { free: true, conflict: null } }
+  for (const r of (data ?? []) as Record<string, unknown>[]) {
+    if (r.is_test === true && !isTest) continue
+    const live = r.status === 'booked' || (r.status === 'locked' && typeof r.locked_until === 'string' && Date.parse(r.locked_until) > Date.now() && r.locked_by !== userId)
+    if (!live) continue
+    const start = Date.parse(`${String(r.date)}T${String(r.start_time).slice(0, 8)}Z`)
+    const end = start + Number(r.duration_hours) * 3600_000
+    if (start < reqEnd && end > reqStart) {
+      const key = String(r.table_number) === '2' ? '2' : '1'
+      if (rooms[key].free) {
+        const hh = (ms: number) => new Date(ms).toISOString().slice(11, 16)
+        rooms[key] = { free: false, conflict: `${hh(start)}–${hh(end)} ${r.status === 'booked' ? '已被預約' : '被預留中'}` }
+      }
+    }
+  }
+  return { ok: true, rooms, pastCutoff: !isSlotStillBookable(slotStartInHongKong(date, startHour)) }
+}

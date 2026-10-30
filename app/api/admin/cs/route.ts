@@ -27,7 +27,7 @@ import {
   updateCase,
 } from '@/lib/cs/core'
 import { issueCsOtp, verifyCsOtp } from '@/lib/cs/otp'
-import { createCsPaymentLink, emailPaymentLinkToCustomer, quoteCsSlot, refreshCsPaymentLink } from '@/lib/cs/paymentLink'
+import { checkCsAvailability, createCsPaymentLink, emailPaymentLinkToCustomer, quoteCsSlot, refreshCsPaymentLink } from '@/lib/cs/paymentLink'
 import { runAutoDiagnose } from '@/lib/cs/autoDiagnose'
 import { sparkAsk, sparkDiagnose, sparkDraftReply, sparkResolution, sparkTriage } from '@/lib/cs/spark'
 import { splitVerdict } from '@/lib/cs/verdict'
@@ -186,6 +186,12 @@ export const POST = withAdminSecurity(
         if (!isUuid(body.userId)) return err('請先選擇會員')
         const q = await quoteCsSlot({ userId: body.userId, date: s(body.date, 10), startHour: Number(body.startHour), duration: Number(body.duration) })
         return q.ok ? NextResponse.json(q) : err(q.error)
+      }
+
+      case 'link_availability': {
+        if (!isUuid(body.userId)) return err('請先選擇會員')
+        const a = await checkCsAvailability({ userId: body.userId, date: s(body.date, 10), startHour: Number(body.startHour), duration: Number(body.duration), hostname: url.hostname })
+        return a.ok ? NextResponse.json(a) : err(a.error)
       }
 
       case 'link_check': {

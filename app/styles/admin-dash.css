@@ -2245,3 +2245,6 @@ a.aa-h:hover { border-color: var(--admin-border-strong); }
 @keyframes cs-pulse { 50% { opacity: 0.45; } }
 @media (max-width: 520px) { .cs-step-l { font-size: 12px; } .cs-step { padding: 8px 0; } }
 .cs-stack > .ad-field, .cs-pad > .ad-field { flex: none; }
+.cs-avail { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 14px; font-size: 14px; background: var(--admin-bg-tile); color: var(--admin-text-secondary); }
+.cs-avail[data-ok='yes'] b { color: var(--admin-green); }
+.cs-avail[data-ok='no'] b { color: var(--admin-status-danger); }
