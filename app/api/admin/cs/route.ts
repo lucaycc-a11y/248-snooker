@@ -250,6 +250,20 @@ export const POST = withAdminSecurity(
         return NextResponse.json({ text })
       }
 
+      case 'delete_case': {
+        if (!caseId) return err('工單編號無效')
+        const db = getLegacyServiceSupabase()
+        const found = await getCase(caseId)
+        if (!found) return err('找不到工單', 404)
+        // Keep payment-link records (they point at real bookings); drop the ephemeral OTP rows; notes cascade.
+        await db.from('cs_payment_links').update({ case_id: null }).eq('case_id', caseId)
+        await db.from('cs_otp_challenges').delete().eq('case_id', caseId)
+        const { error } = await db.from('cs_cases').delete().eq('id', caseId)
+        if (error) return err('刪除失敗', 500)
+        await audit('cs_case_deleted', caseId, { subject: found.case.subject, status: found.case.status })
+        return NextResponse.json({ ok: true })
+      }
+
       case 'identity_skip': {
         if (!caseId) return err('工單編號無效')
         await getLegacyServiceSupabase().from('cs_cases').update({ identity_skipped_at: new Date().toISOString() }).eq('id', caseId)

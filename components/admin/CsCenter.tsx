@@ -903,6 +903,11 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
             {c.website_issue ? <span className="ad-chip" data-tone="bad">網站問題{c.owner_notified_at ? ' · 已電郵通知' : ''}</span> : null}
             <span className="ad-chip" data-tone={c.status === 'resolved' ? undefined : c.status === 'pending' ? 'warn' : 'muted'}>{STATUS_LABEL[c.status]}</span>
             <span className="ad-chip" data-tone="muted">{CAT_LABEL[c.category]}</span>
+            <button type="button" className="ad-btn cs-sm" disabled={busy} onClick={() => {
+              if (!window.confirm('刪除這張工單和它的所有紀錄？此操作不能還原。')) return
+              setBusy(true)
+              void api('POST', '', { action: 'delete_case', caseId: id }).then(() => { onChanged(); onBack() }).catch((e) => setLoadErr(msg(e))).finally(() => setBusy(false))
+            }}>刪除工單</button>
           </div>
         </div>
         <h3>{c.subject}</h3>

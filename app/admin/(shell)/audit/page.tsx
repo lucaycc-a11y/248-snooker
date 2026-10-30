@@ -77,6 +77,7 @@ const ACTION_LABELS: Record<string, string> = {
   cs_spark_reply: '客務：Spark 起草回覆',
   cs_spark_ask: '客務：Spark 提問',
   cs_auto_diagnose: '客務：Spark 自動調查',
+  cs_case_deleted: '客務：刪除工單',
   cs_identity_skipped: '客務：略過身份核對',
   cs_spark_triage: '客務：Spark 整理客人訊息',
   cs_spark_resolve: '客務：Spark 起草解決方法',
