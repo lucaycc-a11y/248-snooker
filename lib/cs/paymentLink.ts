@@ -39,6 +39,7 @@ export type CsLinkResult =
       bookingId: string
       humanCode: string
       amount: number
+      standardAmount: number
       managedOrderNo: string
       phoneUrl: string
       desktopUrl: string
@@ -58,6 +59,8 @@ export async function createCsPaymentLink(input: {
   caseId?: string | null
   origin: string
   hostname: string
+  /** Admin-set price in HK$. Omitted = the standard server-side price. */
+  customPrice?: number | null
 }): Promise<CsLinkResult> {
   const { admin, userId, date, startHour, duration, tableNumber } = input
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isInteger(startHour) || !Number.isInteger(duration) || duration < 1 || duration > 8) {
@@ -134,7 +137,30 @@ export async function createCsPaymentLink(input: {
     await releaseCheckoutHolds(service, { bookingId, orderGroupId: null })
     return { ok: false, error: `未能準備付款（${prepared.failure.reason}）` }
   }
-  const total = prepared.prepared.total
+  let total = prepared.prepared.total
+  const standardTotal = total
+  const custom = input.customPrice
+  if (custom !== undefined && custom !== null && (Number.isNaN(custom) || Math.abs(custom - total) > 0.009)) {
+    if (!Number.isFinite(custom) || custom < 1.5 || custom > 5000) {
+      await releaseCheckoutHolds(service, { bookingId, orderGroupId: null })
+      return { ok: false, error: '自訂價錢必須介乎 HK$1.5 至 HK$5000' }
+    }
+    const rounded = Math.round(custom * 100) / 100
+    const { error: priceErr } = await service
+      .from('bookings')
+      .update({
+        total_price: rounded,
+        base_price: rounded,
+        subtotal: rounded,
+        admin_note: `客務付款連結（管理員：${admin.email}）；自訂價錢 HK$${rounded}（標準價 HK$${standardTotal}）`,
+      })
+      .eq('id', bookingId)
+    if (priceErr) {
+      await releaseCheckoutHolds(service, { bookingId, orderGroupId: null })
+      return { ok: false, error: '未能設定價錢，請重試' }
+    }
+    total = rounded
+  }
   if (total <= 0) {
     await releaseCheckoutHolds(service, { bookingId, orderGroupId: null })
     return { ok: false, error: '金額為 0，不能用付款連結' }
@@ -181,7 +207,7 @@ export async function createCsPaymentLink(input: {
     booking_id: bookingId,
     managed_order_no: managedOrderNo,
     amount: total,
-    note: `${date} ${String(startHour).padStart(2, '0')}:00 × ${duration}h 房${tableNumber}`,
+    note: `${total !== standardTotal ? `自訂價 HK$${total}（標準 HK$${standardTotal}）· ` : ''}${date} ${String(startHour).padStart(2, '0')}:00 × ${duration}h 房${tableNumber}`,
   })
   await logPaymentEvent({
     bookingId,
@@ -199,13 +225,13 @@ export async function createCsPaymentLink(input: {
       actionType: 'cs_payment_link_created',
       targetTable: 'bookings',
       targetId: bookingId,
-      afterJsonb: { userId, date, startHour, duration, tableNumber, amount: total },
+      afterJsonb: { userId, date, startHour, duration, tableNumber, amount: total, standardAmount: standardTotal, customPrice: total !== standardTotal },
     })
   } catch {
     /* audit is best-effort */
   }
   if (input.caseId) {
-    await addCaseNote(input.caseId, admin.email, 'payment_link', `已生成付款連結：${humanCode}，HK$${total}，${date} ${String(startHour).padStart(2, '0')}:00 × ${duration}h 房${tableNumber}`)
+    await addCaseNote(input.caseId, admin.email, 'payment_link', `已生成付款連結：${humanCode}，HK$${total}${total !== standardTotal ? `（自訂，標準價 HK$${standardTotal}）` : ''}，${date} ${String(startHour).padStart(2, '0')}:00 × ${duration}h 房${tableNumber}`)
   }
 
   return {
@@ -213,6 +239,7 @@ export async function createCsPaymentLink(input: {
     bookingId,
     humanCode,
     amount: total,
+    standardAmount: standardTotal,
     managedOrderNo,
     phoneUrl: client.buildCashierUrl(managedOrderNo, 'h5'),
     desktopUrl: client.buildCashierUrl(managedOrderNo, 'web'),
@@ -288,4 +315,16 @@ export async function emailPaymentLinkToCustomer(input: {
   if (error) return { ok: false, error: `電郵發送失敗：${error.message}` }
   if (input.caseId) await addCaseNote(input.caseId, input.adminEmail, 'payment_link', `已電郵付款連結（${input.humanCode}）俾客人`)
   return { ok: true }
+}
+
+/** Standard (server-side, config-driven) price for a slot, for the admin to see before overriding. */
+export async function quoteCsSlot(input: { userId: string; date: string; startHour: number; duration: number }): Promise<{ ok: true; total: number } | { ok: false; error: string }> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !Number.isInteger(input.startHour) || !Number.isInteger(input.duration) || input.duration < 1 || input.duration > 8) {
+    return { ok: false, error: '請先填好日期、開始時間和時數' }
+  }
+  if (!isValidSlotStart(input.date, input.startHour)) return { ok: false, error: '開始時間不正確' }
+  const periods = await loadPeriods()
+  const tier = await resolveTierForUser(input.userId)
+  const { slotStart, slotEnd } = slotBounds(input.date, input.startHour, input.duration)
+  return { ok: true, total: calculatePrice(slotStart, slotEnd, tier, periods).total }
 }

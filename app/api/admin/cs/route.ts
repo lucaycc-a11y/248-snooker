@@ -26,7 +26,7 @@ import {
   updateCase,
 } from '@/lib/cs/core'
 import { issueCsOtp, verifyCsOtp } from '@/lib/cs/otp'
-import { createCsPaymentLink, emailPaymentLinkToCustomer, refreshCsPaymentLink } from '@/lib/cs/paymentLink'
+import { createCsPaymentLink, emailPaymentLinkToCustomer, quoteCsSlot, refreshCsPaymentLink } from '@/lib/cs/paymentLink'
 import { sparkAsk, sparkDiagnose, sparkDraftReply } from '@/lib/cs/spark'
 
 export const runtime = 'nodejs'
@@ -164,10 +164,17 @@ export const POST = withAdminSecurity(
           duration: Number(body.duration),
           tableNumber: Number(body.tableNumber) === 2 ? 2 : 1,
           caseId,
+          customPrice: body.price === undefined || body.price === null || body.price === '' ? null : Number(body.price),
           origin: url.origin,
           hostname: url.hostname,
         })
         return out.ok ? NextResponse.json(out) : err(out.error, 409)
+      }
+
+      case 'link_quote': {
+        if (!isUuid(body.userId)) return err('請先選擇會員')
+        const q = await quoteCsSlot({ userId: body.userId, date: s(body.date, 10), startHour: Number(body.startHour), duration: Number(body.duration) })
+        return q.ok ? NextResponse.json(q) : err(q.error)
       }
 
       case 'link_check': {

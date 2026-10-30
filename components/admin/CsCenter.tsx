@@ -36,6 +36,7 @@ type LinkResult = {
   bookingId: string
   humanCode: string
   amount: number
+  standardAmount: number
   phoneUrl: string
   desktopUrl: string
   holdMinutes: number
@@ -246,18 +247,34 @@ function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Custo
   const [startHour, setStartHour] = useState('')
   const [duration, setDuration] = useState('1')
   const [table, setTable] = useState('1')
+  const [price, setPrice] = useState('')
+  const [standard, setStandard] = useState<number | null>(null)
+  const [quoteNote, setQuoteNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [linkMsg, setLinkMsg] = useState('')
+  const customerId = customer?.id ?? null
+  useEffect(() => {
+    setStandard(null)
+    setQuoteNote('')
+    if (!customerId || !date || startHour === '' || !duration) return
+    const timer = setTimeout(() => {
+      void api('POST', '', { action: 'link_quote', userId: customerId, date, startHour: Number(startHour), duration: Number(duration) })
+        .then((d) => setStandard(Number(d.total)))
+        .catch((e) => setQuoteNote(msg(e)))
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [customerId, date, startHour, duration])
   const create = async () => {
     if (!customer) return
     setBusy(true)
     setLinkMsg('')
     try {
-      const d = await api('POST', '', { action: 'link_create', caseId, userId: customer.id, date, startHour: Number(startHour), duration: Number(duration), tableNumber: Number(table) })
+      const d = await api('POST', '', { action: 'link_create', caseId, userId: customer.id, date, startHour: Number(startHour), duration: Number(duration), tableNumber: Number(table), price: price.trim() === '' ? undefined : Number(price) })
       setLink({
         bookingId: String(d.bookingId),
         humanCode: String(d.humanCode),
         amount: Number(d.amount),
+        standardAmount: Number(d.standardAmount),
         phoneUrl: String(d.phoneUrl),
         desktopUrl: String(d.desktopUrl),
         holdMinutes: Number(d.holdMinutes),
@@ -308,18 +325,31 @@ function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Custo
     <section className="admin-card cs-pad cs-stack">
       <h3>全託管付款連結</h3>
       <p className="ad-muted">網站未能付款時使用：預留時段並生成 KPay 收銀台連結，客人付款後自動確認預約並發送確認電郵。</p>
-      <div className="cs-grid2">
-        <label className="ad-field"><span>日期</span><input className="ad-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-        <label className="ad-field"><span>開始時間（時）</span><input className="ad-input" type="number" min={0} max={23} value={startHour} onChange={(e) => setStartHour(e.target.value)} placeholder="例如 19" /></label>
+      <div className="cs-form">
+        <label className="ad-field cs-span"><span>日期</span><input className="ad-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+        <label className="ad-field"><span>開始（時）</span><input className="ad-input" type="number" min={0} max={23} value={startHour} onChange={(e) => setStartHour(e.target.value)} placeholder="19" /></label>
         <label className="ad-field"><span>時數</span><input className="ad-input" type="number" min={1} max={8} value={duration} onChange={(e) => setDuration(e.target.value)} /></label>
         <label className="ad-field"><span>房間</span>
           <select className="ad-input" value={table} onChange={(e) => setTable(e.target.value)}><option value="1">房 1</option><option value="2">房 2</option></select>
         </label>
       </div>
+      <div className="cs-price">
+        <div className="cs-price-std">
+          <span className="cs-lbl">標準價（按會員等級計算）</span>
+          <b>{standard !== null ? `HK$${standard}` : '—'}</b>
+        </div>
+        <label className="ad-field">
+          <span>自訂價錢（HK$，留空 = 用標準價）</span>
+          <input className="ad-input" type="number" min={1.5} max={5000} step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder={standard !== null ? String(standard) : '例如 200'} />
+        </label>
+        {quoteNote ? <p className="cs-hint">{quoteNote}</p> : null}
+        {price.trim() !== '' && standard !== null && Number(price) !== standard ? <p className="cs-hint">會以 HK${Number(price) || 0} 收費，並記錄為自訂價錢（標準價 HK${standard}）。</p> : null}
+      </div>
       <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || busy || !date || startHour === ''} onClick={() => void create()}>{busy ? '處理中…' : '生成付款連結'}</button>
       {link ? (
         <div className="cs-link">
-          <div className="cs-row cs-between"><b className="ad-mono">{link.humanCode}</b><b>HK${link.amount}</b></div>
+          <div className="cs-row cs-between"><b className="ad-mono">{link.humanCode}</b><b className="cs-amount">HK${link.amount}</b></div>
+          {link.amount !== link.standardAmount ? <span className="ad-chip" data-tone="warn">自訂價錢 · 標準價 HK${link.standardAmount}</span> : null}
           <p className="ad-muted">{link.summary} · 時段預留 {link.holdMinutes} 分鐘，連結過期請重新生成</p>
           <div className="cs-row"><span className="cs-lbl">手機</span><CopyButton text={link.phoneUrl} /><CopyButton text={link.desktopUrl} label="複製電腦版" /></div>
           <div className="cs-row">
@@ -518,10 +548,19 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
         </div>
         <h3>{c.subject}</h3>
         {c.detail ? <p className="cs-pre">{c.detail}</p> : null}
+        {customer ? (
+          <div className="cs-cust">
+            <span className="cs-av">{(customer.displayName ?? customer.memberCode ?? '?').slice(0, 1).toUpperCase()}</span>
+            <div className="cs-cust-text">
+              <b>{customer.displayName ?? '（未有姓名）'}</b>
+              <span className="ad-muted">{[customer.memberCode, customer.phone, customer.email].filter(Boolean).join(' · ')}</span>
+            </div>
+          </div>
+        ) : null}
         <div className="cs-meta">
           <span>建立 {hk(c.created_at)} · {c.created_by.split('@')[0]}</span>
           {c.booking_code ? <span>預約 <b className="ad-mono">{c.booking_code}</b></span> : null}
-          {customer ? <span>客人 <b>{customer.displayName ?? customer.memberCode}</b>{customer.memberCode ? ` · ${customer.memberCode}` : ''}{customer.phone ? ` · ${customer.phone}` : ''}</span> : <span className="cs-hint">未連結會員</span>}
+          {!customer ? <span className="cs-hint">未連結會員</span> : null}
         </div>
         {!customer ? (
           <div className="cs-stack">
@@ -531,9 +570,12 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
         ) : null}
         {loadErr ? <p className="cs-err">{loadErr}</p> : null}
         <div className="cs-row">
-          {c.status !== 'pending' ? <button type="button" className="ad-btn" disabled={busy} onClick={() => void update({ status: 'pending' })}>標為待跟進</button> : null}
-          {c.status !== 'open' ? <button type="button" className="ad-btn" disabled={busy} onClick={() => void update({ status: 'open' })}>重新打開</button> : null}
-          {!c.website_issue ? <button type="button" className="ad-btn" disabled={busy} onClick={() => void update({ websiteIssue: true, category: 'website' })}>標為網站問題（電郵通知我）</button> : null}
+          <div className="cs-seg" role="group" aria-label="狀態">
+            {(['open', 'pending', 'resolved'] as Status[]).map((st) => (
+              <button key={st} type="button" className="cs-seg-btn" aria-pressed={c.status === st} disabled={busy || st === 'resolved'} onClick={() => void update({ status: st })}>{STATUS_LABEL[st]}</button>
+            ))}
+          </div>
+          {!c.website_issue ? <button type="button" className="ad-btn cs-sm" disabled={busy} onClick={() => void update({ websiteIssue: true, category: 'website' })}>標為網站問題（電郵通知我）</button> : null}
         </div>
         {c.status !== 'resolved' ? (
           <div className="cs-row">
