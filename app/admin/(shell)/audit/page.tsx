@@ -75,6 +75,7 @@ const ACTION_LABELS: Record<string, string> = {
   cs_template_deleted: '客務：刪除範本',
   cs_spark_diagnose: '客務：Spark 診斷',
   cs_spark_reply: '客務：Spark 起草回覆',
+  cs_spark_ask: '客務：Spark 提問',
 }
 
 function formatActionType(raw: string): string {

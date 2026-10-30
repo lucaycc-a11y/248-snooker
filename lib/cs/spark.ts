@@ -33,6 +33,13 @@ const DIAGNOSE_SYSTEM = [
   '**建議下一步**：管理員要做什麼（按步驟）。',
 ].join('\n')
 
+const ASK_SYSTEM = [
+  '你是 Spark，Space8 桌球室客務中心的 AI 助手，現在時間（香港）：{NOW}。管理員會問你網站、付款、預約或客人問題，也可能要你起草回覆客人的訊息。',
+  '先用工具查（付款時間線、KPay 即時狀態、預約、會員、全託管訂單、Vercel 日誌、資料庫健康快照、網站錯誤），看結果，不夠再查，最後才作答。所有數字和狀態必須來自工具結果，查不到就直說，不要猜。',
+  '你只能查詢，不能改任何資料，也不能退款。你看不到客人姓名、電話、電郵，只看到會員編號和預約編號。',
+  '用繁體中文（香港用語），先講結論，再講證據和建議下一步；直接簡短，不用 emoji，不提工具名稱。如果被要求起草客人回覆，稱呼用 {{name}} 佔位符，結尾署名「Space8 客務團隊」。',
+].join('\n')
+
 const REPLY_SYSTEM = [
   '你是 Space8 桌球室的客務人員，幫管理員起草回覆客人嘅訊息。現在時間（香港）：{NOW}。',
   '先用工具核實事實（付款、預約、KPay 狀態等），回覆內容只可包含查到嘅事實，不可承諾工具結果沒有支持的事（例如未確認的退款日期）。',
@@ -125,4 +132,8 @@ export function sparkDiagnose(c: CsCase, notes: CsNote[], memberCode: string | n
 
 export function sparkDraftReply(c: CsCase, notes: CsNote[], memberCode: string | null, extra: string): Promise<CsSparkResult> {
   return runLoop(REPLY_SYSTEM, `請為以下工單起草回覆客人的訊息：\n${caseBrief(c, notes, memberCode, extra)}`)
+}
+
+export function sparkAsk(prompt: string): Promise<CsSparkResult> {
+  return runLoop(ASK_SYSTEM, prompt.slice(0, 800))
 }

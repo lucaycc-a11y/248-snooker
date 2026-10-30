@@ -27,7 +27,7 @@ import {
 } from '@/lib/cs/core'
 import { issueCsOtp, verifyCsOtp } from '@/lib/cs/otp'
 import { createCsPaymentLink, emailPaymentLinkToCustomer, refreshCsPaymentLink } from '@/lib/cs/paymentLink'
-import { sparkDiagnose, sparkDraftReply } from '@/lib/cs/spark'
+import { sparkAsk, sparkDiagnose, sparkDraftReply } from '@/lib/cs/spark'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -224,6 +224,15 @@ export const POST = withAdminSecurity(
           result: s(body.result, 300),
         })
         return NextResponse.json({ text })
+      }
+
+      case 'spark_ask': {
+        const prompt = s(body.prompt, 800)
+        if (prompt.length < 3) return err('請輸入問題')
+        if (!(await rateLimit('cs_spark', `user:${admin.id}`, 10, 60))) return err('太頻密，請稍後再試', 429)
+        const out = await sparkAsk(prompt)
+        await audit('cs_spark_ask', undefined, { steps: out.steps.map((x) => x.tool), ok: !!out.text })
+        return out.text ? NextResponse.json({ text: out.text, steps: out.steps }) : err(out.error ?? 'Spark 沒有回應', 502)
       }
 
       case 'spark_diagnose':

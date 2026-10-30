@@ -11,7 +11,7 @@
  * /admin/blog/[id]) which are opened from their list pages.
  */
 
-export type AdminAreaId = 'home' | 'today' | 'bookings' | 'members' | 'money' | 'spark' | 'site' | 'system'
+export type AdminAreaId = 'home' | 'today' | 'bookings' | 'members' | 'cs' | 'money' | 'spark' | 'site' | 'system'
 
 export type AdminNavItem = {
   href: string
@@ -33,7 +33,7 @@ export type AdminArea = {
   /** Compact label for the phone bottom bar. */
   shortLabel: string
   cmsKey: string
-  icon: 'home' | 'today' | 'list' | 'users' | 'money' | 'spark' | 'site' | 'shield'
+  icon: 'home' | 'today' | 'list' | 'users' | 'support' | 'money' | 'spark' | 'site' | 'shield'
   href: string
   items: AdminNavItem[]
 }
@@ -92,9 +92,23 @@ export const ADMIN_AREAS: AdminArea[] = [
         cmsKey: 'admin.nav.member_flags',
         hint: '共用裝置與可疑帳戶',
       },
-      { href: '/admin/cs', label: '客務中心', cmsKey: 'admin.nav.cs', hint: '客人問題、身份核對、付款連結與 Spark 協助' },
       { href: '/admin/follow-ups', label: '跟進名單', cmsKey: 'admin.nav.follow_ups', hint: '需要聯絡的會員' },
       { href: '/admin/notifications', label: '通知範本', cmsKey: 'admin.nav.notifications', hint: '訊息與電郵範本' },
+    ],
+  },
+  {
+    id: 'cs',
+    label: '客務',
+    shortLabel: '客務',
+    cmsKey: 'admin.nav.cs_area',
+    icon: 'support',
+    href: '/admin/cs',
+    items: [
+      { href: '/admin/cs', label: '工單', cmsKey: 'admin.nav.cs', hint: '客人問題、處理進度與網站問題通知' },
+      { href: '/admin/cs/verify', label: '身份核對', cmsKey: 'admin.nav.cs_verify', hint: '發電郵驗證碼核對客人身份' },
+      { href: '/admin/cs/link', label: '付款連結', cmsKey: 'admin.nav.cs_link', hint: '網站未能付款時，生成 KPay 全託管連結' },
+      { href: '/admin/cs/spark', label: 'Spark 診斷', cmsKey: 'admin.nav.cs_spark', hint: '查 Vercel 日誌、資料庫與付款問題' },
+      { href: '/admin/cs/templates', label: '回覆範本', cmsKey: 'admin.nav.cs_templates', hint: '客務回覆用語，可套用或由 Spark 起草' },
     ],
   },
   {
@@ -230,6 +244,16 @@ export function visibleItems(items: AdminNavItem[], isSuperAdmin: boolean): Admi
 export type AdminTabGroup = { id: string; tabs: { href: string; label: string }[] }
 
 export const ADMIN_TAB_GROUPS: AdminTabGroup[] = [
+  {
+    id: 'cs',
+    tabs: [
+      { href: '/admin/cs', label: '工單' },
+      { href: '/admin/cs/verify', label: '身份核對' },
+      { href: '/admin/cs/link', label: '付款連結' },
+      { href: '/admin/cs/spark', label: 'Spark 診斷' },
+      { href: '/admin/cs/templates', label: '回覆範本' },
+    ],
+  },
   {
     id: 'payments',
     tabs: [

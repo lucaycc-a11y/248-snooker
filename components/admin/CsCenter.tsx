@@ -188,6 +188,263 @@ function NewCase({ onCreated, onCancel }: { onCreated: (id: string) => void; onC
   )
 }
 
+/* ── Feature cards (used inside a case and as stand-alone pages) ───────── */
+function OtpCard({ customer, caseId, onDone }: { customer: Customer | null; caseId: string | null; onDone: () => void }) {
+  const [otpMsg, setOtpMsg] = useState('')
+  const [otpOk, setOtpOk] = useState(false)
+  const [code, setCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const send = async () => {
+    if (!customer) return
+    setBusy(true)
+    setOtpMsg('')
+    try {
+      const d = await api('POST', '', { action: 'otp_send', caseId, userId: customer.id })
+      setOtpOk(false)
+      setOtpMsg(`驗證碼已發送到 ${String(d.sentTo)}，10 分鐘內有效`)
+      onDone()
+    } catch (e) {
+      setOtpMsg(msg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const verify = async () => {
+    if (!customer) return
+    setBusy(true)
+    try {
+      await api('POST', '', { action: 'otp_verify', caseId, userId: customer.id, code })
+      setOtpOk(true)
+      setOtpMsg('身份核對成功')
+      setCode('')
+      onDone()
+    } catch (e) {
+      setOtpOk(false)
+      setOtpMsg(msg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <section className="admin-card cs-pad cs-stack">
+      <h3>身份核對（電郵驗證碼）</h3>
+      <p className="ad-muted">向客人登記的電郵發送 6 位數驗證碼，客人讀出驗證碼後在此輸入核對。</p>
+      <div className="cs-row">
+        <button type="button" className="ad-btn" disabled={!customer || busy} onClick={() => void send()}>發送驗證碼</button>
+      </div>
+      <div className="cs-row">
+        <input className="ad-input cs-code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} placeholder="6 位驗證碼" />
+        <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || busy || code.length !== 6} onClick={() => void verify()}>核對</button>
+      </div>
+      {otpMsg ? <p className={otpOk ? 'cs-ok' : 'cs-hint'}>{otpMsg}</p> : null}
+    </section>
+  )
+}
+
+function LinkCard({ customer, caseId, link, setLink, onDone }: { customer: Customer | null; caseId: string | null; link: LinkResult | null; setLink: (l: LinkResult | null) => void; onDone: () => void }) {
+  const [date, setDate] = useState('')
+  const [startHour, setStartHour] = useState('')
+  const [duration, setDuration] = useState('1')
+  const [table, setTable] = useState('1')
+  const [busy, setBusy] = useState(false)
+  const [linkMsg, setLinkMsg] = useState('')
+  const create = async () => {
+    if (!customer) return
+    setBusy(true)
+    setLinkMsg('')
+    try {
+      const d = await api('POST', '', { action: 'link_create', caseId, userId: customer.id, date, startHour: Number(startHour), duration: Number(duration), tableNumber: Number(table) })
+      setLink({
+        bookingId: String(d.bookingId),
+        humanCode: String(d.humanCode),
+        amount: Number(d.amount),
+        phoneUrl: String(d.phoneUrl),
+        desktopUrl: String(d.desktopUrl),
+        holdMinutes: Number(d.holdMinutes),
+        summary: `${date} ${String(startHour).padStart(2, '0')}:00 起 ${duration} 小時 房${table}`,
+      })
+      onDone()
+    } catch (e) {
+      setLinkMsg(msg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const check = async () => {
+    if (!link) return
+    setBusy(true)
+    setLinkMsg('')
+    try {
+      const d = await api('POST', '', { action: 'link_check', caseId, bookingId: link.bookingId })
+      const outcome = String(d.outcome)
+      if (outcome === 'confirmed' || outcome === 'already_confirmed') setLinkMsg('已收到付款，預約已確認，確認電郵已發送')
+      else if (outcome === 'needs_review') setLinkMsg('已收到付款但需要人手審核，請到「付款」頁處理')
+      else if (outcome === 'pending') {
+        setLinkMsg('客人未付款，已重新生成連結')
+        if (typeof d.phoneUrl === 'string' && typeof d.desktopUrl === 'string') setLink({ ...link, phoneUrl: d.phoneUrl, desktopUrl: d.desktopUrl })
+      } else if (outcome === 'closed') setLinkMsg('付款單已過期或關閉，請重新生成連結')
+      else setLinkMsg('暫時未能向 KPay 核實，請稍後再試')
+      onDone()
+    } catch (e) {
+      setLinkMsg(msg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  const email = async () => {
+    if (!customer || !link) return
+    setBusy(true)
+    try {
+      await api('POST', '', { action: 'link_email', caseId, userId: customer.id, url: link.phoneUrl, humanCode: link.humanCode, amount: link.amount, summary: link.summary })
+      setLinkMsg('已電郵付款連結俾客人')
+      onDone()
+    } catch (e) {
+      setLinkMsg(msg(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <section className="admin-card cs-pad cs-stack">
+      <h3>全託管付款連結</h3>
+      <p className="ad-muted">網站未能付款時使用：預留時段並生成 KPay 收銀台連結，客人付款後自動確認預約並發送確認電郵。</p>
+      <div className="cs-grid2">
+        <label className="ad-field"><span>日期</span><input className="ad-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+        <label className="ad-field"><span>開始時間（時）</span><input className="ad-input" type="number" min={0} max={23} value={startHour} onChange={(e) => setStartHour(e.target.value)} placeholder="例如 19" /></label>
+        <label className="ad-field"><span>時數</span><input className="ad-input" type="number" min={1} max={8} value={duration} onChange={(e) => setDuration(e.target.value)} /></label>
+        <label className="ad-field"><span>房間</span>
+          <select className="ad-input" value={table} onChange={(e) => setTable(e.target.value)}><option value="1">房 1</option><option value="2">房 2</option></select>
+        </label>
+      </div>
+      <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || busy || !date || startHour === ''} onClick={() => void create()}>{busy ? '處理中…' : '生成付款連結'}</button>
+      {link ? (
+        <div className="cs-link">
+          <div className="cs-row cs-between"><b className="ad-mono">{link.humanCode}</b><b>HK${link.amount}</b></div>
+          <p className="ad-muted">{link.summary} · 時段預留 {link.holdMinutes} 分鐘，連結過期請重新生成</p>
+          <div className="cs-row"><span className="cs-lbl">手機</span><CopyButton text={link.phoneUrl} /><CopyButton text={link.desktopUrl} label="複製電腦版" /></div>
+          <div className="cs-row">
+            <button type="button" className="ad-btn" disabled={busy} onClick={() => void email()}>電郵連結俾客人</button>
+            <button type="button" className="ad-btn" disabled={busy} onClick={() => void check()}>核實付款</button>
+          </div>
+        </div>
+      ) : null}
+      {linkMsg ? <p className="cs-hint">{linkMsg}</p> : null}
+    </section>
+  )
+}
+
+function SparkCard({ caseId, onDone }: { caseId: string | null; onDone: () => void }) {
+  const [extra, setExtra] = useState('')
+  const [diag, setDiag] = useState('')
+  const [draft, setDraft] = useState('')
+  const [busy, setBusy] = useState<'' | 'diagnose' | 'reply' | 'ask'>('')
+  const [err, setErr] = useState('')
+  const run = async (mode: 'diagnose' | 'reply' | 'ask') => {
+    setBusy(mode)
+    setErr('')
+    try {
+      const d = await api('POST', '', mode === 'ask' ? { action: 'spark_ask', prompt: extra } : { action: mode === 'diagnose' ? 'spark_diagnose' : 'spark_reply', caseId, extra })
+      if (mode === 'reply') setDraft(String(d.text ?? ''))
+      else setDiag(String(d.text ?? ''))
+      onDone()
+    } catch (e) {
+      setErr(msg(e))
+    } finally {
+      setBusy('')
+    }
+  }
+  return (
+    <section className="admin-card cs-pad cs-stack">
+      <h3>Spark 協助</h3>
+      <p className="ad-muted">Spark 會自動查付款、預約、KPay 狀態、Vercel 日誌和資料庫狀況（只讀，不會改任何資料）。</p>
+      <textarea className="ad-input cs-ta" rows={caseId ? 2 : 4} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder={caseId ? '補充資料（選填），例如客人話咩時間、點付款' : '問 Spark，例如：網站而家有冇問題？今日有冇付款失敗？預約 SPACE8-… 點解未確認？'} />
+      <div className="cs-row">
+        {caseId ? (
+          <>
+            <button type="button" className="ad-btn ad-btn-primary" disabled={busy !== ''} onClick={() => void run('diagnose')}>{busy === 'diagnose' ? 'Spark 調查中…' : 'Spark 診斷'}</button>
+            <button type="button" className="ad-btn" disabled={busy !== ''} onClick={() => void run('reply')}>{busy === 'reply' ? 'Spark 起草中…' : 'Spark 起草回覆'}</button>
+          </>
+        ) : (
+          <button type="button" className="ad-btn ad-btn-primary" disabled={busy !== '' || extra.trim().length < 3} onClick={() => void run('ask')}>{busy === 'ask' ? 'Spark 調查中…' : '問 Spark'}</button>
+        )}
+      </div>
+      {err ? <p className="cs-err">{err}</p> : null}
+      {diag ? <div className="cs-ai"><Markdown text={diag} /></div> : null}
+      {draft ? (
+        <div className="cs-stack">
+          <span className="cs-lbl">回覆草稿（可修改）</span>
+          <textarea className="ad-input cs-ta" rows={8} value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <div className="cs-row"><CopyButton text={draft} /></div>
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+function TemplatePanel({ customer, caseId, code, link, templates, onDone }: { customer: Customer | null; caseId: string | null; code: string; link: string; templates: Template[]; onDone: () => void }) {
+  const [tplId, setTplId] = useState('')
+  const [result, setResult] = useState('')
+  const [reply, setReply] = useState('')
+  const fill = async () => {
+    const t = templates.find((x) => x.id === tplId)
+    if (!t) return
+    try {
+      const d = await api('POST', '', { action: 'template_fill', userId: customer?.id, body: t.body, code, link, result })
+      setReply(String(d.text ?? ''))
+    } catch (e) {
+      setReply(msg(e))
+    }
+  }
+  return (
+    <section className="admin-card cs-pad cs-stack">
+      <h3>套用回覆範本</h3>
+      <div className="cs-grid2">
+        <label className="ad-field"><span>範本</span>
+          <select className="ad-input" value={tplId} onChange={(e) => setTplId(e.target.value)}>
+            <option value="">選擇範本…</option>
+            {templates.map((t) => <option key={t.id} value={t.id}>{CAT_LABEL[t.category]} · {t.title}</option>)}
+          </select>
+        </label>
+        <label className="ad-field"><span>處理結果（填入 {'{{result}}'}）</span>
+          <input className="ad-input" value={result} onChange={(e) => setResult(e.target.value)} placeholder="例如：款項已確認收到，預約已成功" />
+        </label>
+      </div>
+      <div className="cs-row"><button type="button" className="ad-btn" disabled={!tplId} onClick={() => void fill()}>套用範本</button></div>
+      {reply ? (
+        <div className="cs-stack">
+          <textarea className="ad-input cs-ta" rows={8} value={reply} onChange={(e) => setReply(e.target.value)} />
+          <div className="cs-row">
+            <CopyButton text={reply} />
+            {caseId ? <button type="button" className="ad-btn" onClick={() => { void api('POST', '', { action: 'add_note', caseId, kind: 'reply', body: reply }).then(onDone) }}>記錄為已回覆</button> : null}
+          </div>
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
+/** Stand-alone tool pages: pick a customer first, then the card. */
+function WithCustomer({ children }: { children: (c: Customer | null) => React.ReactNode }) {
+  const [customer, setCustomer] = useState<Customer | null>(null)
+  return (
+    <div className="cs-stack">
+      <section className="admin-card cs-pad cs-stack">
+        <span className="cs-lbl">客人</span>
+        {customer ? (
+          <div className="cs-row">
+            <span className="ad-chip">{customer.displayName ?? customer.memberCode ?? customer.email}</span>
+            <span className="ad-muted">{[customer.memberCode, customer.phone].filter(Boolean).join(' · ')}</span>
+            <button type="button" className="ad-btn cs-sm" onClick={() => setCustomer(null)}>更換</button>
+          </div>
+        ) : (
+          <CustomerPicker onPick={setCustomer} />
+        )}
+      </section>
+      {children(customer)}
+    </div>
+  )
+}
+
 /* ── Case detail ───────────────────────────────────────── */
 function CaseDetail({ id, templates, onBack, onChanged }: { id: string; templates: Template[]; onBack: () => void; onChanged: () => void }) {
   const [c, setC] = useState<CaseRow | null>(null)
@@ -207,142 +464,7 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
   }, [id])
   useEffect(() => { void load() }, [load])
 
-  // OTP
-  const [otpMsg, setOtpMsg] = useState('')
-  const [otpOk, setOtpOk] = useState(false)
-  const [code, setCode] = useState('')
-  const [otpBusy, setOtpBusy] = useState(false)
-  const otpSend = async () => {
-    if (!customer) return
-    setOtpBusy(true)
-    setOtpMsg('')
-    try {
-      const d = await api('POST', '', { action: 'otp_send', caseId: id, userId: customer.id })
-      setOtpMsg(`驗證碼已發送到 ${String(d.sentTo)}，10 分鐘內有效`)
-      void load()
-    } catch (e) {
-      setOtpMsg(msg(e))
-    } finally {
-      setOtpBusy(false)
-    }
-  }
-  const otpVerify = async () => {
-    if (!customer) return
-    setOtpBusy(true)
-    try {
-      await api('POST', '', { action: 'otp_verify', caseId: id, userId: customer.id, code })
-      setOtpOk(true)
-      setOtpMsg('身份核對成功')
-      setCode('')
-      void load()
-    } catch (e) {
-      setOtpOk(false)
-      setOtpMsg(msg(e))
-    } finally {
-      setOtpBusy(false)
-    }
-  }
-
-  // Payment link
-  const [date, setDate] = useState('')
-  const [startHour, setStartHour] = useState('')
-  const [duration, setDuration] = useState('1')
-  const [table, setTable] = useState('1')
   const [link, setLink] = useState<LinkResult | null>(null)
-  const [linkBusy, setLinkBusy] = useState(false)
-  const [linkMsg, setLinkMsg] = useState('')
-  const createLink = async () => {
-    if (!customer) return
-    setLinkBusy(true)
-    setLinkMsg('')
-    try {
-      const d = await api('POST', '', { action: 'link_create', caseId: id, userId: customer.id, date, startHour: Number(startHour), duration: Number(duration), tableNumber: Number(table) })
-      setLink({
-        bookingId: String(d.bookingId),
-        humanCode: String(d.humanCode),
-        amount: Number(d.amount),
-        phoneUrl: String(d.phoneUrl),
-        desktopUrl: String(d.desktopUrl),
-        holdMinutes: Number(d.holdMinutes),
-        summary: `${date} ${String(startHour).padStart(2, '0')}:00 起 ${duration} 小時 房${table}`,
-      })
-      void load()
-    } catch (e) {
-      setLinkMsg(msg(e))
-    } finally {
-      setLinkBusy(false)
-    }
-  }
-  const checkLink = async () => {
-    if (!link) return
-    setLinkBusy(true)
-    setLinkMsg('')
-    try {
-      const d = await api('POST', '', { action: 'link_check', caseId: id, bookingId: link.bookingId })
-      const outcome = String(d.outcome)
-      if (outcome === 'confirmed' || outcome === 'already_confirmed') setLinkMsg('已收到付款，預約已確認，確認電郵已發送')
-      else if (outcome === 'needs_review') setLinkMsg('已收到付款但需要人手審核，請到「付款」頁處理')
-      else if (outcome === 'pending') {
-        setLinkMsg('客人未付款，已重新生成連結')
-        if (typeof d.phoneUrl === 'string' && typeof d.desktopUrl === 'string') setLink({ ...link, phoneUrl: d.phoneUrl, desktopUrl: d.desktopUrl })
-      } else if (outcome === 'closed') setLinkMsg('付款單已過期或關閉，請重新生成連結')
-      else setLinkMsg('暫時未能向 KPay 核實，請稍後再試')
-      void load()
-    } catch (e) {
-      setLinkMsg(msg(e))
-    } finally {
-      setLinkBusy(false)
-    }
-  }
-  const emailLink = async () => {
-    if (!customer || !link) return
-    setLinkBusy(true)
-    try {
-      await api('POST', '', { action: 'link_email', caseId: id, userId: customer.id, url: link.phoneUrl, humanCode: link.humanCode, amount: link.amount, summary: link.summary })
-      setLinkMsg('已電郵付款連結俾客人')
-      void load()
-    } catch (e) {
-      setLinkMsg(msg(e))
-    } finally {
-      setLinkBusy(false)
-    }
-  }
-
-  // Spark
-  const [extra, setExtra] = useState('')
-  const [diag, setDiag] = useState('')
-  const [draft, setDraft] = useState('')
-  const [sparkBusy, setSparkBusy] = useState<'' | 'diagnose' | 'reply'>('')
-  const [sparkErr, setSparkErr] = useState('')
-  const spark = async (mode: 'diagnose' | 'reply') => {
-    setSparkBusy(mode)
-    setSparkErr('')
-    try {
-      const d = await api('POST', '', { action: mode === 'diagnose' ? 'spark_diagnose' : 'spark_reply', caseId: id, extra })
-      if (mode === 'diagnose') setDiag(String(d.text ?? ''))
-      else setDraft(String(d.text ?? ''))
-      void load()
-    } catch (e) {
-      setSparkErr(msg(e))
-    } finally {
-      setSparkBusy('')
-    }
-  }
-
-  // Template
-  const [tplId, setTplId] = useState('')
-  const [result, setResult] = useState('')
-  const [reply, setReply] = useState('')
-  const fillTemplate = async () => {
-    const t = templates.find((x) => x.id === tplId)
-    if (!t) return
-    try {
-      const d = await api('POST', '', { action: 'template_fill', userId: customer?.id, body: t.body, code: link?.humanCode ?? c?.booking_code ?? '', link: link?.phoneUrl ?? '', result })
-      setReply(String(d.text ?? ''))
-    } catch (e) {
-      setReply(msg(e))
-    }
-  }
 
   // Notes + status
   const [note, setNote] = useState('')
@@ -422,89 +544,11 @@ function CaseDetail({ id, templates, onBack, onChanged }: { id: string; template
       </section>
 
       <div className="cs-grid2">
-        <section className="admin-card cs-pad cs-stack">
-          <h3>身份核對（電郵驗證碼）</h3>
-          <p className="ad-muted">向客人登記的電郵發送 6 位數驗證碼，客人讀出驗證碼後在此輸入核對。</p>
-          <div className="cs-row">
-            <button type="button" className="ad-btn" disabled={!customer || otpBusy} onClick={() => void otpSend()}>發送驗證碼</button>
-          </div>
-          <div className="cs-row">
-            <input className="ad-input cs-code" inputMode="numeric" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} placeholder="6 位驗證碼" />
-            <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || otpBusy || code.length !== 6} onClick={() => void otpVerify()}>核對</button>
-          </div>
-          {otpMsg ? <p className={otpOk ? 'cs-ok' : 'cs-hint'}>{otpMsg}</p> : null}
-        </section>
-
-        <section className="admin-card cs-pad cs-stack">
-          <h3>全託管付款連結</h3>
-          <p className="ad-muted">網站未能付款時使用：預留時段並生成 KPay 收銀台連結，客人付款後自動確認預約並發送確認電郵。</p>
-          <div className="cs-grid2">
-            <label className="ad-field"><span>日期</span><input className="ad-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-            <label className="ad-field"><span>開始時間（時）</span><input className="ad-input" type="number" min={0} max={23} value={startHour} onChange={(e) => setStartHour(e.target.value)} placeholder="例如 19" /></label>
-            <label className="ad-field"><span>時數</span><input className="ad-input" type="number" min={1} max={8} value={duration} onChange={(e) => setDuration(e.target.value)} /></label>
-            <label className="ad-field"><span>房間</span>
-              <select className="ad-input" value={table} onChange={(e) => setTable(e.target.value)}><option value="1">房 1</option><option value="2">房 2</option></select>
-            </label>
-          </div>
-          <button type="button" className="ad-btn ad-btn-primary" disabled={!customer || linkBusy || !date || startHour === ''} onClick={() => void createLink()}>{linkBusy ? '處理中…' : '生成付款連結'}</button>
-          {link ? (
-            <div className="cs-link">
-              <div className="cs-row cs-between"><b className="ad-mono">{link.humanCode}</b><b>HK${link.amount}</b></div>
-              <p className="ad-muted">{link.summary} · 時段預留 {link.holdMinutes} 分鐘，連結過期請重新生成</p>
-              <div className="cs-row"><span className="cs-lbl">手機</span><CopyButton text={link.phoneUrl} /><CopyButton text={link.desktopUrl} label="複製電腦版" /></div>
-              <div className="cs-row">
-                <button type="button" className="ad-btn" disabled={linkBusy} onClick={() => void emailLink()}>電郵連結俾客人</button>
-                <button type="button" className="ad-btn" disabled={linkBusy} onClick={() => void checkLink()}>核實付款</button>
-              </div>
-            </div>
-          ) : null}
-          {linkMsg ? <p className="cs-hint">{linkMsg}</p> : null}
-        </section>
+        <OtpCard customer={customer} caseId={id} onDone={() => void load()} />
+        <LinkCard customer={customer} caseId={id} link={link} setLink={setLink} onDone={() => void load()} />
       </div>
-
-      <section className="admin-card cs-pad cs-stack">
-        <h3>Spark 協助</h3>
-        <p className="ad-muted">Spark 會自動查付款、預約、KPay 狀態、Vercel 日誌和資料庫狀況（只讀，不會改任何資料）。</p>
-        <textarea className="ad-input cs-ta" rows={2} value={extra} onChange={(e) => setExtra(e.target.value)} placeholder="補充資料（選填），例如客人話咩時間、點付款" />
-        <div className="cs-row">
-          <button type="button" className="ad-btn ad-btn-primary" disabled={sparkBusy !== ''} onClick={() => void spark('diagnose')}>{sparkBusy === 'diagnose' ? 'Spark 調查中…' : 'Spark 診斷'}</button>
-          <button type="button" className="ad-btn" disabled={sparkBusy !== ''} onClick={() => void spark('reply')}>{sparkBusy === 'reply' ? 'Spark 起草中…' : 'Spark 起草回覆'}</button>
-        </div>
-        {sparkErr ? <p className="cs-err">{sparkErr}</p> : null}
-        {diag ? <div className="cs-ai"><Markdown text={diag} /></div> : null}
-        {draft ? (
-          <div className="cs-stack">
-            <span className="cs-lbl">回覆草稿（可修改）</span>
-            <textarea className="ad-input cs-ta" rows={8} value={draft} onChange={(e) => setDraft(e.target.value)} />
-            <div className="cs-row"><CopyButton text={draft} /></div>
-          </div>
-        ) : null}
-      </section>
-
-      <section className="admin-card cs-pad cs-stack">
-        <h3>回覆範本</h3>
-        <div className="cs-grid2">
-          <label className="ad-field"><span>範本</span>
-            <select className="ad-input" value={tplId} onChange={(e) => setTplId(e.target.value)}>
-              <option value="">選擇範本…</option>
-              {templates.map((t) => <option key={t.id} value={t.id}>{CAT_LABEL[t.category]} · {t.title}</option>)}
-            </select>
-          </label>
-          <label className="ad-field"><span>處理結果（填入 {'{{result}}'}）</span>
-            <input className="ad-input" value={result} onChange={(e) => setResult(e.target.value)} placeholder="例如：款項已確認收到，預約已成功" />
-          </label>
-        </div>
-        <div className="cs-row"><button type="button" className="ad-btn" disabled={!tplId} onClick={() => void fillTemplate()}>套用範本</button></div>
-        {reply ? (
-          <div className="cs-stack">
-            <textarea className="ad-input cs-ta" rows={8} value={reply} onChange={(e) => setReply(e.target.value)} />
-            <div className="cs-row">
-              <CopyButton text={reply} />
-              <button type="button" className="ad-btn" onClick={() => { void api('POST', '', { action: 'add_note', caseId: id, kind: 'reply', body: reply }).then(load) }}>記錄為已回覆</button>
-            </div>
-          </div>
-        ) : null}
-      </section>
+      <SparkCard caseId={id} onDone={() => void load()} />
+      <TemplatePanel customer={customer} caseId={id} code={link?.humanCode ?? c.booking_code ?? ''} link={link?.phoneUrl ?? ''} templates={templates} onDone={() => void load()} />
 
       <section className="admin-card cs-pad cs-stack">
         <h3>時間線</h3>
@@ -592,8 +636,9 @@ function TemplatesTab({ templates, onSaved }: { templates: Template[]; onSaved: 
 }
 
 /* ── Main ──────────────────────────────────────────────── */
-export default function CsCenter({ initialCaseId }: { initialCaseId?: string | null }) {
-  const [tab, setTab] = useState<'cases' | 'templates'>('cases')
+export type CsView = 'cases' | 'verify' | 'link' | 'spark' | 'templates'
+
+export default function CsCenter({ view = 'cases', initialCaseId }: { view?: CsView; initialCaseId?: string | null }) {
   const [filter, setFilter] = useState<'active' | Status>('active')
   const [q, setQ] = useState('')
   const [cases, setCases] = useState<CaseRow[]>([])
@@ -602,8 +647,10 @@ export default function CsCenter({ initialCaseId }: { initialCaseId?: string | n
   const [openId, setOpenId] = useState<string | null>(initialCaseId ?? null)
   const [creating, setCreating] = useState(false)
   const [templates, setTemplates] = useState<Template[]>([])
+  const [link, setLink] = useState<LinkResult | null>(null)
 
   const loadCases = useCallback(async () => {
+    if (view !== 'cases') return
     setLoading(true)
     try {
       const d = await api('GET', `?view=cases&status=${filter}&q=${encodeURIComponent(q)}`)
@@ -614,7 +661,7 @@ export default function CsCenter({ initialCaseId }: { initialCaseId?: string | n
     } finally {
       setLoading(false)
     }
-  }, [filter, q])
+  }, [filter, q, view])
   const loadTemplates = useCallback(async () => {
     try {
       const d = await api('GET', '?view=templates')
@@ -627,15 +674,23 @@ export default function CsCenter({ initialCaseId }: { initialCaseId?: string | n
   useEffect(() => { void loadTemplates() }, [loadTemplates])
 
   const counts = useMemo(() => ({ website: cases.filter((x) => x.website_issue && x.status !== 'resolved').length }), [cases])
+  const noop = () => undefined
+
+  if (view === 'verify') return <WithCustomer>{(c) => <OtpCard customer={c} caseId={null} onDone={noop} />}</WithCustomer>
+  if (view === 'link') return <WithCustomer>{(c) => <LinkCard customer={c} caseId={null} link={link} setLink={setLink} onDone={noop} />}</WithCustomer>
+  if (view === 'spark') return <SparkCard caseId={null} onDone={noop} />
+  if (view === 'templates') {
+    return (
+      <div className="cs-stack">
+        <TemplatesTab templates={templates} onSaved={() => void loadTemplates()} />
+        <WithCustomer>{(c) => <TemplatePanel customer={c} caseId={null} code="" link="" templates={templates} onDone={noop} />}</WithCustomer>
+      </div>
+    )
+  }
 
   return (
     <div className="cs-stack">
-      <nav className="atb" aria-label="客務">
-        <button type="button" className="atb-tab" aria-current={tab === 'cases' ? 'page' : undefined} onClick={() => setTab('cases')}>工單</button>
-        <button type="button" className="atb-tab" aria-current={tab === 'templates' ? 'page' : undefined} onClick={() => setTab('templates')}>回覆範本</button>
-      </nav>
-
-      {tab === 'templates' ? <TemplatesTab templates={templates} onSaved={() => void loadTemplates()} /> : creating ? (
+      {creating ? (
         <NewCase onCreated={(id) => { setCreating(false); setOpenId(id); void loadCases() }} onCancel={() => setCreating(false)} />
       ) : openId ? (
         <CaseDetail id={openId} templates={templates} onBack={() => { setOpenId(null); void loadCases() }} onChanged={() => void loadCases()} />

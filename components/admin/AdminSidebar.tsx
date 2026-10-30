@@ -16,6 +16,7 @@ import {
   Bug,
   CalendarClock,
   Globe,
+  Headset,
   Home,
   List,
   Plus,
@@ -38,13 +39,14 @@ const ICONS: Record<AdminArea['icon'], LucideIcon> = {
   today: CalendarClock,
   list: List,
   users: Users,
+  support: Headset,
   money: Wallet,
   spark: Sparkles,
   site: Globe,
   shield: Settings2,
 }
 
-const MAIN: AdminAreaId[] = ['home', 'today', 'bookings', 'members', 'money', 'spark']
+const MAIN: AdminAreaId[] = ['home', 'today', 'bookings', 'members', 'cs', 'money', 'spark']
 
 type Props = {
   activeArea: AdminAreaId
