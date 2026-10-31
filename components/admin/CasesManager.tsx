@@ -33,6 +33,9 @@ type CaseView = {
   created_at: string
   needsReview: boolean
   payUrl: string
+  whatsappDraft: string
+  whatsappLink: string
+  hasPhone: boolean
   member: { code: string | null; name: string | null; blacklisted: boolean } | null
 }
 
@@ -305,6 +308,18 @@ export default function CasesManager() {
                     複製付款連結
                   </button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(c.whatsappDraft).catch(() => undefined)
+                    if (c.hasPhone) window.open(c.whatsappLink, '_blank', 'noopener,noreferrer')
+                    setNotice(c.hasPhone ? '已複製 WhatsApp 草稿，並開啟對話' : '已複製 WhatsApp 草稿（此會員未有電話號碼）')
+                  }}
+                  className="rounded-xl px-3 py-1.5 text-xs"
+                  style={{ border: '1px solid var(--admin-border)', color: 'var(--admin-text-primary)' }}
+                >
+                  WhatsApp 草稿
+                </button>
                 {canWaive && (
                   <button
                     type="button"

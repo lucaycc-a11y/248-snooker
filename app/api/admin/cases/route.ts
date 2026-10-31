@@ -3,6 +3,7 @@ import { getAdminData } from '@/lib/data/getAdmin'
 import { getLegacyServiceSupabase } from '@/lib/supabase/legacy'
 import { CASE_COLUMNS, casePayUrl, createAndNotifyCase, toCaseRow } from '@/lib/cases/service'
 import { isCaseScenario, SCENARIO_LIST } from '@/lib/cases/scenarios'
+import { buildCaseWhatsAppDraft, normalizeWhatsAppPhone, whatsAppLink } from '@/lib/cases/whatsapp'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,10 +28,12 @@ export async function GET(req: Request) {
     const cases = ((data ?? []) as unknown[]).map(toCaseRow).filter((c): c is NonNullable<typeof c> => c !== null)
     const ids = Array.from(new Set(cases.map((c) => c.user_id)))
     const labels = new Map<string, { code: string | null; name: string | null; blacklisted: boolean }>()
+    const phones = new Map<string, string | null>()
     if (ids.length > 0) {
-      const { data: users } = await db.from('users').select('id, member_code, display_name, is_blacklisted').in('id', ids)
+      const { data: users } = await db.from('users').select('id, member_code, display_name, is_blacklisted, phone').in('id', ids)
       for (const u of (users ?? []) as unknown[]) {
         if (!isRec(u) || typeof u.id !== 'string') continue
+        phones.set(u.id, typeof u.phone === 'string' ? u.phone : null)
         labels.set(u.id, {
           code: typeof u.member_code === 'string' ? u.member_code : null,
           name: typeof u.display_name === 'string' ? u.display_name : null,
@@ -54,7 +57,28 @@ export async function GET(req: Request) {
       cases: cases.map((c) => {
         const { pay_token: _omit, ...rest } = c
         void _omit
-        return { ...rest, payUrl: casePayUrl(c.pay_token), needsReview: review.has(c.id), member: labels.get(c.user_id) ?? null }
+        const member = labels.get(c.user_id) ?? null
+        const payUrl = casePayUrl(c.pay_token)
+        const draft = buildCaseWhatsAppDraft({
+          memberName: member?.name ?? '',
+          caseNo: c.case_no,
+          scenario: c.scenario,
+          title: c.title,
+          amount: c.amount,
+          dueAt: c.due_at,
+          payUrl,
+          overdue: c.status === 'overdue',
+        })
+        const phone = phones.get(c.user_id) ?? null
+        return {
+          ...rest,
+          payUrl,
+          needsReview: review.has(c.id),
+          member,
+          whatsappDraft: draft,
+          whatsappLink: whatsAppLink(phone, draft),
+          hasPhone: normalizeWhatsAppPhone(phone) !== null,
+        }
       }),
       scenarios: SCENARIO_LIST,
       canWaive: admin.role === 'super_admin',

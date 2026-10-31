@@ -103,3 +103,23 @@ describe('renderCaseEmail', () => {
     expect(html).toContain('已結案')
   })
 })
+
+import { buildCaseWhatsAppDraft, normalizeWhatsAppPhone, whatsAppLink } from './whatsapp'
+
+describe('case whatsapp draft', () => {
+  const base = { memberName: '陳大文', caseNo: 'VC-1', scenario: 'smoking' as const, title: '吸煙', amount: 500, dueAt: null, payUrl: 'https://x.test/pay/case/t', overdue: false }
+  it('includes fee and pay link for a charge', () => {
+    const t = buildCaseWhatsAppDraft(base)
+    expect(t).toContain('HK$500')
+    expect(t).toContain('https://x.test/pay/case/t')
+  })
+  it('has no pay link for a warning', () => {
+    expect(buildCaseWhatsAppDraft({ ...base, amount: 0 })).not.toContain('pay/case')
+  })
+  it('normalizes HK phones', () => {
+    expect(normalizeWhatsAppPhone('9123 4567')).toBe('85291234567')
+    expect(normalizeWhatsAppPhone('+852 9123-4567')).toBe('85291234567')
+    expect(normalizeWhatsAppPhone('12')).toBeNull()
+    expect(whatsAppLink(null, 'a b')).toBe('https://wa.me/?text=a%20b')
+  })
+})
