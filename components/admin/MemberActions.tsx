@@ -158,48 +158,13 @@ export default function MemberActions({ userId, tier, isBlacklisted, onSuccess }
 
   /* ── Action buttons row ────────────────────────────────────────────── */
   const actionsRow = (
-    <div className="flex flex-wrap gap-2" style={{ marginTop: '1rem' }}>
-      <button
-        type="button"
-        onClick={() => openSheet('points')}
-        className="rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
-        style={btnStyle('ghost')}
-      >
-        + Adjust Points
-      </button>
-      <button
-        type="button"
-        onClick={() => openSheet('tier')}
-        className="rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
-        style={btnStyle('ghost')}
-      >
-        Change Tier
-      </button>
-      <button
-        type="button"
-        onClick={() => openSheet('blacklist')}
-        className="rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
-        style={isBlacklisted ? btnStyle('brand') : btnStyle('danger')}
-      >
-        {isBlacklisted ? 'Unban' : 'Ban'}
-      </button>
-      <button
-        type="button"
-        onClick={() => openSheet('credit')}
-        className="rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
-        style={btnStyle('ghost')}
-        data-cms-key="admin.member.adjust_credit"
-      >
-        調整 Credit
-      </button>
-      <button
-        type="button"
-        onClick={() => openSheet('message')}
-        className="rounded-xl px-3 py-2 text-xs font-semibold transition-colors"
-        style={btnStyle('ghost')}
-        data-cms-key="admin.member.send_message"
-      >
-        發送 inbox 訊息
+    <div className="md-actions">
+      <button type="button" onClick={() => openSheet('points')} className="ad-btn">調整積分</button>
+      <button type="button" onClick={() => openSheet('tier')} className="ad-btn">更改等級</button>
+      <button type="button" onClick={() => openSheet('credit')} className="ad-btn" data-cms-key="admin.member.adjust_credit">調整 Credit</button>
+      <button type="button" onClick={() => openSheet('message')} className="ad-btn" data-cms-key="admin.member.send_message">發送 inbox 訊息</button>
+      <button type="button" onClick={() => openSheet('blacklist')} className={isBlacklisted ? 'ad-btn ad-btn-primary' : 'ad-btn'} data-tone={isBlacklisted ? undefined : 'bad'}>
+        {isBlacklisted ? '解除封鎖' : '封鎖會員'}
       </button>
     </div>
   )

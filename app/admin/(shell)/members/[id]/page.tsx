@@ -170,91 +170,66 @@ export default async function AdminMemberDetailPage({
     })),
   }
 
+  const initial = (displayName.trim().slice(0, 1) || '?').toUpperCase()
+  const hkDay = (iso: string | null): string => (iso ? new Date(iso).toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong', year: 'numeric', month: '2-digit', day: '2-digit' }) : '—')
+  const lastActive = (() => {
+    if (!memberData.lastActiveAt) return '從未'
+    const diff = Date.now() - new Date(memberData.lastActiveAt).getTime()
+    if (diff < 3_600_000) return `${Math.max(1, Math.floor(diff / 60_000))} 分鐘前`
+    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} 小時前`
+    if (diff < 7 * 86_400_000) return `${Math.floor(diff / 86_400_000)} 日前`
+    return hkDay(memberData.lastActiveAt)
+  })()
+
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 md:px-6">
-      {/* ── Header ──────────────────────────────────────────── */}
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <h1
-            className="text-2xl font-bold"
-            style={{ color: 'var(--admin-text)' }}
-          >
-            {displayName}
-          </h1>
-          {/* Tier badge */}
-          <span
-            className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide"
-            style={{
-              color: TIER_COLOR_VAR[tier] ?? TIER_COLOR_VAR.amateur,
-              background: TIER_BG_VAR[tier] ?? TIER_BG_VAR.amateur,
-            }}
-          >
-            {tierLabel}
-          </span>
-          {user.is_blacklisted === true && (
+    <main className="md-page">
+      <section className="admin-card md-hero">
+        <span className="md-av" aria-hidden="true">{initial}</span>
+        <div className="md-hero-main">
+          <div className="md-name-row">
+            <h1>{displayName}</h1>
             <span
-              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase"
+              className="md-tier"
               style={{
-                color: 'var(--admin-danger)',
-                background: 'var(--admin-danger-dim)',
+                color: TIER_COLOR_VAR[tier] ?? TIER_COLOR_VAR.amateur,
+                background: TIER_BG_VAR[tier] ?? TIER_BG_VAR.amateur,
               }}
-              data-cms-key="admin.members.badge_blacklist"
             >
-              黑名單
+              {tierLabel}
             </span>
-          )}
-          {isHidden && (
-            <span
-              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase"
-              style={{
-                color: 'var(--admin-warning)',
-                background: 'var(--admin-warning-dim)',
-              }}
-              data-cms-key="admin.members.badge_hidden"
-              title={hidden.reasons.get(id) ?? undefined}
-            >
-              已隱藏
-            </span>
-          )}
+            {user.is_blacklisted === true && (
+              <span className="ad-chip" data-tone="bad" data-cms-key="admin.members.badge_blacklist">黑名單</span>
+            )}
+            {isHidden && (
+              <span className="ad-chip" data-tone="warn" data-cms-key="admin.members.badge_hidden" title={hidden.reasons.get(id) ?? undefined}>已隱藏</span>
+            )}
+            <RiskBadgeInline
+              totalBookings={riskStats.totalBookings}
+              cancelledBookings={riskStats.cancelledBookings}
+              waivedFees={riskStats.waivedFees}
+            />
+          </div>
+          <p className="md-sub">
+            {memberData.memberCode ? <span className="ad-mono">{memberData.memberCode}</span> : null}
+            {memberData.email ? <span>{memberData.email}</span> : null}
+            {memberData.phone ? <span>{memberData.phone}</span> : null}
+          </p>
         </div>
-      </header>
+      </section>
 
-      {/* ── Risk badge + quick stats ────────────────────────── */}
-      <div
-        className="flex flex-wrap items-center gap-4 rounded-2xl px-4 py-3 text-sm"
-        style={{
-          background: 'var(--admin-surface)',
-          border: '1px solid var(--admin-border)',
-          color: 'var(--admin-text-muted)',
-        }}
-      >
-        <RiskBadgeInline
-          totalBookings={riskStats.totalBookings}
-          cancelledBookings={riskStats.cancelledBookings}
-          waivedFees={riskStats.waivedFees}
-        />
-        <span className="h-4 w-px" style={{ background: 'var(--admin-border)' }} aria-hidden="true" />
-        <span data-cms-key="admin.members.detail_bookings">
-          <strong style={{ color: 'var(--admin-text)' }}>{riskStats.totalBookings}</strong> 次預約
-        </span>
-        <span data-cms-key="admin.members.detail_points">
-          <strong style={{ color: 'var(--admin-text)' }}>{memberData.points}</strong> 積分
-        </span>
-        {memberData.email && (
-          <span className="truncate" style={{ color: 'var(--admin-text-muted)' }}>
-            {memberData.email}
-          </span>
-        )}
-      </div>
+      <section className="md-stats" aria-label="重點數字">
+        <div className="admin-card md-stat" data-cms-key="admin.members.detail_bookings"><span>預約</span><b>{riskStats.totalBookings}</b></div>
+        <div className="admin-card md-stat" data-cms-key="admin.members.detail_points"><span>積分</span><b>{memberData.points.toLocaleString()}</b></div>
+        <div className="admin-card md-stat"><span>加入日期</span><b>{hkDay(memberData.createdAt)}</b></div>
+        <div className="admin-card md-stat"><span>最近活動</span><b>{lastActive}</b></div>
+      </section>
 
-      {/* ── Actions ─────────────────────────────────────────── */}
       <MemberActions
         userId={id}
         tier={tier}
         isBlacklisted={memberData.isBlacklisted}
       />
 
-      {/* ── Tabs ────────────────────────────────────────────── */}
       <MemberDetailTabs member={memberData} />
     </main>
   )
@@ -279,22 +254,13 @@ function RiskBadgeInline({
   if (score > 30) level = 'high'
   else if (score >= 10) level = 'medium'
 
-  const cfg = {
-    low: { color: 'var(--admin-brand)', bg: 'var(--admin-brand-dim)' },
-    medium: { color: 'var(--admin-warning)', bg: 'var(--admin-warning-dim)' },
-    high: { color: 'var(--admin-danger)', bg: 'var(--admin-danger-dim)' },
-  }[level]
+  const tone = level === 'high' ? 'bad' : level === 'medium' ? 'warn' : undefined
 
   const levelLabel =
     level === 'high' ? '高' : level === 'medium' ? '中' : '低'
 
   return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-      style={{ color: cfg.color, background: cfg.bg }}
-      data-cms-key="admin.members.risk_badge"
-    >
-      <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: cfg.color }} />
+    <span className="ad-chip" data-tone={tone} data-cms-key="admin.members.risk_badge">
       風險：{levelLabel}（{score}%）
     </span>
   )

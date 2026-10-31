@@ -1,14 +1,12 @@
 'use client'
 
 /**
- * MemberDetailTabs — client-side tabbed view for member detail (§9.2).
- *
+ * MemberDetailTabs — tabbed view for the member detail page.
  * Tabs: 基本資料 | 預約 | 積分 | 活動
- * CSS-variable only — no inline hex, no shadows.
- * Uses active-tab indicator with animated underline.
+ * Styled with the shared admin design system (admin-dash.css: ad-*, cs-seg, md-*).
  */
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 
 type Tab = 'profile' | 'bookings' | 'points' | 'activity'
 
@@ -60,243 +58,143 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'activity', label: '活動' },
 ]
 
-const STATUS_COLOR: Record<string, string> = {
-  confirmed: 'var(--admin-brand)',
-  pending: 'var(--admin-warning)',
-  admin_cancelled: 'var(--admin-danger)',
-  refunded: 'var(--admin-text-muted)',
-  cancelled: 'var(--admin-danger)',
-  completed: 'var(--admin-brand)',
+const STATUS: Record<string, { label: string; tone?: 'warn' | 'bad' | 'muted' }> = {
+  confirmed: { label: '已確認' },
+  completed: { label: '已完成' },
+  pending: { label: '待付款', tone: 'warn' },
+  payment_review: { label: '付款審核', tone: 'warn' },
+  cancelled: { label: '已取消', tone: 'bad' },
+  admin_cancelled: { label: '管理員取消', tone: 'bad' },
+  refunded: { label: '已退款', tone: 'muted' },
 }
+
+const hkDate = (iso: string): string => new Date(iso).toLocaleDateString('zh-HK', { timeZone: 'Asia/Hong_Kong', year: 'numeric', month: '2-digit', day: '2-digit' })
+const hkDateTime = (iso: string): string => new Date(iso).toLocaleString('zh-HK', { timeZone: 'Asia/Hong_Kong', hour12: false, month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
 
 export default function MemberDetailTabs({ member }: { member: MemberData }) {
   const [activeTab, setActiveTab] = useState<Tab>('profile')
 
   return (
-    <div className="flex flex-col">
-      {/* ── Tab bar ──────────────────────────────────────────── */}
-      <div
-        className="flex gap-1 overflow-x-auto rounded-xl p-1"
-        style={{
-          background: 'var(--admin-surface)',
-          border: '1px solid var(--admin-border)',
-        }}
-        role="tablist"
-      >
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab.key
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => setActiveTab(tab.key)}
-              className="relative shrink-0 rounded-lg px-4 py-2 text-xs font-semibold transition-colors"
-              style={{
-                color: isActive ? 'var(--admin-bg)' : 'var(--admin-text-muted)',
-                background: isActive ? 'var(--admin-brand)' : 'transparent',
-              }}
-            >
-              {tab.label}
-              {tab.key === 'bookings' && member.bookings.length > 0 && (
-                <span
-                  className="ml-1 inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold"
-                  style={{
-                    color: isActive ? 'var(--admin-bg)' : 'var(--admin-text-muted)',
-                    background: isActive
-                      ? 'rgba(0,0,0,0.2)'
-                      : 'var(--admin-surface-elevated)',
-                  }}
-                >
-                  {member.bookings.length}
-                </span>
-              )}
-            </button>
-          )
-        })}
+    <div className="md-tabs">
+      <div className="cs-seg md-seg" role="tablist" aria-label="會員資料">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            role="tab"
+            className="cs-seg-btn"
+            aria-selected={activeTab === tab.key}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+            {tab.key === 'bookings' && member.bookings.length > 0 ? <span className="md-count">{member.bookings.length}</span> : null}
+          </button>
+        ))}
       </div>
 
-      {/* ── Tab content ──────────────────────────────────────── */}
-      <div
-        className="mt-4 rounded-2xl p-4"
-        style={{
-          background: 'var(--admin-surface)',
-          border: '1px solid var(--admin-border)',
-        }}
-      >
+      <section className="admin-card md-pane">
         {activeTab === 'profile' && <ProfileTab member={member} />}
         {activeTab === 'bookings' && <BookingsTab bookings={member.bookings} />}
         {activeTab === 'points' && <PointsTab entries={member.pointsLedger} currentPoints={member.points} />}
         {activeTab === 'activity' && <ActivityTab entries={member.activity} />}
-      </div>
+      </section>
     </div>
+  )
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [done, setDone] = useState(false)
+  return (
+    <button
+      type="button"
+      className="md-copy"
+      onClick={() => {
+        void navigator.clipboard.writeText(text).then(() => {
+          setDone(true)
+          setTimeout(() => setDone(false), 1500)
+        })
+      }}
+    >
+      {done ? '已複製' : '複製'}
+    </button>
   )
 }
 
 /* ── Profile tab ─────────────────────────────────────── */
 function ProfileTab({ member }: { member: MemberData }) {
-  const fields = [
-    { label: '電郵', value: member.email ?? '—' },
-    { label: '電話', value: member.phone ?? '—' },
-    { label: '會員編號', value: member.memberCode ?? '—', mono: true },
+  const fields: { label: string; value: string; mono?: boolean; copy?: boolean }[] = [
+    { label: '電郵', value: member.email ?? '—', copy: !!member.email },
+    { label: '電話', value: member.phone ?? '—', copy: !!member.phone },
+    { label: '會員編號', value: member.memberCode ?? '—', mono: true, copy: !!member.memberCode },
     { label: '等級', value: member.tierLabel },
     { label: '積分', value: member.points.toLocaleString() },
-    { label: '加入日期', value: member.createdAt ? new Date(member.createdAt).toLocaleDateString() : '—' },
-    {
-      label: '最近活動',
-      value: member.lastActiveAt
-        ? formatRelativeTime(member.lastActiveAt)
-        : 'Never',
-    },
+    { label: '加入日期', value: member.createdAt ? hkDate(member.createdAt) : '—' },
+    { label: '最近活動', value: member.lastActiveAt ? formatRelativeTime(member.lastActiveAt) : '從未' },
+    { label: '帳戶狀態', value: member.isBlacklisted ? '已封鎖' : '正常' },
   ]
-
   return (
-    <div className="flex flex-col">
-      <h3
-        className="mb-3 text-sm font-bold"
-        style={{ color: 'var(--admin-text)' }}
-      >
-        Profile Details
-      </h3>
-      <div className="grid gap-0.5">
-        {fields.map((f) => (
-          <div
-            key={f.label}
-            className="flex items-center justify-between border-b py-2.5"
-            style={{ borderColor: 'var(--admin-border)' }}
-          >
-            <span className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-              {f.label}
-            </span>
-            <span
-              className={`text-xs font-medium ${f.mono ? 'font-[var(--font-mono,monospace)]' : ''}`}
-              style={{ color: 'var(--admin-text)' }}
-            >
-              {f.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+    <dl className="md-grid">
+      {fields.map((f) => (
+        <div key={f.label} className="md-field">
+          <dt>{f.label}</dt>
+          <dd className={f.mono ? 'ad-mono' : undefined}>
+            <span className="md-val">{f.value}</span>
+            {f.copy ? <CopyButton text={f.value} /> : null}
+          </dd>
+        </div>
+      ))}
+    </dl>
   )
 }
 
 /* ── Bookings tab ────────────────────────────────────── */
 function BookingsTab({ bookings }: { bookings: Booking[] }) {
-  if (bookings.length === 0) {
-    return (
-      <div className="py-8 text-center text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-        No bookings yet.
-      </div>
-    )
-  }
-
+  if (bookings.length === 0) return <p className="ad-empty">這位會員未有預約</p>
   return (
-    <div className="flex flex-col">
-      <h3
-        className="mb-3 text-sm font-bold"
-        style={{ color: 'var(--admin-text)' }}
-      >
-        Booking History
-      </h3>
-      <div className="grid gap-0.5">
-        {bookings.map((b) => (
-          <div
-            key={b.id}
-            className="flex items-center justify-between border-b py-2.5"
-            style={{ borderColor: 'var(--admin-border)' }}
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: 'var(--admin-text)', fontFamily: 'var(--font-mono, monospace)' }}
-                >
-                  {b.reference}
-                </span>
-                <span
-                  className="rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase"
-                  style={{
-                    color: STATUS_COLOR[b.status] ?? 'var(--admin-text-muted)',
-                    background: 'var(--admin-surface-elevated)',
-                  }}
-                >
-                  {b.status}
-                </span>
+    <ul className="md-list">
+      {bookings.map((b) => {
+        const st = STATUS[b.status] ?? { label: b.status, tone: 'muted' as const }
+        return (
+          <li key={b.id}>
+            <a className="md-row" href={`/admin/bookings/${b.id}`}>
+              <div className="md-row-main">
+                <div className="md-row-top">
+                  <b className="ad-mono">{b.reference}</b>
+                  <span className="ad-chip" data-tone={st.tone}>{st.label}</span>
+                </div>
+                <span className="ad-muted">{b.date}{b.tableNumber ? ` · 房${b.tableNumber}` : ''}</span>
               </div>
-              <div className="mt-0.5 text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-                {b.date}
-                {b.tableNumber && <> · Table {b.tableNumber}</>}
-              </div>
-            </div>
-            <span
-              className="text-xs font-semibold"
-              style={{ color: 'var(--admin-text)' }}
-            >
-              HK${b.totalPrice.toLocaleString()}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+              <b className="md-amount">HK${b.totalPrice.toLocaleString()}</b>
+            </a>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
 /* ── Points tab ──────────────────────────────────────── */
 function PointsTab({ entries, currentPoints }: { entries: PointEntry[]; currentPoints: number }) {
   return (
-    <div className="flex flex-col">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-bold" style={{ color: 'var(--admin-text)' }}>
-          積分記錄
-        </h3>
-        <span
-          className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase"
-          style={{
-            color: 'var(--admin-brand)',
-            background: 'var(--admin-brand-dim)',
-          }}
-        >
-          {currentPoints.toLocaleString()} 分
-        </span>
+    <div className="md-stack">
+      <div className="md-pane-head">
+        <h3>積分紀錄</h3>
+        <span className="ad-chip">{currentPoints.toLocaleString()} 分</span>
       </div>
       {entries.length === 0 ? (
-        <div className="py-8 text-center text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-          No points activity yet.
-        </div>
+        <p className="ad-empty">未有積分紀錄</p>
       ) : (
-        <div className="grid gap-0.5">
+        <ul className="md-list">
           {entries.map((e) => (
-            <div
-              key={e.id}
-              className="flex items-center justify-between border-b py-2.5"
-              style={{ borderColor: 'var(--admin-border)' }}
-            >
-              <div className="min-w-0 flex-1">
-                <span className="text-xs" style={{ color: 'var(--admin-text)' }}>
-                  {e.note ?? e.type}
-                </span>
-                <div className="text-[10px]" style={{ color: 'var(--admin-text-muted)' }}>
-                  {e.createdAt ? new Date(e.createdAt).toLocaleString() : ''}
-                </div>
+            <li key={e.id} className="md-row">
+              <div className="md-row-main">
+                <span>{e.note ?? e.type}</span>
+                <span className="ad-muted">{e.createdAt ? hkDateTime(e.createdAt) : ''}</span>
               </div>
-              <span
-                className="text-xs font-bold"
-                style={{
-                  color:
-                    e.points > 0
-                      ? 'var(--admin-brand)'
-                      : e.points < 0
-                        ? 'var(--admin-danger)'
-                        : 'var(--admin-text-muted)',
-                }}
-              >
-                {e.points > 0 ? '+' : ''}{e.points}
-              </span>
-            </div>
+              <b className={e.points > 0 ? 'md-pos' : e.points < 0 ? 'md-neg' : 'ad-muted'}>{e.points > 0 ? '+' : ''}{e.points}</b>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   )
@@ -304,57 +202,21 @@ function PointsTab({ entries, currentPoints }: { entries: PointEntry[]; currentP
 
 /* ── Activity tab ────────────────────────────────────── */
 function ActivityTab({ entries }: { entries: ActivityEntry[] }) {
-  if (entries.length === 0) {
-    return (
-      <div className="py-8 text-center text-xs" style={{ color: 'var(--admin-text-muted)' }}>
-        No activity recorded.
-      </div>
-    )
-  }
-
+  if (entries.length === 0) return <p className="ad-empty">沒有後台操作紀錄</p>
   return (
-    <div className="flex flex-col">
-      <h3
-        className="mb-3 text-sm font-bold"
-        style={{ color: 'var(--admin-text)' }}
-      >
-        Admin Activity
-      </h3>
-      <div className="grid gap-0.5">
+    <div className="md-stack">
+      <div className="md-pane-head"><h3>後台操作紀錄</h3></div>
+      <ul className="md-list">
         {entries.map((e, i) => (
-          <div
-            key={i}
-            className="flex items-start justify-between border-b py-2.5"
-            style={{ borderColor: 'var(--admin-border)' }}
-          >
-            <div className="min-w-0 flex-1">
-              <span
-                className="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase"
-                style={{
-                  color: 'var(--admin-brand)',
-                  background: 'var(--admin-brand-dim)',
-                }}
-              >
-                {formatActionType(e.actionType)}
-              </span>
-              {e.before && (
-                <div
-                  className="mt-1 text-[10px]"
-                  style={{
-                    color: 'var(--admin-text-muted)',
-                    fontFamily: 'var(--font-mono, monospace)',
-                  }}
-                >
-                  {JSON.stringify(e.before).slice(0, 100)}
-                </div>
-              )}
+          <li key={i} className="md-row">
+            <div className="md-row-main">
+              <span className="ad-chip">{formatActionType(e.actionType)}</span>
+              {e.before ? <span className="ad-mono ad-muted md-clip">{JSON.stringify(e.before).slice(0, 100)}</span> : null}
             </div>
-            <span className="text-[10px] whitespace-nowrap" style={{ color: 'var(--admin-text-muted)' }}>
-              {e.createdAt ? new Date(e.createdAt).toLocaleDateString() : ''}
-            </span>
-          </div>
+            <span className="ad-muted">{e.createdAt ? hkDate(e.createdAt) : ''}</span>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   )
 }
@@ -365,16 +227,13 @@ function formatRelativeTime(dateStr: string): string {
   const min = 60_000
   const hour = 3_600_000
   const day = 86_400_000
-
-  if (diff < min) return 'Just now'
-  if (diff < hour) return `${Math.floor(diff / min)}m ago`
-  if (diff < day) return `${Math.floor(diff / hour)}h ago`
-  if (diff < 7 * day) return `${Math.floor(diff / day)}d ago`
-  return new Date(dateStr).toLocaleDateString()
+  if (diff < min) return '剛剛'
+  if (diff < hour) return `${Math.floor(diff / min)} 分鐘前`
+  if (diff < day) return `${Math.floor(diff / hour)} 小時前`
+  if (diff < 7 * day) return `${Math.floor(diff / day)} 日前`
+  return hkDate(dateStr)
 }
 
 function formatActionType(actionType: string): string {
-  return actionType
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
+  return actionType.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
