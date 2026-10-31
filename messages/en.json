@@ -1319,6 +1319,8 @@
     "legal_modal_agree": "I've read and agree. Close.",
     "terms_required_hint": "Continuing with payment means you accept these terms",
     "terms_required_error": "Read and agree to the venue rules first",
+    "no_smoking_title": "No smoking or vaping on site",
+    "no_smoking_desc": "Violations incur a HK$500 cleaning fee and may lead to a ban",
     "legend_available": "Available",
     "legend_selected": "Selected",
     "legend_booked": "Booked",

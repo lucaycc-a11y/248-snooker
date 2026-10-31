@@ -16,6 +16,11 @@ import type { Locale } from "@/i18n/enabled-locales";
 const ZH_HK: string[] = [
   // amounts
   "港幣 $300 元",
+  "港幣 $500 元",
+  "港幣 $3,000 元",
+  // smoking
+  "全面禁煙",
+  "列入黑名單",
   // deadlines / time limits
   "10 分鐘內",
   "5 分鐘",

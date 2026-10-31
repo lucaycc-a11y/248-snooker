@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { CigaretteOff } from "lucide-react"
 import type { LegalDocument } from "@/content/legal/types"
 import type { Locale } from "@/i18n/routing"
 import { highlightKeyPhrases } from "@/app/[locale]/legal/legalKeyPhrases"
@@ -8,6 +9,7 @@ import { highlightKeyPhrases } from "@/app/[locale]/legal/legalKeyPhrases"
 const DARK = "#1D1D1F"
 const SUBTLE = "#86868B"
 const GREEN = "#22C55E"
+const DANGER = "#EF4444"
 const DIVIDER = "#E5E5E5"
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -132,6 +134,39 @@ export default function LegalDocumentRenderer({ document, locale, compact = fals
           <p style={{ fontSize: compact ? 14 : 16, lineHeight: 1.7, color: compact ? "rgba(255,255,255,0.78)" : "#494951", margin: 0, whiteSpace: "pre-line" }}>
             {highlightKeyPhrases(lead, locale)}
           </p>
+        </div>
+      )}
+      {document.callout && (
+        <div
+          role="note"
+          style={{
+            display: "flex",
+            gap: 14,
+            alignItems: "flex-start",
+            borderLeft: `3px solid ${DANGER}`,
+            background: compact ? "rgba(255,255,255,0.04)" : "#F5F5F7",
+            padding: compact ? "14px 16px" : "18px 20px",
+            marginBottom: compact ? 32 : 56,
+          }}
+        >
+          <CigaretteOff
+            aria-hidden="true"
+            size={compact ? 24 : 28}
+            strokeWidth={1.75}
+            color={DANGER}
+            style={{ flexShrink: 0, marginTop: 1 }}
+          />
+          <div>
+            <div style={{
+              fontSize: compact ? 15 : 17,
+              fontWeight: 700,
+              color: compact ? "#fff" : DARK,
+              margin: "0 0 6px",
+            }}>
+              {document.callout.title}
+            </div>
+            <LegalBodyParagraphs body={document.callout.body} locale={locale} compact={compact} />
+          </div>
         </div>
       )}
       <LegalSectionList sections={document.sections} locale={locale} compact={compact} />

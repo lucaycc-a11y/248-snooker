@@ -16,5 +16,8 @@ export type LegalDocument = {
   // `intro` — used by website-terms / privacy, which have an unprefixed
   // intro paragraph before their numbered sections.
   intro?: string
+  // `callout` — optional prominent notice rendered above the numbered
+  // sections (venue rules: the no-smoking notice). Rendering-layer only.
+  callout?: { title: string; body: string }
   sections: LegalSection[]
 }

@@ -1311,6 +1311,8 @@
     "legal_modal_agree": "已阅讀及同意并關閉",
     "terms_required_hint": "繼續付款即視為已同意上述條款",
     "terms_required_error": "請先阅讀并同意場地使用守則",
+    "no_smoking_title": "場內全面禁煙（含電子煙）",
+    "no_smoking_desc": "違規須付清潔費 HK$500，並可能被列入黑名單",
     "legend_available": "可預約",
     "legend_selected": "已選",
     "legend_booked": "已被預約",

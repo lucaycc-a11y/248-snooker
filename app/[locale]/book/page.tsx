@@ -9,6 +9,7 @@ import {
   Lock,
   ShieldCheck,
   AlertTriangle,
+  CigaretteOff,
   Clock,
 } from "lucide-react"
 import { tokens } from "@/app/styles/tokens"
@@ -3267,6 +3268,46 @@ function Screen3({
               marginBottom: 16,
             }}
           >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                paddingBottom: 12,
+                marginBottom: 12,
+                borderBottom: `1px solid ${tokens.colors.border}`,
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 36,
+                  height: 36,
+                  flexShrink: 0,
+                  borderRadius: "50%",
+                  border: `1.5px solid ${tokens.colors.danger}`,
+                  color: tokens.colors.danger,
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <CigaretteOff size={20} strokeWidth={1.75} />
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <div
+                  data-cms-key="book.no_smoking_title"
+                  style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.92)", lineHeight: 1.4 }}
+                >
+                  {t("no_smoking_title")}
+                </div>
+                <div
+                  data-cms-key="book.no_smoking_desc"
+                  style={{ fontSize: 12, color: tokens.colors.textMuted, lineHeight: 1.5, marginTop: 2 }}
+                >
+                  {t("no_smoking_desc")}
+                </div>
+              </div>
+            </div>
             <button
               type="button"
               // Locked only once agreed AND payment started, so it cannot be
